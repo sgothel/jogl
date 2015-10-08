@@ -46,7 +46,7 @@ static jmethodID getCurrentThreadNameID = NULL;
 static jmethodID dumpStackID = NULL;
 static jmethodID sizeChangedID = NULL;
 static jmethodID positionChangedID = NULL;
-static jmethodID focusChangedID = NULL;
+static jmethodID focusVisibleChangedID = NULL;
 static jmethodID reparentNotifyID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowRepaintID = NULL;
@@ -253,7 +253,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
     insetsChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "insetsChanged", "(ZIIII)V");
     sizeChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sizeChanged", "(ZIIZ)V");
     positionChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "positionChanged", "(ZII)V");
-    focusChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "focusChanged", "(ZZ)V");
+    focusVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "focusVisibleChanged", "(ZII)V");
     visibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChanged", "(ZZ)V");
     insetsVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "insetsVisibleChanged", "(ZIIIII)V");
     sizePosMaxInsetsVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sizePosMaxInsetsVisibleChanged", "(ZIIIIIIIIIIIZ)V");
@@ -271,7 +271,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
         insetsChangedID == NULL ||
         sizeChangedID == NULL ||
         positionChangedID == NULL ||
-        focusChangedID == NULL ||
+        focusVisibleChangedID == NULL ||
         visibleChangedID == NULL ||
         insetsVisibleChangedID == NULL ||
         sizePosMaxInsetsVisibleChangedID == NULL ||
@@ -354,6 +354,29 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DisplayRelease0
 
     XSync(dpy, True); // discard all pending events
     DBG_PRINT("X11: X11Display_DisplayRelease dpy %p\n", dpy);
+}
+
+static int NewtWindows_updateVisibility(JNIEnv *env, Display *dpy, JavaWindow *jw, uint32_t netWMState, const char *dbgs) {
+    int visibleChange;
+    if( jw->isMapped && 0 != ( _MASK_NET_WM_STATE_HIDDEN & jw->supportedAtoms ) ) {
+        if( 0 != ( _MASK_NET_WM_STATE_HIDDEN & netWMState ) ) {
+            visibleChange = 0;
+        } else {
+            visibleChange = 1;
+        }
+    } else {
+        visibleChange = -1;
+    }
+    #ifdef VERBOSE_ON
+        XWindowAttributes xwa;
+        memset(&xwa, 0, sizeof(XWindowAttributes));
+        XGetWindowAttributes(dpy, jw->window, &xwa);
+
+        // map_state: IsUnmapped(0), IsUnviewable(1), IsViewable(2)
+        DBG_PRINT( "X11: event . %s call %p - isMapped %d, visibleChanged %d, map_state %d\n", 
+            dbgs, (void*)jw->window, jw->isMapped, visibleChange, xwa.map_state);
+    #endif
+    return visibleChange;
 }
 
 /*
@@ -584,26 +607,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     // insets: negative values are ignored
                     int left=-1, right=-1, top=-1, bottom=-1;
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
-                    int visibleChange;
-                    if( jw->isMapped && 0 != ( _MASK_NET_WM_STATE_HIDDEN & jw->supportedAtoms ) ) {
-                        if( 0 != ( _MASK_NET_WM_STATE_HIDDEN & netWMState ) ) {
-                            visibleChange = 0;
-                        } else {
-                            visibleChange = 1;
-                        }
-                    } else {
-                        visibleChange = -1;
-                    }
-                    #ifdef VERBOSE_ON
-                        XWindowAttributes xwa;
-                        memset(&xwa, 0, sizeof(XWindowAttributes));
-                        XGetWindowAttributes(dpy, jw->window, &xwa);
-
-                        // map_state: IsUnmapped(0), IsUnviewable(1), IsViewable(2)
-                        DBG_PRINT( "X11: event . ConfigureNotify call %p - isMapped %d, visibleChanged %d, map_state %d\n", 
-                            (void*)evt.xconfigure.window, jw->isMapped, visibleChange, xwa.map_state);
-                    #endif
-
+                    int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "ConfigureNotify");
                     NewtWindows_updateInsets(dpy, jw, &left, &right, &top, &bottom);
                     Bool maxChanged = NewtWindows_updateMaximized(dpy, jw, netWMState);
                     (*env)->CallVoidMethod(env, jw->jwindow, sizePosMaxInsetsVisibleChangedID, JNI_FALSE,
@@ -630,13 +634,21 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 break;
 
             case FocusIn:
-                DBG_PRINT( "X11: event . FocusIn call %p\n", (void*)evt.xvisibility.window);
-                (*env)->CallVoidMethod(env, jw->jwindow, focusChangedID, JNI_FALSE, JNI_TRUE);
+                DBG_PRINT( "X11: event . FocusIn call %p\n", (void*)evt.xfocus.window);
+                {
+                    uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
+                    int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "FocusIn");
+                    (*env)->CallVoidMethod(env, jw->jwindow, focusVisibleChangedID, JNI_FALSE, (jint)1, (jint)visibleChange);
+                }
                 break;
 
             case FocusOut:
-                DBG_PRINT( "X11: event . FocusOut call %p\n", (void*)evt.xvisibility.window);
-                (*env)->CallVoidMethod(env, jw->jwindow, focusChangedID, JNI_FALSE, JNI_FALSE);
+                DBG_PRINT( "X11: event . FocusOut call %p\n", (void*)evt.xfocus.window);
+                {
+                    uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
+                    int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "FocusOut");
+                    (*env)->CallVoidMethod(env, jw->jwindow, focusVisibleChangedID, JNI_FALSE, (jint)0, (jint)visibleChange);
+                }
                 break;
 
             case Expose:

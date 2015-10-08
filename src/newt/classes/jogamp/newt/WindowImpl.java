@@ -96,11 +96,12 @@ import com.jogamp.newt.event.WindowUpdateEvent;
 public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
     public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE;
+    private static final boolean DEBUG_FREEZE_AT_VISIBILITY_FAILURE;
 
     static {
         Debug.initSingleton();
         DEBUG_TEST_REPARENT_INCOMPATIBLE = PropertyAccess.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
-
+        DEBUG_FREEZE_AT_VISIBILITY_FAILURE = PropertyAccess.isPropertyDefined("newt.debug.Window.visibility.failure.freeze", true);
         ScreenImpl.initSingleton();
     }
 
@@ -4420,14 +4421,30 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         if( visible != _visible ) {
             final String msg = "Visibility not reached as requested within "+timeOut+"ms : requested "+visible+", is "+_visible;
-            if(failFast) {
+            if(DEBUG_FREEZE_AT_VISIBILITY_FAILURE) {
+                System.err.println("XXXX: "+msg);
+                System.err.println("XXXX: FREEZE");
+                try {
+                    while(true) {
+                        Thread.sleep(1000);
+                    }
+                } catch (final InterruptedException e) {
+                    ExceptionUtils.dumpThrowable("", e);
+                    Thread.currentThread().interrupt(); // keep state
+                }
                 throw new NativeWindowException(msg);
-            } else if (DEBUG_IMPLEMENTATION) {
-                System.err.println(msg);
-                ExceptionUtils.dumpStack(System.err);
+            } else {
+                if(failFast) {
+                    throw new NativeWindowException(msg);
+                } else {
+                    if (DEBUG_IMPLEMENTATION) {
+                        System.err.println(msg);
+                        ExceptionUtils.dumpStack(System.err);
+                    }
+                    return -1;
+                }
             }
-            return -1;
-        } else if( 0 < remaining ){
+        } else if( 0 < remaining ) {
             return remaining;
         } else {
             return 0;
@@ -4693,6 +4710,23 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         sizeChanged(defer, newWidth, newHeight, force);
         positionChanged(defer, newX, newY);
         insetsChanged(defer, left, right, top, bottom);
+        if( 0 <= focusChange ) { // ignore focus < 0
+            focusChanged(defer, 0 < focusChange);
+        }
+        if( 0 <= visibleChange ) { // ignore visible < 0
+            visibleChanged(defer, 0 < visibleChange);
+        }
+    }
+    /**
+     * Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags.
+     *
+     * @param defer
+     * @param focusChange -1 ignored, 0 unfocused, > 0 focused
+     * @param visibleChange -1 ignored, 0 invisible, > 0 visible
+     */
+    protected final void focusVisibleChanged(final boolean defer,
+                                             final int focusChange,
+                                             final int visibleChange) {
         if( 0 <= focusChange ) { // ignore focus < 0
             focusChanged(defer, 0 < focusChange);
         }

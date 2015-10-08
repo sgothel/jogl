@@ -211,7 +211,7 @@ static JavaWindow* createJavaWindowProperty(JNIEnv *env, Display *dpy, Window ro
         res->lastDesktop = 0; //undef
         res->maxHorz = False;
         res->maxVert = False;
-        res->isMapped=False;
+        res->isMapped = False;
     }
     unsigned long jogl_java_object_data[2]; // X11 is based on 'unsigned long'
     int nitems_32 = putPtrIn32Long( jogl_java_object_data, (uintptr_t) res);
@@ -515,7 +515,16 @@ static void NewtWindows_setWindowTypeEWMH (Display *dpy, JavaWindow * w, int typ
     }
 }
 
-static void NewtWindows_sendNET_WM_STATE(Display *dpy, Window root, JavaWindow *w, int prop1Idx, int prop2Idx, Bool enable) {
+void NewtWindows_setUrgency(Display *dpy, Window window, Bool enable) {
+    XWMHints wmh;
+    memset ( &wmh, 0, sizeof(wmh) );
+    if( enable ) {
+        wmh.flags = XUrgencyHint;
+    }
+    XSetWMHints(dpy, window, &wmh);
+}
+
+void NewtWindows_sendNET_WM_STATE(Display *dpy, Window root, JavaWindow *w, int prop1Idx, int prop2Idx, Bool enable) {
     XEvent xev;
     int i=0;
     
@@ -666,27 +675,25 @@ static void NewtWindows_setVisible(Display *dpy, Window root, JavaWindow* jw, Bo
     if( useWM && jw->isMapped && 0 != ( _MASK_NET_WM_STATE_HIDDEN & jw->supportedAtoms ) ) {
         // It has been experienced that MapNotify/UnmapNotify is not sent for windows when using NormalState/IconicState!
         // See X11Display.c::Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0 case ConfigureNotify
+        // NewtWindows_sendNET_WM_STATE(dpy, root, jw, _NET_WM_STATE_DEMANDS_ATTENTION_IDX, 0, True);
+        // NewtWindows_setUrgency(dpy, jw->window, True);
         XEvent xev;
         memset ( &xev, 0, sizeof(xev) );
-        xev.type = ClientMessage;
-        xev.xclient.window = jw->window;
-        xev.xclient.message_type = jw->allAtoms[_WM_CHANGE_STATE_IDX];
-        xev.xclient.format = 32;
         if( visible ) {
-            xev.xclient.data.l[0] = NormalState;
-        } else {
-            xev.xclient.data.l[0] = IconicState;
-        }
-        XSendEvent ( dpy, root, False, SubstructureNotifyMask | SubstructureRedirectMask, &xev );
-        if( visible ) {
-            // NormalState may not work on some WMs (Gnome, KDE) ?
-            memset ( &xev, 0, sizeof(xev) );
+            // NormalState does not work on some WMs (Gnome, KDE)
             xev.type = ClientMessage;
             xev.xclient.window = jw->window;
             xev.xclient.message_type = jw->allAtoms[_NET_ACTIVE_WINDOW_IDX];
             xev.xclient.format = 32;
             xev.xclient.data.l[0] = 1; //source indication for normal applications
             xev.xclient.data.l[1] = CurrentTime;
+            XSendEvent ( dpy, root, False, SubstructureNotifyMask | SubstructureRedirectMask, &xev );
+        } else {
+            xev.type = ClientMessage;
+            xev.xclient.window = jw->window;
+            xev.xclient.message_type = jw->allAtoms[_WM_CHANGE_STATE_IDX];
+            xev.xclient.format = 32;
+            xev.xclient.data.l[0] = IconicState;
             XSendEvent ( dpy, root, False, SubstructureNotifyMask | SubstructureRedirectMask, &xev );
         }
     } else {
@@ -840,7 +847,7 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
     xswa.override_redirect = False; // use the window manager, always (default)
     xswa.event_mask  = X11_MOUSE_EVENT_MASK;
     xswa.event_mask |= KeyPressMask | KeyReleaseMask ;
-    xswa.event_mask |= FocusChangeMask | SubstructureNotifyMask | StructureNotifyMask | ExposureMask ;
+    xswa.event_mask |= FocusChangeMask | SubstructureNotifyMask | StructureNotifyMask | ExposureMask;
 
     {
         int _x = x, _y = y; // pos for CreateWindow, might be tweaked

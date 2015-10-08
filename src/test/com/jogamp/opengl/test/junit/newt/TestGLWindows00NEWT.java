@@ -49,6 +49,8 @@ import com.jogamp.nativewindow.AbstractGraphicsDevice;
 public class TestGLWindows00NEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
+    static boolean manual = false;
+    static int loopVisibleToggle = 10;
     static long durationPerTest = 100; // ms
 
     @BeforeClass
@@ -98,6 +100,9 @@ public class TestGLWindows00NEWT extends UITestCase {
 
     @Test
     public void test01WindowCreateSimple() throws InterruptedException {
+        if( manual ) {
+            return;
+        }
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         final GLWindow window = createWindow(null, caps, false /* undecor */); // local
@@ -116,6 +121,9 @@ public class TestGLWindows00NEWT extends UITestCase {
 
     @Test
     public void test02WindowCreateUndecor() throws InterruptedException {
+        if( manual ) {
+            return;
+        }
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         final GLWindow window = createWindow(null, caps, true /* undecor */); // local
@@ -133,14 +141,17 @@ public class TestGLWindows00NEWT extends UITestCase {
     }
 
     @Test
-    public void test10WindowSimpleToggleVisibility() throws InterruptedException {
-        test1xWindowToggleVisibility(false /* undecor */);
+    public void test11WindowSimpleToggleVisibility() throws InterruptedException {
+        test1xWindowToggleVisibility(false /* undecor */, loopVisibleToggle);
     }
     @Test
-    public void test10WindowUndecorToggleVisibility() throws InterruptedException {
-        test1xWindowToggleVisibility(true /* undecor */);
+    public void test12WindowUndecorToggleVisibility() throws InterruptedException {
+        if( manual ) {
+            return;
+        }
+        test1xWindowToggleVisibility(true /* undecor */, loopVisibleToggle);
     }
-    private void test1xWindowToggleVisibility(final boolean undecor) throws InterruptedException {
+    private void test1xWindowToggleVisibility(final boolean undecor, final int loopVisibleToggle) throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         final GLWindow window = createWindow(null, caps, undecor); // local
@@ -154,29 +165,30 @@ public class TestGLWindows00NEWT extends UITestCase {
             Thread.sleep(100);
         }
 
-        System.err.println("XXX VISIBLE.1 -> FALSE");
-        window.setVisible(false);
-        Assert.assertEquals(true,window.isNativeValid());
-        Assert.assertEquals(false,window.isVisible());
-        for(int state=0; state*100<durationPerTest; state++) {
-            Thread.sleep(100);
+        for(int i=1; i<=loopVisibleToggle; i++) {
+            System.err.println("XXX VISIBLE."+i+" -> FALSE");
+            window.setVisible(false);
+            Assert.assertEquals(true,window.isNativeValid());
+            Assert.assertEquals(false,window.isVisible());
+            for(int state=0; state*100<durationPerTest; state++) {
+                Thread.sleep(100);
+            }
+
+            window.display();
+            Assert.assertEquals(true,window.isNativeValid());
+            Assert.assertEquals(false,window.isVisible());
+
+            System.err.println("XXX VISIBLE."+i+" -> TRUE");
+            window.setVisible(true);
+            Assert.assertEquals(true,window.isNativeValid());
+            Assert.assertEquals(true,window.isVisible());
+            for(int state=0; state*100<durationPerTest; state++) {
+                Thread.sleep(100);
+            }
+            window.display();
+            Assert.assertEquals(true,window.isNativeValid());
+            Assert.assertEquals(true,window.isVisible());
         }
-
-        window.display();
-        Assert.assertEquals(true,window.isNativeValid());
-        Assert.assertEquals(false,window.isVisible());
-
-        System.err.println("XXX VISIBLE.2 -> TRUE");
-        window.setVisible(true);
-        Assert.assertEquals(true,window.isNativeValid());
-        Assert.assertEquals(true,window.isVisible());
-        for(int state=0; state*100<durationPerTest; state++) {
-            Thread.sleep(100);
-        }
-
-        window.display();
-        Assert.assertEquals(true,window.isNativeValid());
-        Assert.assertEquals(true,window.isVisible());
 
         destroyWindow(window);
     }
@@ -193,6 +205,10 @@ public class TestGLWindows00NEWT extends UITestCase {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
+            } else if(args[i].equals("-loopvt")) {
+                loopVisibleToggle = atoi(args[++i]);
+            } else if(args[i].equals("-manual")) {
+                manual = true;
             }
         }
         System.out.println("durationPerTest: "+durationPerTest);

@@ -83,6 +83,7 @@ typedef struct {
     uint32_t lastDesktop;
     Bool maxHorz;
     Bool maxVert;
+    /** flag whether window is mapped */
     Bool isMapped;
 } JavaWindow;
 
@@ -142,6 +143,8 @@ Bool NewtWindows_updateMaximized(Display *dpy, JavaWindow * w, uint32_t netWMSta
 #define _WM_CHANGE_STATE_IDX 23
 #define _MOTIF_WM_HINTS_IDX 24
 
+void NewtWindows_setUrgency(Display *dpy, Window window, Bool enable);
+void NewtWindows_sendNET_WM_STATE(Display *dpy, Window root, JavaWindow *w, int prop1Idx, int prop2Idx, Bool enable);
 uint32_t NewtWindows_getNET_WM_STATE(Display *dpy, JavaWindow *w);
 
 #endif /* _X11COMMON_H_ */

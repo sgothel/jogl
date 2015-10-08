@@ -253,6 +253,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window"
+    D_ARGS="-Dnewt.debug.Window.visibility.failure.freeze"
     #D_ARGS="-Xprof"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Java2D -Djogl.debug.GLJPanel"
@@ -805,9 +806,15 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
 
 #
+# Bug 1249 - NEWT X11: 
+#   - setVisible(false) IconicState not listening to _NET_WM_STATE_HIDDEN; 
+#   - setVisible(true) not restoring from _NET_WM_STATE_HIDDEN
+testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
+
+#
 # NEWT Parenting (w/ NEWT, AWT or SWT)
 #
-testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*

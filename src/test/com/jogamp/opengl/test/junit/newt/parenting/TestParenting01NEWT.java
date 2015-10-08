@@ -50,7 +50,9 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting01NEWT extends UITestCase {
     static int width, height;
-    static long durationPerTest = 600;
+    static long durationPerTest = 100;
+    static boolean manual = false;
+    static int loopVisibleToggle = 10;
     static GLCapabilities glCaps;
 
     @BeforeClass
@@ -139,32 +141,34 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
         // visible test
-        Assert.assertEquals(0, glWindow1.getTotalFPSFrames());
-        Assert.assertEquals(0, glWindow2.getTotalFPSFrames());
-        System.err.println("XXX VISIBLE.1 -> TRUE");
-        glWindow1.setVisible(true);
-        Assert.assertEquals(true, glWindow1.isVisible());
-        Assert.assertEquals(true, glWindow1.isNativeValid());
-        Assert.assertEquals(true, glWindow2.isVisible());
-        Assert.assertEquals(true, glWindow2.isNativeValid());
-        Assert.assertEquals(1,display.getReferenceCount());
-        Assert.assertEquals(true,display.isNativeValid());
-        Assert.assertNotNull(display.getEDTUtil());
-        Assert.assertEquals(true,display.getEDTUtil().isRunning());
-        Assert.assertEquals(2,screen.getReferenceCount());
-        Assert.assertEquals(true,screen.isNativeValid());
-        Assert.assertEquals(1,Display.getActiveDisplayNumber());
-        waitForFrames("window1.setVisible(true)", 1, glWindow1, glWindow2, 2000, true);
+        for(int i=1; i<=loopVisibleToggle; i++) {
+            Assert.assertEquals(0, glWindow1.getTotalFPSFrames());
+            Assert.assertEquals(0, glWindow2.getTotalFPSFrames());
+            System.err.println("XXX VISIBLE."+i+" -> TRUE");
+            glWindow1.setVisible(true);
+            Assert.assertEquals(true, glWindow1.isVisible());
+            Assert.assertEquals(true, glWindow1.isNativeValid());
+            Assert.assertEquals(true, glWindow2.isVisible());
+            Assert.assertEquals(true, glWindow2.isNativeValid());
+            Assert.assertEquals(1,display.getReferenceCount());
+            Assert.assertEquals(true,display.isNativeValid());
+            Assert.assertNotNull(display.getEDTUtil());
+            Assert.assertEquals(true,display.getEDTUtil().isRunning());
+            Assert.assertEquals(2,screen.getReferenceCount());
+            Assert.assertEquals(true,screen.isNativeValid());
+            Assert.assertEquals(1,Display.getActiveDisplayNumber());
+            waitForFrames("window1.setVisible(true)", 1, glWindow1, glWindow2, 2000, true);
 
-        System.err.println("XXX VISIBLE.2 -> FALSE");
-        glWindow1.setVisible(false);
-        Assert.assertEquals(false, glWindow1.isVisible());
-        Assert.assertEquals(true, glWindow1.isNativeValid());
-        Assert.assertEquals(false, glWindow2.isVisible());
-        Assert.assertEquals(true, glWindow2.isNativeValid());
+            System.err.println("XXX VISIBLE."+i+" -> FALSE");
+            glWindow1.setVisible(false);
+            Assert.assertEquals(false, glWindow1.isVisible());
+            Assert.assertEquals(true, glWindow1.isNativeValid());
+            Assert.assertEquals(false, glWindow2.isVisible());
+            Assert.assertEquals(true, glWindow2.isNativeValid());
 
-        glWindow1.resetFPSCounter();
-        glWindow2.resetFPSCounter();
+            glWindow1.resetFPSCounter();
+            glWindow2.resetFPSCounter();
+        }
         Assert.assertEquals(0, glWindow1.getTotalFPSFrames());
         Assert.assertEquals(0, glWindow2.getTotalFPSFrames());
         System.err.println("XXX VISIBLE.3 -> TRUE");
@@ -307,11 +311,17 @@ public class TestParenting01NEWT extends UITestCase {
 
     @Test
     public void test02aReparentTop2WinReparentRecreate() throws InterruptedException {
+        if( manual ) {
+            return;
+        }
         test02ReparentTop2WinImpl(true);
     }
 
     @Test
     public void test02bReparentTop2WinReparentNative() throws InterruptedException {
+        if( manual ) {
+            return;
+        }
         test02ReparentTop2WinImpl(false);
     }
 
@@ -536,11 +546,17 @@ public class TestParenting01NEWT extends UITestCase {
 
     @Test
     public void test03aReparentWin2TopReparentRecreate() throws InterruptedException {
+        if( manual ) {
+            return;
+        }
         test03ReparentWin2TopImpl(true);
     }
 
     @Test
     public void test03bReparentWin2TopReparentNative() throws InterruptedException {
+        if( manual ) {
+            return;
+        }
         test03ReparentWin2TopImpl(false);
     }
 
@@ -765,6 +781,10 @@ public class TestParenting01NEWT extends UITestCase {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
+            } else if(args[i].equals("-loopvt")) {
+                loopVisibleToggle = atoi(args[++i]);
+            } else if(args[i].equals("-manual")) {
+                manual = true;
             } else if(args[i].equals("-asMain")) {
                 asMain = true;
             }
@@ -774,8 +794,8 @@ public class TestParenting01NEWT extends UITestCase {
             try {
                 TestParenting01NEWT.initClass();
                 final TestParenting01NEWT m = new TestParenting01NEWT();
-                m.test02aReparentTop2WinReparentRecreate();
                 m.test01CreateVisibleDestroy();
+                m.test02aReparentTop2WinReparentRecreate();
             } catch (final Throwable t ) {
                 t.printStackTrace();
             }
