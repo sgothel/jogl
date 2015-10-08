@@ -4557,6 +4557,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /**
      * Triggered by implementation's WM events to update the insets.
      *
+     * @param defer
+     * @param left insets, -1 ignored
+     * @param right insets, -1 ignored
+     * @param top insets, -1 ignored
+     * @param bottom insets, -1 ignored
+     *
      * @see #getInsets()
      * @see #updateInsetsImpl(Insets)
      */
@@ -4661,31 +4667,90 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Accumulated actions
     //
 
-    /** Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags. */
+    /**
+     * Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags.
+     *
+     * @param defer
+     * @param newX
+     * @param newY
+     * @param newWidth
+     * @param newHeight
+     * @param left insets, -1 ignored
+     * @param right insets, -1 ignored
+     * @param top insets, -1 ignored
+     * @param bottom insets, -1 ignored
+     * @param focusChange -1 ignored, 0 unfocused, > 0 focused
+     * @param visibleChange -1 ignored, 0 invisible, > 0 visible
+     * @param force
+     */
     protected final void sizePosInsetsFocusVisibleChanged(final boolean defer,
                                                           final int newX, final int newY,
                                                           final int newWidth, final int newHeight,
                                                           final int left, final int right, final int top, final int bottom,
-                                                          final boolean focusGained,
-                                                          final boolean visible,
+                                                          final int focusChange,
+                                                          final int visibleChange,
                                                           final boolean force) {
         sizeChanged(defer, newWidth, newHeight, force);
         positionChanged(defer, newX, newY);
         insetsChanged(defer, left, right, top, bottom);
-        focusChanged(defer, focusGained);
-        visibleChanged(defer, visible);
+        if( 0 <= focusChange ) { // ignore focus < 0
+            focusChanged(defer, 0 < focusChange);
+        }
+        if( 0 <= visibleChange ) { // ignore visible < 0
+            visibleChanged(defer, 0 < visibleChange);
+        }
     }
-    /** Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags. */
-    protected final void sizePosMaxInsetsChanged(final boolean defer,
-                                                 final int newX, final int newY,
-                                                 final int newWidth, final int newHeight,
-                                                 final boolean newMaxHorz, final boolean newMaxVert,
-                                                 final int left, final int right, final int top, final int bottom,
-                                                 final boolean force) {
+    /**
+     * Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags.
+     *
+     * @param defer
+     * @param left insets, -1 ignored
+     * @param right insets, -1 ignored
+     * @param top insets, -1 ignored
+     * @param bottom insets, -1 ignored
+     * @param visibleChange -1 ignored, 0 invisible, > 0 visible
+     */
+    protected final void insetsVisibleChanged(final boolean defer,
+                                              final int left, final int right, final int top, final int bottom,
+                                              final int visibleChange) {
+        insetsChanged(defer, left, right, top, bottom);
+        if( 0 <= visibleChange ) { // ignore visible < 0
+            visibleChanged(defer, 0 < visibleChange);
+        }
+    }
+    /**
+     * Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags.
+     *
+     * @param defer
+     * @param newX
+     * @param newY
+     * @param newWidth
+     * @param newHeight
+     * @param maxHorzChange -1 ignored, 0 !maximized, > 0 maximized
+     * @param maxVertChange -1 ignored, 0 !maximized, > 0 maximized
+     * @param left insets, -1 ignored
+     * @param right insets, -1 ignored
+     * @param top insets, -1 ignored
+     * @param bottom insets, -1 ignored
+     * @param visibleChange -1 ignored, 0 invisible, > 0 visible
+     * @param force
+     */
+    protected final void sizePosMaxInsetsVisibleChanged(final boolean defer,
+                                                        final int newX, final int newY,
+                                                        final int newWidth, final int newHeight,
+                                                        final int maxHorzChange, final int maxVertChange,
+                                                        final int left, final int right, final int top, final int bottom,
+                                                        final int visibleChange,
+                                                        final boolean force) {
         sizeChanged(defer, newWidth, newHeight, force);
         positionChanged(defer, newX, newY);
-        maximizedChanged(newMaxHorz, newMaxVert);
+        if( 0 <= maxHorzChange && 0 <= maxVertChange ) {
+            maximizedChanged(0 < maxHorzChange, 0 < maxVertChange);
+        }
         insetsChanged(defer, left, right, top, bottom);
+        if( 0 <= visibleChange ) { // ignore visible < 0
+            visibleChanged(defer, 0 < visibleChange);
+        }
     }
     /** Triggered by implementation. */
     protected final void sendMouseEventRequestFocus(final short eventType, final int modifiers,

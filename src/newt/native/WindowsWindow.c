@@ -2128,7 +2128,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
-    sizePosInsetsFocusVisibleChangedID = (*env)->GetMethodID(env, clazz, "sizePosInsetsFocusVisibleChanged", "(ZIIIIIIIIZZZ)V");
+    sizePosInsetsFocusVisibleChangedID = (*env)->GetMethodID(env, clazz, "sizePosInsetsFocusVisibleChanged", "(ZIIIIIIIIIIZ)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)V");
@@ -2414,8 +2414,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_InitWindow0
                            (jint)wud->xpos, (jint)wud->ypos,
                            (jint)wud->width, (jint)wud->height,
                            (jint)wud->insets.left, (jint)wud->insets.right, (jint)wud->insets.top, (jint)wud->insets.bottom,
-                           (jboolean)wud->focused,
-                           (jboolean)wud->visible,
+                           (jint)(wud->focused ? 1 : 0),
+                           (jint)(wud->visible ? 1 : 0),
                            JNI_FALSE);
     DBG_PRINT("*** WindowsWindow: InitWindow JNI callbacks done\n");
 

@@ -35,7 +35,7 @@
 jclass X11NewtWindowClazz = NULL;
 jmethodID insetsChangedID = NULL;
 jmethodID visibleChangedID = NULL;
-jmethodID sizePosMaxInsetsChangedID = NULL;
+jmethodID insetsVisibleChangedID = NULL;
 
 static const char * const ClazzNameX11NewtWindow = "jogamp/newt/driver/x11/WindowDriver";
 
@@ -53,6 +53,7 @@ static jmethodID windowRepaintID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 static jmethodID sendMouseEventRequestFocusID = NULL;
+static jmethodID sizePosMaxInsetsVisibleChangedID = NULL;
 
 /**
  * Keycode
@@ -254,7 +255,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
     positionChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "positionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "focusChanged", "(ZZ)V");
     visibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChanged", "(ZZ)V");
-    sizePosMaxInsetsChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sizePosMaxInsetsChanged", "(ZIIIIZZIIIIZ)V");
+    insetsVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "insetsVisibleChanged", "(ZIIIII)V");
+    sizePosMaxInsetsVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sizePosMaxInsetsVisibleChanged", "(ZIIIIIIIIIIIZ)V");
     reparentNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "reparentNotify", "(J)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowRepaint", "(ZIIII)V");
@@ -271,7 +273,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
         positionChangedID == NULL ||
         focusChangedID == NULL ||
         visibleChangedID == NULL ||
-        sizePosMaxInsetsChangedID == NULL ||
+        insetsVisibleChangedID == NULL ||
+        sizePosMaxInsetsVisibleChangedID == NULL ||
         reparentNotifyID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowRepaintID == NULL ||
@@ -578,15 +581,38 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                             evt.xconfigure.override_redirect, evt.xconfigure.window != evt.xconfigure.event);
                 if ( evt.xconfigure.window == evt.xconfigure.event ) {
                     // ignore child window change notification
-                    // update insets
+                    // insets: negative values are ignored
                     int left=-1, right=-1, top=-1, bottom=-1;
+                    uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
+                    int visibleChange;
+                    if( jw->isMapped && 0 != ( _MASK_NET_WM_STATE_HIDDEN & jw->supportedAtoms ) ) {
+                        if( 0 != ( _MASK_NET_WM_STATE_HIDDEN & netWMState ) ) {
+                            visibleChange = 0;
+                        } else {
+                            visibleChange = 1;
+                        }
+                    } else {
+                        visibleChange = -1;
+                    }
+                    #ifdef VERBOSE_ON
+                        XWindowAttributes xwa;
+                        memset(&xwa, 0, sizeof(XWindowAttributes));
+                        XGetWindowAttributes(dpy, jw->window, &xwa);
+
+                        // map_state: IsUnmapped(0), IsUnviewable(1), IsViewable(2)
+                        DBG_PRINT( "X11: event . ConfigureNotify call %p - isMapped %d, visibleChanged %d, map_state %d\n", 
+                            (void*)evt.xconfigure.window, jw->isMapped, visibleChange, xwa.map_state);
+                    #endif
+
                     NewtWindows_updateInsets(dpy, jw, &left, &right, &top, &bottom);
-                    NewtWindows_updateMaximized(dpy, jw);
-                    (*env)->CallVoidMethod(env, jw->jwindow, sizePosMaxInsetsChangedID, JNI_FALSE,
+                    Bool maxChanged = NewtWindows_updateMaximized(dpy, jw, netWMState);
+                    (*env)->CallVoidMethod(env, jw->jwindow, sizePosMaxInsetsVisibleChangedID, JNI_FALSE,
                                             (jint) evt.xconfigure.x, (jint) evt.xconfigure.y,
                                             (jint) evt.xconfigure.width, (jint) evt.xconfigure.height,
-                                            (jboolean)jw->maxHorz, (jboolean)jw->maxVert,
+                                            (jint)(maxChanged ? ( jw->maxHorz ? 1 : 0 ) : -1), 
+                                            (jint)(maxChanged ? ( jw->maxVert ? 1 : 0 ) : -1),
                                             (jint)left, (jint)right, (jint)top, (jint)bottom,
+                                            (jint)visibleChange,
                                             JNI_FALSE);
                 }
                 break;
@@ -629,14 +655,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     evt.xmap.event!=evt.xmap.window);
                 if( evt.xmap.event == evt.xmap.window ) {
                     // ignore child window notification
-                    {
-                        // update insets
-                        int left, right, top, bottom;
-                        if( NewtWindows_updateInsets(dpy, jw, &left, &right, &top, &bottom) ) {
-                            (*env)->CallVoidMethod(env, jw->jwindow, insetsChangedID, JNI_FALSE, left, right, top, bottom);
-                        }
+                    // insets: negative values are ignored
+                    int left=-1, right=-1, top=-1, bottom=-1;
+                    if( NewtWindows_updateInsets(dpy, jw, &left, &right, &top, &bottom) ) {
+                        (*env)->CallVoidMethod(env, jw->jwindow, insetsVisibleChangedID, JNI_FALSE, left, right, top, bottom, 1);
+                    } else {
+                        (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE, JNI_TRUE);
                     }
-                    (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE, JNI_TRUE);
                 }
                 break;
 

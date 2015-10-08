@@ -58,7 +58,7 @@ public class TestGLWindows00NEWT extends UITestCase {
         glp = GLProfile.getDefault();
     }
 
-    static GLWindow createWindow(final Screen screen, final GLCapabilitiesImmutable caps)
+    static GLWindow createWindow(final Screen screen, final GLCapabilitiesImmutable caps, final boolean undecor)
         throws InterruptedException
     {
         Assert.assertNotNull(caps);
@@ -78,7 +78,9 @@ public class TestGLWindows00NEWT extends UITestCase {
         final GLEventListener demo = new GearsES2();
         glWindow.addGLEventListener(demo);
 
+        glWindow.setUndecorated(undecor);
         glWindow.setSize(512, 512);
+        System.err.println("XXX VISIBLE.0 -> TRUE");
         glWindow.setVisible(true);
         Assert.assertEquals(true,glWindow.isVisible());
         Assert.assertEquals(true,glWindow.isNativeValid());
@@ -90,25 +92,93 @@ public class TestGLWindows00NEWT extends UITestCase {
         if(null!=glWindow) {
             glWindow.destroy();
             Assert.assertEquals(false,glWindow.isNativeValid());
+            Assert.assertEquals(false,glWindow.isVisible());
         }
     }
 
     @Test
-    public void testWindow00() throws InterruptedException {
+    public void test01WindowCreateSimple() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        final GLWindow window1 = createWindow(null, caps); // local
-        Assert.assertEquals(true,window1.isNativeValid());
-        Assert.assertEquals(true,window1.isVisible());
-        final AbstractGraphicsDevice device1 = window1.getScreen().getDisplay().getGraphicsDevice();
+        final GLWindow window = createWindow(null, caps, false /* undecor */); // local
+        Assert.assertEquals(true,window.isNativeValid());
+        Assert.assertEquals(true,window.isVisible());
 
+        final AbstractGraphicsDevice device1 = window.getScreen().getDisplay().getGraphicsDevice();
         System.err.println("GLProfiles window1: "+device1.getConnection()+": "+GLProfile.glAvailabilityToString(device1));
 
         for(int state=0; state*100<durationPerTest; state++) {
             Thread.sleep(100);
         }
 
-        destroyWindow(window1);
+        destroyWindow(window);
+    }
+
+    @Test
+    public void test02WindowCreateUndecor() throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        Assert.assertNotNull(caps);
+        final GLWindow window = createWindow(null, caps, true /* undecor */); // local
+        Assert.assertEquals(true,window.isNativeValid());
+        Assert.assertEquals(true,window.isVisible());
+
+        final AbstractGraphicsDevice device1 = window.getScreen().getDisplay().getGraphicsDevice();
+        System.err.println("GLProfiles window1: "+device1.getConnection()+": "+GLProfile.glAvailabilityToString(device1));
+
+        for(int state=0; state*100<durationPerTest; state++) {
+            Thread.sleep(100);
+        }
+
+        destroyWindow(window);
+    }
+
+    @Test
+    public void test10WindowSimpleToggleVisibility() throws InterruptedException {
+        test1xWindowToggleVisibility(false /* undecor */);
+    }
+    @Test
+    public void test10WindowUndecorToggleVisibility() throws InterruptedException {
+        test1xWindowToggleVisibility(true /* undecor */);
+    }
+    private void test1xWindowToggleVisibility(final boolean undecor) throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        Assert.assertNotNull(caps);
+        final GLWindow window = createWindow(null, caps, undecor); // local
+        Assert.assertEquals(true,window.isNativeValid());
+        Assert.assertEquals(true,window.isVisible());
+
+        window.display();
+        Assert.assertEquals(true,window.isNativeValid());
+        Assert.assertEquals(true,window.isVisible());
+        for(int state=0; state*100<durationPerTest; state++) {
+            Thread.sleep(100);
+        }
+
+        System.err.println("XXX VISIBLE.1 -> FALSE");
+        window.setVisible(false);
+        Assert.assertEquals(true,window.isNativeValid());
+        Assert.assertEquals(false,window.isVisible());
+        for(int state=0; state*100<durationPerTest; state++) {
+            Thread.sleep(100);
+        }
+
+        window.display();
+        Assert.assertEquals(true,window.isNativeValid());
+        Assert.assertEquals(false,window.isVisible());
+
+        System.err.println("XXX VISIBLE.2 -> TRUE");
+        window.setVisible(true);
+        Assert.assertEquals(true,window.isNativeValid());
+        Assert.assertEquals(true,window.isVisible());
+        for(int state=0; state*100<durationPerTest; state++) {
+            Thread.sleep(100);
+        }
+
+        window.display();
+        Assert.assertEquals(true,window.isNativeValid());
+        Assert.assertEquals(true,window.isVisible());
+
+        destroyWindow(window);
     }
 
     static int atoi(final String a) {

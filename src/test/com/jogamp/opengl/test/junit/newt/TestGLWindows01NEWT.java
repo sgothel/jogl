@@ -59,8 +59,7 @@ public class TestGLWindows01NEWT extends UITestCase {
     }
 
     static GLWindow createWindow(final Screen screen, final GLCapabilities caps,
-                                 final int width, final int height, final boolean onscreen, final boolean undecorated,
-                                 final boolean addGLEventListenerAfterVisible)
+                                 final int width, final int height, final boolean onscreen, final boolean addGLEventListenerAfterVisible)
         throws InterruptedException
     {
         Assert.assertNotNull(caps);
@@ -79,7 +78,6 @@ public class TestGLWindows01NEWT extends UITestCase {
             Assert.assertNotNull(glWindow);
         }
 
-        glWindow.setUndecorated(onscreen && undecorated);
         Assert.assertEquals(false,glWindow.isVisible());
         Assert.assertEquals(false,glWindow.isNativeValid());
 
@@ -122,16 +120,47 @@ public class TestGLWindows01NEWT extends UITestCase {
         if(null!=glWindow) {
             glWindow.destroy();
             Assert.assertEquals(false,glWindow.isNativeValid());
+            Assert.assertEquals(false,glWindow.isVisible());
         }
     }
 
+
     @Test
-    public void testWindowNativeRecreate01aSimple() throws InterruptedException {
+    public void test01WindowSimple() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         final GLWindow window = createWindow(null, caps, width, height,
-                                       true /* onscreen */, false /* undecorated */,
-                                       false /*addGLEventListenerAfterVisible*/);
+                                       true /* onscreen */, false /*addGLEventListenerAfterVisible*/);
+        System.out.println("Created: "+window);
+        int state;
+        for(state=0; state*100<durationPerTest; state++) {
+            Thread.sleep(100);
+        }
+        System.out.println("duration: "+window.getTotalFPSDuration());
+        destroyWindow(window);
+    }
+
+    @Test
+    public void test02WindowSimple() throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        Assert.assertNotNull(caps);
+        final GLWindow window = createWindow(null, caps, width, height,
+                                       true /* onscreen */, true /*addGLEventListenerAfterVisible*/);
+        System.out.println("Created: "+window);
+        int state;
+        for(state=0; state*100<durationPerTest; state++) {
+            Thread.sleep(100);
+        }
+        System.out.println("duration: "+window.getTotalFPSDuration());
+        destroyWindow(window);
+    }
+
+    @Test
+    public void test10WindowNativeRecreateSimple() throws InterruptedException {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        Assert.assertNotNull(caps);
+        final GLWindow window = createWindow(null, caps, width, height,
+                                       true /* onscreen */, false /*addGLEventListenerAfterVisible*/);
 
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
@@ -155,12 +184,11 @@ public class TestGLWindows01NEWT extends UITestCase {
     }
 
     @Test
-    public void testWindowNativeRecreate01bSimple() throws InterruptedException {
+    public void test11WindowNativeRecreateSimple() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         final GLWindow window = createWindow(null, caps, width, height,
-                                       true /* onscreen */, false /* undecorated */,
-                                       true /*addGLEventListenerAfterVisible*/);
+                                       true /* onscreen */, true /*addGLEventListenerAfterVisible*/);
 
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
@@ -184,13 +212,11 @@ public class TestGLWindows01NEWT extends UITestCase {
     }
 
     @Test
-    public void testWindowDecor01aSimple() throws InterruptedException {
+    public void test21WindowDestroyWinTwiceA() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         final GLWindow window = createWindow(null, caps, width, height,
-                                       true /* onscreen */, false /* undecorated */,
-                                       false /*addGLEventListenerAfterVisible*/);
-        System.out.println("Created: "+window);
+                                       true /* onscreen */, false /*addGLEventListenerAfterVisible*/);
         int state;
         for(state=0; state*100<durationPerTest; state++) {
             Thread.sleep(100);
@@ -200,38 +226,7 @@ public class TestGLWindows01NEWT extends UITestCase {
     }
 
     @Test
-    public void testWindowDecor01bSimple() throws InterruptedException {
-        final GLCapabilities caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
-        final GLWindow window = createWindow(null, caps, width, height,
-                                       true /* onscreen */, false /* undecorated */,
-                                       true /*addGLEventListenerAfterVisible*/);
-        System.out.println("Created: "+window);
-        int state;
-        for(state=0; state*100<durationPerTest; state++) {
-            Thread.sleep(100);
-        }
-        System.out.println("duration: "+window.getTotalFPSDuration());
-        destroyWindow(window);
-    }
-
-    @Test
-    public void testWindowDecor02DestroyWinTwiceA() throws InterruptedException {
-        final GLCapabilities caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
-        final GLWindow window = createWindow(null, caps, width, height,
-                                       true /* onscreen */, false /* undecorated */,
-                                       false /*addGLEventListenerAfterVisible*/);
-        int state;
-        for(state=0; state*100<durationPerTest; state++) {
-            Thread.sleep(100);
-        }
-        System.out.println("duration: "+window.getTotalFPSDuration());
-        destroyWindow(window);
-    }
-
-    @Test
-    public void testWindowDecor03TwoWinOneDisplay() throws InterruptedException {
+    public void test22WindowTwoWinOneDisplay() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
 
@@ -241,13 +236,11 @@ public class TestGLWindows01NEWT extends UITestCase {
         final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
         final GLWindow window1 = createWindow(screen, caps, width, height,
-                                       true /* onscreen */, false /* undecorated */,
-                                       false /*addGLEventListenerAfterVisible*/);
+                                       true /* onscreen */, false /*addGLEventListenerAfterVisible*/);
         Assert.assertNotNull(window1);
 
         final GLWindow window2 = createWindow(screen, caps, width, height,
-                                       true /* onscreen */, false /* undecorated */,
-                                       false /*addGLEventListenerAfterVisible*/);
+                                       true /* onscreen */, false /*addGLEventListenerAfterVisible*/);
         Assert.assertNotNull(window2);
 
         Assert.assertEquals(1,Display.getActiveDisplayNumber());
@@ -281,7 +274,7 @@ public class TestGLWindows01NEWT extends UITestCase {
     }
 
     @Test
-    public void testWindowDecor03TwoWinTwoDisplays() throws InterruptedException {
+    public void test23WindowTwoWinTwoDisplays() throws InterruptedException {
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
 
@@ -294,15 +287,13 @@ public class TestGLWindows01NEWT extends UITestCase {
         final Screen screen1  = NewtFactory.createScreen(display1, 0); // screen 0
         Assert.assertNotNull(screen1);
         final GLWindow window1 = createWindow(screen1, caps, width, height,
-                                       true /* onscreen */, false /* undecorated */,
-                                       false /*addGLEventListenerAfterVisible*/);
+                                       true /* onscreen */, false /*addGLEventListenerAfterVisible*/);
         Assert.assertNotNull(window1);
 
         final Screen screen2  = NewtFactory.createScreen(display2, 0); // screen 0
         Assert.assertNotNull(screen2);
         final GLWindow window2 = createWindow(screen2, caps, width, height,
-                                       true /* onscreen */, false /* undecorated */,
-                                       false /*addGLEventListenerAfterVisible*/);
+                                       true /* onscreen */, false /*addGLEventListenerAfterVisible*/);
         Assert.assertNotNull(window2);
 
         Assert.assertEquals(2,Display.getActiveDisplayNumber());

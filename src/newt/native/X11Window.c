@@ -85,53 +85,7 @@ static uintptr_t getPtrOut32Long(unsigned long * src) {
 #define _NET_WM_STATE_REMOVE 0
 #define _NET_WM_STATE_ADD 1
 
-#define _MASK_NET_WM_STATE                   ( 1 <<  0 )
-#define _MASK_NET_WM_STATE_MODAL             ( 1 <<  1 )
-#define _MASK_NET_WM_STATE_STICKY            ( 1 <<  2 )
-#define _MASK_NET_WM_STATE_MAXIMIZED_VERT    ( 1 <<  3 )
-#define _MASK_NET_WM_STATE_MAXIMIZED_HORZ    ( 1 <<  4 )
-#define _MASK_NET_WM_STATE_SHADED            ( 1 <<  5 )
-#define _MASK_NET_WM_STATE_HIDDEN            ( 1 <<  8 )
-#define _MASK_NET_WM_STATE_FULLSCREEN        ( 1 <<  9 )
-#define _MASK_NET_WM_STATE_ABOVE             ( 1 << 10 )
-#define _MASK_NET_WM_STATE_BELOW             ( 1 << 11 )
-#define _MASK_NET_WM_STATE_DEMANDS_ATTENTION ( 1 << 12 )
-#define _MASK_NET_WM_STATE_FOCUSED           ( 1 << 13 )
-#define _MASK_NET_WM_BYPASS_COMPOSITOR       ( 1 << 14 )
-#define _MASK_NET_WM_DESKTOP                 ( 1 << 15 )
-#define _MASK_NET_CURRENT_DESKTOP            ( 1 << 16 )
-#define _MASK_NET_WM_WINDOW_TYPE             ( 1 << 17 )
-#define _MASK_NET_WM_WINDOW_TYPE_NORMAL      ( 1 << 18 )
-#define _MASK_NET_WM_WINDOW_TYPE_POPUP_MENU  ( 1 << 19 )
-#define _MASK_NET_FRAME_EXTENTS              ( 1 << 20 )
-#define _MASK_NET_SUPPORTED                  ( 1 << 21 )
-#define _MASK_WM_CHANGE_STATE                ( 1 << 22 )
-#define _MASK_MOTIF_WM_HINTS                 ( 1 << 23 )
-
-#define _NET_WM_STATE_IDX 0
-#define _NET_WM_STATE_MODAL_IDX 1
-#define _NET_WM_STATE_STICKY_IDX 2
-#define _NET_WM_STATE_MAXIMIZED_VERT_IDX 3
-#define _NET_WM_STATE_MAXIMIZED_HORZ_IDX 4
-#define _NET_WM_STATE_SHADED_IDX 5
-#define _NET_WM_STATE_SKIP_TASKBAR_IDX 6
-#define _NET_WM_STATE_SKIP_PAGER_IDX 7
-#define _NET_WM_STATE_HIDDEN_IDX 8
-#define _NET_WM_STATE_FULLSCREEN_IDX 9
-#define _NET_WM_STATE_ABOVE_IDX 10
-#define _NET_WM_STATE_BELOW_IDX 11
-#define _NET_WM_STATE_DEMANDS_ATTENTION_IDX 12
-#define _NET_WM_STATE_FOCUSED_IDX 13
-#define _NET_WM_BYPASS_COMPOSITOR_IDX 14
-#define _NET_WM_DESKTOP_IDX 15
-#define _NET_CURRENT_DESKTOP_IDX 16
-#define _NET_WM_WINDOW_TYPE_IDX 17
-#define _NET_WM_WINDOW_TYPE_NORMAL_IDX 18
-#define _NET_WM_WINDOW_TYPE_POPUP_MENU_IDX 19
-#define _NET_FRAME_EXTENTS_IDX 20
-#define _NET_SUPPORTED_IDX 21
-#define _WM_CHANGE_STATE_IDX 22
-#define _MOTIF_WM_HINTS_IDX 23
+/** Sync w/ X11Common.h MASK and IDX */
 static const char * _ALL_ATOM_NAMES[] = { 
     /*  0 */ "_NET_WM_STATE",
     /*  1 */ "_NET_WM_STATE_MODAL",
@@ -155,8 +109,9 @@ static const char * _ALL_ATOM_NAMES[] = {
     /* 19 */ "_NET_WM_WINDOW_TYPE_POPUP_MENU",
     /* 20 */ "_NET_FRAME_EXTENTS",
     /* 21 */ "_NET_SUPPORTED",
-    /* 22 */ "WM_CHANGE_STATE",
-    /* 23 */ "_MOTIF_WM_HINTS"
+    /* 22 */ "_NET_ACTIVE_WINDOW",
+    /* 23 */ "WM_CHANGE_STATE",
+    /* 24 */ "_MOTIF_WM_HINTS"
 };
 static const uint32_t _ALL_ATOM_COUNT = (uint32_t)(sizeof(_ALL_ATOM_NAMES)/sizeof(const char *));
 
@@ -185,7 +140,6 @@ static uint32_t NewtWindows_getSupportedFeaturesEWMH(Display *dpy, Window root, 
     uint32_t res = 0;
     Status s;
 
-    XSync(dpy, False);
     if ( Success == (s = XGetWindowProperty(dpy, root, allAtoms[_NET_SUPPORTED_IDX], 0, 1024, False, AnyPropertyType,
                                             &type, &form, &props_count, &remain, (unsigned char**)&properties)) ) {
         if( NULL != properties ) {
@@ -202,7 +156,16 @@ static uint32_t NewtWindows_getSupportedFeaturesEWMH(Display *dpy, Window root, 
     }
     return res;
 }
-static uint32_t NewtWindows_getNET_WM_STATE(Display *dpy, Window window, Atom * allAtoms, Bool verbose) {
+uint32_t NewtWindows_getNET_WM_STATE(Display *dpy, JavaWindow *w) {
+    Bool verbose = 
+#ifdef VERBOSE_ON
+                        True
+#else
+                        False
+#endif
+    ;
+    Window window = w->window;
+    Atom * allAtoms = w->allAtoms;
     Atom * properties = NULL;
     Atom type = 0;
     unsigned long props_count = 0, remain = 0;
@@ -210,7 +173,6 @@ static uint32_t NewtWindows_getNET_WM_STATE(Display *dpy, Window window, Atom * 
     uint32_t res = 0;
     Status s;
 
-    XSync(dpy, False);
     if ( Success == (s = XGetWindowProperty(dpy, window, allAtoms[_NET_WM_STATE_IDX], 0, 1024, False, AnyPropertyType,
                                             &type, &form, &props_count, &remain, (unsigned char**)&properties)) ) {
         if( NULL != properties ) {
@@ -220,7 +182,7 @@ static uint32_t NewtWindows_getNET_WM_STATE(Display *dpy, Window window, Atom * 
             XFree(properties);
         }
         if(verbose) {
-            fprintf(stderr, "**************** X11: WM_STATE of %p: 0x%X\n", (void*)window, res);
+            fprintf(stderr, "**************** X11: WM_STATE of %p: %d props -> 0x%X\n", (void*)window, (int)props_count, res);
         }
     } else if(verbose) {
         fprintf(stderr, "**************** X11: WM_STATE of %p: XGetWindowProperty failed: %d\n", (void*)window, s);
@@ -249,6 +211,7 @@ static JavaWindow* createJavaWindowProperty(JNIEnv *env, Display *dpy, Window ro
         res->lastDesktop = 0; //undef
         res->maxHorz = False;
         res->maxVert = False;
+        res->isMapped=False;
     }
     unsigned long jogl_java_object_data[2]; // X11 is based on 'unsigned long'
     int nitems_32 = putPtrIn32Long( jogl_java_object_data, (uintptr_t) res);
@@ -352,7 +315,6 @@ static void NewtWindows_setCWAbove(Display *dpy, Window w) {
     memset(&xwc, 0, sizeof(XWindowChanges));
     xwc.stack_mode = Above;
     XConfigureWindow(dpy, w, CWStackMode, &xwc);
-    XSync(dpy, False);
 }
 static Status NewtWindows_getWindowPositionRelative2Parent (Display *dpy, Window w, int *x_return, int *y_return) {
     Window root_return;
@@ -440,8 +402,7 @@ static void NewtWindows_setDecorations (Display *dpy, JavaWindow *w, Bool decora
 #ifdef DECOR_USE_EWMH
     XChangeProperty( dpy, w->window, w->allAtoms[_NET_WM_WINDOW_TYPE_IDX], XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
 #endif
-
-    XSync(dpy, False);
+    XFlush(dpy);
 }
 
 static Bool NewtWindows_hasDecorations (Display *dpy, JavaWindow * w) {
@@ -473,7 +434,6 @@ static void NewtWindows_requestFocus (Display *dpy, JavaWindow * jw, Bool force)
     Window focus_return;
     int revert_to_return;
 
-    XSync(dpy, False);
     XGetInputFocus(dpy, &focus_return, &revert_to_return);
     DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d, hasFocus %d\n", dpy, (void*)jw->window, force, focus_return==jw->window);
 
@@ -488,8 +448,8 @@ static void NewtWindows_requestFocus (Display *dpy, JavaWindow * jw, Bool force)
             XSetInputFocus(dpy, jw->window, RevertToParent, CurrentTime);
         }
     }
+    XFlush(dpy);
     DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d - FIN\n", dpy, (void*)jw->window, force);
-    XSync(dpy, False);
 }
 
 Bool NewtWindows_updateInsets(Display *dpy, JavaWindow * w, int *left, int *right, int *top, int *bottom) {
@@ -513,16 +473,9 @@ Bool NewtWindows_updateInsets(Display *dpy, JavaWindow * w, int *left, int *righ
     return False; // Error
 }
 
-Bool NewtWindows_updateMaximized(Display *dpy, JavaWindow * w) {
-    uint32_t state = NewtWindows_getNET_WM_STATE(dpy, w->window, w->allAtoms, 
-#ifdef VERBOSE_ON
-                        True
-#else
-                        False
-#endif
-                     );
-    Bool maxHorz = 0 != ( _MASK_NET_WM_STATE_MAXIMIZED_HORZ & state ) ;
-    Bool maxVert = 0 != ( _MASK_NET_WM_STATE_MAXIMIZED_VERT & state ) ;
+Bool NewtWindows_updateMaximized(Display *dpy, JavaWindow * w, uint32_t netWMState) {
+    Bool maxHorz = 0 != ( _MASK_NET_WM_STATE_MAXIMIZED_HORZ & netWMState ) ;
+    Bool maxVert = 0 != ( _MASK_NET_WM_STATE_MAXIMIZED_VERT & netWMState ) ;
     if( w->maxHorz != maxHorz || w->maxVert != maxVert ) {
         w->maxHorz = maxHorz;
         w->maxVert = maxVert;
@@ -558,7 +511,7 @@ static void NewtWindows_setWindowTypeEWMH (Display *dpy, JavaWindow * w, int typ
     } // else { }
     if( 0 != types[0] ) {
         XChangeProperty( dpy, w->window, w->allAtoms[_NET_WM_WINDOW_TYPE_IDX], XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, 1);
-        XSync(dpy, False);
+        XFlush(dpy);
     }
 }
 
@@ -694,7 +647,7 @@ static void NewtWindows_setStackingEWMHFlags (Display *dpy, Window root, JavaWin
                                      changeMaxVert ? _NET_WM_STATE_MAXIMIZED_VERT_IDX : 0, 
                                      enable);
     }
-    XSync(dpy, False);
+    XFlush(dpy);
     DBG_PRINT( "X11: setStackingEWMHFlags ON %d, change[Sticky %d, Fullscreen %d, Above %d, Below %d, MaxV %d, MaxH %d]\n", 
         enable, changeSticky, changeFullscreen, changeAbove, changeBelow, changeMaxVert, changeMaxHorz);
 }
@@ -709,35 +662,49 @@ static Bool WaitForUnmapNotify( Display *dpy, XEvent *event, XPointer arg ) {
 
 static void NewtWindows_setVisible(Display *dpy, Window root, JavaWindow* jw, Bool visible, Bool useWM, Bool waitForNotify) {
     XEvent event;
-    if( !visible && useWM && 0 != ( _MASK_NET_WM_STATE_HIDDEN & jw->supportedAtoms ) ) {
-        DBG_PRINT( "X11: setVisible -> %d, method: IconicState, wait %d, window %p\n", (int)visible, (int)waitForNotify, (void*)jw->window);
-        // It has been experienced that UnmapNotify is not sent for child windows when using IconicState!
+    DBG_PRINT( "X11: setVisible -> %d, useWM: %d, wait %d, window %p\n", (int)visible, (int)useWM, (int)waitForNotify, (void*)jw->window);
+    if( useWM && jw->isMapped && 0 != ( _MASK_NET_WM_STATE_HIDDEN & jw->supportedAtoms ) ) {
+        // It has been experienced that MapNotify/UnmapNotify is not sent for windows when using NormalState/IconicState!
+        // See X11Display.c::Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0 case ConfigureNotify
         XEvent xev;
         memset ( &xev, 0, sizeof(xev) );
         xev.type = ClientMessage;
         xev.xclient.window = jw->window;
         xev.xclient.message_type = jw->allAtoms[_WM_CHANGE_STATE_IDX];
         xev.xclient.format = 32;
-        xev.xclient.data.l[0] = IconicState;
+        if( visible ) {
+            xev.xclient.data.l[0] = NormalState;
+        } else {
+            xev.xclient.data.l[0] = IconicState;
+        }
         XSendEvent ( dpy, root, False, SubstructureNotifyMask | SubstructureRedirectMask, &xev );
-        // NewtWindows_sendNET_WM_STATE(dpy, root, jw, _NET_WM_STATE_HIDDEN_IDX, 0, !visible);
-        if(waitForNotify) {
-            XIfEvent( dpy, &event, WaitForUnmapNotify, (XPointer) jw->window );
+        if( visible ) {
+            // NormalState may not work on some WMs (Gnome, KDE) ?
+            memset ( &xev, 0, sizeof(xev) );
+            xev.type = ClientMessage;
+            xev.xclient.window = jw->window;
+            xev.xclient.message_type = jw->allAtoms[_NET_ACTIVE_WINDOW_IDX];
+            xev.xclient.format = 32;
+            xev.xclient.data.l[0] = 1; //source indication for normal applications
+            xev.xclient.data.l[1] = CurrentTime;
+            XSendEvent ( dpy, root, False, SubstructureNotifyMask | SubstructureRedirectMask, &xev );
         }
     } else {
-        DBG_PRINT( "X11: setVisible -> %d, method: Map/Unmap, wait %d, window %p\n", (int)visible, (int)waitForNotify, (void*)jw->window);
         if( visible ) {
             XMapRaised(dpy, jw->window);
             if(waitForNotify) {
                 XIfEvent( dpy, &event, WaitForMapNotify, (XPointer) jw->window );
             }
+            jw->isMapped=True;
         } else {
             XUnmapWindow(dpy, jw->window);
             if(waitForNotify) {
                 XIfEvent( dpy, &event, WaitForUnmapNotify, (XPointer) jw->window );
             }
+            jw->isMapped=False;
         }
     }
+    XFlush(dpy);
 }
 
 
@@ -771,7 +738,7 @@ static void NewtWindows_setPosSize(Display *dpy, JavaWindow* w, jint x, jint y, 
             xwc.height=height;
         }
         XConfigureWindow(dpy, w->window, flags, &xwc);
-        XSync(dpy, False);
+        XFlush(dpy);
     }
 }
 
@@ -910,7 +877,8 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
     // we can pre-map the window here to be able to gather the insets and position.
     {
         XEvent event;
-        int left=0, right=0, top=0, bottom=0;
+        // insets: negative values are ignored
+        int left=-1, right=-1, top=-1, bottom=-1;
         const unsigned char * pixelPtr = NULL;
 
         // NOTE: MUST BE DIRECT BUFFER, since _NET_WM_ICON Atom uses buffer directly!
@@ -925,18 +893,20 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
 
         XMapWindow(dpy, window);
         XIfEvent( dpy, &event, WaitForMapNotify, (XPointer) window ); // wait to get proper insets values
-
-        XSync(dpy, False);
+        javaWindow->isMapped=True;
 
         if( JNI_FALSE == pixels_is_direct && NULL != pixelPtr ) {
             (*env)->ReleasePrimitiveArrayCritical(env, pixels, (void*)pixelPtr, JNI_ABORT);  
         }
 
         // send insets before visibility, allowing java code a proper sync point!
+        XSync(dpy, False);
         if( NewtWindows_updateInsets(dpy, javaWindow, &left, &right, &top, &bottom) ) {
-            (*env)->CallVoidMethod(env, javaWindow->jwindow, insetsChangedID, JNI_FALSE, left, right, top, bottom);
+            (*env)->CallVoidMethod(env, javaWindow->jwindow, insetsVisibleChangedID, JNI_FALSE, left, right, top, bottom, 1);
+        } else {
+            (*env)->CallVoidMethod(env, javaWindow->jwindow, visibleChangedID, JNI_FALSE, JNI_TRUE);
+            left=0; right=0; top=0; bottom=0;
         }
-        (*env)->CallVoidMethod(env, javaWindow->jwindow, visibleChangedID, JNI_FALSE, JNI_TRUE);
 
         if( TST_FLAG_IS_AUTOPOSITION(flags) ) {
             // get position from WM
@@ -974,6 +944,7 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
             NewtWindows_setMinMaxSize(dpy, javaWindow, width, height, width, height);
         }
     }
+    XFlush(dpy);
     handles[0] = (jlong)(intptr_t)window;
     handles[1] = (jlong)(intptr_t)javaWindow;
     jhandles = (*env)->NewLongArray(env, 2);
@@ -1053,6 +1024,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
     XGetWindowAttributes(dpy, jw->window, &xwa); // prefetch colormap to be destroyed after window destruction
     XSelectInput(dpy, jw->window, 0);
     XUnmapWindow(dpy, jw->window);
+    jw->isMapped=False;
 
     // Drain all events related to this window ..
     Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0(env, obj, display, 
@@ -1148,6 +1120,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         TST_FLAG_CHANGE_STICKY(flags), TST_FLAG_IS_STICKY(flags),
         fsEWMHFlags);
 
+    XSync(dpy, False);
+
     // FS Note: To toggle FS, utilizing the _NET_WM_STATE_FULLSCREEN WM state should be enough.
     //          However, we have to consider other cases like reparenting and WM which don't support it.
     #if 0    // Also doesn't work work properly w/ Unity WM
@@ -1189,8 +1163,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         XReparentWindow( dpy, jw->window, parent, x, y ); // actual reparent call
         #ifdef REPARENT_WAIT_FOR_REPARENT_NOTIFY
             XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) jw->window );
+        #else
+            XSync(dpy, False);
         #endif
-        XSync(dpy, False);
         XSetWMProtocols(dpy, jw->window, &wm_delete_atom, 1); // windowDeleteAtom
         // Fix for Unity WM, i.e. _remove_ persistent previous states
         NewtWindows_setStackingEWMHFlags(dpy, root, jw, fsEWMHFlags, False);
@@ -1232,10 +1207,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         // CHILD: out -> in
         DBG_PRINT( "X11: reconfigureWindow0 PARENTING out->in\n");
         XReparentWindow( dpy, jw->window, parent, x, y ); // actual reparent call
+        XFlush(dpy);
         #ifdef REPARENT_WAIT_FOR_REPARENT_NOTIFY
             XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) jw->window );
+        #else
+            XSync(dpy, False);
         #endif
-        XSync(dpy, False);
     }
 
     if( tempInvisible ) {
@@ -1247,7 +1224,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         if( TST_FLAG_IS_VISIBLE(flags) ) {
             DBG_PRINT( "X11: reconfigureWindow0 VISIBLE ON\n");
             NewtWindows_setVisible(dpy, root, jw, True /* visible */, useWM, False /* wait */);
-            XSync(dpy, False);
             if( !TST_FLAG_IS_MAXIMIZED_ANY(flags) ) {
                 // WM may disregard pos/size XConfigureWindow requests for invisible windows!
                 DBG_PRINT( "X11: reconfigureWindow0 setPosSize.2 %d/%d %dx%d\n", x, y, width, height);
@@ -1256,7 +1232,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         } else {
             DBG_PRINT( "X11: reconfigureWindow0 VISIBLE OFF\n");
             NewtWindows_setVisible(dpy, root, jw, False /* visible */, useWM, False /* wait */);
-            XSync(dpy, False);
         }
     }
 
@@ -1277,6 +1252,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
             NewtWindows_setMinMaxSize(dpy, jw, -1, -1, -1, -1); // FIXME: ..
         }
     }
+    XFlush(dpy);
     DBG_PRINT( "X11: reconfigureWindow0 X (full)\n");
 }
 
@@ -1288,7 +1264,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_requestFocus0
   (JNIEnv *env, jclass clazz, jlong display, jlong javaWindow, jboolean force)
 {
-    NewtWindows_requestFocus ( (Display *) (intptr_t) display, (JavaWindow*)(intptr_t)javaWindow, JNI_TRUE==force?True:False ) ;
+    Display * dpy = (Display *) (intptr_t) display;
+    XSync(dpy, False);
+    NewtWindows_requestFocus ( dpy, (JavaWindow*)(intptr_t)javaWindow, JNI_TRUE==force?True:False ) ;
 }
 
 /*
