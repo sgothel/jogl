@@ -252,7 +252,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.GLDrawable"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
-    #D_ARGS="-Dnewt.debug.Window"
+    D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window.visibility.failure.freeze"
     #D_ARGS="-Xprof"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
@@ -474,7 +474,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWTAnalyzeBug455 $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWTBug450 $*
-testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestTeapotNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT $*
@@ -809,8 +809,11 @@ testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper
 # Bug 1249 - NEWT X11: 
 #   - setVisible(false) IconicState not listening to _NET_WM_STATE_HIDDEN; 
 #   - setVisible(true) not restoring from _NET_WM_STATE_HIDDEN
-#testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
+#testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
 
 #
 # NEWT Parenting (w/ NEWT, AWT or SWT)

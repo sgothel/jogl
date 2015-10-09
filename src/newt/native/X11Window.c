@@ -848,6 +848,7 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
     xswa.event_mask  = X11_MOUSE_EVENT_MASK;
     xswa.event_mask |= KeyPressMask | KeyReleaseMask ;
     xswa.event_mask |= FocusChangeMask | SubstructureNotifyMask | StructureNotifyMask | ExposureMask;
+    // xswa.event_mask |= VisibilityChangeMask;
 
     {
         int _x = x, _y = y; // pos for CreateWindow, might be tweaked

@@ -53,6 +53,8 @@ static jmethodID windowRepaintID = NULL;
 static jmethodID sendMouseEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 static jmethodID sendMouseEventRequestFocusID = NULL;
+static jmethodID visibleChangedWindowRepaintID = NULL;
+static jmethodID visibleChangedSendMouseEventID = NULL;
 static jmethodID sizePosMaxInsetsVisibleChangedID = NULL;
 
 /**
@@ -260,8 +262,10 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
     reparentNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "reparentNotify", "(J)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowRepaint", "(ZIIII)V");
+    visibleChangedWindowRepaintID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChangedWindowRepaint", "(ZIIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEvent", "(SIIISF)V");
     sendMouseEventRequestFocusID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEventRequestFocus", "(SIIISF)V");
+    visibleChangedSendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChangedSendMouseEvent", "(ZISIIISF)V");
     sendKeyEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendKeyEvent", "(SISSCLjava/lang/String;)V");
 
     if (displayCompletedID == NULL ||
@@ -278,8 +282,10 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
         reparentNotifyID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowRepaintID == NULL ||
+        visibleChangedWindowRepaintID == NULL ||
         sendMouseEventID == NULL ||
         sendMouseEventRequestFocusID == NULL ||
+        visibleChangedSendMouseEventID == NULL ||
         sendKeyEventID == NULL) {
         return JNI_FALSE;
     }
@@ -564,15 +570,23 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 break;
             case EnterNotify:
                 DBG_PRINT( "X11: event . EnterNotify call %p %d/%d\n", (void*)evt.xcrossing.window, evt.xcrossing.x, evt.xcrossing.y);
-                (*env)->CallVoidMethod(env, jw->jwindow, sendMouseEventID, (jshort) EVENT_MOUSE_ENTERED, 
-                                      modifiers,
-                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jshort) 0, 0.0f /*rotation*/); 
+                {
+                    uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
+                    int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "EnterNotify");
+                    (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedSendMouseEventID, JNI_FALSE, (jint)visibleChange, 
+                                      (jshort) EVENT_MOUSE_ENTERED, modifiers,
+                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jshort) 0, 0.0f /*rotation*/);
+                }
                 break;
             case LeaveNotify:
                 DBG_PRINT( "X11: event . LeaveNotify call %p %d/%d\n", (void*)evt.xcrossing.window, evt.xcrossing.x, evt.xcrossing.y);
-                (*env)->CallVoidMethod(env, jw->jwindow, sendMouseEventID, (jshort) EVENT_MOUSE_EXITED, 
-                                      modifiers,
-                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jshort) 0, 0.0f /*rotation*/); 
+                {
+                    uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
+                    int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "LeaveNotify");
+                    (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedSendMouseEventID, JNI_FALSE, (jint)visibleChange, 
+                                      (jshort) EVENT_MOUSE_EXITED, modifiers,
+                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jshort) 0, 0.0f /*rotation*/);
+                }
                 break;
             case MappingNotify:
                 DBG_PRINT( "X11: event . MappingNotify call %p type %d\n", (void*)evt.xmapping.window, evt.xmapping.type);
@@ -621,6 +635,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 }
                 break;
             case ClientMessage:
+                DBG_PRINT( "X11: event . ClientMessage call %p type 0x%X, sendEvent %d\n", 
+                    (void*)evt.xclient.window, (unsigned int)evt.xclient.message_type, evt.xclient.send_event);
                 if (evt.xclient.send_event==True && evt.xclient.data.l[0]==wm_delete_atom) { // windowDeleteAtom
                     jboolean closed;
                     DBG_PRINT( "X11: event . ClientMessage call %p type 0x%X ..\n", 
@@ -651,13 +667,32 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 }
                 break;
 
+            case  VisibilityNotify:
+                DBG_PRINT( "X11: event .  VisibilityNotify call %p\n", (void*)evt.xvisibility.window);
+                {
+                    #if 0
+                    uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
+                    int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "VisibilityNotify");
+                    if( 0 <= visibleChange ) {
+                        (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE, 0 < visibleChange ? JNI_TRUE : JNI_FALSE);
+                    }
+                    #endif
+                }
+                break;
+
+
             case Expose:
                 DBG_PRINT( "X11: event . Expose call %p %d/%d %dx%d count %d\n", (void*)evt.xexpose.window,
                     evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height, evt.xexpose.count);
-
                 if (evt.xexpose.count == 0 && evt.xexpose.width > 0 && evt.xexpose.height > 0) {
                     (*env)->CallVoidMethod(env, jw->jwindow, windowRepaintID, JNI_FALSE,
                         evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height);
+                    #if 0
+                    uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
+                    int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "Expose");
+                    (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedWindowRepaintID, JNI_FALSE, (jint)visibleChange,
+                        evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height);
+                    #endif
                 }
                 break;
 

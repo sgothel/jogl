@@ -149,7 +149,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private static final PointerType[] constMousePointerTypes = new PointerType[] { PointerType.Mouse };
 
     //
-    // Volatile: Multithread Mutable Access
+    // Volatile: Multithreaded Mutable Access
     //
     private volatile long windowHandle = 0; // lifecycle critical
     private volatile int pixWidth = 128, pixHeight = 128; // client-area size w/o insets in pixel units, default: may be overwritten by user
@@ -180,6 +180,25 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private String title = "Newt Window";
     private PointerIconImpl pointerIcon = null;
     private LifecycleHook lifecycleHook = null;
+
+    //
+    // Quirks
+    //
+
+    /**
+     * Bug 1249 and Bug 1250: Visibility issues on X11
+     * <ul>
+     * <li>setVisible(false) IconicState not listening to _NET_WM_STATE_HIDDEN</li>
+     * <li>setVisible(true) not restoring from _NET_WM_STATE_HIDDEN</li>
+     * </ul>
+     * <p>
+     * If {@code true} fall back to traditional visibility state,
+     * i.e. {@code fast=true}.
+     * </p>
+     */
+    static final int QUIRK_BIT_VISIBILITY = 0;
+    /** Regular state mask */
+    /* pp */ static final Bitfield quirks = Bitfield.Factory.synchronize(Bitfield.Factory.create(32));
 
     //
     // State Mask
@@ -1206,9 +1225,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         reconfigureWindowImpl(x, y, width, height, mask);
     }
+
     final void setVisibleActionImpl(final boolean visible) {
         boolean nativeWindowCreated = false;
-        boolean madeVisible = false;
+        int madeVisible = -1;
 
         final RecursiveLock _lock = windowLock;
         _lock.lock();
@@ -1226,16 +1246,31 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(!isNativeValid() && visible) {
                 if( 0<getWidth()*getHeight() ) {
                     nativeWindowCreated = createNative();
-                    madeVisible = nativeWindowCreated;
+                    madeVisible = nativeWindowCreated ? 1 : -1;
                 }
                 // always flag visible, allowing a retry ..
                 stateMask.set(STATE_BIT_VISIBLE);
             } else if(stateMask.get(STATE_BIT_VISIBLE) != visible) {
                 if(isNativeValid()) {
                     // Skip WM if child-window!
-                    setVisibleImpl(visible /* visible */, isChildWindow() /* fast */, getX(), getY(), getWidth(), getHeight());
-                    WindowImpl.this.waitForVisible(visible, false);
-                    madeVisible = visible;
+                    final boolean hasVisibilityQuirk = quirks.get(QUIRK_BIT_VISIBILITY);
+                    setVisibleImpl(visible /* visible */, hasVisibilityQuirk || isChildWindow() /* fast */,
+                                   getX(), getY(), getWidth(), getHeight());
+                    if( 0 > WindowImpl.this.waitForVisible(visible, false) ) {
+                        if( !hasVisibilityQuirk ) {
+                            quirks.set(QUIRK_BIT_VISIBILITY);
+                            if( DEBUG_IMPLEMENTATION ) {
+                                System.err.println("Setting VISIBILITY QUIRK, due to setVisible("+visible+") failure");
+                            }
+                            setVisibleImpl(visible /* visible */, true /* fast */,
+                                           getX(), getY(), getWidth(), getHeight());
+                            if( 0 <= WindowImpl.this.waitForVisible(visible, false) ) {
+                                madeVisible = visible ? 1 : 0;
+                            } // else: still not working .. bail out
+                        } // else: no other remedy known .. bail out
+                    } else {
+                        madeVisible = visible ? 1 : 0;
+                    }
                 } else {
                     stateMask.set(STATE_BIT_VISIBLE);
                 }
@@ -1267,7 +1302,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
             _lock.unlock();
         }
-        if( nativeWindowCreated || madeVisible ) {
+        if( nativeWindowCreated || 1==madeVisible ) {
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
@@ -3354,7 +3389,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
 
     public final void sendMouseEvent(final short eventType, final int modifiers,
-                               final int x, final int y, final short button, final float rotation) {
+                                     final int x, final int y, final short button, final float rotation) {
         doMouseEvent(false, false, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
     }
 
@@ -4685,41 +4720,57 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Accumulated actions
     //
 
+    /** Triggered by implementation. */
+    protected final void sendMouseEventRequestFocus(final short eventType, final int modifiers,
+                                                    final int x, final int y, final short button, final float rotation) {
+        sendMouseEvent(eventType, modifiers, x, y, button, rotation);
+        requestFocus(false /* wait */);
+    }
     /**
-     * Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags.
+     * Triggered by implementation's WM events to update the visibility state and send- or enqueue one mouse event
      *
      * @param defer
-     * @param newX
-     * @param newY
-     * @param newWidth
-     * @param newHeight
-     * @param left insets, -1 ignored
-     * @param right insets, -1 ignored
-     * @param top insets, -1 ignored
-     * @param bottom insets, -1 ignored
-     * @param focusChange -1 ignored, 0 unfocused, > 0 focused
      * @param visibleChange -1 ignored, 0 invisible, > 0 visible
-     * @param force
+     * @param entranceChange -1 ignored, 0 exit, > 0 enter
+     * @param eventType 0 ignored, > 0 [send|enqueue]MouseEvent
+     * @param modifiers
+     * @param x
+     * @param y
+     * @param button
+     * @param rotation
      */
-    protected final void sizePosInsetsFocusVisibleChanged(final boolean defer,
-                                                          final int newX, final int newY,
-                                                          final int newWidth, final int newHeight,
-                                                          final int left, final int right, final int top, final int bottom,
-                                                          final int focusChange,
-                                                          final int visibleChange,
-                                                          final boolean force) {
-        sizeChanged(defer, newWidth, newHeight, force);
-        positionChanged(defer, newX, newY);
-        insetsChanged(defer, left, right, top, bottom);
-        if( 0 <= focusChange ) { // ignore focus < 0
-            focusChanged(defer, 0 < focusChange);
-        }
+    protected final void visibleChangedSendMouseEvent(final boolean defer, final int visibleChange,
+                                                      final short eventType, final int modifiers,
+                                                      final int x, final int y, final short button, final float rotation) {
         if( 0 <= visibleChange ) { // ignore visible < 0
             visibleChanged(defer, 0 < visibleChange);
         }
+        if( 0 < eventType ) {
+            if( defer ) {
+                enqueueMouseEvent(false /* wait */, eventType, modifiers, x, y, button, rotation);
+            } else {
+                sendMouseEvent(eventType, modifiers, x, y, button, rotation);
+            }
+        }
     }
     /**
-     * Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags.
+     * Triggered by implementation's WM events to update the content
+     * @param defer if true sent event later, otherwise wait until processed.
+     * @param visibleChange -1 ignored, 0 invisible, > 0 visible
+     * @param x dirty-region y-pos in pixel units
+     * @param y dirty-region x-pos in pixel units
+     * @param width dirty-region width in pixel units
+     * @param height dirty-region height in pixel units
+     */
+    protected final void visibleChangedWindowRepaint(final boolean defer, final int visibleChange,
+                                                     final int x, final int y, final int width, final int height) {
+        if( 0 <= visibleChange ) { // ignore visible < 0
+            visibleChanged(defer, 0 < visibleChange);
+        }
+        windowRepaint(defer, x, y, width, height);
+    }
+    /**
+     * Triggered by implementation's WM events to update the focus and visibility state
      *
      * @param defer
      * @param focusChange -1 ignored, 0 unfocused, > 0 focused
@@ -4761,6 +4812,39 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param newY
      * @param newWidth
      * @param newHeight
+     * @param left insets, -1 ignored
+     * @param right insets, -1 ignored
+     * @param top insets, -1 ignored
+     * @param bottom insets, -1 ignored
+     * @param focusChange -1 ignored, 0 unfocused, > 0 focused
+     * @param visibleChange -1 ignored, 0 invisible, > 0 visible
+     * @param force
+     */
+    protected final void sizePosInsetsFocusVisibleChanged(final boolean defer,
+                                                          final int newX, final int newY,
+                                                          final int newWidth, final int newHeight,
+                                                          final int left, final int right, final int top, final int bottom,
+                                                          final int focusChange,
+                                                          final int visibleChange,
+                                                          final boolean force) {
+        sizeChanged(defer, newWidth, newHeight, force);
+        positionChanged(defer, newX, newY);
+        insetsChanged(defer, left, right, top, bottom);
+        if( 0 <= focusChange ) { // ignore focus < 0
+            focusChanged(defer, 0 < focusChange);
+        }
+        if( 0 <= visibleChange ) { // ignore visible < 0
+            visibleChanged(defer, 0 < visibleChange);
+        }
+    }
+    /**
+     * Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags.
+     *
+     * @param defer
+     * @param newX
+     * @param newY
+     * @param newWidth
+     * @param newHeight
      * @param maxHorzChange -1 ignored, 0 !maximized, > 0 maximized
      * @param maxVertChange -1 ignored, 0 !maximized, > 0 maximized
      * @param left insets, -1 ignored
@@ -4786,12 +4870,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if( 0 <= visibleChange ) { // ignore visible < 0
             visibleChanged(defer, 0 < visibleChange);
         }
-    }
-    /** Triggered by implementation. */
-    protected final void sendMouseEventRequestFocus(final short eventType, final int modifiers,
-                               final int x, final int y, final short button, final float rotation) {
-        sendMouseEvent(eventType, modifiers, x, y, button, rotation);
-        requestFocus(false /* wait */);
     }
 
     //
