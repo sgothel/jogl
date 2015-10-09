@@ -809,8 +809,8 @@ function testawtswt() {
 # Bug 1249 - NEWT X11: 
 #   - setVisible(false) IconicState not listening to _NET_WM_STATE_HIDDEN; 
 #   - setVisible(true) not restoring from _NET_WM_STATE_HIDDEN
-testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows00NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows00NEWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 
 #
 # NEWT Parenting (w/ NEWT, AWT or SWT)

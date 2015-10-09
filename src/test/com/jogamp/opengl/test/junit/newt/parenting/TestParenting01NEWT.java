@@ -50,7 +50,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting01NEWT extends UITestCase {
     static int width, height;
-    static long durationPerTest = 100;
+    static long durationPerTest = 600;
     static boolean manual = false;
     static int loopVisibleToggle = 10;
     static GLCapabilities glCaps;
