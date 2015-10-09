@@ -74,6 +74,8 @@ public class WindowDriver extends WindowImpl {
 
     public WindowDriver(final Container container) {
         super();
+        this.withinLocalDispose = false;
+        this.addWindowListener(0, new NEWTWindowListener());
         this.awtContainer = container;
         if(container instanceof Frame) {
             awtFrame = (Frame) container;
@@ -85,6 +87,7 @@ public class WindowDriver extends WindowImpl {
     /** same instance as container, just for impl. convenience */
     private Frame awtFrame = null;
     private AWTCanvas awtCanvas;
+    private volatile boolean withinLocalDispose;
 
     @Override
     protected void requestFocusImpl(final boolean reparented) {
@@ -112,64 +115,98 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected void createNativeImpl() {
-        if(0!=getParentWindowHandle()) {
-            throw new RuntimeException("Window parenting not supported in AWT, use AWTWindow(Frame) cstr for wrapping instead");
-        }
-
-        if(null==awtContainer) {
-            awtFrame = new Frame();
-            awtContainer = awtFrame;
-            owningFrame=true;
+        if( withinLocalDispose ) {
+            setupHandleAndGC();
+            definePosition(getX(), getY()); // clear AUTOPOS
+            visibleChanged(false, true);
+            withinLocalDispose = false;
         } else {
-            owningFrame=false;
-            defineSize(awtContainer.getWidth(), awtContainer.getHeight());
-            definePosition(awtContainer.getX(), awtContainer.getY());
+            if(0!=getParentWindowHandle()) {
+                throw new RuntimeException("Window parenting not supported in AWT, use AWTWindow(Frame) cstr for wrapping instead");
+            }
+
+            if(null==awtContainer) {
+                awtFrame = new Frame();
+                awtContainer = awtFrame;
+                owningFrame=true;
+            } else {
+                owningFrame=false;
+                defineSize(awtContainer.getWidth(), awtContainer.getHeight());
+                definePosition(awtContainer.getX(), awtContainer.getY());
+            }
+            if(null!=awtFrame) {
+                awtFrame.setTitle(getTitle());
+            }
+            awtContainer.setLayout(new BorderLayout());
+
+            if( null == awtCanvas ) {
+                awtCanvas = new AWTCanvas(this, capsRequested, WindowDriver.this.capabilitiesChooser, upstreamScalable);
+
+                // canvas.addComponentListener(listener);
+                awtContainer.add(awtCanvas, BorderLayout.CENTER);
+
+                // via EDT ..
+                new AWTMouseAdapter(this).addTo(awtCanvas); // fwd all AWT Mouse events to here
+                new AWTKeyAdapter(this).addTo(awtCanvas); // fwd all AWT Key events to here
+
+                // direct w/o EDT
+                new AWTWindowAdapter(new AWTWindowListener(), this).addTo(awtCanvas); // fwd all AWT Window events to here
+            } else {
+                awtContainer.add(awtCanvas, BorderLayout.CENTER);
+            }
+            reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureMask(CHANGE_MASK_VISIBILITY | CHANGE_MASK_DECORATION, true));
+            // throws exception if failed ..
+            // AWTCanvas -> localCreate -> setupHandleAndGC();
         }
-        if(null!=awtFrame) {
-            awtFrame.setTitle(getTitle());
+    }
+
+    private void setupHandleAndGC() {
+        // reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureMask(CHANGE_MASK_VISIBILITY | CHANGE_MASK_DECORATION, true));
+        if( null != awtCanvas ) {
+            final NativeWindow nw = awtCanvas.getNativeWindow();
+            if( null != nw ) {
+                setGraphicsConfiguration( awtCanvas.getAWTGraphicsConfiguration() );
+                setWindowHandle( nw.getWindowHandle() );
+            }
         }
-        awtContainer.setLayout(new BorderLayout());
+    }
 
-        if( null == awtCanvas ) {
-            awtCanvas = new AWTCanvas(capsRequested, WindowDriver.this.capabilitiesChooser, upstreamScalable);
-
-            // canvas.addComponentListener(listener);
-            awtContainer.add(awtCanvas, BorderLayout.CENTER);
-
-            // via EDT ..
-            new AWTMouseAdapter(this).addTo(awtCanvas); // fwd all AWT Mouse events to here
-            new AWTKeyAdapter(this).addTo(awtCanvas); // fwd all AWT Key events to here
-
-            // direct w/o EDT
-            new AWTWindowAdapter(new LocalWindowListener(), this).addTo(awtCanvas); // fwd all AWT Window events to here
+    void localCreate() {
+        if( withinLocalDispose ) {
+            setVisible(true);
+        } else {
+            setupHandleAndGC();
         }
+    }
 
-        reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureMask(CHANGE_MASK_VISIBILITY | CHANGE_MASK_DECORATION, true));
-        // throws exception if failed ..
-
-        final NativeWindow nw = awtCanvas.getNativeWindow();
-        if( null != nw ) {
-            setGraphicsConfiguration( awtCanvas.getAWTGraphicsConfiguration() );
-            setWindowHandle( nw.getWindowHandle() );
-        }
+    void localDestroy() {
+        this.withinLocalDispose = true;
+        super.destroy();
     }
 
     @Override
     protected void closeNativeImpl() {
         setWindowHandle(0);
-        if(null!=awtContainer) {
-            awtContainer.setVisible(false);
-            awtContainer.remove(awtCanvas);
-            awtContainer.setEnabled(false);
-            awtCanvas.setEnabled(false);
+        if( this.withinLocalDispose ) {
+            if(null!=awtCanvas) {
+                awtCanvas.dispose();
+            }
+        } else {
+            if(null!=awtContainer) {
+                awtContainer.setVisible(false);
+                awtContainer.remove(awtCanvas);
+                awtContainer.setEnabled(false);
+                awtCanvas.setEnabled(false);
+                awtCanvas.dispose();
+            }
+            if(owningFrame && null!=awtFrame) {
+                awtFrame.dispose();
+                owningFrame=false;
+            }
+            awtCanvas = null;
+            awtFrame = null;
+            awtContainer = null;
         }
-        if(owningFrame && null!=awtFrame) {
-            awtFrame.dispose();
-            owningFrame=false;
-        }
-        awtCanvas = null;
-        awtFrame = null;
-        awtContainer = null;
     }
 
     @Override
@@ -266,6 +303,7 @@ public class WindowDriver extends WindowImpl {
         if( awtContainer.getX() != x || awtContainer.getY() != y ) {
             awtContainer.setLocation(x, y);
         }
+        definePosition(x, y);
 
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
             if( 0 != ( STATE_MASK_VISIBLE & flags ) ) {
@@ -279,6 +317,9 @@ public class WindowDriver extends WindowImpl {
                 }
             }
             visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
+        }
+        if( isVisible() ) {
+            windowRepaint(false, 0, 0, getSurfaceWidth(), getSurfaceHeight());
         }
 
         return true;
@@ -296,7 +337,7 @@ public class WindowDriver extends WindowImpl {
         return ( null != awtCanvas ) ? awtCanvas.getNativeWindow() : null;
     }
 
-    class LocalWindowListener implements com.jogamp.newt.event.WindowListener {
+    class AWTWindowListener implements com.jogamp.newt.event.WindowListener {
         @Override
         public void windowMoved(final com.jogamp.newt.event.WindowEvent e) {
             if(null!=awtContainer) {
@@ -338,5 +379,29 @@ public class WindowDriver extends WindowImpl {
                 WindowDriver.this.windowRepaint(false, 0, 0, getSurfaceWidth(), getSurfaceHeight());
             }
         }
+    }
+    class NEWTWindowListener implements com.jogamp.newt.event.WindowListener {
+        @Override
+        public void windowMoved(final com.jogamp.newt.event.WindowEvent e) { }
+        @Override
+        public void windowResized(final com.jogamp.newt.event.WindowEvent e) { }
+        @Override
+        public void windowDestroyNotify(final WindowEvent e) {
+            if( withinLocalDispose ) {
+                e.setConsumed(true);
+            }
+        }
+        @Override
+        public void windowDestroyed(final WindowEvent e) {
+            if( withinLocalDispose ) {
+                e.setConsumed(true);
+            }
+        }
+        @Override
+        public void windowGainedFocus(final WindowEvent e) { }
+        @Override
+        public void windowLostFocus(final WindowEvent e) { }
+        @Override
+        public void windowRepaint(final WindowUpdateEvent e) { }
     }
 }

@@ -165,6 +165,7 @@ public class AWTCanvas extends Canvas {
     if(null!=gc) {
         device = gc.getDevice();
     }
+    driver.localCreate();
     if(Window.DEBUG_IMPLEMENTATION) {
         System.err.println(getThreadName()+": AWTCanvas.addNotify.X");
     }
@@ -194,13 +195,13 @@ public class AWTCanvas extends Canvas {
           System.err.println(getThreadName()+": AWTCanvas.removeNotify.0: Created Config: "+awtConfig);
       }
       try {
-        dispose();
+        driver.localDestroy();
       } finally {
         super.removeNotify();
       }
   }
 
-  private void dispose() {
+  void dispose() {
     if( null != jawtWindow ) {
         jawtWindow.destroy();
         if(Window.DEBUG_IMPLEMENTATION) {
