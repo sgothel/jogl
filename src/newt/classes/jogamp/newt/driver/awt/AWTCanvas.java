@@ -60,13 +60,14 @@ import com.jogamp.newt.Window;
 
 @SuppressWarnings("serial")
 public class AWTCanvas extends Canvas {
-  private GraphicsDevice device;
-  private GraphicsConfiguration chosen;
-  private AWTGraphicsConfiguration awtConfig;
-  private volatile JAWTWindow jawtWindow=null; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
-  private CapabilitiesChooser chooser=null;
+  private final WindowDriver driver;
   private final CapabilitiesImmutable capabilities;
+  private final CapabilitiesChooser chooser;
   private final UpstreamScalable upstreamScale;
+  private GraphicsConfiguration chosen;
+  private volatile GraphicsDevice device;
+  private volatile AWTGraphicsConfiguration awtConfig;
+  private volatile JAWTWindow jawtWindow=null; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
 
   public static interface UpstreamScalable {
       float[] getReqPixelScale();
@@ -75,12 +76,15 @@ public class AWTCanvas extends Canvas {
 
   private boolean displayConfigChanged=false;
 
-  public AWTCanvas(final CapabilitiesImmutable capabilities, final CapabilitiesChooser chooser, final UpstreamScalable upstreamScale) {
+  public AWTCanvas(final WindowDriver driver, final CapabilitiesImmutable capabilities, final CapabilitiesChooser chooser, final UpstreamScalable upstreamScale) {
     super();
-
     if(null==capabilities) {
         throw new NativeWindowException("Capabilities null");
     }
+    if(null==driver) {
+        throw new NativeWindowException("driver null");
+    }
+    this.driver = driver;
     this.capabilities=capabilities;
     this.chooser=chooser;
     this.upstreamScale = upstreamScale;
@@ -117,6 +121,9 @@ public class AWTCanvas extends Canvas {
   @Override
   public void addNotify() {
 
+    // before native peer is valid: X11
+    disableBackgroundErase();
+
     /**
      * 'super.addNotify()' determines the GraphicsConfiguration,
      * while calling this class's overriden 'getGraphicsConfiguration()' method
@@ -134,8 +141,7 @@ public class AWTCanvas extends Canvas {
     }
     chosen = awtConfig.getAWTGraphicsConfiguration();
 
-    // before native peer is valid: X11
-    disableBackgroundErase();
+    setAWTGraphicsConfiguration(awtConfig);
 
     // issues getGraphicsConfiguration() and creates the native peer
     super.addNotify();
@@ -146,10 +152,13 @@ public class AWTCanvas extends Canvas {
     {
         jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
         // trigger initialization cycle
-        jawtWindow.setSurfaceScale(upstreamScale.getReqPixelScale() );
         jawtWindow.lockSurface();
-        upstreamScale.setHasPixelScale(jawtWindow.getCurrentSurfaceScale(new float[2]));
-        jawtWindow.unlockSurface();
+        try {
+            jawtWindow.setSurfaceScale(upstreamScale.getReqPixelScale() );
+            upstreamScale.setHasPixelScale(jawtWindow.getCurrentSurfaceScale(new float[2]));
+        } finally {
+            jawtWindow.unlockSurface();
+        }
     }
 
     final GraphicsConfiguration gc = super.getGraphicsConfiguration();
@@ -170,8 +179,20 @@ public class AWTCanvas extends Canvas {
       return null != jawtWindow ? jawtWindow.isOffscreenLayerSurfaceEnabled() : false;
   }
 
+  private void setAWTGraphicsConfiguration(final AWTGraphicsConfiguration config) {
+    // Cache awtConfig
+    awtConfig = config;
+    if( null != jawtWindow ) {
+        // Notify JAWTWindow ..
+        jawtWindow.setAWTGraphicsConfiguration(config);
+    }
+  }
+
   @Override
   public void removeNotify() {
+      if(Window.DEBUG_IMPLEMENTATION) {
+          System.err.println(getThreadName()+": AWTCanvas.removeNotify.0: Created Config: "+awtConfig);
+      }
       try {
         dispose();
       } finally {
@@ -198,6 +219,7 @@ public class AWTCanvas extends Canvas {
             System.err.println(getThreadName()+": AWTCanvas.dispose(): closed GraphicsDevice: "+adeviceMsg+", result: "+closed);
         }
     }
+    awtConfig = null;
   }
 
   private String getThreadName() { return Thread.currentThread().getName(); }
@@ -255,9 +277,9 @@ public class AWTCanvas extends Canvas {
          * block, both devices should have the same visual list, and the
          * same configuration should be selected here.
          */
-        final AWTGraphicsConfiguration config = chooseGraphicsConfiguration(
+        final AWTGraphicsConfiguration newConfig = chooseGraphicsConfiguration(
                 awtConfig.getChosenCapabilities(), awtConfig.getRequestedCapabilities(), chooser, gc.getDevice());
-        final GraphicsConfiguration compatible = (null!=config)?config.getAWTGraphicsConfiguration():null;
+        final GraphicsConfiguration compatible = (null!=newConfig)?newConfig.getAWTGraphicsConfiguration():null;
         if(Window.DEBUG_IMPLEMENTATION) {
             final Exception e = new Exception("Info: Call Stack: "+Thread.currentThread().getName());
             e.printStackTrace();
@@ -265,8 +287,8 @@ public class AWTCanvas extends Canvas {
             System.err.println("Created Config (n): THIS    GC "+gc);
             System.err.println("Created Config (n): Choosen GC "+compatible);
             System.err.println("Created Config (n): HAVE    CF "+awtConfig);
-            System.err.println("Created Config (n): Choosen CF "+config);
-            System.err.println("Created Config (n): EQUALS CAPS "+config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities()));
+            System.err.println("Created Config (n): Choosen CF "+newConfig);
+            System.err.println("Created Config (n): EQUALS CAPS "+newConfig.getChosenCapabilities().equals(awtConfig.getChosenCapabilities()));
         }
 
         if (compatible != null) {
@@ -275,10 +297,10 @@ public class AWTCanvas extends Canvas {
            * any outside callers of this method.
            */
           chosen = compatible;
-          if( !config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities())) {
+          if( !newConfig.getChosenCapabilities().equals(awtConfig.getChosenCapabilities())) {
               displayConfigChanged=true;
           }
-          awtConfig = config;
+          setAWTGraphicsConfiguration(newConfig);
         }
       }
 
