@@ -662,11 +662,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 break;
 
             case MapNotify:
-                DBG_PRINT( "X11: event . MapNotify call Event %p, Window %p, override_redirect %d, child-event: %d\n", 
-                    (void*)evt.xmap.event, (void*)evt.xmap.window, (int)evt.xmap.override_redirect,
+                DBG_PRINT( "X11: event . MapNotify call Event %p, Window %p, isMapped %d -> 1, override_redirect %d, child-event: %d\n", 
+                    (void*)evt.xmap.event, (void*)evt.xmap.window, jw->isMapped, (int)evt.xmap.override_redirect,
                     evt.xmap.event!=evt.xmap.window);
                 if( evt.xmap.event == evt.xmap.window ) {
                     // ignore child window notification
+                    jw->isMapped = True;
                     // insets: negative values are ignored
                     int left=-1, right=-1, top=-1, bottom=-1;
                     if( NewtWindows_updateInsets(dpy, jw, &left, &right, &top, &bottom) ) {
@@ -678,11 +679,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 break;
 
             case UnmapNotify:
-                DBG_PRINT( "X11: event . UnmapNotify call Event %p, Window %p, from_configure %d, child-event: %d\n", 
-                    (void*)evt.xunmap.event, (void*)evt.xunmap.window, (int)evt.xunmap.from_configure,
+                DBG_PRINT( "X11: event . UnmapNotify call Event %p, Window %p, isMapped %d -> 0, from_configure %d, child-event: %d\n", 
+                    (void*)evt.xunmap.event, (void*)evt.xunmap.window, jw->isMapped, (int)evt.xunmap.from_configure,
                     evt.xunmap.event!=evt.xunmap.window);
                 if( evt.xunmap.event == evt.xunmap.window ) {
                     // ignore child window notification
+                    jw->isMapped = False;
                     (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE, JNI_FALSE);
                 }
                 break;

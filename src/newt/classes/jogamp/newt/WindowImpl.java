@@ -4426,7 +4426,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 System.err.println("XXXX: FREEZE");
                 try {
                     while(true) {
-                        Thread.sleep(1000);
+                        Thread.sleep(100);
+                        display.dispatchMessagesNative(); // status up2date
                     }
                 } catch (final InterruptedException e) {
                     ExceptionUtils.dumpThrowable("", e);
