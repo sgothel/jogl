@@ -120,7 +120,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    */
   protected JAWTWindow(final Object comp, final AbstractGraphicsConfiguration config) {
     if (config == null) {
-        throw new NativeWindowException("Error: AbstractGraphicsConfiguration is null");
+        throw new IllegalArgumentException("Error: AbstractGraphicsConfiguration is null");
     }
     if(! ( config instanceof AWTGraphicsConfiguration ) ) {
         throw new NativeWindowException("Error: AbstractGraphicsConfiguration is not an AWTGraphicsConfiguration: "+config);
@@ -132,9 +132,13 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     this.awtConfig = (AWTGraphicsConfiguration) config;
     this.isApplet = false;
     this.offscreenSurfaceLayer = 0;
+    if(DEBUG) {
+        System.err.println(jawtStr2("ctor"));
+    }
   }
   private static String id(final Object obj) { return ( null!=obj ? toHexString(obj.hashCode()) : "nil" ); }
-  private String jawtStr() { return "JAWTWindow["+id(JAWTWindow.this)+"]"; }
+  private String jawtStr1() { return "JAWTWindow["+id(JAWTWindow.this)+"]"; }
+  private String jawtStr2(final String sub) { return jawtStr1()+"."+sub+" @ Thread "+getThreadName(); }
 
   private class JAWTComponentListener implements ComponentListener, HierarchyListener {
         private volatile boolean isShowing;
@@ -180,7 +184,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 public void run() {
                     isShowing = component.isShowing(); // Bug 1161: Runnable might be deferred, hence need to update
                     if(DEBUG) {
-                        System.err.println(jawtStr()+".attach @ Thread "+getThreadName()+": "+JAWTComponentListener.this.toString());
+                        System.err.println(jawtStr2("attach")+": "+JAWTComponentListener.this.toString());
                     }
                     component.addComponentListener(JAWTComponentListener.this);
                     component.addHierarchyListener(JAWTComponentListener.this);
@@ -192,7 +196,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 @Override
                 public void run() {
                     if(DEBUG) {
-                        System.err.println(jawtStr()+".detach @ Thread "+getThreadName()+": "+JAWTComponentListener.this.toString());
+                        System.err.println(jawtStr2("detach")+": "+JAWTComponentListener.this.toString());
                     }
                     component.removeComponentListener(JAWTComponentListener.this);
                     component.removeHierarchyListener(JAWTComponentListener.this);
@@ -202,7 +206,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         @Override
         public final void componentResized(final ComponentEvent e) {
             if(DEBUG) {
-                System.err.println(jawtStr()+".componentResized: "+s(e));
+                System.err.println(jawtStr2("componentResized")+": "+s(e));
             }
             layoutSurfaceLayerIfEnabled(isShowing);
         }
@@ -210,7 +214,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         @Override
         public final void componentMoved(final ComponentEvent e) {
             if(DEBUG) {
-                System.err.println(jawtStr()+".componentMoved: "+s(e));
+                System.err.println(jawtStr2("componentMoved")+": "+s(e));
             }
             layoutSurfaceLayerIfEnabled(isShowing);
         }
@@ -218,7 +222,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         @Override
         public final void componentShown(final ComponentEvent e) {
             if(DEBUG) {
-                System.err.println(jawtStr()+".componentShown: "+s(e));
+                System.err.println(jawtStr2("componentShown")+": "+s(e));
             }
             layoutSurfaceLayerIfEnabled(isShowing);
         }
@@ -226,7 +230,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         @Override
         public final void componentHidden(final ComponentEvent e) {
             if(DEBUG) {
-                System.err.println(jawtStr()+".componentHidden: "+s(e));
+                System.err.println(jawtStr2("componentHidden")+": "+s(e));
             }
             layoutSurfaceLayerIfEnabled(isShowing);
         }
@@ -248,7 +252,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 final java.awt.Component changed = e.getChanged();
                 final boolean displayable = changed.isDisplayable();
                 final boolean showing = changed.isShowing();
-                System.err.println(jawtStr()+".hierarchyChanged: action "+action+", displayable "+displayable+", showing [changed "+showing+", comp "+wasShowing+" -> "+isShowing+"], "+s(e));
+                System.err.println(jawtStr2("hierarchyChanged")+": action "+action+", displayable "+displayable+", showing [changed "+showing+", comp "+wasShowing+" -> "+isShowing+"], "+s(e));
             }
         }
   }
@@ -257,7 +261,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   protected synchronized void invalidate() {
     if(DEBUG) {
-        System.err.println(jawtStr()+".invalidate() - "+jawtComponentListener.toString());
+        System.err.println(jawtStr2("invalidate")+" - "+jawtComponentListener.toString());
         if( isSurfaceLayerAttached() ) {
             System.err.println("OffscreenSurfaceLayer still attached: 0x"+Long.toHexString(offscreenSurfaceLayer));
         }
@@ -295,7 +299,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    */
   public final void setAWTGraphicsConfiguration(final AWTGraphicsConfiguration config) {
     if(DEBUG) {
-        System.err.println(jawtStr()+".setAWTGraphicsConfiguration(): "+this.awtConfig+" -> "+config);
+        System.err.println(jawtStr2("setAWTGraphicsConfiguration")+": "+this.awtConfig+" -> "+config);
         // Thread.dumpStack();
     }
     this.awtConfig = config;
@@ -826,7 +830,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     surfaceLock.lock();
     try {
         if(DEBUG) {
-            System.err.println(jawtStr()+".destroy @ Thread "+getThreadName());
+            System.err.println(jawtStr2("destroy"));
         }
         jawtComponentListener.detach();
         invalidate();
@@ -930,7 +934,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   public String toString() {
     final StringBuilder sb = new StringBuilder();
 
-    sb.append(jawtStr()+"[");
+    sb.append(jawtStr1()+"[");
     jawt2String(sb);
     sb.append(  ", shallUseOffscreenLayer "+shallUseOffscreenLayer+", isOffscreenLayerSurface "+isOffscreenLayerSurface+
                 ", attachedSurfaceLayer "+toHexString(getAttachedSurfaceLayer())+
