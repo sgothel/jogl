@@ -302,6 +302,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         System.err.println(jawtStr2("setAWTGraphicsConfiguration")+": "+this.awtConfig+" -> "+config);
         // Thread.dumpStack();
     }
+    if( null == awtConfig ) {
+        throw new IllegalArgumentException(jawtStr2("")+": null config");
+    }
     this.awtConfig = config;
   }
   /**
@@ -775,6 +778,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   @Override
   public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
+    if( null == awtConfig ) {
+        throw new NativeWindowException(jawtStr2("")+": null awtConfig, invalidated");
+    }
     return awtConfig.getNativeGraphicsConfiguration();
   }
 
