@@ -196,9 +196,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * i.e. {@code fast=true}.
      * </p>
      */
-    static final int QUIRK_BIT_VISIBILITY = 0;
-    /** Regular state mask */
-    /* pp */ static final Bitfield quirks = Bitfield.Factory.synchronize(Bitfield.Factory.create(32));
+    protected static final int QUIRK_BIT_VISIBILITY = 0;
+    /** Quirk mask */
+    protected static final Bitfield quirks = Bitfield.Factory.synchronize(Bitfield.Factory.create(32));
 
     //
     // State Mask
