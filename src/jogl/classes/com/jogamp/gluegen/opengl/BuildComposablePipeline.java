@@ -391,35 +391,16 @@ public class BuildComposablePipeline {
 
             final PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 
+            final HashSet<Class<?>> importClazzList = new HashSet<Class<?>>();
+            importClazzList.add(baseInterfaceClass);
+            final String[] ifNames = new String[] { baseInterfaceClass.getName() };
+
             final List<Class<?>> baseInterfaces = Arrays.asList(baseInterfaceClass.getInterfaces());
-            final HashSet<Class<?>> clazzList = new HashSet<Class<?>>();
-            clazzList.add(baseInterfaceClass);
-            clazzList.addAll(baseInterfaces);
-            final int ifNamesNumber = clazzList.size();
+            importClazzList.addAll(baseInterfaces);
 
-            // keep original order ..
-            clazzList.clear();
-            final String[] ifNames = new String[ifNamesNumber];
-            {
-                int i = 0;
-
-                for (final Iterator<Class<?>> iter = baseInterfaces.iterator(); iter.hasNext();) {
-                    final Class<?> ifClass = iter.next();
-                    if (!clazzList.contains(ifClass)) {
-                        ifNames[i++] = ifClass.getName();
-                        clazzList.add(ifClass);
-                    }
-                }
-
-                if ( !clazzList.contains(baseInterfaceClass) ) {
-                    ifNames[i++] = baseInterfaceClass.getName();
-                    clazzList.add(baseInterfaceClass);
-                }
-            }
-
-            clazzList.add(downstreamClass);
+            importClazzList.add(downstreamClass);
             if (null != prologClassOpt) {
-                clazzList.add(prologClassOpt);
+                importClazzList.add(prologClassOpt);
             }
 
             final ArrayList<String> imports = new ArrayList<String>();
@@ -427,7 +408,7 @@ public class BuildComposablePipeline {
             imports.add("com.jogamp.opengl.*");
             imports.add("com.jogamp.gluegen.runtime.*");
             imports.add(Buffer.class.getPackage().getName()+".*");
-            for (final Class<?> clasS : clazzList) {
+            for (final Class<?> clasS : importClazzList) {
                 imports.add(clasS.getName());
             }
 
