@@ -58,11 +58,13 @@ import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.PointImmutable;
 import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLProfile;
 
 import jogamp.newt.DefaultEDTUtil;
@@ -104,6 +106,8 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean forceES3 = false;
     static boolean forceGL3 = false;
     static boolean forceGL2 = false;
+    static boolean forceDebug = false;
+    static boolean forceTrace = false;
     static int demoType = 1;
     static boolean traceMouse = false;
     static boolean manualTest = false;
@@ -160,6 +164,33 @@ public class TestGearsES2NEWT extends UITestCase {
         } else {
             demo = null;
         }
+        if( forceDebug || forceTrace ) {
+            glWindow.addGLEventListener(new GLEventListener() {
+                @Override
+                public void init(final GLAutoDrawable drawable) {
+                    GL _gl = drawable.getGL();
+                    if(forceDebug) {
+                        try {
+                            _gl = _gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Debug", null, _gl, null) );
+                        } catch (final Exception e) {e.printStackTrace();}
+                    }
+
+                    if(forceTrace) {
+                        try {
+                            // Trace ..
+                            _gl = _gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", null, _gl, new Object[] { System.err } ) );
+                        } catch (final Exception e) {e.printStackTrace();}
+                    }
+                }
+                @Override
+                public void dispose(final GLAutoDrawable drawable) {}
+                @Override
+                public void display(final GLAutoDrawable drawable) {}
+                @Override
+                public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}
+            });
+        }
+
         if( null != demo ) {
             glWindow.addGLEventListener(demo);
         }
@@ -468,6 +499,10 @@ public class TestGearsES2NEWT extends UITestCase {
                 forceGL3 = true;
             } else if(args[i].equals("-gl2")) {
                 forceGL2 = true;
+            } else if(args[i].equals("-debug")) {
+                forceDebug = true;
+            } else if(args[i].equals("-trace")) {
+                forceTrace = true;
             } else if(args[i].equals("-mappedBuffers")) {
                 useMappedBuffers = true;
             } else if(args[i].equals("-wait")) {
@@ -556,6 +591,8 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("forceES3 "+forceES3);
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("forceGL2 "+forceGL2);
+        System.err.println("forceDebug "+forceDebug);
+        System.err.println("forceTrace "+forceTrace);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
         System.err.println("useAnimator "+useAnimator);
