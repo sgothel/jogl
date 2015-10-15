@@ -73,27 +73,6 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   }
 
   /**
-   * @deprecated Use {@link #create(GraphicsConfiguration, CapabilitiesImmutable, CapabilitiesImmutable)}
-   * Method constructs a new {@link AWTGraphicsConfiguration} primarily based
-   * on the given {@link Component}'s {@link GraphicsConfiguration}.
-   * @param awtComp the {@link Component}, which {@link GraphicsConfiguration} is used for the resulting {@link AWTGraphicsConfiguration}
-   * @param capsChosen if null, <code>capsRequested</code> is copied and aligned
-   *        with the graphics {@link Capabilities} of the AWT Component to produce the chosen {@link Capabilities}.
-   *        Otherwise the <code>capsChosen</code> is used.
-   * @param capsRequested if null, default {@link Capabilities} are used, otherwise the given values.
-   */
-  public static AWTGraphicsConfiguration create(final Component awtComp, final CapabilitiesImmutable capsChosen, final CapabilitiesImmutable capsRequested) {
-      if(null==awtComp) {
-          throw new IllegalArgumentException("Null AWT Component");
-      }
-      final GraphicsConfiguration gc = awtComp.getGraphicsConfiguration();
-      if( null == gc ) {
-          throw new NativeWindowException("Null AWT GraphicsConfiguration @ "+awtComp);
-      }
-      return create(gc, capsChosen, capsRequested);
-  }
-
-  /**
    * Method constructs a new {@link AWTGraphicsConfiguration} primarily based
    * on the given {@link GraphicsConfiguration}.
    * @param gc the {@link GraphicsConfiguration} for the resulting {@link AWTGraphicsConfiguration}

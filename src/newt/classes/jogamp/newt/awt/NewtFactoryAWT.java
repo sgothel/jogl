@@ -55,41 +55,6 @@ public class NewtFactoryAWT extends NewtFactory {
   public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
 
   /**
-   * @deprecated Use {@link #getNativeWindow(java.awt.Component, AWTGraphicsConfiguration)}
-   *
-   * Wraps an AWT component into a {@link com.jogamp.nativewindow.NativeWindow} utilizing the {@link com.jogamp.nativewindow.NativeWindowFactory},<br>
-   * using a configuration agnostic dummy {@link com.jogamp.nativewindow.DefaultGraphicsConfiguration}.<br>
-   * <p>
-   * The actual wrapping implementation is {@link com.jogamp.nativewindow.awt.JAWTWindow}.<br></p>
-   * <p>
-   * Purpose of this wrapping is to access the AWT window handle,<br>
-   * not to actually render into it.<br>
-   * Hence the dummy configuration only.</p>
-   *
-   * @param awtCompObject must be of type java.awt.Component
-   */
-  public static JAWTWindow getNativeWindow(final Object awtCompObject, final CapabilitiesImmutable capsRequested) {
-      if(null==awtCompObject) {
-        throw new NativeWindowException("Null AWT Component");
-      }
-      if( ! (awtCompObject instanceof java.awt.Component) ) {
-        throw new NativeWindowException("AWT Component not a java.awt.Component");
-      }
-      return getNativeWindow( (java.awt.Component) awtCompObject, capsRequested );
-  }
-
-  /**
-   * @deprecated Use {@link #getNativeWindow(java.awt.Component, AWTGraphicsConfiguration)}
-   * @param awtComp
-   * @param capsRequested
-   * @return
-   */
-  public static JAWTWindow getNativeWindow(final java.awt.Component awtComp, final CapabilitiesImmutable capsRequested) {
-      final AWTGraphicsConfiguration awtConfig = AWTGraphicsConfiguration.create(awtComp, null, capsRequested);
-      return getNativeWindow(awtComp, awtConfig);
-  }
-
-  /**
    * Wraps an AWT component into a {@link com.jogamp.nativewindow.NativeWindow} utilizing the {@link com.jogamp.nativewindow.NativeWindowFactory},<br>
    * using the given {@link AWTGraphicsConfiguration}.
    * <p>

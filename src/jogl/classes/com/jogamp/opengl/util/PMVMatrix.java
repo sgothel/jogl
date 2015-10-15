@@ -920,7 +920,6 @@ public final class PMVMatrix implements GLMatrixFunc {
      * or {@link #glGetFrustum() Frustum get} methods.
      * </p>
      *
-     * @deprecated Function is exposed for debugging purposes only.
      * @see #DIRTY_INVERSE_MODELVIEW
      * @see #DIRTY_INVERSE_TRANSPOSED_MODELVIEW
      * @see #DIRTY_FRUSTUM
@@ -941,7 +940,6 @@ public final class PMVMatrix implements GLMatrixFunc {
      * or {@link #glGetFrustum() Frustum get} methods.
      * </p>
      *
-     * @deprecated Function is exposed for debugging purposes only.
      * @see #clearAllUpdateRequests()
      * @see #DIRTY_INVERSE_MODELVIEW
      * @see #DIRTY_INVERSE_TRANSPOSED_MODELVIEW

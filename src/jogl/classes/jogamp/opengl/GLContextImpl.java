@@ -1061,10 +1061,10 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected static MappedGLVersion mapAvailableGLVersion(final AbstractGraphicsDevice device,
                                                            final int reqMajor, final int profile,
-                                                           final VersionNumber resVersion, final int resCtp, final GLRendererQuirks resQuirks)
+                                                           final VersionNumber resVersion, final int resCtp,
+                                                           final GLRendererQuirks resQuirks)
   {
-      @SuppressWarnings("deprecation")
-      final Integer preVal = mapAvailableGLVersion(device, reqMajor, profile, resVersion.getMajor(), resVersion.getMinor(), resCtp);
+      final Integer preVal = mapAvailableGLVersion(device, reqMajor, profile, resVersion, resCtp);
       final int[] preCtp = { 0 };
       final VersionNumber preVersion = null != preVal ? decomposeBits(preVal.intValue(), preCtp) : null;
       final MappedGLVersion res = new MappedGLVersion(device, reqMajor, profile, resVersion, resCtp, resQuirks, preVersion, preCtp[0]);
@@ -1073,6 +1073,26 @@ public abstract class GLContextImpl extends GLContext {
       }
       return res;
   }
+  private static Integer mapAvailableGLVersion(final AbstractGraphicsDevice device,
+                                               final int reqMajor, final int profile, final VersionNumber resVersion, int resCtp)
+  {
+    validateProfileBits(profile, "profile");
+    validateProfileBits(resCtp, "resCtp");
+
+    if(FORCE_NO_FBO_SUPPORT) {
+        resCtp &= ~CTX_IMPL_FBO ;
+    }
+    if(DEBUG) {
+        System.err.println(getThreadName() + ": createContextARB-MapGLVersions MAP "+device+": "+reqMajor+" ("+GLContext.getGLProfile(new StringBuilder(), profile).toString()+ ") -> "+
+         getGLVersion(resVersion.getMajor(), resVersion.getMinor(), resCtp, null));
+    }
+    final String objectKey = getDeviceVersionAvailableKey(device, reqMajor, profile);
+    final Integer val = Integer.valueOf(composeBits(resVersion.getMajor(), resVersion.getMinor(), resCtp));
+    synchronized(deviceVersionAvailable) {
+        return deviceVersionAvailable.put( objectKey, val );
+    }
+  }
+
 
   protected static void remapAvailableGLVersions(final AbstractGraphicsDevice fromDevice, final AbstractGraphicsDevice toDevice) {
     if( fromDevice == toDevice || fromDevice.getUniqueID() == toDevice.getUniqueID() ) {

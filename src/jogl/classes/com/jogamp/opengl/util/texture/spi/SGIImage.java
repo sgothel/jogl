@@ -191,28 +191,6 @@ public class SGIImage {
         return image;
     }
 
-	/**
-	 * Determines from the magic number whether the given InputStream points to
-	 * an SGI RGB image. The given InputStream must return true from
-	 * markSupported() and support a minimum of two bytes of read-ahead.
-	 * 
-	 * @deprecated rather call {@link ImageType#getFileSuffix(InputStream)}
-	 */
-	@Deprecated
-	public static boolean isSGIImage(InputStream in) throws IOException {
-        if (!(in instanceof BufferedInputStream)) {
-            in = new BufferedInputStream(in);
-        }
-        if (!in.markSupported()) {
-            throw new IOException("Can not test non-destructively whether given InputStream is an SGI RGB image");
-        }
-        final DataInputStream dIn = new DataInputStream(in);
-        dIn.mark(4);
-        final short magic = dIn.readShort();
-        dIn.reset();
-        return (magic == MAGIC);
-    }
-
     /** Returns the width of the image. */
     public int getWidth() {
         return header.xsize;

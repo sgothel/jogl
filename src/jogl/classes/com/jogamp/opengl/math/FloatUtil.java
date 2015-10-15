@@ -1738,7 +1738,6 @@ public final class FloatUtil {
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
-   * @deprecated use on of the float[] variants
    */
   public static void multMatrix(final FloatBuffer a, final FloatBuffer b, final float[] d) {
      final int a_off = a.position();
@@ -1758,7 +1757,6 @@ public final class FloatUtil {
    * Multiply matrix: [a] = [a] x [b]
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
-   * @deprecated use on of the float[] variants
    */
   public static void multMatrix(final FloatBuffer a, final FloatBuffer b) {
      final int a_off = a.position();
@@ -1831,7 +1829,6 @@ public final class FloatUtil {
    * @param m_in 4x4 matrix in column-major order
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
-   * @deprecated use on of the float[] variants
    */
   public static void multMatrixVec(final FloatBuffer m_in, final float[] v_in, final float[] v_out) {
     final int m_in_off = m_in.position();
@@ -1900,7 +1897,6 @@ public final class FloatUtil {
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
    * @param row row number to print
    * @return matrix row string representation
-   * @deprecated use on of the float[] variants
    */
   public static StringBuilder matrixRowToString(StringBuilder sb, final String f,
                                                 final FloatBuffer a, final int aOffset,
@@ -1959,7 +1955,6 @@ public final class FloatUtil {
    * @param columns
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
    * @return matrix string representation
-   * @deprecated use on of the float[] variants
    */
   public static StringBuilder matrixToString(StringBuilder sb, final String rowPrefix, final String f,
                                              final FloatBuffer a, final int aOffset, final int rows, final int columns, final boolean rowMajorOrder) {
@@ -2012,7 +2007,6 @@ public final class FloatUtil {
    * @param columns
    * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
    * @return side by side representation
-   * @deprecated use on of the float[] variants
    */
   public static StringBuilder matrixToString(StringBuilder sb, final String rowPrefix, final String f,
                                              final FloatBuffer a, final int aOffset, final FloatBuffer b, final int bOffset,

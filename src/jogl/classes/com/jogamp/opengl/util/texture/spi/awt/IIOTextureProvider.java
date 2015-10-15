@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2015 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,38 +37,29 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
+//
 package com.jogamp.opengl.util.texture.spi.awt;
 
-import java.awt.image.*;
-import java.io.*;
-import java.net.*;
-import javax.imageio.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.imageio.ImageIO;
+
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.util.texture.ImageType;
+import com.jogamp.opengl.util.texture.TextureData;
+import com.jogamp.opengl.util.texture.awt.AWTTextureData;
+import com.jogamp.opengl.util.texture.spi.TextureProvider;
 
 import jogamp.opengl.Debug;
-import com.jogamp.opengl.util.texture.*;
-import com.jogamp.opengl.util.texture.awt.*;
-import com.jogamp.opengl.util.texture.spi.*;
 
 public class IIOTextureProvider implements TextureProvider {
     private static final boolean DEBUG = Debug.debug("TextureIO");
 
     @Override
-    public TextureData newTextureData(final GLProfile glp, final File file,
-                                      final int internalFormat,
-                                      final int pixelFormat,
-                                      final boolean mipmap,
-                                      final String fileSuffix) throws IOException {
-        final BufferedImage img = ImageIO.read(file);
-        if (img == null) {
-            return null;
-        }
-        if (DEBUG) {
-            System.out.println("TextureIO.newTextureData(): BufferedImage type for " + file + " = " +
-                               img.getType());
-        }
-        return new AWTTextureData(glp, internalFormat, pixelFormat, mipmap, img);
+    public final ImageType[] getImageTypes() {
+        return null;
     }
 
     @Override
@@ -85,19 +77,5 @@ public class IIOTextureProvider implements TextureProvider {
                                img.getType());
         }
         return new AWTTextureData(glp, internalFormat, pixelFormat, mipmap, img);
-    }
-
-    @Override
-    public TextureData newTextureData(final GLProfile glp, final URL url,
-                                      final int internalFormat,
-                                      final int pixelFormat,
-                                      final boolean mipmap,
-                                      final String fileSuffix) throws IOException {
-        final InputStream stream = url.openStream();
-        try {
-            return newTextureData(glp, stream, internalFormat, pixelFormat, mipmap, fileSuffix);
-        } finally {
-            stream.close();
-        }
     }
 }

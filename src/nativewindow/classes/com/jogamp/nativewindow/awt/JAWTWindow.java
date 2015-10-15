@@ -402,26 +402,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
           return hasPixelScaleChanged;
       }
   }
-  /**
-   * @deprecated Use {@link #updatePixelScale(GraphicsConfiguration, boolean)}.
-   */
-  public final boolean updatePixelScale(final boolean clearFlag) {
-      return updatePixelScale(awtConfig.getAWTGraphicsConfiguration(), clearFlag);
-  }
-
-  /**
-   * @deprecated Use {@link #updateLockedData(JAWT_Rectangle, GraphicsConfiguration)}.
-   */
-  protected final boolean updateLockedData(final JAWT_Rectangle jawtBounds) {
-      throw new RuntimeException("Invalid API entry");
-  }
-  /**
-   * @deprecated Use {@link #lockSurfaceImpl(GraphicsConfiguration)}
-   */
-  protected int lockSurfaceImpl() throws NativeWindowException {
-      throw new RuntimeException("Invalid API entry");
-  }
-
 
   /**
    * Returns and clears the {@code hasPixelScaleChanged} flag, as set via {@link #lockSurface()}.

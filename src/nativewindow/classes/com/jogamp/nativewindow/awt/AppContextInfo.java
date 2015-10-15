@@ -97,24 +97,23 @@ public class AppContextInfo {
    *        The resulting thread name will have either '-OnAppContextTG' or '-OnSystemTG' appended
    * @return the {@link Thread} used to invoke the <code>runnable</code>, which may be the current {@link Thread} or a newly created one, see above.
    */
-  public Thread invokeOnAppContextThread(final boolean waitUntilDone, final Runnable runnable, final String threadBaseName) {
-      final Thread t;
+  public RunnableTask invokeOnAppContextThread(final boolean waitUntilDone, final Runnable runnable, final String threadBaseName) {
+      final RunnableTask rt;
       if( update("invoke") ) {
-          t = Thread.currentThread();
+          rt = RunnableTask.invokeOnCurrentThread(runnable);
           if( DEBUG ) {
-              System.err.println("Bug 1004: Invoke.0 on current AppContext thread: "+t+" "+toHexString(t.hashCode()));
+              System.err.println("Bug 1004: Invoke.0 on current AppContext: "+rt);
           }
-          runnable.run();
       } else {
           final ThreadGroup tg = getCachedThreadGroup();
           final String tName = threadBaseName + ( null != tg ? "-OnAppContextTG" : "-OnSystemTG" );
-          t = RunnableTask.invokeOnNewThread(tg, waitUntilDone, runnable, tName);
+          rt = RunnableTask.invokeOnNewThread(tg, tName, waitUntilDone, runnable);
           if( DEBUG ) {
               final int tgHash = null != tg ? tg.hashCode() : 0;
-              System.err.println("Bug 1004: Invoke.1 on new AppContext thread: "+t+" "+toHexString(t.hashCode())+", tg "+tg+" "+toHexString(tgHash));
+              System.err.println("Bug 1004: Invoke.1 on new AppContext: "+rt+", tg "+tg+" "+toHexString(tgHash));
           }
       }
-      return t;
+      return rt;
   }
 
   /**

@@ -701,9 +701,8 @@ public class TextureIO {
      * The last provider added, will be the first provider to be tested.
      * </p>
      * <p>
-     * In case the {@link TextureProvider} also implements {@link TextureProvider.SupportsImageTypes},
-     * the {@link TextureProvider} is being mapped to its supporting {@link ImageType}s
-     * allowing an O(1) association.
+     * The {@link TextureProvider} is being mapped to its supporting {@link ImageType}s
+     * allowing an O(1) association, if {@link TextureProvider#}
      * </p>
      */
     public static void addTextureProvider(final TextureProvider provider) {
@@ -712,12 +711,10 @@ public class TextureIO {
         // more optimal provider
         textureProviders.add(0, provider);
 
-        if( provider instanceof TextureProvider.SupportsImageTypes ) {
-            final ImageType[] imageTypes = ((TextureProvider.SupportsImageTypes)provider).getImageTypes();
-            if( null != imageTypes ) {
-                for(int i=0; i<imageTypes.length; i++) {
-                    imageType2TextureProvider.put(imageTypes[i], provider);
-                }
+        final ImageType[] imageTypes = provider.getImageTypes();
+        if( null != imageTypes ) {
+            for(int i=0; i<imageTypes.length; i++) {
+                imageType2TextureProvider.put(imageTypes[i], provider);
             }
         }
     }
@@ -870,9 +867,8 @@ public class TextureIO {
                                                              mipmap,
                                                              fileSuffix);
             if (data != null) {
-                if( provider instanceof TextureProvider.SupportsImageTypes ) {
-                    data.srcImageType = ((TextureProvider.SupportsImageTypes)provider).getImageTypes()[0];
-                }
+                final ImageType[] imageTypes = provider.getImageTypes();
+                data.srcImageType = null != imageTypes ? imageTypes[0] : null;
                 return data;
             }
         }
@@ -916,30 +912,8 @@ public class TextureIO {
     }
 
     //----------------------------------------------------------------------
-    // Base class for internal image providers, only providing stream based data!
-    static abstract class StreamBasedTextureProvider implements TextureProvider, TextureProvider.SupportsImageTypes {
-        @Override
-        public final TextureData newTextureData(final GLProfile glp, final File file,
-                                          final int internalFormat,
-                                          final int pixelFormat,
-                                          final boolean mipmap,
-                                          final String fileSuffix) throws IOException {
-            throw new UnsupportedOperationException("Only stream is supported");
-        }
-
-        @Override
-        public final TextureData newTextureData(final GLProfile glp, final URL url,
-                                          final int internalFormat,
-                                          final int pixelFormat,
-                                          final boolean mipmap,
-                                          final String fileSuffix) throws IOException {
-            throw new UnsupportedOperationException("Only stream is supported");
-        }
-    }
-
-    //----------------------------------------------------------------------
     // DDS image provider
-    static class DDSTextureProvider extends StreamBasedTextureProvider {
+    static class DDSTextureProvider implements TextureProvider {
         private static final ImageType[] imageTypes = new ImageType[] { new ImageType(ImageType.T_DDS) };
         @Override
         public final ImageType[] getImageTypes() {
@@ -1048,7 +1022,7 @@ public class TextureIO {
 
     //----------------------------------------------------------------------
     // SGI RGB image provider
-    static class SGITextureProvider extends StreamBasedTextureProvider {
+    static class SGITextureProvider implements TextureProvider {
         private static final ImageType[] imageTypes = new ImageType[] { new ImageType(ImageType.T_SGI_RGB) };
         @Override
         public final ImageType[] getImageTypes() {
@@ -1091,7 +1065,7 @@ public class TextureIO {
 
     //----------------------------------------------------------------------
     // TGA (Targa) image provider
-    static class TGATextureProvider extends StreamBasedTextureProvider {
+    static class TGATextureProvider implements TextureProvider {
         private static final ImageType[] imageTypes = new ImageType[] { new ImageType(ImageType.T_TGA) };
         @Override
         public final ImageType[] getImageTypes() {
@@ -1135,7 +1109,7 @@ public class TextureIO {
 
     //----------------------------------------------------------------------
     // PNG image provider
-    static class PNGTextureProvider extends StreamBasedTextureProvider {
+    static class PNGTextureProvider implements TextureProvider {
         private static final ImageType[] imageTypes = new ImageType[] { new ImageType(ImageType.T_PNG) };
         @Override
         public final ImageType[] getImageTypes() {
@@ -1182,7 +1156,7 @@ public class TextureIO {
 
     //----------------------------------------------------------------------
     // JPEG image provider
-    static class JPGTextureProvider extends StreamBasedTextureProvider {
+    static class JPGTextureProvider implements TextureProvider {
         private static final ImageType[] imageTypes = new ImageType[] { new ImageType(ImageType.T_JPG) };
         @Override
         public final ImageType[] getImageTypes() {

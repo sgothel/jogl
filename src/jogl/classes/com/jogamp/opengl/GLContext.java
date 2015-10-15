@@ -1639,7 +1639,7 @@ public abstract class GLContext {
       return new VersionNumber(major, minor, 0);
   }
 
-  private static void validateProfileBits(final int bits, final String argName) {
+  protected static void validateProfileBits(final int bits, final String argName) {
     int num = 0;
     if( 0 != ( CTX_PROFILE_COMPAT & bits ) ) { num++; }
     if( 0 != ( CTX_PROFILE_CORE   & bits ) ) { num++; }
@@ -1698,28 +1698,6 @@ public abstract class GLContext {
   protected static String getDeviceVersionAvailableKey(final AbstractGraphicsDevice device, final int major, final int profile) {
       final String r = device.getUniqueID() + "-" + toHexString(composeBits(major, profile, 0));
       return r.intern();
-  }
-
-  /**
-   * @deprecated Use {@link GLContextImpl#mapAvailableGLVersion(AbstractGraphicsDevice, int, int, VersionNumber, int)}
-   */
-  protected static Integer mapAvailableGLVersion(final AbstractGraphicsDevice device,
-                                                 final int reqMajor, final int profile, final int resMajor, final int resMinor, int resCtp)
-  {
-    validateProfileBits(profile, "profile");
-    validateProfileBits(resCtp, "resCtp");
-
-    if(FORCE_NO_FBO_SUPPORT) {
-        resCtp &= ~CTX_IMPL_FBO ;
-    }
-    if(DEBUG) {
-        System.err.println(getThreadName() + ": createContextARB-MapGLVersions MAP "+device+": "+reqMajor+" ("+GLContext.getGLProfile(new StringBuilder(), profile).toString()+ ") -> "+getGLVersion(resMajor, resMinor, resCtp, null));
-    }
-    final String objectKey = getDeviceVersionAvailableKey(device, reqMajor, profile);
-    final Integer val = Integer.valueOf(composeBits(resMajor, resMinor, resCtp));
-    synchronized(deviceVersionAvailable) {
-        return deviceVersionAvailable.put( objectKey, val );
-    }
   }
 
   protected static StringBuilder dumpAvailableGLVersions(StringBuilder sb) {

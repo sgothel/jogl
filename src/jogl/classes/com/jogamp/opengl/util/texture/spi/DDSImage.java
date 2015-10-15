@@ -237,38 +237,6 @@ public class DDSImage {
         return image;
     }
 
-    /** Determines from the magic number whether the given InputStream
-        points to a DDS image. The given InputStream must return true
-        from markSupported() and support a minimum of four bytes of
-        read-ahead.
-
-        @param in Stream to check
-        @return true if input stream is DDS image or false otherwise
-        @throws java.io.IOException if an I/O exception occurred
-        @deprecated rather call {@link ImageType#getFileSuffix(InputStream)}
-    */
-    @Deprecated
-    public static boolean isDDSImage(InputStream in) throws IOException {
-        if (!(in instanceof BufferedInputStream)) {
-            in = new BufferedInputStream(in);
-        }
-        if (!in.markSupported()) {
-            throw new IOException("Can not test non-destructively whether given InputStream is a DDS image");
-        }
-        in.mark(4);
-        int magic = 0;
-        for (int i = 0; i < 4; i++) {
-            final int tmp = in.read();
-            if (tmp < 0) {
-                in.reset();
-                return false;
-            }
-            magic = ((magic >>> 8) | (tmp << 24));
-        }
-        in.reset();
-        return (magic == MAGIC);
-    }
-
     /**
      * Writes this DDSImage to the specified file name.
      * @param filename File name to write to
