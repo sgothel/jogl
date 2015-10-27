@@ -251,7 +251,7 @@
 
     <target name="junit.run.noui" depends="test.compile">
         <!-- Test*NOUI* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" showoutput="false" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -366,7 +366,7 @@
       -->
     <target name="junit.run.newt" depends="test.compile">
         <!-- Test*NEWT* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" showoutput="false" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -407,7 +407,7 @@
         <!-- attribute name="generic.junit.run.awt.include.pattern" -->
 
         <!-- Test*AWT* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" showoutput="false" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -453,7 +453,7 @@
         <!-- attribute name="generic.junit.run.newt.awt.include.pattern" -->
 
         <!-- Test*AWT* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" showoutput="false" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -540,7 +540,7 @@
 
     <target name="junit.run.awt.singletest" depends="test.compile, junit.run.settings">
         <!-- Test*AWT* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" showoutput="false" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
