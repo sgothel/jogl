@@ -1,10 +1,19 @@
 language: java
 git:
   submodules: false
-sudo: required
+sudo: false
+
+addons:
+  apt:
+    packages:
+    - bash 
+    - p7zip-full
+    - libx11-dev
+    - libxxf86vm-dev
+    - xvfb
+    - libgl1-mesa-dri 
 
 before_install:
-  - sudo apt-get install bash p7zip-full libx11-dev libxxf86vm-dev xvfb libgl1-mesa-dri
   - cd ..
   - git clone --recurse-submodules git://jogamp.org/srv/scm/gluegen.git gluegen
   - pushd gluegen/make
