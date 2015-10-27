@@ -25,5 +25,5 @@ before_install:
 install:
   - pushd jogl/make
   - ant
-  - ant junit.run newt
+  - ant junit.run newt 2>/dev/null
   - bash ./scripts/check-junit.sh ../build
