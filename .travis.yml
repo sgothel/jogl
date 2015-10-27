@@ -4,7 +4,7 @@ git:
 sudo: required
 
 before_install:
-  - sudo apt-get install p7zip-full libx11-dev libxxf86vm-dev xvfb libgl1-mesa-dri
+  - sudo apt-get install bash p7zip-full libx11-dev libxxf86vm-dev xvfb libgl1-mesa-dri
   - cd ..
   - git clone --recurse-submodules git://jogamp.org/srv/scm/gluegen.git gluegen
   - pushd gluegen/make
@@ -16,4 +16,5 @@ before_install:
 install:
   - pushd jogl/make
   - ant
-  - ant junit.run
+  - ant junit.run newt
+  - bash ./scripts/check-junit.sh ../build
