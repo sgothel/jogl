@@ -251,7 +251,7 @@
 
     <target name="junit.run.noui" depends="test.compile">
         <!-- Test*NOUI* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" showoutput="false" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -338,7 +338,6 @@
                 <arg line="filtertrace=true"/>
                 <arg line="haltOnError=false"/>
                 <arg line="haltOnFailure=false"/>
-                <arg line="showoutput=true"/>
                 <arg line="outputtoformatters=true"/>
                 <arg line="logfailedtests=true"/>
                 <arg line="logtestlistenerevents=true"/>
@@ -366,7 +365,7 @@
       -->
     <target name="junit.run.newt" depends="test.compile">
         <!-- Test*NEWT* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" showoutput="false" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -407,7 +406,7 @@
         <!-- attribute name="generic.junit.run.awt.include.pattern" -->
 
         <!-- Test*AWT* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" showoutput="false" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -453,7 +452,7 @@
         <!-- attribute name="generic.junit.run.newt.awt.include.pattern" -->
 
         <!-- Test*AWT* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" showoutput="false" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -540,7 +539,7 @@
 
     <target name="junit.run.awt.singletest" depends="test.compile, junit.run.settings">
         <!-- Test*AWT* -->
-        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" showoutput="false" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" printsummary="on" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -600,7 +599,6 @@
             <arg line="filtertrace=true"/>
             <arg line="haltOnError=false"/>
             <arg line="haltOnFailure=false"/>
-            <arg line="showoutput=true"/>
             <arg line="outputtoformatters=true"/>
             <arg line="logfailedtests=true"/>
             <arg line="logtestlistenerevents=true"/>
@@ -661,7 +659,6 @@
                 <arg line="filtertrace=true"/>
                 <arg line="haltOnError=false"/>
                 <arg line="haltOnFailure=false"/>
-                <arg line="showoutput=true"/>
                 <arg line="outputtoformatters=true"/>
                 <arg line="logfailedtests=true"/>
                 <arg line="logtestlistenerevents=true"/>
@@ -732,7 +729,6 @@
                 <arg line="filtertrace=true"/>
                 <arg line="haltOnError=false"/>
                 <arg line="haltOnFailure=false"/>
-                <arg line="showoutput=true"/>
                 <arg line="outputtoformatters=true"/>
                 <arg line="logfailedtests=true"/>
                 <arg line="logtestlistenerevents=true"/>
@@ -854,7 +850,6 @@ ${test.class.fqn} \${line.separator}
 filtertrace=true \${line.separator}
 haltOnError=false \${line.separator}
 haltOnFailure=false \${line.separator}
-showoutput=true \${line.separator}
 outputtoformatters=true \${line.separator}
 logfailedtests=true \${line.separator}
 logtestlistenerevents=true \${line.separator}
@@ -898,7 +893,6 @@ ${test.class.fqn} \${line.separator}
 filtertrace=true \${line.separator}
 haltOnError=false \${line.separator}
 haltOnFailure=false \${line.separator}
-showoutput=true \${line.separator}
 outputtoformatters=true \${line.separator}
 logfailedtests=true \${line.separator}
 logtestlistenerevents=true \${line.separator}
@@ -960,7 +954,6 @@ ${test.class.fqn} \${line.separator}
 filtertrace=true \${line.separator}
 haltOnError=false \${line.separator}
 haltOnFailure=false \${line.separator}
-showoutput=true \${line.separator}
 outputtoformatters=true \${line.separator}
 logfailedtests=true \${line.separator}
 logtestlistenerevents=true \${line.separator}
@@ -1023,7 +1016,6 @@ ${test.class.fqn} \${line.separator}
 filtertrace=true \${line.separator}
 haltOnError=false \${line.separator}
 haltOnFailure=false \${line.separator}
-showoutput=true \${line.separator}
 outputtoformatters=true \${line.separator}
 logfailedtests=true \${line.separator}
 logtestlistenerevents=true \${line.separator}
@@ -1101,7 +1093,6 @@ ${test.class.fqn} \${line.separator}
 filtertrace=true \${line.separator}
 haltOnError=false \${line.separator}
 haltOnFailure=false \${line.separator}
-showoutput=true \${line.separator}
 outputtoformatters=true \${line.separator}
 logfailedtests=true \${line.separator}
 logtestlistenerevents=true \${line.separator}
