@@ -1,12 +1,12 @@
 #get jogamp and robovm
-wget http://download.robovm.org/nightlies/robovm-1.7.1-SNAPSHOT-20150903_014201-674.tar.gz
-wget http://jogamp.org/deployment/archive/master/gluegen_886-joal_612-jogl_1433-jocl_1079-signed/fat/jogamp-fat.jar
+wget https://libgdx.badlogicgames.com/robovm/robovm-1.6.1-SNAPSHOT.tar.gz
+wget http://jogamp.org/deployment/jogamp-current/fat/jogamp-fat.jar
 
 #unpack
-tar zxvf robovm-1.7.1-SNAPSHOT-20150903_014201-674.tar.gz
+tar zxvf robovm-1.6.1-SNAPSHOT.tar.gz
 
 #compile using robovm
-./robovm-1.7.1-SNAPSHOT/bin/robovm -verbose -dynamic-jni -forcelinkclasses jogamp.**:com.jogamp.** -cp jogamp-fat.jar com.jogamp.newt.opengl.GLWindow
+./robovm-1.6.1-SNAPSHOT/bin/robovm -verbose -dynamic-jni -forcelinkclasses jogamp.**:com.jogamp.** -cp jogamp-fat.jar com.jogamp.newt.opengl.GLWindow
 
 #run
 cd com.jogamp.newt.opengl.GLWindow 
@@ -33,7 +33,7 @@ time ./com.jogamp.newt.opengl.GLWindow -rvm:Djogl.debug
 # we can use the robovm -treeshaker aggressive to remove classes from the binary
 # and we can more carefully select which nativewindow backends to include using forcelinkclasses.
 # finally we can reduce the size using strip and upx
-./robovm-1.7.1-SNAPSHOT/bin/robovm -treeshaker aggressive -verbose -dynamic-jni -forcelinkclasses jogamp.nativewindow.x11.X11GraphicsConfigurationFactory:jogamp.** -cp jogamp-fat.jar com.jogamp.newt.opengl.GLWindow
+./robovm-1.6.1-SNAPSHOT/bin/robovm -treeshaker aggressive -verbose -dynamic-jni -forcelinkclasses jogamp.nativewindow.x11.X11GraphicsConfigurationFactory:jogamp.** -cp jogamp-fat.jar com.jogamp.newt.opengl.GLWindow
 cd com.jogamp.newt.opengl.GLWindow
 strip com.jogamp.newt.opengl.GLWindow
 upx com.jogamp.newt.opengl.GLWindow
@@ -44,9 +44,9 @@ upx com.jogamp.newt.opengl.GLWindow
 
 
 # Real world example using jogl-demos compressed to small size: 6,3Mb
-wget http://jogamp.org/deployment/archive/master/gluegen_886-joal_612-jogl_1433-jocl_1079-signed/archive/jogl-demos.7z
+wget http://jogamp.org/deployment/jogamp-current/archive/jogl-demos.7z
 7z x jogl-demos.7z
-./robovm-1.7.1-SNAPSHOT/bin/robovm -treeshaker aggressive -verbose -dynamic-jni -forcelinkclasses jogamp.nativewindow.x11.X11GraphicsConfigurationFactory:jogamp.** -cp jogamp-fat.jar:jogl-demos/jar/jogl-demos.jar demos.es2.RawGL2ES2demo
+./robovm-1.6.1-SNAPSHOT/bin/robovm -treeshaker aggressive -verbose -dynamic-jni -forcelinkclasses jogamp.nativewindow.x11.X11GraphicsConfigurationFactory:jogamp.** -cp jogamp-fat.jar:jogl-demos/jar/jogl-demos.jar demos.es2.RawGL2ES2demo
 cd demos.es2.RawGL2ES2demo
 unzip -o lib/jogamp-fat.jar natives/*/*
 zip -d lib/jogamp-fat.jar natives/*/*
