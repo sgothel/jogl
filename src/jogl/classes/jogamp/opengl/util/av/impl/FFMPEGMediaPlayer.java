@@ -152,19 +152,22 @@ import jogamp.opengl.util.av.VideoPixelFormat;
  *   </ul></li>
  *   <li>MacOSX
  *   <ul>
+ *     <li>Building using Homebrew *
+ *     <ul>
+ *       <li>https://github.com/Homebrew/homebrew/wiki/Installation</li>
+ *       <li>https://trac.ffmpeg.org/wiki/CompilationGuide/MacOSX<pre>
+ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew install ffmpeg
+ *       </pre></li>
+ *     </ul></li>
  *     <li>Builds
  *     <ul>
  *       <li>https://ffmpeg.org/download.html#build-mac</li>
  *     </ul></li>
- *     <li>Building using Homebrew *
- *     <ul>
- *       <li>https://github.com/Homebrew/homebrew/wiki/Installation</li>
- *       <li>https://trac.ffmpeg.org/wiki/CompilationGuide/MacOSX</li>
- *     </ul></li>
  *   </ul></li>
  *   <li>OpenIndiana/Solaris:<pre>
- *       pkg set-publisher -p http://pkg.openindiana.org/sfe-encumbered.
- *       pkt install pkg:/video/ffmpeg
+pkg set-publisher -p http://pkg.openindiana.org/sfe-encumbered.
+pkt install pkg:/video/ffmpeg
  *       </pre></li>
  * </ul>
  * </p>

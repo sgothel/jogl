@@ -195,11 +195,21 @@ public class ALAudioSink implements AudioSink {
                     clearPreALError("init."+checkErrIter++);
                     preferredAudioFormat = new AudioFormat(querySampleRate(), DefaultFormat.sampleSize, DefaultFormat.channelCount, DefaultFormat.signed, DefaultFormat.fixedP, DefaultFormat.planar, DefaultFormat.littleEndian);
                     if( DEBUG ) {
-                        System.out.println("ALAudioSink: OpenAL Extensions:"+al.alGetString(ALConstants.AL_EXTENSIONS));
+                        final int[] alcvers = { 0, 0 };
+                        System.out.println("ALAudioSink: OpenAL Version: "+al.alGetString(ALConstants.AL_VERSION));
+                        System.out.println("ALAudioSink: OpenAL Extensions: "+al.alGetString(ALConstants.AL_EXTENSIONS));
                         clearPreALError("init."+checkErrIter++);
-                        System.out.println("ALAudioSink: Null device OpenAL Extensions:"+alc.alcGetString(null, ALCConstants.ALC_EXTENSIONS));
+                        System.out.println("ALAudioSink: Null device OpenALC:");
+                        alc.alcGetIntegerv(null, ALCConstants.ALC_MAJOR_VERSION, 1, alcvers, 0);
+                        alc.alcGetIntegerv(null, ALCConstants.ALC_MINOR_VERSION, 1, alcvers, 1);
+                        System.out.println("  Version: "+alcvers[0]+"."+alcvers[1]);
+                        System.out.println("  Extensions: "+alc.alcGetString(null, ALCConstants.ALC_EXTENSIONS));
                         clearPreALError("init."+checkErrIter++);
-                        System.out.println("ALAudioSink: Device "+deviceSpecifier+" OpenAL Extensions:"+alc.alcGetString(device, ALCConstants.ALC_EXTENSIONS));
+                        System.out.println("ALAudioSink: Device "+deviceSpecifier+" OpenALC:");
+                        alc.alcGetIntegerv(device, ALCConstants.ALC_MAJOR_VERSION, 1, alcvers, 0);
+                        alc.alcGetIntegerv(device, ALCConstants.ALC_MINOR_VERSION, 1, alcvers, 1);
+                        System.out.println("  Version: "+alcvers[0]+"."+alcvers[1]);
+                        System.out.println("  Extensions: "+alc.alcGetString(device, ALCConstants.ALC_EXTENSIONS));
                         System.out.println("ALAudioSink: hasSOFTBufferSamples "+hasSOFTBufferSamples);
                         System.out.println("ALAudioSink: hasALC_thread_local_context "+hasALC_thread_local_context);
                         System.out.println("ALAudioSink: preferredAudioFormat "+preferredAudioFormat);
@@ -310,12 +320,14 @@ public class ALAudioSink implements AudioSink {
         final int alSrcName = null != alSource ? alSource[0] : 0;
         final int alBuffersLen = null != alBufferNames ? alBufferNames.length : 0;
         final int ctxHash = context != null ? context.hashCode() : 0;
+        final int alFramesAvailSize = alFramesAvail != null ? alFramesAvail.size() : 0;
+        final int alFramesPlayingSize = alFramesPlaying != null ? alFramesPlaying.size() : 0;
         return "ALAudioSink[init "+initialized+", playRequested "+playRequested+", device "+deviceSpecifier+", ctx "+toHexString(ctxHash)+", alSource "+alSrcName+
                ", chosen "+chosenFormat+
                ", al[chan "+ALHelpers.alChannelLayoutName(alChannelLayout)+", type "+ALHelpers.alSampleTypeName(alSampleType)+
                ", fmt "+toHexString(alFormat)+", soft "+hasSOFTBufferSamples+
-               "], playSpeed "+playSpeed+", buffers[total "+alBuffersLen+", avail "+alFramesAvail.size()+", "+
-               "queued["+alFramesPlaying.size()+", apts "+getPTS()+", "+getQueuedTime() + " ms, " + alBufferBytesQueued+" bytes], "+
+               "], playSpeed "+playSpeed+", buffers[total "+alBuffersLen+", avail "+alFramesAvailSize+", "+
+               "queued["+alFramesPlayingSize+", apts "+getPTS()+", "+getQueuedTime() + " ms, " + alBufferBytesQueued+" bytes], "+
                "queue[g "+frameGrowAmount+", l "+frameLimit+"]";
     }
 
