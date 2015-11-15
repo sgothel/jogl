@@ -463,10 +463,12 @@ public class X11Util implements ToolkitProperties {
             if(markAllDisplaysUnclosable) {
                 namedDpy.setUncloseable(true);
             }
-        }
-        if(DEBUG) {
-            System.err.println("X11Util.Display: openDisplay [reuse "+reused+"] "+namedDpy+". Thread "+Thread.currentThread().getName());
-            // Thread.dumpStack();
+            if(DEBUG) {
+                System.err.println("X11Util.Display: openDisplay [reuse "+reused+"] "+namedDpy+
+                        ". Open[reuseable "+reusableDisplayList.size()+", pending "+pendingDisplayList.size()+
+                        "]. Thread "+Thread.currentThread().getName());
+                // Thread.dumpStack();
+            }
         }
         return namedDpy.getHandle();
     }
