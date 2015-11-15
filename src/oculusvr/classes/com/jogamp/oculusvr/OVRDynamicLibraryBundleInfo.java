@@ -85,6 +85,16 @@ import java.util.*;
     }
 
     @Override
+    public final boolean searchToolLibInSystemPath() {
+        return true;
+    }
+
+    @Override
+    public final boolean searchToolLibSystemPathFirst() {
+        return true;
+    }
+
+    @Override
     public final List<List<String>> getToolLibNames() {
         return new ArrayList<List<String>>(); // None
     }

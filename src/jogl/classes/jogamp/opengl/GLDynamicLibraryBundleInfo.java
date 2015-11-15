@@ -59,6 +59,16 @@ public abstract class GLDynamicLibraryBundleInfo implements DynamicLibraryBundle
     public boolean shallLookupGlobal() { return false; }
 
     @Override
+    public final boolean searchToolLibInSystemPath() {
+        return true;
+    }
+
+    @Override
+    public final boolean searchToolLibSystemPathFirst() {
+        return true;
+    }
+
+    @Override
     public final RunnableExecutor getLibLoaderExecutor() {
         return DynamicLibraryBundle.getDefaultRunnableExecutor();
     }

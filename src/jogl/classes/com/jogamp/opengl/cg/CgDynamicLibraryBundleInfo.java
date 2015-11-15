@@ -99,6 +99,16 @@ public final class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInf
     }
 
     @Override
+    public final boolean searchToolLibInSystemPath() {
+        return true;
+    }
+
+    @Override
+    public final boolean searchToolLibSystemPathFirst() {
+        return true;
+    }
+
+    @Override
     public final List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         final List<String> libsCg = new ArrayList<String>();

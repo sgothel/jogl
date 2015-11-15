@@ -332,6 +332,16 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     }
 
     @Override
+    public final boolean searchToolLibInSystemPath() {
+        return true;
+    }
+
+    @Override
+    public final boolean searchToolLibSystemPathFirst() {
+        return true;
+    }
+
+    @Override
     public final List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
 
