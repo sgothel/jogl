@@ -142,6 +142,7 @@ CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen);
 #endif
 {
     BOOL realized;
+    jboolean withinLiveResize;
 @public
     BOOL hasPresentationSwitch;
     NSUInteger defaultPresentationOptions;
@@ -192,7 +193,12 @@ CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen);
 - (void) windowDidBecomeKey: (NSNotification *) notification;
 - (void) windowDidResignKey: (NSNotification *) notification;
 
+- (void) windowWillStartLiveResize: (NSNotification *) notification;
+- (void) windowDidEndLiveResize: (NSNotification *) notification;
+- (NSSize) windowWillResize: (NSWindow *)sender toSize:(NSSize)frameSize;
 - (void) windowDidResize: (NSNotification*) notification;
+- (void) sendResizeEvent;
+
 - (void) windowDidMove: (NSNotification*) notification;
 - (BOOL) windowClosingImpl: (BOOL) force;
 - (BOOL) windowShouldClose: (id) sender;

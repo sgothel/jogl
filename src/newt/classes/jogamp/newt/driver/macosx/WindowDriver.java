@@ -211,6 +211,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             surfaceHandle = 0;
             sscSurfaceHandle = 0;
             isOffscreenInstance = false;
+            resizeAnimatorPaused = false;
             if (0 != handle) {
                 OSXUtil.RunOnMainThread(false, true /* kickNSApp */, new Runnable() {
                    @Override
@@ -593,10 +594,21 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                                               final int newX, final int newY,
                                               final int newWidth, final int newHeight,
                                               final int left, final int right, final int top, final int bottom,
-                                              final boolean force) {
+                                              final boolean force,
+                                              final boolean withinLiveResize) {
+        final LifecycleHook lh = getLifecycleHook();
+        if( withinLiveResize && !resizeAnimatorPaused && null!=lh ) {
+            resizeAnimatorPaused = lh.pauseRenderingAction();
+        }
         sizeChanged(defer, newWidth, newHeight, force);
         screenPositionChanged(defer, newX, newY);
         insetsChanged(defer, left, right, top, bottom);
+        if( !withinLiveResize && resizeAnimatorPaused ) {
+            resizeAnimatorPaused = false;
+            if( null!=lh ) {
+                lh.resumeRenderingAction();
+            }
+        }
     }
 
     @Override
@@ -847,5 +859,5 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     private volatile long surfaceHandle = 0;
     private long sscSurfaceHandle = 0;
     private boolean isOffscreenInstance = false;
-
+    private boolean resizeAnimatorPaused = false;
 }

@@ -832,7 +832,7 @@ NS_ENDHANDLER
     updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFF)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
-    sizeScreenPosInsetsChangedID = (*env)->GetMethodID(env, clazz, "sizeScreenPosInsetsChanged", "(ZIIIIIIIIZ)V");
+    sizeScreenPosInsetsChangedID = (*env)->GetMethodID(env, clazz, "sizeScreenPosInsetsChanged", "(ZIIIIIIIIZZ)V");
     screenPositionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
@@ -893,6 +893,7 @@ NS_ENDHANDLER
     cachedInsets[3] = 0; // b
 
     realized = YES;
+    withinLiveResize = JNI_FALSE;
     DBG_PRINT("NewtWindow::create: %p, realized %d, hasPresentationSwitch %d[defaultOptions 0x%X, fullscreenOptions 0x%X], (refcnt %d)\n", 
         res, realized, (int)hasPresentationSwitch, (int)defaultPresentationOptions, (int)fullscreenPresentationOptions, (int)[res retainCount]);
     return res;
@@ -974,7 +975,7 @@ NS_ENDHANDLER
     NSRect frameRect = [self frame];
     NSRect contentRect = [self contentRectForFrameRect: frameRect];
 
-    DBG_PRINT( "updateSize: [ w %d, h %d ]\n", (jint) contentRect.size.width, (jint) contentRect.size.height);
+    DBG_PRINT( "updateSize: [ w %d, h %d ], liveResize %d\n", (jint) contentRect.size.width, (jint) contentRect.size.height, (jint)withinLiveResize);
 
     NSPoint p0 = { 0, 0 };
     p0 = [self getLocationOnScreen: p0];
@@ -986,7 +987,8 @@ NS_ENDHANDLER
                                (jint) p0.x, (jint) p0.y,
                                (jint) contentRect.size.width, (jint) contentRect.size.height,
                                cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3],
-                               JNI_FALSE // force
+                               JNI_FALSE, // force
+                               withinLiveResize
                               );
     }
 }
@@ -1227,7 +1229,29 @@ NS_ENDHANDLER
     [self focusChanged: NO];
 }
 
+- (void) windowWillStartLiveResize: (NSNotification *) notification
+{
+    DBG_PRINT( "*************** windowWillStartLiveResize\n");
+    withinLiveResize = JNI_TRUE;
+}
+- (void) windowDidEndLiveResize: (NSNotification *) notification
+{
+    DBG_PRINT( "*************** windowDidEndLiveResize\n");
+    withinLiveResize = JNI_FALSE;
+    [self sendResizeEvent];
+}
+- (NSSize) windowWillResize: (NSWindow *)sender toSize:(NSSize)frameSize
+{
+    DBG_PRINT( "*************** windowWillResize %lfx%lf\n", frameSize.width, frameSize.height);
+    return frameSize;
+}
 - (void)windowDidResize: (NSNotification*) notification
+{
+    DBG_PRINT( "*************** windowDidResize\n");
+    [self sendResizeEvent];
+}
+
+- (void) sendResizeEvent
 {
     jobject javaWindowObject = NULL;
     int shallBeDetached = 0;
