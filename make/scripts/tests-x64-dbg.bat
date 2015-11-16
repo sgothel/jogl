@@ -5,8 +5,8 @@ REM set TEMP=C:\Documents and Settings\jogamp\temp
 REM set TMP=C:\Documents and Settings\jogamp\temp
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jre1.8.0_60_x64
-set JAVA_HOME=c:\jdk1.8.0_60_x64
+set J2RE_HOME=c:\jre1.8.0_66_x64
+set JAVA_HOME=c:\jdk1.8.0_66_x64
 set ANT_PATH=C:\apache-ant-1.9.4
 
 set PROJECT_ROOT=D:\projects\jogamp\jogl
