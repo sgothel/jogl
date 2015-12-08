@@ -82,28 +82,28 @@ public abstract class NativeWindowFactory {
     protected static final boolean DEBUG;
 
     /** OpenKODE/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
-    public static final String TYPE_EGL = ".egl".intern();
+    public static final String TYPE_EGL = ".egl";
 
     /** Microsoft Windows type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_WINDOWS = ".windows".intern();
+    public static final String TYPE_WINDOWS = ".windows";
 
     /** X11 type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_X11 = ".x11".intern();
+    public static final String TYPE_X11 = ".x11";
 
     /** Broadcom VC IV/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_BCM_VC_IV = ".bcm.vc.iv".intern();
+    public static final String TYPE_BCM_VC_IV = ".bcm.vc.iv";
 
     /** Android/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
-    public static final String TYPE_ANDROID = ".android".intern();
+    public static final String TYPE_ANDROID = ".android";
 
     /** Mac OS X type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_MACOSX = ".macosx".intern();
+    public static final String TYPE_MACOSX = ".macosx";
 
     /** Generic AWT type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_AWT = ".awt".intern();
+    public static final String TYPE_AWT = ".awt";
 
     /** Generic DEFAULT type, where platform implementation don't care, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_DEFAULT = ".default".intern();
+    public static final String TYPE_DEFAULT = ".default";
 
     private static final String nativeWindowingTypePure;   // canonical String via String.intern()
     private static final String nativeWindowingTypeCustom; // canonical String via String.intern()
