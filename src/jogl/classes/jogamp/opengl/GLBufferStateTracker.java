@@ -159,6 +159,7 @@ public class GLBufferStateTracker {
         case GL3ES3.GL_DRAW_INDIRECT_BUFFER:
         case GL3ES3.GL_DISPATCH_INDIRECT_BUFFER:
         case GL.GL_ELEMENT_ARRAY_BUFFER:
+        case GL4.GL_PARAMETER_BUFFER_ARB:
         case GL2ES3.GL_PIXEL_PACK_BUFFER:
         case GL2ES3.GL_PIXEL_UNPACK_BUFFER:
         case GL4.GL_QUERY_BUFFER:
