@@ -60,11 +60,11 @@ public class GLContextShareSet {
   // This class is implemented using a HashMap which maps from all shared contexts
   // to a share set, containing all shared contexts itself.
 
-  private static final Map<GLContext, ShareSet> shareMap = new IdentityHashMap<GLContext, ShareSet>();
+  private static final Map<GLContext, ShareSet> shareMap = new TLcdWeakIdentityHashMap<GLContext, ShareSet>();
 
   private static class ShareSet {
-    private final Map<GLContext, GLContext> createdShares   = new IdentityHashMap<GLContext, GLContext>();
-    private final Map<GLContext, GLContext> destroyedShares = new IdentityHashMap<GLContext, GLContext>();
+    private final Map<GLContext, GLContext> createdShares   = new TLcdWeakIdentityHashMap<GLContext, GLContext>();
+    private final Map<GLContext, GLContext> destroyedShares = new TLcdWeakIdentityHashMap<GLContext, GLContext>();
 
     public final void addNew(final GLContext slave, final GLContext master) {
         final GLContext preMaster;
