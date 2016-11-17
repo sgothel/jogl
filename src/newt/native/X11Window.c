@@ -952,6 +952,50 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
             NewtWindows_setMinMaxSize(dpy, javaWindow, width, height, width, height);
         }
     }
+    
+    {
+      XIDeviceInfo *di;
+      XIDeviceInfo *dev;
+      XITouchClassInfo *class;
+      int devid = -1;
+      
+      int cnt;
+      int i, j;
+
+      di = XIQueryDevice(dpy, XIAllDevices, &cnt);
+      for (i = 0; i < cnt; i ++)
+      {
+        dev = &di[i];
+        for (j = 0; j < dev->num_classes; j ++)
+        {
+          class = (XITouchClassInfo*)(dev->classes[j]);
+          if (class->type != XITouchClass)
+          {
+            devid = dev->deviceid;
+            break;
+          }
+        }
+        if(devid != -1)
+        {
+          break;
+        }
+      }
+      
+      XIEventMask mask = {
+        .deviceid = devid, //XIAllDevices,
+        .mask_len = XIMaskLen(XI_TouchEnd)
+      };
+      
+      mask.mask = (unsigned char*)calloc(3, sizeof(char));
+      XISetMask(mask.mask, XI_TouchBegin);
+      XISetMask(mask.mask, XI_TouchUpdate);
+      XISetMask(mask.mask, XI_TouchEnd);
+
+      XISelectEvents(dpy, window, &mask, 1);
+
+      free(mask.mask);      
+    }
+    
     XFlush(dpy);
     handles[0] = (jlong)(intptr_t)window;
     handles[1] = (jlong)(intptr_t)javaWindow;
