@@ -28,6 +28,7 @@
 
 package jogamp.opengl.egl;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +44,15 @@ public final class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundl
 
     @Override
     public final List<List<String>> getToolLibNames() {
+
+        // Prefer libGLESv2.so over libGLESv2.so.2 for Broadcom graphics
+        // when the VC4 DRM driver isn't present
+        final File vcliblocation = new File(
+            "/opt/vc/lib/libbcm_host.so");
+        final File vc4modlocation = new File(
+            "/sys/module/vc4");
+        final boolean bcm_vc_iv_quirk = vcliblocation.isFile() && !vc4modlocation.isDirectory();
+
         final List<List<String>> libsList = new ArrayList<List<String>>();
         {
             final List<String> libsGL = new ArrayList<String>();
@@ -63,11 +73,17 @@ public final class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundl
             libsGL.add("libGLES30");
 
             // ES2: This is the default lib name, according to the spec
-            libsGL.add("libGLESv2.so.2");
+            if (!bcm_vc_iv_quirk) {
+                libsGL.add("libGLESv2.so.2");
+            }
 
             // ES2: Try these as well, if spec fails
             libsGL.add("libGLESv2.so");
             libsGL.add("GLESv2");
+
+            if (bcm_vc_iv_quirk) {
+                libsGL.add("libGLESv2.so.2");
+            }
 
             // ES2: Alternative names
             libsGL.add("GLES20");
