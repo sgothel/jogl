@@ -140,6 +140,13 @@ public class X11UnderlayTracker implements WindowListener, KeyListener, MouseLis
             Point underlayOnScreen = new Point();
             overlayWindow.getLocationOnScreen(overlayOnScreen);
             underlayWindow.getLocationOnScreen(underlayOnScreen);
+            /*
+             * Apply an offset when the dimensions of over- and
+             * underlay don't match
+             */
+            int dx = (overlayWindow.getScreen().getWidth() - underlayWindow.getScreen().getWidth()) / 2;
+            int dy = (overlayWindow.getScreen().getHeight() - underlayWindow.getScreen().getHeight()) / 2;
+            underlayOnScreen.translate(dx, dy);
             if(overlayOnScreen.getX()!=underlayOnScreen.getX() ||
                overlayOnScreen.getY()!=underlayOnScreen.getY()) {
                 overlayWindow.setPosition(underlayOnScreen.getX(), underlayOnScreen.getY());
