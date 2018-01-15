@@ -336,6 +336,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateNSWindow0
   (JNIEnv *env, jclass unused, jint x, jint y, jint width, jint height)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    [CATransaction begin];
     NSRect rect = NSMakeRect(x, y, width, height);
 
     // Allocate the window
@@ -365,6 +366,7 @@ NS_ENDHANDLER
     // [myView lockFocus];
     // [myView unlockFocus];
 
+    [CATransaction commit];
     [pool release];
 
     return (jlong) ((intptr_t) myWindow);
@@ -379,9 +381,12 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyNSWindow0
   (JNIEnv *env, jclass unused, jlong nsWindow)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* mWin = (NSWindow*) ((intptr_t) nsWindow);
+    [CATransaction begin];
 
+    NSWindow* mWin = (NSWindow*) ((intptr_t) nsWindow);
     [mWin close]; // performs release!
+
+    [CATransaction commit];
     [pool release];
 }
 
