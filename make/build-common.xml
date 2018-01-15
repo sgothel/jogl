@@ -140,6 +140,9 @@
           <istrue value="${isLinuxX86}" />
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt-debug.jar">
+          <istrue value="${isLinuxARM64}" /> <!-- FIXME JAU .. hack -->
+        </condition>
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt-debug.jar">
           <istrue value="${isLinuxARMv6}" /> <!-- FIXME JAU .. hack -->
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt-debug.jar">
