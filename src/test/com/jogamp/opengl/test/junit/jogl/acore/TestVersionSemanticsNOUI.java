@@ -110,7 +110,7 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
                                          currentJar, curVersionNumber, excludes);
     }
 
-    //@Test
+    @Test
     public void testVersionV230V23x_00std() throws IllegalArgumentException, IOException, URISyntaxException {
         final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
@@ -125,7 +125,7 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
                                          curVersion.getClass(), currentCL, curVersionNumber,
                                          excludesDefault);
     }
-    //@Test
+    @Test
     public void testVersionV230V23x_01patch() throws IllegalArgumentException, IOException, URISyntaxException {
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
@@ -141,7 +141,7 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
                                          curVersion.getClass(), currentCL, curVersionNumber,
                                          excludesStereoPackageAndAppletUtils);
     }
-    //@Test
+    @Test
     public void testVersionV231V23x_01patch() throws IllegalArgumentException, IOException, URISyntaxException {
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
@@ -163,7 +163,7 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
         testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY, "2.3.0", "2.3.2", excludesStereoPackageAndAppletUtils);
     }
 
-    @Test
+    // @Test
     public void testVersionV232V24x0() throws IllegalArgumentException, IOException, URISyntaxException {
         final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
