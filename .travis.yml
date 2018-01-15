@@ -1,0 +1,29 @@
+language: java
+git:
+  submodules: false
+sudo: false
+
+addons:
+  apt:
+    packages:
+    - bash 
+    - p7zip-full
+    - libx11-dev
+    - libxxf86vm-dev
+    - xvfb
+    - libgl1-mesa-dri 
+
+before_install:
+  - cd ..
+  - git clone --recurse-submodules git://jogamp.org/srv/scm/gluegen.git gluegen > /dev/null
+  - pushd gluegen/make
+  - ant > /dev/null
+  - popd
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+
+install:
+  - pushd jogl/make
+  - ant
+  - ant junit.run newt 2>/dev/null
+  - bash ./scripts/check-junit.sh ../build
