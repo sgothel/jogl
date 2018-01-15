@@ -140,9 +140,11 @@ public abstract class NativeWindowFactory {
         return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
             private final File vcliblocation = new File(
                     "/opt/vc/lib/libbcm_host.so");
+            private final File vc4modlocation = new File(
+                    "/sys/module/vc4");
                 @Override
                 public Boolean run() {
-                    if ( vcliblocation.isFile() ) {
+                    if ( vcliblocation.isFile() && !vc4modlocation.isDirectory() ) {
                         return Boolean.TRUE;
                     }
                     return Boolean.FALSE;
