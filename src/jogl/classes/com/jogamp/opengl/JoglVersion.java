@@ -144,8 +144,7 @@ public class JoglVersion extends JogampVersion {
         }
 
         sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
-        sb.append(device.getClass().getSimpleName()).append("[type ")
-                .append(device.getType()).append(", connection ").append(device.getConnection()).append("]: ").append(Platform.getNewline());
+        sb.append(device.toString()).append(':').append(Platform.getNewline());
         if( withAvailabilityInfo ) {
             GLProfile.glAvailabilityToString(device, sb, "\t", 1);
         }
