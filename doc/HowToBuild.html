@@ -106,14 +106,18 @@
                                     </ul>
                                     One liner install command
                                     <ul>
-                                      <li><b>Debian</b> 7.00
+                                      <li><b>Debian</b> 7.00 Wheezy
                                       <pre>
 apt-get install openjdk-7-jre openjdk-7-jdk ant git-all p7zip-full gcc libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++6-4.7
                                       </pre></li>
 
-                                      <li><b>Debian</b> 8.10 (also Ubuntu 15.04)
+                                      <li><b>Debian</b> 8.10 Jessie (also Ubuntu 15.04)
                                       <pre>
 apt-get install openjdk-7-jre openjdk-7-jdk ant git-all p7zip-full gcc libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++-4.9-dev
+                                      </pre></li>
+                                      <li><b>Debian</b> 9.00 Stretch
+                                      <pre>
+apt-get install openjdk-8-jre openjdk-8-jdk ant git-all p7zip-full gcc libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++-6-dev
                                       </pre></li>
                                     </ul>
                                     Optional: Add <i>kernel</i> build utilities:
@@ -134,6 +138,20 @@ apt-get install ia32-libs ia32-libs-gtk gcc-multilib lib32gcc1 lib32gomp1 lib32i
 dpkg --add-architecture i386
 apt-get update
 apt-get install lib32z1 lib32ncurses5 lib32bz2-1.0 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-7-jre:i386 openjdk-7-jdk:i386
+
+cd /usr/lib/i386-linux-gnu/
+ln -s libXrender.so.1 libXrender.so
+ln -s libXxf86vm.so.1 libXxf86vm.so
+ln -s libXrandr.so.2 libXrandr.so
+ln -s libXcursor.so.1 libXcursor.so
+cd /lib/i386-linux-gnu/
+ln -s libudev.so.1 libudev.so
+                                        </pre></li>
+                                      <li><b>Debian</b> 9.00 Stretch
+                                        <pre>
+dpkg --add-architecture i386
+apt-get update
+apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-8-jre:i386 openjdk-8-jdk:i386
 
 cd /usr/lib/i386-linux-gnu/
 ln -s libXrender.so.1 libXrender.so
