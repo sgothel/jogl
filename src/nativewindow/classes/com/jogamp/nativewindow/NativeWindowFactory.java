@@ -33,7 +33,6 @@
 
 package com.jogamp.nativewindow;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -46,6 +45,7 @@ import java.util.Map;
 import com.jogamp.nativewindow.util.PointImmutable;
 
 import jogamp.common.os.PlatformPropsImpl;
+import jogamp.nativewindow.BcmVCArtifacts;
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NativeWindowFactoryImpl;
 import jogamp.nativewindow.ToolkitProperties;
@@ -136,22 +136,6 @@ public abstract class NativeWindowFactory {
     protected NativeWindowFactory() {
     }
 
-    private static final boolean guessBroadcomVCIV() {
-        return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
-            private final File vcliblocation = new File(
-                    "/opt/vc/lib/libbcm_host.so");
-            private final File vc4modlocation = new File(
-                    "/sys/module/vc4");
-                @Override
-                public Boolean run() {
-                    if ( vcliblocation.isFile() && !vc4modlocation.isDirectory() ) {
-                        return Boolean.TRUE;
-                    }
-                    return Boolean.FALSE;
-                }
-        } ).booleanValue();
-    }
-
     private static String _getNativeWindowingType() {
         switch(PlatformPropsImpl.OS_TYPE) {
             case ANDROID:
@@ -168,7 +152,7 @@ public abstract class NativeWindowFactory {
             case SUNOS:
             case HPUX:
             default:
-              if( guessBroadcomVCIV() ) {
+              if( BcmVCArtifacts.guessVCIVUsed() ) {
                 return TYPE_BCM_VC_IV;
               }
               return TYPE_X11;
