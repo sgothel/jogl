@@ -5,7 +5,7 @@
     <property name="libpath" value="${basedir}/build/lib"/>
     <target name="init">
         <path id="cp">
-            <pathelement path="${jdk.home}/lib/tools.jar:${ant.core.lib}:${ant.home}/lib/ant-junit.jar"/>
+            <pathelement path="${ant.core.lib}:${ant.home}/lib/ant-junit.jar"/>
             <pathelement location="../gluegen/make/lib/junit.jar"/>
             <pathelement location="../gluegen/build/gluegen-rt.jar"/>
             <pathelement location="build/test/build/classes"/>
@@ -73,7 +73,7 @@
         <fail unless="files">Must set property 'files'</fail>
         <mkdir dir="build/classes"/>
         <javac destdir="build/classes" includes="${files}" source="1.5" srcdir="src/java">
-            <classpath path="build/classes:${jdk.home}/lib/tools.jar:${ant.core.lib}:lib/antlr-3.2.jar"/>
+            <classpath path="build/classes:${ant.core.lib}:lib/antlr-3.2.jar"/>
         </javac>
     </target>
 </project>

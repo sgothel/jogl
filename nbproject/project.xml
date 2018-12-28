@@ -208,7 +208,7 @@
             <compilation-unit>
                 <package-root>src/test</package-root>
                 <unit-tests/>
-                <classpath mode="compile">build/jogl/classes:build/jogl/gensrc/classes:build/newt/classes:build/nativewindow/classes:build/nativewindow/gensrc/classes:build/test/build/classes:${jdk.home}/lib/tools.jar:${ant.core.lib}:${ant.home}/lib/ant-junit.jar:../gluegen/make/lib/antlr.jar:../gluegen/make/lib/junit.jar:../gluegen/build/gluegen-rt.jar:make/lib/swt/gtk-linux-x86_64/swt-debug.jar</classpath>
+                <classpath mode="compile">build/jogl/classes:build/jogl/gensrc/classes:build/newt/classes:build/nativewindow/classes:build/nativewindow/gensrc/classes:build/test/build/classes:${ant.core.lib}:${ant.home}/lib/ant-junit.jar:../gluegen/make/lib/antlr.jar:../gluegen/make/lib/junit.jar:../gluegen/build/gluegen-rt.jar:make/lib/swt/gtk-linux-x86_64/swt-debug.jar</classpath>
                 <built-to>bin</built-to>
                 <source-level>1.5</source-level>
             </compilation-unit>
