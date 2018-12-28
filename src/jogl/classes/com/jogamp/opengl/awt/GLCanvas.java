@@ -629,7 +629,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         awtWindowClosingProtocol.addClosingListener();
 
         if(DEBUG) {
-            System.err.println(getThreadName()+": Info: addNotify - end: peer: "+getPeer());
+            System.err.println(getThreadName()+": Info: addNotify - end");
         }
     } finally {
         _lock.unlock();
@@ -806,7 +806,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
     }
     if(DEBUG) {
-        System.err.println(getThreadName()+": Info: removeNotify - end, peer: "+getPeer());
+        System.err.println(getThreadName()+": Info: removeNotify - end");
     }
   }
 
