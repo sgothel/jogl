@@ -205,8 +205,6 @@
         <!-- The compiler output directories. -->
         <property name="classes" value="${build.newt}/classes" />
 
-        <property name="javah.classpath" value="${gluegen-rt.jar}:${build.nativewindow}/classes:${classes}" />
-
         <!-- The javadoc dirs. -->
         <property name="javadoc" value="${project.root}/javadoc_newt_public" />
         <property name="javadoc.spec" value="${project.root}/javadoc_newt_spec" />
@@ -246,6 +244,131 @@
        - Compile the original and generated source.
       -->
     <target name="java.compile.javase">
+
+        <!-- create KD native headers -->
+        <javac srcdir="${src.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all} ${java.part.driver.android}"
+               nativeheaderdir="${src.generated.c}/KD"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+            <include name="jogamp/newt/driver/kd/WindowDriver.java" />
+        </javac>
+
+        <!-- create Intel GDL native headers -->
+        <javac srcdir="${src.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all} ${java.part.driver.android}"
+               nativeheaderdir="${src.generated.c}/IntelGDL"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+            <include name="jogamp/newt/driver/intel/gdl/DisplayDriver.java" />
+            <include name="jogamp/newt/driver/intel/gdl/ScreenDriver.java" />
+            <include name="jogamp/newt/driver/intel/gdl/WindowDriver.java" />
+        </javac>
+
+        <!-- create Broadcom EGL native headers -->
+        <javac srcdir="${src.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all} ${java.part.driver.android}"
+               nativeheaderdir="${src.generated.c}/bcm/egl"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+            <include name="jogamp/newt/driver/bcm/egl/WindowDriver.java" />
+        </javac>
+
+        <!-- create Broadcom VideoCore IV native headers -->
+        <javac srcdir="${src.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all} ${java.part.driver.android}"
+               nativeheaderdir="${src.generated.c}/bcm/vc/iv"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+            <include name="jogamp/newt/driver/bcm/vc/iv/DisplayDriver.java" />
+            <include name="jogamp/newt/driver/bcm/vc/iv/ScreenDriver.java" />
+            <include name="jogamp/newt/driver/bcm/vc/iv/WindowDriver.java" />
+        </javac>
+
+        <!-- create Windows native headers -->
+        <javac srcdir="${src.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all} ${java.part.driver.android}"
+               nativeheaderdir="${src.generated.c}/Windows"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+            <include name="jogamp/newt/driver/windows/WindowDriver.java" />
+            <include name="jogamp/newt/driver/windows/ScreenDriver.java" />
+            <include name="jogamp/newt/driver/windows/DisplayDriver.java" />
+        </javac>
+
+        <!-- create OSX native headers -->
+        <javac srcdir="${src.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all} ${java.part.driver.android}"
+               nativeheaderdir="${src.generated.c}/MacOSX"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+            <include name="jogamp/newt/driver/macosx/WindowDriver.java" />
+            <include name="jogamp/newt/driver/macosx/ScreenDriver.java" />
+            <include name="jogamp/newt/driver/macosx/DisplayDriver.java" />
+        </javac>
+
+        <!-- create X11 native headers -->
+        <javac srcdir="${src.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all} ${java.part.driver.android}"
+               nativeheaderdir="${src.generated.c}/X11"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+            <include name="jogamp/newt/driver/x11/WindowDriver.java" />
+            <include name="jogamp/newt/driver/x11/ScreenDriver.java" />
+            <include name="jogamp/newt/driver/x11/DisplayDriver.java" />
+            <include name="jogamp/newt/driver/x11/RandR11.java" />
+            <include name="jogamp/newt/driver/x11/RandR13.java" />
+        </javac>
+        
         <javac destdir="${classes}"
                excludes="${java.excludes.all} ${java.part.driver.android}"
                fork="yes"
@@ -254,7 +377,6 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
@@ -262,6 +384,23 @@
     </target>
 
     <target name="java.compile.android" if="android-jars.available">
+        
+        <!-- create Android native headers -->
+        <javac srcdir="${src.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all}"
+               nativeheaderdir="${src.generated.c}/Android"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="jogl_nativewindow_gluegen_android.classpath"/>
+            <include name="jogamp/newt/driver/android/WindowDriver.java" />
+        </javac>
+
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
                fork="yes"
@@ -270,7 +409,6 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <classpath refid="jogl_nativewindow_gluegen_android.classpath"/>
@@ -776,6 +914,7 @@
       </sequential>
     </macrodef>
 
+    <!-- Removed: To be edited
     <target name="c.build.newt.prepare">
       <javah destdir="${src.generated.c}/KD"          classpath="${javah.classpath}" class="jogamp.newt.driver.kd.WindowDriver" />
 
@@ -793,6 +932,7 @@
     <target name="c.build.newt.prepare.android" if="isAndroid">
       <javah destdir="${src.generated.c}/Android"     classpath="${javah.classpath}:${android.jar}" class="jogamp.newt.driver.android.WindowDriver" />
     </target>
+    -->
 
     <target name="c.build.newt.windowlib" unless="setup.nonatives">
       <c.build c.compiler.src.files="c.src.files.newt"
@@ -809,7 +949,7 @@
     <target name="c.build.newt.natives" depends="c.build.newt.windowlib" unless="setup.nonatives">
     </target>
 
-    <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.prepare.android,c.build.newt.natives">
+    <target name="c.build.newt" depends="c.configure,c.build.newt.natives">
       <antcall target="c.manifest" inheritRefs="true" />
     </target>
 

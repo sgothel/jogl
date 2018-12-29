@@ -29,13 +29,12 @@
         <mkdir dir="${classes}" />
 
         <!-- Compile BuildStaticGLInfo -->
-        <javac srcdir="${src.java}" destdir="${classes}" includes="**/BuildStaticGLInfo.java" source="${target.sourcelevel}" debug="true" debuglevel="${javacdebuglevel}"
+        <javac srcdir="${src.java}" destdir="${classes}" includes="**/BuildStaticGLInfo.java" debug="true" debuglevel="${javacdebuglevel}"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
                source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}">
+               target="${target.targetlevel}">
             <classpath refid="antlr.classpath" />
         </javac>
         
@@ -55,13 +54,12 @@
         <!-- Build the BuildStaticGLInfo ANT task.
            - NOTE:  ONLY the StaticGLGen is built at this time.  BuildStaticGLInfo 
            -        itself is built in a separate task.  -->
-        <javac destdir="${classes}" includes="**/StaticGLGenTask.java" source="${target.sourcelevel}" debug="true" debuglevel="${javacdebuglevel}"
+        <javac destdir="${classes}" includes="**/StaticGLGenTask.java" debug="true" debuglevel="${javacdebuglevel}"
                includeAntRuntime="true"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
                source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}">
+               target="${target.targetlevel}">
             <src path="${src.java}" />
             <classpath refid="classpath" />
         </javac>

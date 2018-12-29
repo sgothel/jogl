@@ -249,8 +249,6 @@
         <property name="rootrel.obj.joglsub"        value="${rootrel.obj.jogl}/jogl"/>
         <property name="obj.cgsub"                  value="${obj.jogl}/cg" />
 
-        <property name="javah.classpath" value="${gluegen-rt.jar}:${build.nativewindow}/classes:${classes}" />
-
         <!-- The GL headers from which Java files are generated -->
         <property name="stub.includes.opengl"       value="${stub.includes}/opengl" />
 
@@ -800,8 +798,7 @@
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
                source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
+               target="${target.targetlevel}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="gluegen-gl.classpath"/>
             <src path="${src.java}" />
@@ -815,7 +812,6 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="gluegen-gl.classpath"/>
             <src path="${src.java}" />
@@ -1079,6 +1075,56 @@
        - will be generated.
       -->
     <target name="java.compile.firstpass" depends="java.generate,java.generate.cg">
+        <!-- generate JOGL native headers -->
+        <javac srcdir="${src.java}:${src.generated.java}"
+               destdir="${classes}"
+               nativeheaderdir="${build.jogl}/gensrc/native/jogl"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="nativewindow_gluegen.classpath"/>
+            <include name="jogamp/opengl/GLDebugMessageHandler.java" />
+            <include name="jogamp/opengl/GLContextImpl.java" />
+        </javac>
+
+        <!-- generate libav native headers -->
+        <javac srcdir="${src.java}:${src.generated.java}"
+               destdir="${classes}"
+               nativeheaderdir="${src.generated.c.libav}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="nativewindow_gluegen.classpath"/>
+            <include name="jogamp/opengl/util/av/impl/FFMPEGStaticNatives.java" />
+            <include name="jogamp/opengl/util/av/impl/FFMPEGv08Natives.java" />
+            <include name="jogamp/opengl/util/av/impl/FFMPEGv09Natives.java" />
+            <include name="jogamp/opengl/util/av/impl/FFMPEGv10Natives.java" />
+            <include name="jogamp/opengl/util/av/impl/FFMPEGv11Natives.java" />
+        </javac>
+
+        <!-- generate openmax native headers -->
+        <javac srcdir="${src.java}:${src.generated.java}"
+               destdir="${classes}"
+               nativeheaderdir="${src.generated.c.openmax}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="nativewindow_gluegen.classpath"/>
+            <include name="jogamp/opengl/util/av/impl/OMXGLMediaPlayer.java" />
+        </javac>
+
         <!-- Perform the first pass Java compile. -->
         <javac destdir="${classes}"
                includes="com/jogamp/opengl/fixedfunc/** com/jogamp/opengl/GLDrawableFactory.java com/jogamp/opengl/GLDrawable.java com/jogamp/opengl/GLContext.java com/jogamp/opengl/GL.java com/jogamp/opengl/GL2ES1.java com/jogamp/opengl/GLES1.java com/jogamp/opengl/GL2ES2.java com/jogamp/opengl/GLES2.java com/jogamp/opengl/GL2ES3.java com/jogamp/opengl/GL2GL3.java com/jogamp/opengl/GL2.java com/jogamp/opengl/GL3ES3.java com/jogamp/opengl/GL3.java com/jogamp/opengl/GL3bc.java com/jogamp/opengl/GL4ES3.java com/jogamp/opengl/GLES3.java com/jogamp/opengl/GL4.java com/jogamp/opengl/GL4bc.java"
@@ -1088,7 +1134,6 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1106,7 +1151,6 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen_joal.classpath"/>
             <src path="${src.java}" />
@@ -1124,7 +1168,6 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1142,7 +1185,6 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen_android.classpath"/>
             <src path="${src.java}" />
@@ -1163,7 +1205,6 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1709,9 +1750,6 @@
     </macrodef>  
 
     <target name="c.build.jogl.prepare">
-      <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLDebugMessageHandler, jogamp.opengl.GLContextImpl" />
-      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGStaticNatives,jogamp.opengl.util.av.impl.FFMPEGv08Natives,jogamp.opengl.util.av.impl.FFMPEGv09Natives,jogamp.opengl.util.av.impl.FFMPEGv10Natives,jogamp.opengl.util.av.impl.FFMPEGv11Natives" />
-      <javah destdir="${src.generated.c.openmax}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.OMXGLMediaPlayer" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
       <!--javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="com.jogamp.audio.windows.waveout.Mixer" /-->

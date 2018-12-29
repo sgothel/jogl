@@ -122,8 +122,6 @@
         <!-- The compiler output directories. -->
         <property name="classes" value="${build.nativewindow}/classes" />
 
-        <property name="javah.classpath" value="${gluegen-rt.jar}:${classes}" />
-
         <!-- The headers from which Java files are generated -->
         <dirset id="stub.includes.fileset.all" dir=".">
             <include name="${stub.includes}/macosx/**" />
@@ -407,7 +405,6 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <src path="${src.java}" />
