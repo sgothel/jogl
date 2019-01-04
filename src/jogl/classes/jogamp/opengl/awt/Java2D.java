@@ -87,12 +87,14 @@ public class Java2D {
   private static Method getOGLSurfaceTypeMethod;
 
   // Publicly-visible constants for OpenGL surface types
-  public static final int UNDEFINED       = getOGLUtilitiesIntField("UNDEFINED");
-  public static final int WINDOW          = getOGLUtilitiesIntField("WINDOW");
-  public static final int PBUFFER         = getOGLUtilitiesIntField("PBUFFER");
-  public static final int TEXTURE         = getOGLUtilitiesIntField("TEXTURE");
-  public static final int FLIP_BACKBUFFER = getOGLUtilitiesIntField("FLIP_BACKBUFFER");
-  public static final int FBOBJECT        = getOGLUtilitiesIntField("FBOBJECT");
+  // Used to determine these by reflection, but in Java 9+ that's illegal, so had to just
+  // hard-code these from sun.java2d.pipe.hw.AccelSurface.
+  public static final int UNDEFINED       = 0;
+  public static final int WINDOW          = 1;
+  public static final int PBUFFER         = 2;  // this one doesn't even seem to exist in current versions of AccelSurface
+  public static final int TEXTURE         = 3;
+  public static final int FLIP_BACKBUFFER = 4;
+  public static final int FBOBJECT        = 5;
 
   // If FBOs are enabled in the Java2D/OpenGL pipeline, all contexts
   // created by JOGL must share textures and display lists with the
@@ -563,31 +565,6 @@ public class Java2D {
     if ( !isOGLPipelineResourceCompatible() ) {
       throw new GLException("Java2D OpenGL pipeline not resource compatible");
     }
-  }
-
-  private static int getOGLUtilitiesIntField(final String name) {
-    final Integer i = AccessController.doPrivileged(new PrivilegedAction<Integer>() {
-        @Override
-        public Integer run() {
-          try {
-            final Class<?> utils = Class.forName("sun.java2d.opengl.OGLUtilities");
-            final Field f = utils.getField(name);
-            f.setAccessible(true);
-            return (Integer) f.get(null);
-          } catch (final Exception e) {
-            if (DEBUG) {
-              e.printStackTrace();
-            }
-            return null;
-          }
-        }
-      });
-    if (i == null)
-      return 0;
-    if (DEBUG) {
-      System.err.println("OGLUtilities." + name + " = " + i.intValue());
-    }
-    return i.intValue();
   }
 
   private static void initFBOShareContext(final GraphicsDevice device) {
