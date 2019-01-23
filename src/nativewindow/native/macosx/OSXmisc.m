@@ -383,8 +383,13 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyNSWindow0
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     [CATransaction begin];
 
+NS_DURING
     NSWindow* mWin = (NSWindow*) ((intptr_t) nsWindow);
     [mWin close]; // performs release!
+NS_HANDLER
+    // On killing or terminating the process [NSWindow _close], rarely
+    // throws an NSRangeException while ordering out menu items
+NS_ENDHANDLER
 
     [CATransaction commit];
     [pool release];
