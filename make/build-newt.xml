@@ -114,6 +114,9 @@
         <property name="java.part.swt"
                   value="com/jogamp/newt/swt/** jogamp/newt/swt/**"/>
 
+        <property name="java.part.javafx"
+                  value="com/jogamp/newt/javafx/** jogamp/newt/javafx/**"/>
+
         <property name="java.part.applet3"
                   value="com/jogamp/newt/util/applet3/**"/>
 
@@ -156,6 +159,11 @@
            <isset property="setup.noSWT"/> 
         </condition>
 
+        <condition property="java.excludes.javafx"
+                   value="${java.part.javafx}">
+           <isset property="setup.noJFX"/> 
+        </condition>
+
         <condition property="java.excludes.applet3"
                    value="${java.part.applet3}">
            <not>
@@ -167,7 +175,7 @@
            <isset property="setup.noOpenGL"/>
         </condition>
 
-        <property name="java.excludes.all" value="${java.excludes.awt}, ${java.excludes.swt}, ${java.excludes.applet3}, ${java.excludes.opengl}" />
+        <property name="java.excludes.all" value="${java.excludes.awt}, ${java.excludes.swt}, ${java.excludes.javafx}, ${java.excludes.applet3}, ${java.excludes.opengl}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
 
     </target>
@@ -806,6 +814,13 @@
         </jar>
     </target>
 
+    <target name="build-jars-javafx" depends="setup-manifestfile" unless="setup.noJFX">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-javafx.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.javafx}"/>
+        </jar>
+    </target>
+
     <target name="build-jars-opengl" depends="setup-manifestfile" unless="setup.noOpenGL">
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-ogl.jar}" filesonly="true">
             <fileset dir="${classes}"
@@ -848,7 +863,7 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-opengl,build-jars-awt,build-jars-swt,build-jars-driver">
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-opengl,build-jars-awt,build-jars-swt,build-jars-javafx,build-jars-driver">
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"/>

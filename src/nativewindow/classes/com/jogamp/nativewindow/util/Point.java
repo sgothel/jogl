@@ -120,6 +120,18 @@ public class Point implements Cloneable, PointImmutable {
 
     /**
      * Translate this instance's x- and y-components,
+     * i.e. add the values of the given delta point to them.
+     * @param pd delta point
+     * @return this instance for scaling
+     */
+    public final Point translate(final PointImmutable pd) {
+        x += pd.getX() ;
+        y += pd.getY() ;
+        return this;
+    }
+
+    /**
+     * Translate this instance's x- and y-components,
      * i.e. add the given deltas to them.
      * @param dx delta for x
      * @param dy delta for y

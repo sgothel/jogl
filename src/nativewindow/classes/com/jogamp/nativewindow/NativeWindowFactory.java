@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.PointImmutable;
 
 import jogamp.common.os.PlatformPropsImpl;
@@ -733,7 +734,7 @@ public abstract class NativeWindowFactory {
      * FIXME: Bug 973 Needs service provider interface (SPI) for TK dependent implementation
      * </p>
      */
-    public static PointImmutable getLocationOnScreen(final NativeWindow nw) {
+    public static Point getLocationOnScreen(final NativeWindow nw) {
         final String nwt = NativeWindowFactory.getNativeWindowType(true);
         if( NativeWindowFactory.TYPE_X11 == nwt ) {
             return X11Lib.GetRelativeLocation(nw.getDisplayHandle(), nw.getScreenIndex(), nw.getWindowHandle(), 0, 0, 0);

@@ -391,6 +391,7 @@
         <property name="newt-ogl.jar"             value="${build.newt}/newt-ogl.jar" />
         <property name="newt-awt.jar"             value="${build.newt}/newt-awt.jar" />
         <property name="newt-swt.jar"             value="${build.newt}/newt-swt.jar" />
+        <property name="newt-javafx.jar"          value="${build.newt}/newt-javafx.jar" />
         <property name="newt-event.jar"           value="${build.newt}/newt-event.jar" />              <!-- using NEWT events w/o NEWT -->
         <property name="newt-driver-linux.jar"    value="${build.newt}/newt-driver-linux.jar" />
         <property name="newt-driver-x11.jar"      value="${build.newt}/newt-driver-x11.jar" />
@@ -406,6 +407,7 @@
             <pathelement location="${newt-ogl.jar}" />
             <pathelement location="${newt-awt.jar}" />
             <pathelement location="${newt-swt.jar}" />
+            <pathelement location="${newt-javafx.jar}" />
             <pathelement location="${newt-driver-linux.jar}" />
             <pathelement location="${newt-driver-x11.jar}" />
             <pathelement location="${newt-driver-win.jar}" />

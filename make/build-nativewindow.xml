@@ -67,7 +67,7 @@
         <!-- partitioning -->
 
         <property name="java.part.core"
-                  value="com/jogamp/nativewindow/* com/jogamp/nativewindow/util/* com/jogamp/nativewindow/egl/* com/jogamp/nativewindow/swt/** jogamp/nativewindow/*"/>
+                  value="com/jogamp/nativewindow/* com/jogamp/nativewindow/util/* com/jogamp/nativewindow/egl/* com/jogamp/nativewindow/swt/** com/jogamp/nativewindow/javafx/** jogamp/nativewindow/*"/>
 
         <property name="java.part.awt"
                   value="com/jogamp/nativewindow/awt/* jogamp/nativewindow/jawt/** jogamp/nativewindow/**/awt/**"/>

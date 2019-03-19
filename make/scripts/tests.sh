@@ -126,6 +126,7 @@ function jrun() {
 
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG"
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_MULTITHREADING_BUG"
+    D_ARGS="-Dnativewindow.debug.JFX -Dnewt.debug.Window"
     #D_ARGS="-Djogl.disable.opengldesktop"
     #D_ARGS="-Djogl.disable.opengles"
     #D_ARGS="-Djogl.disable.openglcore"
@@ -398,6 +399,11 @@ function testnoawt() {
     jrun  0 0 $* 2>&1 | tee -a java-run.log
 }
 
+function testjfx() {
+    MOSX_MT=0
+    jrun  1 0 $* 2>&1 | tee -a java-run.log
+}
+
 function testawt() {
     MOSX_MT=0
     jrun  1 0 $* 2>&1 | tee -a java-run.log
@@ -441,7 +447,7 @@ function testawtswt() {
 #
 # HiDPI
 #
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
@@ -836,6 +842,12 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
 
 #
+# JavaFX (testjfx)
+#
+#testjfx com.jogamp.opengl.test.junit.jogl.javafx.JFXStageGLChild01 $*
+testjfx com.jogamp.opengl.test.junit.jogl.javafx.TestNewtCanvasJFXGLn $*
+
+#
 # Misc Utils
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES1NEWT $*
@@ -927,6 +939,10 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #           ../../src/xcb_io.c:178: dequeue_pending_request: Assertion `!xcb_xlib_unknown_req_in_deq' failed.
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT $*
+
+# caused a freeze/crash on OSX
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT $*
 
 # NEW
 
