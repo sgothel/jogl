@@ -161,25 +161,23 @@ public class JFXAccessor {
                 Platform.runLater(task);
             } else {
                 final RunnableTask rTask = new RunnableTask(task,
-                                                wait ? rTaskLock : null,
+                                                rTaskLock,
                                                 true /* always catch and report Exceptions, don't disturb EDT */,
-                                                wait ? null : System.err);
+                                                null);
                 Platform.runLater(rTask);
-                if( wait ) {
-                    try {
-                        while( rTask.isInQueue() ) {
-                            rTaskLock.wait(); // free lock, allow execution of rTask
-                        }
-                    } catch (final InterruptedException ie) {
-                        throw new InterruptedRuntimeException(ie);
+                try {
+                    while( rTask.isInQueue() ) {
+                        rTaskLock.wait(); // free lock, allow execution of rTask
                     }
-                    final Throwable throwable = rTask.getThrowable();
-                    if(null!=throwable) {
-                        if(throwable instanceof NativeWindowException) {
-                            throw (NativeWindowException)throwable;
-                        }
-                        throw new RuntimeException(throwable);
+                } catch (final InterruptedException ie) {
+                    throw new InterruptedRuntimeException(ie);
+                }
+                final Throwable throwable = rTask.getThrowable();
+                if(null!=throwable) {
+                    if(throwable instanceof NativeWindowException) {
+                        throw (NativeWindowException)throwable;
                     }
+                    throw new RuntimeException(throwable);
                 }
             }
         }
