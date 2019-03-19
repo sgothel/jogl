@@ -37,10 +37,10 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/gluegen"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Ant"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SWT"/>
-	<classpathentry kind="lib" path="/gluegen/make/lib/android-sdk/15/android.jar" sourcepath="/gluegen/make/lib/android-sdk/15/android-java-src.zip"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/joal"/>
 	<classpathentry kind="lib" path="/gluegen/make/lib/junit.jar" sourcepath="/gluegen/make/lib/junit-sources.jar"/>
 	<classpathentry kind="lib" path="make/lib/plugin3/plugin3-public.jar" sourcepath="make/lib/plugin3/plugin3-public-src.zip"/>
 	<classpathentry kind="lib" path="/gluegen/make/lib/semantic-versioning/semver.jar" sourcepath="/gluegen/make/lib/semantic-versioning/semver-src.zip"/>
+	<classpathentry kind="lib" path="/gluegen/make/lib/android-sdk/15/android.jar" sourcepath="/gluegen/make/lib/android-sdk/15/android-java-src.zip"/>
 	<classpathentry kind="output" path="build/eclipse-classes"/>
 </classpath>
