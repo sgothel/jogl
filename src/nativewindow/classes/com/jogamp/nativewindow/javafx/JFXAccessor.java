@@ -219,9 +219,9 @@ public class JFXAccessor {
     }
 
     /**
-     * @param swtControl the SWT Control to retrieve the native device handle from
+     * @param stageWindow the JavaFX top heavyweight window handle
      * @return the AbstractGraphicsDevice w/ the native device handle
-     * @throws NativeWindowException if the widget handle is null
+     * @throws NativeWindowException if an exception occurs retrieving the window handle or deriving the native device
      * @throws UnsupportedOperationException if the windowing system is not supported
      */
     public static AbstractGraphicsDevice getDevice(final Window stageWindow) throws NativeWindowException, UnsupportedOperationException {
@@ -230,7 +230,7 @@ public class JFXAccessor {
           final String connection = null;
           final long x11DeviceHandle = X11Util.openDisplay(connection);
           if( 0 == x11DeviceHandle ) {
-              throw new RuntimeException("Error creating display: "+connection);
+              throw new NativeWindowException("Error creating display: "+connection);
           }
           return new X11GraphicsDevice(x11DeviceHandle, AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
         }
@@ -263,9 +263,9 @@ public class JFXAccessor {
     }
 
     /**
-     * @param swtControl the SWT Control to retrieve the native widget-handle from
-     * @return the native widget-handle
-     * @throws NativeWindowException if the widget handle is null
+     * @param stageWindow the JavaFX top heavyweight window handle
+     * @return the native window handle
+     * @throws NativeWindowException if an exception occurs retrieving the window handle
      */
     public static long getWindowHandle(final Window stageWindow) throws NativeWindowException {
         final long h[] = { 0 };
