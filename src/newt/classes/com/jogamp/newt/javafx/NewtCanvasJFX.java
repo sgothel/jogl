@@ -39,6 +39,7 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.SurfaceUpdatedListener;
 import com.jogamp.nativewindow.WindowClosingProtocol;
+import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
 import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.nativewindow.util.Point;
@@ -82,7 +83,8 @@ public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
     private volatile javafx.stage.Window parentWindow = null;
     private volatile AbstractGraphicsScreen screen = null;
 
-    private WindowClosingMode newtChildCloseOp = WindowClosingMode.DISPOSE_ON_CLOSE;
+    private WindowClosingMode newtChildClosingMode = WindowClosingMode.DISPOSE_ON_CLOSE;
+    private WindowClosingMode closingMode = WindowClosingMode.DISPOSE_ON_CLOSE;
     private final Rectangle clientArea = new Rectangle();
 
     private volatile JFXNativeWindow nativeWindow = null;
@@ -94,9 +96,14 @@ public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
     private final EventHandler<javafx.stage.WindowEvent> windowClosingListener = new EventHandler<javafx.stage.WindowEvent>() {
         public final void handle(final javafx.stage.WindowEvent e) {
             if( DEBUG ) {
-                System.err.println("NewtCanvasJFX.Event.DISPOSE, "+e);
+                System.err.println("NewtCanvasJFX.Event.DISPOSE, "+e+", closeOp "+closingMode);
             }
-            NewtCanvasJFX.this.destroy();
+            if( WindowClosingMode.DISPOSE_ON_CLOSE == closingMode ) {
+                NewtCanvasJFX.this.destroy();
+            } else {
+                // avoid JavaFX closing operation
+                e.consume();
+            }
         } };
     private final EventHandler<javafx.stage.WindowEvent> windowShownListener = new EventHandler<javafx.stage.WindowEvent>() {
         public final void handle(final javafx.stage.WindowEvent e) {
@@ -280,8 +287,11 @@ public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
      *   <li> Issues {@link Window#destroy()} on the NEWT Child</li>
      *   <li> Remove reference to the NEWT Child</li>
      * </ul>
-     * JavaFX will issue this call when sending out the {@link javafx.stage.WindowEvent#WINDOW_CLOSE_REQUEST} automatically.
+     * JavaFX will issue this call when sending out the {@link javafx.stage.WindowEvent#WINDOW_CLOSE_REQUEST} automatically,
+     * if the user has not overridden the default {@link WindowClosingMode#DISPOSE_ON_CLOSE} to {@link WindowClosingMode#DO_NOTHING_ON_CLOSE}
+     * via {@link #setDefaultCloseOperation(com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode)}.
      * @see Window#destroy()
+     * @see #setDefaultCloseOperation(com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode)
      */
     public void destroy() {
         destroyImpl(true);
@@ -445,10 +455,10 @@ public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
         if( null != newtChild ) {
             newtChild.setKeyboardFocusHandler(null);
             if(attach) {
-                newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
+                newtChildClosingMode = newtChild.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
             } else {
                 newtChild.setFocusAction(null);
-                newtChild.setDefaultCloseOperation(newtChildCloseOp);
+                newtChild.setDefaultCloseOperation(newtChildClosingMode);
             }
         }
     }
@@ -463,12 +473,14 @@ public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
 
     @Override
     public WindowClosingMode getDefaultCloseOperation() {
-        return newtChildCloseOp; // TODO: implement ?!
+        return closingMode;
     }
 
     @Override
     public WindowClosingMode setDefaultCloseOperation(final WindowClosingMode op) {
-        return newtChildCloseOp = op; // TODO: implement ?!
+        final WindowClosingMode old = closingMode;
+        closingMode = op;
+        return old;
     }
 
 

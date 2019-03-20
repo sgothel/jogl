@@ -52,6 +52,7 @@ import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.OffscreenLayerOption;
 import com.jogamp.nativewindow.WindowClosingProtocol;
+import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
@@ -110,7 +111,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private Window newtChild = null;
     private boolean newtChildAttached = false;
     private boolean isOnscreen = true;
-    private WindowClosingMode newtChildCloseOp;
+    private WindowClosingMode newtChildCloseOp = WindowClosingMode.DISPOSE_ON_CLOSE;
     private final AWTParentWindowAdapter awtWinAdapter;
     private final AWTAdapter awtMouseAdapter;
     private final AWTAdapter awtKeyAdapter;
