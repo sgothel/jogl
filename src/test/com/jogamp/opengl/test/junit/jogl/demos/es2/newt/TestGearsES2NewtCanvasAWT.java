@@ -91,7 +91,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     static int screenIdx = 0;
     static PointImmutable wpos;
     static DimensionImmutable wsize, rwsize = null;
-    static FrameLayout frameLayout = FrameLayout.None;
+    static FrameLayout frameLayout = FrameLayout.BorderCenterSurrounded;
     static ResizeBy resizeBy = ResizeBy.Component;
     static float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 

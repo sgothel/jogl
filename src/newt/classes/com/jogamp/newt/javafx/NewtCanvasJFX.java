@@ -628,12 +628,12 @@ public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowC
 
         @Override
         public int getX() {
-            return 0;
+            return NewtCanvasJFX.this.clientArea.getX();
         }
 
         @Override
         public int getY() {
-            return 0;
+            return NewtCanvasJFX.this.clientArea.getY();
         }
 
         @Override

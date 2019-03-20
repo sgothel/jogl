@@ -51,6 +51,7 @@ public class NewtReparentingKeyAdapter extends NEWTDemoListener {
         this.winHolder = winHolder;
     }
 
+    @Override
     public void keyPressed(final KeyEvent e) {
         if( e.isAutoRepeat() || e.isConsumed() ) {
             return;
@@ -71,11 +72,13 @@ public class NewtReparentingKeyAdapter extends NEWTDemoListener {
                     public void run() {
                         final java.lang.Thread t = glWindow.setExclusiveContextThread(null);
                         if(glWindow.getParent()==null) {
-                            printlnState("[reparent pre - glWin to HOME]");
+                            printlnState("[reparent pre - glWin to HOME: child pos "+winHolder.getNativeWindow().getX()+"/"+winHolder.getNativeWindow().getY()+"]");
                             glWindow.reparentWindow(winHolder.getNativeWindow(), -1, -1, 0 /* hints */);
                         } else {
-                            printlnState("[reparent pre - glWin to TOP.0]");
-                            glWindow.reparentWindow(null, -1, -1, 0 /* hints */);
+                            final com.jogamp.nativewindow.util.Point p0 = winHolder.getNativeWindow().getLocationOnScreen(null);
+                            final com.jogamp.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
+                            printlnState("[reparent pre - glWin to TOP.1] frame ", p0+", glWindow "+p1);
+                            glWindow.reparentWindow(null, p1.getX(), p1.getY(), 0 /* hint */);
                         }
                         printlnState("[reparent post]");
                         glWindow.requestFocus();

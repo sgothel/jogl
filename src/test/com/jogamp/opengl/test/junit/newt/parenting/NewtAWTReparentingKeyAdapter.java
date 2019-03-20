@@ -49,54 +49,6 @@ public class NewtAWTReparentingKeyAdapter extends NewtReparentingKeyAdapter {
         this.frame = frame;
     }
 
-    public void keyPressed(final KeyEvent e) {
-        if( e.isAutoRepeat() || e.isConsumed() ) {
-            return;
-        }
-        if( 0 == e.getModifiers() ) { // all modifiers go to super class ..
-          final int keySymbol = e.getKeySymbol();
-          switch (keySymbol) {
-            case KeyEvent.VK_R:
-                e.setConsumed(true);
-                quitAdapterOff();
-                glWindow.invokeOnNewThread(null, false, new Runnable() {
-                    public void run() {
-                        final java.lang.Thread t = glWindow.setExclusiveContextThread(null);
-                        if(glWindow.getParent()==null) {
-                            printlnState("[reparent pre - glWin to HOME]");
-                            glWindow.reparentWindow(winHolder.getNativeWindow(), -1, -1, 0 /* hints */);
-                        } else {
-                            if( null != frame ) {
-                                final InsetsImmutable nInsets = glWindow.getInsets();
-                                final java.awt.Insets aInsets = frame.getInsets();
-                                int dx, dy;
-                                if( nInsets.getTotalHeight()==0 ) {
-                                    dx = aInsets.left;
-                                    dy = aInsets.top;
-                                } else {
-                                    dx = nInsets.getLeftWidth();
-                                    dy = nInsets.getTopHeight();
-                                }
-                                final int topLevelX = frame.getX()+frame.getWidth()+dx;
-                                final int topLevelY = frame.getY()+dy;
-                                printlnState("[reparent pre - glWin to TOP.1]", topLevelX+"/"+topLevelY+" - insets " + nInsets + ", " + aInsets);
-                                glWindow.reparentWindow(null, topLevelX, topLevelY, 0 /* hint */);
-                            } else {
-                                printlnState("[reparent pre - glWin to TOP.0]");
-                                glWindow.reparentWindow(null, -1, -1, 0 /* hints */);
-                            }
-                        }
-                        printlnState("[reparent post]");
-                        glWindow.requestFocus();
-                        glWindow.setExclusiveContextThread(t);
-                        quitAdapterOn();
-                } } );
-                break;
-          }
-        }
-        super.keyPressed(e);
-    }
-
     @Override
     public void setTitle() {
         setTitle(frame, winHolder.getNativeWindow(), glWindow);
