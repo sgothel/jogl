@@ -40,6 +40,7 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.SurfaceUpdatedListener;
 import com.jogamp.nativewindow.WindowClosingProtocol;
+import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
 import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.nativewindow.util.Point;
@@ -75,7 +76,8 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
 
     private final AbstractGraphicsScreen screen;
 
-    private WindowClosingMode newtChildCloseOp = WindowClosingMode.DISPOSE_ON_CLOSE;
+    private WindowClosingMode newtChildClosingMode = WindowClosingMode.DISPOSE_ON_CLOSE;
+    private final WindowClosingMode closingMode = WindowClosingMode.DISPOSE_ON_CLOSE;
     private volatile Rectangle clientArea;
 
     private volatile SWTNativeWindow nativeWindow;
@@ -335,12 +337,12 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
 
     @Override
     public WindowClosingMode getDefaultCloseOperation() {
-        return newtChildCloseOp; // TODO: implement ?!
+        return closingMode;
     }
 
     @Override
     public WindowClosingMode setDefaultCloseOperation(final WindowClosingMode op) {
-        return newtChildCloseOp = op; // TODO: implement ?!
+        return closingMode; // TODO: implement!
     }
 
 
@@ -401,10 +403,10 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         if( null != newtChild ) {
             newtChild.setKeyboardFocusHandler(null);
             if(attach) {
-                newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
+                newtChildClosingMode = newtChild.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
             } else {
                 newtChild.setFocusAction(null);
-                newtChild.setDefaultCloseOperation(newtChildCloseOp);
+                newtChild.setDefaultCloseOperation(newtChildClosingMode);
             }
         }
     }
