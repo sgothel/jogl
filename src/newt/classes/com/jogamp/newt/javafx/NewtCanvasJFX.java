@@ -96,7 +96,7 @@ public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
             if( DEBUG ) {
                 System.err.println("NewtCanvasJFX.Event.DISPOSE, "+e);
             }
-            NewtCanvasJFX.this.dispose();
+            NewtCanvasJFX.this.destroy();
         } };
     private final EventHandler<javafx.stage.WindowEvent> windowShownListener = new EventHandler<javafx.stage.WindowEvent>() {
         public final void handle(final javafx.stage.WindowEvent e) {
@@ -250,7 +250,7 @@ public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
                 System.err.println("NewtCanvasJFX.updateParentWindowAndScreen: Scene "+s+", Window "+w+" (showing "+(null!=w?w.isShowing():0)+")");
             }
             if( w != parentWindow ) {
-                disposeImpl(false);
+                destroyImpl(false);
             }
             parentWindow = w;
             if( null != w ) {
@@ -266,7 +266,7 @@ public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
                 System.err.println("NewtCanvasJFX.updateParentWindowAndScreen: Null Scene");
             }
             if( null != parentWindow ) {
-                disposeImpl(false);
+                destroyImpl(false);
             }
         }
         return false;
@@ -277,16 +277,16 @@ public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
      * <ul>
      *   <li> Make the NEWT Child invisible </li>
      *   <li> Disconnects the NEWT Child from this Canvas NativeWindow, reparent to NULL </li>
-     *   <li> Issues <code>destroy()</code> on the NEWT Child</li>
+     *   <li> Issues {@link Window#destroy()} on the NEWT Child</li>
      *   <li> Remove reference to the NEWT Child</li>
      * </ul>
+     * JavaFX will issue this call when sending out the {@link javafx.stage.WindowEvent#WINDOW_CLOSE_REQUEST} automatically.
      * @see Window#destroy()
      */
-    // FIXME JFX similar @Override
-    public void dispose() {
-        disposeImpl(true);
+    public void destroy() {
+        destroyImpl(true);
     }
-    private void disposeImpl(final boolean disposeNewtChild) {
+    private void destroyImpl(final boolean disposeNewtChild) {
         if(DEBUG) {
             System.err.println("NewtCanvasJFX.dispose: (has parent "+(null!=parentWindow)+", hasNative "+(null!=nativeWindow)+",\n\t"+newtChild);
         }
