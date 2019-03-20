@@ -36,7 +36,7 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
-
+import com.jogamp.opengl.test.junit.newt.parenting.NewtReparentingKeyAdapter;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 
@@ -47,6 +47,14 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+/**
+ * <p>
+ * The demo code uses {@link NEWTDemoListener} functionality.
+ * </p>
+ * <p>
+ * Manual invocation via main allows setting each tests's duration in milliseconds, e.g.{@code -duration 10000}.
+ * </p>
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGearsNEWT extends UITestCase {
     static GLProfile glp;

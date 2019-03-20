@@ -53,6 +53,7 @@ import com.jogamp.opengl.*;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
 import com.jogamp.newt.opengl.*;
+import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -64,11 +65,18 @@ import jogamp.newt.driver.DriverClearFocus;
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.newt.parenting.NewtAWTReparentingKeyAdapter;
+import com.jogamp.opengl.test.junit.newt.parenting.NewtReparentingKeyAdapter;
 
 /**
  * Testing focus <i>key</i> traversal of an AWT component tree with {@link NewtCanvasAWT} attached.
  * <p>
  * {@link Frame} [ Button*, {@link NewtCanvasAWT} . {@link GLWindow} ]
+ * </p>
+ * <p>
+ * The demo code uses {@link NewtReparentingKeyAdapter} including {@link NEWTDemoListener} functionality.
+ * </p>
+ * <p>
+ * Manual invocation via main allows setting each tests's duration in milliseconds, e.g.{@code -duration 10000}, and many more, see {@link #main(String[])}
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

@@ -39,12 +39,14 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.LandscapeES2;
 import com.jogamp.opengl.test.junit.newt.parenting.NewtAWTReparentingKeyAdapter;
+import com.jogamp.opengl.test.junit.newt.parenting.NewtReparentingKeyAdapter;
 
 import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.DimensionImmutable;
@@ -57,6 +59,14 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+/**
+ * <p>
+ * The demo code uses {@link NewtReparentingKeyAdapter} including {@link NEWTDemoListener} functionality.
+ * </p>
+ * <p>
+ * Manual invocation via main allows setting each tests's duration in milliseconds, e.g.{@code -duration 10000}, and many more, see {@link #main(String[])}
+ * </p>
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
     static DimensionImmutable wsize = new Dimension(500, 290);
@@ -112,7 +122,7 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
             }
         });
 
-        final NewtAWTReparentingKeyAdapter newtDemoListener = new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow);
+        final NewtReparentingKeyAdapter newtDemoListener = new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow);
         newtDemoListener.quitAdapterEnable(true);
         glWindow.addKeyListener(newtDemoListener);
         glWindow.addMouseListener(newtDemoListener);

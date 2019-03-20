@@ -47,6 +47,7 @@ import com.jogamp.opengl.*;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.newt.*;
 import com.jogamp.newt.opengl.*;
+import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 
 import java.io.IOException;
@@ -54,6 +55,14 @@ import java.io.IOException;
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+/**
+ * <p>
+ * The demo code uses {@link NewtReparentingKeyAdapter} including {@link NEWTDemoListener} functionality.
+ * </p>
+ * <p>
+ * Manual invocation via main allows setting each tests's duration in milliseconds, e.g.{@code -duration 10000}, and many more, see {@link #main(String[])}
+ * </p>
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestParenting03AWT extends UITestCase {
     static Dimension glSize, fSize;

@@ -47,6 +47,7 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -54,6 +55,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.newt.parenting.NewtAWTReparentingKeyAdapter;
+import com.jogamp.opengl.test.junit.newt.parenting.NewtReparentingKeyAdapter;
 
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.util.Dimension;
@@ -73,6 +75,14 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+/**
+ * <p>
+ * The demo code uses {@link NewtReparentingKeyAdapter} including {@link NEWTDemoListener} functionality.
+ * </p>
+ * <p>
+ * Manual invocation via main allows setting each tests's duration in milliseconds, e.g.{@code -duration 10000}, and many more, see {@link #main(String[])}
+ * </p>
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGearsES2NewtCanvasAWT extends UITestCase {
     public enum FrameLayout { None, TextOnBottom, BorderBottom, BorderBottom2, BorderCenter, BorderCenterSurrounded, DoubleBorderCenterSurrounded };
@@ -247,17 +257,21 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         final GearsES2 demo = new GearsES2(swapInterval);
         glWindow.addGLEventListener(demo);
 
+        final NewtAWTReparentingKeyAdapter newtDemoListener = new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow);
+        newtDemoListener.quitAdapterEnable(true);
+        glWindow.addKeyListener(newtDemoListener);
+        glWindow.addMouseListener(newtDemoListener);
+        glWindow.addWindowListener(newtDemoListener);
+
         frame.addComponentListener(new ComponentListener() {
             @Override
             public void componentResized(final ComponentEvent e) {
-                NewtAWTReparentingKeyAdapter.setTitle(frame, newtCanvasAWT, glWindow);
+                newtDemoListener.setTitle();
             }
-
             @Override
             public void componentMoved(final ComponentEvent e) {
-                NewtAWTReparentingKeyAdapter.setTitle(frame, newtCanvasAWT, glWindow);
+                newtDemoListener.setTitle();
             }
-
             @Override
             public void componentShown(final ComponentEvent e) { }
 
@@ -279,12 +293,6 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
         });
-
-        final NewtAWTReparentingKeyAdapter newtDemoListener = new NewtAWTReparentingKeyAdapter(frame, newtCanvasAWT, glWindow);
-        newtDemoListener.quitAdapterEnable(true);
-        glWindow.addKeyListener(newtDemoListener);
-        glWindow.addMouseListener(newtDemoListener);
-        glWindow.addWindowListener(newtDemoListener);
 
         if( useAnimator ) {
             animator.add(glWindow);
@@ -319,7 +327,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
                            valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
-        NewtAWTReparentingKeyAdapter.setTitle(frame, newtCanvasAWT, glWindow);
+        newtDemoListener.setTitle();
 
         if( null != rwsize ) {
             Thread.sleep(500); // 500ms delay

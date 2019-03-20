@@ -56,9 +56,13 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 
 
-/** Shows how to deploy an applet using JOGL. This demo must be
-    referenced from a web page via an &lt;applet&gt; tag. */
-
+/**
+ * Shows how to deploy an applet using JOGL.
+ * This demo must be referenced from a web page via an &lt;applet&gt; tag.
+ * <p>
+ * The demo code uses {@link NEWTDemoListener} functionality.
+ * </p>
+ */
 public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     public static final boolean DEBUG = Debug.debug("Applet");
 

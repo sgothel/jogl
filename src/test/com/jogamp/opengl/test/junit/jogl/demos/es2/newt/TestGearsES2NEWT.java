@@ -52,6 +52,7 @@ import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.GLClearOnInitReshape;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.LineSquareXDemoES2;
+import com.jogamp.opengl.test.junit.newt.parenting.NewtReparentingKeyAdapter;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.util.Dimension;
@@ -76,6 +77,14 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+/**
+ * <p>
+ * The demo code uses {@link NEWTDemoListener} functionality.
+ * </p>
+ * <p>
+ * Manual invocation via main allows setting each tests's duration in milliseconds, e.g.{@code -duration 10000} and many more, see {@link #main(String[])}
+ * </p>
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGearsES2NEWT extends UITestCase {
     static int screenIdx = 0;
