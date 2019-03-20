@@ -126,6 +126,7 @@ function jrun() {
 
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG"
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_MULTITHREADING_BUG"
+    #D_ARGS="-Dnativewindow.debug.JFX -Dnewt.debug.Window -Djogamp.newt.javafx.UseJFXEDT=false"
     D_ARGS="-Dnativewindow.debug.JFX -Dnewt.debug.Window"
     #D_ARGS="-Djogl.disable.opengldesktop"
     #D_ARGS="-Djogl.disable.opengles"
@@ -846,6 +847,7 @@ function testawtswt() {
 #
 #testjfx com.jogamp.opengl.test.junit.jogl.javafx.JFXStageGLChild01 $*
 testjfx com.jogamp.opengl.test.junit.jogl.javafx.TestNewtCanvasJFXGLn $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 
 #
 # Misc Utils

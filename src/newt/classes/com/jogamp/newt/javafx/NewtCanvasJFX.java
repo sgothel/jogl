@@ -28,6 +28,7 @@
 
 package com.jogamp.newt.javafx;
 
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.Capabilities;
@@ -80,6 +81,7 @@ import com.jogamp.newt.util.EDTUtil;
  */
 public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowClosingProtocol {
     private static final boolean DEBUG = Debug.debug("Window");
+    private static final boolean USE_JFX_EDT = PropertyAccess.getBooleanProperty("jogamp.newt.javafx.UseJFXEDT", true, true);
     private volatile javafx.stage.Window parentWindow = null;
     private volatile AbstractGraphicsScreen screen = null;
 
@@ -414,12 +416,18 @@ public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowC
             final int w = clientArea.getWidth();
             final int h = clientArea.getHeight();
 
-            // set JFX EDT and start it
-            if(false) {
+            if(USE_JFX_EDT) {
+                // setup JFX EDT and start it
                 final Display newtDisplay = newtChild.getScreen().getDisplay();
-                final EDTUtil edtUtil = new JFXEDTUtil(newtDisplay);
-                edtUtil.start();
-                newtDisplay.setEDTUtil( edtUtil );
+                final EDTUtil oldEDTUtil = newtDisplay.getEDTUtil();
+                if( ! ( oldEDTUtil instanceof JFXEDTUtil ) ) {
+                    final EDTUtil newEDTUtil = new JFXEDTUtil(newtDisplay);
+                    if(DEBUG) {
+                        System.err.println("NewtCanvasJFX.reparentWindow.1: replacing EDTUtil "+oldEDTUtil+" -> "+newEDTUtil);
+                    }
+                    newEDTUtil.start();
+                    newtDisplay.setEDTUtil( newEDTUtil );
+                }
             }
 
             newtChild.setSize(w, h);
