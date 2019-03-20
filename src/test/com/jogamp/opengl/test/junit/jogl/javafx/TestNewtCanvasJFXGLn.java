@@ -48,10 +48,15 @@ import com.jogamp.common.util.RunnableTask;
 import com.jogamp.nativewindow.javafx.JFXAccessor;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
+import com.jogamp.newt.event.WindowAdapter;
+import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.javafx.NewtCanvasJFX;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
+import com.jogamp.opengl.test.junit.newt.parenting.NewtJFXReparentingKeyAdapter;
+import com.jogamp.opengl.test.junit.newt.parenting.NewtReparentingKeyAdapter;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -61,6 +66,8 @@ import com.jogamp.opengl.util.texture.TextureIO;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -85,6 +92,12 @@ import javafx.stage.Stage;
  * <p>
  * Note that {@link JFXAccessor#runOnJFXThread(boolean, Runnable)} is still used to for certain
  * mandatory JavaFX lifecycle operation on the JavaFX thread.
+ * </p>
+ * <p>
+ * The demo code uses {@link NewtReparentingKeyAdapter} including {@link NEWTDemoListener} functionality.
+ * </p>
+ * <p>
+ * Manual invocation via main allows running a single test, e.g. {@code -test 21}, and setting each tests's duration in milliseconds, e.g.{@code -time 10000}.
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -366,6 +379,27 @@ public class TestNewtCanvasJFXGLn extends UITestCase {
         if( null != glWindow1 ) {
             Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow1, awtRobotWaitAction, true));
             System.err.println("GLWindow LOS.0: "+glWindow1.getLocationOnScreen(null));
+            glWindow1.addWindowListener(new WindowAdapter() {
+                public void windowResized(final WindowEvent e) {
+                    System.err.println("window resized: "+glWindow1.getX()+"/"+glWindow1.getY()+" "+glWindow1.getSurfaceWidth()+"x"+glWindow1.getSurfaceHeight());
+                }
+                public void windowMoved(final WindowEvent e) {
+                    System.err.println("window moved:   "+glWindow1.getX()+"/"+glWindow1.getY()+" "+glWindow1.getSurfaceWidth()+"x"+glWindow1.getSurfaceHeight());
+                }
+            });
+            final NewtReparentingKeyAdapter newtDemoListener = new NewtJFXReparentingKeyAdapter(JFXApp.stage, glCanvas[0], glWindow1);
+            newtDemoListener.quitAdapterEnable(true);
+            glWindow1.addKeyListener(newtDemoListener);
+            glWindow1.addMouseListener(newtDemoListener);
+            glWindow1.addWindowListener(newtDemoListener);
+
+           final ChangeListener<Number> sizeListener = new ChangeListener<Number>() {
+            @Override public void changed(final ObservableValue<? extends Number> observable, final Number oldValue, final Number newValue) {
+                newtDemoListener.setTitle();
+            } };
+           JFXApp.stage.widthProperty().addListener(sizeListener);
+           JFXApp.stage.heightProperty().addListener(sizeListener);
+
         }
         if( null != demo ) {
             System.err.println("NewtCanvasJFX LOS.0: "+glCanvas[0].getNativeWindow().getLocationOnScreen(null));
