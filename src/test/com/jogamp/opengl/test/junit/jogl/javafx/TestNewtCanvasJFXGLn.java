@@ -46,7 +46,6 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.nativewindow.javafx.JFXAccessor;
-import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.javafx.NewtCanvasJFX;
@@ -72,25 +71,27 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 /**
- * Tests that a basic SWT app can open without crashing under different GL profiles
- * _and_ custom GLCapabilities.
+ * {@link NewtCanvasJFX} basic functional integration test
+ * of its native parented NEWT child {@link GLWindow} attached to JavaFX's {@link Canvas}.
  * <p>
- * Uses JOGL's NewtCanvasSWT, which allows to be a native container of a NEWT Window.<br/>
- * This method allows utilizing custom GLCapability settings,
- * independent from the already instantiated SWT visual.
+ * {@link NewtCanvasJFX} allows utilizing custom {@link GLCapabilities} settings independent from the JavaFX's window
+ * as well as independent rendering from JavaFX's thread.
  * </p>
  * <p>
- * Note that {@link SWTAccessor#invoke(boolean, Runnable)} is still used to comply w/
- * SWT running on Mac OSX, i.e. to enforce UI action on the main thread.
+ * This unit tests also tests {@link NewtCanvasJFX} native parenting operations before and after
+ * it's belonging Group's Scene has been attached to the JavaFX {@link javafx.stage.Window Window}'s actual native window,
+ * i.e. becoming fully realized and visible.
+ * </p>
+ * <p>
+ * Note that {@link JFXAccessor#runOnJFXThread(boolean, Runnable)} is still used to for certain
+ * mandatory JavaFX lifecycle operation on the JavaFX thread.
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNewtCanvasJFXGLn extends UITestCase {
 
     static int duration = 5000; // 250;
-
-    static final int iwidth = 640;
-    static final int iheight = 480;
+    static int manualTestID = -1;
 
     com.jogamp.newt.Display jfxNewtDisplay = null;
 
@@ -367,7 +368,7 @@ public class TestNewtCanvasJFXGLn extends UITestCase {
             System.err.println("GLWindow LOS.0: "+glWindow1.getLocationOnScreen(null));
         }
         if( null != demo ) {
-            System.err.println("NewtCanvasSWT LOS.0: "+glCanvas[0].getNativeWindow().getLocationOnScreen(null));
+            System.err.println("NewtCanvasJFX LOS.0: "+glCanvas[0].getNativeWindow().getLocationOnScreen(null));
         }
 
         Animator anim;
@@ -401,53 +402,69 @@ public class TestNewtCanvasJFXGLn extends UITestCase {
 
     @Test
     public void test00() throws InterruptedException {
-        runTestAGL( null, null,
-                    false /* postAttachNewtCanvas */, false /* postAttach */, false /* animator */);
+        if( 0 > manualTestID || 0 == manualTestID ) {
+            runTestAGL( null, null,
+                        false /* postAttachNewtCanvas */, false /* postAttach */, false /* animator */);
+        }
     }
 
     @Test
     public void test11_preAttachNewtGL_NoAnim() throws InterruptedException {
-        runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
-                    false /* postAttachNewtCanvas */, false /* postAttachGLWindow */, false /* animator */);
+        if( 0 > manualTestID || 11 == manualTestID ) {
+            runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
+                        false /* postAttachNewtCanvas */, false /* postAttachGLWindow */, false /* animator */);
+        }
     }
 
     @Test
     public void test12_postAttachNewt_NoAnim() throws InterruptedException {
-        runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
-                    true /* postAttachNewtCanvas */, false /* postAttachGLWindow */, false /* animator */);
+        if( 0 > manualTestID || 12 == manualTestID ) {
+            runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
+                        true /* postAttachNewtCanvas */, false /* postAttachGLWindow */, false /* animator */);
+        }
     }
 
     @Test
     public void test13_postAttachGL_NoAnim() throws InterruptedException {
-        runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
-                    false /* postAttachNewtCanvas */, true /* postAttachGLWindow */, false /* animator */);
+        if( 0 > manualTestID || 13 == manualTestID ) {
+            runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
+                        false /* postAttachNewtCanvas */, true /* postAttachGLWindow */, false /* animator */);
+        }
     }
 
     @Test
     public void test14_postAttachNewtGL_NoAnim() throws InterruptedException {
-        runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
-                    true /* postAttachNewtCanvas */, true /* postAttachGLWindow */, false /* animator */);
+        if( 0 > manualTestID || 14 == manualTestID ) {
+            runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
+                        true /* postAttachNewtCanvas */, true /* postAttachGLWindow */, false /* animator */);
+        }
     }
 
     @Test
     public void test21_preAttachNewtGL_DoAnim() throws InterruptedException {
-        runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
-                    false /* postAttachNewtCanvas */, false /* postAttachGLWindow */, true /* animator */);
+        if( 0 > manualTestID || 21 == manualTestID ) {
+            runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
+                        false /* postAttachNewtCanvas */, false /* postAttachGLWindow */, true /* animator */);
+        }
     }
 
     @Test
     public void test22_postAttachNewt_DoAnim() throws InterruptedException {
-        runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
-                    true /* postAttachNewtCanvas */, false /* postAttachGLWindow */, true /* animator */);
+        if( 0 > manualTestID || 22 == manualTestID ) {
+            runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(),
+                        true /* postAttachNewtCanvas */, false /* postAttachGLWindow */, true /* animator */);
+        }
     }
 
     @Test
     public void test30_MultisampleAndAlpha() throws InterruptedException {
-        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
-        caps.setSampleBuffers(true);
-        caps.setNumSamples(2);
-        runTestAGL( caps, new MultisampleDemoES2(true),
-                    false /* postAttachNewtCanvas */, false /* postAttachGLWindow */, false /* animator */);
+        if( 0 > manualTestID || 30 == manualTestID ) {
+            final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(2);
+            runTestAGL( caps, new MultisampleDemoES2(true),
+                        false /* postAttachNewtCanvas */, false /* postAttachGLWindow */, false /* animator */);
+        }
     }
 
     public static void main(final String args[]) {
@@ -455,8 +472,11 @@ public class TestNewtCanvasJFXGLn extends UITestCase {
             if(args[i].equals("-time")) {
                 duration = MiscUtils.atoi(args[++i],  duration);
             }
+            if(args[i].equals("-test")) {
+                manualTestID = MiscUtils.atoi(args[++i], -1);
+            }
         }
-        System.out.println("durationPerTest: "+duration);
+        System.out.println("durationPerTest: "+duration+", test "+manualTestID);
         org.junit.runner.JUnitCore.main(TestNewtCanvasJFXGLn.class.getName());
     }
 }

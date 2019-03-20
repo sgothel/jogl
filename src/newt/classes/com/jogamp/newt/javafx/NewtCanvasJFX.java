@@ -61,9 +61,19 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.util.EDTUtil;
 
 /**
- * JFX {@link Canvas} containing a NEWT {@link Window} using native parenting.
+ * A NEWT based JFX {@link Canvas} specialization allowing a NEWT child {@link Window} to be attached using native parenting.
  * <p>
- * Implementation allows use of custom {@link GLCapabilities}.
+ * {@link NewtCanvasJFX} allows utilizing custom {@link GLCapabilities} settings independent from the JavaFX's window
+ * as well as independent rendering from JavaFX's thread.
+ * </p>
+ * <p>
+ * {@link NewtCanvasJFX} allows native parenting operations before and after
+ * it's belonging Group's Scene has been attached to the JavaFX {@link javafx.stage.Window Window}'s actual native window,
+ * i.e. becoming fully realized and visible.
+ * </p>
+ * <p>
+ * Note that {@link JFXAccessor#runOnJFXThread(boolean, Runnable)} is still used to for certain
+ * mandatory JavaFX lifecycle operation on the JavaFX thread.
  * </p>
  */
 public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
