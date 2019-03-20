@@ -34,6 +34,7 @@ import java.util.List;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.ScalableSurface;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.event.KeyEvent;
@@ -47,12 +48,37 @@ import com.jogamp.opengl.FPSCounter;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLDrawable;
 import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.util.Gamma;
 import com.jogamp.opengl.util.PNGPixelRect;
 
 import jogamp.newt.driver.PNGIcon;
 
+/**
+ * NEWT {@link GLWindow} Demo functionality
+ * <ul>
+ *   <li>SPACE: Toggle animator {@link GLAnimatorControl#pause() pause}/{@link GLAnimatorControl#resume() resume}</li>
+ *   <li>A: Toggle window {@link Window#setAlwaysOnTop(boolean) always on top}</li>
+ *   <li>B: Toggle window {@link Window#setAlwaysOnBottom(boolean) always on bottom}</li>
+ *   <li>C: Toggle different {@link Window#setPointerIcon(PointerIcon) pointer icons}</li>
+ *   <li>D: Toggle window {@link Window#setUndecorated(boolean) decoration on/off}</li>
+ *   <li>F: Toggle window {@link Window#setFullscreen(boolean) fullscreen on/off}</li>
+ *   <li>Three-Finger Double-Tap: Toggle window {@link Window#setFullscreen(boolean) fullscreen on/off}</li>
+ *   <li>G: Increase {@link Gamma#setDisplayGamma(GLDrawable, float, float, float) gamma} by 0.1, +SHIFT decrease gamma by 0.1</li>
+ *   <li>I: Toggle {@link Window#setPointerVisible(boolean) pointer visbility}</li>
+ *   <li>J: Toggle {@link Window#confinePointer(boolean) pointer jail (confine to window)}</li>
+ *   <li>M: Toggle {@link Window#setMaximized(boolean, boolean) window maximized}: Y, +CTRL off, +SHIFT toggle X+Y, +ALT X</li>
+ *   <li>P: Set window {@link Window#setPosition(int, int) position to 100/100}</li>
+ *   <li>Q: Quit</li>
+ *   <li>R: Toggle window {@link Window#setResizable(boolean) resizable}</li>
+ *   <li>S: Toggle window {@link Window#setSticky(boolean) sticky}</li>
+ *   <li>V: Toggle window {@link Window#setVisible(boolean) visibility} for 5s</li>
+ *   <li>V: +CTRL: Rotate {@link GL#setSwapInterval(int) swap interval} -1, 0, 1</li>
+ *   <li>W: {@link Window#warpPointer(int, int) Warp pointer} to center of window</li>
+ *   <li>X: Toggle {@link ScalableSurface#setSurfaceScale(float[]) [{@link ScalableSurface#IDENTITY_PIXELSCALE}, {@link ScalableSurface#AUTOMAX_PIXELSCALE}]</li>
+ * </ul>
+ */
 public class NEWTDemoListener extends WindowAdapter implements KeyListener, MouseListener {
     protected final GLWindow glWindow;
     final PointerIcon[] pointerIcons;
@@ -230,12 +256,6 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
                         printlnState("[set maximize post]", "max[vert "+vert+", horz "+horz+"]");
                     } } );
                 break;
-            case KeyEvent.VK_Q:
-                if( quitAdapterEnabled && 0 == e.getModifiers() ) {
-                    System.err.println("QUIT Key "+Thread.currentThread());
-                    quitAdapterShouldQuit = true;
-                }
-                break;
             case KeyEvent.VK_P:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
@@ -244,6 +264,12 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
                         glWindow.setPosition(100, 100);
                         printlnState("[set position post]");
                     } } );
+                break;
+            case KeyEvent.VK_Q:
+                if( quitAdapterEnabled && 0 == e.getModifiers() ) {
+                    System.err.println("QUIT Key "+Thread.currentThread());
+                    quitAdapterShouldQuit = true;
+                }
                 break;
             case KeyEvent.VK_R:
                 e.setConsumed(true);

@@ -49,10 +49,11 @@ import java.security.PrivilegedAction;
 import java.util.Set;
 
 import com.jogamp.nativewindow.CapabilitiesImmutable;
+import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowHolder;
 import com.jogamp.nativewindow.OffscreenLayerOption;
 import com.jogamp.nativewindow.WindowClosingProtocol;
-import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
@@ -101,7 +102,7 @@ import com.jogamp.opengl.util.TileRenderer;
  * the underlying JAWT mechanism to composite the image, if supported.
  */
 @SuppressWarnings("serial")
-public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol, OffscreenLayerOption, AWTPrintLifecycle {
+public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder, WindowClosingProtocol, OffscreenLayerOption, AWTPrintLifecycle {
     public static final boolean DEBUG = Debug.debug("Window");
 
     private final Object sync = new Object();
@@ -421,9 +422,21 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         return newtChild;
     }
 
-    /** @return this AWT Canvas NativeWindow representation, may be null in case {@link #removeNotify()} has been called,
-     * or {@link #addNotify()} hasn't been called yet.*/
+    /**
+     * {@inheritDoc}
+     * @return this AWT Canvas {@link NativeWindow} representation, may be null in case {@link #removeNotify()} has been called,
+     * or {@link #addNotify()} hasn't been called yet.
+     */
+    @Override
     public NativeWindow getNativeWindow() { return jawtWindow; }
+
+    /**
+     * {@inheritDoc}
+     * @return this AWT Canvas {@link NativeSurface} representation, may be null in case {@link #removeNotify()} has been called,
+     * or {@link #addNotify()} hasn't been called yet.
+     */
+    @Override
+    public NativeSurface getNativeSurface() { return jawtWindow; }
 
     @Override
     public WindowClosingMode getDefaultCloseOperation() {

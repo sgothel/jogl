@@ -37,6 +37,7 @@ import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.NativeWindowHolder;
 import com.jogamp.nativewindow.SurfaceUpdatedListener;
 import com.jogamp.nativewindow.WindowClosingProtocol;
 import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
@@ -77,9 +78,8 @@ import com.jogamp.newt.util.EDTUtil;
  * mandatory JavaFX lifecycle operation on the JavaFX thread.
  * </p>
  */
-public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
+public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowClosingProtocol {
     private static final boolean DEBUG = Debug.debug("Window");
-
     private volatile javafx.stage.Window parentWindow = null;
     private volatile AbstractGraphicsScreen screen = null;
 
@@ -127,24 +127,16 @@ public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
 
         updateParentWindowAndScreen();
 
-        this.widthProperty().addListener(new ChangeListener<Number>() {
+        final ChangeListener<Number> sizeListener = new ChangeListener<Number>() {
             @Override public void changed(final ObservableValue<? extends Number> observable, final Number oldValue, final Number newValue) {
                 if( DEBUG ) {
-                    System.err.println("NewtCanvasJFX.Event.Width, "+oldValue.doubleValue()+" -> "+newValue.doubleValue()+", has "+getWidth());
+                    System.err.println("NewtCanvasJFX.Event.Size, "+oldValue.doubleValue()+" -> "+newValue.doubleValue()+", has "+getWidth()+"x"+getHeight());
                 }
-                updateSizeCheck(newValue.intValue(), (int)getHeight());
+                updateSizeCheck((int)getWidth(), (int)getHeight());
                 repaintAction(isVisible());
-            }
-        });
-        this.heightProperty().addListener(new ChangeListener<Number>() {
-            @Override public void changed(final ObservableValue<? extends Number> observable, final Number oldValue, final Number newValue) {
-                if( DEBUG ) {
-                    System.err.println("NewtCanvasJFX.Event.Height, "+oldValue.doubleValue()+" -> "+newValue.doubleValue()+", has "+getHeight());
-                }
-                updateSizeCheck((int)getWidth(), newValue.intValue());
-                repaintAction(isVisible());
-            }
-        });
+            } };
+        this.widthProperty().addListener(sizeListener);
+        this.heightProperty().addListener(sizeListener);
         this.visibleProperty().addListener(new ChangeListener<Boolean>() {
             @Override public void changed(final ObservableValue<? extends Boolean> observable, final Boolean oldValue, final Boolean newValue) {
                 if( DEBUG ) {
@@ -468,8 +460,19 @@ public class NewtCanvasJFX extends Canvas implements WindowClosingProtocol {
         return newtChild;
     }
 
-    /** @return this JFX Canvas NativeWindow representation, may be null in case it has not been realized. */
+    /**
+     * {@inheritDoc}
+     * @return this JFX Canvas {@link NativeWindow} representation, may be null in case it has not been realized
+     */
+    @Override
     public NativeWindow getNativeWindow() { return nativeWindow; }
+
+    /**
+     * {@inheritDoc}
+     * @return this JFX Canvas {@link NativeSurface} representation, may be null in case it has not been realized
+     */
+    @Override
+    public NativeSurface getNativeSurface() { return nativeWindow; }
 
     @Override
     public WindowClosingMode getDefaultCloseOperation() {

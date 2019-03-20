@@ -27,26 +27,28 @@
  */
 package com.jogamp.opengl.test.junit.newt.parenting;
 
-import java.awt.Frame;
-
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.NativeWindowHolder;
-import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.NEWTDemoListener;
+import com.jogamp.opengl.GLAnimatorControl;
 
 /**
- * AWT specializing demo functionality of {@link NewtReparentingKeyAdapter}, includes {@link NEWTDemoListener}.
+ * Extending demo functionality of {@link NEWTDemoListener}
+ * <ul>
+ *   <li>L: Print parent and (child) {@link GLWindow} location</li>
+ *   <li>R: Toggel parenting (top-level/child)</li>
+ * </ul>
  */
-public class NewtAWTReparentingKeyAdapter extends NewtReparentingKeyAdapter {
-    final Frame frame;
+public class NewtReparentingKeyAdapter extends NEWTDemoListener {
+    final NativeWindowHolder winHolder;
 
-    public NewtAWTReparentingKeyAdapter(final Frame frame, final NativeWindowHolder winHolder, final GLWindow glWindow) {
-        super(winHolder, glWindow);
-        this.frame = frame;
+    public NewtReparentingKeyAdapter(final NativeWindowHolder winHolder, final GLWindow glWindow) {
+        super(glWindow, null);
+        this.winHolder = winHolder;
     }
 
     public void keyPressed(final KeyEvent e) {
@@ -56,6 +58,12 @@ public class NewtAWTReparentingKeyAdapter extends NewtReparentingKeyAdapter {
         if( 0 == e.getModifiers() ) { // all modifiers go to super class ..
           final int keySymbol = e.getKeySymbol();
           switch (keySymbol) {
+            case KeyEvent.VK_L:
+                e.setConsumed(true);
+                final com.jogamp.nativewindow.util.Point p0 = winHolder.getNativeWindow().getLocationOnScreen(null);
+                final com.jogamp.nativewindow.util.Point p1 = glWindow.getLocationOnScreen(null);
+                printlnState("[location]", "Parent "+p0+", NEWT "+p1);
+                break;
             case KeyEvent.VK_R:
                 e.setConsumed(true);
                 quitAdapterOff();
@@ -66,25 +74,8 @@ public class NewtAWTReparentingKeyAdapter extends NewtReparentingKeyAdapter {
                             printlnState("[reparent pre - glWin to HOME]");
                             glWindow.reparentWindow(winHolder.getNativeWindow(), -1, -1, 0 /* hints */);
                         } else {
-                            if( null != frame ) {
-                                final InsetsImmutable nInsets = glWindow.getInsets();
-                                final java.awt.Insets aInsets = frame.getInsets();
-                                int dx, dy;
-                                if( nInsets.getTotalHeight()==0 ) {
-                                    dx = aInsets.left;
-                                    dy = aInsets.top;
-                                } else {
-                                    dx = nInsets.getLeftWidth();
-                                    dy = nInsets.getTopHeight();
-                                }
-                                final int topLevelX = frame.getX()+frame.getWidth()+dx;
-                                final int topLevelY = frame.getY()+dy;
-                                printlnState("[reparent pre - glWin to TOP.1]", topLevelX+"/"+topLevelY+" - insets " + nInsets + ", " + aInsets);
-                                glWindow.reparentWindow(null, topLevelX, topLevelY, 0 /* hint */);
-                            } else {
-                                printlnState("[reparent pre - glWin to TOP.0]");
-                                glWindow.reparentWindow(null, -1, -1, 0 /* hints */);
-                            }
+                            printlnState("[reparent pre - glWin to TOP.0]");
+                            glWindow.reparentWindow(null, -1, -1, 0 /* hints */);
                         }
                         printlnState("[reparent post]");
                         glWindow.requestFocus();
@@ -99,16 +90,19 @@ public class NewtAWTReparentingKeyAdapter extends NewtReparentingKeyAdapter {
 
     @Override
     public void setTitle() {
-        setTitle(frame, winHolder.getNativeWindow(), glWindow);
+        setTitle(winHolder.getNativeWindow(), glWindow);
     }
-    public void setTitle(final Frame frame, final NativeWindow nw, final Window win) {
+    String getNativeWinTitle(final NativeWindow nw) {
+        return "["+nw.getX()+"/"+nw.getY()+" "+nw.getWidth()+"x"+nw.getHeight()+"], pix: "+nw.getSurfaceWidth()+"x"+nw.getSurfaceHeight();
+    }
+    public void setTitle(final NativeWindow nw, final Window win) {
         final CapabilitiesImmutable chosenCaps = win.getChosenCapabilities();
         final CapabilitiesImmutable reqCaps = win.getRequestedCapabilities();
         final CapabilitiesImmutable caps = null != chosenCaps ? chosenCaps : reqCaps;
         final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
-        {
-            frame.setTitle("Frame["+capsA+"], win: "+getNativeWinTitle(nw));
-        }
-        super.setTitle(nw, win);
+        final float[] sDPI = win.getPixelsPerMM(new float[2]);
+        sDPI[0] *= 25.4f;
+        sDPI[1] *= 25.4f;
+        win.setTitle("GLWindow["+capsA+"], win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight()+", sDPI "+sDPI[0]+" x "+sDPI[1]);
     }
 }

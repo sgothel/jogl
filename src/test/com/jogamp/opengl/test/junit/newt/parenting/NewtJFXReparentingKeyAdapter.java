@@ -1,5 +1,5 @@
 /**
- * Copyright 2011, 2019 JogAmp Community. All rights reserved.
+ * Copyright 2019 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,24 +27,25 @@
  */
 package com.jogamp.opengl.test.junit.newt.parenting;
 
-import java.awt.Frame;
-
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.NativeWindowHolder;
+import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.NEWTDemoListener;
 
-/**
- * AWT specializing demo functionality of {@link NewtReparentingKeyAdapter}, includes {@link NEWTDemoListener}.
- */
-public class NewtAWTReparentingKeyAdapter extends NewtReparentingKeyAdapter {
-    final Frame frame;
+import javafx.geometry.Bounds;
 
-    public NewtAWTReparentingKeyAdapter(final Frame frame, final NativeWindowHolder winHolder, final GLWindow glWindow) {
+/**
+ * JavaFX specializing demo functionality of {@link NewtReparentingKeyAdapter}, includes {@link NEWTDemoListener}.
+ */
+public class NewtJFXReparentingKeyAdapter extends NewtReparentingKeyAdapter {
+    final javafx.stage.Stage frame;
+
+    public NewtJFXReparentingKeyAdapter(final javafx.stage.Stage frame, final NativeWindowHolder winHolder, final GLWindow glWindow) {
         super(winHolder, glWindow);
         this.frame = frame;
     }
@@ -68,17 +69,18 @@ public class NewtAWTReparentingKeyAdapter extends NewtReparentingKeyAdapter {
                         } else {
                             if( null != frame ) {
                                 final InsetsImmutable nInsets = glWindow.getInsets();
-                                final java.awt.Insets aInsets = frame.getInsets();
-                                int dx, dy;
-                                if( nInsets.getTotalHeight()==0 ) {
-                                    dx = aInsets.left;
-                                    dy = aInsets.top;
-                                } else {
-                                    dx = nInsets.getLeftWidth();
-                                    dy = nInsets.getTopHeight();
+                                final InsetsImmutable aInsets;
+                                {
+                                    final int aILeft = (int)frame.getScene().getX();
+                                    final int aITop = (int)frame.getScene().getY();
+                                    final int aIRight = (int)(frame.getWidth()-frame.getScene().getWidth())-aILeft;
+                                    final int aIBottom = (int)(frame.getHeight()-frame.getScene().getHeight())-aITop;
+                                    aInsets = new Insets(aILeft, aIRight, aITop, aIBottom);
                                 }
-                                final int topLevelX = frame.getX()+frame.getWidth()+dx;
-                                final int topLevelY = frame.getY()+dy;
+                                final Bounds bL = frame.getScene().getRoot().getBoundsInLocal();
+                                final Bounds bs = frame.getScene().getRoot().localToScreen(bL);
+                                final int topLevelX = (int)bs.getMinX();
+                                final int topLevelY = (int)bs.getMinY();
                                 printlnState("[reparent pre - glWin to TOP.1]", topLevelX+"/"+topLevelY+" - insets " + nInsets + ", " + aInsets);
                                 glWindow.reparentWindow(null, topLevelX, topLevelY, 0 /* hint */);
                             } else {
@@ -101,7 +103,7 @@ public class NewtAWTReparentingKeyAdapter extends NewtReparentingKeyAdapter {
     public void setTitle() {
         setTitle(frame, winHolder.getNativeWindow(), glWindow);
     }
-    public void setTitle(final Frame frame, final NativeWindow nw, final Window win) {
+    public void setTitle(final javafx.stage.Stage frame, final NativeWindow nw, final Window win) {
         final CapabilitiesImmutable chosenCaps = win.getChosenCapabilities();
         final CapabilitiesImmutable reqCaps = win.getRequestedCapabilities();
         final CapabilitiesImmutable caps = null != chosenCaps ? chosenCaps : reqCaps;

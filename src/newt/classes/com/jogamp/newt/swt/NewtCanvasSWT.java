@@ -38,6 +38,7 @@ import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.NativeWindowHolder;
 import com.jogamp.nativewindow.SurfaceUpdatedListener;
 import com.jogamp.nativewindow.WindowClosingProtocol;
 import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
@@ -71,7 +72,7 @@ import com.jogamp.newt.util.EDTUtil;
  * Implementation allows use of custom {@link GLCapabilities}.
  * </p>
  */
-public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
+public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowClosingProtocol {
     private static final boolean DEBUG = Debug.debug("Window");
 
     private final AbstractGraphicsScreen screen;
@@ -332,8 +333,19 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         return new Point(parentLoc[0].x, parentLoc[0].y);
     }
 
-    /** @return this SWT Canvas NativeWindow representation, may be null in case it has not been realized. */
+    /**
+     * {@inheritDoc}
+     * @return this SWT Canvas {@link NativeWindow} representation, may be null in case it has not been realized
+     */
+    @Override
     public NativeWindow getNativeWindow() { return nativeWindow; }
+
+    /**
+     * {@inheritDoc}
+     * @return this SWT Canvas {@link NativeSurface} representation, may be null in case it has not been realized
+     */
+    @Override
+    public NativeSurface getNativeSurface() { return nativeWindow; }
 
     @Override
     public WindowClosingMode getDefaultCloseOperation() {
