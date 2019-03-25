@@ -2347,8 +2347,10 @@ public abstract class GLContextImpl extends GLContext {
     if( isDriverMesa ) {
         final VersionNumber mesaSafeFBOVersion = new VersionNumber(8, 0, 0);
         final VersionNumber mesaIntelBuggySharedCtx921 = new VersionNumber(9, 2, 1);
+        final VersionNumber mesaSafeDoubleBufferedPBuffer = new VersionNumber(18, 2, 2);         // Mesa 18.2.2
+        final VersionNumber mesaSafeSetSwapIntervalPostRetarget = mesaSafeDoubleBufferedPBuffer; // Mesa 18.2.2
 
-        {
+        if( vendorVersion.compareTo(mesaSafeSetSwapIntervalPostRetarget) < 0 ) {
             final int quirk = GLRendererQuirks.NoSetSwapIntervalPostRetarget;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
@@ -2357,11 +2359,13 @@ public abstract class GLContextImpl extends GLContext {
         }
         if( hwAccel ) {
             // hardware-acceleration
-            final int quirk = GLRendererQuirks.NoDoubleBufferedPBuffer;
-            if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
+            if( vendorVersion.compareTo(mesaSafeDoubleBufferedPBuffer) < 0 ) {
+                final int quirk = GLRendererQuirks.NoDoubleBufferedPBuffer;
+                if(DEBUG) {
+                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
+                }
+                quirks.addQuirk( quirk );
             }
-            quirks.addQuirk( quirk );
         } else {
             // software
             if( vendorVersion.compareTo(mesaSafeFBOVersion) < 0 ) { // FIXME: Is it fixed in >= 8.0.0 ?
