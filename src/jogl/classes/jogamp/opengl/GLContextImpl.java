@@ -2133,7 +2133,7 @@ public abstract class GLContextImpl extends GLContext {
     final boolean isES = 0 != ( ctp & GLContext.CTX_PROFILE_ES );
     final boolean isX11 = NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true);
     final boolean isWindows = Platform.getOSType() == Platform.OSType.WINDOWS;
-    final boolean isDriverMesa = glRenderer.contains(MesaSP) || glRenderer.contains("Gallium ");
+    final boolean isDriverMesa = glRenderer.contains(MesaSP) || glRenderer.contains("Gallium ") || glVersion.contains(MesaSP);
 
     final boolean isDriverATICatalyst;
     final boolean isDriverNVIDIAGeForce;
