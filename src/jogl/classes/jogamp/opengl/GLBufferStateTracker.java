@@ -40,9 +40,13 @@
 
 package jogamp.opengl;
 
-import com.jogamp.opengl.*;
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES3;
+import com.jogamp.opengl.GL3ES3;
+import com.jogamp.opengl.GL4;
+import com.jogamp.opengl.GLException;
 
 /**
  * Tracks as closely as possible which OpenGL buffer object is bound
@@ -119,6 +123,8 @@ public class GLBufferStateTracker {
    *  GL_ELEMENT_ARRAY_BUFFER​,
    *  GL_PIXEL_PACK_BUFFER​,
    *  GL_PIXEL_UNPACK_BUFFER​,
+   *  GL_QUERY_BUFFER,
+   *  GL_PARAMETER_BUFFER_ARB,
    *  GL_SHADER_STORAGE_BUFFER​,
    *  GL_TEXTURE_BUFFER​,
    *  GL_TRANSFORM_FEEDBACK_BUFFER​ or
@@ -139,8 +145,9 @@ public class GLBufferStateTracker {
         case GL2ES3.GL_PIXEL_PACK_BUFFER:         return GL2ES3.GL_PIXEL_PACK_BUFFER_BINDING;
         case GL2ES3.GL_PIXEL_UNPACK_BUFFER:       return GL2ES3.GL_PIXEL_UNPACK_BUFFER_BINDING;
         case GL4.GL_QUERY_BUFFER:                 return GL4.GL_QUERY_BUFFER_BINDING;
+        case GL4.GL_PARAMETER_BUFFER_ARB:         return GL4.GL_PARAMETER_BUFFER_BINDING_ARB; // ARB_indirect_parameters
         case GL3ES3.GL_SHADER_STORAGE_BUFFER:     return GL3ES3.GL_SHADER_STORAGE_BUFFER_BINDING;
-        case GL2GL3.GL_TEXTURE_BUFFER:            return GL2GL3.GL_TEXTURE_BINDING_BUFFER;
+        case GL2ES3.GL_TEXTURE_BUFFER:            return GL2ES3.GL_TEXTURE_BINDING_BUFFER;
         case GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER: return GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER_BINDING;
         case GL2ES3.GL_UNIFORM_BUFFER:            return GL2ES3.GL_UNIFORM_BUFFER_BINDING;
 
@@ -162,8 +169,9 @@ public class GLBufferStateTracker {
         case GL2ES3.GL_PIXEL_PACK_BUFFER:
         case GL2ES3.GL_PIXEL_UNPACK_BUFFER:
         case GL4.GL_QUERY_BUFFER:
+        case GL4.GL_PARAMETER_BUFFER_ARB:  // ARB_indirect_parameters
         case GL3ES3.GL_SHADER_STORAGE_BUFFER:
-        case GL2GL3.GL_TEXTURE_BUFFER:
+        case GL2ES3.GL_TEXTURE_BUFFER:
         case GL2ES3.GL_TRANSFORM_FEEDBACK_BUFFER:
         case GL2ES3.GL_UNIFORM_BUFFER:
 
