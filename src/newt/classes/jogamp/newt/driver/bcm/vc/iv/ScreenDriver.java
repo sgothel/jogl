@@ -84,11 +84,11 @@ public class ScreenDriver extends ScreenImpl {
         props[i++] = 0; // rotated viewport x pixel-units
         props[i++] = 0; // rotated viewport y pixel-units
         props[i++] = cachedWidth; // rotated viewport width pixel-units
-        props[i++] = cachedWidth; // rotated viewport height pixel-units
+        props[i++] = cachedHeight; // rotated viewport height pixel-units
         props[i++] = 0; // rotated viewport x window-units
         props[i++] = 0; // rotated viewport y window-units
         props[i++] = cachedWidth; // rotated viewport width window-units
-        props[i++] = cachedWidth; // rotated viewport height window-units
+        props[i++] = cachedHeight; // rotated viewport height window-units
         MonitorModeProps.streamInMonitorDevice(cache, this, currentMode, null, cache.monitorModes, props, 0, null);
     }
 
