@@ -1098,7 +1098,15 @@ public class ShaderCode {
             while ((line = reader.readLine()) != null) {
                 lineno++;
                 if (line.startsWith("#include ")) {
-                    final String includeFile = line.substring(9).trim().replace("\"", "");
+                    final String includeFile;
+                    {
+                        String s = line.substring(9).trim();
+                        // Bug 1283: Remove shader include filename quotes if exists at start and end only
+                        if( s.startsWith("\"") && s.endsWith("\"")) {
+                            s = s.substring(1, s.length()-1);
+                        }
+                        includeFile = s;
+                    }
                     URLConnection nextConn = null;
 
                     // Try relative of current shader location

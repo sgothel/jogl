@@ -6,10 +6,10 @@
   #define mgl_FragColor gl_FragColor   
 #endif
 
-#include es_precision.glsl
+#include "es_precision.glsl"
 
-#include mgl_uniform.glsl
-#include mgl_varying.glsl
+#include "mgl_uniform.glsl"
+#include "mgl_varying.glsl"
 
 #include mgl_alphatest.fp
 

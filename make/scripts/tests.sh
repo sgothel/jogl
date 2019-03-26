@@ -127,7 +127,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG"
     #D_ARGS="-Dnativewindow.debug.X11Util.ATI_HAS_NO_MULTITHREADING_BUG"
     #D_ARGS="-Dnativewindow.debug.JFX -Dnewt.debug.Window -Djogamp.newt.javafx.UseJFXEDT=false"
-    D_ARGS="-Dnativewindow.debug.JFX -Dnewt.debug.Window"
+    #D_ARGS="-Dnativewindow.debug.JFX -Dnewt.debug.Window"
     #D_ARGS="-Djogl.disable.opengldesktop"
     #D_ARGS="-Djogl.disable.opengles"
     #D_ARGS="-Djogl.disable.openglcore"
@@ -150,7 +150,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.JAWT"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
-    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState -Djogl.debug.GLSLCode"
+    D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline"
@@ -846,7 +846,7 @@ function testawtswt() {
 # JavaFX (testjfx)
 #
 #testjfx com.jogamp.opengl.test.junit.jogl.javafx.JFXStageGLChild01 $*
-testjfx com.jogamp.opengl.test.junit.jogl.javafx.TestNewtCanvasJFXGLn $*
+#testjfx com.jogamp.opengl.test.junit.jogl.javafx.TestNewtCanvasJFXGLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 
 #
@@ -854,7 +854,7 @@ testjfx com.jogamp.opengl.test.junit.jogl.javafx.TestNewtCanvasJFXGLn $*
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES2NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
 
 #
 # Texture / TextureUtils

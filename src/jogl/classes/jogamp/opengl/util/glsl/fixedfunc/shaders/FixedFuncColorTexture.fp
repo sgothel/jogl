@@ -8,14 +8,14 @@
 #endif
 
 
-#include es_precision.glsl
-#include mgl_lightdef.glsl
+#include "es_precision.glsl"
+#include "mgl_lightdef.glsl"
 
-#include mgl_const.glsl
-#include mgl_uniform.glsl
-#include mgl_varying.glsl
+#include "mgl_const.glsl"
+#include "mgl_uniform.glsl"
+#include "mgl_varying.glsl"
 
-#include mgl_alphatest.fp
+#include "mgl_alphatest.fp"
 
 const float gamma = 1.5; // FIXME
 const vec3 igammav = vec3(1.0 / gamma); // FIXME
