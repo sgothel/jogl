@@ -51,9 +51,10 @@ import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.nativewindow.x11.X11Lib;
+import jogamp.nativewindow.Debug;
 
 public class SWTAccessor {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = Debug.debug("SWT");
 
     private static final Field swt_control_handle;
     private static final boolean swt_uses_long_handles;
