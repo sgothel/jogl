@@ -134,7 +134,7 @@ public interface GLDrawable extends NativeSurfaceHolder {
   public void setRealized(boolean realized);
 
   /**
-   * Returns <code>true</code> if this drawable is realized, otherwise <code>true</code>.
+   * Returns <code>true</code> if this drawable is realized, otherwise <code>false</code>.
    * <p>
    * A drawable can be realized and unrealized via {@link #setRealized(boolean)}.
    * </p>
