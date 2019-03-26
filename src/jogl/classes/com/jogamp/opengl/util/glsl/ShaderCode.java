@@ -1098,7 +1098,7 @@ public class ShaderCode {
             while ((line = reader.readLine()) != null) {
                 lineno++;
                 if (line.startsWith("#include ")) {
-                    final String includeFile = line.substring(9).trim();
+                    final String includeFile = line.substring(9).trim().replace("\"", "");
                     URLConnection nextConn = null;
 
                     // Try relative of current shader location
