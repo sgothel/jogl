@@ -406,6 +406,20 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
+    public final void sendTouchScreenEvent(final short eventType, final int modifiers,
+                                           final int pActionIdx, final int[] pNames,
+                                           final int[] pX, final int[] pY, final float[] pPressure, final float maxPressure) {
+        final int pCount = pNames.length;
+        final MouseEvent.PointerType[] pTypes = new MouseEvent.PointerType[pCount];
+        for(int i=0; i<pCount; i++)
+        { 
+           pTypes[i] = MouseEvent.PointerType.TouchScreen;
+        }
+        doPointerEvent(false /*enqueue*/, false /*wait*/,
+                       pTypes, eventType, modifiers, pActionIdx, true /*normalPNames*/, pNames,
+                       pX, pY, pPressure, maxPressure, new float[] { 0f, 0f, 0f} /*rotationXYZ*/, 1f/*rotationScale*/);
+    }
+
     @Override
     public final void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");

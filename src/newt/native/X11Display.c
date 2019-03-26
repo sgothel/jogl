@@ -56,6 +56,13 @@ static jmethodID sendMouseEventRequestFocusID = NULL;
 static jmethodID visibleChangedWindowRepaintID = NULL;
 static jmethodID visibleChangedSendMouseEventID = NULL;
 static jmethodID sizePosMaxInsetsVisibleChangedID = NULL;
+static jmethodID sendTouchScreenEventID = NULL;
+
+struct touchPosition {
+    int touch_id;
+    int x;
+    int y;
+};
 
 /**
  * Keycode
@@ -219,6 +226,8 @@ static jint X11InputState2NewtModifiers(unsigned int xstate, jshort javaVKey, jb
 }
 
 
+static struct touchPosition touch_coordinates[10];
+
 /**
  * Keycode
  */
@@ -267,6 +276,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
     sendMouseEventRequestFocusID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEventRequestFocus", "(SIIISF)V");
     visibleChangedSendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChangedSendMouseEvent", "(ZISIIISF)V");
     sendKeyEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendKeyEvent", "(SISSCLjava/lang/String;)V");
+    sendTouchScreenEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendTouchScreenEvent", "(SII[I[I[I[FF)V");
 
     if (displayCompletedID == NULL ||
         sendRRScreenChangeNotifyID == NULL ||
@@ -286,10 +296,12 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
         sendMouseEventID == NULL ||
         sendMouseEventRequestFocusID == NULL ||
         visibleChangedSendMouseEventID == NULL ||
+        sendTouchScreenEventID == NULL ||
         sendKeyEventID == NULL) {
         return JNI_FALSE;
     }
 
+    memset(touch_coordinates, -1, sizeof(touch_coordinates));
 
     return JNI_TRUE;
 }
@@ -385,6 +397,64 @@ static int NewtWindows_updateVisibility(JNIEnv *env, Display *dpy, JavaWindow *j
     return visibleChange;
 }
 
+void sendTouchScreenEvent(JNIEnv *env, jobject window,
+        short eventType,  // MouseEvent.EVENT_MOUSE_PRESSED, MouseEvent.EVENT_MOUSE_RELEASED, MouseEvent.EVENT_MOUSE_MOVED
+        int modifiers, // 0!
+        int actionId) //  index of multiple-pointer arrays representing the pointer which triggered the event
+{
+    jint cnt = 0;
+    jint pointerNames[10];
+    jint x[10];
+    jint y[10];
+    jfloat pressure[] =  {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+    jint actionIdx = -1;
+    int i = 0;
+
+    for(i = 0; i < 10; i++)
+    {
+        if(touch_coordinates[i].touch_id != -1)
+        {
+            x[cnt] = touch_coordinates[i].x;
+            y[cnt] = touch_coordinates[i].y;
+            pointerNames[cnt] = touch_coordinates[i].touch_id;
+            if (touch_coordinates[i].touch_id == actionId)
+            {
+                actionIdx = cnt;
+            }
+            cnt++;
+        }
+    }
+
+    jintArray jNames = (*env)->NewIntArray(env, cnt);
+    if (jNames == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (names) of size %d", cnt);
+    }
+    (*env)->SetIntArrayRegion(env, jNames, 0, cnt, pointerNames);
+
+    jintArray jX = (*env)->NewIntArray(env, cnt);
+    if (jX == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (x) of size %d", cnt);
+    }
+    (*env)->SetIntArrayRegion(env, jX, 0, cnt, x);
+
+    jintArray jY = (*env)->NewIntArray(env, cnt);
+    if (jY == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (y) of size %d", cnt);
+    }
+    (*env)->SetIntArrayRegion(env, jY, 0, cnt, y);
+
+    jfloatArray jPressure = (*env)->NewFloatArray(env, cnt);
+    if (jPressure == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate float array (pressure) of size %d", cnt);
+    }
+    (*env)->SetFloatArrayRegion(env, jPressure, 0, cnt, pressure);
+
+    (*env)->CallVoidMethod(env, window, sendTouchScreenEventID,
+            (jshort)eventType, (jint)modifiers, (jint)actionIdx,
+            jNames, jX, jY, jPressure, (jfloat)1.0f);
+    
+}
+
 /*
  * Class:     jogamp_newt_driver_x11_DisplayDriver
  * Method:    DispatchMessages0
@@ -453,7 +523,35 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
 
         // DBG_PRINT( "X11: DispatchMessages dpy %p, win %p, Event %d\n", (void*)dpy, (void*)evt.xany.window, (int)evt.type);
 
-        jw = getJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom,
+        Window windowPointer = evt.xany.window;
+
+        
+        int isXInputExtensionEvent = 0;        
+        XGenericEventCookie *cookie = &evt.xcookie; // hacks!
+        XIDeviceEvent *devev;
+
+
+        if (XGetEventData(dpy, cookie)) // extended event
+        {
+            int xi_opcode;
+            int ev;
+            int err;
+            XQueryExtension(dpy, "XInputExtension", &xi_opcode, &ev, &err);
+
+            // check if this belongs to XInput
+            if (cookie->type == GenericEvent
+                    && cookie->extension == xi_opcode) {
+                static int last = -1;
+
+                devev = cookie->data;
+                windowPointer = devev->event;
+                isXInputExtensionEvent = 1;
+
+            }
+        }
+        
+        
+        jw = getJavaWindowProperty(env, dpy, windowPointer, javaObjectAtom,
         #ifdef VERBOSE_ON
                 True
         #else
@@ -462,10 +560,63 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
             );
 
         if(NULL==jw) {
-            fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for X11 window %p\n", (void*)dpy, evt.type, (void*)evt.xany.window);
+            fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for X11 window %p\n", (void*)dpy, evt.type, (void*)windowPointer);
             continue;
         }
- 
+
+        if (isXInputExtensionEvent) {
+            int i;
+
+            switch (devev->evtype) {
+                case XI_TouchBegin:
+    
+                    for (i = 0; i < 10; i++)
+                    {
+                        if (touch_coordinates[i].touch_id == -1)
+                        {
+                            touch_coordinates[i].touch_id = devev->detail % 32767;
+                            touch_coordinates[i].x = devev->event_x;
+                            touch_coordinates[i].y = devev->event_y;
+                            break;
+                        }
+                    }
+    
+                    sendTouchScreenEvent(env, jw->jwindow, EVENT_MOUSE_PRESSED,
+                            0, devev->detail % 32767);
+    
+                    break;
+                case XI_TouchUpdate:
+    
+                    for (i = 0; i < 10; i++)
+                    {
+                        if (touch_coordinates[i].touch_id == devev->detail  % 32767)
+                        {
+                            touch_coordinates[i].x = devev->event_x;
+                            touch_coordinates[i].y = devev->event_y;
+                        }
+                    }
+                    sendTouchScreenEvent(env, jw->jwindow, EVENT_MOUSE_MOVED, 0,
+                            devev->detail % 32767);
+    
+                    break;
+                case XI_TouchEnd:
+    
+                    sendTouchScreenEvent(env, jw->jwindow, EVENT_MOUSE_RELEASED,
+                            0, devev->detail % 32767);
+    
+                    for (i = 0; i < 10; i++)
+                    {
+                        if (touch_coordinates[i].touch_id == devev->detail % 32767)
+                        {
+                            touch_coordinates[i].touch_id = -1;
+                        }
+                    }
+                    break;
+    
+                    continue;
+            }
+        }
+
         switch(evt.type) {
             case KeyRelease:
                 if (XEventsQueued(dpy, QueuedAfterReading)) {
