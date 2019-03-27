@@ -58,12 +58,6 @@ static jmethodID visibleChangedSendMouseEventID = NULL;
 static jmethodID sizePosMaxInsetsVisibleChangedID = NULL;
 static jmethodID sendTouchScreenEventID = NULL;
 
-struct touchPosition {
-    int touch_id;
-    int x;
-    int y;
-};
-
 /**
  * Keycode
  */
@@ -226,8 +220,6 @@ static jint X11InputState2NewtModifiers(unsigned int xstate, jshort javaVKey, jb
 }
 
 
-static struct touchPosition touch_coordinates[10];
-
 /**
  * Keycode
  */
@@ -275,8 +267,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
     sendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEvent", "(SIIISF)V");
     sendMouseEventRequestFocusID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEventRequestFocus", "(SIIISF)V");
     visibleChangedSendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChangedSendMouseEvent", "(ZISIIISF)V");
-    sendKeyEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendKeyEvent", "(SISSCLjava/lang/String;)V");
     sendTouchScreenEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendTouchScreenEvent", "(SII[I[I[I[FF)V");
+    sendKeyEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendKeyEvent", "(SISSCLjava/lang/String;)V");
 
     if (displayCompletedID == NULL ||
         sendRRScreenChangeNotifyID == NULL ||
@@ -300,8 +292,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
         sendKeyEventID == NULL) {
         return JNI_FALSE;
     }
-
-    memset(touch_coordinates, -1, sizeof(touch_coordinates));
 
     return JNI_TRUE;
 }
@@ -397,28 +387,24 @@ static int NewtWindows_updateVisibility(JNIEnv *env, Display *dpy, JavaWindow *j
     return visibleChange;
 }
 
-void sendTouchScreenEvent(JNIEnv *env, jobject window,
+static void sendTouchScreenEvent(JNIEnv *env, JavaWindow *jw,
         short eventType,  // MouseEvent.EVENT_MOUSE_PRESSED, MouseEvent.EVENT_MOUSE_RELEASED, MouseEvent.EVENT_MOUSE_MOVED
         int modifiers, // 0!
         int actionId) //  index of multiple-pointer arrays representing the pointer which triggered the event
 {
-    jint cnt = 0;
-    jint pointerNames[10];
-    jint x[10];
-    jint y[10];
-    jfloat pressure[] =  {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+    jint pointerNames[XI_TOUCHCOORD_COUNT];
+    jint x[XI_TOUCHCOORD_COUNT];
+    jint y[XI_TOUCHCOORD_COUNT];
+    jfloat pressure[] =  {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
     jint actionIdx = -1;
-    int i = 0;
+    int i, cnt;
 
-    for(i = 0; i < 10; i++)
-    {
-        if(touch_coordinates[i].touch_id != -1)
-        {
-            x[cnt] = touch_coordinates[i].x;
-            y[cnt] = touch_coordinates[i].y;
-            pointerNames[cnt] = touch_coordinates[i].touch_id;
-            if (touch_coordinates[i].touch_id == actionId)
-            {
+    for(i = 0, cnt = 0; i < XI_TOUCHCOORD_COUNT; i++) {
+        if( -1 != jw->xiTouchCoords[i].id ) {
+            x[cnt] = jw->xiTouchCoords[i].x;
+            y[cnt] = jw->xiTouchCoords[i].y;
+            pointerNames[cnt] = jw->xiTouchCoords[i].id;
+            if (jw->xiTouchCoords[i].id == actionId) {
                 actionIdx = cnt;
             }
             cnt++;
@@ -449,10 +435,9 @@ void sendTouchScreenEvent(JNIEnv *env, jobject window,
     }
     (*env)->SetFloatArrayRegion(env, jPressure, 0, cnt, pressure);
 
-    (*env)->CallVoidMethod(env, window, sendTouchScreenEventID,
+    (*env)->CallVoidMethod(env, jw->jwindow, sendTouchScreenEventID,
             (jshort)eventType, (jint)modifiers, (jint)actionIdx,
             jNames, jX, jY, jPressure, (jfloat)1.0f);
-    
 }
 
 /*
@@ -521,36 +506,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
             continue;
         }
 
-        // DBG_PRINT( "X11: DispatchMessages dpy %p, win %p, Event %d\n", (void*)dpy, (void*)evt.xany.window, (int)evt.type);
-
         Window windowPointer = evt.xany.window;
+        // DBG_PRINT( "X11: DispatchMessages dpy %p, win %p, Event %d\n", (void*)dpy, (void*)windowPointer, (int)evt.type);
 
-        
-        int isXInputExtensionEvent = 0;        
-        XGenericEventCookie *cookie = &evt.xcookie; // hacks!
-        XIDeviceEvent *devev;
-
-
-        if (XGetEventData(dpy, cookie)) // extended event
-        {
-            int xi_opcode;
-            int ev;
-            int err;
-            XQueryExtension(dpy, "XInputExtension", &xi_opcode, &ev, &err);
-
-            // check if this belongs to XInput
-            if (cookie->type == GenericEvent
-                    && cookie->extension == xi_opcode) {
-                static int last = -1;
-
-                devev = cookie->data;
-                windowPointer = devev->event;
-                isXInputExtensionEvent = 1;
-
-            }
-        }
-        
-        
         jw = getJavaWindowProperty(env, dpy, windowPointer, javaObjectAtom,
         #ifdef VERBOSE_ON
                 True
@@ -564,59 +522,55 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
             continue;
         }
 
-        if (isXInputExtensionEvent) {
-            int i;
+        XGenericEventCookie *cookie = &evt.xcookie; // hacks: https://keithp.com/blogs/Cursor_tracking/
 
-            switch (devev->evtype) {
-                case XI_TouchBegin:
-    
-                    for (i = 0; i < 10; i++)
-                    {
-                        if (touch_coordinates[i].touch_id == -1)
-                        {
-                            touch_coordinates[i].touch_id = devev->detail % 32767;
-                            touch_coordinates[i].x = devev->event_x;
-                            touch_coordinates[i].y = devev->event_y;
-                            break;
+        if ( GenericEvent == cookie->type && jw->xiOpcode == cookie->extension && XGetEventData(dpy, cookie) ) {
+            // Valid registered XI Event w/ cookie data
+            // Here: https://www.x.org/wiki/Development/Documentation/Multitouch/
+            XIDeviceEvent *devev = cookie->data;
+            if( devev->event != windowPointer ) {
+                DBG_PRINT( "X11: DispatchMessages.XI dpy %p, win %p, Event %d: Event Window %p not matching\n", (void*)dpy, (void*)windowPointer, (int)evt.type, (void*)devev->event);
+            } else if( devev->deviceid != jw->xiTouchDeviceId) {
+                DBG_PRINT( "X11: DispatchMessages.XI dpy %p, win %p, Event %d: DeviceID not matching: Window %d, this %d\n", (void*)dpy, (void*)windowPointer, (int)evt.type, devev->deviceid, jw->xiTouchDeviceId);
+            } else {
+                int i;
+                switch (devev->evtype) {
+                    case XI_TouchBegin:
+                        for (i = 0; i < XI_TOUCHCOORD_COUNT; i++) {
+                            if (jw->xiTouchCoords[i].id == -1) {
+                                jw->xiTouchCoords[i].id = devev->detail % 32767;
+                                jw->xiTouchCoords[i].x = devev->event_x;
+                                jw->xiTouchCoords[i].y = devev->event_y;
+                                break;
+                            }
                         }
-                    }
-    
-                    sendTouchScreenEvent(env, jw->jwindow, EVENT_MOUSE_PRESSED,
-                            0, devev->detail % 32767);
-    
-                    break;
-                case XI_TouchUpdate:
-    
-                    for (i = 0; i < 10; i++)
-                    {
-                        if (touch_coordinates[i].touch_id == devev->detail  % 32767)
-                        {
-                            touch_coordinates[i].x = devev->event_x;
-                            touch_coordinates[i].y = devev->event_y;
+                        sendTouchScreenEvent(env, jw, EVENT_MOUSE_PRESSED, 0, devev->detail % 32767);
+                        break;
+
+                    case XI_TouchUpdate:
+                        for (i = 0; i < XI_TOUCHCOORD_COUNT; i++) {
+                            if (jw->xiTouchCoords[i].id == devev->detail  % 32767) {
+                                jw->xiTouchCoords[i].x = devev->event_x;
+                                jw->xiTouchCoords[i].y = devev->event_y;
+                            }
                         }
-                    }
-                    sendTouchScreenEvent(env, jw->jwindow, EVENT_MOUSE_MOVED, 0,
-                            devev->detail % 32767);
-    
-                    break;
-                case XI_TouchEnd:
-    
-                    sendTouchScreenEvent(env, jw->jwindow, EVENT_MOUSE_RELEASED,
-                            0, devev->detail % 32767);
-    
-                    for (i = 0; i < 10; i++)
-                    {
-                        if (touch_coordinates[i].touch_id == devev->detail % 32767)
-                        {
-                            touch_coordinates[i].touch_id = -1;
+                        sendTouchScreenEvent(env, jw, EVENT_MOUSE_MOVED, 0, devev->detail % 32767);
+                        break;
+
+                    case XI_TouchEnd:
+                        sendTouchScreenEvent(env, jw, EVENT_MOUSE_RELEASED, 0, devev->detail % 32767);
+                        for (i = 0; i < XI_TOUCHCOORD_COUNT; i++) {
+                            if (jw->xiTouchCoords[i].id == devev->detail % 32767) {
+                                jw->xiTouchCoords[i].id = -1;
+                            }
                         }
-                    }
-                    break;
-    
-                    continue;
+                        break;
+                }
             }
+            XFreeEventData(dpy, cookie);
+            continue; // next event, skip evt.type below
         }
-
+        
         switch(evt.type) {
             case KeyRelease:
                 if (XEventsQueued(dpy, QueuedAfterReading)) {

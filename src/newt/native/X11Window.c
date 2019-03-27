@@ -953,47 +953,59 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
         }
     }
     
+    // Register X11 Multitouch Events for new Window
+    // https://www.x.org/wiki/Development/Documentation/Multitouch/
     {
-      XIDeviceInfo *di;
-      XIDeviceInfo *dev;
-      XITouchClassInfo *class;
-      int devid = -1;
-      
-      int cnt;
-      int i, j;
+        int xi_opcode, event, error;
 
-      di = XIQueryDevice(dpy, XIAllDevices, &cnt);
-      for (i = 0; i < cnt; i ++)
-      {
-        dev = &di[i];
-        for (j = 0; j < dev->num_classes; j ++)
-        {
-          class = (XITouchClassInfo*)(dev->classes[j]);
-          if (class->type != XITouchClass)
-          {
-            devid = dev->deviceid;
-            break;
-          }
+        javaWindow->xiTouchDeviceId = -1;
+
+        if( XQueryExtension(dpy, "XInputExtension", &xi_opcode, &event, &error) ) {
+            XIDeviceInfo *di;
+            int devid = -1;
+            int cnt = 0;
+
+            javaWindow->xiOpcode = xi_opcode;
+            di = XIQueryDevice(dpy, XIAllDevices, &cnt);
+
+            if( NULL != di && 0 < cnt ) {
+                XIDeviceInfo *dev;
+                int i, j;
+      
+                // find the 1st XITouchClass device available
+                for (i = 0; i < cnt && -1 == devid; i ++) {
+                    dev = &di[i];
+                    for (j = 0; j < dev->num_classes; j ++) {
+                        XITouchClassInfo *class = (XITouchClassInfo*)(dev->classes[j]);
+                        if ( XITouchClass == class->type ) {
+                          devid = dev->deviceid;
+                          break;
+                        }
+                    }
+                }
+                XIFreeDeviceInfo(di);
+                di = NULL;
+                
+                if( -1 != devid ) {
+                    // register 1st XITouchClass device if available
+                    XIEventMask mask = {
+                      .deviceid = devid,
+                      .mask_len = XIMaskLen(XI_TouchEnd) // in bytes
+                    };
+                    
+                    mask.mask = (unsigned char*)calloc(mask.mask_len, sizeof(unsigned char));
+                    XISetMask(mask.mask, XI_TouchBegin);
+                    XISetMask(mask.mask, XI_TouchUpdate);
+                    XISetMask(mask.mask, XI_TouchEnd);
+      
+                    XISelectEvents(dpy, window, &mask, 1);
+      
+                    free(mask.mask);      
+      
+                    javaWindow->xiTouchDeviceId = devid;
+                }
+            }
         }
-        if(devid != -1)
-        {
-          break;
-        }
-      }
-      
-      XIEventMask mask = {
-        .deviceid = devid, //XIAllDevices,
-        .mask_len = XIMaskLen(XI_TouchEnd)
-      };
-      
-      mask.mask = (unsigned char*)calloc(3, sizeof(char));
-      XISetMask(mask.mask, XI_TouchBegin);
-      XISetMask(mask.mask, XI_TouchUpdate);
-      XISetMask(mask.mask, XI_TouchEnd);
-
-      XISelectEvents(dpy, window, &mask, 1);
-
-      free(mask.mask);      
     }
     
     XFlush(dpy);

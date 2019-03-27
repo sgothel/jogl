@@ -150,7 +150,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.JAWT"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
-    D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState -Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline"
@@ -471,7 +471,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
@@ -854,7 +854,7 @@ function testawtswt() {
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES2NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
 
 #
 # Texture / TextureUtils

@@ -302,6 +302,7 @@
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
         <syslibset libs="Xcursor"/>
+        <syslibset libs="Xi"/>
       </linker>
 
       <linker id="linker.cfg.freebsd.amd64.newt.x11" extends="linker.cfg.freebsd.amd64">
@@ -309,6 +310,7 @@
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
         <syslibset libs="Xcursor"/>
+        <syslibset libs="Xi"/>
       </linker>
 
       <linker id="linker.cfg.linux.newt.bcm_egl" extends="linker.cfg.linux">
@@ -329,6 +331,7 @@
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
         <syslibset libs="Xcursor"/>
+        <syslibset libs="Xi"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
       </linker>
@@ -337,6 +340,7 @@
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
         <syslibset libs="Xcursor"/>
+        <syslibset libs="Xi"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
       </linker>
@@ -345,6 +349,7 @@
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
         <syslibset libs="Xcursor"/>
+        <syslibset libs="Xi"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
       </linker>
@@ -353,12 +358,14 @@
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrandr" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xcursor" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xi" />
       </linker>
 
       <linker id="linker.cfg.linux.aarch64.newt.x11" extends="linker.cfg.linux.aarch64">
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrandr" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xcursor" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xi" />
       </linker>
 
       <linker id="linker.cfg.android.newt" extends="linker.cfg.android">
@@ -369,6 +376,7 @@
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
         <syslibset libs="Xcursor"/>
+        <syslibset libs="Xi"/>
       </linker>
 
       <linker id="linker.cfg.solaris.sparcv9.newt.x11" extends="linker.cfg.solaris.sparcv9">
@@ -376,6 +384,7 @@
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
         <syslibset libs="Xcursor"/>
+        <syslibset libs="Xi"/>
       </linker>
 
       <linker id="linker.cfg.solaris.amd64.newt.x11" extends="linker.cfg.solaris.amd64">
@@ -383,6 +392,7 @@
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
         <syslibset libs="Xcursor"/>
+        <syslibset libs="Xi"/>
       </linker>
 
       <linker id="linker.cfg.win32.mingw.newt" extends="linker.cfg.win32.mingw">

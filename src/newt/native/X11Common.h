@@ -75,6 +75,14 @@ extern jmethodID visibleChangedID;
 extern jmethodID insetsVisibleChangedID;
 
 typedef struct {
+    int id;
+    int x;
+    int y;
+} XITouchPosition;
+
+#define XI_TOUCHCOORD_COUNT 10
+
+typedef struct {
     Window window;
     jobject jwindow;
     Atom * allAtoms;
@@ -86,6 +94,9 @@ typedef struct {
     Bool maxVert;
     /** flag whether window is mapped */
     Bool isMapped;
+    int xiOpcode;
+    int xiTouchDeviceId;
+    XITouchPosition xiTouchCoords[XI_TOUCHCOORD_COUNT];
 } JavaWindow;
 
 JavaWindow * getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, Bool showWarning);
