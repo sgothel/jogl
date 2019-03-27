@@ -529,9 +529,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
             // Here: https://www.x.org/wiki/Development/Documentation/Multitouch/
             XIDeviceEvent *devev = cookie->data;
             if( devev->event != windowPointer ) {
-                DBG_PRINT( "X11: DispatchMessages.XI dpy %p, win %p, Event %d: Event Window %p not matching\n", (void*)dpy, (void*)windowPointer, (int)evt.type, (void*)devev->event);
+                DBG_PRINT( "X11: XI event - dpy %p, win %p, Event %d: Event Window %p not matching\n", (void*)dpy, (void*)windowPointer, (int)evt.type, (void*)devev->event);
             } else if( devev->deviceid != jw->xiTouchDeviceId) {
-                DBG_PRINT( "X11: DispatchMessages.XI dpy %p, win %p, Event %d: DeviceID not matching: Window %d, this %d\n", (void*)dpy, (void*)windowPointer, (int)evt.type, devev->deviceid, jw->xiTouchDeviceId);
+                DBG_PRINT( "X11: XI event - dpy %p, win %p, Event %d: DeviceID not matching: Window %d, this %d\n", (void*)dpy, (void*)windowPointer, (int)evt.type, devev->deviceid, jw->xiTouchDeviceId);
             } else {
                 int i;
                 switch (devev->evtype) {
@@ -544,6 +544,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                                 break;
                             }
                         }
+                        DBG_PRINT( "X11: XI event - XI_TouchBegin Window %p, devid %d, touchid %d @ %d/%d\n", (void*)windowPointer, devev->deviceid, jw->xiTouchCoords[i].id, jw->xiTouchCoords[i].x, jw->xiTouchCoords[i].y);
                         sendTouchScreenEvent(env, jw, EVENT_MOUSE_PRESSED, 0, devev->detail % 32767);
                         break;
 
@@ -554,10 +555,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                                 jw->xiTouchCoords[i].y = devev->event_y;
                             }
                         }
+                        DBG_PRINT( "X11: XI event - XI_TouchUpdate: Window %p, devid %d, touchid %d @ %d/%d\n", (void*)windowPointer, devev->deviceid, jw->xiTouchCoords[i].id, jw->xiTouchCoords[i].x, jw->xiTouchCoords[i].y);
                         sendTouchScreenEvent(env, jw, EVENT_MOUSE_MOVED, 0, devev->detail % 32767);
                         break;
 
                     case XI_TouchEnd:
+                        DBG_PRINT( "X11: XI event - XI_TouchEnd: Window %p, devid %d, touchid %d\n", (void*)windowPointer, devev->deviceid, jw->xiTouchCoords[i].id);
                         sendTouchScreenEvent(env, jw, EVENT_MOUSE_RELEASED, 0, devev->detail % 32767);
                         for (i = 0; i < XI_TOUCHCOORD_COUNT; i++) {
                             if (jw->xiTouchCoords[i].id == devev->detail % 32767) {

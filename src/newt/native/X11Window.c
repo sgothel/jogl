@@ -958,25 +958,28 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
     {
         int xi_opcode, event, error;
 
+        javaWindow->xiOpcode = -1;
         javaWindow->xiTouchDeviceId = -1;
 
         if( XQueryExtension(dpy, "XInputExtension", &xi_opcode, &event, &error) ) {
             XIDeviceInfo *di;
-            int devid = -1;
             int cnt = 0;
 
             javaWindow->xiOpcode = xi_opcode;
+            DBG_PRINT( "X11: [CreateWindow]: XI: Window %p, Extension %d\n", (void*)window, xi_opcode);
             di = XIQueryDevice(dpy, XIAllDevices, &cnt);
 
             if( NULL != di && 0 < cnt ) {
-                XIDeviceInfo *dev;
+                int devid = -1;
                 int i, j;
       
                 // find the 1st XITouchClass device available
                 for (i = 0; i < cnt && -1 == devid; i ++) {
-                    dev = &di[i];
+                    XIDeviceInfo *dev = &di[i];
                     for (j = 0; j < dev->num_classes; j ++) {
                         XITouchClassInfo *class = (XITouchClassInfo*)(dev->classes[j]);
+                        DBG_PRINT( "X11: [CreateWindow]: XI: Scan Window %p, device[%d/%d].class[%d/%d]: type %d (is XITouchClass %d)\n", 
+                            (void*)window, (i+1), cnt, (j+1), dev->num_classes, class->type, (XITouchClass == class->type));
                         if ( XITouchClass == class->type ) {
                           devid = dev->deviceid;
                           break;
@@ -1003,6 +1006,7 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
                     free(mask.mask);      
       
                     javaWindow->xiTouchDeviceId = devid;
+                    DBG_PRINT( "X11: [CreateWindow]: XI: Window %p, XITouchClass devid %d\n", (void*)window, devid);
                 }
             }
         }
