@@ -212,6 +212,11 @@ static JavaWindow* createJavaWindowProperty(JNIEnv *env, Display *dpy, Window ro
         res->maxHorz = False;
         res->maxVert = False;
         res->isMapped = False;
+        int i;
+        for (i = 0; i < XI_TOUCHCOORD_COUNT; i++) {
+            res->xiTouchCoords[i].id = -1;
+        }
+        res->xiTouchDeviceId = -1;
     }
     unsigned long jogl_java_object_data[2]; // X11 is based on 'unsigned long'
     int nitems_32 = putPtrIn32Long( jogl_java_object_data, (uintptr_t) res);
@@ -255,7 +260,7 @@ JavaWindow * getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlo
 
         if ( Success != res ) {
             if(True==showWarning) {
-                fprintf(stderr, "Warning: NEWT X11Window: Could not fetch Atom NEWT_JAVA_OBJECT window property (res %d) nitems %ld, bytes_after %ld, result 0!\n", res, nitems, bytes_after);
+                fprintf(stderr, "Warning: NEWT X11Window: Could not fetch Atom NEWT_JAVA_OBJECT window %p property (res %d) nitems %ld, bytes_after %ld, result 0!\n", (void*)window, res, nitems, bytes_after);
             }
             return NULL;
         }
@@ -265,8 +270,8 @@ JavaWindow * getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlo
                 XFree(jogl_java_object_data_pp);
             }
             if(True==showWarning) {
-                fprintf(stderr, "Warning: NEWT X11Window: Fetched invalid Atom NEWT_JAVA_OBJECT window property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, NEWT_JAVA_OBJECT %ld, result 0!\n", 
-                res, nitems, bytes_after, (long)actual_type, (long)javaObjectAtom);
+                fprintf(stderr, "Warning: NEWT X11Window: Fetched invalid Atom NEWT_JAVA_OBJECT window %p property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, NEWT_JAVA_OBJECT %ld, result 0!\n", 
+                (void *)window, res, nitems, bytes_after, (long)actual_type, (long)javaObjectAtom);
             }
             return NULL;
         }
@@ -761,7 +766,7 @@ static void NewtWindows_setIcon(Display *dpy, Window w, int data_size, const uns
 JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWindow0
   (JNIEnv *env, jobject obj, jlong parent, jlong display, jint screen_index, 
                              jint visualID, 
-                             jlong javaObjectAtom, jlong windowDeleteAtom, 
+                             jlong javaObjectAtom, jlong windowDeleteAtom, jint xi_opcode,
                              jint x, jint y, jint width, jint height, int flags,
                              jint pixelDataSize, jobject pixels, jint pixels_byte_offset, jboolean pixels_is_direct, 
                              jboolean verbose)
@@ -955,59 +960,51 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
     
     // Register X11 Multitouch Events for new Window
     // https://www.x.org/wiki/Development/Documentation/Multitouch/
-    {
-        int xi_opcode, event, error;
+    if( 0 <= xi_opcode ) {
+        XIDeviceInfo *di;
+        int cnt = 0;
 
-        javaWindow->xiOpcode = -1;
-        javaWindow->xiTouchDeviceId = -1;
+        DBG_PRINT( "X11: [CreateWindow]: XI: Window %p, Extension %d\n", (void*)window, xi_opcode);
+        di = XIQueryDevice(dpy, XIAllDevices, &cnt);
 
-        if( XQueryExtension(dpy, "XInputExtension", &xi_opcode, &event, &error) ) {
-            XIDeviceInfo *di;
-            int cnt = 0;
-
-            javaWindow->xiOpcode = xi_opcode;
-            DBG_PRINT( "X11: [CreateWindow]: XI: Window %p, Extension %d\n", (void*)window, xi_opcode);
-            di = XIQueryDevice(dpy, XIAllDevices, &cnt);
-
-            if( NULL != di && 0 < cnt ) {
-                int devid = -1;
-                int i, j;
-      
-                // find the 1st XITouchClass device available
-                for (i = 0; i < cnt && -1 == devid; i ++) {
-                    XIDeviceInfo *dev = &di[i];
-                    for (j = 0; j < dev->num_classes; j ++) {
-                        XITouchClassInfo *class = (XITouchClassInfo*)(dev->classes[j]);
-                        DBG_PRINT( "X11: [CreateWindow]: XI: Scan Window %p, device[%d/%d].class[%d/%d]: type %d (is XITouchClass %d)\n", 
-                            (void*)window, (i+1), cnt, (j+1), dev->num_classes, class->type, (XITouchClass == class->type));
-                        if ( XITouchClass == class->type ) {
-                          devid = dev->deviceid;
-                          break;
-                        }
+        if( NULL != di && 0 < cnt ) {
+            int devid = -1;
+            int i, j;
+  
+            // find the 1st XITouchClass device available
+            for (i = 0; i < cnt && -1 == devid; i ++) {
+                XIDeviceInfo *dev = &di[i];
+                for (j = 0; j < dev->num_classes; j ++) {
+                    XITouchClassInfo *class = (XITouchClassInfo*)(dev->classes[j]);
+                    DBG_PRINT( "X11: [CreateWindow]: XI: Scan Window %p, device[%d/%d].class[%d/%d]: devid %d, type %d (is XITouchClass %d)\n", 
+                        (void*)window, (i+1), cnt, (j+1), dev->num_classes, dev->deviceid, class->type, (XITouchClass == class->type));
+                    if ( XITouchClass == class->type ) {
+                      devid = dev->deviceid;
+                      break;
                     }
                 }
-                XIFreeDeviceInfo(di);
-                di = NULL;
+            }
+            XIFreeDeviceInfo(di);
+            di = NULL;
+            
+            if( -1 != devid ) {
+                // register 1st XITouchClass device if available
+                XIEventMask mask = {
+                  .deviceid = devid,
+                  .mask_len = XIMaskLen(XI_TouchEnd) // in bytes
+                };
                 
-                if( -1 != devid ) {
-                    // register 1st XITouchClass device if available
-                    XIEventMask mask = {
-                      .deviceid = devid,
-                      .mask_len = XIMaskLen(XI_TouchEnd) // in bytes
-                    };
-                    
-                    mask.mask = (unsigned char*)calloc(mask.mask_len, sizeof(unsigned char));
-                    XISetMask(mask.mask, XI_TouchBegin);
-                    XISetMask(mask.mask, XI_TouchUpdate);
-                    XISetMask(mask.mask, XI_TouchEnd);
-      
-                    XISelectEvents(dpy, window, &mask, 1);
-      
-                    free(mask.mask);      
-      
-                    javaWindow->xiTouchDeviceId = devid;
-                    DBG_PRINT( "X11: [CreateWindow]: XI: Window %p, XITouchClass devid %d\n", (void*)window, devid);
-                }
+                mask.mask = (unsigned char*)calloc(mask.mask_len, sizeof(unsigned char));
+                XISetMask(mask.mask, XI_TouchBegin);
+                XISetMask(mask.mask, XI_TouchUpdate);
+                XISetMask(mask.mask, XI_TouchEnd);
+  
+                XISelectEvents(dpy, window, &mask, 1);
+  
+                free(mask.mask);      
+  
+                javaWindow->xiTouchDeviceId = devid;
+                DBG_PRINT( "X11: [CreateWindow]: XI: Window %p, XITouchClass devid %d\n", (void*)window, devid);
             }
         }
     }
@@ -1059,7 +1056,7 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_WindowDriver_GetSupportedReco
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
   (JNIEnv *env, jobject obj, jlong display, jlong javaWindow /*, jlong kbdHandle*/, // XKB disabled for now
-                             jint randr_event_base, jint randr_error_base)
+                             jint randr_event_base, jint randr_error_base, jint xi_opcode)
 {
     Display * dpy = (Display *) (intptr_t) display;
     JavaWindow * jw, * jw0;
@@ -1074,7 +1071,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
         NewtCommon_FatalError(env, "invalid JavaWindow connection..");
     }
     jw0 = getJavaWindowProperty(env, dpy, jw->window, jw->javaObjectAtom, True);
-    if(NULL==jw) {
+    if(NULL==jw0) {
         NewtCommon_throwNewRuntimeException(env, "could not fetch Java Window object, bail out!");
         return;
     }
@@ -1097,7 +1094,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
     // Drain all events related to this window ..
     Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0(env, obj, display, 
                                      (jlong)(intptr_t)jw->javaObjectAtom, (jlong)(intptr_t)jw->windowDeleteAtom /*, kbdHandle */, // XKB disabled for now
-                                     randr_event_base, randr_error_base);
+                                     randr_event_base, randr_error_base, xi_opcode);
 
     XDestroyWindow(dpy, jw->window);
     if( None != xwa.colormap ) {

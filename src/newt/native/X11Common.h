@@ -94,7 +94,6 @@ typedef struct {
     Bool maxVert;
     /** flag whether window is mapped */
     Bool isMapped;
-    int xiOpcode;
     int xiTouchDeviceId;
     XITouchPosition xiTouchCoords[XI_TOUCHCOORD_COUNT];
 } JavaWindow;

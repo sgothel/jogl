@@ -3545,7 +3545,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final int pCount = pTypes.length;
 
         if( 0 > pActionIdx || pActionIdx >= pCount) {
-            throw new IllegalArgumentException("actionIdx out of bounds [0.."+(pCount-1)+"]");
+            throw new IllegalArgumentException("actionIdx "+pActionIdx+" out of bounds [0.."+(pCount-1)+"]");
         }
         if( 0 < pActionIdx ) {
             // swap values to make idx 0 the triggering pointer

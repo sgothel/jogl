@@ -110,7 +110,7 @@ public class DisplayDriver extends DisplayImpl {
             final long handle = _aDevice.getHandle();
             if(0 != handle) {
                 DispatchMessages0(handle, javaObjectAtom, windowDeleteAtom /*, kbdHandle */, // XKB disabled for now
-                                          randr_event_base, randr_error_base);
+                                          randr_event_base, randr_error_base, xi_opcode);
             }
         } finally {
             _aDevice.unlock();
@@ -122,6 +122,7 @@ public class DisplayDriver extends DisplayImpl {
     // protected long getKbdHandle() { return kbdHandle; } // XKB disabled for now
     protected int getRandREventBase() { return randr_event_base; }
     protected int getRandRErrorBase() { return randr_error_base; }
+    protected int getXiOpcode() { return xi_opcode; }
 
     /** Returns <code>null</code> if !{@link #isNativeValid()}, otherwise the Boolean value of {@link X11GraphicsDevice#isXineramaEnabled()}. */
     protected Boolean isXineramaEnabled() { return isNativeValid() ? Boolean.valueOf(((X11GraphicsDevice)aDevice).isXineramaEnabled()) : null; }
@@ -145,12 +146,13 @@ public class DisplayDriver extends DisplayImpl {
     private native void CompleteDisplay0(long handle);
 
     private void displayCompleted(final long javaObjectAtom, final long windowDeleteAtom /*, long kbdHandle */,
-                                  final int randr_event_base, final int randr_error_base) {
+                                  final int randr_event_base, final int randr_error_base, final int xi_opcode) {
         this.javaObjectAtom=javaObjectAtom;
         this.windowDeleteAtom=windowDeleteAtom;
         // this.kbdHandle = kbdHandle; // XKB disabled for now
         this.randr_event_base = randr_event_base;
         this.randr_error_base = randr_error_base;
+        this.xi_opcode = xi_opcode;
     }
     private void sendRRScreenChangeNotify(final long event) {
         if( null != rAndR ) {
@@ -163,7 +165,7 @@ public class DisplayDriver extends DisplayImpl {
     private native void DisplayRelease0(long handle, long javaObjectAtom, long windowDeleteAtom /*, long kbdHandle */); // XKB disabled for now
 
     private native void DispatchMessages0(long display, long javaObjectAtom, long windowDeleteAtom /* , long kbdHandle */, // XKB disabled for now
-                                          final int randr_event_base, final int randr_error_base);
+                                          final int randr_event_base, final int randr_error_base, final int xi_opcode);
 
     private static long createPointerIcon(final long display, final Buffer pixels, final int width, final int height, final int hotX, final int hotY) {
         final boolean pixels_is_direct = Buffers.isDirect(pixels);
@@ -185,7 +187,7 @@ public class DisplayDriver extends DisplayImpl {
 
     /** X11 Keyboard handle used on EDT */
     // private long kbdHandle; // XKB disabled for now
-    private int randr_event_base, randr_error_base;
+    private int randr_event_base, randr_error_base, xi_opcode;
 
     private RandR rAndR;
 }

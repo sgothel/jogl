@@ -127,7 +127,7 @@ public class WindowDriver extends WindowImpl {
         try {
             final long[] handles = CreateWindow(getParentWindowHandle(),
                                                 edtDevice.getHandle(), screen.getIndex(), visualID,
-                                                display.getJavaObjectAtom(), display.getWindowDeleteAtom(),
+                                                display.getJavaObjectAtom(), display.getWindowDeleteAtom(), display.getXiOpcode(),
                                                 getX(), getY(), getWidth(), getHeight(), flags,
                                                 defaultIconDataSize, defaultIconData, DEBUG_IMPLEMENTATION);
             if (null == handles || 2 != handles.length || 0 == handles[0] || 0 == handles[1] ) {
@@ -151,7 +151,7 @@ public class WindowDriver extends WindowImpl {
             edtDevice.lock();
             try {
                 CloseWindow0(edtDevice.getHandle(), javaWindowHandle /* , display.getKbdHandle() */, // XKB disabled for now
-                             display.getRandREventBase(), display.getRandRErrorBase());
+                             display.getRandREventBase(), display.getRandRErrorBase(), display.getXiOpcode());
             } catch (final Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
                     final Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
@@ -411,8 +411,7 @@ public class WindowDriver extends WindowImpl {
                                            final int[] pX, final int[] pY, final float[] pPressure, final float maxPressure) {
         final int pCount = pNames.length;
         final MouseEvent.PointerType[] pTypes = new MouseEvent.PointerType[pCount];
-        for(int i=0; i<pCount; i++)
-        { 
+        for(int i=0; i<pCount; i++) {
            pTypes[i] = MouseEvent.PointerType.TouchScreen;
         }
         doPointerEvent(false /*enqueue*/, false /*wait*/,
@@ -442,7 +441,7 @@ public class WindowDriver extends WindowImpl {
     protected static native boolean initIDs0();
 
     private long[] CreateWindow(final long parentWindowHandle, final long display, final int screen_index,
-                                final int visualID, final long javaObjectAtom, final long windowDeleteAtom,
+                                final int visualID, final long javaObjectAtom, final long windowDeleteAtom, final int xi_opcode,
                                 final int x, final int y, final int width, final int height, final int flags,
                                 final int pixelDataSize, final Buffer pixels, final boolean verbose) {
         // NOTE: MUST BE DIRECT BUFFER, since _NET_WM_ICON Atom uses buffer directly!
@@ -450,19 +449,19 @@ public class WindowDriver extends WindowImpl {
             throw new IllegalArgumentException("data buffer is not direct "+pixels);
         }
         return CreateWindow0(parentWindowHandle, display, screen_index,
-                             visualID, javaObjectAtom, windowDeleteAtom,
+                             visualID, javaObjectAtom, windowDeleteAtom, xi_opcode,
                              x, y, width, height, flags,
                              pixelDataSize, pixels, Buffers.getDirectBufferByteOffset(pixels), true /* pixels_is_direct */, verbose);
     }
     /** returns long[2] { X11-window-handle, JavaWindow-handle } */
     private native long[] CreateWindow0(long parentWindowHandle, long display, int screen_index,
-                                        int visualID, long javaObjectAtom, long windowDeleteAtom,
+                                        int visualID, long javaObjectAtom, long windowDeleteAtom, int xi_opcode,
                                         int x, int y, int width, int height, int flags,
                                         int pixelDataSize, Object pixels, int pixels_byte_offset, boolean pixels_is_direct,
                                         boolean verbose);
     private static native int GetSupportedReconfigMask0(long javaWindowHandle);
     private native void CloseWindow0(long display, long javaWindowHandle /*, long kbdHandle*/, // XKB disabled for now
-                                     final int randr_event_base, final int randr_error_base);
+                                     final int randr_event_base, final int randr_error_base, final int xi_opcode);
     private static native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long javaWindowHandle,
                                                   int x, int y, int width, int height, int flags);
     private static native void requestFocus0(long display, long javaWindowHandle, boolean force);
