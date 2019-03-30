@@ -1435,10 +1435,6 @@
         <move file="${src}" tofile="${dest}" />
     </target>
 
-    <target name="rename.dylib" if="isOSX">
-        <move file="${src}" tofile="${dest}" />
-    </target>
-
     <!-- Only compile the ffmpeg version depending source files 
          against their respective header files! 
          We do not use the resulting static libraries directly,
@@ -1473,7 +1469,7 @@
           <targetfiles>
             <fileset dir="${obj.joglsub}" includes="lib@{output.lib.name}.so"/>
             <fileset dir="${obj.joglsub}" includes="@{output.lib.name}.dll"/>
-            <fileset dir="${obj.joglsub}" includes="lib@{output.lib.name}.jnilib"/>
+            <fileset dir="${obj.joglsub}" includes="lib@{output.lib.name}.dylib"/>
           </targetfiles>
           <sequential>
             <cc outtype="shared" 
@@ -1595,7 +1591,7 @@
           <targetfiles>
             <fileset dir="${obj.jogl}" includes="lib@{output.lib.name}.so"/>
             <fileset dir="${obj.jogl}" includes="@{output.lib.name}.dll"/>
-            <fileset dir="${obj.jogl}" includes="lib@{output.lib.name}.jnilib"/>
+            <fileset dir="${obj.jogl}" includes="lib@{output.lib.name}.dylib"/>
           </targetfiles>
           <sequential>
             <cc outtype="shared" 
@@ -1643,14 +1639,7 @@
             </cc>
     
             <!-- FIXME: this is a hack; the cpptask should have an option to change the
-                 suffix or at least understand the override from dylib to jnilib -->
-            <antcall target="rename.dylib" inheritRefs="true">
-                <param name="src"  value="${obj.jogl}/lib@{output.lib.name}.dylib" />
-                <param name="dest" value="${obj.jogl}/lib@{output.lib.name}.jnilib" />
-            </antcall>
-    
-            <!-- FIXME: this is a hack; the cpptask should have an option to change the
-                 suffix or at least understand the override from dylib to jnilib -->
+                 suffix or at least understand the override from so to dll -->
             <antcall target="rename.mingw.dll" inheritRefs="true">
                 <param name="src"  value="${obj.jogl}/lib@{output.lib.name}.so" />
                 <param name="dest" value="${obj.jogl}/@{output.lib.name}.dll" />
