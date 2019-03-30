@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.graph;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Locale;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
@@ -343,7 +344,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
 
         public void printScreen(final int renderModes, final GLAutoDrawable drawable, final String dir, final String objName, final boolean exportAlpha) throws GLException, IOException {
             final String modeS = Region.getRenderModeString(renderModes);
-            final String bname = String.format("%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
+            final String bname = String.format((Locale)null, "%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
                     drawable.getChosenGLCapabilities().getNumSamples(),
                     TestTextRendererNEWT00.fontSizeFixed, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), modeS, vbaaSampleCount[0]);
             final String filename = dir + bname +".png";

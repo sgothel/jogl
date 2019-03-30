@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -241,7 +242,7 @@ public abstract class UITestCase extends SingletonJunitCase {
             final String aaext = caps.getSampleExtension();
             postSNDetail = null != postSNDetail ? "-"+postSNDetail : "";
 
-            filenameBaseName = String.format("%-"+maxSimpleTestNameLen+"s-n%04d%s-%-6s-%s-%s-B%s-F%s_I%s-D%02d-St%02d-Sa%02d_%s-%04dx%04d.%s",
+            filenameBaseName = String.format((Locale)null, "%-"+maxSimpleTestNameLen+"s-n%04d%s-%-6s-%s-%s-B%s-F%s_I%s-D%02d-St%02d-Sa%02d_%s-%04dx%04d.%s",
                     simpleTestName, sn, postSNDetail, caps.getGLProfile().getName(), accel,
                     scrnm, dblb, F_pfmt, pfmt, depthBits, stencilBits, samples, aaext,
                     width, height, fileSuffix).replace(' ', '_');

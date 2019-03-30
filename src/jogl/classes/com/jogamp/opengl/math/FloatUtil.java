@@ -28,6 +28,7 @@
 package com.jogamp.opengl.math;
 
 import java.nio.FloatBuffer;
+import java.util.Locale;
 
 import com.jogamp.opengl.GLException;
 
@@ -1907,11 +1908,11 @@ public final class FloatUtil {
       final int a0 = aOffset + a.position();
       if(rowMajorOrder) {
           for(int c=0; c<columns; c++) {
-              sb.append( String.format( f+" ", a.get( a0 + row*columns + c ) ) );
+              sb.append( String.format((Locale)null, f+" ", a.get( a0 + row*columns + c ) ) );
           }
       } else {
           for(int r=0; r<columns; r++) {
-              sb.append( String.format( f+" ", a.get( a0 + row + r*rows ) ) );
+              sb.append( String.format((Locale)null, f+" ", a.get( a0 + row + r*rows ) ) );
           }
       }
       return sb;
@@ -1935,11 +1936,11 @@ public final class FloatUtil {
       }
       if(rowMajorOrder) {
           for(int c=0; c<columns; c++) {
-              sb.append( String.format( f+" ", a[ aOffset + row*columns + c ] ) );
+              sb.append( String.format((Locale)null, f+" ", a[ aOffset + row*columns + c ] ) );
           }
       } else {
           for(int r=0; r<columns; r++) {
-              sb.append( String.format( f+" ", a[ aOffset + row + r*rows ] ) );
+              sb.append( String.format((Locale)null, f+" ", a[ aOffset + row + r*rows ] ) );
           }
       }
       return sb;

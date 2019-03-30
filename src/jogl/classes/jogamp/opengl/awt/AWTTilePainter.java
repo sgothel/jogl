@@ -41,6 +41,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Set;
 import java.util.Map.Entry;
 
@@ -330,7 +331,7 @@ public class AWTTilePainter {
             // but that's the software rendering path which is very slow anyway.
             final BufferedImage dstImage;
             if( DEBUG_TILES ) {
-                final String fname = String.format("file_%03d_0_tile_[%02d][%02d]_sz_%03dx%03d_pos0_%03d_%03d_yOff_%03d_pos1_%03d_%03d.png",
+                final String fname = String.format((Locale)null, "file_%03d_0_tile_[%02d][%02d]_sz_%03dx%03d_pos0_%03d_%03d_yOff_%03d_pos1_%03d_%03d.png",
                         _counter,
                         renderer.getParam(TileRenderer.TR_CURRENT_COLUMN), renderer.getParam(TileRenderer.TR_CURRENT_ROW),
                         tWidth, tHeight,
@@ -361,7 +362,7 @@ public class AWTTilePainter {
                 dstImage = tBuffer.image;
             }
             if( DEBUG_TILES ) {
-                final String fname = String.format("file_%03d_1_tile_[%02d][%02d]_sz_%03dx%03d_pos0_%03d_%03d_yOff_%03d_pos1_%03d_%03d.png",
+                final String fname = String.format((Locale)null, "file_%03d_1_tile_[%02d][%02d]_sz_%03dx%03d_pos0_%03d_%03d_yOff_%03d_pos1_%03d_%03d.png",
                         _counter,
                         renderer.getParam(TileRenderer.TR_CURRENT_COLUMN), renderer.getParam(TileRenderer.TR_CURRENT_ROW),
                         tWidth, tHeight,

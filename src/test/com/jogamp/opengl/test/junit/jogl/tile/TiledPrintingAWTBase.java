@@ -39,6 +39,7 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.Locale;
 
 import com.jogamp.opengl.GLAutoDrawable;
 import javax.print.StreamPrintService;
@@ -139,7 +140,7 @@ public abstract class TiledPrintingAWTBase extends UITestCase {
         final String simpleTestName = getSimpleTestName(".");
         final String onoffscrn = 0 > offscrnImageType ? "on_screen" : "offscrn_"+offscrnImageType;
         final String aa = 0 <= numSamples ? "aa"+numSamples : "aaN";
-        return String.format("%-"+maxSimpleTestNameLen+"s-n%04d-%s-dpi%03d-%s-tSz%04dx%04d-resize%d.%s",
+        return String.format((Locale)null, "%-"+maxSimpleTestNameLen+"s-n%04d-%s-dpi%03d-%s-tSz%04dx%04d-resize%d.%s",
                 simpleTestName, printCount, onoffscrn, dpi, aa, tileWidth, tileHeight, resizeWithinPrintTest?1:0, suffix).replace(' ', '_');
     }
     private PrintableBase doPrintAutoImpl(final Container cont, final PrinterJob job,

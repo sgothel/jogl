@@ -33,6 +33,7 @@ import jogamp.opengl.FPSCounterImpl;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
@@ -151,7 +152,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      */
     protected final synchronized void initImpl(final boolean force) {
         if( force || null == impl ) {
-            final String seqSuffix = String.format("#%02d", seqInstanceNumber++);
+            final String seqSuffix = String.format((Locale)null, "#%02d", seqInstanceNumber++);
             if( useAWTAnimatorImpl( modeBits ) ) {
                 try {
                     impl = (AnimatorImpl) awtAnimatorImplClazz.newInstance();

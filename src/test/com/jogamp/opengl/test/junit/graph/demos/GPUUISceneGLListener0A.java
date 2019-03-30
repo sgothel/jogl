@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
@@ -790,7 +791,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
     public void printScreen(final GL gl)  {
         final String modeS = Region.getRenderModeString(jogampLabel.getRenderModes());
-        final String filename = String.format("GraphUIDemo-shot%03d-%03dx%03d-S_%s_%02d.png",
+        final String filename = String.format((Locale)null, "GraphUIDemo-shot%03d-%03dx%03d-S_%s_%02d.png",
                 shotCount++, renderer.getWidth(), renderer.getHeight(),
                 modeS, sceneUIController.getSampleCount());
         gl.glFinish(); // just make sure rendering finished ..
@@ -948,7 +949,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                     // final float dy = -(ny - dragLastY);
                     shapeEvent.shape.translate(dx, dy, 0f);
                     final float[] tx = shapeEvent.shape.getTranslate();
-                    actionText = String.format("Pos %6.2f / %6.2f / %6.2f", tx[0], tx[1], tx[2]);
+                    actionText = String.format((Locale)null, "Pos %6.2f / %6.2f / %6.2f", tx[0], tx[1], tx[2]);
                 }
             }
         }

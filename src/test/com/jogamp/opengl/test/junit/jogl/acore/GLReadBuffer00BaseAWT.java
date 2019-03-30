@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 
 import javax.imageio.ImageIO;
 import com.jogamp.opengl.GL;
@@ -85,7 +86,7 @@ public abstract class GLReadBuffer00BaseAWT extends GLReadBuffer00Base {
         }
         public void snapshot(final int sn, final GL gl, final String fileSuffix, final String destPath) {
             final GLDrawable drawable = gl.getContext().getGLReadDrawable();
-            final String postSNDetail = String.format("awt-usr%03d", textRendererGLEL.userCounter);
+            final String postSNDetail = String.format((Locale)null, "awt-usr%03d", textRendererGLEL.userCounter);
             final String filenameAWT = getSnapshotFilename(sn, postSNDetail,
                                                            drawable.getChosenGLCapabilities(), drawable.getSurfaceWidth(), drawable.getSurfaceHeight(),
                                                            glReadBufferUtil.hasAlpha(), fileSuffix, destPath);
