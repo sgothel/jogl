@@ -47,7 +47,7 @@ public final class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInf
             public Object run() {
                 Platform.initSingleton();
 
-                if(TempJarCache.isInitialized()) {
+                if( TempJarCache.isInitialized(true) ) {
                    // only: jogl-cg.jar -> jogl-cg-natives-<os.and.arch>.jar [atomic JAR files only]
                    JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { jogamp.opengl.cg.CgPackagePlaceholder.class }, null);
                 }

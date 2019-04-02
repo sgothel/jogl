@@ -218,7 +218,7 @@ public class GLProfile {
                     public Object run() {
                         Platform.initSingleton();
 
-                        if(TempJarCache.isInitialized()) {
+                        if( TempJarCache.isInitialized(true) ) {
                            final ClassLoader cl = GLProfile.class.getClassLoader();
                            final String newtDebugClassName = "jogamp.newt.Debug";
                            final Class<?>[] classesFromJavaJars = new Class<?>[] { jogamp.nativewindow.Debug.class, jogamp.opengl.Debug.class, null };

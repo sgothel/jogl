@@ -136,7 +136,7 @@ public class UbuntuFontLoader implements FontSet {
         if( !attemptedJARLoading ) {
             attemptedJARLoading = true;
             Platform.initSingleton();
-            if( TempJarCache.isInitialized() ) {
+            if( TempJarCache.isInitialized(false) ) {
                 try {
                     final Uri uri = JarUtil.getRelativeOf(UbuntuFontLoader.class, jarSubDir, jarName);
                     final Exception e0 = AccessController.doPrivileged(new PrivilegedAction<Exception>() {

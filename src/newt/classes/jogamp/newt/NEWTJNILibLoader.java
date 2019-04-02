@@ -53,7 +53,7 @@ public class NEWTJNILibLoader extends JNILibLoaderBase {
             public Boolean run() {
                 Platform.initSingleton();
                 final String libName = "newt";
-                if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
+                if( TempJarCache.isInitialized(true) && null == TempJarCache.findLibrary(libName) ) {
                     JNILibLoaderBase.addNativeJarLibsJoglCfg(new Class<?>[] { jogamp.nativewindow.Debug.class, jogamp.newt.Debug.class });
                 }
                 return Boolean.valueOf(loadLibrary(libName, false, NEWTJNILibLoader.class.getClassLoader()));
