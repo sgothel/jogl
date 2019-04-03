@@ -2,8 +2,8 @@
 set SMB_ROOT=\\risa.goethel.localnet\deployment\test\jogamp
 
 set BLD_SUB=build-win32
-set J2RE_HOME=c:\jre1.8.0_66_x32
-set JAVA_HOME=c:\jdk1.8.0_66_x32
+set J2RE_HOME=c:\jre1.8.0_121_x32
+set JAVA_HOME=c:\jdk1.8.0_121_x32
 set ANT_PATH=C:\apache-ant-1.9.4
 
 set PROJECT_ROOT=%SMB_ROOT%\jogl
@@ -17,7 +17,7 @@ REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PATH%
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\angle\win32\20120127;%PATH%
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\angle\win32\20121010-chrome;%PATH%
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\PVRVFrame\OGLES-2.0\Windows_x86_32;%PATH%
-set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%FFMPEG_LIB%;%PATH%
+set PATH=%J2RE_HOME%\bin;%JAVA_HOME%\bin;%ANT_PATH%\bin;%FFMPEG_LIB%;%PATH%
 
 set D_ARGS="-Djogamp.debug=all"
 

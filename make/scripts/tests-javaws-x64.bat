@@ -1,4 +1,4 @@
-set JRE_HOME=c:\jre1.8.0_66_x64\bin
+set JRE_HOME=c:\jre1.8.0_121_x64
 set LOG_PATH=%USERPROFILE%\AppData\LocalLow\Sun\Java\Deployment\log
 
 %JRE_PATH%\javaws -uninstall
@@ -14,5 +14,5 @@ REM set X_FLAGS="-J-Dsun.java2d.noddraw=true" "-J-Dsun.awt.noerasebackground=tru
 REM set X_FLAGS="-J-verbose:jni"
 set X_FLAGS=
 
-%JRE_PATH%\javaws %X_FLAGS% %D_FLAGS% http://risa/deployment/test/jau01s/jogl-demos/%JNLP% > tests-javaws.log 2>&1
+%JRE_HOME%\bin\javaws %X_FLAGS% %D_FLAGS% http://risa/deployment/test/jau01s/jogl-demos/%JNLP% > tests-javaws.log 2>&1
 

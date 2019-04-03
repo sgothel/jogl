@@ -1,7 +1,7 @@
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jre1.8.0_66_x64
-set JAVA_HOME=c:\jdk1.8.0_66_x64
+set J2RE_HOME=c:\jre1.8.0_121_x64
+set JAVA_HOME=c:\jdk1.8.0_121_x64
 set ANT_PATH=C:\apache-ant-1.9.4
 
 REM set TEMP=C:\Documents and Settings\jogamp\temp
@@ -15,7 +15,7 @@ set FFMPEG_LIB=C:\ffmpeg_libav\lavc55_lavf55_lavu52-ffmpeg-2013-10-09\x64
 REM set FFMPEG_LIB=C:\ffmpeg_libav\lavc54_lavf54_lavu52_lavr01-libav\x64
 
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\PVRVFrame\OGLES-2.0\Windows_x86_64;%PATH%
-set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%FFMPEG_LIB%;%PATH%
+set PATH=%J2RE_HOME%\bin;%JAVA_HOME%\bin;%ANT_PATH%\bin;%FFMPEG_LIB%;%PATH%
 
 set BLD_DIR=..\%BLD_SUB%
 REM set LIB_DIR=%BLD_DIR%\lib;..\..\gluegen\%BLD_SUB%\obj

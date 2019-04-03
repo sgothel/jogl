@@ -145,7 +145,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
-    #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
+    D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.TaskBase.TraceSource"
     #D_ARGS="-Dnativewindow.debug.JAWT"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
@@ -247,7 +247,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
     #D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window -Djogl.debug.GLJPanel -Djogl.debug.GLCanvas -Djogamp.debug.TempJarCache"
     #D_ARGS="-Dnewt.debug.Window.KeyEvent"
-    D_ARGS="-Dnewt.debug.Window.MouseEvent"
+    #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug.JAWT -Djogl.debug.Animator"
@@ -846,9 +846,9 @@ function testawtswt() {
 # JavaFX (testjfx)
 #
 #testjfx com.jogamp.opengl.test.junit.jogl.javafx.JFXStageGLChild01 $*
-#testjfx com.jogamp.opengl.test.junit.jogl.javafx.TestNewtCanvasJFXGLn $*
+testjfx com.jogamp.opengl.test.junit.jogl.javafx.TestNewtCanvasJFXGLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 
 #

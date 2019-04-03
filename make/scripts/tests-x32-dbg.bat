@@ -5,8 +5,8 @@ REM set TEMP=C:\Documents and Settings\jogamp\temp
 REM set TMP=C:\Documents and Settings\jogamp\temp
 
 set BLD_SUB=build-win32
-set J2RE_HOME=c:\jre1.8.0_66_x32
-set JAVA_HOME=c:\jdk1.8.0_66_x32
+set J2RE_HOME=c:\jre1.8.0_121_x32
+set JAVA_HOME=c:\jdk1.8.0_121_x32
 set ANT_PATH=C:\apache-ant-1.9.4
 
 set PROJECT_ROOT=D:\projects\jogamp\jogl
@@ -20,7 +20,7 @@ REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PATH%
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\angle\win32\20120127;%PATH%
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\angle\win32\20121010-chrome;%PATH%
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\PVRVFrame\OGLES-2.0\Windows_x86_32;%PATH%
-set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%FFMPEG_LIB%;%PATH%
+set PATH=%J2RE_HOME%\bin;%JAVA_HOME%\bin;%ANT_PATH%\bin;%FFMPEG_LIB%;%PATH%
 
 REM set LIB_DIR=%BLD_DIR%\lib;..\..\gluegen\%BLD_SUB%\obj
 set LIB_DIR=
