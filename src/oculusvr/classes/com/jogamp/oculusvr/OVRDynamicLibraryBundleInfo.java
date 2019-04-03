@@ -46,7 +46,7 @@ import java.util.*;
             public Object run() {
                 Platform.initSingleton();
 
-                if(TempJarCache.isInitialized()) {
+                if( TempJarCache.isInitialized(true) ) {
                    // only: oculusvr.jar -> oculusvr-natives-<os.and.arch>.jar
                    JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { com.jogamp.oculusvr.OVRDynamicLibraryBundleInfo.class }, null);
                 }
