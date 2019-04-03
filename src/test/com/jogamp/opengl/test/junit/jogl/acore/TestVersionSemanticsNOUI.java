@@ -111,60 +111,12 @@ public class TestVersionSemanticsNOUI extends SingletonJunitCase {
     }
 
     @Test
-    public void testVersionV230V23x_00std() throws IllegalArgumentException, IOException, URISyntaxException {
-        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
-        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
-
-        final VersionNumberString preVersionNumber = new VersionNumberString("2.3.0");
-        final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
-
-        final ClassLoader currentCL = TestVersionSemanticsNOUI.class.getClassLoader();
-
-        VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
-                                         previousJar, preVersionNumber,
-                                         curVersion.getClass(), currentCL, curVersionNumber,
-                                         excludesDefault);
-    }
-    @Test
-    public void testVersionV230V23x_01patch() throws IllegalArgumentException, IOException, URISyntaxException {
-        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
-        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
-        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY;
-
-        final VersionNumberString preVersionNumber = new VersionNumberString("2.3.0");
-        final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
-
-        final ClassLoader currentCL = TestVersionSemanticsNOUI.class.getClassLoader();
-
-        VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
-                                         previousJar, preVersionNumber,
-                                         curVersion.getClass(), currentCL, curVersionNumber,
-                                         excludesStereoPackageAndAppletUtils);
-    }
-    @Test
-    public void testVersionV231V23x_01patch() throws IllegalArgumentException, IOException, URISyntaxException {
-        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
-        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
-        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY;
-
-        final VersionNumberString preVersionNumber = new VersionNumberString("2.3.1");
-        final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
-
-        final ClassLoader currentCL = TestVersionSemanticsNOUI.class.getClassLoader();
-
-        VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
-                                         previousJar, preVersionNumber,
-                                         curVersion.getClass(), currentCL, curVersionNumber,
-                                         excludesStereoPackageAndAppletUtils);
-    }
-
-    @Test
     public void testVersionV230V232() throws IllegalArgumentException, IOException, URISyntaxException {
         testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY, "2.3.0", "2.3.2", excludesStereoPackageAndAppletUtils);
     }
 
-    // @Test
-    public void testVersionV232V24x0() throws IllegalArgumentException, IOException, URISyntaxException {
+    @Test
+    public void testVersionV232V24x() throws IllegalArgumentException, IOException, URISyntaxException {
         final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY;
