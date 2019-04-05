@@ -775,32 +775,35 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 }
                 windowStyle = ws;
             }
-            final long newWin = createWindow0( pS.getX(), pS.getY(), width, height,
-                                               0 != ( STATE_MASK_FULLSCREEN & flags),
-                                               windowStyle,
-                                               NSBackingStoreBuffered, surfaceHandle);
-            if ( newWin == 0 ) {
-                throw new NativeWindowException("Could not create native window "+Thread.currentThread().getName()+" "+this);
-            }
-            setWindowHandle( newWin );
-
-            final boolean isOpaque = getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance;
             // Blocking initialization on main-thread!
+            final long[] newWin = { 0 };
             OSXUtil.RunOnMainThread(true, false /* kickNSApp */, new Runnable() {
                     @Override
                     public void run() {
-                        initWindow0( parentWinHandle, newWin, pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
-                                     isOpaque,
-                                     !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONTOP & flags),
-                                     !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags),
-                                     !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags),
-                                     surfaceHandle);
-                        if( offscreenInstance ) {
-                            orderOut0(0!=parentWinHandle ? parentWinHandle : newWin);
-                        } else {
-                            setTitle0(newWin, getTitle());
+                        newWin[0] = createWindow0( pS.getX(), pS.getY(), width, height,
+                                                   0 != ( STATE_MASK_FULLSCREEN & flags),
+                                                   windowStyle,
+                                                   NSBackingStoreBuffered, surfaceHandle);
+                        if ( newWin[0] != 0 ) {
+                            final boolean isOpaque = getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance;
+                            initWindow0( parentWinHandle, newWin[0], pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
+                                         isOpaque,
+                                         !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONTOP & flags),
+                                         !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags),
+                                         !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags),
+                                         surfaceHandle);
+                            if( offscreenInstance ) {
+                                orderOut0(0!=parentWinHandle ? parentWinHandle : newWin[0]);
+                            } else {
+                                setTitle0(newWin[0], getTitle());
+                            }
                         }
                     } });
+
+            if ( newWin[0] == 0 ) {
+                throw new NativeWindowException("Could not create native window "+Thread.currentThread().getName()+" "+this);
+            }
+            setWindowHandle( newWin[0] );
         } catch (final Exception ie) {
             ie.printStackTrace();
         }

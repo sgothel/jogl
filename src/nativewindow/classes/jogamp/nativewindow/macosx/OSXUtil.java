@@ -31,7 +31,6 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
-
 import com.jogamp.common.util.Function;
 import com.jogamp.common.util.FunctionTask;
 import com.jogamp.common.util.InterruptedRuntimeException;
@@ -124,10 +123,16 @@ public class OSXUtil implements ToolkitProperties {
     }
 
     public static long CreateNSWindow(final int x, final int y, final int width, final int height) {
-      return CreateNSWindow0(x, y, width, height);
+      final long res[] = { 0 };
+      RunOnMainThread(true, false /* kickNSApp */, new Runnable() {
+          @Override
+          public void run() {
+              res[0] = CreateNSWindow0(x, y, width, height);
+          } } );
+      return res[0];
     }
     public static void DestroyNSWindow(final long nsWindow) {
-        DestroyNSWindow0(nsWindow);
+      DestroyNSWindow0(nsWindow);
     }
     public static long GetNSView(final long nsWindow) {
       return GetNSView0(nsWindow);
