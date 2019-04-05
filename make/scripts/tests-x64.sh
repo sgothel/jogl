@@ -27,8 +27,8 @@ if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh ] ; then
     . $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh
 fi
 
-#export SWT_CLASSPATH=`pwd`/lib/swt/gtk-linux-x86_64/swt.jar
-export SWT_CLASSPATH=/usr/local/projects/JOGL/SWT/swt-4.3.0/gtk-linux-x86_64/swt-debug.jar
+export SWT_CLASSPATH=`pwd`/lib/swt/gtk-linux-x86_64/swt.jar
+#export SWT_CLASSPATH=/usr/local/projects/JOGL/SWT/swt-4.3.0/gtk-linux-x86_64/swt-debug.jar
 
 . $SDIR/tests.sh  `which java` -d64 ../build-x86_64 $*
 

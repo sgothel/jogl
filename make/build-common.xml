@@ -139,13 +139,13 @@
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt.jar">
           <istrue value="${isLinuxX86}" /> <!-- no more supported since SWT 4.10 -->
         </condition>
-        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt.jar">
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86_64/swt.jar">
           <istrue value="${isLinuxARM64}" /> <!-- FIXME JAU .. hack -->
         </condition>
-        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt.jar">
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86_64/swt.jar">
           <istrue value="${isLinuxARMv6}" /> <!-- FIXME JAU .. hack -->
         </condition>
-        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt.jar">
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86_64/swt.jar">
           <istrue value="${isAndroid}" /> <!-- FIXME JAU .. hack -->
         </condition>
         <property name="swt-cocoa-macosx-x86_64.jar" value="${project.root}/make/lib/swt/cocoa-macosx-x86_64/swt.jar"/>
@@ -169,16 +169,16 @@
           </and>
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-x86/swt.jar">
-          <istrue value="${isSolarisX86}" /> <!-- no more supported since SWT 4.10 -->
+          <istrue value="${isSolarisX86}" /> <!-- no more supported -->
         </condition>
-        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-x86/swt.jar">
-          <istrue value="${isSolarisAMD64}" /> <!-- FIXME JAU .. hack -->
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-x86_64/swt.jar">
+          <istrue value="${isSolarisAMD64}" /> <!-- no more supported -->
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-sparc/swt.jar">
-          <istrue value="${isSolarisSparc}" />
+          <istrue value="${isSolarisSparc}" /> <!-- no more supported -->
         </condition>
-		<condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-sparc/swt.jar">
-          <istrue value="${isSolarisSparcv9}" /> <!-- FIXME JAU .. hack -->
+		<condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-sparcv9/swt.jar">
+          <istrue value="${isSolarisSparcv9}" /> <!-- no more supported -->
         </condition>
         <echo message="swt.jar=${swt.jar}" />
 
