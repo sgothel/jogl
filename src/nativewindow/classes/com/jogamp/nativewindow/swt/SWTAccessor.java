@@ -178,56 +178,57 @@ public class SWTAccessor {
         }
         swt_control_internal_dispose_GC = m;
 
-        Class<?> c=null;
+        Class<?> cGTK=null;
         VersionNumber _gtk_version = new VersionNumber(0, 0, 0);
         Method m1=null, m2=null, m3=null, m4=null, m5=null, m6=null, m7=null, m8=null, m9=null, ma=null, mb=null;
         final Class<?> handleType = swt_uses_long_handles  ? long.class : int.class ;
         if( isX11 ) {
             // mandatory
             try {
-                c = ReflectionUtil.getClass(str_OS_gtk_class, false, SWTAccessor.class.getClassLoader());
+                final ClassLoader cl = SWTAccessor.class.getClassLoader();
+                cGTK = ReflectionUtil.getClass(str_OS_gtk_class, false, cl);
                 Field field_OS_gtk_version;
-                Class<?> cGDK=c;  // used for newer versions of SWT that have a org.eclipse.swt.internal.gtk.GDK object
+                Class<?> cGDK=cGTK;  // used for newer versions of SWT that have a org.eclipse.swt.internal.gtk.GDK object
                 try {
-                    field_OS_gtk_version = c.getField(str_OS_gtk_version);
-                } catch (NoSuchFieldException ex) {
-                       // if the GTK_VERSION field didn't exist in org.eclipse.swt.internal.gtk.OS, then look for
-                       // it in org.eclipse.swt.internal.gtk.GTK, where it was moved in later versions of SWT
-                    c = ReflectionUtil.getClass(str_GTK_gtk_class, false, SWTAccessor.class.getClassLoader());
-                    field_OS_gtk_version = c.getField(str_OS_gtk_version);
-                    cGDK = ReflectionUtil.getClass(str_GDK_gtk_class, false, SWTAccessor.class.getClassLoader());
+                    field_OS_gtk_version = cGTK.getField(str_OS_gtk_version);
+                } catch (final NoSuchFieldException ex) {
+                    // if the GTK_VERSION field didn't exist in org.eclipse.swt.internal.gtk.OS, then look for
+                    // it in org.eclipse.swt.internal.gtk.GTK, where it was moved in later versions of SWT
+                    cGTK = ReflectionUtil.getClass(str_GTK_gtk_class, false, cl);
+                    field_OS_gtk_version = cGTK.getField(str_OS_gtk_version);
+                    cGDK = ReflectionUtil.getClass(str_GDK_gtk_class, false, cl);
                 }
                 _gtk_version = GTK_VERSION(field_OS_gtk_version.getInt(null));
-                m1 = c.getDeclaredMethod(str_gtk_widget_realize, handleType);
+                m1 = cGTK.getDeclaredMethod(str_gtk_widget_realize, handleType);
                 if (_gtk_version.compareTo(GTK_VERSION_2_14_0) >= 0) {
-                    m4 = c.getDeclaredMethod(str_gtk_widget_get_window, handleType);
+                    m4 = cGTK.getDeclaredMethod(str_gtk_widget_get_window, handleType);
                 } else {
-                    m3 = c.getDeclaredMethod(str_GTK_WIDGET_WINDOW, handleType);
+                    m3 = cGTK.getDeclaredMethod(str_GTK_WIDGET_WINDOW, handleType);
                 }
                 if (_gtk_version.compareTo(GTK_VERSION_2_24_0) >= 0) {
                     m6 = cGDK.getDeclaredMethod(str_gdk_x11_display_get_xdisplay, handleType);
                     m7 = cGDK.getDeclaredMethod(str_gdk_window_get_display, handleType);
                 } else {
-                    m5 = c.getDeclaredMethod(str_gdk_x11_drawable_get_xdisplay, handleType);
+                    m5 = cGTK.getDeclaredMethod(str_gdk_x11_drawable_get_xdisplay, handleType);
                 }
                 if (_gtk_version.compareTo(GTK_VERSION_3_0_0) >= 0) {
                     m9 = cGDK.getDeclaredMethod(str_gdk_x11_window_get_xid, handleType);
                 } else {
-                    m8 = c.getDeclaredMethod(str_gdk_x11_drawable_get_xid, handleType);
+                    m8 = cGTK.getDeclaredMethod(str_gdk_x11_drawable_get_xid, handleType);
                 }
-                
+
                 if (_gtk_version.compareTo(GTK_VERSION_2_90_0) >= 0) {
                     mb = cGDK.getDeclaredMethod(str_gdk_window_set_background_pattern, handleType, handleType);
                 } else {
-                    ma = c.getDeclaredMethod(str_gdk_window_set_back_pixmap, handleType, handleType, boolean.class);
+                    ma = cGTK.getDeclaredMethod(str_gdk_window_set_back_pixmap, handleType, handleType, boolean.class);
                 }
             } catch (final Exception ex) { throw new NativeWindowException(ex); }
             // optional
             try {
-                m2 = c.getDeclaredMethod(str_gtk_widget_unrealize, handleType);
+                m2 = cGTK.getDeclaredMethod(str_gtk_widget_unrealize, handleType);
             } catch (final Exception ex) { }
         }
-        OS_gtk_class = c;
+        OS_gtk_class = cGTK;
         OS_gtk_version = _gtk_version;
         OS_gtk_widget_realize = m1;
         OS_gtk_widget_unrealize = m2;
