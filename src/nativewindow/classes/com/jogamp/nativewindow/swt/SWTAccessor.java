@@ -82,7 +82,9 @@ public class SWTAccessor {
     private static final String str_internal_new_GC = "internal_new_GC";
     private static final String str_internal_dispose_GC = "internal_dispose_GC";
 
-    private static final String str_OS_gtk_class = "org.eclipse.swt.internal.gtk.OS";
+    private static final String str_OS_gtk_class = "org.eclipse.swt.internal.gtk.OS";    // used by earlier versions of SWT
+    private static final String str_GTK_gtk_class = "org.eclipse.swt.internal.gtk.GTK";  // used by later versions of SWT
+    private static final String str_GDK_gtk_class = "org.eclipse.swt.internal.gtk.GDK";  // used by later versions of SWT
     public static final Class<?> OS_gtk_class;
     private static final String str_OS_gtk_version = "GTK_VERSION";
     public static final VersionNumber OS_gtk_version;
@@ -97,6 +99,7 @@ public class SWTAccessor {
     private static final Method OS_gdk_x11_drawable_get_xid;
     private static final Method OS_gdk_x11_window_get_xid;
     private static final Method OS_gdk_window_set_back_pixmap;
+    private static final Method OS_gdk_window_set_background_pattern;
 
     private static final String str_gtk_widget_realize = "gtk_widget_realize";
     private static final String str_gtk_widget_unrealize = "gtk_widget_unrealize";
@@ -108,9 +111,11 @@ public class SWTAccessor {
     private static final String str_gdk_x11_drawable_get_xid = "gdk_x11_drawable_get_xid";
     private static final String str_gdk_x11_window_get_xid = "gdk_x11_window_get_xid";
     private static final String str_gdk_window_set_back_pixmap = "gdk_window_set_back_pixmap";
+    private static final String str_gdk_window_set_background_pattern = "gdk_window_set_background_pattern";
 
     private static final VersionNumber GTK_VERSION_2_14_0 = new VersionNumber(2, 14, 0);
     private static final VersionNumber GTK_VERSION_2_24_0 = new VersionNumber(2, 24, 0);
+    private static final VersionNumber GTK_VERSION_2_90_0 = new VersionNumber(2, 90, 0);
     private static final VersionNumber GTK_VERSION_3_0_0  = new VersionNumber(3,  0, 0);
 
     private static VersionNumber GTK_VERSION(final int version) {
@@ -175,13 +180,23 @@ public class SWTAccessor {
 
         Class<?> c=null;
         VersionNumber _gtk_version = new VersionNumber(0, 0, 0);
-        Method m1=null, m2=null, m3=null, m4=null, m5=null, m6=null, m7=null, m8=null, m9=null, ma=null;
+        Method m1=null, m2=null, m3=null, m4=null, m5=null, m6=null, m7=null, m8=null, m9=null, ma=null, mb=null;
         final Class<?> handleType = swt_uses_long_handles  ? long.class : int.class ;
         if( isX11 ) {
             // mandatory
             try {
                 c = ReflectionUtil.getClass(str_OS_gtk_class, false, SWTAccessor.class.getClassLoader());
-                final Field field_OS_gtk_version = c.getField(str_OS_gtk_version);
+                Field field_OS_gtk_version;
+                Class<?> cGDK=c;  // used for newer versions of SWT that have a org.eclipse.swt.internal.gtk.GDK object
+                try {
+                    field_OS_gtk_version = c.getField(str_OS_gtk_version);
+                } catch (NoSuchFieldException ex) {
+                       // if the GTK_VERSION field didn't exist in org.eclipse.swt.internal.gtk.OS, then look for
+                       // it in org.eclipse.swt.internal.gtk.GTK, where it was moved in later versions of SWT
+                    c = ReflectionUtil.getClass(str_GTK_gtk_class, false, SWTAccessor.class.getClassLoader());
+                    field_OS_gtk_version = c.getField(str_OS_gtk_version);
+                    cGDK = ReflectionUtil.getClass(str_GDK_gtk_class, false, SWTAccessor.class.getClassLoader());
+                }
                 _gtk_version = GTK_VERSION(field_OS_gtk_version.getInt(null));
                 m1 = c.getDeclaredMethod(str_gtk_widget_realize, handleType);
                 if (_gtk_version.compareTo(GTK_VERSION_2_14_0) >= 0) {
@@ -190,17 +205,22 @@ public class SWTAccessor {
                     m3 = c.getDeclaredMethod(str_GTK_WIDGET_WINDOW, handleType);
                 }
                 if (_gtk_version.compareTo(GTK_VERSION_2_24_0) >= 0) {
-                    m6 = c.getDeclaredMethod(str_gdk_x11_display_get_xdisplay, handleType);
-                    m7 = c.getDeclaredMethod(str_gdk_window_get_display, handleType);
+                    m6 = cGDK.getDeclaredMethod(str_gdk_x11_display_get_xdisplay, handleType);
+                    m7 = cGDK.getDeclaredMethod(str_gdk_window_get_display, handleType);
                 } else {
                     m5 = c.getDeclaredMethod(str_gdk_x11_drawable_get_xdisplay, handleType);
                 }
                 if (_gtk_version.compareTo(GTK_VERSION_3_0_0) >= 0) {
-                    m9 = c.getDeclaredMethod(str_gdk_x11_window_get_xid, handleType);
+                    m9 = cGDK.getDeclaredMethod(str_gdk_x11_window_get_xid, handleType);
                 } else {
                     m8 = c.getDeclaredMethod(str_gdk_x11_drawable_get_xid, handleType);
                 }
-                ma = c.getDeclaredMethod(str_gdk_window_set_back_pixmap, handleType, handleType, boolean.class);
+                
+                if (_gtk_version.compareTo(GTK_VERSION_2_90_0) >= 0) {
+                    mb = cGDK.getDeclaredMethod(str_gdk_window_set_background_pattern, handleType, handleType);
+                } else {
+                    ma = c.getDeclaredMethod(str_gdk_window_set_back_pixmap, handleType, handleType, boolean.class);
+                }
             } catch (final Exception ex) { throw new NativeWindowException(ex); }
             // optional
             try {
@@ -219,6 +239,7 @@ public class SWTAccessor {
         OS_gdk_x11_drawable_get_xid = m8;
         OS_gdk_x11_window_get_xid = m9;
         OS_gdk_window_set_back_pixmap = ma;
+        OS_gdk_window_set_background_pattern = mb;
 
         isX11GTK = isX11 && null != OS_gtk_class;
 
@@ -236,6 +257,10 @@ public class SWTAccessor {
 
     private static void callStaticMethodL2V(final Method m, final long arg) {
         ReflectionUtil.callMethod(null, m, new Object[] { getIntOrLong(arg) });
+    }
+
+    private static void callStaticMethodLL2V(final Method m, final long arg0, final long arg1) {
+        ReflectionUtil.callMethod(null, m, new Object[] { getIntOrLong(arg0), getIntOrLong(arg1) });
     }
 
     private static void callStaticMethodLLZ2V(final Method m, final long arg0, final long arg1, final boolean arg3) {
@@ -310,7 +335,13 @@ public class SWTAccessor {
     }
 
     public static void gdk_window_set_back_pixmap(final long window, final long pixmap, final boolean parent_relative) {
-        callStaticMethodLLZ2V(OS_gdk_window_set_back_pixmap, window, pixmap, parent_relative);
+       if(OS_gdk_window_set_back_pixmap != null) {
+           callStaticMethodLLZ2V(OS_gdk_window_set_back_pixmap, window, pixmap, parent_relative);
+       }
+       // in recent GTK, can't set background to pixmap any more; this sets it relative to parent
+       else if(OS_gdk_window_set_background_pattern != null) {
+               callStaticMethodLL2V(OS_gdk_window_set_background_pattern, window, 0);
+       }
     }
 
     //
@@ -511,7 +542,7 @@ public class SWTAccessor {
     public static long createCompatibleX11ChildWindow(final AbstractGraphicsScreen screen, final Control swtControl, final int visualID, final int width, final int height) {
         final long handle = getHandle(swtControl);
         final long parentWindow = gdk_widget_get_window( handle );
-        gdk_window_set_back_pixmap (parentWindow, 0, false);
+        // gdk_window_set_back_pixmap(parentWindow, 0, false);
 
         final long x11ParentHandle = gdk_window_get_xwindow(parentWindow);
         final long x11WindowHandle = X11Lib.CreateWindow(x11ParentHandle, screen.getDevice().getHandle(), screen.getIndex(), visualID, width, height, true, true);
