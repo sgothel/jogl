@@ -12,6 +12,8 @@ JAVA_HOME=`/usr/libexec/java_home`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 
+export SWT_CLASSPATH=`pwd`/lib/swt/cocoa-macosx-x86_64/swt.jar
+
 spath=`dirname $0`
 
 . $spath/tests.sh  $JAVA_HOME/bin/java -d64 ../build-macosx $*

@@ -24,7 +24,7 @@ set D_ARGS="-Djogamp.debug=all"
 REM set LIB_DIR=..\..\gluegen\%BLD_SUB%\obj;%BLD_DIR%\lib
 set LIB_DIR=
 
-set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\jogl-test.jar;%SMB_ROOT%\gluegen\%BLD_SUB%\gluegen-rt.jar;%SMB_ROOT%\gluegen\make\lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;%BLD_DIR%\..\make\lib\swt\win32-win32-x86\swt-debug.jar
+set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\jogl-test.jar;%SMB_ROOT%\gluegen\%BLD_SUB%\gluegen-rt.jar;%SMB_ROOT%\gluegen\make\lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;%BLD_DIR%\..\make\lib\swt\win32-win32-x86\swt.jar
 
 echo CP_ALL %CP_ALL%
 
