@@ -17,9 +17,10 @@ export PATH
 #    -DisLinuxARM64=true \
 #    -DisX11=true \
 
-export TARGET_PLATFORM_ROOT=/opt-linux-arm64
-export TARGET_PLATFORM_LIBS=$TARGET_PLATFORM_ROOT/usr/lib
-export TARGET_JAVA_LIBS=$TARGET_PLATFORM_ROOT/jre/lib/aarch64
+export TARGET_PLATFORM_SYSROOT=`gcc --print-sysroot`
+export TARGET_PLATFORM_USRROOT=/opt-linux-arm64
+export TARGET_PLATFORM_USRLIBS=$TARGET_PLATFORM_USRROOT/usr/lib
+export TARGET_JAVA_LIBS=$TARGET_PLATFORM_USRROOT/jre/lib/aarch64
 
 export GLUEGEN_CPPTASKS_FILE="../../gluegen/make/lib/gluegen-cpptasks-linux-aarch64.xml"
 

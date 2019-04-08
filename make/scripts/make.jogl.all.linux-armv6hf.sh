@@ -1,9 +1,5 @@
 #! /bin/sh
 
-# arm-linux-gnueabihf == armhf triplet
-PATH=`pwd`/../../gluegen/make/lib/toolchain/armhf-linux-gnueabi/bin:$PATH
-export PATH
-
 #    -Dc.compiler.debug=true 
 #    -Dgluegen.cpptasks.detected.os=true \
 #    -DisUnix=true \
@@ -11,11 +7,11 @@ export PATH
 #    -DisLinuxARMv6=true \
 #    -DisX11=false \
 
-export TARGET_PLATFORM_ROOT=/
-export TARGET_PLATFORM_LIBS=/usr/lib/arm-linux-gnueabihf
-export TARGET_JAVA_LIBS=/usr/lib/jvm/java-6-openjdk-armhf/jre/lib/arm
+export TARGET_PLATFORM_USRROOT=
+export TARGET_PLATFORM_USRLIBS=$TARGET_PLATFORM_USRROOT/usr/lib/arm-linux-gnueabihf
+export TARGET_JAVA_LIBS=$TARGET_PLATFORM_USRROOT/usr/lib/jvm/java-8-openjdk-armhf/jre/lib/arm
 
-export GLUEGEN_CPPTASKS_FILE="../../gluegen/make/lib/gluegen-cpptasks-linux-armv6hf.xml"
+export GLUEGEN_CPPTASKS_FILE="../../gluegen/make/lib/gluegen-cpptasks-linux-armv6hf-ontarget.xml"
 
 #export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
 export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
