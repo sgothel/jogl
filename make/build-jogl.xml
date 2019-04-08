@@ -1224,11 +1224,11 @@
       </linker>
 
       <linker id="linker.cfg.linux.armv6.jogl.x11" extends="linker.cfg.linux.armv6">
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11"/>
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="X11"/>
       </linker>
 
       <linker id="linker.cfg.linux.aarch64.jogl.x11" extends="linker.cfg.linux.aarch64">
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11"/>
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="X11"/>
       </linker>
 
       <linker id="linker.cfg.android.jogl" extends="linker.cfg.android">

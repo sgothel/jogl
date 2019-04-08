@@ -633,7 +633,7 @@
                 <syslibset libs="ws2_32"                                       if="isWindows"/>
 
                 <syslibset libs="X11 Xrandr udev m"                            if="isLinux" unless="isLinuxARMv6" />
-                <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" 
+                <syslibset dir="${TARGET_PLATFORM_USRLIBS}" 
                            libs="X11 Xrandr udev m"                            if="isLinuxARMv6" />
 
                 <syslibset dir="/usr/local/lib" libs="X11 Xrandr udev m"       if="isFreeBSD"/>

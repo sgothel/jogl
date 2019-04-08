@@ -355,21 +355,21 @@
       </linker>
 
       <linker id="linker.cfg.linux.armv6.newt.x11" extends="linker.cfg.linux.armv6">
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrandr" />
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xcursor" />
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xi" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="X11" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xrandr" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xcursor" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xi" />
       </linker>
 
       <linker id="linker.cfg.linux.aarch64.newt.x11" extends="linker.cfg.linux.aarch64">
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrandr" />
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xcursor" />
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xi" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="X11" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xrandr" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xcursor" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xi" />
       </linker>
 
       <linker id="linker.cfg.android.newt" extends="linker.cfg.android">
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="android" />
+        <syslibset dir="${TARGET_PLATFORM_SYSROOT}/usr/lib" libs="android" />
       </linker>
 
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">

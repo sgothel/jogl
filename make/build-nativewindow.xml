@@ -404,15 +404,15 @@
       </linker>
 
       <linker id="linker.cfg.linux.armv6.nativewindow.x11" extends="linker.cfg.linux.armv6">
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xxf86vm" />
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrender" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="X11" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xxf86vm" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xrender" />
       </linker>
 
       <linker id="linker.cfg.linux.aarch64.nativewindow.x11" extends="linker.cfg.linux.aarch64">
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xxf86vm" />
-        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrender" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="X11" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xxf86vm" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xrender" />
       </linker>
 
       <linker id="linker.cfg.solaris.nativewindow.x11" extends="linker.cfg.solaris">
