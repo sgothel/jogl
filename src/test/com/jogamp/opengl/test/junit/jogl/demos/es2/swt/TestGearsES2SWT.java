@@ -33,7 +33,9 @@ import java.lang.reflect.InvocationTargetException;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.swt.GLCanvas;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
@@ -171,11 +173,18 @@ public class TestGearsES2SWT extends UITestCase {
 
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
 
+        final Runnable waitAction = new Runnable() {
+            public void run() {
+                if( !display.readAndDispatch() ) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (final InterruptedException e) { }
+                }
+            } };
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(canvas, true, waitAction));
+
         while(animator.isAnimating() && !canvas.isRealized() && animator.getTotalFPSDuration()<duration) {
-            if( !display.readAndDispatch() ) {
-                // blocks on linux .. display.sleep();
-                Thread.sleep(10);
-            }
+            waitAction.run();
         }
         System.err.println("NW chosen: "+canvas.getDelegatedDrawable().getChosenGLCapabilities());
         System.err.println("GL chosen: "+canvas.getChosenGLCapabilities());

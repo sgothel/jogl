@@ -41,7 +41,9 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
@@ -217,16 +219,24 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
 
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
 
+        final Runnable waitAction = new Runnable() {
+            public void run() {
+                if( !display.readAndDispatch() ) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (final InterruptedException e) { }
+                }
+            } };
+        Assert.assertEquals(true,  NewtTestUtil.waitForVisible(glWindow, true, waitAction));
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(glWindow, true, waitAction));
+
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
 
         if( null != rwsize ) {
             for(int i=0; i<50; i++) { // 500 ms dispatched delay
-                if( !display.readAndDispatch() ) {
-                    // blocks on linux .. display.sleep();
-                    Thread.sleep(10);
-                }
+                waitAction.run();
             }
             display.syncExec( new Runnable() {
                public void run() {
@@ -237,10 +247,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
         }
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
-            if( !display.readAndDispatch() ) {
-                // blocks on linux .. display.sleep();
-                Thread.sleep(10);
-            }
+            waitAction.run();
         }
 
         Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
@@ -251,7 +258,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
 
         canvas1.dispose();
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
     }
 
     @Test

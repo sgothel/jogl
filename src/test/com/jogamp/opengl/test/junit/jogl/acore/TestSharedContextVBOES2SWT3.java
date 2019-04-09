@@ -39,6 +39,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
@@ -200,17 +201,27 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
             shell2.open();  // shall wait until f1 is ready
             shell3.open();  // shall wait until f1 is ready
            } } );
+        final long t0 = System.currentTimeMillis();
         animator.start(); // kicks off GLContext .. and hence gears of f2 + f3 completion
 
-        Thread.sleep(1000/60*10); // wait ~10 frames giving a chance to create (blocking until master share is valid)
-
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c1, true));
+        final Runnable waitAction = new Runnable() {
+            public void run() {
+                if( !display.readAndDispatch() ) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (final InterruptedException e) { }
+                }
+            } };
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(c1, true, waitAction));
+        Assert.assertEquals(true,  GLTestUtil.waitForContextCreated(c1, true, waitAction));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c2, true));
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(c2, true, waitAction));
+        Assert.assertEquals(true,  GLTestUtil.waitForContextCreated(c2, true, waitAction));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c3, true));
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(c3, true, waitAction));
+        Assert.assertEquals(true,  GLTestUtil.waitForContextCreated(c3, true, waitAction));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
         final GLContext ctx1 = c1.getContext();
@@ -236,11 +247,10 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
         Assert.assertTrue("Gears2 is not shared", g2.usesSharedGears());
         Assert.assertTrue("Gears3 is not shared", g3.usesSharedGears());
 
-        try {
-            Thread.sleep(duration);
-        } catch(final Exception e) {
-            e.printStackTrace();
+        while(animator.isAnimating() && System.currentTimeMillis()-t0<duration) {
+            waitAction.run();
         }
+
         // Stopped animator allows native windowing system 'repaint' event
         // to trigger GLAD 'display'
         animator.stop();
@@ -266,10 +276,16 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
            } } );
         a1.start();
 
-
-        Thread.sleep(1000/60*10); // wait ~10 frames giving a chance to create (blocking until master share is valid)
-
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c1, true));
+        final Runnable waitAction = new Runnable() {
+            public void run() {
+                if( !display.readAndDispatch() ) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (final InterruptedException e) { }
+                }
+            } };
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(c1, true, waitAction));
+        Assert.assertEquals(true,  GLTestUtil.waitForContextCreated(c1, true, waitAction));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
         final Animator a2 = new Animator();
@@ -284,8 +300,6 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
            } } );
         a2.start();
 
-        Thread.sleep(200); // wait a while ..
-
         final Animator a3 = new Animator();
         final GearsES2 g3 = new GearsES2(0);
         g3.setSharedGears(g1);
@@ -298,11 +312,15 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
            } } );
         a3.start();
 
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c2, true));
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(c2, true, waitAction));
+        Assert.assertEquals(true,  GLTestUtil.waitForContextCreated(c2, true, waitAction));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c3, true));
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(c3, true, waitAction));
+        Assert.assertEquals(true,  GLTestUtil.waitForContextCreated(c3, true, waitAction));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
+
+        final long t0 = System.currentTimeMillis();
 
         final GLContext ctx1 = c1.getContext();
         final GLContext ctx2 = c2.getContext();
@@ -327,10 +345,8 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
         Assert.assertTrue("Gears2 is not shared", g2.usesSharedGears());
         Assert.assertTrue("Gears3 is not shared", g3.usesSharedGears());
 
-        try {
-            Thread.sleep(duration);
-        } catch(final Exception e) {
-            e.printStackTrace();
+        while(System.currentTimeMillis()-t0<duration) {
+            waitAction.run();
         }
         // Stopped animator allows native windowing system 'repaint' event
         // to trigger GLAD 'display'

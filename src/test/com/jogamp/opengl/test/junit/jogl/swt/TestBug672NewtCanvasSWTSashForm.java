@@ -40,7 +40,9 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
@@ -228,7 +230,16 @@ public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
               shell.open();
            }
         });
-        Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow, true, awtRobotWaitAction));
+        final Runnable waitAction = new Runnable() {
+            public void run() {
+                if( !display.readAndDispatch() ) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (final InterruptedException e) { }
+                }
+            } };
+        Assert.assertEquals(true,  NewtTestUtil.waitForVisible(glWindow, true, waitAction));
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(glWindow, true, waitAction));
         Assert.assertNotNull( canvas1.getNativeWindow() );
 
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
@@ -272,7 +283,7 @@ public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
 
         canvas1.dispose();
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
+        Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, false, waitAction));
     }
 
     @Test
