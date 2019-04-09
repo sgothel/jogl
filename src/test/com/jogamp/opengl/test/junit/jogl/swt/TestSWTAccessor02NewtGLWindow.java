@@ -99,6 +99,8 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
     }
 
     protected void init() throws InterruptedException, InvocationTargetException {
+        System.err.println("SWT Platform: "+SWT.getPlatform()+", Version "+SWT.getVersion());
+        System.err.println("GTK_VERSION: "+SWTAccessor.GTK_VERSION());
         SWTAccessor.invoke(true, new Runnable() {
             public void run() {
                 display = new Display();
