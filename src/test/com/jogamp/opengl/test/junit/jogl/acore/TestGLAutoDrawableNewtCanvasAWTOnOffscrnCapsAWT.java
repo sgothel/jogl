@@ -58,6 +58,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -210,7 +211,7 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
         // 1 - szStep = 2
         final int[] expSurfaceSize = glad.getNativeSurface().convertToPixelUnits(new int[] { widthStep*szStep, heightStep*szStep });
         Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
-                          AWTRobotUtil.waitForSize(glad, expSurfaceSize[0], expSurfaceSize[1]));
+                          GLTestUtil.waitForSize(glad, expSurfaceSize[0], expSurfaceSize[1]));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();
 
@@ -221,7 +222,7 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
         expSurfaceSize[1] = heightStep*szStep;
         glad.getNativeSurface().convertToPixelUnits(expSurfaceSize);
         Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
-                          AWTRobotUtil.waitForSize(glad, expSurfaceSize[0], expSurfaceSize[1]));
+                          GLTestUtil.waitForSize(glad, expSurfaceSize[0], expSurfaceSize[1]));
         glad.display();
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();
@@ -233,7 +234,7 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
         expSurfaceSize[1] = heightStep*szStep;
         glad.getNativeSurface().convertToPixelUnits(expSurfaceSize);
         Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
-                          AWTRobotUtil.waitForSize(glad, expSurfaceSize[0], expSurfaceSize[1]));
+                          GLTestUtil.waitForSize(glad, expSurfaceSize[0], expSurfaceSize[1]));
         glad.display();
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();

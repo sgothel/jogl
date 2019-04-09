@@ -46,8 +46,9 @@ import com.jogamp.opengl.awt.GLCanvas;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil.WindowClosingListener;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil.WindowClosingListener;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestWindowClosingProtocol01AWT extends UITestCase {
@@ -55,7 +56,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
     @Test
     public void testCloseFrameGLCanvas() throws InterruptedException, InvocationTargetException {
         final Frame frame = new Frame("testCloseFrameGLCanvas AWT");
-        final WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(frame);
+        final TestUtil.WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(frame);
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         final GLCanvas glCanvas = new GLCanvas(caps);
@@ -115,7 +116,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
     @Test
     public void testCloseJFrameGLCanvas() throws InterruptedException, InvocationTargetException {
         final JFrame frame = new JFrame("testCloseJFrameGLCanvas AWT");
-        final WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(frame);
+        final TestUtil.WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(frame);
 
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);

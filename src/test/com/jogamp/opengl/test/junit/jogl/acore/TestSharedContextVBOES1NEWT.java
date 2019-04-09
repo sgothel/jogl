@@ -41,6 +41,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
@@ -104,7 +105,7 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         // init and render one frame, which will setup the Gears display lists
         sharedDrawable.display();
         final GLContext ctxM = sharedDrawable.getContext();
-        Assert.assertTrue("Master ctx not created", AWTRobotUtil.waitForContextCreated(sharedDrawable, true));
+        Assert.assertTrue("Master ctx not created", GLTestUtil.waitForContextCreated(sharedDrawable, true));
         Assert.assertTrue("Master Ctx is shared before shared creation", !ctxM.isShared());
         Assert.assertTrue("Master Gears is shared", !sharedGears.usesSharedGears());
     }
@@ -136,7 +137,7 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         glWindow.setVisible(true);
         Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(glWindow, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(glWindow, true));
 
         MiscUtils.dumpSharedGLContext("Master Context", sharedDrawable.getContext());
         MiscUtils.dumpSharedGLContext("New    Context", glWindow.getContext());

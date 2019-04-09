@@ -32,8 +32,7 @@ import com.jogamp.nativewindow.*;
 import com.jogamp.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
-
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -97,7 +96,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
             glWindow.display();
             final int[] expSurfaceSize = glWindow.getNativeSurface().convertToPixelUnits(new int[] { width/div, height/div });
             Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(),
-                              AWTRobotUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
+                              GLTestUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
             Thread.sleep(600);
 
             div = 2;
@@ -107,7 +106,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
             expSurfaceSize[1] = height/div;
             glWindow.getNativeSurface().convertToPixelUnits(expSurfaceSize);
             Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(),
-                              AWTRobotUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
+                              GLTestUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
             Thread.sleep(600);
 
             div = 1;
@@ -117,7 +116,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
             expSurfaceSize[1] = height/div;
             glWindow.getNativeSurface().convertToPixelUnits(expSurfaceSize);
             Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(),
-                              AWTRobotUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
+                              GLTestUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
             Thread.sleep(600);
         }
 

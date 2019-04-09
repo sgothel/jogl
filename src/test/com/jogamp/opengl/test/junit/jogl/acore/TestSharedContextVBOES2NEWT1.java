@@ -39,6 +39,7 @@ import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -116,7 +117,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         // init and render one frame, which will setup the Gears display lists
         sharedDrawable.display();
         final GLContext ctxM = sharedDrawable.getContext();
-        Assert.assertTrue("Master ctx not created", AWTRobotUtil.waitForContextCreated(sharedDrawable, true));
+        Assert.assertTrue("Master ctx not created", GLTestUtil.waitForContextCreated(sharedDrawable, true));
         Assert.assertTrue("Master Ctx is shared before shared creation", !ctxM.isShared());
         Assert.assertTrue("Master Gears not initialized", sharedGears.waitForInit(true));
         System.err.println("Master Gears Init done: "+sharedGears);
@@ -151,7 +152,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         glWindow.setVisible(true);
         Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(glWindow, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(glWindow, true));
 
         final GLContext sharedMasterContext = sharedDrawable.getContext();
         MiscUtils.dumpSharedGLContext("Master Context", sharedMasterContext);
@@ -193,13 +194,13 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         f3.destroy();
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, false));
 
         releaseShared();
     }
@@ -231,13 +232,13 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         f3.destroy();
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, false));
 
         releaseShared();
     }
@@ -264,13 +265,13 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         f3.destroy();
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, false));
 
         releaseShared();
     }
@@ -302,13 +303,13 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
         f3.destroy();
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, false));
 
         releaseShared();
     }

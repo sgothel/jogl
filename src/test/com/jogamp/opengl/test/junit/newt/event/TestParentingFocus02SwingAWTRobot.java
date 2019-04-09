@@ -212,7 +212,7 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
         // Should be OK to have the AWT component assume it also has the focus.
         // Assert.assertTrue("Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA,
         //        AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA));
-        if( !AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA) ) {
+        if( !TestUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA) ) {
             System.err.println("Info: Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA);
         }
         Assert.assertEquals(false, buttonNorthInnerFA.focusGained());
@@ -252,7 +252,7 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
         // Should be OK to have the AWT component assume it also has the focus.
         // Assert.assertTrue("Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA,
         //        AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA));
-        if( !AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA) ) {
+        if( !TestUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA) ) {
             System.err.println("Info: Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA);
         }
 

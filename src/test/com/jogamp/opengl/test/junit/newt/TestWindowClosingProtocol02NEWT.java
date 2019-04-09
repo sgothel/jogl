@@ -45,6 +45,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -55,7 +56,7 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         final GLWindow glWindow = GLWindow.create(caps);
-        final AWTRobotUtil.WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(glWindow);
+        final TestUtil.WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(glWindow);
 
         glWindow.addGLEventListener(new GearsES2());
         glWindow.setSize(512, 512);

@@ -47,8 +47,9 @@ import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil.WindowClosingListener;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil.WindowClosingListener;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
@@ -56,12 +57,12 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
     @Test
     public void testCloseJFrameNewtCanvasAWT() throws InterruptedException, InvocationTargetException {
         final JFrame frame = new JFrame("testCloseJFrameNewtCanvasAWT");
-        final WindowClosingListener awtClosingListener = AWTRobotUtil.addClosingListener(frame);
+        final TestUtil.WindowClosingListener awtClosingListener = AWTRobotUtil.addClosingListener(frame);
 
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         final GLWindow glWindow = GLWindow.create(caps);
-        final AWTRobotUtil.WindowClosingListener newtClosingListener = AWTRobotUtil.addClosingListener(glWindow);
+        final TestUtil.WindowClosingListener newtClosingListener = AWTRobotUtil.addClosingListener(glWindow);
 
         glWindow.addGLEventListener(new GearsES2());
 

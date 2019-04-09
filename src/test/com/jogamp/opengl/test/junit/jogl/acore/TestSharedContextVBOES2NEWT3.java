@@ -39,6 +39,7 @@ import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -131,22 +132,22 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false));
 
         f1.setVisible(true); // kicks off f1 GLContext .. and hence gears of f2 + f3 completion
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
         final GearsES2 g3 = new GearsES2(0);
@@ -159,7 +160,7 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
         final GLContext ctx1 = f1.getContext();
@@ -269,22 +270,22 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false));
 
         f1.setVisible(true); // test pending creation of f2
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
         final Animator a3 = new Animator();
@@ -299,7 +300,7 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
 
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
         final GLContext ctx1 = f1.getContext();

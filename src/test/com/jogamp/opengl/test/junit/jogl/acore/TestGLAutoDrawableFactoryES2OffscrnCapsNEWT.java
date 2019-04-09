@@ -48,7 +48,7 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -128,7 +128,7 @@ public class TestGLAutoDrawableFactoryES2OffscrnCapsNEWT extends UITestCase {
 
         // 1 - szStep = 2
         Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
-                          AWTRobotUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
+                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();
 
@@ -136,7 +136,7 @@ public class TestGLAutoDrawableFactoryES2OffscrnCapsNEWT extends UITestCase {
         szStep = 1;
         glad.setSurfaceSize(widthStep*szStep, heightStep*szStep);
         Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
-                          AWTRobotUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
+                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();
 
@@ -144,7 +144,7 @@ public class TestGLAutoDrawableFactoryES2OffscrnCapsNEWT extends UITestCase {
         szStep = 4;
         glad.setSurfaceSize(widthStep*szStep, heightStep*szStep);
         Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
-                          AWTRobotUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
+                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();
 

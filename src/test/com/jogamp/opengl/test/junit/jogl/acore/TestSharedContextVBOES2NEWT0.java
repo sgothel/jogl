@@ -40,6 +40,7 @@ import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -94,7 +95,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow, true));
         Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
         glWindow.display();
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(glWindow, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(glWindow, true));
         Assert.assertTrue("Gears not initialized", gears.waitForInit(true));
 
         return glWindow;
@@ -186,7 +187,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         f3.destroy();
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f3, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, false));
         {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
@@ -207,7 +208,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         f2.destroy();
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f2, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false));
         {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
@@ -228,7 +229,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         f1.destroy();
         Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForContextCreated(f1, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false));
         {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();

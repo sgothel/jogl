@@ -77,8 +77,9 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil.WindowClosingListener;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil.WindowClosingListener;
 import com.jogamp.opengl.util.Animator;
 
 
@@ -553,7 +554,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
      */
     public void testContextSharingCreateVisibleDestroy(final boolean useNewt, final boolean shareContext) throws InterruptedException, InvocationTargetException {
         final JFrame frame = new JFrame("Simple JOGL App for testing context sharing");
-        final WindowClosingListener awtClosingListener = AWTRobotUtil.addClosingListener(frame);
+        final TestUtil.WindowClosingListener awtClosingListener = AWTRobotUtil.addClosingListener(frame);
 
         //
         // GLDrawableFactory factory = GLDrawableFactory.getFactory(GLProfile.get(GLProfile.GL2));
