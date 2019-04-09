@@ -118,7 +118,7 @@ function jrun() {
     #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil -Djogl.glu.nojava=true"
 
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
-    D_ARGS="-Dnativewindow.debug.SWT -Dnativewindow.debug.X11Util -Dnewt.debug.Window"
+    #D_ARGS="-Dnativewindow.debug.SWT -Dnativewindow.debug.X11Util -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug=all -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all -Djogamp.debug.Lock"
 

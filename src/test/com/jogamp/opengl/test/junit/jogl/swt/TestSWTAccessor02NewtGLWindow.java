@@ -31,6 +31,8 @@ package com.jogamp.opengl.test.junit.jogl.swt;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -158,6 +160,15 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
             SWTAccessor.invoke(true, new Runnable() {
                 public void run() {
                     canvas[0] = new Canvas (composite, SWT.NO_BACKGROUND);
+                    canvas[0].setBackground(new Color(display, 255, 255, 255));
+                    canvas[0].setForeground(new Color(display, 255, 0, 0));
+                    canvas[0].addPaintListener (new PaintListener() {
+                        public void paintControl(final PaintEvent e) {
+                            final Rectangle r = canvas[0].getClientArea();
+                            e.gc.fillRectangle(0, 0, r.width, r.height);
+                            e.gc.drawRectangle(50, 50, r.width-100, r.height-100);
+                            e.gc.drawString("I am a Canvas", r.width/2, r.height/2);
+                        }});
                     shell.setText( getClass().getName() );
                     shell.setBounds( 0, 0, 700, 700 );
                     shell.open();
