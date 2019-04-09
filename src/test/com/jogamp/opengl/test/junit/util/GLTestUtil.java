@@ -36,9 +36,10 @@ import com.jogamp.opengl.GLDrawable;
 public class GLTestUtil extends TestUtil {
 
     /**
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @return True if the GLContext becomes created or not within TIME_OUT
      */
-    public static boolean waitForContextCreated(final GLAutoDrawable autoDrawable, final boolean created) throws InterruptedException {
+    public static boolean waitForContextCreated(final GLAutoDrawable autoDrawable, final boolean created, final Runnable waitAction) throws InterruptedException {
         if( null == autoDrawable ) {
             return !created;
         }
@@ -54,19 +55,28 @@ public class GLTestUtil extends TestUtil {
                     break;
                 }
             }
-            Thread.sleep(TIME_SLICE);
+            if( null != waitAction ) {
+                waitAction.run();
+            } else {
+                Thread.sleep(TIME_SLICE);
+            }
         }
         return wait<POLL_DIVIDER;
     }
 
     /**
      *
-     * @return True if the GLDrawable receives the expected size within TIME_OUT
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
+     * @return True if the GLDrawable receives the expected surface size within TIME_OUT
      */
-    public static boolean waitForSize(final GLDrawable drawable, final int width, final int height) throws InterruptedException {
+    public static boolean waitForSize(final GLDrawable drawable, final int width, final int height, final Runnable waitAction) throws InterruptedException {
         int wait;
         for (wait=0; wait<POLL_DIVIDER && ( width != drawable.getSurfaceWidth() || height != drawable.getSurfaceHeight() ) ; wait++) {
-            Thread.sleep(TIME_SLICE);
+            if( null != waitAction ) {
+                waitAction.run();
+            } else {
+                Thread.sleep(TIME_SLICE);
+            }
         }
         return wait<POLL_DIVIDER;
     }

@@ -95,7 +95,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         Assert.assertTrue(NewtTestUtil.waitForRealized(glWindow, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(glWindow, true, null));
         glWindow.display();
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(glWindow, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(glWindow, true, null));
         Assert.assertTrue("Gears not initialized", gears.waitForInit(true));
 
         return glWindow;
@@ -187,7 +187,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         f3.destroy();
         Assert.assertTrue(NewtTestUtil.waitForVisible(f3, false, null));
         Assert.assertTrue(NewtTestUtil.waitForRealized(f3, false, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, false, null));
         {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
@@ -208,7 +208,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         f2.destroy();
         Assert.assertTrue(NewtTestUtil.waitForVisible(f2, false, null));
         Assert.assertTrue(NewtTestUtil.waitForRealized(f2, false, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false, null));
         {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
@@ -229,7 +229,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         f1.destroy();
         Assert.assertTrue(NewtTestUtil.waitForVisible(f1, false, null));
         Assert.assertTrue(NewtTestUtil.waitForRealized(f1, false, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false, null));
         {
             final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
             final List<GLContext> ctx2Shares = ctx2.getCreatedShares();

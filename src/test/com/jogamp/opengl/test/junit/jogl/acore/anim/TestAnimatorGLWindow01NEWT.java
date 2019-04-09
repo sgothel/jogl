@@ -111,17 +111,17 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(c1, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(c1, true, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c1, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(c1, true, null));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(c2, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(c2, true, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c2, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(c2, true, null));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(c3, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(c3, true, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c3, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(c3, true, null));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
         try {
@@ -194,17 +194,17 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(c1, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(c1, true, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c1, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(c1, true, null));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(c2, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(c2, true, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c2, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(c2, true, null));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(c3, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(c3, true, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(c3, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(c3, true, null));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
         try {

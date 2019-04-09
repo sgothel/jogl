@@ -752,7 +752,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
             while(animator.isAnimating() && animator.getTotalFPSDuration() < durationPerTest) {
                 Thread.sleep(100);
             }
-            AWTRobotUtil.closeWindow(frame, true, awtClosingListener);
+            AWTRobotUtil.closeWindow(frame, true, awtClosingListener, null);
             final boolean windowClosed = closingSemaphore.tryAcquire(5000, TimeUnit.MILLISECONDS);
             Assert.assertEquals(true, windowClosed);
         } catch (final InterruptedException e) {

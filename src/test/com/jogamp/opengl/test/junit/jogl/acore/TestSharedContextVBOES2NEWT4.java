@@ -135,31 +135,31 @@ public class TestSharedContextVBOES2NEWT4 extends UITestCase {
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(f1, false, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(f1, false, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false, null));
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(f2, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(f2, true, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false, null));
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(f3, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(f3, true, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, false));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, false, null));
 
         f1.setVisible(true); // kick off f1 GLContext .. and hence allow f2 + f3 creation
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(f1, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(f1, true, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, true, null));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(f2, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(f2, true, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, true, null));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
         Assert.assertTrue(NewtTestUtil.waitForRealized(f3, true, null));
         Assert.assertTrue(NewtTestUtil.waitForVisible(f3, true, null));
-        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, true));
+        Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, true, null));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
         Assert.assertFalse("Unexpected exception (animator) caught", gotAnimException.get());

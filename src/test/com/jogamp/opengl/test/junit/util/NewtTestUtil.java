@@ -31,11 +31,9 @@ package com.jogamp.opengl.test.junit.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.WindowEvent;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil.AWTWindowClosingAdapter;
 
 import jogamp.newt.WindowImplAccess;
 
@@ -76,26 +74,49 @@ public class NewtTestUtil extends TestUtil {
     }
     /**
      *
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @return True if the Window became the global focused Window within TIME_OUT
      */
-    public static boolean waitForFocus(final Window win) throws InterruptedException {
+    public static boolean waitForFocus(final Window win, final Runnable waitAction) throws InterruptedException {
         int wait;
         for (wait=0; wait<POLL_DIVIDER && !win.hasFocus(); wait++) {
-            Thread.sleep(TIME_SLICE);
+            if( null != waitAction ) {
+                waitAction.run();
+            } else {
+                Thread.sleep(TIME_SLICE);
+            }
         }
         return wait<POLL_DIVIDER;
     }
 
     /**
      *
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @return True if the Window became the global focused Window within TIME_OUT
      */
     public static boolean waitForFocus(final Window win, final FocusEventCountAdapter gain,
-                                       final FocusEventCountAdapter lost) throws InterruptedException {
-        if(!waitForFocus(win)) {
+                                       final FocusEventCountAdapter lost, final Runnable waitAction) throws InterruptedException {
+        if(!waitForFocus(win, waitAction)) {
             return false;
         }
-        return TestUtil.waitForFocus(gain, lost);
+        return TestUtil.waitForFocus(gain, lost, waitAction);
+    }
+
+    /**
+     *
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
+     * @return True if the Window receives the expected surface size within TIME_OUT
+     */
+    public static boolean waitForSize(final Window window, final int width, final int height, final Runnable waitAction) throws InterruptedException {
+        int wait;
+        for (wait=0; wait<POLL_DIVIDER && ( width != window.getSurfaceWidth() || height != window.getSurfaceHeight() ) ; wait++) {
+            if( null != waitAction ) {
+                waitAction.run();
+            } else {
+                Thread.sleep(TIME_SLICE);
+            }
+        }
+        return wait<POLL_DIVIDER;
     }
 
     /**
@@ -164,19 +185,20 @@ public class NewtTestUtil extends TestUtil {
     /**
      * Programmatically issue windowClosing on AWT or NEWT.
      * Wait until the window is closing within TIME_OUT.
-     *
-     * @param obj either an AWT Window (Frame, JFrame) or NEWT Window
      * @param willClose indicating that the window will close, hence this method waits for the window to be closed
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
+     * @param obj either an AWT Window (Frame, JFrame) or NEWT Window
      * @param wcl the WindowClosingListener to determine whether the AWT or NEWT widget has been closed. It should be attached
      *            to the widget ASAP before any other listener, e.g. via {@link #addClosingListener(Object)}.
      *            The WindowClosingListener will be reset before attempting to close the widget.
+     *
      * @return True if the Window is closing and closed (if willClose is true), each within TIME_OUT
      * @throws InterruptedException
      */
-    public static boolean closeWindow(final Window win, final boolean willClose, final TestUtil.WindowClosingListener closingListener) throws InterruptedException {
+    public static boolean closeWindow(final Window win, final boolean willClose, final TestUtil.WindowClosingListener closingListener, final Runnable waitAction) throws InterruptedException {
         closingListener.reset();
         WindowImplAccess.windowDestroyNotify(win);
-        return waitUntilClosed(willClose, closingListener);
+        return waitUntilClosed(willClose, closingListener, waitAction);
     }
 }
 

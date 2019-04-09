@@ -29,10 +29,6 @@
 
 package com.jogamp.opengl.test.junit.util;
 
-import com.jogamp.newt.Window;
-
-import jogamp.newt.WindowImplAccess;
-
 public abstract class TestUtil {
     public static interface WindowClosingListener {
         void reset();
@@ -48,16 +44,21 @@ public abstract class TestUtil {
 
     /**
      *
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @return True if the Window became the global focused Window within TIME_OUT
      */
     public static boolean waitForFocus(final FocusEventCountAdapter gain,
-                                       final FocusEventCountAdapter lost) throws InterruptedException {
+                                       final FocusEventCountAdapter lost, final Runnable waitAction) throws InterruptedException {
         int wait;
         for (wait=0; wait<POLL_DIVIDER; wait++) {
             if( ( null == lost || lost.focusLost() ) && ( null == gain || gain.focusGained() ) ) {
                 return true;
             }
-            Thread.sleep(TIME_SLICE);
+            if( null != waitAction ) {
+                waitAction.run();
+            } else {
+                Thread.sleep(TIME_SLICE);
+            }
         }
         return false;
     }
@@ -66,20 +67,29 @@ public abstract class TestUtil {
      * Wait until the window is closing within TIME_OUT.
      *
      * @param willClose indicating that the window will close, hence this method waits for the window to be closed
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @param wcl the WindowClosingListener to determine whether the AWT or NEWT widget has been closed. It should be attached
      *            to the widget ASAP before any other listener, e.g. via {@link #addClosingListener(Object)}.
      *            The WindowClosingListener will be reset before attempting to close the widget.
      * @return True if the Window is closing and closed (if willClose is true), each within TIME_OUT
      * @throws InterruptedException
      */
-    public static boolean waitUntilClosed(final boolean willClose, final TestUtil.WindowClosingListener closingListener) throws InterruptedException {
+    public static boolean waitUntilClosed(final boolean willClose, final TestUtil.WindowClosingListener closingListener, final Runnable waitAction) throws InterruptedException {
         int wait;
         for (wait=0; wait<POLL_DIVIDER && !closingListener.isWindowClosing(); wait++) {
-            Thread.sleep(TIME_SLICE);
+            if( null != waitAction ) {
+                waitAction.run();
+            } else {
+                Thread.sleep(TIME_SLICE);
+            }
         }
         if(wait<POLL_DIVIDER && willClose) {
             for (wait=0; wait<POLL_DIVIDER && !closingListener.isWindowClosed(); wait++) {
-                Thread.sleep(TIME_SLICE);
+                if( null != waitAction ) {
+                    waitAction.run();
+                } else {
+                    Thread.sleep(TIME_SLICE);
+                }
             }
         }
         return wait<POLL_DIVIDER;

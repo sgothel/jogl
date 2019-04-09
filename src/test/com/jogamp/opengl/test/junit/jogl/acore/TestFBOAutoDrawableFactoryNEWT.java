@@ -339,7 +339,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         szStep = 1;
         glad.setSurfaceSize(widthStep*szStep, heightStep*szStep); // SWAP_EVEN
         Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
-                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
+                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep, null));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();  //  - SWAP_ODD
         glad.display();  //  - SWAP_EVEN
@@ -387,7 +387,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         szStep = 4;
         glad.setSurfaceSize(widthStep*szStep, heightStep*szStep); // SWAP_ODD
         Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
-                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
+                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep, null));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display(); //  - SWAP_EVEN
         glad.display(); //  - SWAP_ODD
@@ -446,7 +446,7 @@ public class TestFBOAutoDrawableFactoryNEWT extends UITestCase {
         szStep = 3;
         glad.setSurfaceSize(widthStep*szStep, heightStep*szStep);
         Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
-                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
+                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep, null));
         snapshotGLEventListener.setMakeSnapshot();
         glad.display();
 

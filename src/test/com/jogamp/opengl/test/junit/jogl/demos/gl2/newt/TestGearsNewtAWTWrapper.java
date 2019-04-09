@@ -96,7 +96,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
             glWindow.display();
             final int[] expSurfaceSize = glWindow.getNativeSurface().convertToPixelUnits(new int[] { width/div, height/div });
             Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(),
-                              GLTestUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
+                              GLTestUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1], null));
             Thread.sleep(600);
 
             div = 2;
@@ -106,7 +106,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
             expSurfaceSize[1] = height/div;
             glWindow.getNativeSurface().convertToPixelUnits(expSurfaceSize);
             Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(),
-                              GLTestUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
+                              GLTestUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1], null));
             Thread.sleep(600);
 
             div = 1;
@@ -116,7 +116,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
             expSurfaceSize[1] = height/div;
             glWindow.getNativeSurface().convertToPixelUnits(expSurfaceSize);
             Assert.assertTrue("Surface Size not reached: Expected "+expSurfaceSize[0]+"x"+expSurfaceSize[1]+", Is "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight(),
-                              GLTestUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1]));
+                              GLTestUtil.waitForSize(glWindow, expSurfaceSize[0], expSurfaceSize[1], null));
             Thread.sleep(600);
         }
 

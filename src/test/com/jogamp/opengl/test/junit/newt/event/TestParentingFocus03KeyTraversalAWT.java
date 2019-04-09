@@ -236,14 +236,14 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
 
             // bWest -> glWin
             AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_TAB, cWest, null);
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA));
+            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA, null));
             Assert.assertEquals(true,  glWindow1FA.focusGained());
             Assert.assertEquals(true,  bWestFA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
 
             // glWin -> bEast
             AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_TAB, glWindow1, null);
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(cEast, bEastFA, glWindow1FA));
+            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(cEast, bEastFA, glWindow1FA, null));
             Assert.assertEquals(true,  bEastFA.focusGained());
             Assert.assertEquals(true,  glWindow1FA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
@@ -253,13 +253,13 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
             //
             // bEast -> glWin
             AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_BACK_SPACE, cEast, null);
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bEastFA));
+            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bEastFA, null));
             Assert.assertEquals(true,  glWindow1FA.focusGained());
             Assert.assertEquals(true,  bEastFA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
 
             AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_BACK_SPACE, glWindow1, null);
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(cWest, bWestFA, glWindow1FA));
+            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(cWest, bWestFA, glWindow1FA, null));
             Assert.assertEquals(true,  bWestFA.focusGained());
             Assert.assertEquals(true,  glWindow1FA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
@@ -272,7 +272,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
                    }
                 });
             } catch (final Exception ex) { ex.printStackTrace(); }
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA));
+            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA, null));
             Assert.assertEquals(true,  glWindow1FA.focusGained());
             Assert.assertEquals(true,  bWestFA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
@@ -285,7 +285,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
                    }
                 });
             } catch (final Exception ex) { ex.printStackTrace(); }
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(cWest, bWestFA, glWindow1FA));
+            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(cWest, bWestFA, glWindow1FA, null));
             Assert.assertEquals(true,  bWestFA.focusGained());
             Assert.assertEquals(true,  glWindow1FA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
@@ -295,7 +295,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
             {
                 // Short: Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA));
                 // More verbose:
-                final boolean ok = AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA);
+                final boolean ok = AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA, null);
                 System.err.println("glWindow hasFocus "+glWindow1.hasFocus());
                 System.err.println("glWindow1FA "+glWindow1FA);
                 System.err.println("bWestFA "+bWestFA);

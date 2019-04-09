@@ -28,7 +28,6 @@
 
 package com.jogamp.opengl.test.junit.util;
 
-import jogamp.newt.WindowImplAccess;
 import jogamp.newt.awt.event.AWTNewtEventFactory;
 
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -42,7 +41,6 @@ import java.awt.Robot;
 
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.NativeWindowFactory;
-import com.jogamp.newt.Window;
 import com.jogamp.opengl.GLAutoDrawable;
 
 import org.junit.Assert;
@@ -358,37 +356,40 @@ public class AWTRobotUtil extends TestUtil {
 
     /**
      *
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @return True if the Window became the global focused Window within TIME_OUT
      */
-    public static boolean waitForFocus(final Object obj) throws InterruptedException {
-        int wait;
+    public static boolean waitForFocus(final Object obj, final Runnable waitAction) throws InterruptedException {
         if(obj instanceof com.jogamp.newt.Window) {
-            final com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
-            for (wait=0; wait<POLL_DIVIDER && !win.hasFocus(); wait++) {
-                Thread.sleep(TIME_SLICE);
-            }
+            return NewtTestUtil.waitForFocus((com.jogamp.newt.Window) obj, waitAction);
         } else if(NativeWindowFactory.isAWTAvailable() && obj instanceof java.awt.Component) {
+            int wait;
             final java.awt.Component comp = (java.awt.Component) obj;
             final java.awt.KeyboardFocusManager kfm = java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager();
             for (wait=0; wait<POLL_DIVIDER && comp != kfm.getPermanentFocusOwner(); wait++) {
-                Thread.sleep(TIME_SLICE);
+                if( null != waitAction ) {
+                    waitAction.run();
+                } else {
+                    Thread.sleep(TIME_SLICE);
+                }
             }
+            return wait<POLL_DIVIDER;
         } else {
             throw new RuntimeException("Neither AWT nor NEWT: "+obj);
         }
-        return wait<POLL_DIVIDER;
     }
 
     /**
      *
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @return True if the Window became the global focused Window within TIME_OUT
      */
     public static boolean waitForFocus(final Object obj, final FocusEventCountAdapter gain,
-                                       final FocusEventCountAdapter lost) throws InterruptedException {
-        if(!waitForFocus(obj)) {
+                                       final FocusEventCountAdapter lost, final Runnable waitAction) throws InterruptedException {
+        if(!waitForFocus(obj, waitAction)) {
             return false;
         }
-        return TestUtil.waitForFocus(gain, lost);
+        return TestUtil.waitForFocus(gain, lost, waitAction);
     }
 
     public static void assertRequestFocusAndWait(final Robot robot, final Object requestFocus, final Object waitForFocus,
@@ -400,7 +401,7 @@ public class AWTRobotUtil extends TestUtil {
 
         for(i=0; i < RETRY_NUMBER && !hasFocus; i++) {
             requestFocus(robot, requestFocus);
-            hasFocus = waitForFocus(waitForFocus, gain, lost);
+            hasFocus = waitForFocus(waitForFocus, gain, lost, null);
         }
         if(!hasFocus) {
             System.err.print("*** AWTRobotUtil.assertRequestFocusAndWait() ");
@@ -734,13 +735,14 @@ public class AWTRobotUtil extends TestUtil {
      *
      * @param obj either an AWT Window (Frame, JFrame) or NEWT Window
      * @param willClose indicating that the window will close, hence this method waits for the window to be closed
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @param wcl the WindowClosingListener to determine whether the AWT or NEWT widget has been closed. It should be attached
      *            to the widget ASAP before any other listener, e.g. via {@link #addClosingListener(Object)}.
      *            The WindowClosingListener will be reset before attempting to close the widget.
      * @return True if the Window is closing and closed (if willClose is true), each within TIME_OUT
      * @throws InterruptedException
      */
-    public static boolean closeWindow(final Object obj, final boolean willClose, final TestUtil.WindowClosingListener closingListener) throws InterruptedException {
+    public static boolean closeWindow(final Object obj, final boolean willClose, final TestUtil.WindowClosingListener closingListener, final Runnable waitAction) throws InterruptedException {
         if(obj instanceof java.awt.Window) {
             closingListener.reset();
             final java.awt.Window win = (java.awt.Window) obj;
@@ -750,9 +752,9 @@ public class AWTRobotUtil extends TestUtil {
                 public void run() {
                     evtQ.postEvent(new java.awt.event.WindowEvent(win, java.awt.event.WindowEvent.WINDOW_CLOSING));
                 } });
-            return waitUntilClosed(willClose, closingListener);
+            return waitUntilClosed(willClose, closingListener, waitAction);
         } else if(obj instanceof com.jogamp.newt.Window) {
-            return NewtTestUtil.closeWindow((com.jogamp.newt.Window) obj, willClose, closingListener);
+            return NewtTestUtil.closeWindow((com.jogamp.newt.Window) obj, willClose, closingListener, waitAction);
         } else {
             throw new RuntimeException("Neither AWT nor NEWT: "+obj);
         }

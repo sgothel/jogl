@@ -95,7 +95,7 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
 
         Thread.sleep(300);
 
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false, awtClosingListener)); // hide
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false, awtClosingListener, null)); // hide
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, false, null)); // hide -> invisible
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(false, frame.isVisible());
@@ -130,7 +130,7 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
 
         Thread.sleep(300);
 
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true, awtClosingListener));
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true, awtClosingListener, null));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
         Assert.assertEquals(false, frame.isDisplayable());
         Assert.assertEquals(false, frame.isVisible());

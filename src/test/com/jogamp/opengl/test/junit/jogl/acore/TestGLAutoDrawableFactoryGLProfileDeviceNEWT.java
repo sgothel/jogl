@@ -104,14 +104,14 @@ public class TestGLAutoDrawableFactoryGLProfileDeviceNEWT extends UITestCase {
 
         // 1 - szStep = 2
         Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
-                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
+                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep, null));
         glad.display();
 
         // 2, 3 (resize + display)
         szStep = 1;
         glad.setSurfaceSize(widthStep*szStep, heightStep*szStep);
         Assert.assertTrue("Size not reached: Expected "+(widthStep*szStep)+"x"+(heightStep*szStep)+", Is "+glad.getSurfaceWidth()+"x"+glad.getSurfaceHeight(),
-                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep));
+                          GLTestUtil.waitForSize(glad, widthStep*szStep, heightStep*szStep, null));
         glad.display();
 
         Thread.sleep(50);
