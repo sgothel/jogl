@@ -88,7 +88,7 @@ public class TestBug816OSXCALayerPos04bAWT extends UITestCase {
                 frame.setSize(width, height);
                 frame.setVisible(true);
             }});
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
 
         final JDialog dialog = new JDialog(frame, "Bug 816 AWT Top-Level JDialog");
         dialog.setLayout(new BorderLayout());
@@ -100,8 +100,8 @@ public class TestBug816OSXCALayerPos04bAWT extends UITestCase {
                 dialog.setSize(width/2, height/2);
                 dialog.setVisible(true);
             }});
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(dialog, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas1, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(dialog, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas1, true, null));
 
         animator.start();
         Assert.assertTrue(animator.isStarted());

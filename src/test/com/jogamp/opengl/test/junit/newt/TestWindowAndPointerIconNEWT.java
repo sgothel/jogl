@@ -126,7 +126,7 @@ public class TestWindowAndPointerIconNEWT extends SingletonJunitCase {
 
         glWindow.destroy();
         if( NativeWindowFactory.isAWTAvailable() ) {
-            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
         }
     }
 

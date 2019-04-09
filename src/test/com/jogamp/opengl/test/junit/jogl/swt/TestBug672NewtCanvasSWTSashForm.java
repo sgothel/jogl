@@ -228,7 +228,7 @@ public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
               shell.open();
            }
         });
-        Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow, awtRobotWaitAction, true));
+        Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow, true, awtRobotWaitAction));
         Assert.assertNotNull( canvas1.getNativeWindow() );
 
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
@@ -272,7 +272,7 @@ public class TestBug672NewtCanvasSWTSashForm extends UITestCase {
 
         canvas1.dispose();
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
     }
 
     @Test

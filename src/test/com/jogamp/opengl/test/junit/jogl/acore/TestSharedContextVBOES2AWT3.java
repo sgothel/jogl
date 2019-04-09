@@ -41,6 +41,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
@@ -136,18 +137,18 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
 
         Thread.sleep(1000/60*10); // wait ~10 frames giving a chance to create (blocking until master share is valid)
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c1, true));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c1, true, null));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(c1, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(c1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c2, true));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c2, true, null));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(c2, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(c2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c3, true));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c3, true, null));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(c3, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(c3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
@@ -224,9 +225,9 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
                 }
             }});
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c3, false));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c1, false, null));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c2, false, null));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c3, false, null));
     }
 
     @Test
@@ -283,18 +284,18 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
 
         Thread.sleep(1000/60*10); // wait ~10 frames giving a chance to create (blocking until master share is valid)
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c1, true));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c1, true, null));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(c1, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(c1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c2, true));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c2, true, null));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(c2, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(c2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(c3, true));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c3, true, null));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(c3, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(c3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
@@ -375,9 +376,9 @@ public class TestSharedContextVBOES2AWT3 extends UITestCase {
                 }
             }});
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(c3, false));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c1, false, null));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c2, false, null));
+        Assert.assertTrue(GLTestUtil.waitForRealized(c3, false, null));
     }
 
     static long duration = 1000; // ms

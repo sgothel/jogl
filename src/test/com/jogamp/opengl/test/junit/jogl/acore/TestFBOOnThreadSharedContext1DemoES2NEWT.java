@@ -231,7 +231,7 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
         fbod1.destroy();
 
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
     }
 
     @Test

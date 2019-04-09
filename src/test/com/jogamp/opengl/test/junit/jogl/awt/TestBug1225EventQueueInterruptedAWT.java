@@ -171,9 +171,9 @@ public class TestBug1225EventQueueInterruptedAWT extends UITestCase {
         frame.getContentPane().add(panel, BorderLayout.CENTER);
         setVisible(frame, true);
         if( useGL ) {
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(glc, true));
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(glc, true, null));
         }
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(icomp, true));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(icomp, true, null));
 
         final InterruptableLoop loop = new InterruptableLoop(icomp, glc);
         final Thread thread = new Thread(loop);

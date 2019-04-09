@@ -99,25 +99,29 @@ public class NewtTestUtil extends TestUtil {
     }
 
     /**
-     *
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @return True if the Component becomes <code>visible</code> within TIME_OUT
      */
-    public static boolean waitForVisible(final Window win, final boolean visible) throws InterruptedException {
+    public static boolean waitForVisible(final Window win, final boolean visible, final Runnable waitAction) throws InterruptedException {
         int wait;
         for (wait=0; wait<POLL_DIVIDER && visible != win.isVisible(); wait++) {
-            Thread.sleep(TIME_SLICE);
+            if( null != waitAction ) {
+                waitAction.run();
+            } else {
+                Thread.sleep(TIME_SLICE);
+            }
         }
         return wait<POLL_DIVIDER;
     }
 
     /**
      * @param screen the Screen to wait for
-     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @param realized true if waiting for component to become realized, otherwise false
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @return True if the Component becomes realized (not displayable, native invalid) within TIME_OUT
      * @throws InterruptedException
      */
-    public static boolean waitForRealized(final Screen screen, final Runnable waitAction, final boolean realized) throws InterruptedException {
+    public static boolean waitForRealized(final Screen screen, final boolean realized, final Runnable waitAction) throws InterruptedException {
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
         while( (t1-t0) < TIME_OUT && realized != screen.isNativeValid() ) {
@@ -132,12 +136,12 @@ public class NewtTestUtil extends TestUtil {
     }
     /**
      * @param win the Window to wait for
-     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @param realized true if waiting for component to become realized, otherwise false
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @return True if the Component becomes realized (not displayable, native invalid) within TIME_OUT
      * @throws InterruptedException
      */
-    public static boolean waitForRealized(final Window win, final Runnable waitAction, final boolean realized) throws InterruptedException {
+    public static boolean waitForRealized(final Window win, final boolean realized, final Runnable waitAction) throws InterruptedException {
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
         while( (t1-t0) < TIME_OUT && realized != win.isNativeValid() ) {

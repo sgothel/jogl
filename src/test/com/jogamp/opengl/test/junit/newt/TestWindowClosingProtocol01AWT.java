@@ -69,8 +69,8 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
                 frame.validate();
                 frame.setVisible(true);
             } });
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true, null));
 
         //
         // close with op: DO_NOTHING_ON_CLOSE -> NOP (default)
@@ -130,8 +130,8 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
                 frame.validate();
                 frame.setVisible(true);
             } });
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true, null));
 
         //
         // close with op: DO_NOTHING_ON_CLOSE -> NOP / HIDE (default)
@@ -143,7 +143,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         Thread.sleep(300);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false, closingListener)); // hide
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, false)); // hide -> invisible
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, false, null)); // hide -> invisible
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(false, frame.isVisible());
         Assert.assertEquals(true,  glCanvas.isValid());
@@ -153,8 +153,8 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
             public void run() {
                 frame.setVisible(true);
             } });
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true, null));
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(true,  frame.isVisible());
 
@@ -167,7 +167,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true, closingListener));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, false));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, false, null));
         Assert.assertEquals(false, frame.isDisplayable());
         Assert.assertEquals(false, glCanvas.isValid());
         Assert.assertEquals(false, glCanvas.isDisplayable());

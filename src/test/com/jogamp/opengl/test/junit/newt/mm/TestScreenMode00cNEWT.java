@@ -110,7 +110,7 @@ public class TestScreenMode00cNEWT extends UITestCase {
     static void destroyWindow(final Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false, null));
         }
     }
 

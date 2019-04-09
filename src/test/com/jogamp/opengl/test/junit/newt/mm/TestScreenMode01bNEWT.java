@@ -105,7 +105,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
     static void destroyWindow(final Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false, null));
         }
     }
 
@@ -121,7 +121,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
             testScreenModeChangeImpl(screen, monitorVp.getX(), monitorVp.getY());
         } finally {
             screen.removeReference();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false, null));
         }
     }
 
@@ -141,7 +141,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
             testScreenModeChangeImpl(screen, monitorVp.getX(), monitorVp.getY());
         } finally {
             screen.removeReference();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false, null));
         }
     }
 

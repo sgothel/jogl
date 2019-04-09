@@ -155,8 +155,8 @@ public class TestBug816GLCanvasFrameHoppingB849B889AWT extends UITestCase {
                     frame2.setVisible(true);
                 }
             }});
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame1, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame1, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true, null));
         dumpGLCanvasStats(glCanvas);
 
         if(manual) {

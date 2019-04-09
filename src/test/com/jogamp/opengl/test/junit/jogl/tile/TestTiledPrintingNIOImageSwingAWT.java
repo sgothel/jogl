@@ -225,9 +225,9 @@ public class TestTiledPrintingNIOImageSwingAWT extends UITestCase  {
                     frame.setVisible(true);
                 } } ) ;
 
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel1, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel2, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel1, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel2, true, null));
 
         // paint offscreen: array 72dpi ARGB
         {

@@ -135,9 +135,9 @@ public class TestMultipleNewtCanvasAWT extends UITestCase {
             }
         });
 
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(openGLComponent1, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(openGLComponent2, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(openGLComponent1, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(openGLComponent2, true, null));
 
         animator.start();
 
@@ -157,9 +157,9 @@ public class TestMultipleNewtCanvasAWT extends UITestCase {
                 frame.dispose();
             }
         });
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, false));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(openGLComponent1, false));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(openGLComponent2, false));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, false, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(openGLComponent1, false, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(openGLComponent2, false, null));
     }
 
     static int atoi(final String a) {

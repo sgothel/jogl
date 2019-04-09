@@ -194,7 +194,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
             canvas1.setNEWTChild(glWindow1);
         }
 
-        Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow1, awtRobotWaitAction, true));
+        Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow1, true, awtRobotWaitAction));
 
         System.err.println("GLWindow LOS.0: "+glWindow1.getLocationOnScreen(null));
         System.err.println("NewtCanvasSWT LOS.0: "+canvas1.getNativeWindow().getLocationOnScreen(null));

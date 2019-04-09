@@ -40,9 +40,9 @@ import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
 
@@ -97,7 +97,8 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         dummyDrawable.setRealized(true);
         sharedDrawable = new GLAutoDrawableDelegate(dummyDrawable, null, null, true /*ownDevice*/, null) { };
         Assert.assertNotNull(sharedDrawable);
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(sharedDrawable, true));
+        final GLAutoDrawable obj = sharedDrawable;
+        Assert.assertTrue(GLTestUtil.waitForRealized(obj, true, null));
 
         sharedGears = new GearsES1();
         Assert.assertNotNull(sharedGears);
@@ -135,8 +136,8 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
         animator.add(glWindow);
 
         glWindow.setVisible(true);
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(glWindow, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(glWindow, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(glWindow, true));
 
         MiscUtils.dumpSharedGLContext("Master Context", sharedDrawable.getContext());

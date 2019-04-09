@@ -118,7 +118,7 @@ public class TestSharedContextListAWT extends UITestCase {
             public void run() {
                 frame.setVisible(true);
             } } );
-        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glCanvas, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glCanvas, true, null));
 
         return glCanvas;
     }
@@ -161,11 +161,11 @@ public class TestSharedContextListAWT extends UITestCase {
                 public void run() {
                     try {
                         f1.dispose();
-                        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc1, false));
+                        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc1, false, null));
                         f2.dispose();
-                        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc2, false));
+                        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc2, false, null));
                         f3.dispose();
-                        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc3, false));
+                        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc3, false, null));
                     } catch (final Throwable t) {
                         throw new RuntimeException(t);
                     }

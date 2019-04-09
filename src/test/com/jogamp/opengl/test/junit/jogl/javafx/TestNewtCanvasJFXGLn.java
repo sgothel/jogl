@@ -377,7 +377,7 @@ public class TestNewtCanvasJFXGLn extends UITestCase {
         }
 
         if( null != glWindow1 ) {
-            Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow1, awtRobotWaitAction, true));
+            Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow1, true, awtRobotWaitAction));
             System.err.println("GLWindow LOS.0: "+glWindow1.getLocationOnScreen(null));
             glWindow1.addWindowListener(new WindowAdapter() {
                 public void windowResized(final WindowEvent e) {

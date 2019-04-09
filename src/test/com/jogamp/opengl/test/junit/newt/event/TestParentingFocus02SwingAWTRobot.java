@@ -171,8 +171,8 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
             public void run() {
                 jFrame1.setVisible(true);
             } } );
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(jFrame1, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(jFrame1, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, true, null));
         AWTRobotUtil.clearAWTFocus(robot);
         Assert.assertTrue(AWTRobotUtil.toFrontAndRequestFocus(robot, jFrame1));
 
@@ -280,7 +280,7 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
                 } });
 
         glWindow1.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, false));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, false, null));
     }
 
     @Test

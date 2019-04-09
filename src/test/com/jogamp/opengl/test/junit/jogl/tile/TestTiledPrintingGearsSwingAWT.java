@@ -211,9 +211,9 @@ public class TestTiledPrintingGearsSwingAWT extends TiledPrintingAWTBase  {
                     frame.setVisible(true);
                 } } ) ;
 
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel1, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel2, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel1, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel2, true, null));
 
         animator.setUpdateFPSFrames(60, System.err);
         animator.start();

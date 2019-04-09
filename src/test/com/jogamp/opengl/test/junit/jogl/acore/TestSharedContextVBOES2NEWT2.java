@@ -38,7 +38,7 @@ import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -129,32 +129,32 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         animator.add(f3);
         f3.setVisible(true);
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f1, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f1, false, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f2, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f2, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f3, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f3, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, false));
 
         f1.setVisible(true); // kick off f1 GLContext .. and hence allow f2 + f3 creation
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f1, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f1, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f2, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f2, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f3, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f3, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
@@ -203,12 +203,12 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
             f2.destroy();
             f3.destroy();
         }
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f1, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f1, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f2, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f2, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f3, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f3, false, null));
     }
 
     @Test
@@ -251,31 +251,31 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         a3.start();
         f3.setVisible(true);
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f1, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f1, false, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, false));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f2, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f2, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, false));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f3, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f3, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, false));
 
         f1.setVisible(true); // kicks off f1 GLContext .. and hence gears of f2 + f3 completion
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f1, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f1, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f1, true));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f2, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f2, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f2, true));
         Assert.assertTrue("Gears2 not initialized", g2.waitForInit(true));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f3, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f3, true, null));
         Assert.assertTrue(GLTestUtil.waitForContextCreated(f3, true));
         Assert.assertTrue("Gears3 not initialized", g3.waitForInit(true));
 
@@ -330,12 +330,12 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
             f2.destroy();
             f3.destroy();
         }
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f1, false));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f2, false));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(f3, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(f3, false));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f1, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f1, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f2, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f2, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(f3, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(f3, false, null));
     }
 
     static long duration = 1000; // ms

@@ -67,8 +67,8 @@ public class NEWTGLContext {
         Assert.assertNotNull(window);
         window.setSize(width, height);
         window.setVisible(true);
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(window, true));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, true));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(window, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(window, true, null));
 
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         final GLDrawable drawable = factory.createGLDrawable(window);

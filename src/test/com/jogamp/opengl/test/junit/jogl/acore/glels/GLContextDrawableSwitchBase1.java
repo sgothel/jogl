@@ -208,11 +208,11 @@ public abstract class GLContextDrawableSwitchBase1 extends UITestCase {
 
         if( GLADType.GLCanvasOnscreen == gladType || GLADType.GLCanvasOffscreen == gladType ) {
             setFrameVisible(frame);
-            Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+            Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
         } else if( GLADType.GLWindow == gladType ) {
             ((GLWindow)glad).setVisible(true);
         }
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glad, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glad, true, null));
         Assert.assertNotNull(glad.getContext());
         Assert.assertTrue(glad.isRealized());
 
@@ -270,13 +270,13 @@ public abstract class GLContextDrawableSwitchBase1 extends UITestCase {
         }
         if( GLADType.GLCanvasOnscreen == gladType || GLADType.GLCanvasOffscreen == gladType ) {
             destroyFrame(frame);
-            Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, false));
+            Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, false, null));
         } else if( GLADType.GLWindow == gladType ) {
             glad.destroy();
         } else if( GLADType.GLOffscreen == gladType ) {
             glad.destroy();
         }
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glad, false));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glad, false, null));
 
         Assert.assertEquals(1, glelTracker.initCount);
         Assert.assertTrue(1 <= glelTracker.reshapeCount);

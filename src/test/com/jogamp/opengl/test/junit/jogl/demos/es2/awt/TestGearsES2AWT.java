@@ -283,8 +283,8 @@ public class TestGearsES2AWT extends UITestCase {
                }
                frame.setVisible(true);
             }});
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true, null));
 
         final float[] hasSurfacePixelScale1 = glCanvas.getCurrentSurfaceScale(new float[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+

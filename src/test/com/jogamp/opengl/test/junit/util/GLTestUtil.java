@@ -73,12 +73,12 @@ public class GLTestUtil extends TestUtil {
 
     /**
      * @param glad the GLAutoDrawable to wait for
-     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @param realized true if waiting for component to become realized, otherwise false
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @return True if the Component becomes realized (not displayable, native invalid) within TIME_OUT
      * @throws InterruptedException
      */
-    public static boolean waitForRealized(final GLAutoDrawable glad, final Runnable waitAction, final boolean realized) throws InterruptedException {
+    public static boolean waitForRealized(final GLAutoDrawable glad, final boolean realized, final Runnable waitAction) throws InterruptedException {
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
         while( (t1-t0) < TIME_OUT && realized != glad.isRealized() ) {

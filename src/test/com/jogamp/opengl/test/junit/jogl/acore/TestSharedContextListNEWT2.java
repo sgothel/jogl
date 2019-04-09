@@ -38,7 +38,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import org.junit.Assert;
@@ -108,8 +108,8 @@ public class TestSharedContextListNEWT2 extends UITestCase {
         animator.start();
         glWindow.setVisible(true);
 
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(glWindow, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(glWindow, true, null));
         glWindow.setPosition(x, y);
 
         return glWindow;

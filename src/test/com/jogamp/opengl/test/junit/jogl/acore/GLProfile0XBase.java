@@ -46,7 +46,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -872,8 +872,8 @@ public abstract class GLProfile0XBase extends UITestCase {
 
         glWindow.setSize(128, 128);
         glWindow.setVisible(true);
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, true));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(glWindow, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(glWindow, true, null));
 
         glWindow.display();
         Thread.sleep(100);
@@ -885,8 +885,8 @@ public abstract class GLProfile0XBase extends UITestCase {
                                glWindow.getContext().isCreatedWithARBMethod());
         }
         glWindow.destroy();
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow, false));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow, false));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(glWindow, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(glWindow, false, null));
     }
 
     protected void validateOnlineOffscreen(final String requestedProfile, final GLCapabilitiesImmutable caps)

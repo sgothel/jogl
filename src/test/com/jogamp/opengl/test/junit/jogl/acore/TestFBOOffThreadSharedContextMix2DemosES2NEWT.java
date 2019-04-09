@@ -258,7 +258,7 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         fbod2.destroy();
 
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
     }
 
     @Test

@@ -646,50 +646,42 @@ public class AWTRobotUtil extends TestUtil {
 
     /**
      *
+     * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
      * @return True if the Component becomes <code>visible</code> within TIME_OUT
      */
-    public static boolean waitForVisible(final Object obj, final boolean visible) throws InterruptedException {
-        int wait;
+    public static boolean waitForVisible(final Object obj, final boolean visible, final Runnable waitAction) throws InterruptedException {
         if(obj instanceof com.jogamp.newt.Window) {
-            final com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
-            for (wait=0; wait<POLL_DIVIDER && visible != win.isVisible(); wait++) {
-                Thread.sleep(TIME_SLICE);
-            }
+            return NewtTestUtil.waitForVisible((com.jogamp.newt.Window) obj, visible, waitAction);
         } else if(NativeWindowFactory.isAWTAvailable() && obj instanceof java.awt.Component) {
+            int wait;
             final java.awt.Component comp = (java.awt.Component) obj;
             for (wait=0; wait<POLL_DIVIDER && visible != comp.isShowing(); wait++) {
-                Thread.sleep(TIME_SLICE);
+                if( null != waitAction ) {
+                    waitAction.run();
+                } else {
+                    Thread.sleep(TIME_SLICE);
+                }
             }
+            return wait<POLL_DIVIDER;
         } else {
             throw new RuntimeException("Neither AWT nor NEWT: "+obj);
         }
-        return wait<POLL_DIVIDER;
     }
 
     /**
      * @param obj the component to wait for
      * @param realized true if waiting for component to become realized, otherwise false
-     * @return True if the Component becomes realized (not displayable, native invalid) within TIME_OUT
-     * @throws InterruptedException
-     */
-    public static boolean waitForRealized(final Object obj, final boolean realized) throws InterruptedException {
-        return waitForRealized(obj, null, realized);
-    }
-
-    /**
-     * @param obj the component to wait for
      * @param waitAction if not null, Runnable shall wait {@link #TIME_SLICE} ms, if appropriate
-     * @param realized true if waiting for component to become realized, otherwise false
      * @return True if the Component becomes realized (not displayable, native invalid) within TIME_OUT
      * @throws InterruptedException
      */
-    public static boolean waitForRealized(final Object obj, final Runnable waitAction, final boolean realized) throws InterruptedException {
+    public static boolean waitForRealized(final Object obj, final boolean realized, final Runnable waitAction) throws InterruptedException {
         if(obj instanceof com.jogamp.newt.Screen) {
-            return NewtTestUtil.waitForRealized((com.jogamp.newt.Screen) obj, waitAction, realized);
+            return NewtTestUtil.waitForRealized((com.jogamp.newt.Screen) obj, realized, waitAction);
         } else if(obj instanceof com.jogamp.newt.Window) {
-            return NewtTestUtil.waitForRealized((com.jogamp.newt.Window) obj, waitAction, realized);
+            return NewtTestUtil.waitForRealized((com.jogamp.newt.Window) obj, realized, waitAction);
         } else if(obj instanceof GLAutoDrawable) {
-            return GLTestUtil.waitForRealized((GLAutoDrawable) obj, waitAction, realized);
+            return GLTestUtil.waitForRealized((GLAutoDrawable) obj, realized, waitAction);
         } else if (NativeWindowFactory.isAWTAvailable() && obj instanceof java.awt.Component) {
             long t0 = System.currentTimeMillis();
             long t1 = t0;

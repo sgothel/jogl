@@ -119,7 +119,7 @@ public class TestScreenMode00bNEWT extends UITestCase {
 
         Assert.assertEquals(false,window.isVisible());
         Assert.assertEquals(false,window.isNativeValid());
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false, null));
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
     }

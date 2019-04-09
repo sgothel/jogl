@@ -143,7 +143,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
         Assert.assertFalse(animator.isStarted());
         glWindow.destroy();
         if( NativeWindowFactory.isAWTAvailable() ) {
-            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
         }
     }
 

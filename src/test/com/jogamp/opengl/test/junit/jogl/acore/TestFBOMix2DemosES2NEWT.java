@@ -206,7 +206,7 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
         Assert.assertFalse(animator.isAnimating());
         Assert.assertFalse(animator.isStarted());
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
     }
 
     @Test

@@ -170,9 +170,9 @@ public class TestTiledPrintingGearsNewtAWT extends TiledPrintingAWTBase  {
                 frame.pack();
                 frame.setVisible(true);
             }});
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(canvas1, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(canvas2, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(canvas1, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(canvas2, true, null));
 
         animator.setUpdateFPSFrames(60, System.err);
         animator.start();

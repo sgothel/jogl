@@ -50,8 +50,8 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
@@ -83,8 +83,8 @@ public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
         Assert.assertNotNull(window);
         window.setSize(640, 400);
         window.setVisible(true);
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(window, true));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, true));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(window, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(window, true, null));
         System.out.println("Window: "+window.getClass().getName());
 
         final GLDrawable drawable = factory.createGLDrawable(window);

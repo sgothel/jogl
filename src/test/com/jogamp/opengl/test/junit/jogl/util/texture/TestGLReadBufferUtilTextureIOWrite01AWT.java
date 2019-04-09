@@ -119,8 +119,8 @@ public class TestGLReadBufferUtilTextureIOWrite01AWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc, true));
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glc, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc, true, null));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glc, true, null));
         Assert.assertEquals(JAWTUtil.isOffscreenLayerSupported() && offscreenLayer,
                             glc.isOffscreenLayerSurfaceEnabled());
         animator.start();

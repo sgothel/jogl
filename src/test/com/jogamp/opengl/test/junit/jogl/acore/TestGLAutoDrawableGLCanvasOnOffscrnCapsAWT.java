@@ -32,6 +32,7 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.io.IOException;
 
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
@@ -134,8 +135,8 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
             Assume.assumeNoException( throwable );
         }
 
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(glad, true));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(glad, true));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(glad, true, null));
+        Assert.assertTrue(GLTestUtil.waitForRealized(glad, true, null));
         System.out.println("Window: "+glad.getClass().getName());
 
         // Check caps of NativeWindow config w/o GL
@@ -346,7 +347,7 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
             }
         }
         if(waitForKey) {
-            UITestCase.waitForKey("Start");
+            JunitTracer.waitForKey("Start");
         }
         org.junit.runner.JUnitCore.main(TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT.class.getName());
     }

@@ -51,8 +51,8 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.GLTestUtil;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -91,8 +91,8 @@ public class TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT extends UITestCase {
         Assert.assertNotNull(glad);
         glad.setSize(widthStep*szStep, heightStep*szStep);
         glad.setVisible(true);
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(glad, true));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(glad, true));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(glad, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(glad, true, null));
         System.out.println("Window: "+glad.getClass().getName());
 
         // Check caps of NativeWindow config w/o GL

@@ -263,8 +263,8 @@ public class TestGLJPanelTextureStateAWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        Assert.assertTrue("Component didn't become visible", AWTRobotUtil.waitForVisible(glc, true));
-        Assert.assertTrue("Component didn't become realized", AWTRobotUtil.waitForRealized(glc, true));
+        Assert.assertTrue("Component didn't become visible", AWTRobotUtil.waitForVisible(glc, true, null));
+        Assert.assertTrue("Component didn't become realized", AWTRobotUtil.waitForRealized(glc, true, null));
         Thread.sleep(100);
         setFrameSize(frame, true, glc_sz2);
         System.err.println("window resize pos/siz: "+glc.getX()+"/"+glc.getY()+" "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight());

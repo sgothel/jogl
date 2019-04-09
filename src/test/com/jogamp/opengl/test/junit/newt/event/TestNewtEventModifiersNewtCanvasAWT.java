@@ -83,9 +83,10 @@ public class TestNewtEventModifiersNewtCanvasAWT extends BaseNewtEventModifiers 
                 _testFrame.setVisible( true ) ;
             }
         } ) ;
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(_testFrame, true));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(_glWindow, true));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(_glWindow, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(_testFrame, true, null));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(_glWindow, true, null));
+        final Object obj = _glWindow;
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(obj, true, null));
 
         AWTRobotUtil.assertRequestFocusAndWait(null, _glWindow, _glWindow, null, null);  // programmatic
         Assert.assertNotNull(_robot);

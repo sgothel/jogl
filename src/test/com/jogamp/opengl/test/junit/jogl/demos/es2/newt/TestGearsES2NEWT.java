@@ -395,7 +395,7 @@ public class TestGearsES2NEWT extends UITestCase {
             glWindow2[0] = null;
         }
         if( NativeWindowFactory.isAWTAvailable() ) {
-            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
         }
     }
 

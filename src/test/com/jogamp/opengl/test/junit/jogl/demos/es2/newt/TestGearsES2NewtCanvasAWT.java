@@ -50,6 +50,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
@@ -312,8 +313,8 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                frame.setVisible(true);
            }
         });
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
+        Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, true, null));
 
         if( useAnimator ) {
             animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
@@ -355,7 +356,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
            }
         });
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
     }
 
     @Test

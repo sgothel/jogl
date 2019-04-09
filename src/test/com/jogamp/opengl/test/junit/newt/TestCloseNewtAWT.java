@@ -113,8 +113,9 @@ public class TestCloseNewtAWT extends UITestCase {
                 frame.setVisible(true);
             }
         });
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(newtWindow, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true, null));
+        final Object obj = newtWindow;
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(obj, true, null));
         final TestUtil.WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(frame);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true, closingListener));

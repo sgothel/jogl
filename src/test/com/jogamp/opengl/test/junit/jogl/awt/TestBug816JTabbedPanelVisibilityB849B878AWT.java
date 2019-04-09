@@ -118,8 +118,8 @@ public class TestBug816JTabbedPanelVisibilityB849B878AWT extends UITestCase {
                 System.err.println("XXX SetVisible ON XXX GLCanvas on Panel1("+id(panel1)+")");
                 frame.setVisible(true);
             }});
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true, null));
         dumpGLCanvasStats(glCanvas);
 
         if(manual) {

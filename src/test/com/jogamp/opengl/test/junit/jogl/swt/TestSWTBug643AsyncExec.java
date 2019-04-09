@@ -241,7 +241,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                 if( glWindowPreVisible ) {
                     newtDisplay.setEDTUtil(new SWTEDTUtil(newtDisplay, dsc.display)); // Especially Windows requires creation access via same thread!
                     glWindow.setVisible(true);
-                    AWTRobotUtil.waitForRealized(glWindow, true);
+                    AWTRobotUtil.waitForRealized(glWindow, true, null);
                     Thread.sleep(120); // let it render a bit, before consumed by SWT
                 }
                 glad = glWindow;

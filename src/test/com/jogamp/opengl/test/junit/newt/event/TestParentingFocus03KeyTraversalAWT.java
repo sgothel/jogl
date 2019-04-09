@@ -211,8 +211,8 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
                 frame1.validate();
                 frame1.setVisible(true);
             }});
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true));
-        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glWindow1, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true, null));
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glWindow1, true, null));
         Assert.assertEquals(newtCanvasAWT1.getNativeWindow(),glWindow1.getParent());
         AWTRobotUtil.clearAWTFocus(robot);
         Assert.assertTrue(AWTRobotUtil.toFrontAndRequestFocus(robot, frame1));

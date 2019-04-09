@@ -178,8 +178,8 @@ public class TestParenting01cSwingAWT extends UITestCase {
                jFrame1.setVisible(true);
            }
         });
-        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glWindow1, true));
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glWindow1, true, null));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true, null));
 
         // visible test
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
@@ -196,14 +196,14 @@ public class TestParenting01cSwingAWT extends UITestCase {
                     System.err.println("Demos: 3 - !Visible");
                     jFrame1.setVisible(false);
                 } });
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, false));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, false, null));
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     System.err.println("Demos: 4 - Visible");
                     jFrame1.setVisible(true);
                 } });
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true, null));
 
         final boolean wasOnscreen = glWindow1.getChosenCapabilities().isOnscreen();
 

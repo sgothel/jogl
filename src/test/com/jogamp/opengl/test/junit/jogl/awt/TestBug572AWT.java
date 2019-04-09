@@ -110,8 +110,8 @@ public class TestBug572AWT extends UITestCase {
             realizeAction.run();
 
             // Wait until it's displayable after issuing initial setVisible(true) on current thread (non AWT-EDT)!
-            Assert.assertTrue("GLCanvas didn't become visible", AWTRobotUtil.waitForVisible(glCanvas, true));
-            Assert.assertTrue("GLCanvas didn't become realized", AWTRobotUtil.waitForRealized(glCanvas, true)); // implies displayable
+            Assert.assertTrue("GLCanvas didn't become visible", AWTRobotUtil.waitForVisible(glCanvas, true, null));
+            Assert.assertTrue("GLCanvas didn't become realized", AWTRobotUtil.waitForRealized(glCanvas, true, null)); // implies displayable
         }
 
         System.err.println("XXXX-0 "+glCanvas.getDelegatedDrawable().isRealized()+", "+glCanvas);

@@ -57,7 +57,7 @@ import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.newt.parenting.NewtAWTReparentingKeyAdapter;
 import com.jogamp.opengl.test.junit.newt.parenting.NewtReparentingKeyAdapter;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
@@ -177,8 +177,8 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
 
         frame1.setSize(frameSize0);
         setupFrameAndShow(frame1, newtCanvasAWT1);
-        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glWindow1, true));
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true));
+        Assert.assertEquals(true, NewtTestUtil.waitForRealized(glWindow1, true, null));
+        Assert.assertEquals(true, NewtTestUtil.waitForVisible(glWindow1, true, null));
         Assert.assertEquals(newtCanvasAWT1.getNativeWindow(),glWindow1.getParent());
         Assert.assertEquals(true, newtCanvasAWT1.isOffscreenLayerSurfaceEnabled());
 

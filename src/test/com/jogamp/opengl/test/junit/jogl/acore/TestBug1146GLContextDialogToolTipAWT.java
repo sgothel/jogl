@@ -133,8 +133,8 @@ public class TestBug1146GLContextDialogToolTipAWT extends UITestCase {
             public void run()
             {
                 try {
-                    Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(fileChooser, true));
-                    Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(canvas1, true));
+                    Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(fileChooser, true, null));
+                    Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(canvas1, true, null));
 
                     final Point approveButtonPos;
                     final AbstractButton approveButton = findButton(0, fileChooser, approveButtonText);
@@ -174,7 +174,7 @@ public class TestBug1146GLContextDialogToolTipAWT extends UITestCase {
                         } catch (final InvocationTargetException e) {
                             e.printStackTrace();
                         }
-                        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(canvas2, true));
+                        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(canvas2, true, null));
                     }
                     if( null != cancelButtonPos ) {
                         AWTRobotUtil.mouseClick(robot, cancelButtonPos, MOVE_ITER, MOVE_DELAY, ACTION_DELAY);

@@ -219,8 +219,8 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
                         frame.pack();
                         frame.setVisible(true);
                     } } ) ;
-            Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel, true));
+            Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
+            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glJPanel, true, null));
 
             final float[] minSurfacePixelScale = glJPanel.getMinimumSurfaceScale(new float[2]);
             final float[] maxSurfacePixelScale = glJPanel.getMaximumSurfaceScale(new float[2]);

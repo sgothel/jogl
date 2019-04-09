@@ -115,8 +115,8 @@ public class TestBug816OSXCALayerPos03aB729AWT extends UITestCase {
                 frame.setSize(width, height);
                 frame.setVisible(true);
             }});
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas1, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas1, true, null));
 
         animator.start();
         Assert.assertTrue(animator.isStarted());

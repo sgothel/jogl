@@ -171,8 +171,8 @@ public class TestOffscreenLayer01GLCanvasAWT extends UITestCase {
 
         frame1.setSize(frameSize0);
         setupFrameAndShow(frame1, glc);
-        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc, true));
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glc, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc, true, null));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glc, true, null));
         Assert.assertEquals(true, glc.isOffscreenLayerSurfaceEnabled());
 
         final GLAnimatorControl animator1 = new Animator(glc);

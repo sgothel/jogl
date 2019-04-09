@@ -187,8 +187,8 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
             System.err.println("XXXX Visible Part 1/3");
             frameCount = 0;
             setFrameVisible(top[0], true);
-            Assert.assertTrue("Component didn't become visible", AWTRobotUtil.waitForVisible(glc, true));
-            Assert.assertTrue("Component didn't become realized", AWTRobotUtil.waitForRealized(glc, true));
+            Assert.assertTrue("Component didn't become visible", AWTRobotUtil.waitForVisible(glc, true, null));
+            Assert.assertTrue("Component didn't become realized", AWTRobotUtil.waitForRealized(glc, true, null));
 
             anim.setUpdateFPSFrames(60, System.err);
             anim.start();
@@ -200,7 +200,7 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
 
             System.err.println("XXXXX Invisible Part 2/3");
             setComponentVisible(glc, false);
-            Assert.assertTrue("Component didn't become invisible", AWTRobotUtil.waitForVisible(glc, false));
+            Assert.assertTrue("Component didn't become invisible", AWTRobotUtil.waitForVisible(glc, false, null));
             final int frameCountT0 = frameCount;
             anim.resetFPSCounter();
 
@@ -215,7 +215,7 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
 
             System.err.println("XXXX Visible Part 3/3");
             setComponentVisible(glc, true);
-            Assert.assertTrue("Component didn't become visible", AWTRobotUtil.waitForVisible(glc, true));
+            Assert.assertTrue("Component didn't become visible", AWTRobotUtil.waitForVisible(glc, true, null));
             anim.resetFPSCounter();
 
             while( anim.getTotalFPSDuration() < durationPerTest ) {

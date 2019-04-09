@@ -105,7 +105,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
     static void destroyWindow(final Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
-            AWTRobotUtil.waitForRealized(window, false); // don't override a previous assertion failure
+            AWTRobotUtil.waitForRealized(window, false, null); // don't override a previous assertion failure
         }
     }
 
@@ -121,7 +121,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX(), monitorVp.getY(), false, null);
         } finally {
             screen.removeReference();
-            AWTRobotUtil.waitForRealized(screen, false); // don't override a previous assertion failure
+            AWTRobotUtil.waitForRealized(screen, false, null); // don't override a previous assertion failure
         }
     }
 
@@ -141,7 +141,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX(), monitorVp.getY(), false, null);
         } finally {
             screen.removeReference();
-            AWTRobotUtil.waitForRealized(screen, false); // don't override a previous assertion failure
+            AWTRobotUtil.waitForRealized(screen, false, null); // don't override a previous assertion failure
         }
     }
 
@@ -164,7 +164,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX()+50, monitorVp.getY()+50, true, monitors);
         } finally {
             screen.removeReference();
-            AWTRobotUtil.waitForRealized(screen, false); // don't override a previous assertion failure
+            AWTRobotUtil.waitForRealized(screen, false, null); // don't override a previous assertion failure
         }
     }
 
@@ -184,7 +184,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX()-50, monitorVp.getY()+50, true, null);
         } finally {
             screen.removeReference();
-            AWTRobotUtil.waitForRealized(screen, false); // don't override a previous assertion failure
+            AWTRobotUtil.waitForRealized(screen, false, null); // don't override a previous assertion failure
         }
     }
 

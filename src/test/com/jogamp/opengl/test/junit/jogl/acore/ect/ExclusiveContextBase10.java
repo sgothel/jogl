@@ -183,7 +183,7 @@ public abstract class ExclusiveContextBase10 extends UITestCase {
         // Destroy GLWindows
         for(int i=0; i<drawableCount; i++) {
             destroyGLAutoDrawableVisible(drawables[i]);
-            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(drawables[i], false));
+            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(drawables[i], false, null));
         }
     }
 

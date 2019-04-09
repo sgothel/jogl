@@ -50,8 +50,8 @@ import com.jogamp.opengl.GLEventListenerState;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.GLEventListenerCounter;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -104,8 +104,8 @@ public class TestGLContextDrawableSwitch10NEWT extends UITestCase {
         window.setPosition(x, y);
         window.setSize(width, height);
         window.setVisible(true);
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(window, true));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, true));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(window, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(window, true, null));
 
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         final GLDrawable drawable = factory.createGLDrawable(window);

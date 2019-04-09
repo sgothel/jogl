@@ -172,7 +172,7 @@ public class TestBug1245JTabbedPanelCrashAWT extends UITestCase {
                 System.err.println("XXX SetVisible ON XXX");
                 frame.setVisible(true);
             } } );
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
         for(int i=0; i<views.length; i++) {
             System.err.printf("View "+i+": "+views[i]+",%n       "+views[i].getGLCanvasStats()+"%n%n");
         }
@@ -203,7 +203,7 @@ public class TestBug1245JTabbedPanelCrashAWT extends UITestCase {
                 System.err.println("XXX SetVisible OFF XXX");
                 frame.dispose();
             } });
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, false));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, false, null));
         System.err.println("XXX POST.DISPOSE: "+glelCounter);
     }
 
