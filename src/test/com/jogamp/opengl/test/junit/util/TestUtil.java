@@ -34,7 +34,7 @@ import com.jogamp.newt.Window;
 import jogamp.newt.WindowImplAccess;
 
 public abstract class TestUtil {
-    interface WindowClosingListener {
+    public static interface WindowClosingListener {
         void reset();
         public int getWindowClosingCount();
         public int getWindowClosedCount();
