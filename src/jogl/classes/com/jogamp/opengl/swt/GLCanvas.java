@@ -62,6 +62,7 @@ import jogamp.opengl.GLDrawableHelper;
 import jogamp.opengl.GLDrawableImpl;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -380,6 +381,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
       x11Window = 0;
       drawable = null;
       context = null;
+
+      // Bug 1362 fix or workaround: Seems SWT/GTK3 at least performs lazy initialization
+      // Minimal action required: setBackground of the parent canvas before reparenting!
+      setBackground(new Color(parent.getDisplay(), 255, 255, 255));
 
       final Listener listener = new Listener () {
           @Override

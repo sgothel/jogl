@@ -41,7 +41,6 @@ import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.NativeWindowHolder;
 import com.jogamp.nativewindow.SurfaceUpdatedListener;
 import com.jogamp.nativewindow.WindowClosingProtocol;
-import com.jogamp.nativewindow.WindowClosingProtocol.WindowClosingMode;
 import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.nativewindow.util.Point;
@@ -54,6 +53,7 @@ import jogamp.newt.Debug;
 import jogamp.newt.swt.SWTEDTUtil;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -138,6 +138,10 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         if(null != child) {
             setNEWTChild(child);
         }
+
+        // Bug 1362 fix or workaround: Seems SWT/GTK3 at least performs lazy initialization
+        // Minimal action required: setBackground of the parent canvas before reparenting!
+        setBackground(new Color(parent.getDisplay(), 255, 255, 255));
 
         final Listener listener = new Listener () {
             @Override

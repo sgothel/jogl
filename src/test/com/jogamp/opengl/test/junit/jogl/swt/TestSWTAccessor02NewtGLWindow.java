@@ -160,19 +160,9 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
             SWTAccessor.invoke(true, new Runnable() {
                 public void run() {
                     canvas[0] = new Canvas (composite, SWT.NO_BACKGROUND);
-                    // Bug 1362 fix or workaround: Seems GTK3 at least performs lazy initialization
-                    // Minimal action required: setBackground + fillRectangle of some space in canvas ONCE before reparenting!
-                    final boolean paintedOnce[] = { false };
+                    // Bug 1362 fix or workaround: Seems SWT/GTK3 at least performs lazy initialization
+                    // Minimal action required: setBackground of the parent canvas before reparenting!
                     canvas[0].setBackground(new Color(display, 255, 255, 255));
-                    canvas[0].addPaintListener (new PaintListener() {
-                        public void paintControl(final PaintEvent e) {
-                            if( !paintedOnce[0] ) {
-                                paintedOnce[0] = true;
-                                final Rectangle r = canvas[0].getClientArea();
-                                e.gc.fillRectangle(0, 0, r.width, r.height);
-                                canvas[0].removePaintListener(this);
-                            }
-                        }});
                     shell.setText( getClass().getName() );
                     shell.setBounds( 0, 0, 700, 700 );
                     shell.open();
