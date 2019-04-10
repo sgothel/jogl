@@ -79,7 +79,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
     private WindowClosingMode newtChildClosingMode = WindowClosingMode.DISPOSE_ON_CLOSE;
     private final WindowClosingMode closingMode = WindowClosingMode.DISPOSE_ON_CLOSE;
-    private volatile Rectangle clientArea;
+    private volatile Rectangle clientAreaPixels, clientAreaWindow;
 
     private volatile SWTNativeWindow nativeWindow;
     private volatile Window newtChild = null;
@@ -129,7 +129,8 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         SWTAccessor.setRealized(this, true);
 
-        clientArea = getClientArea();
+        clientAreaPixels = SWTAccessor.getClientAreaInPixels(this);
+        clientAreaWindow = getClientArea();
 
         final AbstractGraphicsDevice device = SWTAccessor.getDevice(this);
         screen = SWTAccessor.getScreen(device, -1 /* default */);
@@ -154,14 +155,14 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                     if( null != nativeWindow || validateNative() ) {
                         if( newtChildReady ) {
                             if( postSetSize ) {
-                                newtChild.setSize(clientArea.width, clientArea.height);
+                                newtChild.setSize(clientAreaPixels.width, clientAreaPixels.height);
                                 postSetSize = false;
                             }
                             if( postSetPos ) {
-                                newtChild.setPosition(clientArea.x, clientArea.y);
+                                newtChild.setPosition(clientAreaPixels.x, clientAreaPixels.y);
                                 postSetPos = false;
                             }
-                            newtChild.windowRepaint(0, 0, clientArea.width, clientArea.height);
+                            newtChild.windowRepaint(0, 0, clientAreaPixels.width, clientAreaPixels.height);
                         }
                     }
                     break;
@@ -175,7 +176,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                     if( DEBUG ) {
                         System.err.println("NewtCanvasSWT.Event.RESIZE, "+event);
                     }
-                    updateSizeCheck();
+                    updatePosSizeCheck(false);
                     break;
                 case SWT.Dispose:
                     if( DEBUG ) {
@@ -204,14 +205,14 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
     	}
     	if( SWTAccessor.isOSX ) {
             // Force newtChild to update its size and position (OSX only)
-    	    updatePosSizeCheck(x, y, width, height, true /* updatePos */);
+    	    updatePosSizeCheck(true /* updatePos */);
     	}
     }
 
     /** assumes nativeWindow == null ! */
     protected final boolean validateNative() {
-        updateSizeCheck();
-        final Rectangle nClientArea = clientArea;
+        updatePosSizeCheck(false);
+        final Rectangle nClientArea = clientAreaPixels;
         if(0 >= nClientArea.width || 0 >= nClientArea.height) {
             return false;
         }
@@ -249,46 +250,34 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         return null != nativeWindow;
     }
 
-    protected final void updateSizeCheck() {
-        final Rectangle nClientArea = getClientArea();
-        if( null != nClientArea ) {
-            updatePosSizeCheck(nClientArea.x, nClientArea.y, nClientArea.width, nClientArea.height, false /* updatePos */);
-        }
-    }
-    protected final void updatePosSizeCheck() {
-        final Rectangle nClientArea = getClientArea();
-        if( null != nClientArea ) {
-            updatePosSizeCheck(nClientArea.x, nClientArea.y, nClientArea.width, nClientArea.height, true /* updatePos */);
-        }
-    }
-    protected final void updatePosSizeCheck(final int newX, final int newY, final int newWidth, final int newHeight, final boolean updatePos) {
+    protected final void updatePosSizeCheck(final boolean updatePos) {
         final boolean sizeChanged, posChanged;
-        final Rectangle nClientArea;
+        Rectangle nClientAreaPixels = SWTAccessor.getClientAreaInPixels(this);
         {
-            final Rectangle oClientArea = clientArea;
-            sizeChanged = newWidth != oClientArea.width || newHeight != oClientArea.height;
-            posChanged = newX != oClientArea.x || newY != oClientArea.y;
+            final Rectangle oClientAreaPixels = clientAreaPixels;
+            sizeChanged = nClientAreaPixels.width != oClientAreaPixels.width || nClientAreaPixels.height != oClientAreaPixels.height;
+            posChanged = nClientAreaPixels.x != oClientAreaPixels.x || nClientAreaPixels.y != oClientAreaPixels.y;
             if( sizeChanged || posChanged ) {
-                nClientArea = new Rectangle(updatePos ? newX : oClientArea.x, updatePos ? newY : oClientArea.y, newWidth, newHeight);
-                clientArea = nClientArea;
+                clientAreaPixels = nClientAreaPixels;
+                clientAreaWindow = getClientArea();
             } else {
-                nClientArea = clientArea;
+                nClientAreaPixels = clientAreaPixels;
             }
         }
         if(DEBUG) {
             final long nsh = newtChildReady ? newtChild.getSurfaceHandle() : 0;
-            System.err.println("NewtCanvasSWT.updatePosSizeCheck: sizeChanged "+sizeChanged+", posChanged "+posChanged+", updatePos "+updatePos+", ("+Thread.currentThread().getName()+"): newtChildReady "+newtChildReady+", "+nClientArea.x+"/"+nClientArea.y+" "+nClientArea.width+"x"+nClientArea.height+" - surfaceHandle 0x"+Long.toHexString(nsh));
+            System.err.println("NewtCanvasSWT.updatePosSizeCheck: sizeChanged "+sizeChanged+", posChanged "+posChanged+", updatePos "+updatePos+", ("+Thread.currentThread().getName()+"): newtChildReady "+newtChildReady+", "+nClientAreaPixels.x+"/"+nClientAreaPixels.y+" "+nClientAreaPixels.width+"x"+nClientAreaPixels.height+" - surfaceHandle 0x"+Long.toHexString(nsh));
         }
         if( sizeChanged ) {
             if( newtChildReady ) {
-                newtChild.setSize(nClientArea.width, nClientArea.height);
+                newtChild.setSize(nClientAreaPixels.width, nClientAreaPixels.height);
             } else {
                 postSetSize = true;
             }
         }
         if( updatePos && posChanged ) {
             if( newtChildReady ) {
-                newtChild.setPosition(nClientArea.x, nClientArea.y);
+                newtChild.setPosition(nClientAreaPixels.x, nClientAreaPixels.y);
             } else {
                 postSetPos = true;
             }
@@ -437,9 +426,9 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         newtChild.setFocusAction(null); // no AWT focus traversal ..
         if(add) {
-            updateSizeCheck();
-            final int w = clientArea.width;
-            final int h = clientArea.height;
+            updatePosSizeCheck(false);
+            final int w = clientAreaPixels.width;
+            final int h = clientAreaPixels.height;
 
             // set SWT EDT and start it
             {
@@ -557,12 +546,12 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         @Override
         public int getSurfaceWidth() {
-            return clientArea.width;
+            return clientAreaPixels.width;
         }
 
         @Override
         public int getSurfaceHeight() {
-            return clientArea.height;
+            return clientAreaPixels.height;
         }
 
         @Override

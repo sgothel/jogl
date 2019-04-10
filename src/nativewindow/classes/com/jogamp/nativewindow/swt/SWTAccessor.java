@@ -35,7 +35,9 @@ import java.security.PrivilegedAction;
 
 import org.eclipse.swt.graphics.GCData;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.internal.DPIUtil;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Scrollable;
 
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.NativeWindowException;
@@ -55,6 +57,8 @@ import jogamp.nativewindow.Debug;
 
 public class SWTAccessor {
     private static final boolean DEBUG = Debug.debug("SWT");
+
+    private static final Method swt_scrollable_clientAreaInPixels;
 
     private static final Field swt_control_handle;
     private static final boolean swt_uses_long_handles;
@@ -139,6 +143,18 @@ public class SWTAccessor {
         isWindows = NativeWindowFactory.TYPE_WINDOWS == nwt;
         isX11 = NativeWindowFactory.TYPE_X11 == nwt;
 
+        Method m = null;
+        try {
+            m = Scrollable.class.getDeclaredMethod("getClientAreaInPixels");
+            m.setAccessible(true);
+        } catch (final Exception ex) {
+            m = null;
+            if( DEBUG ) {
+                System.err.println("getClientAreaInPixels not implemented: "+ex.getMessage());
+            }
+        }
+        swt_scrollable_clientAreaInPixels = m;
+
         Field f = null;
         if( !isOSX ) {
             try {
@@ -159,7 +175,7 @@ public class SWTAccessor {
         // System.err.println("SWT long handles: " + swt_uses_long_handles);
         // System.err.println("Platform 64bit: "+Platform.is64Bit());
 
-        Method m=null;
+        m=null;
         try {
             m = ReflectionUtil.getMethod(Control.class, str_internal_new_GC, new Class[] { GCData.class });
         } catch (final Exception ex) {
@@ -167,6 +183,7 @@ public class SWTAccessor {
         }
         swt_control_internal_new_GC = m;
 
+        m=null;
         try {
             if(swt_uses_long_handles) {
                 m = Control.class.getDeclaredMethod(str_internal_dispose_GC, new Class[] { long.class, GCData.class });
@@ -348,6 +365,43 @@ public class SWTAccessor {
     //
     // Common any toolkit
     //
+
+    /**
+     * Returns the unscaled {@link Scrollable#getClientArea()} in pixels.
+     * <p>
+     * If the package restricted method {@link Scrollable#getClientAreaInPixels()}
+     * is implemented, we return its result.
+     * </p>
+     * <p>
+     * Fallback is to return {@link DPIUtil#autoScaleUp(Rectangle) DPIUtil#autoScaleUp}({@link Scrollable#getClientArea()}),
+     * reverting  {@link Scrollable#getClientArea()}'s {@link DPIUtil#autoScaleDown(Rectangle)}.
+     * </p>
+     * <p>
+     * Note to SWT's API spec writers: You need to allow access to the unscaled value, scale properties and define what is being scaled (fonts, images, ..).
+     * Further more the scale should be separate for x/y coordinates, as DPI differs here.
+     * </p>
+     * <p>
+     * Note to Eclipse authors: Scaling up the fonts and images hardly works on GTK/SWT/Eclipse.
+     * GDK_SCALE, GDK_DPI_SCALE and swt.autoScale produce inconsistent results with Eclipse.
+     * Broken High-DPI for .. some years now.
+     * </p>
+     *
+     * Requires SWT >= 3.105 (DPIUtil)
+     *
+     * @param s the {@link Scrollable} instance
+     * @return unscaled client area in pixels, see above
+     * @throws NativeWindowException during invocation of the method, if any
+     */
+    public static Rectangle getClientAreaInPixels(final Scrollable s) throws NativeWindowException {
+        if( null == swt_scrollable_clientAreaInPixels ) {
+            return DPIUtil.autoScaleUp(s.getClientArea());
+        }
+        try {
+            return (Rectangle) swt_scrollable_clientAreaInPixels.invoke(s);
+        } catch (final Throwable e) {
+            throw new NativeWindowException(e);
+        }
+    }
 
     /**
      * @param swtControl the SWT Control to retrieve the native widget-handle from

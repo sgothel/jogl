@@ -114,13 +114,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    private final GLCapabilitiesImmutable capsRequested;
    private final GLCapabilitiesChooser capsChooser;
 
-   private volatile Rectangle clientArea;
+   private volatile Rectangle clientAreaPixels, clientAreaWindow;
    private volatile GLDrawableImpl drawable; // volatile: avoid locking for read-only access
    private volatile GLContextImpl context; // volatile: avoid locking for read-only access
 
    /* Native window surface */
    private final boolean useX11GTK;
-   private volatile long gdkWindow; // either GDK child window ..
    private volatile long x11Window; // .. or X11 child window (for GL rendering)
    private final AbstractGraphicsScreen screen;
 
@@ -154,7 +153,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
       @Override
       public void run() {
          if (sendReshape) {
-            helper.reshape(GLCanvas.this, 0, 0, clientArea.width, clientArea.height);
+            helper.reshape(GLCanvas.this, 0, 0, clientAreaPixels.width, clientAreaPixels.height);
             sendReshape = false;
          }
          helper.display(GLCanvas.this);
@@ -243,9 +242,6 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
                  if( 0 != x11Window) {
                      SWTAccessor.destroyX11Window(screen.getDevice(), x11Window);
                      x11Window = 0;
-                 } else if( 0 != gdkWindow) {
-                     SWTAccessor.destroyGDKWindow(gdkWindow);
-                     gdkWindow = 0;
                  }
                  screen.getDevice().close();
              } catch (final Throwable re) {
@@ -349,7 +345,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
 
       SWTAccessor.setRealized(this, true);
 
-      clientArea = GLCanvas.this.getClientArea();
+      clientAreaPixels = SWTAccessor.getClientAreaInPixels(this);
+      clientAreaWindow = getClientArea();
 
       /* Get the nativewindow-Graphics Device associated with this control (which is determined by the parent Composite).
        * Note: SWT is owner of the native handle, hence closing operation will be a NOP. */
@@ -377,7 +374,6 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
       this.capsChooser = capsChooser;
 
       // post create .. when ready
-      gdkWindow = 0;
       x11Window = 0;
       drawable = null;
       context = null;
@@ -426,17 +422,17 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
 
        @Override
        public final int getSurfaceWidth(final ProxySurface s) {
-           return clientArea.width;
+           return clientAreaPixels.width;
        }
 
        @Override
        public final int getSurfaceHeight(final ProxySurface s) {
-           return clientArea.height;
+           return clientAreaPixels.height;
        }
 
        @Override
        public String toString() {
-           return "SWTCanvasUpstreamSurfaceHook[upstream: "+GLCanvas.this.toString()+", "+clientArea.width+"x"+clientArea.height+"]";
+           return "SWTCanvasUpstreamSurfaceHook[upstream: "+GLCanvas.this.toString()+", "+clientAreaPixels.width+"x"+clientAreaPixels.height+" [pixel], "+clientAreaWindow.width+"x"+clientAreaWindow.height+" [win]]";
        }
 
        /**
@@ -452,25 +448,27 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
    };
 
    protected final void updateSizeCheck() {
-      final Rectangle oClientArea = clientArea;
-      final Rectangle nClientArea = GLCanvas.this.getClientArea();
-      if ( nClientArea != null &&
-           ( nClientArea.width != oClientArea.width || nClientArea.height != oClientArea.height )
+      final Rectangle oClientAreaPixels = clientAreaPixels;
+      final Rectangle nClientAreaPixels = SWTAccessor.getClientAreaInPixels(this);
+
+      if ( nClientAreaPixels != null &&
+           ( nClientAreaPixels.width != oClientAreaPixels.width || nClientAreaPixels.height != oClientAreaPixels.height )
          ) {
-          clientArea = nClientArea; // write back new value
+          clientAreaPixels = nClientAreaPixels; // write back new value
+          clientAreaWindow = getClientArea();
 
           final GLDrawableImpl _drawable = drawable;
           final boolean drawableOK = null != _drawable && _drawable.isRealized();
           if(DEBUG) {
               final long dh = drawableOK ? _drawable.getHandle() : 0;
-              System.err.println(getThreadName()+": GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+nClientArea.x+"/"+nClientArea.y+" "+nClientArea.width+"x"+nClientArea.height+" - drawableHandle "+toHexString(dh));
+              System.err.println(getThreadName()+": GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+nClientAreaPixels.x+"/"+nClientAreaPixels.y+" "+nClientAreaPixels.width+"x"+nClientAreaPixels.height+" - drawableHandle "+toHexString(dh));
           }
           if( drawableOK ) {
               if( ! _drawable.getChosenGLCapabilities().isOnscreen() ) {
                   final RecursiveLock _lock = lock;
                   _lock.lock();
                   try {
-                      final GLDrawableImpl _drawableNew = GLDrawableHelper.resizeOffscreenDrawable(_drawable, context, nClientArea.width, nClientArea.height);
+                      final GLDrawableImpl _drawableNew = GLDrawableHelper.resizeOffscreenDrawable(_drawable, context, nClientAreaPixels.width, nClientAreaPixels.height);
                       if(_drawable != _drawableNew) {
                           // write back
                           drawable = _drawableNew;
@@ -481,9 +479,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
               }
           }
           if(0 != x11Window) {
-              SWTAccessor.resizeX11Window(screen.getDevice(), clientArea, x11Window);
-          } else if(0 != gdkWindow) {
-              SWTAccessor.resizeGDKWindow(clientArea, gdkWindow);
+              SWTAccessor.resizeX11Window(screen.getDevice(), clientAreaPixels, x11Window);
           }
           sendReshape = true; // async if display() doesn't get called below, but avoiding deadlock
       }
@@ -553,7 +549,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
       return res;
    }
    private final void createDrawableImpl() {
-       final Rectangle nClientArea = clientArea;
+       final Rectangle nClientArea = clientAreaPixels;
        if(0 >= nClientArea.width || 0 >= nClientArea.height) {
           if(DEBUG) {
               System.err.println(getThreadName()+": SWT.GLCanvas.validate.X "+toHexString(hashCode())+": drawable could not be created: size < 0x0");
@@ -578,7 +574,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
            if( VisualIDHolder.VID_UNDEFINED != visualID ) {
                // gdkWindow = SWTAccessor.createCompatibleGDKChildWindow(this, visualID, clientArea.width, clientArea.height);
                // nativeWindowHandle = SWTAccessor.gdk_window_get_xwindow(gdkWindow);
-               x11Window = SWTAccessor.createCompatibleX11ChildWindow(screen, this, visualID, clientArea.width, clientArea.height);
+               x11Window = SWTAccessor.createCompatibleX11ChildWindow(screen, this, visualID, clientAreaPixels.width, clientAreaPixels.height);
                nativeWindowHandle = x11Window;
            } else {
               throw new GLException("Could not choose valid visualID: "+toHexString(visualID)+", "+this);
@@ -674,12 +670,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
 
    @Override
    public int getSurfaceWidth() {
-      return clientArea.width;
+      return clientAreaPixels.width;
    }
 
    @Override
    public int getSurfaceHeight() {
-      return clientArea.height;
+      return clientAreaPixels.height;
    }
 
    @Override
