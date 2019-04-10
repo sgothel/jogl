@@ -60,6 +60,7 @@ import com.jogamp.newt.opengl.GLWindow ;
 import com.jogamp.newt.swt.NewtCanvasSWT ;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -349,7 +350,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                dsc.shell.setSize( 400, 450 ) ;
                dsc.shell.open() ;
             } } );
-        Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow, true, dsc.awtRobotWaitAction));
+        Assert.assertTrue("GLWindow didn't become visible natively!", NewtTestUtil.waitForRealized(glWindow, true, dsc.awtRobotWaitAction));
 
         AWTRobotUtil.requestFocus(robot, glWindow, false);
         AWTRobotUtil.setMouseToClientLocation(robot, glWindow, 50, 50);

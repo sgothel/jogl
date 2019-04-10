@@ -253,7 +253,7 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
         glWindow1KA.setVerbose(false);
         glWindow.addKeyListener(glWindow1KA);
 
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true, null));
+        Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, true, null));
 
         // Continuous animation ..
         final Animator animator = new Animator(glWindow);

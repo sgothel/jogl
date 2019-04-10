@@ -356,7 +356,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
            }
         });
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
+        Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, false, null));
     }
 
     @Test

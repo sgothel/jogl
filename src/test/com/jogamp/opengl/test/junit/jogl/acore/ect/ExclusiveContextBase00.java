@@ -30,10 +30,9 @@ package com.jogamp.opengl.test.junit.jogl.acore.ect;
 
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
-import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -361,7 +360,7 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
         // Destroy GLWindows
         for(int i=0; i<drawableCount; i++) {
             destroyGLAutoDrawableVisible(drawables[i]);
-            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(drawables[i], false, null));
+            Assert.assertEquals(true,  GLTestUtil.waitForRealized(drawables[i], false, null));
         }
     }
 

@@ -211,8 +211,8 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
                 frame1.validate();
                 frame1.setVisible(true);
             }});
-        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true, null));
-        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glWindow1, true, null));
+        Assert.assertEquals(true, NewtTestUtil.waitForVisible(glWindow1, true, null));
+        Assert.assertEquals(true, NewtTestUtil.waitForRealized(glWindow1, true, null));
         Assert.assertEquals(newtCanvasAWT1.getNativeWindow(),glWindow1.getParent());
         AWTRobotUtil.clearAWTFocus(robot);
         Assert.assertTrue(AWTRobotUtil.toFrontAndRequestFocus(robot, frame1));
@@ -236,7 +236,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
 
             // bWest -> glWin
             AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_TAB, cWest, null);
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA, null));
+            Assert.assertTrue("Did not gain focus", NewtTestUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA, null));
             Assert.assertEquals(true,  glWindow1FA.focusGained());
             Assert.assertEquals(true,  bWestFA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
@@ -253,7 +253,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
             //
             // bEast -> glWin
             AWTRobotUtil.keyType(0, robot, java.awt.event.KeyEvent.VK_BACK_SPACE, cEast, null);
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bEastFA, null));
+            Assert.assertTrue("Did not gain focus", NewtTestUtil.waitForFocus(glWindow1, glWindow1FA, bEastFA, null));
             Assert.assertEquals(true,  glWindow1FA.focusGained());
             Assert.assertEquals(true,  bEastFA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
@@ -272,7 +272,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
                    }
                 });
             } catch (final Exception ex) { ex.printStackTrace(); }
-            Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA, null));
+            Assert.assertTrue("Did not gain focus", NewtTestUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA, null));
             Assert.assertEquals(true,  glWindow1FA.focusGained());
             Assert.assertEquals(true,  bWestFA.focusLost());
             Thread.sleep(durationPerTest/numFocus);
@@ -295,7 +295,7 @@ public class TestParentingFocus03KeyTraversalAWT extends UITestCase {
             {
                 // Short: Assert.assertTrue("Did not gain focus", AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA));
                 // More verbose:
-                final boolean ok = AWTRobotUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA, null);
+                final boolean ok = NewtTestUtil.waitForFocus(glWindow1, glWindow1FA, bWestFA, null);
                 System.err.println("glWindow hasFocus "+glWindow1.hasFocus());
                 System.err.println("glWindow1FA "+glWindow1FA);
                 System.err.println("bWestFA "+bWestFA);

@@ -43,9 +43,9 @@ import com.jogamp.newt.opengl.*;
 
 import java.io.IOException;
 
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -147,8 +147,8 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
 
         // destruction.. ref count down, but keep all
         window.destroy();
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false, null));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(window, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(screen, false, null));
 
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
@@ -195,8 +195,8 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         System.err.println("duration: "+window.getTotalFPSDuration());
 
         window.destroy();
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false, null));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(window, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(screen, false, null));
 
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(false,window.isNativeValid());
@@ -300,7 +300,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
 
         // destruction ...
         window1.destroy();
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(window1, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(window1, false, null));
 
         Assert.assertNotNull(window1.getScreen());
         Assert.assertEquals(false,window1.isNativeValid());
@@ -317,8 +317,8 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
 
         // destruction
         window2.destroy();
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(window2, false, null));
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(window2, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(screen, false, null));
 
         Assert.assertNotNull(window2.getScreen());
         Assert.assertEquals(false,window2.isNativeValid());

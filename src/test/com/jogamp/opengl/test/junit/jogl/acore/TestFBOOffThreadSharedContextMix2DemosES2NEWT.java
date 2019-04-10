@@ -35,8 +35,8 @@ import java.io.InputStreamReader;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
@@ -258,7 +258,7 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         fbod2.destroy();
 
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
+        Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, false, null));
     }
 
     @Test

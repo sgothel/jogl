@@ -46,8 +46,8 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
@@ -126,7 +126,7 @@ public class TestWindowAndPointerIconNEWT extends SingletonJunitCase {
 
         glWindow.destroy();
         if( NativeWindowFactory.isAWTAvailable() ) {
-            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
+            Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, false, null));
         }
     }
 

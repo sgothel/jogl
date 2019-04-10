@@ -31,7 +31,6 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import com.jogamp.common.util.InterruptSource;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.KeyAdapter;
@@ -40,7 +39,6 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.swt.NewtCanvasSWT;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NewtTestUtil;
@@ -258,7 +256,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
 
         canvas1.dispose();
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
+        Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, false, null));
     }
 
     @Test

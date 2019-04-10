@@ -166,7 +166,7 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         final SimpleKeyPressRelease simpleKeyPressRelease = new SimpleKeyPressRelease();
         glWindow.addKeyListener(simpleKeyPressRelease);
 
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true, null));
+        Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, true, null));
 
         // Continuous animation ..
         final Animator animator = new Animator(glWindow);

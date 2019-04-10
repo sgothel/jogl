@@ -57,6 +57,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -194,7 +195,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
             canvas1.setNEWTChild(glWindow1);
         }
 
-        Assert.assertTrue("GLWindow didn't become visible natively!", AWTRobotUtil.waitForRealized(glWindow1, true, awtRobotWaitAction));
+        Assert.assertTrue("GLWindow didn't become visible natively!", NewtTestUtil.waitForRealized(glWindow1, true, awtRobotWaitAction));
 
         System.err.println("GLWindow LOS.0: "+glWindow1.getLocationOnScreen(null));
         System.err.println("NewtCanvasSWT LOS.0: "+canvas1.getNativeWindow().getLocationOnScreen(null));

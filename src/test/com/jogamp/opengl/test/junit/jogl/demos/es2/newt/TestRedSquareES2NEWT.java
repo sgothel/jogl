@@ -31,8 +31,8 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
@@ -143,7 +143,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
         Assert.assertFalse(animator.isStarted());
         glWindow.destroy();
         if( NativeWindowFactory.isAWTAvailable() ) {
-            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
+            Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, false, null));
         }
     }
 

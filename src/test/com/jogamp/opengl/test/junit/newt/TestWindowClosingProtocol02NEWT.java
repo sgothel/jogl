@@ -44,7 +44,7 @@ import com.jogamp.newt.opengl.GLWindow;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.TestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -56,7 +56,7 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         final GLWindow glWindow = GLWindow.create(caps);
-        final TestUtil.WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(glWindow);
+        final TestUtil.WindowClosingListener closingListener = NewtTestUtil.addClosingListener(glWindow);
 
         glWindow.addGLEventListener(new GearsES2());
         glWindow.setSize(512, 512);
@@ -76,7 +76,7 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
 
         Thread.sleep(300);
 
-        Assert.assertEquals(true, AWTRobotUtil.closeWindow(glWindow, false, closingListener, null)); // nop
+        Assert.assertEquals(true, NewtTestUtil.closeWindow(glWindow, false, closingListener, null)); // nop
         Assert.assertEquals(true, glWindow.isNativeValid());
         Assert.assertEquals(true, closingListener.isWindowClosing());
         closingListener.reset();
@@ -88,7 +88,7 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         op = glWindow.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
 
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(glWindow, true, closingListener, null));
+        Assert.assertEquals(true,  NewtTestUtil.closeWindow(glWindow, true, closingListener, null));
         Assert.assertEquals(false, glWindow.isNativeValid());
         Assert.assertEquals(true,  closingListener.isWindowClosing());
     }

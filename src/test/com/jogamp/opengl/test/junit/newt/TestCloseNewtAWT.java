@@ -47,8 +47,8 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.TestUtil;
-import com.jogamp.opengl.test.junit.util.TestUtil.WindowClosingListener;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -114,8 +114,8 @@ public class TestCloseNewtAWT extends UITestCase {
             }
         });
         Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true, null));
-        final Object obj = newtWindow;
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(obj, true, null));
+        final GLWindow obj = newtWindow;
+        Assert.assertEquals(true,  NewtTestUtil.waitForRealized(obj, true, null));
         final TestUtil.WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(frame);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true, closingListener, null));

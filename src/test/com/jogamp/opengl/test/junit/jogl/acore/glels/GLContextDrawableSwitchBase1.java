@@ -49,6 +49,8 @@ import com.jogamp.opengl.GLEventListenerState;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.GLEventListenerCounter;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import org.junit.Assert;
@@ -212,7 +214,7 @@ public abstract class GLContextDrawableSwitchBase1 extends UITestCase {
         } else if( GLADType.GLWindow == gladType ) {
             ((GLWindow)glad).setVisible(true);
         }
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glad, true, null));
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(glad, true, null));
         Assert.assertNotNull(glad.getContext());
         Assert.assertTrue(glad.isRealized());
 
@@ -235,10 +237,10 @@ public abstract class GLContextDrawableSwitchBase1 extends UITestCase {
             Assert.assertEquals(false, glelsIn.isOwner());
         }
 
-        for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER &&
+        for (int wait=0; wait<TestUtil.POLL_DIVIDER &&
                          ( 1 > glelTracker.initCount || 1 > glelTracker.reshapeCount || 1 > glelTracker.displayCount );
              wait++) {
-            Thread.sleep(AWTRobotUtil.TIME_SLICE);
+            Thread.sleep(TestUtil.TIME_SLICE);
         }
 
         final long t0 = System.currentTimeMillis();
@@ -276,7 +278,7 @@ public abstract class GLContextDrawableSwitchBase1 extends UITestCase {
         } else if( GLADType.GLOffscreen == gladType ) {
             glad.destroy();
         }
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glad, false, null));
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(glad, false, null));
 
         Assert.assertEquals(1, glelTracker.initCount);
         Assert.assertTrue(1 <= glelTracker.reshapeCount);

@@ -766,7 +766,7 @@ function testawtswt() {
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestBug672NewtCanvasSWTSashForm $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestBug672NewtCanvasSWTSashFormComposite $*
-testswt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
+#testswt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 
 #
 # awtswt (testawtswt) 
@@ -814,7 +814,7 @@ testswt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 #testawt com.jogamp.opengl.test.junit.newt.DemoCreateAndDisposeOnCloseNEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 #testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestMultipleNewtCanvasAWT $*
 

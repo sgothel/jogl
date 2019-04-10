@@ -47,6 +47,7 @@ import com.jogamp.newt.awt.NewtCanvasAWT ;
 import com.jogamp.newt.opengl.GLWindow ;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 
 /**
  * Test whether or not event modifiers are preserved by NEWT when
@@ -84,9 +85,9 @@ public class TestNewtEventModifiersNewtCanvasAWT extends BaseNewtEventModifiers 
             }
         } ) ;
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(_testFrame, true, null));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(_glWindow, true, null));
-        final Object obj = _glWindow;
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(obj, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(_glWindow, true, null));
+        final GLWindow obj = _glWindow;
+        Assert.assertTrue(NewtTestUtil.waitForRealized(obj, true, null));
 
         AWTRobotUtil.assertRequestFocusAndWait(null, _glWindow, _glWindow, null, null);  // programmatic
         Assert.assertNotNull(_robot);

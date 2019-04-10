@@ -114,8 +114,8 @@ public class TestParenting01aAWT extends UITestCase {
         final Animator animator1 = new Animator(glWindow1);
         animator1.setUpdateFPSFrames(1, null);
         animator1.start();
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(glWindow1, true, null));
-        Assert.assertTrue(AWTRobotUtil.waitForVisible(glWindow1, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(glWindow1, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForVisible(glWindow1, true, null));
 
         while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);

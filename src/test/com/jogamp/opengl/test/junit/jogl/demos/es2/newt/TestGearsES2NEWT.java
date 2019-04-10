@@ -44,15 +44,14 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.newt.util.EDTUtil;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.jogl.demos.GLClearOnInitReshape;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.LineSquareXDemoES2;
-import com.jogamp.opengl.test.junit.newt.parenting.NewtReparentingKeyAdapter;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.util.Dimension;
@@ -395,7 +394,7 @@ public class TestGearsES2NEWT extends UITestCase {
             glWindow2[0] = null;
         }
         if( NativeWindowFactory.isAWTAvailable() ) {
-            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false, null));
+            Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, false, null));
         }
     }
 

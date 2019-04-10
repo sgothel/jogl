@@ -49,7 +49,7 @@ import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.MonitorModeUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
@@ -106,7 +106,7 @@ public class TestScreenMode02bNEWT extends UITestCase {
     static void destroyWindow(final Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
-            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false, null));
+            Assert.assertTrue(NewtTestUtil.waitForRealized(window, false, null));
         }
     }
 
@@ -249,7 +249,7 @@ public class TestScreenMode02bNEWT extends UITestCase {
 
         Assert.assertEquals(false,window.isVisible());
         Assert.assertEquals(false,window.isNativeValid());
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false, null));
+        Assert.assertTrue(NewtTestUtil.waitForRealized(screen, false, null));
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
     }
