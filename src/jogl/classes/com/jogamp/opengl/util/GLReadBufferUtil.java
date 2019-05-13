@@ -54,24 +54,33 @@ public class GLReadBufferUtil {
     protected final GLPixelBufferProvider pixelBufferProvider;
     protected final Texture readTexture;
     protected final GLPixelStorageModes psm;
+    protected final boolean alphaRequested;
 
     protected boolean hasAlpha;
     protected GLPixelBuffer readPixelBuffer = null;
     protected TextureData readTextureData = null;
 
     /**
-     * @param alpha true for RGBA readPixels, otherwise RGB readPixels. Disclaimer: Alpha maybe forced on ES platforms!
+     * Using the default {@link GLPixelBuffer}: {@link GLPixelBuffer#defaultProviderNoRowStride}.
+     *
+     * @param requestAlpha true for RGBA readPixels, otherwise RGB readPixels. Disclaimer: {@link #hasAlpha()}==true maybe forced depending on the used {@link GLPixelBufferProvider}, i.e. on ES platforms, when calling {@link #readPixels(GL, int, int, int, int, boolean) readPixels}.
      * @param write2Texture true if readPixel's TextureData shall be written to a 2d Texture
      */
-    public GLReadBufferUtil(final boolean alpha, final boolean write2Texture) {
-        this(GLPixelBuffer.defaultProviderNoRowStride, alpha, write2Texture);
+    public GLReadBufferUtil(final boolean requestAlpha, final boolean write2Texture) {
+        this(GLPixelBuffer.defaultProviderNoRowStride, requestAlpha, write2Texture);
     }
 
-    public GLReadBufferUtil(final GLPixelBufferProvider pixelBufferProvider, final boolean alpha, final boolean write2Texture) {
+    /**
+     * @param pixelBufferProvider custom {@link GLPixelBuffer}
+     * @param requestAlpha true for RGBA readPixels, otherwise RGB readPixels. Disclaimer: {@link #hasAlpha()}==true maybe forced depending on the used {@link GLPixelBufferProvider}, i.e. on ES platforms, when calling {@link #readPixels(GL, int, int, int, int, boolean) readPixels}.
+     * @param write2Texture true if readPixel's TextureData shall be written to a 2d Texture
+     */
+    public GLReadBufferUtil(final GLPixelBufferProvider pixelBufferProvider, final boolean requestAlpha, final boolean write2Texture) {
         this.pixelBufferProvider = pixelBufferProvider;
         this.readTexture = write2Texture ? new Texture(GL.GL_TEXTURE_2D) : null ;
         this.psm = new GLPixelStorageModes();
-        this.hasAlpha = alpha; // preset
+        this.alphaRequested = requestAlpha;
+        this.hasAlpha = requestAlpha; // preset
     }
 
     /** Returns the {@link GLPixelBufferProvider} used by this instance. */
@@ -81,6 +90,7 @@ public class GLReadBufferUtil {
       return null!=readTextureData && null!=readPixelBuffer && readPixelBuffer.isValid();
     }
 
+    /** Returns true if the OpenGL read data contains alpha. This value is lazily determined after the first call of {@link #readPixels(GL, int, int, int, int, boolean) readPixels} */
     public boolean hasAlpha() { return hasAlpha; }
 
     public GLPixelStorageModes getGLPixelStorageModes() { return psm; }
@@ -173,14 +183,19 @@ public class GLReadBufferUtil {
         if(GL.GL_NO_ERROR != glerr0) {
             System.err.println("Info: GLReadBufferUtil.readPixels: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
         }
-        final int reqCompCount = hasAlpha ? 4 : 3;
+        final int reqCompCount = alphaRequested ? 4 : 3; // see Bug 1381: we keep host PixelFormat functional using requested immutable alphaRequested
         final PixelFormat.Composition hostPixelComp = pixelBufferProvider.getHostPixelComp(gl.getGLProfile(), reqCompCount);
         final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, reqCompCount, true);
         final int componentCount = pixelAttribs.pfmt.comp.componentCount();
         hasAlpha = 0 <= pixelAttribs.pfmt.comp.find(PixelFormat.CType.A);
-        final int alignment = 4 == componentCount ? 4 : 1 ;
-        final int internalFormat = 4 == componentCount ? GL.GL_RGBA : GL.GL_RGB;
-
+        final int alignment, internalFormat;
+        if( 4 == componentCount ) {
+            alignment = 4;
+            internalFormat = GL.GL_RGBA;
+        } else {
+            alignment = 1;
+            internalFormat = GL.GL_RGB;
+        }
         final boolean flipVertically;
         if( drawable.isGLOriented() ) {
             flipVertically = mustFlipVertically;

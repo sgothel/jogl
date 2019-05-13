@@ -32,8 +32,9 @@ import java.awt.image.BufferedImage;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLDrawable;
 import com.jogamp.opengl.GLProfile;
-
+import com.jogamp.opengl.util.GLPixelBuffer;
 import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.GLPixelBuffer.GLPixelBufferProvider;
 
 /**
  * {@link GLReadBufferUtil} specialization allowing to
@@ -44,10 +45,15 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
     /**
      * {@inheritDoc}
      *
-     * @param alpha
+     * Using the AWT {@link GLPixelBuffer}: {@link AWTGLPixelBuffer.AWTGLPixelBufferProvider}, always using alpha on OpenGL operations.
+     * <p>
+     * The host {@link PixelFormat} will be a 32bit INT compatible to AWT, capable to store the GL RGBA read data, regardless whether AWT utilizes the alpha component.
+     * </p>
+     *
+     * @param requestAlpha true for RGBA readPixels, otherwise RGB readPixels. Disclaimer: {@link #hasAlpha()}==true is forced due to the used {@link AWTGLPixelBuffer.AWTGLPixelBufferProvider} when calling {@link #readPixels(GL, int, int, int, int, boolean) readPixels}.
      */
-    public AWTGLReadBufferUtil(final GLProfile glp, final boolean alpha) {
-        super(new AWTGLPixelBuffer.AWTGLPixelBufferProvider( glp.isGL2ES3() /* allowRowStride */ ), alpha, false);
+    public AWTGLReadBufferUtil(final GLProfile glp, final boolean requestAlpha) {
+        super(new AWTGLPixelBuffer.AWTGLPixelBufferProvider( glp.isGL2ES3() /* allowRowStride */ ), requestAlpha /* See Bug 1381 */, false);
     }
 
     /**
