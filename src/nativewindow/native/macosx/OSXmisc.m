@@ -81,41 +81,41 @@ Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass _unused) {
         jclass c;
         c = (*env)->FindClass(env, ClazzNamePoint);
         if(NULL==c) {
-            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't find %s", ClazzNamePoint);
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0: can't find %s", ClazzNamePoint);
         }
         pointClz = (jclass)(*env)->NewGlobalRef(env, c);
         (*env)->DeleteLocalRef(env, c);
         if(NULL==pointClz) {
-            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't use %s", ClazzNamePoint);
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0: can't use %s", ClazzNamePoint);
         }
         pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
         if(NULL==pointCstr) {
-            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch %s.%s %s",
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0: can't fetch %s.%s %s",
                 ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
         }
 
         c = (*env)->FindClass(env, ClazzNameInsets);
         if(NULL==c) {
-            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't find %s", ClazzNameInsets);
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0: can't find %s", ClazzNameInsets);
         }
         insetsClz = (jclass)(*env)->NewGlobalRef(env, c);
         (*env)->DeleteLocalRef(env, c);
         if(NULL==insetsClz) {
-            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't use %s", ClazzNameInsets);
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0: can't use %s", ClazzNameInsets);
         }
         insetsCstr = (*env)->GetMethodID(env, insetsClz, ClazzAnyCstrName, ClazzNameInsetsCstrSignature);
         if(NULL==insetsCstr) {
-            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch %s.%s %s",
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0: can't fetch %s.%s %s",
                 ClazzNameInsets, ClazzAnyCstrName, ClazzNameInsetsCstrSignature);
         }
 
         c = (*env)->FindClass(env, ClazzNameRunnable);
         if(NULL==c) {
-            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't find %s", ClazzNameRunnable);
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0: can't find %s", ClazzNameRunnable);
         }
         runnableRunID = (*env)->GetMethodID(env, c, "run", "()V");
         if(NULL==runnableRunID) {
-            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch %s.run()V", ClazzNameRunnable);
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0: can't fetch %s.run()V", ClazzNameRunnable);
         }
     }
     return JNI_TRUE;

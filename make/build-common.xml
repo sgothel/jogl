@@ -93,16 +93,22 @@
         <property name="archive.name"         value="jogl-${jogl.version}-${os.and.arch}" />
         <property name="archive"              value="${build}/${archive.name}" />
 
+        <condition property="setup.noAWT">
+            <or>
+                <istrue value="${isIOS}" />
+            </or>
+        </condition>
         <condition property="setup.noNativeAWT">
             <or>
                 <isset property="setup.noAWT"/> 
-                <isset property="isAndroid"/> 
+                <istrue value="${isAndroid}" />
             </or>
         </condition>
 
         <condition property="setup.noNativeDesktop">
             <or>
-                <isset property="isAndroid"/> 
+                <istrue value="${isAndroid}" />
+                <istrue value="${isIOS}" />
             </or>
         </condition>
 
@@ -140,13 +146,12 @@
           <istrue value="${isLinuxX86}" /> <!-- no more supported since SWT 4.10 -->
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86_64/swt.jar">
-          <istrue value="${isLinuxARM64}" /> <!-- FIXME JAU .. hack -->
-        </condition>
-        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86_64/swt.jar">
-          <istrue value="${isLinuxARMv6}" /> <!-- FIXME JAU .. hack -->
-        </condition>
-        <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86_64/swt.jar">
-          <istrue value="${isAndroid}" /> <!-- FIXME JAU .. hack -->
+          <or>
+              <istrue value="${isLinuxARM64}" /> <!-- FIXME JAU .. hack -->
+              <istrue value="${isLinuxARMv6}" /> <!-- FIXME JAU .. hack -->
+              <istrue value="${isAndroid}" /> <!-- FIXME JAU .. hack -->
+              <istrue value="${isIOS}" /> <!-- FIXME JAU .. hack -->
+          </or>
         </condition>
         <property name="swt-cocoa-macosx-x86_64.jar" value="${project.root}/make/lib/swt/cocoa-macosx-x86_64/swt.jar"/>
         <condition property="swt.jar" value="${swt-cocoa-macosx-x86_64.jar}">
@@ -252,6 +257,7 @@
         <property name="results.test"               value="${build}/test/results" />
         <property name="build.test"                 value="${build}/test/build" />
         <property name="obj.test"                   value="${build.test}/obj"/>
+        <property name="build.demos"                value="${build}/demos/build" />
 
         <condition property="obj.custom" value="${custom.libdir}${path.separator}" else="">
           <isset property="custom.libdir"/>
@@ -282,6 +288,7 @@
         <property name="nativewindow-os-x11.jar" value="${build.nativewindow}/nativewindow-os-x11.jar"  />
         <property name="nativewindow-os-win.jar" value="${build.nativewindow}/nativewindow-os-win.jar"  />
         <property name="nativewindow-os-osx.jar" value="${build.nativewindow}/nativewindow-os-osx.jar"  />
+        <property name="nativewindow-os-ios.jar" value="${build.nativewindow}/nativewindow-os-ios.jar"  />
 
         <path id="nativewindow_all_atoms.classpath">
             <pathelement location="${nativewindow.jar}" />
@@ -289,12 +296,14 @@
             <pathelement location="${nativewindow-os-x11.jar}" />
             <pathelement location="${nativewindow-os-win.jar}" />
             <pathelement location="${nativewindow-os-osx.jar}" />
+            <pathelement location="${nativewindow-os-ios.jar}" />
         </path>
         <path id="nativewindow_all-noawt_atoms.classpath">
             <pathelement location="${nativewindow.jar}" />
             <pathelement location="${nativewindow-os-x11.jar}" />
             <pathelement location="${nativewindow-os-win.jar}" />
             <pathelement location="${nativewindow-os-osx.jar}" />
+            <pathelement location="${nativewindow-os-ios.jar}" />
         </path>
         <path id="nativewindow_core_atoms.classpath">
             <pathelement location="${nativewindow.jar}" />
@@ -314,6 +323,7 @@
         <property name="jogl-os-x11.jar"              value="${build.jogl}/jogl-os-x11.jar" />
         <property name="jogl-os-win.jar"              value="${build.jogl}/jogl-os-win.jar" />
         <property name="jogl-os-osx.jar"              value="${build.jogl}/jogl-os-osx.jar" />
+        <property name="jogl-os-ios.jar"              value="${build.jogl}/jogl-os-ios.jar" />
         <property name="jogl-os-android.jar"          value="${build.jogl}/jogl-os-android.jar" />
         <property name="jogl-gldesktop.jar"           value="${build.jogl}/jogl-gldesktop.jar" />
         <property name="jogl-gldesktop-dbg.jar"       value="${build.jogl}/jogl-gldesktop-dbg.jar" />
@@ -337,6 +347,7 @@
             <pathelement location="${jogl-os-x11.jar}" />
             <pathelement location="${jogl-os-win.jar}" />
             <pathelement location="${jogl-os-osx.jar}" />
+            <pathelement location="${jogl-os-ios.jar}" />
             <pathelement location="${jogl-gldesktop.jar}" />
             <pathelement location="${jogl-gldesktop-dbg.jar}" />
             <pathelement location="${jogl-glu.jar}" />
@@ -355,6 +366,7 @@
             <pathelement location="${jogl-os-x11.jar}" />
             <pathelement location="${jogl-os-win.jar}" />
             <pathelement location="${jogl-os-osx.jar}" />
+            <pathelement location="${jogl-os-ios.jar}" />
             <pathelement location="${jogl-gldesktop.jar}" />
             <pathelement location="${jogl-gldesktop-dbg.jar}" />
             <pathelement location="${jogl-glu.jar}" />
@@ -371,6 +383,7 @@
             <pathelement location="${jogl-glu.jar}" />
             <pathelement location="${jogl-util-fixedfuncemu.jar}" />
             <pathelement location="${jogl-os-x11.jar}" />
+            <pathelement location="${jogl-os-ios.jar}" />
             <pathelement location="${jogl-omx.jar}" />
         </path>
         <path id="jogl_all-android_atoms.classpath">
@@ -397,6 +410,7 @@
         <property name="newt-driver-x11.jar"      value="${build.newt}/newt-driver-x11.jar" />
         <property name="newt-driver-win.jar"      value="${build.newt}/newt-driver-win.jar" />
         <property name="newt-driver-osx.jar"      value="${build.newt}/newt-driver-osx.jar" />
+        <property name="newt-driver-ios.jar"      value="${build.newt}/newt-driver-ios.jar" />
         <property name="newt-driver-android.jar"  value="${build.newt}/newt-driver-android.jar" />     <!-- excluded from all -->
         <property name="newt-driver-kd.jar"       value="${build.newt}/newt-driver-kd.jar" />          <!-- excluded from all -->
         <property name="newt-driver-intelgdl.jar" value="${build.newt}/newt-driver-intelgdl.jar" />    <!-- excluded from all -->
@@ -412,6 +426,7 @@
             <pathelement location="${newt-driver-x11.jar}" />
             <pathelement location="${newt-driver-win.jar}" />
             <pathelement location="${newt-driver-osx.jar}" />
+            <pathelement location="${newt-driver-ios.jar}" />
             <pathelement location="${newt-driver-bcm-vc.jar}" />
         </path>
         <path id="newt_all-noawt_atoms.classpath">
@@ -421,6 +436,7 @@
             <pathelement location="${newt-driver-x11.jar}" />
             <pathelement location="${newt-driver-win.jar}" />
             <pathelement location="${newt-driver-osx.jar}" />
+            <pathelement location="${newt-driver-ios.jar}" />
             <pathelement location="${newt-driver-bcm-vc.jar}" />
         </path>
         <path id="newt_all-mobile_atoms.classpath">
@@ -429,6 +445,7 @@
             <pathelement location="${newt-driver-linux.jar}" />
             <pathelement location="${newt-driver-x11.jar}" />
             <pathelement location="${newt-driver-win.jar}" />
+            <pathelement location="${newt-driver-ios.jar}" />
             <pathelement location="${newt-driver-bcm-vc.jar}" />
         </path>
         <path id="newt_all-android_atoms.classpath">
@@ -449,6 +466,7 @@
         <property name="jogl-test.jar"                  value="${jar}/jogl-test.jar"/>
         <property name="jogl-test-android.jar"          value="${jar}/jogl-test-android.jar"/>
         <property name="jogl-test-android.apk"          value="${jar}/jogl-test-android.apk"/>
+        <property name="jogl-demos-mobile.jar"          value="${jar}/jogl-demos-mobile.jar"/>
 
         <!-- JavaSE combinations . AWT -->
         <property name="jogl-all.jar"                   value="${jar}/jogl-all.jar" />

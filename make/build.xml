@@ -20,15 +20,15 @@
       <ant antfile="build-test.xml" target="test.compile" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="test.auto.run" description="Run automated tests (junit and others) in nativewindow, jogl and newt projects">
+    <target name="test.auto.run" description="Run automated tests (junit and others) in nativewindow, jogl and newt projects" if="${build.dynamiclibs}">
       <ant antfile="build-test.xml" target="test.auto.run" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="junit.run" description="Run automated junit tests in nativewindow, jogl and newt projects">
+    <target name="junit.run" description="Run automated junit tests in nativewindow, jogl and newt projects" if="${build.dynamiclibs}">
       <ant antfile="build-test.xml" target="junit.run" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="test.manual.run" description="Run manual operated tests in nativewindow, jogl and newt projects">
+    <target name="test.manual.run" description="Run manual operated tests in nativewindow, jogl and newt projects" if="${build.dynamiclibs}">
       <ant antfile="build-test.xml" target="test.manual.run" inheritRefs="true" inheritAll="true"/>
     </target>
 
@@ -53,6 +53,7 @@
         <ant antfile="build-test.xml"                               target="clean" inheritRefs="true" inheritAll="true"/>
         <delete includeEmptyDirs="true" quiet="true" failonerror="false">
             <fileset dir="${build}" />
+            <fileset dir="${project.root}/build-temp" />
             <fileset dir="." includes="*.tga" />
         </delete>
         <delete includeEmptyDirs="true" quiet="true" dir="${jar}" failonerror="false" />
@@ -141,7 +142,7 @@
         </jar>
     </target>
 
-    <target name="one.jar.dir" depends="one.jar.dir.prep,one.jar.dir.android" unless="one.dir.skip">
+    <target name="one.jar.dir.awt" unless="setup.noAWT">
         <jar manifest="${build}/manifest-all.mf" destfile="${jogl-all.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
@@ -152,6 +153,9 @@
                 </zips>
             </archives>
         </jar>
+    </target>
+    <target name="one.jar.dir" depends="one.jar.dir.prep,one.jar.dir.android" unless="one.dir.skip">
+        <antcall target="one.jar.dir.awt" inheritRefs="true" inheritAll="true"/>
         <jar manifest="${build}/manifest-all.mf" destfile="${jogl-all-noawt.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
@@ -259,7 +263,7 @@
        - This must be called after all of the build targets complete.
       -->
 
-    <target name="developer-src-zip" depends="init">
+    <target name="developer-src-zip" depends="init" if="build.archiveon">
         <!--delete includeEmptyDirs="true" quiet="true" failonerror="false">
             <fileset dir="${build}" includes="jogl-java-src.zip" />
         </delete-->

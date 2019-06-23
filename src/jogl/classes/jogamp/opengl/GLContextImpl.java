@@ -2442,10 +2442,13 @@ public abstract class GLContextImpl extends GLContext {
             GLRendererQuirks.pushStickyDeviceQuirks(factoryDefaultDevice, quirks);
         }
         if( isES ) {
-            final AbstractGraphicsDevice eglFactoryDefaultDevice = GLDrawableFactory.getEGLFactory().getDefaultDevice();
-            if( !GLRendererQuirks.areSameStickyDevice(eglFactoryDefaultDevice, adevice) &&
-                !GLRendererQuirks.areSameStickyDevice(eglFactoryDefaultDevice, factoryDefaultDevice) ) {
-                GLRendererQuirks.pushStickyDeviceQuirks(eglFactoryDefaultDevice, quirks);
+            final GLDrawableFactory mobileFactory = GLDrawableFactory.getFactory(true);
+            if( null != factory ) {
+                final AbstractGraphicsDevice esFactoryDefaultDevice = mobileFactory.getDefaultDevice();
+                if( !GLRendererQuirks.areSameStickyDevice(esFactoryDefaultDevice, adevice) &&
+                    !GLRendererQuirks.areSameStickyDevice(esFactoryDefaultDevice, factoryDefaultDevice) ) {
+                    GLRendererQuirks.pushStickyDeviceQuirks(esFactoryDefaultDevice, quirks);
+                }
             }
         }
     }

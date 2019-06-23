@@ -5,6 +5,8 @@ if [ -z "$1" -o -z "$2" -o -z "$3" ] ; then
     exit 0
 fi
 
+#set -x 
+
 javaexe="$1"
 shift
 javaxargs=$1
@@ -97,6 +99,7 @@ function jrun() {
     swton=$1
     shift
 
+    D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
@@ -435,7 +438,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLVersionParsing00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile02NEWTNoARBCtx $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile03NEWTOffscreen $*
@@ -754,7 +757,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv2AppletAWT $*
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv3AppletAWT $*
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv4AWT $*
-
+#
 #
 # SWT (testswt)
 #
@@ -762,7 +765,7 @@ function testawtswt() {
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02NewtGLWindow $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
-testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
+#testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestBug672NewtCanvasSWTSashForm $*

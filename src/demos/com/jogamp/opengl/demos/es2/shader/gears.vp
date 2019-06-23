@@ -1,0 +1,45 @@
+// Copyright (C) 2011 JogAmp Community. All rights reserved.
+// Details see GearsES2.java
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
+uniform mat4 pmvMatrix[4]; // P, Mv, Mvi and Mvit
+uniform vec3 lightPos;
+
+attribute vec4 vertices;
+attribute vec4 normals;
+
+varying vec3 normal;
+varying vec4 position;
+varying vec3 lightDir;
+varying float attenuation;
+varying vec3 cameraDir;
+
+const float constantAttenuation = 0.5; // 1.0;
+const float linearAttenuation   = 0.001; // 0.0;
+const float quadraticAttenuation= 0.0002; // 0.0;
+
+void main(void)
+{
+    // Transforming The Vertex Position To ModelView-Space
+    position  = pmvMatrix[1] * vertices; // vertex eye position
+    
+    // incl. projection 
+    gl_Position = pmvMatrix[0] * position;
+    
+    // Transforming The Normal To ModelView-Space
+    normal = normalize((pmvMatrix[3] * normals).xyz);
+    
+    // Calculating The Vector From The Vertex Position To The Light Position
+    lightDir = lightPos - position.xyz;
+    float d = length(lightDir);
+    attenuation = 1.0 / ( 
+                       constantAttenuation + 
+                       linearAttenuation    * d +   
+                       quadraticAttenuation * d * d );
+    lightDir = normalize(lightDir);                
+    cameraDir  = normalize((pmvMatrix[2] * vec4(0,0,0,1.0)).xyz - vertices.xyz);                   
+}

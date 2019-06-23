@@ -22,11 +22,13 @@
     <target name="declare.common" description="Declare properties" depends="common.init">
         <property name="rootrel.src.test"     value="src/test" />
         <property name="src.test"             value="${project.root}/${rootrel.src.test}" />
+        <property name="src.demos"            value="${project.root}/src/demos" />
 
         <property name="classes"              value="${build.test}/classes" />
         <property name="classes.path"         location="${classes}"/> <!-- absolute path -->
+        <property name="classes.demos"        value="${build.demos}/classes" />
 
-        <property name="java.part.test.all"   value="com/jogamp/** jogamp/**"/>
+        <property name="java.part.demo.mobile" value="com/jogamp/opengl/demos/demos/**"/>
         <property name="java.part.test.android" value="com/jogamp/opengl/test/android/**"/>
         <property name="java.part.test.oculusvr" value="com/jogamp/opengl/test/junit/jogl/stereo/ovr/**"/>
         <property name="java.dir.test"        value="com/jogamp/opengl/test"/>
@@ -49,6 +51,7 @@
     <target name="clean" description="Remove all build products" depends="declare.common">
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="${build.test}" />
+            <fileset dir="${build.demos}" />
             <fileset dir="." includes="*.ps" />
             <fileset dir="." includes="*.pdf" />
             <fileset dir="." includes="*.png" />
@@ -56,6 +59,7 @@
             <fileset dir="." includes="*.tga" />
             <fileset dir="." includes="hs_err_pid*.log" />
             <fileset file="${jogl-test.jar}" />
+            <fileset file="${jogl-demos-mobile.jar}" />
         </delete>
     </target>
 
@@ -64,7 +68,44 @@
        - Build/run tests/junit.
       -->
 
-    <target name="test.compile.javase.generic">
+    <target name="make.demos.mobile">
+        <javac destdir="${classes.demos}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="junit_jogl_newt.compile.classpath"/>
+            <src path="${src.demos}" />
+        </javac>
+        <copy file="joglversion-test"
+            tofile="${build.test}/manifest-demo-mobile.mf"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+                <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+            </filterset>
+        </copy>
+        <!-- include any resource files that tests may require -->
+        <copy todir="${classes.demos}">
+            <fileset dir="${src.demos}">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+        <jar manifest="${build.test}/manifest-demo-mobile.mf" destfile="${jogl-demos-mobile.jar}" filesonly="true">
+            <fileset dir="${classes.demos}" 
+                     includes="**"/>
+            <fileset dir="resources/assets-test" includes="**" />
+        </jar>
+    </target>
+    <target name="test.compile.javase.generic" unless="setup.noAWT">
         <javac destdir="${classes}"
                excludes="${java.part.test.android} ${java.part.test.oculusvr}"
                fork="yes"
@@ -95,7 +136,7 @@
             <src path="${src.test}" />
         </javac>
     </target>
-    <target name="test.compile.javase" depends="test.compile.javase.generic, test.compile.javase.oculusvr">
+    <target name="test.compile.javase" depends="test.compile.javase.generic, test.compile.javase.oculusvr" unless="setup.noAWT">
         <copy file="joglversion-test"
             tofile="${build.test}/manifest-test.mf"
             overwrite="true">
@@ -120,7 +161,7 @@
         </jar>
     </target>
 
-    <target name="test.compile.android" if="android-jars.available">
+    <target name="test.compile.android" if="android-jars.available" unless="setup.noAWT">
         <!-- Perform the junit pass Java Android compile -->
         <javac destdir="${classes}"
                excludes="${java.part.test.oculusvr}"
@@ -157,7 +198,7 @@
         </jar>
     </target>
 
-    <target name="test.package.android" depends="test.compile.android" if="isAndroid">
+    <target name="test.package.android" depends="test.compile.android" if="isAndroid" unless="setup.noAWT">
         <aapt.signed 
             assetsdir="resources/assets-test"
             jarsrcdir="${src}/test"
@@ -176,6 +217,7 @@
       <!-- Create the required output directories. -->
       <mkdir dir="${obj.test}" />
       <mkdir dir="${classes}" />
+      <mkdir dir="${classes.demos}" />
 
       <property name="jogl-test.jar.path" location="${jogl-test.jar}"/> <!-- absolute path -->
       <echo message="jogl-test.jar ${jogl-test.jar.path}"/>
@@ -198,6 +240,7 @@
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
+        <antcall target="make.demos.mobile" inheritRefs="true" inheritAll="true"/>
         <antcall target="test.compile.javase" inheritRefs="true" inheritAll="true"/>
         <antcall target="test.package.android" inheritRefs="true" inheritAll="true"/>
     </target>

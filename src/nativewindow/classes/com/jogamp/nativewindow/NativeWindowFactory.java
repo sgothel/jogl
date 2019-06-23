@@ -52,6 +52,7 @@ import jogamp.nativewindow.NativeWindowFactoryImpl;
 import jogamp.nativewindow.ToolkitProperties;
 import jogamp.nativewindow.ResourceToolkitLock;
 import jogamp.nativewindow.WrappedWindow;
+import jogamp.nativewindow.ios.IOSUtil;
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.nativewindow.x11.X11Lib;
@@ -65,6 +66,7 @@ import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.nativewindow.ios.IOSGraphicsDevice;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
@@ -100,6 +102,9 @@ public abstract class NativeWindowFactory {
     /** Mac OS X type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
     public static final String TYPE_MACOSX = ".macosx";
 
+    /** iOS type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
+    public static final String TYPE_IOS = ".iOS";
+
     /** Generic AWT type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
     public static final String TYPE_AWT = ".awt";
 
@@ -120,6 +125,8 @@ public abstract class NativeWindowFactory {
     private static final String X11UtilClassName = "jogamp.nativewindow.x11.X11Util";
     /** {@link jogamp.nativewindow.macosx.OSXUtil} implements {@link ToolkitProperties}. */
     private static final String OSXUtilClassName = "jogamp.nativewindow.macosx.OSXUtil";
+    /** {@link jogamp.nativewindow.ios.IOSUtil} implements {@link ToolkitProperties}. */
+    private static final String IOSUtilClassName = "jogamp.nativewindow.ios.IOSUtil";
     /** {@link jogamp.nativewindow.windows.GDIUtil} implements {@link ToolkitProperties}. */
     private static final String GDIClassName = "jogamp.nativewindow.windows.GDIUtil";
 
@@ -143,6 +150,8 @@ public abstract class NativeWindowFactory {
               return TYPE_ANDROID;
             case MACOS:
               return TYPE_MACOSX;
+            case IOS:
+              return TYPE_IOS;
             case WINDOWS:
               return TYPE_WINDOWS;
             case OPENKODE:
@@ -204,6 +213,8 @@ public abstract class NativeWindowFactory {
             clazzName = GDIClassName;
         } else if( TYPE_MACOSX == nativeWindowingTypePure ) {
             clazzName = OSXUtilClassName;
+        } else if( TYPE_IOS == nativeWindowingTypePure ) {
+            clazzName = IOSUtilClassName;
         } else {
             clazzName = null;
         }
@@ -294,6 +305,8 @@ public abstract class NativeWindowFactory {
             clazzName = GDIClassName;
         } else if( TYPE_MACOSX == nativeWindowingTypePure ) {
             clazzName = OSXUtilClassName;
+        } else if( TYPE_IOS == nativeWindowingTypePure ) {
+            clazzName = IOSUtilClassName;
         } else {
             clazzName = null;
         }
@@ -677,6 +690,8 @@ public abstract class NativeWindowFactory {
             return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+        } else if( NativeWindowFactory.TYPE_IOS == nwt ) {
+            return new IOSGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         } else if( NativeWindowFactory.TYPE_EGL == nwt ) {
             final EGLGraphicsDevice device;
             if( own ) {
@@ -742,6 +757,8 @@ public abstract class NativeWindowFactory {
             return GDIUtil.GetRelativeLocation(nw.getWindowHandle(), 0, 0, 0);
         } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return OSXUtil.GetLocationOnScreen(nw.getWindowHandle(), 0, 0);
+        } else if( NativeWindowFactory.TYPE_IOS == nwt ) {
+            return IOSUtil.GetLocationOnScreen(nw.getWindowHandle(), 0, 0);
         /**
          * FIXME: Needs service provider interface (SPI) for TK dependent implementation
         } else if( NativeWindowFactory.TYPE_BCM_VC_IV == nwt ) {

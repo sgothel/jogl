@@ -72,9 +72,7 @@ fi
 JOAL_DIR=`dirname $joalpf`
 JOAL_BUILDDIR="$JOAL_DIR"/"$JOGL_BUILDDIR_BASE"
 if [ ! -e "$JOAL_BUILDDIR" ] ; then
-    echo JOAL_BUILDDIR "$JOAL_BUILDDIR" does not exist
-    print_usage
-    exit
+    echo JOAL_BUILDDIR "$JOAL_BUILDDIR" does not exist \(warning\)
 fi
 JOAL_JAR="$JOAL_BUILDDIR"/jar/joal.jar
 

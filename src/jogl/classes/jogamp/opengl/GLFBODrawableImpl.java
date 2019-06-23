@@ -87,17 +87,17 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
      * @param parent
      * @param surface
      * @param fboCaps the requested FBO capabilities
-     * @param textureUnit
+     * @param textureUnit if valid, i.e. >= 0, signals {@link #FBOMODE_USE_TEXTURE}, otherwise a color renderbuffer is assumed
      */
     protected GLFBODrawableImpl(final GLDrawableFactoryImpl factory, final GLDrawableImpl parent, final NativeSurface surface,
                                 final GLCapabilitiesImmutable fboCaps, final int textureUnit) {
         super(factory, surface, fboCaps, false);
         this.initialized = false;
-        this.fboModeBits = FBOMODE_USE_TEXTURE;
+        this.fboModeBits = textureUnit>=0 ? FBOMODE_USE_TEXTURE : 0;
 
         this.parent = parent;
         this.origParentChosenCaps = getChosenGLCapabilities(); // just to avoid null, will be reset at initialize(..)
-        this.texUnit = textureUnit;
+        this.texUnit = textureUnit>=0 ? textureUnit : 0;
         this.samples = fboCaps.getNumSamples();
         this.fboResetQuirk = false;
         this.swapBufferContext = null;

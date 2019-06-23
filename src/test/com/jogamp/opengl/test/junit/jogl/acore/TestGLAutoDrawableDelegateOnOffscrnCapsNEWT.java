@@ -235,11 +235,11 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
 
     @Test
     public void testAvailableInfo() {
-        GLDrawableFactory f = GLDrawableFactory.getDesktopFactory();
+        GLDrawableFactory f = GLDrawableFactory.getFactory(false);
         if(null != f) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(f.getDefaultDevice(), null, true).toString());
         }
-        f = GLDrawableFactory.getEGLFactory();
+        f = GLDrawableFactory.getFactory(true);
         if(null != f) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(f.getDefaultDevice(), null, true).toString());
         }

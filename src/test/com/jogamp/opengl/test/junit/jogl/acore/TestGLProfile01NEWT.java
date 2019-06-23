@@ -54,11 +54,11 @@ public class TestGLProfile01NEWT extends GLProfile0XBase {
         System.err.println(JoglVersion.getInstance());
         System.err.println(NewtVersion.getInstance());
 
-        final GLDrawableFactory deskFactory = GLDrawableFactory.getDesktopFactory();
+        final GLDrawableFactory deskFactory = GLDrawableFactory.getFactory(false);
         if( null != deskFactory ) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(deskFactory.getDefaultDevice(), null, true).toString());
         }
-        final GLDrawableFactory eglFactory = GLDrawableFactory.getEGLFactory();
+        final GLDrawableFactory eglFactory = GLDrawableFactory.getFactory(true);
         if( null != eglFactory ) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(eglFactory.getDefaultDevice(), null, true).toString());
         }

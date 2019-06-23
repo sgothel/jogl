@@ -155,18 +155,6 @@ public class TestGLAutoDrawableFactoryES2OffscrnCapsNEWT extends UITestCase {
     }
 
     @Test
-    public void testAvailableInfo() {
-        GLDrawableFactory f = GLDrawableFactory.getDesktopFactory();
-        if(null != f) {
-            System.err.println(JoglVersion.getDefaultOpenGLInfo(f.getDefaultDevice(), null, true).toString());
-        }
-        f = GLDrawableFactory.getEGLFactory();
-        if(null != f) {
-            System.err.println(JoglVersion.getDefaultOpenGLInfo(f.getDefaultDevice(), null, true).toString());
-        }
-    }
-
-    @Test
     public void testES2OffScreenAutoDblBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
         if(null == reqGLCaps) return;

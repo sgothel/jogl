@@ -47,7 +47,7 @@ public class TestSharedExternalContextAWT {
         System.err.println("Master Thread Start: "+Thread.currentThread().getName());
         final GLProfile glProfile = GLProfile.getDefault();
         final GLCapabilities caps = new GLCapabilities(glProfile);
-        final GLAutoDrawable buffer = GLDrawableFactory.getDesktopFactory().createOffscreenAutoDrawable(
+        final GLAutoDrawable buffer = GLDrawableFactory.getFactory(false).createOffscreenAutoDrawable(
             GLProfile.getDefaultDevice(), caps, null, 512, 512
         );
         // The listener will set up the context sharing in its init() method.
@@ -127,7 +127,7 @@ public class TestSharedExternalContextAWT {
           System.err.println(); System.err.println();
           System.err.println("Master (orig) Ct: "+drawable.getContext());
           // Create the external context on the caller thread.
-          final GLContext master = GLDrawableFactory.getDesktopFactory().createExternalGLContext();
+          final GLContext master = GLDrawableFactory.getFactory(false).createExternalGLContext();
           System.err.println(); System.err.println();
           System.err.println("External Context: "+master);
 
@@ -137,7 +137,7 @@ public class TestSharedExternalContextAWT {
                 // FIXME: We actually need to hook into GLContext make-current lock
                 // masterLock.lock();
                 try {
-                    fOffscreenDrawable = GLDrawableFactory.getDesktopFactory().createOffscreenAutoDrawable(
+                    fOffscreenDrawable = GLDrawableFactory.getFactory(false).createOffscreenAutoDrawable(
                             GLProfile.getDefaultDevice(),
                             new GLCapabilities(GLProfile.getDefault()),
                             null, // new DefaultGLCapabilitiesChooser(),

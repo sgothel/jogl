@@ -69,11 +69,12 @@ public class JoglVersion extends JogampVersion {
         return toString(gl, null).toString();
     }
 
-    public static StringBuilder getAvailableCapabilitiesInfo(final GLDrawableFactory factory, final AbstractGraphicsDevice device, StringBuilder sb) {
+    public static StringBuilder getAvailableCapabilitiesInfo(final AbstractGraphicsDevice device, StringBuilder sb) {
         if(null==sb) {
             sb = new StringBuilder();
         }
         boolean done = false;
+        final GLDrawableFactory factory = GLDrawableFactory.getFactory(device);
         if(null!=factory) {
             try {
                 final List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(device);
@@ -100,10 +101,12 @@ public class JoglVersion extends JogampVersion {
             device = GLProfile.getDefaultDevice();
         }
         sb.append(Platform.getNewline()).append(Platform.getNewline());
-        sb.append("Desktop Capabilities: ").append(Platform.getNewline());
-        getAvailableCapabilitiesInfo(GLDrawableFactory.getDesktopFactory(), device, sb);
-        sb.append("EGL Capabilities: ").append(Platform.getNewline());
-        getAvailableCapabilitiesInfo(GLDrawableFactory.getEGLFactory(), device, sb);
+        try {
+            sb.append("Capabilities for ").append(device.toString()).append(Platform.getNewline());
+            getAvailableCapabilitiesInfo(device, sb);
+        } catch (final GLException gle) {
+            System.err.println(gle.getMessage());
+        }
         return sb;
     }
 

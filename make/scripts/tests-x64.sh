@@ -1,5 +1,7 @@
 #! /bin/bash
 
+#set -x 
+
 SDIR=`dirname $0` 
 
 #export LD_LIBRARY_PATH=$HOME/libav-0.8/lib:$LD_LIBRARY_PATH

@@ -43,6 +43,7 @@ package com.jogamp.opengl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
@@ -57,6 +58,7 @@ import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.ProxySurface;
 import com.jogamp.nativewindow.UpstreamSurfaceHook;
 
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.opengl.Debug;
 
 /** <p> Provides a virtual machine- and operating system-independent
@@ -137,6 +139,8 @@ public abstract class GLDrawableFactory {
           factoryClassName = "jogamp.opengl.windows.wgl.WindowsWGLDrawableFactory";
         } else if ( nwt == NativeWindowFactory.TYPE_MACOSX ) {
           factoryClassName = "jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory";
+        } else if ( nwt == NativeWindowFactory.TYPE_IOS ) {
+          factoryClassName = "jogamp.opengl.ios.eagl.IOSEAGLDrawableFactory";
         } else {
           // may use egl*Factory ..
           if (DEBUG || GLProfile.DEBUG) {
@@ -144,7 +148,7 @@ public abstract class GLDrawableFactory {
           }
         }
     }
-    if ( !GLProfile.disableOpenGLDesktop ) {
+    if ( !GLProfile.disableOpenGLDesktop || GLProfile.disabledEGL ) {
         if ( null != factoryClassName ) {
             if (DEBUG || GLProfile.DEBUG) {
                 System.err.println("GLDrawableFactory.static - Native OS Factory for: "+nwt+": "+factoryClassName);
@@ -168,7 +172,7 @@ public abstract class GLDrawableFactory {
         System.err.println("Info: GLDrawableFactory.static - Desktop GLDrawableFactory - disabled!");
     }
 
-    if(!GLProfile.disableOpenGLES) {
+    if(!GLProfile.disableOpenGLES && !GLProfile.disabledEGL) {
         try {
             tmp = (GLDrawableFactory) ReflectionUtil.createInstance("jogamp.opengl.egl.EGLDrawableFactory", cl);
         } catch (final Exception jre) {
@@ -434,6 +438,15 @@ public abstract class GLDrawableFactory {
 
   /**
    * Returns the sole GLDrawableFactory instance for the desktop (X11, WGL, ..) if exist or null
+   * <p>
+   * To fetch the appropriate {@link GLDrawableFactory} for native desktop
+   * or mobile, use {@link #getFactory(boolean)}.
+   * </p>
+   * <p>
+   * It is possible that the desktop {@link GLDrawableFactory} will be used for
+   * native mobile GL profiles, e.g. {@link Platform.OSType#IOS}.
+   * </p>
+   * @return the matching {@link GLDrawableFactory} or {@code null} if none is available
    */
   public static GLDrawableFactory getDesktopFactory() {
     GLProfile.initSingleton();
@@ -441,7 +454,16 @@ public abstract class GLDrawableFactory {
   }
 
   /**
-   * Returns the sole GLDrawableFactory instance for EGL if exist or null
+   * Returns the sole {@link GLDrawableFactory} instance for EGL if exist or null.
+   * <p>
+   * To fetch the appropriate {@link GLDrawableFactory} for native desktop
+   * or mobile, use {@link #getFactory(boolean)}.
+   * </p>
+   * <p>
+   * It is possible that a non EGL {@link GLDrawableFactory} will be used for
+   * native mobile GL profiles, e.g. {@link Platform.OSType#IOS}.
+   * </p>
+   * @return the matching {@link GLDrawableFactory} or {@code null} if none is available
    */
   public static GLDrawableFactory getEGLFactory() {
     GLProfile.initSingleton();
@@ -449,34 +471,61 @@ public abstract class GLDrawableFactory {
   }
 
   /**
-   * Returns the sole GLDrawableFactory instance.
+   * Returns the sole {@link GLDrawableFactory} instance.
    *
-   * @param glProfile GLProfile to determine the factory type, ie EGLDrawableFactory,
-   *                or one of the native GLDrawableFactory's, ie X11/GLX, Windows/WGL or MacOSX/CGL.
+   * @param glProfile GLProfile to determine the factory type, ie for native mobile GL or native desktop GL.
+   * @return the matching {@link GLDrawableFactory}
+   * @throws GLException if no matching {@link GLDrawableFactory} exists
    */
   public static GLDrawableFactory getFactory(final GLProfile glProfile) throws GLException {
-    return getFactoryImpl(glProfile.getImplName());
+    final GLDrawableFactory f = getFactoryImpl(glProfile.getImplName());
+    if( null != f ) {
+        return f;
+    }
+    throw new GLException("No GLDrawableFactory available for profile: "+glProfile);
   }
-
-  protected static GLDrawableFactory getFactoryImpl(final String glProfileImplName) throws GLException {
-    if ( GLProfile.usesNativeGLES(glProfileImplName) ) {
-        if(null!=eglFactory) {
+  /**
+   * Returns the sole {@link GLDrawableFactory} instance, either for mobile if {@code usesNativeGLES} is true,
+   * or for desktop otherwise.
+   * @param useNativeGLES request native mobile GLES support if true
+   * @return the matching {@link GLDrawableFactory} or {@code null} if none is available
+   */
+  public static GLDrawableFactory getFactory(final boolean useNativeGLES) {
+      GLProfile.initSingleton();
+      return getFactoryImpl( useNativeGLES );
+  }
+  protected static GLDrawableFactory getFactoryImpl(final String glProfileImplName) {
+    return getFactoryImpl( GLProfile.usesNativeGLES(glProfileImplName) );
+  }
+  protected static GLDrawableFactory getFactoryImpl(final boolean useNativeGLES) {
+    if( useNativeGLES ) {
+        if(null!=eglFactory && eglFactory.hasOpenGLESSupport() ) {
             return eglFactory;
         }
-    } else if(null!=nativeOSFactory) {
-        return nativeOSFactory;
+        if(null!=nativeOSFactory && nativeOSFactory.hasOpenGLESSupport() ) {
+            return nativeOSFactory;
+        }
+    } else {
+        if(null!=nativeOSFactory && nativeOSFactory.hasOpenGLDesktopSupport() ) {
+            return nativeOSFactory;
+        }
     }
-    throw new GLException("No GLDrawableFactory available for profile: "+glProfileImplName);
+    return null;
   }
-
-  protected static GLDrawableFactory getFactoryImpl(final AbstractGraphicsDevice device) throws GLException {
+  /**
+   * Returns the sole {@link GLDrawableFactory} matching the given {@link AbstractGraphicsDevice} instance,
+   * which will be suitable either for native mobile or native desktop.
+   * @param device the queries {@link AbstractGraphicsDevice} seeking for its matching factory
+   * @return the matching {@link GLDrawableFactory} or {@code null} if none is available
+   */
+  public static GLDrawableFactory getFactory(final AbstractGraphicsDevice device) {
     if(null != nativeOSFactory && nativeOSFactory.getIsDeviceCompatible(device)) {
         return nativeOSFactory;
     }
     if(null != eglFactory && eglFactory.getIsDeviceCompatible(device)) {
         return eglFactory;
     }
-    throw new GLException("No native platform GLDrawableFactory, nor EGLDrawableFactory available: "+device);
+    return null;
   }
 
   /**

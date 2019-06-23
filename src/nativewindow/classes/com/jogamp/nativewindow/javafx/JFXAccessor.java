@@ -62,6 +62,7 @@ public class JFXAccessor {
 
     private static final String nwt;
     private static final boolean isOSX;
+    private static final boolean isIOS;
     private static final boolean isWindows;
     private static final boolean isX11;
 
@@ -130,6 +131,7 @@ public class JFXAccessor {
 
         nwt = NativeWindowFactory.getNativeWindowType(false);
         isOSX = NativeWindowFactory.TYPE_MACOSX == nwt;
+        isIOS = NativeWindowFactory.TYPE_IOS == nwt;
         isWindows = NativeWindowFactory.TYPE_WINDOWS == nwt;
         isX11 = NativeWindowFactory.TYPE_X11 == nwt;
 

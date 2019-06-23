@@ -67,7 +67,7 @@ public class TestGLProfile00NEWT extends UITestCase {
     public void test11DumpDesktopGLInfo() throws InterruptedException {
         Assert.assertTrue("JOGL is not initialized ...", GLProfile.isInitialized());
         System.err.println("Desktop");
-        final GLDrawableFactory desktopFactory = GLDrawableFactory.getDesktopFactory();
+        final GLDrawableFactory desktopFactory = GLDrawableFactory.getFactory(false);
         if( null != desktopFactory ) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(desktopFactory.getDefaultDevice(), null, false));
             System.err.println(Platform.getNewline()+Platform.getNewline()+Platform.getNewline());
@@ -77,12 +77,12 @@ public class TestGLProfile00NEWT extends UITestCase {
     }
 
     @Test
-    public void test12DumpEGLGLInfo() throws InterruptedException {
+    public void test12DumpMobileGLInfo() throws InterruptedException {
         Assert.assertTrue("JOGL is not initialized ...", GLProfile.isInitialized());
-        System.err.println("EGL");
-        final GLDrawableFactory eglFactory = GLDrawableFactory.getEGLFactory();
-        if( null != eglFactory ) {
-            System.err.println(JoglVersion.getDefaultOpenGLInfo(eglFactory.getDefaultDevice(), null, false));
+        System.err.println("ES");
+        final GLDrawableFactory esFactory = GLDrawableFactory.getFactory(true);
+        if( null != esFactory ) {
+            System.err.println(JoglVersion.getDefaultOpenGLInfo(esFactory.getDefaultDevice(), null, false));
         } else {
             System.err.println("\tNULL");
         }

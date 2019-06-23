@@ -81,10 +81,12 @@
         <property name="java.part.macosx"
                   value="com/jogamp/nativewindow/macosx/* jogamp/nativewindow/macosx/*" />
 
+        <property name="java.part.ios"
+                  value="com/jogamp/nativewindow/ios/* jogamp/nativewindow/ios/*" />
+
         <!-- condition excludes -->
 
-        <condition property="java.excludes.awt"
-                   value="${java.part.awt}">
+        <condition property="java.excludes.awt" value="${java.part.awt}">
            <isset property="setup.noAWT"/> 
         </condition>
 
@@ -170,6 +172,7 @@
         <mkdir dir="${src.generated.java}" />
         <mkdir dir="${src.generated.c}" />
         <mkdir dir="${src.generated.c}/MacOSX" />
+        <mkdir dir="${src.generated.c}/iOS" />
         <mkdir dir="${src.generated.c}/Windows" />
         <mkdir dir="${src.generated.c}/X11" />
         <mkdir dir="${classes}" />
@@ -235,7 +238,8 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.jawt" unless="setup.noAWT">
+    <!-- target name="java.generate.jawt" unless="setup.noAWT" -->
+    <target name="java.generate.jawt" if="jawt.cfg" unless="setup.noAWT">
         <!-- NOTE:  the "literalInclude" in this GlueGen call is simply to
            -        get around the fact that neither FileSet nor DirSet can
            -        handle different drives in an effective manner. -->
@@ -259,6 +263,7 @@
         <dirset id="stub.includes.fileset.platform" dir="." includes="${stub.includes}/${window.os.system}/** ${stub.includes.gluegen}/gluegen/** ${stub.includes}/khr/**" />
         <antcall target="java.generate.windowlib" inheritRefs="true" />
         <antcall target="java.generate.jawt" inheritRefs="true" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
     </target>
 
     <!--
@@ -296,6 +301,14 @@
           <param name="jawt.cfg"                             value="${config.nativewindow}/jawt-macosx.cfg" />
           <param name="jawt.platform.header"                 value="${stub.includes.gluegen}/jni/macosx/jawt_md.h" />
           <param name="jni.platform.sub"                     value="macosx" />
+        </antcall>
+    
+        <echo message="Generating platform-specifics: iOS (nop)" /> <!-- actually nothing gets generated -->
+        <antcall target="java.generate.platforms" inheritRefs="true">
+          <param name="window.os.system"                     value="ios"/>
+          <!-- param name="jawt.cfg"                             value="${config.nativewindow}/jawt-ios.cfg" / --> <!-- n/a -->
+          <!-- param name="jawt.platform.header"                 value="${stub.includes.gluegen}/jni/ios/jawt_md.h" / --> <!-- n/a -->
+          <!-- param name="jni.platform.sub"                     value="ios" / --> <!-- n/a -->
         </antcall>
     
         <!-- Inform the user that the generators have successfully created 
@@ -369,6 +382,14 @@
       </compiler>
 
       <compiler id="compiler.cfg.macosx.nativewindow" extends="compiler.cfg.macosx">
+      </compiler>
+
+      <compiler id="compiler.cfg.ios.amd64.nativewindow" extends="compiler.cfg.ios.amd64">
+        <!-- compilerarg value="-v" / -->
+      </compiler>
+
+      <compiler id="compiler.cfg.ios.arm64.nativewindow" extends="compiler.cfg.ios.arm64">
+        <!-- compilerarg value="-v" / -->
       </compiler>
 
       <!-- linker configuration -->
@@ -459,6 +480,26 @@
         <linkerarg value="QuartzCore" />
         <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
+      </linker>
+
+      <linker id="linker.cfg.ios.amd64.nativewindow" extends="linker.cfg.ios.amd64">
+        <!-- linkerarg value="-v" / -->
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="UIKit" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="QuartzCore" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="OpenGLES" /> <!-- hack to inject CAEAGLLayer.self into UIView's layerClass -->
+      </linker>
+
+      <linker id="linker.cfg.ios.arm64.nativewindow" extends="linker.cfg.ios.arm64">
+        <!-- linkerarg value="-v" / -->
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="UIKit" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="QuartzCore" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="OpenGLES" /> <!-- hack to inject CAEAGLLayer.self into UIView's layerClass -->
       </linker>
 
       <linker id="linker.cfg.hpux.nativewindow" extends="linker.cfg.hpux">
@@ -608,7 +649,17 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.nativewindow" />
     </target>
     
-    <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.freebsd,c.configure.hpux" />
+    <target name="c.configure.ios.amd64" if="isIOSAmd64">
+      <property name="compiler.cfg.id"                      value="compiler.cfg.ios.amd64.nativewindow" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.ios.amd64.nativewindow" />
+    </target>
+    
+    <target name="c.configure.ios.arm64" if="isIOSArm64">
+      <property name="compiler.cfg.id"                      value="compiler.cfg.ios.arm64.nativewindow" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.ios.arm64.nativewindow" />
+    </target>
+    
+    <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.ios.amd64,c.configure.ios.arm64,c.configure.freebsd,c.configure.hpux" />
 
     <target name="c.configure" depends="c.configure.1,c.configure.2" />
 
@@ -658,6 +709,7 @@
           <include name="${rootrel.src.c}/x11/Xmisc.c"/>
           <include name="${rootrel.src.c}/x11/XineramaHelper.c"/>
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
         </patternset>
 
         <patternset id="c.src.files.windows">
@@ -665,11 +717,20 @@
           <include name="${rootrel.src.c}/win32/GDImisc.c"/>
           <include name="${rootrel.src.c}/win32/WindowsDWM.c"/>
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
         </patternset>
 
         <patternset id="c.src.files.macosx">
           <include name="${rootrel.src.c}/macosx/OSXmisc.m"/>
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
+        </patternset>
+
+        <patternset id="c.src.files.ios">
+          <include name="${rootrel.src.c}/ios/CAEAGLLayered.m"/>
+          <include name="${rootrel.src.c}/ios/IOSmisc.m"/>
+          <include name="${rootrel.src.c}/NativewindowCommon.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
@@ -682,12 +743,11 @@
             <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
           </sourcefiles>
           <targetfiles>
-            <fileset dir="${obj.nativewindow}" includes="lib@{output.lib.name}.so"/>
-            <fileset dir="${obj.nativewindow}" includes="@{output.lib.name}.dll"/>
-            <fileset dir="${obj.nativewindow}" includes="lib@{output.lib.name}.dylib"/>
+            <fileset dir="${obj.nativewindow}" includes="${native.library.prefix}@{output.lib.name}.${native.library.suffix}"/>
           </targetfiles>
           <sequential>
-            <cc outtype="shared" 
+            <cc outtype="${output.lib.type}" 
+                usehighleveltool="true"
                 objdir="${obj.nativewindow}" 
                 outfile="${obj.nativewindow}/@{output.lib.name}"
                 optimize="${c.compiler.optimise}" 
@@ -706,10 +766,12 @@
                 <includepath path="${src.generated.c}" />
                 <includepath path="${src.generated.c}/X11"     if="isX11"/>
                 <includepath path="${src.generated.c}/MacOSX"  if="isOSX"/>
+                <includepath path="${src.generated.c}/iOS"     if="isIOS"/>
                 <includepath path="stub_includes/win32"        if="isWindows"/>
                 <includepath path="${src.generated.c}/Windows" if="isWindows"/>
                 <includepath path="${src.c}/x11"               if="isX11"/>
                 <includepath path="${src.c}/macosx"            if="isOSX"/>
+                <includepath path="${src.c}/ios"               if="isIOS"/>
                 <includepath path="${src.c}/win32"             if="isWindows"/>
                 <includepath path="${src.c}"/>
       
@@ -729,6 +791,10 @@
                 <param name="src"  value="${obj.nativewindow}/lib@{output.lib.name}.so" />
                 <param name="dest" value="${obj.nativewindow}/@{output.lib.name}.dll" />
             </antcall>
+
+            <gluegen.make.libsymbols builddir="${build}" 
+                nativelib="${obj.nativewindow}/${native.library.prefix}@{output.lib.name}.${native.library.suffix}"
+                symbolsfile="${obj.nativewindow}/${native.library.prefix}@{output.lib.name}.symbols"/>
 
             <!-- this stripping may be called more than once on the same library dir,
                  but that should cause no harm, and doing it here inside outofdate
@@ -777,7 +843,16 @@
                linker.cfg.id="${linker.cfg.id.oswin}"/>
     </target>
 
-    <target name="c.build.nativewindow.windowlib" depends="c.build.nativewindow.windowlib.x11, c.build.nativewindow.windowlib.windows, c.build.nativewindow.windowlib.macosx"/>
+    <target name="c.build.nativewindow.windowlib.ios" if="isIOS">
+      <javah destdir="${src.generated.c}/iOS" classpath="${javah.classpath}" class="jogamp.nativewindow.ios.IOSUtil" />
+
+      <c.build c.compiler.src.files="c.src.files.ios"
+               output.lib.name="nativewindow_ios"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.oswin}"/>
+    </target>
+
+    <target name="c.build.nativewindow.windowlib" depends="c.build.nativewindow.windowlib.x11, c.build.nativewindow.windowlib.windows, c.build.nativewindow.windowlib.macosx, c.build.nativewindow.windowlib.ios"/>
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
@@ -852,7 +927,14 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows,build-jars-macosx">
+    <target name="build-jars-ios" depends="setup-manifestfile">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-os-ios.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.ios}" />
+        </jar>
+    </target>
+
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows,build-jars-macosx,build-jars-ios">
         <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"

@@ -146,18 +146,6 @@ public class TestGLAutoDrawableFactoryGLnBitmapCapsNEWT extends UITestCase {
         System.out.println("Fin Drawable: "+glad);
     }
 
-    @Test
-    public void testAvailableInfo() {
-        GLDrawableFactory f = GLDrawableFactory.getDesktopFactory();
-        if(null != f) {
-            System.err.println(JoglVersion.getDefaultOpenGLInfo(f.getDefaultDevice(), null, true).toString());
-        }
-        f = GLDrawableFactory.getEGLFactory();
-        if(null != f) {
-            System.err.println(JoglVersion.getDefaultOpenGLInfo(f.getDefaultDevice(), null, true).toString());
-        }
-    }
-
     // Might be reduced to !double-buff
     @Test
     public void testGL2OffScreenBitmapDblBuf() throws InterruptedException {

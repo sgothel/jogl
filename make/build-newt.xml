@@ -79,6 +79,7 @@
             <and>
                 <isfalse value="${isWindows}" />
                 <isfalse value="${isOSX}" />
+                <isfalse value="${isIOS}" />
                 <isfalse value="${isX11}" />
                 <isfalse value="${isAndroid}" />
                 <isfalse value="${setup.addNativeKD}" />
@@ -90,6 +91,7 @@
         <echo message="setup.noOpenGL: ${setup.noOpenGL}" />
         <echo message="isWindows: ${isWindows}" />
         <echo message="isOSX: ${isOSX}" />
+        <echo message="isIOS: ${isIOS}" />
         <echo message="isX11: ${isX11}" />
         <echo message="isAndroid: ${isAndroid}" />
         <echo message="setup.addNativeKD: ${setup.addNativeKD}" />
@@ -131,6 +133,9 @@
 
         <property name="java.part.driver.macosx"
                   value="jogamp/newt/driver/macosx/**"/>
+
+        <property name="java.part.driver.ios"
+                  value="jogamp/newt/driver/ios/**"/>
 
         <property name="java.part.driver.kd"
                   value="jogamp/newt/driver/kd/**"/>
@@ -226,6 +231,7 @@
         <mkdir dir="${src.generated.c}/Android" />
         <mkdir dir="${src.generated.c}/X11" />
         <mkdir dir="${src.generated.c}/MacOSX" />
+        <mkdir dir="${src.generated.c}/iOS" />
         <mkdir dir="${src.generated.c}/Windows" />
         <mkdir dir="${src.generated.c}/KD" />
         <mkdir dir="${src.generated.c}/IntelGDL" />
@@ -416,6 +422,26 @@
         <linkerarg value="Carbon" />
         <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
+      </linker>
+
+      <linker id="linker.cfg.ios.amd64.newt" extends="linker.cfg.ios.amd64">
+        <!-- linkerarg value="-v" / -->
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="UIKit" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="QuartzCore" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="OpenGLES" /> <!-- hack to get the CAEAGL in .. -->
+      </linker>
+
+      <linker id="linker.cfg.ios.arm64.newt" extends="linker.cfg.ios.arm64">
+        <!-- linkerarg value="-v" / -->
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="UIKit" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="QuartzCore" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="OpenGLES" /> <!-- hack to get the CAEAGL in .. -->
       </linker>
 
       <linker id="linker.cfg.hpux.newt" extends="linker.cfg.hpux">
@@ -612,7 +638,17 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.macosx.newt" />
     </target>
 
-    <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.freebsd,c.configure.hpux" />
+    <target name="c.configure.ios.amd64" if="isIOSAmd64">
+      <property name="compiler.cfg.id"                     value="compiler.cfg.ios.amd64" />
+      <property name="linker.cfg.id.oswin"                 value="linker.cfg.ios.amd64.newt" />
+    </target>
+    
+    <target name="c.configure.ios.arm64" if="isIOSArm64">
+      <property name="compiler.cfg.id"                     value="compiler.cfg.ios.arm64" />
+      <property name="linker.cfg.id.oswin"                 value="linker.cfg.ios.arm64.newt" />
+    </target>
+    
+    <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.ios.amd64,c.configure.ios.arm64,c.configure.freebsd,c.configure.hpux" />
 
     <target name="c.configure" depends="c.configure.1,c.configure.2" />
 
@@ -637,12 +673,15 @@
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
         <patternset id="c.src.files.newt">
+          <include name="${rootrel.src.c}/JVM_JNI8.c" />
           <include name="${rootrel.src.c}/NewtCommon.c" />
           <!-- include name="${rootrel.src.c}/timespec.c"   /--> <!-- currently used for X11 and OSX with special PERF DEBUG MODE-->
           <include name="${rootrel.src.c}/WindowsWindow.c"    if="isWindows"/>
           <include name="${rootrel.src.c}/WindowsEDID.c"      if="isWindows"/>
           <include name="${rootrel.src.c}/MacWindow.m"        if="isOSX"/>
           <include name="${rootrel.src.c}/NewtMacWindow.m"    if="isOSX"/>
+          <include name="${rootrel.src.c}/IOSUIWindow.m"      if="isIOS"/>
+          <include name="${rootrel.src.c}/IOSNewtUIWindow.m"  if="isIOS"/>
           <include name="${rootrel.src.c}/AndroidWindow.c"    if="isAndroid"/>
           <include name="${rootrel.src.c}/X11Display.c"       if="isX11"/>
           <!-- include name="${rootrel.src.c}/X11Event.c"      if="isX11"/-->
@@ -666,12 +705,11 @@
             <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
           </sourcefiles>
           <targetfiles>
-            <fileset dir="${obj.newt}" includes="lib@{output.lib.name}.so"/>
-            <fileset dir="${obj.newt}" includes="@{output.lib.name}.dll"/>
-            <fileset dir="${obj.newt}" includes="lib@{output.lib.name}.dylib"/>
+            <fileset dir="${obj.newt}" includes="${native.library.prefix}@{output.lib.name}.${native.library.suffix}"/>
           </targetfiles>
           <sequential>
-            <cc outtype="shared"
+            <cc outtype="${output.lib.type}" 
+                usehighleveltool="true"
                 objdir="${obj.newt}"
                 outfile="${obj.newt}/@{output.lib.name}"
                 optimize="${c.compiler.optimise}"
@@ -695,6 +733,7 @@
                 <includepath path="${src.generated.c}/Android"      if="isAndroid"/>
                 <includepath path="${src.generated.c}/X11"          if="isX11"/>
                 <includepath path="${src.generated.c}/MacOSX"       if="isOSX"/>
+                <includepath path="${src.generated.c}/iOS"          if="isIOS"/>
                 <includepath path="${src.generated.c}/Windows"      if="isWindows"/>
                 <includepath path="${src.generated.c}/KD"           if="setup.addNativeKD" />
                 <includepath path="${src.generated.c}/IntelGDL"     if="setup.addNativeIntelGDL" />
@@ -719,6 +758,10 @@
                 <param name="dest" value="${obj.newt}/@{output.lib.name}.dll" />
             </antcall>
 
+            <gluegen.make.libsymbols builddir="${build}" 
+                nativelib="${obj.newt}/${native.library.prefix}@{output.lib.name}.${native.library.suffix}"
+                symbolsfile="${obj.newt}/${native.library.prefix}@{output.lib.name}.symbols"/>
+
           	<!-- this stripping may be called more than once on the same library dir,
           	     but that should cause no harm, and doing it here inside outofdate
           	     prevents the JARs from always being rebuilt even if no source code changes -->
@@ -741,6 +784,7 @@
 
       <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowDriver, jogamp.newt.driver.windows.ScreenDriver, jogamp.newt.driver.windows.DisplayDriver" />
       <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.WindowDriver, jogamp.newt.driver.macosx.ScreenDriver, jogamp.newt.driver.macosx.DisplayDriver" />
+      <javah destdir="${src.generated.c}/iOS"         classpath="${javah.classpath}" class="jogamp.newt.driver.ios.WindowDriver, jogamp.newt.driver.ios.ScreenDriver, jogamp.newt.driver.ios.DisplayDriver" />
       <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.WindowDriver, jogamp.newt.driver.x11.ScreenDriver, jogamp.newt.driver.x11.RandR11, jogamp.newt.driver.x11.RandR13, jogamp.newt.driver.x11.DisplayDriver" />
     </target>
 
@@ -843,6 +887,10 @@
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-osx.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.macosx}"/>
+        </jar>
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-ios.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.driver.ios}"/>
         </jar>
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-kd.jar}" filesonly="true">
             <fileset dir="${classes}"

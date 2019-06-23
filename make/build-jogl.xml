@@ -113,14 +113,17 @@
         <property name="java.part.sdk"
                   value="com/jogamp/opengl/util/glsl/sdk/**"/>
 
-        <property name="java.part.glx"
+        <property name="java.part.x11.glx"
                   value="jogamp/opengl/x11/glx/*"/>
 
-        <property name="java.part.wgl"
+        <property name="java.part.win.wgl"
                   value="jogamp/opengl/windows/wgl/*"/>
 
-        <property name="java.part.cgl"
+        <property name="java.part.osx.cgl"
                   value="jogamp/opengl/macosx/cgl/*"/>
+
+        <property name="java.part.ios.eagl"
+                  value="jogamp/opengl/ios/eagl/*"/>
 
         <property name="java.part.android"
                   value="jogamp/opengl/android/**"/>
@@ -187,9 +190,6 @@
 
         <property name="java.part.nonjava" 
                   value="${java.part.core.shadercode} ${java.part.util.shadercode} ${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
-
-        <property name="java.part.all-desktop" 
-                  value="${java.part.sdk} ${java.part.glx} ${java.part.wgl} ${java.part.cgl} ${java.part.gldesktop} ${java.part.glu.gldesktop} ${java.part.util.gldesktop}"/>
 
         <!-- condition excludes -->
 
@@ -347,6 +347,7 @@
         <mkdir dir="${src.generated.java}" />
         <mkdir dir="${src.generated.c}" />
         <mkdir dir="${src.generated.c}/MacOSX" />
+        <mkdir dir="${src.generated.c}/iOS" />
         <mkdir dir="${src.generated.c}/Windows" />
         <mkdir dir="${src.generated.c}/X11" />
         <mkdir dir="${src.generated.c.openmax}" />
@@ -709,7 +710,7 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.platform.glext">
+    <target name="java.generate.platform.glext" if="glext.platform.cfg">
         <echo message="Generating platform-specific OpenGL extension class: ${window.os.system}" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${glext.platform.header}" 
@@ -860,6 +861,13 @@
           <param name="window.os1.cfg"                       value="${config.jogl}/cgl-macosx.cfg" />
           <param name="glext.platform.cfg"                   value="${config.jogl}/cglext.cfg" />
           <param name="glext.platform.header"                value="${stub.includes}/macosx/cglext.c" />
+        </antcall>
+    
+        <antcall target="java.generate.gl.platforms" inheritRefs="true">
+          <param name="window.os.system"                     value="ios"/>
+          <param name="window.os1.cfg"                       value="${config.jogl}/eagl-ios.cfg" />
+          <!-- param name="glext.platform.cfg"                   value="${config.jogl}/eagl-ext.cfg" /-->
+          <!-- param name="glext.platform.header"                value="${stub.includes}/ios/eagl-ext.c" /-->
         </antcall>
     
         <!-- Generate GLU class -->
@@ -1280,6 +1288,26 @@
         <linkerarg value="Cg"/>
       </linker-->
 
+      <linker id="linker.cfg.ios.amd64.jogl" extends="linker.cfg.ios.amd64">
+        <!-- linkerarg value="-v" / -->
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="UIKit" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="QuartzCore" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="OpenGLES" />
+      </linker>
+
+      <linker id="linker.cfg.ios.arm64.jogl" extends="linker.cfg.ios.arm64">
+        <!-- linkerarg value="-v" / -->
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="UIKit" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="QuartzCore" />
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="OpenGLES" />
+      </linker>
+
       <linker id="linker.cfg.hpux.jogl" extends="linker.cfg.hpux">
         <syslibset dir="/opt/graphics/OpenGL/lib" libs="GL, GLU"/>
         <syslibset dir="/usr/lib" libs="X11"/>
@@ -1426,8 +1454,18 @@
       <property name="compiler.cfg.id"                     value="compiler.cfg.macosx" />
       <property name="linker.cfg.id.os"                    value="linker.cfg.macosx.jogl" />
     </target>
+
+    <target name="c.configure.ios.amd64" if="isIOSAmd64">
+      <property name="compiler.cfg.id"                     value="compiler.cfg.ios.amd64" />
+      <property name="linker.cfg.id.os"                    value="linker.cfg.ios.amd64.jogl" />
+    </target>
     
-    <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.freebsd,c.configure.hpux" />
+    <target name="c.configure.ios.arm64" if="isIOSArm64">
+      <property name="compiler.cfg.id"                     value="compiler.cfg.ios.arm64" />
+      <property name="linker.cfg.id.os"                    value="linker.cfg.ios.arm64.jogl" />
+    </target>
+    
+    <target name="c.configure.2" depends="c.configure.win32,c.configure.linux,c.configure.android,c.configure.solaris32,c.configure.solaris.sparcv9,c.configure.solaris.amd64,c.configure.macosx,c.configure.ios.amd64, c.configure.ios.arm64, c.configure.freebsd,c.configure.hpux" />
 
     <target name="c.configure" depends="c.configure.1,c.configure.2" />
 
@@ -1467,12 +1505,11 @@
             <fileset dir="${project.root}" includes="${rootrel.src.c.libav}/*"/>
           </sourcefiles>
           <targetfiles>
-            <fileset dir="${obj.joglsub}" includes="lib@{output.lib.name}.so"/>
-            <fileset dir="${obj.joglsub}" includes="@{output.lib.name}.dll"/>
-            <fileset dir="${obj.joglsub}" includes="lib@{output.lib.name}.dylib"/>
+            <fileset dir="${obj.joglsub}" includes="${native.library.prefix}@{output.lib.name}.${native.library.suffix}"/>
           </targetfiles>
           <sequential>
-            <cc outtype="shared" 
+            <cc outtype="${output.lib.type}" 
+                usehighleveltool="true"
                 objdir="${obj.joglsub}" 
                 outfile="${obj.joglsub}/@{output.lib.name}"
                 optimize="${c.compiler.optimise}" 
@@ -1502,6 +1539,9 @@
               <linker extends="@{linker.cfg.id}">
               </linker>
             </cc>
+            <gluegen.make.libsymbols builddir="${build}" 
+                nativelib="${obj.joglsub}/${native.library.prefix}@{output.lib.name}.${native.library.suffix}"
+                symbolsfile="${obj.joglsub}/${native.library.prefix}@{output.lib.name}.symbols"/>
           </sequential>
         </outofdate>
       </sequential>
@@ -1529,15 +1569,17 @@
         </patternset>
 
         <patternset id="c.src.files.jogl.desktop">
+          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
           <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c}/GLContext.c"/>
           <include name="${rootrel.src.c}/EGLContext.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
-          <include name="${rootrel.src.c}/timespec.c" if="isOSX"/> <!-- currently only used for OSX -->
+          <include name="${rootrel.src.c}/timespec.c" if="isOSX"/> <!-- currently only used for OSX, iOS -->
           <include name="${rootrel.src.c}/macosx/MacOSXCustomCGLCode.c" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface.m" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface-calayer.m" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/ContextUpdater.m" if="isOSX"/>
+          <!-- include name="${rootrel.src.c}/ios/lalalala.m" if="isIOS"/ -->
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
@@ -1556,11 +1598,14 @@
         </patternset>
 
         <patternset id="c.src.files.jogl.mobile">
+          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
           <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c}/GLContext.c"/>
           <include name="${rootrel.src.c}/EGLContext.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
+          <include name="${rootrel.src.c}/timespec.c" if="isIOS"/> <!-- currently only used for OSX, iOS -->
+          <include name="${rootrel.src.c}/ios/IOSWindowSystemInterface.m" if="isIOS"/>
           <include name="${rootrel.src.c.libav}/ffmpeg_static.c"/>
           <include name="${rootrel.src.c.libav}/ffmpeg_dshow.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
@@ -1573,6 +1618,7 @@
           <include name="${rootrel.generated.c.jogl}/es1/GLES1Impl_JNI.c"/>
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
           <!--include name="${rootrel.generated.c.jogl}/es1/GLUes1_JNI.c" EMPTY /-->
+          <include name="${rootrel.generated.c.jogl}/iOS/*.c" if="isIOS"/>
         </patternset>
 
         <patternset id="c.src.files.cg">
@@ -1589,12 +1635,11 @@
             <fileset dir="${obj.joglsub}" includes="*jogl_ffmpegv08*, *jogl_ffmpegv09*, *jogl_ffmpegv10*"/> <!-- requires linkage -->
           </sourcefiles>
           <targetfiles>
-            <fileset dir="${obj.jogl}" includes="lib@{output.lib.name}.so"/>
-            <fileset dir="${obj.jogl}" includes="@{output.lib.name}.dll"/>
-            <fileset dir="${obj.jogl}" includes="lib@{output.lib.name}.dylib"/>
+            <fileset dir="${obj.jogl}" includes="${native.library.prefix}@{output.lib.name}.${native.library.suffix}"/>
           </targetfiles>
           <sequential>
-            <cc outtype="shared" 
+            <cc outtype="${output.lib.type}" 
+                usehighleveltool="true"
                 objdir="${obj.joglsub}" 
                 outfile="${obj.jogl}/@{output.lib.name}"
                 optimize="${c.compiler.optimise}" 
@@ -1621,9 +1666,11 @@
                 <!-- This is for the generated headers for handwritten C code -->
                 <includepath path="${src.c}"/>
                 <includepath path="${nativewindow.src.c}/macosx" if="isOSX"/>
+                <includepath path="${nativewindow.src.c}/ios"    if="isIOS"/>
                 <includepath path="${src.generated.c}" />
                 <includepath path="${src.generated.c}/X11"       if="isX11"/>
                 <includepath path="${src.generated.c}/MacOSX"    if="isOSX"/>
+                <includepath path="${src.generated.c}/iOS"       if="isIOS"/>
                 <includepath path="${src.generated.c}/Windows"   if="isWindows"/>
                 <includepath path="${src.generated.c.libav}" />
                 <includepath path="${src.generated.c.openmax}"   if="setup.addNativeOpenMAX"/>
@@ -1644,6 +1691,10 @@
                 <param name="src"  value="${obj.jogl}/lib@{output.lib.name}.so" />
                 <param name="dest" value="${obj.jogl}/@{output.lib.name}.dll" />
             </antcall>
+
+            <gluegen.make.libsymbols builddir="${build}" 
+                nativelib="${obj.jogl}/${native.library.prefix}@{output.lib.name}.${native.library.suffix}"
+                symbolsfile="${obj.jogl}/${native.library.prefix}@{output.lib.name}.symbols"/>
 
             <!-- this stripping may be called more than once on the same library dir,
                  but that should cause no harm, and doing it here inside outofdate
@@ -1771,13 +1822,13 @@
 
     <target name="build-jars-os-desktop-javase" depends="setup-manifestfile">
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-os-x11.jar}" filesonly="true">
-            <fileset dir="${classes}" includes="${java.part.glx}"/>
+            <fileset dir="${classes}" includes="${java.part.x11.glx}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-os-win.jar}" filesonly="true">
-            <fileset dir="${classes}" includes="${java.part.wgl}" />
+            <fileset dir="${classes}" includes="${java.part.win.wgl}" />
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-os-osx.jar}" filesonly="true">
-            <fileset dir="${classes}" includes="${java.part.cgl}"/>
+            <fileset dir="${classes}" includes="${java.part.osx.cgl}"/>
         </jar>
     </target>
 
@@ -1788,6 +1839,9 @@
     </target>
 
     <target name="build-jars-mobile-javase" depends="setup-manifestfile">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-os-ios.jar}" filesonly="true">
+            <fileset dir="${classes}" includes="${java.part.ios.eagl}"/>
+        </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glmobile.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.egl} ${java.part.es1} ${java.part.es2es3}"

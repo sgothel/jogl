@@ -34,7 +34,6 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GL2ES3;
 import com.jogamp.opengl.GL2GL3;
-import com.jogamp.opengl.GL3;
 import com.jogamp.opengl.GLBase;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
@@ -43,6 +42,7 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.Debug;
+import jogamp.opengl.ios.eagl.EAGL;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.PropertyAccess;
@@ -482,6 +482,48 @@ public class FBObject {
         public final TextureAttachment getTextureAttachment() { throw new GLException("Not a TextureAttachment, but ColorAttachment"); }
         @Override
         public final ColorAttachment getColorAttachment() { return this; }
+
+        @Override
+        public boolean initialize(final GL gl) throws GLException {
+            final boolean init = 0 == getName();
+            if( init ) {
+                final boolean checkError = DEBUG || GLContext.DEBUG_GL;
+                if( checkError ) {
+                    checkPreGLError(gl);
+                }
+                final int[] name = new int[] { -1 };
+                gl.glGenRenderbuffers(1, name, 0);
+                setName(name[0]);
+
+                gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, getName());
+                if( getSamples() > 0 ) {
+                    ((GL2ES3)gl).glRenderbufferStorageMultisample(GL.GL_RENDERBUFFER, getSamples(), format, getWidth(), getHeight());
+                } else {
+                    // FIXME: Need better way to inject the IOS EAGL Layer into FBObject
+                    // FIXME: May want to implement optional injection of a BufferStorage SPI?
+                    final GLContext ctx = gl.getContext();
+                    final Long iosEAGLLayer = (Long) ctx.getAttachedObject("IOS_EAGL_LAYER");
+                    if( null != iosEAGLLayer ) {
+                        EAGL.eaglBindDrawableStorageToRenderbuffer(gl.getContext().contextHandle, GL.GL_RENDERBUFFER, iosEAGLLayer.longValue());
+                    } else {
+                        gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, format, getWidth(), getHeight());
+                    }
+                }
+                if( checkError ) {
+                    final int glerr = gl.glGetError();
+                    if(GL.GL_NO_ERROR != glerr) {
+                        gl.glDeleteRenderbuffers(1, name, 0);
+                        setName(0);
+                        throw new GLException("GL Error "+toHexString(glerr)+" while creating "+this);
+                    }
+                }
+                if(DEBUG) {
+                    System.err.println("Attachment.init.X: "+this);
+                }
+            }
+            return init;
+        }
+
 
     }
 
@@ -1250,7 +1292,7 @@ public class FBObject {
                 return("FBO missing read buffer");
             case GL.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
                 return("FBO missing multisample buffer");
-            case GL3.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+            case GL3ES3.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
                 return("FBO missing layer targets");
 
             case GL.GL_FRAMEBUFFER_UNSUPPORTED:
@@ -1281,7 +1323,7 @@ public class FBObject {
             case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
             case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
             case GL.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-            case GL3.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+            case GL3ES3.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
                 if(0 == colorbufferCount || null == depth) {
                     // we are in transition
                     return true;

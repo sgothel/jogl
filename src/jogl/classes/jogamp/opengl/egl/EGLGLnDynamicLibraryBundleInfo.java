@@ -59,7 +59,7 @@ public final class EGLGLnDynamicLibraryBundleInfo extends EGLDynamicLibraryBundl
             if( Platform.OSType.MACOS == osType ) {
                 libsGL.add("/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib");
                 libsGL.add("GL");
-            } else if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
+            } else if( Platform.OSType.WINDOWS == osType ) {
                 libsGL.add("OpenGL32");
             } else {
                 // this is the default lib name, according to the spec

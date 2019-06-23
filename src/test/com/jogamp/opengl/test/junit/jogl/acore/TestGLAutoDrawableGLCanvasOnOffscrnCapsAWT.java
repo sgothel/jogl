@@ -245,18 +245,6 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
     }
 
     @Test
-    public void testAvailableInfo() {
-        GLDrawableFactory f = GLDrawableFactory.getDesktopFactory();
-        if(null != f) {
-            System.err.println(JoglVersion.getDefaultOpenGLInfo(f.getDefaultDevice(), null, true).toString());
-        }
-        f = GLDrawableFactory.getEGLFactory();
-        if(null != f) {
-            System.err.println(JoglVersion.getDefaultOpenGLInfo(f.getDefaultDevice(), null, true).toString());
-        }
-    }
-
-    @Test
     public void testGL2OnScreenDblBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;

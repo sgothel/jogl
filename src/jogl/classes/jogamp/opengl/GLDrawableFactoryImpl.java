@@ -68,11 +68,15 @@ import com.jogamp.opengl.GLOffscreenAutoDrawable;
 import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.os.Platform;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.DelegatedUpstreamSurfaceHookWithSurfaceSize;
+import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.GLRendererQuirks;
+
+import jogamp.common.os.PlatformPropsImpl;
 
 
 /** Extends GLDrawableFactory with a few methods for handling
@@ -275,8 +279,18 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     GLDrawable result = null;
     adevice.lock();
     try {
+        final boolean forceOnscreenFBOLayer;
+        final boolean useFBORendertarget;
+        if( chosenCaps.isOnscreen() && Platform.OSType.IOS == PlatformPropsImpl.OS_TYPE )  // FIXME: avoid hardcoding?
+        {
+            forceOnscreenFBOLayer = true;
+            useFBORendertarget = true;
+        } else {
+            forceOnscreenFBOLayer = false;
+            useFBORendertarget = false;
+        }
         final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(target, true);
-        if(null != ols) {
+        if(null != ols || forceOnscreenFBOLayer ) {
             final GLCapabilitiesImmutable chosenCapsMod = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(chosenCaps, this, adevice);
 
             // layered surface -> Offscreen/[FBO|PBuffer]
@@ -284,12 +298,15 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                 throw new GLException("Neither FBO nor Pbuffer is available for "+chosenCapsMod+", "+target);
             }
             config.setChosenCapabilities(chosenCapsMod);
-            ols.setChosenCapabilities(chosenCapsMod);
+            if( null != ols ) {
+                ols.setChosenCapabilities(chosenCapsMod);
+            }
             if(DEBUG) {
                 System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable -> Offscreen-Layer");
                 System.err.println("chosenCaps:    "+chosenCaps);
                 System.err.println("chosenCapsMod: "+chosenCapsMod);
                 System.err.println("OffscreenLayerSurface: **** "+ols);
+                System.err.println("forceOnscreenFBOLayer: **** "+forceOnscreenFBOLayer+", useFBORendertarget "+useFBORendertarget);
                 System.err.println("Target: **** "+target);
                 ExceptionUtils.dumpStack(System.err);
             }
@@ -297,7 +314,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                 throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen layered surface: "+target);
             }
             if( chosenCapsMod.isFBO() ) {
-                result = createFBODrawableImpl(target, chosenCapsMod, 0);
+                result = createFBODrawableImpl(target, chosenCapsMod, useFBORendertarget?-1:0);
             } else {
                 result = createOffscreenDrawableImpl(target);
             }
@@ -431,6 +448,60 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
     return createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser,
                                                                  new UpstreamSurfaceHookMutableSize(width, height) ) );
+  }
+
+  /**
+   * Quick path to produce a Surfaceless resizable FBO Drawable.
+   * <p>
+   * Caller has to be sure Surfaceless context as well as FBO is supported
+   * on the platform, no checks will be made.
+   * </p>
+   * @param device2Use actual device to be used
+   * @param capsRequested
+   * @param width
+   * @param height
+   */
+  protected final GLFBODrawableImpl createSurfacelessFBODrawable(final AbstractGraphicsDevice device2Use,
+                                                                 final GLCapabilitiesImmutable capsRequested,
+                                                                 final int width, final int height) {
+    if(width<=0 || height<=0) {
+        throw new GLException("initial size must be positive (were (" + width + " x " + height + "))");
+    }
+    final GLCapabilities capsChosen = (GLCapabilities) capsRequested.cloneMutable();
+    {
+        capsChosen.setOnscreen(false);
+        capsChosen.setFBO( true );
+        capsChosen.setPBuffer( false );
+        capsChosen.setBitmap( false );
+    }
+    // final ProxySurface surface = createSurfacelessImpl(device2Use, false, glCapsMin, capsRequested, null, width, height);
+    final GLCapabilitiesImmutable surfaceCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(capsRequested);
+    final ProxySurface surface = createMutableSurfaceImpl(device2Use, false /* createNewDevice */, surfaceCaps, capsRequested, null, new GenericUpstreamSurfacelessHook(width, height));
+
+    final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(surface);
+    return new GLFBODrawableImpl.ResizeableImpl(this, dummyDrawable, surface, capsChosen, 0);
+  }
+  /**
+   * Quick path to produce a Surfaceless Drawable.
+   * <p>
+   * Caller has to be sure Surfaceless context is supported
+   * on the platform, no checks will be made.
+   * </p>
+   * @param device2Use actual device to be used
+   * @param capsRequested
+   * @param width
+   * @param height
+   */
+  protected final GLDrawableImpl createSurfacelessDrawable(final AbstractGraphicsDevice device2Use,
+                                                              final GLCapabilitiesImmutable capsRequested,
+                                                              final int width, final int height) {
+    if(width<=0 || height<=0) {
+        throw new GLException("initial size must be positive (were (" + width + " x " + height + "))");
+    }
+    // final ProxySurface surface = createSurfacelessImpl(device2Use, false, glCapsMin, capsRequested, null, width, height);
+    final GLCapabilitiesImmutable surfaceCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(capsRequested);
+    final ProxySurface surface = createMutableSurfaceImpl(device2Use, false /* createNewDevice */, surfaceCaps, capsRequested, null, new GenericUpstreamSurfacelessHook(width, height));
+    return createOnscreenDrawableImpl(surface);
   }
 
   @Override
