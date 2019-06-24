@@ -113,6 +113,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
 
         final boolean useDepth   = depthBits > 0;
         final boolean useStencil = stencilBits > 0;
+        FBObject.ColorAttachment pCA = null;
 
         fbo.init(gl, width, height, samples);
         if(fbo.getNumSamples() != samples) {
@@ -122,6 +123,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             final FBObject.ColorAttachment ca = fbo.createColorAttachment(useAlpha);
             if( null != colorRenderbufferStorageDef ) {
                 ca.setStorageDefinition(colorRenderbufferStorageDef);
+                pCA = ca;
             }
             fbo.attachColorbuffer(gl, 0, ca);
         } else {
@@ -166,6 +168,14 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         // Also remedy for Bug 1020, i.e. OSX/Nvidia's FBO needs to be cleared before blitting,
         // otherwise first MSAA frame lacks antialiasing.
         fbo.bind(gl);
+
+        if( null != pCA ) {
+            // FIXME: Apple iOS EAGLLayer doesn't show any content if the
+            // last bound RENDERBUFFER isn't the color renderbuffer,
+            // i.e. a subsequent bound DEPTH buffer has been attached.
+            gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, pCA.getName());
+        }
+
         if( setupViewportScissors ) {
             // Surfaceless: Set initial viewport/scissors
             gl.glViewport(0, 0, width, height);

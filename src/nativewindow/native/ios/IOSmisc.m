@@ -342,6 +342,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_ios_IOSUtil_CreateUIWindow0
     CAEAGLUIView *uiView = [[CAEAGLUIView alloc] initWithFrame:boundsView];
     CAEAGLLayer* l = (CAEAGLLayer*)[uiView layer];
     [l setOpaque: YES];
+    l.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys: /* defaults */
+                           [NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
+
 
     [myWindow addSubview: uiView];
 
