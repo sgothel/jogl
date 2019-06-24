@@ -34,19 +34,18 @@ import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.OffscreenLayerSurface;
-import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLException;
-import com.jogamp.opengl.GLFBODrawable;
 import com.jogamp.opengl.GLProfile;
 
-import jogamp.nativewindow.ios.IOSUtil;
 import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLFBODrawableImpl;
+import jogamp.opengl.GLDrawableFactoryImpl.OnscreenFBOColorbufferStorageDefinition;
 import jogamp.opengl.GLFBODrawableImpl.SwapBufferContext;
 import jogamp.opengl.DummyGLExtProcAddressTable;
 import jogamp.opengl.ios.eagl.IOSEAGLDrawable.GLBackendType;
@@ -99,8 +98,6 @@ public class IOSEAGLContext extends GLContextImpl
 
   // CGL extension functions.
   private DummyGLExtProcAddressTable cglExtProcAddressTable;
-
-  private int lastWidth, lastHeight;
 
   protected IOSEAGLContext(final GLDrawableImpl drawable,
                    final GLContext shareWith) {
@@ -194,11 +191,6 @@ public class IOSEAGLContext extends GLContextImpl
 
   @Override
   protected void makeCurrentImpl() throws GLException {
-    /** FIXME: won't work w/ special drawables (like FBO) - check for CGL mode regressions!
-     *
-    if (getOpenGLMode() != ((IOSEAGLDrawable)drawable).getOpenGLMode()) {
-      setOpenGLMode(((IOSEAGLDrawable)drawable).getOpenGLMode());
-    } */
     if ( !impl.makeCurrent(contextHandle) ) {
       throw new GLException("Error making Context current: "+this);
     }
@@ -221,50 +213,48 @@ public class IOSEAGLContext extends GLContextImpl
 
   @Override
   protected void drawableUpdatedNotify() throws GLException {
-    if( drawable.getChosenGLCapabilities().isOnscreen() ) {
-        final int w = drawable.getSurfaceWidth();
-        final int h = drawable.getSurfaceHeight();
-        // final boolean sizeChanged = w != lastWidth || h != lastHeight;
-        if(drawable instanceof GLFBODrawable) {
-            final GLFBODrawable fbod = (GLFBODrawable) drawable;
-            final FBObject.Colorbuffer col = fbod.getColorbuffer(GL.GL_FRONT); // FIXME GL_BACK swap ..
-            final int renderbuffer = col.getName();
-            EAGL.eaglPresentRenderbuffer(contextHandle, renderbuffer);
-        }
-        // TODO: Check for resize ...
-        lastWidth = w;
-        lastHeight = h;
-    }
+      // NOTE to resize: GLFBODrawableImpl.resetSize(GL) called from many
+      // high level instances in the GLDrawable* space,
+      // e.g. GLAutoDrawableBase's defaultWindowResizedOp(..)
   }
 
   @Override
   protected void associateDrawable(final boolean bound) {
       // context stuff depends on drawable stuff
-      if(bound) {
+      final GLFBODrawableImpl fboDrawable;
+      final boolean taggedOnscreenFBOEAGLLayer;
+      {
           final GLDrawableImpl drawable = getDrawableImpl();
-          if( drawable instanceof GLFBODrawableImpl ) {
-              final GLFBODrawableImpl fboDrawable = (GLFBODrawableImpl) drawable;
+          final GLDrawableFactoryImpl factory = drawable.getFactoryImpl();
+          final IOSEAGLDrawableFactory iosFactory = (factory instanceof IOSEAGLDrawableFactory) ? (IOSEAGLDrawableFactory) factory : null;
+          final OnscreenFBOColorbufferStorageDefinition onscreenFBOColorbufStorageDef = (null != iosFactory) ? iosFactory.getOnscreenFBOColorbufStorageDef() : null;
+
+          fboDrawable = (drawable instanceof GLFBODrawableImpl) ? (GLFBODrawableImpl)drawable : null;
+          taggedOnscreenFBOEAGLLayer = (null != fboDrawable && null != onscreenFBOColorbufStorageDef) ?
+                  fboDrawable.hasColorRenderbufferStorageDef(onscreenFBOColorbufStorageDef) : false;
+      }
+      if( DEBUG ) {
+          System.err.println(getThreadName() + ": IOSEAGLContext.associateDrawable(bound "+bound+"): taggedOnscreenFBOEAGLLayer "+taggedOnscreenFBOEAGLLayer+
+                             ", hasFBODrawable "+(null != fboDrawable)+", drawable: "+getDrawableImpl().getClass().getName());
+      }
+      if(bound) {
+          if( taggedOnscreenFBOEAGLLayer ) {
+              // Done in GLDrawableFactory.createGDrawable(..) for onscreen drawables:
+              // fboDrawable.setColorRenderbufferStorageDef(iosFactory.getOnscreenFBOColorbufStorageDef());
               fboDrawable.setSwapBufferContext(new SwapBufferContext() {
                   @Override
                   public void swapBuffers(final boolean doubleBuffered) {
                       EAGL.eaglPresentRenderbuffer(contextHandle, GL.GL_RENDERBUFFER);
                   } } );
           }
-          // FIXME: Need better way to inject the IOS EAGL Layer into FBObject
-          // FIXME: May want to implement optional injection of a BufferStorage SPI?
-          // FBObject.ColorAttachment.initialize(GL): EAGL.eaglBindDrawableStorageToRenderbuffer(contextHandle, GL.GL_RENDERBUFFER, eaglLayer);
-          final long eaglLayer = IOSUtil.GetCAEAGLLayer(drawable.getNativeSurface().getSurfaceHandle());
-          System.err.println("EAGL: Ctx attach EAGLLayer 0x"+Long.toHexString(eaglLayer));
-          attachObject("IOS_EAGL_LAYER", new Long(eaglLayer));
-
           super.associateDrawable(true);   // 1) init drawable stuff (FBO init, ..)
           impl.associateDrawable(true);    // 2) init context stuff
       } else {
           impl.associateDrawable(false);   // 1) free context stuff
           super.associateDrawable(false);  // 2) free drawable stuff
-
-          EAGL.eaglBindDrawableStorageToRenderbuffer(contextHandle, GL.GL_RENDERBUFFER, 0);
-          detachObject("IOS_EAGL_LAYER");
+          if( taggedOnscreenFBOEAGLLayer ) {
+              EAGL.eaglBindDrawableStorageToRenderbuffer(contextHandle, GL.GL_RENDERBUFFER, 0);
+          }
       }
   }
 
@@ -360,40 +350,6 @@ public class IOSEAGLContext extends GLContextImpl
 
       @Override
       public boolean isUsingCAEAGLLayer() { return null != backingLayerHost; }
-
-      /** Only returns a valid UIView. If !UIView, return null and mark isFBO or isSurfaceless. */
-      private long getUIViewHandle(final boolean[] isFBO, final boolean[] isSurfaceless) {
-          final long uiViewHandle;
-          if(drawable instanceof GLFBODrawableImpl) {
-              uiViewHandle = 0;
-              isFBO[0] = true;
-              isSurfaceless[0] = false;
-              if(DEBUG) {
-                  System.err.println("UI viewHandle.1: GLFBODrawableImpl drawable: isFBO "+isFBO[0]+", isSurfaceless "+isSurfaceless[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
-              }
-          } else {
-              final long drawableHandle = drawable.getHandle();
-              final boolean isUIView = IOSUtil.isUIView(drawableHandle);
-              final boolean isUIWindow = IOSUtil.isUIWindow(drawableHandle);
-              isFBO[0] = false;
-              isSurfaceless[0] = false;
-
-              if( isUIView ) {
-                  uiViewHandle = drawableHandle;
-              } else if( isUIWindow ) {
-                  uiViewHandle = IOSUtil.GetUIView(drawableHandle, true /* only EAGL */);
-              } else if( isSurfaceless() ) {
-                  isSurfaceless[0] = true;
-                  uiViewHandle = 0;
-              } else {
-                  throw new GLException("Drawable's handle neither NSView, NSWindow nor PBuffer: drawableHandle "+toHexString(drawableHandle)+", isNSView "+isUIView+", isNSWindow "+isUIWindow+", isFBO "+isFBO[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
-              }
-              if(DEBUG) {
-                  System.err.println("NS viewHandle.2: drawableHandle "+toHexString(drawableHandle)+" -> nsViewHandle "+toHexString(uiViewHandle)+": isNSView "+isUIView+", isNSWindow "+isUIWindow+", isFBO "+isFBO[0]+", isSurfaceless "+isSurfaceless[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
-              }
-          }
-          return uiViewHandle;
-      }
 
       @Override
       public long create(final long share, final int ctp, final int major, final int minor) {

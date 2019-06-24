@@ -37,6 +37,8 @@ import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.es2.RedSquareES2;
+import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.AnimatorBase;
 
 import jogamp.nativewindow.WrappedWindow;
 import jogamp.nativewindow.ios.IOSUtil;
@@ -61,9 +63,9 @@ public class Hello {
 
     public static void main(final String[] args) {
         int width = 832, height = 480; // ipad pro 11: 2388x1668 px (scale: 2)
-        int fboDepthBits = 0; // CAEAGLLayer fails with depth 16 + 24 in Simulation
+        int fboDepthBits = -1; // CAEAGLLayer fails with depth 16 + 24 in Simulation; -1 means don't change
         boolean exitJVM = false;
-        String demoName = "com.jogamp.opengl.demos.es2.LandscapeES2";
+        String demoName = "com.jogamp.opengl.demos.es2.GearsES2";
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-exit")) {
                 exitJVM = true;
@@ -119,9 +121,9 @@ public class Hello {
             // 1) Config ..
             final GLProfile glp = GLProfile.getGL2ES2();
             final GLCapabilities reqCaps = new GLCapabilities(glp);
-            reqCaps.setOnscreen(true);
-            reqCaps.setDoubleBuffered(false);
-            reqCaps.setDepthBits(fboDepthBits);
+            if( 0 <= fboDepthBits) {
+                reqCaps.setDepthBits(fboDepthBits);
+            }
             System.out.println("Requested GL Caps: "+reqCaps);
             final GLDrawableFactoryImpl factory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactory(glp);
 
@@ -170,14 +172,20 @@ public class Hello {
             System.out.println("Choosen demo "+demo.getClass().getName());
             glad.addGLEventListener(demo);
 
-            for(int i=0; i<60*10; i++) { // 10s w/ 60fps
-                glad.display(); // force native context creation
+            final Animator animator = new Animator();
+            // animator.setExclusiveContext(exclusiveContext);
+            animator.setUpdateFPSFrames(60, System.err);
+            animator.add(glad);
+            animator.start();
+
+            for(int i=0; i<10; i++) { // 10s
                 try {
-                    Thread.sleep(16);
+                    Thread.sleep(1000);
                 } catch (final InterruptedException e) {
                     e.printStackTrace();
                 }
             }
+            animator.stop();
 
         } finally {
             if( null != glad ) {

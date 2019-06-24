@@ -42,7 +42,6 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 
 import jogamp.opengl.Debug;
-import jogamp.opengl.ios.eagl.EAGL;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.PropertyAccess;
@@ -165,6 +164,32 @@ public class FBObject {
                 }
             }
         };
+        /**
+         * Interface abstraction to allow custom definitions of {@link Attachment}'s storage.
+         * <p>
+         * Please see {@link #setStorage(GL, Attachment)} for details.
+         * </p>
+         */
+        public static interface StorageDefinition {
+            /**
+             * Set or create the {@link Attachment}'s storage after generating its name and binding it to the target.
+             * Typical examples for standard definitions as implemented in {@link Attachment} specializations are:
+             * <pre>
+             *   // Renderbuffer (Color, Debt, Stencil, ..) storage definition w/o multisamples
+             *   gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, a.format, a.getWidth(), a.getHeight());
+             *   // Renderbuffer (Color, Debt, Stencil, ..) storage definition with multisamples
+             *   gl.glRenderbufferStorageMultisample(GL.GL_RENDERBUFFER, samples, a.format, a.getWidth(), a.getHeight());
+             *   // TextureAttachment
+             *   gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, format, getWidth(), getHeight(), 0, dataFormat, dataType, null);
+             * </pre>
+             * The storage is setup within {@link Attachment#initialize(GL)} and hence the {@link Attachment}
+             * instance's {@link Attachment#setStorageDefinition(StorageDefinition)}.
+             *
+             * @param gl current {@link GL} instance
+             * @param a instance of the {@link Attachment} this {@link StorageDefinition} has been assigned to via {@link Attachment#setStorageDefinition(StorageDefinition)}.
+             */
+            public void setStorage(final GL gl, final Attachment a);
+        }
 
         /** immutable type [{@link #COLOR}, {@link #DEPTH}, {@link #STENCIL}, {@link #COLOR_TEXTURE}, {@link #DEPTH_TEXTURE}, {@link #STENCIL_TEXTURE} ] */
         public final Type type;
@@ -176,6 +201,9 @@ public class FBObject {
 
         private int name;
 
+        /** Every implementation needs to have set their default instance via {@link #setStorageDefinition(StorageDefinition). */
+        private StorageDefinition storageDefinition;
+
         protected Attachment(final Type type, final int iFormat, final int width, final int height, final int name) {
             this.type = type;
             this.format = iFormat;
@@ -183,6 +211,17 @@ public class FBObject {
             this.height = height;
             this.name = name;
         }
+
+        /**
+         * Override implementation default {@link StorageDefinition}
+         * @see  {@link StorageDefinition#setStorage(GL, Attachment)}
+         */
+        public void setStorageDefinition(final StorageDefinition sd) { this.storageDefinition = sd; }
+
+        /**
+         * Accessor to call {@link StorageDefinition#setStorage(GL, Attachment)} within {@link #initialize(GL)} for implementations of {@link Attachment}.
+         */
+        protected final void setStorage(final GL gl) { storageDefinition.setStorage(gl, this); }
 
         /**
          * Writes the internal format to the given GLCapabilities object.
@@ -372,6 +411,7 @@ public class FBObject {
          */
         public RenderAttachment(final Type type, final int iFormat, final int samples, final int width, final int height, final int name) {
             super(validateType(type), iFormat, width, height, name);
+            this.setStorageDefinition(defStorageDefinition);
             this.samples = samples;
         }
 
@@ -432,11 +472,7 @@ public class FBObject {
                 setName(name[0]);
 
                 gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, getName());
-                if( samples > 0 ) {
-                    ((GL2ES3)gl).glRenderbufferStorageMultisample(GL.GL_RENDERBUFFER, samples, format, getWidth(), getHeight());
-                } else {
-                    gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, format, getWidth(), getHeight());
-                }
+                setStorage(gl);
                 if( checkError ) {
                     final int glerr = gl.glGetError();
                     if(GL.GL_NO_ERROR != glerr) {
@@ -451,6 +487,16 @@ public class FBObject {
             }
             return init;
         }
+        private final StorageDefinition defStorageDefinition = new StorageDefinition() {
+            @Override
+            public void setStorage(final GL gl, final Attachment a) {
+                // a == this.super for this instance
+                if( samples > 0 ) {
+                    gl.glRenderbufferStorageMultisample(GL.GL_RENDERBUFFER, samples, format, getWidth(), getHeight());
+                } else {
+                    gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, format, getWidth(), getHeight());
+                }
+            } };
 
         @Override
         public void free(final GL gl) {
@@ -482,49 +528,6 @@ public class FBObject {
         public final TextureAttachment getTextureAttachment() { throw new GLException("Not a TextureAttachment, but ColorAttachment"); }
         @Override
         public final ColorAttachment getColorAttachment() { return this; }
-
-        @Override
-        public boolean initialize(final GL gl) throws GLException {
-            final boolean init = 0 == getName();
-            if( init ) {
-                final boolean checkError = DEBUG || GLContext.DEBUG_GL;
-                if( checkError ) {
-                    checkPreGLError(gl);
-                }
-                final int[] name = new int[] { -1 };
-                gl.glGenRenderbuffers(1, name, 0);
-                setName(name[0]);
-
-                gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, getName());
-                if( getSamples() > 0 ) {
-                    ((GL2ES3)gl).glRenderbufferStorageMultisample(GL.GL_RENDERBUFFER, getSamples(), format, getWidth(), getHeight());
-                } else {
-                    // FIXME: Need better way to inject the IOS EAGL Layer into FBObject
-                    // FIXME: May want to implement optional injection of a BufferStorage SPI?
-                    final GLContext ctx = gl.getContext();
-                    final Long iosEAGLLayer = (Long) ctx.getAttachedObject("IOS_EAGL_LAYER");
-                    if( null != iosEAGLLayer ) {
-                        EAGL.eaglBindDrawableStorageToRenderbuffer(gl.getContext().contextHandle, GL.GL_RENDERBUFFER, iosEAGLLayer.longValue());
-                    } else {
-                        gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, format, getWidth(), getHeight());
-                    }
-                }
-                if( checkError ) {
-                    final int glerr = gl.glGetError();
-                    if(GL.GL_NO_ERROR != glerr) {
-                        gl.glDeleteRenderbuffers(1, name, 0);
-                        setName(0);
-                        throw new GLException("GL Error "+toHexString(glerr)+" while creating "+this);
-                    }
-                }
-                if(DEBUG) {
-                    System.err.println("Attachment.init.X: "+this);
-                }
-            }
-            return init;
-        }
-
-
     }
 
     /** Texture FBO attachment */
@@ -548,6 +551,7 @@ public class FBObject {
         public TextureAttachment(final Type type, final int iFormat, final int width, final int height, final int dataFormat, final int dataType,
                                  final int magFilter, final int minFilter, final int wrapS, final int wrapT, final int name) {
             super(validateType(type), iFormat, width, height, name);
+            this.setStorageDefinition(defStorageDefinition);
             this.dataFormat = dataFormat;
             this.dataType = dataType;
             this.magFilter = magFilter;
@@ -604,7 +608,7 @@ public class FBObject {
                     int glerr = gl.glGetError();
                     if(GL.GL_NO_ERROR == glerr) {
                         preTexImage2D = false;
-                        gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, format, getWidth(), getHeight(), 0, dataFormat, dataType, null);
+                        setStorage(gl);
                         glerr = gl.glGetError();
                     }
                     if(GL.GL_NO_ERROR != glerr) {
@@ -613,7 +617,7 @@ public class FBObject {
                         throw new GLException("GL Error "+toHexString(glerr)+" while creating (pre TexImage2D "+preTexImage2D+") "+this);
                     }
                 } else {
-                    gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, format, getWidth(), getHeight(), 0, dataFormat, dataType, null);
+                    setStorage(gl);
                 }
                 if(DEBUG) {
                     System.err.println("Attachment.init.X: "+this);
@@ -621,6 +625,12 @@ public class FBObject {
             }
             return init;
         }
+        private final StorageDefinition defStorageDefinition = new StorageDefinition() {
+            @Override
+            public void setStorage(final GL gl, final Attachment a) {
+                // a == this.super for this instance
+                gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, format, getWidth(), getHeight(), 0, dataFormat, dataType, null);
+            } };
 
         @Override
         public void free(final GL gl) {

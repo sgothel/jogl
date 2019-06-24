@@ -41,6 +41,7 @@ import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.nativewindow.ProxySurface;
 import com.jogamp.nativewindow.UpstreamSurfaceHook;
 import com.jogamp.nativewindow.ios.IOSGraphicsDevice;
+import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesChooser;
@@ -52,6 +53,7 @@ import com.jogamp.opengl.GLProfile;
 
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.ios.IOSDummyUpstreamSurfaceHook;
+import jogamp.nativewindow.ios.IOSUtil;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
@@ -62,6 +64,8 @@ import jogamp.opengl.SharedResourceRunner;
 import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLRendererQuirks;
+import com.jogamp.opengl.FBObject.Attachment;
+import com.jogamp.opengl.FBObject.Attachment.StorageDefinition;
 
 public class IOSEAGLDrawableFactory extends GLDrawableFactoryImpl {
   private static final boolean DEBUG_SHAREDCTX = DEBUG  || GLContext.DEBUG;
@@ -342,6 +346,39 @@ public class IOSEAGLDrawableFactory extends GLDrawableFactoryImpl {
       return IOSEAGLGraphicsConfiguration.getAvailableCapabilities(this, device);
   }
 
+  @Override
+  protected final OnscreenFBOColorbufferStorageDefinition getOnscreenFBOColorbufStorageDef() { return onscreenGLDrawableFBOColorRenderbufferStorageDef; }
+  private final OnscreenFBOColorbufferStorageDefinition onscreenGLDrawableFBOColorRenderbufferStorageDef = new OnscreenFBOColorbufferStorageDefinition() {
+                @Override
+                public final void setStorage(final GL gl, final Attachment a) {
+                    final int samples = ((FBObject.RenderAttachment) a).getSamples();
+                    if( samples > 0 ) {
+                        gl.glRenderbufferStorageMultisample(GL.GL_RENDERBUFFER, samples, a.format, a.getWidth(), a.getHeight());
+                    } else {
+                        // gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, a.format, a.getWidth(), a.getHeight());
+                        final long eaglLayer = IOSUtil.GetCAEAGLLayer(gl.getContext().getGLDrawable().getNativeSurface().getSurfaceHandle());
+                        EAGL.eaglBindDrawableStorageToRenderbuffer(gl.getContext().getHandle(), GL.GL_RENDERBUFFER, eaglLayer);
+                        if( DEBUG ) {
+                            System.err.println("EAGL.eaglBindDrawableStorageToRenderbuffer: ctx 0x"+Long.toHexString(gl.getContext().getHandle()) +
+                                               ", eaglLayer 0x"+Long.toHexString(eaglLayer));
+                        }
+                    }
+                }
+                @Override
+                public final boolean isDoubleBufferSupported() {
+                    return false;
+                }
+                @Override
+                public final int getTextureUnit() {
+                    return -1; // force using a color renderbuffer
+                } };
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * This IOS <i>onscreen drawable</i> implementation actually is only a dummy implementation
+   * </p>
+   */
   @Override
   protected GLDrawableImpl createOnscreenDrawableImpl(final NativeSurface target) {
     if (target == null) {

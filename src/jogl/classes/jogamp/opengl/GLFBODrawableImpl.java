@@ -76,6 +76,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
 
     // private DoubleBufferMode doubleBufferMode; // TODO: Add or remove TEXTURE (only) DoubleBufferMode support
 
+    private FBObject.Attachment.StorageDefinition colorRenderbufferStorageDef;
     private SwapBufferContext swapBufferContext;
 
     public static interface SwapBufferContext {
@@ -87,7 +88,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
      * @param parent
      * @param surface
      * @param fboCaps the requested FBO capabilities
-     * @param textureUnit if valid, i.e. >= 0, signals {@link #FBOMODE_USE_TEXTURE}, otherwise a color renderbuffer is assumed
+     * @param textureUnit if valid, i.e. >= 0, signals using a color texturebuffer {@link GLFBODrawable#FBOMODE_USE_TEXTURE}, otherwise a color renderbuffer is used.
      */
     protected GLFBODrawableImpl(final GLDrawableFactoryImpl factory, final GLDrawableImpl parent, final NativeSurface surface,
                                 final GLCapabilitiesImmutable fboCaps, final int textureUnit) {
@@ -100,6 +101,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         this.texUnit = textureUnit>=0 ? textureUnit : 0;
         this.samples = fboCaps.getNumSamples();
         this.fboResetQuirk = false;
+        this.colorRenderbufferStorageDef = null;
         this.swapBufferContext = null;
     }
 
@@ -117,7 +119,11 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbo);
         }
         if(samples > 0 || !useTexture) {
-            fbo.attachColorbuffer(gl, 0, useAlpha);
+            final FBObject.ColorAttachment ca = fbo.createColorAttachment(useAlpha);
+            if( null != colorRenderbufferStorageDef ) {
+                ca.setStorageDefinition(colorRenderbufferStorageDef);
+            }
+            fbo.attachColorbuffer(gl, 0, ca);
         } else {
             fbo.attachTexture2D(gl, 0, useAlpha);
         }
@@ -135,7 +141,11 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             {
                 ssink.init(gl, width, height, 0);
                 if( !useTexture ) {
-                    ssink.attachColorbuffer(gl, 0, useAlpha);
+                    final FBObject.ColorAttachment ca = ssink.createColorAttachment(useAlpha);
+                    if( null != colorRenderbufferStorageDef ) {
+                        ca.setStorageDefinition(colorRenderbufferStorageDef);
+                    }
+                    ssink.attachColorbuffer(gl, 0, ca);
                 } else {
                     ssink.attachTexture2D(gl, 0, useAlpha);
                 }
@@ -247,6 +257,24 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
 
     public final void setSwapBufferContext(final SwapBufferContext sbc) {
         swapBufferContext = sbc;
+    }
+
+    /**
+     * Inject custom {@link FBObject.Attachment.StorageDefinition} specialization for the use-case of:
+     * <ul>
+     *   <li>Using a special <i>color renderbuffer storage</i> instead of the default {@link FBObject} <i>internal offscreen</i> storage.</li>
+     * </ul>
+     * @see {@link FBObject.Attachment.StorageDefinition}
+     * @see {@link FBObject.Attachment#setStorageDefinition(FBObject.Attachment.StorageDefinition)}
+     */
+    public final void setColorRenderbufferStorageDef(final FBObject.Attachment.StorageDefinition sd) {
+        colorRenderbufferStorageDef = sd;
+        if(DEBUG) {
+            System.err.println("EAGL.FBODrawable: setColorRenderbufferStorageDef");
+        }
+    }
+    public final boolean hasColorRenderbufferStorageDef(final FBObject.Attachment.StorageDefinition sd) {
+        return sd == colorRenderbufferStorageDef;
     }
 
     private final void reset(final GL gl, final int idx, final int width, final int height, final int samples,

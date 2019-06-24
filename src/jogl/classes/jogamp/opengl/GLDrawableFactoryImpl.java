@@ -55,6 +55,7 @@ import com.jogamp.nativewindow.OffscreenLayerSurface;
 import com.jogamp.nativewindow.ProxySurface;
 import com.jogamp.nativewindow.MutableSurface;
 import com.jogamp.nativewindow.UpstreamSurfaceHook;
+import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesChooser;
@@ -68,16 +69,12 @@ import com.jogamp.opengl.GLOffscreenAutoDrawable;
 import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.ExceptionUtils;
-import com.jogamp.common.os.Platform;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.DelegatedUpstreamSurfaceHookWithSurfaceSize;
 import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.GLRendererQuirks;
-
-import jogamp.common.os.PlatformPropsImpl;
-
 
 /** Extends GLDrawableFactory with a few methods for handling
     typically software-accelerated offscreen rendering (Device
@@ -264,6 +261,36 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    */
   public abstract GLDynamicLookupHelper getGLDynamicLookupHelper(final int majorVersion, final int contextOptions);
 
+  /**
+   * Extends definition of {@link FBObject.Attachment.StorageDefinition}
+   * for general onscreen FBO layer storage requirements.
+   * <p>
+   * Implementations are allowed to specialize {@link FBObject.Attachment.StorageDefinition}
+   * for the special use-case of:
+   * <ul>
+   *   <li>Using an underlying {@link FBObject} for onscreen rendering, hence {@link #createGLDrawable(NativeSurface)}, and</li>
+   *   <li>Using a special <i>color renderbuffer storage</i> instead of the default {@link FBObject} <i>internal offscreen</i> storage.</li>
+   * </ul>
+   * </p>
+   * @see {@link FBObject.Attachment.StorageDefinition}
+   * @see {@link FBObject.Attachment#setStorageDefinition(FBObject.Attachment.StorageDefinition)}
+   */
+  public static interface OnscreenFBOColorbufferStorageDefinition extends FBObject.Attachment.StorageDefinition {
+      /**
+       * Returns true if underlying implementation supports double buffering
+       */
+      public boolean isDoubleBufferSupported();
+      /**
+       * Texture-Unit to be used for the FBO colorbuffer.
+       * <p>
+       * If a valid unit is returned, i.e. >= 0, a color texturebuffer is used, otherwise a color renderbuffer.
+       * </p>
+       */
+      public int getTextureUnit();
+  }
+
+  protected OnscreenFBOColorbufferStorageDefinition getOnscreenFBOColorbufStorageDef() { return null; }
+
   //---------------------------------------------------------------------------
   // Dispatching GLDrawable construction in respect to the NativeSurface Capabilities
   //
@@ -273,29 +300,41 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
       throw new IllegalArgumentException("Null target");
     }
     final MutableGraphicsConfiguration config = (MutableGraphicsConfiguration) target.getGraphicsConfiguration();
+    final GLCapabilitiesImmutable reqCaps = (GLCapabilitiesImmutable) config.getRequestedCapabilities();
     final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
     final boolean isFBOAvailable = GLContext.isFBOAvailable(adevice, chosenCaps.getGLProfile());
     GLDrawable result = null;
     adevice.lock();
     try {
+        final OnscreenFBOColorbufferStorageDefinition onscreenFBOColorbufStorageDef = getOnscreenFBOColorbufStorageDef();
         final boolean forceOnscreenFBOLayer;
-        final boolean useFBORendertarget;
-        if( chosenCaps.isOnscreen() && Platform.OSType.IOS == PlatformPropsImpl.OS_TYPE )  // FIXME: avoid hardcoding?
-        {
+        final int fboTextureUnit;
+        if( reqCaps.isOnscreen() && null != onscreenFBOColorbufStorageDef) {
             forceOnscreenFBOLayer = true;
-            useFBORendertarget = true;
+            fboTextureUnit = onscreenFBOColorbufStorageDef.getTextureUnit();
         } else {
             forceOnscreenFBOLayer = false;
-            useFBORendertarget = false;
+            fboTextureUnit = 0; // assume texture unit 0 (default) is used at all
         }
         final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(target, true);
         if(null != ols || forceOnscreenFBOLayer ) {
-            final GLCapabilitiesImmutable chosenCapsMod = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(chosenCaps, this, adevice);
-
-            // layered surface -> Offscreen/[FBO|PBuffer]
-            if( !chosenCapsMod.isFBO() && !chosenCapsMod.isPBuffer() ) {
-                throw new GLException("Neither FBO nor Pbuffer is available for "+chosenCapsMod+", "+target);
+            final GLCapabilitiesImmutable chosenCapsMod0 = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(chosenCaps, this, adevice);
+            final GLCapabilitiesImmutable chosenCapsMod;
+            if( forceOnscreenFBOLayer && !onscreenFBOColorbufStorageDef.isDoubleBufferSupported() ) {
+                chosenCapsMod = GLGraphicsConfigurationUtil.fixDoubleBufferedGLCapabilities(chosenCapsMod0, false);
+            } else {
+                chosenCapsMod = chosenCapsMod0;
+            }
+            if( forceOnscreenFBOLayer ) {
+                if( !chosenCapsMod.isFBO() ) {
+                    throw new GLException("FBO is not available for "+chosenCapsMod+", "+target);
+                }
+            } else {
+                // layered surface -> Offscreen/[FBO|PBuffer]
+                if( !chosenCapsMod.isFBO() && !chosenCapsMod.isPBuffer() ) {
+                    throw new GLException("Neither FBO nor Pbuffer is available for "+chosenCapsMod+", "+target);
+                }
             }
             config.setChosenCapabilities(chosenCapsMod);
             if( null != ols ) {
@@ -303,10 +342,11 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
             }
             if(DEBUG) {
                 System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable -> Offscreen-Layer");
+                System.err.println("requestedCaps: "+reqCaps);
                 System.err.println("chosenCaps:    "+chosenCaps);
                 System.err.println("chosenCapsMod: "+chosenCapsMod);
                 System.err.println("OffscreenLayerSurface: **** "+ols);
-                System.err.println("forceOnscreenFBOLayer: **** "+forceOnscreenFBOLayer+", useFBORendertarget "+useFBORendertarget);
+                System.err.println("forceOnscreenFBOLayer: **** "+forceOnscreenFBOLayer+", fboTextureUnit "+fboTextureUnit);
                 System.err.println("Target: **** "+target);
                 ExceptionUtils.dumpStack(System.err);
             }
@@ -314,7 +354,11 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                 throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen layered surface: "+target);
             }
             if( chosenCapsMod.isFBO() ) {
-                result = createFBODrawableImpl(target, chosenCapsMod, useFBORendertarget?-1:0);
+                final GLFBODrawableImpl fboDrawable = (GLFBODrawableImpl) createFBODrawableImpl(target, chosenCapsMod, fboTextureUnit);
+                if( forceOnscreenFBOLayer ) {
+                    fboDrawable.setColorRenderbufferStorageDef(onscreenFBOColorbufStorageDef);
+                }
+                result = fboDrawable;
             } else {
                 result = createOffscreenDrawableImpl(target);
             }
@@ -523,7 +567,13 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
   }
 
-  /** Creates a platform independent unrealized FBO offscreen GLDrawable */
+  /**
+   * Creates a platform independent unrealized FBO offscreen GLDrawable
+   * @param dummySurface used for dummy-drawable and as surface for {@link GLFBODrawable}
+   * @param fboCaps
+   * @param textureUnit if valid, i.e. >= 0, signals using a color texturebuffer {@link GLFBODrawable#FBOMODE_USE_TEXTURE}, otherwise a color renderbuffer is used.
+   * @return
+   */
   protected final GLFBODrawable createFBODrawableImpl(final NativeSurface dummySurface, final GLCapabilitiesImmutable fboCaps, final int textureUnit) {
     final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);
     return new GLFBODrawableImpl(this, dummyDrawable, dummySurface, fboCaps, textureUnit);
