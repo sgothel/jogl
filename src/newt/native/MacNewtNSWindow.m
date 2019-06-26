@@ -31,7 +31,7 @@
  * 
  */
 
-#import "NewtMacWindow.h"
+#import "MacNewtNSWindow.h"
 #import "InputEvent.h"
 #import "KeyEvent.h"
 #import "MouseEvent.h"
@@ -193,7 +193,7 @@ static jmethodID windowRepaintID = NULL;
 //     AWT-AppKit
 //     AWT-EventQueue-0
 
-@implementation NewtView
+@implementation NewtNSView
 
 - (id)initWithFrame:(NSRect)frameRect
 {
@@ -220,32 +220,32 @@ static jmethodID windowRepaintID = NULL;
     mouseInside = NO;
     cursorIsHidden = NO;
 
-    DBG_PRINT("NewtView::create: %p (refcnt %d)\n", res, (int)[res retainCount]);
+    DBG_PRINT("NewtNSView::create: %p (refcnt %d)\n", res, (int)[res retainCount]);
     return res;
 }
 
 #ifdef DBG_LIFECYCLE
 - (void) release
 {
-    DBG_PRINT("NewtView::release.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
+    DBG_PRINT("NewtNSView::release.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
     [super release];
 }
 #endif
 
 - (void) dealloc
 {
-    DBG_PRINT("NewtView::dealloc.0: %p (refcnt %d), ptrTrackingTag %d\n", self, (int)[self retainCount], (int)ptrTrackingTag);
+    DBG_PRINT("NewtNSView::dealloc.0: %p (refcnt %d), ptrTrackingTag %d\n", self, (int)[self retainCount], (int)ptrTrackingTag);
 #ifdef DBG_LIFECYCLE
     NSLog(@"%@",[NSThread callStackSymbols]);
 #endif
     if( 0 < softLockCount ) {
-        NSLog(@"NewtView::dealloc: softLock still hold @ dealloc!\n");
+        NSLog(@"NewtNSView::dealloc: softLock still hold @ dealloc!\n");
     }
     [self removeCursorRects];
     [self removeMyCursor];
 
     pthread_mutex_destroy(&softLockSync);
-    DBG_PRINT("NewtView::dealloc.X: %p\n", self);
+    DBG_PRINT("NewtNSView::dealloc.X: %p\n", self);
     [super dealloc];
 }
 
@@ -274,7 +274,7 @@ static jmethodID windowRepaintID = NULL;
     // DBG_PRINT("*************** softLock.0: %p\n", (void*)pthread_self());
     int err;
     if( 0 != ( err = pthread_mutex_lock(&softLockSync) ) ) {
-        NSLog(@"NewtView::softLock failed: errCode %d - %@", err, [NSThread callStackSymbols]);
+        NSLog(@"NewtNSView::softLock failed: errCode %d - %@", err, [NSThread callStackSymbols]);
         return NO;
     }
     softLockCount++;
@@ -289,7 +289,7 @@ static jmethodID windowRepaintID = NULL;
     int err;
     if( 0 != ( err = pthread_mutex_unlock(&softLockSync) ) ) {
         softLockCount++;
-        NSLog(@"NewtView::softUnlock failed: Not locked by current thread - errCode %d -  %@", err, [NSThread callStackSymbols]);
+        NSLog(@"NewtNSView::softUnlock failed: Not locked by current thread - errCode %d -  %@", err, [NSThread callStackSymbols]);
         return NO;
     }
     return YES;
@@ -822,7 +822,7 @@ NS_ENDHANDLER
 
 @end
 
-@implementation NewtMacWindow
+@implementation NewtNSWindow
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
 {
@@ -915,7 +915,7 @@ NS_ENDHANDLER
     NSLog(@"%@",[NSThread callStackSymbols]);
 #endif
 
-    NewtView* mView = (NewtView *)[self contentView];
+    NewtNSView* mView = (NewtNSView *)[self contentView];
     if( NULL != mView ) {
         [mView release];
     }
@@ -1119,8 +1119,8 @@ NS_ENDHANDLER
 - (void) focusChanged: (BOOL) gained
 {
     DBG_PRINT( "focusChanged: gained %d\n", gained);
-    NewtView* newtView = (NewtView *) [self contentView];
-    if( ! [newtView isKindOfClass:[NewtView class]] ) {
+    NewtNSView* newtView = (NewtNSView *) [self contentView];
+    if( ! [newtView isKindOfClass:[NewtNSView class]] ) {
         return;
     }
     jobject javaWindowObject = [newtView getJavaWindowObject];
@@ -1143,16 +1143,16 @@ NS_ENDHANDLER
 
 - (void) keyDown: (NSEvent*) theEvent
 {
-    NewtView* newtView = (NewtView *) [self contentView];
-    if( [newtView isKindOfClass:[NewtView class]] ) {
+    NewtNSView* newtView = (NewtNSView *) [self contentView];
+    if( [newtView isKindOfClass:[NewtNSView class]] ) {
         [newtView sendKeyEvent: theEvent eventType: (jshort)EVENT_KEY_PRESSED];
     }
 }
 
 - (void) keyUp: (NSEvent*) theEvent
 {
-    NewtView* newtView = (NewtView *) [self contentView];
-    if( [newtView isKindOfClass:[NewtView class]] ) {
+    NewtNSView* newtView = (NewtNSView *) [self contentView];
+    if( [newtView isKindOfClass:[NewtNSView class]] ) {
         [newtView sendKeyEvent: theEvent eventType: (jshort)EVENT_KEY_RELEASED];
     }
 }
@@ -1160,8 +1160,8 @@ NS_ENDHANDLER
 - (void) flagsChanged:(NSEvent *) theEvent
 {
     NSUInteger mods = [theEvent modifierFlags];
-    NewtView* newtView = (NewtView *) [self contentView];
-    if( [newtView isKindOfClass:[NewtView class]] ) {
+    NewtNSView* newtView = (NewtNSView *) [self contentView];
+    if( [newtView isKindOfClass:[NewtNSView class]] ) {
         [newtView handleFlagsChanged: mods];
     }
 }
@@ -1212,8 +1212,8 @@ NS_ENDHANDLER
 - (void) windowDidBecomeKey: (NSNotification *) notification
 {
     DBG_PRINT( "*************** windowDidBecomeKey\n");
-    NewtView* newtView = (NewtView *) [self contentView];
-    if( [newtView isKindOfClass:[NewtView class]] ) {
+    NewtNSView* newtView = (NewtNSView *) [self contentView];
+    if( [newtView isKindOfClass:[NewtNSView class]] ) {
         BOOL mouseInside = [newtView updateMouseInside];
         if(YES == mouseInside) {
             [newtView cursorHide: ![newtView isMouseVisible] enter: 1];
@@ -1261,8 +1261,8 @@ NS_ENDHANDLER
         DBG_PRINT("windowDidResize: null JNIEnv\n");
         return;
     }
-    NewtView* newtView = (NewtView *) [self contentView];
-    if( [newtView isKindOfClass:[NewtView class]] ) {
+    NewtNSView* newtView = (NewtNSView *) [self contentView];
+    if( [newtView isKindOfClass:[NewtNSView class]] ) {
         javaWindowObject = [newtView getJavaWindowObject];
     }
     if( NULL != javaWindowObject ) {
@@ -1274,8 +1274,8 @@ NS_ENDHANDLER
 
 - (void)windowDidMove: (NSNotification*) notification
 {
-    NewtView* newtView = (NewtView *) [self contentView];
-    if( ! [newtView isKindOfClass:[NewtView class]] ) {
+    NewtNSView* newtView = (NewtNSView *) [self contentView];
+    if( ! [newtView isKindOfClass:[NewtNSView class]] ) {
         return;
     }
     jobject javaWindowObject = [newtView getJavaWindowObject];
@@ -1313,8 +1313,8 @@ NS_ENDHANDLER
 {
     jboolean closed = JNI_FALSE;
 
-    NewtView* newtView = (NewtView *) [self contentView];
-    if( ! [newtView isKindOfClass:[NewtView class]] ) {
+    NewtNSView* newtView = (NewtNSView *) [self contentView];
+    if( ! [newtView isKindOfClass:[NewtNSView class]] ) {
         return NO;
     }
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];

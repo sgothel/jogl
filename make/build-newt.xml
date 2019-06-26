@@ -679,8 +679,8 @@
           <include name="${rootrel.src.c}/WindowsWindow.c"    if="isWindows"/>
           <include name="${rootrel.src.c}/WindowsEDID.c"      if="isWindows"/>
           <include name="${rootrel.src.c}/MacWindow.m"        if="isOSX"/>
-          <include name="${rootrel.src.c}/NewtMacWindow.m"    if="isOSX"/>
-          <include name="${rootrel.src.c}/IOSUIWindow.m"      if="isIOS"/>
+          <include name="${rootrel.src.c}/MacNewtNSWindow.m"  if="isOSX"/>
+          <include name="${rootrel.src.c}/IOSWindow.m"        if="isIOS"/>
           <include name="${rootrel.src.c}/IOSNewtUIWindow.m"  if="isIOS"/>
           <include name="${rootrel.src.c}/AndroidWindow.c"    if="isAndroid"/>
           <include name="${rootrel.src.c}/X11Display.c"       if="isX11"/>

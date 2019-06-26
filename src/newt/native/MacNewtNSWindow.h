@@ -51,7 +51,7 @@
 
 CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen);
 
-@interface NewtView : NSView
+@interface NewtNSView : NSView
 {
     jobject javaWindowObject;
 
@@ -136,9 +136,9 @@ CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen);
 @end
 
 #if defined(MAC_OS_X_VERSION_10_6) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-@interface NewtMacWindow : NSWindow <NSWindowDelegate>
+@interface NewtNSWindow : NSWindow <NSWindowDelegate>
 #else
-@interface NewtMacWindow : NSWindow 
+@interface NewtNSWindow : NSWindow 
 #endif
 {
     BOOL realized;
