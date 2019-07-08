@@ -809,15 +809,22 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_ios_IOSUtil_CreateGLViewDemoA0
   (JNIEnv *env, jclass unused)
 {
 #ifdef EAGL_TEST
-    CGRect boundsW2 = CGRectMake(500, 10, 320, 320);
-    CGRect boundsV2 = CGRectMake(0, 0, 320, 320);
+    CGRect boundsW2 = CGRectMake(64, 64, 640, 640);
     UIWindow* window2 = [[[[UIWindow alloc] initWithFrame:boundsW2] autorelease] retain];
     window2.rootViewController = [[[UIViewController alloc] initWithNibName:nil bundle:nil] autorelease];
     [window2 setBackgroundColor: [UIColor redColor]];
     [window2 makeKeyAndVisible];
 
-    GLView *glView = [[GLView alloc] initWithFrame:boundsV2];
-    [window2 addSubview:glView];
+    CGRect boundsW3 = CGRectMake(64, 64, 320, 320);
+    CGRect boundsV3 = CGRectMake(20, 20, 280, 280);
+    UIWindow* window3 = [[[[UIWindow alloc] initWithFrame:boundsW3] autorelease] retain];
+    window3.rootViewController = [[[UIViewController alloc] initWithNibName:nil bundle:nil] autorelease];
+    [window3 setBackgroundColor: [UIColor greenColor]];
+    [window2 addSubview: window3]; // native parenting test!
+    [window3 makeKeyAndVisible];
+
+    GLView *glView = [[GLView alloc] initWithFrame:boundsV3];
+    [window3 addSubview:glView];
 #endif /* EAGL_TEST */
 }
 
