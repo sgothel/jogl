@@ -315,7 +315,7 @@ JNIEXPORT jfloat JNICALL Java_jogamp_nativewindow_ios_IOSUtil_GetScreenPixelScal
  * Signature: (IIIIZ)J
  */
 JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_ios_IOSUtil_CreateUIWindow0
-  (JNIEnv *env, jclass unused, jint x, jint y, jint width, jint height)
+  (JNIEnv *env, jclass unused, jint x, jint y, jint width, jint height, jboolean visible)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     [CATransaction begin];
@@ -325,21 +325,32 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_ios_IOSUtil_CreateUIWindow0
     // Allocate the window
     UIWindow *myWindow = [[[[UIWindow alloc] initWithFrame:boundsWin] autorelease] retain];
     myWindow.rootViewController = [[[UIViewController alloc] initWithNibName:nil bundle:nil] autorelease];
+#ifdef VERBOSE_ON
     [myWindow setBackgroundColor: [UIColor redColor]];
+#endif
 
     // n/a iOS [myWindow setPreservesContentDuringLiveResize: YES];
 
-    // FIXME invisible .. (we keep it visible for testing)
-    // FIXME [myWindow setOpaque: NO];
-    // FIXME [myWindow setBackgroundColor: [UIColor clearColor]];
-    [myWindow makeKeyAndVisible];
-
+    if( visible) {
+        [myWindow setOpaque: YES];
+        [myWindow makeKeyAndVisible];
+    } else {
+        [myWindow setOpaque: NO];
+        [myWindow setBackgroundColor: [UIColor clearColor]];
+    }
     CAEAGLUIView *uiView = [[CAEAGLUIView alloc] initWithFrame:boundsView];
     CAEAGLLayer* l = (CAEAGLLayer*)[uiView layer];
-    [l setOpaque: YES];
+    if( visible ) {
+        [uiView setOpaque: YES];
+        [l setOpaque: YES];
+    } else {
+        [uiView setOpaque: NO];
+        [uiView setBackgroundColor: [UIColor clearColor]];
+        [l setOpaque: NO];
+        [l setBackgroundColor: [UIColor clearColor]];
+    }
     l.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys: /* defaults */
                            [NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
-
 
     [myWindow addSubview: uiView];
 

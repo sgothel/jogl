@@ -517,7 +517,15 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_ios_WindowDriver_createWindow1
                                                backing: 0 // TODO (NSBackingStoreType) bufferingType
                                                defer: YES
                                                isFullscreenWindow: fullscreen] autorelease] retain];
-    [myWindow setBackgroundColor: [UIColor redColor]];
+    if(opaque) {
+        [myWindow setOpaque: YES];
+#ifdef VERBOSE_ON
+        [myWindow setBackgroundColor: [UIColor redColor]];
+#endif
+    } else {
+        [myWindow setOpaque: NO];
+        [myWindow setBackgroundColor: [UIColor clearColor]];
+    }
     if( visible ) {
         // Only if calling this before adding the view, the view receives touch events.
         // Another 'funny' iOS API nightmare?
@@ -530,6 +538,15 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_ios_WindowDriver_createWindow1
         myView = [[NewtUIView alloc] initWithFrame: rectView] ;
     }
     CAEAGLLayer* l = (CAEAGLLayer*)[myView layer];
+    if(opaque) {
+        [myView setOpaque: YES];
+        [l setOpaque: YES];
+    } else {
+        [myView setOpaque: NO];
+        [myView setBackgroundColor: [UIColor clearColor]];
+        [l setOpaque: NO];
+        [l setBackgroundColor: [UIColor clearColor]];
+    }
     DBG_PRINT_CREATEWIN1(2);
 
     changeContentView(env, jthis, parentView, myWindow, myView, NO);

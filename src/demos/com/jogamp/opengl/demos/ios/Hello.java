@@ -67,6 +67,7 @@ public class Hello {
         int secondsDuration = 10; // 10s
         int width = 832, height = 480; // ipad pro 11: 2388x1668 px (scale: 2)
         int fboDepthBits = -1; // CAEAGLLayer fails with depth 16 + 24 in Simulation; -1 means don't change
+        boolean translucent = false;
         boolean exitJVM = false;
         String demoName = "com.jogamp.opengl.demos.es2.GearsES2";
         for(int i=0; i<args.length; i++) {
@@ -85,6 +86,8 @@ public class Hello {
                 reqSurfacePixelScale[1] = reqSurfacePixelScale[0];
             } else if(args[i].equals("-seconds") && i+1<args.length) {
                 secondsDuration = parseInt(args[++i], secondsDuration);
+            } else if(args[i].equals("-translucent")) {
+                translucent = true;
             } else {
                 System.err.println("ignoring arg["+i+"]: "+args[i]);
             }
@@ -131,6 +134,7 @@ public class Hello {
             if( 0 <= fboDepthBits) {
                 reqCaps.setDepthBits(fboDepthBits);
             }
+            reqCaps.setBackgroundOpaque(!translucent);
             System.out.println("Requested GL Caps: "+reqCaps);
 
             // 2) Create newt native window

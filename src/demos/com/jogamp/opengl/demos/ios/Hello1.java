@@ -117,7 +117,7 @@ public class Hello1 {
         System.err.println("");
 
         GLAutoDrawableDelegate glad = null;
-        final long uiWindow = IOSUtil.CreateUIWindow(0, 0, width, height);
+        final long uiWindow = IOSUtil.CreateUIWindow(0, 0, width, height, true);
         try {
             // 1) Config ..
             final GLProfile glp = GLProfile.getGL2ES2();

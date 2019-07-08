@@ -130,12 +130,12 @@ public class IOSUtil implements ToolkitProperties {
       }
     }
 
-    public static long CreateUIWindow(final int x, final int y, final int width, final int height) {
+    public static long CreateUIWindow(final int x, final int y, final int width, final int height, final boolean visible) {
       final long res[] = { 0 };
       RunOnMainThread(true, false /* kickNSApp */, new Runnable() {
           @Override
           public void run() {
-              res[0] = CreateUIWindow0(x, y, width, height);
+              res[0] = CreateUIWindow0(x, y, width, height, visible);
           } } );
       return res[0];
     }
@@ -312,7 +312,7 @@ public class IOSUtil implements ToolkitProperties {
     private static native Object GetInsets0(long windowOrView);
     private static native float GetScreenPixelScale1(int screenIdx);
     private static native float GetScreenPixelScale2(long windowOrView);
-    private static native long CreateUIWindow0(int x, int y, int width, int height);
+    private static native long CreateUIWindow0(int x, int y, int width, int height, boolean visible);
     private static native void DestroyUIWindow0(long uiWindow);
     private static native long GetCALayer0(long uiView);
     private static native long GetCAEAGLLayer0(long uiView);

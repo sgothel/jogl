@@ -53,7 +53,7 @@ public class IOSDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
     @Override
     public final void create(final ProxySurface s) {
         if(0 == uiWindow && 0 == s.getSurfaceHandle()) {
-            uiWindow = IOSUtil.CreateUIWindow(0, 0, 64, 64);
+            uiWindow = IOSUtil.CreateUIWindow(0, 0, 64, 64, false);
             if(0 == uiWindow) {
                 throw new NativeWindowException("Error UI window 0");
             }
