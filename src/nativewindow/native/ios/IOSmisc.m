@@ -367,6 +367,7 @@ NS_DURING
     if(NULL != subviews) {
         for(int i=0; i<[subviews count]; i++) {
             UIView* sub = [subviews objectAtIndex: i];
+            [sub removeFromSuperview];
             [sub setHidden: YES];
             [sub release];
         }

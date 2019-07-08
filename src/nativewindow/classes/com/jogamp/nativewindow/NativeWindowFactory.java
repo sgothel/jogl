@@ -103,7 +103,7 @@ public abstract class NativeWindowFactory {
     public static final String TYPE_MACOSX = ".macosx";
 
     /** iOS type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_IOS = ".iOS";
+    public static final String TYPE_IOS = ".ios";
 
     /** Generic AWT type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
     public static final String TYPE_AWT = ".awt";

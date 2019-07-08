@@ -126,11 +126,9 @@ static void changeContentView(JNIEnv *env, jobject javaWindowObject, NSView *pvi
 #ifdef VERBOSE_ON
     int dbgIdx = 1;
 #endif
-
     if( [oldNSView isKindOfClass:[NewtNSView class]] ) {
         oldNewtNSView = (NewtNSView *) oldNSView;
     }
-
     DBG_PRINT( "changeContentView.%d win %p, view (%p,%d (%d) -> %p,%d), parent view %p\n", 
         dbgIdx++, win, oldNSView, getRetainCount(oldNSView), NULL!=oldNewtNSView, newView, getRetainCount(newView), pview);
 
@@ -1065,9 +1063,6 @@ NS_DURING
     }
 NS_HANDLER
 NS_ENDHANDLER
-
-    DBG_PRINT( "setPixelScale0.%d - %p (this), window: %p, view %p\n",
-        dbgIdx++, (void*)(intptr_t)jthis, myWindow, myView);
 
     [pool release];
     DBG_PRINT( "setPixelScale0.X - %p (this), window: %p, view %p\n",

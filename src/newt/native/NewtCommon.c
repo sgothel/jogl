@@ -27,6 +27,7 @@
  */
 #include "NewtCommon.h"
 #include <string.h>
+#include <math.h>
 
 static const char * const ClazzNameRuntimeException = "java/lang/RuntimeException";
 static jclass    runtimeExceptionClz=NULL;
@@ -166,3 +167,7 @@ void NewtCommon_ReleaseJNIEnv (int shallBeDetached) {
     }
 }
 
+int NewtCommon_isFloatZero(float f) {
+    // EPSILON = 1.1920929E-7f; // Float.MIN_VALUE == 1.4e-45f ; double EPSILON 2.220446049250313E-16d
+    return fabsf(f) < 1.1920929E-7f;
+}

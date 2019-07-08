@@ -74,4 +74,6 @@ JNIEnv* NewtCommon_GetJNIEnv (int asDaemon, int * shallBeDetached);
 
 void NewtCommon_ReleaseJNIEnv (int shallBeDetached);
 
+int NewtCommon_isFloatZero(float f);
+
 #endif

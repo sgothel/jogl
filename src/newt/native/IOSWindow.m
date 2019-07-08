@@ -65,8 +65,7 @@ static void setWindowClientTopLeftPoint(NewtUIWindow* mWin, jint x, jint y, BOOL
     DBG_PRINT( "setWindowClientTopLeftPoint.X: %d/%d\n", (int)pS.x, (int)pS.y);
 
     if( doDisplay ) {
-        // TODO UIView* mView = [mWin contentView];
-        // TODO [mWin invalidateCursorRectsForView: mView];
+        [mWin setNeedsDisplay];
     }
 }
 
@@ -75,14 +74,14 @@ static void setWindowClientTopLeftPointAndSize(NewtUIWindow* mWin, jint x, jint 
     CGRect rect = CGRectMake(x, y, width, height);
     DBG_PRINT( "setWindowClientTopLeftPointAndSize.1: %d/%d %dx%d\n", (int)rect.origin.x, (int)rect.origin.y, (int)rect.size.width, (int)rect.size.height);
 
-    // TODO [mWin setFrame: rect display:doDisplay];
     [mWin setFrame: rect];
+    if( doDisplay ) {
+        [mWin setNeedsDisplay];
+    }
     DBG_PRINT( "setWindowClientTopLeftPointAndSize.X: %d/%d %dx%d\n", (int)rect.origin.x, (int)rect.origin.y, (int)rect.size.width, (int)rect.size.height);
 
-    // -> display:YES
     // if( doDisplay ) {
-    //   UIView* mView = [mWin contentView];
-    //   [mWin invalidateCursorRectsForView: mView];
+    //     [mWin setNeedsDisplay];
     // }
 }
 
@@ -112,39 +111,20 @@ static void setJavaWindowObject(JNIEnv *env, jobject newJavaWindowObject, NewtUI
 }
 
 static void changeContentView(JNIEnv *env, jobject javaWindowObject, UIView *pview, NewtUIWindow *win, NewtUIView *newView, BOOL setJavaWindow) {
-    UIView* oldUIView = NULL; // TODO [win contentView];
-    NewtUIView* oldNewtUIView = NULL;
+    NewtUIView* oldNewtUIView = [win getContentNewtUIView];
 #ifdef VERBOSE_ON
     int dbgIdx = 1;
 #endif
+    DBG_PRINT( "changeContentView.%d win %p, view (%p,%d -> %p,%d), parent view %p\n", 
+        dbgIdx++, win, oldNewtUIView, getRetainCount(oldNewtUIView), newView, getRetainCount(newView), pview);
 
-    if( [oldUIView isKindOfClass:[NewtUIView class]] ) {
-        oldNewtUIView = (NewtUIView *) oldUIView;
+    if( NULL != oldNewtUIView ) {
+        [oldNewtUIView setDestroyNotifySent: false];
+        setJavaWindowObject(env, NULL, oldNewtUIView);
+        [win setContentNewtUIView: NULL]; // includes [oldNewtUIView removeFromSuperview];
     }
-
-    DBG_PRINT( "changeContentView.%d win %p, view (%p,%d (%d) -> %p,%d), parent view %p\n", 
-        dbgIdx++, win, oldUIView, getRetainCount(oldUIView), NULL!=oldNewtUIView, newView, getRetainCount(newView), pview);
-
-    if( NULL!=oldUIView ) {
-NS_DURING
-        // Available >= 10.5 - Makes the menubar disapear
-        BOOL iifs = NO; // TODO [oldUIView isInFullScreenMode];
-        if( iifs ) {
-            // TODO [oldUIView exitFullScreenModeWithOptions: NULL];
-        }
-NS_HANDLER
-NS_ENDHANDLER
-        DBG_PRINT( "changeContentView.%d win %p, view (%p,%d (%d) -> %p,%d)\n", 
-            dbgIdx++, win, oldUIView, getRetainCount(oldUIView), NULL!=oldNewtUIView, newView, getRetainCount(newView));
-
-        if( NULL != oldNewtUIView ) {
-            [oldNewtUIView setDestroyNotifySent: false];
-            setJavaWindowObject(env, NULL, oldNewtUIView, NO);
-        }
-        // TODO [oldUIView removeFromSuperviewWithoutNeedingDisplay];
-    }
-    DBG_PRINT( "changeContentView.%d win %p, view (%p,%d -> %p,%d), isHidden %d, isHiddenOrHasHiddenAncestor: %d\n", 
-        dbgIdx++, win, oldUIView, getRetainCount(oldUIView), newView, getRetainCount(newView), [newView isHidden], [newView isHiddenOrHasHiddenAncestor]);
+    DBG_PRINT( "changeContentView.%d win %p, view (%p,%d -> %p,%d), isHidden %d\n", 
+        dbgIdx++, win, oldNewtUIView, getRetainCount(oldNewtUIView), newView, getRetainCount(newView), [newView isHidden]);
 
     if( NULL!=newView ) {
         [newView setDestroyNotifySent: false];
@@ -152,25 +132,22 @@ NS_ENDHANDLER
             setJavaWindowObject(env, javaWindowObject, newView);
         }
         DBG_PRINT( "changeContentView.%d win %p, view (%p,%d -> %p,%d)\n", 
-            dbgIdx++, win, oldUIView, getRetainCount(oldUIView), newView, getRetainCount(newView));
+            dbgIdx++, win, oldNewtUIView, getRetainCount(oldNewtUIView), newView, getRetainCount(newView));
 
-        if(NULL!=pview) {
-            // TODO [pview addSubview: newView positioned: UIWindowAbove relativeTo: nil];
-        }
+        [win setContentNewtUIView: newView]; // includes [win addSubview: newView];
+        // FIXME: Done in initWindow0: [pview addSubview: newView] 
+
+        DBG_PRINT( "changeContentView.%d win %p, view (%p,%d -> %p,%d), isHidden %d\n", 
+            dbgIdx++, win, oldNewtUIView, getRetainCount(oldNewtUIView), newView, getRetainCount(newView), [newView isHidden]);
     }
-    DBG_PRINT( "changeContentView.%d win %p, view (%p,%d -> %p,%d), isHidden %d, isHiddenOrHasHiddenAncestor: %d\n", 
-        dbgIdx++, win, oldUIView, getRetainCount(oldUIView), newView, getRetainCount(newView), [newView isHidden], [newView isHiddenOrHasHiddenAncestor]);
-
-    // TODO [win setContentView: newView];
-
-    DBG_PRINT( "changeContentView.%d win %p, view (%p,%d -> %p,%d), isHidden %d, isHiddenOrHasHiddenAncestor: %d\n", 
-        dbgIdx++, win, oldUIView, getRetainCount(oldUIView), newView, getRetainCount(newView), [newView isHidden], [newView isHiddenOrHasHiddenAncestor]);
+    DBG_PRINT( "changeContentView.%d win %p, view (%p,%d -> %p,%d), isHidden %d\n", 
+        dbgIdx++, win, oldNewtUIView, getRetainCount(oldNewtUIView), newView, getRetainCount(newView), [newView isHidden]);
 
     // make sure the insets are updated in the java object
     [win updateInsets: env jwin:javaWindowObject];
 
     DBG_PRINT( "changeContentView.X win %p, view (%p,%d -> %p,%d)\n", 
-        win, oldUIView, getRetainCount(oldUIView), newView, getRetainCount(newView));
+        win, oldNewtUIView, getRetainCount(oldNewtUIView), newView, getRetainCount(newView));
 }
 
 /*
@@ -205,16 +182,16 @@ static void NewtScreen_dump() {
     int i;
     for(i=0; i<[screens count]; i++) {
         UIScreen * screen = (UIScreen *) [screens objectAtIndex: i];
-        CGRect screenFrame = [screen frame];
-        CGRect screenVisibleFrame = [screen visibleFrame];
-        CGFloat pixelScale = 1.0; // default
-        pixelScale = [screen scale]; // HiDPI scaling
-        UIWindowDepth depth = [screen depth]; // an (int) value!
-        DBG_PRINT( "UIScreen #%d (%p): Frame %lf/%lf %lfx%lf (vis %lf/%lf %lfx%lf), scale %lf, depth %d\n",
+        CGRect screenPxFrame = [screen nativeBounds];
+        CGRect screenPtFrame = [screen bounds];
+        CGFloat pixelScale = [screen scale];
+        CGFloat nativeScale = [screen nativeScale];
+        int depth = 32; // [screen depth]; // an (int) value!
+        DBG_PRINT( "UIScreen #%d (%p): Frame %lf/%lf %lfx%lf px (%lf/%lf %lfx%lf pt), scale %lf (%lf native), depth %d\n",
             i, screen,
-            screenFrame.origin.x, screenFrame.origin.y, screenFrame.size.width, screenFrame.size.height,
-            screenVisibleFrame.origin.x, screenVisibleFrame.origin.y, screenVisibleFrame.size.width, screenVisibleFrame.size.height,
-            pixelScale, depth);
+            screenPxFrame.origin.x, screenPxFrame.origin.y, screenPxFrame.size.width, screenPxFrame.size.height,
+            screenPtFrame.origin.x, screenPtFrame.origin.y, screenPtFrame.size.width, screenPtFrame.size.height,
+            pixelScale, nativeScale, depth);
     }
 #endif
 }
@@ -270,7 +247,7 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_ios_ScreenDriver_getMonitorP
     fprintf(stderr, "MacScreen_getMonitorProps0.1: %ld ms\n", td_ms); fflush(NULL);
 #endif
     NSArray *screens = [UIScreen screens];
-    int count = [screens count];
+    // int count = [screens count];
     UIScreen * screen = (UIScreen *) [screens objectAtIndex: crt_id];
     if( NULL == screen ) {
         [pool release];
@@ -282,18 +259,24 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_ios_ScreenDriver_getMonitorP
     fprintf(stderr, "MacScreen_getMonitorProps0.2: %ld ms\n", td_ms); fflush(NULL);
 #endif
 
-    UIScreenMode * screenMode = [screen currentMode];
+    // UIScreenMode * screenMode = [screen currentMode];
     CGSize sizeMM = CGSizeMake(161.0, 228.0); // TODO ???
 #ifdef DBG_PERF
     timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
     fprintf(stderr, "MacScreen_getMonitorProps0.3: %ld ms\n", td_ms); fflush(NULL);
 #endif
 
-    CGRect dBounds = [screen bounds];
+    CGRect bounds = [screen bounds];
 #ifdef VERBOSE_ON
-    DBG_PRINT( "getMonitorProps0: crt_id 0x%X (prim %d), top-left displayBounds[%d/%d %dx%d]\n", 
-                 (int)crt_id, isPrimary,
-                 (int)dBounds.origin.x, (int)dBounds.origin.y, (int)dBounds.size.width, (int)dBounds.size.height);
+    {
+        CGRect nativeBounds = [screen nativeBounds];
+        CGFloat nativeScale = [screen nativeScale];
+        CGFloat scale = [screen scale];
+        DBG_PRINT( "getMonitorProps0: crt_id 0x%X (prim %d) %p[\n  native %f/%f %fx%f scale %f; logical %f/%f %fx%f scale %f]\n",
+                   (int)crt_id, isPrimary, screen,
+                   nativeBounds.origin.x, nativeBounds.origin.y, nativeBounds.size.width, nativeBounds.size.height, nativeScale,
+                   bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height, scale);
+    }
 #endif
 
     jsize propCount = MIN_MONITOR_DEVICE_PROPERTIES - 1 - NUM_MONITOR_MODE_PROPERTIES;
@@ -305,14 +288,14 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_ios_ScreenDriver_getMonitorP
     prop[offset++] = isPrimary ? 1 : 0; // isPrimary
     prop[offset++] = (jint) sizeMM.width;
     prop[offset++] = (jint) sizeMM.height;
-    prop[offset++] = (jint) dBounds.origin.x;    // rotated viewport x      (pixel units, will be fixed in java code)
-    prop[offset++] = (jint) dBounds.origin.y;    // rotated viewport y      (pixel units, will be fixed in java code)
-    prop[offset++] = (jint) dBounds.size.width;  // rotated viewport width  (pixel units, will be fixed in java code)
-    prop[offset++] = (jint) dBounds.size.height; // rotated viewport height (pixel units, will be fixed in java code)
-    prop[offset++] = (jint) dBounds.origin.x;    // rotated viewport x      (window units, will be fixed in java code)
-    prop[offset++] = (jint) dBounds.origin.y;    // rotated viewport y      (window units, will be fixed in java code)
-    prop[offset++] = (jint) dBounds.size.width;  // rotated viewport width  (window units, will be fixed in java code)
-    prop[offset++] = (jint) dBounds.size.height; // rotated viewport height (window units, will be fixed in java code)
+    prop[offset++] = (jint) bounds.origin.x;    // rotated viewport x      (pixel units, will be fixed in java code)
+    prop[offset++] = (jint) bounds.origin.y;    // rotated viewport y      (pixel units, will be fixed in java code)
+    prop[offset++] = (jint) bounds.size.width;  // rotated viewport width  (pixel units, will be fixed in java code)
+    prop[offset++] = (jint) bounds.size.height; // rotated viewport height (pixel units, will be fixed in java code)
+    prop[offset++] = (jint) bounds.origin.x;    // rotated viewport x      (window units, will be fixed in java code)
+    prop[offset++] = (jint) bounds.origin.y;    // rotated viewport y      (window units, will be fixed in java code)
+    prop[offset++] = (jint) bounds.size.width;  // rotated viewport width  (window units, will be fixed in java code)
+    prop[offset++] = (jint) bounds.size.height; // rotated viewport height (window units, will be fixed in java code)
 
     jintArray properties = (*env)->NewIntArray(env, propCount);
     if (properties == NULL) {
@@ -336,19 +319,13 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_ios_ScreenDriver_getMonitorM
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     NSArray<UIScreen*> *screens = [UIScreen screens];
-    int count = [screens count];
+    // int count = [screens count];
     UIScreen * screen = (UIScreen *) [screens objectAtIndex: crt_id];
     if( NULL == screen ) {
         [pool release];
         return NULL;
     }
-    CGFloat pixelScale = 1.0; // default
-NS_DURING
-    // Available >= 10.7
-    pixelScale = [screen scale]; // HiDPI scaling
-NS_HANDLER
-NS_ENDHANDLER
-
+    CGFloat pixelScale = [screen scale];
     NSArray<UIScreenMode*> *availableModes = [screen availableModes];
     int numberOfAvailableModes = [availableModes count];
     CFIndex numberOfAvailableModesRots = ROTMODES_PER_REALMODE * numberOfAvailableModes; 
@@ -361,7 +338,7 @@ NS_ENDHANDLER
     if(0 >= mode_idx) {
         // only for current mode (-1) and first mode (scanning)
         DBG_PRINT( "getScreenMode0: crtID 0x%X (s %p, pscale %lf), mode %d, avail: %d/%d, current rot %d ccw\n",  
-            (uint32_t)displayID, screen, pixelScale, (int)mode_idx, (int)numberOfAvailableModes, (int)numberOfAvailableModesRots, currentCCWRot);
+            crt_id, screen, pixelScale, (int)mode_idx, (int)numberOfAvailableModes, (int)numberOfAvailableModesRots, currentCCWRot);
     }
 #endif
 
@@ -387,10 +364,6 @@ NS_ENDHANDLER
     CGSize mSize = [mode size];
     int mWidth = (int)mSize.width;
     int mHeight = (int)mSize.height;
-    if( -1 == mode_idx ) {
-        mWidth *= (int)pixelScale;   // accomodate HiDPI
-        mHeight *= (int)pixelScale; // accomodate HiDPI
-    }
 
     // swap width and height, since OSX reflects rotated dimension, we don't
     if ( 90 == currentCCWRot || 270 == currentCCWRot ) {
@@ -491,15 +464,15 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_ios_WindowDriver_initIDs0
  * Signature: (IIII)J
  */
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_ios_WindowDriver_createView0
-  (JNIEnv *env, jobject jthis, jint x, jint y, jint w, jint h)
+  (JNIEnv *env, jobject jthis, jint x, jint y, jint w, jint h, jfloat reqPixelScale)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    DBG_PRINT( "createView0 - %p (this), %d/%d %dx%d (START)\n",
-        (void*)(intptr_t)jthis, (int)x, (int)y, (int)w, (int)h);
+    DBG_PRINT( "createView0 - %p (this), %d/%d %dx%d, reqPixelScale %f (START)\n",
+        (void*)(intptr_t)jthis, (int)x, (int)y, (int)w, (int)h, (float)reqPixelScale);
 
     CGRect rectView = CGRectMake(0, 0, w, h);
-    NewtUIView *myView = [[NewtUIView alloc] initWithFrame: rectView] ;
+    NewtUIView *myView = [[NewtUIView alloc] initWithFrame: rectView];
     DBG_PRINT( "createView0.X - new view: %p\n", myView);
 
     [pool release];
@@ -519,6 +492,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_ios_WindowDriver_createWindow0
    jboolean fullscreen, jint styleMask, jint bufferingType, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    [CATransaction begin];
     NewtUIView* myView = (NewtUIView*) (intptr_t) jview ;
 
     DBG_PRINT( "createWindow0 - %p (this), %d/%d %dx%d, fs %d, style %X, buffType %X, view %p (START)\n",
@@ -526,21 +500,18 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_ios_WindowDriver_createWindow0
         (int)styleMask, (int)bufferingType, myView);
     (void)myView;
 
-    if (fullscreen) {
-        // TODO styleMask = NSBorderlessWindowMask;
-    }
+    (void)fullscreen;
     CGRect rectWin = CGRectMake(x, y, w, h);
 
     // Allocate the window
-    NewtUIWindow* myWindow = [[NewtUIWindow alloc] initWithContentRect: rectWin
+    NewtUIWindow* myWindow = [[[[NewtUIWindow alloc] initWithFrame: rectWin
                                                styleMask: (NSUInteger) styleMask
                                                backing: 0 // TODO (NSBackingStoreType) bufferingType
                                                defer: YES
-                                               isFullscreenWindow: fullscreen];
-    // DBG_PRINT( "createWindow0.1 - %p, isVisible %d\n", myWindow, [myWindow isVisible]);
+                                               isFullscreenWindow: fullscreen] autorelease] retain];
+    DBG_PRINT( "createWindow0.X - %p, isHidden %d\n", myWindow, [myWindow isHidden]);
 
-    DBG_PRINT( "createWindow0.X - %p, isVisible %d\n", myWindow, [myWindow isVisible]);
-
+    [CATransaction commit];
     [pool release];
 
     return (jlong) ((intptr_t) myWindow);
@@ -553,7 +524,7 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_ios_WindowDriver_getDisplayID0(JN
         return 0;
     }
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    UIScreen *screen =  [myWindow screen];
+    // UIScreen *screen =  [myWindow screen];
     int32_t displayID = 0; // TODO (int32_t)NewtScreen_getCGDirectDisplayIDByUIScreen(screen);
     [pool release];
     return (jint) displayID;
@@ -571,16 +542,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_initWindow0
    jboolean opaque, jboolean atop, jboolean abottom, jboolean visible, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    [CATransaction begin];
+
     NewtUIWindow* myWindow = (NewtUIWindow*) ((intptr_t) window);
     NewtUIView* myView = (NewtUIView*) (intptr_t) jview ;
+    CAEAGLLayer* l = (CAEAGLLayer*)[myView layer];
     BOOL fullscreen = myWindow->isFullscreenWindow;
-
-    DBG_PRINT( "initWindow0 - %p (this), %p (parent), %p (window), %d/%d %dx%d, reqPixScale %f, opaque %d, atop %d, abottom %d, fs %d, visible %d, view %p (START)\n",
-        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, (int)x, (int)y, (int)w, (int)h, (float)reqPixelScale,
-        (int) opaque, (int)atop, (int)abottom, (int)fullscreen, (int)visible, myView);
-
-    // TODO [myWindow setReleasedWhenClosed: NO]; // We control UIWindow destruction!
-    // TODO [myWindow setPreservesContentDuringLiveResize: NO];
 
     NSObject* nsParentObj = (NSObject*) ((intptr_t) parent);
     UIWindow* parentWindow = NULL;
@@ -596,121 +563,79 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_initWindow0
     } else {
         DBG_PRINT( "initWindow0 - Parent is neither UIWindow nor UIView : %p\n", nsParentObj);
     }
-    DBG_PRINT( "initWindow0 - is visible.1: %d\n", [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.1 - window %p, isHidden %d, rootViewController %p\n", myWindow, [myWindow isHidden], myWindow.rootViewController);
+    DBG_PRINT( "initWindow0.2 - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
+        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
+        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
+        myView, [myView contentScaleFactor], [myView superview], 
+        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
 
     // Remove animations for child windows
-    if(NULL != parentWindow) {
-        [UIView setAnimationsEnabled: NO];
-    }
+    // if(NULL != parentWindow) {
+    //     [UIView setAnimationsEnabled: NO];
+    // }
 
-#ifdef VERBOSE_ON
-    int dbgIdx = 1;
-#endif
     if(opaque) {
-        [myWindow setOpaque: YES];
-        DBG_PRINT( "initWindow0.%d\n", dbgIdx++);
-        if (!fullscreen) {
-            // TODO [myWindow setShowsResizeIndicator: YES];
-        }
-        DBG_PRINT( "initWindow0.%d\n", dbgIdx++);
+        // FIXME [myWindow setOpaque: YES];
+        (void) fullscreen; // No extra handling
+        [myWindow setBackgroundColor: [UIColor redColor]]; // FIXME TEST
     } else {
         [myWindow setOpaque: NO];
         [myWindow setBackgroundColor: [UIColor clearColor]];
     }
     [myWindow setAlwaysOn: atop bottom:abottom];
 
-    // specify we want mouse-moved events
-    // TODO [myWindow setAcceptsMouseMovedEvents:YES];
-
-    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
-        dbgIdx++, myWindow, myView, [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.3 - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
+        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
+        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
+        myView, [myView contentScaleFactor], [myView superview], 
+        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
 
     // Set the content view
     changeContentView(env, jthis, parentView, myWindow, myView, NO);
-    // TODO [myWindow setInitialFirstResponder: myView];
 
-    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
-        dbgIdx++, myWindow, myView, [myWindow isVisible]);
+    DBG_PRINT( "initWindow0.4 - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
+        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
+        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
+        myView, [myView contentScaleFactor], [myView superview], 
+        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
 
     if(NULL!=parentWindow) {
         [myWindow attachToParent: parentWindow];
     }
 
-    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d, visible %d\n", 
-        dbgIdx++, myWindow, myView, [myWindow isVisible], visible);
+    DBG_PRINT( "initWindow0.5 - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
+        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
+        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
+        myView, [myView contentScaleFactor], [myView superview], 
+        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
 
     // Immediately re-position this window based on an upper-left coordinate system
     setWindowClientTopLeftPointAndSize(myWindow, x, y, w, h, NO);
-
-    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
-        dbgIdx++, myWindow, myView, [myWindow isVisible]);
-
-    // TODO [myWindow setAllowsConcurrentViewDrawing: YES];
-
-    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
-        dbgIdx++, myWindow, myView, [myWindow isVisible]);
-
-    // TODO [myView setCanDrawConcurrently: YES];
-
-    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
-        dbgIdx++, myWindow, myView, [myWindow isVisible]);
-
-    // visible on front
     if( visible ) {
-        // TODO [myWindow orderFront: myWindow];
+        [myWindow makeKeyAndVisible];
     }
 
-    DBG_PRINT( "initWindow0.%d - %p view %p, isVisible %d\n", 
-        dbgIdx++, myWindow, myView, [myWindow isVisible]);
-
-    // force surface creation
-    // [myView lockFocus];
-    // [myView unlockFocus];
-
-    // Set the next responder to be the window so that we can forward
-    // right mouse button down events
-    // TODO [myView setNextResponder: myWindow];
-
-    DBG_PRINT( "initWindow0.%d - %p (this), %p (parent): new window: %p, view %p\n",
-        dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
-
+    DBG_PRINT( "initWindow0.6 - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
+        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
+        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
+        myView, [myView contentScaleFactor], [myView superview], 
+        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
     [myView setDestroyNotifySent: false];
     setJavaWindowObject(env, jthis, myView);
 
-    DBG_PRINT( "initWindow0.%d - %p (this), %p (parent): new window: %p, view %p\n",
-        dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
+    [myWindow setPixelScale: (CGFloat)reqPixelScale defer:NO];
 
-NS_DURING
-    if( fullscreen ) {
-        /** 
-         * See Bug 914: We don't use exclusive fullscreen anymore (capturing display)
-         * allowing ALT-TAB to allow process/app switching!
-         * Shall have no penalty on modern GPU and is also recommended, see bottom box @
-         * <https://developer.apple.com/library/mac/documentation/graphicsimaging/Conceptual/QuartzDisplayServicesConceptual/Articles/DisplayCapture.html>
-         *
-        UIScreen *myScreen =  NewtScreen_getUIScreenByCoord(x, y);
-        if( NULL != myScreen ) {
-            if ( [myView respondsToSelector:@selector(enterFullScreenMode:withOptions:)] ) {
-                // Available >= 10.5 - Makes the menubar disapear
-                [myView enterFullScreenMode: myScreen withOptions:NULL];
-            } 
-        }
-        */
-        if( myWindow->hasPresentationSwitch ) {
-            DBG_PRINT( "initWindow0.%d - %p view %p, setPresentationOptions 0x%X\n", 
-                dbgIdx++, myWindow, myView, (int)myWindow->fullscreenPresentationOptions);
-            // TODO [NSApp setPresentationOptions: myWindow->fullscreenPresentationOptions];
-        }
-    }
-NS_HANDLER
-NS_ENDHANDLER
+    (void) fullscreen; // No extra handling
 
-    DBG_PRINT( "initWindow0.%d - %p (this), %p (parent): new window: %p, view %p\n",
-        dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
+    DBG_PRINT( "initWindow0.X - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
+        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
+        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
+        myView, [myView contentScaleFactor], [myView superview], 
+        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
 
+    [CATransaction commit];
     [pool release];
-    DBG_PRINT( "initWindow0.X - %p (this), %p (parent): new window: %p, view %p\n",
-        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
 }
 
 /**
@@ -729,20 +654,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_setPixelScale0
         return;
     }
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NewtUIView* myView = (NewtUIView*) (intptr_t) view ;
-#ifdef VERBOSE_ON
-    int dbgIdx = 1;
-#endif
-    DBG_PRINT( "setPixelScale0 - %p (this), %p (window), view %p, reqPixScale %f (START)\n",
-        (void*)(intptr_t)jthis, myWindow, myView, (float)reqPixelScale);
-    (void)myWindow;
-
-    DBG_PRINT( "setPixelScale0.%d - %p (this), window: %p, view %p\n",
-        dbgIdx++, (void*)(intptr_t)jthis, myWindow, myView);
+    [myWindow setPixelScale: (CGFloat)reqPixelScale defer:YES];
 
     [pool release];
-    DBG_PRINT( "setPixelScale0.X - %p (this), window: %p, view %p\n",
-        (void*)(intptr_t)jthis, myWindow, myView);
 }
 
 /**
@@ -762,7 +676,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_close0
     }
     BOOL isNSWin = [mWin isKindOfClass:[UIWindow class]];
     BOOL isNewtWin = [mWin isKindOfClass:[NewtUIWindow class]];
-    UIWindow *pWin = NULL; // TODO [mWin parentWindow];
+    UIWindow *pWin;
+    {
+        UIView *superview = [mWin superview];
+        if( [superview isKindOfClass:[UIWindow class]] ) {
+            pWin = (UIWindow*)superview;
+        } else {
+            pWin = NULL;
+        }
+    }
     DBG_PRINT( "windowClose.0 - %p [isUIWindow %d, isNewtWin %d], parent %p\n", mWin, isNSWin, isNewtWin, pWin);
     (void)isNSWin; // silence
     if( !isNewtWin ) {
@@ -770,7 +692,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_close0
         return;
     }
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NewtUIView* mView = (NewtUIView *)mWin; // TODO [mWin contentView];
+    NewtUIView* mView = [mWin getContentNewtUIView];
     BOOL fullscreen = mWin->isFullscreenWindow;
     BOOL destroyNotifySent, isUIView, isNewtUIView;
     if( NULL != mView ) {
@@ -794,32 +716,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_close0
         setJavaWindowObject(env, NULL, mView);
     }
 
-NS_DURING
-    /** 
-     * See Bug 914: We don't use exclusive fullscreen anymore (capturing display)
-     * See initWindow0(..) above ..
-    if(NULL!=mView) {
-        BOOL iifs;
-        if ( [mView respondsToSelector:@selector(isInFullScreenMode)] ) {
-            iifs = [mView isInFullScreenMode];
-        } else {
-            iifs = NO;
-        }
-        if(iifs && [mView respondsToSelector:@selector(exitFullScreenModeWithOptions:)] ) {
-            [mView exitFullScreenModeWithOptions: NULL];
-        }
-    } */
     // Note: mWin's release will also release it's mView!
-    DBG_PRINT( "windowClose.1a - %p view %p, fullscreen %d, hasPresSwitch %d, defaultPresentationOptions 0x%X\n", 
-        mWin, mView, (int)fullscreen, (int)mWin->hasPresentationSwitch, (int)mWin->defaultPresentationOptions);
-
-    if( fullscreen && mWin->hasPresentationSwitch ) {
-        DBG_PRINT( "windowClose.1b - %p view %p, setPresentationOptions 0x%X\n", 
-            mWin, mView, (int)mWin->defaultPresentationOptions);
-        // TODO [NSApp setPresentationOptions: mWin->defaultPresentationOptions];
-    }
-NS_HANDLER
-NS_ENDHANDLER
+    DBG_PRINT( "windowClose.1a - %p view %p, fullscreen %d\n", 
+        mWin, mView, (int)fullscreen);
 
     if(NULL!=pWin) {
         [mWin detachFromParent: pWin];
@@ -946,7 +845,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_orderFront0
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     UIWindow* pWin = NULL; // TODO [mWin parentWindow];
 
-    DBG_PRINT( "orderFront0 - window: (parent %p) %p visible %d (START)\n", pWin, mWin, [mWin isVisible]);
+    DBG_PRINT( "orderFront0 - window: (parent %p) %p hidden %d (START)\n", pWin, mWin, [mWin isHidden]);
 
     if( NULL == pWin ) {
         // TODO [mWin orderFrontRegardless];
@@ -975,7 +874,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_orderOut0
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     UIWindow* pWin = NULL; // TODO [mWin parentWindow];
 
-    DBG_PRINT( "orderOut0 - window: (parent %p) %p visible %d (START)\n", pWin, mWin, [mWin isVisible]);
+    DBG_PRINT( "orderOut0 - window: (parent %p) %p hidden %d (START)\n", pWin, mWin, [mWin isHidden]);
 
     if( NULL == pWin ) {
         // TODO [mWin orderOut: mWin];
@@ -1014,31 +913,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_setTitle0
     [pool release];
 }
 
-/*
- * Class:     jogamp_newt_driver_ios_WindowDriver
- * Method:    contentView0
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_ios_WindowDriver_contentView0
-  (JNIEnv *env, jobject unused, jlong window)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    UIWindow* win = (UIWindow*) ((intptr_t) window);
-    UIView* nsView = (UIView*)win; // TODO [win contentView];
-    NewtUIView* newtView = NULL;
-
-    if( [nsView isKindOfClass:[NewtUIView class]] ) {
-        newtView = (NewtUIView *) nsView;
-    }
-
-    DBG_PRINT( "contentView0 - window: %p, view: %p, newtView %p\n", win, nsView, newtView);
-
-    jlong res = (jlong) ((intptr_t) nsView);
-
-    [pool release];
-    return res;
-}
-
 /**
  * Method is called on Main-Thread, hence no special invocation required inside method.
  *
@@ -1062,7 +936,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_changeContentVie
     if( NULL != nsParentObj ) {
         if( [nsParentObj isKindOfClass:[UIWindow class]] ) {
             UIWindow * pWin = (UIWindow*) nsParentObj;
-            pView = (UIView*)pWin; // TODO [pWin contentView];
+            pView = (UIView*)pWin;
         } else if( [nsParentObj isKindOfClass:[UIView class]] ) {
             pView = (UIView*) nsParentObj;
         }

@@ -201,7 +201,7 @@ public class TestGearsES2SimpleNEWT extends UITestCase {
 
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
+        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+"[wu] "+glWindow.getWidth()+"x"+glWindow.getHeight()+"[wu] "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+"[px], "+glWindow.getInsets());
 
         final float[] hasSurfacePixelScale1 = glWindow.getCurrentSurfaceScale(new float[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+

@@ -37,8 +37,9 @@
 
 #define PRINTF(...) NSLog(@ __VA_ARGS__)
 
-static jmethodID enqueueMouseEventID = NULL;
-static jmethodID enqueueKeyEventID = NULL;
+#define IOS_TOUCH_COUNT 10
+
+static jmethodID sendTouchScreenEventID = NULL;
 static jmethodID requestFocusID = NULL;
 
 static jmethodID insetsChangedID   = NULL;
@@ -57,11 +58,58 @@ static jmethodID windowRepaintID = NULL;
 //     AWT-AppKit
 //     AWT-EventQueue-0
 
+@implementation NamedUITouch
+
+- (id)initWithName:(UITouch*)t name:(short)n
+{
+    self->name = n;
+    self->touch = [t retain];
+    return self;
+}
+- (void) dealloc
+{
+    [touch release]; 
+    [super dealloc];
+}
+
+- (BOOL)isEqual:(id)object
+{
+    // Ensure NSPointerFunctionsObjectPointerPersonality for NSArray
+    return self == object;
+}
+- (NSUInteger)hash
+{
+    // Ensure NSPointerFunctionsObjectPointerPersonality for NSArray
+    //
+    // When building 32-bit applications, NSUInteger is a 32-bit unsigned integer. 
+    // A 64-bit application treats NSUInteger as a 64-bit unsigned integer
+    // https://developer.apple.com/documentation/objectivec/nsuinteger?language=objc
+    return (NSUInteger)self;
+}
+
+@end
+
 @implementation NewtUIView
 
 - (id)initWithFrame:(CGRect)frameRect
 {
     id res = [super initWithFrame:frameRect];
+    CAEAGLLayer* l = (CAEAGLLayer*)[self layer];
+    [l setOpaque: YES];
+    l.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys: /* defaults */
+                           [NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
+    [self setMultipleTouchEnabled: YES]; // NEWT supports multitouch ..
+    [self setExclusiveTouch: YES]; // NEWT touches shall keep with NEWT
+    [self setUserInteractionEnabled: YES]; // Default ..
+
+    // NSMapTable<UITouch*, NamedUITouch*>* activeTouchMap;
+    // NSHashTable<NamedUITouch*>* activeTouches;
+    activeTouchMap = [[NSMapTable alloc] initWithKeyOptions:NSMapTableStrongMemory|NSMapTableObjectPointerPersonality
+                                         valueOptions:NSMapTableStrongMemory|NSMapTableObjectPointerPersonality
+                                         capacity:IOS_TOUCH_COUNT];
+    activeTouches = [[NSMutableArray alloc] initWithCapacity:IOS_TOUCH_COUNT];
+    nextTouchName = 0;
+
     javaWindowObject = NULL;
 
     destroyNotifySent = NO;
@@ -77,10 +125,10 @@ static jmethodID windowRepaintID = NULL;
     modsDown[2] = NO; // alt
     modsDown[3] = NO; // win
 
-    DBG_PRINT("NewtUIView::create: %p (refcnt %d)\n", res, (int)[res retainCount]);
+    DBG_PRINT("NewtUIView::create: %p/%p, CAEAGLLayer %p (pixelScale %f, isCAEAGLLayer %d) (res refcnt %d)\n", 
+        res, self, l, [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]], (int)[res retainCount]);
     return res;
 }
-
 #ifdef DBG_LIFECYCLE
 - (void) release
 {
@@ -91,13 +139,17 @@ static jmethodID windowRepaintID = NULL;
 
 - (void) dealloc
 {
-    DBG_PRINT("NewtUIView::dealloc.0: %p (refcnt %d), ptrTrackingTag %d\n", self, (int)[self retainCount], (int)ptrTrackingTag);
+    DBG_PRINT("NewtUIView::dealloc.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
 #ifdef DBG_LIFECYCLE
     NSLog(@"%@",[NSThread callStackSymbols]);
 #endif
     if( 0 < softLockCount ) {
         NSLog(@"NewtUIView::dealloc: softLock still hold @ dealloc!\n");
     }
+    [activeTouchMap removeAllObjects];
+    [activeTouchMap release];
+    [activeTouches removeAllObjects];
+    [activeTouches release];
 
     pthread_mutex_destroy(&softLockSync);
     DBG_PRINT("NewtUIView::dealloc.X: %p\n", self);
@@ -126,21 +178,20 @@ static jmethodID windowRepaintID = NULL;
 
 - (BOOL) softLock
 {
-    // DBG_PRINT("*************** softLock.0: %p\n", (void*)pthread_self());
     int err;
     if( 0 != ( err = pthread_mutex_lock(&softLockSync) ) ) {
         NSLog(@"NewtUIView::softLock failed: errCode %d - %@", err, [NSThread callStackSymbols]);
         return NO;
     }
     softLockCount++;
-    // DBG_PRINT("*************** softLock.X: %p\n", (void*)pthread_self());
+    // DBG_PRINT("*************** softLock: %p count %d\n", (void*)pthread_self(), softLockCount);
     return 0 < softLockCount;
 }
 
 - (BOOL) softUnlock
 {
-    // DBG_PRINT("*************** softUnlock: %p\n", (void*)pthread_self());
     softLockCount--;
+    // DBG_PRINT("*************** softUnlock: %p count %d\n", (void*)pthread_self(), softLockCount);
     int err;
     if( 0 != ( err = pthread_mutex_unlock(&softLockSync) ) ) {
         softLockCount++;
@@ -152,7 +203,7 @@ static jmethodID windowRepaintID = NULL;
 
 - (void) drawRect:(CGRect)dirtyRect
 {
-    DBG_PRINT("*************** dirtyRect: %p %lf/%lf %lfx%lf\n", 
+    DBG_PRINT("*************** drawRect: dirtyRect: %p %lf/%lf %lfx%lf\n", 
         javaWindowObject, dirtyRect.origin.x, dirtyRect.origin.y, dirtyRect.size.width, dirtyRect.size.height);
 
     if(NULL==javaWindowObject) {
@@ -176,11 +227,6 @@ static jmethodID windowRepaintID = NULL;
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
-- (BOOL) acceptsFirstResponder 
-{
-    return YES;
-}
-
 - (BOOL) becomeFirstResponder
 {
     DBG_PRINT( "*************** View.becomeFirstResponder\n");
@@ -193,52 +239,181 @@ static jmethodID windowRepaintID = NULL;
     return [super resignFirstResponder];
 }
 
-- (void) sendMouseEvent: (UIEvent*) event eventType: (jshort) evType
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event
+{
+    [self sendTouchEvent: touches withEvent:event eventState:1 newtEventType:(short)EVENT_MOUSE_PRESSED];
+}
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event
+{
+    // Note use of MOUSE_MOVED event type because mouse dragged events are synthesized by Java
+    [self sendTouchEvent: touches withEvent:event eventState:0 newtEventType:(short)EVENT_MOUSE_MOVED];
+}
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event
+{
+    [self sendTouchEvent: touches withEvent:event eventState:-1 newtEventType:(short)EVENT_MOUSE_RELEASED];
+}
+- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event
+{
+    [self sendTouchEvent: touches withEvent:event eventState:-1 newtEventType:(short)EVENT_MOUSE_RELEASED];
+}
+- (void)touchesEstimatedPropertiesUpdated:(NSSet<UITouch *> *)touches
+{
+}
+
+- (void)sendTouchEvent: (NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event 
+                        eventState:(int)eventState newtEventType:(short)newtEventType
 {
     if (javaWindowObject == NULL) {
-        DBG_PRINT("sendMouseEvent: null javaWindowObject\n");
+        DBG_PRINT("sendTouchEvent: null javaWindowObject\n");
         return;
     }
     int shallBeDetached = 0;
     JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
     if(NULL==env) {
-        DBG_PRINT("sendMouseEvent: null JNIEnv\n");
+        DBG_PRINT("sendTouchEvent: null JNIEnv\n");
         return;
     }
-    jint javaMods[] = { 0 } ;
-    javaMods[0] = 0; // TODO mods2JavaMods([event modifierFlags]);
+    jint newtEventModifiers = 0; // FIXME?
+    jint touchTypes[IOS_TOUCH_COUNT];
+    jshort pointerNames[IOS_TOUCH_COUNT];
+    jint x[IOS_TOUCH_COUNT];
+    jint y[IOS_TOUCH_COUNT];
+    jfloat pressure[IOS_TOUCH_COUNT];
+    jint actionIdx[IOS_TOUCH_COUNT];
+    int activeTouchesNewIdx = -1;
 
-    // convert to 1-based button number (or use zero if no button is involved)
-    // TODO: detect mouse button when mouse wheel scrolled  
-    jshort javaButtonNum = 1;
-    jfloat scrollDeltaY = 0.0f;
-    /**
-    switch ([event type]) {
-        case NSLeftMouseDown:
-        case NSLeftMouseUp:
-        case NSLeftMouseDragged:
-            javaButtonNum = 1;
-            break;
-        case NSRightMouseDown:
-        case NSRightMouseUp:
-        case NSRightMouseDragged:
-            javaButtonNum = 3;
-            break;
-        case NSOtherMouseDown:
-        case NSOtherMouseUp:
-        case NSOtherMouseDragged:
-            javaButtonNum = 2;
-            break;
-        default:
-            javaButtonNum = 0;
-            break;
-    } */
-    CGPoint location = CGPointMake(0,0); // TODO [self screenPos2NewtClientWinPos: [UIEvent mouseLocation]];
+    DBG_PRINT( "sendTouchEvent.0: Window %p, state %d, newtType %d, touches %d, activeTouches %d, nextTouchName %d\n", 
+        (void*)javaWindowObject, eventState, (int)newtEventType, (int)[touches count], (int)[activeTouches count], nextTouchName);
 
-    (*env)->CallVoidMethod(env, javaWindowObject, enqueueMouseEventID, JNI_FALSE,
-                           evType, javaMods[0],
-                           (jint) location.x, (jint) location.y,
-                           javaButtonNum, scrollDeltaY);
+    // merge new touches into activeTouchMap (unify) and 
+    // add to end of activeTouches array 
+    {
+        NSEnumerator<UITouch*>* touchesEnum = [touches objectEnumerator];
+        UITouch * t;
+        while( (t = [touchesEnum nextObject]) ) {
+            NamedUITouch *nt = (NamedUITouch*)[activeTouchMap objectForKey: t];
+            if( nil == nt ) {
+                if( 1 != eventState ) {
+                    // Ooops, not 'touchesBegan' but UITouch not mapped!
+                    NewtCommon_throwNewRuntimeException(env, "Internal Error: touch event (window %p) state %d, newtType %d not mapped", 
+                        (void*)javaWindowObject, eventState, (int)newtEventType);
+                }
+                if( IOS_TOUCH_COUNT > [activeTouches count] ) {
+                    nt = [[NamedUITouch alloc] initWithName:t name:nextTouchName++];
+                    [activeTouchMap setObject:nt forKey:t];
+                    [activeTouches addObject: nt];
+                    if( 0 > activeTouchesNewIdx ) {
+                        activeTouchesNewIdx = [activeTouches count] - 1;
+                    }
+                }
+            }
+        }
+    }
+#ifdef VERBOSE_ON
+    {
+        int activeTouchesNewCount = activeTouchesNewIdx < 0 ? 0 : [activeTouches count] - activeTouchesNewIdx;
+        DBG_PRINT( "sendTouchEvent.1: Window %p, state %d, newtType %d, touches %d, activeTouches %d, nextTouchName %d, newActiveTouches %d\n", 
+        (void*)javaWindowObject, eventState, (int)newtEventType, (int)[touches count], (int)[activeTouches count], nextTouchName, activeTouchesNewCount);
+    }
+#endif /* VERBOSE_ON */
+
+    int cnt, actionCnt;
+    for(cnt=0, actionCnt=0; cnt<[activeTouches count]; cnt++) {
+        NamedUITouch *nt = [activeTouches objectAtIndex: cnt];
+        switch( [nt->touch type] ) {
+            case UITouchTypeDirect:
+            case UITouchTypeIndirect: /* ??? */
+                touchTypes[cnt] = POINTER_TYPE_TOUCHSCREEN;
+                break;
+            case UITouchTypePencil:
+                touchTypes[cnt] = POINTER_TYPE_PEN;
+                break;
+            default:
+                touchTypes[cnt] = POINTER_TYPE_UNDEF;
+                break;
+        }
+        CGPoint loc = [nt->touch preciseLocationInView: self]; // [touch locationInView: self];
+        x[cnt] = (jint)(loc.x);
+        y[cnt] = (jint)(loc.y);
+        pressure[cnt] = (jfloat)(nt->touch.force);
+        pointerNames[cnt] = nt->name;
+        if( [touches member: nt->touch] ) {
+            actionIdx[actionCnt++] = cnt;
+            DBG_PRINT( "sendTouchEvent.2: Window %p, action-touchid[%d]: name %d, idx %d, ptr: %d/%d\n",
+                (void*)javaWindowObject, (actionCnt-1), nt->name, cnt, x[cnt], y[cnt]);
+        } else {
+            DBG_PRINT( "sendTouchEvent.2: Window %p, action-touchid[-1]: name %d, idx %d, ptr: %d/%d\n",
+                (void*)javaWindowObject, nt->name, cnt, x[cnt], y[cnt]);
+        }
+    }
+    if( 0 >= actionCnt || actionCnt != [touches count]) {
+        NewtCommon_throwNewRuntimeException(env, "Internal Error: touch event (window %p) %d actionIds not matching %d/%d touches", 
+            (void*)javaWindowObject, actionCnt, (int)[touches count], cnt);
+    }
+    if( -1 == eventState ) {
+        NSEnumerator<UITouch*>* touchesEnum = [touches objectEnumerator];
+        UITouch * t;
+        while( (t = [touchesEnum nextObject]) ) {
+            NamedUITouch *nt = (NamedUITouch*)[activeTouchMap objectForKey: t];
+            if( nil == nt ) {
+                // Ooops, 'touchesEnded' but UITouch not mapped!
+                NewtCommon_throwNewRuntimeException(env, "Internal Error: touch event (window %p) state %d, newtType %d not mapped", 
+                    (void*)javaWindowObject, eventState, (int)newtEventType);
+            }
+            [activeTouchMap removeObjectForKey: t];
+            [activeTouches removeObject: nt];
+        }
+        if( 0 == [activeTouches count] ) {
+            // all finger released ..
+            nextTouchName = 0;
+        }
+    }
+    DBG_PRINT( "sendTouchEvent.3: Window %p, state %d, newtType %d, touches %d, activeTouches %d, nextTouchName %d\n", 
+        (void*)javaWindowObject, eventState, (int)newtEventType, (int)[touches count], (int)[activeTouches count], nextTouchName);
+
+    jintArray jActionIdx = (*env)->NewIntArray(env, actionCnt);
+    if (jActionIdx == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (names) of size %d", actionCnt);
+    }
+    (*env)->SetIntArrayRegion(env, jActionIdx, 0, actionCnt, actionIdx);
+
+    jshortArray jNames = (*env)->NewShortArray(env, cnt);
+    if (jNames == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate short array (names) of size %d", cnt);
+    }
+    (*env)->SetShortArrayRegion(env, jNames, 0, cnt, pointerNames);
+
+    jintArray jTouchTypes = (*env)->NewIntArray(env, cnt);
+    if (jTouchTypes == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (TouchTypes) of size %d", cnt);
+    }
+    (*env)->SetIntArrayRegion(env, jTouchTypes, 0, cnt, touchTypes);
+
+    jintArray jX = (*env)->NewIntArray(env, cnt);
+    if (jX == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (x) of size %d", cnt);
+    }
+    (*env)->SetIntArrayRegion(env, jX, 0, cnt, x);
+
+    jintArray jY = (*env)->NewIntArray(env, cnt);
+    if (jY == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (y) of size %d", cnt);
+    }
+    (*env)->SetIntArrayRegion(env, jY, 0, cnt, y);
+
+    jfloatArray jPressure = (*env)->NewFloatArray(env, cnt);
+    if (jPressure == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate float array (pressure) of size %d", cnt);
+    }
+    (*env)->SetFloatArrayRegion(env, jPressure, 0, cnt, pressure);
+
+    /** 
+     * Pressure (force) "1.0 represents the force of an average touch (predetermined by the system, not user-specific".
+     * So we pass 2.0f as the maxPressure value.
+     */
+    (*env)->CallVoidMethod(env, javaWindowObject, sendTouchScreenEventID,
+            (jshort)newtEventType, (jint)newtEventModifiers, 
+            jActionIdx, jNames, jTouchTypes, jX, jY, jPressure, (jfloat)2.0f); 
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -259,87 +434,15 @@ static jmethodID windowRepaintID = NULL;
     return oS;
 }
 
-- (void) handleFlagsChanged:(NSUInteger) mods
-{
-    // TODO [self handleFlagsChanged: NSShiftKeyMask keyIndex: 0 keyCode: kVK_Shift modifiers: mods];
-    // TODO [self handleFlagsChanged: NSControlKeyMask keyIndex: 1 keyCode: kVK_Control modifiers: mods];
-    // TODO [self handleFlagsChanged: NSAlternateKeyMask keyIndex: 2 keyCode: kVK_Option modifiers: mods];
-    // TODO [self handleFlagsChanged: NSCommandKeyMask keyIndex: 3 keyCode: kVK_Command modifiers: mods];
-}
-
-- (void) handleFlagsChanged:(int) keyMask keyIndex: (int) keyIdx keyCode: (int) keyCode modifiers: (NSUInteger) mods
-{
-    if ( NO == modsDown[keyIdx] && 0 != ( mods & keyMask ) )  {
-        modsDown[keyIdx] = YES;
-        [self sendKeyEvent: (jshort)keyCode characters: NULL modifiers: mods|keyMask eventType: (jshort)EVENT_KEY_PRESSED];
-    } else if ( YES == modsDown[keyIdx] && 0 == ( mods & keyMask ) )  {
-        modsDown[keyIdx] = NO;
-        [self sendKeyEvent: (jshort)keyCode characters: NULL modifiers: mods|keyMask eventType: (jshort)EVENT_KEY_RELEASED];
-    }
-}
-
-- (void) sendKeyEvent: (UIEvent*) event eventType: (jshort) evType
-{
-    jshort keyCode = 0; // TODO (jshort) [event keyCode];
-    NSString* chars = NULL; // TODO [event charactersIgnoringModifiers];
-    NSUInteger mods = 0; // TODO [event modifierFlags];
-    [self sendKeyEvent: keyCode characters: chars modifiers: mods eventType: evType];
-}
-
-- (void) sendKeyEvent: (jshort) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jshort) evType
-{
-    if (javaWindowObject == NULL) {
-        DBG_PRINT("sendKeyEvent: null javaWindowObject\n");
-        return;
-    }
-    int shallBeDetached = 0;
-    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
-    if(NULL==env) {
-        DBG_PRINT("sendKeyEvent: null JNIEnv\n");
-        return;
-    }
-
-    int i;
-    int len = NULL != chars ? [chars length] : 0;
-    jint javaMods = 0; // TODO mods2JavaMods(mods);
-
-    if(len > 0) {
-        // printable chars
-        for (i = 0; i < len; i++) {
-            // Note: the key code in the UIEvent does not map to anything we can use
-            UniChar keyChar = (UniChar) [chars characterAtIndex: i];
-            UniChar keySymChar = 0; // TODO CKCH_CharForKeyCode(keyCode);
-
-            DBG_PRINT("sendKeyEvent: %d/%d code 0x%X, char 0x%X, mods 0x%X/0x%X -> keySymChar 0x%X\n", i, len, (int)keyCode, (int)keyChar, 
-                      (int)mods, (int)javaMods, (int)keySymChar);
-
-            (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
-                                   evType, javaMods, keyCode, (jchar)keyChar, (jchar)keySymChar);
-        }
-    } else {
-        // non-printable chars
-        jchar keyChar = (jchar) 0;
-
-        DBG_PRINT("sendKeyEvent: code 0x%X\n", (int)keyCode);
-
-        (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
-                               evType, javaMods, keyCode, keyChar, keyChar);
-    }
-
-    // detaching thread not required - daemon
-    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
-}
-
 @end
 
 @implementation NewtUIWindow
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
 {
-    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZSIIISF)V");
-    enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZSISCC)V");
+    sendTouchScreenEventID = (*env)->GetMethodID(env, clazz, "sendTouchScreenEvent", "(SI[I[S[I[I[I[FF)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
-    updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFF)V");
+    updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFFFZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
     sizeScreenPosInsetsChangedID = (*env)->GetMethodID(env, clazz, "sizeScreenPosInsetsChanged", "(ZIIIIIIIIZZ)V");
@@ -348,7 +451,7 @@ static jmethodID windowRepaintID = NULL;
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
-    if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && updatePixelScaleID && visibleChangedID && 
+    if (sendTouchScreenEventID && sizeChangedID && updatePixelScaleID && visibleChangedID && 
         insetsChangedID && sizeScreenPosInsetsChangedID &&
         screenPositionChangedID && focusChangedID && windowDestroyNotifyID && requestFocusID && windowRepaintID)
     {
@@ -364,43 +467,9 @@ static jmethodID windowRepaintID = NULL;
        defer: (BOOL) deferCreation
        isFullscreenWindow:(BOOL)isfs
 {
-    /**
-    id res = [super initWithContentRect: contentRect
-                    styleMask: windowStyle
-                    backing: bufferingType
-                    defer: deferCreation];
-     */
     id res = [super initWithFrame: contentRect];
-    // OSX 10.6
-    /** TODO
-    if ( [NSApp respondsToSelector:@selector(currentSystemPresentationOptions)] &&
-         [NSApp respondsToSelector:@selector(setPresentationOptions:)] ) {
-        hasPresentationSwitch = YES;
-        defaultPresentationOptions = [NSApp currentSystemPresentationOptions];
-        fullscreenPresentationOptions = 
-                // NSApplicationPresentationDefault|
-                // NSApplicationPresentationAutoHideDock|
-                NSApplicationPresentationHideDock|
-                // NSApplicationPresentationAutoHideMenuBar|
-                NSApplicationPresentationHideMenuBar|
-                NSApplicationPresentationDisableAppleMenu|
-                // NSApplicationPresentationDisableProcessSwitching|
-                // NSApplicationPresentationDisableSessionTermination|
-                NSApplicationPresentationDisableHideApplication|
-                // NSApplicationPresentationDisableMenuBarTransparency|
-                // NSApplicationPresentationFullScreen| // OSX 10.7
-                0 ;
-    } else {
-    */
-        hasPresentationSwitch = NO;
-        defaultPresentationOptions = 0;
-        fullscreenPresentationOptions = 0; 
-    // }
-
+    self.rootViewController = [[[UIViewController alloc] initWithNibName:nil bundle:nil] autorelease];
     isFullscreenWindow = NO; // TODO isfs;
-    // Why is this necessary? Without it we don't get any of the
-    // delegate methods like resizing and window movement.
-    // TODO [self setDelegate: self];
 
     cachedInsets[0] = 0; // l
     cachedInsets[1] = 0; // r
@@ -409,8 +478,19 @@ static jmethodID windowRepaintID = NULL;
 
     realized = YES;
     withinLiveResize = JNI_FALSE;
-    DBG_PRINT("NewtWindow::create: %p, realized %d, hasPresentationSwitch %d[defaultOptions 0x%X, fullscreenOptions 0x%X], (refcnt %d)\n", 
-        res, realized, (int)hasPresentationSwitch, (int)defaultPresentationOptions, (int)fullscreenPresentationOptions, (int)[res retainCount]);
+    contentNewtUIView = NULL;
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                          selector:@selector(becameVisible:)
+                                          name:UIWindowDidBecomeVisibleNotification
+                                          object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                          selector:@selector(becameHidden:)
+                                          name:UIWindowDidBecomeHiddenNotification
+                                          object:nil];
+
+    DBG_PRINT("NewtWindow::create: %p, realized %d, (refcnt %d)\n", 
+        res, realized, (int)[res retainCount]);
     return res;
 }
 
@@ -430,14 +510,34 @@ static jmethodID windowRepaintID = NULL;
     NSLog(@"%@",[NSThread callStackSymbols]);
 #endif
 
-    /**
-    NewtUIView* mView = (NewtUIView *)self; // TODO [self contentView];
-    if( NULL != mView ) {
-        [mView release];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+
+    if( NULL != contentNewtUIView ) {
+        [contentNewtUIView removeFromSuperview];
+        [contentNewtUIView release];
+        contentNewtUIView=NULL;
     }
-    */
     [super dealloc];
     DBG_PRINT("NewtWindow::dealloc.X: %p\n", self);
+}
+
+- (void) setContentNewtUIView: (NewtUIView*)v
+{
+    DBG_PRINT( "NewtWindow::setContentNewtUIView.0: view %p -> %p\n", contentNewtUIView, v);
+    if( NULL != contentNewtUIView ) {
+        [contentNewtUIView removeFromSuperview];
+        [contentNewtUIView release];
+        contentNewtUIView=NULL;
+    }
+    contentNewtUIView = v;
+    if( NULL != contentNewtUIView ) {
+        [contentNewtUIView retain];
+        [self addSubview: contentNewtUIView];
+    }
+}
+- (NewtUIView*) getContentNewtUIView
+{
+    return contentNewtUIView;
 }
 
 - (void) setRealized: (BOOL)v
@@ -463,6 +563,110 @@ static jmethodID windowRepaintID = NULL;
         DBG_PRINT( "*************** setAlwaysOn -> normal\n");
         [self setLevel:NSNormalWindowLevel];
     } */
+}
+
+- (void) updatePixelScale: (BOOL) defer
+{
+    NewtUIView* newtView = contentNewtUIView;
+    DBG_PRINT( "updatePixelScale view %p, autoMaxPixelScale %d, defer %d\n", 
+        newtView, useAutoMaxPixelScale, defer);
+    if( NULL == newtView ) {
+        return;
+    }
+    jobject javaWindowObject = [newtView getJavaWindowObject];
+    if ( NULL == javaWindowObject ) {
+        DBG_PRINT("updatePixelScale: null javaWindowObject\n");
+        return;
+    }
+    int shallBeDetached = 0;
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
+    if(NULL==env) {
+        DBG_PRINT("updatePixelScale: null JNIEnv\n");
+        return;
+    }
+
+    CGFloat oldPixelScaleV = [newtView contentScaleFactor];
+    CGFloat oldPixelScaleL = [[newtView layer] contentsScale];
+    UIScreen* _screen = [self screen];
+    CGFloat maxPixelScale = [_screen scale];
+    CGFloat pixelScale;
+    BOOL changeScale;
+    if ( useAutoMaxPixelScale ) {
+        pixelScale = maxPixelScale;
+        changeScale = pixelScale != oldPixelScaleV || pixelScale != oldPixelScaleL;
+    } else {
+        pixelScale = oldPixelScaleV;
+        changeScale = NO;
+    }
+    DBG_PRINT("updatePixelScale: PixelScale: autoMaxPixelScale %d, max %f, view %f, layer %f -> %f (change %d)\n", 
+        useAutoMaxPixelScale, (float)maxPixelScale, (float)oldPixelScaleV, (float)oldPixelScaleL, (float)pixelScale, changeScale);
+    if( changeScale ) {
+        [newtView setContentScaleFactor: pixelScale];
+        [[newtView layer] setContentsScale: pixelScale];
+    }
+    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, defer?JNI_TRUE:JNI_FALSE, 
+                          (jfloat)oldPixelScaleV, (jfloat)pixelScale, (jfloat)maxPixelScale, (jboolean)changeScale);
+
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
+}
+- (void) setPixelScale: (CGFloat)reqPixelScale defer:(BOOL)defer
+{
+    NewtUIView* newtView = contentNewtUIView;
+    useAutoMaxPixelScale = NewtCommon_isFloatZero(reqPixelScale);
+    DBG_PRINT( "setPixelScale view %p, reqPixelScale %f, autoMaxPixelScale %d, defer %d\n", 
+        newtView, reqPixelScale, useAutoMaxPixelScale, defer);
+    if( NULL == newtView ) {
+        return;
+    }
+    jobject javaWindowObject = [newtView getJavaWindowObject];
+    if ( NULL == javaWindowObject ) {
+        DBG_PRINT("setPixelScale: null javaWindowObject\n");
+        return;
+    }
+    int shallBeDetached = 0;
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
+    if(NULL==env) {
+        DBG_PRINT("setPixelScale: null JNIEnv\n");
+        return;
+    }
+
+    CGFloat oldPixelScaleV = [newtView contentScaleFactor];
+    CGFloat oldPixelScaleL = [[newtView layer] contentsScale];
+    UIScreen* _screen = [self screen];
+    {
+         CGRect _bounds = [_screen bounds];
+         CGRect _nativeBounds = [_screen nativeBounds];
+         CGFloat _scale = [_screen scale];
+         CGFloat _nativeScale = [_screen nativeScale];
+         DBG_PRINT("setPixelScale: screen %p[native %f/%f %fx%f scale %f; logical %f/%f %fx%f scale %f]\n",
+            _screen,
+            _nativeBounds.origin.x, _nativeBounds.origin.y, _nativeBounds.size.width, _nativeBounds.size.height, _nativeScale,
+            _bounds.origin.x, _bounds.origin.y, _bounds.size.width, _bounds.size.height, _scale);
+    }
+    CGFloat maxPixelScale = [_screen scale];
+    CGFloat pixelScale;
+    BOOL changeScale;
+    if ( useAutoMaxPixelScale || maxPixelScale < reqPixelScale ) {
+        pixelScale = maxPixelScale;
+    } else if( 0 > reqPixelScale ) {
+        pixelScale = 1.0f;
+    } else {
+        pixelScale = reqPixelScale;
+    }
+    changeScale = pixelScale != oldPixelScaleV || pixelScale != oldPixelScaleL;
+    DBG_PRINT("setPixelScale: PixelScale: autoMaxPixelScale %d, max %f, view %f, layer %f, req %f -> %f (change %d)\n", 
+        useAutoMaxPixelScale, (float)maxPixelScale, (float)oldPixelScaleV, (float)oldPixelScaleL, (float)reqPixelScale, (float)pixelScale, changeScale);
+
+    if( changeScale ) {
+        [newtView setContentScaleFactor: pixelScale];
+        [[newtView layer] setContentsScale: pixelScale];
+    }
+    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, defer?JNI_TRUE:JNI_FALSE, 
+                          (jfloat)oldPixelScaleV, (jfloat)pixelScale, (jfloat)maxPixelScale, (jboolean)changeScale);
+
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
 - (void) updateInsets: (JNIEnv*) env jwin: (jobject) javaWin
@@ -498,8 +702,8 @@ static jmethodID windowRepaintID = NULL;
 
     CGRect frameRect = [self frame];
 
-    UIScreen* screen = [self screen];
-    CGPoint pS = [self convertPoint: frameRect.origin toCoordinateSpace: screen.fixedCoordinateSpace];
+    UIScreen* _screen = [self screen];
+    CGPoint pS = [self convertPoint: frameRect.origin toCoordinateSpace: _screen.fixedCoordinateSpace];
 
     DBG_PRINT( "updateSize: [ w %d, h %d ], liveResize %d\n", (jint) frameRect.size.width, (jint) frameRect.size.height, (jint)withinLiveResize);
     DBG_PRINT( "updatePos: [ x %d, y %d ]\n", (jint) pS.x, (jint) pS.y);
@@ -518,26 +722,27 @@ static jmethodID windowRepaintID = NULL;
 
 - (void) attachToParent: (UIWindow*) parent
 {
-    /** TODO 
     DBG_PRINT( "attachToParent.1\n");
-    [parent addChildWindow: self ordered: UIWindowAbove];
-    DBG_PRINT( "attachToParent.2\n");
-    [self setParentWindow: parent];
+    [parent addSubview: self];
+    // [self setwindowLevel: [parent windowLevel]+1.0f];
+    // NSWindow: [parent addChildWindow: self ordered: UIWindowAbove];
+    // NSWindow: [self setParentWindow: parent];
     DBG_PRINT( "attachToParent.X\n");
-    */
 }
 
 - (void) detachFromParent: (UIWindow*) parent
 {
-    /** TODO 
     DBG_PRINT( "detachFromParent.1\n");
+    [self removeFromSuperview];
+    /**
+    // NSWindow:
     [self setParentWindow: nil];
     if(NULL != parent) {
         DBG_PRINT( "detachFromParent.2\n");
         [parent removeChildWindow: self];
     }
-    DBG_PRINT( "detachFromParent.X\n");
     */
+    DBG_PRINT( "detachFromParent.X\n");
 }
 
 /**
@@ -561,8 +766,8 @@ static jmethodID windowRepaintID = NULL;
  */
 - (CGPoint) getLocationOnScreen: (CGPoint) p
 {
-    UIScreen* screen = [self screen];
-    CGPoint pS = [self convertPoint: p toCoordinateSpace: screen.fixedCoordinateSpace];
+    UIScreen* _screen = [self screen];
+    CGPoint pS = [self convertPoint: p toCoordinateSpace: _screen.fixedCoordinateSpace];
 
 #ifdef VERBOSE_ON
     CGRect winFrame = [self frame];
@@ -577,10 +782,13 @@ static jmethodID windowRepaintID = NULL;
 
 - (void) focusChanged: (BOOL) gained
 {
-    DBG_PRINT( "focusChanged: gained %d\n", gained);
-    NewtUIView* newtView = (NewtUIView *) self; // TODO [self contentView];
+    NewtUIView* newtView = contentNewtUIView;
+    DBG_PRINT( "focusChanged: gained %d, view %p\n", gained, newtView);
+    if( NULL == newtView ) {
+        return;
+    }
     jobject javaWindowObject = [newtView getJavaWindowObject];
-    if (javaWindowObject == NULL) {
+    if ( NULL == javaWindowObject ) {
         DBG_PRINT("focusChanged: null javaWindowObject\n");
         return;
     }
@@ -597,48 +805,55 @@ static jmethodID windowRepaintID = NULL;
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
-- (void) flagsChanged:(UIEvent *) theEvent
+- (void) visibilityChanged: (BOOL) visible
 {
-    NSUInteger mods = [theEvent modifierFlags];
-    NewtUIView* newtView = (NewtUIView *) [self contentView];
-    if( [newtView isKindOfClass:[NewtUIView class]] ) {
-        [newtView handleFlagsChanged: mods];
+    DBG_PRINT( "visibilityChanged: visible %d\n", visible);
+    NewtUIView* newtView = contentNewtUIView;
+    if( NULL == newtView ) {
+        return;
     }
+    jobject javaWindowObject = [newtView getJavaWindowObject];
+    if ( NULL == javaWindowObject ) {
+        DBG_PRINT("visibilityChanged: null javaWindowObject\n");
+        return;
+    }
+    int shallBeDetached = 0;
+    JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
+    if(NULL==env) {
+        DBG_PRINT("visibilityChanged: null JNIEnv\n");
+        return;
+    }
+    (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_FALSE, (visible == YES) ? JNI_TRUE : JNI_FALSE);
+
+    // detaching thread not required - daemon
+    // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
-- (BOOL) acceptsMouseMovedEvents
+- (BOOL) canBecomeFirstResponder 
 {
     return YES;
 }
-
-- (BOOL) acceptsFirstResponder 
-{
-    return YES;
-}
-
 - (BOOL) becomeFirstResponder
 {
     DBG_PRINT( "*************** Win.becomeFirstResponder\n");
     return [super becomeFirstResponder];
 }
 
+- (BOOL) canResignFirstResponder
+{
+    return YES;
+}
 - (BOOL) resignFirstResponder
 {
     DBG_PRINT( "*************** Win.resignFirstResponder\n");
     return [super resignFirstResponder];
 }
 
-- (BOOL) canBecomeKeyWindow
-{
-    // Even if the window is borderless, we still want it to be able
-    // to become the key window to receive keyboard events
-    return YES;
-}
-
 - (void) becomeKeyWindow
 {
     DBG_PRINT( "*************** becomeKeyWindow\n");
     [super becomeKeyWindow];
+    [self focusChanged: YES];
 }
 
 - (void) resignKeyWindow
@@ -647,66 +862,53 @@ static jmethodID windowRepaintID = NULL;
     if(!isFullscreenWindow) {
         [super resignKeyWindow];
     }
-}
-
-- (void) windowDidResignKey: (NSNotification *) notification
-{
-    DBG_PRINT( "*************** windowDidResignKey\n");
-    // Implicit mouse exit by OS X
     [self focusChanged: NO];
 }
 
-- (void) windowWillStartLiveResize: (NSNotification *) notification
+- (void) becameVisible: (NSNotification*)notice
 {
-    DBG_PRINT( "*************** windowWillStartLiveResize\n");
-    withinLiveResize = JNI_TRUE;
+    DBG_PRINT( "*************** becameVisible\n");
+    [self visibilityChanged: YES];
 }
-- (void) windowDidEndLiveResize: (NSNotification *) notification
+
+- (void) becameHidden: (NSNotification*)notice
 {
-    DBG_PRINT( "*************** windowDidEndLiveResize\n");
-    withinLiveResize = JNI_FALSE;
-    [self sendResizeEvent];
-}
-- (CGSize) windowWillResize: (UIWindow *)sender toSize:(CGSize)frameSize
-{
-    DBG_PRINT( "*************** windowWillResize %lfx%lf\n", frameSize.width, frameSize.height);
-    return frameSize;
-}
-- (void)windowDidResize: (NSNotification*) notification
-{
-    DBG_PRINT( "*************** windowDidResize\n");
-    [self sendResizeEvent];
+    DBG_PRINT( "*************** becameHidden\n");
+    [self visibilityChanged: NO];
 }
 
 - (void) sendResizeEvent
 {
-    jobject javaWindowObject = NULL;
+    // FIXME: Needs to be called
+    NewtUIView* newtView = contentNewtUIView;
+    if( NULL == newtView ) {
+        return;
+    }
+    jobject javaWindowObject = [newtView getJavaWindowObject];
+    if ( NULL == javaWindowObject ) {
+        DBG_PRINT("sendResizeEvent: null javaWindowObject\n");
+        return;
+    }
     int shallBeDetached = 0;
     JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
-
     if( NULL == env ) {
         DBG_PRINT("windowDidResize: null JNIEnv\n");
         return;
     }
-    NewtUIView* newtView = (NewtUIView *) [self contentView];
-    if( [newtView isKindOfClass:[NewtUIView class]] ) {
-        javaWindowObject = [newtView getJavaWindowObject];
-    }
-    if( NULL != javaWindowObject ) {
-        [self updateSizePosInsets: env jwin: javaWindowObject defer:JNI_TRUE];
-    }
+    [self updateSizePosInsets: env jwin: javaWindowObject defer:JNI_TRUE];
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
 - (void)windowDidMove: (NSNotification*) notification
 {
-    NewtUIView* newtView = (NewtUIView *) [self contentView];
-    if( ! [newtView isKindOfClass:[NewtUIView class]] ) {
+    // FIXME: Needs to be called
+    NewtUIView* newtView = contentNewtUIView;
+    if( NULL == newtView ) {
         return;
     }
     jobject javaWindowObject = [newtView getJavaWindowObject];
-    if (javaWindowObject == NULL) {
+    if ( NULL == javaWindowObject ) {
         DBG_PRINT("windowDidMove: null javaWindowObject\n");
         return;
     }
@@ -726,31 +928,21 @@ static jmethodID windowRepaintID = NULL;
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
-- (BOOL)windowShouldClose: (id) sender
-{
-    return [self windowClosingImpl: NO];
-}
-
-- (void)windowWillClose: (NSNotification*) notification
-{
-    [self windowClosingImpl: YES];
-}
-
 - (BOOL) windowClosingImpl: (BOOL) force
 {
+    // FIXME: Needs to be called
     jboolean closed = JNI_FALSE;
 
-    NewtUIView* newtView = (NewtUIView *) [self contentView];
-    if( ! [newtView isKindOfClass:[NewtUIView class]] ) {
+    NewtUIView* newtView = contentNewtUIView;
+    if( NULL == newtView ) {
         return NO;
     }
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    [newtView cursorHide: NO enter: -1];
 
     if( false == [newtView getDestroyNotifySent] ) {
         jobject javaWindowObject = [newtView getJavaWindowObject];
         DBG_PRINT( "*************** windowWillClose.0: %p\n", (void *)(intptr_t)javaWindowObject);
-        if (javaWindowObject == NULL) {
+        if ( NULL == javaWindowObject ) {
             DBG_PRINT("windowWillClose: null javaWindowObject\n");
             [pool release];
             return NO;

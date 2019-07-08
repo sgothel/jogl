@@ -29,24 +29,31 @@ package com.jogamp.opengl.demos.ios;
 
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionUtil;
-import com.jogamp.nativewindow.ScalableSurface;
-import com.jogamp.newt.Display;
-import com.jogamp.newt.NewtFactory;
-import com.jogamp.newt.Screen;
-import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.MutableGraphicsConfiguration;
+import com.jogamp.nativewindow.NativeWindowFactory;
+import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
+
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.AnimatorBase;
 
+import jogamp.nativewindow.WrappedWindow;
 import jogamp.nativewindow.ios.IOSUtil;
+import jogamp.opengl.GLDrawableFactoryImpl;
 
 import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLDrawable;
+import com.jogamp.opengl.GLDrawableFactory;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 
-public class Hello {
+public class Hello1 {
 
     private static int parseInt(final String s, final int def) {
         try {
@@ -54,17 +61,8 @@ public class Hello {
         } catch (final NumberFormatException nfe) {}
         return def;
     }
-    private static float parseFloat(final String s, final float def) {
-        try {
-            return Float.parseFloat(s);
-        } catch (final NumberFormatException nfe) {}
-        return def;
-    }
 
     public static void main(final String[] args) {
-        final float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
-
-        int secondsDuration = 10; // 10s
         int width = 832, height = 480; // ipad pro 11: 2388x1668 px (scale: 2)
         int fboDepthBits = -1; // CAEAGLLayer fails with depth 16 + 24 in Simulation; -1 means don't change
         boolean exitJVM = false;
@@ -80,11 +78,6 @@ public class Hello {
                 height = parseInt(args[++i], height);
             } else if(args[i].equals("-fboDepthBits") && i+1<args.length) {
                 fboDepthBits = parseInt(args[++i], fboDepthBits);
-            } else if(args[i].equals("-pixelScale") && i+1<args.length) {
-                reqSurfacePixelScale[0] = parseFloat(args[++i], reqSurfacePixelScale[0]);
-                reqSurfacePixelScale[1] = reqSurfacePixelScale[0];
-            } else if(args[i].equals("-seconds") && i+1<args.length) {
-                secondsDuration = parseInt(args[++i], secondsDuration);
             } else {
                 System.err.println("ignoring arg["+i+"]: "+args[i]);
             }
@@ -123,7 +116,8 @@ public class Hello {
         System.err.println("mark-04");
         System.err.println("");
 
-        GLWindow glWindow = null;
+        GLAutoDrawableDelegate glad = null;
+        final long uiWindow = IOSUtil.CreateUIWindow(0, 0, width, height);
         try {
             // 1) Config ..
             final GLProfile glp = GLProfile.getGL2ES2();
@@ -132,15 +126,33 @@ public class Hello {
                 reqCaps.setDepthBits(fboDepthBits);
             }
             System.out.println("Requested GL Caps: "+reqCaps);
+            final GLDrawableFactoryImpl factory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactory(glp);
 
-            // 2) Create newt native window
-            final Display dpy = NewtFactory.createDisplay(null);
-            final Screen screen = NewtFactory.createScreen(dpy, 0);
-            glWindow = GLWindow.create(screen, reqCaps);
-            glWindow.setSurfaceScale(reqSurfacePixelScale);
-            final float[] valReqSurfacePixelScale = glWindow.getRequestedSurfaceScale(new float[2]);
-            glWindow.setSize(width, height);
-            glWindow.setPosition(0, 0);
+            // 2) Create native window and wrap it around out NativeWindow structure
+            final long uiView = IOSUtil.GetUIView(uiWindow, true);
+            final long caeaglLayer = IOSUtil.GetCAEAGLLayer(uiView);
+            System.out.println("EAGL: UIWindow 0x"+Long.toHexString(uiWindow));
+            System.out.println("EAGL: UIView 0x"+Long.toHexString(uiView));
+            System.out.println("EAGL: EAGLLayer 0x"+Long.toHexString(caeaglLayer));
+            System.out.println("isUIWindow "+IOSUtil.isUIWindow(uiWindow)+", isUIView "+IOSUtil.isUIView(uiView)+
+                               ", isCAEAGLLayer "+IOSUtil.isCAEAGLLayer(caeaglLayer));
+            final AbstractGraphicsScreen aScreen = NativeWindowFactory.createScreen(NativeWindowFactory.createDevice(null, true /* own */), -1);
+            final UpstreamWindowHookMutableSizePos hook = new UpstreamWindowHookMutableSizePos(0, 0, width, height, width, height);
+            final MutableGraphicsConfiguration config = new MutableGraphicsConfiguration(aScreen, reqCaps, reqCaps);
+            final WrappedWindow nativeWindow = new WrappedWindow(config, uiView, hook, true, uiWindow);
+
+            // 3) Create a GLDrawable ..
+            final GLDrawable drawable = factory.createGLDrawable(nativeWindow);
+            drawable.setRealized(true);
+            // final GLOffscreenAutoDrawable glad = factory.createOffscreenAutoDrawable(aScreen.getDevice(), reqCaps, null, width, height);
+            glad = new GLAutoDrawableDelegate(drawable, null, nativeWindow, false, null) {
+                    @Override
+                    protected void destroyImplInLock() {
+                        super.destroyImplInLock();  // destroys drawable/context
+                        nativeWindow.destroy(); // destroys the actual window, incl. the device
+                        IOSUtil.DestroyUIWindow(uiWindow);
+                    }
+                };
             final GLEventListener tracker = new GLEventListener() {
                 void printInfo(final String prefix, final GLAutoDrawable d, final String postfix) {
                     System.out.print(prefix+": drawable "+d.getSurfaceWidth()+"x"+d.getSurfaceHeight());
@@ -169,11 +181,17 @@ public class Hello {
                     printInfo("GLEvent::Reshape", drawable, "reshape["+x+"/"+y+" "+width+"x"+height+"]");
                 }
             };
-            glWindow.addGLEventListener(tracker);
+            glad.addGLEventListener(tracker);
+            glad.display(); // force native context creation
+
+            // Check caps of GLDrawable after realization
+            final GLCapabilitiesImmutable chosenCaps = glad.getChosenGLCapabilities();
+            System.out.println("Choosen   GL Caps: "+chosenCaps);
+
             GLEventListener demo = null;
             {
                 try {
-                    demo = (GLEventListener) ReflectionUtil.createInstance(demoName, Hello.class.getClassLoader());
+                    demo = (GLEventListener) ReflectionUtil.createInstance(demoName, Hello1.class.getClassLoader());
                 } catch( final Exception e ) {
                     System.err.println(e.getMessage()+" using: <"+demoName+">");
                 }
@@ -182,36 +200,15 @@ public class Hello {
                 }
             }
             System.out.println("Choosen demo "+demo.getClass().getName());
-            glWindow.addGLEventListener(demo);
-            glWindow.setVisible(true); // force native context creation
-
-            // Check caps of GLDrawable after realization
-            System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
-            System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-            System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+"[wu] "+glWindow.getWidth()+"x"+glWindow.getHeight()+"[wu] "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+"[px], "+glWindow.getInsets());
-
-            final float[] hasSurfacePixelScale1 = glWindow.getCurrentSurfaceScale(new float[2]);
-            System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
-                               valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
-                               hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
-            {
-                final long uiWindow = glWindow.getWindowHandle();
-                final long uiView = IOSUtil.GetUIView(uiWindow, true);
-                final long caeaglLayer = IOSUtil.GetCAEAGLLayer(uiView);
-                System.out.println("EAGL: UIWindow 0x"+Long.toHexString(uiWindow));
-                System.out.println("EAGL: UIView 0x"+Long.toHexString(uiView));
-                System.out.println("EAGL: EAGLLayer 0x"+Long.toHexString(caeaglLayer));
-                System.out.println("isUIWindow "+IOSUtil.isUIWindow(uiWindow)+", isUIView "+IOSUtil.isUIView(uiView)+
-                                   ", isCAEAGLLayer "+IOSUtil.isCAEAGLLayer(caeaglLayer));
-            }
+            glad.addGLEventListener(demo);
 
             final Animator animator = new Animator();
             // animator.setExclusiveContext(exclusiveContext);
             animator.setUpdateFPSFrames(60, System.err);
-            animator.add(glWindow);
+            animator.add(glad);
             animator.start();
 
-            for(int i=0; i<secondsDuration; i++) {
+            for(int i=0; i<10; i++) { // 10s
                 try {
                     Thread.sleep(1000);
                 } catch (final InterruptedException e) {
@@ -221,17 +218,13 @@ public class Hello {
             animator.stop();
 
         } finally {
-            System.err.println("");
-            System.err.println("mark-05");
-            System.err.println("");
-
-            if( null != glWindow ) {
-                glWindow.destroy();
+            if( null != glad ) {
+                glad.destroy();
             }
         }
 
         System.err.println("");
-        System.err.println("mark-06");
+        System.err.println("mark-05");
         System.err.println("");
 
         if( exitJVM ) {

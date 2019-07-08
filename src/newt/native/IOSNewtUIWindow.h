@@ -31,6 +31,7 @@
 #import <pthread.h>
 #import "jni.h"
 
+#include "CAEAGLLayered.h"
 #include "NewtCommon.h"
 
 // #define VERBOSE_ON 1
@@ -44,7 +45,30 @@
 
 // #define DBG_LIFECYCLE 1
 
-@interface NewtUIView : UIView
+NS_ASSUME_NONNULL_BEGIN
+
+@interface NamedUITouch : NSObject
+{
+    @public
+    short name;
+    UITouch *touch;
+
+    @protected
+}
+
+- (id)initWithName:(UITouch*)t name:(short)n;
+
+- (void) dealloc;
+
+/** Ensure NSPointerFunctionsObjectPointerPersonality for NSArray */
+- (BOOL)isEqual:(id)object;
+
+/** Ensure NSPointerFunctionsObjectPointerPersonality for NSArray */
+- (NSUInteger)hash;
+
+@end
+
+@interface NewtUIView : CAEAGLUIView
 {
     jobject javaWindowObject;
 
@@ -52,6 +76,9 @@
     volatile int softLockCount;
     pthread_mutex_t softLockSync;
 
+    NSMapTable<UITouch*, NamedUITouch*>* activeTouchMap;
+    NSMutableArray<NamedUITouch*>* activeTouches;
+    short nextTouchName;
     BOOL modsDown[4]; // shift, ctrl, alt/option, win/command
 }
 
@@ -64,7 +91,7 @@
 
 /* Register or deregister (NULL) the java Window object, 
    ie, if NULL, no events are send */
-- (void) setJavaWindowObject: (jobject) javaWindowObj;
+- (void) setJavaWindowObject: (nullable jobject) javaWindowObj;
 - (jobject) getJavaWindowObject;
 
 - (void) setDestroyNotifySent: (BOOL) v;
@@ -74,33 +101,34 @@
 - (BOOL) softUnlock;
 
 - (void) drawRect:(CGRect)dirtyRect;
-- (BOOL) acceptsFirstResponder;
 - (BOOL) becomeFirstResponder;
 - (BOOL) resignFirstResponder;
 
-- (void) sendMouseEvent: (UIEvent*) event eventType: (jshort) evType;
-- (CGPoint) screenPos2NewtClientWinPos: (CGPoint) p;
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event;
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event;
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event;
+- (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event;
+- (void)touchesEstimatedPropertiesUpdated:(NSSet<UITouch *> *)touches;
+- (void)sendTouchEvent: (NSSet<UITouch *> *)touches withEvent:(nullable UIEvent *)event 
+                        eventState:(int)eventState newtEventType:(short)newtEventType;
 
-- (void) handleFlagsChanged:(NSUInteger) mods;
-- (void) handleFlagsChanged:(int) keyMask keyIndex: (int) keyIdx keyCode: (int) keyCode modifiers: (NSUInteger) mods;
-- (void) sendKeyEvent: (UIEvent*) event eventType: (jshort) evType;
-- (void) sendKeyEvent: (jshort) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jshort) evType;
+- (CGPoint) screenPos2NewtClientWinPos: (CGPoint) p;
 
 @end
 
 @interface NewtUIWindow : UIWindow
 {
+@protected
     BOOL realized;
-    jboolean withinLiveResize;
+    BOOL useAutoMaxPixelScale;
+    BOOL withinLiveResize;
+    NewtUIView* contentNewtUIView;
 @public
-    BOOL hasPresentationSwitch;
-    NSUInteger defaultPresentationOptions;
-    NSUInteger fullscreenPresentationOptions;
     BOOL isFullscreenWindow;
     int cachedInsets[4]; // l, r, t, b
 }
 
-+ (BOOL) initNatives: (JNIEnv*) env forClass: (jobject) clazz;
++ (BOOL) initNatives: (_Nonnull JNIEnv* _Nonnull) env forClass: (jobject) clazz;
 
 - (id) initWithFrame: (CGRect) contentRect
        styleMask: (NSUInteger) windowStyle
@@ -111,13 +139,18 @@
 - (void) release;
 #endif
 - (void) dealloc;
+- (void) setContentNewtUIView: (nullable NewtUIView*)v;
+- (NewtUIView*) getContentNewtUIView;
 - (void) setRealized: (BOOL)v;
 - (BOOL) isRealized;
 
 - (void) setAlwaysOn: (BOOL)top bottom:(BOOL)bottom;
 
-- (void) updateInsets: (JNIEnv*) env jwin: (jobject) javaWin;
-- (void) updateSizePosInsets: (JNIEnv*) env jwin: (jobject) javaWin defer: (jboolean)defer;
+- (void) setPixelScale: (CGFloat)reqPixelScale defer:(BOOL)defer;
+- (void) updatePixelScale: (BOOL) defer;
+
+- (void) updateInsets: (_Nullable JNIEnv* _Nullable) env jwin: (nullable jobject) javaWin;
+- (void) updateSizePosInsets: (_Nullable JNIEnv* _Nullable) env jwin: (nullable jobject) javaWin defer: (jboolean)defer;
 - (void) attachToParent: (UIWindow*) parent;
 - (void) detachFromParent: (UIWindow*) parent;
 
@@ -126,27 +159,24 @@
 - (CGPoint) getLocationOnScreen: (CGPoint) p;
 
 - (void) focusChanged: (BOOL) gained;
+- (void) visibilityChanged: (BOOL) visible;
 
-- (void) flagsChanged: (UIEvent *) theEvent;
-- (BOOL) acceptsMouseMovedEvents;
-- (BOOL) acceptsFirstResponder;
+- (BOOL) canBecomeFirstResponder;
 - (BOOL) becomeFirstResponder;
+- (BOOL) canResignFirstResponder;
 - (BOOL) resignFirstResponder;
-- (BOOL) canBecomeKeyWindow;
+
 - (void) becomeKeyWindow;
 - (void) resignKeyWindow;
-- (void) windowDidBecomeKey: (NSNotification *) notification;
-- (void) windowDidResignKey: (NSNotification *) notification;
 
-- (void) windowWillStartLiveResize: (NSNotification *) notification;
-- (void) windowDidEndLiveResize: (NSNotification *) notification;
-- (CGSize) windowWillResize: (UIWindow *)sender toSize:(CGSize)frameSize;
-- (void) windowDidResize: (NSNotification*) notification;
+- (void) becameVisible: (NSNotification*)notice;
+- (void) becameHidden: (NSNotification*)notice;
+
 - (void) sendResizeEvent;
-
 - (void) windowDidMove: (NSNotification*) notification;
 - (BOOL) windowClosingImpl: (BOOL) force;
-- (BOOL) windowShouldClose: (id) sender;
-- (void) windowWillClose: (NSNotification*) notification;
 
 @end
+
+NS_ASSUME_NONNULL_END
+

@@ -617,6 +617,21 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                            SurfaceScaleUtils.scale(y, getPixelScaleY()), button, rotationXYZ, rotationScale);
     }
 
+    public final void sendTouchScreenEvent(final short eventType, final int modifiers,
+                                           final int[] pActionIdx, final short[] pNames,
+                                           final int[] pTypesI, final int[] pX, final int[] pY, final float[] pPressure, final float maxPressure) {
+        final int pCount = pNames.length;
+        final MouseEvent.PointerType[] pTypes = new MouseEvent.PointerType[pCount];
+        for(int i=0; i<pCount; i++) {
+           pTypes[i] = MouseEvent.PointerType.valueOf(pTypesI[i]);
+        }
+        for(int i=0; i<pActionIdx.length; i++) {
+            doPointerEvent(false /*enqueue*/, false /*wait*/,
+                           pTypes, eventType, modifiers, pActionIdx[i], true /*normalPNames*/, pNames,
+                           pX, pY, pPressure, maxPressure, new float[] { 0f, 0f, 0f} /*rotationXYZ*/, 1f/*rotationScale*/);
+        }
+    }
+
     @Override
     public final void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
@@ -765,7 +780,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     protected static native boolean initIDs0();
-    private native long createView0(int x, int y, int w, int h);
+    private native long createView0(int x, int y, int w, int h, float reqPixelScale);
     private native long createWindow0(int x, int y, int w, int h, boolean fullscreen, int windowStyle, int backingStoreType, long view);
     /** Must be called on Main-Thread */
     private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h, float reqPixelScale,
@@ -787,7 +802,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     private native void close0(long window);
     /** Must be called on Main-Thread */
     private native void setTitle0(long window, String title);
-    private native long contentView0(long window);
     /** Must be called on Main-Thread */
     private native void changeContentView0(long parentWindowOrView, long window, long view);
     /** Must be called on Main-Thread */
