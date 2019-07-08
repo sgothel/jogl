@@ -92,16 +92,18 @@ static int getRetainCount(NSObject * obj) {
 }
 #endif
 
-static void setJavaWindowObject(JNIEnv *env, jobject newJavaWindowObject, NewtUIView *view, BOOL enable) {
+static void setJavaWindowObject(JNIEnv *env, jobject newJavaWindowObject, NewtUIView *view) {
     DBG_PRINT( "setJavaWindowObject.0: View %p\n", view);
-    if( !enable) {
+    if( NULL == newJavaWindowObject ) {
+        // disable
         jobject globJavaWindowObject = [view getJavaWindowObject];
         if( NULL != globJavaWindowObject ) {
             DBG_PRINT( "setJavaWindowObject.1: View %p - Clear old javaWindowObject %p\n", view, globJavaWindowObject);
             (*env)->DeleteGlobalRef(env, globJavaWindowObject);
             [view setJavaWindowObject: NULL];
         }
-    } else if( NULL != newJavaWindowObject ) {
+    } else {
+        // enable
         DBG_PRINT( "setJavaWindowObject.2: View %p - Set new javaWindowObject %p\n", view, newJavaWindowObject);
         jobject globJavaWindowObject = (*env)->NewGlobalRef(env, newJavaWindowObject);
         [view setJavaWindowObject: globJavaWindowObject];
@@ -147,9 +149,8 @@ NS_ENDHANDLER
     if( NULL!=newView ) {
         [newView setDestroyNotifySent: false];
         if( setJavaWindow ) {
-            setJavaWindowObject(env, javaWindowObject, newView, YES);
+            setJavaWindowObject(env, javaWindowObject, newView);
         }
-
         DBG_PRINT( "changeContentView.%d win %p, view (%p,%d -> %p,%d)\n", 
             dbgIdx++, win, oldUIView, getRetainCount(oldUIView), newView, getRetainCount(newView));
 
@@ -674,7 +675,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_initWindow0
         dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
 
     [myView setDestroyNotifySent: false];
-    setJavaWindowObject(env, jthis, myView, YES);
+    setJavaWindowObject(env, jthis, myView);
 
     DBG_PRINT( "initWindow0.%d - %p (this), %p (parent): new window: %p, view %p\n",
         dbgIdx++, (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, myView);
@@ -790,7 +791,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_close0
     if( isNewtUIView ) {
         // cleanup view
         [mView setDestroyNotifySent: true];
-        setJavaWindowObject(env, NULL, mView, NO);
+        setJavaWindowObject(env, NULL, mView);
     }
 
 NS_DURING
