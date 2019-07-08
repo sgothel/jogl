@@ -272,21 +272,20 @@ static jmethodID windowRepaintID = NULL;
 
 - (BOOL) softLock
 {
-    // DBG_PRINT("*************** softLock.0: %p\n", (void*)pthread_self());
     int err;
     if( 0 != ( err = pthread_mutex_lock(&softLockSync) ) ) {
         NSLog(@"NewtNSView::softLock failed: errCode %d - %@", err, [NSThread callStackSymbols]);
         return NO;
     }
     softLockCount++;
-    // DBG_PRINT("*************** softLock.X: %p\n", (void*)pthread_self());
+    // DBG_PRINT("*************** softLock: %p count %d\n", (void*)pthread_self(), softLockCount);
     return 0 < softLockCount;
 }
 
 - (BOOL) softUnlock
 {
-    // DBG_PRINT("*************** softUnlock: %p\n", (void*)pthread_self());
     softLockCount--;
+    // DBG_PRINT("*************** softUnlock: %p count %d\n", (void*)pthread_self(), softLockCount);
     int err;
     if( 0 != ( err = pthread_mutex_unlock(&softLockSync) ) ) {
         softLockCount++;
@@ -321,7 +320,7 @@ static jmethodID windowRepaintID = NULL;
 
 - (void) drawRect:(NSRect)dirtyRect
 {
-    DBG_PRINT("*************** dirtyRect: %p %lf/%lf %lfx%lf\n", 
+    DBG_PRINT("*************** drawRect: dirtyRect: %p %lf/%lf %lfx%lf\n", 
         javaWindowObject, dirtyRect.origin.x, dirtyRect.origin.y, dirtyRect.size.width, dirtyRect.size.height);
 
     if(NULL==javaWindowObject) {
@@ -789,20 +788,24 @@ static jmethodID windowRepaintID = NULL;
     // HiDPI scaling
     BOOL useHiDPI = false;
     CGFloat maxPixelScale = 1.0;
-    CGFloat winPixelScale = 1.0;
+    CGFloat pixelScale = 1.0;
     NSWindow* window = [self window];
     NSScreen* screen = [window screen];
+    CGFloat oldPixelScale = [[self layer] contentsScale];
 NS_DURING
     maxPixelScale = [screen backingScaleFactor];
     useHiDPI = [self wantsBestResolutionOpenGLSurface];
     if( useHiDPI ) {
-        winPixelScale = [window backingScaleFactor];
+        pixelScale = [window backingScaleFactor];
     }
 NS_HANDLER
 NS_ENDHANDLER
-    DBG_PRINT("viewDidChangeBackingProperties: PixelScale: HiDPI %d, max %f, window %f\n", useHiDPI, (float)maxPixelScale, (float)winPixelScale);
-    [[self layer] setContentsScale: winPixelScale];
-
+    BOOL changeScale = oldPixelScale != pixelScale;
+    DBG_PRINT("viewDidChangeBackingProperties: PixelScale: useHiDPI %d, max %f, old %f -> %f (change %d)\n", 
+        useHiDPI, (float)maxPixelScale, (float)oldPixelScale, (float)pixelScale, changeScale);
+    if( changeScale ) {
+        [[self layer] setContentsScale: pixelScale];
+    }
     if (javaWindowObject == NULL) {
         DBG_PRINT("viewDidChangeBackingProperties: null javaWindowObject\n");
         return;
@@ -813,8 +816,8 @@ NS_ENDHANDLER
         DBG_PRINT("viewDidChangeBackingProperties: null JNIEnv\n");
         return;
     }
-
-    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, JNI_TRUE, (jfloat)winPixelScale, (jfloat)maxPixelScale); // defer 
+    (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, JNI_TRUE /* defer */, 
+                          (jfloat)oldPixelScale, (jfloat)pixelScale, (jfloat)maxPixelScale, (jboolean)changeScale);
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -830,7 +833,7 @@ NS_ENDHANDLER
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZSIIISF)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZSISCC)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
-    updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFF)V");
+    updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFFFZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
     sizeScreenPosInsetsChangedID = (*env)->GetMethodID(env, clazz, "sizeScreenPosInsetsChanged", "(ZIIIIIIIIZZ)V");
@@ -1125,7 +1128,7 @@ NS_ENDHANDLER
         return;
     }
     jobject javaWindowObject = [newtView getJavaWindowObject];
-    if (javaWindowObject == NULL) {
+    if ( NULL == javaWindowObject ) {
         DBG_PRINT("focusChanged: null javaWindowObject\n");
         return;
     }
@@ -1254,21 +1257,22 @@ NS_ENDHANDLER
 
 - (void) sendResizeEvent
 {
-    jobject javaWindowObject = NULL;
+    NewtNSView* newtView = (NewtNSView *) [self contentView];
+    if( ! [newtView isKindOfClass:[NewtNSView class]] ) {
+        return;
+    }
+    jobject javaWindowObject = [newtView getJavaWindowObject];
+    if ( NULL == javaWindowObject ) {
+        DBG_PRINT("sendResizeEvent: null javaWindowObject\n");
+        return;
+    }
     int shallBeDetached = 0;
     JNIEnv* env = NewtCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
-
     if( NULL == env ) {
         DBG_PRINT("windowDidResize: null JNIEnv\n");
         return;
     }
-    NewtNSView* newtView = (NewtNSView *) [self contentView];
-    if( [newtView isKindOfClass:[NewtNSView class]] ) {
-        javaWindowObject = [newtView getJavaWindowObject];
-    }
-    if( NULL != javaWindowObject ) {
-        [self updateSizePosInsets: env jwin: javaWindowObject defer:JNI_TRUE];
-    }
+    [self updateSizePosInsets: env jwin: javaWindowObject defer:JNI_TRUE];
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
@@ -1280,7 +1284,7 @@ NS_ENDHANDLER
         return;
     }
     jobject javaWindowObject = [newtView getJavaWindowObject];
-    if (javaWindowObject == NULL) {
+    if ( NULL == javaWindowObject ) {
         DBG_PRINT("windowDidMove: null javaWindowObject\n");
         return;
     }

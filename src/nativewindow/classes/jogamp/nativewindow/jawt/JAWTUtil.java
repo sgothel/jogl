@@ -592,7 +592,7 @@ public class JAWTUtil {
                   final Object res = getCGDisplayIDMethodOnOSX.invoke(device);
                   if (res instanceof Integer) {
                       final int displayID = ((Integer)res).intValue();
-                      sx = (float) OSXUtil.GetPixelScaleByDisplayID(displayID);
+                      sx = OSXUtil.GetScreenPixelScaleByDisplayID(displayID);
                       sy = sx;
                   }
               } catch (final Throwable t) {}

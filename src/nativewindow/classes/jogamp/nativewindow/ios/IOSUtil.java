@@ -115,18 +115,18 @@ public class IOSUtil implements ToolkitProperties {
       return (Insets) GetInsets0(windowOrView);
     }
 
-    public static double GetPixelScaleByDisplayID(final int displayID) {
-      if( 0 != displayID ) {
-          return GetPixelScale1(displayID);
+    public static float GetScreenPixelScaleByScreenIdx(final int screenIdx) {
+      if( 0 <= screenIdx ) {
+          return GetScreenPixelScale1(screenIdx);
       } else {
-          return 1.0; // default
+          return 1.0f; // default
       }
     }
-    public static double GetPixelScale(final long windowOrView) {
+    public static float GetScreenPixelScale(final long windowOrView) {
       if( 0 != windowOrView ) {
-          return GetPixelScale2(windowOrView);
+          return GetScreenPixelScale2(windowOrView);
       } else {
-          return 1.0; // default
+          return 1.0f; // default
       }
     }
 
@@ -310,8 +310,8 @@ public class IOSUtil implements ToolkitProperties {
     private static native boolean isUIWindow0(long object);
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);
     private static native Object GetInsets0(long windowOrView);
-    private static native double GetPixelScale1(int displayID);
-    private static native double GetPixelScale2(long windowOrView);
+    private static native float GetScreenPixelScale1(int screenIdx);
+    private static native float GetScreenPixelScale2(long windowOrView);
     private static native long CreateUIWindow0(int x, int y, int width, int height);
     private static native void DestroyUIWindow0(long uiWindow);
     private static native long GetCALayer0(long uiView);

@@ -49,6 +49,7 @@ import jogamp.newt.driver.DriverUpdatePosition;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MonitorEvent;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.math.FloatUtil;
 
 public class WindowDriver extends WindowImpl implements MutableSurface, DriverClearFocus, DriverUpdatePosition {
@@ -75,7 +76,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
         if( SurfaceScaleUtils.setNewPixelScale(hasPixelScale, hasPixelScale, newPixelScale, minPixelScale, maxPixelScale, DEBUG_IMPLEMENTATION ? getClass().getName() : null) ) {
             if( sendEvent ) {
-                if( deferOffThread ) {
+                if( defer && deferOffThread ) {
                     superSizeChangedOffThread(defer, getWidth(), getHeight(), true);
                 } else {
                     super.sizeChanged(defer, getWidth(), getHeight(), true);
@@ -89,51 +90,55 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         }
     }
 
-    private boolean updatePixelScaleByDisplayID(final boolean sendEvent) {
-        final float maxPixelScaleRaw = (float) IOSUtil.GetPixelScaleByDisplayID(getDisplayID());
+    /**
+     * Essentially updates {@code maxPixelScale} ..
+     */
+    private boolean updateMaxScreenPixelScaleByDisplayID(final boolean sendEvent) {
+        final float maxPixelScaleRaw = IOSUtil.GetScreenPixelScaleByScreenIdx(getDisplayID());
         if( DEBUG_IMPLEMENTATION ) {
-            System.err.println("WindowDriver.updatePixelScale.1: "+hasPixelScale[0]+", "+maxPixelScaleRaw+" (max)");
+            System.err.println("WindowDriver.updatePixelScale.1: req "+reqPixelScale[0]+", has "+hasPixelScale[0]+", max "+maxPixelScaleRaw);
         }
-        return updatePixelScale(sendEvent, true /* defer */, false /*offthread */, maxPixelScaleRaw, maxPixelScaleRaw);
+        return updatePixelScale(sendEvent, true /* defer */, false /*offthread */, hasPixelScale[0], maxPixelScaleRaw);
     }
 
-    private boolean updatePixelScaleByWindowHandle(final boolean sendEvent) {
+    /**
+     * Essentially updates {@code maxPixelScale} ..
+     */
+    private boolean updateMaxScreenPixelScaleByWindowHandle(final boolean sendEvent) {
         final long handle = getWindowHandle();
         if( 0 != handle ) {
-            final float maxPixelScaleRaw = (float)IOSUtil.GetPixelScale(handle);
+            final float maxPixelScaleRaw = IOSUtil.GetScreenPixelScale(handle);
             if( DEBUG_IMPLEMENTATION ) {
-                System.err.println("WindowDriver.updatePixelScale.2: "+hasPixelScale[0]+", "+maxPixelScaleRaw+" (max)");
+                System.err.println("WindowDriver.updatePixelScale.2: req "+reqPixelScale[0]+", has "+hasPixelScale[0]+", max "+maxPixelScaleRaw);
             }
-            return updatePixelScale(sendEvent, true /* defer */, false /*offthread */, maxPixelScaleRaw, maxPixelScaleRaw);
+            return updatePixelScale(sendEvent, true /* defer */, false /*offthread */, hasPixelScale[0], maxPixelScaleRaw);
         } else {
             return false;
         }
     }
 
     /** Called from native code */
-    protected void updatePixelScale(final boolean defer, final float newPixelScaleRaw, final float maxPixelScaleRaw) {
+    protected void updatePixelScale(final boolean defer, final float oldPixelScaleRaw, final float newPixelScaleRaw, final float maxPixelScaleRaw, final boolean changed) {
         if( DEBUG_IMPLEMENTATION ) {
-            System.err.println("WindowDriver.updatePixelScale.3: "+hasPixelScale[0]+" (has) -> "+newPixelScaleRaw+" (new), "+maxPixelScaleRaw+" (max), drop "+!isNativeValid());
+            System.err.println("WindowDriver.updatePixelScale.3: req "+reqPixelScale[0]+", has "+hasPixelScale[0]+", old "+oldPixelScaleRaw+", new "+newPixelScaleRaw+", max "+maxPixelScaleRaw+", changed "+changed);
         }
-        if( isNativeValid() ) {
-            updatePixelScale(true /* sendEvent*/, defer, true /*offthread */, newPixelScaleRaw, maxPixelScaleRaw);
-        }
+        updatePixelScale(true /* sendEvent*/, defer, true /*offthread */, newPixelScaleRaw, maxPixelScaleRaw);
     }
 
     @Override
     protected final void instantiationFinishedImpl() {
-        updatePixelScaleByDisplayID(false /* sendEvent*/);
+        updateMaxScreenPixelScaleByDisplayID(false /* sendEvent*/);
     }
 
     @Override
     protected void setScreen(final ScreenImpl newScreen) { // never null !
         super.setScreen(newScreen);
-        updatePixelScaleByDisplayID(false /* sendEvent*/);  // caller (reparent, ..) will send reshape event
+        updateMaxScreenPixelScaleByDisplayID(false /* sendEvent*/);  // caller (reparent, ..) will send reshape event
     }
 
     @Override
     protected void monitorModeChanged(final MonitorEvent me, final boolean success) {
-        updatePixelScaleByWindowHandle(false /* sendEvent*/); // send reshape event itself
+        updateMaxScreenPixelScaleByWindowHandle(false /* sendEvent*/); // send reshape event itself
     }
 
     @Override
@@ -441,7 +446,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 createWindow(false, 0 != oldWindowHandle, pClientLevelOnSreen, width, height, flags);
             }
             // no native event (fullscreen, some reparenting)
-            updatePixelScaleByWindowHandle(false /* sendEvent */);
+            updateMaxScreenPixelScaleByWindowHandle(false /* sendEvent */);
             if( isOffscreenInstance) {
                 super.sizeChanged(false, width, height, true);
                 positionChanged(false,  x, y);

@@ -266,10 +266,10 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetInsets0
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
- * Method:    GetPixelScale1
- * Signature: (I)D
+ * Method:    GetScreenPixelScale1
+ * Signature: (I)F
  */
-JNIEXPORT jdouble JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetPixelScale1
+JNIEXPORT jfloat JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetScreenPixelScale1
   (JNIEnv *env, jclass unused, jint displayID)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -285,15 +285,15 @@ NS_ENDHANDLER
     }
     [pool release];
 
-    return (jdouble)pixelScale;
+    return (jfloat)pixelScale;
 }
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
- * Method:    GetPixelScale1
- * Signature: (J)D
+ * Method:    GetScreenPixelScale1
+ * Signature: (J)F
  */
-JNIEXPORT jdouble JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetPixelScale2
+JNIEXPORT jfloat JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetScreenPixelScale2
   (JNIEnv *env, jclass unused, jlong winOrView)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -324,7 +324,7 @@ NS_ENDHANDLER
 
     [pool release];
 
-    return (jdouble)pixelScale;
+    return (jfloat)pixelScale;
 }
 
 /*

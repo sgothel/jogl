@@ -252,35 +252,35 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_ios_IOSUtil_GetInsets0
 
 /*
  * Class:     Java_jogamp_nativewindow_ios_IOSUtil
- * Method:    GetPixelScale1
- * Signature: (I)D
+ * Method:    GetScreenPixelScale1
+ * Signature: (I)F
  */
-JNIEXPORT jdouble JNICALL Java_jogamp_nativewindow_ios_IOSUtil_GetPixelScale1
-  (JNIEnv *env, jclass unused, jint displayID)
+JNIEXPORT jfloat JNICALL Java_jogamp_nativewindow_ios_IOSUtil_GetScreenPixelScale1
+  (JNIEnv *env, jclass unused, jint screenIdx)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     CGFloat pixelScale = 1.0; // default
-    // UIScreen *screen =  IOSUtil_getUIScreenByCGDirectDisplayID((CGDirectDisplayID)displayID);
-    UIScreen *screen =  [UIScreen mainScreen];
-    if( NULL != screen ) {
-NS_DURING
-        // Available >= 10.7
-        pixelScale = [screen scale]; // HiDPI scaling
-NS_HANDLER
-NS_ENDHANDLER
+
+    NSArray *screens = [UIScreen screens];
+    int count = [screens count];
+    if( 0 <= screenIdx && screenIdx < count ) {
+        UIScreen * screen = (UIScreen *) [screens objectAtIndex: screenIdx];
+        if( NULL != screen ) {
+            pixelScale = [screen scale];
+        }
     }
     [pool release];
 
-    return (jdouble)pixelScale;
+    return (jfloat)pixelScale;
 }
 
 /*
  * Class:     Java_jogamp_nativewindow_ios_IOSUtil
- * Method:    GetPixelScale1
- * Signature: (J)D
+ * Method:    GetScreenPixelScale1
+ * Signature: (J)F
  */
-JNIEXPORT jdouble JNICALL Java_jogamp_nativewindow_ios_IOSUtil_GetPixelScale2
+JNIEXPORT jfloat JNICALL Java_jogamp_nativewindow_ios_IOSUtil_GetScreenPixelScale2
   (JNIEnv *env, jclass unused, jlong winOrView)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -302,16 +302,11 @@ JNIEXPORT jdouble JNICALL Java_jogamp_nativewindow_ios_IOSUtil_GetPixelScale2
         NativewindowCommon_throwNewRuntimeException(env, "neither win nor view %p\n", nsObj);
     }
 
-    CGFloat pixelScale = 1.0; // default
-NS_DURING
-    // Available >= 10.7
-    pixelScale = [screen scale]; // HiDPI scaling
-NS_HANDLER
-NS_ENDHANDLER
+    CGFloat pixelScale = [screen scale];
 
     [pool release];
 
-    return (jdouble)pixelScale;
+    return (jfloat)pixelScale;
 }
 
 /*

@@ -82,7 +82,7 @@ public class ScreenDriver extends ScreenImpl {
             //
             for(int crtIdx=0; crtIdx<count; crtIdx++) {
                 final int crt_id = crtIDs[crtIdx];
-                final float pixelScaleRaw = (float)IOSUtil.GetPixelScaleByDisplayID(crt_id);
+                final float pixelScaleRaw = IOSUtil.GetScreenPixelScaleByScreenIdx(crt_id);
                 pixelScaleArray[crtIdx] = FloatUtil.isZero(pixelScaleRaw, FloatUtil.EPSILON) ? 1.0f : pixelScaleRaw;
                 propsOrigArray[crtIdx] = getMonitorProps0(crt_id);
                 if ( null == propsOrigArray[crtIdx] ) {

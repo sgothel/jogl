@@ -107,18 +107,18 @@ public class OSXUtil implements ToolkitProperties {
       return (Insets) GetInsets0(windowOrView);
     }
 
-    public static double GetPixelScaleByDisplayID(final int displayID) {
+    public static float GetScreenPixelScaleByDisplayID(final int displayID) {
       if( 0 != displayID ) {
-          return GetPixelScale1(displayID);
+          return GetScreenPixelScale1(displayID);
       } else {
-          return 1.0; // default
+          return 1.0f; // default
       }
     }
-    public static double GetPixelScale(final long windowOrView) {
+    public static float GetScreenPixelScale(final long windowOrView) {
       if( 0 != windowOrView ) {
-          return GetPixelScale2(windowOrView);
+          return GetScreenPixelScale2(windowOrView);
       } else {
-          return 1.0; // default
+          return 1.0f; // default
       }
     }
 
@@ -404,8 +404,8 @@ public class OSXUtil implements ToolkitProperties {
     private static native boolean isNSWindow0(long object);
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);
     private static native Object GetInsets0(long windowOrView);
-    private static native double GetPixelScale1(int displayID);
-    private static native double GetPixelScale2(long windowOrView);
+    private static native float GetScreenPixelScale1(int displayID);
+    private static native float GetScreenPixelScale2(long windowOrView);
     private static native long CreateNSWindow0(int x, int y, int width, int height);
     private static native void DestroyNSWindow0(long nsWindow);
     private static native long GetNSView0(long nsWindow);
