@@ -694,13 +694,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     // Internals only
     //
 
-    /**
-     * Astonishingly, the original code path doesn't show up the CAEAGL View/Layer (only the red test background)
-     * even though the it is 1:1 equal to the alternative calls.
-     * Keeping the original path intact for future validation, another round of hours of analysis.
-     */
-    private static final boolean altCreateWindow = true;
-
     private void createWindow(final boolean offscreenInstance, final boolean recreate,
                               final PointImmutable pS, final int width, final int height,
                               final int flags)
@@ -723,23 +716,9 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 if( 0 == surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/ window, but no Newt NSView");
                 }
-                if( !altCreateWindow ) {
-                    IOSUtil.RunOnMainThread(false, false /* kickNSApp */, new Runnable() {
-                            @Override
-                            public void run() {
-                                changeContentView0(parentWinHandle, oldWinHandle, 0);
-                                close0( oldWinHandle );
-                            } });
-                }
             } else {
                 if( 0 != surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/o window, but has Newt NSView");
-                }
-                if( !altCreateWindow ) {
-                    surfaceHandle = createView0(pS.getX(), pS.getY(), width, height, reqPixelScale[0]);
-                    if( 0 == surfaceHandle ) {
-                        throw new NativeWindowException("Could not create native view "+Thread.currentThread().getName()+" "+this);
-                    }
                 }
             }
 
@@ -761,7 +740,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             IOSUtil.RunOnMainThread(true, false /* kickNSApp */, new Runnable() {
                     @Override
                     public void run() {
-                        if( altCreateWindow ) {
                         /**
                          * Does everything at once, same as original code path:
                          * 1) if oldWinHandle: changeContentView (detaching view) + close0(oldWindHandle)
@@ -786,28 +764,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         } else {
                             setTitle0(newWin[0], getTitle());
                         }
-
-                        } else {
-
-                        newWin[0] = createWindow0( pS.getX(), pS.getY(), width, height,
-                                                   0 != ( STATE_MASK_FULLSCREEN & flags),
-                                                   windowStyle,
-                                                   NSBackingStoreBuffered, surfaceHandle);
-                        if ( newWin[0] != 0 ) {
-                            final boolean isOpaque = getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance;
-                            initWindow0( parentWinHandle, newWin[0], pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
-                                         isOpaque,
-                                         !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONTOP & flags),
-                                         !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags),
-                                         !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags),
-                                         surfaceHandle);
-                            if( offscreenInstance ) {
-                                orderOut0(0!=parentWinHandle ? parentWinHandle : newWin[0]);
-                            } else {
-                                setTitle0(newWin[0], getTitle());
-                            }
-                        }
-                        }
                     } });
 
             if ( newWin[0] == 0 || 0 == surfaceHandle ) {
@@ -820,11 +776,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     protected static native boolean initIDs0();
-    private native long createView0(int x, int y, int w, int h, float reqPixelScale);
-    private native long createWindow0(int x, int y, int w, int h, boolean fullscreen, int windowStyle, int backingStoreType, long view);
     /** Must be called on Main-Thread */
-    private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h, float reqPixelScale,
-                                    boolean opaque, boolean atop, boolean abottom, boolean visible, long view);
     private native long createWindow1(long oldWindow, long parentWindow, int x, int y, int w, int h, float reqPixelScale,
                                       boolean fullscreen, int windowStyle, int backingStoreType,
                                       boolean opaque, boolean atop, boolean abottom, boolean visible, long view);

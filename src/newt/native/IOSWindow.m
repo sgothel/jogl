@@ -325,7 +325,6 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_ios_ScreenDriver_getMonitorM
         [pool release];
         return NULL;
     }
-    CGFloat pixelScale = [screen scale];
     NSArray<UIScreenMode*> *availableModes = [screen availableModes];
     int numberOfAvailableModes = [availableModes count];
     CFIndex numberOfAvailableModesRots = ROTMODES_PER_REALMODE * numberOfAvailableModes; 
@@ -337,6 +336,7 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_ios_ScreenDriver_getMonitorM
 #ifdef VERBOSE_ON
     if(0 >= mode_idx) {
         // only for current mode (-1) and first mode (scanning)
+        CGFloat pixelScale = [screen scale];
         DBG_PRINT( "getScreenMode0: crtID 0x%X (s %p, pscale %lf), mode %d, avail: %d/%d, current rot %d ccw\n",  
             crt_id, screen, pixelScale, (int)mode_idx, (int)numberOfAvailableModes, (int)numberOfAvailableModesRots, currentCCWRot);
     }
@@ -458,65 +458,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_ios_WindowDriver_initIDs0
     return (jboolean) res;
 }
 
-/**
- * Class:     jogamp_newt_driver_ios_WindowDriver
- * Method:    createView0
- * Signature: (IIII)J
- */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_ios_WindowDriver_createView0
-  (JNIEnv *env, jobject jthis, jint x, jint y, jint w, jint h, jfloat reqPixelScale)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
-    DBG_PRINT( "createView0 - %p (this), %d/%d %dx%d, reqPixelScale %f (START)\n",
-        (void*)(intptr_t)jthis, (int)x, (int)y, (int)w, (int)h, (float)reqPixelScale);
-
-    CGRect rectView = CGRectMake(0, 0, w, h);
-    NewtUIView *myView = [[NewtUIView alloc] initWithFrame: rectView];
-    DBG_PRINT( "createView0.X - new view: %p\n", myView);
-
-    [pool release];
-
-    return (jlong) (intptr_t) myView;
-}
-
-/**
- * Method creates a deferred un-initialized Window, hence no special invocation required inside method.
- *
- * Class:     jogamp_newt_driver_ios_WindowDriver
- * Method:    createWindow0
- * Signature: (IIIIZIIJ)J
- */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_ios_WindowDriver_createWindow0
-  (JNIEnv *env, jobject jthis, jint x, jint y, jint w, jint h,
-   jboolean fullscreen, jint styleMask, jint bufferingType, jlong jview)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    [CATransaction begin];
-    NewtUIView* myView = (NewtUIView*) (intptr_t) jview ;
-
-    DBG_PRINT( "createWindow0 - %p (this), %d/%d %dx%d, fs %d, style %X, buffType %X, view %p (START)\n",
-        (void*)(intptr_t)jthis, (int)x, (int)y, (int)w, (int)h, (int)fullscreen, 
-        (int)styleMask, (int)bufferingType, myView);
-    (void)myView;
-
-    (void)fullscreen;
-    CGRect rectWin = CGRectMake(x, y, w, h);
-
-    // Allocate the window
-    NewtUIWindow* myWindow = [[[[NewtUIWindow alloc] initWithFrame: rectWin
-                                               styleMask: (NSUInteger) styleMask
-                                               backing: 0 // TODO (NSBackingStoreType) bufferingType
-                                               defer: YES
-                                               isFullscreenWindow: fullscreen] autorelease] retain];
-    DBG_PRINT( "createWindow0.X - %p, isHidden %d\n", myWindow, [myWindow isHidden]);
-
-    [CATransaction commit];
-    [pool release];
-
-    return (jlong) ((intptr_t) myWindow);
-}
-
 #ifdef VERBOSE_ON
     #define DBG_PRINT_CREATEWIN1(n) NSLog(@"createWindow1.%d - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p, hidden %d), view: %p (scale %f, superview %p, hidden %d), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d, hidden %d)\n",  \
         (n), parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f),  \
@@ -631,114 +572,6 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_ios_WindowDriver_getDisplayID0(JN
     int32_t displayID = 0; // TODO (int32_t)NewtScreen_getCGDirectDisplayIDByUIScreen(screen);
     [pool release];
     return (jint) displayID;
-}
-
-/**
- * Method is called on Main-Thread, hence no special invocation required inside method.
- *
- * Class:     jogamp_newt_driver_ios_WindowDriver
- * Method:    initWindow0
- * Signature: (JJIIIIFZZZJ)V
- */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_ios_WindowDriver_initWindow0
-  (JNIEnv *env, jobject jthis, jlong parent, jlong window, jint x, jint y, jint w, jint h, jfloat reqPixelScale,
-   jboolean opaque, jboolean atop, jboolean abottom, jboolean visible, jlong jview)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    [CATransaction begin];
-
-    NewtUIWindow* myWindow = (NewtUIWindow*) ((intptr_t) window);
-    NewtUIView* myView = (NewtUIView*) (intptr_t) jview ;
-    CAEAGLLayer* l = (CAEAGLLayer*)[myView layer];
-    BOOL fullscreen = myWindow->isFullscreenWindow;
-
-    NSObject* nsParentObj = (NSObject*) ((intptr_t) parent);
-    UIWindow* parentWindow = NULL;
-    UIView* parentView = NULL;
-    if( nsParentObj != NULL && [nsParentObj isKindOfClass:[UIWindow class]] ) {
-        parentWindow = (UIWindow*) nsParentObj;
-        parentView = (UIView*)nsParentObj;
-        DBG_PRINT( "initWindow0 - Parent is UIWindow : %p (win) -> %p (view) \n", parentWindow, parentView);
-    } else if( nsParentObj != NULL && [nsParentObj isKindOfClass:[UIView class]] ) {
-        parentView = (UIView*) nsParentObj;
-        parentWindow = [parentView window];
-        DBG_PRINT( "initWindow0 - Parent is UIView : %p -(view) > %p (win) \n", parentView, parentWindow);
-    } else {
-        DBG_PRINT( "initWindow0 - Parent is neither UIWindow nor UIView : %p\n", nsParentObj);
-    }
-    DBG_PRINT( "initWindow0.1 - window %p, isHidden %d, rootViewController %p\n", myWindow, [myWindow isHidden], myWindow.rootViewController);
-    DBG_PRINT( "initWindow0.2 - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
-        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
-        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
-        myView, [myView contentScaleFactor], [myView superview], 
-        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
-
-    // Remove animations for child windows
-    // if(NULL != parentWindow) {
-    //     [UIView setAnimationsEnabled: NO];
-    // }
-
-    if(opaque) {
-        // FIXME [myWindow setOpaque: YES];
-        (void) fullscreen; // No extra handling
-        [myWindow setBackgroundColor: [UIColor redColor]]; // FIXME TEST
-    } else {
-        [myWindow setOpaque: NO];
-        [myWindow setBackgroundColor: [UIColor clearColor]];
-    }
-    [myWindow setAlwaysOn: atop bottom:abottom];
-
-    DBG_PRINT( "initWindow0.3 - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
-        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
-        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
-        myView, [myView contentScaleFactor], [myView superview], 
-        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
-
-    // Set the content view
-    changeContentView(env, jthis, parentView, myWindow, myView, NO);
-
-    DBG_PRINT( "initWindow0.4 - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
-        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
-        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
-        myView, [myView contentScaleFactor], [myView superview], 
-        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
-
-    if(NULL!=parentWindow) {
-        [myWindow attachToParent: parentWindow];
-    }
-
-    DBG_PRINT( "initWindow0.5 - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
-        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
-        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
-        myView, [myView contentScaleFactor], [myView superview], 
-        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
-
-    // Immediately re-position this window based on an upper-left coordinate system
-    setWindowClientTopLeftPointAndSize(myWindow, x, y, w, h, NO);
-    if( visible ) {
-        [myWindow makeKeyAndVisible];
-    }
-
-    DBG_PRINT( "initWindow0.6 - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
-        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
-        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
-        myView, [myView contentScaleFactor], [myView superview], 
-        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
-    [myView setDestroyNotifySent: false];
-    setJavaWindowObject(env, jthis, myView);
-
-    [myWindow setPixelScale: (CGFloat)reqPixelScale defer:NO];
-
-    (void) fullscreen; // No extra handling
-
-    DBG_PRINT( "initWindow0.X - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p), view: %p (scale %f, superview %p), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d)\n", 
-        parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f), 
-        myWindow, [myWindow contentScaleFactor], [myWindow superview], 
-        myView, [myView contentScaleFactor], [myView superview], 
-        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]]);
-
-    [CATransaction commit];
-    [pool release];
 }
 
 /**
