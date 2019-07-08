@@ -267,7 +267,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
     sendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEvent", "(SIIISF)V");
     sendMouseEventRequestFocusID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEventRequestFocus", "(SIIISF)V");
     visibleChangedSendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChangedSendMouseEvent", "(ZISIIISF)V");
-    sendTouchScreenEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendTouchScreenEvent", "(SII[I[I[I[FF)V");
+    sendTouchScreenEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendTouchScreenEvent", "(SII[S[I[I[FF)V");
     sendKeyEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendKeyEvent", "(SISSCLjava/lang/String;)V");
 
     if (displayCompletedID == NULL ||
@@ -395,7 +395,7 @@ static void sendTouchScreenEvent(JNIEnv *env, JavaWindow *jw,
         int modifiers, // 0!
         int actionId) //  index of multiple-pointer arrays representing the pointer which triggered the event
 {
-    jint pointerNames[XI_TOUCHCOORD_COUNT];
+    jshort pointerNames[XI_TOUCHCOORD_COUNT];
     jint x[XI_TOUCHCOORD_COUNT];
     jint y[XI_TOUCHCOORD_COUNT];
     jfloat pressure[] =  {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
@@ -406,7 +406,7 @@ static void sendTouchScreenEvent(JNIEnv *env, JavaWindow *jw,
         if( -1 != jw->xiTouchCoords[i].id ) {
             x[cnt] = jw->xiTouchCoords[i].x;
             y[cnt] = jw->xiTouchCoords[i].y;
-            pointerNames[cnt] = jw->xiTouchCoords[i].id;
+            pointerNames[cnt] = (jshort)jw->xiTouchCoords[i].id;
             if (jw->xiTouchCoords[i].id == actionId) {
                 actionIdx = cnt;
             }
@@ -420,11 +420,11 @@ static void sendTouchScreenEvent(JNIEnv *env, JavaWindow *jw,
     DBG_PRINT( "X11: XI event - sendTouchScreenEvent: Window %p, action-touchid[%d] %d of %d ptr: %d/%d\n",
         (void*)jw->window, actionIdx, actionId, cnt, x[actionIdx], y[actionIdx]);
 
-    jintArray jNames = (*env)->NewIntArray(env, cnt);
+    jshortArray jNames = (*env)->NewShortArray(env, cnt);
     if (jNames == NULL) {
-        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (names) of size %d", cnt);
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate short array (names) of size %d", cnt);
     }
-    (*env)->SetIntArrayRegion(env, jNames, 0, cnt, pointerNames);
+    (*env)->SetShortArrayRegion(env, jNames, 0, cnt, pointerNames);
 
     jintArray jX = (*env)->NewIntArray(env, cnt);
     if (jX == NULL) {

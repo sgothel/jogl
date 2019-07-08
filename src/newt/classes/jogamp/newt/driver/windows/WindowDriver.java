@@ -334,7 +334,7 @@ public class WindowDriver extends WindowImpl {
      * </p>
      */
     public final void sendTouchScreenEvent(final short eventType, final int modifiers,
-                                           final int pActionIdx, final int[] pNames,
+                                           final int pActionIdx, final short[] pNames,
                                            final int[] pX, final int[] pY, final float[] pPressure, final float maxPressure) {
         final int pCount = pNames.length;
         final MouseEvent.PointerType[] pTypes = new MouseEvent.PointerType[pCount];

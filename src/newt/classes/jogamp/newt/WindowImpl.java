@@ -558,7 +558,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private final PointerState1 pState1 = new PointerState1();
 
     /** Pointer names -> pointer ID (consecutive index, starting w/ 0) */
-    private final ArrayHashSet<Integer> pName2pID = new ArrayHashSet<Integer>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
+    private final ArrayHashSet<Short> pName2pID = new ArrayHashSet<Short>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
 
     private boolean defaultGestureHandlerEnabled = true;
     private DoubleTapScrollGesture gesture2PtrTouchScroll = null;
@@ -3464,36 +3464,33 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     public final void doPointerEvent(final boolean enqueue, final boolean wait,
                                      final PointerType[] pTypes, final short eventType, final int modifiers,
-                                     final int actionIdx, final boolean normalPNames, final int[] pNames,
+                                     final int actionIdx, final boolean normalPNames, final short[] pNames,
                                      final int[] pX, final int[] pY, final float[] pPressure,
                                      final float maxPressure, final float[] rotationXYZ, final float rotationScale) {
         final int pCount = pNames.length;
-        final short[] pIDs = new short[pCount];
-        for(int i=0; i<pCount; i++) {
-            if( !normalPNames ) {
+        final short[] pIDs = normalPNames ? pNames : new short[pCount];
+        if( !normalPNames ) {
+            for(int i=0; i<pCount; i++) {
                 // hash map int name -> short idx
                 final int sz0 = pName2pID.size();
-                final Integer pNameI1 = pName2pID.getOrAdd(Integer.valueOf(pNames[i]));
-                final short pID = (short)pName2pID.indexOf(pNameI1);
+                final Short pNameS1 = pName2pID.getOrAdd(Short.valueOf(pNames[i]));
+                final short pID = (short)pName2pID.indexOf(pNameS1);
                 pIDs[i] = pID;
                 if(DEBUG_MOUSE_EVENT) {
                     final int sz1 = pName2pID.size();
                     if( sz0 != sz1 ) {
-                        System.err.println("PointerName2ID[sz "+sz1+"]: Map "+pNameI1+" == "+pID);
+                        System.err.println("PointerName2ID[sz "+sz1+"]: Map "+pNameS1+" == "+pID);
                     }
                 }
                 if( MouseEvent.EVENT_MOUSE_RELEASED == eventType ) {
-                    pName2pID.remove(pNameI1);
+                    pName2pID.remove(pNameS1);
                     if(DEBUG_MOUSE_EVENT) {
-                        System.err.println("PointerName2ID[sz "+pName2pID.size()+"]: Unmap "+pNameI1+" == "+pID);
+                        System.err.println("PointerName2ID[sz "+pName2pID.size()+"]: Unmap "+pNameS1+" == "+pID);
                     }
                 }
-            } else {
-                // simple type cast
-                pIDs[i] = (short)pNames[i];
             }
         }
-        final short button = 0 < pCount ? (short) ( pIDs[0] + 1 ) : (short)0;
+        final short button = 0 < pCount ? (short) ( pIDs[actionIdx] + 1 ) : (short)0;
         doPointerEvent(enqueue, wait, pTypes, eventType, modifiers, actionIdx, pIDs, button,
                        pX, pY, pPressure, maxPressure, rotationXYZ, rotationScale);
     }

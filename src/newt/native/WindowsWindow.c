@@ -906,12 +906,12 @@ static BOOL SafeShowCursor(BOOL show) {
 
 static void sendTouchScreenEvent(JNIEnv *env, jobject window, 
                                  short eventType, int modifiers, int actionIdx, 
-                                 int count, jint* pointerNames, jint* x, jint* y, jfloat* pressure, float maxPressure) {
-    jintArray jNames = (*env)->NewIntArray(env, count);
+                                 int count, jshort* pointerNames, jint* x, jint* y, jfloat* pressure, float maxPressure) {
+    jshortArray jNames = (*env)->NewShortArray(env, count);
     if (jNames == NULL) {
-        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array (names) of size %d", count);
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate short array (names) of size %d", count);
     }
-    (*env)->SetIntArrayRegion(env, jNames, 0, count, pointerNames);
+    (*env)->SetShortArrayRegion(env, jNames, 0, count, pointerNames);
 
     jintArray jX = (*env)->NewIntArray(env, count);
     if (jX == NULL) {
@@ -1495,7 +1495,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                     short eventType[cInputs];
                     jint modifiers = GetModifiers( 0 );
                     jint actionIdx = -1;
-                    jint pointerNames[cInputs];
+                    jshort pointerNames[cInputs];
                     jint x[cInputs], y[cInputs];
                     jfloat pressure[cInputs];
                     jfloat maxPressure = 1.0F; // FIXME: n/a on windows ?
@@ -1525,7 +1525,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         }
                         #endif
 
-                        pointerNames[i] = (jint)pTi->dwID;
+                        pointerNames[i] = (jshort)pTi->dwID;
                         eventPt.x = TOUCH_COORD_TO_PIXEL(pTi->x);
                         eventPt.y = TOUCH_COORD_TO_PIXEL(pTi->y);
                         ScreenToClient(wnd, &eventPt);
@@ -2132,7 +2132,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)V");
-    sendTouchScreenEventID = (*env)->GetMethodID(env, clazz, "sendTouchScreenEvent", "(SII[I[I[I[FF)V");
+    sendTouchScreenEventID = (*env)->GetMethodID(env, clazz, "sendTouchScreenEvent", "(SII[S[I[I[FF)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(SISSC)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
 
