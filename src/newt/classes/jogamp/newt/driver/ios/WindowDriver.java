@@ -694,41 +694,52 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     // Internals only
     //
 
+    /**
+     * Astonishingly, the original code path doesn't show up the CAEAGL View/Layer (only the red test background)
+     * even though the it is 1:1 equal to the alternative calls.
+     * Keeping the original path intact for future validation, another round of hours of analysis.
+     */
+    private static final boolean altCreateWindow = true;
+
     private void createWindow(final boolean offscreenInstance, final boolean recreate,
                               final PointImmutable pS, final int width, final int height,
                               final int flags)
     {
         final long parentWinHandle = getParentWindowHandle();
-        final long preWinHandle = getWindowHandle();
+        final long oldWinHandle = getWindowHandle();
 
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("MacWindow.createWindow on thread "+Thread.currentThread().getName()+
                                ": offscreen "+offscreenInstance+", recreate "+recreate+
                                ", pS "+pS+", "+width+"x"+height+", state "+getReconfigStateMaskString(flags)+
-                               ", preWinHandle "+toHexString(preWinHandle)+", parentWin "+toHexString(parentWinHandle)+
+                               ", preWinHandle "+toHexString(oldWinHandle)+", parentWin "+toHexString(parentWinHandle)+
                                ", surfaceHandle "+toHexString(surfaceHandle));
             // Thread.dumpStack();
         }
 
         try {
-            if( 0 != preWinHandle ) {
+            if( 0 != oldWinHandle ) {
                 setWindowHandle(0);
                 if( 0 == surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/ window, but no Newt NSView");
                 }
-                IOSUtil.RunOnMainThread(false, false /* kickNSApp */, new Runnable() {
-                        @Override
-                        public void run() {
-                            changeContentView0(parentWinHandle, preWinHandle, 0);
-                            close0( preWinHandle );
-                        } });
+                if( !altCreateWindow ) {
+                    IOSUtil.RunOnMainThread(false, false /* kickNSApp */, new Runnable() {
+                            @Override
+                            public void run() {
+                                changeContentView0(parentWinHandle, oldWinHandle, 0);
+                                close0( oldWinHandle );
+                            } });
+                }
             } else {
                 if( 0 != surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/o window, but has Newt NSView");
                 }
-                surfaceHandle = createView0(pS.getX(), pS.getY(), width, height);
-                if( 0 == surfaceHandle ) {
-                    throw new NativeWindowException("Could not create native view "+Thread.currentThread().getName()+" "+this);
+                if( !altCreateWindow ) {
+                    surfaceHandle = createView0(pS.getX(), pS.getY(), width, height, reqPixelScale[0]);
+                    if( 0 == surfaceHandle ) {
+                        throw new NativeWindowException("Could not create native view "+Thread.currentThread().getName()+" "+this);
+                    }
                 }
             }
 
@@ -750,6 +761,34 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             IOSUtil.RunOnMainThread(true, false /* kickNSApp */, new Runnable() {
                     @Override
                     public void run() {
+                        if( altCreateWindow ) {
+                        /**
+                         * Does everything at once, same as original code path:
+                         * 1) if oldWinHandle: changeContentView (detaching view) + close0(oldWindHandle)
+                         * 2) create new window
+                         * 3) create new view if previous didn't exist (oldWinHandle)
+                         * 4) changeContentView (attaching view) etc ..
+                         */
+                        final boolean isOpaque = getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance;
+                        newWin[0] = createWindow1( oldWinHandle, parentWinHandle, pS.getX(), pS.getY(), width, height, reqPixelScale[0],
+                                                   0 != ( STATE_MASK_FULLSCREEN & flags),
+                                                   windowStyle, NSBackingStoreBuffered,
+                                                   isOpaque,
+                                                   !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONTOP & flags),
+                                                   !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags),
+                                                   !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags),
+                                                   surfaceHandle);
+                        final long uiView = IOSUtil.GetUIView(newWin[0], true);
+                        surfaceHandle = uiView;
+
+                        if( offscreenInstance ) {
+                            orderOut0(0!=parentWinHandle ? parentWinHandle : newWin[0]);
+                        } else {
+                            setTitle0(newWin[0], getTitle());
+                        }
+
+                        } else {
+
                         newWin[0] = createWindow0( pS.getX(), pS.getY(), width, height,
                                                    0 != ( STATE_MASK_FULLSCREEN & flags),
                                                    windowStyle,
@@ -768,9 +807,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                                 setTitle0(newWin[0], getTitle());
                             }
                         }
+                        }
                     } });
 
-            if ( newWin[0] == 0 ) {
+            if ( newWin[0] == 0 || 0 == surfaceHandle ) {
                 throw new NativeWindowException("Could not create native window "+Thread.currentThread().getName()+" "+this);
             }
             setWindowHandle( newWin[0] );
@@ -785,6 +825,9 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     /** Must be called on Main-Thread */
     private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h, float reqPixelScale,
                                     boolean opaque, boolean atop, boolean abottom, boolean visible, long view);
+    private native long createWindow1(long oldWindow, long parentWindow, int x, int y, int w, int h, float reqPixelScale,
+                                      boolean fullscreen, int windowStyle, int backingStoreType,
+                                      boolean opaque, boolean atop, boolean abottom, boolean visible, long view);
 
     private native int getDisplayID0(long window);
     private native void setPixelScale0(long window, long view, float reqPixelScale);

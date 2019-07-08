@@ -517,6 +517,109 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_ios_WindowDriver_createWindow0
     return (jlong) ((intptr_t) myWindow);
 }
 
+#ifdef VERBOSE_ON
+    #define DBG_PRINT_CREATEWIN1(n) NSLog(@"createWindow1.%d - parent(win %p scale %f, view %p scale %f), window %p (scale %f, superview %p, hidden %d), view: %p (scale %f, superview %p, hidden %d), CAEAGLLayer %p (opaque %d, scale %f, isCAEAGLLayer %d, hidden %d)\n",  \
+        (n), parentWindow, (NULL!=parentWindow?[parentWindow contentScaleFactor]:0.0f), parentView, (NULL!=parentView?[parentView contentScaleFactor]:0.0f),  \
+        myWindow, [myWindow contentScaleFactor], [myWindow superview], [myWindow isHidden],  \
+        myView, [myView contentScaleFactor], [myView superview], [myView isHidden], \
+        l, [l isOpaque], [l contentsScale], [l isKindOfClass:[CAEAGLLayer class]], [l isHidden]); fflush(stderr)
+#else
+    #define DBG_PRINT_CREATEWIN1(n)
+#endif
+
+/**
+ * Class:     jogamp_newt_driver_ios_WindowDriver
+ * Method:    createWindow1
+ * Signature: (JJIIIIFZZZZJ)J
+ */
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_ios_WindowDriver_createWindow1
+  (JNIEnv *env, jobject jthis, jlong joldwin, jlong jparent, jint x, jint y, jint w, jint h, jfloat reqPixelScale, 
+   jboolean fullscreen, jint styleMask, jint bufferingType, 
+   jboolean opaque, jboolean atop, jboolean abottom, jboolean visible, jlong jview)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    [CATransaction begin];
+
+    NewtUIWindow* oldWindow = (NewtUIWindow*) (intptr_t) joldwin ;
+    NewtUIView* myView = (NewtUIView*) (intptr_t) jview ;
+
+    NSObject* nsParentObj = (NSObject*) ((intptr_t) jparent);
+    UIWindow* parentWindow = NULL;
+    UIView* parentView = NULL;
+    if( nsParentObj != NULL && [nsParentObj isKindOfClass:[UIWindow class]] ) {
+        parentWindow = (UIWindow*) nsParentObj;
+        parentView = (UIView*)nsParentObj;
+        DBG_PRINT( "createWindow1 - Parent is UIWindow : %p (win) -> %p (view) \n", parentWindow, parentView);
+    } else if( nsParentObj != NULL && [nsParentObj isKindOfClass:[UIView class]] ) {
+        parentView = (UIView*) nsParentObj;
+        parentWindow = [parentView window];
+        DBG_PRINT( "createWindow1 - Parent is UIView : %p -(view) > %p (win) \n", parentView, parentWindow);
+    } else {
+        DBG_PRINT( "createWindow1 - Parent is neither UIWindow nor UIView : %p\n", nsParentObj);
+    }
+    DBG_PRINT( "createWindow1.0 - %p (this), oldWin %p, parent(win %p, view %p), oldView %p, %d/%d %dx%d, reqPixelScale %f, fullscreen %d, opaque %d, atop %d, abottom %d, visible %d (START)\n",
+        (void*)(intptr_t)jthis, oldWindow, parentWindow, parentView, myView, (int)x, (int)y, (int)w, (int)h, (float)reqPixelScale,
+        fullscreen, opaque, atop, abottom, visible);
+
+    if( NULL != oldWindow ) {
+        if( NULL == myView ) {
+            NewtCommon_throwNewRuntimeException(env, "oldWindow %p given but no view %p (this %p)", oldWindow, myView, (void*)(intptr_t)jthis);
+        }
+        changeContentView(env, jthis, parentView, oldWindow, NULL, NO);
+        Java_jogamp_newt_driver_ios_WindowDriver_close0(env, NULL, joldwin);
+    } else if( NULL != myView ) {
+        NewtCommon_throwNewRuntimeException(env, "view %p given but no oldWindow %p (this %p)", oldWindow, myView, (void*)(intptr_t)jthis);
+    }
+    CGRect rectWin = CGRectMake(x, y, w, h);
+    NewtUIWindow* myWindow = [[[[NewtUIWindow alloc] initWithFrame: rectWin
+                                               styleMask: (NSUInteger) styleMask
+                                               backing: 0 // TODO (NSBackingStoreType) bufferingType
+                                               defer: YES
+                                               isFullscreenWindow: fullscreen] autorelease] retain];
+    [myWindow setBackgroundColor: [UIColor redColor]];
+    if( visible ) {
+        // Only if calling this before adding the view, the view receives touch events.
+        // Another 'funny' iOS API nightmare?
+        [myWindow makeKeyAndVisible];
+    }
+    DBG_PRINT( "createWindow1.1 - window %p, isHidden %d, rootViewController %p\n", myWindow, [myWindow isHidden], myWindow.rootViewController);
+
+    CGRect rectView = CGRectMake(0, 0, w, h);
+    if( NULL == myView ) {
+        myView = [[NewtUIView alloc] initWithFrame: rectView] ;
+    }
+    CAEAGLLayer* l = (CAEAGLLayer*)[myView layer];
+    DBG_PRINT_CREATEWIN1(2);
+
+    changeContentView(env, jthis, parentView, myWindow, myView, NO);
+    DBG_PRINT_CREATEWIN1(3);
+
+    if(NULL!=parentWindow) {
+        [myWindow attachToParent: parentWindow];
+    }
+    DBG_PRINT_CREATEWIN1(4);
+
+    // Immediately re-position this window based on an upper-left coordinate system
+    setWindowClientTopLeftPointAndSize(myWindow, x, y, w, h, NO);
+    // SEE comment above at makeKeyAndVisible call
+    // if( visible ) {
+    //     [myWindow makeKeyAndVisible];
+    // }
+    DBG_PRINT_CREATEWIN1(5);
+
+    [myView setDestroyNotifySent: false];
+    setJavaWindowObject(env, jthis, myView);
+    DBG_PRINT_CREATEWIN1(6);
+
+    [myWindow setPixelScale: (CGFloat)reqPixelScale defer:NO];
+    DBG_PRINT_CREATEWIN1(88);
+
+    [CATransaction commit];
+    [pool release];
+
+    return (jlong) (intptr_t) myWindow;
+}
+
 JNIEXPORT jint JNICALL Java_jogamp_newt_driver_ios_WindowDriver_getDisplayID0(JNIEnv *env, jobject jthis, jlong window) {
     NewtUIWindow* myWindow = (NewtUIWindow*) ((intptr_t) window);
     if( NULL == myWindow ) {
