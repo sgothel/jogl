@@ -29,6 +29,7 @@
         <property name="classes.demos"        value="${build.demos}/classes" />
 
         <property name="java.part.demo.mobile" value="com/jogamp/opengl/demos/demos/**"/>
+        <property name="java.part.test.all" value="com/jogamp/opengl/test/** jogamp/**"/>
         <property name="java.part.test.android" value="com/jogamp/opengl/test/android/**"/>
         <property name="java.part.test.oculusvr" value="com/jogamp/opengl/test/junit/jogl/stereo/ovr/**"/>
         <property name="java.dir.test"        value="com/jogamp/opengl/test"/>
