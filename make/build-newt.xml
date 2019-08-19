@@ -256,6 +256,7 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/kd/WindowDriver.java" />
@@ -272,6 +273,7 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/intel/gdl/DisplayDriver.java" />
@@ -290,6 +292,7 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/bcm/egl/WindowDriver.java" />
@@ -306,6 +309,7 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/bcm/vc/iv/DisplayDriver.java" />
@@ -324,6 +328,7 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/windows/WindowDriver.java" />
@@ -342,6 +347,7 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/macosx/WindowDriver.java" />
@@ -360,6 +366,7 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/x11/WindowDriver.java" />
@@ -377,6 +384,7 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
@@ -396,6 +404,7 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen_android.classpath"/>
             <include name="jogamp/newt/driver/android/WindowDriver.java" />
@@ -409,6 +418,7 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <classpath refid="jogl_nativewindow_gluegen_android.classpath"/>

@@ -405,6 +405,7 @@
                encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <src path="${src.java}" />

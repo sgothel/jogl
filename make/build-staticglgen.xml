@@ -34,7 +34,8 @@
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
                source="${target.sourcelevel}" 
-               target="${target.targetlevel}">
+               target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}">
             <classpath refid="antlr.classpath" />
         </javac>
         
@@ -59,7 +60,8 @@
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
                source="${target.sourcelevel}" 
-               target="${target.targetlevel}">
+               target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}">
             <src path="${src.java}" />
             <classpath refid="classpath" />
         </javac>
