@@ -790,7 +790,7 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="build.gluegen-gl.jar" depends="init, common.gluegen.build, setup-manifestfile">
+    <target name="build.gluegen-gl.jar" depends="init, common.gluegen.init, setup-manifestfile">
         <javac destdir="${classes}"
                includes="${java.part.gluegen-gl-rt}"
                fork="yes"
@@ -1068,7 +1068,7 @@
             <classpath refid="pipeline.classpath" />
         </java>
     </target>          
-    <target name="java.generate.composable.pipeline.custom" depends="init, common.gluegen.build, java.generate.composable.pipeline.custom.glfixfunc">
+    <target name="java.generate.composable.pipeline.custom" depends="init, common.gluegen.init, java.generate.composable.pipeline.custom.glfixfunc">
     </target>
 
     <!-- ================================================================== -->

@@ -269,7 +269,7 @@
        - from the C GL headers.  This involves setting the taskdef and creating
        - the classpath reference id then running the task on each header.
       -->
-    <target name="java.generate" depends="init, common.gluegen.build, java.generate.check" unless="java.generate.skip">
+    <target name="java.generate" depends="init, common.gluegen.init, java.generate.check" unless="java.generate.skip">
 
         <!-- Use the GlueGen task to generate the Java files -->
 

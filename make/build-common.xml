@@ -270,8 +270,6 @@
           <pathelement location="${gluegen.jar}" />
           <pathelement location="${antlr.jar}" />
         </path>
-        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
-                 classpathref="gluegen.classpath" />
         
         <property name="gluegen-gl.jar"             value="${build.jogl}/gluegen-gl.jar" />
 
@@ -667,7 +665,11 @@
     <!--
        - Build GlueGen
       -->
-    <target name="common.gluegen.build" depends="common.init" unless="common.gluegen.build.done">
+    <target name="common.gluegen.init" depends="common.init, common.gluegen.build">
+        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
+                 classpathref="gluegen.classpath" />
+    </target>
+    <target name="common.gluegen.build" unless="common.gluegen.build.done">
         <property name="common.gluegen.build.done" value="true" />
 
         <!-- Run the GlueGen build to ensure that the GlueGen ANT task

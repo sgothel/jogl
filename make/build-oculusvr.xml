@@ -163,7 +163,7 @@
         <!--property name="java.generate.skip" value="true"/-->
     </target>
 
-    <target name="java.generate" depends="init, common.gluegen.build, java.generate.check" unless="java.generate.skip">
+    <target name="java.generate" depends="init, common.gluegen.init, java.generate.check" unless="java.generate.skip">
         <echo message="Generating OVR" />
         <gluegen src="${config.oculusvr}/oculusvr.c"
                  outputRootDir="${build.oculusvr}"
