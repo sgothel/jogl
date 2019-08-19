@@ -42,6 +42,7 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
+import java.awt.geom.AffineTransform;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
@@ -373,8 +374,10 @@ public class JAWTUtil {
                 try {
                     final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
                     final Class<?> gdClass = gd.getClass();
-                    d.getScaleFactorMethod = gdClass.getDeclaredMethod("getScaleFactor");
-                    d.getScaleFactorMethod.setAccessible(true);
+                    if( !PlatformPropsImpl.JAVA_9 ) {
+                        d.getScaleFactorMethod = gdClass.getDeclaredMethod("getScaleFactor");
+                        d.getScaleFactorMethod.setAccessible(true);
+                    }
                     if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
                         d.getCGDisplayIDMethodOnOSX = gdClass.getDeclaredMethod("getCGDisplayID");
                         d.getCGDisplayIDMethodOnOSX.setAccessible(true);
@@ -590,6 +593,7 @@ public class JAWTUtil {
       minScale[1] = 1f;
       float sx = 1f;
       float sy = 1f;
+      boolean gotSXZ = false;
       if( !SKIP_AWT_HIDPI ) {
           if( null != getCGDisplayIDMethodOnOSX ) {
               // OSX specific, preserving double type
@@ -599,10 +603,11 @@ public class JAWTUtil {
                       final int displayID = ((Integer)res).intValue();
                       sx = OSXUtil.GetScreenPixelScaleByDisplayID(displayID);
                       sy = sx;
+                      gotSXZ = true;
                   }
               } catch (final Throwable t) {}
           }
-          if( null != getScaleFactorMethod ) {
+          if( !gotSXZ && null != getScaleFactorMethod ) {
               // Generic (?)
               try {
                   final Object res = getScaleFactorMethod.invoke(device);
@@ -612,7 +617,15 @@ public class JAWTUtil {
                       sx = ((Double)res).floatValue();
                   }
                   sy = sx;
+                  gotSXZ = true;
               } catch (final Throwable t) {}
+          }
+          if( !gotSXZ ) {
+              final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+              final GraphicsConfiguration gc = gd.getDefaultConfiguration();
+              final AffineTransform tx = gc.getDefaultTransform();
+              sx = (float)tx.getScaleX();
+              sy = (float)tx.getScaleY();
           }
       }
       changed = maxScale[0] != sx || maxScale[1] != sy;
