@@ -105,9 +105,8 @@ public class JAWTUtil {
   private static final Method getCGDisplayIDMethodOnOSX;
 
   private static class PrivilegedDataBlob1 {
-    PrivilegedDataBlob1() {
-        ok = false;
-    }
+    PrivilegedDataBlob1() { }
+    // default initialization to null, false
     Method sunToolkitAWTLockMethod;
     Method sunToolkitAWTUnlockMethod;
     Method getScaleFactorMethod;
@@ -330,7 +329,6 @@ public class JAWTUtil {
         sunToolkitAWTLockMethod = null;
         sunToolkitAWTUnlockMethod = null;
         hasSunToolkitAWTLock = false;
-        // hasSunToolkitAWTLock = false;
         getScaleFactorMethod = null;
         getCGDisplayIDMethodOnOSX = null;
     } else {
@@ -353,13 +351,17 @@ public class JAWTUtil {
         isQueueFlusherThread = isQueueFlusherThreadTmp;
         j2dExist = j2dExistTmp;
 
-        final PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                final PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
-                if( PlatformPropsImpl.JAVA_9 ) {
-                    d.ok=false;
-                } else {
+        if( PlatformPropsImpl.JAVA_9 ) {
+            sunToolkitAWTLockMethod = null;
+            sunToolkitAWTUnlockMethod = null;
+            getScaleFactorMethod = null;
+            getCGDisplayIDMethodOnOSX = null;
+            hasSunToolkitAWTLock = false;
+        } else {
+            final PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    final PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
                     try {
                         final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
                         d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
@@ -370,37 +372,34 @@ public class JAWTUtil {
                     } catch (final Exception e) {
                         // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
                     }
-                }
-                try {
-                    final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-                    final Class<?> gdClass = gd.getClass();
-                    if( !PlatformPropsImpl.JAVA_9 ) {
+                    try {
+                        final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+                        final Class<?> gdClass = gd.getClass();
                         d.getScaleFactorMethod = gdClass.getDeclaredMethod("getScaleFactor");
                         d.getScaleFactorMethod.setAccessible(true);
-                    }
-                    if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
-                        d.getCGDisplayIDMethodOnOSX = gdClass.getDeclaredMethod("getCGDisplayID");
-                        d.getCGDisplayIDMethodOnOSX.setAccessible(true);
-                    }
-                } catch (final Throwable t) {}
-                return d;
+                        if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
+                            d.getCGDisplayIDMethodOnOSX = gdClass.getDeclaredMethod("getCGDisplayID");
+                            d.getCGDisplayIDMethodOnOSX.setAccessible(true);
+                        }
+                    } catch (final Throwable t) {}
+                    return d;
+                }
+            });
+            sunToolkitAWTLockMethod = pdb1.sunToolkitAWTLockMethod;
+            sunToolkitAWTUnlockMethod = pdb1.sunToolkitAWTUnlockMethod;
+            getScaleFactorMethod = pdb1.getScaleFactorMethod;
+            getCGDisplayIDMethodOnOSX = pdb1.getCGDisplayIDMethodOnOSX;
+            boolean _hasSunToolkitAWTLock = false;
+            if ( pdb1.ok ) {
+                try {
+                    sunToolkitAWTLockMethod.invoke(null, (Object[])null);
+                    sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
+                    _hasSunToolkitAWTLock = true;
+                } catch (final Exception e) {
+                }
             }
-        });
-        sunToolkitAWTLockMethod = pdb1.sunToolkitAWTLockMethod;
-        sunToolkitAWTUnlockMethod = pdb1.sunToolkitAWTUnlockMethod;
-        getScaleFactorMethod = pdb1.getScaleFactorMethod;
-        getCGDisplayIDMethodOnOSX = pdb1.getCGDisplayIDMethodOnOSX;
-
-        boolean _hasSunToolkitAWTLock = false;
-        if ( pdb1.ok ) {
-            try {
-                sunToolkitAWTLockMethod.invoke(null, (Object[])null);
-                sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
-                _hasSunToolkitAWTLock = true;
-            } catch (final Exception e) {
-            }
+            hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
         }
-        hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
     }
 
     jawtLock = LockFactory.createRecursiveLock();
@@ -561,7 +560,7 @@ public class JAWTUtil {
   public static final int getMonitorDisplayID(final GraphicsDevice device) {
       int displayID = 0;
       if( null != getCGDisplayIDMethodOnOSX ) {
-          // OSX specific
+          // OSX specific for Java<9
           try {
               final Object res = getCGDisplayIDMethodOnOSX.invoke(device);
               if (res instanceof Integer) {
@@ -569,18 +568,20 @@ public class JAWTUtil {
               }
           } catch (final Throwable t) {}
       }
+      // TODO: Needs non-reflective Java9+ solution for all platforms
       return displayID;
   }
 
   /**
    * Returns the pixel scale factor of the given {@link GraphicsDevice}, if supported.
    * <p>
-   * If the component does not support pixel scaling the default
-   * <code>one</code> is returned.
+   * This method is generally supported on Java9+
    * </p>
    * <p>
-   * Note: Currently only supported on OSX since 1.7.0_40 for HiDPI retina displays
+   * If the component does not support pixel scaling
+   * or SKIP_AWT_HIDPI is set, the default value <code>one</code> is returned.
    * </p>
+   *
    * @param device the {@link GraphicsDevice} instance used to query the pixel scale
    * @param minScale current and output min scale values
    * @param maxScale current and output max scale values
@@ -596,7 +597,7 @@ public class JAWTUtil {
       boolean gotSXZ = false;
       if( !SKIP_AWT_HIDPI ) {
           if( null != getCGDisplayIDMethodOnOSX ) {
-              // OSX specific, preserving double type
+              // OSX specific for Java<9, preserving double type
               try {
                   final Object res = getCGDisplayIDMethodOnOSX.invoke(device);
                   if (res instanceof Integer) {
@@ -608,7 +609,7 @@ public class JAWTUtil {
               } catch (final Throwable t) {}
           }
           if( !gotSXZ && null != getScaleFactorMethod ) {
-              // Generic (?)
+              // Generic for Java<9
               try {
                   final Object res = getScaleFactorMethod.invoke(device);
                   if (res instanceof Integer) {
@@ -621,8 +622,7 @@ public class JAWTUtil {
               } catch (final Throwable t) {}
           }
           if( !gotSXZ ) {
-              final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-              final GraphicsConfiguration gc = gd.getDefaultConfiguration();
+              final GraphicsConfiguration gc = device.getDefaultConfiguration();
               final AffineTransform tx = gc.getDefaultTransform();
               sx = (float)tx.getScaleX();
               sy = (float)tx.getScaleY();
@@ -637,14 +637,14 @@ public class JAWTUtil {
   /**
    * Returns the pixel scale factor of the given {@link GraphicsConfiguration}'s {@link GraphicsDevice}, if supported.
    * <p>
-   * If the {@link GraphicsDevice} is <code>null</code>, <code>zero</code> is returned.
+   * This method is generally supported on Java9+
    * </p>
    * <p>
-   * If the component does not support pixel scaling the default
-   * <code>one</code> is returned.
+   * If the {@link GraphicsDevice} is <code>null</code>, <code>one</code> is returned.
    * </p>
    * <p>
-   * Note: Currently only supported on OSX since 1.7.0_40 for HiDPI retina displays
+   * If the component does not support pixel scaling
+   * or SKIP_AWT_HIDPI is set, the default value <code>one</code> is returned.
    * </p>
    * @param gc the {@link GraphicsConfiguration} instance used to query the pixel scale
    * @param minScale current and output min scale values
