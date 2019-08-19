@@ -323,69 +323,81 @@
        - Compile the original and generated source.  The composable pipelines
        - will be generated.
       -->
-    <target name="java.compile.javase" depends="java.generate">
-        <!-- create native headers first -->
-        <if>
-          <istrue value="${isX11}"/>
-          <then>
-            <javac srcdir="${src.java}:${src.generated.java}"
-                   destdir="${classes}"
-                   excludes="${java.excludes.all}"
-                   nativeheaderdir="${src.generated.c}/X11"
-                   fork="yes"
-                   includeAntRuntime="false"
-                   memoryMaximumSize="${javac.memorymax}"
-                   encoding="UTF-8"
-                   source="${target.sourcelevel}" 
-                   target="${target.targetlevel}"
-                   debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-                <classpath refid="swt_gluegen.classpath"/>
-                <include name="jogamp/nativewindow/x11/X11Lib.java" />
-                <include name="jogamp/nativewindow/x11/X11Util.java" />
-            </javac>
-          </then>
-        </if>
-        <if>
-          <istrue value="${isWindows}"/>
-          <then>
-            <javac srcdir="${src.java}:${src.generated.java}"
-                   destdir="${classes}"
-                   excludes="${java.excludes.all}"
-                   nativeheaderdir="${src.generated.c}/Windows"
-                   fork="yes"
-                   includeAntRuntime="false"
-                   memoryMaximumSize="${javac.memorymax}"
-                   encoding="UTF-8"
-                   source="${target.sourcelevel}" 
-                   target="${target.targetlevel}"
-                   debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-                <classpath refid="swt_gluegen.classpath"/>
-                <include name="jogamp/nativewindow/windows/GDI.java" />
-                <include name="jogamp/nativewindow/windows/GDIUtil.java" />
-            </javac>
-          </then>
-        </if>
-        <if>
-          <istrue value="${isOSX}"/>
-          <then>
-            <javac srcdir="${src.java}:${src.generated.java}"
-                   destdir="${classes}"
-                   excludes="${java.excludes.all}"
-                   nativeheaderdir="${src.generated.c}/MacOSX"
-                   fork="yes"
-                   includeAntRuntime="false"
-                   memoryMaximumSize="${javac.memorymax}"
-                   encoding="UTF-8"
-                   source="${target.sourcelevel}" 
-                   target="${target.targetlevel}"
-                   debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-                <classpath refid="swt_gluegen.classpath"/>
-                <include name="jogamp/nativewindow/jawt/macosx/MacOSXJAWTWindow.java" />
-                <include name="jogamp/nativewindow/macosx/OSXUtil.java" />
-            </javac>
-          </then>
-        </if>
 
+    <!-- Perform the first pass: Native headers. -->
+    <target name="javah.x11" if="isX11">
+        <javac srcdir="${src.java}:${src.generated.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all}"
+               nativeheaderdir="${src.generated.c}/X11"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="swt_gluegen.classpath"/>
+            <include name="jogamp/nativewindow/x11/X11Lib.java" />
+            <include name="jogamp/nativewindow/x11/X11Util.java" />
+        </javac>
+    </target>
+    <target name="javah.windows" if="isWindows">
+        <javac srcdir="${src.java}:${src.generated.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all}"
+               nativeheaderdir="${src.generated.c}/Windows"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="swt_gluegen.classpath"/>
+            <include name="jogamp/nativewindow/windows/GDI.java" />
+            <include name="jogamp/nativewindow/windows/GDIUtil.java" />
+        </javac>
+    </target>
+    <target name="javah.macos" if="isOSX">
+        <javac srcdir="${src.java}:${src.generated.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all}"
+               nativeheaderdir="${src.generated.c}/MacOSX"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="swt_gluegen.classpath"/>
+            <include name="jogamp/nativewindow/jawt/macosx/MacOSXJAWTWindow.java" />
+            <include name="jogamp/nativewindow/macosx/OSXUtil.java" />
+        </javac>
+    </target>
+    <target name="javah.ios" if="isIOS">
+        <javac srcdir="${src.java}:${src.generated.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all}"
+               nativeheaderdir="${src.generated.c}/iOS"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="swt_gluegen.classpath"/>
+            <include name="jogamp/nativewindow/ios/IOSUtil.java" />
+        </javac>
+    </target>
+
+    <target name="java.compile.javase" depends="java.generate, javah.x11, javah.windows, javah.macos, javah.ios">
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
@@ -900,8 +912,6 @@
     </target>
 
     <target name="c.build.nativewindow.windowlib.ios" if="isIOS">
-      <javah destdir="${src.generated.c}/iOS" classpath="${javah.classpath}" class="jogamp.nativewindow.ios.IOSUtil" />
-
       <c.build c.compiler.src.files="c.src.files.ios"
                output.lib.name="nativewindow_ios"
                compiler.cfg.id="${compiler.cfg.id}"
