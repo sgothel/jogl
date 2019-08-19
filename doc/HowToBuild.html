@@ -37,39 +37,25 @@
 
                     <ul>
                         <li> <b>Java</b><br/>
-                            One of the following desktop Java SDK's:
-                            <ul>
-                                <li> <a href="http://openjdk.java.net/">OpenJDK</a> </li>
-                                <li> <a href="http://icedtea.classpath.org/">IcedTea</a> </li>
-                                <li> <a href="http://java.sun.com/j2se/">Sun JDK 1.6.0 or later</a> </li>
-                            </ul>
-                            or you may try one of the following embedded Java SDK's (not yet tested):
-                            <ul>
-                                <li> <a href="http://mail.openjdk.java.net/pipermail/jdk6-dev/2009-April/000455.html">OpenJDK6 for embedded ARM</a> may use <a href="http://icedtea.classpath.org/wiki/ZeroSharkFaq">Zero/Shark</a></li>
-                                <li> <a href="http://java.sun.com/javase/embedded/">Sun JDK for Embedded Use</a></li>
-                            </ul>
-                            or even the JavaME SDK's (see notes):
-                            <ul>
-                                <li> <a href="https://phoneme.dev.java.net/">phoneME (tested with a proprietary VM build)</a><br/>
-                                    (tested with a proprietary VM build)</li>
-                                <li> <a href="http://jamvm.sourceforge.net/">JamVM (not yet tested)</a><br/>
-                                    (not yet tested)</li>
-                                <li> <a href="http://www.cacaovm.org/">CacaoVM (not yet tested)</a><br/>
-                                    (not yet tested)</li>
-                            </ul>
+                           <ul>
+                              <li>Build &amp; Runtime: An <a href="http://openjdk.java.net/">OpenJDK</a> 11 compliant SDK.</li>
+                              <li>Runtime: An OpenJDK 8 compliant JRE.</li>
+                           </ul>
+                           You may find an appropriate <a href="http://openjdk.java.net/">OpenJDK</a> build @ <a href="https://adoptopenjdk.net/">AdoptOpenJDK</a>.<br/>
+                           <br/>
+                           Or you may try one of the following SDK's and/or Runtimes:
+                           <ul>
+                              <li> <a href="https://www.azul.com/downloads/zulu-community/">Azul's Zulu</a> (active, +embedded)</li>
+                              <li> <a href="https://github.com/ReadyTalk/avian">Avian</a> (inactive, not tested)</li>
+                           </ul>
                         </li>
-                        <li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.9.0 or later</li>
-                        <li> <b><a href="http://www.kernel.org/pub/software/scm/git/docs/">Git</a></b> 1.6.0 or later<br/>
+                        <li> <b><a href="http://ant.apache.org/">Ant</a></b> 1.10.5 or later</li>
+                        <li> <b><a href="http://www.kernel.org/pub/software/scm/git/docs/">Git</a></b> 2.0.4 or later<br/>
                             <ul>
                                 <li> Use your Unix distribution's version, if available, or</li>
-                                <li> <a href="http://www.kernel.org/pub/software/scm/git/">Source Code for GNU/Linux, MacOSX, ..</a>, or</li>
-                                <li> Git on Windows
-                                    <ul>
-                                        <li> <a href="https://cygwin.com">cygwin</a></li>
-                                        <li> <a href="http://code.google.com/p/msysgit/">msysgit</a></li>
-                                    </ul>
-                                </li>
-                                <li> <a href="http://code.google.com/p/git-osx-installer/">git-osx-installer</a> </li>
+                                <li> <a href="http://www.kernel.org/pub/software/scm/git/">Source Code for GNU/Linux, MacOS, ..</a>, or</li>
+                                <li> Git on Windows is provided by <a href="https://cygwin.com">cygwin</a></li>
+                                <li> Git &ge; 2.11 on MacOS is provided by Xcode &ge; 8.3.3</li>
                             </ul>
                         </li>
                         <li> Optional <b>NVidia Cg 2.2</b> <br/>
@@ -78,18 +64,34 @@
                             </ul>
                         </li>
 
-                        <li> <b>GNU Linux</b> x86, 32- and 64-bit<br/>
+                        <li> <b><a href="https://www.freebsd.org/">FreeBSD</a></b> x86, 32- and 64-bit, ...
+                            <ul>
+                                <li> <b><a href="https://www.freebsd.org/releases/">FreeBSD</a></b> 12 or later <i>(todo: test)</i>
+                                    <ul>
+                                        <li>openjdk11</li>
+                                        <li>ant</li>
+                                        <li>git</li>
+                                        <li>awk</li>
+                                        <li>p7zip-full ???</li>
+                                        <li>gcc</li>
+                                        <li>cmake</li>
+                                    </ul>
+                            </ul>
+                        </li>
+                        <li> <b>GNU Linux</b> x86, 32- and 64-bit as well as Arm64, etc<br/>
                             You may have to install a few developer packages ...
                             <ul>
-                                <li> <b>Debian</b> 9.00 or later
+                                <li> <b>Debian</b> 10 or later
                                     <ul>
-                                        <li>openjdk-8-jre</li>
-                                        <li>openjdk-8-jdk</li>
+                                        <li>openjdk-11-jre</li>
+                                        <li>openjdk-11-jdk</li>
                                         <li>openjfx</li>
                                         <li>ant</li>
                                         <li>git</li>
+                                        <li>gawk</li>
                                         <li>p7zip-full</li>
                                         <li>gcc</li>
+                                        <li>cmake</li>
                                         <li>libgl1-mesa-dev</li>
                                         <li>libglu1-mesa-dev</li>
                                         <li>xorg-dev</li>
@@ -105,14 +107,14 @@
                                         <li>libxi-dev</li>
                                         <li>libudev-dev</li>
                                         <li>libstdc++6</li>
-                                        <li>libstdc++6-4.7 or libstdc++-4.9-dev</li>
+                                        <li>libstdc++-8-dev</li>
                                         <li>Optional: Your card vendor's proprietary driver</li>
                                     </ul>
                                     One liner install command
                                     <ul>
-                                      <li><b>Debian</b> 9.00 Stretch
+                                      <li><b>Debian</b> 10 Buster
                                       <pre>
-apt-get install openjdk-8-jre openjdk-8-jdk openjfx ant git-all p7zip-full gcc libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libxi-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++-6-dev
+apt-get install openjdk-11-jre openjdk-11-jdk openjfx ant git-all p7zip-full gcc cmake libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libxi-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++-8-dev
                                       </pre></li>
                                     </ul>
                                     Optional: Add <i>kernel</i> build utilities:
@@ -121,11 +123,11 @@ apt-get install kernel-package build-essential
                                     </pre>
                                     Optional: Add <i>multiarch</i> i386 next to amd64 
                                     <ul>
-                                      <li><b>Debian</b> 9.00 Stretch
+                                      <li><b>Debian</b> 10 Buster
                                         <pre>
 dpkg --add-architecture i386
 apt-get update
-apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-8-jre:i386 openjdk-8-jdk:i386
+apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-11-jre:i386 openjdk-11-jdk:i386
 
 cd /usr/lib/i386-linux-gnu/
 ln -s libXrender.so.1 libXrender.so
@@ -138,26 +140,28 @@ ln -s libudev.so.1 libudev.so
                                         </pre></li>
                                     </ul>
                                 </li>
-                                <li> <b>OpenSuSE</b> 10.2 or later
+                                <li> <b>OpenSuSE</b> 15.0 or later
                                     <ul>
-                                        <li>openjdk-7-jre</li>
-                                        <li>openjdk-7-jdk</li>
+                                        <li>java-11-openjdk</li>
                                         <li>ant</li>
                                         <li>git</li>
+                                        <li>gawk</li>
                                         <li>p7zip-full</li>
                                         <li>gcc</li>
+                                        <li>cmake</li>
                                         <li>x11-devel</li>
                                         <li>mesa-devel</li>
                                     </ul>
                                 </li>
-                                <li> <b>CentOS / Red Hat Enterprise Linux</b> 5.4 or later<br/>
+                                <li> <b>CentOS 7 / Red Hat Enterprise Linux 7.6</b> or later<br/>
                                     <ul>
-                                        <li>openjdk-7-jre</li>
-                                        <li>openjdk-7-jdk</li>
+                                        <li>java-11-openjdk</li>
                                         <li>ant</li>
                                         <li>git</li>
+                                        <li>gawk</li>
                                         <li>p7zip-full</li>
                                         <li>gcc</li>
+                                        <li>cmake</li>
                                         <li>mesa-libGL-devel</li>
                                         <li>xorg-x11-proto-devel</li>
                                         <li>libICE-devel</li>
@@ -178,56 +182,65 @@ ln -s libudev.so.1 libudev.so
                                 </li>
                             </ul>
                         </li>
-                        <li> <b>OpenSolaris</b> SPARC and x86, 32- and 64-bit
+                        <li> <b>Android/Linux</b> Version 7.0 Nougat API Level 24 or later<br/>
                             <ul>
-                                <li> <a href="http://opensolaris.org/">OpenSolaris 2009.06 or later</a></li>
+                                <li>any of the above GNU/Linux x86_64 hosts for crosscompilation</li>
+                                <li>android ndk <i>(todo: detail instructions)</i></li>
+                                <li>android sdk <i>(todo: detail instructions)</i></li>
                             </ul>
                         </li>
-                        <li> <b>MacOSX</b> Intel
+                        <li> <b><a href="https://en.wikipedia.org/wiki/OpenSolaris#Derivatives">OpenSolaris Derivatives</a></b> SPARC and x86, 32- and 64-bit
                             <ul>
-                                <li> git, see above </li>
-                                <li> <a href="http://www.apple.com/macosx/">Mac OS X</a> 10.3 (note: will not work with earlier releases) </li>
-                                <li> <a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> for gcc, etc (included in OSX)</li>
+                                <li><a href="https://www.openindiana.org/">OpenIndiana</a> using illumus's OpenSolaris continuation <i>(todo: test)</i></li>
+                            </ul>
+                        </li>
+                        <li> <b>MacOS and iOS</b> Intel and Arm64
+                            <ul>
+                                <li>git &ge; 2.11 provided by Xcode &ge; 8.3.3</li>
+                                <li>awk is provided by MacOS</li>
+                                <li><a href="https://cmake.org/">CMake 3.15.2</a>, and install the <a href="https://stackoverflow.com/questions/30668601/installing-cmake-command-line-tools-on-a-mac">command line tools</a></li>
+                                <li><a href="http://www.apple.com/macosx/">Mac OS</a> 10.13 or later (note: may not work with earlier releases) </li>
+                                <li><a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> 8.3.3 or later for gcc, etc (included in MacOS)</li>
                             </ul>
                         </li>
                         <li> <b>Windows</b>/x86 (32 bit)
                             <ul>
                                 <li>Windows XP or later </li>
-                                <li>git, see above</li>
-                                <li> <a href="http://mingw-w64.sourceforge.net/">MinGW64</a>
+                                <li>git is provided by <a href="https://cygwin.com">cygwin</a></li>
+                                <li>gawk is provided by <a href="https://cygwin.com">cygwin</a></li>
+                                <li> <a href="http://mingw-w64.org/">MinGW64</a> (<a href="https://sourceforge.net/projects/mingw-w64/files/">files on sourceforge</a>)
                                   <ul>
-                                    <li> <a href="http://sourceforge.net/projects/mingwbuilds/files/mingw-builds-install/mingw-builds-install.exe/download">Installer</a>
+                                    <li> <a href="https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/i686-8.1.0-release-win32-sjlj-rt_v6-rev0.7z">i686-8.1.0-release-win32-sjlj-rt_v6-rev0.7z</a>
                                       <ul>
-                                        <li>mingw-build-install</li>
-                                        <li>version: 4.8.1</li>
+                                        <li>version: 8.1.0</li>
                                         <li>host: x32</li>
                                         <li>threading: win32</li>
                                         <li>exceptions: SJLJ</li>
-                                        <li>revision: 5</li>
+                                        <li>revision: 0</li>
                                       </ul></li>
-                                    <li> or <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/">manual</a> 
-                                         via  <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/32-bit/threads-win32/sjlj/">7z archive file</a></li>
-                                  </ul></li>
+                                  </ul>
+                                </li>
+                                <li><a href="https://cmake.org/">CMake 3.15.2</a> 32bit version</li>
                             </ul>
                         </li>
                         <li> <b>Windows</b>/x86_64 (64-bit)
                             <ul>
                                 <li>Windows XP or later </li>
-                                <li>git, see above</li>
-                                <li> <a href="http://mingw-w64.sourceforge.net/">MinGW64</a>
+                                <li>git is provided by <a href="https://cygwin.com">cygwin</a></li>
+                                <li>gawk is provided by <a href="https://cygwin.com">cygwin</a></li>
+                                <li> <a href="http://mingw-w64.org/">MinGW64</a> (<a href="https://sourceforge.net/projects/mingw-w64/files/">files on sourceforge</a>)
                                   <ul>
-                                    <li> <a href="http://sourceforge.net/projects/mingwbuilds/files/mingw-builds-install/mingw-builds-install.exe/download">Installer</a>
+                                    <li> <a href="https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z">x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z</a>
                                       <ul>
-                                        <li>mingw-build-install</li>
-                                        <li>version: 4.8.1</li>
+                                        <li>version: 8.1.0</li>
                                         <li>host: x64</li>
                                         <li>threading: win32</li>
                                         <li>exceptions: SJLJ</li>
-                                        <li>revision: 5</li>
+                                        <li>revision: 0</li>
                                       </ul></li>
-                                    <li> or <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/">manual</a> 
-                                         via  <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/64-bit/threads-win32/sjlj/">7z archive file</a></li>
-                                  </ul></li>
+                                  </ul>
+                                </li>
+                                <li><a href="https://cmake.org/">CMake 3.15.2</a> 64bit version</li>
                             </ul>
                         </li>
                     </ul>
@@ -291,8 +304,28 @@ ln -s libudev.so.1 libudev.so
                         </li>
 
                         <li> <b>Build the source tree:</b> <br/>
-                            Open a command shell in the "gluegen/make" directory of the source tree and type <code>"ant"</code>.<br/>
-                            Then open a command shell in the "jogl/make" directory of the source tree and type <code>"ant"</code>.
+                            Open a command shell in the "gluegen/make" directory of the source tree and invoke <code>ant</code> 
+                            with the given properties as follows
+                            <pre>
+    cd /home/dude/projects/jogamp/gluegen/make/
+    ant -Dtarget.sourcelevel=1.8 -Dtarget.targetlevel=1.8 -Dtarget.rt.jar=/your/openjdk8/lib/rt.jar
+                            </pre>
+                            Alternatively you can also use environment variables instead of properties
+                            <pre>
+    export SOURCE_LEVEL=1.8
+    export TARGET_LEVEL=1.8
+    export TARGET_RT_JAR=/your/openjdk8/lib/rt.jar
+    ant
+                            </pre>
+                            Optionally you can also set certain build features via properites or environment variables
+                            <pre>
+    Feature                Property                          or Environment Variable
+    developer-zip-archive: build.archiveon=true                 BUILD_ARCHIVE=true
+    Native Debug Code:     c.compiler.debug=true
+    Java Debug Code:       javacdebuglevel="source,lines,vars"
+    Cg                     jogl.cg=1
+                            </pre>
+
                             <ul>
                                 <li>
                                     An experimental binding to the high-level <a href="http://developer.nvidia.com/view.asp?PAGE=cg_main">Cg</a>
@@ -302,14 +335,14 @@ ln -s libudev.so.1 libudev.so
                             </ul>
                         </li>
 
-                        <li> <b>Test your build:</b> <br/> Stay in your command shell in the "jogl/make" directory of the source tree and type <code>"ant junit.run"</code>.</li>
+                        <li> <b>Test your build:</b> <br/> Stay in your command shell in the "jogl/make" directory of the source tree and invoke <code>ant</code> with above properties or environment variables and use the target <code>junit.run</code>.</li>
 
-                        <li> <b>Build Javadoc:</b> <br/> Stay in your command shell in the "jogl/make" directory of the source tree and type "<code>ant javadoc.all"</code>.
+                        <li> <b>Build Javadoc:</b> <br/> Stay in your command shell in the "jogl/make" directory of the source tree and invoke <code>ant</code> with above properties or environment variables and use the target <code>javadoc.all</code>.
                             This will produce the end-user documentation for JOGL along with some auxiliary utility packages.
                         </li>
                     </ol>
 
-                    Note that there are a lot of warnings produced by ANTLR about the
+                    Note that there might be a few warnings produced by ANTLR about the
                     C grammar and our modifications to some of the signatures of the
                     productions; the C grammar warnings have been documented by the
                     author of the grammar as having been investigated completely and
@@ -329,7 +362,7 @@ ln -s libudev.so.1 libudev.so
                         </li>
 
                         <li>
-                            <b>CharScanner; panic: ClassNotFoundException: com.sun.gluegen.cgram.CToken</b>
+                            <b>CharScanner; panic: ClassNotFoundException: com.jogamp.gluegen.cgram.CToken</b>
 
                             This occurs because ANTLR was dropped into the Extensions
                             directory of the JRE/JDK. On Windows and Linux, delete any ANTLR jars from jre/lib/ext,
