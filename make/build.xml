@@ -20,15 +20,15 @@
       <ant antfile="build-test.xml" target="test.compile" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="test.auto.run" description="Run automated tests (junit and others) in nativewindow, jogl and newt projects" if="${build.dynamiclibs}">
+    <target name="test.auto.run" description="Run automated tests (junit and others) in nativewindow, jogl and newt projects">
       <ant antfile="build-test.xml" target="test.auto.run" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="junit.run" description="Run automated junit tests in nativewindow, jogl and newt projects" if="${build.dynamiclibs}">
+    <target name="junit.run" description="Run automated junit tests in nativewindow, jogl and newt projects">
       <ant antfile="build-test.xml" target="junit.run" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="test.manual.run" description="Run manual operated tests in nativewindow, jogl and newt projects" if="${build.dynamiclibs}">
+    <target name="test.manual.run" description="Run manual operated tests in nativewindow, jogl and newt projects">
       <ant antfile="build-test.xml" target="test.manual.run" inheritRefs="true" inheritAll="true"/>
     </target>
 
