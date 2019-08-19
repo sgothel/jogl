@@ -91,6 +91,8 @@ public class JAWTUtil {
   private static final Method isQueueFlusherThread;
   private static final boolean j2dExist;
 
+  // Unavailable since Java_9
+  // 'illegal reflective access to sun.awt.SunToolkit.awtLock/Unlock'
   private static final Method  sunToolkitAWTLockMethod;
   private static final Method  sunToolkitAWTUnlockMethod;
   private static final boolean hasSunToolkitAWTLock;
@@ -354,15 +356,19 @@ public class JAWTUtil {
             @Override
             public Object run() {
                 final PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
-                try {
-                    final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
-                    d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
-                    d.sunToolkitAWTLockMethod.setAccessible(true);
-                    d.sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
-                    d.sunToolkitAWTUnlockMethod.setAccessible(true);
-                    d.ok=true;
-                } catch (final Exception e) {
-                    // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
+                if( PlatformPropsImpl.JAVA_9 ) {
+                    d.ok=false;
+                } else {
+                    try {
+                        final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
+                        d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
+                        d.sunToolkitAWTLockMethod.setAccessible(true);
+                        d.sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
+                        d.sunToolkitAWTUnlockMethod.setAccessible(true);
+                        d.ok=true;
+                    } catch (final Exception e) {
+                        // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
+                    }
                 }
                 try {
                     final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
@@ -392,7 +398,6 @@ public class JAWTUtil {
             }
         }
         hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
-        // hasSunToolkitAWTLock = false;
     }
 
     jawtLock = LockFactory.createRecursiveLock();
