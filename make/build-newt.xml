@@ -336,7 +336,7 @@
             <include name="jogamp/newt/driver/windows/DisplayDriver.java" />
         </javac>
 
-        <!-- create OSX native headers -->
+        <!-- create MacOS native headers -->
         <javac srcdir="${src.java}"
                destdir="${classes}"
                excludes="${java.excludes.all} ${java.part.driver.android}"
@@ -353,6 +353,25 @@
             <include name="jogamp/newt/driver/macosx/WindowDriver.java" />
             <include name="jogamp/newt/driver/macosx/ScreenDriver.java" />
             <include name="jogamp/newt/driver/macosx/DisplayDriver.java" />
+        </javac>
+
+        <!-- create iOS native headers -->
+        <javac srcdir="${src.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all} ${java.part.driver.android}"
+               nativeheaderdir="${src.generated.c}/iOS"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+            <include name="jogamp/newt/driver/ios/WindowDriver.java" />
+            <include name="jogamp/newt/driver/ios/ScreenDriver.java" />
+            <include name="jogamp/newt/driver/ios/DisplayDriver.java" />
         </javac>
 
         <!-- create X11 native headers -->
@@ -923,26 +942,6 @@
         </outofdate>
       </sequential>
     </macrodef>
-
-    <!-- Removed: To be edited
-    <target name="c.build.newt.prepare">
-      <javah destdir="${src.generated.c}/KD"          classpath="${javah.classpath}" class="jogamp.newt.driver.kd.WindowDriver" />
-
-      <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.DisplayDriver, jogamp.newt.driver.intel.gdl.ScreenDriver, jogamp.newt.driver.intel.gdl.WindowDriver" />
-
-      <javah destdir="${src.generated.c}/bcm/egl"     classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.egl.WindowDriver" />
-      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.DisplayDriver, jogamp.newt.driver.bcm.vc.iv.ScreenDriver, jogamp.newt.driver.bcm.vc.iv.WindowDriver" />
-
-      <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowDriver, jogamp.newt.driver.windows.ScreenDriver, jogamp.newt.driver.windows.DisplayDriver" />
-      <javah destdir="${src.generated.c}/MacOSX"      classpath="${javah.classpath}" class="jogamp.newt.driver.macosx.WindowDriver, jogamp.newt.driver.macosx.ScreenDriver, jogamp.newt.driver.macosx.DisplayDriver" />
-      <javah destdir="${src.generated.c}/iOS"         classpath="${javah.classpath}" class="jogamp.newt.driver.ios.WindowDriver, jogamp.newt.driver.ios.ScreenDriver, jogamp.newt.driver.ios.DisplayDriver" />
-      <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.WindowDriver, jogamp.newt.driver.x11.ScreenDriver, jogamp.newt.driver.x11.RandR11, jogamp.newt.driver.x11.RandR13, jogamp.newt.driver.x11.DisplayDriver" />
-    </target>
-
-    <target name="c.build.newt.prepare.android" if="isAndroid">
-      <javah destdir="${src.generated.c}/Android"     classpath="${javah.classpath}:${android.jar}" class="jogamp.newt.driver.android.WindowDriver" />
-    </target>
-    -->
 
     <target name="c.build.newt.windowlib" unless="setup.nonatives">
       <c.build c.compiler.src.files="c.src.files.newt"
