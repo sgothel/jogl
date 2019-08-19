@@ -1,0 +1,165 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: OpenJFX
+Source: http://hg.openjdk.java.net/openjfx/8u-dev/rt/
+Files-Excluded: .hg*
+                .classpath
+                .project
+                .idea
+                apps/samples
+                modules/javafx.graphics/src/main/native-iio/libjpeg*
+                modules/javafx.media/src/main/native/gstreamer/3rd_party/glib/*
+                modules/javafx.web/src/main/native/Source/JavaScriptCore/Scripts/jsmin.py
+                modules/javafx.web/src/main/native/Tools/TestResultServer/static-dashboards/dygraph-combined.js
+
+Files: *
+Copyright: 2014-2018, Oracle Inc.
+License: GPL-2 with Classpath exception
+
+Files: apps/performance/GraphicsPerformance/*
+       apps/scenebuilder/*
+       apps/toys/FX8-3DFeatures/src/fx83dfeatures/utils3d/Vec2f.java
+       apps/toys/FX8-3DFeatures/src/fx83dfeatures/utils3d/Vec3d.java
+       apps/toys/FX8-3DFeatures/src/fx83dfeatures/utils3d/Vec3f.java
+Copyright: 2008-2018, Oracle Inc.
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ .
+  - Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+  - Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in
+    the documentation and/or other materials provided with the distribution.
+  - Neither the name of Oracle Corporation nor the names of its
+    contributors may be used to endorse or promote products derived
+    from this software without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Files: modules/javafx.media/src/main/native/gstreamer/gstreamer-lite/*
+Copyright: 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
+           1995-1998, 2000-2002 Free Software Foundation, Inc
+           1999-2003 Erik Walthinsen <omega@cse.ogi.edu>
+           2000-2011 Wim Taymans <wim.taymans@gmail.com>
+           2001-2005 Andy Wingo <wingo@pobox.com>
+           2001-2004 Ronald Bultje <rbultje@ronald.bitfreak.net>
+           2001 Thomas Nyberg <thomas@codefactory.se>
+           2001 RidgeRun (http://www.ridgerun.com/)
+           2003-2004, Mark Borgerding
+           2003-2007 David Schleef <ds@schleef.org>
+           2003-2004 Benjamin Otte <otte@gnome.org>
+           2003-2007 Julien Moutte <julien@moutte.net>
+           2003 Leif Johnson <leif@ambient.2y.net>
+           2004-2006 Zaheer Abbas Merali <zaheerabbas@merali.org>
+           2004-2005 Thomas Vander Stichele <thomas@apestaart.org>
+           2005-20011 Tim-Philipp Müller <tim@centricular.net>
+           2005-2009 Jan Schmidt <thaytan@noraisin.net>
+           2005 Ross Burton <ross@burtonini.com>
+           2005 Sebastien Moutte <sebastien@moutte.net>
+           2005-2010 Stefan Kost <ensonic@sonicpulse.de>
+           2010 Brandon Lewis <brandon.lewis@collabora.co.uk>
+           2006-2010 Edward Hervey <edward.hervey@collabora.co.uk>
+           2006 Edgard Lima <edgard.lima@indt.org.br>
+           2006 Josep Torra <josep@fluendo.com>
+           2006 Mathieu Garcia <matthieu@fluendo.com>
+           2006-2010 Nokia Corporation
+           2006 Ryan Lortie <desrt@desrt.ca>
+           2006-2010 Sebastian Droege <sebastian.droege@collabora.co.uk>
+           2007-2009 Pioneers of the Inevitable <songbird@songbirdnest.com>
+           2007 Peter Kjellerstedt <pkj@axis.com>
+           2008-2011 Thiago Santos <thiago.sousa.santos@collabora.co.uk>
+           2008-2010 Mark Nauwelaerts <mnauw@users.sf.net>
+           2008 Ole Andre Vadla Ravnas <ole.andre.ravnas@tandberg.com>
+           2009 Axis Communications <dev-gstreamer@axis.com>
+           2009 STEricsson <benjamin.gaignard@stericsson.com>
+           2009 Texas Instruments, Inc
+           2010-2011 Alexey Chernov <4ernov@gmail.com>
+           2010 Arun Raghavan <arun.raghavan@collabora.co.uk>
+           2010 Collabora Multimedia
+           2010 Fluendo S.A. <support@fluendo.com>
+           2011-2013, Oracle
+License: LGPL-2+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+ .
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Library General Public License for more details.
+ .
+ On Debian systems, the full text of the LGPL-2 license
+ can be found in the file '/usr/share/common-licenses/LGPL-2'
+
+Files: modules/javafx.web/src/main/native/*
+Copyright: 1995-2013, various contributors
+License: custom-licence
+ LGPL-2+ or BSD-2-clause or BSD-3-clause
+ .
+ This is an embedded copy of the WebKit rendering engine, please see
+ the debian/copyright file of the webkitgtk or qtwebkit packages for a detailed
+ list of the copyright holders and the applicable licenses.
+
+Files: debian/*
+Copyright: 2014-2018, Emmanuel Bourg <ebourg@apache.org>
+License: Apache-2.0
+ On Debian systems, the full text of the Apache-2.0 license
+ can be found in the file '/usr/share/common-licenses/Apache-2.0'
+
+License: GPL-2 with Classpath exception
+ This code is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License version 2 only, as
+ published by the Free Software Foundation.  Oracle designates this
+ particular file as subject to the "Classpath" exception as provided
+ by Oracle in the LICENSE file that accompanied this code.
+ .
+ This code is distributed in the hope that it will be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ version 2 for more details (a copy is included in the LICENSE file that
+ accompanied this code).
+ .
+ You should have received a copy of the GNU General Public License version
+ 2 along with this work; if not, write to the Free Software Foundation,
+ Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+ .
+ Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ or visit www.oracle.com if you need additional information or have any
+ questions.
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ can be found in `/usr/share/common-licenses/GPL-2'.
+ .
+ "CLASSPATH" EXCEPTION TO THE GPL VERSION 2
+ .
+ Certain source files distributed by Oracle, Inc. are subject
+ to the following clarification and special exception to the GPL, but
+ only where Oracle has expressly included in the particular source file's
+ header the words "Oracle designates this particular file as subject to
+ the "Classpath" exception as provided by Oracle in the LICENSE file that
+ accompanied this code."
+ Linking this library statically or dynamically with other modules is
+ making a combined work based on this library. Thus, the terms and
+ conditions of the GNU General Public License cover the whole combination.
+ As a special exception, the copyright holders of this library give you
+ permission to link this library with independent modules to produce an
+ executable, regardless of the license terms of these independent modules,
+ and to copy and distribute the resulting executable under terms of your
+ choice, provided that you also meet, for each linked independent module,
+ the terms and conditions of the license of that module. An independent
+ module is a module which is not derived from or based on this library.
+ If you modify this library, you may extend this exception to your version
+ of the library, but you are not obligated to do so. If you do not wish
+ to do so, delete this exception statement from your version.
