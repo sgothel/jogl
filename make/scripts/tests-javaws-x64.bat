@@ -1,4 +1,5 @@
-set JRE_HOME=c:\jre1.8.0_121_x64
+set JRE_HOME=c:\jre-11.0.4+11_x64
+REM set JRE_HOME=c:\jre1.8.0_121_x64
 set LOG_PATH=%USERPROFILE%\AppData\LocalLow\Sun\Java\Deployment\log
 
 %JRE_PATH%\javaws -uninstall

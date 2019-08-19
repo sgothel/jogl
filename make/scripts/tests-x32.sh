@@ -8,6 +8,6 @@ fi
 
 export SWT_CLASSPATH=`pwd`/lib/swt/gtk-linux-x86/swt.jar
 
-. $SDIR/tests.sh  `which java` -d32 ../build-x86 $*
+. $SDIR/tests.sh  `which java` -DummyArg ../build-x86 $*
 
 

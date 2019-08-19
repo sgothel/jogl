@@ -5,10 +5,6 @@ if [ -e /opt-share/etc/profile.ant ] ; then
 fi
 
 #    -Dc.compiler.debug=true 
-#
-#    -Dtarget.sourcelevel=1.6 \
-#    -Dtarget.targetlevel=1.6 \
-#    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
 
 # Force OSX SDK 10.6, if desired
 # export SDKROOT=macosx10.6
