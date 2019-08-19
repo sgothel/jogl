@@ -25,10 +25,6 @@ fi
 #    -DisLinuxAMD64=true \
 #    -DisX11=true \
 #
-#    -Dtarget.sourcelevel=1.6 \
-#    -Dtarget.targetlevel=1.6 \
-#    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
-#
 #    -Dsetup.addNativeOpenMAX=true \
 #    -Dsetup.addNativeKD=true \
 
@@ -45,9 +41,9 @@ echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a $LOGF
 echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a $LOGF
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 
-export SOURCE_LEVEL=1.6
-export TARGET_LEVEL=1.6
-export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
+export SOURCE_LEVEL=1.8
+export TARGET_LEVEL=1.8
+export TARGET_RT_JAR=/opt-share/jre1.8.0_212/lib/rt.jar
 
 export GLUEGEN_PROPERTIES_FILE="../../gluegen/make/lib/gluegen-clang.properties"
 # or -Dgcc.compat.compiler=clang

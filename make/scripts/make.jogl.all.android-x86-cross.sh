@@ -69,13 +69,12 @@ elif [ ! -e $ANDROID_HOME ] ; then
 fi
 export ANDROID_HOME
 
-export ANDROID_VERSION=9
-export SOURCE_LEVEL=1.6
-export TARGET_LEVEL=1.6
-export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
+export ANDROID_VERSION=24
+export SOURCE_LEVEL=1.8
+export TARGET_LEVEL=1.8
+export TARGET_RT_JAR=/opt-share/jre1.8.0_212/lib/rt.jar
 
-#export GCC_VERSION=4.4.3
-export GCC_VERSION=4.7
+export GCC_VERSION=4.9
 HOST_ARCH=linux-x86
 export TARGET_TRIPLE=i686-linux-android
 export TOOLCHAIN_NAME=x86
