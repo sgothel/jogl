@@ -557,19 +557,25 @@ public class JAWTUtil {
     return jawtToolkitLock;
   }
 
-  public static final int getMonitorDisplayID(final GraphicsDevice device) {
-      int displayID = 0;
+  /**
+   * Queries the Monitor's display ID of the given device
+   * <p>
+   * Currently only supported for OSX on Java<9
+   * </p>
+   * @param device for which the display id is being queried
+   * @return {@code null} if not supported (Java9+ or !OSX), otherwise the monitor displayID
+   */
+  public static final Integer getMonitorDisplayID(final GraphicsDevice device) {
       if( null != getCGDisplayIDMethodOnOSX ) {
           // OSX specific for Java<9
           try {
               final Object res = getCGDisplayIDMethodOnOSX.invoke(device);
               if (res instanceof Integer) {
-                  displayID = ((Integer)res).intValue();
+                  return (Integer)res;
               }
           } catch (final Throwable t) {}
       }
-      // TODO: Needs non-reflective Java9+ solution for all platforms
-      return displayID;
+      return null;
   }
 
   /**

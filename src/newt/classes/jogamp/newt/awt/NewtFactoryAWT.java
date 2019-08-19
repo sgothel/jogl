@@ -170,12 +170,12 @@ public class NewtFactoryAWT extends NewtFactory {
    */
   public static MonitorDevice getMonitorDevice(final Screen screen, final java.awt.Component awtComp) throws IllegalArgumentException {
       final java.awt.GraphicsConfiguration gc = checkComponentValid(awtComp);
-      final String nwt = NativeWindowFactory.getNativeWindowType(true);
       MonitorDevice res = null;
       screen.addReference();
       try {
-          if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
-              res = screen.getMonitor( JAWTUtil.getMonitorDisplayID( gc.getDevice() ) );
+          final Integer dispID = JAWTUtil.getMonitorDisplayID( gc.getDevice() );
+          if( null != dispID ) {
+              res = screen.getMonitor( dispID.intValue() );
           }
           if( null == res ) {
               // Fallback, use AWT component coverage
