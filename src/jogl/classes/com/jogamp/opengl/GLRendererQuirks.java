@@ -678,7 +678,7 @@ public class GLRendererQuirks {
                 sb.append(toString(i));
                 final Override override = getOverride(i);
                 if( Override.NONE != override ) {
-                    sb.append("(").append(override.name().toLowerCase()).append("ed)");
+                    sb.append("(").append(override.name().toLowerCase()).append("d)");
                 }
                 first=false;
             }
