@@ -2031,11 +2031,14 @@ public class GLProfile {
         final GLContext ctx = factory.getOrCreateSharedContext(device);
         if(null != ctx) {
             System.err.println("GLProfile.dumpGLInfo: "+ctx);
-            ctx.makeCurrent();
-            try {
-                System.err.println(JoglVersion.getGLInfo(ctx.getGL(), null));
-            } finally {
-                ctx.release();
+            if( GLContext.CONTEXT_NOT_CURRENT != ctx.makeCurrent() ) {
+                try {
+                    System.err.println(JoglVersion.getGLInfo(ctx.getGL(), null));
+                } finally {
+                    ctx.release();
+                }
+            } else {
+                System.err.println("GLProfile.dumpGLInfo: Couldn't make context current");
             }
         } else {
             System.err.println("GLProfile.dumpGLInfo: shared context n/a");

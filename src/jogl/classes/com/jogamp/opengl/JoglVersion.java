@@ -36,7 +36,11 @@ import com.jogamp.common.util.JogampVersion;
 
 import java.util.List;
 import java.util.jar.Manifest;
+
+import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.AbstractGraphicsScreen;
+import com.jogamp.nativewindow.NativeSurface;
 
 public class JoglVersion extends JogampVersion {
 
@@ -140,13 +144,18 @@ public class JoglVersion extends JogampVersion {
                                           final boolean withAvailabilityInfo,
                                           final boolean withCapabilitiesInfo,
                                           final boolean withExtensionInfo) {
-        final AbstractGraphicsDevice device = gl.getContext().getGLDrawable().getNativeSurface()
-                                            .getGraphicsConfiguration().getScreen().getDevice();
         if(null==sb) {
             sb = new StringBuilder();
         }
-
         sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
+        if( null == gl ) {
+            sb.append("Null GL instance").append(Platform.getNewline());
+            sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
+            return sb;
+        }
+        final AbstractGraphicsDevice device = gl.getContext().getGLDrawable().getNativeSurface()
+                                            .getGraphicsConfiguration().getScreen().getDevice();
+
         sb.append(device.toString()).append(':').append(Platform.getNewline());
         if( withAvailabilityInfo ) {
             GLProfile.glAvailabilityToString(device, sb, "\t", 1);
