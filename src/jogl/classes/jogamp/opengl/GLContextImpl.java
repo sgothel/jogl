@@ -1928,9 +1928,12 @@ public abstract class GLContextImpl extends GLContext {
                       reqGLVersion.getMajor(), reqGLVersion.getMinor(), reqCtxProfileBits,
                       major, minor, ctxProfileBits, vendorVersion, withinGLVersionsMapping);
 
-    if( strictMatch && glRendererQuirks.exist(GLRendererQuirks.GLNonCompliant) ) {
+    if( strictMatch && glRendererQuirks.exist(GLRendererQuirks.GL3CompatNonCompliant) &&
+        0 != ( ctxProfileBits & GLContext.CTX_PROFILE_COMPAT) && (major > 3 || (major == 3 && minor >= 1))
+      )
+    {
         if(DEBUG) {
-            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL is not compliant: "+GLContext.getGLVersion(major, minor, ctxProfileBits, glVersion)+", "+glRenderer);
+            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, compat GL3 is not compliant: "+GLContext.getGLVersion(major, minor, ctxProfileBits, glVersion)+", "+glRenderer);
         }
         return false;
     }
@@ -2378,7 +2381,7 @@ public abstract class GLContextImpl extends GLContext {
         }
         if (compatCtx && (major > 3 || (major == 3 && minor >= 1))) {
             // FIXME: Apply vendor version constraints!
-            final int quirk = GLRendererQuirks.GLNonCompliant;
+            final int quirk = GLRendererQuirks.GL3CompatNonCompliant;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
             }

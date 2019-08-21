@@ -27,14 +27,18 @@
  */
 package com.jogamp.opengl;
 
+import java.lang.reflect.Field;
 import java.util.IdentityHashMap;
 
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.opengl.egl.EGL;
 import com.jogamp.opengl.egl.EGLExt;
+
+import jogamp.opengl.Debug;
 
 /**
  * GLRendererQuirks contains information of known bugs of various GL renderer.
@@ -47,8 +51,44 @@ import com.jogamp.opengl.egl.EGLExt;
  * <i>Some</i> <code>GL_VENDOR</code> and <code>GL_RENDERER</code> strings are
  * listed here <http://feedback.wildfiregames.com/report/opengl/feature/GL_VENDOR>.
  * </p>
+ * <p>
+ * For testing purpose or otherwise, you may override the implemented
+ * quirk bit setting behavior using {@link GLRendererQuirks.Override}.
+ * </p>
  */
 public class GLRendererQuirks {
+    /**
+     * Allow overriding any quirk settings
+     * via the two properties:
+     * <ul>
+     *   <li>jogl.quirks.force</li>
+     *   <li>jogl.quirks.ignore</li>
+     * </ul>
+     * Both contain a list of capital sensitive quirk names separated by comma.
+     * Example:
+     * <pre>
+     * java -Djogl.quirks.force=GL3CompatNonCompliant,NoFullFBOSupport -cp my_classpath some.main.Class
+     * </pre>
+     * <p>
+     * Naturally, one quirk can only be listed in one override list.
+     * Hence the two override sets force and ignore are unique.
+     * </p>
+     */
+    public static enum Override {
+        /**
+         * No override.
+         */
+        NONE,
+        /**
+         * Enforce the quirk, i.e. allowing the code path to be injected w/o actual cause.
+         */
+        FORCE,
+        /**
+         * Ignore the quirk, i.e. don't set the quirk if otherwise caused.
+         */
+        IGNORE
+    }
+
     /**
      * Crashes XServer when using double buffered PBuffer with GL_RENDERER:
      * <ul>
@@ -82,7 +122,7 @@ public class GLRendererQuirks {
     public static final int GLSLBuggyDiscard = 5;
 
     /**
-     * Non compliant GL context due to a buggy implementation not suitable for use.
+     * Non compliant GL3 compatibility context due to a buggy implementation not suitable for use.
      * <p>
      * Currently, Mesa >= 9.1.3 (may extend back as far as 9.0) OpenGL 3.1 compatibility
      * context is not compliant. Most programs will give completely broken output (or no
@@ -97,7 +137,7 @@ public class GLRendererQuirks {
      * <p>
      * It still has to be verified whether the AMD OpenGL 3.1 core driver is compliant enought.
      */
-    public static final int GLNonCompliant = 6;
+    public static final int GL3CompatNonCompliant = 6;
 
     /**
      * The OpenGL context needs a <code>glFlush()</code> before releasing it, otherwise driver may freeze:
@@ -447,12 +487,12 @@ public class GLRendererQuirks {
      */
     public static final int NoSurfacelessCtx = 22;
 
-    /** Return the number of known quirks. */
+    /** Return the number of known quirks, aka quirk bit count. */
     public static final int getCount() { return 23; }
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
-                                                          "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
+                                                          "GL3CompatNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
                                                           "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
                                                           "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly",
@@ -505,17 +545,6 @@ public class GLRendererQuirks {
         sq.addQuirk(quirk);
     }
     /**
-     * {@link #addQuirks(int[], int, int) Adding given quirks} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
-     * <p>
-     * Not thread safe.
-     * </p>
-     * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
-     */
-    public static void addStickyDeviceQuirks(final AbstractGraphicsDevice device, final int[] quirks, final int offset, final int len) throws IllegalArgumentException {
-        final GLRendererQuirks sq = getStickyDeviceQuirks(device);
-        sq.addQuirks(quirks, offset, len);
-    }
-    /**
      * {@link #addQuirks(GLRendererQuirks) Adding given quirks} of sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}.
      * <p>
      * Not thread safe.
@@ -533,8 +562,8 @@ public class GLRendererQuirks {
      * </p>
      * @see #getStickyDeviceQuirks(AbstractGraphicsDevice)
      */
-    public static boolean existStickyDeviceQuirk(final AbstractGraphicsDevice device, final int quirk) {
-        return getStickyDeviceQuirks(device).exist(quirk);
+    public static boolean existStickyDeviceQuirk(final AbstractGraphicsDevice device, final int quirkBit) {
+        return getStickyDeviceQuirks(device).exist(quirkBit);
     }
     /**
      * {@link #addQuirks(GLRendererQuirks) Pushing} the sticky {@link AbstractGraphicsDevice}'s {@link GLRendererQuirks}
@@ -548,6 +577,56 @@ public class GLRendererQuirks {
         dest.addQuirks(getStickyDeviceQuirks(device));
     }
 
+    public static final Override getOverride(final int quirkBit) throws IllegalArgumentException {
+        validateQuirk(quirkBit);
+        if( 0 != ( ( 1 << quirkBit )  & _bitmaskOverrideForce ) ) {
+            return Override.FORCE;
+        }
+        if( 0 != ( ( 1 << quirkBit )  & _bitmaskOverrideIgnore ) ) {
+            return Override.IGNORE;
+        }
+        return Override.NONE;
+    }
+    private static int _bitmaskOverrideForce = 0;
+    private static int _bitmaskOverrideIgnore = 0;
+    static {
+        _bitmaskOverrideForce = _queryQuirkMaskOfPropertyList("jogl.quirks.force", Override.FORCE);
+        _bitmaskOverrideIgnore = _queryQuirkMaskOfPropertyList("jogl.quirks.ignore", Override.IGNORE);
+        final int uniqueTest = _bitmaskOverrideForce & _bitmaskOverrideIgnore;
+        if( 0 != uniqueTest ) {
+            throw new InternalError("Override properties force 0x"+Integer.toHexString(_bitmaskOverrideForce)+
+                                    " and ignore 0x"+Integer.toHexString(_bitmaskOverrideIgnore)+
+                                    " have intersecting bits 0x"+Integer.toHexString(uniqueTest)+" "+Integer.toBinaryString(uniqueTest));
+        }
+    }
+    private static int _queryQuirkMaskOfPropertyList(final String propertyName, final Override override) {
+        final String quirkNameList = PropertyAccess.getProperty(propertyName, true);
+        if( null == quirkNameList ) {
+            return 0;
+        }
+        int res = 0;
+        final String quirkNames[] = quirkNameList.split(",");
+        for(int i=0; i<quirkNames.length; i++) {
+            final String name = quirkNames[i].trim();
+            try {
+                final Field field = GLRendererQuirks.class.getField(name);
+                final int quirkBit = field.getInt(null);
+                final Override preOverride = getOverride(quirkBit);
+                if( Override.NONE != preOverride ) {
+                    System.err.println("Warning: Quirk '"+name+"' bit "+quirkBit+" skipped for override "+override+" mask, already set for override "+preOverride+". Has been included in given property "+propertyName);
+                } else {
+                    res |= 1 << quirkBit;
+                    System.err.println("Info: Quirk '"+name+"' bit "+quirkBit+" has been added to Override."+override+" mask as included in given property "+propertyName);
+                }
+            } catch (final NoSuchFieldException e) {
+                System.err.println("Warning: Failed to match given property "+propertyName+"'s quirk '"+name+"' with any supported quirk! "+e.getMessage());
+            } catch (SecurityException | IllegalAccessException e) {
+                System.err.println("Warning: Failed to access given property "+propertyName+"'s quirk '"+name+"' bit value! "+e.getMessage());
+            }
+        }
+        return res;
+    }
+
     private int _bitmask;
 
     public GLRendererQuirks() {
@@ -555,42 +634,12 @@ public class GLRendererQuirks {
     }
 
     /**
-     * @param quirks an array of valid quirks
-     * @param offset offset in quirks array to start reading
-     * @param len number of quirks to read from offset within quirks array
-     * @throws IllegalArgumentException if one of the quirks is out of range
-     */
-    public GLRendererQuirks(final int[] quirks, final int offset, final int len) throws IllegalArgumentException {
-        this();
-        addQuirks(quirks, offset, len);
-    }
-
-    /**
-     * @param quirk valid quirk to be added
+     * @param quirkBit valid quirk to be added
      * @throws IllegalArgumentException if the quirk is out of range
      */
-    public final void addQuirk(final int quirk) throws IllegalArgumentException {
-        validateQuirk(quirk);
-        _bitmask |= 1 << quirk;
-    }
-
-    /**
-     * @param quirks an array of valid quirks to be added
-     * @param offset offset in quirks array to start reading
-     * @param len number of quirks to read from offset within quirks array
-     * @throws IllegalArgumentException if one of the quirks is out of range
-     */
-    public final void addQuirks(final int[] quirks, final int offset, final int len) throws IllegalArgumentException {
-        int bitmask = 0;
-        if( !( 0 <= offset + len && offset + len <= quirks.length ) ) {
-            throw new IllegalArgumentException("offset and len out of bounds: offset "+offset+", len "+len+", array-len "+quirks.length);
-        }
-        for(int i=offset; i<offset+len; i++) {
-            final int quirk = quirks[i];
-            validateQuirk(quirk);
-            bitmask |= 1 << quirk;
-        }
-        _bitmask |= bitmask;
+    public final void addQuirk(final int quirkBit) throws IllegalArgumentException {
+        validateQuirk(quirkBit);
+        _bitmask |= 1 << quirkBit;
     }
 
     /**
@@ -601,13 +650,19 @@ public class GLRendererQuirks {
     }
 
     /**
-     * @param quirk the quirk to be tested
+     * Method tests whether the given quirk exists.
+     * <p>
+     * This methods respects the potential {@link GLRendererQuirks.Override}
+     * setting by user properties. Therefor this method returns {@code true}
+     * for {@code FORCE}'ed quirks and {@code false} for {@code IGNORE}'ed quirks.
+     * </p>
+     * @param quirkBit the quirk to be tested
      * @return true if quirk exist, otherwise false
      * @throws IllegalArgumentException if quirk is out of range
      */
-    public final boolean exist(final int quirk) throws IllegalArgumentException {
-        validateQuirk(quirk);
-        return 0 != ( ( 1 << quirk )  & _bitmask );
+    public final boolean exist(final int quirkBit) throws IllegalArgumentException {
+        validateQuirk(quirkBit);
+        return 0 != ( ( 1 << quirkBit )  & ( ~_bitmaskOverrideIgnore & ( _bitmask | _bitmaskOverrideForce ) ) );
     }
 
     public final StringBuilder toString(StringBuilder sb) {
@@ -617,10 +672,14 @@ public class GLRendererQuirks {
         sb.append("[");
         boolean first=true;
         for(int i=0; i<getCount(); i++) {
-            final int testmask = 1 << i;
-            if( 0 != ( _bitmask & testmask ) ) {
+            // list ignored and forced as well
+            if( 0 != ( ( 1 << i ) & ( _bitmask | _bitmaskOverrideForce ) ) ) {
                 if(!first) { sb.append(", "); }
                 sb.append(toString(i));
+                final Override override = getOverride(i);
+                if( Override.NONE != override ) {
+                    sb.append("(").append(override.name().toLowerCase()).append("ed)");
+                }
                 first=false;
             }
         }
@@ -628,28 +687,28 @@ public class GLRendererQuirks {
         return sb;
     }
 
-    @Override
+    // @Override
     public final String toString() {
         return toString(null).toString();
     }
 
     /**
-     * @param quirk the quirk to be validated, i.e. whether it is out of range
+     * @param quirkBit the quirk to be validated, i.e. whether it is out of range
      * @throws IllegalArgumentException if quirk is out of range
      */
-    public static void validateQuirk(final int quirk) throws IllegalArgumentException {
-        if( !( 0 <= quirk && quirk < getCount() ) ) {
-            throw new IllegalArgumentException("Quirks must be in range [0.."+getCount()+"[, but quirk: "+quirk);
+    public static void validateQuirk(final int quirkBit) throws IllegalArgumentException {
+        if( !( 0 <= quirkBit && quirkBit < getCount() ) ) {
+            throw new IllegalArgumentException("Quirks must be in range [0.."+getCount()+"[, but quirk: "+quirkBit);
         }
     }
 
     /**
-     * @param quirk the quirk to be converted to String
+     * @param quirkBit the quirk to be converted to String
      * @return the String equivalent of this quirk
      * @throws IllegalArgumentException if quirk is out of range
      */
-    public static final String toString(final int quirk) throws IllegalArgumentException {
-        validateQuirk(quirk);
-        return _names[quirk];
+    public static final String toString(final int quirkBit) throws IllegalArgumentException {
+        validateQuirk(quirkBit);
+        return _names[quirkBit];
     }
 }
