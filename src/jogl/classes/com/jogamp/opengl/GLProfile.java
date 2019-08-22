@@ -2093,6 +2093,8 @@ public class GLProfile {
                 } else {
                     final GLProfile _mglp = _mappedProfiles.get( profileImpl );
                     if( null == _mglp ) {
+                        // Bug 1383: We may consider allowing cross mapping here,
+                        // i.e. mapping on actually non-supported (implementation) profiles
                         throw new InternalError("XXX0 profile["+i+"]: "+profile+" -> profileImpl "+profileImpl+" !!! not mapped ");
                     }
                     glProfile = new GLProfile(profile, _mglp, isHardwareRasterizer[0], false /* custom */);

@@ -1977,8 +1977,8 @@ public abstract class GLContextImpl extends GLContext {
                       reqMajor, reqMinor, reqCtxProfileBits,
                       hasMajor, hasMinor, hasCtxProfileBits, vendorVersion, withinGLVersionsMapping);
 
-    if( strictMatch && glRendererQuirks.exist(GLRendererQuirks.GL3CompatNonCompliant) &&
-        0 != ( hasCtxProfileBits & GLContext.CTX_PROFILE_COMPAT) && (hasMajor > 3 || (hasMajor == 3 && hasMinor >= 1))
+    if( glRendererQuirks.exist(GLRendererQuirks.GL3CompatNonCompliant) &&
+        0 != ( reqCtxProfileBits & GLContext.CTX_PROFILE_COMPAT) && (reqMajor > 3 || (reqMajor == 3 && reqMinor >= 1))
       )
     {
         if(DEBUG) {
@@ -1986,6 +1986,20 @@ public abstract class GLContextImpl extends GLContext {
                                GLContext.getGLVersion(hasMajor, hasMinor, hasCtxProfileBits, glVersion)+", "+glRenderer);
         }
         return false;
+    }
+
+    if( glRendererQuirks.exist(GLRendererQuirks.GL3CompatNonCompliant) &&
+        reqMajor > 0 &&
+        0 != ( hasCtxProfileBits & GLContext.CTX_PROFILE_COMPAT) && (hasMajor > 3 || (hasMajor == 3 && hasMinor >= 1))
+      )
+    {
+        // Clip actual OpenGL version to be mapped for requested profile/version mapping
+        hasMajor = reqMajor;
+        hasMinor = reqMinor;
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: GL3CompatNonCompliant: "+
+                GLContext.getGLVersion(hasMajor, hasMinor, hasCtxProfileBits, glVersion)+", "+glRenderer);
+        }
     }
 
     contextFQN = getContextFQN(adevice, hasMajor, hasMinor, hasCtxProfileBits);

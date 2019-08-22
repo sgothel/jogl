@@ -99,6 +99,8 @@ function jrun() {
     swton=$1
     shift
 
+    D_ARGS="-Djogl.quirks.force=GL3CompatNonCompliant,NoSurfacelessCtx -Djogl.debug.GLProfile -Djogl.debug.GLContext -Djogl.disable.opengles" 
+    #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext -Djogl.disable.opengles" 
     #D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
@@ -436,7 +438,7 @@ function testawtswt() {
 
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLVersionParsing00NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
@@ -457,7 +459,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
