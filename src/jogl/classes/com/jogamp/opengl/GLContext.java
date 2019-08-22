@@ -55,6 +55,7 @@ import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.Bitfield;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.VersionNumberString;
 import com.jogamp.common.util.locks.LockFactory;
@@ -1505,7 +1506,7 @@ public abstract class GLContext {
       /* 1.*/ { 0, 1, 2, 3, 4, 5 },
       /* 2.*/ { 0, 1 },
       /* 3.*/ { 0, 1, 2, 3 },
-      /* 4.*/ { 0, 1, 2, 3, 4, 5 } };
+      /* 4.*/ { 0, 1, 2, 3, 4, 5, 6 } };
 
   public static final int ES_VERSIONS[][] = {
       /* 0.*/ { -1 },
@@ -1533,6 +1534,15 @@ public abstract class GLContext {
   /**
    * Returns true, if the major.minor is not inferior to the lowest
    * valid version and does not exceed the highest known major number by more than one.
+   * Otherwise returns false.
+   * <p>
+   * Returns false if more than one bit of the following list in {@code ctxProfile} is set
+   * <ul>
+   *   <li>{@link GLContext#CTX_PROFILE_ES}</li>
+   *   <li>{@link GLContext#CTX_PROFILE_CORE}</li>
+   *   <li>{@link GLContext#CTX_PROFILE_COMPAT}</li>
+   * </ul>
+   * </p>
    * <p>
    * The minor version number is ignored by the upper limit validation
    * and the major version number may exceed by one.
@@ -1548,6 +1558,9 @@ public abstract class GLContext {
    */
   public static final boolean isValidGLVersion(final int ctxProfile, final int major, final int minor) {
       if( 1>major || 0>minor ) {
+          return false;
+      }
+      if ( 1 < Bitfield.Util.bitCount( ctxProfile & ( CTX_PROFILE_ES | CTX_PROFILE_CORE | CTX_PROFILE_COMPAT ) ) ) {
           return false;
       }
       if( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) {
