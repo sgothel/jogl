@@ -61,7 +61,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     setOpenGLMode(isNSContext ? GLBackendType.NSOPENGL : GLBackendType.CGL );
     this.contextHandle = handle;
     GLContextShareSet.contextCreated(this);
-    if( !setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, false /* withinGLVersionsMapping */) ) { // use GL_VERSION
+    if( !setGLFunctionAvailability(false, 0, 0, 0, false /* strictMatch */, false /* withinGLVersionsMapping */) ) { // use GL_VERSION
         throw new InternalError("setGLFunctionAvailability !strictMatch failed");
     }
     getGLStateTracker().setEnabled(false); // external context usage can't track state in Java

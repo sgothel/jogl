@@ -63,7 +63,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
       System.err.println(getThreadName() + ": Created external OpenGL context " + toHexString(ctx) + " for " + this);
     }
     GLContextShareSet.contextCreated(this);
-    if( !setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, false /* withinGLVersionsMapping */) ) { // use GL_VERSION
+    if( !setGLFunctionAvailability(false, 0, 0, 0, false /* strictMatch */, false /* withinGLVersionsMapping */) ) { // use GL_VERSION
         throw new InternalError("setGLFunctionAvailability !strictMatch failed");
     }
     getGLStateTracker().setEnabled(false); // external context usage can't track state in Java

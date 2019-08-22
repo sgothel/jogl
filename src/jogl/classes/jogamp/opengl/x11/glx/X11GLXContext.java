@@ -358,7 +358,7 @@ public class X11GLXContext extends GLContextImpl {
         if ( !glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
           throw new GLException(getThreadName()+": Error making temp context(0) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
-        if( !setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */) ) { // use GL_VERSION
+        if( !setGLFunctionAvailability(true, 0, 0, 0, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */) ) { // use GL_VERSION
             glXReleaseContext(display); // release temp context
             GLX.glXDestroyContext(display, contextHandle);
             contextHandle = 0;
@@ -392,7 +392,7 @@ public class X11GLXContext extends GLContextImpl {
         if ( !glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), temp_ctx) ) {
             throw new GLException(getThreadName()+": Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_ctx)+", drawable "+drawable);
         }
-        if( !setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */) ) { // use GL_VERSION
+        if( !setGLFunctionAvailability(true, 0, 0, 0, false /* strictMatch */, null == sharedContext /* withinGLVersionsMapping */) ) { // use GL_VERSION
             glXReleaseContext(display); // release temp context
             GLX.glXDestroyContext(display, temp_ctx);
             throw new GLException("setGLFunctionAvailability !strictMatch failed.2");
