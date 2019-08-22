@@ -53,6 +53,7 @@ import java.util.Set;
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.Bitfield;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.VersionNumberString;
@@ -72,6 +73,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GL2ES3;
 import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GL3;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLDebugListener;
@@ -1673,7 +1675,7 @@ public abstract class GLContextImpl extends GLContext {
    * If the GL query fails, major will be zero.
    * </p>
    */
-  private final void getGLIntVersion(final int[] glIntMajor, final int[] glIntMinor)  {
+  private final void getGLIntVersion(final int[] glIntMajor, final int[] glIntMinor, final int[] glIntCtxProfileMask)  {
     glIntMajor[0] = 0; // clear
     glIntMinor[0] = 0; // clear
     if( 0 == glGetIntegervPtr ) {
@@ -1682,6 +1684,9 @@ public abstract class GLContextImpl extends GLContext {
     } else {
         glGetIntegervInt(GL2ES3.GL_MAJOR_VERSION, glIntMajor, 0, glGetIntegervPtr);
         glGetIntegervInt(GL2ES3.GL_MINOR_VERSION, glIntMinor, 0, glGetIntegervPtr);
+        if( null != glIntCtxProfileMask ) {
+            glGetIntegervInt(GL3.GL_CONTEXT_PROFILE_MASK, glIntCtxProfileMask, 0, glGetIntegervPtr);
+        }
     }
   }
 
@@ -1759,6 +1764,12 @@ public abstract class GLContextImpl extends GLContext {
         return true; // already done and not forced
     }
 
+    if ( 1 < Bitfield.Util.bitCount( reqCtxProfileBits & ( CTX_PROFILE_ES | CTX_PROFILE_CORE | CTX_PROFILE_COMPAT ) ) ) {
+        final String reqCtxProfileString = getGLProfile(new StringBuilder(), reqCtxProfileBits).toString();
+        final int val = reqCtxProfileBits & ( CTX_PROFILE_ES | CTX_PROFILE_CORE | CTX_PROFILE_COMPAT );
+        throw new GLException("Invalid GL Profile Request, only one can be set of ES, CORE and COMPAT. Has <"+reqCtxProfileString+
+                              ">, bits <"+Integer.toBinaryString(val)+">, count "+Bitfield.Util.bitCount( val ) );
+    }
     if ( 0 < reqMajor && !GLContext.isValidGLVersion(reqCtxProfileBits, reqMajor, reqMinor) ) {
         throw new GLException("Invalid GL Version Request "+GLContext.getGLVersion(reqMajor, reqMinor, reqCtxProfileBits, null));
     }
@@ -1821,7 +1832,23 @@ public abstract class GLContextImpl extends GLContext {
         final VersionNumber hasGLVersionByInt;
         if ( reqMajor >= 3 || hasGLVersionByString.compareTo(Version3_0) >= 0 ) {
             final int[] glIntMajor = new int[] { 0 }, glIntMinor = new int[] { 0 };
-            getGLIntVersion(glIntMajor, glIntMinor);
+            if( isESReq ) {
+                getGLIntVersion(glIntMajor, glIntMinor, null);
+            } else {
+                final int[] glIntCtxProfileMask = new int[] { 0 };
+                getGLIntVersion(glIntMajor, glIntMinor, glIntCtxProfileMask);
+                if( 0 != ( GL3.GL_CONTEXT_CORE_PROFILE_BIT & glIntCtxProfileMask[0] ) ) {
+                    hasCtxProfileBits &= ~GLContext.CTX_PROFILE_COMPAT;
+                    hasCtxProfileBits |= GLContext.CTX_PROFILE_CORE;
+                } else if( 0 != ( GL3.GL_CONTEXT_COMPATIBILITY_PROFILE_BIT & glIntCtxProfileMask[0] ) ) {
+                    hasCtxProfileBits |= GLContext.CTX_PROFILE_COMPAT;
+                    hasCtxProfileBits &= ~GLContext.CTX_PROFILE_CORE;
+                }
+            }
+            if ( 0 == Bitfield.Util.bitCount( hasCtxProfileBits & ( CTX_PROFILE_ES | CTX_PROFILE_CORE | CTX_PROFILE_COMPAT ) ) ) {
+                // set default GL profile if non has been given nor queried from the GL state
+                hasCtxProfileBits |= isESReq ? GLContext.CTX_PROFILE_ES : GLContext.CTX_PROFILE_COMPAT;
+            }
 
             hasGLVersionByInt = new VersionNumber(glIntMajor[0], glIntMinor[0], 0);
             if (DEBUG) {
@@ -1873,6 +1900,10 @@ public abstract class GLContextImpl extends GLContext {
         if (DEBUG) {
             System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: Version verification (String): String "+
                                glVersion+", Number(Str) "+hasGLVersionByString);
+        }
+        if ( 0 == Bitfield.Util.bitCount( hasCtxProfileBits & ( CTX_PROFILE_ES | CTX_PROFILE_CORE | CTX_PROFILE_COMPAT ) ) ) {
+            // set default GL profile if non has been given nor queried from the GL state
+            hasCtxProfileBits |= isESReq ? GLContext.CTX_PROFILE_ES : GLContext.CTX_PROFILE_COMPAT;
         }
 
         // Only validate if a valid string version was fetched -> MIN > Version || Version > MAX!
