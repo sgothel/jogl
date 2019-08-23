@@ -2435,6 +2435,7 @@ public abstract class GLContextImpl extends GLContext {
     if( isDriverMesa ) {
         final VersionNumber mesaSafeFBOVersion = new VersionNumber(8, 0, 0);
         final VersionNumber mesaIntelBuggySharedCtx921 = new VersionNumber(9, 2, 1);
+        final VersionNumber mesaSafeGL3Compat = new VersionNumber(18, 2, 0);                     // Mesa 18.2.0
         final VersionNumber mesaSafeDoubleBufferedPBuffer = new VersionNumber(18, 2, 2);         // Mesa 18.2.2
         final VersionNumber mesaSafeSetSwapIntervalPostRetarget = mesaSafeDoubleBufferedPBuffer; // Mesa 18.2.2
 
@@ -2464,8 +2465,8 @@ public abstract class GLContextImpl extends GLContext {
                 quirks.addQuirk( quirk );
             }
         }
-        if (compatCtx && (hasMajor > 3 || (hasMajor == 3 && hasMinor >= 1))) {
-            // FIXME: Apply vendor version constraints!
+        if ( compatCtx && (hasMajor > 3 || (hasMajor == 3 && hasMinor >= 1)) &&
+             vendorVersion.compareTo(mesaSafeGL3Compat) < 0 ) {
             final int quirk = GLRendererQuirks.GL3CompatNonCompliant;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
@@ -2473,7 +2474,7 @@ public abstract class GLContextImpl extends GLContext {
             quirks.addQuirk( quirk );
         }
         if( glRenderer.contains( MesaRendererIntelsp ) &&
-            vendorVersion.compareTo(mesaIntelBuggySharedCtx921) >= 0 && isX11 ) { // FIXME: When is it fixed ?
+            vendorVersion.compareTo(mesaIntelBuggySharedCtx921) >= 0 && isX11 ) { // FIXME: When is it fixed ??
             final int quirk = GLRendererQuirks.GLSharedContextBuggy;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 / Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
