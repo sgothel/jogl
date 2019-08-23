@@ -1860,6 +1860,7 @@ public abstract class GLContextImpl extends GLContext {
                 //   Relaxed match for versions ( !isES && major < 3 ) requests, last resort!
                 //   Otherwise:
                 //     - fail if hasVersion < reqVersion (desktop and ES)
+                //     - fail if requested compat && has core profile (desktop)
                 //     - fail if ES major-version mismatch:
                 //       - request 1, >= 3 must be equal
                 //       - request 2 must be [2..3]
@@ -1867,6 +1868,7 @@ public abstract class GLContextImpl extends GLContext {
                 final int _hasMajor = hasGLVersionByInt.getMajor();
                 if( strictMatch &&
                     ( ( ( isESReq || reqMajor >= 3 ) && hasGLVersionByInt.compareTo(reqGLVersion) < 0 ) ||
+                      ( !isESReq && 0 != ( reqCtxProfileBits & GLContext.CTX_PROFILE_COMPAT ) && 0 != ( hasCtxProfileBits & GLContext.CTX_PROFILE_CORE ) ) ||
                       ( isESReq &&
                         (
                           ( 2 == reqMajor && ( 2 > _hasMajor || _hasMajor > 3 ) )       || // 2      -> [2..3]
@@ -1876,7 +1878,9 @@ public abstract class GLContextImpl extends GLContext {
                     ) ) {
                     if(DEBUG) {
                         System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL version mismatch (Int): requested "+
-                                           GLContext.getGLVersion(reqMajor, reqMinor, reqCtxProfileBits, null)+" -> has "+glVersion+", "+hasGLVersionByInt);
+                                           GLContext.getGLVersion(reqMajor, reqMinor, reqCtxProfileBits, null)+
+                                           " -> has "+glVersion+", "+hasGLVersionByInt+" - "+
+                                           GLContext.getGLVersion(glIntMajor[0], glIntMinor[0], hasCtxProfileBits, null));
                     }
                     return false;
                 }
@@ -1912,6 +1916,7 @@ public abstract class GLContextImpl extends GLContext {
             //   Relaxed match for versions ( !isES && major < 3 ) requests, last resort!
             //   Otherwise:
             //     - fail if hasVersion < reqVersion (desktop and ES)
+            //     - fail if requested compat && has core profile (desktop)
             //     - fail if ES major-version mismatch:
             //       - request 1, >= 3 must be equal
             //       - request 2 must be [2..3]
@@ -1919,6 +1924,7 @@ public abstract class GLContextImpl extends GLContext {
             final int _hasMajor = hasGLVersionByString.getMajor();
             if( strictMatch &&
                 ( ( ( isESReq || reqMajor >= 3 ) && hasGLVersionByString.compareTo(reqGLVersion) < 0 ) ||
+                  ( !isESReq && 0 != ( reqCtxProfileBits & GLContext.CTX_PROFILE_COMPAT ) && 0 != ( hasCtxProfileBits & GLContext.CTX_PROFILE_CORE ) ) ||
                   ( isESReq &&
                     (
                       ( 2 == reqMajor && ( 2 > _hasMajor || _hasMajor > 3 ) )       || // 2      -> [2..3]
@@ -1928,7 +1934,9 @@ public abstract class GLContextImpl extends GLContext {
                 ) ) {
                 if(DEBUG) {
                     System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL version mismatch (String): requested "+
-                                       GLContext.getGLVersion(reqMajor, reqMinor, reqCtxProfileBits, null)+" -> has "+glVersion+", "+hasGLVersionByString);
+                                       GLContext.getGLVersion(reqMajor, reqMinor, reqCtxProfileBits, null)+
+                                       " -> has "+glVersion+", "+hasGLVersionByString+" - "+
+                                       GLContext.getGLVersion(hasGLVersionByString.getMajor(), hasGLVersionByString.getMinor(), hasCtxProfileBits, null));
                 }
                 return false;
             }
