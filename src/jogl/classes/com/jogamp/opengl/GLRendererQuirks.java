@@ -38,8 +38,6 @@ import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.opengl.egl.EGL;
 import com.jogamp.opengl.egl.EGLExt;
 
-import jogamp.opengl.Debug;
-
 /**
  * GLRendererQuirks contains information of known bugs of various GL renderer.
  * This information allows us to workaround them.
@@ -122,12 +120,14 @@ public class GLRendererQuirks {
     public static final int GLSLBuggyDiscard = 5;
 
     /**
-     * Non compliant GL3 compatibility context due to a buggy implementation not suitable for use.
+     * Non compliant OpenGL 3.1+ compatibility profile due to a buggy implementation not suitable for use.
      * <p>
-     * Currently, Mesa >= 9.1.3 (may extend back as far as 9.0) OpenGL 3.1 compatibility
-     * context is not compliant. Most programs will give completely broken output (or no
-     * output at all. For now, this context is not trusted.
+     * Mesa versions in the range [9.1.3 .. 18.2.0[ are not fully compliant with the
+     * OpenGL 3.1 compatibility profile.
+     * Most programs will give completely broken output (or no
+     * output at all.
      * </p>
+     * <p>
      * The above has been confirmed for the following Mesa 9.* GL_RENDERER strings:
      * <ul>
      *   <li>Mesa .* Intel(R) Sandybridge Desktop</li>
@@ -135,7 +135,8 @@ public class GLRendererQuirks {
      * </ul>
      * </p>
      * <p>
-     * It still has to be verified whether the AMD OpenGL 3.1 core driver is compliant enought.
+     * Default implementation sets this quirk on all Mesa < 18.2.0 drivers.
+     * </p>
      */
     public static final int GL3CompatNonCompliant = 6;
 
@@ -232,9 +233,6 @@ public class GLRendererQuirks {
      * </ul>
      * <p>
      * Also enabled via {@link #BuggyColorRenderbuffer}.
-     * </p>
-     * <p>
-     * Quirk can also be enabled via property: <code>jogl.fbo.force.min</code>.
      * </p>
      */
     public static final int NoFullFBOSupport = 11;
@@ -375,9 +373,6 @@ public class GLRendererQuirks {
      * <p>
      * Note: GLFBODrawable always uses texture attachments if set.
      * </p>
-     * <p>
-     * Quirk can also be enabled via property: <code>jogl.fbo.force.nocolorrenderbuffer</code>.
-     * </p>
      */
     public static final int BuggyColorRenderbuffer  = 18;
 
@@ -387,7 +382,7 @@ public class GLRendererQuirks {
      * <p>
      * Some drivers wrongly claim to support pbuffers
      * with accumulation buffers. However, the creation of such pbuffer fails:
-     * <pre>
+      * <pre>
      *   com.jogamp.opengl.GLException: pbuffer creation error: Couldn't find a suitable pixel format
      * </pre>
      * </p>
@@ -487,8 +482,17 @@ public class GLRendererQuirks {
      */
     public static final int NoSurfacelessCtx = 22;
 
+    /**
+     * No FBO support at all.
+     * <p>
+     * This quirk currently exist to be injected by the user via the properties only,
+     * see {@link GLRendererQuirks.Override}.
+     * </p>
+     */
+    public static final int NoFBOSupport = 23;
+
     /** Return the number of known quirks, aka quirk bit count. */
-    public static final int getCount() { return 23; }
+    public static final int getCount() { return 24; }
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
@@ -497,7 +501,8 @@ public class GLRendererQuirks {
                                                           "NoFullFBOSupport", "GLSLNonCompliant", "GL4NeedsGL3Request",
                                                           "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly",
                                                           "NoMultiSamplingBuffers", "BuggyColorRenderbuffer", "NoPBufferWithAccum",
-                                                          "NeedSharedObjectSync", "NoARBCreateContext", "NoSurfacelessCtx"
+                                                          "NeedSharedObjectSync", "NoARBCreateContext", "NoSurfacelessCtx",
+                                                          "NoFBOSupport"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();
@@ -592,6 +597,10 @@ public class GLRendererQuirks {
     static {
         _bitmaskOverrideForce = _queryQuirkMaskOfPropertyList("jogl.quirks.force", Override.FORCE);
         _bitmaskOverrideIgnore = _queryQuirkMaskOfPropertyList("jogl.quirks.ignore", Override.IGNORE);
+        if( 0 != ( _bitmaskOverrideForce & GLRendererQuirks.BuggyColorRenderbuffer) ) {
+            _bitmaskOverrideForce |= GLRendererQuirks.NoFullFBOSupport;
+        }
+
         final int uniqueTest = _bitmaskOverrideForce & _bitmaskOverrideIgnore;
         if( 0 != uniqueTest ) {
             throw new InternalError("Override properties force 0x"+Integer.toHexString(_bitmaskOverrideForce)+

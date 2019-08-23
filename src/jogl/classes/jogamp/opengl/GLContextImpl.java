@@ -1081,7 +1081,7 @@ public abstract class GLContextImpl extends GLContext {
     validateProfileBits(profile, "profile");
     validateProfileBits(resCtp, "resCtp");
 
-    if(FORCE_NO_FBO_SUPPORT) {
+    if( GLRendererQuirks.existStickyDeviceQuirk(device, GLRendererQuirks.NoFBOSupport) ) {
         resCtp &= ~CTX_IMPL_FBO ;
     }
     if(DEBUG) {
@@ -2162,7 +2162,7 @@ public abstract class GLContextImpl extends GLContext {
         hasCtxProfileBits |= CTX_IMPL_FP32_COMPAT_API;
     }
 
-    if(FORCE_NO_FBO_SUPPORT) {
+    if( glRendererQuirks.exist(GLRendererQuirks.NoFBOSupport) ) {
         hasCtxProfileBits &= ~CTX_IMPL_FBO ;
     }
 
@@ -2497,26 +2497,6 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks.addQuirk( quirk );
         }
-    }
-
-    //
-    // Property related quirks
-    //
-    if( FORCE_NO_COLOR_RENDERBUFFER ) {
-        final int quirk = GLRendererQuirks.BuggyColorRenderbuffer;
-        if(DEBUG) {
-            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: property");
-        }
-        quirks.addQuirk( quirk );
-    }
-    if( FORCE_MIN_FBO_SUPPORT || quirks.exist(GLRendererQuirks.BuggyColorRenderbuffer) ) {
-        final int quirk = GLRendererQuirks.NoFullFBOSupport;
-        if(DEBUG) {
-            final String causeProps = FORCE_MIN_FBO_SUPPORT ? "property, " : "";
-            final String causeQuirk = quirks.exist(GLRendererQuirks.BuggyColorRenderbuffer) ? "BuggyColorRenderbuffer" : "";
-            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: "+causeProps+causeQuirk);
-        }
-        quirks.addQuirk( quirk );
     }
 
     if(DEBUG) {
