@@ -47,9 +47,13 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.UnsafeUtil;
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
+
+import jogamp.nativewindow.jawt.JAWTUtil;
 
 
 /** This class encapsulates the reflection routines necessary to peek
@@ -57,40 +61,48 @@ import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
     the purposes of correctly enumerating the available visuals. */
 
 public class Win32SunJDKReflection {
-  private static Class   win32GraphicsDeviceClass;
-  private static Class   win32GraphicsConfigClass;
-  private static Method  win32GraphicsConfigGetConfigMethod;
-  private static Method  win32GraphicsConfigGetVisualMethod;
-  private static boolean initted;
+  private static Class<?> win32GraphicsDeviceClass;
+  private static Class<?> win32GraphicsConfigClass;
+  private static Method   win32GraphicsConfigGetConfigMethod;
+  private static Method   win32GraphicsConfigGetVisualMethod;
+  private static boolean  initialized;
 
   static {
-    AccessController.doPrivileged(new PrivilegedAction() {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
         @Override
         public Object run() {
-          try {
-            win32GraphicsDeviceClass = Class.forName("sun.awt.Win32GraphicsDevice");
-            win32GraphicsConfigClass = Class.forName("sun.awt.Win32GraphicsConfig");
-            win32GraphicsConfigGetConfigMethod = win32GraphicsConfigClass.getDeclaredMethod("getConfig", new Class[] { win32GraphicsDeviceClass, int.class });
-            win32GraphicsConfigGetConfigMethod.setAccessible(true);
-            win32GraphicsConfigGetVisualMethod = win32GraphicsConfigClass.getDeclaredMethod("getVisual", new Class[] {});
-            win32GraphicsConfigGetVisualMethod.setAccessible(true);
-            initted = true;
-          } catch (final Exception e) {
-            // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
-          }
-          return null;
-        }
-      });
+            return UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    try {
+                        win32GraphicsDeviceClass = Class.forName("sun.awt.Win32GraphicsDevice");
+                        win32GraphicsConfigClass = Class.forName("sun.awt.Win32GraphicsConfig");
+                        win32GraphicsConfigGetConfigMethod = win32GraphicsConfigClass.getDeclaredMethod("getConfig", win32GraphicsDeviceClass, int.class);
+                        win32GraphicsConfigGetConfigMethod.setAccessible(true);
+                        win32GraphicsConfigGetVisualMethod = win32GraphicsConfigClass.getDeclaredMethod("getVisual");
+                        win32GraphicsConfigGetVisualMethod.setAccessible(true);
+                        initialized = true;
+                    } catch (final Exception e) {
+                        // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
+                        if( JAWTUtil.DEBUG ) {
+                            ExceptionUtils.dumpThrowable("Win32SunJDKReflection", e);
+                        }
+                    }
+                    return null;
+                }}); }});
   }
 
   public static GraphicsConfiguration graphicsConfigurationGet(final GraphicsDevice device, final int pfdID) {
-    if (!initted) {
+    if (!initialized) {
       return null;
     }
 
     try {
-      return (GraphicsConfiguration) win32GraphicsConfigGetConfigMethod.invoke(null, new Object[] { device, Integer.valueOf(pfdID) });
+      return (GraphicsConfiguration) win32GraphicsConfigGetConfigMethod.invoke(null, device, Integer.valueOf(pfdID));
     } catch (final Exception e) {
+      if( JAWTUtil.DEBUG ) {
+        ExceptionUtils.dumpThrowable("Win32SunJDKReflection", e);
+      }
       return null;
     }
   }
@@ -107,13 +119,16 @@ public class Win32SunJDKReflection {
   }
 
   public static int graphicsConfigurationGetPixelFormatID(final GraphicsConfiguration config) {
-    if (!initted) {
+    if (!initialized) {
       return 0;
     }
 
     try {
-      return ((Integer) win32GraphicsConfigGetVisualMethod.invoke(config, (Object[])null)).intValue();
+      return ((Integer) win32GraphicsConfigGetVisualMethod.invoke(config)).intValue();
     } catch (final Exception e) {
+      if( JAWTUtil.DEBUG ) {
+        ExceptionUtils.dumpThrowable("Win32SunJDKReflection", e);
+      }
       return 0;
     }
   }

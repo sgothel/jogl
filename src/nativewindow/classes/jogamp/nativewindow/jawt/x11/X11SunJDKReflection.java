@@ -47,10 +47,13 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.UnsafeUtil;
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
 
+import jogamp.nativewindow.jawt.JAWTUtil;
 
 /** This class encapsulates the reflection routines necessary to peek
     inside a few data structures in the AWT implementation on X11 for
@@ -67,31 +70,38 @@ public class X11SunJDKReflection {
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
         @Override
         public Object run() {
-          try {
-            x11GraphicsDeviceClass = Class.forName("sun.awt.X11GraphicsDevice");
-            x11GraphicsDeviceGetDisplayMethod = x11GraphicsDeviceClass.getDeclaredMethod("getDisplay", new Class[] {});
-            x11GraphicsDeviceGetDisplayMethod.setAccessible(true);
+            return UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    try {
+                        x11GraphicsDeviceClass = Class.forName("sun.awt.X11GraphicsDevice");
+                        x11GraphicsDeviceGetDisplayMethod = x11GraphicsDeviceClass.getDeclaredMethod("getDisplay");
+                        x11GraphicsDeviceGetDisplayMethod.setAccessible(true);
 
-            x11GraphicsConfigClass = Class.forName("sun.awt.X11GraphicsConfig");
-            x11GraphicsConfigGetVisualMethod = x11GraphicsConfigClass.getDeclaredMethod("getVisual", new Class[] {});
-            x11GraphicsConfigGetVisualMethod.setAccessible(true);
-            initialized = true;
-          } catch (final Exception e) {
-            // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
-          }
-          return null;
-        }
-      });
+                        x11GraphicsConfigClass = Class.forName("sun.awt.X11GraphicsConfig");
+                        x11GraphicsConfigGetVisualMethod = x11GraphicsConfigClass.getDeclaredMethod("getVisual");
+                        x11GraphicsConfigGetVisualMethod.setAccessible(true);
+                        initialized = true;
+                    } catch (final Exception e) {
+                        // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
+                        if( JAWTUtil.DEBUG ) {
+                            ExceptionUtils.dumpThrowable("X11SunJDKReflection", e);
+                        }
+                    }
+                    return null;
+                }}); }});
   }
 
   public static long graphicsDeviceGetDisplay(final GraphicsDevice device) {
     if (!initialized) {
       return 0;
     }
-
     try {
-      return ((Long) x11GraphicsDeviceGetDisplayMethod.invoke(device, (Object[])null)).longValue();
+      return ((Long) x11GraphicsDeviceGetDisplayMethod.invoke(device)).longValue();
     } catch (final Exception e) {
+      if( JAWTUtil.DEBUG ) {
+        ExceptionUtils.dumpThrowable("X11SunJDKReflection", e);
+      }
       return 0;
     }
   }
@@ -111,10 +121,12 @@ public class X11SunJDKReflection {
     if (!initialized) {
       return 0;
     }
-
     try {
-      return ((Integer) x11GraphicsConfigGetVisualMethod.invoke(config, (Object[])null)).intValue();
+      return ((Integer) x11GraphicsConfigGetVisualMethod.invoke(config)).intValue();
     } catch (final Exception e) {
+      if( JAWTUtil.DEBUG ) {
+        ExceptionUtils.dumpThrowable("X11SunJDKReflection", e);
+      }
       return 0;
     }
   }

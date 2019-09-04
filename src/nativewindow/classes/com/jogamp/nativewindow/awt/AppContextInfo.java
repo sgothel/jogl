@@ -5,7 +5,9 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.RunnableTask;
+import com.jogamp.common.util.UnsafeUtil;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
 
@@ -29,15 +31,18 @@ public class AppContextInfo {
       AccessController.doPrivileged(new PrivilegedAction<Object>() {
           @Override
           public Object run() {
-              try {
-                  final Class<?> appContextClass = Class.forName("sun.awt.AppContext");
-                  _getAppContextMethod[0] = appContextClass.getMethod("getAppContext");
-              } catch(final Throwable ex) {
-                  System.err.println("Bug 1004: Caught @ static: "+ex.getMessage());
-                  ex.printStackTrace();
-              }
-              return null;
-          } } );
+              return UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<Object>() {
+                  @Override
+                  public Object run() {
+                      try {
+                          final Class<?> appContextClass = Class.forName("sun.awt.AppContext");
+                          _getAppContextMethod[0] = appContextClass.getMethod("getAppContext");
+                          _getAppContextMethod[0].setAccessible(true);
+                      } catch(final Throwable ex) {
+                          ExceptionUtils.dumpThrowable("AppContextInfo(Bug 1004)", ex);
+                      }
+                      return null;
+                  }}); }});
       getAppContextMethod = _getAppContextMethod[0];
   }
 
@@ -185,8 +190,7 @@ public class AppContextInfo {
       try {
           return getAppContextMethod.invoke(null);
       } catch(final Exception ex) {
-          System.err.println("Bug 1004: Caught: "+ex.getMessage());
-          ex.printStackTrace();
+          ExceptionUtils.dumpThrowable("AppContextInfo(Bug 1004)", ex);
           return null;
       }
   }
