@@ -64,8 +64,10 @@ import jogamp.nativewindow.jawt.x11.X11SunJDKReflection;
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.nativewindow.x11.X11Lib;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.common.util.UnsafeUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
@@ -92,25 +94,30 @@ public class JAWTUtil {
   private static final Method isQueueFlusherThread;
   private static final boolean j2dExist;
 
-  // Unavailable since Java_9
-  // 'illegal reflective access to sun.awt.SunToolkit.awtLock/Unlock'
-  private static final Method  sunToolkitAWTLockMethod;
-  private static final Method  sunToolkitAWTUnlockMethod;
-  private static final boolean hasSunToolkitAWTLock;
+  private static final Method  stkAWTLockMID;
+  private static final Method  stkAWTUnlockMID;
+  private static final boolean hasSTKAWTLock;
+  private static final Method stkDisableBackgroundEraseMID;
 
   private static final RecursiveLock jawtLock;
   private static final ToolkitLock jawtToolkitLock;
 
-  private static final Method getScaleFactorMethod;
-  private static final Method getCGDisplayIDMethodOnOSX;
+  private static final Method gdGetScaleFactorMID;
+  private static final Method gdGetCGDisplayIDMIDOnOSX;
 
-  private static class PrivilegedDataBlob1 {
-    PrivilegedDataBlob1() { }
+  private static class SunToolkitData {
+    SunToolkitData() { }
     // default initialization to null, false
-    Method sunToolkitAWTLockMethod;
-    Method sunToolkitAWTUnlockMethod;
-    Method getScaleFactorMethod;
-    Method getCGDisplayIDMethodOnOSX;
+    Method awtLockMID;
+    Method awtUnlockMID;
+    Method disableBackgroundEraseMID;
+    boolean ok;
+  }
+  private static class GraphicsDeviceData {
+    GraphicsDeviceData() { }
+    // default initialization to null, false
+    Method getScaleFactorMID;
+    Method getCGDisplayIDMIDOnOSX;
     boolean ok;
   }
 
@@ -326,11 +333,12 @@ public class JAWTUtil {
         jawtLockObject = null;
         isQueueFlusherThread = null;
         j2dExist = false;
-        sunToolkitAWTLockMethod = null;
-        sunToolkitAWTUnlockMethod = null;
-        hasSunToolkitAWTLock = false;
-        getScaleFactorMethod = null;
-        getCGDisplayIDMethodOnOSX = null;
+        stkAWTLockMID = null;
+        stkAWTUnlockMID = null;
+        hasSTKAWTLock = false;
+        stkDisableBackgroundEraseMID = null;
+        gdGetScaleFactorMID = null;
+        gdGetCGDisplayIDMIDOnOSX = null;
     } else {
         // Non-headless case
         JAWTJNILibLoader.initSingleton(); // load libjawt.so
@@ -351,54 +359,77 @@ public class JAWTUtil {
         isQueueFlusherThread = isQueueFlusherThreadTmp;
         j2dExist = j2dExistTmp;
 
+        // Always enforce using sun.awt.SunToolkit's awtLock even on JVM >= Java_9,
+        // as we have no other official means to synchronize native UI locks especially for X11
+        {
+            final SunToolkitData std = AccessController.doPrivileged(new PrivilegedAction<SunToolkitData>() {
+                @Override
+                public SunToolkitData run() {
+                    return UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<SunToolkitData>() {
+                        @Override
+                        public SunToolkitData run() {
+                            final SunToolkitData d = new SunToolkitData();
+                            try {
+                                final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
+                                d.awtLockMID = sunToolkitClass.getDeclaredMethod("awtLock");
+                                d.awtLockMID.setAccessible(true);
+                                d.awtUnlockMID = sunToolkitClass.getDeclaredMethod("awtUnlock");
+                                d.awtUnlockMID.setAccessible(true);
+                                d.disableBackgroundEraseMID = sunToolkitClass.getDeclaredMethod("disableBackgroundErase", java.awt.Component.class);
+                                d.disableBackgroundEraseMID.setAccessible(true);
+                                d.ok=true;
+                            } catch (final Exception e) {
+                                // Either not a Sun JDK or the interfaces have changed since [Java 1.4.2 / 1.5 -> Java 11]
+                                if(DEBUG) {
+                                    System.err.println("JAWTUtil stk.0: "+e.getMessage());
+                                }
+                            }
+                            return d;
+                        }}); }});
+            stkAWTLockMID = std.awtLockMID;
+            stkAWTUnlockMID = std.awtUnlockMID;
+            stkDisableBackgroundEraseMID = std.disableBackgroundEraseMID;
+            boolean _hasSunToolkitAWTLock = false;
+            if ( std.ok ) {
+                try {
+                    stkAWTLockMID.invoke(null, (Object[])null);
+                    stkAWTUnlockMID.invoke(null, (Object[])null);
+                    _hasSunToolkitAWTLock = true;
+                } catch (final Exception e) {
+                    if(DEBUG) {
+                        System.err.println("JAWTUtil stk.awtLock.1: "+e.getMessage());
+                    }
+                }
+            }
+            hasSTKAWTLock = _hasSunToolkitAWTLock;
+        }
         if( PlatformPropsImpl.JAVA_9 ) {
-            sunToolkitAWTLockMethod = null;
-            sunToolkitAWTUnlockMethod = null;
-            getScaleFactorMethod = null;
-            getCGDisplayIDMethodOnOSX = null;
-            hasSunToolkitAWTLock = false;
+            gdGetScaleFactorMID = null;
+            gdGetCGDisplayIDMIDOnOSX = null;
         } else {
-            final PrivilegedDataBlob1 pdb1 = (PrivilegedDataBlob1) AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            final GraphicsDeviceData gdd = (GraphicsDeviceData) AccessController.doPrivileged(new PrivilegedAction<Object>() {
                 @Override
                 public Object run() {
-                    final PrivilegedDataBlob1 d = new PrivilegedDataBlob1();
-                    try {
-                        final Class<?> sunToolkitClass = Class.forName("sun.awt.SunToolkit");
-                        d.sunToolkitAWTLockMethod = sunToolkitClass.getDeclaredMethod("awtLock", new Class[]{});
-                        d.sunToolkitAWTLockMethod.setAccessible(true);
-                        d.sunToolkitAWTUnlockMethod = sunToolkitClass.getDeclaredMethod("awtUnlock", new Class[]{});
-                        d.sunToolkitAWTUnlockMethod.setAccessible(true);
-                        d.ok=true;
-                    } catch (final Exception e) {
-                        // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
-                    }
+                    final GraphicsDeviceData d = new GraphicsDeviceData();
                     try {
                         final GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
                         final Class<?> gdClass = gd.getClass();
-                        d.getScaleFactorMethod = gdClass.getDeclaredMethod("getScaleFactor");
-                        d.getScaleFactorMethod.setAccessible(true);
+                        d.getScaleFactorMID = gdClass.getDeclaredMethod("getScaleFactor");
+                        d.getScaleFactorMID.setAccessible(true);
                         if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
-                            d.getCGDisplayIDMethodOnOSX = gdClass.getDeclaredMethod("getCGDisplayID");
-                            d.getCGDisplayIDMethodOnOSX.setAccessible(true);
+                            d.getCGDisplayIDMIDOnOSX = gdClass.getDeclaredMethod("getCGDisplayID");
+                            d.getCGDisplayIDMIDOnOSX.setAccessible(true);
                         }
-                    } catch (final Throwable t) {}
+                    } catch (final Throwable t) {
+                        if(DEBUG) {
+                            System.err.println("JAWTUtil scaleFactor: "+t.getMessage());
+                        }
+                    }
                     return d;
                 }
             });
-            sunToolkitAWTLockMethod = pdb1.sunToolkitAWTLockMethod;
-            sunToolkitAWTUnlockMethod = pdb1.sunToolkitAWTUnlockMethod;
-            getScaleFactorMethod = pdb1.getScaleFactorMethod;
-            getCGDisplayIDMethodOnOSX = pdb1.getCGDisplayIDMethodOnOSX;
-            boolean _hasSunToolkitAWTLock = false;
-            if ( pdb1.ok ) {
-                try {
-                    sunToolkitAWTLockMethod.invoke(null, (Object[])null);
-                    sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
-                    _hasSunToolkitAWTLock = true;
-                } catch (final Exception e) {
-                }
-            }
-            hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
+            gdGetScaleFactorMID = gdd.getScaleFactorMID;
+            gdGetCGDisplayIDMIDOnOSX = gdd.getCGDisplayIDMIDOnOSX;
         }
     }
 
@@ -452,7 +483,7 @@ public class JAWTUtil {
     }
 
     if (DEBUG) {
-        System.err.println("JAWTUtil: Has sun.awt.SunToolkit.awtLock/awtUnlock " + hasSunToolkitAWTLock);
+        System.err.println("JAWTUtil: Has sun.awt.SunToolkit: awtLock/awtUnlock " + hasSTKAWTLock + ", disableBackgroundErase "+(null!=stkDisableBackgroundEraseMID));
         System.err.println("JAWTUtil: Has Java2D " + j2dExist);
         System.err.println("JAWTUtil: Is headless " + headlessMode);
         final int hints = ( null != desktophints ) ? desktophints.size() : 0 ;
@@ -506,9 +537,9 @@ public class JAWTUtil {
     jawtLock.lock();
     if( 1 == jawtLock.getHoldCount() ) {
         if(!headlessMode && !isJava2DQueueFlusherThread()) {
-            if(hasSunToolkitAWTLock) {
+            if(hasSTKAWTLock) {
                 try {
-                    sunToolkitAWTLockMethod.invoke(null, (Object[])null);
+                    stkAWTLockMID.invoke(null, (Object[])null);
                 } catch (final Exception e) {
                   throw new NativeWindowException("SunToolkit.awtLock failed", e);
                 }
@@ -535,9 +566,9 @@ public class JAWTUtil {
     if(ToolkitLock.TRACE_LOCK) { System.err.println("JAWTUtil-ToolkitLock.unlock(): "+jawtLock); }
     if( 1 == jawtLock.getHoldCount() ) {
         if(!headlessMode && !isJava2DQueueFlusherThread()) {
-            if(hasSunToolkitAWTLock) {
+            if(hasSTKAWTLock) {
                 try {
-                    sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
+                    stkAWTUnlockMID.invoke(null, (Object[])null);
                 } catch (final Exception e) {
                   throw new NativeWindowException("SunToolkit.awtUnlock failed", e);
                 }
@@ -558,6 +589,30 @@ public class JAWTUtil {
   }
 
   /**
+   * Calls {@code sun.awt.SunToolkit.disableBackgroundErase(Component component)} if available.
+   * <p>
+   * Disables the AWT's erasing of the given native Component's background since Java SE 6.
+   * This feature can also be enabled by setting the system property
+   * {@code sun.awt.noerasebackground} = {@code true}.
+   * </p>
+   * @param component
+   * @return {@code true} if available and successful, otherwise {@code false}
+   */
+  public static boolean disableBackgroundErase(final java.awt.Component component) {
+      if( null != stkDisableBackgroundEraseMID ) {
+          try {
+              stkDisableBackgroundEraseMID.invoke(component.getToolkit(), component);
+              return true;
+          } catch (final Exception e) {
+              if( DEBUG ) {
+                  ExceptionUtils.dumpThrowable("JAWTUtil", e);
+              }
+          }
+      }
+      return false;
+  }
+
+  /**
    * Queries the Monitor's display ID of the given device
    * <p>
    * Currently only supported for OSX on Java<9
@@ -566,10 +621,10 @@ public class JAWTUtil {
    * @return {@code null} if not supported (Java9+ or !OSX), otherwise the monitor displayID
    */
   public static final Integer getMonitorDisplayID(final GraphicsDevice device) {
-      if( null != getCGDisplayIDMethodOnOSX ) {
+      if( null != gdGetCGDisplayIDMIDOnOSX ) {
           // OSX specific for Java<9
           try {
-              final Object res = getCGDisplayIDMethodOnOSX.invoke(device);
+              final Object res = gdGetCGDisplayIDMIDOnOSX.invoke(device);
               if (res instanceof Integer) {
                   return (Integer)res;
               }
@@ -602,10 +657,10 @@ public class JAWTUtil {
       float sy = 1f;
       boolean gotSXZ = false;
       if( !SKIP_AWT_HIDPI ) {
-          if( null != getCGDisplayIDMethodOnOSX ) {
+          if( null != gdGetCGDisplayIDMIDOnOSX ) {
               // OSX specific for Java<9, preserving double type
               try {
-                  final Object res = getCGDisplayIDMethodOnOSX.invoke(device);
+                  final Object res = gdGetCGDisplayIDMIDOnOSX.invoke(device);
                   if (res instanceof Integer) {
                       final int displayID = ((Integer)res).intValue();
                       sx = OSXUtil.GetScreenPixelScaleByDisplayID(displayID);
@@ -614,10 +669,10 @@ public class JAWTUtil {
                   }
               } catch (final Throwable t) {}
           }
-          if( !gotSXZ && null != getScaleFactorMethod ) {
+          if( !gotSXZ && null != gdGetScaleFactorMID ) {
               // Generic for Java<9
               try {
-                  final Object res = getScaleFactorMethod.invoke(device);
+                  final Object res = gdGetScaleFactorMID.invoke(device);
                   if (res instanceof Integer) {
                       sx = ((Integer)res).floatValue();
                   } else if ( res instanceof Double) {

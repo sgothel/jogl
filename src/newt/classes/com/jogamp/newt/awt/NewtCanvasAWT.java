@@ -31,7 +31,6 @@ package com.jogamp.newt.awt;
 
 import java.applet.Applet;
 import java.awt.AWTKeyStroke;
-import java.awt.Canvas;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Graphics;
@@ -43,9 +42,6 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.beans.Beans;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.lang.reflect.Method;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Set;
 
 import com.jogamp.nativewindow.CapabilitiesImmutable;
@@ -593,7 +589,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
              * This code order also allows recreation, ie re-adding the GLCanvas.
              */
             // before native peer is valid: X11
-            disableBackgroundErase();
+            JAWTUtil.disableBackgroundErase(this);
 
             // Query AWT GraphicsDevice from parent tree, default
             final GraphicsConfiguration gc = super.getGraphicsConfiguration();
@@ -611,7 +607,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
             super.addNotify();
 
             // after native peer is valid: Windows
-            disableBackgroundErase();
+            JAWTUtil.disableBackgroundErase(this);
 
             synchronized(sync) {
                 determineIfApplet();
@@ -1118,57 +1114,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
           System.err.println("NewtCanvasAWT.detachNewtChild.X: win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+", comp "+this);
       }
     }
-
-  // Disables the AWT's erasing of this Canvas's background on Windows
-  // in Java SE 6. This internal API is not available in previous
-  // releases, but the system property
-  // -Dsun.awt.noerasebackground=true can be specified to get similar
-  // results globally in previous releases.
-  private static boolean disableBackgroundEraseInitialized;
-  private static Method  disableBackgroundEraseMethod;
-  private void disableBackgroundErase() {
-    if (!disableBackgroundEraseInitialized) {
-      try {
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-              try {
-                Class<?> clazz = getToolkit().getClass();
-                while (clazz != null && disableBackgroundEraseMethod == null) {
-                  try {
-                    disableBackgroundEraseMethod =
-                      clazz.getDeclaredMethod("disableBackgroundErase",
-                                              new Class[] { Canvas.class });
-                    disableBackgroundEraseMethod.setAccessible(true);
-                  } catch (final Exception e) {
-                    clazz = clazz.getSuperclass();
-                  }
-                }
-              } catch (final Exception e) {
-              }
-              return null;
-            }
-          });
-      } catch (final Exception e) {
-      }
-      disableBackgroundEraseInitialized = true;
-      if(DEBUG) {
-        System.err.println("NewtCanvasAWT: TK disableBackgroundErase method found: "+
-                (null!=disableBackgroundEraseMethod));
-      }
-    }
-    if (disableBackgroundEraseMethod != null) {
-      Throwable t=null;
-      try {
-        disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
-      } catch (final Exception e) {
-        t = e;
-      }
-      if(DEBUG) {
-        System.err.println("NewtCanvasAWT: TK disableBackgroundErase error: "+t);
-      }
-    }
-  }
 
   protected static String currentThreadName() { return "["+Thread.currentThread().getName()+", isAWT-EDT "+EventQueue.isDispatchThread()+"]"; }
 

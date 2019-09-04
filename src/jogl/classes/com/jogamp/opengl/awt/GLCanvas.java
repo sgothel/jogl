@@ -41,9 +41,6 @@
 package com.jogamp.opengl.awt;
 
 import java.beans.Beans;
-import java.lang.reflect.Method;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.FontMetrics;
@@ -104,6 +101,7 @@ import com.jogamp.opengl.util.GLDrawableUtil;
 import com.jogamp.opengl.util.TileRenderer;
 
 import jogamp.nativewindow.SurfaceScaleUtils;
+import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableHelper;
@@ -158,11 +156,11 @@ import jogamp.opengl.awt.AWTTilePainter;
  * </ul>
  *
  * <h5><a name="contextSharing">OpenGL Context Sharing</a></h5>
- * 
+ *
  * To share a {@link GLContext} see the following note in the documentation overview:
  * <a href="../../../../overview-summary.html#SHARING">context sharing</a>
  * as well as {@link GLSharedContextSetter}.
- * 
+ *
  */
 
 @SuppressWarnings("serial")
@@ -593,7 +591,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
              */
 
             // before native peer is valid: X11
-            disableBackgroundErase();
+            JAWTUtil.disableBackgroundErase(this);
 
             final GraphicsDevice awtDevice;
             if(null==awtDeviceReq) {
@@ -618,7 +616,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             super.addNotify();
 
             // after native peer is valid: Windows
-            disableBackgroundErase();
+            JAWTUtil.disableBackgroundErase(this);
 
             createJAWTDrawableAndContext();
 
@@ -1477,57 +1475,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         }
     }
   };
-
-  // Disables the AWT's erasing of this Canvas's background on Windows
-  // in Java SE 6. This internal API is not available in previous
-  // releases, but the system property
-  // -Dsun.awt.noerasebackground=true can be specified to get similar
-  // results globally in previous releases.
-  private static boolean disableBackgroundEraseInitialized;
-  private static Method  disableBackgroundEraseMethod;
-  private void disableBackgroundErase() {
-    if (!disableBackgroundEraseInitialized) {
-      try {
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-              try {
-                Class<?> clazz = getToolkit().getClass();
-                while (clazz != null && disableBackgroundEraseMethod == null) {
-                  try {
-                    disableBackgroundEraseMethod =
-                      clazz.getDeclaredMethod("disableBackgroundErase",
-                                              new Class[] { Canvas.class });
-                    disableBackgroundEraseMethod.setAccessible(true);
-                  } catch (final Exception e) {
-                    clazz = clazz.getSuperclass();
-                  }
-                }
-              } catch (final Exception e) {
-              }
-              return null;
-            }
-          });
-      } catch (final Exception e) {
-      }
-      disableBackgroundEraseInitialized = true;
-      if(DEBUG) {
-        System.err.println(getThreadName()+": GLCanvas: TK disableBackgroundErase method found: "+
-                (null!=disableBackgroundEraseMethod));
-      }
-    }
-    if (disableBackgroundEraseMethod != null) {
-      Throwable t=null;
-      try {
-        disableBackgroundEraseMethod.invoke(getToolkit(), new Object[] { this });
-      } catch (final Exception e) {
-        t = e;
-      }
-      if(DEBUG) {
-        System.err.println(getThreadName()+": GLCanvas: TK disableBackgroundErase error: "+t);
-      }
-    }
-  }
 
   /**
    * Issues the GraphicsConfigurationFactory's choosing facility within EDT,
