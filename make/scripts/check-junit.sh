@@ -26,10 +26,10 @@ function checkresult() {
         grep failures $builddir/test/$resdir/* | grep -v "errors=\"0\"" | wc
         echo
         echo failed junit classes - failures
-        grep failures $builddir/test/$resdir/* | grep -v "failures=\"0\""
+        grep failures $builddir/test/$resdir/* | grep -v "failures=\"0\"" | sed -e 's/.*name=\"//g' -e 's/\".*//g'
         echo
         echo failed junit classes - errors
-        grep failures $builddir/test/$resdir/* | grep -v "errors=\"0\""
+        grep failures $builddir/test/$resdir/* | grep -v "errors=\"0\"" | sed -e 's/.*name=\"//g' -e 's/\".*//g'
         echo
     fi
 }
