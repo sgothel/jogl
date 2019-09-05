@@ -53,5 +53,6 @@ export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 ant  \
     $CUSTOMLIBDIR \
     -Drootrel.build=build-x86_64 \
+    -Djunit.run.arg0="--illegal-access=warn" \
     $* 2>&1 | tee -a $LOGF
 

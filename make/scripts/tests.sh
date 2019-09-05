@@ -99,13 +99,13 @@ function jrun() {
     swton=$1
     shift
 
-    D_ARGS="-Djogl.quirks.force=GL3CompatNonCompliant,NoSurfacelessCtx -Djogl.debug.GLProfile -Djogl.debug.GLContext -Djogl.disable.opengles" 
-    #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext -Djogl.disable.opengles" 
+    #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext"
     #D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext -Djogl.quirks.force=GL3CompatNonCompliant,NoSurfacelessCtx -Djogl.disable.opengles" 
 
     #D_ARGS="-Djogamp.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
@@ -116,6 +116,8 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
 
+    D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.UnsafeUtil"
+    X_ARGS="--illegal-access=warn"
     #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true"
     #D_ARGS="-Djogl.debug.GLContext -Djogamp.debug.NativeLibrary -Djogamp.debug.JNILibLoader -Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler"
     #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogl.debug.GLContext"
@@ -438,7 +440,7 @@ function testawtswt() {
 
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLVersionParsing00NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
@@ -939,10 +941,15 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT
 
 #
-# regressions
+# 2.4.0 Regressions
 #
+# OSX
+#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01dAWT $*
 
-#linux:
+#linux Mesa/AMD:
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestBug817GLReadBufferUtilGLCTXDefFormatTypeES2NEWT $*
 
 # ATI/Linux: XCB Unknown request in queue while dequeuing
 #            Most likely this is a multi-threaded client and XInitThreads has not been called

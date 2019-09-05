@@ -321,14 +321,24 @@ public class GLPixelBuffer {
             } else if( 4 == componentCount || glesReadMode ) {
                 final GLContext ctx = gl.getContext();
                 final int _dFormat = ctx.getDefaultPixelDataFormat();
-                final int dComps = GLBuffers.componentCount(_dFormat);
-                if( dComps == componentCount || 4 == dComps ) { // accept if desired component count or 4 components
-                    dFormat = _dFormat;
-                    dType   = ctx.getDefaultPixelDataType();
-                } else {
-                    dFormat = GL.GL_RGBA;
-                    dType   = GL.GL_UNSIGNED_BYTE;
+                final int _dComps = GLBuffers.componentCount(_dFormat);
+                if( _dComps == componentCount || 4 == _dComps ) { // accept if desired component count or 4 components
+                    // pre-check whether default is supported by implementation
+                    final int _dType = ctx.getDefaultPixelDataType();
+                    final PixelFormat _pixFmt = getPixelFormat(_dFormat, _dType);
+                    if( null != _pixFmt) {
+                        return new GLPixelAttributes(null, _pixFmt, _dFormat, _dType, pack, true);
+                    }
+                    if( GLContext.DEBUG ) {
+                        System.err.println("GLPixelAttributes.convert("+gl.getGLProfile()+", comps "+componentCount+", pack "+pack+
+                                "): GL-impl default unsupported: "+
+                                "[fmt 0x"+Integer.toHexString(_dFormat)+", type 0x"+Integer.toHexString(_dType)+"]: Using std RGBA+UBYTE");
+                        Thread.dumpStack();
+                    }
+                    // fall-through intended to set dFormat/dType to std values
                 }
+                dFormat = GL.GL_RGBA;
+                dType   = GL.GL_UNSIGNED_BYTE;
             } else {
                 return null;
             }
