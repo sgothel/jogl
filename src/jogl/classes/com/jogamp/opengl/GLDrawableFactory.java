@@ -404,8 +404,7 @@ public abstract class GLDrawableFactory {
    * @see GLRendererQuirks
    */
   public final boolean hasRendererQuirk(final AbstractGraphicsDevice device, final GLProfile glp, final int quirk) {
-      final GLRendererQuirks glrq = getRendererQuirks(device, glp);
-      return null != glrq ? glrq.exist(quirk) : false;
+      return GLRendererQuirks.exist(getRendererQuirks(device, glp), quirk);
   }
 
   /**

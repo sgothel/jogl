@@ -2451,25 +2451,27 @@ public abstract class GLContextImpl extends GLContext {
             if( vendorVersion.compareTo(mesaSafeDoubleBufferedPBuffer) < 0 ) {
                 final int quirk = GLRendererQuirks.NoDoubleBufferedPBuffer;
                 if(DEBUG) {
-                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
+                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
                 }
                 quirks.addQuirk( quirk );
             }
         } else {
             // software
             if( vendorVersion.compareTo(mesaSafeFBOVersion) < 0 ) { // FIXME: Is it fixed in >= 8.0.0 ?
-                final int quirk = GLRendererQuirks.BuggyColorRenderbuffer;
+                final int quirk1 = GLRendererQuirks.BuggyColorRenderbuffer;
+                final int quirk2 = GLRendererQuirks.NoFullFBOSupport;
                 if(DEBUG) {
-                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
+                    System.err.println("Quirks: "+GLRendererQuirks.toString(quirk1)+", "+GLRendererQuirks.toString(quirk2)+": cause: Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
                 }
-                quirks.addQuirk( quirk );
+                quirks.addQuirk( quirk1 );
+                quirks.addQuirk( quirk2 );
             }
         }
         if ( compatCtx && (hasMajor > 3 || (hasMajor == 3 && hasMinor >= 1)) &&
              vendorVersion.compareTo(mesaSafeGL3Compat) < 0 ) {
             final int quirk = GLRendererQuirks.GL3CompatNonCompliant;
             if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
             }
             quirks.addQuirk( quirk );
         }

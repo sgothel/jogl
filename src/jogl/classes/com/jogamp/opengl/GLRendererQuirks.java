@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012 - 2019 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -88,7 +88,7 @@ public class GLRendererQuirks {
     }
 
     /**
-     * Crashes XServer when using double buffered PBuffer with GL_RENDERER:
+     * Crashes XServer when using double buffered PBuffer with hardware GL_RENDERER on Mesa < 18.2.2:
      * <ul>
      *  <li>Mesa DRI Intel(R) Sandybridge Desktop</li>
      *  <li>Mesa DRI Intel(R) Ivybridge Mobile - 3.0 Mesa 8.0.4</li>
@@ -107,7 +107,7 @@ public class GLRendererQuirks {
     /** No offscreen bitmap available, currently true for JOGL's OSX implementation. */
     public static final int NoOffscreenBitmap       = 3;
 
-    /** SIGSEGV on setSwapInterval() after changing the context's drawable w/ 'Mesa 8.0.4' dri2SetSwapInterval/DRI2 (soft & intel) */
+    /** SIGSEGV on setSwapInterval() after changing the context's drawable w/ Mesa >= 8.0.4 until Mesa < 18.2.2: dri2SetSwapInterval/DRI2 (soft & intel) */
     public static final int NoSetSwapIntervalPostRetarget = 4;
 
     /**
@@ -232,7 +232,7 @@ public class GLRendererQuirks {
      *     </ul></li>
      * </ul>
      * <p>
-     * Also enabled via {@link #BuggyColorRenderbuffer}.
+     * Note: Also enabled via {@link #BuggyColorRenderbuffer}.
      * </p>
      */
     public static final int NoFullFBOSupport = 11;
@@ -672,6 +672,19 @@ public class GLRendererQuirks {
     public final boolean exist(final int quirkBit) throws IllegalArgumentException {
         validateQuirk(quirkBit);
         return 0 != ( ( 1 << quirkBit )  & ( ~_bitmaskOverrideIgnore & ( _bitmask | _bitmaskOverrideForce ) ) );
+    }
+
+    /**
+     * Convenient static method to call {@link #exist(int)} on the given {@code quirks}
+     * with an added {@code null} check.
+     * @param quirks {@link GLRendererQuirks} instance, maybe {@code null}
+     * @param quirkBit the quirk to be tested
+     * @return {@code true} if the {@code quirks} is not {@code null} and the given {@code quirkBit} is set, otherwise {@code false}.
+     * @throws IllegalArgumentException if quirk is out of range
+     * @see #exist(int)
+     */
+    public static boolean exist(final GLRendererQuirks quirks, final int quirkBit) throws IllegalArgumentException {
+        return null != quirks && quirks.exist(quirkBit);
     }
 
     public final StringBuilder toString(StringBuilder sb) {
