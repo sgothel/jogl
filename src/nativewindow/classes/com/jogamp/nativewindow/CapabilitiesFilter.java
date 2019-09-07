@@ -40,16 +40,13 @@ public class CapabilitiesFilter {
     protected CapabilitiesFilter() {}
 
     /** Generic filter criteria */
-    public static interface Criteria<C extends CapabilitiesImmutable> {
+    public static interface Test<C extends CapabilitiesImmutable> {
         public boolean match(final C cap);
     }
 
-    /** Filter {@link Criteria} for removal */
-    public static interface RemovalCriteria<C extends CapabilitiesImmutable> extends Criteria<C> {
-    }
-    public static class RemoveLessColorCompBits<C extends CapabilitiesImmutable> implements RemovalCriteria<C> {
+    public static class TestLessColorCompBits<C extends CapabilitiesImmutable> implements Test<C> {
         final int minColorCompBits;
-        public RemoveLessColorCompBits(final int minColorCompBits) {
+        public TestLessColorCompBits(final int minColorCompBits) {
             this.minColorCompBits = minColorCompBits;
         }
         public final boolean match(final C cap) {
@@ -59,9 +56,9 @@ public class CapabilitiesFilter {
                    cap.getAlphaBits() < minColorCompBits;
         }
     }
-    public static class RemoveMoreColorCompBits<C extends CapabilitiesImmutable> implements RemovalCriteria<C> {
+    public static class TestMoreColorCompBits<C extends CapabilitiesImmutable> implements Test<C> {
         final int maxColorCompBits;
-        public RemoveMoreColorCompBits(final int maxColorCompBits) {
+        public TestMoreColorCompBits(final int maxColorCompBits) {
             this.maxColorCompBits = maxColorCompBits;
         }
         public final boolean match(final C cap) {
@@ -71,9 +68,9 @@ public class CapabilitiesFilter {
                    cap.getAlphaBits() > maxColorCompBits;
         }
     }
-    public static class RemoveUnmatchedNativeVisualID<C extends CapabilitiesImmutable> implements RemovalCriteria<C> {
+    public static class TestUnmatchedNativeVisualID<C extends CapabilitiesImmutable> implements Test<C> {
         final int requiredNativeVisualID;
-        public RemoveUnmatchedNativeVisualID(final int requiredNativeVisualID) {
+        public TestUnmatchedNativeVisualID(final int requiredNativeVisualID) {
             this.requiredNativeVisualID = requiredNativeVisualID;
         }
         public final boolean match(final C cap) {
@@ -82,12 +79,12 @@ public class CapabilitiesFilter {
     }
 
     /**
-     * Removing all {@link CapabilitiesImmutable} derived elements matching the given {@code criteria} {@link RemovalCriteria} list.
+     * Removing all {@link CapabilitiesImmutable} derived elements matching the given {@code criteria} {@link Test} list.
      * @param availableCaps {@link CapabilitiesImmutable} derived list to be filtered
-     * @param criteria {@link RemovalCriteria} list run on all non-removed {@link CapabilitiesImmutable} derived elements
+     * @param criteria {@link Test} list run on all non-removed {@link CapabilitiesImmutable} derived elements
      * @return the list of removed {@link CapabilitiesImmutable} derived elements, might be of size 0 if none were removed.
      */
-    public static <C extends CapabilitiesImmutable> ArrayList<C> removeMatching(final ArrayList<C> availableCaps, final List<RemovalCriteria<C>> criteria) {
+    public static <C extends CapabilitiesImmutable> ArrayList<C> removeMatching(final ArrayList<C> availableCaps, final List<Test<C>> criteria) {
         final ArrayList<C> removedCaps = new ArrayList<C>();
         for(int i=0; i<availableCaps.size(); ) {
             final C cap = availableCaps.get(i);
@@ -120,8 +117,8 @@ public class CapabilitiesFilter {
         if( VisualIDHolder.VID_UNDEFINED == requiredNativeVisualID) {
             return new ArrayList<C>();
         }
-        final ArrayList<RemovalCriteria<C>> criteria = new ArrayList<RemovalCriteria<C>>();
-        criteria.add(new CapabilitiesFilter.RemoveUnmatchedNativeVisualID<C>(requiredNativeVisualID));
+        final ArrayList<Test<C>> criteria = new ArrayList<Test<C>>();
+        criteria.add(new CapabilitiesFilter.TestUnmatchedNativeVisualID<C>(requiredNativeVisualID));
         return removeMatching(availableCaps, criteria);
     }
 
@@ -133,8 +130,8 @@ public class CapabilitiesFilter {
      */
     public static <C extends CapabilitiesImmutable> ArrayList<C> removeMoreColorComps(final ArrayList<C> availableCaps,
                                                                       final int maxColorCompBits) {
-        final ArrayList<RemovalCriteria<C>> criteria = new ArrayList<RemovalCriteria<C>>();
-        criteria.add(new CapabilitiesFilter.RemoveMoreColorCompBits<C>(maxColorCompBits));
+        final ArrayList<Test<C>> criteria = new ArrayList<Test<C>>();
+        criteria.add(new CapabilitiesFilter.TestMoreColorCompBits<C>(maxColorCompBits));
         return removeMatching(availableCaps, criteria);
     }
 
@@ -153,10 +150,10 @@ public class CapabilitiesFilter {
      */
     public static <C extends CapabilitiesImmutable> ArrayList<C> removeMoreColorCompsAndUnmatchingNativeVisualID(final ArrayList<C> availableCaps,
                                                                       final int maxColorCompBits, final int requiredNativeVisualID) {
-        final ArrayList<RemovalCriteria<C>> criteria = new ArrayList<RemovalCriteria<C>>();
-        criteria.add(new CapabilitiesFilter.RemoveMoreColorCompBits<C>(maxColorCompBits));
+        final ArrayList<Test<C>> criteria = new ArrayList<Test<C>>();
+        criteria.add(new CapabilitiesFilter.TestMoreColorCompBits<C>(maxColorCompBits));
         if( VisualIDHolder.VID_UNDEFINED != requiredNativeVisualID) {
-            criteria.add(new CapabilitiesFilter.RemoveUnmatchedNativeVisualID<C>(requiredNativeVisualID));
+            criteria.add(new CapabilitiesFilter.TestUnmatchedNativeVisualID<C>(requiredNativeVisualID));
         }
         return removeMatching(availableCaps, criteria);
     }

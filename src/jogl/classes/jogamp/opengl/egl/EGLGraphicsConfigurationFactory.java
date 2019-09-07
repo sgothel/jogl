@@ -48,7 +48,7 @@ import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.VisualIDHolder;
-import com.jogamp.nativewindow.CapabilitiesFilter.RemovalCriteria;
+import com.jogamp.nativewindow.CapabilitiesFilter.Test;
 import com.jogamp.nativewindow.VisualIDHolder.VIDType;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesChooser;
@@ -440,16 +440,16 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         }
         // Filter availableCaps
         {
-            final ArrayList<RemovalCriteria<GLCapabilitiesImmutable>> criteria = new ArrayList<RemovalCriteria<GLCapabilitiesImmutable>>();
+            final ArrayList<Test<GLCapabilitiesImmutable>> criteria = new ArrayList<Test<GLCapabilitiesImmutable>>();
             if( !skipCapsChooser && isPBufferOrBitmap && GLRendererQuirks.exist(glrq, GLRendererQuirks.No10BitColorCompOffscreen) ) {
-                criteria.add(new CapabilitiesFilter.RemoveMoreColorCompBits<GLCapabilitiesImmutable>(8));
+                criteria.add(new CapabilitiesFilter.TestMoreColorCompBits<GLCapabilitiesImmutable>(8));
             }
             if( VisualIDHolder.VID_UNDEFINED != nativeVisualID) {
-                criteria.add(new CapabilitiesFilter.RemoveUnmatchedNativeVisualID<GLCapabilitiesImmutable>(nativeVisualID));
+                criteria.add(new CapabilitiesFilter.TestUnmatchedNativeVisualID<GLCapabilitiesImmutable>(nativeVisualID));
             }
             if( 0 < capsChosen.getDepthBits() ) {
                 // Hack for HiSilicon/Vivante/Immersion.16 Renderer ..
-                criteria.add(new GLCapabilitiesFilter.RemoveLessDepthBits<GLCapabilitiesImmutable>(1));
+                criteria.add(new GLCapabilitiesFilter.TestLessDepthBits<GLCapabilitiesImmutable>(1));
             }
             if( criteria.size() > 0 ) {
                 final ArrayList<GLCapabilitiesImmutable> removedCaps = CapabilitiesFilter.removeMatching(availableCaps, criteria);

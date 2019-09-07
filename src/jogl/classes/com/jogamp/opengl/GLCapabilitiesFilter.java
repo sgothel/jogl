@@ -39,18 +39,18 @@ import com.jogamp.nativewindow.CapabilitiesFilter;
 public class GLCapabilitiesFilter extends CapabilitiesFilter {
     protected GLCapabilitiesFilter() {}
 
-    public static class RemoveLessDepthBits<C extends GLCapabilitiesImmutable> implements RemovalCriteria<C> {
+    public static class TestLessDepthBits<C extends GLCapabilitiesImmutable> implements Test<C> {
         final int minDepthBits;
-        public RemoveLessDepthBits(final int minDepthBits) {
+        public TestLessDepthBits(final int minDepthBits) {
             this.minDepthBits = minDepthBits;
         }
         public final boolean match(final C cap) {
             return cap.getDepthBits() < minDepthBits;
         }
     }
-    public static class RemoveMoreDepthBits<C extends GLCapabilitiesImmutable> implements RemovalCriteria<C> {
+    public static class TestMoreDepthBits<C extends GLCapabilitiesImmutable> implements Test<C> {
         final int maxDepthBits;
-        public RemoveMoreDepthBits(final int maxDepthBits) {
+        public TestMoreDepthBits(final int maxDepthBits) {
             this.maxDepthBits = maxDepthBits;
         }
         public final boolean match(final C cap) {
@@ -66,8 +66,8 @@ public class GLCapabilitiesFilter extends CapabilitiesFilter {
      */
     public static <C extends GLCapabilitiesImmutable> ArrayList<C> removeLessDepthBits(final ArrayList<C> availableCaps,
                                                                       final int minDepthBits) {
-        final ArrayList<RemovalCriteria<C>> criteria = new ArrayList<RemovalCriteria<C>>();
-        criteria.add(new RemoveLessDepthBits<C>(minDepthBits));
+        final ArrayList<Test<C>> criteria = new ArrayList<Test<C>>();
+        criteria.add(new TestLessDepthBits<C>(minDepthBits));
         return CapabilitiesFilter.removeMatching(availableCaps, criteria);
     }
 }
