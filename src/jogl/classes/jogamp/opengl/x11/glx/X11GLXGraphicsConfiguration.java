@@ -323,8 +323,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         if(DEBUG) {
             System.err.println("X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities: Null XVisualInfo for FBConfigID 0x" + Integer.toHexString(fbcfgid));
         }
-        // onscreen must have an XVisualInfo
-        drawableTypeBits &= ~(GLGraphicsConfigurationUtil.WINDOW_BIT | GLGraphicsConfigurationUtil.FBO_BIT);
+        // onscreen, FBO and bitmap must have an XVisualInfo
+        drawableTypeBits &= ~(GLGraphicsConfigurationUtil.WINDOW_BIT | GLGraphicsConfigurationUtil.FBO_BIT | GLGraphicsConfigurationUtil.BITMAP_BIT);
     }
     if( 0 == drawableTypeBits ) {
       if(DEBUG) {
