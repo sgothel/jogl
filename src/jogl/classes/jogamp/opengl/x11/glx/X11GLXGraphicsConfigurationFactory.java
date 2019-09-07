@@ -37,6 +37,7 @@ import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesFilter;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.VisualIDHolder;
@@ -44,11 +45,12 @@ import com.jogamp.nativewindow.VisualIDHolder.VIDType;
 import com.jogamp.opengl.DefaultGLCapabilitiesChooser;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesFilter;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLDrawableFactory;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
-
+import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
@@ -295,7 +297,8 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         final IntBuffer count = Buffers.newDirectIntBuffer(1);
         count.put(0, -1);
         final int winattrmask = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsChosen);
-        List<GLCapabilitiesImmutable> availableCaps;
+        final GLRendererQuirks glrq = factory.getRendererQuirks(x11Device, glProfile);
+        ArrayList<GLCapabilitiesImmutable> availableCaps;
         // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice,
         // skipped if xvisualID is given
         final boolean hasGLXChosenCaps;
@@ -305,21 +308,25 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         } else {
             hasGLXChosenCaps = false;
         }
-        final boolean useRecommendedIndex = hasGLXChosenCaps && capsChosen.isBackgroundOpaque(); // only use recommended idx if not translucent
-        final boolean skipCapsChooser = null == chooser && useRecommendedIndex; // fast path: skip choosing if using recommended idx and null chooser is used
+        final boolean isPBufferOrBitmap = capsChosen.isBitmap() || capsChosen.isPBuffer();
+        final boolean dontChooseFBConfigMatch = GLRendererQuirks.exist(glrq, GLRendererQuirks.DontChooseFBConfigBestMatch) ||
+                                                ( isPBufferOrBitmap && GLRendererQuirks.exist(glrq, GLRendererQuirks.No10BitColorCompOffscreen) );
+        final boolean useRecommendedIndex = !dontChooseFBConfigMatch &&
+                                            hasGLXChosenCaps && capsChosen.isBackgroundOpaque();
+        final boolean shallSkipCapsChooser = null == chooser && useRecommendedIndex;
         if (hasGLXChosenCaps) {
-            availableCaps = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(x11Device, glProfile, fbcfgsL, winattrmask, isMultisampleAvailable, skipCapsChooser /* onlyFirstValid */);
+            availableCaps = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(x11Device, glProfile, fbcfgsL, winattrmask, isMultisampleAvailable, shallSkipCapsChooser /* onlyFirstValid */);
             if(availableCaps.size() > 0) {
                 recommendedIndex = useRecommendedIndex ? 0 : -1;
                 if (DEBUG) {
                     System.err.println("glXChooseFBConfig recommended fbcfg " + toHexString(fbcfgsL.get(0)) + ", idx " + recommendedIndex);
-                    System.err.println("useRecommendedIndex "+useRecommendedIndex+", skipCapsChooser "+skipCapsChooser);
+                    System.err.println("useRecommendedIndex "+useRecommendedIndex+", shallSkipCapsChooser "+shallSkipCapsChooser);
                     System.err.println("user  caps " + capsChosen);
                     System.err.println("fbcfg caps " + fbcfgsL.limit()+", availCaps "+availableCaps.get(0));
                 }
             } else if (DEBUG) {
                 System.err.println("glXChooseFBConfig no caps for recommended fbcfg " + toHexString(fbcfgsL.get(0)));
-                System.err.println("useRecommendedIndex "+useRecommendedIndex+", skipCapsChooser "+skipCapsChooser);
+                System.err.println("useRecommendedIndex "+useRecommendedIndex+", shallSkipCapsChooser "+shallSkipCapsChooser);
                 System.err.println("user  caps " + capsChosen);
             }
         } else {
@@ -340,21 +347,28 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
             }
             availableCaps = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(x11Device, glProfile, fbcfgsL, winattrmask, isMultisampleAvailable, false /* onlyOneValid */);
         }
-
+        final boolean skipCapsChooser = shallSkipCapsChooser && 0 <= recommendedIndex;
         if(DEBUG) {
             System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: got configs: "+availableCaps.size());
             for(int i=0; i<availableCaps.size(); i++) {
                 System.err.println(i+": "+availableCaps.get(i));
             }
+            System.err.println("recommendedIndex "+recommendedIndex+", skipCapsChooser "+skipCapsChooser);
         }
-
-        if( VisualIDHolder.VID_UNDEFINED != xvisualID ) { // implies !hasGLXChosenCaps
-            for(int i=0; i<availableCaps.size(); ) {
-                final VisualIDHolder vidh = availableCaps.get(i);
-                if(vidh.getVisualID(VIDType.X11_XVISUAL) != xvisualID ) {
-                    availableCaps.remove(i);
-                } else {
-                    i++;
+        // Filter availableCaps
+        {
+            final List<GLCapabilitiesImmutable> removedCaps;
+            if( !skipCapsChooser && isPBufferOrBitmap && GLRendererQuirks.exist(glrq, GLRendererQuirks.No10BitColorCompOffscreen) ) {
+                removedCaps = CapabilitiesFilter.removeMoreColorCompsAndUnmatchingNativeVisualID(availableCaps, 8, xvisualID);
+            } else {
+                removedCaps = CapabilitiesFilter.removeUnmatchingNativeVisualID(availableCaps, xvisualID);
+            }
+            if( removedCaps.size() > 0 ) {
+                if(DEBUG) {
+                    System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: filtered configs: "+availableCaps.size());
+                    for(int i=0; i<availableCaps.size(); i++) {
+                        System.err.println(i+": "+availableCaps.get(i));
+                    }
                 }
             }
             if(0==availableCaps.size()) {
@@ -362,13 +376,11 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
                     System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: post filter visualID "+toHexString(xvisualID )+" no config found, failed - return null");
                 }
                 return null;
-            } else if(DEBUG) {
-                System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: post filter visualID "+toHexString(xvisualID)+" got configs: "+availableCaps.size());
             }
         }
 
         final int chosenIndex;
-        if( skipCapsChooser && 0 <= recommendedIndex ) {
+        if( skipCapsChooser ) {
             chosenIndex = recommendedIndex;
         } else {
             chosenIndex = chooseCapabilities(chooser, capsChosen, availableCaps, recommendedIndex);

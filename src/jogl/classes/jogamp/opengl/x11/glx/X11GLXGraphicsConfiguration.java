@@ -282,11 +282,11 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return GLXFBConfig2GLCapabilities(device, glp, fbcfg, winattrmask, isMultisampleAvailable, tmp, xRenderPictFormat);
   }
 
-  static List<GLCapabilitiesImmutable> GLXFBConfig2GLCapabilities(final X11GraphicsDevice device, final GLProfile glp, final PointerBuffer fbcfgsL,
+  static ArrayList<GLCapabilitiesImmutable> GLXFBConfig2GLCapabilities(final X11GraphicsDevice device, final GLProfile glp, final PointerBuffer fbcfgsL,
                                                                   final int winattrmask, final boolean isMultisampleAvailable, final boolean onlyFirstValid) {
     final IntBuffer tmp = Buffers.newDirectIntBuffer(1);
     final XRenderPictFormat xRenderPictFormat= XRenderPictFormat.create();
-    final List<GLCapabilitiesImmutable> result = new ArrayList<GLCapabilitiesImmutable>();
+    final ArrayList<GLCapabilitiesImmutable> result = new ArrayList<GLCapabilitiesImmutable>();
     for (int i = 0; i < fbcfgsL.limit(); i++) {
         final long fbcfg = fbcfgsL.get(i);
         final GLCapabilitiesImmutable c = GLXFBConfig2GLCapabilities(device, glp, fbcfg, winattrmask, isMultisampleAvailable, tmp, xRenderPictFormat);

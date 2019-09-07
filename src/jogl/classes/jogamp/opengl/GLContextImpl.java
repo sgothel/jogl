@@ -2435,6 +2435,7 @@ public abstract class GLContextImpl extends GLContext {
     if( isDriverMesa ) {
         final VersionNumber mesaSafeFBOVersion = new VersionNumber(8, 0, 0);
         final VersionNumber mesaIntelBuggySharedCtx921 = new VersionNumber(9, 2, 1);
+        final VersionNumber mesaNo10BitColorCompPBuffer = new VersionNumber(18, 0, 0);           // Mesa 18.0.0
         final VersionNumber mesaSafeGL3Compat = new VersionNumber(18, 2, 0);                     // Mesa 18.2.0
         final VersionNumber mesaSafeDoubleBufferedPBuffer = new VersionNumber(18, 2, 2);         // Mesa 18.2.2
         final VersionNumber mesaSafeSetSwapIntervalPostRetarget = mesaSafeDoubleBufferedPBuffer; // Mesa 18.2.2
@@ -2442,7 +2443,14 @@ public abstract class GLContextImpl extends GLContext {
         if( vendorVersion.compareTo(mesaSafeSetSwapIntervalPostRetarget) < 0 ) {
             final int quirk = GLRendererQuirks.NoSetSwapIntervalPostRetarget;
             if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
+            }
+            quirks.addQuirk( quirk );
+        }
+        if( vendorVersion.compareTo(mesaNo10BitColorCompPBuffer) >= 0 ) { // FIXME: When is it fixed ??
+            final int quirk = GLRendererQuirks.No10BitColorCompOffscreen;
+            if(DEBUG) {
+                System.err.println("Quirks: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
             }
             quirks.addQuirk( quirk );
         }

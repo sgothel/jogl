@@ -106,6 +106,9 @@ function jrun() {
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext -Djogl.quirks.force=GL3CompatNonCompliant,NoSurfacelessCtx -Djogl.disable.opengles" 
+    #D_ARGS="-Djogl.quirks.force=NoDoubleBufferedPBuffer" 
+    D_ARGS="-Dnativewindow.debug.GraphicsConfiguration"
+    #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000"
 
     #D_ARGS="-Djogamp.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
@@ -116,8 +119,8 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
 
-    D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.UnsafeUtil"
-    X_ARGS="--illegal-access=warn"
+    #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.UnsafeUtil"
+    #X_ARGS="--illegal-access=warn"
     #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true"
     #D_ARGS="-Djogl.debug.GLContext -Djogamp.debug.NativeLibrary -Djogamp.debug.JNILibLoader -Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler"
     #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogl.debug.GLContext"
@@ -947,9 +950,17 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01dAWT $*
 
-#linux Mesa/AMD:
+# Linux Mesa/AMD:
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestBug817GLReadBufferUtilGLCTXDefFormatTypeES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestBug817GLReadBufferUtilGLCTXDefFormatTypeES2NEWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01dAWT $*
+
+# Linux Mesa/Soft
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile03NEWTOffscreen $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 
 # ATI/Linux: XCB Unknown request in queue while dequeuing
 #            Most likely this is a multi-threaded client and XInitThreads has not been called

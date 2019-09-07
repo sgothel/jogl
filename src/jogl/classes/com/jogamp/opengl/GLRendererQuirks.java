@@ -491,8 +491,52 @@ public class GLRendererQuirks {
      */
     public static final int NoFBOSupport = 23;
 
+    /**
+     * Don't use the ChooseFBConfig's best match,
+     * instead utilize the given {@link GLCapabilitiesChooser} or {@link DefaultGLCapabilitiesChooser}
+     * without any recommendation.
+     * <p>
+     * The default behavior without this quirk is using a given {@link GLCapabilitiesChooser}
+     * and pass the ChooseFBConfig's best match as a recommendation.
+     * </p>
+     * <p>
+     * This quirk currently exist to be injected by the user via the properties,
+     * see {@link GLRendererQuirks.Override}.
+     * </p>
+     */
+    public static final int DontChooseFBConfigBestMatch = 24;
+
+    /**
+     * On Mesa >= 18.0.0, {@code glXChooseFBConfig} selects <i>better</i>
+     * {@link GLCapabilities} FBConfig than actually supported by
+     * {@link glXCreatePbuffer} and {@code glXCreateGLXPixmap}.
+     * <p>
+     * As tested on Mesa 18.3.6, requesting an RGB 8bit color component
+     * FBConfig for {@code GLX_PBUFFER_BIT} and {@code GLX_PIXMAP_BIT} {@code GLX_DRAWABLE_TYPE}s
+     * via {@code glXChooseFBConfig} returns an RGB 10bit color component
+     * FBConfig as its best match.
+     * Subsequent {@code glXCreatePbuffer} and {@code glXCreateGLXPixmap} calls fail.
+     * </p>
+     * <p>
+     * This bugs seems to occur in Mesa >= 18.0.0 using <i>allow_rgb10_configs</i>, which is the default now.
+     * While the 10 bit color components are not listed for
+     * on-screen {@code GLX.GLX_WINDOW_BIT} {@code GLX_DRAWABLE_TYPE}s,
+     * they are listed for above mentioned off-screen types without {@code XVisualInfo} reference.
+     * </p>
+     * <p>
+     * This quirk disables using any color component > 8 bit for
+     * {@code GLX_PBUFFER_BIT} and {@code GLX_PIXMAP_BIT} types
+     * and forces using an optional given {@link GLCapabilitiesChooser}
+     * or the {@link DefaultGLCapabilitiesChooser}.
+     * </p>
+     * <p>
+     * Note: Also implies {@link #DontChooseFBConfigBestMatch} for {@code GLX_PBUFFER_BIT} and {@code GLX_PIXMAP_BIT} types.
+     * </p>
+     */
+    public static final int No10BitColorCompOffscreen = 25;
+
     /** Return the number of known quirks, aka quirk bit count. */
-    public static final int getCount() { return 24; }
+    public static final int getCount() { return 26; }
 
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
@@ -502,7 +546,7 @@ public class GLRendererQuirks {
                                                           "GLSharedContextBuggy", "GLES3ViaEGLES2Config", "SingletonEGLDisplayOnly",
                                                           "NoMultiSamplingBuffers", "BuggyColorRenderbuffer", "NoPBufferWithAccum",
                                                           "NeedSharedObjectSync", "NoARBCreateContext", "NoSurfacelessCtx",
-                                                          "NoFBOSupport"
+                                                          "NoFBOSupport", "DontChooseFBConfigBestMatch", "No10BitColorCompOffscreen"
                                                         };
 
     private static final IdentityHashMap<String, GLRendererQuirks> stickyDeviceQuirks = new IdentityHashMap<String, GLRendererQuirks>();

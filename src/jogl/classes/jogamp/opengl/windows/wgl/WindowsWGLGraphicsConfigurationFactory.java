@@ -37,6 +37,7 @@ import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.CapabilitiesChooser;
+import com.jogamp.nativewindow.CapabilitiesFilter;
 import com.jogamp.nativewindow.DefaultGraphicsScreen;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
@@ -46,6 +47,7 @@ import com.jogamp.nativewindow.ProxySurface;
 import com.jogamp.nativewindow.VisualIDHolder;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesFilter;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLDrawableFactory;
 import com.jogamp.opengl.GLException;
@@ -354,6 +356,11 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         final int winattrbits = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsChosen)
                                 & ~GLGraphicsConfigurationUtil.BITMAP_BIT; // w/o BITMAP
         final GLProfile glProfile = capsChosen.getGLProfile();
+        final GLRendererQuirks glrq = factory.getRendererQuirks(device, glProfile);
+        final boolean isPBufferOrBitmap = capsChosen.isBitmap() || capsChosen.isPBuffer();
+        final boolean dontChooseFBConfigBestMatch = GLRendererQuirks.exist(glrq, GLRendererQuirks.DontChooseFBConfigBestMatch) ||
+                                                    ( isPBufferOrBitmap && GLRendererQuirks.exist(glrq, GLRendererQuirks.No10BitColorCompOffscreen) );
+        final boolean useRecommendedIndex = !dontChooseFBConfigBestMatch && capsChosen.isBackgroundOpaque();
 
         final int pfdIDCount = WindowsWGLGraphicsConfiguration.wglARBPFDIDCount((WindowsWGLContext)sharedResource.getContext(), hdc);
 
@@ -409,7 +416,9 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                                                                                        hdc, iattributes, accelerationMode, fattributes);
                 }
                 if (null != pformats) {
-                    recommendedIndex = 0;
+                    if( useRecommendedIndex ) {
+                        recommendedIndex = 0;
+                    }
                 } else {
                     if(DEBUG) {
                         System.err.println("updateGraphicsConfigurationARB: wglChoosePixelFormatARB failed with: "+capsChosen);
@@ -429,9 +438,9 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                     return false;
                 }
             }
-            final boolean skipCapsChooser = 0 <= recommendedIndex && null == chooser && capsChosen.isBackgroundOpaque(); // fast path: skip choosing if using recommended idx and null chooser is used and if not translucent
+            final boolean skipCapsChooser = 0 <= recommendedIndex && null == chooser && useRecommendedIndex;
 
-            final List<GLCapabilitiesImmutable> availableCaps =
+            final ArrayList<GLCapabilitiesImmutable> availableCaps =
                     WindowsWGLGraphicsConfiguration.wglARBPFIDs2GLCapabilities(sharedResource, device, glProfile,
                                                                                hdc, pformats, winattrbits, skipCapsChooser /* onlyFirstValid */);
 
@@ -449,6 +458,21 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                 if(0 <= recommendedIndex) {
                     System.err.println("updateGraphicsConfigurationARB: Used wglChoosePixelFormatARB to recommend pixel format " +
                                        pformats[recommendedIndex] + ", idx " + recommendedIndex +", "+availableCaps.get(recommendedIndex));
+                }
+            }
+            if(DEBUG) {
+                System.err.println("updateGraphicsConfigurationARB: got configs: "+availableCaps.size());
+                for(int i=0; i<availableCaps.size(); i++) {
+                    System.err.println(i+": "+availableCaps.get(i));
+                }
+            }
+            if( !skipCapsChooser && isPBufferOrBitmap && GLRendererQuirks.exist(glrq, GLRendererQuirks.No10BitColorCompOffscreen) ) {
+                CapabilitiesFilter.removeMoreColorComps(availableCaps, 8);
+                if(DEBUG) {
+                    System.err.println("updateGraphicsConfigurationARB: filtered configs: "+availableCaps.size());
+                    for(int i=0; i<availableCaps.size(); i++) {
+                        System.err.println(i+": "+availableCaps.get(i));
+                    }
                 }
             }
 

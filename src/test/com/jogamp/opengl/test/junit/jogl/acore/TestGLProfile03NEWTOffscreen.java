@@ -42,17 +42,27 @@ import org.junit.runners.MethodSorters;
 public class TestGLProfile03NEWTOffscreen extends GLProfile0XBase {
 
     @Test
-    public void test01GLProfileDefault() throws InterruptedException {
+    public void test01GLProfileDefaultFBO() throws InterruptedException {
         System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
         System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());
         final GLProfile glp = GLProfile.getDefault();
         System.out.println("GLProfile.getDefault(): "+glp);
-        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setFBO(true);
         validateOnlineOffscreen("default", caps);
     }
-
     @Test
-    public void test02GLProfileDefaultBitmap() throws InterruptedException {
+    public void test02GLProfileDefaultPBuffer() throws InterruptedException {
+        System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
+        System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());
+        final GLProfile glp = GLProfile.getDefault();
+        System.out.println("GLProfile.getDefault(): "+glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setPBuffer(true);
+        validateOnlineOffscreen("default", caps);
+    }
+    @Test
+    public void test03GLProfileDefaultBitmap() throws InterruptedException {
         System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
         System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());
         final GLProfile glp = GLProfile.getDefault();
@@ -63,25 +73,63 @@ public class TestGLProfile03NEWTOffscreen extends GLProfile0XBase {
     }
 
     @Test
-    public void test02GLProfileMaxProgrammable() throws InterruptedException {
+    public void test11GLProfileMaxProgrammableFBO() throws InterruptedException {
         // Assuming at least one programmable profile is available
         final GLProfile glp = GLProfile.getMaxProgrammable(true);
         System.out.println("GLProfile.getMaxProgrammable(): "+glp);
-        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setFBO(true);
+        validateOnlineOffscreen("maxProgrammable", caps);
+    }
+    @Test
+    public void test12GLProfileMaxProgrammablePBuffer() throws InterruptedException {
+        // Assuming at least one programmable profile is available
+        final GLProfile glp = GLProfile.getMaxProgrammable(true);
+        System.out.println("GLProfile.getMaxProgrammable(): "+glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setPBuffer(true);
+        validateOnlineOffscreen("maxProgrammable", caps);
+    }
+    // @Test // might not be available
+    public void test13GLProfileMaxProgrammableBitmap() throws InterruptedException {
+        // Assuming at least one programmable profile is available
+        final GLProfile glp = GLProfile.getMaxProgrammable(true);
+        System.out.println("GLProfile.getMaxProgrammable(): "+glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
         validateOnlineOffscreen("maxProgrammable", caps);
     }
 
     @Test
-    public void test03GLProfileMaxFixedFunc() throws InterruptedException {
+    public void test21GLProfileMaxFixedFuncFBO() throws InterruptedException {
         // Assuming at least one fixed function profile is available
         final GLProfile glp = GLProfile.getMaxFixedFunc(true);
         System.out.println("GLProfile.getMaxFixedFunc(): "+glp);
-        final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setFBO(true);
+        validateOnlineOffscreen("maxFixedFunc", caps);
+    }
+    @Test
+    public void test22GLProfileMaxFixedFuncPBuffer() throws InterruptedException {
+        // Assuming at least one fixed function profile is available
+        final GLProfile glp = GLProfile.getMaxFixedFunc(true);
+        System.out.println("GLProfile.getMaxFixedFunc(): "+glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setPBuffer(true);
+        validateOnlineOffscreen("maxFixedFunc", caps);
+    }
+    @Test
+    public void test23GLProfileMaxFixedFuncBitmap() throws InterruptedException {
+        // Assuming at least one fixed function profile is available
+        final GLProfile glp = GLProfile.getMaxFixedFunc(true);
+        System.out.println("GLProfile.getMaxFixedFunc(): "+glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setBitmap(true);
         validateOnlineOffscreen("maxFixedFunc", caps);
     }
 
     @Test
-    public void test04GLProfileGL2ES1() throws InterruptedException {
+    public void test31GLProfileGL2ES1() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2ES1)) {
             System.out.println("GLProfile GL2ES1 n/a");
             return;
@@ -92,7 +140,7 @@ public class TestGLProfile03NEWTOffscreen extends GLProfile0XBase {
     }
 
     @Test
-    public void test05GLProfileGL2ES2() throws InterruptedException {
+    public void test32GLProfileGL2ES2() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2ES2)) {
             System.out.println("GLProfile GL2ES2 n/a");
             return;
@@ -103,7 +151,7 @@ public class TestGLProfile03NEWTOffscreen extends GLProfile0XBase {
     }
 
     @Test
-    public void test06GLProfileGL4ES3() throws InterruptedException {
+    public void test33GLProfileGL4ES3() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL4ES3)) {
             System.out.println("GLProfile GL4ES3 n/a");
             return;
@@ -114,7 +162,7 @@ public class TestGLProfile03NEWTOffscreen extends GLProfile0XBase {
     }
 
     @Test
-    public void test07GLProfileGL2GL3() throws InterruptedException {
+    public void test34GLProfileGL2GL3() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2GL3)) {
             System.out.println("GLProfile GL2GL3 n/a");
             return;
@@ -135,42 +183,42 @@ public class TestGLProfile03NEWTOffscreen extends GLProfile0XBase {
     }
 
     @Test
-    public void test10_GL4bc() throws InterruptedException {
+    public void test41_GL4bc() throws InterruptedException {
         testSpecificProfile(GLProfile.GL4bc);
     }
 
     @Test
-    public void test11_GL3bc() throws InterruptedException {
+    public void test42_GL3bc() throws InterruptedException {
         testSpecificProfile(GLProfile.GL3bc);
     }
 
     @Test
-    public void test12_GL2() throws InterruptedException {
+    public void test43_GL2() throws InterruptedException {
         testSpecificProfile(GLProfile.GL2);
     }
 
     @Test
-    public void test13_GL4() throws InterruptedException {
+    public void test44_GL4() throws InterruptedException {
         testSpecificProfile(GLProfile.GL4);
     }
 
     @Test
-    public void test14_GL3() throws InterruptedException {
+    public void test45_GL3() throws InterruptedException {
         testSpecificProfile(GLProfile.GL3);
     }
 
     @Test
-    public void test15_GLES1() throws InterruptedException {
+    public void test46_GLES1() throws InterruptedException {
         testSpecificProfile(GLProfile.GLES1);
     }
 
     @Test
-    public void test16_GLES2() throws InterruptedException {
+    public void test47_GLES2() throws InterruptedException {
         testSpecificProfile(GLProfile.GLES2);
     }
 
     @Test
-    public void test17_GLES3() throws InterruptedException {
+    public void test48_GLES3() throws InterruptedException {
         testSpecificProfile(GLProfile.GLES3);
     }
 

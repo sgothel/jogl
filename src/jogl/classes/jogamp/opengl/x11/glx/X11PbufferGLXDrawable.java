@@ -115,7 +115,9 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       final long pbuffer = GLX.glXCreatePbuffer(display, config.getFBConfig(), iattributes);
       if (pbuffer == 0) {
         // FIXME: query X error code for detail error message
-        throw new GLException("pbuffer creation error: glXCreatePbuffer() failed");
+        throw new GLException("pbuffer creation error: glXCreatePbuffer() failed using fbConfig 0x"+
+                              Long.toHexString(config.getFBConfig())+", size "+ms.getSurfaceWidth()+"x"+ms.getSurfaceHeight()+
+                              ", "+config.getChosenCapabilities());
       }
 
       // Set up instance variables

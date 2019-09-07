@@ -375,10 +375,10 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return pformats;
     }
 
-    static List <GLCapabilitiesImmutable> wglARBPFIDs2GLCapabilities(final WindowsWGLDrawableFactory.SharedResource sharedResource,
-                                                                     final AbstractGraphicsDevice device, final GLProfile glp,
-                                                                     final long hdc, final int[] pfdIDs, final int winattrbits,
-                                                                     final boolean onlyFirstValid) {
+    static ArrayList <GLCapabilitiesImmutable> wglARBPFIDs2GLCapabilities(final WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                                                          final AbstractGraphicsDevice device, final GLProfile glp,
+                                                                          final long hdc, final int[] pfdIDs, final int winattrbits,
+                                                                          final boolean onlyFirstValid) {
         if (!sharedResource.hasARBPixelFormat()) {
             return null;
         }
