@@ -44,6 +44,8 @@ public class OSXUtil implements ToolkitProperties {
     private static boolean isInit = false;
     private static final boolean DEBUG = Debug.debug("OSXUtil");
 
+    private static final ThreadLocal<Boolean> tlsIsMainThread = new ThreadLocal<Boolean>();
+
     /** FIXME HiDPI: OSX unique and maximum value {@value} */
     public static final int MAX_PIXELSCALE = 2;
 
@@ -269,7 +271,7 @@ public class OSXUtil implements ToolkitProperties {
      * @param runnable
      */
     public static void RunOnMainThread(final boolean waitUntilDone, final boolean kickNSApp, final Runnable runnable) {
-        if( IsMainThread0() ) {
+        if( IsMainThread() ) {
             runnable.run(); // don't leave the JVM
         } else {
             // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
@@ -342,7 +344,7 @@ public class OSXUtil implements ToolkitProperties {
      * @param func
      */
     public static <R,A> R RunOnMainThread(final boolean waitUntilDone, final boolean kickNSApp, final Function<R,A> func, final A... args) {
-        if( IsMainThread0() ) {
+        if( IsMainThread() ) {
             return func.eval(args); // don't leave the JVM
         } else {
             // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
@@ -370,35 +372,28 @@ public class OSXUtil implements ToolkitProperties {
         }
     }
 
+    /**
+     * Returns true if the current is the NSApplication main-thread.
+     * <p>
+     * Implementation utilizes a {@link ThreadLocal} storage boolean holding the answer,
+     * which only gets set at the first call from each individual thread.
+     * This minimizes unnecessary native callbacks.
+     * </p>
+     * @return {@code true} if current thread is the NSApplication main-thread, otherwise false.
+     */
     public static boolean IsMainThread() {
-        return IsMainThread0();
+        Boolean isMainThread = tlsIsMainThread.get();
+        if( null == isMainThread ) {
+            isMainThread = new Boolean(IsMainThread0());
+            tlsIsMainThread.set(isMainThread);
+        }
+        return isMainThread.booleanValue();
     }
 
     /** Returns the screen refresh rate in Hz. If unavailable, returns 60Hz. */
     public static int GetScreenRefreshRate(final int scrn_idx) {
         return GetScreenRefreshRate0(scrn_idx);
     }
-
-    /***
-    private static boolean  isAWTEDTMainThreadInit = false;
-    private static boolean  isAWTEDTMainThread;
-
-    public synchronized static boolean isAWTEDTMainThread() {
-        if(!isAWTEDTMainThreadInit) {
-            isAWTEDTMainThreadInit = true;
-            if(Platform.AWT_AVAILABLE) {
-                AWTEDTExecutor.singleton.invoke(true, new Runnable() {
-                   public void run() {
-                       isAWTEDTMainThread = IsMainThread();
-                       System.err.println("XXX: "+Thread.currentThread().getName()+" - isAWTEDTMainThread "+isAWTEDTMainThread);
-                   }
-                });
-            } else {
-                isAWTEDTMainThread = false;
-            }
-        }
-        return isAWTEDTMainThread;
-    } */
 
     private static native boolean initIDs0();
     private static native boolean isNSView0(long object);
