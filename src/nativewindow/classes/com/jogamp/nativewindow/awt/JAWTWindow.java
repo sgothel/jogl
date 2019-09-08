@@ -270,6 +270,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     invalidateNative();
     jawt = null;
     awtConfig = null;
+    offscreenSurfaceLayer = 0; // Bug 1389
     isOffscreenLayerSurface = false;
     drawable= 0;
     drawable_old = 0;
@@ -534,7 +535,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
           throw new NativeWindowException("No offscreen layer attached: "+this);
       }
       if(DEBUG) {
-        System.err.println("JAWTWindow.detachSurfaceHandle(): osh "+toHexString(offscreenSurfaceLayer));
+        System.err.println("JAWTWindow.detachSurfaceHandle(): osh "+toHexString(offscreenSurfaceLayer)+" - "+Thread.currentThread().getName());
       }
       detachSurfaceLayerImpl(offscreenSurfaceLayer, detachSurfaceLayerNotify);
   }

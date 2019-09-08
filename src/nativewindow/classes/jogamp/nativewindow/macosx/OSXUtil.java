@@ -232,15 +232,16 @@ public class OSXUtil implements ToolkitProperties {
 
     /**
      * Detach a sub CALayer from the root CALayer.
+     * @param subCALayerRelease if true, native call will issue a final {@code [subCALayerRelease release]}.
      */
-    public static void RemoveCASublayer(final long rootCALayer, final long subCALayer) {
+    public static void RemoveCASublayer(final long rootCALayer, final long subCALayer, final boolean subCALayerRelease) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
         if(DEBUG) {
             System.err.println("OSXUtil.DetachCALayer: 0x"+Long.toHexString(subCALayer)+" - "+Thread.currentThread().getName());
         }
-        RemoveCASublayer0(rootCALayer, subCALayer);
+        RemoveCASublayer0(rootCALayer, subCALayer, subCALayerRelease);
     }
 
     /**
@@ -414,7 +415,7 @@ public class OSXUtil implements ToolkitProperties {
     private static native void AddCASublayer0(long rootCALayer, long subCALayer, int x, int y, int width, int height, float contentsScale, int caLayerQuirks);
     private static native void FixCALayerLayout0(long rootCALayer, long subCALayer, boolean visible, int x, int y, int width, int height, int caLayerQuirks);
     private static native void SetCALayerPixelScale0(long rootCALayer, long subCALayer, float contentsScale);
-    private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
+    private static native void RemoveCASublayer0(long rootCALayer, long subCALayer, boolean subCALayerRelease);
     private static native void DestroyCALayer0(long caLayer);
     private static native void RunOnMainThread0(boolean kickNSApp, Runnable runnable);
     private static native void RunLater0(boolean onMain, boolean kickNSApp, Runnable runnable, int delay);

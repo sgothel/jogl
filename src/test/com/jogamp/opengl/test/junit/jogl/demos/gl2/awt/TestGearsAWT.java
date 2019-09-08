@@ -160,11 +160,7 @@ public class TestGearsAWT extends UITestCase {
             }
         }
         if(waitForKey) {
-            final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-            System.err.println("Press enter to continue");
-            try {
-                System.err.println(stdin.readLine());
-            } catch (final IOException e) { }
+            waitForKey("Start Test");
         }
         org.junit.runner.JUnitCore.main(TestGearsAWT.class.getName());
     }

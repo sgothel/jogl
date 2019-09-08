@@ -924,7 +924,7 @@ public class MacOSXCGLContext extends GLContextImpl
                           // All CALayer lifecycle ops are deferred on main-thread
                           final DetachGLLayerCmd dCmd = new DetachGLLayerCmd(cmd);
                           if(DEBUG) {
-                              System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(false): "+dCmd);
+                              System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(false): "+dCmd+" - "+Thread.currentThread().getName());
                           }
                           OSXUtil.RunOnMainThread(false, true /* kickNSApp */, dCmd);
                           if( null != gl3ShaderProgram ) {

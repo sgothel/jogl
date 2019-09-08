@@ -807,10 +807,10 @@ NS_ENDHANDLER
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    RemoveCASublayer0
- * Signature: (JJ)V
+ * Signature: (JJZ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RemoveCASublayer0
-  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer)
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jboolean subCALayerRelease)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
@@ -826,6 +826,9 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RemoveCASublayer0
 
     [subLayer removeFromSuperlayer];
     [subLayer release]; // Pairs w/ AddCASublayer
+    if( subCALayerRelease ) {
+        [subLayer release];
+    }
     [rootLayer release]; // Pairs w/ AddCASublayer
 
     [CATransaction commit];
@@ -1051,7 +1054,7 @@ static void OSXUtil_KickNSApp() {
                                        timestamp: 0.0
                                     windowNumber: 0
                                          context: nil
-                                         subtype: 0
+                                         subtype: 8888 /* Bug 1389: Avoid JDK impl sendEvent types, utilizing data1 or data2 */
                                            data1: 0
                                            data2: 0];
     [NSApp postEvent: event atStart: true];
