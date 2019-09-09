@@ -756,8 +756,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                                                    !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags),
                                                    !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags),
                                                    surfaceHandle);
-                        final long uiView = IOSUtil.GetUIView(newWin[0], true);
-                        surfaceHandle = uiView;
+                        surfaceHandle = IOSUtil.GetUIView(newWin[0], true);
 
                         if( offscreenInstance ) {
                             orderOut0(0!=parentWinHandle ? parentWinHandle : newWin[0]);
@@ -770,6 +769,17 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 throw new NativeWindowException("Could not create native window "+Thread.currentThread().getName()+" "+this);
             }
             setWindowHandle( newWin[0] );
+            /**
+             * TODO: Validate whether visibility shall also be handled async on IOS as on OSX
+            if( !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags) ) {
+                IOSUtil.RunOnMainThread(false, false, new Runnable() {
+                    @Override
+                    public void run() {
+                        orderFront0( newWin[0] );
+                    }
+
+                });
+            } */
         } catch (final Exception ie) {
             ie.printStackTrace();
         }

@@ -165,9 +165,9 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
             }
             Assert.assertTrue(animator.isAnimating());
         }
-        Assert.assertEquals(exclusive, animator.isExclusiveContextEnabled());
 
         // After start, ExclusiveContextThread is set
+        Assert.assertEquals(exclusive, animator.isExclusiveContextEnabled());
         {
             final Thread ect = animator.getExclusiveContextThread();
             if(exclusive) {
@@ -182,7 +182,15 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
             for(int i=0; i<drawableCount; i++) {
                 Assert.assertEquals(ect, drawables[i].getExclusiveContextThread());
             }
-            setGLAutoDrawableVisible(drawables);
+        }
+        setGLAutoDrawableVisible(drawables);
+
+        // Made visible, check if drawables are realized
+        {
+            for(int i=0; i<drawableCount; i++) {
+                Assert.assertEquals(true, drawables[i].isRealized());
+            }
+
         }
         animator.setUpdateFPSFrames(showFPSRate, showFPS ? System.err : null);
 

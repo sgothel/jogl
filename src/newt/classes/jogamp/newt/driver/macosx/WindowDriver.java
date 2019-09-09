@@ -733,36 +733,26 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                               final int flags)
     {
         final long parentWinHandle = getParentWindowHandle();
-        final long preWinHandle = getWindowHandle();
+        final long oldWinHandle = getWindowHandle();
 
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("MacWindow.createWindow on thread "+Thread.currentThread().getName()+
                                ": offscreen "+offscreenInstance+", recreate "+recreate+
                                ", pS "+pS+", "+width+"x"+height+", state "+getReconfigStateMaskString(flags)+
-                               ", preWinHandle "+toHexString(preWinHandle)+", parentWin "+toHexString(parentWinHandle)+
+                               ", preWinHandle "+toHexString(oldWinHandle)+", parentWin "+toHexString(parentWinHandle)+
                                ", surfaceHandle "+toHexString(surfaceHandle));
             // Thread.dumpStack();
         }
 
         try {
-            if( 0 != preWinHandle ) {
+            if( 0 != oldWinHandle ) {
                 setWindowHandle(0);
                 if( 0 == surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/ window, but no Newt NSView");
                 }
-                OSXUtil.RunOnMainThread(false, false /* kickNSApp */, new Runnable() {
-                        @Override
-                        public void run() {
-                            changeContentView0(parentWinHandle, preWinHandle, 0);
-                            close0( preWinHandle );
-                        } });
             } else {
                 if( 0 != surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/o window, but has Newt NSView");
-                }
-                surfaceHandle = createView0(pS.getX(), pS.getY(), width, height);
-                if( 0 == surfaceHandle ) {
-                    throw new NativeWindowException("Could not create native view "+Thread.currentThread().getName()+" "+this);
                 }
             }
 
@@ -784,41 +774,54 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             OSXUtil.RunOnMainThread(true, false /* kickNSApp */, new Runnable() {
                     @Override
                     public void run() {
-                        newWin[0] = createWindow0( pS.getX(), pS.getY(), width, height,
+                        /**
+                         * Does everything at once, same as original code path:
+                         * 1) if oldWinHandle: changeContentView (detaching view) + close0(oldWindHandle)
+                         * 2) create new window
+                         * 3) create new view if previous didn't exist (oldWinHandle)
+                         * 4) changeContentView (attaching view) etc ..
+                         */
+                        final boolean isOpaque = getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance;
+                        newWin[0] = createWindow1( oldWinHandle, parentWinHandle, pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
                                                    0 != ( STATE_MASK_FULLSCREEN & flags),
-                                                   windowStyle,
-                                                   NSBackingStoreBuffered, surfaceHandle);
-                        if ( newWin[0] != 0 ) {
-                            final boolean isOpaque = getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance;
-                            initWindow0( parentWinHandle, newWin[0], pS.getX(), pS.getY(), width, height, reqPixelScale[0] /* HiDPI uniformPixelScale */,
-                                         isOpaque,
-                                         !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONTOP & flags),
-                                         !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags),
-                                         !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags),
-                                         surfaceHandle);
-                            if( offscreenInstance ) {
-                                orderOut0(0!=parentWinHandle ? parentWinHandle : newWin[0]);
-                            } else {
-                                setTitle0(newWin[0], getTitle());
-                            }
+                                                   windowStyle, NSBackingStoreBuffered,
+                                                   isOpaque,
+                                                   !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONTOP & flags),
+                                                   !offscreenInstance && 0 != ( STATE_MASK_ALWAYSONBOTTOM & flags),
+                                                   !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags),
+                                                   surfaceHandle);
+                        surfaceHandle = OSXUtil.GetNSView(newWin[0]);
+
+                        if( offscreenInstance ) {
+                            orderOut0(0!=parentWinHandle ? parentWinHandle : newWin[0]);
+                        } else {
+                            setTitle0(newWin[0], getTitle());
                         }
                     } });
 
-            if ( newWin[0] == 0 ) {
+            if ( newWin[0] == 0 || 0 == surfaceHandle ) {
                 throw new NativeWindowException("Could not create native window "+Thread.currentThread().getName()+" "+this);
             }
             setWindowHandle( newWin[0] );
+            if( !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags) ) {
+                OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                    @Override
+                    public void run() {
+                        orderFront0( newWin[0] );
+                    }
+
+                });
+            }
         } catch (final Exception ie) {
             ie.printStackTrace();
         }
     }
 
     protected static native boolean initIDs0();
-    private native long createView0(int x, int y, int w, int h);
-    private native long createWindow0(int x, int y, int w, int h, boolean fullscreen, int windowStyle, int backingStoreType, long view);
     /** Must be called on Main-Thread */
-    private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h, float reqPixelScale,
-                                    boolean opaque, boolean atop, boolean abottom, boolean visible, long view);
+    private native long createWindow1(long oldWindow, long parentWindow, int x, int y, int w, int h, float reqPixelScale,
+                                      boolean fullscreen, int windowStyle, int backingStoreType,
+                                      boolean opaque, boolean atop, boolean abottom, boolean visible, long view);
 
     private native int getDisplayID0(long window);
     private native void setPixelScale0(long window, long view, float reqPixelScale);

@@ -898,8 +898,9 @@ NS_ENDHANDLER
 
     realized = YES;
     withinLiveResize = JNI_FALSE;
-    DBG_PRINT("NewtWindow::create: %p, realized %d, hasPresentationSwitch %d[defaultOptions 0x%X, fullscreenOptions 0x%X], (refcnt %d)\n", 
-        res, realized, (int)hasPresentationSwitch, (int)defaultPresentationOptions, (int)fullscreenPresentationOptions, (int)[res retainCount]);
+    DBG_PRINT("NewtWindow::create: %p, realized %d, hasPresentationSwitch %d[defaultOptions 0x%X, fullscreenOptions 0x%X], view %p (refcnt %d)\n", 
+        res, realized, (int)hasPresentationSwitch, (int)defaultPresentationOptions, (int)fullscreenPresentationOptions, 
+        (void *)[self contentView], (int)[res retainCount]);
     return res;
 }
 

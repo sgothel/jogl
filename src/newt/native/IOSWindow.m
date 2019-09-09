@@ -533,8 +533,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_ios_WindowDriver_createWindow1
     }
     DBG_PRINT( "createWindow1.1 - window %p, isHidden %d, rootViewController %p\n", myWindow, [myWindow isHidden], myWindow.rootViewController);
 
-    CGRect rectView = CGRectMake(0, 0, w, h);
     if( NULL == myView ) {
+        CGRect rectView = CGRectMake(0, 0, w, h);
         myView = [[NewtUIView alloc] initWithFrame: rectView] ;
     }
     CAEAGLLayer* l = (CAEAGLLayer*)[myView layer];
