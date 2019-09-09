@@ -121,7 +121,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
         }
 
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
-            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
+            visibleChanged(0 != ( STATE_MASK_VISIBLE & flags));
         }
         return true;
     }

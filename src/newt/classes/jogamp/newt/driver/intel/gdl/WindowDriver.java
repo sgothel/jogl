@@ -115,7 +115,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
             if(0 != ( STATE_MASK_VISIBLE & flags)) {
                 ((DisplayDriver)getScreen().getDisplay()).setFocus(this);
             }
-            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
+            visibleChanged(0 != ( STATE_MASK_VISIBLE & flags));
         }
 
         return true;

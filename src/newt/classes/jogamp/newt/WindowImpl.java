@@ -924,7 +924,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      *
      * @see #windowDestroyNotify(boolean)
      * @see #focusChanged(boolean, boolean)
-     * @see #visibleChanged(boolean, boolean)
+     * @see #visibleChanged(boolean)
      * @see #sizeChanged(int,int)
      * @see #positionChanged(boolean,int, int)
      * @see #windowDestroyNotify(boolean)
@@ -4428,10 +4428,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** Triggered by implementation's WM events to update the visibility state. */
-    protected final void visibleChanged(final boolean defer, final boolean visible) {
+    protected final void visibleChanged(final boolean visible) {
         if( stateMask.put(STATE_BIT_VISIBLE, visible) != visible ) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.visibleChanged ("+getThreadName()+"): (defer: "+defer+") visible "+(!visible)+" -> state "+getStateMaskString()+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.visibleChanged ("+getThreadName()+"): visible "+(!visible)+" -> state "+getStateMaskString()+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
         }
     }
@@ -4741,7 +4741,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                                       final short eventType, final int modifiers,
                                                       final int x, final int y, final short button, final float rotation) {
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(defer, 0 < visibleChange);
+            visibleChanged(0 < visibleChange);
         }
         if( 0 < eventType ) {
             if( defer ) {
@@ -4763,7 +4763,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected final void visibleChangedWindowRepaint(final boolean defer, final int visibleChange,
                                                      final int x, final int y, final int width, final int height) {
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(defer, 0 < visibleChange);
+            visibleChanged(0 < visibleChange);
         }
         windowRepaint(defer, x, y, width, height);
     }
@@ -4781,7 +4781,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             focusChanged(defer, 0 < focusChange);
         }
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(defer, 0 < visibleChange);
+            visibleChanged(0 < visibleChange);
         }
     }
     /**
@@ -4799,7 +4799,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                               final int visibleChange) {
         insetsChanged(defer, left, right, top, bottom);
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(defer, 0 < visibleChange);
+            visibleChanged(0 < visibleChange);
         }
     }
     /**
@@ -4832,7 +4832,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             focusChanged(defer, 0 < focusChange);
         }
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(defer, 0 < visibleChange);
+            visibleChanged(0 < visibleChange);
         }
     }
     /**
@@ -4866,7 +4866,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         insetsChanged(defer, left, right, top, bottom);
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(defer, 0 < visibleChange);
+            visibleChanged(0 < visibleChange);
         }
     }
 

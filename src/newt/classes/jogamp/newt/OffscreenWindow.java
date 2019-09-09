@@ -72,7 +72,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
         synchronized(OffscreenWindow.class) {
             setWindowHandle(nextWindowHandle++);  // just a marker
         }
-        visibleChanged(false, true);
+        visibleChanged(true);
     }
 
     @Override
@@ -124,7 +124,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
         sizeChanged(false, width, height, false);
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
-            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
+            visibleChanged(0 != ( STATE_MASK_VISIBLE & flags));
         } else {
             /**
              * silently ignore:

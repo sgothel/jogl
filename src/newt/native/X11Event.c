@@ -249,7 +249,7 @@ void X11EventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                         int left, right, top, bottom;
                         NewtWindows_updateInsets(env, w->jwindow, dpy, evt.xany.window, &left, &right, &top, &bottom);
                     }
-                    (*env)->CallVoidMethod(env, w->jwindow, visibleChangedID, JNI_FALSE, JNI_TRUE);
+                    (*env)->CallVoidMethod(env, w->jwindow, visibleChangedID, JNI_TRUE);
                 }
                 break;
 
@@ -259,7 +259,7 @@ void X11EventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                     evt.xunmap.event!=evt.xunmap.window);
                 if( evt.xunmap.event == evt.xunmap.window ) {
                     // ignore child window notification
-                    (*env)->CallVoidMethod(env, w->jwindow, visibleChangedID, JNI_FALSE, JNI_FALSE);
+                    (*env)->CallVoidMethod(env, w->jwindow, visibleChangedID, JNI_FALSE);
                 }
                 break;
 

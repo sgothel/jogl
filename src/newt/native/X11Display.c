@@ -257,7 +257,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
     sizeChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sizeChanged", "(ZIIZ)V");
     positionChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "positionChanged", "(ZII)V");
     focusVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "focusVisibleChanged", "(ZII)V");
-    visibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChanged", "(ZZ)V");
+    visibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChanged", "(Z)V");
     insetsVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "insetsVisibleChanged", "(ZIIIII)V");
     sizePosMaxInsetsVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sizePosMaxInsetsVisibleChanged", "(ZIIIIIIIIIIIZ)V");
     reparentNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "reparentNotify", "(J)V");
@@ -803,7 +803,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "VisibilityNotify");
                     if( 0 <= visibleChange ) {
-                        (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE, 0 < visibleChange ? JNI_TRUE : JNI_FALSE);
+                        (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, 0 < visibleChange ? JNI_TRUE : JNI_FALSE);
                     }
                     #endif
                 }
@@ -837,7 +837,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     if( NewtWindows_updateInsets(dpy, jw, &left, &right, &top, &bottom) ) {
                         (*env)->CallVoidMethod(env, jw->jwindow, insetsVisibleChangedID, JNI_FALSE, left, right, top, bottom, 1);
                     } else {
-                        (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE, JNI_TRUE);
+                        (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_TRUE);
                     }
                 }
                 break;
@@ -849,7 +849,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 if( evt.xunmap.event == evt.xunmap.window ) {
                     // ignore child window notification
                     jw->isMapped = False;
-                    (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE, JNI_FALSE);
+                    (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE);
                 }
                 break;
 

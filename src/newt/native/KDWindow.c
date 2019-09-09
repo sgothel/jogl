@@ -145,7 +145,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_kd_DisplayDriver_DispatchMessages
                                 KDboolean visible;
                                 kdGetWindowPropertybv(kdWindow, KD_WINDOWPROPERTY_VISIBILITY, &visible);
                                 DBG_PRINT( "event window visibility: src: %p, v:%d\n", userData, visible);
-                                (*env)->CallVoidMethod(env, javaWindow, visibleChangedID, JNI_FALSE, visible?JNI_TRUE:JNI_FALSE);
+                                (*env)->CallVoidMethod(env, javaWindow, visibleChangedID, visible?JNI_TRUE:JNI_FALSE);
                             }
                             break;
                         default:
@@ -192,7 +192,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_kd_WindowDriver_initIDs
 #endif
     windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
-    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(SISSC)V");
@@ -277,7 +277,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_kd_WindowDriver_setVisible0
     KDboolean v = (visible==JNI_TRUE)?KD_TRUE:KD_FALSE;
     kdSetWindowPropertybv(w, KD_WINDOWPROPERTY_VISIBILITY, &v);
     DBG_PRINT( "[setVisible] v=%d\n", visible);
-    (*env)->CallVoidMethod(env, obj, visibleChangedID, JNI_FALSE, visible); // FIXME: or defer=true ?
+    (*env)->CallVoidMethod(env, obj, visibleChangedID, visible);
 }
 
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_kd_WindowDriver_setFullScreen0

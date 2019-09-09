@@ -366,7 +366,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         // propagate data ..
         setGraphicsConfiguration(eglConfig);
         setWindowHandle(surfaceHandle);
-        visibleChanged(false, true);
+        visibleChanged(true);
         focusChanged(false, true);
 
         setupInputListener(true);
@@ -483,7 +483,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             }
         }
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
-            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
+            visibleChanged(0 != ( STATE_MASK_VISIBLE & flags));
         }
         return res;
     }

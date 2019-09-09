@@ -443,7 +443,7 @@ static jmethodID windowRepaintID = NULL;
     sendTouchScreenEventID = (*env)->GetMethodID(env, clazz, "sendTouchScreenEvent", "(SI[I[S[I[I[I[FF)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
     updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFFFZ)V");
-    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
     sizeScreenPosInsetsChangedID = (*env)->GetMethodID(env, clazz, "sizeScreenPosInsetsChanged", "(ZIIIIIIIIZZ)V");
     screenPositionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)V");
@@ -823,7 +823,7 @@ static jmethodID windowRepaintID = NULL;
         DBG_PRINT("visibilityChanged: null JNIEnv\n");
         return;
     }
-    (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, JNI_FALSE, (visible == YES) ? JNI_TRUE : JNI_FALSE);
+    (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, (visible == YES) ? JNI_TRUE : JNI_FALSE);
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);

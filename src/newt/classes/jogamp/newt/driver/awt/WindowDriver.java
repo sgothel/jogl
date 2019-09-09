@@ -118,7 +118,7 @@ public class WindowDriver extends WindowImpl {
         if( withinLocalDispose ) {
             setupHandleAndGC();
             definePosition(getX(), getY()); // clear AUTOPOS
-            visibleChanged(false, true);
+            visibleChanged(true);
             withinLocalDispose = false;
         } else {
             if(0!=getParentWindowHandle()) {
@@ -316,7 +316,7 @@ public class WindowDriver extends WindowImpl {
                     setGraphicsConfiguration(cfg);
                 }
             }
-            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
+            visibleChanged(0 != ( STATE_MASK_VISIBLE & flags));
         }
         if( isVisible() ) {
             windowRepaint(false, 0, 0, getSurfaceWidth(), getSurfaceHeight());

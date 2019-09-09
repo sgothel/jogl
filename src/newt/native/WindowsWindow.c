@@ -1062,7 +1062,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             DBG_PRINT("*** WindowsWindow: WM_SHOWWINDOW window %p: %d, at-init %d\n", wnd, wParam==TRUE, wud->isInCreation);
             wud->visible = wParam==TRUE;
             if( !wud->isInCreation ) {
-                (*env)->CallVoidMethod(env, window, visibleChangedID, JNI_FALSE, wParam==TRUE?JNI_TRUE:JNI_FALSE);
+                (*env)->CallVoidMethod(env, window, visibleChangedID, wParam==TRUE?JNI_TRUE:JNI_FALSE);
             }
             break;
 
@@ -2127,7 +2127,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
     maximizedChangedID = (*env)->GetMethodID(env, clazz, "maximizedChanged", "(ZZ)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
-    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     sizePosInsetsFocusVisibleChangedID = (*env)->GetMethodID(env, clazz, "sizePosInsetsFocusVisibleChanged", "(ZIIIIIIIIIIZ)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");

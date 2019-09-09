@@ -251,7 +251,7 @@ public class WindowDriver extends WindowImpl {
         }
 
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
-            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
+            visibleChanged(0 != ( STATE_MASK_VISIBLE & flags));
         }
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("WindowsWindow reconfig.X: "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", "+getStateMaskString());

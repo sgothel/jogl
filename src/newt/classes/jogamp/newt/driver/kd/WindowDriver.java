@@ -103,7 +103,7 @@ public class WindowDriver extends WindowImpl {
     protected boolean reconfigureWindowImpl(final int x, final int y, int width, int height, final int flags) {
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
             setVisible0(eglWindowHandle, 0 != ( STATE_MASK_VISIBLE & flags));
-            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
+            visibleChanged(0 != ( STATE_MASK_VISIBLE & flags));
         }
 
         if(0!=eglWindowHandle) {
@@ -127,7 +127,7 @@ public class WindowDriver extends WindowImpl {
         }
 
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
-            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
+            visibleChanged(0 != ( STATE_MASK_VISIBLE & flags));
         }
 
         return true;

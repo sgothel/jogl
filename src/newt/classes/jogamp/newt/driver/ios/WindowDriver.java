@@ -205,7 +205,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         try {
             if(DEBUG_IMPLEMENTATION) { System.err.println("MacWindow.CloseAction "+Thread.currentThread().getName()); }
             final long handle = getWindowHandle();
-            visibleChanged(true, false);
+            visibleChanged(false);
             setWindowHandle(0);
             surfaceHandle = 0;
             sscSurfaceHandle = 0;
@@ -427,10 +427,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         @Override
                         public void run() {
                             orderOut0(getWindowHandle());
-                            visibleChanged(true, false);
+                            visibleChanged(false);
                         } } );
             } else {
-                visibleChanged(true, false);
+                visibleChanged(false);
             }
         }
         final long oldWindowHandle = getWindowHandle();
@@ -458,7 +458,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         updateSizePosInsets0(getWindowHandle(), false);
                     } } );
             }
-            visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
+            visibleChanged(0 != ( STATE_MASK_VISIBLE & flags));
             if( hasFocus ) {
                 requestFocusImpl(true);
             }
@@ -491,10 +491,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                             @Override
                             public void run() {
                                 orderFront0(getWindowHandle());
-                                visibleChanged(true, true);
+                                visibleChanged(true);
                             } } );
                 } else {
-                    visibleChanged(true, true);
+                    visibleChanged(true);
                 }
             }
         } else {
