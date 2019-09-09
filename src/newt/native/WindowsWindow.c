@@ -760,7 +760,7 @@ static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
         (void*)hwnd, strategy, (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom,
         (int) ( wud->insets.left + wud->insets.right ), (int) (wud->insets.top + wud->insets.bottom), wud->isInCreation);
     if( !wud->isInCreation ) {
-        (*env)->CallVoidMethod(env, window, insetsChangedID, JNI_FALSE,
+        (*env)->CallVoidMethod(env, window, insetsChangedID, 
                                (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom);
     }
 }
@@ -2122,7 +2122,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
 {
     NewtCommon_init(env);
 
-    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
+    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(IIII)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
     maximizedChangedID = (*env)->GetMethodID(env, clazz, "maximizedChanged", "(ZZ)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");

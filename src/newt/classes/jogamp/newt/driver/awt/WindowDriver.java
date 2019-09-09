@@ -287,7 +287,7 @@ public class WindowDriver extends WindowImpl {
                 setCanvasSizeImpl(width, height);
                 awtContainer.setVisible( true );
                 final Insets contInsets = awtContainer.getInsets();
-                insetsChanged(false, contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
+                insetsChanged(contInsets.left, contInsets.right, contInsets.top, contInsets.bottom);
             } else {
                 awtContainer.setVisible( false );
             }

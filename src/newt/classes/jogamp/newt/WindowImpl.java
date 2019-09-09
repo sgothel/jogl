@@ -4607,8 +4607,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /**
      * Triggered by implementation's WM events to update the insets.
-     *
-     * @param defer
      * @param left insets, -1 ignored
      * @param right insets, -1 ignored
      * @param top insets, -1 ignored
@@ -4617,7 +4615,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @see #getInsets()
      * @see #updateInsetsImpl(Insets)
      */
-    protected void insetsChanged(final boolean defer, final int left, final int right, final int top, final int bottom) {
+    protected final void insetsChanged(final int left, final int right, final int top, final int bottom) {
         if ( left >= 0 && right >= 0 && top >= 0 && bottom >= 0 ) {
             final boolean changed = left != insets.getLeftWidth() ||  right != insets.getRightWidth() ||
                                      top != insets.getTopHeight() || bottom != insets.getBottomHeight();
@@ -4625,12 +4623,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if( blockInsetsChange || isUndecorated() ) {
                 if(DEBUG_IMPLEMENTATION) {
                     if( changed ) {
-                        System.err.println("Window.insetsChanged (defer: "+defer+"): Skip insets change "+insets+" -> "+new Insets(left, right, top, bottom)+" (blocked "+blockInsetsChange+", undecoration "+isUndecorated()+")");
+                        System.err.println("Window.insetsChanged: Skip insets change "+insets+" -> "+new Insets(left, right, top, bottom)+" (blocked "+blockInsetsChange+", undecoration "+isUndecorated()+")");
                     }
                 }
             } else if ( changed ) {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window.insetsChanged (defer: "+defer+"): Changed "+insets+" -> "+new Insets(left, right, top, bottom));
+                    System.err.println("Window.insetsChanged: Changed "+insets+" -> "+new Insets(left, right, top, bottom));
                 }
                 insets.set(left, right, top, bottom);
             }
@@ -4786,18 +4784,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     /**
      * Triggered by implementation's WM events to update the client-area position, size, insets and maximized flags.
-     *
-     * @param defer
      * @param left insets, -1 ignored
      * @param right insets, -1 ignored
      * @param top insets, -1 ignored
      * @param bottom insets, -1 ignored
      * @param visibleChange -1 ignored, 0 invisible, > 0 visible
      */
-    protected final void insetsVisibleChanged(final boolean defer,
-                                              final int left, final int right, final int top, final int bottom,
-                                              final int visibleChange) {
-        insetsChanged(defer, left, right, top, bottom);
+    protected final void insetsVisibleChanged(final int left,
+                                              final int right, final int top, final int bottom, final int visibleChange) {
+        insetsChanged(left, right, top, bottom);
         if( 0 <= visibleChange ) { // ignore visible < 0
             visibleChanged(0 < visibleChange);
         }
@@ -4827,7 +4822,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                                           final boolean force) {
         sizeChanged(defer, newWidth, newHeight, force);
         positionChanged(defer, newX, newY);
-        insetsChanged(defer, left, right, top, bottom);
+        insetsChanged(left, right, top, bottom);
         if( 0 <= focusChange ) { // ignore focus < 0
             focusChanged(defer, 0 < focusChange);
         }
@@ -4864,7 +4859,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if( 0 <= maxHorzChange && 0 <= maxVertChange ) {
             maximizedChanged(0 < maxHorzChange, 0 < maxVertChange);
         }
-        insetsChanged(defer, left, right, top, bottom);
+        insetsChanged(left, right, top, bottom);
         if( 0 <= visibleChange ) { // ignore visible < 0
             visibleChanged(0 < visibleChange);
         }
