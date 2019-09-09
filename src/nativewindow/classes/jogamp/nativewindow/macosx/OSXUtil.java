@@ -31,6 +31,11 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.Point;
+
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
+import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.Function;
 import com.jogamp.common.util.FunctionTask;
 import com.jogamp.common.util.InterruptedRuntimeException;
@@ -55,11 +60,25 @@ public class OSXUtil implements ToolkitProperties {
      */
     public static synchronized void initSingleton() {
       if(!isInit) {
-          if(DEBUG) {
-              System.out.println("OSXUtil.initSingleton()");
+          final boolean useMainThreadChecker = Debug.debug("OSXUtil.MainThreadChecker");
+          if(DEBUG || useMainThreadChecker) {
+              System.out.println("OSXUtil.initSingleton() - useMainThreadChecker "+useMainThreadChecker);
           }
           if(!NWJNILibLoader.loadNativeWindow("macosx")) {
               throw new NativeWindowException("NativeWindow MacOSX native library load error.");
+          }
+          if( useMainThreadChecker ) {
+              final String libMainThreadChecker = "/Applications/Xcode.app/Contents/Developer/usr/lib/libMainThreadChecker.dylib";
+              final NativeLibrary lib = AccessController.doPrivileged(new PrivilegedAction<NativeLibrary>() {
+                  @Override
+                  public NativeLibrary run() {
+                      return NativeLibrary.open(libMainThreadChecker, false, false, OSXUtil.class.getClassLoader(), true);
+                  } } );
+              if( null == lib ) {
+                  System.err.println("Could not load "+libMainThreadChecker);
+              } else {
+                  System.err.println("Loaded "+lib);
+              }
           }
 
           if( !initIDs0() ) {

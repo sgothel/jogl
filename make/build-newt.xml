@@ -586,6 +586,8 @@
         <linkerarg value="-weak_framework" />
         <linkerarg value="AppKit" />
         <linkerarg value="-weak_framework" />
+        <linkerarg value="QuartzCore" />
+        <linkerarg value="-weak_framework" />
         <linkerarg value="Carbon" />
         <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
