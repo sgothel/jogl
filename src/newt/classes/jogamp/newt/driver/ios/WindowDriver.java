@@ -41,6 +41,7 @@ import com.jogamp.nativewindow.util.PointImmutable;
 
 import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.ios.IOSUtil;
+import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.newt.ScreenImpl;
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.DriverClearFocus;
@@ -451,7 +452,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 super.sizeChanged(false, width, height, true);
                 positionChanged(false,  x, y);
             } else {
-                updateSizePosInsets0(getWindowHandle(), false);
+                OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                    @Override
+                    public void run() {
+                        updateSizePosInsets0(getWindowHandle(), false);
+                    } } );
             }
             visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
             if( hasFocus ) {
@@ -467,7 +472,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                                         pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(),
                                         width, height, 0 != ( STATE_MASK_VISIBLE & flags));
                             } } );
-                    updateSizePosInsets0(oldWindowHandle, false);
+                    OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                        @Override
+                        public void run() {
+                            updateSizePosInsets0(oldWindowHandle, false);
+                        } } );
                 } else { // else offscreen size is realized via recreation
                     // no native event (fullscreen, some reparenting)
                     super.sizeChanged(false, width, height, false);

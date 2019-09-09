@@ -457,7 +457,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 super.sizeChanged(false, width, height, true);
                 positionChanged(false,  x, y);
             } else {
-                updateSizePosInsets0(getWindowHandle(), false);
+                OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                    @Override
+                    public void run() {
+                        updateSizePosInsets0(getWindowHandle(), false);
+                    } } );
             }
             visibleChanged(false, 0 != ( STATE_MASK_VISIBLE & flags));
             if( hasFocus ) {
@@ -473,7 +477,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                                         pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(),
                                         width, height, 0 != ( STATE_MASK_VISIBLE & flags));
                             } } );
-                    updateSizePosInsets0(oldWindowHandle, false);
+                    OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                        @Override
+                        public void run() {
+                            updateSizePosInsets0(oldWindowHandle, false);
+                        } } );
                 } else { // else offscreen size is realized via recreation
                     // no native event (fullscreen, some reparenting)
                     super.sizeChanged(false, width, height, false);
@@ -619,7 +627,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     protected void setPointerIconImpl(final PointerIconImpl pi) {
         if( !isOffscreenInstance ) {
             final long piHandle = null != pi ? pi.validatedHandle() : 0;
-            OSXUtil.RunOnMainThread(true, false, new Runnable() { // waitUntildone due to PointerIconImpl's Lifecycle !
+            OSXUtil.RunOnMainThread(false, false, new Runnable() {
                     @Override
                     public void run() {
                         setPointerIcon0(getWindowHandle(), piHandle);
