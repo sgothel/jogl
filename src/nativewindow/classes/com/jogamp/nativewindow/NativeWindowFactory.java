@@ -179,7 +179,7 @@ public abstract class NativeWindowFactory {
               if(guessGBM()){
                 return TYPE_GBM;
               }
-              return TYPE_DEFAULT;
+              return TYPE_X11;
         }
     }
 

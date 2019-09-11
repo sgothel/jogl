@@ -30,6 +30,12 @@ public class WindowDriver extends WindowImpl {
         this.linuxEventDeviceTracker = LinuxEventDeviceTracker.getSingleton();
     }
 
+
+    @Override
+    protected final int getSupportedReconfigMaskImpl() {
+        return minimumReconfigStateMask;
+    }
+
     @Override
     protected void createNativeImpl() {
         if (0 != getParentWindowHandle()) {
@@ -111,8 +117,4 @@ public class WindowDriver extends WindowImpl {
                          y);
     }
 
-    @Override
-    protected void updateInsetsImpl(final Insets insets) {
-
-    }
 }

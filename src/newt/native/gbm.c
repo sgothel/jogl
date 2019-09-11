@@ -41,7 +41,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_gbm_DisplayDriver_initGbm
 	drmModeEncoder *encoder = NULL;
 	int i, area;
 
-	for (i = 0; i < ARRAY_SIZE(modules); i++) {
+	for (i = 0; i < 6 /* ARRAY_SIZE(modules) */; i++) {
 		printf("trying to load module %s...", modules[i]);
 		drm.fd = drmOpen(modules[i], NULL);
 		if (drm.fd < 0) {
