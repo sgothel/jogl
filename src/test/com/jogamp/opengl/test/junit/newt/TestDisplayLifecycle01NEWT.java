@@ -51,13 +51,11 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 public class TestDisplayLifecycle01NEWT extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
-    static int width, height;
+    static final int width = 500, height = 500, xy_pos=100;
     static long durationPerTest = 100; // ms
 
     @BeforeClass
     public static void initClass() {
-        width  = 640;
-        height = 480;
         glp = GLProfile.getDefault();
         caps = new GLCapabilities(glp);
     }
@@ -100,6 +98,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
 
         // Create Window, pending lazy native creation
         final GLWindow window = createWindow(screen, caps, width, height);
+        window.setPosition(xy_pos, xy_pos);
         Assert.assertEquals(screen,window.getScreen());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
         Assert.assertEquals(0,display.getReferenceCount());
@@ -111,6 +110,8 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertNotNull(window.getScreen());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
+        Assert.assertEquals(xy_pos,window.getX());
+        Assert.assertEquals(xy_pos,window.getY());
 
         // lazy native creation sequence: Display, Screen and Window
         Assert.assertEquals(0, window.getTotalFPSFrames());
@@ -125,6 +126,8 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
+        Assert.assertEquals(xy_pos,window.getX());
+        Assert.assertEquals(xy_pos,window.getY());
         System.err.println("Frames for setVisible(true) 1: "+window.getTotalFPSFrames());
         Assert.assertTrue(0 < window.getTotalFPSFrames());
 
@@ -138,6 +141,8 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         window.setVisible(false);
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
+        Assert.assertEquals(xy_pos,window.getX());
+        Assert.assertEquals(xy_pos,window.getY());
 
         // just make the Window visible again
         window.resetFPSCounter();
@@ -145,6 +150,8 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         window.setVisible(true);
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
+        Assert.assertEquals(xy_pos,window.getX());
+        Assert.assertEquals(xy_pos,window.getY());
         System.err.println("Frames for setVisible(true) 1: "+window.getTotalFPSFrames());
         Assert.assertTrue(0 < window.getTotalFPSFrames());
 
@@ -231,7 +238,9 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         // Create Display/Screen, pending lazy native creation
         final Display display = NewtFactory.createDisplay(null);
         final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        System.err.println("Pass - 1");
         testDisplayCreate01(display, screen);
+        System.err.println("Pass - 2");
         testDisplayCreate01(display, screen);
 
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
