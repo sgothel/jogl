@@ -63,6 +63,14 @@
 
 #endif
 
+#include <sys/time.h>
+
+static int64_t getCurrentMillis() {
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    return (int64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+
 #define X11_MOUSE_EVENT_MASK (ButtonPressMask | ButtonReleaseMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask)
 
 static int putPtrIn32Long(unsigned long * dst, uintptr_t src) {
@@ -321,31 +329,41 @@ static void NewtWindows_setCWAbove(Display *dpy, Window w) {
     xwc.stack_mode = Above;
     XConfigureWindow(dpy, w, CWStackMode, &xwc);
 }
-static Status NewtWindows_getWindowPositionRelative2Parent (Display *dpy, Window w, int *x_return, int *y_return) {
+static Bool NewtWindows_getWindowPositionRelative2Parent (Display *dpy, Window win, Window winParent, int *x_return, int *y_return) {
+    Window child;
+    return XTranslateCoordinates(dpy, win, winParent, 0, 0, x_return, y_return, &child);
+}
+static Status NewtWindows_getWindowTopLeftPositionRelative2Parent (Display *dpy, Window win, int *x_return, int *y_return) {
     Window root_return;
     unsigned int width_return, height_return;
     unsigned int border_width_return;
     unsigned int depth_return;
 
-    if(0 !=  XGetGeometry(dpy, w, &root_return, x_return, y_return, &width_return, 
-                                  &height_return, &border_width_return, &depth_return)) {
+    if(0 !=  XGetGeometry(dpy, win, &root_return, x_return, y_return, &width_return, 
+                                    &height_return, &border_width_return, &depth_return)) {
         return 1; // OK
     }
     return 0; // Error
 }
-static Status NewtWindows_getFrameExtends(Display *dpy, JavaWindow *w, int *left, int *right, int *top, int *bottom) {
+static Status NewtWindows_getFrameExtends(Display *dpy, JavaWindow *javaWin, int *left, int *right, int *top, int *bottom) {
     Atom actual_type = 0;
     int actual_format = 0;
     int nitems_32 = 4; // l, r, t, b
     unsigned char * frame_extends_data_pp = NULL;
+    unsigned long nitems = 0;
 
-    {
-        unsigned long nitems = 0;
+    /** Safe polling ... */
+    #define TIMEOUT 250
+    int64_t t0 = getCurrentMillis();
+    #define MAX_ATTEMPTS 96
+    int evtCount = 0;
+
+    while( nitems<nitems_32 || NULL==frame_extends_data_pp ) {
         unsigned long bytes_after = 0;
         int res;
 
-        res = XGetWindowProperty(dpy, w->window, w->allAtoms[_NET_FRAME_EXTENTS_IDX], 0, nitems_32, False, 
-                                 AnyPropertyType, &actual_type, &actual_format, 
+        res = XGetWindowProperty(dpy, javaWin->window, javaWin->allAtoms[_NET_FRAME_EXTENTS_IDX], 
+                                 0, nitems_32, False, AnyPropertyType, &actual_type, &actual_format, 
                                  &nitems, &bytes_after, &frame_extends_data_pp);
 
         if ( Success != res ) {
@@ -354,12 +372,23 @@ static Status NewtWindows_getFrameExtends(Display *dpy, JavaWindow *w, int *left
         }
 
         if(nitems<nitems_32 || NULL==frame_extends_data_pp) {
+            int64_t tD = getCurrentMillis() - t0;
+            // _NET_FRAME_EXTENTS data not yet delivered by WM
+            // E.g. window not yet mapped
             if( NULL != frame_extends_data_pp ) {
                 XFree(frame_extends_data_pp);
             }
-            // DBG_PRINT( "Warning: NEWT X11Window: Fetched invalid Atom _NET_FRAME_EXTENTS window property (res %d) nitems %ld, bytes_after %ld, actual_type %ld, actual_format %d, _NET_FRAME_EXTENTS %ld, result 0!\n", 
-            //     res, nitems, bytes_after, (long)actual_type, actual_format, _NET_FRAME_EXTENTS);
-            return 0; // Error, but ok - ie window not mapped
+            if( tD < TIMEOUT && evtCount < MAX_ATTEMPTS ) {
+                // wait for next X event to arrive, then we may try again
+                XEvent e;
+                XPeekEvent(dpy, &e);
+                evtCount++;
+                DBG_PRINT( "NEWT FrameExtends: Waiting: #%d %ldms: evt %d, window %p (this=%d)\n", 
+                    evtCount, tD, e.type, (void*)e.xany.window, (javaWin->window == e.xany.window));
+            } else {
+                // timeout or max-attempts: exit
+                return 0; 
+            }
         }
     }
     long * extends = (long*) frame_extends_data_pp;
@@ -468,9 +497,9 @@ Bool NewtWindows_updateInsets(Display *dpy, JavaWindow * w, int *left, int *righ
         // The following logic only works if window is top-level _and_ the WM
         // has 'decorated' our client window w/ another parent window _within_ the actual 'framed' window.
         Window parent = NewtWindows_getParent(dpy, w->window);
-        if(0 != NewtWindows_getWindowPositionRelative2Parent (dpy, parent, left, top)) {
-            *right = *left; *bottom = *top;
-            DBG_PRINT( "NewtWindows_updateInsets: insets by parent position [ l %d, r %d, t %d, b %d ]\n", *left, *right, *top, *bottom);
+        if( 0 != NewtWindows_getWindowTopLeftPositionRelative2Parent (dpy, parent, left, top) ) {
+            *right = *left; *bottom = *left;
+            DBG_PRINT( "NewtWindows_updateInsets: insets relative to parent position [ l %d, r %d, t %d, b %d ]\n", *left, *right, *top, *bottom);
             return True; // OK
         }
     }
@@ -925,8 +954,9 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
             // get position from WM
             int dest_x, dest_y;
             Window child;
-            XTranslateCoordinates(dpy, window, windowParent, 0, 0, &dest_x, &dest_y, &child);
-            x = (int)dest_x; y = (int)dest_y;
+            if( XTranslateCoordinates(dpy, window, windowParent, 0, 0, &dest_x, &dest_y, &child) ) {
+                x = (int)dest_x; y = (int)dest_y;
+            }
         }
         DBG_PRINT("X11: [CreateWindow]: client: %d/%d %dx%d, autoPos %d\n", x, y, width, height, TST_FLAG_IS_AUTOPOSITION(flags));
 
