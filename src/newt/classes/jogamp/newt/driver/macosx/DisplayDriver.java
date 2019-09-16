@@ -44,15 +44,19 @@ import com.jogamp.nativewindow.util.PixelFormat;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.opengl.util.PNGPixelRect;
 
+import jogamp.newt.Debug;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
 
 public class DisplayDriver extends DisplayImpl {
     private static final PNGPixelRect defaultIconData;
+    private  static final boolean USE_APPKIT_EDTUTIL;
 
     static {
         NEWTJNILibLoader.loadNEWT();
@@ -85,9 +89,11 @@ public class DisplayDriver extends DisplayImpl {
                       defaultIconData.getSize().getWidth(), defaultIconData.getSize().getHeight());
             }
         }
+        Debug.initSingleton();
+        USE_APPKIT_EDTUTIL = PropertyAccess.getBooleanProperty("newt.macos.useAppKitEDTUtil", true, false);
 
         if(DEBUG) {
-            System.err.println("MacDisplay.init App and IDs OK "+Thread.currentThread().getName());
+            System.err.println("MacDisplay.init App and IDs OK (useAppKitEDTUtil "+USE_APPKIT_EDTUTIL+") - "+Thread.currentThread().getName());
         }
     }
 
@@ -114,6 +120,23 @@ public class DisplayDriver extends DisplayImpl {
     @Override
     protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
         aDevice.close();
+    }
+
+    protected EDTUtil createEDTUtil() {
+        if( USE_APPKIT_EDTUTIL ) {
+            final EDTUtil def;
+            if(NewtFactory.useEDT()) {
+                def = new AppKitEDTUtil(Thread.currentThread().getThreadGroup(), "Display-"+getFQName(), dispatchMessagesRunnable);
+                if(DEBUG) {
+                    System.err.println("Display.createEDTUtil("+getFQName()+"): "+def.getClass().getName());
+                }
+            } else {
+                def = null;
+            }
+            return def;
+        } else {
+            return super.createEDTUtil();
+        }
     }
 
     /**
