@@ -99,7 +99,7 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
     protected abstract void setGLAutoDrawableVisible(GLAutoDrawable[] glads);
     protected abstract void destroyGLAutoDrawableVisible(GLAutoDrawable glad);
 
-    protected void runTestGL(final GLCapabilitiesImmutable caps, final int drawableCount, final boolean exclusive, final boolean preAdd, final boolean shortenTest) throws InterruptedException {
+    protected void runTestGL(final GLCapabilitiesImmutable caps, final int drawableCount, final boolean exclusive, final boolean preAdd, final boolean preVisible, final boolean shortenTest) throws InterruptedException {
         final boolean useAWTRenderThread = isAWTTestCase();
         if( useAWTRenderThread && exclusive ) {
             if( testExclusiveWithAWT ) {
@@ -128,6 +128,9 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
             final GearsES2 demo = new GearsES2(swapInterval);
             demo.setVerbose(false);
             drawables[i].addGLEventListener(demo);
+        }
+        if( preVisible ) {
+            setGLAutoDrawableVisible(drawables);
         }
 
         if( preAdd ) {
@@ -183,7 +186,9 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
                 Assert.assertEquals(ect, drawables[i].getExclusiveContextThread());
             }
         }
-        setGLAutoDrawableVisible(drawables);
+        if( !preVisible ) {
+            setGLAutoDrawableVisible(drawables);
+        }
 
         // Made visible, check if drawables are realized
         {
@@ -373,59 +378,114 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
     }
 
     @Test
-    public void test01NormalPre_1Win() throws InterruptedException {
+    public void test01NormalPre_1WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 1 /* numWin */, false /* exclusive */, true /* preAdd */, false /* short */);
+        runTestGL(caps, 1 /* numWin */, false /* exclusive */, true /* preAdd */, false /* preVis */, false /* short */);
     }
 
     @Test
-    public void test02NormalPost_1Win() throws InterruptedException {
+    public void test02NormalPost_1WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 1 /* numWin */, false /* exclusive */, false /* preAdd */, true /* short */);
+        runTestGL(caps, 1 /* numWin */, false /* exclusive */, false /* preAdd */, false /* preVis */, true /* short */);
     }
 
     @Test
-    public void test03ExclPre_1Win() throws InterruptedException {
+    public void test03ExclPre_1WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 1 /* numWin */, true /* exclusive */, true /* preAdd */, false /* short */);
+        runTestGL(caps, 1 /* numWin */, true /* exclusive */, true /* preAdd */, false /* preVis */, false /* short */);
     }
 
     @Test
-    public void test04ExclPost_1Win() throws InterruptedException {
+    public void test04ExclPost_1WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 1 /* numWin */, true /* exclusive */, false /* preAdd */, true /* short */);
+        runTestGL(caps, 1 /* numWin */, true /* exclusive */, false /* preAdd */, false /* preVis */, true /* short */);
     }
 
     @Test
-    public void test05NormalPre_4Win() throws InterruptedException {
+    public void test05NormalPre_4WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 4 /* numWin */, false /* exclusive */, true /* preAdd */, false /* short */);
+        runTestGL(caps, 4 /* numWin */, false /* exclusive */, true /* preAdd */, false /* preVis */, false /* short */);
     }
 
     @Test
-    public void test06NormalPost_4Win() throws InterruptedException {
+    public void test06NormalPost_4WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 4 /* numWin */, false /* exclusive */, false /* preAdd */, true /* short */);
+        runTestGL(caps, 4 /* numWin */, false /* exclusive */, false /* preAdd */, false /* preVis */, true /* short */);
     }
 
     @Test
-    public void test07ExclPre_4Win() throws InterruptedException {
+    public void test07ExclPre_4WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 4 /* numWin */, true /* exclusive */, true /* preAdd */, false /* short */);
+        runTestGL(caps, 4 /* numWin */, true /* exclusive */, true /* preAdd */, false /* preVis */, false /* short */);
     }
 
     @Test
-    public void test08ExclPost_4Win() throws InterruptedException {
+    public void test08ExclPost_4WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 4 /* numWin */, true /* exclusive */, false /* preAdd */, true /* short */);
+        runTestGL(caps, 4 /* numWin */, true /* exclusive */, false /* preAdd */, false /* preVis */, true /* short */);
     }
 
+    @Test
+    public void test11NormalPre_1WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 1 /* numWin */, false /* exclusive */, true /* preAdd */, true /* preVis */, false /* short */);
+    }
+
+    @Test
+    public void test12NormalPost_1WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 1 /* numWin */, false /* exclusive */, false /* preAdd */, true /* preVis */, true /* short */);
+    }
+
+    @Test
+    public void test13ExclPre_1WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 1 /* numWin */, true /* exclusive */, true /* preAdd */, true /* preVis */, false /* short */);
+    }
+
+    @Test
+    public void test14ExclPost_1WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 1 /* numWin */, true /* exclusive */, false /* preAdd */, true /* preVis */, true /* short */);
+    }
+
+    @Test
+    public void test15NormalPre_4WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 4 /* numWin */, false /* exclusive */, true /* preAdd */, true /* preVis */, false /* short */);
+    }
+
+    @Test
+    public void test16NormalPost_4WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 4 /* numWin */, false /* exclusive */, false /* preAdd */, true /* preVis */, true /* short */);
+    }
+
+    @Test
+    public void test17ExclPre_4WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 4 /* numWin */, true /* exclusive */, true /* preAdd */, true /* preVis */, false /* short */);
+    }
+
+    @Test
+    public void test18ExclPost_4WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 4 /* numWin */, true /* exclusive */, false /* preAdd */, true /* preVis */, true /* short */);
+    }
 }
