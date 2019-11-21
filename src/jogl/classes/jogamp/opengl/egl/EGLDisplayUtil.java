@@ -199,19 +199,26 @@ public class EGLDisplayUtil {
         }
 
         final String nativeWindowType = NativeWindowFactory.getNativeWindowType(false);
-        int platform = 0;
+        final int platform;
         final long eglDisplay;
-        if(nativeWindowType == NativeWindowFactory.TYPE_X11) {
-            platform = EGLExt.EGL_PLATFORM_X11_KHR;
-        }else if(nativeWindowType == NativeWindowFactory.TYPE_ANDROID) {
-            platform = EGLExt.EGL_PLATFORM_ANDROID_KHR;
-        }else if(nativeWindowType == NativeWindowFactory.TYPE_GBM){
-            platform = EGLExt.EGL_PLATFORM_GBM_MESA;
-        } else if(nativeWindowType == NativeWindowFactory.TYPE_WAYLAND){
-            // TODO
-            platform = EGLExt.EGL_PLATFORM_WAYLAND_KHR;
+        switch( nativeWindowType ) {
+            case NativeWindowFactory.TYPE_X11:
+                platform = EGLExt.EGL_PLATFORM_X11_KHR;
+                break;
+            case NativeWindowFactory.TYPE_ANDROID:
+                platform = EGLExt.EGL_PLATFORM_ANDROID_KHR;
+                break;
+            case NativeWindowFactory.TYPE_GBM:
+                platform = EGLExt.EGL_PLATFORM_GBM_MESA;
+                break;
+            case NativeWindowFactory.TYPE_WAYLAND:
+                // TODO
+                platform = EGLExt.EGL_PLATFORM_WAYLAND_KHR;
+                break;
+            default:
+                platform = 0;
         }
-        if( platform != 0){
+        if( 0 != platform && false ) {
             eglDisplay = EGL.eglGetPlatformDisplay(platform, nativeDisplay_id, null);
         }
         else{

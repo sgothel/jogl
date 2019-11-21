@@ -49,7 +49,7 @@
        setup.addNativeKD
        setup.addNativeIntelGDL
        setup.addNativeBroadcom  ( always true if 'isLinux' )
-       setup.addNativeGBM  ( always true if 'isLinux' )
+       setup.addNativeEGLGBM  ( always true if 'isLinux' )
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
@@ -76,7 +76,7 @@
            <isset property="isLinux"/>
         </condition>
 
-        <condition property="setup.addNativeGBM">
+        <condition property="setup.addNativeEGLGBM">
             <isset property="isLinux"/>
         </condition>
 
@@ -90,7 +90,7 @@
                 <isfalse value="${setup.addNativeKD}" />
                 <isfalse value="${setup.addNativeIntelGDL}" />
                 <isfalse value="${setup.addNativeBroadcom}" />
-                <isfalse value="${setup.addNativeGBM}" />
+                <isfalse value="${setup.addNativeEGLGBM}" />
             </and>
         </condition>
 
@@ -103,7 +103,7 @@
         <echo message="setup.addNativeKD: ${setup.addNativeKD}" />
         <echo message="setup.addNativeIntelGDL: ${setup.addNativeIntelGDL}" />
         <echo message="setup.addNativeBroadcom: ${setup.addNativeBroadcom}" />
-        <echo message="setup.addNativeGBM: ${setup.addNativeGBM}" />
+        <echo message="setup.addNativeEGLGBM: ${setup.addNativeEGLGBM}" />
         <echo message="setup.nonatives: ${setup.nonatives}" />
 
         <!-- partitioning -->
@@ -156,8 +156,8 @@
         <property name="java.part.driver.bcm.vc"
                   value="jogamp/newt/driver/bcm/vc/**"/>
 
-        <property name="java.part.driver.gbm"
-                  value="jogamp/newt/driver/gbm/**"/>
+        <property name="java.part.driver.egl.gbm"
+                  value="jogamp/newt/driver/egl/gbm/**"/>
 
         <property name="java.part.driver.android"
                   value="jogamp/newt/driver/android/**"/>
@@ -245,7 +245,7 @@
         <mkdir dir="${src.generated.c}/IntelGDL" />
         <mkdir dir="${src.generated.c}/bcm/egl" />
         <mkdir dir="${src.generated.c}/bcm/vc/iv" />
-        <mkdir dir="${src.generated.c}/gbm" />
+        <mkdir dir="${src.generated.c}/egl/gbm" />
         <mkdir dir="${classes}" />
         <mkdir dir="${obj.newt}" />
     </target>
@@ -332,7 +332,7 @@
         <javac srcdir="${src.java}"
                destdir="${classes}"
                excludes="${java.excludes.all} ${java.part.driver.android}"
-               nativeheaderdir="${src.generated.c}/gbm"
+               nativeheaderdir="${src.generated.c}/egl/gbm"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -342,9 +342,9 @@
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
-            <include name="jogamp/newt/driver/gbm/DisplayDriver.java" />
-            <include name="jogamp/newt/driver/gbm/ScreenDriver.java" />
-            <include name="jogamp/newt/driver/gbm/WindowDriver.java" />
+            <include name="jogamp/newt/driver/egl/gbm/DisplayDriver.java" />
+            <include name="jogamp/newt/driver/egl/gbm/ScreenDriver.java" />
+            <include name="jogamp/newt/driver/egl/gbm/WindowDriver.java" />
         </javac>
 
         <!-- create Windows native headers -->
@@ -525,11 +525,11 @@
         <!-- syslibset libs="EGL"/ -->
       </linker>
 
-        <linker id="linker.cfg.linux.newt.bcm_vc" extends="linker.cfg.linux">
-            <syslibset libs="EGL"/>
-            <syslibset libs="gbm"/>
-            <syslibset libs="drm"/>
-        </linker>
+      <linker id="linker.cfg.linux.newt.egl_gbm" extends="linker.cfg.linux">
+        <syslibset libs="EGL"/>
+        <syslibset libs="gbm"/>
+        <syslibset libs="drm"/>
+      </linker>
 
       <linker id="linker.cfg.linux.newt.bcm_egl" extends="linker.cfg.linux">
         <syslibset libs="EGL"/>
@@ -899,7 +899,7 @@
           <include name="${rootrel.src.c}/IntelGDL.c"         if="setup.addNativeIntelGDL"/>
           <include name="${rootrel.src.c}/bcm_egl.c"          if="setup.addNativeBroadcom"/>
           <include name="${rootrel.src.c}/bcm_vc_iv.c"        if="setup.addNativeBroadcom"/>
-          <include name="${rootrel.src.c}/gbm.c"              if="setup.addNativeGBM"/>
+          <include name="${rootrel.src.c}/egl_gbm.c"          if="setup.addNativeEGLGBM"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
@@ -948,7 +948,8 @@
                 <includepath path="stub_includes/embedded/IntelGDL" if="setup.addNativeIntelGDL" />
                 <includepath path="${src.generated.c}/bcm/egl"      if="setup.addNativeBroadcom" />
                 <includepath path="${src.generated.c}/bcm/vc/iv"    if="setup.addNativeBroadcom" />
-                <includepath path="${src.generated.c}/gbm"          if="setup.addNativeGBM" />
+                <includepath path="${src.generated.c}/egl/gbm"      if="setup.addNativeEGLGBM" />
+                <includepath path="/usr/include/libdrm"             if="setup.addNativeEGLGBM" />
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
               </compiler>
@@ -1094,9 +1095,9 @@
             <fileset dir="${classes}"
                      includes="${java.part.driver.bcm.vc}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-gbm.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-egl-gbm.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.driver.gbm}"/>
+                     includes="${java.part.driver.egl.gbm}"/>
         </jar>
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-intelgdl.jar}" filesonly="true">
             <fileset dir="${classes}"

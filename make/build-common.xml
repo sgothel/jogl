@@ -414,7 +414,7 @@
         <property name="newt-driver-intelgdl.jar" value="${build.newt}/newt-driver-intelgdl.jar" />    <!-- excluded from all -->
         <property name="newt-driver-bcm-old.jar"  value="${build.newt}/newt-driver-bcm-old.jar" />     <!-- excluded from all -->
         <property name="newt-driver-bcm-vc.jar"   value="${build.newt}/newt-driver-bcm-vc.jar" />
-        <property name="newt-driver-gbm.jar"      value="${build.newt}/newt-driver-gbm.jar" />
+        <property name="newt-driver-egl-gbm.jar"  value="${build.newt}/newt-driver-egl-gbm.jar" />
 
         <path id="newt_all_atoms.classpath">
             <pathelement location="${newt.jar}" />
@@ -428,7 +428,7 @@
             <pathelement location="${newt-driver-osx.jar}" />
             <pathelement location="${newt-driver-ios.jar}" />
             <pathelement location="${newt-driver-bcm-vc.jar}" />
-            <pathelement location="${newt-driver-gbm.jar}" />
+            <pathelement location="${newt-driver-egl-gbm.jar}" />
         </path>
         <path id="newt_all-noawt_atoms.classpath">
             <pathelement location="${newt.jar}" />
@@ -439,7 +439,7 @@
             <pathelement location="${newt-driver-osx.jar}" />
             <pathelement location="${newt-driver-ios.jar}" />
             <pathelement location="${newt-driver-bcm-vc.jar}" />
-            <pathelement location="${newt-driver-gbm.jar}" />
+            <pathelement location="${newt-driver-egl-gbm.jar}" />
         </path>
         <path id="newt_all-mobile_atoms.classpath">
             <pathelement location="${newt.jar}" />
@@ -449,7 +449,7 @@
             <pathelement location="${newt-driver-win.jar}" />
             <pathelement location="${newt-driver-ios.jar}" />
             <pathelement location="${newt-driver-bcm-vc.jar}" />
-            <pathelement location="${newt-driver-gbm.jar}" />
+            <pathelement location="${newt-driver-egl-gbm.jar}" />
         </path>
         <path id="newt_all-android_atoms.classpath">
             <pathelement location="${newt.jar}" />

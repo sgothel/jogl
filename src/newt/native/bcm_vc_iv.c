@@ -299,10 +299,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_DisplayDriver_MovePoint
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_ScreenDriver_initIDs
   (JNIEnv *env, jclass clazz)
 {
-    uint32_t screen_width;
-    uint32_t screen_height;
-    int32_t success = 0;
-
     setScreenSizeID = (*env)->GetMethodID(env, clazz, "setScreenSize", "(II)V");
     if (setScreenSizeID == NULL) {
         DBG_PRINT( "BCM.Screen initIDs FALSE\n" );
