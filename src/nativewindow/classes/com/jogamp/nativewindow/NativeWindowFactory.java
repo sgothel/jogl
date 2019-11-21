@@ -87,7 +87,7 @@ public abstract class NativeWindowFactory {
     public static final String TYPE_WAYLAND = ".wayland";
 
     /** GBM/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
-    public static final String TYPE_GBM = ".gbm";
+    public static final String TYPE_EGL_GBM = ".egl.gbm";
 
     /** OpenKODE/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
     public static final String TYPE_EGL = ".egl";
@@ -167,24 +167,24 @@ public abstract class NativeWindowFactory {
             case HPUX:
             default:
               if( BcmVCArtifacts.guessVCIVUsed() ) {
-                return TYPE_BCM_VC_IV;
+                  return TYPE_BCM_VC_IV;
               }
-              if(guessX()){
-                    return TYPE_X11;
+              if( guessX() ) {
+                  return TYPE_X11;
               }
-              if(guessWayland()){
+              if( guessWayland() ) {
                   //TODO
                   return TYPE_WAYLAND;
               }
-              if(guessGBM()){
-                return TYPE_GBM;
+              if( true || guessGBM() ) { // FIXME
+                  return TYPE_EGL_GBM;
               }
               return TYPE_X11;
         }
     }
 
     private static boolean guessX() {
-        return System.getProperty("DISPLAY") !=null;
+        return System.getProperty("DISPLAY") != null;
     }
 
     private static boolean guessWayland() {

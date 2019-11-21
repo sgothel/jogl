@@ -208,8 +208,8 @@ public class EGLDisplayUtil {
             case NativeWindowFactory.TYPE_ANDROID:
                 platform = EGLExt.EGL_PLATFORM_ANDROID_KHR;
                 break;
-            case NativeWindowFactory.TYPE_GBM:
-                platform = EGLExt.EGL_PLATFORM_GBM_MESA;
+            case NativeWindowFactory.TYPE_EGL_GBM:
+                platform = EGLExt.EGL_PLATFORM_GBM_KHR; // same EGLExt.EGL_PLATFORM_GBM_MESA;
                 break;
             case NativeWindowFactory.TYPE_WAYLAND:
                 // TODO
@@ -218,7 +218,7 @@ public class EGLDisplayUtil {
             default:
                 platform = 0;
         }
-        if( 0 != platform && false ) {
+        if( 0 != platform ) {
             eglDisplay = EGL.eglGetPlatformDisplay(platform, nativeDisplay_id, null);
         }
         else{
@@ -226,7 +226,8 @@ public class EGLDisplayUtil {
         }
 
         if(DEBUG) {
-            System.err.println("EGLDisplayUtil.eglGetDisplay.X: eglDisplay("+EGLContext.toHexString(nativeDisplay_id)+"): "+
+            System.err.println("EGLDisplayUtil.eglGetDisplay.X: eglDisplay("+EGLContext.toHexString(nativeDisplay_id)+") @ "+
+                               platform+"/"+nativeWindowType+": "+
                                EGLContext.toHexString(eglDisplay)+
                                ", "+((EGL.EGL_NO_DISPLAY != eglDisplay)?"OK":"Failed")+", singletonEGLDisplay "+singletonEGLDisplay+" (use "+useSingletonEGLDisplay+")");
         }
