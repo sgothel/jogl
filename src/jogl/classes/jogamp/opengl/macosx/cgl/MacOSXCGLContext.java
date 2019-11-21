@@ -356,7 +356,16 @@ public class MacOSXCGLContext extends GLContextImpl
               incompleteView = false;
             }
             if(!incompleteView) {
-                updateHandle = CGL.updateContextRegister(contextHandle, drawable.getHandle());
+                if( useAppKit ) {
+                    OSXUtil.RunOnMainThread(true, false, new Runnable() {
+                        @Override
+                        public void run() {
+                            updateHandle = CGL.updateContextRegister(contextHandle, drawable.getHandle());
+                        }
+                    });
+                } else {
+                    updateHandle = CGL.updateContextRegister(contextHandle, drawable.getHandle());
+                }
                 if(0 == updateHandle) {
                     throw new InternalError("XXX2");
                 }
@@ -373,6 +382,7 @@ public class MacOSXCGLContext extends GLContextImpl
     }
   }
 
+  private static boolean useAppKit = false;
   @Override
   protected void drawableUpdatedNotify() throws GLException {
     if( drawable.getChosenGLCapabilities().isOnscreen() ) {
@@ -387,7 +397,16 @@ public class MacOSXCGLContext extends GLContextImpl
             if (contextHandle == 0) {
               throw new GLException("Context not created");
             }
-            CGL.updateContext(contextHandle);
+            if( useAppKit ) {
+                OSXUtil.RunOnMainThread(true, false, new Runnable() {
+                    @Override
+                    public void run() {
+                        CGL.updateContext(contextHandle);
+                    }
+                });
+            } else {
+                CGL.updateContext(contextHandle);
+            }
         }
     }
   }
