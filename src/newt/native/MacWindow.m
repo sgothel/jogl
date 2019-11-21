@@ -923,27 +923,24 @@ NS_ENDHANDLER
     DBG_PRINT( "createWindow1.%d - %p view %p, isVisible %d\n", 
         dbgIdx++, myWindow, myView, [myWindow isVisible]);
 
-#if 0
-    // Visible on front may lead to a deadlock on Java11
-    // WindowDriver's createWindow1 caller shall issue this w/o wait
-    // after creation
     if( visible ) {
-        #if 0
+      #if 1
+        [myWindow orderFront: myWindow];
+        // [myWindow performSelector:@selector(orderFront) withObject:myWindow afterDelay:0];
+      #elif 0
         [myWindow makeKeyAndOrderFront: myWindow];
         if( NULL != parentWindow ) {
             [myWindow orderWindow: NSWindowAbove relativeTo: [parentWindow windowNumber]];
         }
-        #endif
-        #if 1
+      #else
         [myView setNextResponder: myWindow];
         if( NULL == parentWindow ) {
             [myWindow orderFrontRegardless];
         } else {
             [myWindow orderWindow: NSWindowAbove relativeTo: [parentWindow windowNumber]];
         }
-        #endif
+      #endif
     }
-#endif
 
     DBG_PRINT( "createWindow1.%d - %p view %p, isVisible %d\n", 
         dbgIdx++, myWindow, myView, [myWindow isVisible]);

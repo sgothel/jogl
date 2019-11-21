@@ -457,7 +457,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 super.sizeChanged(false, width, height, true);
                 positionChanged(false,  x, y);
             } else {
-                OSXUtil.RunOnMainThread(false, false, new Runnable() {
+                OSXUtil.RunOnMainThread(true, false, new Runnable() {
                     @Override
                     public void run() {
                         updateSizePosInsets0(getWindowHandle(), false);
@@ -471,15 +471,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             if( width>0 && height>0 ) {
                 if( !isOffscreenInstance ) {
                     OSXUtil.RunOnMainThread(true, false, new Runnable() {
-                            @Override
-                            public void run() {
-                                setWindowClientTopLeftPointAndSize0(oldWindowHandle,
-                                        pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(),
-                                        width, height, 0 != ( STATE_MASK_VISIBLE & flags));
-                            } } );
-                    OSXUtil.RunOnMainThread(false, false, new Runnable() {
                         @Override
                         public void run() {
+                            setWindowClientTopLeftPointAndSize0(oldWindowHandle,
+                                    pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(),
+                                    width, height, 0 != ( STATE_MASK_VISIBLE & flags));
                             updateSizePosInsets0(oldWindowHandle, false);
                         } } );
                 } else { // else offscreen size is realized via recreation
@@ -811,15 +807,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 throw new NativeWindowException("Could not create native window "+Thread.currentThread().getName()+" "+this);
             }
             setWindowHandle( newWin[0] );
-            if( !offscreenInstance && 0 != ( STATE_MASK_VISIBLE & flags) ) {
-                OSXUtil.RunOnMainThread(false, false, new Runnable() {
-                    @Override
-                    public void run() {
-                        orderFront0( newWin[0] );
-                    }
-
-                });
-            }
         } catch (final Exception ie) {
             ie.printStackTrace();
         }

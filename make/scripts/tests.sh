@@ -123,7 +123,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.OSXUtil -Dnativewindow.debug.JAWT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window -Djogamp.common.utils.locks.Lock.timeout=600000 -Dnewt.debug.EDT"
-    D_ARGS="-Dnewt.debug.Window -Djogamp.common.utils.locks.Lock.timeout=600000 -Dnativewindow.debug.OSXUtil.MainThreadChecker"
+    D_ARGS="-Dnewt.debug.Window -Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Dnativewindow.debug.OSXUtil.MainThreadChecker"
     #X_ARGS="--illegal-access=warn"
 
     #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true"
@@ -952,7 +952,8 @@ function testawtswt() {
 # 2.4.0 Regressions
 #
 # OSX
-testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug1245JTabbedPanelCrashAWT $*
