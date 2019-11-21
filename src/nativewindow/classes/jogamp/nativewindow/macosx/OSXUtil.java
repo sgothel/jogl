@@ -35,6 +35,7 @@ import com.jogamp.nativewindow.util.Point;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.Function;
 import com.jogamp.common.util.FunctionTask;
@@ -412,6 +413,12 @@ public class OSXUtil implements ToolkitProperties {
     /** Returns the screen refresh rate in Hz. If unavailable, returns 60Hz. */
     public static int GetScreenRefreshRate(final int scrn_idx) {
         return GetScreenRefreshRate0(scrn_idx);
+    }
+
+    private static final String getCurrentThreadName() { return Thread.currentThread().getName(); } // Callback for JNI
+    private static final void dumpStack() { // Callback for JNI
+        System.err.println("Stacktrace on thread "+Thread.currentThread().getName());
+        ExceptionUtils.dumpStack(System.err);
     }
 
     private static native boolean initIDs0();

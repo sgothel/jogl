@@ -51,6 +51,7 @@
 #endif
 
 // #define VERBOSE2 1
+// #define VERBOSE3 1
 //
 #ifdef VERBOSE2
     #define DBG_PRINT2(...) fprintf(stderr, __VA_ARGS__); fflush(stderr)
@@ -75,10 +76,27 @@ static const char * const ClazzNameInsetsCstrSignature = "(IIII)V";
 static jclass insetsClz = NULL;
 static jmethodID insetsCstr = NULL;
 
+static jclass OSXUtilClazz = NULL;
+static jmethodID getCurrentThreadNameID = NULL;
+static jmethodID dumpStackID = NULL;
+
 JNIEXPORT jboolean JNICALL 
-Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass _unused) {
+Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass clazz) {
+
+    OSXUtilClazz = (jclass)(*env)->NewGlobalRef(env, clazz);
+
     if( NativewindowCommon_init(env) ) {
         jclass c;
+
+        getCurrentThreadNameID = (*env)->GetStaticMethodID(env, OSXUtilClazz, "getCurrentThreadName", "()Ljava/lang/String;");
+        if(NULL==getCurrentThreadNameID) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't get method getCurrentThreadName");
+        }
+        dumpStackID = (*env)->GetStaticMethodID(env, OSXUtilClazz, "dumpStack", "()V");
+        if(NULL==dumpStackID) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_x11_X11Lib: can't get method dumpStack");
+        }
+
         c = (*env)->FindClass(env, ClazzNamePoint);
         if(NULL==c) {
             NativewindowCommon_FatalError(env, "FatalError Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0: can't find %s", ClazzNamePoint);
@@ -946,10 +964,11 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 @interface MainRunnable : NSObject
 
 {
+    int _name;
     jobject runnableObj;
 }
 
-- (id) initWithRunnable: (jobject)runnable;
+- (id) initWithRunnable: (jobject)runnable name:(int)name; 
 - (void) jRun;
 
 #ifdef DBG_LIFECYCLE
@@ -963,8 +982,9 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 
 @implementation MainRunnable
 
-- (id) initWithRunnable: (jobject)runnable
+- (id) initWithRunnable: (jobject)runnable name:(int)name;
 {
+    _name = name;
     runnableObj = runnable;
     return [super init];
 }
@@ -973,18 +993,18 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 {
     int shallBeDetached = 0;
     JNIEnv* env = NativewindowCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
-    DBG_PRINT2("MainRunnable.1 env: %d\n", (int)(NULL!=env));
+    DBG_PRINT2("MainRunnable.%d.1 env: %d\n", _name, (int)(NULL!=env));
     if(NULL!=env) {
-        DBG_PRINT2("MainRunnable.1.0\n");
+        DBG_PRINT2("MainRunnable.%d.1.0\n", _name);
         (*env)->CallVoidMethod(env, runnableObj, runnableRunID);
-        DBG_PRINT2("MainRunnable.1.1\n");
+        DBG_PRINT2("MainRunnable.%d.1.1\n", _name);
         (*env)->DeleteGlobalRef(env, runnableObj);
 
-        DBG_PRINT2("MainRunnable.1.3\n");
+        DBG_PRINT2("MainRunnable.%d.1.3\n", _name);
         // detaching thread not required - daemon
         // NativewindowCommon_ReleaseJNIEnv(shallBeDetached);
     }
-    DBG_PRINT2("MainRunnable.X\n");
+    DBG_PRINT2("MainRunnable.%d.X\n", _name);
 }
 
 #ifdef DBG_LIFECYCLE
@@ -1015,19 +1035,25 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 
 @end
 
+static int nextRunnableName = 1;
 static void RunOnThread (JNIEnv *env, jobject runnable, BOOL onMain, jint delayInMS)
 {
     BOOL isMainThread = [NSThread isMainThread];
     BOOL forkOnMain = onMain && ( NO == isMainThread || 0 < delayInMS );
+    int _nextRunnableName = nextRunnableName++;
 
-    DBG_PRINT2( "RunOnThread0: forkOnMain %d [onMain %d, delay %dms, isMainThread %d], NSApp %d, NSApp-isRunning %d\n", 
-        (int)forkOnMain, (int)onMain, (int)delayInMS, (int)isMainThread, (int)(NULL!=NSApp), (int)([NSApp isRunning]));
+    DBG_PRINT2( "RunOnThread0.%d: forkOnMain %d [onMain %d, delay %dms, isMainThread %d], NSApp %d, NSApp-isRunning %d\n", 
+        _nextRunnableName, (int)forkOnMain, (int)onMain, (int)delayInMS, (int)isMainThread, 
+        (int)(NULL!=NSApp), (int)([NSApp isRunning]));
 
     if ( forkOnMain ) {
         jobject runnableObj = (*env)->NewGlobalRef(env, runnable);
 
-        DBG_PRINT2( "RunOnThread.1.0\n");
-        MainRunnable * mr = [[MainRunnable alloc] initWithRunnable: runnableObj];
+        DBG_PRINT2( "RunOnThread.%d.1.0\n", _nextRunnableName);
+        MainRunnable * mr = [[MainRunnable alloc] initWithRunnable: runnableObj name: _nextRunnableName];
+#ifdef VERBOSE3
+        (*env)->CallStaticVoidMethod(env, OSXUtilClazz, dumpStackID);
+#endif
 
         if( onMain ) {
             [mr performSelectorOnMainThread:@selector(jRun) withObject:nil waitUntilDone:NO];
@@ -1035,16 +1061,16 @@ static void RunOnThread (JNIEnv *env, jobject runnable, BOOL onMain, jint delayI
             NSTimeInterval delay = (double)delayInMS/1000.0;
             [mr performSelector:@selector(jRun) withObject:nil afterDelay:delay];
         }
-        DBG_PRINT2( "RunOnThread.1.1\n");
+        DBG_PRINT2( "RunOnThread.%d.1.1\n", _nextRunnableName);
 
         [mr release];
-        DBG_PRINT2( "RunOnThread.1.2\n");
+        DBG_PRINT2( "RunOnThread.%d.1.2\n", _nextRunnableName);
 
     } else {
-        DBG_PRINT2( "RunOnThread.2\n");
+        DBG_PRINT2( "RunOnThread.%d.2\n", _nextRunnableName);
         (*env)->CallVoidMethod(env, runnable, runnableRunID);
     }
-    DBG_PRINT2( "RunOnThread.X\n");
+    DBG_PRINT2( "RunOnThread.%d.X\n", _nextRunnableName);
 }
 
 static void OSXUtil_KickNSApp() {
