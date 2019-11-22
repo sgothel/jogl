@@ -91,7 +91,9 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
 echo LIBGL_ALWAYS_INDIRECT: $LIBGL_ALWAYS_INDIRECT 2>&1 | tee -a java-run.log
 echo LIBGL_ALWAYS_SOFTWARE: $LIBGL_ALWAYS_SOFTWARE 2>&1 | tee -a java-run.log
 echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
-echo MacOsX $MOSX
+echo MacOsX $MOSX 2>&1 | tee -a java-run.log
+echo DISPLAY $DISPLAY 2>&1 | tee -a java-run.log
+echo WAYLAND_DISPLAY $WAYLAND_DISPLAY 2>&1 | tee -a java-run.log
 
 function jrun() {
     awton=$1
@@ -114,7 +116,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all -Djogl.debug.DebugGL"
-    D_ARGS="-Dnewt.debug=all"
+    #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
@@ -365,7 +367,8 @@ function jrun() {
         export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
         #export USE_CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
         #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILDDIR/jar/atomic/jogl.jar:$JOGL_BUILDDIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILDDIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/jogl-util.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt.jar:$JOGL_BUILDDIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt-ogl.jar:$JOGL_BUILDDIR/jar/jogl-test.jar:$JUNIT_JAR:$ANT_JARS
-        X_ARGS="-Djava.awt.headless=true $X_ARGS"
+        #X_ARGS="-Djava.awt.headless=true $X_ARGS"
+        X_ARGS="-Djava.awt.headless=false $X_ARGS"
     fi
 
     if [ $USE_BUILDDIR -eq 1 ] ; then
@@ -448,7 +451,7 @@ function testawtswt() {
 
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLVersionParsing00NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
@@ -466,7 +469,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #
 # HiDPI
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
