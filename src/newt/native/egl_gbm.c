@@ -10,13 +10,14 @@
 #include <xf86drmMode.h>
 #include <gbm.h>
 
-// #define VERBOSE_ON 1
+#define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
     #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
 #else
     #define DBG_PRINT(...)
 #endif
+#define ERR_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
 
 typedef struct {
     int fd; // drmClose
@@ -51,9 +52,9 @@ static void freeDrm(DRM_HANDLE *drm) {
             drmModeFreeResources(drm->resources);
             drm->resources = NULL;
         }
-        if( 0 != drm->fd ) {
+        if( 0 <= drm->fd ) {
             drmClose(drm->fd);
-            drm->fd = 0;
+            drm->fd = -1;
         }
         free(drm);
     }
@@ -67,73 +68,133 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_initIDs
 }
 
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_initDrm
-  (JNIEnv *env, jclass clazz)
+  (JNIEnv *env, jclass clazz, jboolean verbose)
 {
     static const char *modules[] = {
-            "i915", "radeon", "nouveau", "vmwgfx", "omapdrm", "exynos", "msm"
+            "/dev/dri/card0", "i915", "radeon", "nouveau", "vmwgfx", "omapdrm", "exynos", "msm"
     };
-    int i, area;
+    int module_count = sizeof(modules) / sizeof(const char*);
+    const char * module_used = NULL;
+    int i, j, area;
     DRM_HANDLE *drm = calloc(1, sizeof(DRM_HANDLE));
 
-    for (i = 0; i < 6 /* ARRAY_SIZE(modules) */; i++) {
-        printf("trying to load module %s...", modules[i]);
+#ifdef VERBOSE_ON
+    verbose = JNI_TRUE;
+#endif
+
+    if( verbose ) {
+        ERR_PRINT( "EGL_GBM.Display initDrm start (testing %d modules)\n", module_count );
+    }
+
+    for (i = 0; i < module_count; i++) {
+        if( verbose ) {
+            ERR_PRINT("EGL_GBM.Display trying to load module[%d/%d] %s...", 
+                i, module_count, modules[i]);
+        }
         drm->fd = drmOpen(modules[i], NULL);
         if (drm->fd < 0) {
-            printf("failed.\n");
+            if( verbose ) {
+                ERR_PRINT("failed.\n");
+            }
         } else {
-            printf("success.\n");
+            if( verbose ) {
+                ERR_PRINT("success.\n");
+            }
+            module_used = modules[i];
             break;
         }
     }
-
     if (drm->fd < 0) {
-        printf("could not open drm device\n");
+        ERR_PRINT("EGL_GBM.Display could not open drm device\n");
         goto error;
     }
 
     drm->resources = drmModeGetResources(drm->fd);
     if ( NULL == drm->resources ) {
-        printf("drmModeGetResources failed: %s\n", strerror(errno));
+        ERR_PRINT("EGL_GBM.Display drmModeGetResources failed on module %s: %s\n", 
+            module_used, strerror(errno));
         goto error;
     }
 
+    if( verbose ) {
+        for (i = 0; i < drm->resources->count_connectors; i++) {
+            drmModeConnector * c = drmModeGetConnector(drm->fd, drm->resources->connectors[i]);
+            int chosen = DRM_MODE_CONNECTED == c->connection;
+            ERR_PRINT( "EGL_GBM.Display Connector %d/%d chosen %d: id[con 0x%X, enc 0x%X], type %d[id 0x%X], connection %d, dim %dx%x mm, modes %d, encoders %d\n",
+                i, drm->resources->count_connectors, chosen,
+                c->connector_id, c->encoder_id, c->connector_type, c->connector_type_id, 
+                c->connection, c->mmWidth, c->mmHeight, c->count_modes, c->count_encoders);
+            drmModeFreeConnector(c);
+        }
+    }
     /* find a connected connector: */
     for (i = 0; i < drm->resources->count_connectors; i++) {
         drm->connector = drmModeGetConnector(drm->fd, drm->resources->connectors[i]);
-        if (drm->connector->connection == DRM_MODE_CONNECTED) {
-            /* it's connected, let's use this! */
+        if( DRM_MODE_CONNECTED == drm->connector->connection ) {
             break;
+        } else {
+            drmModeFreeConnector(drm->connector);
+            drm->connector = NULL;
         }
+    }
+    if( i >= drm->resources->count_connectors ) {
         /* we could be fancy and listen for hotplug events and wait for
          * a connector..
          */
-        printf("no connected connector!\n");
+        ERR_PRINT("EGL_GBM.Display no connected connector (connector count %d, module %s)!\n", 
+            drm->resources->count_connectors, module_used);
         goto error;
     }
 
     /* find highest resolution mode: */
-    for (i = 0, area = 0; i < drm->connector->count_modes; i++) {
+    for (i = 0, j = -1, area = 0; i < drm->connector->count_modes; i++) {
         drmModeModeInfo *current_mode = &drm->connector->modes[i];
         int current_area = current_mode->hdisplay * current_mode->vdisplay;
         if (current_area > area) {
             drm->current_mode = current_mode;
             area = current_area;
+            j = i;
+        }
+        if( verbose ) {
+            ERR_PRINT( "EGL_GBM.Display Mode %d/%d (max-chosen %d): clock %d, %dx%d @ %d Hz, type %d, name <%s>\n",
+                i, drm->connector->count_modes, j,
+                current_mode->clock, current_mode->hdisplay, current_mode->vdisplay, current_mode->vrefresh, 
+                current_mode->type, current_mode->name);
         }
     }
-
     if ( NULL == drm->current_mode ) {
-        printf("could not find mode!\n");
+        ERR_PRINT("EGL_GBM.Display could not find mode (module %s)!\n", module_used);
         goto error;
     }
 
+    if( verbose ) {
+        for (i = 0; i < drm->resources->count_encoders; i++) {
+            drmModeEncoder * e = drmModeGetEncoder(drm->fd, drm->resources->encoders[i]);
+            int chosen = e->encoder_id == drm->connector->encoder_id;
+            ERR_PRINT( "EGL_GBM.Display Encoder %d/%d chosen %d: id 0x%X, type %d, crtc_id 0x%X, possible[crtcs %d, clones %d]\n",
+                i, drm->resources->count_encoders, chosen,
+                e->encoder_id, e->encoder_type, e->crtc_id,
+                e->possible_crtcs, e->possible_clones);
+            drmModeFreeEncoder(e);
+        }
+    }
     /* find encoder: */
     for (i = 0; i < drm->resources->count_encoders; i++) {
         drm->encoder = drmModeGetEncoder(drm->fd, drm->resources->encoders[i]);
-        if (drm->encoder->encoder_id == drm->connector->encoder_id) {
+        if( drm->encoder->encoder_id == drm->connector->encoder_id ) {
             break;
+        } else {
+            drmModeFreeEncoder(drm->encoder);
+            drm->encoder = NULL;
         }
-        printf("no encoder!\n");
+    }
+    if ( i >= drm->resources->count_encoders ) {
+        ERR_PRINT("EGL_GBM.Display no encoder (module %s)!\n", module_used);
         goto error;
+    }
+
+    if( verbose ) {
+        DBG_PRINT( "EGL_GBM.Display initDrm end.X0 OK\n");
     }
 
     // drm->crtc_id = encoder->crtc_id;
@@ -141,6 +202,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_initDrm
     return (jlong) (intptr_t) drm;
 
 error:
+    if( verbose ) {
+        DBG_PRINT( "EGL_GBM.Display initDrm end.X2 ERROR\n");
+    }
     freeDrm(drm);
     return 0;
 }
@@ -163,6 +227,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_CloseGBMDis
 {
     struct gbm_device * dev = (struct gbm_device *) (intptr_t) jgbm;
     gbm_device_destroy(dev);
+}
+
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_DispatchMessages0
+  (JNIEnv *env, jclass clazz)
+{
 }
 
 /**
@@ -211,6 +280,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_egl_gbm_ScreenDriver_initNative
  * Window
  */
 
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_initIDs
+  (JNIEnv *env, jclass clazz)
+{
+    DBG_PRINT( "EGL_GBM.Window initIDs ok\n" );
+    return JNI_TRUE;
+}
+
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_CreateWindow0
   (JNIEnv *env, jobject obj, jlong jdrm, jlong jgbm, jint x, jint y, jint width, jint height, jboolean opaque, jint alphaBits)
 {
@@ -222,7 +298,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_CreateWindo
               opaque ? GBM_FORMAT_XRGB8888 : GBM_BO_FORMAT_ARGB8888,
               GBM_BO_USE_SCANOUT | GBM_BO_USE_RENDERING);
     if ( NULL == surface ) {
-        printf("failed to create gbm surface\n");
+        DBG_PRINT("failed to create gbm surface\n");
         return -1;
     }
     return (jlong) (intptr_t) surface;

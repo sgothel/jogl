@@ -29,7 +29,6 @@ package jogamp.newt.driver.egl.gbm;
 
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.NativeWindowException;
-import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLProfile;
 
 import jogamp.newt.DisplayImpl;
@@ -51,7 +50,7 @@ public class DisplayDriver extends DisplayImpl {
         if (!WindowDriver.initIDs()) {
             throw new NativeWindowException("Failed to initialize egl.gbm Window jmethodIDs");
         }
-        drmHandle = initDrm();
+        drmHandle = initDrm(DEBUG);
     }
 
     static void validateDrm() {
@@ -62,7 +61,6 @@ public class DisplayDriver extends DisplayImpl {
 
     public static void initSingleton() {
         // just exist to ensure static init has been run
-        validateDrm();
     }
 
     private static void shutdownHook() {
@@ -100,7 +98,7 @@ public class DisplayDriver extends DisplayImpl {
     // Internals only
     //
     private static native boolean initIDs();
-    private static native long initDrm();
+    private static native long initDrm(boolean verbose);
     private static native void freeDrm(long drmHandle);
 
     private static native long OpenGBMDisplay0(long drmHandle);

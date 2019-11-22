@@ -49,8 +49,8 @@ public class WindowDriver extends WindowImpl {
     }
 
     public WindowDriver() {
-        linuxMouseTracker = LinuxMouseTracker.getSingleton();
-        linuxEventDeviceTracker = LinuxEventDeviceTracker.getSingleton();
+        linuxMouseTracker = null; // LinuxMouseTracker.getSingleton();
+        linuxEventDeviceTracker = null; // LinuxEventDeviceTracker.getSingleton();
 
         windowHandleClose = 0;
     }
@@ -162,8 +162,12 @@ public class WindowDriver extends WindowImpl {
         }
         windowHandleClose = nativeWindowHandle;
 
-        addWindowListener(linuxEventDeviceTracker);
-        addWindowListener(linuxMouseTracker);
+        if( null != linuxEventDeviceTracker ) {
+            addWindowListener(linuxEventDeviceTracker);
+        }
+        if( null != linuxMouseTracker ) {
+            addWindowListener(linuxMouseTracker);
+        }
         focusChanged(false, true);
     }
 
@@ -172,8 +176,12 @@ public class WindowDriver extends WindowImpl {
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getGraphicsConfiguration().getScreen().getDevice();
 
-        removeWindowListener(linuxMouseTracker);
-        removeWindowListener(linuxEventDeviceTracker);
+        if( null != linuxMouseTracker ) {
+            removeWindowListener(linuxMouseTracker);
+        }
+        if( null != linuxEventDeviceTracker ) {
+            removeWindowListener(linuxEventDeviceTracker);
+        }
 
         if( 0 != windowHandleClose ) {
             CloseWindow0(display.getGBMHandle(), windowHandleClose);
