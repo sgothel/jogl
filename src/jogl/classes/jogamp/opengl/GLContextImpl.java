@@ -107,6 +107,7 @@ public abstract class GLContextImpl extends GLContext {
   private boolean glGetPtrInit = false;
   private long glGetStringPtr = 0;
   private long glGetIntegervPtr = 0;
+  private long glGetStringiPtr = 0;
 
   // Tracks lifecycle of buffer objects to avoid
   // repeated glGet calls upon glMapBuffer operations
@@ -208,6 +209,7 @@ public abstract class GLContextImpl extends GLContext {
       glGetPtrInit = false;
       glGetStringPtr = 0;
       glGetIntegervPtr = 0;
+      glGetStringiPtr = 0;
 
       if ( !isInit && null != boundFBOTarget ) { // <init>: boundFBOTarget is not written yet
           boundFBOTarget[0] = 0; // draw
@@ -1460,7 +1462,7 @@ public abstract class GLContextImpl extends GLContext {
       if(useGL) {
           ctxGLSLVersion = VersionNumber.zeroVersion;
           if( hasGLSL() ) { // >= ES2 || GL2.0
-              final String glslVersion = isGLES() ? null : gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) ; // Use static GLSL version for ES to be safe!
+              final String glslVersion = isGLES() ? null : glGetStringInt(GL2ES2.GL_SHADING_LANGUAGE_VERSION) ; // Use static GLSL version for ES to be safe!
               if( null != glslVersion ) {
                   ctxGLSLVersion = new VersionNumber(glslVersion);
                   if( ctxGLSLVersion.getMajor() < 1 ) {
@@ -1607,65 +1609,39 @@ public abstract class GLContextImpl extends GLContext {
   protected abstract void updateGLXProcAddressTable(final String contextFQN, final GLDynamicLookupHelper dlh);
 
   private final boolean initGLRendererAndGLVersionStrings(final int majorVersion, final int contextOptions)  {
-    if( !glGetPtrInit ) {
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                final GLDynamicLookupHelper glDynLookupHelper = getGLDynamicLookupHelper(majorVersion, contextOptions);
-                if( null != glDynLookupHelper ) {
-                    glDynLookupHelper.claimAllLinkPermission();
-                    try {
-                        glGetStringPtr = glDynLookupHelper.dynamicLookupFunction("glGetString");
-                        glGetIntegervPtr = glDynLookupHelper.dynamicLookupFunction("glGetIntegerv");
-                    } finally {
-                        glDynLookupHelper.releaseAllLinkPermission();
-                    }
-                }
-                return null;
-            } } );
-        glGetPtrInit = true;
-    }
-    if( 0 == glGetStringPtr || 0 == glGetIntegervPtr ) {
-        System.err.println("Error: Could not lookup: glGetString "+toHexString(glGetStringPtr)+", glGetIntegerv "+toHexString(glGetIntegervPtr));
-        if(DEBUG) {
-            ExceptionUtils.dumpStack(System.err);
-        }
-        return false;
-    } else {
-        final String _glVendor = glGetStringInt(GL.GL_VENDOR, glGetStringPtr);
-        if(null == _glVendor) {
-            if(DEBUG) {
-                System.err.println("Warning: GL_VENDOR is NULL.");
-                ExceptionUtils.dumpStack(System.err);
-            }
-            return false;
-        }
-        glVendor = _glVendor;
+      final String _glVendor = glGetStringInt(GL.GL_VENDOR);
+      if(null == _glVendor) {
+          if(DEBUG) {
+              System.err.println("Warning: GL_VENDOR is NULL.");
+              ExceptionUtils.dumpStack(System.err);
+          }
+          return false;
+      }
+      glVendor = _glVendor;
 
-        final String _glRenderer = glGetStringInt(GL.GL_RENDERER, glGetStringPtr);
-        if(null == _glRenderer) {
-            if(DEBUG) {
-                System.err.println("Warning: GL_RENDERER is NULL.");
-                ExceptionUtils.dumpStack(System.err);
-            }
-            return false;
-        }
-        glRenderer = _glRenderer;
-        glRendererLowerCase = glRenderer.toLowerCase();
+      final String _glRenderer = glGetStringInt(GL.GL_RENDERER);
+      if(null == _glRenderer) {
+          if(DEBUG) {
+              System.err.println("Warning: GL_RENDERER is NULL.");
+              ExceptionUtils.dumpStack(System.err);
+          }
+          return false;
+      }
+      glRenderer = _glRenderer;
+      glRendererLowerCase = glRenderer.toLowerCase();
 
-        final String _glVersion = glGetStringInt(GL.GL_VERSION, glGetStringPtr);
-        if(null == _glVersion) {
-            // FIXME
-            if(DEBUG) {
-                System.err.println("Warning: GL_VERSION is NULL.");
-                ExceptionUtils.dumpStack(System.err);
-            }
-            return false;
-        }
-        glVersion = _glVersion;
+      final String _glVersion = glGetStringInt(GL.GL_VERSION);
+      if(null == _glVersion) {
+          // FIXME
+          if(DEBUG) {
+              System.err.println("Warning: GL_VERSION is NULL.");
+              ExceptionUtils.dumpStack(System.err);
+          }
+          return false;
+      }
+      glVersion = _glVersion;
 
-        return true;
-    }
+      return true;
   }
 
   /**
@@ -1678,18 +1654,12 @@ public abstract class GLContextImpl extends GLContext {
   private final void getGLIntVersion(final int[] glIntMajor, final int[] glIntMinor, final int[] glIntCtxProfileMask)  {
     glIntMajor[0] = 0; // clear
     glIntMinor[0] = 0; // clear
-    if( 0 == glGetIntegervPtr ) {
-        // should not be reached, since initGLRendererAndGLVersionStrings(..)'s failure should abort caller!
-        throw new InternalError("Not initialized: glGetString "+toHexString(glGetStringPtr)+", glGetIntegerv "+toHexString(glGetIntegervPtr));
-    } else {
-        glGetIntegervInt(GL2ES3.GL_MAJOR_VERSION, glIntMajor, 0, glGetIntegervPtr);
-        glGetIntegervInt(GL2ES3.GL_MINOR_VERSION, glIntMinor, 0, glGetIntegervPtr);
-        if( null != glIntCtxProfileMask ) {
-            glGetIntegervInt(GL3.GL_CONTEXT_PROFILE_MASK, glIntCtxProfileMask, 0, glGetIntegervPtr);
-        }
+    glGetIntegervInt(GL2ES3.GL_MAJOR_VERSION, glIntMajor, 0);
+    glGetIntegervInt(GL2ES3.GL_MINOR_VERSION, glIntMinor, 0);
+    if( null != glIntCtxProfileMask ) {
+        glGetIntegervInt(GL3.GL_CONTEXT_PROFILE_MASK, glIntCtxProfileMask, 0);
     }
   }
-
 
   /**
    * Returns null if version string is invalid, otherwise a valid instance.
@@ -1776,6 +1746,44 @@ public abstract class GLContextImpl extends GLContext {
 
     final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+
+    if( !glGetPtrInit ) {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+                final GLDynamicLookupHelper glDynLookupHelper = getGLDynamicLookupHelper(reqMajor, reqCtxProfileBits);
+                if( null != glDynLookupHelper ) {
+                    glDynLookupHelper.claimAllLinkPermission();
+                    try {
+                        glGetStringPtr = glDynLookupHelper.dynamicLookupFunction("glGetString");
+                        glGetIntegervPtr = glDynLookupHelper.dynamicLookupFunction("glGetIntegerv");
+                        glGetStringiPtr = glDynLookupHelper.dynamicLookupFunction("glGetStringi"); // optional
+                    } finally {
+                        glDynLookupHelper.releaseAllLinkPermission();
+                    }
+                }
+                return null;
+            } } );
+        glGetPtrInit = true;
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": GLContext.setGLFuncAvail: glGetStringi "+toHexString(glGetStringiPtr)+" (opt), glGetString "+toHexString(glGetStringPtr)+", glGetIntegerv "+toHexString(glGetIntegervPtr));
+        }
+        if( 0 == glGetStringPtr || 0 == glGetIntegervPtr ) {
+            final String errMsg = "Intialization of glGetString "+toHexString(glGetStringPtr)+", glGetIntegerv "+toHexString(glGetIntegervPtr)+" failed. "+adevice+" - requested "+
+                                  GLContext.getGLVersion(reqMajor, reqMinor, reqCtxProfileBits, null);
+            if( strictMatch ) {
+                // query mode .. simply fail
+                if(DEBUG) {
+                    System.err.println("Warning: setGLFunctionAvailability: "+errMsg);
+                }
+                return false;
+            } else {
+                // unusable GL context - non query mode - hard fail!
+                throw new GLException(errMsg);
+            }
+        }
+    }
+
     final VersionNumber hasGLVersionByString;
     {
         final boolean initGLRendererAndGLVersionStringsOK = initGLRendererAndGLVersionStrings(reqMajor, reqCtxProfileBits);
@@ -2960,7 +2968,45 @@ public abstract class GLContextImpl extends GLContext {
       }
   }
 
-  /** Internal bootstraping glGetString(GL_RENDERER) */
+  /* pp */ final String glGetStringiInt(final int name, final int index) {
+    if( 0 == glGetStringiPtr ) {
+        // should not be reached, since initGLRendererAndGLVersionStrings(..)'s failure should abort caller!
+        throw new InternalError("Not initialized: glGetStringiPtr "+toHexString(glGetStringiPtr));
+    }
+    return glGetStringiInt(name, index, glGetStringiPtr);
+  }
+  /* pp */ final boolean has_glGetStringiInt() { return 0 != glGetStringiPtr; }
+
+  /* pp */ final String glGetStringInt(final int name) {
+    if( 0 == glGetStringPtr ) {
+        // should not be reached, since initGLRendererAndGLVersionStrings(..)'s failure should abort caller!
+        throw new InternalError("Not initialized: glGetStringPtr "+toHexString(glGetStringPtr));
+    }
+    return glGetStringInt(name, glGetStringPtr);
+  }
+
+  /* pp */ final void glGetIntegervInt(final int pname, final int[] params, final int params_offset) {
+    if( 0 == glGetIntegervPtr ) {
+        // should not be reached, since initGLRendererAndGLVersionStrings(..)'s failure should abort caller!
+        throw new InternalError("Not initialized: glGetIntegerv "+toHexString(glGetIntegervPtr));
+    }
+    glGetIntegervInt(pname, params, params_offset, glGetIntegervPtr);
+  }
+
+  /**
+   * Internal bootstraping glGetString(GL_RENDERER).
+   * <p>
+   * Entry point to C language function: <code> const GLubyte *  {@native glGetStringi}(GLenum name, GLuint index) </code> <br>Part of <code>GL_ES_VERSION_3_0</code>, <code>GL_VERSION_3_0</code><br>
+   * </p>
+   **/
+  private static native String glGetStringiInt(int name, int index, long procAddress);
+
+  /**
+   * Internal bootstraping glGetString(GL_RENDERER).
+   * <p>
+   * Entry point to C language function: <code> const GLubyte *  {@native glGetString}(GLenum name) </code> <br>Part of <code>GL_ES_VERSION_2_0</code>, <code>GL_VERSION_ES_CL_CM</code>, <code>GL_VERSION_1_0</code><br>
+   * </p>
+   */
   private static native String glGetStringInt(int name, long procAddress);
 
   /** Internal bootstraping glGetIntegerv(..) for version */

@@ -7,6 +7,23 @@
 
 /*
  * Class:     jogamp_opengl_GLContextImpl
+ * Method:    glGetStringiInt
+ * Signature: (IIJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL 
+Java_jogamp_opengl_GLContextImpl_glGetStringiInt(JNIEnv *env, jclass _unused, jint name, jint index, jlong procAddress) {
+  typedef const khronos_uint8_t *  (KHRONOS_APIENTRY*_local_PFNGLGETSTRINGIPROC)(unsigned int name, unsigned int index);
+  _local_PFNGLGETSTRINGIPROC ptr_glGetStringi;
+  const khronos_uint8_t *  _res;
+  ptr_glGetStringi = (_local_PFNGLGETSTRINGIPROC) (intptr_t) procAddress;
+  assert(ptr_glGetStringi != NULL);
+  _res = (* ptr_glGetStringi) ((unsigned int) name, (unsigned int)index);
+  if (NULL == _res) return NULL;
+  return (*env)->NewStringUTF(env, (const char *)_res);
+}
+
+/*
+ * Class:     jogamp_opengl_GLContextImpl
  * Method:    glGetStringInt
  * Signature: (IJ)Ljava/lang/String;
  */
