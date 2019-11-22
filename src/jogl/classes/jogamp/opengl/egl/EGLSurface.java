@@ -31,6 +31,7 @@ import java.nio.IntBuffer;
 
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.ProxySurface;
 import com.jogamp.nativewindow.UpstreamSurfaceHook;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
@@ -93,14 +94,14 @@ public class EGLSurface extends WrappedSurface {
     }
 
     public void setEGLSurfaceHandle() throws GLException {
-        setSurfaceHandle( createEGLSurfaceHandle() );
+        setSurfaceHandle( createEGLSurface() );
     }
-    private long createEGLSurfaceHandle() throws GLException {
+    private long createEGLSurface() throws GLException {
         final EGLGraphicsConfiguration config = (EGLGraphicsConfiguration) getGraphicsConfiguration();
         final NativeSurface nativeSurface = getUpstreamSurface();
         final boolean isPBuffer = ((GLCapabilitiesImmutable) config.getChosenCapabilities()).isPBuffer();
 
-        long eglSurface = createEGLSurfaceHandle(isPBuffer, true /* useSurfaceHandle */, config, nativeSurface);
+        long eglSurface = createEGLSurface(isPBuffer, true /* useNativeSurface */, config, nativeSurface);
         if( DEBUG ) {
             System.err.println(getThreadName() + ": EGLSurface: EGL.eglCreateSurface.0: 0x"+Long.toHexString(eglSurface));
             ProxySurfaceImpl.dumpHierarchy(System.err, this);
@@ -112,7 +113,7 @@ public class EGLSurface extends WrappedSurface {
                 // Try window handle if available and differs (Windows HDC / HWND).
                 // ANGLE impl. required HWND on Windows.
                 if( hasUniqueNativeWindowHandle(nativeSurface) ) {
-                    eglSurface = createEGLSurfaceHandle(isPBuffer, false /* useSurfaceHandle */, config, nativeSurface);
+                    eglSurface = createEGLSurface(isPBuffer, false /* useNativeSurface */, config, nativeSurface);
                     if( DEBUG ) {
                         System.err.println(getThreadName() + ": Info: Creation of window surface w/ surface handle failed: "+config+", error "+GLDrawableImpl.toHexString(eglError0)+", retry w/ windowHandle");
                         System.err.println(getThreadName() + ": EGLSurface: EGL.eglCreateSurface.1: 0x"+Long.toHexString(eglSurface));
@@ -132,20 +133,31 @@ public class EGLSurface extends WrappedSurface {
         }
         return eglSurface;
     }
-    private long createEGLSurfaceHandle(final boolean isPBuffer, final boolean useSurfaceHandle,
-                                        final EGLGraphicsConfiguration config, final NativeSurface nativeSurface) {
+    private long createEGLSurface(final boolean isPBuffer, final boolean useNativeSurface,
+                                  final EGLGraphicsConfiguration config, final NativeSurface nativeSurface) {
         if( isPBuffer ) {
             return EGLDrawableFactory.createPBufferSurfaceImpl(config, getSurfaceWidth(), getSurfaceHeight(), false);
         } else {
-            if( useSurfaceHandle ) {
-                return EGL.eglCreateWindowSurface(config.getScreen().getDevice().getHandle(),
-                                                  config.getNativeConfig(),
-                                                  nativeSurface.getSurfaceHandle(), null);
+            final int eglPlatform = EGLDisplayUtil.getEGLPlatformType(true);
+            final long eglNativeWin = useNativeSurface ?  nativeSurface.getSurfaceHandle() : ((NativeWindow)nativeSurface).getWindowHandle();
+            final long eglSurface;
+            if( 0 != eglPlatform ) {
+                eglSurface = EGL.eglCreatePlatformWindowSurface(config.getScreen().getDevice().getHandle(),
+                                                                config.getNativeConfig(),
+                                                                eglNativeWin, null);
             } else {
-                return EGL.eglCreateWindowSurface(config.getScreen().getDevice().getHandle(),
-                                                  config.getNativeConfig(),
-                                                  ((NativeWindow)nativeSurface).getWindowHandle(), null);
+                eglSurface = EGL.eglCreateWindowSurface(config.getScreen().getDevice().getHandle(),
+                                                        config.getNativeConfig(),
+                                                        eglNativeWin, null);
             }
+            if(DEBUG) {
+                System.err.println("EGLSurface.createEGLSurface.X: useNativeSurface "+useNativeSurface+
+                        ", nativeWin "+EGLContext.toHexString(eglNativeWin)+") @ "+
+                        eglPlatform+"/"+NativeWindowFactory.getNativeWindowType(true)+": "+
+                        EGLContext.toHexString(eglSurface)+
+                        ", "+((EGL.EGL_NO_SURFACE != eglSurface)?"OK":"Failed"));
+            }
+            return eglSurface;
         }
     }
     private static boolean hasUniqueNativeWindowHandle(final NativeSurface nativeSurface) {
