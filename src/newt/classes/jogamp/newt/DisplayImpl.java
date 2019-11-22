@@ -272,11 +272,7 @@ public abstract class DisplayImpl extends Display {
     private static Class<?> getDisplayClass(final String type)
         throws ClassNotFoundException
     {
-        final Class<?> displayClass = NewtFactory.getCustomClass(type, "DisplayDriver");
-        if(null==displayClass) {
-            throw new ClassNotFoundException("Failed to find NEWT Display Class <"+type+".DisplayDriver>");
-        }
-        return displayClass;
+        return NewtFactory.getCustomClass(type, "DisplayDriver");
     }
 
     /** Make sure to reuse a Display with the same name */

@@ -43,6 +43,7 @@ import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.util.IOUtil;
@@ -100,8 +101,8 @@ public class NewtFactory {
 
     public static Class<?> getCustomClass(final String packageName, final String classBaseName) {
         Class<?> clazz = null;
+        final String clazzName;
         if(packageName!=null && classBaseName!=null) {
-            final String clazzName;
             if( packageName.startsWith(".") ) {
                 clazzName = DRIVER_DEFAULT_ROOT_PACKAGE + packageName + "." + classBaseName ;
             } else {
@@ -110,11 +111,13 @@ public class NewtFactory {
             try {
                 clazz = Class.forName(clazzName);
             } catch (final Throwable t) {
-                if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Warning: Failed to find class <"+clazzName+">: "+t.getMessage());
-                    t.printStackTrace();
-                }
+                throw new NativeWindowException("Failed to find or initialize class <"+packageName+"."+classBaseName+"> -> <"+clazzName+">: "+t.getMessage(), t);
             }
+        } else {
+            clazzName = null;
+        }
+        if( null == clazz ) {
+            throw new NativeWindowException("Failed to determine class <"+packageName+"."+classBaseName+"> -> <"+clazzName+">");
         }
         return clazz;
     }

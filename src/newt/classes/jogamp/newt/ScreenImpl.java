@@ -92,11 +92,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
 
     private static Class<?> getScreenClass(final String type) throws ClassNotFoundException
     {
-        final Class<?> screenClass = NewtFactory.getCustomClass(type, "ScreenDriver");
-        if(null==screenClass) {
-            throw new ClassNotFoundException("Failed to find NEWT Screen Class <"+type+".ScreenDriver>");
-        }
-        return screenClass;
+        return NewtFactory.getCustomClass(type, "ScreenDriver");
     }
 
     public static Screen create(final Display display, int idx) {

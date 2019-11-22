@@ -578,11 +578,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private static Class<?> getWindowClass(final String type)
         throws ClassNotFoundException
     {
-        final Class<?> windowClass = NewtFactory.getCustomClass(type, "WindowDriver");
-        if(null==windowClass) {
-            throw new ClassNotFoundException("Failed to find NEWT Window Class <"+type+".WindowDriver>");
-        }
-        return windowClass;
+        return NewtFactory.getCustomClass(type, "WindowDriver");
     }
 
     public static WindowImpl create(final NativeWindow parentWindow, final long parentWindowHandle, final Screen screen, final CapabilitiesImmutable caps) {
