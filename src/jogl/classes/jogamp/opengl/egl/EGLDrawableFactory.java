@@ -84,6 +84,7 @@ import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.egl.EGL;
+import com.jogamp.opengl.egl.EGLExt;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG; // allow package access
@@ -792,6 +793,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     }
                 } else if( adevice != defaultDevice ) {
                     // Create a true mapping of given device to EGL
+                    // FIXME !!!! EGL-GBM
                     upstreamSurface = desktopFactory.createDummySurface(adevice, reqCapsAny, null, 64, 64); // X11, WGL, .. dummy window
                     if(null != upstreamSurface) {
                         upstreamSurface.createNotify();
@@ -912,9 +914,12 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
          * that even though initial OpenGL context can be created w/o 'EGL_KHR_create_context',
          * switching the API via 'eglBindAPI(EGL_OpenGL_API)' the latter 'eglCreateContext(..)' fails w/ EGL_BAD_ACCESS.
          * Hence we require both: OpenGL API support _and_  'EGL_KHR_create_context'.
+         *
+         * Using EGL_GBM, i.e. EGLExt.EGL_PLATFORM_GBM_KHR, we get an unsatisfied linkage error using desktop GL !!
          */
         return null != eglGLnDynamicLookupHelper &&
-               defaultDeviceEGLFeatures.hasGLAPI && defaultDeviceEGLFeatures.hasKHRCreateContext;
+               defaultDeviceEGLFeatures.hasGLAPI && defaultDeviceEGLFeatures.hasKHRCreateContext &&
+               false; // hack
     }
 
     /**
