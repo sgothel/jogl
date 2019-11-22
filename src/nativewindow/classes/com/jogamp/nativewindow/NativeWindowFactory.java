@@ -116,7 +116,7 @@ public abstract class NativeWindowFactory {
     /** Generic DEFAULT type, where platform implementation don't care, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
     public static final String TYPE_DEFAULT = ".default";
 
-    private static final String nativeWindowingTypePure;   // canonical String via String.intern()
+    private static final String nativeWindowingTypeNative;   // canonical String via String.intern()
     private static final String nativeWindowingTypeCustom; // canonical String via String.intern()
 
     private static NativeWindowFactory defaultFactory;
@@ -149,7 +149,7 @@ public abstract class NativeWindowFactory {
     protected NativeWindowFactory() {
     }
 
-    private static String _getNativeWindowingType() {
+    private static String _getNativeWindowingType(final boolean debug) {
         switch(PlatformPropsImpl.OS_TYPE) {
             case ANDROID:
               return TYPE_ANDROID;
@@ -166,50 +166,60 @@ public abstract class NativeWindowFactory {
             case SUNOS:
             case HPUX:
             default:
-              if( BcmVCArtifacts.guessVCIVUsed() ) {
-                  return TYPE_BCM_VC_IV;
+              if( debug ) {
+                  guessX(true);
+                  guessWayland(true);
+                  guessGBM(true);
+                  BcmVCArtifacts.guessVCIVUsed(true);
               }
-              if( guessX() ) {
+
+              if( guessX(false) ) {
                   return TYPE_X11;
               }
-              if( guessWayland() ) {
+              if( guessWayland(false) ) {
                   //TODO
                   return TYPE_WAYLAND;
               }
-              if( true || guessGBM() ) { // FIXME
+              if( guessGBM(false) ) {
                   return TYPE_EGL_GBM;
+              }
+              if( BcmVCArtifacts.guessVCIVUsed(false) ) {
+                  return TYPE_BCM_VC_IV;
               }
               return TYPE_X11;
         }
     }
 
-    private static boolean guessX() {
-        return System.getProperty("DISPLAY") != null;
+    private static boolean guessX(final boolean debug) {
+        final String s = System.getenv("DISPLAY");
+        if ( debug ) {
+            System.err.println("guessX: <"+s+"> isSet "+(null!=s));
+        }
+        return null != s;
     }
 
-    private static boolean guessWayland() {
+    private static boolean guessWayland(final boolean debug) {
         //TODO we can/should do a more elaborate check and try looking for a wayland-0 socket in $XDG_RUNTIME_DIR
-        return System.getProperty("WAYLAND_DISPLAY") !=null;
+        final String s = System.getenv("WAYLAND_DISPLAY");
+        if ( debug ) {
+            System.err.println("guessWayland: <"+s+"> isSet "+(null!=s));
+        }
+        return null != s;
     }
 
-    private static boolean guessGBM() {
+    private static boolean guessGBM(final boolean debug) {
         //FIXME this is not the best way to check if we have gbm-egl support, but does a good easy way actually exist?
-        return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
-            private final File vcliblocation = new File(
-                    "/dev/dri/card0");
-            @Override
-            public Boolean run() {
-                if ( vcliblocation.isFile() ) {
-                    return Boolean.TRUE;
-                }
-                return Boolean.FALSE;
-            }
-        } ).booleanValue();
+        final File f = new File( "/dev/dri/card0" );
+        if ( debug ) {
+            System.err.println("guessGBM: <"+f.toString()+"> exists "+f.exists());
+        }
+        return f.exists(); // not a normal file
     }
 
     static {
         final boolean[] _DEBUG = new boolean[] { false };
         final String[] _tmp = new String[] { null };
+        final String[] _nativeWindowingTypeNative = new String[] { null };
 
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
@@ -217,6 +227,7 @@ public abstract class NativeWindowFactory {
                 Platform.initSingleton(); // last resort ..
                 _DEBUG[0] = Debug.debug("NativeWindow");
                 _tmp[0] = PropertyAccess.getProperty("nativewindow.ws.name", true);
+                _nativeWindowingTypeNative[0] = _getNativeWindowingType(_DEBUG[0]);
                 Runtime.getRuntime().addShutdownHook(
                     new InterruptSource.Thread(null, new Runnable() {
                                 @Override
@@ -227,35 +238,43 @@ public abstract class NativeWindowFactory {
             } } ) ;
 
         DEBUG = _DEBUG[0];
-        if(DEBUG) {
-            System.err.println(Thread.currentThread().getName()+" - Info: NativeWindowFactory.<init>");
-            // Thread.dumpStack();
-        }
 
-        // Gather the windowing TK first
-        nativeWindowingTypePure = _getNativeWindowingType();
+        nativeWindowingTypeNative = _nativeWindowingTypeNative[0];
         if(null==_tmp[0] || _tmp[0].length()==0) {
-            nativeWindowingTypeCustom = nativeWindowingTypePure;
+            nativeWindowingTypeCustom = nativeWindowingTypeNative;
         } else {
             nativeWindowingTypeCustom = _tmp[0].intern(); // canonical representation
+        }
+        if(DEBUG) {
+            System.err.println(Thread.currentThread().getName()+" - Info: NativeWindowFactory.<init>: Type "+nativeWindowingTypeCustom+" custom / "+nativeWindowingTypeNative+" native");
+            // Thread.dumpStack();
         }
     }
 
     private static boolean initialized = false;
 
-    private static void initSingletonNativeImpl(final ClassLoader cl) {
+    private static String getNativeWindowingTypeClassName() {
         final String clazzName;
-        if( TYPE_X11 == nativeWindowingTypePure ) {
-            clazzName = X11UtilClassName;
-        } else if( TYPE_WINDOWS == nativeWindowingTypePure ) {
-            clazzName = GDIClassName;
-        } else if( TYPE_MACOSX == nativeWindowingTypePure ) {
-            clazzName = OSXUtilClassName;
-        } else if( TYPE_IOS == nativeWindowingTypePure ) {
-            clazzName = IOSUtilClassName;
-        } else {
-            clazzName = null;
+        switch( nativeWindowingTypeNative ) {
+            case TYPE_X11:
+                clazzName = X11UtilClassName;
+                break;
+            case TYPE_WINDOWS:
+                clazzName = GDIClassName;
+                break;
+            case TYPE_MACOSX:
+                clazzName = OSXUtilClassName;
+                break;
+            case TYPE_IOS:
+                clazzName = IOSUtilClassName;
+                break;
+            default:
+                clazzName = null;
         }
+        return clazzName;
+    }
+    private static void initSingletonNativeImpl(final ClassLoader cl) {
+        final String clazzName = getNativeWindowingTypeClassName();
         if( null != clazzName ) {
             ReflectionUtil.callStaticMethod(clazzName, "initSingleton", null, null, cl );
 
@@ -336,18 +355,7 @@ public abstract class NativeWindowFactory {
     }
 
     private static void shutdownNativeImpl(final ClassLoader cl) {
-        final String clazzName;
-        if( TYPE_X11 == nativeWindowingTypePure ) {
-            clazzName = X11UtilClassName;
-        } else if( TYPE_WINDOWS == nativeWindowingTypePure ) {
-            clazzName = GDIClassName;
-        } else if( TYPE_MACOSX == nativeWindowingTypePure ) {
-            clazzName = OSXUtilClassName;
-        } else if( TYPE_IOS == nativeWindowingTypePure ) {
-            clazzName = IOSUtilClassName;
-        } else {
-            clazzName = null;
-        }
+        final String clazzName = getNativeWindowingTypeClassName();
         if( null != clazzName ) {
             ReflectionUtil.callStaticMethod(clazzName, "shutdown", null, null, cl );
         }
@@ -461,7 +469,7 @@ public abstract class NativeWindowFactory {
      *        Hence {@link String#equals(Object)} and <code>==</code> produce the same result.
      */
     public static String getNativeWindowType(final boolean useCustom) {
-        return useCustom?nativeWindowingTypeCustom:nativeWindowingTypePure;
+        return useCustom?nativeWindowingTypeCustom:nativeWindowingTypeNative;
     }
 
     /** Don't know if we shall add this factory here ..
@@ -510,7 +518,7 @@ public abstract class NativeWindowFactory {
      * @see #getDefaultToolkitLock(java.lang.String)
      */
     public static ToolkitLock getDefaultToolkitLock() {
-        return getDefaultToolkitLock(nativeWindowingTypePure);
+        return getDefaultToolkitLock(nativeWindowingTypeNative);
     }
 
     /**

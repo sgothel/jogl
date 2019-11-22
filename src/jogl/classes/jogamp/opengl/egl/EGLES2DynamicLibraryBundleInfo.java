@@ -55,7 +55,7 @@ public final class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundl
              * Prefer libGLESv2.so over libGLESv2.so.2 for proprietary
              * Broadcom graphics when the VC4 DRM Xorg driver isn't present
              */
-            final boolean bcm_vc_iv_quirk = BcmVCArtifacts.guessVCIVUsed();
+            final boolean bcm_vc_iv_quirk = BcmVCArtifacts.guessVCIVUsed(false);
 
             // ES3: This is the default lib name, according to the spec
             libsGL.add("libGLESv3.so.3");

@@ -53,7 +53,7 @@ public class BcmVCArtifacts {
                 public Object run() {
                     res[0] = vcLibLocation.isFile();
                     res[1] = vc4ModLocation.isDirectory();
-                    res[2] = driCard0Location.isFile();
+                    res[2] = driCard0Location.exists(); // not a normal file
                     return null;
                 } } );
         hasVCLib = res[0];
@@ -64,13 +64,19 @@ public class BcmVCArtifacts {
     /**
      * @return True if proprietary BCM VC IV is probably being present
      */
-    public static final boolean guessVCIVPresent() {
+    public static final boolean guessVCIVPresent(final boolean debug) {
+        if( debug ) {
+            System.err.println("guessVCIVPresent: hasVCLib "+hasVCLib);
+        }
         return hasVCLib;
     }
     /**
      * @return True if proprietary BCM VC IV is probably being used and not Xorg drivers
      */
-    public static final boolean guessVCIVUsed() {
+    public static final boolean guessVCIVUsed(final boolean debug) {
+        if( debug ) {
+            System.err.println("guessVCIVUsed: hasVCLib = "+hasVCLib+" && !hasVC4ModLocation = !"+hasVC4ModLocation+" && !hasDriCard0File = !"+hasDriCard0File);
+        }
         return hasVCLib && !hasVC4ModLocation && !hasDriCard0File;
     }
 }
