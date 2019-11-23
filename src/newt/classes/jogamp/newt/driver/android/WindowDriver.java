@@ -54,6 +54,7 @@ import com.jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLDisplayUtil;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
 import jogamp.opengl.egl.EGLGraphicsConfigurationFactory;
+import jogamp.opengl.egl.EGLSurface;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -358,9 +359,9 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             setSurfaceVisualID0(surfaceHandle, nativeVisualID);
         }
 
-        eglSurface = EGL.eglCreateWindowSurface(eglDevice.getHandle(), eglConfig.getNativeConfig(), surfaceHandle, null);
+        eglSurface = EGLSurface.eglCreateWindowSurface(eglDevice.getHandle(), eglConfig.getNativeConfig(), surfaceHandle);
         if (EGL.EGL_NO_SURFACE==eglSurface) {
-            throw new NativeWindowException("Creation of window surface failed: "+eglConfig+", surfaceHandle 0x"+Long.toHexString(surfaceHandle)+", error "+toHexString(EGL.eglGetError()));
+            throw new NativeWindowException("Creation of eglSurface failed: "+eglConfig+", surfaceHandle 0x"+Long.toHexString(surfaceHandle)+", error "+toHexString(EGL.eglGetError()));
         }
 
         // propagate data ..

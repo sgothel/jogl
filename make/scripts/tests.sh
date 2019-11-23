@@ -120,6 +120,8 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogl.disable.opengldesktop"
+    D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogl.disable.opengldesktop"
 
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.UnsafeUtil"
     #D_ARGS="-Dnativewindow.debug.OSXUtil -Dnativewindow.debug.JAWT -Djogl.debug.GLContext"
@@ -367,8 +369,7 @@ function jrun() {
         export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
         #export USE_CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
         #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILDDIR/jar/atomic/jogl.jar:$JOGL_BUILDDIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILDDIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/jogl-util.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt.jar:$JOGL_BUILDDIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt-ogl.jar:$JOGL_BUILDDIR/jar/jogl-test.jar:$JUNIT_JAR:$ANT_JARS
-        #X_ARGS="-Djava.awt.headless=true $X_ARGS"
-        X_ARGS="-Djava.awt.headless=false $X_ARGS"
+        X_ARGS="-Djava.awt.headless=true $X_ARGS"
     fi
 
     if [ $USE_BUILDDIR -eq 1 ] ; then

@@ -526,9 +526,10 @@
       </linker>
 
       <linker id="linker.cfg.linux.newt.egl_gbm" extends="linker.cfg.linux">
-        <syslibset libs="EGL"/>
-        <syslibset libs="gbm"/>
         <syslibset libs="drm"/>
+        <syslibset libs="gbm"/>
+        <syslibset libs="EGL"/>
+        <syslibset libs="GLESv2"/>
       </linker>
 
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
@@ -556,8 +557,12 @@
         <syslibset libs="Xi"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
-        <syslibset libs="gbm"/> <!-- FIXME -->
-        <syslibset libs="drm"/> <!-- FIXME -->
+        <syslibset libs="gbm"/>
+        <!--
+        <syslibset libs="drm"/>
+        <syslibset libs="gbm"/>
+        <syslibset libs="EGL"/>
+        <syslibset libs="GLESv2"/> -->
       </linker>
 
       <linker id="linker.cfg.linux.armv6.newt.x11" extends="linker.cfg.linux.armv6">
@@ -897,6 +902,7 @@
           <include name="${rootrel.src.c}/bcm_egl.c"          if="setup.addNativeBroadcom"/>
           <include name="${rootrel.src.c}/bcm_vc_iv.c"        if="setup.addNativeBroadcom"/>
           <include name="${rootrel.src.c}/egl_gbm.c"          if="setup.addNativeEGLGBM"/>
+          <include name="${rootrel.src.c}/egl_gbm_drmflip.c"  if="setup.addNativeEGLGBM"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />

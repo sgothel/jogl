@@ -27,20 +27,23 @@
  */
 package jogamp.newt.driver.egl.gbm;
 
-import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
-import com.jogamp.nativewindow.Capabilities;
-import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeWindowException;
-import com.jogamp.nativewindow.VisualIDHolder;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.opengl.GLCapabilitiesChooser;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.egl.EGL;
 
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.linux.LinuxEventDeviceTracker;
 import jogamp.newt.driver.linux.LinuxMouseTracker;
+import jogamp.opengl.egl.EGLGraphicsConfiguration;
+import jogamp.opengl.egl.EGLGraphicsConfigurationFactory;
+import jogamp.opengl.egl.EGLSurface;
 
 public class WindowDriver extends WindowImpl {
 
@@ -124,6 +127,15 @@ public class WindowDriver extends WindowImpl {
         return true; // default: always able to be created
     }
 
+    static int fourcc_code(final char a, final char b, final char c, final char d) {
+        // return ( (int)(a) | ((int)(b) << 8) | ((int)(c) << 16) | ((int)(d) << 24) );
+        return ( (a) | ((b) << 8) | ((c) << 16) | ((d) << 24) );
+    }
+    /** [31:0] x:R:G:B 8:8:8:8 little endian */
+    static final int GBM_FORMAT_XRGB8888 = fourcc_code('X', 'R', '2', '4');
+    /** [31:0] A:R:G:B 8:8:8:8 little endian */
+    static final int GBM_FORMAT_ARGB8888 = fourcc_code('A', 'R', '2', '4');
+
     @Override
     protected void createNativeImpl() {
         if (0 != getParentWindowHandle()) {
@@ -136,31 +148,41 @@ public class WindowDriver extends WindowImpl {
         // Create own screen/device resource instance allowing independent ownership,
         // while still utilizing shared EGL resources.
         final AbstractGraphicsScreen aScreen = screen.getGraphicsScreen();
-        // final AbstractGraphicsDevice aDevice = display.getGraphicsDevice();
-        // final EGLGraphicsDevice aDevice = (EGLGraphicsDevice) aScreen.getDevice();
+        final int nativeVisualID = capsRequested.isBackgroundOpaque() ? GBM_FORMAT_XRGB8888 : GBM_FORMAT_ARGB8888;
 
-        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
-                capsRequested, capsRequested, capabilitiesChooser, aScreen, VisualIDHolder.VID_UNDEFINED);
-        if (null == cfg) {
+        final EGLGraphicsConfiguration eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
+                (GLCapabilitiesImmutable)capsRequested, (GLCapabilitiesImmutable)capsRequested, (GLCapabilitiesChooser)capabilitiesChooser,
+                aScreen, nativeVisualID, !capsRequested.isBackgroundOpaque());
+        if (eglConfig == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        final Capabilities chosenCaps = (Capabilities) cfg.getChosenCapabilities();
-        // FIXME: Pass along opaque flag, since EGL doesn't determine it
-        if(capsRequested.isBackgroundOpaque() != chosenCaps.isBackgroundOpaque()) {
-            chosenCaps.setBackgroundOpaque(capsRequested.isBackgroundOpaque());
-        }
-        setGraphicsConfiguration(cfg);
+        setGraphicsConfiguration(eglConfig);
         final long nativeWindowHandle = CreateWindow0(DisplayDriver.getDrmHandle(), display.getGBMHandle(),
-                                           getX(), getY(), getWidth(), getHeight(),
-                                           chosenCaps.isBackgroundOpaque(), chosenCaps.getAlphaBits());
+                                           getX(), getY(), getWidth(), getHeight(), nativeVisualID);
         if (nativeWindowHandle == 0) {
-            throw new NativeWindowException("Error creating egl window: "+cfg);
+            throw new NativeWindowException("Error creating egl window: "+eglConfig);
         }
+        setGraphicsConfiguration(eglConfig);
         setWindowHandle(nativeWindowHandle);
         if (0 == getWindowHandle()) {
             throw new NativeWindowException("Error native Window Handle is null");
         }
         windowHandleClose = nativeWindowHandle;
+
+        eglSurface = EGLSurface.eglCreateWindowSurface(display.getHandle(), eglConfig.getNativeConfig(), nativeWindowHandle);
+        if (EGL.EGL_NO_SURFACE==eglSurface) {
+            throw new NativeWindowException("Creation of eglSurface failed: "+eglConfig+", windowHandle 0x"+Long.toHexString(nativeWindowHandle)+", error "+toHexString(EGL.eglGetError()));
+        }
+
+        if(false) {
+            /**
+            if(!EGL.eglSwapBuffers(display.getHandle(), eglSurface)) {
+                throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
+            } */
+            lastBO = FirstSwapSurface0(DisplayDriver.getDrmHandle(), nativeWindowHandle, display.getHandle(), eglSurface);
+        } else {
+            lastBO = 0;
+        }
 
         if( null != linuxEventDeviceTracker ) {
             addWindowListener(linuxEventDeviceTracker);
@@ -168,6 +190,7 @@ public class WindowDriver extends WindowImpl {
         if( null != linuxMouseTracker ) {
             addWindowListener(linuxMouseTracker);
         }
+        visibleChanged(true);
         focusChanged(false, true);
     }
 
@@ -183,6 +206,18 @@ public class WindowDriver extends WindowImpl {
             removeWindowListener(linuxEventDeviceTracker);
         }
 
+        lastBO = 0;
+        if(0 != eglSurface) {
+            try {
+                if (!EGL.eglDestroySurface(eglDevice.getHandle(), eglSurface)) {
+                    throw new GLException("Error destroying window surface (eglDestroySurface)");
+                }
+            } catch (final Throwable t) {
+                t.printStackTrace();
+            } finally {
+                eglSurface = 0;
+            }
+        }
         if( 0 != windowHandleClose ) {
             CloseWindow0(display.getGBMHandle(), windowHandleClose);
             windowHandleClose = 0;
@@ -191,6 +226,30 @@ public class WindowDriver extends WindowImpl {
         eglDevice.close();
     }
 
+    @Override
+    public final long getSurfaceHandle() {
+        return eglSurface;
+    }
+
+    @Override
+    public boolean surfaceSwap() {
+        final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
+        final long nativeWindowHandle = getWindowHandle();
+
+        if( 0 == lastBO ) {
+            /** if(!EGL.eglSwapBuffers(display.getHandle(), eglSurface)) {
+                throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
+            } */
+            lastBO = FirstSwapSurface0(DisplayDriver.getDrmHandle(), nativeWindowHandle, display.getHandle(), eglSurface);
+        }
+
+        /**if(!EGL.eglSwapBuffers(display.getHandle(), eglSurface)) {
+            throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
+        } */
+        lastBO = NextSwapSurface0(DisplayDriver.getDrmHandle(), nativeWindowHandle, lastBO, display.getHandle(), eglSurface);
+        System.exit(1);
+        return true; // eglSwapBuffers done!
+    }
 
     @Override
     protected void requestFocusImpl(final boolean reparented) {
@@ -232,10 +291,13 @@ public class WindowDriver extends WindowImpl {
     private final LinuxMouseTracker linuxMouseTracker;
     private final LinuxEventDeviceTracker linuxEventDeviceTracker;
     private long windowHandleClose;
+    private long eglSurface;
+    private long lastBO;
 
     protected static native boolean initIDs();
-    private native long CreateWindow0(long drmHandle, long gbmHandle, int x, int y, int width, int height, boolean opaque, int alphaBits);
+    private native long CreateWindow0(long drmHandle, long gbmHandle, int x, int y, int width, int height, int nativeVisualID);
     private native void CloseWindow0(long gbmDisplay, long eglWindowHandle);
     private native void reconfigure0(long eglWindowHandle, int x, int y, int width, int height, int flags);
-
+    private native long FirstSwapSurface0(long drmHandle, long gbmSurface, long eglDisplay, long eglSurface);
+    private native long NextSwapSurface0(long drmHandle, long gbmSurface, long lastBO, long eglDisplay, long eglSurface);
 }

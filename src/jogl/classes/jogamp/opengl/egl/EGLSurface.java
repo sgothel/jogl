@@ -36,7 +36,6 @@ import com.jogamp.nativewindow.ProxySurface;
 import com.jogamp.nativewindow.UpstreamSurfaceHook;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLException;
-import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.opengl.egl.EGL;
@@ -93,6 +92,23 @@ public class EGLSurface extends WrappedSurface {
         }
     }
 
+    /**
+     * Entry point to C language function:
+     * <br><code> EGLSurface eglCreateWindowSurface(EGLDisplay dpy, EGLConfig config, EGLNativeWindowType win, const EGLint *  attrib_list) </code> <br>Part of <code>EGL_VERSION_1_0</code><br>
+     * <br>or<br>
+     * <p>
+     * <code> EGLSurface eglCreatePlatformWindowSurface(EGLDisplay dpy, EGLConfig config, void *  native_window, const EGLAttrib *  attrib_list) </code> <br>Part of <code>EGL_VERSION_1_5</code>, <code>EGL_EXT_platform_base</code><br>Alias for: <code>eglCreatePlatformWindowSurfaceEXT</code>
+     * </p>
+     */
+    public static long eglCreateWindowSurface(final long dpy, final long config, final long win)  {
+        final int eglPlatform = EGLDisplayUtil.getEGLPlatformType(true);
+        if( 0 != eglPlatform ) {
+            return EGL.eglCreatePlatformWindowSurface(dpy, config, win, null);
+        } else {
+            return EGL.eglCreateWindowSurface(dpy, config, win, null);
+        }
+    }
+
     public void setEGLSurfaceHandle() throws GLException {
         setSurfaceHandle( createEGLSurface() );
     }
@@ -138,24 +154,15 @@ public class EGLSurface extends WrappedSurface {
         if( isPBuffer ) {
             return EGLDrawableFactory.createPBufferSurfaceImpl(config, getSurfaceWidth(), getSurfaceHeight(), false);
         } else {
-            final int eglPlatform = EGLDisplayUtil.getEGLPlatformType(true);
             final long eglNativeWin = useNativeSurface ?  nativeSurface.getSurfaceHandle() : ((NativeWindow)nativeSurface).getWindowHandle();
-            final long eglSurface;
-            if( 0 != eglPlatform ) {
-                eglSurface = EGL.eglCreatePlatformWindowSurface(config.getScreen().getDevice().getHandle(),
-                                                                config.getNativeConfig(),
-                                                                eglNativeWin, null);
-            } else {
-                eglSurface = EGL.eglCreateWindowSurface(config.getScreen().getDevice().getHandle(),
-                                                        config.getNativeConfig(),
-                                                        eglNativeWin, null);
-            }
+            final long eglSurface = eglCreateWindowSurface(config.getScreen().getDevice().getHandle(), config.getNativeConfig(), eglNativeWin);
             if(DEBUG) {
+                final int eglPlatform = EGLDisplayUtil.getEGLPlatformType(true);
                 System.err.println("EGLSurface.createEGLSurface.X: useNativeSurface "+useNativeSurface+
                         ", nativeWin "+EGLContext.toHexString(eglNativeWin)+") @ "+
                         eglPlatform+"/"+NativeWindowFactory.getNativeWindowType(true)+": "+
                         EGLContext.toHexString(eglSurface)+
-                        ", "+((EGL.EGL_NO_SURFACE != eglSurface)?"OK":"Failed"));
+                        ", "+((EGL.EGL_NO_SURFACE != eglSurface)?"OK":"Failed")+" - with config "+config);
             }
             return eglSurface;
         }

@@ -163,6 +163,10 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
 
     @Override
     public boolean surfaceSwap() {
+        final NativeSurface upstreamSurface = upstream.getUpstreamSurface();
+        if( null != upstreamSurface ) {
+            return upstreamSurface.surfaceSwap();
+        }
         return false;
     }
 
