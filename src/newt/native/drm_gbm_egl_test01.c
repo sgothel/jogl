@@ -525,6 +525,77 @@ static DRM_FB * drm_fb_get_from_bo(int drmFd, struct gbm_bo *bo)
     return fb;
 }
 
+typedef struct {
+    uint32_t crtc_id;
+    struct gbm_bo *bo;
+	uint32_t bo_handle;
+    int x, y;
+} DRM_CURSOR;
+
+static DRM_CURSOR *drm_create_cursor(int drmFd, struct gbm_device *gbmDevice, uint32_t crtc_id) 
+{
+    DRM_CURSOR * c = calloc(1, sizeof(DRM_CURSOR));
+	uint32_t buf[64 * 64];
+    int ret;
+
+    c->crtc_id = crtc_id;
+    c->bo = gbm_bo_create(gbmDevice, 64, 64, 
+                          GBM_FORMAT_ARGB8888,
+                          GBM_BO_USE_CURSOR_64X64 | GBM_BO_USE_WRITE);
+    if( NULL == c->bo ) {
+        ERR_PRINT("cursor.cstr gbm_bo_create failed\n");
+        return NULL;
+    }
+    c->bo_handle = gbm_bo_get_handle(c->bo).u32;
+
+    memset(buf, 255, sizeof buf); // white for now
+    if ( gbm_bo_write(c->bo, buf, sizeof(buf)) < 0 ) {
+        ERR_PRINT("cursor.cstr gbm_bo_write failed\n");
+        return NULL;
+    }
+    ret = drmModeSetCursor(drmFd, c->crtc_id, c->bo_handle, 64, 64);
+    if( ret ) {
+        ERR_PRINT("cursor.cstr drmModeSetCursor failed: %d %s\n", ret, strerror(errno));
+        return NULL;
+    }
+
+    return c;
+}
+static void drm_destroy_cursor(int drmFd, DRM_CURSOR *c) 
+{
+    int crtc_id = c->crtc_id;
+    struct gbm_bo *bo = c->bo;
+    int ret;
+    c->crtc_id=-1;
+    c->bo_handle=0;
+    c->bo=NULL;
+    ret = drmModeSetCursor(drmFd, crtc_id, 0, 0, 0);
+    if( ret ) {
+        ERR_PRINT("cursor.dstr drmModeSetCursor failed: %d %s\n", ret, strerror(errno));
+    }
+    gbm_bo_destroy(bo);
+    free(c);
+}
+static int drm_move_cursor(int drmFd, DRM_CURSOR *c, int x, int y) 
+{
+	int ret;
+
+    if( c->x != x || c->y != y ) {
+        c->x = x;
+        c->y = y;
+        ret = drmModeMoveCursor(drmFd, c->crtc_id, x, y);
+        if( ret ) {
+            ERR_PRINT("cursor drmModeMoveCursor failed: %d %s\n", ret, strerror(errno));
+            return ret;
+        }
+    }
+    return 0;
+}
+
+// drm_public int drmModeSetCursor(int fd, uint32_t crtcId, uint32_t bo_handle, uint32_t width, uint32_t height);
+// drm_public int drmModeSetCursor2(int fd, uint32_t crtcId, uint32_t bo_handle, uint32_t width, uint32_t height, int32_t hot_x, int32_t hot_y);
+// drm_public int drmModeMoveCursor(int fd, uint32_t crtcId, int x, int y);
+
 // #define USE_SURFACELESS 1
 #ifdef USE_SURFACELESS
     #warning Using KHR_SURFACELESS
@@ -553,6 +624,8 @@ int main(int argc, char *argv[])
     EGLContext glContext = NULL;
 	struct gbm_bo *bo = NULL;
     DRM_FB * fb = NULL;
+    DRM_CURSOR * cursor = NULL;
+    int cursorX=0, cursorY=0;
 	uint32_t i = 0;
 	int ret;
 
@@ -673,6 +746,9 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
+    cursor = drm_create_cursor(drm->fd, gbmDevice, drm->encoder->crtc_id);
+    drm_move_cursor(drm->fd, cursor, cursorX, cursorY);
+
     {
         eglDisplay  = getPlatformEGLDisplay(gbmDevice);
 
@@ -761,6 +837,16 @@ int main(int argc, char *argv[])
 		struct gbm_bo *next_bo;
 		int waiting_for_flip = 1;
 
+        cursorX += 1;
+        cursorY += 1;
+        if( cursorX >= drm->current_mode->hdisplay ) {
+            cursorX = 0;
+        }
+        if( cursorY >= drm->current_mode->vdisplay ) {
+            cursorY = 0;
+        }
+        drm_move_cursor(drm->fd, cursor, cursorX, cursorY);
+
         if( ++i > 255 ) { i = 0; }
         glClearColor(0.2f, 0.3f, (float)i/255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -806,6 +892,9 @@ int main(int argc, char *argv[])
 		gbm_surface_release_buffer(gbmSurface, bo);
 		bo = next_bo;
 	}
+
+    drm_destroy_cursor(drm->fd, cursor);
+    cursor = NULL;
 
 	return ret;
 }
