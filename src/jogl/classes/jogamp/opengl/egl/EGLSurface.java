@@ -102,7 +102,10 @@ public class EGLSurface extends WrappedSurface {
      */
     public static long eglCreateWindowSurface(final long dpy, final long config, final long win)  {
         final int eglPlatform = EGLDisplayUtil.getEGLPlatformType(true);
-        if( 0 != eglPlatform ) {
+        if( false && 0 != eglPlatform ) {
+            // Not necessarily required and also not used in demo code
+            // Also causes a crash using NVIDIA 430.40 on GNU/Linux X11
+            // TODO: Forward bugreport to related parties?
             return EGL.eglCreatePlatformWindowSurface(dpy, config, win, null);
         } else {
             return EGL.eglCreateWindowSurface(dpy, config, win, null);
