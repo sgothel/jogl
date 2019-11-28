@@ -219,6 +219,18 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         return availableCaps;
     }
 
+    /**
+     * Called mainly by {@link #chooseGraphicsConfigurationImpl(CapabilitiesImmutable, CapabilitiesImmutable, CapabilitiesChooser, AbstractGraphicsScreen, int)}
+     * @param capsChosen     the intermediate chosen capabilities to be refined by this implementation, may be equal to capsRequested
+     * @param capsReq        the original requested capabilities
+     * @param chooser        the choosing implementation
+     * @param absScreen      the referring Screen
+     * @param nativeVisualID if not {@link VisualIDHolder#VID_UNDEFINED} it reflects a pre-chosen visualID of the native platform's windowing system.
+     * @param forceTransparentFlag
+     * @return               the complete GraphicsConfiguration
+     * @see #chooseGraphicsConfigurationImpl(CapabilitiesImmutable, CapabilitiesImmutable, CapabilitiesChooser, AbstractGraphicsScreen, int)
+     * @see GraphicsConfigurationFactory#chooseGraphicsConfiguration(CapabilitiesImmutable, CapabilitiesImmutable, CapabilitiesChooser, AbstractGraphicsScreen, int)
+     */
     public static EGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
                                                                              final GLCapabilitiesImmutable capsReq,
                                                                              final GLCapabilitiesChooser chooser,

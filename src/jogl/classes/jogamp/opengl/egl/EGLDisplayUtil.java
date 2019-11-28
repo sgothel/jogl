@@ -213,7 +213,7 @@ public class EGLDisplayUtil {
             case NativeWindowFactory.TYPE_ANDROID:
                 eglPlatform = EGLExt.EGL_PLATFORM_ANDROID_KHR;
                 break;
-            case NativeWindowFactory.TYPE_EGL_GBM:
+            case NativeWindowFactory.TYPE_DRM_GBM:
                 eglPlatform = EGLExt.EGL_PLATFORM_GBM_KHR; // same EGLExt.EGL_PLATFORM_GBM_MESA;
                 break;
             case NativeWindowFactory.TYPE_WAYLAND:

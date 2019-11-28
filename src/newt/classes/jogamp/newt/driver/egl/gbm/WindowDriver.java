@@ -27,17 +27,27 @@
  */
 package jogamp.newt.driver.egl.gbm;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
+import com.jogamp.newt.Display;
 import com.jogamp.opengl.GLCapabilitiesChooser;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.egl.EGL;
 
+import jogamp.nativewindow.drm.DRMLib;
+import jogamp.nativewindow.drm.DRMUtil;
+import jogamp.nativewindow.drm.DrmMode;
+import jogamp.nativewindow.drm.drmModeModeInfo;
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.linux.LinuxEventDeviceTracker;
 import jogamp.newt.driver.linux.LinuxMouseTracker;
@@ -120,21 +130,66 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
+    /**
+     * Align given rectangle to given screen bounds.
+     *
+     * @param screen
+     * @param rect the {@link RectangleImmutable} in pixel units
+     * @param definePosSize if {@code true} issue {@link #definePosition(int, int)} and {@link #defineSize(int, int)}
+     *                      if either has changed.
+     * @return If position or size has been aligned a new {@link RectangleImmutable} instance w/ clamped values
+     *         will be returned, otherwise the given {@code rect} is returned.
+     */
+    private RectangleImmutable alignRect2Screen(final ScreenDriver screen, final RectangleImmutable rect, final boolean definePosSize) {
+        int x = rect.getX();
+        int y = rect.getY();
+        int w = rect.getWidth();
+        int h = rect.getHeight();
+        final int s_w = screen.getWidth();
+        final int s_h = screen.getHeight();
+        boolean modPos = false;
+        boolean modSize = false;
+        if( 0 != x ) {
+            x = 0;
+            modPos = true;
+        }
+        if( 0 != y ) {
+            y = 0;
+            modPos = true;
+        }
+        if( s_w != w ) {
+            w = s_w;
+            modSize = true;
+        }
+        if( s_h != h ) {
+            h = s_h;
+            modSize = true;
+        }
+        if( modPos || modSize ) {
+            if( definePosSize ) {
+                if( modPos ) {
+                    definePosition(x, y);
+                }
+                if( modSize ) {
+                    defineSize(w, h);
+                }
+            }
+            return new Rectangle(x, y, w, h);
+        } else {
+            return rect;
+        }
+    }
+
     @Override
     protected boolean canCreateNativeImpl() {
         // clamp if required incl. redefinition of position and size
-        clampRect((ScreenDriver) getScreen(), new Rectangle(getX(), getY(), getWidth(), getHeight()), true);
+        // clampRect((ScreenDriver) getScreen(), new Rectangle(getX(), getY(), getWidth(), getHeight()), true);
+
+        // Turns out DRM / GBM can only handle full screen size FB and crtc-modesetting (?)
+        alignRect2Screen((ScreenDriver) getScreen(), new Rectangle(getX(), getY(), getWidth(), getHeight()), true);
+
         return true; // default: always able to be created
     }
-
-    static int fourcc_code(final char a, final char b, final char c, final char d) {
-        // return ( (int)(a) | ((int)(b) << 8) | ((int)(c) << 16) | ((int)(d) << 24) );
-        return ( (a) | ((b) << 8) | ((c) << 16) | ((d) << 24) );
-    }
-    /** [31:0] x:R:G:B 8:8:8:8 little endian */
-    static final int GBM_FORMAT_XRGB8888 = fourcc_code('X', 'R', '2', '4');
-    /** [31:0] A:R:G:B 8:8:8:8 little endian */
-    static final int GBM_FORMAT_ARGB8888 = fourcc_code('A', 'R', '2', '4');
 
     @Override
     protected void createNativeImpl() {
@@ -148,7 +203,12 @@ public class WindowDriver extends WindowImpl {
         // Create own screen/device resource instance allowing independent ownership,
         // while still utilizing shared EGL resources.
         final AbstractGraphicsScreen aScreen = screen.getGraphicsScreen();
-        final int nativeVisualID = capsRequested.isBackgroundOpaque() ? GBM_FORMAT_XRGB8888 : GBM_FORMAT_ARGB8888;
+        final int nativeVisualID = capsRequested.isBackgroundOpaque() ? DRMUtil.GBM_FORMAT_XRGB8888 : DRMUtil.GBM_FORMAT_ARGB8888;
+
+        final boolean ctDesktopGL = false;
+        if( !EGL.eglBindAPI( ctDesktopGL ? EGL.EGL_OPENGL_API : EGL.EGL_OPENGL_ES_API) ) {
+            throw new GLException("Caught: eglBindAPI to "+(ctDesktopGL ? "ES" : "GL")+" failed , error "+toHexString(EGL.eglGetError()));
+        }
 
         final EGLGraphicsConfiguration eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                 (GLCapabilitiesImmutable)capsRequested, (GLCapabilitiesImmutable)capsRequested, (GLCapabilitiesChooser)capabilitiesChooser,
@@ -157,8 +217,8 @@ public class WindowDriver extends WindowImpl {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
         setGraphicsConfiguration(eglConfig);
-        final long nativeWindowHandle = CreateWindow0(DisplayDriver.getDrmHandle(), display.getGBMHandle(),
-                                           getX(), getY(), getWidth(), getHeight(), nativeVisualID);
+        final long nativeWindowHandle = DRMLib.gbm_surface_create(display.getGBMHandle(), getWidth(), getHeight(), nativeVisualID,
+                                            DRMLib.GBM_BO_USE_SCANOUT | DRMLib.GBM_BO_USE_RENDERING);
         if (nativeWindowHandle == 0) {
             throw new NativeWindowException("Error creating egl window: "+eglConfig);
         }
@@ -174,15 +234,7 @@ public class WindowDriver extends WindowImpl {
             throw new NativeWindowException("Creation of eglSurface failed: "+eglConfig+", windowHandle 0x"+Long.toHexString(nativeWindowHandle)+", error "+toHexString(EGL.eglGetError()));
         }
 
-        if(false) {
-            /**
-            if(!EGL.eglSwapBuffers(display.getHandle(), eglSurface)) {
-                throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
-            } */
-            lastBO = FirstSwapSurface0(DisplayDriver.getDrmHandle(), nativeWindowHandle, display.getHandle(), eglSurface);
-        } else {
-            lastBO = 0;
-        }
+        lastBO = 0;
 
         if( null != linuxEventDeviceTracker ) {
             addWindowListener(linuxEventDeviceTracker);
@@ -196,8 +248,7 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected void closeNativeImpl() {
-        final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
-        final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getGraphicsConfiguration().getScreen().getDevice();
+        final Display display = getScreen().getDisplay();
 
         if( null != linuxMouseTracker ) {
             removeWindowListener(linuxMouseTracker);
@@ -209,7 +260,7 @@ public class WindowDriver extends WindowImpl {
         lastBO = 0;
         if(0 != eglSurface) {
             try {
-                if (!EGL.eglDestroySurface(eglDevice.getHandle(), eglSurface)) {
+                if (!EGL.eglDestroySurface(display.getHandle(), eglSurface)) {
                     throw new GLException("Error destroying window surface (eglDestroySurface)");
                 }
             } catch (final Throwable t) {
@@ -219,11 +270,9 @@ public class WindowDriver extends WindowImpl {
             }
         }
         if( 0 != windowHandleClose ) {
-            CloseWindow0(display.getGBMHandle(), windowHandleClose);
+            DRMLib.gbm_surface_destroy(windowHandleClose);
             windowHandleClose = 0;
         }
-
-        eglDevice.close();
     }
 
     @Override
@@ -233,21 +282,21 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     public boolean surfaceSwap() {
-        final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
+        final ScreenDriver screen = (ScreenDriver) getScreen();
+        final DisplayDriver display = (DisplayDriver) screen.getDisplay();
         final long nativeWindowHandle = getWindowHandle();
+        final DrmMode d = screen.drmMode;
 
-        if( 0 == lastBO ) {
-            /** if(!EGL.eglSwapBuffers(display.getHandle(), eglSurface)) {
-                throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
-            } */
-            lastBO = FirstSwapSurface0(DisplayDriver.getDrmHandle(), nativeWindowHandle, display.getHandle(), eglSurface);
-        }
-
-        /**if(!EGL.eglSwapBuffers(display.getHandle(), eglSurface)) {
+        if(!EGL.eglSwapBuffers(display.getHandle(), eglSurface)) {
             throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
-        } */
-        lastBO = NextSwapSurface0(DisplayDriver.getDrmHandle(), nativeWindowHandle, lastBO, display.getHandle(), eglSurface);
-        System.exit(1);
+        }
+        if( 0 == lastBO ) {
+            lastBO = FirstSwapSurface(d.drmFd, d.getCrtcIDs()[0], getX(), getY(), d.getConnectors()[0].getConnector_id(),
+                                       d.getModes()[0], nativeWindowHandle);
+        } else {
+            lastBO = NextSwapSurface(d.drmFd, d.getCrtcIDs()[0], getX(), getY(), d.getConnectors()[0].getConnector_id(),
+                                     d.getModes()[0], nativeWindowHandle, lastBO);
+        }
         return true; // eglSwapBuffers done!
     }
 
@@ -273,11 +322,11 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) {
-        final RectangleImmutable rect = clampRect((ScreenDriver) getScreen(), new Rectangle(x, y, width, height), false);
+        // final RectangleImmutable rect = clampRect((ScreenDriver) getScreen(), new Rectangle(x, y, width, height), false);
         // reconfigure0 will issue position/size changed events if required
-        reconfigure0(getWindowHandle(), rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), flags);
+        // reconfigure0(getWindowHandle(), rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight(), flags);
 
-        return true;
+        return false;
     }
 
     @Override
@@ -295,9 +344,29 @@ public class WindowDriver extends WindowImpl {
     private long lastBO;
 
     protected static native boolean initIDs();
-    private native long CreateWindow0(long drmHandle, long gbmHandle, int x, int y, int width, int height, int nativeVisualID);
-    private native void CloseWindow0(long gbmDisplay, long eglWindowHandle);
-    private native void reconfigure0(long eglWindowHandle, int x, int y, int width, int height, int flags);
-    private native long FirstSwapSurface0(long drmHandle, long gbmSurface, long eglDisplay, long eglSurface);
-    private native long NextSwapSurface0(long drmHandle, long gbmSurface, long lastBO, long eglDisplay, long eglSurface);
+    // private native void reconfigure0(long eglWindowHandle, int x, int y, int width, int height, int flags);
+
+    private long FirstSwapSurface(final int drmFd, final int crtc_id, final int x, final int y, final int connector_id, final drmModeModeInfo drmMode, final long gbmSurface) {
+        final ByteBuffer bb = drmMode.getBuffer();
+        if(!Buffers.isDirect(bb)) {
+            throw new IllegalArgumentException("drmMode's buffer is not direct (NIO)");
+        }
+        return FirstSwapSurface0(drmFd, crtc_id, x, y, connector_id,
+                                 bb, Buffers.getDirectBufferByteOffset(bb),
+                                 gbmSurface);
+    }
+    private native long FirstSwapSurface0(int drmFd, int crtc_id, int x, int y, int connector_id, Object mode, int mode_byte_offset,
+                                          long gbmSurface);
+
+    private long NextSwapSurface(final int drmFd, final int crtc_id, final int x, final int y, final int connector_id, final drmModeModeInfo drmMode, final long gbmSurface, final long lastBO) {
+        final ByteBuffer bb = drmMode.getBuffer();
+        if(!Buffers.isDirect(bb)) {
+            throw new IllegalArgumentException("drmMode's buffer is not direct (NIO)");
+        }
+        return NextSwapSurface0(drmFd, crtc_id, x, y, connector_id,
+                                bb, Buffers.getDirectBufferByteOffset(bb),
+                                gbmSurface, lastBO);
+    }
+    private native long NextSwapSurface0(int drmFd, int crtc_id, int x, int y, int connector_id, Object mode, int mode_byte_offset,
+                                         long gbmSurface, long lastBO);
 }

@@ -113,15 +113,22 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
 
     void updateGraphicsConfiguration() {
         final CapabilitiesImmutable capsChosen = getChosenCapabilities();
-        final EGLGraphicsConfiguration newConfig = (EGLGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(getScreen().getDevice(), capsChosen).chooseGraphicsConfiguration(
-                capsChosen, getRequestedCapabilities(), chooser, getScreen(), VisualIDHolder.VID_UNDEFINED);
-        if(null!=newConfig) {
-            // FIXME: setScreen( ... );
-            setChosenCapabilities(newConfig.getChosenCapabilities());
-            if(DEBUG) {
-                System.err.println("updateGraphicsConfiguration(1): "+this);
+        if( VisualIDHolder.VID_UNDEFINED == capsChosen.getVisualID(VIDType.NATIVE) ) {
+            final EGLGraphicsConfiguration newConfig = (EGLGraphicsConfiguration)
+                GraphicsConfigurationFactory.getFactory(getScreen().getDevice(), capsChosen).chooseGraphicsConfiguration(
+                    capsChosen, getRequestedCapabilities(), chooser, getScreen(), VisualIDHolder.VID_UNDEFINED);
+            if(null!=newConfig) {
+                // FIXME: setScreen( ... );
+                setChosenCapabilities(newConfig.getChosenCapabilities());
+                if(DEBUG) {
+                    System.err.println("EGLGraphicsConfiguration.updateGraphicsConfiguration updated: "+this);
+                }
+            } else {
+                throw new GLException("No native VisualID pre-chosen and update failed: "+this);
             }
+        } else if (DEBUG) {
+            System.err.println("EGLGraphicsConfiguration.updateGraphicsConfiguration kept:"+this);
+
         }
     }
 

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- *
+ * 
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- *
+ * 
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,30 +20,18 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
 
-#include <stdio.h> //required by android to identify NULL
-#include <jni.h>
+// #include <xf86drm.h>
+extern int           drmAvailable(void);
+extern int           drmOpenFile(const char *filename);
+extern int           drmOpen(const char *drivername, const char *busid);
+extern int           drmClose(int fd);
 
-#if defined (JNI_VERSION_1_8)
-
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_awt(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_x11(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_win32(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_macosx(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_ios(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-JNIEXPORT jint JNICALL JNI_OnLoad_nativewindow_drm(JavaVM *vm, void *reserved) { return JNI_VERSION_1_8; }
-
-JNIEXPORT void JNICALL JNI_OnUnload_nativewindow_awt(JavaVM *vm, void *reserved) { }
-JNIEXPORT void JNICALL JNI_OnUnload_nativewindow_x11(JavaVM *vm, void *reserved) { }
-JNIEXPORT void JNICALL JNI_OnUnload_nativewindow_win32(JavaVM *vm, void *reserved) { }
-JNIEXPORT void JNICALL JNI_OnUnload_nativewindow_macosx(JavaVM *vm, void *reserved) { }
-JNIEXPORT void JNICALL JNI_OnUnload_nativewindow_ios(JavaVM *vm, void *reserved) { }
-JNIEXPORT void JNICALL JNI_OnUnload_nativewindow_drm(JavaVM *vm, void *reserved) { }
-
-#endif /* defined (JNI_VERSION_1_8) */
+#include <xf86drmMode.h>
+#include <gbm.h>
 

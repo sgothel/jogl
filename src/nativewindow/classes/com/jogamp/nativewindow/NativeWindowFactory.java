@@ -86,8 +86,8 @@ public abstract class NativeWindowFactory {
     /** Wayland/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
     public static final String TYPE_WAYLAND = ".wayland";
 
-    /** GBM/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
-    public static final String TYPE_EGL_GBM = ".egl.gbm";
+    /** DRM/GBM type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
+    public static final String TYPE_DRM_GBM = ".egl.gbm"; // We leave the sub-package name as .egl.gbm for NEWT as it uses EGL
 
     /** OpenKODE/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
     public static final String TYPE_EGL = ".egl";
@@ -128,6 +128,8 @@ public abstract class NativeWindowFactory {
     private static final String JAWTUtilClassName = "jogamp.nativewindow.jawt.JAWTUtil" ;
     /** {@link jogamp.nativewindow.x11.X11Util} implements {@link ToolkitProperties}. */
     private static final String X11UtilClassName = "jogamp.nativewindow.x11.X11Util";
+    /** {@link jogamp.nativewindow.drm.DRMUtil} implements {@link ToolkitProperties}. */
+    private static final String DRMUtilClassName = "jogamp.nativewindow.drm.DRMUtil";
     /** {@link jogamp.nativewindow.macosx.OSXUtil} implements {@link ToolkitProperties}. */
     private static final String OSXUtilClassName = "jogamp.nativewindow.macosx.OSXUtil";
     /** {@link jogamp.nativewindow.ios.IOSUtil} implements {@link ToolkitProperties}. */
@@ -181,7 +183,7 @@ public abstract class NativeWindowFactory {
                   return TYPE_WAYLAND;
               }
               if( guessGBM(false) ) {
-                  return TYPE_EGL_GBM;
+                  return TYPE_DRM_GBM;
               }
               if( BcmVCArtifacts.guessVCIVUsed(false) ) {
                   return TYPE_BCM_VC_IV;
@@ -258,6 +260,9 @@ public abstract class NativeWindowFactory {
         switch( nativeWindowingTypeNative ) {
             case TYPE_X11:
                 clazzName = X11UtilClassName;
+                break;
+            case TYPE_DRM_GBM:
+                clazzName = DRMUtilClassName;
                 break;
             case TYPE_WINDOWS:
                 clazzName = GDIClassName;

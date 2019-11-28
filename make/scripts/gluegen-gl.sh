@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 rootrel=build-x86_64
 #rootrel=build-x86_64-clang
@@ -9,6 +9,23 @@ buildtmp=../build-temp
 function copy_temp() {
     mkdir -p $buildtmp/gensrc/classes
     cp -a $builddir/jogl/gensrc/classes/* $buildtmp/gensrc/classes/
+}
+
+function gluegen_drmgbm() {
+rm -f ../$rootrel/nativewindow/gensrc/classes/jogamp/nativewindow/drm/*
+rm -f ../$rootrel/nativewindow/gensrc/native/drm/*
+java \
+-classpath \
+../../gluegen/$rootrel/gluegen.jar:../$rootrel/jogl/gluegen-gl.jar \
+com.jogamp.gluegen.GlueGen \
+--debug \
+-O../$rootrel/nativewindow \
+-Ecom.jogamp.gluegen.JavaEmitter \
+-C./config/nativewindow/drm-gbm-lib.cfg \
+-Istub_includes/drm \
+-I../../gluegen/make/stub_includes/gluegen \
+-Istub_includes/jni \
+stub_includes/drm/drm-gbm-lib.c
 }
 
 function gluegen_jawt_x11() {
@@ -881,11 +898,13 @@ copy_temp
 function gluegen_all() {
 # bash scripts/make.jogl.all.linux-x86_64.sh -f build-jogl.xml build.gluegen-gl.jar
 
+   gluegen_drmgbm
+#
 #   gluegen_jawt_x11
 #
 #   gluegen_if_gl
 #   gluegen_gl2es1
-   gluegen_es1
+#   gluegen_es1
 #   gluegen_gl2es2
 #   gluegen_es2
 #   gluegen_gl2es3

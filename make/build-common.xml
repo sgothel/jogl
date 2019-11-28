@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!--
+   - Some environment defs affecting native compilation
+       setup.addNativeDRMGBM  ( always true if 'isLinux' )
+-->
 <project name="JOGLCommonStuff" basedir="." default="common.init">
 
     <description>Common JOGL Stuff</description>
@@ -112,9 +116,14 @@
             </or>
         </condition>
 
+        <condition property="setup.addNativeDRMGBM">
+            <isset property="isLinux"/>
+        </condition>
+
         <echo message="setup.noAWT: ${setup.noAWT}" />
         <echo message="setup.noNativeAWT: ${setup.noNativeAWT}" />
         <echo message="setup.noNativeDesktop: ${setup.noNativeDesktop}" />
+        <echo message="setup.addNativeDRMGBM: ${setup.addNativeDRMGBM}" />
 
         <!-- Load the user specified properties file that defines various host
            - specific paths.  The user will be notified if this is does not
@@ -283,6 +292,7 @@
 
         <property name="nativewindow.jar"        value="${build.nativewindow}/nativewindow.jar" />
         <property name="nativewindow-awt.jar"    value="${build.nativewindow}/nativewindow-awt.jar"  />
+        <property name="nativewindow-os-drm.jar" value="${build.nativewindow}/nativewindow-os-drm.jar"  />
         <property name="nativewindow-os-x11.jar" value="${build.nativewindow}/nativewindow-os-x11.jar"  />
         <property name="nativewindow-os-win.jar" value="${build.nativewindow}/nativewindow-os-win.jar"  />
         <property name="nativewindow-os-osx.jar" value="${build.nativewindow}/nativewindow-os-osx.jar"  />
@@ -291,6 +301,7 @@
         <path id="nativewindow_all_atoms.classpath">
             <pathelement location="${nativewindow.jar}" />
             <pathelement location="${nativewindow-awt.jar}" />
+            <pathelement location="${nativewindow-os-drm.jar}" />
             <pathelement location="${nativewindow-os-x11.jar}" />
             <pathelement location="${nativewindow-os-win.jar}" />
             <pathelement location="${nativewindow-os-osx.jar}" />
@@ -298,6 +309,7 @@
         </path>
         <path id="nativewindow_all-noawt_atoms.classpath">
             <pathelement location="${nativewindow.jar}" />
+            <pathelement location="${nativewindow-os-drm.jar}" />
             <pathelement location="${nativewindow-os-x11.jar}" />
             <pathelement location="${nativewindow-os-win.jar}" />
             <pathelement location="${nativewindow-os-osx.jar}" />

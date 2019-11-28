@@ -427,6 +427,24 @@ public abstract class GraphicsConfigurationFactory {
         }
     }
 
+    /**
+     * Called by {@link #chooseGraphicsConfiguration(CapabilitiesImmutable, CapabilitiesImmutable, CapabilitiesChooser, AbstractGraphicsScreen, int)}
+     * post argument validation within {@link AbstractGraphicsDevice#lock()}ed segment.
+     *
+     * @param capsChosen     the intermediate chosen capabilities to be refined by this implementation, may be equal to capsRequested
+     * @param capsRequested  the original requested capabilities
+     * @param chooser        the choosing implementation
+     * @param screen         the referring Screen
+     * @param nativeVisualID if not {@link VisualIDHolder#VID_UNDEFINED} it reflects a pre-chosen visualID of the native platform's windowing system.
+     * @return               the complete GraphicsConfiguration
+     *
+     * @throws IllegalArgumentException if the data type of the passed
+     *         AbstractGraphicsDevice is not supported by this
+     *         NativeWindowFactory.
+     * @throws NativeWindowException if any window system-specific errors caused
+     *         the selection of the graphics configuration to fail.
+     * @see #chooseGraphicsConfiguration(CapabilitiesImmutable, CapabilitiesImmutable, CapabilitiesChooser, AbstractGraphicsScreen, int)
+     */
     protected abstract AbstractGraphicsConfiguration
         chooseGraphicsConfigurationImpl(CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
                                         CapabilitiesChooser chooser, AbstractGraphicsScreen screen, int nativeVisualID)

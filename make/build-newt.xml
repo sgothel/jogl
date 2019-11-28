@@ -49,7 +49,6 @@
        setup.addNativeKD
        setup.addNativeIntelGDL
        setup.addNativeBroadcom  ( always true if 'isLinux' )
-       setup.addNativeEGLGBM  ( always true if 'isLinux' )
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
@@ -76,10 +75,6 @@
            <isset property="isLinux"/>
         </condition>
 
-        <condition property="setup.addNativeEGLGBM">
-            <isset property="isLinux"/>
-        </condition>
-
         <condition property="setup.nonatives">
             <and>
                 <isfalse value="${isWindows}" />
@@ -90,7 +85,7 @@
                 <isfalse value="${setup.addNativeKD}" />
                 <isfalse value="${setup.addNativeIntelGDL}" />
                 <isfalse value="${setup.addNativeBroadcom}" />
-                <isfalse value="${setup.addNativeEGLGBM}" />
+                <isfalse value="${setup.addNativeDRMGBM}" />
             </and>
         </condition>
 
@@ -103,7 +98,6 @@
         <echo message="setup.addNativeKD: ${setup.addNativeKD}" />
         <echo message="setup.addNativeIntelGDL: ${setup.addNativeIntelGDL}" />
         <echo message="setup.addNativeBroadcom: ${setup.addNativeBroadcom}" />
-        <echo message="setup.addNativeEGLGBM: ${setup.addNativeEGLGBM}" />
         <echo message="setup.nonatives: ${setup.nonatives}" />
 
         <!-- partitioning -->
@@ -525,13 +519,6 @@
         <!-- syslibset libs="EGL"/ -->
       </linker>
 
-      <linker id="linker.cfg.linux.newt.egl_gbm" extends="linker.cfg.linux">
-        <syslibset libs="drm"/>
-        <syslibset libs="gbm"/>
-        <syslibset libs="EGL"/>
-        <syslibset libs="GLESv2"/>
-      </linker>
-
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
@@ -539,6 +526,8 @@
         <syslibset libs="Xi"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
+        <syslibset libs="drm"/>
+        <syslibset libs="gbm"/>
       </linker>
 
       <linker id="linker.cfg.linux.x86.newt.x11" extends="linker.cfg.linux.x86">
@@ -548,6 +537,8 @@
         <syslibset libs="Xi"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
+        <syslibset libs="drm"/>
+        <syslibset libs="gbm"/>
       </linker>
 
       <linker id="linker.cfg.linux.amd64.newt.x11" extends="linker.cfg.linux.amd64">
@@ -557,12 +548,8 @@
         <syslibset libs="Xi"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
-        <syslibset libs="gbm"/>
-        <!--
         <syslibset libs="drm"/>
         <syslibset libs="gbm"/>
-        <syslibset libs="EGL"/>
-        <syslibset libs="GLESv2"/> -->
       </linker>
 
       <linker id="linker.cfg.linux.armv6.newt.x11" extends="linker.cfg.linux.armv6">
@@ -570,6 +557,8 @@
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xrandr" />
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xcursor" />
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xi" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="drm" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="gbm" />
       </linker>
 
       <linker id="linker.cfg.linux.aarch64.newt.x11" extends="linker.cfg.linux.aarch64">
@@ -577,6 +566,8 @@
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xrandr" />
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xcursor" />
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xi" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="drm" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="gbm" />
       </linker>
 
       <linker id="linker.cfg.android.newt" extends="linker.cfg.android">
@@ -901,8 +892,8 @@
           <include name="${rootrel.src.c}/IntelGDL.c"         if="setup.addNativeIntelGDL"/>
           <include name="${rootrel.src.c}/bcm_egl.c"          if="setup.addNativeBroadcom"/>
           <include name="${rootrel.src.c}/bcm_vc_iv.c"        if="setup.addNativeBroadcom"/>
-          <include name="${rootrel.src.c}/egl_gbm.c"          if="setup.addNativeEGLGBM"/>
-          <include name="${rootrel.src.c}/egl_gbm_drmflip.c"  if="setup.addNativeEGLGBM"/>
+          <include name="${rootrel.src.c}/drm_gbm.c"          if="setup.addNativeDRMGBM"/>
+          <include name="${rootrel.src.c}/drm_gbm_legacy.c"   if="setup.addNativeDRMGBM"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
@@ -951,8 +942,8 @@
                 <includepath path="stub_includes/embedded/IntelGDL" if="setup.addNativeIntelGDL" />
                 <includepath path="${src.generated.c}/bcm/egl"      if="setup.addNativeBroadcom" />
                 <includepath path="${src.generated.c}/bcm/vc/iv"    if="setup.addNativeBroadcom" />
-                <includepath path="${src.generated.c}/egl/gbm"      if="setup.addNativeEGLGBM" />
-                <includepath path="/usr/include/libdrm"             if="setup.addNativeEGLGBM" />
+                <includepath path="${src.generated.c}/egl/gbm"      if="setup.addNativeDRMGBM" />
+                <includepath path="stub_includes/drm"               if="setup.addNativeDRMGBM" />
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
               </compiler>

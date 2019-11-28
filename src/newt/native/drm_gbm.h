@@ -42,7 +42,7 @@
 
 #define WEAK __attribute__((weak))
 
-#define VERBOSE_ON 1
+// #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
     #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
@@ -50,13 +50,4 @@
     #define DBG_PRINT(...)
 #endif
 #define ERR_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
-
-typedef struct {
-    int fd; // drmClose
-    drmModeConnector *connector; // drmModeFreeConnector
-    drmModeEncoder *encoder; // drmModeFreeEncoder
-    int crtc_index;
-
-    drmModeModeInfo *current_mode;
-} DRM_HANDLE;
 

@@ -31,6 +31,8 @@ import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.opengl.GLProfile;
 
+import jogamp.nativewindow.drm.DRMLib;
+import jogamp.nativewindow.drm.DRMUtil;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
 import jogamp.opengl.egl.EGLDisplayUtil;
@@ -50,21 +52,10 @@ public class DisplayDriver extends DisplayImpl {
         if (!WindowDriver.initIDs()) {
             throw new NativeWindowException("Failed to initialize egl.gbm Window jmethodIDs");
         }
-        drmHandle = initDrm(DEBUG);
-    }
-
-    static void validateDrm() {
-        if( 0 == drmHandle ) {
-            throw new NativeWindowException("Failed to initialize egl.gbm DRM handle");
-        }
     }
 
     public static void initSingleton() {
         // just exist to ensure static init has been run
-    }
-
-    private static void shutdownHook() {
-        freeDrm(drmHandle);
     }
 
     public DisplayDriver() {
@@ -73,8 +64,11 @@ public class DisplayDriver extends DisplayImpl {
 
     @Override
     protected void createNativeImpl() {
-        validateDrm();
-        gbmHandle = OpenGBMDisplay0(drmHandle);
+        final int drmFd = DRMUtil.getDrmFd();
+        if( 0 > drmFd ) {
+            throw new NativeWindowException("Failed to initialize DRM");
+        }
+        gbmHandle = DRMLib.gbm_create_device(drmFd);
         aDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(gbmHandle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
         aDevice.open();
     }
@@ -82,11 +76,10 @@ public class DisplayDriver extends DisplayImpl {
     @Override
     protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
         aDevice.close();
-        CloseGBMDisplay0(gbmHandle);
+        DRMLib.gbm_device_destroy(gbmHandle);
         gbmHandle = 0;
     }
 
-    /* pp */ static final long getDrmHandle() { validateDrm(); return drmHandle; }
     /* pp */ final long getGBMHandle() { return gbmHandle; }
 
     @Override
@@ -98,14 +91,8 @@ public class DisplayDriver extends DisplayImpl {
     // Internals only
     //
     private static native boolean initIDs();
-    private static native long initDrm(boolean verbose);
-    private static native void freeDrm(long drmHandle);
-
-    private static native long OpenGBMDisplay0(long drmHandle);
-    private static native void CloseGBMDisplay0(long gbmHandle);
 
     private static native void DispatchMessages0();
 
-    private static final long drmHandle;
     private long gbmHandle;
 }

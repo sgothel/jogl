@@ -40,13 +40,13 @@ import java.util.Comparator;
 public interface VisualIDHolder {
 
     public enum VIDType {
-        // Generic Values
+        /** Generic Values */
         INTRINSIC(0), NATIVE(1),
-        // EGL Values
+        /** EGL Values */
         EGL_CONFIG(10),
-        // X11 Values
+        /** X11 Values */
         X11_XVISUAL(20), X11_FBCONFIG(21),
-        // Windows Values
+        /** Windows Values */
         WIN32_PFD(30);
 
         public final int id;

@@ -119,9 +119,9 @@ function jrun() {
     #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
-    #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
-    #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogl.disable.opengldesktop"
-    D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogl.disable.opengldesktop"
+    #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogl.disable.opengldesktop"
+    #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Djogl.disable.opengldesktop -Djogl.quirks.force=NoSurfacelessCtx"
 
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.UnsafeUtil"
     #D_ARGS="-Dnativewindow.debug.OSXUtil -Dnativewindow.debug.JAWT -Djogl.debug.GLContext"

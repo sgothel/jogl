@@ -72,6 +72,9 @@
         <property name="java.part.awt"
                   value="com/jogamp/nativewindow/awt/* jogamp/nativewindow/jawt/** jogamp/nativewindow/**/awt/**"/>
 
+        <property name="java.part.drm"
+                  value="com/jogamp/nativewindow/drm/* jogamp/nativewindow/drm/*" />
+
         <property name="java.part.x11"
                   value="com/jogamp/nativewindow/x11/* jogamp/nativewindow/x11/*" />
 
@@ -275,6 +278,19 @@
 
         <antcall target="java.generate.cleantemp" inheritRefs="true" />
 
+        <echo message="Generating platform-specifics: DRM" />
+        <dirset id="stub.includes.fileset.drm" dir="." includes="${stub.includes}/drm/* ${stub.includes.gluegen}/gluegen/**" />
+        <gluegen src="${stub.includes}/drm/drm-gbm-lib.c"
+                 outputRootDir="${build.nativewindow}"
+                 config="${config.nativewindow}/drm-gbm-lib.cfg"
+                 includeRefid="stub.includes.fileset.drm"
+                 literalInclude="${stub.includes.gluegen.gg}, ${stub.includes}/drm, ${src.c}/drm"
+                 emitter="com.jogamp.gluegen.JavaEmitter"
+                 debug="false"
+                 dumpCPP="false">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+
         <echo message="Generating platform-specifics: X11" />
         <antcall target="java.generate.platforms" inheritRefs="true">
             <param name="window.os.system"                       value="x11"/>
@@ -323,6 +339,24 @@
       -->
 
     <!-- Perform the first pass: Native headers. -->
+    <target name="javah.drmgbm" if="setup.addNativeDRMGBM">
+        <javac srcdir="${src.java}:${src.generated.java}"
+               destdir="${classes}"
+               excludes="${java.excludes.all}"
+               nativeheaderdir="${src.generated.c}/drm"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="swt_gluegen.classpath"/>
+            <include name="jogamp/nativewindow/drm/DRMLib.java" />
+            <include name="jogamp/nativewindow/drm/DRMUtil.java" />
+        </javac>
+    </target>
     <target name="javah.x11" if="isX11">
         <javac srcdir="${src.java}:${src.generated.java}"
                destdir="${classes}"
@@ -395,7 +429,7 @@
         </javac>
     </target>
 
-    <target name="java.compile.javase" depends="java.generate, javah.x11, javah.windows, javah.macos, javah.ios">
+    <target name="java.compile.javase" depends="java.generate, javah.drmgbm, javah.x11, javah.windows, javah.macos, javah.ios">
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
@@ -476,6 +510,21 @@
         <syslibset dir="/usr/local/lib" libs="X11" />
         <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
         <syslibset dir="/usr/local/lib" libs="Xrender"/>
+      </linker>
+
+      <linker id="linker.cfg.linux.nativewindow.drm" extends="linker.cfg.linux">
+        <syslibset libs="drm"/>
+        <syslibset libs="gbm"/>
+      </linker>
+
+      <linker id="linker.cfg.linux.armv6.nativewindow.drm" extends="linker.cfg.linux.armv6">
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="drm" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="gbm" />
+      </linker>
+
+      <linker id="linker.cfg.linux.aarch64.nativewindow.drm" extends="linker.cfg.linux.aarch64">
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="drm" />
+        <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="gbm" />
       </linker>
 
       <linker id="linker.cfg.linux.nativewindow.x11" extends="linker.cfg.linux">
@@ -602,66 +651,77 @@
       <echo message="Linux.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.x86" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.x86.nativewindow.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.nativewindow.drm" />
     </target>
     
     <target name="c.configure.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.nativewindow.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.nativewindow.drm" />
     </target>
     
     <target name="c.configure.linux.armv6" if="isLinuxARMv6">
       <echo message="Linux.armv6" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv6.nativewindow.x11" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.armv6.nativewindow.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.armv6.nativewindow.drm" />
     </target>
     
     <target name="c.configure.linux.aarch64" if="isLinuxARM64">
       <echo message="Linux.aarch64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.aarch64.nativewindow.x11" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.aarch64.nativewindow.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.aarch64.nativewindow.drm" />
     </target>
     
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.nativewindow.drm" />
     </target>
 
     <target name="c.configure.linux.hppa" if="isLinuxHppa">
       <echo message="Linux.HPPA" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.nativewindow.drm" />
     </target>
 
     <target name="c.configure.linux.mips" if="isLinuxMips">
       <echo message="Linux.MIPS" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.nativewindow.drm" />
     </target>
 
     <target name="c.configure.linux.mipsel" if="isLinuxMipsel">
       <echo message="Linux.MIPSEL" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.nativewindow.drm" />
     </target>
 
     <target name="c.configure.linux.ppc" if="isLinuxPpc">
       <echo message="Linux.PPC" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.nativewindow.drm" />
     </target>
 
     <target name="c.configure.linux.s390" if="isLinuxs390">
       <echo message="Linux.S390" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.nativewindow.drm" />
     </target>
 
     <target name="c.configure.linux.sparc" if="isLinuxSparc">
       <echo message="Linux.SPARC" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.nativewindow.drm" />
     </target>
 
     <target name="c.configure.linux" depends="c.configure.linux.armv6,c.configure.linux.aarch64,c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.x11" if="isLinux" />
@@ -776,6 +836,14 @@
           <include name="${rootrel.generated.c}/Windows/JAWT*.c" if="isWindows"/>
         </patternset>
 
+        <patternset id="c.src.files.drmgbm">
+          <include name="${rootrel.generated.c}/drm/DRMLib_JNI.c"/>
+          <include name="${rootrel.generated.c}/drm/drm*.c"/>
+          <include name="${rootrel.src.c}/drm/DRMmisc.c"/>
+          <include name="${rootrel.src.c}/NativewindowCommon.c"/>
+          <include name="${rootrel.src.c}/JVM_JNI8.c"/>
+        </patternset>
+
         <patternset id="c.src.files.x11">
           <include name="${rootrel.generated.c}/X11/X11*.c"/>
           <include name="${rootrel.src.c}/x11/Xmisc.c"/>
@@ -846,6 +914,8 @@
                 <includepath path="${src.c}/ios"               if="isIOS"/>
                 <includepath path="${src.c}/win32"             if="isWindows"/>
                 <includepath path="${src.c}"/>
+                <includepath path="${src.generated.c}/drm"     if="setup.addNativeDRMGBM" />
+                <includepath path="stub_includes/drm"          if="setup.addNativeDRMGBM" />
       
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
@@ -888,6 +958,13 @@
                linker.cfg.id="${linker.cfg.id.oswin}"/>
     </target>
 
+    <target name="c.build.nativewindow.windowlib.drmgbm" if="setup.addNativeDRMGBM">
+      <c.build c.compiler.src.files="c.src.files.drmgbm"
+               output.lib.name="nativewindow_drm"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.drm}"/>
+    </target>
+
     <target name="c.build.nativewindow.windowlib.x11" if="isX11">
       <c.build c.compiler.src.files="c.src.files.x11"
                output.lib.name="nativewindow_x11"
@@ -916,7 +993,7 @@
                linker.cfg.id="${linker.cfg.id.oswin}"/>
     </target>
 
-    <target name="c.build.nativewindow.windowlib" depends="c.build.nativewindow.windowlib.x11, c.build.nativewindow.windowlib.windows, c.build.nativewindow.windowlib.macosx, c.build.nativewindow.windowlib.ios"/>
+    <target name="c.build.nativewindow.windowlib" depends="c.build.nativewindow.windowlib.drmgbm, c.build.nativewindow.windowlib.x11, c.build.nativewindow.windowlib.windows, c.build.nativewindow.windowlib.macosx, c.build.nativewindow.windowlib.ios"/>
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
@@ -970,6 +1047,13 @@
         </jar>
     </target>
 
+    <target name="build-jars-drm" depends="setup-manifestfile">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-os-drm.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.drm}" />
+        </jar>
+    </target>
+
     <target name="build-jars-x11" depends="setup-manifestfile">
         <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-os-x11.jar}" filesonly="true">
             <fileset dir="${classes}"
@@ -998,11 +1082,11 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows,build-jars-macosx,build-jars-ios">
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-drm,build-jars-x11,build-jars-windows,build-jars-macosx,build-jars-ios">
         <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
-                     excludes="${java.part.awt} ${java.part.x11} ${java.part.windows}"/>
+                     excludes="${java.part.awt} ${java.part.drm} ${java.part.x11} ${java.part.windows}"/>
         </jar>
         <native.tag.jar objdir="${obj.nativewindow}"
                         nativejarfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar"

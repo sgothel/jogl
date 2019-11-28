@@ -31,6 +31,9 @@ import com.jogamp.nativewindow.DefaultGraphicsScreen;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
+
+import jogamp.nativewindow.drm.DRMUtil;
+import jogamp.nativewindow.drm.DrmMode;
 import jogamp.newt.MonitorModeProps;
 import jogamp.newt.ScreenImpl;
 
@@ -45,26 +48,40 @@ public class ScreenDriver extends ScreenImpl {
     @Override
     protected void createNativeImpl() {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
-        initNative( DisplayDriver.getDrmHandle() );
+        drmMode = DrmMode.create(DRMUtil.getDrmFd(), true /* preferNativeMode */);
+        if( DEBUG ) {
+            drmMode.print(System.err);
+        }
     }
 
     @Override
-    protected void closeNativeImpl() { }
+    protected void closeNativeImpl() {
+        drmMode.destroy();
+        drmMode = null;
+    }
 
     @Override
     protected int validateScreenIndex(final int idx) {
-        return 0; // only one screen available
+        // FIXME add multi-monitor support
+        /**
+        if( 0 <= idx && idx < drmMode.count ) {
+            return idx;
+        } */
+        return 0;
     }
 
     @Override
     protected void collectNativeMonitorModesAndDevicesImpl(final MonitorModeProps.Cache cache) {
+        // FIXME add multi-monitor multi-mode support
+        final int scridx = 0; // getIndex();
+
         int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
         int i = 0;
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
-        props[i++] = cachedWidth; // width
-        props[i++] = cachedHeight; // height
+        props[i++] = drmMode.getModes()[scridx].getHdisplay();
+        props[i++] = drmMode.getModes()[scridx].getVdisplay();
         props[i++] = ScreenImpl.default_sm_bpp; // FIXME
-        props[i++] = cachedVRrefresh  * 100;
+        props[i++] = drmMode.getModes()[scridx].getVrefresh() * 100;
         props[i++] = 0; // flags
         props[i++] = 0; // mode_idx
         props[i++] = 0; // rotation
@@ -76,45 +93,40 @@ public class ScreenDriver extends ScreenImpl {
         props[i++] = 0; // crt_idx
         props[i++] = 0; // is-clone
         props[i++] = 1; // is-primary
-        props[i++] = ScreenImpl.default_sm_widthmm; // FIXME
-        props[i++] = ScreenImpl.default_sm_heightmm; // FIXME
+        props[i++] = drmMode.getConnectors()[scridx].getMmWidth();
+        props[i++] = drmMode.getConnectors()[scridx].getMmHeight();
         props[i++] = 0; // rotated viewport x pixel-units
         props[i++] = 0; // rotated viewport y pixel-units
-        props[i++] = cachedWidth; // rotated viewport width pixel-units
-        props[i++] = cachedHeight; // rotated viewport height pixel-units
+        props[i++] = drmMode.getModes()[scridx].getHdisplay(); // rotated viewport width pixel-units
+        props[i++] = drmMode.getModes()[scridx].getVdisplay(); // rotated viewport height pixel-units
         props[i++] = 0; // rotated viewport x window-units
         props[i++] = 0; // rotated viewport y window-units
-        props[i++] = cachedWidth; // rotated viewport width window-units
-        props[i++] = cachedHeight; // rotated viewport height window-units
+        props[i++] = drmMode.getModes()[scridx].getHdisplay(); // rotated viewport width window-units
+        props[i++] = drmMode.getModes()[scridx].getVdisplay(); // rotated viewport height window-units
         MonitorModeProps.streamInMonitorDevice(cache, this, currentMode, null, cache.monitorModes, props, 0, null);
     }
 
     @Override
     protected MonitorMode queryCurrentMonitorModeImpl(final MonitorDevice monitor) {
+        // FIXME add multi-monitor multi-mode support
         return monitor.getSupportedModes().get(0);
     }
 
     @Override
     protected boolean setCurrentMonitorModeImpl(final MonitorDevice monitor, final MonitorMode mode) {
+        // FIXME add multi-monitor multi-mode support
         return false;
     }
 
     @Override
     protected void calcVirtualScreenOriginAndSize(final Rectangle viewport, final Rectangle viewportInWindowUnits) {
-        viewport.set(0, 0, cachedWidth, cachedHeight);
+        // FIXME add multi-monitor support
+        final int scridx = 0; // getIndex();
+        viewport.set(0, 0, drmMode.getModes()[scridx].getHdisplay(), drmMode.getModes()[scridx].getVdisplay());
         viewportInWindowUnits.set(viewport);
     }
 
-    /** Called from {@link #initNative(long)}. */
-    protected void notifyScreenMode(final int width, final int height, final int vrefresh) {
-        cachedWidth = width;   // write to static field intended
-        cachedHeight = height; // write to static field intended
-        cachedVRrefresh = vrefresh;
-    }
-
-    private static int cachedWidth = 0;
-    private static int cachedHeight = 0;
-    private static int cachedVRrefresh = 0;
+    /* pp */ DrmMode drmMode;
 
     protected static native boolean initIDs();
     protected native void initNative(long drmHandle);
