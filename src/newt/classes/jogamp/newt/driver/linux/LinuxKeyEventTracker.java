@@ -38,11 +38,14 @@ import java.lang.Runnable;
 import java.lang.String;
 import java.lang.Thread;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.KeyTracker;
 
 import com.jogamp.common.nio.StructAccessor;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.InputEvent;
@@ -52,24 +55,25 @@ import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.newt.event.KeyEvent;
 
 /**
- * Experimental native event device tracker thread for GNU/Linux
- * just reading <code>/dev/input/event*</code>
- * within it's own polling thread.
+ * Experimental native key event tracker thread for GNU/Linux
+ * just reading <code>/dev/input/by-id/*-event-kbd</code> if available
+ * or <code>/dev/input/event*</code> within it's own polling thread.
  */
+public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
 
-public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
-
-    private static final LinuxEventDeviceTracker ledt;
+    private static final String linuxDevInputByEventXRoot = "/dev/input/";
+    private static final String linuxDevInputByIDRoot = "/dev/input/by-id/";
+    private static final LinuxKeyEventTracker ledt;
 
 
     static {
-        ledt = new LinuxEventDeviceTracker();
+        ledt = new LinuxKeyEventTracker();
         final Thread t = new InterruptSource.Thread(null, ledt.eventDeviceManager, "NEWT-LinuxEventDeviceManager");
         t.setDaemon(true);
         t.start();
     }
 
-    public static LinuxEventDeviceTracker getSingleton() {
+    public static LinuxKeyEventTracker getSingleton() {
         return ledt;
     }
 
@@ -86,8 +90,12 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
 	...
 
       And so on up to event31.
+
+      ..
+
+      Or preferable under /dev/input/by-id/ using names like 'usb-Vendor_Product-event-kbd'
      */
-    private final EventDevicePoller[] eventDevicePollers = new EventDevicePoller[32];
+    private final Map<String, EventDevicePoller> edpMap = new HashMap<String, EventDevicePoller>();
 
     @Override
     public void windowResized(final WindowEvent e) { }
@@ -124,7 +132,7 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
 
     public static void main(final String[] args ){
         System.setProperty("newt.debug.Window.KeyEvent", "true");
-        LinuxEventDeviceTracker.getSingleton();
+        LinuxKeyEventTracker.getSingleton();
         try {
             while(true) {
                 Thread.sleep(1000);
@@ -144,30 +152,60 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
 
         @Override
         public void run() {
-            final File f = new File("/dev/input/");
-            int number;
-            while(!stop){
-                for(final String path:f.list()){
-                    if(path.startsWith("event")) {
-                        final String stringNumber = path.substring(5);
-                        number = Integer.parseInt(stringNumber);
-                        if(number<32&&number>=0) {
-                            if(eventDevicePollers[number]==null){
-                                eventDevicePollers[number] = new EventDevicePoller(number);
-                                final Thread t = new InterruptSource.Thread(null, eventDevicePollers[number], "NEWT-LinuxEventDeviceTracker-event"+number);
+            final File devInputByID = new File(linuxDevInputByIDRoot);
+            final String[] devInputIDs = devInputByID.list();
+            final boolean useDevInputByID = null != devInputIDs && 0 < devInputIDs.length && devInputByID.exists() && devInputByID.isDirectory();
+
+            if( useDevInputByID ) {
+                while(!stop){
+                    for(final String path : devInputIDs ) {
+                        if( path.endsWith("-event-kbd") ) {
+                            final EventDevicePoller edpOld = edpMap.get(path);
+                            if( null == edpOld ) {
+                                final EventDevicePoller edpNew = new EventDevicePoller( linuxDevInputByIDRoot + path );
+                                edpMap.put(path, edpNew);
+                                final Thread t = new InterruptSource.Thread(null, edpNew, "NEWT-KeyEventTracker-"+path);
                                 t.setDaemon(true);
                                 t.start();
-                            } else if(eventDevicePollers[number].stop) {
-                                eventDevicePollers[number]=null;
+                            } else if( edpOld.stop ) {
+                                // clear stopped entry, will restart after sleep
+                                edpMap.put(path, null);
                             }
                         }
                     }
+                    try {
+                        Thread.sleep(2000);
+                    } catch (final InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-                try {
-                    Thread.sleep(2000);
-                } catch (final InterruptedException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+            } else {
+                final File devInputByEventX = new File(linuxDevInputByEventXRoot);
+                while(!stop){
+                    for( final String path : devInputByEventX.list() ) {
+                        if( path.startsWith("event") ) {
+                            final String stringNumber = path.substring(5);
+                            final int number = Integer.parseInt(stringNumber);
+                            if( number<32 && number>=0 ) {
+                                final EventDevicePoller edpOld = edpMap.get(path);
+                                if( null == edpOld || edpOld.stop ) {
+                                    final EventDevicePoller edpNew = new EventDevicePoller( linuxDevInputByEventXRoot + path );
+                                    final Thread t = new InterruptSource.Thread(null, edpNew, "NEWT-KeyEventTracker-"+path);
+                                    t.setDaemon(true);
+                                    t.start();
+                                } else if( edpOld.stop ) {
+                                    // clear stopped entry, will restart after sleep
+                                    edpMap.put(path, null);
+                                }
+                            }
+                        }
+                    }
+                    try {
+                        Thread.sleep(2000);
+                    } catch (final InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -176,15 +214,23 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
     class EventDevicePoller implements Runnable {
 
         private volatile boolean stop = false;
-        private final String eventDeviceName;
+        private final String eventDeviceFileName;
+        public final int inputEventStructSize;
 
-        public EventDevicePoller(final int eventDeviceNumber){
-            this.eventDeviceName="/dev/input/event"+eventDeviceNumber;
+        public EventDevicePoller(final String eventDeviceFileName) {
+            this.eventDeviceFileName = eventDeviceFileName;
+            this.inputEventStructSize = Platform.is64Bit() ? 24 : 16;
         }
 
         @Override
         public void run() {
-            final byte[] b = new byte[16];
+            final File eventDeviceFile = new File(eventDeviceFileName);
+            if(Window.DEBUG_KEY_EVENT) {
+                System.err.println("LinuxKeyEventTracker: Started "+eventDeviceFile);
+            }
+            eventDeviceFile.setReadOnly();
+
+            final byte[] b = new byte[inputEventStructSize];
             /**
              * The Linux input event interface.
              * http://www.kernel.org/doc/Documentation/input/input.txt
@@ -198,18 +244,16 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
              */
             final ByteBuffer bb = ByteBuffer.wrap(b);
             final StructAccessor s = new StructAccessor(bb);
-            final File f = new File(eventDeviceName);
-            f.setReadOnly();
             InputStream fis;
             try {
-                fis = new FileInputStream(f);
+                fis = new FileInputStream(eventDeviceFile);
             } catch (final FileNotFoundException e) {
                 stop=true;
                 return;
             }
 
-            int timeSeconds;
-            int timeSecondFraction;
+            long timeSeconds;
+            long timeSecondFraction;
             short type;
             short code;
             int value;
@@ -221,29 +265,45 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
 
             loop:
                 while(!stop) {
-                    int remaining=16;
-                    while(remaining>0) {
+                    int remaining = inputEventStructSize;
+                    while( remaining > 0 ) {
                         int read = 0;
                         try {
                             read = fis.read(b, 0, remaining);
                         } catch (final IOException e) {
                             stop = true;
+                            if(Window.DEBUG_KEY_EVENT) {
+                                System.err.println("LinuxKeyEventTracker: [read "+read+", remaining "+remaining+"] "+e.getMessage()+" on "+eventDeviceFile);
+                                e.printStackTrace();
+                            }
                             break loop;
                         }
                         if(read<0) {
                             stop = true; // EOF of event device file !?
+                            if(Window.DEBUG_KEY_EVENT) {
+                                System.err.println("LinuxKeyEventTracker: [read "+read+", remaining "+remaining+"] EOF on "+eventDeviceFile);
+                            }
                             break loop;
                         } else {
                             remaining -= read;
                         }
                     }
 
-                    timeSeconds = s.getIntAt(0);
-                    timeSecondFraction = s.getShortAt(4);
-                    type = s.getShortAt(8);
-                    code = s.getShortAt(10);
-                    value = s.getIntAt(12);
-
+                    if( 16 == inputEventStructSize ) {
+                        // 32bit: 16 bytes
+                        timeSeconds = s.getIntAt(0);
+                        timeSecondFraction = s.getShortAt(4);
+                        type = s.getShortAt(8);
+                        code = s.getShortAt(10);
+                        value = s.getIntAt(12);
+                    } else {
+                        // 64bit: 24 bytes
+                        timeSeconds = s.getLongAt(0);
+                        timeSecondFraction = s.getLongAt(8);
+                        type = s.getShortAt(16);
+                        code = s.getShortAt(18);
+                        value = s.getIntAt(20);
+                    }
 
                     /*
                      * Linux sends Keyboard events in the following order:
@@ -259,14 +319,14 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
                         keyCode = KeyEvent.VK_UNDEFINED;
                         keyChar = 0; // Print null for unprintable char.
                         if(Window.DEBUG_KEY_EVENT) {
-                            System.out.println("[SYN_REPORT----]");
+                            System.err.println("[SYN_REPORT----]");
                         }
                         break;
                     case 1: // EV_KEY
                         keyCode = LinuxEVKey2NewtVKey(code); // The device independent code.
                         keyChar = NewtVKey2Unicode(keyCode, modifiers); // The printable character w/ key modifiers.
                         if(Window.DEBUG_KEY_EVENT) {
-                            System.out.println("[EV_KEY: [time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
+                            System.err.println("[EV_KEY: [time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
                         }
 
                         switch(value) {
@@ -292,7 +352,7 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
                                 focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
                             }
                             if(Window.DEBUG_KEY_EVENT) {
-                                System.out.println("[event released] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+                                System.err.println("[event released] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
                             }
                             break;
                         case 1:
@@ -317,7 +377,7 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
                                 focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
                             }
                             if(Window.DEBUG_KEY_EVENT) {
-                                System.out.println("[event pressed] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+                                System.err.println("[event pressed] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
                             }
                             break;
                         case 2:
@@ -346,8 +406,8 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
                                 focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
                             }
                             if(Window.DEBUG_KEY_EVENT) {
-                                System.out.println("[event released auto] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
-                                System.out.println("[event pressed auto] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+                                System.err.println("[event released auto] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+                                System.err.println("[event pressed auto] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
                             }
                             modifiers &= ~InputEvent.AUTOREPEAT_MASK;
                             break;
@@ -363,7 +423,7 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
                         // TODO: handle headphone/hdmi connector events
                     default: // Print number.
                         if(Window.DEBUG_KEY_EVENT) {
-                            System.out.println("TODO EventDevicePoller: [time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
+                            System.err.println("TODO EventDevicePoller: [time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
                         }
                     }
                 }
@@ -373,6 +433,9 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
                     fis.close();
                 } catch (final IOException e) {
                 }
+            }
+            if(Window.DEBUG_KEY_EVENT) {
+                System.err.println("LinuxKeyEventTracker: Stopped "+eventDeviceFile);
             }
             stop=true;
         }
@@ -952,7 +1015,7 @@ public class LinuxEventDeviceTracker implements WindowListener, KeyTracker {
             }
 
             if(Window.DEBUG_KEY_EVENT) {
-                System.out.println("TODO LinuxEVKey2NewtVKey: Unmapped EVKey "+EVKey);
+                System.err.println("TODO LinuxEVKey2NewtVKey: Unmapped EVKey "+EVKey);
             }
 
             return KeyEvent.VK_UNDEFINED;

@@ -56,7 +56,7 @@ public class LinuxMouseTracker implements WindowListener, MouseTracker {
 
     static {
         lmt = new LinuxMouseTracker();
-        final Thread t = new InterruptSource.Thread(null, lmt.mouseDevicePoller, "NEWT-LinuxMouseTracker");
+        final Thread t = new InterruptSource.Thread(null, lmt.mouseDevicePoller, "NEWT-MouseTracker");
         t.setDaemon(true);
         t.start();
     }
@@ -122,6 +122,9 @@ public class LinuxMouseTracker implements WindowListener, MouseTracker {
             final byte[] b = new byte[3];
             final File f = new File("/dev/input/mice");
             f.setReadOnly();
+            if(Window.DEBUG_MOUSE_EVENT) {
+                System.out.println("LinuxMouseTracker: Started "+f);
+            }
             InputStream fis;
             try {
                 fis = new FileInputStream(f);
@@ -228,6 +231,9 @@ public class LinuxMouseTracker implements WindowListener, MouseTracker {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
+            }
+            if(Window.DEBUG_MOUSE_EVENT) {
+                System.out.println("LinuxMouseTracker: Stopped "+f);
             }
         }
     }
