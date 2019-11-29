@@ -55,14 +55,29 @@ import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.newt.event.KeyEvent;
 
 /**
- * Experimental native key event tracker thread for GNU/Linux
- * just reading <code>/dev/input/by-id/*-event-kbd</code> if available
- * or <code>/dev/input/event*</code> within it's own polling thread.
+ * Experimental native key event tracker thread for GNU/Linux.
+ * <p>
+ * Implementation attempts to read one of the following input event files
+ * <ol>
+ * <li>try /dev/input/by-path/*-event-kbd</li>
+ * <li>try /dev/input/by-id/*-event-kbd</li>
+ * <li>try /dev/input/event* (Warning: Unreliable due to fiddling with all native input events !)</li>
+ * </ol>
+ * </p>
+ * <p>
+ * The first two input event file mappings allow for only utilizing
+ * the actual <code>event-kbd</code> keyboard events.
+ * </p>
+ * <p>
+ * The last method is used if all former methods fails and it brute
+ * force uses all first 32 event files, which can cause overall stability issues!
+ * </p>
  */
 public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
 
     private static final String linuxDevInputByEventXRoot = "/dev/input/";
     private static final String linuxDevInputByIDRoot = "/dev/input/by-id/";
+    private static final String linuxDevInputByPathRoot = "/dev/input/by-path/";
     private static final LinuxKeyEventTracker ledt;
 
 
@@ -80,20 +95,15 @@ public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
     private WindowImpl focusedWindow = null;
     private final EventDeviceManager eventDeviceManager = new EventDeviceManager();
 
-    /*
-      The devices are in /dev/input:
-
-	crw-r--r--   1 root     root      13,  64 Apr  1 10:49 event0
-	crw-r--r--   1 root     root      13,  65 Apr  1 10:50 event1
-	crw-r--r--   1 root     root      13,  66 Apr  1 10:50 event2
-	crw-r--r--   1 root     root      13,  67 Apr  1 10:50 event3
-	...
-
-      And so on up to event31.
-
-      ..
-
-      Or preferable under /dev/input/by-id/ using names like 'usb-Vendor_Product-event-kbd'
+    /**
+     * Mapping of input event basename file to spawn of EventDevicePoller.
+     * <p>
+     * String key is the base filename one of either (in that order):
+     * <ol>
+     * <li>try /dev/input/by-path/*-event-kbd</li>
+     * <li>try /dev/input/by-id/*-event-kbd</li>
+     * <li>try /dev/input/event* (Warning: Unreliable due to fiddling with all native input events !)</li>
+     * </ol>
      */
     private final Map<String, EventDevicePoller> edpMap = new HashMap<String, EventDevicePoller>();
 
@@ -150,36 +160,59 @@ public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
 
         private volatile boolean stop = false;
 
-        @Override
-        public void run() {
-            final File devInputByID = new File(linuxDevInputByIDRoot);
-            final String[] devInputIDs = devInputByID.list();
-            final boolean useDevInputByID = null != devInputIDs && 0 < devInputIDs.length && devInputByID.exists() && devInputByID.isDirectory();
-
-            if( useDevInputByID ) {
-                while(!stop){
-                    for(final String path : devInputIDs ) {
-                        if( path.endsWith("-event-kbd") ) {
-                            final EventDevicePoller edpOld = edpMap.get(path);
-                            if( null == edpOld ) {
-                                final EventDevicePoller edpNew = new EventDevicePoller( linuxDevInputByIDRoot + path );
-                                edpMap.put(path, edpNew);
-                                final Thread t = new InterruptSource.Thread(null, edpNew, "NEWT-KeyEventTracker-"+path);
-                                t.setDaemon(true);
-                                t.start();
-                            } else if( edpOld.stop ) {
-                                // clear stopped entry, will restart after sleep
-                                edpMap.put(path, null);
-                            }
-                        }
-                    }
-                    try {
-                        Thread.sleep(2000);
-                    } catch (final InterruptedException e) {
-                        e.printStackTrace();
+        private void managePaths(final String rootPath, final String suffix, final String[] subPaths) {
+            for(final String path : subPaths ) {
+                if( path.endsWith(suffix) ) {
+                    final EventDevicePoller edpOld = edpMap.get(path);
+                    if( null == edpOld ) {
+                        final EventDevicePoller edpNew = new EventDevicePoller( rootPath + path );
+                        edpMap.put(path, edpNew);
+                        final Thread t = new InterruptSource.Thread(null, edpNew, "NEWT-KeyEventTracker-"+path);
+                        t.setDaemon(true);
+                        t.start();
+                    } else if( edpOld.stop ) {
+                        // clear stopped entry, will restart after sleep
+                        edpMap.put(path, null);
                     }
                 }
-            } else {
+            }
+            try {
+                Thread.sleep(2000);
+            } catch (final InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void run() {
+            // 1) try /dev/input/by-path/*-event-kbd
+            {
+                final File devInputByPath = new File(linuxDevInputByPathRoot);
+                final String[] devInputPaths = devInputByPath.list();
+                final boolean useDevInputByPath = null != devInputPaths && 0 < devInputPaths.length && devInputByPath.exists() && devInputByPath.isDirectory();
+                if( useDevInputByPath ) {
+                    while(!stop){
+                        managePaths(linuxDevInputByPathRoot, "-event-kbd", devInputPaths);
+                    }
+                    return;
+                }
+            }
+
+            // 2) try /dev/input/by-id/*-event-kbd
+            {
+                final File devInputByID = new File(linuxDevInputByIDRoot);
+                final String[] devInputIDs = devInputByID.list();
+                final boolean useDevInputByID = null != devInputIDs && 0 < devInputIDs.length && devInputByID.exists() && devInputByID.isDirectory();
+                if( useDevInputByID ) {
+                    while(!stop){
+                        managePaths(linuxDevInputByIDRoot, "-event-kbd", devInputIDs);
+                    }
+                    return;
+                }
+            }
+
+            // 3) try /dev/input/event* (Warning: Unreliable due to fiddling with all native input events !)
+            {
                 final File devInputByEventX = new File(linuxDevInputByEventXRoot);
                 while(!stop){
                     for( final String path : devInputByEventX.list() ) {
