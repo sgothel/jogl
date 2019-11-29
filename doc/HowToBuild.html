@@ -92,6 +92,8 @@
                                         <li>p7zip-full</li>
                                         <li>gcc</li>
                                         <li>cmake</li>
+                                        <li>libdrm-dev</li>
+                                        <li>libgbm-dev</li>
                                         <li>libgl1-mesa-dev</li>
                                         <li>libglu1-mesa-dev</li>
                                         <li>xorg-dev</li>
@@ -114,7 +116,7 @@
                                     <ul>
                                       <li><b>Debian</b> 10 Buster
                                       <pre>
-apt-get install openjdk-11-jre openjdk-11-jdk openjfx ant git-all p7zip-full gcc cmake libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libxi-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++-8-dev
+apt-get install openjdk-11-jre openjdk-11-jdk openjfx ant git-all p7zip-full gcc cmake libdrm-dev libgbm-dev libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libxi-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++-8-dev
                                       </pre></li>
                                     </ul>
                                     Optional: Add <i>kernel</i> build utilities:
@@ -127,7 +129,7 @@ apt-get install kernel-package build-essential
                                         <pre>
 dpkg --add-architecture i386
 apt-get update
-apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-11-jre:i386 openjdk-11-jdk:i386
+apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libdrm2:i386 libdrm-dev:i386 libgbm1:i386 libgbm-dev:i386 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-11-jre:i386 openjdk-11-jdk:i386
 
 cd /usr/lib/i386-linux-gnu/
 ln -s libXrender.so.1 libXrender.so
@@ -149,6 +151,8 @@ ln -s libudev.so.1 libudev.so
                                         <li>p7zip-full</li>
                                         <li>gcc</li>
                                         <li>cmake</li>
+                                        <li>libdrm-dev (sic?)</li>
+                                        <li>libgbm-dev (sic?)</li>
                                         <li>x11-devel</li>
                                         <li>mesa-devel</li>
                                     </ul>
@@ -162,6 +166,8 @@ ln -s libudev.so.1 libudev.so
                                         <li>p7zip-full</li>
                                         <li>gcc</li>
                                         <li>cmake</li>
+                                        <li>libdrm-dev (sic?)</li>
+                                        <li>libgbm-dev (sic?)</li>
                                         <li>mesa-libGL-devel</li>
                                         <li>xorg-x11-proto-devel</li>
                                         <li>libICE-devel</li>
