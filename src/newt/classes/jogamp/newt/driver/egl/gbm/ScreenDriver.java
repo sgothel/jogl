@@ -29,13 +29,19 @@ package jogamp.newt.driver.egl.gbm;
 
 import com.jogamp.nativewindow.DefaultGraphicsScreen;
 import com.jogamp.nativewindow.util.Rectangle;
+import com.jogamp.newt.Display;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
 
 import jogamp.nativewindow.drm.DRMUtil;
 import jogamp.nativewindow.drm.DrmMode;
+import jogamp.nativewindow.drm.drmModeConnector;
+import jogamp.nativewindow.drm.drmModeEncoder;
+import jogamp.nativewindow.drm.drmModeModeInfo;
 import jogamp.newt.MonitorModeProps;
+import jogamp.newt.PointerIconImpl;
 import jogamp.newt.ScreenImpl;
+import jogamp.newt.driver.linux.LinuxMouseTracker;
 
 public class ScreenDriver extends ScreenImpl {
     static {
@@ -52,10 +58,12 @@ public class ScreenDriver extends ScreenImpl {
         if( DEBUG ) {
             drmMode.print(System.err);
         }
+        defaultPointerIcon = ((DisplayDriver)display).defaultPointerIcon;
     }
 
     @Override
     protected void closeNativeImpl() {
+        defaultPointerIcon = null;
         drmMode.destroy();
         drmMode = null;
     }
@@ -75,13 +83,17 @@ public class ScreenDriver extends ScreenImpl {
         // FIXME add multi-monitor multi-mode support
         final int scridx = 0; // getIndex();
 
+        final drmModeConnector[] connectors = drmMode.getConnectors();
+        final drmModeEncoder[] encoder = drmMode.getEncoder();
+        final drmModeModeInfo[] mode = drmMode.getModes();
+
         int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
         int i = 0;
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
-        props[i++] = drmMode.getModes()[scridx].getHdisplay();
-        props[i++] = drmMode.getModes()[scridx].getVdisplay();
+        props[i++] = mode[scridx].getHdisplay();
+        props[i++] = mode[scridx].getVdisplay();
         props[i++] = ScreenImpl.default_sm_bpp; // FIXME
-        props[i++] = drmMode.getModes()[scridx].getVrefresh() * 100;
+        props[i++] = mode[scridx].getVrefresh() * 100;
         props[i++] = 0; // flags
         props[i++] = 0; // mode_idx
         props[i++] = 0; // rotation
@@ -90,20 +102,26 @@ public class ScreenDriver extends ScreenImpl {
         props = new int[MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES - 1 - MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES];
         i = 0;
         props[i++] = props.length;
-        props[i++] = 0; // crt_idx
+        props[i++] = encoder[scridx].getCrtc_id(); // crt_id
         props[i++] = 0; // is-clone
         props[i++] = 1; // is-primary
-        props[i++] = drmMode.getConnectors()[scridx].getMmWidth();
-        props[i++] = drmMode.getConnectors()[scridx].getMmHeight();
+        props[i++] = connectors[scridx].getMmWidth();
+        props[i++] = connectors[scridx].getMmHeight();
         props[i++] = 0; // rotated viewport x pixel-units
         props[i++] = 0; // rotated viewport y pixel-units
-        props[i++] = drmMode.getModes()[scridx].getHdisplay(); // rotated viewport width pixel-units
-        props[i++] = drmMode.getModes()[scridx].getVdisplay(); // rotated viewport height pixel-units
+        props[i++] = mode[scridx].getHdisplay(); // rotated viewport width pixel-units
+        props[i++] = mode[scridx].getVdisplay(); // rotated viewport height pixel-units
         props[i++] = 0; // rotated viewport x window-units
         props[i++] = 0; // rotated viewport y window-units
-        props[i++] = drmMode.getModes()[scridx].getHdisplay(); // rotated viewport width window-units
-        props[i++] = drmMode.getModes()[scridx].getVdisplay(); // rotated viewport height window-units
+        props[i++] = mode[scridx].getHdisplay(); // rotated viewport width window-units
+        props[i++] = mode[scridx].getVdisplay(); // rotated viewport height window-units
         MonitorModeProps.streamInMonitorDevice(cache, this, currentMode, null, cache.monitorModes, props, 0, null);
+
+        crtc_ids = new int[] { encoder[scridx].getCrtc_id() };
+        if( null != defaultPointerIcon ) {
+            final LinuxMouseTracker lmt = LinuxMouseTracker.getSingleton();
+            setPointerIconActive(defaultPointerIcon.getHandle(), lmt.getLastX(), lmt.getLastY());
+        }
     }
 
     @Override
@@ -126,8 +144,67 @@ public class ScreenDriver extends ScreenImpl {
         viewportInWindowUnits.set(viewport);
     }
 
+    /* pp */ void setPointerIconActive(long piHandle, final int x, final int y) {
+        synchronized(pointerIconSync) {
+            if( DisplayDriver.DEBUG_POINTER_ICON ) {
+                System.err.println("Screen.PointerIcon.set.0: "+Thread.currentThread().getName());
+                System.err.println("Screen.PointerIcon.set.0: crtc id "+Display.toHexString(crtc_ids[0])+", active ["+Display.toHexString(activePointerIcon)+", visible "+activePointerIconVisible+"] -> "+Display.toHexString(piHandle));
+            }
+            if( 0 != activePointerIcon && activePointerIconVisible ) {
+                System.err.println("Screen.PointerIcon.set.1");
+                DisplayDriver.SetPointerIcon0(DRMUtil.getDrmFd(), crtc_ids[0], activePointerIcon, false, x, y);
+            }
+            if( 0 == piHandle && null != defaultPointerIcon ) {
+                System.err.println("Screen.PointerIcon.set.2");
+                piHandle = ((DisplayDriver)display).defaultPointerIcon.getHandle();
+            }
+            if( 0 != piHandle ) {
+                System.err.println("Screen.PointerIcon.set.3");
+                DisplayDriver.SetPointerIcon0(DRMUtil.getDrmFd(), crtc_ids[0], piHandle, true, x, y);
+                activePointerIconVisible = true;
+            } else {
+                System.err.println("Screen.PointerIcon.set.4");
+                activePointerIconVisible = false;
+            }
+            activePointerIcon = piHandle;
+            if( DisplayDriver.DEBUG_POINTER_ICON ) {
+                System.err.println("Screen.PointerIcon.set.X: active ["+Display.toHexString(activePointerIcon)+", visible "+activePointerIconVisible+"]");
+            }
+        }
+    }
+    /* pp */ void setActivePointerIconVisible(final boolean visible, final int x, final int y) {
+        synchronized(pointerIconSync) {
+            if( DisplayDriver.DEBUG_POINTER_ICON ) {
+                System.err.println("Screen.PointerIcon.visible: crtc id "+Display.toHexString(crtc_ids[0])+", active ["+Display.toHexString(activePointerIcon)+", visible "+activePointerIconVisible+"] -> visible "+visible);
+            }
+            if( activePointerIconVisible != visible ) {
+                if( 0 != activePointerIcon ) {
+                    DisplayDriver.SetPointerIcon0(DRMUtil.getDrmFd(), crtc_ids[0], activePointerIcon, visible, x, y);
+                }
+                activePointerIconVisible = visible;
+            }
+        }
+    }
+    /* pp */ void moveActivePointerIcon(final int x, final int y) {
+        synchronized(pointerIconSync) {
+            if( DisplayDriver.DEBUG_POINTER_ICON ) {
+                System.err.println("Screen.PointerIcon.move: crtc id "+Display.toHexString(crtc_ids[0])+", active ["+Display.toHexString(activePointerIcon)+", visible "+activePointerIconVisible+"], "+x+"/"+y);
+            }
+            if( 0 != activePointerIcon && activePointerIconVisible ) {
+                DisplayDriver.MovePointerIcon0(DRMUtil.getDrmFd(), crtc_ids[0], x, y);
+            }
+        }
+    }
+
+
     /* pp */ DrmMode drmMode;
 
     protected static native boolean initIDs();
     protected native void initNative(long drmHandle);
+    protected int[] crtc_ids;
+
+    private long activePointerIcon;
+    private boolean activePointerIconVisible;
+    private final Object pointerIconSync = new Object();
+    private PointerIconImpl defaultPointerIcon = null;
 }

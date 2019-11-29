@@ -300,7 +300,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_NextSwapSur
         gbm_surface_release_buffer(gbmSurface, lastBO);
     }
 
-    DBG_PRINT( "EGL_GBM.Window NextSwapSurface0 %p -> %p\n", lastBO, nextBO);
+    // DBG_PRINT( "EGL_GBM.Window NextSwapSurface0 %p -> %p\n", lastBO, nextBO);
     return (jlong) (intptr_t) nextBO;
 }
 

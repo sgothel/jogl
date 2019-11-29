@@ -48,7 +48,7 @@ import jogamp.newt.PointerIconImpl;
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.KeyTracker;
 import jogamp.newt.driver.MouseTracker;
-import jogamp.newt.driver.linux.LinuxEventDeviceTracker;
+import jogamp.newt.driver.linux.LinuxKeyEventTracker;
 import jogamp.newt.driver.linux.LinuxMouseTracker;
 import jogamp.newt.driver.x11.X11UnderlayTracker;
 import jogamp.opengl.egl.EGLDisplayUtil;
@@ -73,11 +73,8 @@ public class WindowDriver extends WindowImpl {
             mouseTracker = x11UnderlayTracker;
             keyTracker = x11UnderlayTracker;
         } catch(final ExceptionInInitializerError e) {
-            linuxMouseTracker = LinuxMouseTracker.getSingleton();
-            linuxEventDeviceTracker = LinuxEventDeviceTracker.getSingleton();
-
-            mouseTracker = linuxMouseTracker;
-            keyTracker = linuxEventDeviceTracker;
+            mouseTracker = LinuxMouseTracker.getSingleton();
+            keyTracker = LinuxKeyEventTracker.getSingleton();
         }
 
         layer = -1;
@@ -301,8 +298,6 @@ public class WindowDriver extends WindowImpl {
     //----------------------------------------------------------------------
     // Internals only
     //
-    private LinuxMouseTracker linuxMouseTracker;
-    private LinuxEventDeviceTracker linuxEventDeviceTracker;
     private X11UnderlayTracker x11UnderlayTracker;
 
     private MouseTracker mouseTracker;

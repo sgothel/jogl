@@ -28,17 +28,15 @@
 package jogamp.newt.driver.egl.gbm;
 
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.NativeWindowException;
-import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.newt.Display;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.GLCapabilitiesChooser;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLException;
@@ -48,8 +46,11 @@ import jogamp.nativewindow.drm.DRMLib;
 import jogamp.nativewindow.drm.DRMUtil;
 import jogamp.nativewindow.drm.DrmMode;
 import jogamp.nativewindow.drm.drmModeModeInfo;
+import jogamp.newt.PointerIconImpl;
 import jogamp.newt.WindowImpl;
-import jogamp.newt.driver.linux.LinuxEventDeviceTracker;
+import jogamp.newt.driver.KeyTracker;
+import jogamp.newt.driver.MouseTracker;
+import jogamp.newt.driver.linux.LinuxKeyEventTracker;
 import jogamp.newt.driver.linux.LinuxMouseTracker;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
 import jogamp.opengl.egl.EGLGraphicsConfigurationFactory;
@@ -62,8 +63,8 @@ public class WindowDriver extends WindowImpl {
     }
 
     public WindowDriver() {
-        linuxMouseTracker = null; // LinuxMouseTracker.getSingleton();
-        linuxEventDeviceTracker = null; // LinuxEventDeviceTracker.getSingleton();
+        mouseTracker = LinuxMouseTracker.getSingleton();
+        keyTracker = LinuxKeyEventTracker.getSingleton();
 
         windowHandleClose = 0;
     }
@@ -236,11 +237,11 @@ public class WindowDriver extends WindowImpl {
 
         lastBO = 0;
 
-        if( null != linuxEventDeviceTracker ) {
-            addWindowListener(linuxEventDeviceTracker);
+        if( null != keyTracker ) {
+            addWindowListener(keyTracker);
         }
-        if( null != linuxMouseTracker ) {
-            addWindowListener(linuxMouseTracker);
+        if( null != mouseTracker ) {
+            addWindowListener(mouseTracker);
         }
         visibleChanged(true);
         focusChanged(false, true);
@@ -250,11 +251,11 @@ public class WindowDriver extends WindowImpl {
     protected void closeNativeImpl() {
         final Display display = getScreen().getDisplay();
 
-        if( null != linuxMouseTracker ) {
-            removeWindowListener(linuxMouseTracker);
+        if( null != mouseTracker ) {
+            removeWindowListener(mouseTracker);
         }
-        if( null != linuxEventDeviceTracker ) {
-            removeWindowListener(linuxEventDeviceTracker);
+        if( null != keyTracker ) {
+            removeWindowListener(keyTracker);
         }
 
         lastBO = 0;
@@ -307,7 +308,7 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected final int getSupportedReconfigMaskImpl() {
-        return minimumReconfigStateMask
+        return minimumReconfigStateMask |
                // | STATE_MASK_UNDECORATED
                // | STATE_MASK_ALWAYSONTOP
                // | STATE_MASK_ALWAYSONBOTTOM
@@ -315,9 +316,8 @@ public class WindowDriver extends WindowImpl {
                // | STATE_MASK_RESIZABLE
                // | STATE_MASK_MAXIMIZED_VERT
                // | STATE_MASK_MAXIMIZED_HORZ
-               // | STATE_MASK_POINTERVISIBLE
-               // | STATE_MASK_POINTERCONFINED
-               ;
+               STATE_MASK_POINTERVISIBLE |
+               STATE_MASK_POINTERCONFINED;
     }
 
     @Override
@@ -334,11 +334,34 @@ public class WindowDriver extends WindowImpl {
         return new Point(x,y);
     }
 
+    @Override
+    protected final void doMouseEvent(final boolean enqueue, final boolean wait, final short eventType, final int modifiers,
+                                      final int x, final int y, final short button, final float[] rotationXYZ, final float rotationScale) {
+        if( MouseEvent.EVENT_MOUSE_MOVED == eventType || MouseEvent.EVENT_MOUSE_DRAGGED == eventType ) {
+            final ScreenDriver screen = (ScreenDriver) getScreen();
+            screen.moveActivePointerIcon(getX() + x, getY() + y);
+        }
+        super.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, rotationXYZ, rotationScale);
+    }
+
+    @Override
+    protected void setPointerIconImpl(final PointerIconImpl pi) {
+        final ScreenDriver screen = (ScreenDriver) getScreen();
+        screen.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, mouseTracker.getLastX(), mouseTracker.getLastY());
+    }
+
+    @Override
+    protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
+        final ScreenDriver screen = (ScreenDriver) getScreen();
+        screen.setActivePointerIconVisible(pointerVisible, mouseTracker.getLastX(), mouseTracker.getLastY());
+        return true;
+    }
+
     //----------------------------------------------------------------------
     // Internals only
     //
-    private final LinuxMouseTracker linuxMouseTracker;
-    private final LinuxEventDeviceTracker linuxEventDeviceTracker;
+    private final MouseTracker mouseTracker;
+    private final KeyTracker keyTracker;
     private long windowHandleClose;
     private long eglSurface;
     private long lastBO;
