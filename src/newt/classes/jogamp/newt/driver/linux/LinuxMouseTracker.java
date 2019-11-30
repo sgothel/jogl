@@ -57,22 +57,18 @@ import com.jogamp.newt.event.WindowUpdateEvent;
  */
 public class LinuxMouseTracker implements WindowListener, MouseTracker {
 
-    private static final boolean DISABLE;
-    private static final LinuxMouseTracker lmt;
+    private static final boolean DISABLE = PropertyAccess.isPropertyDefined("newt.disable.LinuxMouseTracker", true);
+    private static LinuxMouseTracker lmt = null;
 
-    static {
-        DISABLE = PropertyAccess.isPropertyDefined("newt.disable.LinuxMouseTracker", true);
+    public static synchronized LinuxMouseTracker getSingleton() {
         if(!DISABLE) {
-            lmt = new LinuxMouseTracker();
-            final Thread t = new InterruptSource.Thread(null, lmt.mouseDevicePoller, "NEWT-MouseTracker");
-            t.setDaemon(true);
-            t.start();
-        } else {
-            lmt = null;
+            if( null == lmt ) {
+                lmt = new LinuxMouseTracker();
+                final Thread t = new InterruptSource.Thread(null, lmt.mouseDevicePoller, "NEWT-MouseTracker");
+                t.setDaemon(true);
+                t.start();
+            }
         }
-    }
-
-    public static LinuxMouseTracker getSingleton() {
         return lmt;
     }
 
@@ -87,6 +83,8 @@ public class LinuxMouseTracker implements WindowListener, MouseTracker {
     private short old_buttonDown = 0;
     private WindowImpl focusedWindow = null;
     private final MouseDevicePoller mouseDevicePoller = new MouseDevicePoller();
+
+    private LinuxMouseTracker() {}
 
     public final int getLastX() { return lastFocusedX; }
     public final int getLastY() { return lastFocusedY; }

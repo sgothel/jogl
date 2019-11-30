@@ -210,9 +210,12 @@ public class WindowDriver extends WindowImpl {
         }
         windowHandleClose = nativeWindowHandle;
 
-        addWindowListener(keyTracker);
-        addWindowListener(mouseTracker);
-
+        if( null != keyTracker ) {
+            addWindowListener(keyTracker);
+        }
+        if( null != mouseTracker ) {
+            addWindowListener(mouseTracker);
+        }
 
         focusChanged(false, true);
     }
@@ -222,9 +225,12 @@ public class WindowDriver extends WindowImpl {
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getGraphicsConfiguration().getScreen().getDevice();
 
-        removeWindowListener(mouseTracker);
-        removeWindowListener(keyTracker);
-
+        if( null != mouseTracker ) {
+            removeWindowListener(mouseTracker);
+        }
+        if( null != keyTracker ) {
+            removeWindowListener(keyTracker);
+        }
         if(0!=windowHandleClose) {
             CloseWindow0(display.getBCMHandle(), windowHandleClose);
         }
@@ -285,13 +291,21 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void setPointerIconImpl(final PointerIconImpl pi) {
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
-        display.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, mouseTracker.getLastX(), mouseTracker.getLastY());
+        if( null != mouseTracker ) {
+            display.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, mouseTracker.getLastX(), mouseTracker.getLastY());
+        } else {
+            display.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, 0, 0);
+        }
     }
 
     @Override
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
-        display.setActivePointerIconVisible(pointerVisible, mouseTracker.getLastX(), mouseTracker.getLastY());
+        if( null != mouseTracker ) {
+            display.setActivePointerIconVisible(pointerVisible, mouseTracker.getLastX(), mouseTracker.getLastY());
+        } else {
+            display.setActivePointerIconVisible(pointerVisible, 0, 0);
+        }
         return true;
     }
 

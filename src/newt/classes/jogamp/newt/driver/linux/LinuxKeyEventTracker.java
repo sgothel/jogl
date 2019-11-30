@@ -82,30 +82,24 @@ import com.jogamp.newt.event.KeyEvent;
  */
 public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
 
-    private static final boolean DISABLE;
-    private static final boolean ENABLE_PLAIN_EVENTX;
+    private static final boolean DISABLE = PropertyAccess.isPropertyDefined("newt.disable.LinuxKeyEventTracker", true);
+    private static final boolean ENABLE_PLAIN_EVENTX = PropertyAccess.isPropertyDefined("newt.enable.LinuxKeyEventTracker.eventx", true);
 
     private static final String linuxDevInputByEventXRoot = "/dev/input/";
     private static final String linuxDevInputByIDRoot = "/dev/input/by-id/";
     private static final String linuxDevInputByPathRoot = "/dev/input/by-path/";
 
-    private static final LinuxKeyEventTracker ledt;
+    private static LinuxKeyEventTracker ledt = null;
 
-    static {
-        DISABLE = PropertyAccess.isPropertyDefined("newt.disable.LinuxKeyEventTracker", true);
-        ENABLE_PLAIN_EVENTX = PropertyAccess.isPropertyDefined("newt.enable.LinuxKeyEventTracker.eventx", true);
-
+    public static synchronized LinuxKeyEventTracker getSingleton() {
         if( !DISABLE ) {
-            ledt = new LinuxKeyEventTracker();
-            final Thread t = new InterruptSource.Thread(null, ledt.eventDeviceManager, "NEWT-LinuxEventDeviceManager");
-            t.setDaemon(true);
-            t.start();
-        } else {
-            ledt = null;
+            if( null == ledt ) {
+                ledt = new LinuxKeyEventTracker();
+                final Thread t = new InterruptSource.Thread(null, ledt.eventDeviceManager, "NEWT-LinuxEventDeviceManager");
+                t.setDaemon(true);
+                t.start();
+            }
         }
-    }
-
-    public static LinuxKeyEventTracker getSingleton() {
         return ledt;
     }
 
@@ -123,6 +117,8 @@ public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
      * </ol>
      */
     private final Map<String, EventDevicePoller> edpMap = new HashMap<String, EventDevicePoller>();
+
+    private LinuxKeyEventTracker() {}
 
     @Override
     public void windowResized(final WindowEvent e) { }

@@ -347,13 +347,21 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void setPointerIconImpl(final PointerIconImpl pi) {
         final ScreenDriver screen = (ScreenDriver) getScreen();
-        screen.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, mouseTracker.getLastX(), mouseTracker.getLastY());
+        if( null != mouseTracker ) {
+            screen.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, mouseTracker.getLastX(), mouseTracker.getLastY());
+        } else {
+            screen.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, 0, 0);
+        }
     }
 
     @Override
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
         final ScreenDriver screen = (ScreenDriver) getScreen();
-        screen.setActivePointerIconVisible(pointerVisible, mouseTracker.getLastX(), mouseTracker.getLastY());
+        if( null != mouseTracker ) {
+            screen.setActivePointerIconVisible(pointerVisible, mouseTracker.getLastX(), mouseTracker.getLastY());
+        } else {
+            screen.setActivePointerIconVisible(pointerVisible, 0, 0);
+        }
         return true;
     }
 

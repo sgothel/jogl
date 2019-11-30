@@ -108,7 +108,11 @@ public class DisplayDriver extends DisplayImpl {
         }
         if( null != defaultPointerIcon ) {
             final LinuxMouseTracker lmt = LinuxMouseTracker.getSingleton();
-            setPointerIconActive(defaultPointerIcon.getHandle(), lmt.getLastX(), lmt.getLastY());
+            if( null != lmt ) {
+                setPointerIconActive(defaultPointerIcon.getHandle(), lmt.getLastX(), lmt.getLastY());
+            } else {
+                setPointerIconActive(defaultPointerIcon.getHandle(), 0, 0);
+            }
         }
     }
     private PointerIconImpl defaultPointerIcon = null;

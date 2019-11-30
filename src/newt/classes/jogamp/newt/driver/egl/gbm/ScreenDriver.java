@@ -120,7 +120,11 @@ public class ScreenDriver extends ScreenImpl {
         crtc_ids = new int[] { encoder[scridx].getCrtc_id() };
         if( null != defaultPointerIcon ) {
             final LinuxMouseTracker lmt = LinuxMouseTracker.getSingleton();
-            setPointerIconActive(defaultPointerIcon.getHandle(), lmt.getLastX(), lmt.getLastY());
+            if( null != lmt ) {
+                setPointerIconActive(defaultPointerIcon.getHandle(), lmt.getLastX(), lmt.getLastY());
+            } else {
+                setPointerIconActive(defaultPointerIcon.getHandle(), 0, 0);
+            }
         }
     }
 
