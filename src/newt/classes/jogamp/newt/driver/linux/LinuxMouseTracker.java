@@ -38,6 +38,7 @@ import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.MouseTracker;
 
 import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseEvent;
@@ -46,19 +47,29 @@ import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.WindowUpdateEvent;
 
 /**
- * Experimental native mouse tracker thread for GNU/Linux
- * just reading <code>/dev/input/mice</code>
+ * Native mouse tracker thread for GNU/Linux.
+ * <p>
+ * Implementation is reading <code>/dev/input/mice</code>
  * within it's own polling thread.
+ * <p>
+ * This tracker can be completely disabled by setting property <code>newt.disable.LinuxMouseTracker</code>.
+ * </p>
  */
 public class LinuxMouseTracker implements WindowListener, MouseTracker {
 
+    private static final boolean DISABLE;
     private static final LinuxMouseTracker lmt;
 
     static {
-        lmt = new LinuxMouseTracker();
-        final Thread t = new InterruptSource.Thread(null, lmt.mouseDevicePoller, "NEWT-MouseTracker");
-        t.setDaemon(true);
-        t.start();
+        DISABLE = PropertyAccess.isPropertyDefined("newt.disable.LinuxMouseTracker", true);
+        if(!DISABLE) {
+            lmt = new LinuxMouseTracker();
+            final Thread t = new InterruptSource.Thread(null, lmt.mouseDevicePoller, "NEWT-MouseTracker");
+            t.setDaemon(true);
+            t.start();
+        } else {
+            lmt = null;
+        }
     }
 
     public static LinuxMouseTracker getSingleton() {

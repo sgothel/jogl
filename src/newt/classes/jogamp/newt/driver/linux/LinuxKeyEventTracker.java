@@ -47,6 +47,7 @@ import jogamp.newt.driver.KeyTracker;
 import com.jogamp.common.nio.StructAccessor;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.WindowEvent;
@@ -55,13 +56,13 @@ import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.newt.event.KeyEvent;
 
 /**
- * Experimental native key event tracker thread for GNU/Linux.
+ * Native key event tracker thread for GNU/Linux.
  * <p>
  * Implementation attempts to read one of the following input event files
  * <ol>
  * <li>try /dev/input/by-path/*-event-kbd</li>
  * <li>try /dev/input/by-id/*-event-kbd</li>
- * <li>try /dev/input/event* (Warning: Unreliable due to fiddling with all native input events !)</li>
+ * <li>try /dev/input/event* <i>Disabled by default! Warning: Unreliable due to fiddling with all native input events!</i></li>
  * </ol>
  * </p>
  * <p>
@@ -72,20 +73,36 @@ import com.jogamp.newt.event.KeyEvent;
  * The last method is used if all former methods fails and it brute
  * force uses all first 32 event files, which can cause overall stability issues!
  * </p>
+ * <p>
+ * The last method must be enabled by setting the property <code>newt.enable.LinuxKeyEventTracker.eventx</code>.
+ * </p>
+ * <p>
+ * This tracker can be completely disabled by setting property <code>newt.disable.LinuxKeyEventTracker</code>.
+ * </p>
  */
 public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
+
+    private static final boolean DISABLE;
+    private static final boolean ENABLE_PLAIN_EVENTX;
 
     private static final String linuxDevInputByEventXRoot = "/dev/input/";
     private static final String linuxDevInputByIDRoot = "/dev/input/by-id/";
     private static final String linuxDevInputByPathRoot = "/dev/input/by-path/";
+
     private static final LinuxKeyEventTracker ledt;
 
-
     static {
-        ledt = new LinuxKeyEventTracker();
-        final Thread t = new InterruptSource.Thread(null, ledt.eventDeviceManager, "NEWT-LinuxEventDeviceManager");
-        t.setDaemon(true);
-        t.start();
+        DISABLE = PropertyAccess.isPropertyDefined("newt.disable.LinuxKeyEventTracker", true);
+        ENABLE_PLAIN_EVENTX = PropertyAccess.isPropertyDefined("newt.enable.LinuxKeyEventTracker.eventx", true);
+
+        if( !DISABLE ) {
+            ledt = new LinuxKeyEventTracker();
+            final Thread t = new InterruptSource.Thread(null, ledt.eventDeviceManager, "NEWT-LinuxEventDeviceManager");
+            t.setDaemon(true);
+            t.start();
+        } else {
+            ledt = null;
+        }
     }
 
     public static LinuxKeyEventTracker getSingleton() {
@@ -212,7 +229,7 @@ public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
             }
 
             // 3) try /dev/input/event* (Warning: Unreliable due to fiddling with all native input events !)
-            {
+            if( ENABLE_PLAIN_EVENTX ) {
                 final File devInputByEventX = new File(linuxDevInputByEventXRoot);
                 while(!stop){
                     for( final String path : devInputByEventX.list() ) {
