@@ -60,7 +60,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_CreatePoin
     uint32_t buf[64 * 64];
     int i, j;
 
-    ERR_PRINT("cursor.cstr %dx%d %d/%d\n", width, height, hotX, hotY);
+    DBG_PRINT("cursor.cstr %dx%d %d/%d\n", width, height, hotX, hotY);
 
     if ( NULL == jpixels ) {
         ERR_PRINT("CreateCursor: null icon pixels\n");
