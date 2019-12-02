@@ -52,7 +52,7 @@ public final class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundl
             final List<String> libsGL = new ArrayList<String>();
 
             /**
-             * Prefer libGLESv2.so over libGLESv2.so.2 for proprietary
+             * Prefer libbrcmGLESv2.so over libGLESv2.so.2 for proprietary
              * Broadcom graphics when the VC4 DRM Xorg driver isn't present
              */
             final boolean bcm_vc_iv_quirk = BcmVCArtifacts.guessVCIVUsed(false);
@@ -82,7 +82,7 @@ public final class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundl
             libsGL.add("GLESv2");
 
             if (bcm_vc_iv_quirk) {
-                libsGL.add("libGLESv2.so.2");
+                libsGL.add("libbrcmGLESv2.so");
             }
 
             // ES2: Alternative names
