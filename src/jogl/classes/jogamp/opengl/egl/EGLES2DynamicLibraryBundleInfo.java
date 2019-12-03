@@ -57,43 +57,41 @@ public final class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundl
              */
             final boolean bcm_vc_iv_quirk = BcmVCArtifacts.guessVCIVUsed(false);
 
-            // ES3: This is the default lib name, according to the spec
-            libsGL.add("libGLESv3.so.3");
-
-            // ES3: Try these as well, if spec fails
-            libsGL.add("libGLESv3.so");
-            libsGL.add("GLESv3");
-
-            // ES3: Alternative names
-            libsGL.add("GLES30");
-
-            // ES3: For windows distributions using the 'unlike' lib prefix
-            // where our tool does not add it.
-            libsGL.add("libGLESv3");
-            libsGL.add("libGLES30");
-
-            // ES2: This is the default lib name, according to the spec
-            if (!bcm_vc_iv_quirk) {
-                libsGL.add("libGLESv2.so.2");
-            }
-
-            // ES2: Try these as well, if spec fails
-            libsGL.add("libGLESv2.so");
-            libsGL.add("GLESv2");
-
             if (bcm_vc_iv_quirk) {
                 libsGL.add("libbrcmGLESv2.so");
+            } else {
+                // ES3: This is the default lib name, according to the spec
+                libsGL.add("libGLESv3.so.3");
+
+                // ES3: Try these as well, if spec fails
+                libsGL.add("libGLESv3.so");
+                libsGL.add("GLESv3");
+
+                // ES3: Alternative names
+                libsGL.add("GLES30");
+
+                // ES3: For windows distributions using the 'unlike' lib prefix
+                // where our tool does not add it.
+                libsGL.add("libGLESv3");
+                libsGL.add("libGLES30");
+
+                // ES2: This is the default lib name, according to the spec
+                libsGL.add("libGLESv2.so.2");
+
+                // ES2: Try these as well, if spec fails
+                libsGL.add("libGLESv2.so");
+                libsGL.add("GLESv2");
+
+                // ES2: Alternative names
+                libsGL.add("GLES20");
+                libsGL.add("GLESv2_CM");
+
+                // ES2: For windows distributions using the 'unlike' lib prefix
+                // where our tool does not add it.
+                libsGL.add("libGLESv2");
+                libsGL.add("libGLESv2_CM");
+                libsGL.add("libGLES20");
             }
-
-            // ES2: Alternative names
-            libsGL.add("GLES20");
-            libsGL.add("GLESv2_CM");
-
-            // ES2: For windows distributions using the 'unlike' lib prefix
-            // where our tool does not add it.
-            libsGL.add("libGLESv2");
-            libsGL.add("libGLESv2_CM");
-            libsGL.add("libGLES20");
 
             libsList.add(libsGL);
         }

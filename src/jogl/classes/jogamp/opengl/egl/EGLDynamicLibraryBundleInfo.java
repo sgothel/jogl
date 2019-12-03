@@ -105,22 +105,20 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
           */
         final boolean bcm_vc_iv_quirk = BcmVCArtifacts.guessVCIVUsed(false);
 
-        // this is the default EGL lib name, according to the spec
         if(!bcm_vc_iv_quirk) {
+            // this is the default EGL lib name, according to the spec
             eglLibNames.add("libEGL.so.1");
-        }
 
-        // try these as well, if spec fails
-        eglLibNames.add("libEGL.so");
-        eglLibNames.add("EGL");
+            // try these as well, if spec fails
+            eglLibNames.add("libEGL.so");
+            eglLibNames.add("EGL");
 
-        // for windows distributions using the 'unlike' lib prefix,
-        // where our tool does not add it.
-        eglLibNames.add("libEGL");
-
-	if(bcm_vc_iv_quirk) {
+            // for windows distributions using the 'unlike' lib prefix,
+            // where our tool does not add it.
+            eglLibNames.add("libEGL");
+        } else {
             eglLibNames.add("libbrcmEGL.so");
-	}
+        }
 
         return eglLibNames;
     }
