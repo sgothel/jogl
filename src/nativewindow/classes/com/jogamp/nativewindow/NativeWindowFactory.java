@@ -174,7 +174,20 @@ public abstract class NativeWindowFactory {
                   guessGBM(true);
                   BcmVCArtifacts.guessVCIVUsed(true);
               }
-
+              if( BcmVCArtifacts.guessVCIVUsed(false) ) {
+                 /* Broadcom VC IV can be used from
+                  * both console and from inside X11
+                  *
+                  * When used from inside X11
+                  * rendering is done on an DispmanX overlay surface
+                  * while keeping an X11 nativewindow under as input.
+                  *
+                  * When Broadcom VC IV is guessed
+                  * only the Broadcom DispmanX EGL driver is loaded.
+                  * Therefore standard TYPE_X11 EGL can not be used.
+                  */
+                  return TYPE_BCM_VC_IV;
+              }
               if( guessX(false) ) {
                   return TYPE_X11;
               }
@@ -184,9 +197,6 @@ public abstract class NativeWindowFactory {
               }
               if( guessGBM(false) ) {
                   return TYPE_DRM_GBM;
-              }
-              if( BcmVCArtifacts.guessVCIVUsed(false) ) {
-                  return TYPE_BCM_VC_IV;
               }
               return TYPE_X11;
         }

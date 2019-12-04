@@ -34,6 +34,8 @@ import java.util.List;
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.opengl.GLDynamicLibraryBundleInfo;
 
+import jogamp.nativewindow.BcmVCArtifacts;
+
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.egl.EGL;
@@ -97,16 +99,26 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
     protected final List<String> getEGLLibNamesList() {
         final List<String> eglLibNames = new ArrayList<String>();
 
-        // this is the default EGL lib name, according to the spec
-        eglLibNames.add("libEGL.so.1");
+	/**
+          * Prefer libbrcmEGL.so over libEGL.so.1 for proprietary
+          * Broadcom graphics when the VC4 DRM Xorg driver isn't present
+          */
+        final boolean bcm_vc_iv_quirk = BcmVCArtifacts.guessVCIVUsed(false);
 
-        // try these as well, if spec fails
-        eglLibNames.add("libEGL.so");
-        eglLibNames.add("EGL");
+        if(!bcm_vc_iv_quirk) {
+            // this is the default EGL lib name, according to the spec
+            eglLibNames.add("libEGL.so.1");
 
-        // for windows distributions using the 'unlike' lib prefix,
-        // where our tool does not add it.
-        eglLibNames.add("libEGL");
+            // try these as well, if spec fails
+            eglLibNames.add("libEGL.so");
+            eglLibNames.add("EGL");
+
+            // for windows distributions using the 'unlike' lib prefix,
+            // where our tool does not add it.
+            eglLibNames.add("libEGL");
+        } else {
+            eglLibNames.add("libbrcmEGL.so");
+        }
 
         return eglLibNames;
     }
