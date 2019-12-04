@@ -262,7 +262,6 @@ public class Launcher0 {
         long t1 = t0;
         while(!newtDemoListener.shouldQuit() && t1-t0<duration) {
             if(!useAnimator) {
-                Thread.sleep(15); // little less than 60hz 16.67ms
                 glWindow.display();
             } else {
                 Thread.sleep(100);
