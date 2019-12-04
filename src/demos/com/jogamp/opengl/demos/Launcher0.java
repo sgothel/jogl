@@ -88,19 +88,18 @@ public class Launcher0 {
     static boolean mouseVisible = true;
     static boolean mouseConfined = false;
     static boolean setPointerIcon = false;
-    static boolean showFPS = false;
+    static boolean showFPS = true;
     static boolean forceES2 = false;
     static boolean forceES3 = false;
     static boolean forceGL3 = false;
     static boolean forceGL2 = false;
+    static boolean useDoubleBuffer = true;
     static boolean forceDebug = false;
     static boolean forceTrace = false;
     static boolean traceMouse = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
     static boolean useMappedBuffers = false;
-    static enum SysExit { none, testExit, testError, testEDTError, displayExit, displayError, displayEDTError };
-    static SysExit sysExit = SysExit.none;
 
     public void runTest() throws InterruptedException {
         final GLProfile glp;
@@ -120,6 +119,7 @@ public class Launcher0 {
         if(-1 < forceAlpha) {
             caps.setAlphaBits(forceAlpha);
         }
+        caps.setDoubleBuffered(useDoubleBuffer);
 
         System.err.println("requested: vsync "+swapInterval+", "+caps);
         final Display dpy = NewtFactory.createDisplay(null);
@@ -228,52 +228,11 @@ public class Launcher0 {
             animator.start();
         }
 
-        if( SysExit.displayError == sysExit || SysExit.displayExit == sysExit || SysExit.displayEDTError == sysExit ) {
-            glWindow.addGLEventListener(new GLEventListener() {
-                @Override
-                public void init(final GLAutoDrawable drawable) {}
-                @Override
-                public void dispose(final GLAutoDrawable drawable) { }
-                @Override
-                public void display(final GLAutoDrawable drawable) {
-                    final GLAnimatorControl anim = drawable.getAnimator();
-                    if( null != anim && anim.isAnimating() ) {
-                        final long ms = anim.getTotalFPSDuration();
-                        if( ms >= duration/2 || ms >= 3000 ) { // max 3s wait until provoking error
-                            if( SysExit.displayError == sysExit ) {
-                                throw new Error("test error send from GLEventListener.display - "+Thread.currentThread());
-                            } else if ( SysExit.displayExit == sysExit ) {
-                                System.err.println("exit(0) send from GLEventListener");
-                                System.exit(0);
-                            } else if ( SysExit.displayEDTError == sysExit ) {
-                                final Object upstream = drawable.getUpstreamWidget();
-                                System.err.println("EDT invokeAndWaitError: upstream type "+upstream.getClass().getName());
-                                if( upstream instanceof Window ) {
-                                    final EDTUtil edt = ((Window)upstream).getScreen().getDisplay().getEDTUtil();
-                                    System.err.println("EDT invokeAndWaitError: edt type "+edt.getClass().getName());
-                                    if( edt instanceof DefaultEDTUtil ) {
-                                        newtDemoListener.doQuit();
-                                        ((DefaultEDTUtil)edt).invokeAndWaitError(new Runnable() {
-                                            public void run() {
-                                                throw new RuntimeException("XXX Should never ever be seen! - "+Thread.currentThread());
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        System.exit(0);
-                    }
-                }
-                @Override
-                public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
-            });
-        }
-
         glWindow.setVisible(true);
         if( useAnimator ) {
             animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
+        } else {
+            glWindow.setUpdateFPSFrames(60, showFPS ? System.err : null);
         }
 
         System.err.println("Window Current State   : "+glWindow.getStateMaskString());
@@ -297,30 +256,13 @@ public class Launcher0 {
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
         while(!newtDemoListener.shouldQuit() && t1-t0<duration) {
-            Thread.sleep(100);
-            t1 = System.currentTimeMillis();
-            if( SysExit.testError == sysExit || SysExit.testExit == sysExit || SysExit.testEDTError == sysExit) {
-                final long ms = t1-t0;
-                if( ms >= duration/2 || ms >= 3000 ) { // max 3s wait until provoking error
-                    if( SysExit.testError == sysExit ) {
-                        throw new Error("test error send from test thread");
-                    } else if ( SysExit.testExit == sysExit ) {
-                        System.err.println("exit(0) send from test thread");
-                        System.exit(0);
-                    } else if ( SysExit.testEDTError == sysExit ) {
-                        final EDTUtil edt = glWindow.getScreen().getDisplay().getEDTUtil();
-                        System.err.println("EDT invokeAndWaitError: edt type "+edt.getClass().getName());
-                        if( edt instanceof DefaultEDTUtil ) {
-                            newtDemoListener.doQuit();
-                            ((DefaultEDTUtil)edt).invokeAndWaitError(new Runnable() {
-                                public void run() {
-                                    throw new RuntimeException("XXX Should never ever be seen!");
-                                }
-                            });
-                        }
-                    }
-                }
+            if(!useAnimator) {
+                Thread.sleep(15); // little less than 60hz 16.67ms
+                glWindow.display();
+            } else {
+                Thread.sleep(100);
             }
+            t1 = System.currentTimeMillis();
         }
 
         if( useAnimator ) {
@@ -361,6 +303,8 @@ public class Launcher0 {
             } else if(args[i].equals("-vsync")) {
                 i++;
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
+            } else if(args[i].equals("-single")) {
+                useDoubleBuffer = false;
             } else if(args[i].equals("-exclctx")) {
                 exclusiveContext = true;
             } else if(args[i].equals("-noanim")) {
@@ -417,9 +361,6 @@ public class Launcher0 {
             } else if(args[i].equals("-screen")) {
                 i++;
                 screenIdx = MiscUtils.atoi(args[i], 0);
-            } else if(args[i].equals("-sysExit")) {
-                i++;
-                sysExit = SysExit.valueOf(args[i]);
             } else if(args[i].equals("-traceMouse")) {
                 traceMouse = true;
             }
@@ -455,10 +396,10 @@ public class Launcher0 {
         System.err.println("forceGL2 "+forceGL2);
         System.err.println("forceDebug "+forceDebug);
         System.err.println("forceTrace "+forceTrace);
+        System.err.println("useDoubleBuffer "+useDoubleBuffer);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
         System.err.println("useAnimator "+useAnimator);
-        System.err.println("sysExitWithin "+sysExit);
         System.err.println("mappedBuffers "+useMappedBuffers);
         System.err.println("traceMouse "+traceMouse);
 

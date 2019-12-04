@@ -490,9 +490,6 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
         if( !isInit ) { return; }
         if(null != sharedGears && !sharedGears.isInit() ) { return; }
         final GLAnimatorControl anim = drawable.getAnimator();
-        if( verbose && ( null == anim || !anim.isAnimating() ) ) {
-            System.err.println(Thread.currentThread()+" GearsES2.display "+sid()+" "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceHeight()+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
-        }
 
         final boolean repeatedFrame = 0 != ( CustomGLEventListener.DISPLAY_REPEAT & flags );
         final boolean dontClear = 0 != ( CustomGLEventListener.DISPLAY_DONTCLEAR & flags );
