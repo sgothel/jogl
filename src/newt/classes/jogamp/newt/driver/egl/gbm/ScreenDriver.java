@@ -155,8 +155,9 @@ public class ScreenDriver extends ScreenImpl {
                 System.err.println("Screen.PointerIcon.set.0: crtc id "+Display.toHexString(crtc_ids[0])+", active ["+Display.toHexString(activePointerIcon)+", visible "+activePointerIconVisible+"] -> "+Display.toHexString(piHandle));
             }
             if( 0 != activePointerIcon && activePointerIconVisible ) {
+                // disable active pointerIcon first
                 System.err.println("Screen.PointerIcon.set.1");
-                DisplayDriver.SetPointerIcon0(DRMUtil.getDrmFd(), crtc_ids[0], activePointerIcon, false, x, y);
+                ((DisplayDriver)display).setPointerIcon(crtc_ids[0], activePointerIcon, false, x, y);
             }
             if( 0 == piHandle && null != defaultPointerIcon ) {
                 System.err.println("Screen.PointerIcon.set.2");
@@ -164,7 +165,7 @@ public class ScreenDriver extends ScreenImpl {
             }
             if( 0 != piHandle ) {
                 System.err.println("Screen.PointerIcon.set.3");
-                DisplayDriver.SetPointerIcon0(DRMUtil.getDrmFd(), crtc_ids[0], piHandle, true, x, y);
+                ((DisplayDriver)display).setPointerIcon(crtc_ids[0], piHandle, true, x, y);
                 activePointerIconVisible = true;
             } else {
                 System.err.println("Screen.PointerIcon.set.4");
@@ -183,7 +184,7 @@ public class ScreenDriver extends ScreenImpl {
             }
             if( activePointerIconVisible != visible ) {
                 if( 0 != activePointerIcon ) {
-                    DisplayDriver.SetPointerIcon0(DRMUtil.getDrmFd(), crtc_ids[0], activePointerIcon, visible, x, y);
+                    ((DisplayDriver)display).setPointerIcon(crtc_ids[0], activePointerIcon, visible, x, y);
                 }
                 activePointerIconVisible = visible;
             }
@@ -195,7 +196,7 @@ public class ScreenDriver extends ScreenImpl {
                 System.err.println("Screen.PointerIcon.move: crtc id "+Display.toHexString(crtc_ids[0])+", active ["+Display.toHexString(activePointerIcon)+", visible "+activePointerIconVisible+"], "+x+"/"+y);
             }
             if( 0 != activePointerIcon && activePointerIconVisible ) {
-                DisplayDriver.MovePointerIcon0(DRMUtil.getDrmFd(), crtc_ids[0], x, y);
+                ((DisplayDriver)display).movePointerIcon(crtc_ids[0], x, y);
             }
         }
     }

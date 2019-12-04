@@ -100,8 +100,10 @@ public class DisplayDriver extends DisplayImpl {
         } else {
             defaultPointerIcon = null;
         }
+
         if( DEBUG_POINTER_ICON ) {
-            System.err.println("Display.PointerIcon.createDefault: "+defaultPointerIcon);
+            System.err.println("Display.createNativeImpl: "+this);
+            System.err.println("Display.createNativeImpl: defaultPointerIcon "+defaultPointerIcon);
         }
     }
 
@@ -124,17 +126,49 @@ public class DisplayDriver extends DisplayImpl {
 
     @Override
     protected final long createPointerIconImpl(final PixelFormat pixelformat, final int width, final int height, final ByteBuffer pixels, final int hotX, final int hotY) {
-        return CreatePointerIcon(gbmHandle, pixels, width, height, hotX, hotY);
+        this.aDevice.lock();
+        try {
+            return CreatePointerIcon(gbmHandle, pixels, width, height, hotX, hotY);
+        } finally {
+            this.aDevice.unlock();
+        }
     }
 
     @Override
     protected final void destroyPointerIconImpl(final long displayHandle, final long piHandle) {
-        DestroyPointerIcon0(piHandle);
+        final AbstractGraphicsDevice d = this.aDevice;
+        if( null != d ) {
+            d.lock();
+            try {
+                DestroyPointerIcon0(piHandle);
+            } finally {
+                d.unlock();
+            }
+        } else {
+            DestroyPointerIcon0(piHandle);
+        }
     }
 
     //----------------------------------------------------------------------
     // Internals only
     //
+    /* pp */ boolean setPointerIcon(final int crtc_id, final long piHandle, final boolean enable, final int x, final int y) {
+        this.aDevice.lock();
+        try {
+            return SetPointerIcon0(DRMUtil.getDrmFd(), crtc_id, piHandle, enable, x, y);
+        } finally {
+            this.aDevice.unlock();
+        }
+    }
+    /* pp */ boolean movePointerIcon(final int crtc_id, final int x, final int y) {
+        this.aDevice.lock();
+        try {
+            return MovePointerIcon0(DRMUtil.getDrmFd(), crtc_id, x, y);
+        } finally {
+            this.aDevice.unlock();
+        }
+    }
+
     private static native boolean initIDs();
 
     private static native void DispatchMessages0();
@@ -154,8 +188,8 @@ public class DisplayDriver extends DisplayImpl {
     private static native long CreatePointerIcon0(long gbmDevice, Object pixels, int pixels_byte_offset, boolean pixels_is_direct,
                                                   int width, int height, int hotX, int hotY);
     private static native void DestroyPointerIcon0(long piHandle);
-    /* pp */ static native boolean SetPointerIcon0(int drmFd, int crtc_id, long piHandle, boolean enable, int x, int y);
-    /* pp */ static native boolean MovePointerIcon0(int drmFd, int crtc_id, int x, int y);
+    private static native boolean SetPointerIcon0(int drmFd, int crtc_id, long piHandle, boolean enable, int x, int y);
+    private static native boolean MovePointerIcon0(int drmFd, int crtc_id, int x, int y);
 
     /* pp */ static final boolean DEBUG_POINTER_ICON = Display.DEBUG_POINTER_ICON;
     /* pp */ PointerIconImpl defaultPointerIcon = null;
