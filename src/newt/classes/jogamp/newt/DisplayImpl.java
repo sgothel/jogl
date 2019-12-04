@@ -140,12 +140,8 @@ public abstract class DisplayImpl extends Display {
                     if( DEBUG_POINTER_ICON ) {
                         System.err.println("createPointerIconPNG.0: "+image+", handle: "+toHexString(handle)+", hot "+hotspot);
                     }
-                    if( 0 == handle ) {
-                        throw new IOException(exStr);
-                    }
-                    res[0] = new PointerIconImpl(DisplayImpl.this, image, hotspot, handle);
-                    if( DEBUG_POINTER_ICON ) {
-                        System.err.println("createPointerIconPNG.0: "+res[0]);
+                    if( 0 != handle ) {
+                        res[0] = new PointerIconImpl(DisplayImpl.this, image, hotspot, handle);
                     }
                 } catch (final Exception e) {
                     ex[0] = e;
@@ -161,11 +157,10 @@ public abstract class DisplayImpl extends Display {
             }
             throw new IOException(e);
         }
-        if( null == res[0] ) {
-            throw new IOException(exStr);
-        }
-        synchronized(pointerIconList) {
-            pointerIconList.add(res[0]);
+        if( null != res[0] ) {
+            synchronized(pointerIconList) {
+                pointerIconList.add(res[0]);
+            }
         }
         return res[0];
     }

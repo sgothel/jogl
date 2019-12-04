@@ -29,6 +29,7 @@ package jogamp.newt;
 
 import java.nio.ByteBuffer;
 
+import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.PixelFormat;
 import com.jogamp.nativewindow.util.PixelRectangle;
@@ -53,7 +54,6 @@ public class PointerIconImpl implements PointerIcon {
         this.size = size;
         this.pixels = pixels;
         this.hotspot = hotspot;
-
         this.handle=handle;
     }
     public PointerIconImpl(final DisplayImpl display, final PixelRectangle pixelrect, final PointImmutable hotspot, final long handle) {
@@ -84,21 +84,17 @@ public class PointerIconImpl implements PointerIcon {
         return hashCode;
     }
 
+    /**
+     * @return the native handle of this pointer icon, maybe {@code null}
+     */
     public synchronized final long getHandle() { return handle; }
-    public synchronized final long validatedHandle() {
-        synchronized(display.pointerIconList) {
-            if( !display.pointerIconList.contains(this) ) {
-                display.pointerIconList.add(this);
-            }
-        }
+    /**
+     * @return the {@link #getHandle()} if not {@code null}, otherwise throws NativeWindowException
+     * @throws NativeWindowException if {@link #getHandle()} is {@code null}
+     */
+    public synchronized final long validatedHandle() throws NativeWindowException  {
         if( 0 == handle ) {
-            try {
-                handle = display.createPointerIconImpl(pixelformat, size.getWidth(), size.getHeight(), pixels, hotspot.getX(), hotspot.getY());
-                return handle;
-            } catch (final Exception e) {
-                e.printStackTrace();
-                return 0;
-            }
+            throw new NativeWindowException("PointerIconImpl has null handle: "+this);
         } else {
             return handle;
         }
@@ -111,13 +107,6 @@ public class PointerIconImpl implements PointerIcon {
     public final ByteBuffer getPixels() { return pixels; }
     @Override
     public synchronized final boolean isValid() { return 0 != handle; }
-    @Override
-    public synchronized final boolean validate() {
-        if( 0 == handle ) {
-            return 0 != validatedHandle();
-        }
-        return true;
-    }
 
     @Override
     public synchronized void destroy() {

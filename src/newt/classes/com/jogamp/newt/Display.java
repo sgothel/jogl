@@ -147,14 +147,6 @@ public abstract class Display {
         boolean isValid();
 
         /**
-         * Returns true if instance {@link #isValid()} or validation was successful, otherwise false.
-         * <p>
-         * Validation, i.e. recreation, is required if instance became invalid, see {@link #isValid()}.
-         * </p>
-         */
-        boolean validate();
-
-        /**
          * Destroys this instance.
          * <p>
          * Will be called automatically if it's {@link #getDisplay() associated Display} is destroyed.
