@@ -31,6 +31,7 @@ package com.jogamp.opengl.demos;
 import java.io.IOException;
 
 import com.jogamp.newt.Display;
+import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
@@ -87,7 +88,7 @@ public class Launcher0 {
     static boolean waitForKey = false;
     static boolean mouseVisible = true;
     static boolean mouseConfined = false;
-    static boolean setPointerIcon = false;
+    static boolean useMultiplePointerIcon = false;
     static boolean showFPS = true;
     static boolean forceES2 = false;
     static boolean forceES3 = false;
@@ -214,7 +215,11 @@ public class Launcher0 {
             }
         });
 
-        final NEWTDemoListener newtDemoListener = new NEWTDemoListener(glWindow);
+        final NEWTDemoListener newtDemoListener;
+        {
+            final PointerIcon[] pointerIcon = useMultiplePointerIcon ? NEWTDemoListener.createPointerIcons(glWindow.getScreen().getDisplay()) : null;
+            newtDemoListener = new NEWTDemoListener(glWindow, pointerIcon);
+        }
         newtDemoListener.quitAdapterEnable(true);
         glWindow.addKeyListener(newtDemoListener);
         if( traceMouse ) {
@@ -330,7 +335,7 @@ public class Launcher0 {
             } else if(args[i].equals("-mouseConfine")) {
                 mouseConfined = true;
             } else if(args[i].equals("-pointerIcon")) {
-                setPointerIcon = true;
+                useMultiplePointerIcon = true;
             } else if(args[i].equals("-showFPS")) {
                 showFPS = true;
             } else if(args[i].equals("-width")) {
@@ -389,7 +394,7 @@ public class Launcher0 {
         System.err.println("fullscreen "+fullscreen);
         System.err.println("mouseVisible "+mouseVisible);
         System.err.println("mouseConfined "+mouseConfined);
-        System.err.println("pointerIcon "+setPointerIcon);
+        System.err.println("pointerIcon "+useMultiplePointerIcon);
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceES3 "+forceES3);
         System.err.println("forceGL3 "+forceGL3);

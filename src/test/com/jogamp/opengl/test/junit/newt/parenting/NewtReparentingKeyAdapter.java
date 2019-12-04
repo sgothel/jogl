@@ -47,7 +47,7 @@ public class NewtReparentingKeyAdapter extends NEWTDemoListener {
     final NativeWindowHolder winHolder;
 
     public NewtReparentingKeyAdapter(final NativeWindowHolder winHolder, final GLWindow glWindow) {
-        super(glWindow, null);
+        super(glWindow);
         this.winHolder = winHolder;
     }
 

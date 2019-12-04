@@ -88,16 +88,21 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
     float contrast = 1f;
     boolean confinedFixedCenter = false;
 
+    /**
+     * Creates a new instance with given pointer icons, which are not used if {@code null}.
+     * @param glWin the GLWindow instance to use
+     * @param pointerIcons if {@code null} don't use multiple pointer icons
+     */
     public NEWTDemoListener(final GLWindow glWin, final PointerIcon[] pointerIcons) {
         this.glWindow = glWin;
-        if( null != pointerIcons ) {
-            this.pointerIcons = pointerIcons;
-        } else {
-            this.pointerIcons = createPointerIcons(glWindow.getScreen().getDisplay());
-        }
+        this.pointerIcons = pointerIcons;
     }
+    /**
+     * Creates a new instance with {@link #createPointerIcons(Display)} default pointer icons.
+     * @param glWin the GLWindow instance to use
+     */
     public NEWTDemoListener(final GLWindow glWin) {
-        this(glWin, null);
+        this(glWin, createPointerIcons(glWin.getScreen().getDisplay()));
     }
 
     protected void printlnState(final String prelude) {
