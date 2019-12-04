@@ -181,7 +181,8 @@ static DRM_FB * drm_fb_get_from_bo(int drmFd, struct gbm_bo *bo)
 
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_FirstSwapSurface0
   (JNIEnv *env, jobject obj, jint drmFd, jint jcrtc_id, jint jx, jint jy, 
-   jint jconnector_id, jobject jmode, jint jmode_byte_offset, jlong jgbmSurface)
+   jint jconnector_id, jobject jmode, jint jmode_byte_offset, 
+   jlong jgbmSurface, jint swapInterval)
 {
     uint32_t crtc_id = (uint32_t)jcrtc_id;
     uint32_t connector_id = (uint32_t)jconnector_id;
@@ -216,14 +217,19 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_FirstSwapSu
             drmFd, crtc_id, fb->fb_id, jx, jy, connector_id, drmMode->name, ret, strerror(errno));
         return 0;
     }
-    DBG_PRINT( "EGL_GBM.Window FirstSwapSurface0 nextBO %p, fd %d, crtc_id 0x%x, fb_id 0x%x, pos %d/%d, conn_id 0x%x, curMode %s\n", 
-        nextBO, drmFd, crtc_id, fb->fb_id, jx, jy, connector_id, drmMode->name);
+    DBG_PRINT( "EGL_GBM.Window FirstSwapSurface0 swapInterval %d, nextBO %p, fd %d, crtc_id 0x%x, fb_id 0x%x, pos %d/%d, conn_id 0x%x, curMode %s\n", 
+        swapInterval, nextBO, drmFd, crtc_id, fb->fb_id, jx, jy, connector_id, drmMode->name);
     return (jlong) (intptr_t) nextBO;
 }
 
+#ifdef VERBOSE_ON
+static int nextSwapVerboseOnce = 1;
+#endif
+
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_NextSwapSurface0
   (JNIEnv *env, jobject obj, jint drmFd, jint jcrtc_id, jint jx, jint jy, 
-   jint jconnector_id, jobject jmode, jint jmode_byte_offset, jlong jgbmSurface, jlong jlastBO)
+   jint jconnector_id, jobject jmode, jint jmode_byte_offset, 
+   jlong jgbmSurface, jlong jlastBO, jint swapInterval)
 {
     uint32_t crtc_id = (uint32_t)jcrtc_id;
     uint32_t x = (uint32_t)jx;
@@ -246,6 +252,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_NextSwapSur
         ERR_PRINT("Failed to get a new framebuffer BO (1)\n");
         return 0;
     }
+#if 0
     if( fbNext->x != x || fbNext->y != y ) {
         // position changed, hard drmModeSetCrtc(..) w/o vsync
         fbNext->x = x;
@@ -265,7 +272,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_NextSwapSur
                 drmFd, crtc_id, fbNext->fb_id, jx, jy, connector_id, drmMode->name, ret, strerror(errno));
             return 0;
         }
-    } else {
+    } else
+#endif
+    if( 0 != swapInterval) {
         // same position, use vsync
         ret = drmModePageFlip(drmFd, crtc_id, fbNext->fb_id,
                 DRM_MODE_PAGE_FLIP_EVENT, &waiting_for_flip);
@@ -300,7 +309,13 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_NextSwapSur
         gbm_surface_release_buffer(gbmSurface, lastBO);
     }
 
-    // DBG_PRINT( "EGL_GBM.Window NextSwapSurface0 %p -> %p\n", lastBO, nextBO);
+#ifdef VERBOSE_ON
+    if( nextSwapVerboseOnce ) {
+        nextSwapVerboseOnce = 0;
+        DBG_PRINT( "EGL_GBM.Window NextSwapSurface0 swapInterval %d, bo %p -> %p, fd %d, crtc_id 0x%x, fb_id 0x%x, pos %d/%d, conn_id 0x%x, curMode %s\n", 
+            swapInterval, lastBO, nextBO, drmFd, crtc_id, fbNext->fb_id, jx, jy, connector_id, drmMode->name);
+    }
+#endif
     return (jlong) (intptr_t) nextBO;
 }
 

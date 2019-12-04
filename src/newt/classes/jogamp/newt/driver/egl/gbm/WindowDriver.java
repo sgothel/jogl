@@ -39,6 +39,7 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.GLCapabilitiesChooser;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.egl.EGL;
 
@@ -288,15 +289,18 @@ public class WindowDriver extends WindowImpl {
         final long nativeWindowHandle = getWindowHandle();
         final DrmMode d = screen.drmMode;
 
+        final GLContext ctx = GLContext.getCurrent();
+        final int swapInterval = ctx.getSwapInterval();
+
         if(!EGL.eglSwapBuffers(display.getHandle(), eglSurface)) {
             throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
         }
         if( 0 == lastBO ) {
             lastBO = FirstSwapSurface(d.drmFd, d.getCrtcIDs()[0], getX(), getY(), d.getConnectors()[0].getConnector_id(),
-                                       d.getModes()[0], nativeWindowHandle);
+                                       d.getModes()[0], nativeWindowHandle, swapInterval);
         } else {
             lastBO = NextSwapSurface(d.drmFd, d.getCrtcIDs()[0], getX(), getY(), d.getConnectors()[0].getConnector_id(),
-                                     d.getModes()[0], nativeWindowHandle, lastBO);
+                                     d.getModes()[0], nativeWindowHandle, lastBO, swapInterval);
         }
         return true; // eglSwapBuffers done!
     }
@@ -377,27 +381,33 @@ public class WindowDriver extends WindowImpl {
     protected static native boolean initIDs();
     // private native void reconfigure0(long eglWindowHandle, int x, int y, int width, int height, int flags);
 
-    private long FirstSwapSurface(final int drmFd, final int crtc_id, final int x, final int y, final int connector_id, final drmModeModeInfo drmMode, final long gbmSurface) {
+    private long FirstSwapSurface(final int drmFd, final int crtc_id, final int x, final int y,
+                                  final int connector_id, final drmModeModeInfo drmMode,
+                                  final long gbmSurface, final int swapInterval) {
         final ByteBuffer bb = drmMode.getBuffer();
         if(!Buffers.isDirect(bb)) {
             throw new IllegalArgumentException("drmMode's buffer is not direct (NIO)");
         }
         return FirstSwapSurface0(drmFd, crtc_id, x, y, connector_id,
                                  bb, Buffers.getDirectBufferByteOffset(bb),
-                                 gbmSurface);
+                                 gbmSurface, swapInterval);
     }
-    private native long FirstSwapSurface0(int drmFd, int crtc_id, int x, int y, int connector_id, Object mode, int mode_byte_offset,
-                                          long gbmSurface);
+    private native long FirstSwapSurface0(int drmFd, int crtc_id, int x, int y,
+                                          int connector_id, Object mode, int mode_byte_offset,
+                                          long gbmSurface, int swapInterval);
 
-    private long NextSwapSurface(final int drmFd, final int crtc_id, final int x, final int y, final int connector_id, final drmModeModeInfo drmMode, final long gbmSurface, final long lastBO) {
+    private long NextSwapSurface(final int drmFd, final int crtc_id, final int x, final int y,
+                                 final int connector_id, final drmModeModeInfo drmMode,
+                                 final long gbmSurface, final long lastBO, final int swapInterval) {
         final ByteBuffer bb = drmMode.getBuffer();
         if(!Buffers.isDirect(bb)) {
             throw new IllegalArgumentException("drmMode's buffer is not direct (NIO)");
         }
         return NextSwapSurface0(drmFd, crtc_id, x, y, connector_id,
                                 bb, Buffers.getDirectBufferByteOffset(bb),
-                                gbmSurface, lastBO);
+                                gbmSurface, lastBO, swapInterval);
     }
-    private native long NextSwapSurface0(int drmFd, int crtc_id, int x, int y, int connector_id, Object mode, int mode_byte_offset,
-                                         long gbmSurface, long lastBO);
+    private native long NextSwapSurface0(int drmFd, int crtc_id, int x, int y,
+                                         int connector_id, Object mode, int mode_byte_offset,
+                                         long gbmSurface, long lastBO, int swapInterval);
 }
