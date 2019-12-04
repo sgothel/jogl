@@ -35,6 +35,8 @@ import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.ToolkitProperties;
 
+import java.io.File;
+
 import com.jogamp.common.ExceptionUtils;
 
 /**
@@ -44,11 +46,44 @@ public class DRMUtil implements ToolkitProperties {
     /* pp */ static final boolean DEBUG = Debug.debug("DRMUtil");
 
     /** FIXME: Add support for other OS implementing DRM/GBM, e.g. FreeBSD, OpenBSD, ..? */
-    private static final String dri0Linux = "/dev/dri/card0";
+    private static final String driXLinux = "/dev/dri/card";
 
     private static volatile boolean isInit = false;
     /** DRM file descriptor, valid if >= 0 */
     private static int drmFd = -1;
+
+    private static int openDrmDevice(final String[] lastFilename) {
+        for(int i=0; i<100; i++) {
+            final String driXFilename = driXLinux + i;
+            lastFilename[0] = driXFilename;
+            final File driXFile = new File(driXFilename);
+            if( !driXFile.exists() ) {
+                if(DEBUG) {
+                    System.err.println("DRMUtil.initSingleton(): drmDevice["+driXFilename+"]: not existing");
+                }
+                // end of search, failure
+                return -1;
+            }
+            final int fd = DRMLib.drmOpenFile(driXFilename);
+            if( 0 <= fd ) {
+                // test ..
+                final drmModeRes resources = DRMLib.drmModeGetResources(fd);
+                if(DEBUG) {
+                    System.err.println("DRMUtil.initSingleton(): drmDevice["+driXFilename+"]: fd "+fd+": has resources: "+(null!=resources));
+                }
+                if( null == resources ) {
+                    // nope, not working - continue testing
+                    DRMLib.drmClose(fd);
+                    continue;
+                } else {
+                    // OK
+                    DRMLib.drmModeFreeResources(resources);
+                    return fd;
+                }
+            }
+        }
+        return -1;
+    }
 
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
@@ -65,8 +100,9 @@ public class DRMUtil implements ToolkitProperties {
                     if(!NWJNILibLoader.loadNativeWindow("drm")) {
                         throw new NativeWindowException("NativeWindow DRM native library load error.");
                     }
+                    final String[] lastFilename = new String[] { null };
                     if( initialize0(DEBUG) ) {
-                        drmFd = DRMLib.drmOpenFile(dri0Linux);
+                        drmFd = openDrmDevice(lastFilename);
                     }
                     if(DEBUG) {
                         System.err.println("DRMUtil.initSingleton(): OK "+(0 <= drmFd)+", drmFd "+drmFd+"]");
@@ -76,6 +112,9 @@ public class DRMUtil implements ToolkitProperties {
                             d.destroy();
                         }
                         // Thread.dumpStack();
+                    }
+                    if( 0 > drmFd ) {
+                        throw new NativeWindowException("drmOpenFile("+lastFilename[0]+") failed");
                     }
                 }
             }
