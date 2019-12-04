@@ -292,6 +292,7 @@ public class WindowDriver extends WindowImpl {
         final GLContext ctx = GLContext.getCurrent();
         final int swapInterval = ctx.getSwapInterval();
 
+        ctx.getGL().glFinish(); // FIXME: Poor man's SYNC: glFenceSync () with glWaitSync() (remove later!)
         if(!EGL.eglSwapBuffers(display.getHandle(), eglSurface)) {
             throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
         }
