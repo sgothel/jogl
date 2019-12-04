@@ -49,6 +49,8 @@ X_ARGS="-Djava.awt.headless=true $X_ARGS"
 #D_ARGS="-Djogl.debug=all"
 #D_ARGS="-Djogl.debug=all -Dnewt.debug=all -Djogl.debug.DebugGL"
 #D_ARGS="-Dnewt.debug=all"
+D_ARGS="-Dnewt.debug.Display.PointerIcon -Dnewt.disable.PointerIcon"
+
 #D_ARGS="-Dnewt.disable.LinuxKeyEventTracker -Dnewt.disable.LinuxMouseTracker"
 #D_ARGS="-Dnewt.disable.LinuxKeyEventTracker"
 #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Dnewt.disable.LinuxKeyEventTracker -Dnewt.disable.LinuxMouseTracker"

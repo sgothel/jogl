@@ -38,6 +38,7 @@ import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.InterruptedRuntimeException;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
@@ -64,6 +65,7 @@ import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.PointImmutable;
 
 public abstract class DisplayImpl extends Display {
+    protected static final boolean DISABLE_POINTER_ICON = PropertyAccess.isPropertyDefined("newt.disable.PointerIcon", true);
     private static int serialno = 1;
     private static final boolean pngUtilAvail;
 
@@ -240,7 +242,11 @@ public abstract class DisplayImpl extends Display {
         if( getNativePointerIconForceDirectNIO() && !Buffers.isDirect(pixels) ) {
             throw new IllegalArgumentException("pixel buffer is not direct "+pixels);
         }
-        return createPointerIconImpl(pixelformat, width, height, pixels, hotX, hotY);
+        if( !DISABLE_POINTER_ICON ) {
+            return createPointerIconImpl(pixelformat, width, height, pixels, hotX, hotY);
+        } else {
+            return 0;
+        }
     }
 
     /**
