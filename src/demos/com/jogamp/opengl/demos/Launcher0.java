@@ -87,7 +87,7 @@ public class Launcher0 {
     static boolean waitForKey = false;
     static boolean mouseVisible = true;
     static boolean mouseConfined = false;
-    static boolean useMultiplePointerIcon = false;
+    static boolean useMultiplePointerIcon = true;
     static boolean showFPS = true;
     static boolean forceES2 = false;
     static boolean forceES3 = false;
@@ -353,8 +353,8 @@ public class Launcher0 {
                 mouseVisible = false;
             } else if(args[i].equals("-mouseConfine")) {
                 mouseConfined = true;
-            } else if(args[i].equals("-pointerIcon")) {
-                useMultiplePointerIcon = true;
+            } else if(args[i].equals("-noPointerIcons")) {
+                useMultiplePointerIcon = false;
             } else if(args[i].equals("-showFPS")) {
                 showFPS = true;
             } else if(args[i].equals("-width")) {
@@ -414,7 +414,7 @@ public class Launcher0 {
         System.err.println("fullscreen "+fullscreen);
         System.err.println("mouseVisible "+mouseVisible);
         System.err.println("mouseConfined "+mouseConfined);
-        System.err.println("pointerIcon "+useMultiplePointerIcon);
+        System.err.println("pointerIcons "+useMultiplePointerIcon);
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceES3 "+forceES3);
         System.err.println("forceGL3 "+forceGL3);

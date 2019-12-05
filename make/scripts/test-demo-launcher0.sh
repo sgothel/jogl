@@ -31,6 +31,7 @@ bdirb=`basename "$bdir"`
 #export INTEL_DEBUG="buf bat"
 #export INTEL_STRICT_CONFORMANCE=1 
 
+#X_ARGS="-Xcheck:jni $X_ARGS"
 X_ARGS="-Djava.awt.headless=true $X_ARGS"
 
 #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext"
@@ -49,7 +50,8 @@ X_ARGS="-Djava.awt.headless=true $X_ARGS"
 #D_ARGS="-Djogl.debug=all"
 #D_ARGS="-Djogl.debug=all -Dnewt.debug=all -Djogl.debug.DebugGL"
 #D_ARGS="-Dnewt.debug=all"
-D_ARGS="-Dnewt.debug.Display.PointerIcon -Dnewt.disable.PointerIcon"
+#D_ARGS="-Dnewt.debug.Display.PointerIcon -Dnewt.debug.Window.KeyEvent -Dnewt.disable.PointerIcon"
+#D_ARGS="-Dnewt.debug.Display.PointerIcon -Dnewt.debug.Window.KeyEvent"
 
 #D_ARGS="-Dnewt.disable.LinuxKeyEventTracker -Dnewt.disable.LinuxMouseTracker"
 #D_ARGS="-Dnewt.disable.LinuxKeyEventTracker"
