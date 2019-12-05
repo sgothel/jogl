@@ -29,20 +29,20 @@
 package com.jogamp.opengl.demos;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Display.PointerIcon;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
-import com.jogamp.newt.Window;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.TraceMouseAdapter;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.NEWTDemoListener;
-import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.Point;
@@ -55,9 +55,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.demos.es2.GearsES2;
-
-import jogamp.newt.DefaultEDTUtil;
+import com.jogamp.opengl.demos.es2.RedSquareES2;
 
 /**
  * <p>
@@ -73,6 +71,7 @@ public class Launcher0 {
     static DimensionImmutable wsize = new Dimension(640, 480), rwsize=null;
     static float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
+    static String demoName = "com.jogamp.opengl.demos.es2.GearsES2";
     static long duration = 500; // ms
     static boolean opaque = true;
     static int forceAlpha = -1;
@@ -100,7 +99,6 @@ public class Launcher0 {
     static boolean traceMouse = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
-    static boolean useMappedBuffers = false;
 
     public void runTest() throws InterruptedException {
         final GLProfile glp;
@@ -145,11 +143,32 @@ public class Launcher0 {
 
         final GLEventListener demo;
         {
-            final GearsES2 gearsES2 = new GearsES2(swapInterval);
-            gearsES2.setUseMappedBuffers(useMappedBuffers);
-            gearsES2.setValidateBuffers(true);
-            demo = gearsES2;
+            GLEventListener _demo = null;
+            try {
+                final Class<?> demoClazz = ReflectionUtil.getClass(demoName, true, Launcher0.class.getClassLoader());
+                try {
+                    // with swapInterval
+                    System.err.println("Loading "+demoName+"("+swapInterval+")");
+                    final Constructor<?> ctr = ReflectionUtil.getConstructor(demoClazz, int.class);
+                    _demo = (GLEventListener) ReflectionUtil.createInstance(ctr, swapInterval);
+                } catch( final Exception e ) {
+                    System.err.println(e.getMessage()+" using.0: <"+demoName+">");
+                }
+                if( null == _demo ) {
+                    // without swapInterval
+                    System.err.println("Loading "+demoName+"()");
+                    _demo = (GLEventListener) ReflectionUtil.createInstance(demoClazz);
+                }
+            } catch( final Exception e ) {
+                System.err.println(e.getMessage()+" using.1: <"+demoName+">");
+            }
+            if( null == _demo ) {
+                System.err.println("Loading RedSquareES2()");
+                _demo = new RedSquareES2();
+            }
+            demo = _demo;
         }
+        System.out.println("Choosen demo "+demo.getClass().getName());
         if( forceDebug || forceTrace ) {
             glWindow.addGLEventListener(new GLEventListener() {
                 @Override
@@ -263,6 +282,7 @@ public class Launcher0 {
         while(!newtDemoListener.shouldQuit() && t1-t0<duration) {
             if(!useAnimator) {
                 glWindow.display();
+                Thread.yield();
             } else {
                 Thread.sleep(100);
             }
@@ -280,7 +300,9 @@ public class Launcher0 {
         boolean usePos = false;
 
         for(int i=0; i<args.length; i++) {
-            if(args[i].equals("-time")) {
+            if(args[i].equals("-demo") && i+1<args.length) {
+                demoName = args[++i];
+            } else if(args[i].equals("-time")) {
                 i++;
                 duration = MiscUtils.atol(args[i], duration);
             } else if(args[i].equals("-translucent")) {
@@ -325,8 +347,6 @@ public class Launcher0 {
                 forceDebug = true;
             } else if(args[i].equals("-trace")) {
                 forceTrace = true;
-            } else if(args[i].equals("-mappedBuffers")) {
-                useMappedBuffers = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             } else if(args[i].equals("-mouseInvisible")) {
@@ -377,6 +397,7 @@ public class Launcher0 {
         if(usePos) {
             wpos = new Point(x, y);
         }
+        System.err.println("demo "+demoName);
         System.err.println("position "+wpos);
         System.err.println("size "+wsize);
         System.err.println("resize "+rwsize);
@@ -404,7 +425,6 @@ public class Launcher0 {
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
         System.err.println("useAnimator "+useAnimator);
-        System.err.println("mappedBuffers "+useMappedBuffers);
         System.err.println("traceMouse "+traceMouse);
 
         if(waitForKey) {
