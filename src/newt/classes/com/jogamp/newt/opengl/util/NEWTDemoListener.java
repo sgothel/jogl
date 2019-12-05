@@ -123,10 +123,13 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
                 e.setConsumed(true);
                 glWindow.invokeOnCurrentThread(new Runnable() {
                     public void run() {
-                        if(glWindow.getAnimator().isPaused()) {
-                            glWindow.getAnimator().resume();
-                        } else {
-                            glWindow.getAnimator().pause();
+                        final GLAnimatorControl anim = glWindow.getAnimator();
+                        if( null != anim ) {
+                            if( anim.isPaused()) {
+                                anim.resume();
+                            } else {
+                                anim.pause();
+                            }
                         }
                     } } );
                 break;
