@@ -169,6 +169,13 @@ public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
     @Override
     public void windowRepaint(final WindowUpdateEvent e) { }
 
+    private final void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
+        if(null != focusedWindow) {
+            focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
+            // focusedWindow.enqueueKeyEvent(false /* wait */, eventType, modifiers, keyCode, keyCode, keyChar);
+        }
+    }
+
     class EventDeviceManager implements Runnable {
 
         private volatile boolean stop = false;
@@ -394,9 +401,7 @@ public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
                                 break;
                             }
 
-                            if(null != focusedWindow) {
-                                focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
-                            }
+                            sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
                             if(Window.DEBUG_KEY_EVENT) {
                                 System.err.println("[event released] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
                             }
@@ -419,9 +424,7 @@ public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
                                 break;
                             }
 
-                            if(null != focusedWindow) {
-                                focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
-                            }
+                            sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
                             if(Window.DEBUG_KEY_EVENT) {
                                 System.err.println("[event pressed] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
                             }
@@ -445,12 +448,9 @@ public class LinuxKeyEventTracker implements WindowListener, KeyTracker {
                                 break;
                             }
 
-                            if(null != focusedWindow) {
-                                //Send syntetic autorepeat release
-                                focusedWindow.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyCode, keyChar);
-
-                                focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
-                            }
+                            //Send syntetic autorepeat release
+                            sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyCode, keyChar);
+                            sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
                             if(Window.DEBUG_KEY_EVENT) {
                                 System.err.println("[event released auto] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
                                 System.err.println("[event pressed auto] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
