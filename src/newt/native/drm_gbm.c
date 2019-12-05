@@ -53,6 +53,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_CreatePoin
   (JNIEnv *env, jclass clazz, jlong jgbmDevice, jobject jpixels, jint pixels_byte_offset, jboolean pixels_is_direct, 
    jint width, jint height, jint hotX, jint hotY)
 {
+    void *pixels0 = NULL;
     const uint32_t *pixels = NULL;
     struct gbm_device * gbmDevice = (struct gbm_device *) (intptr_t) jgbmDevice;
     struct gbm_bo *bo = NULL;
@@ -71,10 +72,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_CreatePoin
         return 0;
     }
     {
-        const char * c1 = (const char *) ( JNI_TRUE == pixels_is_direct ? 
-                           (*env)->GetDirectBufferAddress(env, jpixels) : 
-                           (*env)->GetPrimitiveArrayCritical(env, jpixels, NULL) );
-        pixels = (uint32_t *) ( c1 + pixels_byte_offset );
+        pixels0 = ( JNI_TRUE == pixels_is_direct ? 
+                    (*env)->GetDirectBufferAddress(env, jpixels) : 
+                    (*env)->GetPrimitiveArrayCritical(env, jpixels, NULL) );
+        pixels  = (uint32_t *) ( ((char *) pixels0) + pixels_byte_offset );
     }
 
     bo = gbm_bo_create(gbmDevice, 64, 64, 
@@ -83,18 +84,20 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_CreatePoin
                        GBM_BO_USE_CURSOR_64X64 | GBM_BO_USE_WRITE);
     if( NULL == bo ) {
         ERR_PRINT("cursor.cstr gbm_bo_create failed\n");
-        return 0;
+    } else {
+        // align user data width x height -> 64 x 64
+        memset(buf, 0, sizeof(buf)); // cleanup
+        for(int i=0; i<height; i++) {
+            memcpy(buf + i * 64, pixels + i * width, width * 4);
+        }
+        if ( gbm_bo_write(bo, buf, sizeof(buf)) < 0 ) {
+            ERR_PRINT("cursor.cstr gbm_bo_write failed\n");
+            gbm_bo_destroy(bo);
+            bo = NULL;
+        }
     }
-
-    // align user data width x height -> 64 x 64
-    memset(buf, 0, sizeof(buf)); // cleanup
-    for(int i=0; i<height; i++) {
-        memcpy(buf + i * 64, pixels + i * width, width * 4);
-    }
-    if ( gbm_bo_write(bo, buf, sizeof(buf)) < 0 ) {
-        ERR_PRINT("cursor.cstr gbm_bo_write failed\n");
-        gbm_bo_destroy(bo);
-        return 0;
+    if ( JNI_FALSE == pixels_is_direct && NULL != jpixels ) {
+        (*env)->ReleasePrimitiveArrayCritical(env, jpixels, pixels0, JNI_ABORT);  
     }
     return (jlong) (intptr_t) bo;
 }
@@ -120,8 +123,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_SetPoin
     int ret;
 
     DBG_PRINT( "EGL_GBM.Screen SetPointerIcon0.0: bo %p, enable %d, hot %d/%d, pos %d/%d\n", bo, enable, hotX, hotY, x, y);
-    // int drmModeSetCursor(int fd, uint32_t crtcId, uint32_t bo_handle, uint32_t width, uint32_t height);
-    // int drmModeSetCursor2(int fd, uint32_t crtcId, uint32_t bo_handle, uint32_t width, uint32_t height, int32_t hot_x, int32_t hot_y);
     if( enable ) {
         ret = drmModeSetCursor2(drmFd, crtc_id, bo_handle, 64, 64, hotX, hotY);
         if( ret ) {
