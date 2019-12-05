@@ -286,7 +286,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_NextSwapSur
 
         while (waiting_for_flip) {
             FD_ZERO(&fds);
-            FD_SET(0, &fds);
+#if 0
+            FD_SET(0, &fds); // STDIN_FILENO: We don't want to listen to 
+#endif
             FD_SET(drmFd, &fds);
 
             ret = select(drmFd + 1, &fds, NULL, NULL, NULL);
@@ -296,9 +298,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_NextSwapSur
             } else if (ret == 0) {
                 ERR_PRINT("drm.select: select timeout!\n");
                 return -1;
+#if 0
             } else if (FD_ISSET(0, &fds)) {
-                ERR_PRINT("drm.select: user interrupted!\n");
-                return 0;
+                DBG_PRINT("drm.select: stdin carriage return pressed!\n");
+#endif
             }
             drmHandleEvent(drmFd, &drm_event_ctx);
         }

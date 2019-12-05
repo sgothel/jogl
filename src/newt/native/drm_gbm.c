@@ -27,6 +27,8 @@
  */
 
 #include "drm_gbm.h"
+#include <unistd.h>
+#include <termios.h>
 
 static jmethodID sizeChangedID = NULL;
 static jmethodID positionChangedID = NULL;
@@ -37,11 +39,56 @@ static jmethodID windowDestroyNotifyID = NULL;
  * Display
  */
 
+static int saved_stdin;
+
+static void setNullStdin()
+{
+    saved_stdin = dup(fileno(stdin));
+    if( 0 > saved_stdin ) {
+        ERR_PRINT("setNullStdin dup failed: %d %s\n", saved_stdin, strerror(errno));
+        return;
+    }
+    freopen("/dev/null", "r", stdin); // fake null stdin, closes stdin
+    DBG_PRINT("setNullStdin done\n");
+}
+
+static void restoreStdin()
+{
+    int null_stdin = dup(fileno(stdin)); // copy to close after restore
+    if( 0 > null_stdin ) {
+        ERR_PRINT("restoreStdin.1 dup failed: %d %s\n", null_stdin, strerror(errno));
+        return;
+    }
+    // restore
+    int restored_stdin = dup2(saved_stdin, fileno(stdin));
+    if( 0 > restored_stdin ) {
+        ERR_PRINT("restoreStdin.2 dup2 failed: %d %s\n", restored_stdin, strerror(errno));
+        return;
+    }
+    saved_stdin = -1;
+
+    // cleanup stdin before it gets executed on the console
+    tcdrain(restored_stdin);
+    tcflush(restored_stdin, TCIFLUSH);
+
+    close(null_stdin); // close fake null stdin
+    close(restored_stdin); 
+    DBG_PRINT("restoreStdin done\n");
+}
+
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_initIDs
   (JNIEnv *env, jclass clazz)
 {
+    setNullStdin();
     DBG_PRINT( "EGL_GBM.Display initIDs ok\n" );
     return JNI_TRUE;
+}
+
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_Shutdown0
+  (JNIEnv *env, jclass clazz)
+{
+    restoreStdin();
+    DBG_PRINT( "EGL_GBM.Display shutdown ok\n" );
 }
 
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_DispatchMessages0

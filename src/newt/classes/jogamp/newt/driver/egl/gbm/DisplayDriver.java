@@ -35,6 +35,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.util.PixelFormat;
 import com.jogamp.newt.Display;
 import com.jogamp.opengl.GLProfile;
@@ -61,6 +62,11 @@ public class DisplayDriver extends DisplayImpl {
         if (!WindowDriver.initIDs()) {
             throw new NativeWindowException("Failed to initialize egl.gbm Window jmethodIDs");
         }
+        NativeWindowFactory.addCustomShutdownHook(false /* head */, new Runnable() {
+           @Override
+           public void run() {
+                Shutdown0();
+           } });
 
         PNGPixelRect image = null;
         if( DisplayImpl.isPNGUtilAvailable() ) {
@@ -171,6 +177,7 @@ public class DisplayDriver extends DisplayImpl {
     }
 
     private static native boolean initIDs();
+    private static native void Shutdown0();
 
     private static native void DispatchMessages0();
 
