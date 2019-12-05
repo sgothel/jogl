@@ -28,6 +28,7 @@
 package jogamp.newt.driver.egl.gbm;
 
 import com.jogamp.nativewindow.DefaultGraphicsScreen;
+import com.jogamp.nativewindow.util.PointImmutable;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.MonitorDevice;
@@ -121,9 +122,9 @@ public class ScreenDriver extends ScreenImpl {
         if( null != defaultPointerIcon ) {
             final LinuxMouseTracker lmt = LinuxMouseTracker.getSingleton();
             if( null != lmt ) {
-                setPointerIconActive(defaultPointerIcon.getHandle(), lmt.getLastX(), lmt.getLastY());
+                setPointerIconActive(defaultPointerIcon, lmt.getLastX(), lmt.getLastY());
             } else {
-                setPointerIconActive(defaultPointerIcon.getHandle(), 0, 0);
+                setPointerIconActive(defaultPointerIcon, 0, 0);
             }
         }
     }
@@ -148,43 +149,43 @@ public class ScreenDriver extends ScreenImpl {
         viewportInWindowUnits.set(viewport);
     }
 
-    /* pp */ void setPointerIconActive(long piHandle, final int x, final int y) {
+    /* pp */ void setPointerIconActive(PointerIconImpl pi, final int x, final int y) {
         synchronized(pointerIconSync) {
             if( DisplayDriver.DEBUG_POINTER_ICON ) {
                 System.err.println("Screen.PointerIcon.set.0: "+Thread.currentThread().getName());
-                System.err.println("Screen.PointerIcon.set.0: crtc id "+Display.toHexString(crtc_ids[0])+", active ["+Display.toHexString(activePointerIcon)+", visible "+activePointerIconVisible+"] -> "+Display.toHexString(piHandle));
+                System.err.println("Screen.PointerIcon.set.0: crtc id "+Display.toHexString(crtc_ids[0])+", active ["+activePointerIcon+", visible "+activePointerIconVisible+"] -> "+pi);
             }
-            if( 0 != activePointerIcon && activePointerIconVisible ) {
+            if( null != activePointerIcon && activePointerIconVisible ) {
                 // disable active pointerIcon first
-                System.err.println("Screen.PointerIcon.set.1");
-                ((DisplayDriver)display).setPointerIcon(crtc_ids[0], activePointerIcon, false, x, y);
+                ((DisplayDriver)display).setPointerIcon(crtc_ids[0], activePointerIcon.validatedHandle(), false, 0, 0, x, y);
             }
-            if( 0 == piHandle && null != defaultPointerIcon ) {
-                System.err.println("Screen.PointerIcon.set.2");
-                piHandle = ((DisplayDriver)display).defaultPointerIcon.getHandle();
+            if( null == pi && null != defaultPointerIcon ) {
+                // fallback to default
+                pi = ((DisplayDriver)display).defaultPointerIcon;
             }
-            if( 0 != piHandle ) {
-                System.err.println("Screen.PointerIcon.set.3");
-                ((DisplayDriver)display).setPointerIcon(crtc_ids[0], piHandle, true, x, y);
+            if( null != pi ) {
+                final PointImmutable hot = pi.getHotspot();
+                ((DisplayDriver)display).setPointerIcon(crtc_ids[0], pi.validatedHandle(), true, hot.getX(), hot.getY(), x, y);
                 activePointerIconVisible = true;
             } else {
-                System.err.println("Screen.PointerIcon.set.4");
                 activePointerIconVisible = false;
             }
-            activePointerIcon = piHandle;
+            activePointerIcon = pi;
             if( DisplayDriver.DEBUG_POINTER_ICON ) {
-                System.err.println("Screen.PointerIcon.set.X: active ["+Display.toHexString(activePointerIcon)+", visible "+activePointerIconVisible+"]");
+                System.err.println("Screen.PointerIcon.set.X: active ["+activePointerIcon+", visible "+activePointerIconVisible+"]");
             }
         }
+
     }
     /* pp */ void setActivePointerIconVisible(final boolean visible, final int x, final int y) {
         synchronized(pointerIconSync) {
             if( DisplayDriver.DEBUG_POINTER_ICON ) {
-                System.err.println("Screen.PointerIcon.visible: crtc id "+Display.toHexString(crtc_ids[0])+", active ["+Display.toHexString(activePointerIcon)+", visible "+activePointerIconVisible+"] -> visible "+visible);
+                System.err.println("Screen.PointerIcon.visible: crtc id "+Display.toHexString(crtc_ids[0])+", active ["+activePointerIcon+", visible "+activePointerIconVisible+"] -> visible "+visible);
             }
             if( activePointerIconVisible != visible ) {
-                if( 0 != activePointerIcon ) {
-                    ((DisplayDriver)display).setPointerIcon(crtc_ids[0], activePointerIcon, visible, x, y);
+                if( null != activePointerIcon ) {
+                    final PointImmutable hot = activePointerIcon.getHotspot();
+                    ((DisplayDriver)display).setPointerIcon(crtc_ids[0], activePointerIcon.validatedHandle(), visible, hot.getX(), hot.getY(), x, y);
                 }
                 activePointerIconVisible = visible;
             }
@@ -193,9 +194,9 @@ public class ScreenDriver extends ScreenImpl {
     /* pp */ void moveActivePointerIcon(final int x, final int y) {
         synchronized(pointerIconSync) {
             if( DisplayDriver.DEBUG_POINTER_ICON ) {
-                System.err.println("Screen.PointerIcon.move: crtc id "+Display.toHexString(crtc_ids[0])+", active ["+Display.toHexString(activePointerIcon)+", visible "+activePointerIconVisible+"], "+x+"/"+y);
+                System.err.println("Screen.PointerIcon.move: crtc id "+Display.toHexString(crtc_ids[0])+", active ["+activePointerIcon+", visible "+activePointerIconVisible+"], "+x+"/"+y);
             }
-            if( 0 != activePointerIcon && activePointerIconVisible ) {
+            if( null != activePointerIcon && activePointerIconVisible ) {
                 ((DisplayDriver)display).movePointerIcon(crtc_ids[0], x, y);
             }
         }
@@ -208,7 +209,7 @@ public class ScreenDriver extends ScreenImpl {
     protected native void initNative(long drmHandle);
     protected int[] crtc_ids;
 
-    private long activePointerIcon;
+    private PointerIconImpl activePointerIcon;
     private boolean activePointerIconVisible;
     private final Object pointerIconSync = new Object();
     private PointerIconImpl defaultPointerIcon = null;

@@ -112,17 +112,18 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_DestroyPoin
 }
 
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_SetPointerIcon0
-  (JNIEnv *env, jobject obj, jint drmFd, jint jcrtc_id, jlong jcursor, jboolean enable, jint x, jint y)
+  (JNIEnv *env, jobject obj, jint drmFd, jint jcrtc_id, jlong jcursor, jboolean enable, jint hotX, jint hotY, jint x, jint y)
 {
     uint32_t crtc_id = (uint32_t)jcrtc_id;
     struct gbm_bo *bo = (struct gbm_bo *) (intptr_t) jcursor;
     uint32_t bo_handle = gbm_bo_get_handle(bo).u32;
     int ret;
 
+    DBG_PRINT( "EGL_GBM.Screen SetPointerIcon0.0: bo %p, enable %d, hot %d/%d, pos %d/%d\n", bo, enable, hotX, hotY, x, y);
     // int drmModeSetCursor(int fd, uint32_t crtcId, uint32_t bo_handle, uint32_t width, uint32_t height);
     // int drmModeSetCursor2(int fd, uint32_t crtcId, uint32_t bo_handle, uint32_t width, uint32_t height, int32_t hot_x, int32_t hot_y);
     if( enable ) {
-        ret = drmModeSetCursor(drmFd, crtc_id, bo_handle, 64, 64);
+        ret = drmModeSetCursor2(drmFd, crtc_id, bo_handle, 64, 64, hotX, hotY);
         if( ret ) {
             ERR_PRINT("SetCursor enable failed: %d %s\n", ret, strerror(errno));
         } else {
@@ -132,11 +133,12 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_egl_gbm_DisplayDriver_SetPoin
             }
         }
     } else {
-        ret = drmModeSetCursor(drmFd, crtc_id, 0, 0, 0);
+        ret = drmModeSetCursor2(drmFd, crtc_id, 0, 0, 0, 0, 0);
         if( ret ) {
             ERR_PRINT("SetCursor disable failed: %d %s\n", ret, strerror(errno));
         }
     }
+    DBG_PRINT( "EGL_GBM.Screen SetPointerIcon0.X: bo %p, enable %d, hot %d/%d, pos %d/%d\n", bo, enable, hotX, hotY, x, y);
     return ret ? JNI_FALSE : JNI_TRUE;
 }
 

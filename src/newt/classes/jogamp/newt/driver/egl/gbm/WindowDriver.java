@@ -353,9 +353,9 @@ public class WindowDriver extends WindowImpl {
     protected void setPointerIconImpl(final PointerIconImpl pi) {
         final ScreenDriver screen = (ScreenDriver) getScreen();
         if( null != mouseTracker ) {
-            screen.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, mouseTracker.getLastX(), mouseTracker.getLastY());
+            screen.setPointerIconActive(pi, mouseTracker.getLastX(), mouseTracker.getLastY());
         } else {
-            screen.setPointerIconActive(null != pi ? pi.validatedHandle() : 0, 0, 0);
+            screen.setPointerIconActive(pi, 0, 0);
         }
     }
 
