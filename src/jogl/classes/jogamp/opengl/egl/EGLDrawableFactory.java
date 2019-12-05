@@ -302,9 +302,28 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     System.err.println("Info: EGLDrawableFactory: EGL ES1 - NOPE (ES1 lib)");
                 }
             }
-            // Setup: eglGLnDynamicLookupHelper
+            /**
+             * Setup: eglGLnDynamicLookupHelper
+             *
+             * TODO Bug 1401: Mesa 18.3.6 issues using EGL_PLATFORM_GBM_KHR and OpenGL Desktop Profile
+             * Using EGL_GBM with OpenGL results in an unsatisfied linkage error using desktop GL, see:
+             *
+             * java.lang.UnsatisfiedLinkError: 'int jogamp.opengl.gl4.GL4bcImpl.dispatch_glGetError1(long)'
+             * at jogamp.opengl.gl4.GL4bcImpl.dispatch_glGetError1(Native Method)
+             * at jogamp.opengl.gl4.GL4bcImpl.glGetError(GL4bcImpl.java:648)
+             * at jogamp.opengl.GLContextImpl.setGLFunctionAvailability(GLContextImpl.java:2186)
+             * at jogamp.opengl.GLContextImpl.createContextARBVersions(GLContextImpl.java:1427)
+             * at jogamp.opengl.GLContextImpl.createContextARBMapVersionsAvailable(GLContextImpl.java:1366)
+             * at jogamp.opengl.GLContextImpl.mapGLVersions(GLContextImpl.java:1223)
+             * at jogamp.opengl.GLContextImpl.createContextARB(GLContextImpl.java:968)
+             * at jogamp.opengl.egl.EGLContext.createImpl(EGLContext.java:318)
+             * at jogamp.opengl.GLContextImpl.makeCurrentWithinLock(GLContextImpl.java:769)
+             * at jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:652)
+             * at jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:590)
+             * at jogamp.opengl.egl.EGLDrawableFactory$SharedResourceImplementation.mapAvailableEGLESConfig(EGLDrawableFactory.java:858)
+             */
             if( null == eglGLnDynamicLookupHelper ) {
-                if( !GLProfile.disableOpenGLDesktop ) {
+                if( !GLProfile.disableOpenGLDesktop && !isDRM_GBM ) {
                     GLDynamicLookupHelper tmp=null;
                     try {
                         tmp = new GLDynamicLookupHelper(new EGLGLnDynamicLibraryBundleInfo());
@@ -951,26 +970,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
          * that even though initial OpenGL context can be created w/o 'EGL_KHR_create_context',
          * switching the API via 'eglBindAPI(EGL_OpenGL_API)' the latter 'eglCreateContext(..)' fails w/ EGL_BAD_ACCESS.
          * Hence we require both: OpenGL API support _and_  'EGL_KHR_create_context'.
-         *
-         * TODO Bug 1401: Mesa 18.3.6 issues using EGL_PLATFORM_GBM_KHR and OpenGL Desktop Profile
-         * Using EGL_GBM with OpenGL results in an unsatisfied linkage error using desktop GL, see:
-         *
-         * java.lang.UnsatisfiedLinkError: 'int jogamp.opengl.gl4.GL4bcImpl.dispatch_glGetError1(long)'
-         * at jogamp.opengl.gl4.GL4bcImpl.dispatch_glGetError1(Native Method)
-         * at jogamp.opengl.gl4.GL4bcImpl.glGetError(GL4bcImpl.java:648)
-         * at jogamp.opengl.GLContextImpl.setGLFunctionAvailability(GLContextImpl.java:2186)
-         * at jogamp.opengl.GLContextImpl.createContextARBVersions(GLContextImpl.java:1427)
-         * at jogamp.opengl.GLContextImpl.createContextARBMapVersionsAvailable(GLContextImpl.java:1366)
-         * at jogamp.opengl.GLContextImpl.mapGLVersions(GLContextImpl.java:1223)
-         * at jogamp.opengl.GLContextImpl.createContextARB(GLContextImpl.java:968)
-         * at jogamp.opengl.egl.EGLContext.createImpl(EGLContext.java:318)
-         * at jogamp.opengl.GLContextImpl.makeCurrentWithinLock(GLContextImpl.java:769)
-         * at jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:652)
-         * at jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:590)
-         * at jogamp.opengl.egl.EGLDrawableFactory$SharedResourceImplementation.mapAvailableEGLESConfig(EGLDrawableFactory.java:858)
          */
         return null != eglGLnDynamicLookupHelper &&
-               defaultDeviceEGLFeatures.hasGLAPI && defaultDeviceEGLFeatures.hasKHRCreateContext && !isDRM_GBM;
+               defaultDeviceEGLFeatures.hasGLAPI && defaultDeviceEGLFeatures.hasKHRCreateContext;
     }
 
     /**
