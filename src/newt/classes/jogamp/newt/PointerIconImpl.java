@@ -55,6 +55,9 @@ public class PointerIconImpl implements PointerIcon {
         this.pixels = pixels;
         this.hotspot = hotspot;
         this.handle=handle;
+        if( 0 == handle ) {
+            throw new IllegalArgumentException("0 native handle: "+this);
+        }
     }
     public PointerIconImpl(final DisplayImpl display, final PixelRectangle pixelrect, final PointImmutable hotspot, final long handle) {
         this.display = display;
@@ -63,6 +66,9 @@ public class PointerIconImpl implements PointerIcon {
         this.pixels = pixelrect.getPixels();
         this.hotspot = hotspot;
         this.handle=handle;
+        if( 0 == handle ) {
+            throw new IllegalArgumentException("0 native handle: "+this);
+        }
     }
 
     @Override
@@ -113,7 +119,7 @@ public class PointerIconImpl implements PointerIcon {
         if(Display.DEBUG) {
             System.err.println("PointerIcon.destroy: "+this+", "+display+", "+Display.getThreadName());
         }
-        if( 0 != handle ) {
+        if( 0 != handle ) { // early out
             synchronized(display.pointerIconList) {
                 display.pointerIconList.remove(this);
             }
@@ -126,14 +132,16 @@ public class PointerIconImpl implements PointerIcon {
         }
     }
 
-    /** No checks, assume execution on EDT */
+    /** assume execution on EDT */
     synchronized void destroyOnEDT(final long dpy) {
         final long h = handle;
         handle = 0;
-        try {
-            display.destroyPointerIconImpl(dpy, h);
-        } catch (final Exception e) {
-            e.printStackTrace();
+        if( 0 != h ) { // avoid double free
+            try {
+                display.destroyPointerIconImpl(dpy, h);
+            } catch (final Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

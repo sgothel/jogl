@@ -96,7 +96,7 @@ public abstract class DisplayImpl extends Display {
                 if(DEBUG) {
                     System.err.println("destroyAllPointerIconFromList: dpy "+toHexString(dpy)+", # "+i+"/"+count+": "+item+" @ "+getThreadName());
                 }
-                if( null != item && item.isValid() ) {
+                if( null != item ) {
                     item.destroyOnEDT(dpy);
                 }
             }
