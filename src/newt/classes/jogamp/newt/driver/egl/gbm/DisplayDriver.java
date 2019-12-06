@@ -107,14 +107,23 @@ public class DisplayDriver extends DisplayImpl {
             defaultPointerIcon = null;
         }
 
-        if( DEBUG_POINTER_ICON ) {
+        if( DEBUG ) {
             System.err.println("Display.createNativeImpl: "+this);
+        }
+        if( DEBUG_POINTER_ICON ) {
             System.err.println("Display.createNativeImpl: defaultPointerIcon "+defaultPointerIcon);
         }
     }
 
     @Override
     protected void closeNativeImpl(final AbstractGraphicsDevice aDevice) {
+        if( DEBUG ) {
+            System.err.println("Display.closeNativeImpl: "+this);
+        }
+        if( null != defaultPointerIcon ) {
+            defaultPointerIcon.destroy();
+            defaultPointerIcon = null;
+        }
         aDevice.close();
         DRMLib.gbm_device_destroy(gbmHandle);
         gbmHandle = 0;

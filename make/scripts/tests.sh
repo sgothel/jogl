@@ -101,6 +101,15 @@ function jrun() {
     swton=$1
     shift
 
+    #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=True -Dsun.java2d.xrender=false"
+    #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=false -Dsun.java2d.xrender=false"
+    #X_ARGS="-verbose:jni"
+    #X_ARGS="-Xcheck:jni"
+    #X_ARGS="-Xcheck:jni -verbose:jni"
+    #X_ARGS="-Xrs"
+    #X_ARGS="-Dsun.awt.disableMixing=true"
+    #X_ARGS="--illegal-access=warn"
+
     #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext"
     #D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.DebugGL"
@@ -120,6 +129,9 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Dnewt.disable.LinuxKeyEventTracker -Dnewt.disable.LinuxMouseTracker"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Dnewt.disable.LinuxKeyEventTracker"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Dnewt.disable.LinuxMouseTracker"
+    #D_ARGS="-Dnewt.debug.Display.PointerIcon -Dnewt.debug.Window.KeyEvent -Dnewt.disable.PointerIcon"
+    #D_ARGS="-Dnewt.debug.Display.PointerIcon -Dnewt.debug.Window.KeyEvent"
+
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
@@ -131,7 +143,6 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window -Djogamp.common.utils.locks.Lock.timeout=600000 -Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Dnativewindow.debug.OSXUtil.MainThreadChecker"
-    #X_ARGS="--illegal-access=warn"
 
     #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true"
     #D_ARGS="-Djogl.debug.GLContext -Djogamp.debug.NativeLibrary -Djogamp.debug.JNILibLoader -Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler"
@@ -332,13 +343,6 @@ function jrun() {
     #D_ARGS="-Djogl.debug.PNG -Dnewt.debug.Display.PointerIcon"
     #D_ARGS="-Djogl.debug.JPEGImage -Djogamp.debug.Bitstream"
     #D_ARGS="-Djogl.debug.GLDrawable -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser"
-    #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=True -Dsun.java2d.xrender=false"
-    #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=false -Dsun.java2d.xrender=false"
-    #X_ARGS="-verbose:jni"
-    #X_ARGS="-Xcheck:jni"
-    #X_ARGS="-Xcheck:jni -verbose:jni"
-    #X_ARGS="-Xrs"
-    #X_ARGS="-Dsun.awt.disableMixing=true"
     #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer"

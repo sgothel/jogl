@@ -59,12 +59,24 @@ public class ScreenDriver extends ScreenImpl {
         if( DEBUG ) {
             drmMode.print(System.err);
         }
-        defaultPointerIcon = ((DisplayDriver)display).defaultPointerIcon;
+        synchronized(pointerIconSync) {
+            defaultPointerIcon = ((DisplayDriver)display).defaultPointerIcon;
+        }
+        if( DEBUG ) {
+            System.err.println("Screen.createNativeImpl: "+this);
+        }
     }
 
     @Override
     protected void closeNativeImpl() {
-        defaultPointerIcon = null;
+        if( DEBUG ) {
+            System.err.println("Screen.closeNativeImpl: "+this);
+        }
+        synchronized(pointerIconSync) {
+            defaultPointerIcon = null;
+            activePointerIcon = null;
+            activePointerIconVisible = false;
+        }
         drmMode.destroy();
         drmMode = null;
     }
@@ -119,12 +131,16 @@ public class ScreenDriver extends ScreenImpl {
         MonitorModeProps.streamInMonitorDevice(cache, this, currentMode, null, cache.monitorModes, props, 0, null);
 
         crtc_ids = new int[] { encoder[scridx].getCrtc_id() };
-        if( null != defaultPointerIcon ) {
-            final LinuxMouseTracker lmt = LinuxMouseTracker.getSingleton();
-            if( null != lmt ) {
-                setPointerIconActive(defaultPointerIcon, lmt.getLastX(), lmt.getLastY());
-            } else {
-                setPointerIconActive(defaultPointerIcon, 0, 0);
+
+        synchronized(pointerIconSync) {
+            // requires crtc_ids[] to be set!
+            if( null != defaultPointerIcon ) {
+                final LinuxMouseTracker lmt = LinuxMouseTracker.getSingleton();
+                if( null != lmt ) {
+                    setPointerIconActive(defaultPointerIcon, lmt.getLastX(), lmt.getLastY());
+                } else {
+                    setPointerIconActive(defaultPointerIcon, 0, 0);
+                }
             }
         }
     }
@@ -209,8 +225,8 @@ public class ScreenDriver extends ScreenImpl {
     protected native void initNative(long drmHandle);
     protected int[] crtc_ids;
 
+    private final Object pointerIconSync = new Object();
     private PointerIconImpl activePointerIcon;
     private boolean activePointerIconVisible;
-    private final Object pointerIconSync = new Object();
     private PointerIconImpl defaultPointerIcon = null;
 }
