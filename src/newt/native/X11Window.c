@@ -33,6 +33,8 @@
  */
 
 #include "X11Common.h"
+#include <time.h>
+#include <sys/time.h>
 
 #ifdef VERBOSE_ON
     #define DUMP_VISUAL_INFO(a,b) _dumpVisualInfo((a),(b))
@@ -62,8 +64,6 @@
     #define DUMP_VISUAL_INFO(a,b)
 
 #endif
-
-#include <sys/time.h>
 
 static int64_t getCurrentMillis() {
     struct timeval tv;
@@ -345,7 +345,7 @@ static Status NewtWindows_getWindowTopLeftPositionRelative2Parent (Display *dpy,
     }
     return 0; // Error
 }
-static Status NewtWindows_getFrameExtends(Display *dpy, JavaWindow *javaWin, int *left, int *right, int *top, int *bottom) {
+static Status NewtWindows_getFrameExtends(Display *dpy, JavaWindow *javaWin, Bool wait, int *left, int *right, int *top, int *bottom) {
     Atom actual_type = 0;
     int actual_format = 0;
     int nitems_32 = 4; // l, r, t, b
@@ -353,7 +353,7 @@ static Status NewtWindows_getFrameExtends(Display *dpy, JavaWindow *javaWin, int
     unsigned long nitems = 0;
 
     /** Safe polling ... */
-    #define TIMEOUT 250
+    #define TIMEOUT_MS 50
     int64_t t0 = getCurrentMillis();
     #define MAX_ATTEMPTS 96
     int evtCount = 0;
@@ -377,14 +377,22 @@ static Status NewtWindows_getFrameExtends(Display *dpy, JavaWindow *javaWin, int
             // E.g. window not yet mapped
             if( NULL != frame_extends_data_pp ) {
                 XFree(frame_extends_data_pp);
+                frame_extends_data_pp = NULL;
             }
-            if( tD < TIMEOUT && evtCount < MAX_ATTEMPTS ) {
+            if( wait && tD < TIMEOUT_MS && evtCount < MAX_ATTEMPTS ) {
                 // wait for next X event to arrive, then we may try again
-                XEvent e;
-                XPeekEvent(dpy, &e);
-                evtCount++;
-                DBG_PRINT( "NEWT FrameExtends: Waiting: #%d %ldms: evt %d, window %p (this=%d)\n", 
-                    evtCount, tD, e.type, (void*)e.xany.window, (javaWin->window == e.xany.window));
+                #if 0
+                    XEvent e;
+                    XPeekEvent(dpy, &e); // FIXME: Blocks if queue is empty
+                    evtCount++;
+                    DBG_PRINT( "NEWT FrameExtends: Waiting: #%d %ldms: evt %d, window %p (this=%d)\n", 
+                        evtCount, tD, e.type, (void*)e.xany.window, (javaWin->window == e.xany.window));
+                #else
+                    struct timespec req = { .tv_sec = 0, .tv_nsec = 1000000L }; // 1ms
+                    nanosleep(&req, NULL);
+                    evtCount++;
+                    DBG_PRINT( "NEWT FrameExtends: Waiting: #%d %ldms ...\n", evtCount, tD );
+                #endif
             } else {
                 // timeout or max-attempts: exit
                 return 0; 
@@ -486,9 +494,10 @@ static void NewtWindows_requestFocus (Display *dpy, JavaWindow * jw, Bool force)
     DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d - FIN\n", dpy, (void*)jw->window, force);
 }
 
-Bool NewtWindows_updateInsets(Display *dpy, JavaWindow * w, int *left, int *right, int *top, int *bottom) {
-    if(0 != NewtWindows_getFrameExtends(dpy, w, left, right, top, bottom)) {
-        DBG_PRINT( "NewtWindows_updateInsets: insets by _NET_FRAME_EXTENTS [ l %d, r %d, t %d, b %d ]\n", *left, *right, *top, *bottom);
+Bool NewtWindows_updateInsets(Display *dpy, JavaWindow * w, Bool wait, int *left, int *right, int *top, int *bottom) {
+    if(0 != NewtWindows_getFrameExtends(dpy, w, wait, left, right, top, bottom)) {
+        DBG_PRINT( "NewtWindows_updateInsets(wait %d): insets by _NET_FRAME_EXTENTS [ l %d, r %d, t %d, b %d ]\n", 
+            wait, *left, *right, *top, *bottom);
         return True; // OK
     }
 
@@ -499,11 +508,12 @@ Bool NewtWindows_updateInsets(Display *dpy, JavaWindow * w, int *left, int *righ
         Window parent = NewtWindows_getParent(dpy, w->window);
         if( 0 != NewtWindows_getWindowTopLeftPositionRelative2Parent (dpy, parent, left, top) ) {
             *right = *left; *bottom = *left;
-            DBG_PRINT( "NewtWindows_updateInsets: insets relative to parent position [ l %d, r %d, t %d, b %d ]\n", *left, *right, *top, *bottom);
+            DBG_PRINT( "NewtWindows_updateInsets(wait %d): insets relative to parent position [ l %d, r %d, t %d, b %d ]\n", 
+                wait, *left, *right, *top, *bottom);
             return True; // OK
         }
     }
-    DBG_PRINT( "NewtWindows_updateInsets: cannot determine insets - hasDecor %d\n", hasDecor);
+    DBG_PRINT( "NewtWindows_updateInsets(wait %d): cannot determine insets - hasDecor %d\n", wait, hasDecor);
     return False; // Error
 }
 
@@ -943,7 +953,7 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
 
         // send insets before visibility, allowing java code a proper sync point!
         XSync(dpy, False);
-        if( NewtWindows_updateInsets(dpy, javaWindow, &left, &right, &top, &bottom) ) {
+        if( NewtWindows_updateInsets(dpy, javaWindow, True /* wait */, &left, &right, &top, &bottom) ) {
             (*env)->CallVoidMethod(env, javaWindow->jwindow, insetsVisibleChangedID, left, right, top, bottom, 1);
             NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Window.CreateWindow: Exception occured at insetsVisibleChanged(..)");
         } else {

@@ -101,7 +101,7 @@ typedef struct {
 JavaWindow * getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, Bool showWarning);
 
 Status NewtWindows_getRootAndParent (Display *dpy, Window w, Window * root_return, Window * parent_return);
-Bool NewtWindows_updateInsets(Display *dpy, JavaWindow * w, int *left, int *right, int *top, int *bottom);
+Bool NewtWindows_updateInsets(Display *dpy, JavaWindow * w, Bool wait, int *left, int *right, int *top, int *bottom);
 Bool NewtWindows_updateMaximized(Display *dpy, JavaWindow * w, uint32_t netWMState);
 
 #define _MASK_NET_WM_STATE                   ( 1 <<  0 )

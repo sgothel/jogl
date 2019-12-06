@@ -761,7 +761,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     int left=-1, right=-1, top=-1, bottom=-1;
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "ConfigureNotify");
-                    NewtWindows_updateInsets(dpy, jw, &left, &right, &top, &bottom);
+                    NewtWindows_updateInsets(dpy, jw, False /* wait */, &left, &right, &top, &bottom);
                     Bool maxChanged = NewtWindows_updateMaximized(dpy, jw, netWMState);
                     (*env)->CallVoidMethod(env, jw->jwindow, sizePosMaxInsetsVisibleChangedID, JNI_FALSE,
                                             (jint) evt.xconfigure.x, (jint) evt.xconfigure.y,
