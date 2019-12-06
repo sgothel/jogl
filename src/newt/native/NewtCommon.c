@@ -122,6 +122,7 @@ void NewtCommon_ExceptionCheck1_throwNewRuntimeException(JNIEnv *env, const char
 const char * NewtCommon_GetStaticStringMethod(JNIEnv *jniEnv, jclass clazz, jmethodID jGetStrID, char *dest, int destSize, const char *altText) {
     if(NULL != jniEnv && NULL != clazz && NULL != jGetStrID) {
         jstring jstr = (jstring) (*jniEnv)->CallStaticObjectMethod(jniEnv, clazz, jGetStrID);
+        NewtCommon_ExceptionCheck0(env);
         if(NULL != jstr) {
             const char * str = (*jniEnv)->GetStringUTFChars(jniEnv, jstr, NULL);
             if( NULL != str) {
