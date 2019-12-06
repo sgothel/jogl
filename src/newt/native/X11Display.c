@@ -338,6 +338,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_CompleteDisplay
 
     (*env)->CallVoidMethod(env, obj, displayCompletedID, javaObjectAtom, windowDeleteAtom /*, kbdHandle*/, // XKB disabled for now
                                      randr_event_base, randr_error_base, xi_opcode);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.CompleteDisplay0: Exception occured at displayCompleted(..)");
 }
 
 /*
@@ -447,6 +448,7 @@ static void sendTouchScreenEvent(JNIEnv *env, JavaWindow *jw,
     (*env)->CallVoidMethod(env, jw->jwindow, sendTouchScreenEventID,
             (jshort)eventType, (jint)modifiers, (jint)actionIdx,
             jNames, jX, jY, jPressure, (jfloat)1.0f);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: XI: Exception occured at sendTouchScreenEvent(..)");
 }
 
 /*
@@ -507,6 +509,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
         if( randr_event_base > 0 && RRScreenChangeNotify == ( evt.type - randr_event_base ) ) {
             DBG_PRINT( "X11: DispatchMessages dpy %p, Event RRScreenChangeNotify %p\n", (void*)dpy, (void*)&evt);
             (*env)->CallVoidMethod(env, obj, sendRRScreenChangeNotifyID, (jlong)(intptr_t)&evt);
+            NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: RR: Exception occured at sendRRScreenChangeNotify(..)");
             continue; // next event
         }
 
@@ -686,16 +689,19 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 (*env)->CallVoidMethod(env, jw->jwindow, sendMouseEventRequestFocusID, (jshort) EVENT_MOUSE_PRESSED, 
                                       modifiers,
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jshort) evt.xbutton.button, 0.0f /*rotation*/);
+                NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: ButtonPress: Exception occured at sendMouseEventRequestFocus(..)");
                 break;
             case ButtonRelease:
                 (*env)->CallVoidMethod(env, jw->jwindow, sendMouseEventID, (jshort) EVENT_MOUSE_RELEASED, 
                                       modifiers,
                                       (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jshort) evt.xbutton.button, 0.0f /*rotation*/);
+                NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: ButtonRelease: Exception occured at sendMouseEvent(..)");
                 break;
             case MotionNotify:
                 (*env)->CallVoidMethod(env, jw->jwindow, sendMouseEventID, (jshort) EVENT_MOUSE_MOVED, 
                                       modifiers,
                                       (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jshort) 0, 0.0f /*rotation*/); 
+                NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: MotionNotify: Exception occured at sendMouseEvent(..)");
                 break;
             case EnterNotify:
                 DBG_PRINT( "X11: event . EnterNotify call %p %d/%d\n", (void*)evt.xcrossing.window, evt.xcrossing.x, evt.xcrossing.y);
@@ -705,6 +711,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedSendMouseEventID, JNI_FALSE, (jint)visibleChange, 
                                       (jshort) EVENT_MOUSE_ENTERED, modifiers,
                                       (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jshort) 0, 0.0f /*rotation*/);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: EnterNotify: Exception occured at visibleChangedSendMouseEvent(..)");
                 }
                 break;
             case LeaveNotify:
@@ -715,6 +722,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedSendMouseEventID, JNI_FALSE, (jint)visibleChange, 
                                       (jshort) EVENT_MOUSE_EXITED, modifiers,
                                       (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jshort) 0, 0.0f /*rotation*/);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: LeaveNotify: Exception occured at visibleChangedSendMouseEvent(..)");
                 }
                 break;
             case MappingNotify:
@@ -724,10 +732,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
             case KeyPress:
                 (*env)->CallVoidMethod(env, jw->jwindow, sendKeyEventID, (jshort) EVENT_KEY_PRESSED, 
                                       modifiers, javaVKeyUS, javaVKeyNN, (jchar) keyChar, keyString);
+                NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: KeyPress: Exception occured at sendKeyEvent(..)");
                 break;
             case KeyRelease:
                 (*env)->CallVoidMethod(env, jw->jwindow, sendKeyEventID, (jshort) EVENT_KEY_RELEASED, 
                                       modifiers, javaVKeyUS, javaVKeyNN, (jchar) keyChar, keyString);
+                NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: KeyRelease: Exception occured at sendKeyEvent(..)");
                 break;
             case DestroyNotify:
                 DBG_PRINT( "X11: event . DestroyNotify call %p, parent %p, child-event: %d\n", 
@@ -761,6 +771,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                                             (jint)left, (jint)right, (jint)top, (jint)bottom,
                                             (jint)visibleChange,
                                             JNI_FALSE);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: ConfigureNotify: Exception occured at sizePosMaxInsetsVisibleChanged(..)");
                 }
                 break;
             case ClientMessage:
@@ -784,6 +795,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "FocusIn");
                     (*env)->CallVoidMethod(env, jw->jwindow, focusVisibleChangedID, JNI_FALSE, (jint)1, (jint)visibleChange);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: FocusIn: Exception occured at focusVisibleChanged(..)");
                 }
                 break;
 
@@ -793,6 +805,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "FocusOut");
                     (*env)->CallVoidMethod(env, jw->jwindow, focusVisibleChangedID, JNI_FALSE, (jint)0, (jint)visibleChange);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: FocusOut: Exception occured at focusVisibleChanged(..)");
                 }
                 break;
 
@@ -804,6 +817,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "VisibilityNotify");
                     if( 0 <= visibleChange ) {
                         (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, 0 < visibleChange ? JNI_TRUE : JNI_FALSE);
+                        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: VisibilityNotify: Exception occured at visibleChanged(..)");
                     }
                     #endif
                 }
@@ -816,6 +830,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 if (evt.xexpose.count == 0 && evt.xexpose.width > 0 && evt.xexpose.height > 0) {
                     (*env)->CallVoidMethod(env, jw->jwindow, windowRepaintID, JNI_FALSE,
                         evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: Expose: Exception occured at windowRepaint(..)");
                     #if 0
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "Expose");
@@ -834,10 +849,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     jw->isMapped = True;
                     // insets: negative values are ignored
                     int left=-1, right=-1, top=-1, bottom=-1;
-                    if( NewtWindows_updateInsets(dpy, jw, &left, &right, &top, &bottom) ) {
+                    if( NewtWindows_updateInsets(dpy, jw, False /* wait */, &left, &right, &top, &bottom) ) {
                         (*env)->CallVoidMethod(env, jw->jwindow, insetsVisibleChangedID, left, right, top, bottom, 1);
+                        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: MapNotify: Exception occured at insetsVisibleChanged(..)");
                     } else {
                         (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_TRUE);
+                        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: MapNotify: Exception occured at visibleChanged(..)");
                     }
                 }
                 break;
@@ -850,6 +867,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     // ignore child window notification
                     jw->isMapped = False;
                     (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: UnmapNotify: Exception occured at visibleChanged(..)");
                 }
                 break;
 
@@ -883,6 +901,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                             (void*)evt.xreparent.window, (void*)winRoot, (void*)winTopParent);
                     #endif
                     (*env)->CallVoidMethod(env, jw->jwindow, reparentNotifyID, (jlong)evt.xreparent.parent);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: ReparentNotify: Exception occured at reparentNotify(..)");
                 }
                 break;
 

@@ -71,24 +71,51 @@ void NewtCommon_FatalError(JNIEnv *env, const char* msg, ...)
     }
 }
 
-void NewtCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
+static void NewtCommon_throwNewRuntimeExceptionVA(JNIEnv *env, const char* msg, va_list ap)
 {
     char buffer[512];
-    va_list ap;
 
     if(NULL==_jvmHandle) {
         NewtCommon_FatalError(env, "NEWT: NULL JVM handle, call NewtCommon_init 1st\n");
         return;
     }
 
+    vsnprintf(buffer, sizeof(buffer), msg, ap);
+
+    if(NULL != env) {
+        (*env)->ThrowNew(env, runtimeExceptionClz, buffer);
+    }
+}
+
+void NewtCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
+{
+    va_list ap;
+
     if( NULL != msg ) {
         va_start(ap, msg);
-        vsnprintf(buffer, sizeof(buffer), msg, ap);
+        NewtCommon_throwNewRuntimeExceptionVA(env, msg, ap);
         va_end(ap);
+    }
+}
 
-        if(NULL != env) {
-            (*env)->ThrowNew(env, runtimeExceptionClz, buffer);
-        }
+void NewtCommon_ExceptionCheck0(JNIEnv *env)
+{
+    if( (*env)->ExceptionCheck(env) ) {
+        (*env)->ExceptionDescribe(env);
+        (*env)->ExceptionClear(env);
+    }
+}
+
+void NewtCommon_ExceptionCheck1_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
+{
+    va_list ap;
+
+    if( (*env)->ExceptionCheck(env) ) {
+        (*env)->ExceptionDescribe(env);
+        (*env)->ExceptionClear(env);
+        va_start(ap, msg);
+        NewtCommon_throwNewRuntimeExceptionVA(env, msg, ap);
+        va_end(ap);
     }
 }
 

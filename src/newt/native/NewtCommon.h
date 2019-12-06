@@ -39,6 +39,8 @@ jchar* NewtCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str);
 
 void NewtCommon_FatalError(JNIEnv *env, const char* msg, ...);
 void NewtCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
+void NewtCommon_ExceptionCheck0(JNIEnv *env);
+void NewtCommon_ExceptionCheck1_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
 
 /**
  *

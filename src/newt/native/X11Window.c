@@ -945,8 +945,10 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
         XSync(dpy, False);
         if( NewtWindows_updateInsets(dpy, javaWindow, &left, &right, &top, &bottom) ) {
             (*env)->CallVoidMethod(env, javaWindow->jwindow, insetsVisibleChangedID, left, right, top, bottom, 1);
+            NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Window.CreateWindow: Exception occured at insetsVisibleChanged(..)");
         } else {
             (*env)->CallVoidMethod(env, javaWindow->jwindow, visibleChangedID, JNI_TRUE);
+            NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Window.CreateWindow: Exception occured at visibleChanged(..)");
             left=0; right=0; top=0; bottom=0;
         }
 
