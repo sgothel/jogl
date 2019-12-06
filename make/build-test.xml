@@ -447,7 +447,7 @@
         </junit>
     </target>
 
-    <target name="generic.junit.run.awt">
+    <target name="generic.junit.run.awt" unless="setup.noAWT">
         <!-- attribute name="generic.junit.run.awt.include.pattern" -->
 
         <!-- Test*AWT* -->
@@ -487,13 +487,13 @@
         <var name="generic.junit.run.awt.include.pattern" unset="true"/>
     </target>
 
-    <target name="junit.run.awt" depends="test.compile">
+    <target name="junit.run.awt" depends="test.compile" unless="setup.noAWT">
         <!-- Test*AWT* -->
         <property name="generic.junit.run.awt.include.pattern" value="${java.dir.junit}/**/Test*AWT*"/>
         <antcall target="generic.junit.run.awt" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="generic.junit.run.newt.awt">
+    <target name="generic.junit.run.newt.awt" unless="setup.noAWT">
         <!-- attribute name="generic.junit.run.newt.awt.include.pattern" -->
 
         <!-- Test*AWT* -->
@@ -534,7 +534,7 @@
         <var name="generic.junit.run.newt.awt.include.pattern" unset="true"/>
     </target>
 
-    <target name="junit.run.newt.awt" depends="test.compile">
+    <target name="junit.run.newt.awt" depends="test.compile" unless="setup.noAWT">
         <!-- Test*AWT* -->
         <property name="generic.junit.run.newt.awt.include.pattern" value="${java.dir.junit}/**/newt/**/Test*AWT*"/>
         <antcall target="generic.junit.run.newt.awt" inheritRefs="true" inheritAll="true"/>
@@ -654,7 +654,7 @@
         </apply>
     </target>
 
-    <target name="generic.junit.run.swt.headless">
+    <target name="generic.junit.run.swt.headless" unless="setup.noSWT">
         <!-- attribute name="generic.junit.run.swt.headless.include.pattern" -->
 
         <!-- Test*SWTHeadless* 
@@ -721,13 +721,13 @@
         <var name="generic.junit.run.swt.headless.include.pattern" unset="true"/>
     </target>  
 
-    <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests." if="isSWTRuntimeAvailable">
+    <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests." unless="setup.noSWT" if="isSWTRuntimeAvailable">
         <!-- Test*SWTHeadless* -->
         <property name="generic.junit.run.swt.headless.include.pattern" value="${java.dir.junit}/**/Test*SWT*"/>
         <antcall target="generic.junit.run.swt.headless" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all pure SWT AWT tests." if="isSWTRuntimeAvailable">
+    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all pure SWT AWT tests." unless="setup.noSWT" if="isSWTRuntimeAvailable">
         <!-- Test*SWT* 
 
              Emulation of junit task.
@@ -794,10 +794,10 @@
     <target name="junit.run.local" unless="isCrosscompilation" >
         <antcall target="junit.run.noui"          inheritRefs="true" inheritAll="true"/>
         <antcall target="junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
-        <antcall target="junit.run.awt"           inheritRefs="true" inheritAll="true"/>
-        <antcall target="junit.run.newt.awt"      inheritRefs="true" inheritAll="true"/>
-        <antcall target="junit.run.swt.headless"  inheritRefs="true" inheritAll="true"/>
-        <antcall target="junit.run.swt.awt"       inheritRefs="true" inheritAll="true"/>
+        <antcall target="junit.run.awt"           inheritRefs="true" inheritAll="true"/> <!-- unless="setup.noAWT"-->
+        <antcall target="junit.run.newt.awt"      inheritRefs="true" inheritAll="true"/> <!-- unless="setup.noAWT"-->
+        <antcall target="junit.run.swt.headless"  inheritRefs="true" inheritAll="true"/> <!-- unless="setup.noSWT" if="isSWTRuntimeAvailable"-->
+        <antcall target="junit.run.swt.awt"       inheritRefs="true" inheritAll="true"/> <!-- unless="setup.noSWT" if="isSWTRuntimeAvailable"-->
     </target>
 
     <target name="junit.run.local.osx.d32" if="isOSX">

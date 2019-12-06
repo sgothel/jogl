@@ -203,15 +203,20 @@
         <echo message="plugin3-jars.available: ${plugin3-jars.available} ${plugin3.jar}" />
 
         <condition property="isSWTRuntimeAvailable">
-          <or>
-              <istrue value="${isWindowsAMD64}" />
-              <istrue value="${isWindowsX86}" />
-              <istrue value="${isLinuxAMD64}" />
-              <istrue value="${isLinuxX86}" />
-              <istrue value="${isOSX}" />
-              <istrue value="${isSolarisX86}" />
-              <istrue value="${isSolarisSparc}" />
-          </or>
+          <and>
+              <not>
+                  <isset property="setup.noSWT" />
+              </not>
+              <or>
+                  <istrue value="${isWindowsAMD64}" />
+                  <istrue value="${isWindowsX86}" />
+                  <istrue value="${isLinuxAMD64}" />
+                  <istrue value="${isLinuxX86}" />
+                  <istrue value="${isOSX}" />
+                  <istrue value="${isSolarisX86}" />
+                  <istrue value="${isSolarisSparc}" />
+              </or>
+          </and>
         </condition>
         <echo message="isSWTRuntimeAvailable=${isSWTRuntimeAvailable}" />
 
