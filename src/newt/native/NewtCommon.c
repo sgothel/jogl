@@ -98,15 +98,18 @@ void NewtCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
     }
 }
 
-void NewtCommon_ExceptionCheck0(JNIEnv *env)
+jboolean NewtCommon_ExceptionCheck0(JNIEnv *env)
 {
     if( (*env)->ExceptionCheck(env) ) {
         (*env)->ExceptionDescribe(env);
         (*env)->ExceptionClear(env);
+        return JNI_TRUE;
+    } else {
+        return JNI_FALSE;
     }
 }
 
-void NewtCommon_ExceptionCheck1_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
+jboolean NewtCommon_ExceptionCheck1_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
 {
     va_list ap;
 
@@ -116,14 +119,16 @@ void NewtCommon_ExceptionCheck1_throwNewRuntimeException(JNIEnv *env, const char
         va_start(ap, msg);
         NewtCommon_throwNewRuntimeExceptionVA(env, msg, ap);
         va_end(ap);
+        return JNI_TRUE;
+    } else {
+        return JNI_FALSE;
     }
 }
 
 const char * NewtCommon_GetStaticStringMethod(JNIEnv *jniEnv, jclass clazz, jmethodID jGetStrID, char *dest, int destSize, const char *altText) {
     if(NULL != jniEnv && NULL != clazz && NULL != jGetStrID) {
         jstring jstr = (jstring) (*jniEnv)->CallStaticObjectMethod(jniEnv, clazz, jGetStrID);
-        NewtCommon_ExceptionCheck0(env);
-        if(NULL != jstr) {
+        if( !NewtCommon_ExceptionCheck0(jniEnv) && NULL != jstr) {
             const char * str = (*jniEnv)->GetStringUTFChars(jniEnv, jstr, NULL);
             if( NULL != str) {
                 strncpy(dest, str, destSize-1);
