@@ -33,8 +33,6 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.util.Point;
-import com.jogamp.nativewindow.util.Rectangle;
-import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.GLCapabilitiesChooser;
@@ -70,87 +68,8 @@ public class WindowDriver extends WindowImpl {
         windowHandleClose = 0;
     }
 
-    /**
-     * Clamp given rectangle to given screen bounds.
-     *
-     * @param screen
-     * @param rect the {@link RectangleImmutable} in pixel units
-     * @param definePosSize if {@code true} issue {@link #definePosition(int, int)} and {@link #defineSize(int, int)}
-     *                      if either has changed.
-     * @return If position or size has been clamped a new {@link RectangleImmutable} instance w/ clamped values
-     *         will be returned, otherwise the given {@code rect} is returned.
-     */
-    private RectangleImmutable clampRect(final ScreenDriver screen, final RectangleImmutable rect, final boolean definePosSize) {
-        int x = rect.getX();
-        int y = rect.getY();
-        int w = rect.getWidth();
-        int h = rect.getHeight();
-        final int s_w = screen.getWidth();
-        final int s_h = screen.getHeight();
+    private void zeroPosition(final ScreenDriver screen, int x, int y) {
         boolean modPos = false;
-        boolean modSize = false;
-        if( 0 > x ) {
-            x = 0;
-            modPos = true;
-        }
-        if( 0 > y ) {
-            y = 0;
-            modPos = true;
-        }
-        if( s_w < x + w ) {
-            if( 0 < x ) {
-                x = 0;
-                modPos = true;
-            }
-            if( s_w < w ) {
-                w = s_w;
-                modSize = true;
-            }
-        }
-        if( s_h < y + h ) {
-            if( 0 < y ) {
-                y = 0;
-                modPos = true;
-            }
-            if( s_h < h ) {
-                h = s_h;
-                modSize = true;
-            }
-        }
-        if( modPos || modSize ) {
-            if( definePosSize ) {
-                if( modPos ) {
-                    definePosition(x, y);
-                }
-                if( modSize ) {
-                    defineSize(w, h);
-                }
-            }
-            return new Rectangle(x, y, w, h);
-        } else {
-            return rect;
-        }
-    }
-
-    /**
-     * Align given rectangle to given screen bounds.
-     *
-     * @param screen
-     * @param rect the {@link RectangleImmutable} in pixel units
-     * @param definePosSize if {@code true} issue {@link #definePosition(int, int)} and {@link #defineSize(int, int)}
-     *                      if either has changed.
-     * @return If position or size has been aligned a new {@link RectangleImmutable} instance w/ clamped values
-     *         will be returned, otherwise the given {@code rect} is returned.
-     */
-    private RectangleImmutable alignRect2Screen(final ScreenDriver screen, final RectangleImmutable rect, final boolean definePosSize) {
-        int x = rect.getX();
-        int y = rect.getY();
-        int w = rect.getWidth();
-        int h = rect.getHeight();
-        final int s_w = screen.getWidth();
-        final int s_h = screen.getHeight();
-        boolean modPos = false;
-        boolean modSize = false;
         if( 0 != x ) {
             x = 0;
             modPos = true;
@@ -159,6 +78,14 @@ public class WindowDriver extends WindowImpl {
             y = 0;
             modPos = true;
         }
+        if( modPos ) {
+            definePosition(x, y);
+        }
+    }
+    private void adjustSize(final ScreenDriver screen, int w, int h) {
+        final int s_w = screen.getWidth();
+        final int s_h = screen.getHeight();
+        boolean modSize = false;
         if( s_w != w ) {
             w = s_w;
             modSize = true;
@@ -167,29 +94,15 @@ public class WindowDriver extends WindowImpl {
             h = s_h;
             modSize = true;
         }
-        if( modPos || modSize ) {
-            if( definePosSize ) {
-                if( modPos ) {
-                    definePosition(x, y);
-                }
-                if( modSize ) {
-                    defineSize(w, h);
-                }
-            }
-            return new Rectangle(x, y, w, h);
-        } else {
-            return rect;
+        if( modSize ) {
+            defineSize(w, h);
         }
     }
 
     @Override
     protected boolean canCreateNativeImpl() {
-        // clamp if required incl. redefinition of position and size
-        // clampRect((ScreenDriver) getScreen(), new Rectangle(getX(), getY(), getWidth(), getHeight()), true);
-
-        // Turns out DRM / GBM can only handle full screen size FB and crtc-modesetting (?)
-        alignRect2Screen((ScreenDriver) getScreen(), new Rectangle(getX(), getY(), getWidth(), getHeight()), true);
-
+        zeroPosition((ScreenDriver) getScreen(), getX(), getY());
+        adjustSize((ScreenDriver) getScreen(), getWidth(), getHeight());
         return true; // default: always able to be created
     }
 
@@ -292,15 +205,19 @@ public class WindowDriver extends WindowImpl {
         final GLContext ctx = GLContext.getCurrent();
         final int swapInterval = ctx.getSwapInterval();
 
-        ctx.getGL().glFinish(); // FIXME: Poor man's SYNC: glFenceSync () with glWaitSync() (remove later!)
+        ctx.getGL().glFinish(); // Poor man's SYNC: glFenceSync () with glWaitSync() (remove later!)
         if(!EGL.eglSwapBuffers(display.getHandle(), eglSurface)) {
             throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
         }
         if( 0 == lastBO ) {
-            lastBO = FirstSwapSurface(d.drmFd, d.getCrtcIDs()[0], getX(), getY(), d.getConnectors()[0].getConnector_id(),
-                                       d.getModes()[0], nativeWindowHandle, swapInterval);
+            // FIXME: Support spanning across multiple CRTC (surface tiling)
+            final int surfaceOffsetX = 0;
+            final int surfaceOffsetY = 0;
+            lastBO = FirstSwapSurface(d.drmFd, d.getCrtcIDs()[0], surfaceOffsetX, surfaceOffsetY,
+                                      d.getConnectors()[0].getConnector_id(),
+                                      d.getModes()[0], nativeWindowHandle);
         } else {
-            lastBO = NextSwapSurface(d.drmFd, d.getCrtcIDs()[0], getX(), getY(), d.getConnectors()[0].getConnector_id(),
+            lastBO = NextSwapSurface(d.drmFd, d.getCrtcIDs()[0], d.getConnectors()[0].getConnector_id(),
                                      d.getModes()[0], nativeWindowHandle, lastBO, swapInterval);
         }
         return true; // eglSwapBuffers done!
@@ -382,33 +299,59 @@ public class WindowDriver extends WindowImpl {
     protected static native boolean initIDs();
     // private native void reconfigure0(long eglWindowHandle, int x, int y, int width, int height, int flags);
 
-    private long FirstSwapSurface(final int drmFd, final int crtc_id, final int x, final int y,
+    /**
+     * First surface swap, actually initial surface/crtc setup.
+     * <p>
+     * {@code surfaceOffsetX} and {@code surfaceOffsetY} explained here
+     * <https://lists.freedesktop.org/archives/dri-devel/2014-February/053826.html>,
+     * useful to span surface across multiple monitors.
+     * </p>
+     * @param drmFd
+     * @param crtc_id the crtc to map to
+     * @param surfaceOffsetX the x-offset of the surface, which could span cross multiple crtc
+     * @param surfaceOffsetY the x-offset of the surface, which could span cross multiple crtc
+     * @param connector_id
+     * @param drmMode
+     * @param gbmSurface the surface to set on the crtc_id
+     * @return
+     */
+    private long FirstSwapSurface(final int drmFd, final int crtc_id, final int surfaceOffsetX, final int surfaceOffsetY,
                                   final int connector_id, final drmModeModeInfo drmMode,
-                                  final long gbmSurface, final int swapInterval) {
+                                  final long gbmSurface) {
         final ByteBuffer bb = drmMode.getBuffer();
         if(!Buffers.isDirect(bb)) {
             throw new IllegalArgumentException("drmMode's buffer is not direct (NIO)");
         }
-        return FirstSwapSurface0(drmFd, crtc_id, x, y, connector_id,
+        return FirstSwapSurface0(drmFd, crtc_id, surfaceOffsetX, surfaceOffsetY, connector_id,
                                  bb, Buffers.getDirectBufferByteOffset(bb),
-                                 gbmSurface, swapInterval);
+                                 gbmSurface);
     }
-    private native long FirstSwapSurface0(int drmFd, int crtc_id, int x, int y,
+    private native long FirstSwapSurface0(int drmFd, int crtc_id, int surfaceOffsetX, int surfaceOffsetY,
                                           int connector_id, Object mode, int mode_byte_offset,
-                                          long gbmSurface, int swapInterval);
+                                          long gbmSurface);
 
-    private long NextSwapSurface(final int drmFd, final int crtc_id, final int x, final int y,
+    /**
+     * @param drmFd
+     * @param crtc_id the crtc to swap
+     * @param connector_id
+     * @param drmMode
+     * @param gbmSurface the surface to swap on the given crtc_id
+     * @param lastBO
+     * @param swapInterval the desired swap interval. Zero implies no vsync, otherwise vsync.
+     * @return
+     */
+    private long NextSwapSurface(final int drmFd, final int crtc_id,
                                  final int connector_id, final drmModeModeInfo drmMode,
                                  final long gbmSurface, final long lastBO, final int swapInterval) {
         final ByteBuffer bb = drmMode.getBuffer();
         if(!Buffers.isDirect(bb)) {
             throw new IllegalArgumentException("drmMode's buffer is not direct (NIO)");
         }
-        return NextSwapSurface0(drmFd, crtc_id, x, y, connector_id,
+        return NextSwapSurface0(drmFd, crtc_id, connector_id,
                                 bb, Buffers.getDirectBufferByteOffset(bb),
                                 gbmSurface, lastBO, swapInterval);
     }
-    private native long NextSwapSurface0(int drmFd, int crtc_id, int x, int y,
+    private native long NextSwapSurface0(int drmFd, int crtc_id,
                                          int connector_id, Object mode, int mode_byte_offset,
                                          long gbmSurface, long lastBO, int swapInterval);
 }
