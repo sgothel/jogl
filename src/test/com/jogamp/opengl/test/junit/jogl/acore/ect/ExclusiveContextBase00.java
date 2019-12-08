@@ -426,6 +426,11 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
 
     @Test
     public void test07ExclPre_4WinPostVis() throws InterruptedException {
+        if( Platform.OSType.MACOS == Platform.getOSType() ) {
+            // Bug 1415 - MacOS 10.14.6 + OpenJDK11U occasional freezes having multiple Windows created on a ExclusiveContextThread
+            System.err.println("Disabled, see Bug 1415");
+            return;
+        }
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps, 4 /* numWin */, true /* exclusive */, true /* preAdd */, false /* preVis */, false /* short */);
@@ -433,6 +438,11 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
 
     @Test
     public void test08ExclPost_4WinPostVis() throws InterruptedException {
+        if( Platform.OSType.MACOS == Platform.getOSType() ) {
+            // Bug 1415 - MacOS 10.14.6 + OpenJDK11U occasional freezes having multiple Windows created on a ExclusiveContextThread
+            System.err.println("Disabled, see Bug 1415");
+            return;
+        }
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps, 4 /* numWin */, true /* exclusive */, false /* preAdd */, false /* preVis */, true /* short */);
