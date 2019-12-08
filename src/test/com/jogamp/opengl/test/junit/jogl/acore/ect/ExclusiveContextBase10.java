@@ -36,7 +36,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.AnimatorBase;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-
+import com.jogamp.common.os.Platform;
 import com.jogamp.nativewindow.Capabilities;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 
@@ -60,7 +60,7 @@ public abstract class ExclusiveContextBase10 extends UITestCase {
     static boolean testExclusiveWithAWT = false;
     static long duration = 1400;
 
-    static boolean showFPS = true;
+    static boolean showFPS = false;
     static int showFPSRate = 60;
 
     static final int demoWinSize = 128;
@@ -98,7 +98,14 @@ public abstract class ExclusiveContextBase10 extends UITestCase {
     protected abstract void setGLAutoDrawableVisible(GLAutoDrawable[] glads);
     protected abstract void destroyGLAutoDrawableVisible(GLAutoDrawable glad);
 
+    /**
+     * @deprecated Use {@link #runTestGL(GLCapabilitiesImmutable,int,boolean,boolean)} instead
+     */
     protected void runTestGL(final GLCapabilitiesImmutable caps, final int drawableCount, final boolean exclusive) throws InterruptedException {
+        runTestGL(caps, drawableCount, exclusive, false);
+    }
+
+    protected void runTestGL(final GLCapabilitiesImmutable caps, final int drawableCount, final boolean exclusive, final boolean preVisible) throws InterruptedException {
         final boolean useAWTRenderThread = isAWTTestCase();
         if( useAWTRenderThread && exclusive ) {
             if( testExclusiveWithAWT ) {
@@ -113,15 +120,16 @@ public abstract class ExclusiveContextBase10 extends UITestCase {
             return;
         }
         final Thread awtRenderThread = getAWTRenderThread();
-        final AnimatorBase animator = createAnimator();
-        if( !useAWTRenderThread ) {
-            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
-        }
+        final AnimatorBase[] animators = new AnimatorBase[drawableCount];
         final GLAutoDrawable[] drawables = new GLAutoDrawable[drawableCount];
         for(int i=0; i<drawableCount; i++) {
+            animators[i] = createAnimator();
+            if( !useAWTRenderThread ) {
+                animators[i].setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
+            }
+
             final int x = (  i          % num_x ) * ( demoWinSize + insets.getTotalHeight() ) + insets.getLeftWidth();
             final int y = ( (i / num_x) % num_y ) * ( demoWinSize + insets.getTotalHeight() ) + insets.getTopHeight();
-
             drawables[i] = createGLAutoDrawable("Win #"+i, x, y, demoWinSize, demoWinSize, caps);
             Assert.assertNotNull(drawables[i]);
             final GearsES2 demo = new GearsES2(swapInterval);
@@ -129,55 +137,76 @@ public abstract class ExclusiveContextBase10 extends UITestCase {
             drawables[i].addGLEventListener(demo);
         }
 
-        for(int i=0; i<drawableCount; i++) {
-            animator.add(drawables[i]);
-        }
-        if( exclusive ) {
-            if( useAWTRenderThread ) {
-                Assert.assertEquals(null, animator.setExclusiveContext(awtRenderThread));
-            } else {
-                Assert.assertEquals(false, animator.setExclusiveContext(true));
+        if( preVisible ) {
+            setGLAutoDrawableVisible(drawables);
+
+            // Made visible, check if drawables are realized
+            for(int i=0; i<drawableCount; i++) {
+                Assert.assertEquals(true, drawables[i].isRealized());
+                animators[i].setUpdateFPSFrames(showFPSRate, showFPS ? System.err : null);
             }
         }
-        Assert.assertFalse(animator.isAnimating());
-        Assert.assertFalse(animator.isStarted());
+
+        for(int i=0; i<drawableCount; i++) {
+            animators[i].add(drawables[i]);
+
+            if( exclusive ) {
+                if( useAWTRenderThread ) {
+                    Assert.assertEquals(null, animators[i].setExclusiveContext(awtRenderThread));
+                } else {
+                    Assert.assertEquals(false, animators[i].setExclusiveContext(true));
+                }
+            }
+            Assert.assertFalse(animators[i].isAnimating());
+            Assert.assertFalse(animators[i].isStarted());
+        }
 
         // Animator Start
-        Assert.assertTrue(animator.start());
+        for(int i=0; i<drawableCount; i++) {
+            Assert.assertTrue(animators[i].start());
 
-        Assert.assertTrue(animator.isStarted());
-        Assert.assertTrue(animator.isAnimating());
-        Assert.assertEquals(exclusive, animator.isExclusiveContextEnabled());
+            Assert.assertTrue(animators[i].isStarted());
+            Assert.assertTrue(animators[i].isAnimating());
+            Assert.assertEquals(exclusive, animators[i].isExclusiveContextEnabled());
+        }
 
         // After start, ExclusiveContextThread is set
-        {
-            final Thread ect = animator.getExclusiveContextThread();
+        for(int i=0; i<drawableCount; i++) {
+            final Thread ect = animators[i].getExclusiveContextThread();
             if(exclusive) {
                 if( useAWTRenderThread ) {
                     Assert.assertEquals(awtRenderThread, ect);
                 } else {
-                    Assert.assertEquals(animator.getThread(), ect);
+                    Assert.assertEquals(animators[i].getThread(), ect);
                 }
             } else {
                 Assert.assertEquals(null, ect);
             }
-            for(int i=0; i<drawableCount; i++) {
-                Assert.assertEquals(ect, drawables[i].getExclusiveContextThread());
-            }
-            setGLAutoDrawableVisible(drawables);
+            Assert.assertEquals(ect, drawables[i].getExclusiveContextThread());
         }
-        animator.setUpdateFPSFrames(showFPSRate, showFPS ? System.err : null);
+
+        if( !preVisible ) {
+            setGLAutoDrawableVisible(drawables);
+
+            // Made visible, check if drawables are realized
+            for(int i=0; i<drawableCount; i++) {
+                Assert.assertEquals(true, drawables[i].isRealized());
+                animators[i].setUpdateFPSFrames(showFPSRate, showFPS ? System.err : null);
+            }
+        }
 
         // Normal run ..
         Thread.sleep(duration);
 
         // Animator Stop #2
-        Assert.assertTrue(animator.stop());
-        Assert.assertFalse(animator.isAnimating());
-        Assert.assertFalse(animator.isStarted());
-        Assert.assertFalse(animator.isPaused());
-        Assert.assertEquals(exclusive, animator.isExclusiveContextEnabled());
-        Assert.assertEquals(null, animator.getExclusiveContextThread());
+        for(int i=0; i<drawableCount; i++) {
+            Assert.assertTrue(animators[i].stop());
+            Assert.assertFalse(animators[i].isAnimating());
+            Assert.assertFalse(animators[i].isStarted());
+            Assert.assertFalse(animators[i].isPaused());
+            Assert.assertEquals(exclusive, animators[i].isExclusiveContextEnabled());
+            Assert.assertEquals(null, animators[i].getExclusiveContextThread());
+        }
 
         // Destroy GLWindows
         for(int i=0; i<drawableCount; i++) {
@@ -187,30 +216,59 @@ public abstract class ExclusiveContextBase10 extends UITestCase {
     }
 
     @Test
-    public void test01Normal_1Win() throws InterruptedException {
+    public void test01Normal_1WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 1 /* numWin */, false /* exclusive */);
+        runTestGL(caps, 1 /* numWin */, false /* exclusive */, false /* preVisible */);
     }
 
     @Test
-    public void test03Excl_1Win() throws InterruptedException {
+    public void test03Excl_1WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 1 /* numWin */, true /* exclusive */);
+        runTestGL(caps, 1 /* numWin */, true /* exclusive */, false /* preVisible */);
     }
 
     @Test
-    public void test05Normal_4Win() throws InterruptedException {
+    public void test05Normal_4WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 4 /* numWin */, false /* exclusive */);
+        runTestGL(caps, 4 /* numWin */, false /* exclusive */, false /* preVisible */);
     }
 
     @Test
-    public void test07Excl_4Win() throws InterruptedException {
+    public void test07Excl_4WinPostVis() throws InterruptedException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, 4 /* numWin */, true /* exclusive */);
+        runTestGL(caps, 4 /* numWin */, true /* exclusive */, false /* preVisible */);
     }
+
+    @Test
+    public void test11Normal_1WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 1 /* numWin */, false /* exclusive */, true /* preVisible */);
+    }
+
+    @Test
+    public void test13Excl_1WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 1 /* numWin */, true /* exclusive */, true /* preVisible */);
+    }
+
+    @Test
+    public void test15Normal_4WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 4 /* numWin */, false /* exclusive */, true /* preVisible */);
+    }
+
+    @Test
+    public void test17Excl_4WinPreVis() throws InterruptedException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, 4 /* numWin */, true /* exclusive */, true /* preVisible */);
+    }
+
 }

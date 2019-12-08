@@ -36,7 +36,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.AnimatorBase;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-
+import com.jogamp.common.os.Platform;
 import com.jogamp.nativewindow.Capabilities;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 
@@ -114,90 +114,92 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
             return;
         }
         final Thread awtRenderThread = getAWTRenderThread();
-        final AnimatorBase animator = createAnimator();
-        if( !useAWTRenderThread ) {
-            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
-        }
+        final AnimatorBase[] animators = new AnimatorBase[drawableCount];
         final GLAutoDrawable[] drawables = new GLAutoDrawable[drawableCount];
         for(int i=0; i<drawableCount; i++) {
+            animators[i] = createAnimator();
+            if( !useAWTRenderThread ) {
+                animators[i].setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
+            }
+
             final int x = (  i          % num_x ) * ( demoWinSize + insets.getTotalHeight() ) + insets.getLeftWidth();
             final int y = ( (i / num_x) % num_y ) * ( demoWinSize + insets.getTotalHeight() ) + insets.getTopHeight();
-
             drawables[i] = createGLAutoDrawable("Win #"+i, x, y, demoWinSize, demoWinSize, caps);
             Assert.assertNotNull(drawables[i]);
             final GearsES2 demo = new GearsES2(swapInterval);
             demo.setVerbose(false);
             drawables[i].addGLEventListener(demo);
+
+            if( preAdd ) {
+                animators[i].add(drawables[i]);
+                if( exclusive ) {
+                    if( useAWTRenderThread ) {
+                        Assert.assertEquals(null, animators[i].setExclusiveContext(awtRenderThread));
+                    } else {
+                        Assert.assertEquals(false, animators[i].setExclusiveContext(true));
+                    }
+                }
+            }
+            Assert.assertFalse(animators[i].isAnimating());
+            Assert.assertFalse(animators[i].isStarted());
         }
+
         if( preVisible ) {
             setGLAutoDrawableVisible(drawables);
-        }
 
-        if( preAdd ) {
+            // Made visible, check if drawables are realized
             for(int i=0; i<drawableCount; i++) {
-                animator.add(drawables[i]);
-            }
-            if( exclusive ) {
-                if( useAWTRenderThread ) {
-                    Assert.assertEquals(null, animator.setExclusiveContext(awtRenderThread));
-                } else {
-                    Assert.assertEquals(false, animator.setExclusiveContext(true));
-                }
+                Assert.assertEquals(true, drawables[i].isRealized());
+                animators[i].setUpdateFPSFrames(showFPSRate, showFPS ? System.err : null);
             }
         }
-        Assert.assertFalse(animator.isAnimating());
-        Assert.assertFalse(animator.isStarted());
 
         // Animator Start
-        Assert.assertTrue(animator.start());
+        for(int i=0; i<drawableCount; i++) {
+            Assert.assertTrue(animators[i].start());
 
-        Assert.assertTrue(animator.isStarted());
-        if( preAdd ) {
-            Assert.assertTrue(animator.isAnimating());
-        } else {
-            Assert.assertFalse(animator.isAnimating());
-            if( exclusive ) {
-                if( useAWTRenderThread ) {
-                    Assert.assertEquals(null, animator.setExclusiveContext(awtRenderThread));
-                } else {
-                    Assert.assertEquals(false, animator.setExclusiveContext(true));
-                }
-            }
-            for(int i=0; i<drawableCount; i++) {
-                animator.add(drawables[i]);
-            }
-            Assert.assertTrue(animator.isAnimating());
-        }
-
-        // After start, ExclusiveContextThread is set
-        Assert.assertEquals(exclusive, animator.isExclusiveContextEnabled());
-        {
-            final Thread ect = animator.getExclusiveContextThread();
-            if(exclusive) {
-                if( useAWTRenderThread ) {
-                    Assert.assertEquals(awtRenderThread, ect);
-                } else {
-                    Assert.assertEquals(animator.getThread(), ect);
-                }
+            Assert.assertTrue(animators[i].isStarted());
+            if( preAdd ) {
+                Assert.assertTrue(animators[i].isAnimating());
             } else {
-                Assert.assertEquals(null, ect);
+                Assert.assertFalse(animators[i].isAnimating());
+                if( exclusive ) {
+                    if( useAWTRenderThread ) {
+                        Assert.assertEquals(null, animators[i].setExclusiveContext(awtRenderThread));
+                    } else {
+                        Assert.assertEquals(false, animators[i].setExclusiveContext(true));
+                    }
+                }
+                animators[i].add(drawables[i]);
+                Assert.assertTrue(animators[i].isAnimating());
             }
-            for(int i=0; i<drawableCount; i++) {
+
+            // After start, ExclusiveContextThread is set
+            Assert.assertEquals(exclusive, animators[i].isExclusiveContextEnabled());
+            {
+                final Thread ect = animators[i].getExclusiveContextThread();
+                if(exclusive) {
+                    if( useAWTRenderThread ) {
+                        Assert.assertEquals(awtRenderThread, ect);
+                    } else {
+                        Assert.assertEquals(animators[i].getThread(), ect);
+                    }
+                } else {
+                    Assert.assertEquals(null, ect);
+                }
                 Assert.assertEquals(ect, drawables[i].getExclusiveContextThread());
             }
         }
+
         if( !preVisible ) {
             setGLAutoDrawableVisible(drawables);
-        }
 
-        // Made visible, check if drawables are realized
-        {
+            // Made visible, check if drawables are realized
             for(int i=0; i<drawableCount; i++) {
                 Assert.assertEquals(true, drawables[i].isRealized());
+                animators[i].setUpdateFPSFrames(showFPSRate, showFPS ? System.err : null);
             }
-
         }
-        animator.setUpdateFPSFrames(showFPSRate, showFPS ? System.err : null);
 
         // Normal run ..
         Thread.sleep(duration/durationParts); // 1
@@ -205,15 +207,19 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
         if( !shortenTest ) {
             // Disable/Enable exclusive mode manually for all GLAutoDrawable
             if(exclusive) {
-                final Thread ect = animator.getExclusiveContextThread();
-                if( useAWTRenderThread ) {
-                    Assert.assertEquals(awtRenderThread, ect);
-                } else {
-                    Assert.assertEquals(animator.getThread(), ect);
-                }
+                final Thread ects[] = new Thread[drawableCount];
                 for(int i=0; i<drawableCount; i++) {
-                    final Thread t = drawables[i].setExclusiveContextThread(null);
-                    Assert.assertEquals(ect, t);
+                    ects[i] = animators[i].getExclusiveContextThread();
+                    if( useAWTRenderThread ) {
+                        Assert.assertEquals(awtRenderThread, ects[i]);
+                    } else {
+                        Assert.assertEquals(animators[i].getThread(), ects[i]);
+                    }
+                    // Disable ECT now ..
+                    {
+                        final Thread t = drawables[i].setExclusiveContextThread(null);
+                        Assert.assertEquals(ects[i], t); // old one should match
+                    }
                 }
 
                 Thread.sleep(duration/durationParts); // 2
@@ -233,120 +239,117 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
                         }
                         Assert.assertEquals(true, ok);
                     }
-                    final Thread t = drawables[i].setExclusiveContextThread(ect);
+                    final Thread t = drawables[i].setExclusiveContextThread(ects[i]);
                     Assert.assertEquals(null, t);
                 }
 
                 Thread.sleep(duration/durationParts); // 3
-            }
 
-            // Disable/Enable exclusive mode via Animator for all GLAutoDrawable
-            if(exclusive) {
-                final Thread ect = animator.getExclusiveContextThread();
-                if( useAWTRenderThread ) {
-                    Assert.assertEquals(awtRenderThread, ect);
-                } else {
-                    Assert.assertEquals(animator.getThread(), ect);
-                }
-
-                Assert.assertEquals(true, animator.setExclusiveContext(false));
-                Assert.assertFalse(animator.isExclusiveContextEnabled());
+                // Disable/Enable exclusive mode via Animator for all GLAutoDrawable
                 for(int i=0; i<drawableCount; i++) {
+                    ects[i] = animators[i].getExclusiveContextThread();
+                    if( useAWTRenderThread ) {
+                        Assert.assertEquals(awtRenderThread, ects[i]);
+                    } else {
+                        Assert.assertEquals(animators[i].getThread(), ects[i]);
+                    }
+
+                    Assert.assertEquals(true, animators[i].setExclusiveContext(false));
+                    Assert.assertFalse(animators[i].isExclusiveContextEnabled());
                     Assert.assertEquals(null, drawables[i].getExclusiveContextThread());
                 }
 
-                Thread.sleep(duration/durationParts); // 4
+                    Thread.sleep(duration/durationParts); // 4
 
-                Assert.assertEquals(null, animator.setExclusiveContext(ect));
-                Assert.assertTrue(animator.isExclusiveContextEnabled());
-                Assert.assertEquals(ect, animator.getExclusiveContextThread());
                 for(int i=0; i<drawableCount; i++) {
-                    Assert.assertEquals(ect, drawables[i].getExclusiveContextThread());
+                    Assert.assertEquals(null, animators[i].setExclusiveContext(ects[i]));
+                    Assert.assertTrue(animators[i].isExclusiveContextEnabled());
+                    Assert.assertEquals(ects[i], animators[i].getExclusiveContextThread());
+                    Assert.assertEquals(ects[i], drawables[i].getExclusiveContextThread());
                 }
 
                 Thread.sleep(duration/durationParts); // 5
             }
 
-            Assert.assertEquals(exclusive, animator.isExclusiveContextEnabled());
-            Assert.assertTrue(animator.isStarted());
-            Assert.assertTrue(animator.isAnimating());
-            Assert.assertFalse(animator.isPaused());
-
-            // Animator Pause
-            Assert.assertTrue(animator.pause());
-            Assert.assertTrue(animator.isStarted());
-            Assert.assertFalse(animator.isAnimating());
-            Assert.assertTrue(animator.isPaused());
-            Assert.assertEquals(exclusive, animator.isExclusiveContextEnabled());
-            if(exclusive) {
-                final Thread ect = animator.getExclusiveContextThread();
-                if( useAWTRenderThread ) {
-                    Assert.assertEquals(awtRenderThread, ect);
-                } else {
-                    Assert.assertEquals(animator.getThread(), ect);
-                }
-            } else {
-                Assert.assertEquals(null, animator.getExclusiveContextThread());
-            }
             for(int i=0; i<drawableCount; i++) {
+                Assert.assertEquals(exclusive, animators[i].isExclusiveContextEnabled());
+                Assert.assertTrue(animators[i].isStarted());
+                Assert.assertTrue(animators[i].isAnimating());
+                Assert.assertFalse(animators[i].isPaused());
+
+                // Animator Pause
+                Assert.assertTrue(animators[i].pause());
+                Assert.assertTrue(animators[i].isStarted());
+                Assert.assertFalse(animators[i].isAnimating());
+                Assert.assertTrue(animators[i].isPaused());
+                Assert.assertEquals(exclusive, animators[i].isExclusiveContextEnabled());
+                if(exclusive) {
+                    final Thread ect = animators[i].getExclusiveContextThread();
+                    if( useAWTRenderThread ) {
+                        Assert.assertEquals(awtRenderThread, ect);
+                    } else {
+                        Assert.assertEquals(animators[i].getThread(), ect);
+                    }
+                } else {
+                    Assert.assertEquals(null, animators[i].getExclusiveContextThread());
+                }
+
                 Assert.assertEquals(null, drawables[i].getExclusiveContextThread());
             }
             Thread.sleep(duration/durationParts); // 6
 
             // Animator Resume
-            Assert.assertTrue(animator.resume());
-            Assert.assertTrue(animator.isStarted());
-            Assert.assertTrue(animator.isAnimating());
-            Assert.assertFalse(animator.isPaused());
-            Assert.assertEquals(exclusive, animator.isExclusiveContextEnabled());
-            if(exclusive) {
-                final Thread ect = animator.getExclusiveContextThread();
-                if( useAWTRenderThread ) {
-                    Assert.assertEquals(awtRenderThread, ect);
-                } else {
-                    Assert.assertEquals(animator.getThread(), ect);
-                }
-                for(int i=0; i<drawableCount; i++) {
+            for(int i=0; i<drawableCount; i++) {
+                Assert.assertTrue(animators[i].resume());
+                Assert.assertTrue(animators[i].isStarted());
+                Assert.assertTrue(animators[i].isAnimating());
+                Assert.assertFalse(animators[i].isPaused());
+                Assert.assertEquals(exclusive, animators[i].isExclusiveContextEnabled());
+                if(exclusive) {
+                    final Thread ect = animators[i].getExclusiveContextThread();
+                    if( useAWTRenderThread ) {
+                        Assert.assertEquals(awtRenderThread, ect);
+                    } else {
+                        Assert.assertEquals(animators[i].getThread(), ect);
+                    }
                     Assert.assertEquals(ect, drawables[i].getExclusiveContextThread());
-                }
-            } else {
-                Assert.assertEquals(null, animator.getExclusiveContextThread());
-                for(int i=0; i<drawableCount; i++) {
+                } else {
+                    Assert.assertEquals(null, animators[i].getExclusiveContextThread());
                     Assert.assertEquals(null, drawables[i].getExclusiveContextThread());
                 }
             }
             Thread.sleep(duration/durationParts); // 7
 
             // Animator Stop #1
-            Assert.assertTrue(animator.stop());
-            Assert.assertFalse(animator.isAnimating());
-            Assert.assertFalse(animator.isStarted());
-            Assert.assertFalse(animator.isPaused());
-            Assert.assertEquals(exclusive, animator.isExclusiveContextEnabled());
-            Assert.assertEquals(null, animator.getExclusiveContextThread());
             for(int i=0; i<drawableCount; i++) {
+                Assert.assertTrue(animators[i].stop());
+                Assert.assertFalse(animators[i].isAnimating());
+                Assert.assertFalse(animators[i].isStarted());
+                Assert.assertFalse(animators[i].isPaused());
+                Assert.assertEquals(exclusive, animators[i].isExclusiveContextEnabled());
+                Assert.assertEquals(null, animators[i].getExclusiveContextThread());
                 Assert.assertEquals(null, drawables[i].getExclusiveContextThread());
             }
             Thread.sleep(duration/durationParts); // 8
 
             // Animator Re-Start
-            Assert.assertTrue(animator.start());
-            Assert.assertTrue(animator.isStarted());
-            Assert.assertTrue(animator.isAnimating());
-            Assert.assertEquals(exclusive, animator.isExclusiveContextEnabled());
-            // After start, ExclusiveContextThread is set
-            {
-                final Thread ect = animator.getExclusiveContextThread();
-                if(exclusive) {
-                    if( useAWTRenderThread ) {
-                        Assert.assertEquals(awtRenderThread, ect);
+            for(int i=0; i<drawableCount; i++) {
+                Assert.assertTrue(animators[i].start());
+                Assert.assertTrue(animators[i].isStarted());
+                Assert.assertTrue(animators[i].isAnimating());
+                Assert.assertEquals(exclusive, animators[i].isExclusiveContextEnabled());
+                // After start, ExclusiveContextThread is set
+                {
+                    final Thread ect = animators[i].getExclusiveContextThread();
+                    if(exclusive) {
+                        if( useAWTRenderThread ) {
+                            Assert.assertEquals(awtRenderThread, ect);
+                        } else {
+                            Assert.assertEquals(animators[i].getThread(), ect);
+                        }
                     } else {
-                        Assert.assertEquals(animator.getThread(), ect);
+                        Assert.assertEquals(null, ect);
                     }
-                } else {
-                    Assert.assertEquals(null, ect);
-                }
-                for(int i=0; i<drawableCount; i++) {
                     Assert.assertEquals(ect, drawables[i].getExclusiveContextThread());
                 }
             }
@@ -355,20 +358,22 @@ public abstract class ExclusiveContextBase00 extends UITestCase {
             // Remove all drawables .. while running!
             for(int i=0; i<drawableCount; i++) {
                 final GLAutoDrawable drawable = drawables[i];
-                animator.remove(drawable);
+                animators[i].remove(drawable);
                 Assert.assertEquals(null, drawable.getExclusiveContextThread());
+                Assert.assertTrue(animators[i].isStarted());
+                Assert.assertFalse(animators[i].isAnimating()); // no drawables in list!
             }
-            Assert.assertTrue(animator.isStarted());
-            Assert.assertFalse(animator.isAnimating()); // no drawables in list!
         } // !shortenTest
 
         // Animator Stop #2
-        Assert.assertTrue(animator.stop());
-        Assert.assertFalse(animator.isAnimating());
-        Assert.assertFalse(animator.isStarted());
-        Assert.assertFalse(animator.isPaused());
-        Assert.assertEquals(exclusive, animator.isExclusiveContextEnabled());
-        Assert.assertEquals(null, animator.getExclusiveContextThread());
+        for(int i=0; i<drawableCount; i++) {
+            Assert.assertTrue(animators[i].stop());
+            Assert.assertFalse(animators[i].isAnimating());
+            Assert.assertFalse(animators[i].isStarted());
+            Assert.assertFalse(animators[i].isPaused());
+            Assert.assertEquals(exclusive, animators[i].isExclusiveContextEnabled());
+            Assert.assertEquals(null, animators[i].getExclusiveContextThread());
+        }
 
         // Destroy GLWindows
         for(int i=0; i<drawableCount; i++) {
