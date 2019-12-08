@@ -4561,7 +4561,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /**
      * Wait until position is reached within tolerances, either auto-position or custom position.
      * <p>
-     * Since WM may not obey our positional request exactly, we allow a tolerance of 2 times insets[left/top], or 64 pixels, whatever is greater.
+     * Since WM may not obey our positional request exactly, we allow a tolerance of 2 times insets[left/top], or 64 pixels, whichever is greater.
      * </p>
      */
     private boolean waitForPosition(final boolean useCustomPosition, final int x, final int y, final long timeOut) {
