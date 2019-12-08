@@ -144,6 +144,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window -Djogamp.common.utils.locks.Lock.timeout=600000 -Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Dnativewindow.debug.OSXUtil.MainThreadChecker"
+    #D_ARGS="-Dnativewindow.debug.OSXUtil.MainThreadChecker"
 
     #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true"
     #D_ARGS="-Djogl.debug.GLContext -Djogamp.debug.NativeLibrary -Djogamp.debug.JNILibLoader -Djogl.debug.DebugGL -Djogl.debug.GLDebugMessageHandler"
@@ -818,7 +819,6 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyPressReleaseUnmaskRepeatAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT $*
 #testawtswt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWTAWT $*
@@ -963,49 +963,18 @@ function testawtswt() {
 #
 # 2.4.0 Regressions
 #
-# OSX
-#testawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimAWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext11VSyncAnimNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext12FPSAnimNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT $*
+# OSX OpenJDK11U
 #testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug1245JTabbedPanelCrashAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug664GLCanvasSetVisibleSwingAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
 
-# Linux Mesa/AMD:
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestBug817GLReadBufferUtilGLCTXDefFormatTypeES2NEWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01dAWT $*
-
-# Linux Mesa/Soft
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile03NEWTOffscreen $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
-
-# ATI/Linux: XCB Unknown request in queue while dequeuing
-#            Most likely this is a multi-threaded client and XInitThreads has not been called
-#            ../../src/xcb_io.c:178: dequeue_pending_request: Assertion `!xcb_xlib_unknown_req_in_deq' failed
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimNEWT $*
-# this one works - though !
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimNEWT $* 
-
-# ATI/Linux XCB Unknown request in queue while dequeuing
-#           Most likely this is a multi-threaded client and XInitThreads has not been called
-#           ../../src/xcb_io.c:178: dequeue_pending_request: Assertion `!xcb_xlib_unknown_req_in_deq' failed.
-#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT $*
-
-# caused a freeze/crash on OSX
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT $*
+# Linux DRM/GBM
+#
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextSurfaceLockNEWT $*
 
 # NEW
 

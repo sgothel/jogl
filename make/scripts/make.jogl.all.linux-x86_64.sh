@@ -36,10 +36,15 @@ fi
 LOGF=make.jogl.all.linux-x86_64.log
 rm -f $LOGF
 
+# export LIBGL_DEBUG=verbose 
+# export MESA_DEBUG=true 
+# export LIBGL_ALWAYS_SOFTWARE=true
 # export LIBGL_DRIVERS_PATH=/usr/lib/fglrx/dri:/usr/lib32/fglrx/dri
-# export LIBGL_DEBUG=verbose
 echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a $LOGF
 echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a $LOGF
+echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
+echo LIBGL_ALWAYS_INDIRECT: $LIBGL_ALWAYS_INDIRECT 2>&1 | tee -a $LOGF
+echo LIBGL_ALWAYS_SOFTWARE: $LIBGL_ALWAYS_SOFTWARE 2>&1 | tee -a $LOGF
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 
 export SOURCE_LEVEL=1.8
