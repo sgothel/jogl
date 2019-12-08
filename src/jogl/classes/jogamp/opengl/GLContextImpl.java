@@ -2424,9 +2424,9 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
         if( isDriverNVIDIAGeForce ) {
-            // Bug 1200: Crash on GNU/Linux x86_64 'NVidia beta driver 355.06' @ probeSurfacelessCtx
-            final VersionNumber nvSafeVersion = new VersionNumber(430, 40, 0);
-            if( !isES && !(adevice instanceof EGLGraphicsDevice) &&  vendorVersion.compareTo(nvSafeVersion) < 0 ) {
+            // Bug 1200: Crash on GNU/Linux x86_64 'NVidia beta driver 355.06' and 'latest' 440.36 @ probeSurfacelessCtx
+            // final VersionNumber nvSafeVersion = new VersionNumber(440, 36, 0); // FIXME: Add safe version
+            if( !isES && !(adevice instanceof EGLGraphicsDevice) /* &&  vendorVersion.compareTo(nvSafeVersion) < 0 */ ) {
                 final int quirk = GLRendererQuirks.NoSurfacelessCtx;
                 if(DEBUG) {
                     System.err.print("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: !ES, !EGL, Vendor " + glVendor +", X11 Renderer " + glRenderer+", Version=[vendor " + vendorVersion + ", GL " + glVersion+"]");

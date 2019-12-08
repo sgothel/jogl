@@ -475,6 +475,7 @@ public class GLRendererQuirks {
      *   <li>GNU/Linux X11 Nvidia proprietary driver
      *   <ul>
      *     <li>GL_VERSION      4.4.0 NVIDIA 340.24</li>
+     *     <li>GL_VERSION      4.6.0 NVIDIA 440.36</li>
      *     <li>Platform        GNU/Linux X11</li>
      *   </ul></li>
      * </ul>
