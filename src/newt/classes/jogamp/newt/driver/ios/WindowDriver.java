@@ -455,7 +455,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 OSXUtil.RunOnMainThread(false, false, new Runnable() {
                     @Override
                     public void run() {
-                        updateSizePosInsets0(getWindowHandle(), false);
+                        updateSizePosInsets0(getWindowHandle(), false); // calls: sizeScreenPosInsetsChanged(..)
                     } } );
             }
             visibleChanged(0 != ( STATE_MASK_VISIBLE & flags));
@@ -475,7 +475,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     OSXUtil.RunOnMainThread(false, false, new Runnable() {
                         @Override
                         public void run() {
-                            updateSizePosInsets0(oldWindowHandle, false);
+                            updateSizePosInsets0(oldWindowHandle, false); // calls: sizeScreenPosInsetsChanged(..)
                         } } );
                 } else { // else offscreen size is realized via recreation
                     // no native event (fullscreen, some reparenting)
@@ -522,7 +522,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     private Point getLocationOnScreenByParent(final int x, final int y, final NativeWindow parent) {
-        return new Point(x, y).translate( parent.getLocationOnScreen(null) );
+        // return new Point(x, y).translate( parent.getLocationOnScreen(null) ); // Bug 1393: deadlock AppKit + EDT
+        return new Point(x, y).translate( IOSUtil.GetLocationOnScreen(parent.getWindowHandle(), 0, 0) ); // non-blocking
     }
 
     /** Callback for native screen position change event of the client area. */
@@ -540,7 +541,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     public void run() {
                         // screen position -> rel child window position
                         final Point absPos = new Point(newX, newY);
-                        final Point parentOnScreen = parent.getLocationOnScreen(null);
+                        // final Point parentOnScreen = parent.getLocationOnScreen(null); // Bug 1393: deadlock AppKit + EDT
+                        final Point parentOnScreen = IOSUtil.GetLocationOnScreen(parent.getWindowHandle(), 0, 0); // non-blocking
                         absPos.translate( parentOnScreen.scale(-1, -1) );
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("MacWindow.positionChanged.1 (Screen Pos - CHILD): ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> absPos "+newX+"/"+newY+", parentOnScreen "+parentOnScreen+" -> "+absPos);
