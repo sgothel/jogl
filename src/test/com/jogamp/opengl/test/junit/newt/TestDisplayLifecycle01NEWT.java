@@ -45,6 +45,7 @@ import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -110,8 +111,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertNotNull(window.getScreen());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
-        Assert.assertEquals(xy_pos,window.getX());
-        Assert.assertEquals(xy_pos,window.getY());
+        Assert.assertTrue(NewtTestUtil.hasPositionMax2xInsetsOr64Pix(window, xy_pos, xy_pos));
 
         // lazy native creation sequence: Display, Screen and Window
         Assert.assertEquals(0, window.getTotalFPSFrames());
@@ -126,8 +126,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
-        Assert.assertEquals(xy_pos,window.getX());
-        Assert.assertEquals(xy_pos,window.getY());
+        Assert.assertTrue(NewtTestUtil.hasPositionMax2xInsetsOr64Pix(window, xy_pos, xy_pos));
         System.err.println("Frames for setVisible(true) 1: "+window.getTotalFPSFrames());
         Assert.assertTrue(0 < window.getTotalFPSFrames());
 
@@ -141,8 +140,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         window.setVisible(false);
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
-        Assert.assertEquals(xy_pos,window.getX());
-        Assert.assertEquals(xy_pos,window.getY());
+        Assert.assertTrue(NewtTestUtil.hasPositionMax2xInsetsOr64Pix(window, xy_pos, xy_pos));
 
         // just make the Window visible again
         window.resetFPSCounter();
@@ -150,8 +148,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         window.setVisible(true);
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
-        Assert.assertEquals(xy_pos,window.getX());
-        Assert.assertEquals(xy_pos,window.getY());
+        Assert.assertTrue(NewtTestUtil.hasPositionMax2xInsetsOr64Pix(window, xy_pos, xy_pos));
         System.err.println("Frames for setVisible(true) 1: "+window.getTotalFPSFrames());
         Assert.assertTrue(0 < window.getTotalFPSFrames());
 

@@ -100,8 +100,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
-        Assert.assertEquals(xy_pos,window.getX());
-        Assert.assertEquals(xy_pos,window.getY());
+        Assert.assertTrue(NewtTestUtil.hasPositionMax2xInsetsOr64Pix(window, xy_pos, xy_pos));
 
         // lazy native creation sequence: Display, Screen and Window
         Assert.assertEquals(0, window.getTotalFPSFrames());
@@ -117,8 +116,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
-        Assert.assertEquals(xy_pos,window.getX());
-        Assert.assertEquals(xy_pos,window.getY());
+        Assert.assertTrue(NewtTestUtil.hasPositionMax2xInsetsOr64Pix(window, xy_pos, xy_pos));
         System.err.println("Frames for setVisible(true) 1: "+window.getTotalFPSFrames());
         Assert.assertTrue(0 < window.getTotalFPSFrames());
 
@@ -142,8 +140,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
         window.setVisible(true);
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
-        Assert.assertEquals(xy_pos,window.getX());
-        Assert.assertEquals(xy_pos,window.getY());
+        Assert.assertTrue(NewtTestUtil.hasPositionMax2xInsetsOr64Pix(window, xy_pos, xy_pos));
         System.err.println("Frames for setVisible(true) 1: "+window.getTotalFPSFrames());
         Assert.assertTrue(0 < window.getTotalFPSFrames());
 

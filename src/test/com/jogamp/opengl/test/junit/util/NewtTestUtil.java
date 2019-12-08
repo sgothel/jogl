@@ -31,6 +31,7 @@ package com.jogamp.opengl.test.junit.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.WindowEvent;
@@ -199,6 +200,30 @@ public class NewtTestUtil extends TestUtil {
         closingListener.reset();
         WindowImplAccess.windowDestroyNotify(win);
         return waitUntilClosed(willClose, closingListener, waitAction);
+    }
+
+    /**
+     * Validates whether the window position is on the given position within tolerances.
+     * <p>
+     * Since WM may not obey our positional request exactly, we allow a tolerance of 2 times insets[left/top], or 64 pixels, whichever is greater.
+     * </p>
+     */
+    public static boolean hasPositionMax2xInsetsOr64Pix(final Window win, final int shouldX, final int shouldY) {
+        final int maxDX, maxDY;
+        {
+            final InsetsImmutable insets = win.getInsets();
+            maxDX = Math.max(64, insets.getLeftWidth() * 2);
+            maxDY = Math.max(64, insets.getTopHeight() * 2);
+        }
+        return hasPosition(win, shouldX, shouldY, maxDX, maxDY);
+    }
+    /**
+     * Validates whether the window position is on the given position within the given tolerances.
+     */
+    public static boolean hasPosition(final Window win, final int shouldX, final int shouldY, final int maxDX, final int maxDY) {
+        final boolean ok = Math.abs(shouldX - win.getX()) <= maxDX &&
+                     Math.abs(shouldY - win.getY()) <= maxDY ;
+        return ok;
     }
 }
 
