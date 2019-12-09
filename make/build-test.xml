@@ -406,6 +406,7 @@
         <!-- Test*NEWT* -->
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/**/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
     </target>
 
     <!-- junit.run.newt is covered by junit.run.newt.headless, disable it for now, but may be checked manually.
@@ -558,6 +559,7 @@
         <echo message="+++ "/>
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/**/acore/Test*Shared*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <!-- Test*AWT* -->
         <echo message="+++ "/>
@@ -565,6 +567,7 @@
         <echo message="+++ "/>
         <property name="generic.junit.run.awt.include.pattern" value="${java.dir.junit}/**/acore/Test*Shared*AWT*"/>
         <antcall target="generic.junit.run.awt" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.awt.include.pattern" unset="true"/>
 
         <!-- Test*SWTHeadless* -->
         <echo message="+++ "/>
@@ -572,18 +575,21 @@
         <echo message="+++ "/>
         <property name="generic.junit.run.swt.headless.include.pattern" value="${java.dir.junit}/**/acore/Test*Shared*SWT*"/>
         <antcall target="generic.junit.run.swt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.swt.headless.include.pattern" unset="true"/>
     </target>
 
     <target name="junit.run.newt.event" depends="test.compile, junit.run.settings">
         <!-- Test*AWT* -->
         <property name="generic.junit.run.newt.awt.include.pattern" value="${java.dir.junit}/**/newt/event/Test**"/>
         <antcall target="generic.junit.run.newt.awt" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.awt.include.pattern" unset="true"/>
     </target>
 
     <target name="junit.run.newt.monitormode" depends="test.compile, junit.run.settings">
         <!-- Test*AWT* -->
         <property name="generic.junit.run.newt.awt.include.pattern" value="${java.dir.junit}/**/newt/mm/Test**"/>
         <antcall target="generic.junit.run.newt.awt" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.awt.include.pattern" unset="true"/>
     </target>
 
     <target name="junit.run.awt.singletest" depends="test.compile, junit.run.settings">
@@ -729,6 +735,7 @@
         <!-- Test*SWTHeadless* -->
         <property name="generic.junit.run.swt.headless.include.pattern" value="${java.dir.junit}/**/Test*SWT*"/>
         <antcall target="generic.junit.run.swt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.swt.headless.include.pattern" unset="true"/>
     </target>
 
     <target name="junit.run.swt.awt" depends="test.compile" description="Runs all pure SWT AWT tests." unless="setup.noSWT" if="isSWTRuntimeAvailable">
@@ -1204,52 +1211,69 @@ ${line.separator}
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/acore/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/acore/anim/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <!-- ExclusiveContextThread very buggy Intel driver .. FIXME/Investigate
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/acore/ect/Test*NEWT*"/>
-        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/> -->
+        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/> 
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
+        -->
 
         <!-- Drawable/Context switching very buggy Intel driver .. FIXME/Investigate
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/acore/glels/Test*NEWT*"/>
-        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/> -->
+        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/> 
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
+        -->
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/caps/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/demos/es1/newt/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/demos/es2/newt/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/glsl/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/perf/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/tile/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/util/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/texture/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/newt/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/newt/mm/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
 
         <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/graph/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
-
+        <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
     </target>
+
     <target name="junit.run.console" depends="junit.run.settings, junit.run.console.if.enabled, junit.run.if.disabled">
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
