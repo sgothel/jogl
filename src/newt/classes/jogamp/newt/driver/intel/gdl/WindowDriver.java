@@ -86,7 +86,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
 
     @Override
     protected final int getSupportedReconfigMaskImpl() {
-        return minimumReconfigStateMask;
+        return mutableSizePosReconfigStateMask;
     }
 
     @Override

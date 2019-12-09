@@ -48,7 +48,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGLContextSurfaceLockNEWT extends UITestCase {
-    static final int demoSize = 64;
+    static final int demoSizePos = 80;
 
     public abstract class MyRunnable implements Runnable {
         final Object postSync;
@@ -77,6 +77,8 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
             System.err.println("Animatr "+id+", count "+frameCount+": PRE: "+Thread.currentThread().getName());
 
             for(int c=0; c<frameCount; c++) {
+                System.err.println("Animatr "+id+": Action "+c+" / "+frameCount+": "+Thread.currentThread().getName());
+
                 glad.display();
             }
 
@@ -107,8 +109,11 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
             System.err.println("Resizer "+id+", count "+actionCount+": PRE: "+Thread.currentThread().getName());
 
             for(int c=0; c<actionCount; c++) {
+                final int _c = c;
                 win.runOnEDTIfAvail(true, new Runnable() {
+                    int i = _c;
                     public void run() {
+                        System.err.println("Resizer "+id+": Action "+i+" / "+actionCount+": "+Thread.currentThread().getName());
                         // Normal resize, may trigger immediate display within lock
                         win.setSize(win.getSurfaceWidth()+1, win.getSurfaceHeight()+1);
 
@@ -188,7 +193,8 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
 
         glWindow.addGLEventListener(new GearsES2(0));
         glWindow.addGLEventListener(myEventCounter);
-        glWindow.setSize(demoSize, demoSize);
+        glWindow.setPosition(demoSizePos, demoSizePos);
+        glWindow.setSize(demoSizePos, demoSizePos);
         glWindow.setVisible(true);
 
         final String currentThreadName = Thread.currentThread().getName();

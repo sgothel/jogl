@@ -1088,6 +1088,7 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_WindowDriver_GetSupportedReco
         FLAG_IS_FULLSCREEN |
         FLAG_IS_POINTERVISIBLE |
         FLAG_IS_POINTERCONFINED |
+        FLAG_IS_REPOSITIONABLE |
         FLAG_IS_FULLSCREEN_SPAN;
 }
 

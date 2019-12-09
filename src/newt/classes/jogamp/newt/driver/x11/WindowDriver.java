@@ -170,7 +170,20 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected final int getSupportedReconfigMaskImpl() {
-        return ( minimumReconfigStateMask | GetSupportedReconfigMask0(javaWindowHandle) ) & STATE_MASK_ALL_RECONFIG;
+        if( 0 == javaWindowHandle ) {
+            return mutableSizePosReconfigStateMask |
+                   STATE_MASK_CHILDWIN |
+                   STATE_MASK_UNDECORATED |
+                   STATE_MASK_ALWAYSONTOP | // optional
+                   STATE_MASK_ALWAYSONBOTTOM | // optional
+                   STATE_MASK_STICKY | // optional
+                   STATE_MASK_MAXIMIZED_VERT | // optional
+                   STATE_MASK_MAXIMIZED_HORZ | // optional
+                   STATE_MASK_POINTERVISIBLE |
+                   STATE_MASK_POINTERCONFINED;
+        } else {
+            return ( mutableSizePosReconfigStateMask | GetSupportedReconfigMask0(javaWindowHandle) ) & STATE_MASK_ALL_RECONFIG;
+        }
     }
 
     @Override

@@ -117,7 +117,7 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
 
     @Override
     protected final int getSupportedReconfigMaskImpl() {
-        return minimumReconfigStateMask;
+        return mutableSizePosReconfigStateMask;
     }
 
     @Override

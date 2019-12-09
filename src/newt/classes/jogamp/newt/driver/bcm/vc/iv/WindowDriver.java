@@ -252,7 +252,7 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected final int getSupportedReconfigMaskImpl() {
-        return minimumReconfigStateMask |
+        return mutableSizePosReconfigStateMask |
                // STATE_MASK_UNDECORATED |
                // STATE_MASK_ALWAYSONTOP |
                // STATE_MASK_ALWAYSONBOTTOM |
