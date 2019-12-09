@@ -30,10 +30,12 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
 
+import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
@@ -47,10 +49,17 @@ public class TestGLProfileXXNEWTPost extends GLProfile0XBase {
 
     @Test
     public void test01GLProfileDefault() throws InterruptedException {
-        System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
-        System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());
         final GLProfile glp = GLProfile.getDefault();
         System.out.println("GLProfile.getDefault(): "+glp);
+
+        final AbstractGraphicsDevice gd = GLProfile.getDefaultDevice();
+        final GLProfile glp2 = GLProfile.getDefault(gd);
+        System.out.println("GLProfile.getDefaultDevice(): "+gd);
+        System.out.println("GLProfile.getDefault(gd): "+glp2);
+        Assert.assertEquals(glp, glp2);
+
+        System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
+
         final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
         validateOnlineOffscreen("default", caps);
     }

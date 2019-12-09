@@ -40,6 +40,8 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -84,17 +86,30 @@ public class TestShutdownCompleteNEWT extends UITestCase {
     @AfterClass
     public static void afterAll() {
         if(waitForKey) {
-            UITestCase.waitForKey("Exit");
+            JunitTracer.waitForKey("Exit");
         }
     }
 
     protected void oneLife(final boolean glInfo) throws InterruptedException {
         if(waitForEach) {
-            UITestCase.waitForKey("Start One Life");
+            JunitTracer.waitForKey("Start One Life");
         }
         final long t0 = Platform.currentTimeMicros();
         GLProfile.initSingleton();
         final long t1 = Platform.currentTimeMicros();
+
+        // Test minimum requirement, having a default device with profile
+        {
+            final GLProfile glp = GLProfile.getDefault();
+            System.out.println("GLProfile.getDefault(): "+glp);
+
+            final AbstractGraphicsDevice gd = GLProfile.getDefaultDevice();
+            final GLProfile glp2 = GLProfile.getDefault(gd);
+            System.out.println("GLProfile.getDefaultDevice(): "+gd);
+            System.out.println("GLProfile.getDefault(gd): "+glp2);
+            Assert.assertEquals(glp, glp2);
+        }
+
         if(!initOnly) {
             runTestGL(true);
         }
@@ -150,7 +165,7 @@ public class TestShutdownCompleteNEWT extends UITestCase {
         }
 
         if(waitForKey) {
-            UITestCase.waitForKey("Start");
+            JunitTracer.waitForKey("Start");
         }
 
         final String tstname = TestShutdownCompleteNEWT.class.getName();

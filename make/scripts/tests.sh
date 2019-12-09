@@ -118,6 +118,8 @@ function jrun() {
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.quirks.force=NoSurfacelessCtx"
     #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext -Djogl.quirks.force=GL3CompatNonCompliant,NoSurfacelessCtx -Djogl.disable.opengles" 
+    #D_ARGS="-Djogl.disable.opengldesktop"
+    #D_ARGS="-Djogl.disable.opengles"
     #D_ARGS="-Djogl.quirks.force=NoDoubleBufferedPBuffer" 
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000"
@@ -468,6 +470,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile02NEWTNoARBCtx $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile03NEWTOffscreen $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile04NEWTOffscreenNoARBCtx $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfileXXNEWTPost $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestVersionSemanticsNOUI $*
 #
 
@@ -965,16 +968,24 @@ function testawtswt() {
 #
 # OSX OpenJDK11U
 #testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
-testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos04bAWT $*
 
 # Linux DRM/GBM
 #
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfileXXNEWTPost $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextSurfaceLockNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestCPUSourcingAPINEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent02NEWT $*
 
 # NEW
 

@@ -70,6 +70,9 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
+        System.err.println("GLprofile default: "+GLProfile.getDefault());
+        System.err.println("GLprofile defaultDevice: "+GLProfile.getDefaultDevice());
+
         final Window dummyWindow = NewtFactory.createWindow(new Capabilities());
         dummyWindow.setSize(demoWinSize, demoWinSize);
         dummyWindow.setVisible(true);
@@ -99,6 +102,9 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         public void run() {
             final int x = (  id          % num_x ) * ( demoWinSize + insets.getTotalHeight() );
             final int y = ( (id / num_x) % num_y ) * ( demoWinSize + insets.getTotalHeight() );
+
+            System.err.println("GLprofile default: "+GLProfile.getDefault());
+            System.err.println("GLprofile defaultDevice: "+GLProfile.getDefaultDevice());
 
             System.err.println("JOGLTask "+id+": START: "+x+"/"+y+", reuse "+reuse+" - "+Thread.currentThread().getName());
             final Display display = NewtFactory.createDisplay(null, reuse);

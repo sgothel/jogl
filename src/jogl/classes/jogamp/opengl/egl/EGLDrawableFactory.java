@@ -438,6 +438,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             // eglGLDynamicLookupHelper.destroy();
             eglGLnDynamicLookupHelper = null;
         }
+        eglDynamicLookupHelperInit = false;
         EGLGraphicsConfigurationFactory.unregisterFactory();
         EGLDisplayUtil.shutdown(DEBUG);
     }
