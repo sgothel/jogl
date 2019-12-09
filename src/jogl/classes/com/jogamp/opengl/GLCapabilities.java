@@ -99,6 +99,16 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
 
   /**
+   * Copies all {@link CapabilitiesImmutable} values
+   * from <code>source</code> into this instance.
+   * @return this instance
+   */
+  public GLCapabilities copyFrom(final CapabilitiesImmutable source) {
+    super.copyFrom(source);
+    return this;
+  }
+
+  /**
    * Copies all {@link GLCapabilitiesImmutable} values
    * from <code>source</code> into this instance.
    * @return this instance

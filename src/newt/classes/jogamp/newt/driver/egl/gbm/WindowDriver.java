@@ -125,8 +125,9 @@ public class WindowDriver extends WindowImpl {
             throw new GLException("Caught: eglBindAPI to "+(ctDesktopGL ? "ES" : "GL")+" failed , error "+toHexString(EGL.eglGetError()));
         }
 
+        final GLCapabilitiesImmutable glCapsReq = EGLGraphicsConfigurationFactory.castOrCopyImmutable(capsRequested);
         final EGLGraphicsConfiguration eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
-                (GLCapabilitiesImmutable)capsRequested, (GLCapabilitiesImmutable)capsRequested, (GLCapabilitiesChooser)capabilitiesChooser,
+                glCapsReq, glCapsReq, (GLCapabilitiesChooser)capabilitiesChooser,
                 aScreen, nativeVisualID, !capsRequested.isBackgroundOpaque());
         if (eglConfig == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
@@ -137,7 +138,6 @@ public class WindowDriver extends WindowImpl {
         if (nativeWindowHandle == 0) {
             throw new NativeWindowException("Error creating egl window: "+eglConfig);
         }
-        setGraphicsConfiguration(eglConfig);
         setWindowHandle(nativeWindowHandle);
         if (0 == getWindowHandle()) {
             throw new NativeWindowException("Error native Window Handle is null");

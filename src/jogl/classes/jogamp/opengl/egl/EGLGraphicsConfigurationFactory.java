@@ -220,6 +220,25 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
     }
 
     /**
+     * Returns a {@link GLCapabilitiesImmutable} based on the given {@link CapabilitiesImmutable}.
+     * <p>
+     * If the given {@code caps} is an instance of {@link GLCapabilitiesImmutable}, same reference will be returned,
+     * otherwise a new {@link GLCapabilitiesImmutable} using the default EGL GLProfile will be created and all
+     * given {@link CapabilitiesImmutable} values copied into.
+     * </p>
+     * @param caps
+     * @return immutable {@link GLCapabilitiesImmutable} either identical to {@code caps} or a new instance, see above.
+     */
+    public static final GLCapabilitiesImmutable castOrCopyImmutable(final CapabilitiesImmutable caps) {
+        if ( caps instanceof GLCapabilitiesImmutable ) {
+            return (GLCapabilitiesImmutable)caps;
+        } else {
+            final GLCapabilities glCapsReq = new GLCapabilities( GLProfile.getDefault( GLDrawableFactory.getEGLFactory().getDefaultDevice() ) );
+            return glCapsReq.copyFrom(caps);
+        }
+    }
+
+    /**
      * Called mainly by {@link #chooseGraphicsConfigurationImpl(CapabilitiesImmutable, CapabilitiesImmutable, CapabilitiesChooser, AbstractGraphicsScreen, int)}
      * @param capsChosen     the intermediate chosen capabilities to be refined by this implementation, may be equal to capsRequested
      * @param capsReq        the original requested capabilities
