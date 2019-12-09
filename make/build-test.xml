@@ -338,6 +338,10 @@
 
              Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
           --> 
+        <echo message="+++ "/>
+        <echo message="+++ generic.junit.run.newt.headless"/>
+        <echo message="+++ Pattern: ${generic.junit.run.newt.headless.include.pattern}"/>
+        <echo message="+++ "/>
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">
@@ -1195,45 +1199,58 @@ ${line.separator}
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="junit.run.console" depends="junit.run.settings, junit.run.if.enabled, junit.run.if.disabled, test.compile" unless="junit.is.disabled">
+    <target name="junit.run.console.if.enabled" depends="test.compile" unless="junit.is.disabled">
         <antcall target="junit.run.noui"          inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/jogl/acore/Test*NEWT*"/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/acore/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/jogl/caps/Test*NEWT*"/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/acore/anim/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/jogl/demos/es1/newt/Test*NEWT*"/>
+        <!-- ExclusiveContextThread very buggy Intel driver .. FIXME/Investigate
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/acore/ect/Test*NEWT*"/>
+        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/> -->
+
+        <!-- Drawable/Context switching very buggy Intel driver .. FIXME/Investigate
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/acore/glels/Test*NEWT*"/>
+        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/> -->
+
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/caps/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/jogl/demos/es2/newt/Test*NEWT*"/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/demos/es1/newt/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/jogl/glsl/Test*NEWT*"/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/demos/es2/newt/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/jogl/perf/Test*NEWT*"/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/glsl/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/jogl/tile/Test*NEWT*"/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/perf/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/jogl/util/Test*NEWT*"/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/tile/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/jogl/texture/Test*NEWT*"/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/util/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/newt/Test*NEWT*"/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/jogl/texture/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/newt/mm/Test*NEWT*"/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/newt/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
-        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/com/jogamp/opengl/test/junit/graph/Test*NEWT*"/>
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/newt/mm/Test*NEWT*"/>
         <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
 
+        <property name="generic.junit.run.newt.headless.include.pattern" value="${java.dir.junit}/graph/Test*NEWT*"/>
+        <antcall target="generic.junit.run.newt.headless" inheritRefs="true" inheritAll="true"/>
+
+    </target>
+    <target name="junit.run.console" depends="junit.run.settings, junit.run.console.if.enabled, junit.run.if.disabled">
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
 
