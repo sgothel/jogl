@@ -52,6 +52,11 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+/**
+ * CPU sourced data API entry not allowed on ES3 and GL core >= 3.0.
+ *
+ * See https://jogamp.org/bugzilla/show_bug.cgi?id=852#c1
+ */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestCPUSourcingAPINEWT extends UITestCase {
     static long duration = 500; // ms
