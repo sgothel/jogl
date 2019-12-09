@@ -28,6 +28,10 @@
       <ant antfile="build-test.xml" target="junit.run" inheritRefs="true" inheritAll="true"/>
     </target>
 
+    <target name="junit.run.console" description="Run automated junit tests in nativewindow, jogl and newt projects (console only)">
+      <ant antfile="build-test.xml" target="junit.run.console" inheritRefs="true" inheritAll="true"/>
+    </target>
+
     <target name="test.manual.run" description="Run manual operated tests in nativewindow, jogl and newt projects">
       <ant antfile="build-test.xml" target="test.manual.run" inheritRefs="true" inheritAll="true"/>
     </target>
