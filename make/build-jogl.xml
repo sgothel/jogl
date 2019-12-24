@@ -1561,6 +1561,7 @@
           <sequential>
             <cc outtype="${output.lib.type}" 
                 usehighleveltool="true"
+                writesoname="true"
                 objdir="${obj.joglsub}" 
                 outfile="${obj.joglsub}/@{output.lib.name}"
                 optimize="${c.compiler.optimise}" 

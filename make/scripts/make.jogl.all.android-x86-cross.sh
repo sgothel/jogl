@@ -1,15 +1,38 @@
 #! /bin/sh
 
-if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh ] ; then
-    . $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh
+SDIR=$(readlink -f `dirname $0`)
+
+if [ -e ${SDIR}/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh ] ; then
+    . ${SDIR}/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh
 fi
+
+LOGF=make.jogl.all.android-x86-cross.log
+rm -f ${LOGF}
+
+export ANDROID_HOME=/opt-linux-x86_64/android-sdk-linux_x86_64
+export ANDROID_API_LEVEL=24
+export ANDROID_HOST_TAG=linux-x86_64
+export ANDROID_ABI=x86
+
+if [ -e ${SDIR}/../../../gluegen/make/scripts/setenv-android-tools.sh ] ; then
+    . ${SDIR}/../../../gluegen/make/scripts/setenv-android-tools.sh >> $LOGF 2>&1
+else
+    echo "${SDIR}/../../../setenv-android-tools.sh doesn't exist!" 2>&1 | tee -a ${LOGF}
+    exit 1
+fi
+
+export GLUEGEN_CPPTASKS_FILE=${SDIR}/../../../gluegen/make/lib/gluegen-cpptasks-android-x86.xml
+export PATH_VANILLA=$PATH
+export PATH=${ANDROID_TOOLCHAIN_ROOT}/${ANDROID_TOOLCHAIN_NAME}/bin:${ANDROID_TOOLCHAIN_ROOT}/bin:${ANDROID_HOME}/platform-tools:${ANDROID_BUILDTOOLS_ROOT}:${PATH}
+echo PATH ${PATH} 2>&1 | tee -a ${LOGF}
+echo clang `which clang` 2>&1 | tee -a ${LOGF}
 
 export NODE_LABEL=.
 
 export HOST_UID=jogamp
 # jogamp02 - 10.1.0.122
 export HOST_IP=10.1.0.122
-export HOST_RSYNC_ROOT=PROJECTS/JOGL
+export HOST_RSYNC_ROOT=PROJECTS/JogAmp
 
 export TARGET_UID=jogamp
 export TARGET_IP=panda02
@@ -20,72 +43,9 @@ export TARGET_ADB_PORT=5555
 export TARGET_ROOT=/data/projects
 export TARGET_ANT_HOME=/usr/share/ant
 
-echo ANDROID_HOME $ANDROID_HOME
-echo NDK_ROOT $NDK_ROOT
-
-if [ -z "$NDK_ROOT" ] ; then
-    #
-    # Generic android-ndk
-    #
-    if [ -e /usr/local/android-ndk ] ; then
-        NDK_ROOT=/usr/local/android-ndk
-    elif [ -e /opt-linux-x86/android-ndk ] ; then
-        NDK_ROOT=/opt-linux-x86/android-ndk
-    elif [ -e /opt/android-ndk ] ; then
-        NDK_ROOT=/opt/android-ndk
-    #
-    # Specific android-ndk-r8d
-    #
-    elif [ -e /usr/local/android-ndk-r8d ] ; then
-        NDK_ROOT=/usr/local/android-ndk-r8d
-    elif [ -e /opt-linux-x86/android-ndk-r8d ] ; then
-        NDK_ROOT=/opt-linux-x86/android-ndk-r8d
-    elif [ -e /opt/android-ndk-r8d ] ; then
-        NDK_ROOT=/opt/android-ndk-r8d
-    else 
-        echo NDK_ROOT is not specified and does not exist in default locations
-        exit 1
-    fi
-elif [ ! -e $NDK_ROOT ] ; then
-    echo NDK_ROOT $NDK_ROOT does not exist
-    exit 1
-fi
-export NDK_ROOT
-
-if [ -z "$ANDROID_HOME" ] ; then
-    if [ -e /usr/local/android-sdk-linux_x86 ] ; then
-        ANDROID_HOME=/usr/local/android-sdk-linux_x86
-    elif [ -e /opt-linux-x86/android-sdk-linux_x86 ] ; then
-        ANDROID_HOME=/opt-linux-x86/android-sdk-linux_x86
-    elif [ -e /opt/android-sdk-linux_x86 ] ; then
-        ANDROID_HOME=/opt/android-sdk-linux_x86
-    else 
-        echo ANDROID_HOME is not specified and does not exist in default locations
-        exit 1
-    fi
-elif [ ! -e $ANDROID_HOME ] ; then
-    echo ANDROID_HOME $ANDROID_HOME does not exist
-    exit 1
-fi
-export ANDROID_HOME
-
-export ANDROID_VERSION=24
 export SOURCE_LEVEL=1.8
 export TARGET_LEVEL=1.8
 export TARGET_RT_JAR=/opt-share/jre1.8.0_212/lib/rt.jar
-
-export GCC_VERSION=4.9
-HOST_ARCH=linux-x86
-export TARGET_TRIPLE=i686-linux-android
-export TOOLCHAIN_NAME=x86
-
-export NDK_TOOLCHAIN_ROOT=$NDK_ROOT/toolchains/${TOOLCHAIN_NAME}-${GCC_VERSION}/prebuilt/${HOST_ARCH}
-export TARGET_PLATFORM_SYSROOT=${NDK_ROOT}/platforms/android-${ANDROID_VERSION}/arch-x86
-
-# Need to add toolchain bins to the PATH. 
-export PATH="$NDK_TOOLCHAIN_ROOT/$TARGET_TRIPLE/bin:$ANDROID_HOME/platform-tools:$PATH"
-
-export GLUEGEN_CPPTASKS_FILE=`pwd`/../../gluegen/make/lib/gluegen-cpptasks-android-x86.xml
 
 #export JUNIT_DISABLED="true"
 #export JUNIT_RUN_ARG0="-Dnewt.test.Screen.disableScreenMode"
@@ -93,8 +53,9 @@ export GLUEGEN_CPPTASKS_FILE=`pwd`/../../gluegen/make/lib/gluegen-cpptasks-andro
 #export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
 export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 
-# BUILD_ARCHIVE=true \
+#BUILD_ARCHIVE=true \
 ant \
     -Drootrel.build=build-android-x86 \
-    $* 2>&1 | tee -a make.jogl.all.android-x86-cross.log
+    -Dgcc.compat.compiler=clang \
+    $* 2>&1 | tee -a ${LOGF}
 

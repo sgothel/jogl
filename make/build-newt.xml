@@ -571,7 +571,7 @@
       </linker>
 
       <linker id="linker.cfg.android.newt" extends="linker.cfg.android">
-        <syslibset dir="${TARGET_PLATFORM_SYSROOT}/usr/lib" libs="android" />
+        <syslibset dir="${env.ANDROID_TOOLCHAIN_SYSROOT0}/usr/lib" libs="android" />
       </linker>
 
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">
@@ -910,6 +910,7 @@
           <sequential>
             <cc outtype="${output.lib.type}" 
                 usehighleveltool="true"
+                writesoname="true"
                 objdir="${obj.newt}"
                 outfile="${obj.newt}/@{output.lib.name}"
                 optimize="${c.compiler.optimise}"
@@ -978,6 +979,8 @@
     </macrodef>
 
     <target name="c.build.newt.windowlib" unless="setup.nonatives">
+      <echo message="Using compiler.cfg.id ${compiler.cfg.id}" />
+      <echo message="Using linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
       <c.build c.compiler.src.files="c.src.files.newt"
                output.lib.name="newt"
                compiler.cfg.id="${compiler.cfg.id}"

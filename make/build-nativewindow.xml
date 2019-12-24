@@ -888,6 +888,7 @@
           <sequential>
             <cc outtype="${output.lib.type}" 
                 usehighleveltool="true"
+                writesoname="true"
                 objdir="${obj.nativewindow}" 
                 outfile="${obj.nativewindow}/@{output.lib.name}"
                 optimize="${c.compiler.optimise}" 
