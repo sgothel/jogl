@@ -38,10 +38,12 @@ import com.jogamp.nativewindow.ToolkitLock;
 import com.jogamp.opengl.GLException;
 
 import jogamp.opengl.Debug;
+import jogamp.opengl.GLVersionNumber;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.LongObjectHashMap;
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.egl.EGL;
 import com.jogamp.opengl.egl.EGLExt;
@@ -226,6 +228,10 @@ public class EGLDisplayUtil {
         return eglPlatform;
     }
 
+    private static boolean eglGetPlatformDisplayProbed = false;
+    private static boolean eglGetPlatformDisplayAvail = false;
+    private static VersionNumber eglGetPlatformDisplayMinVersion = new VersionNumber(1, 5, 0);
+
     private static synchronized long eglGetDisplay(final long nativeDisplay_id)  {
         if( useSingletonEGLDisplay && null != singletonEGLDisplay ) {
             if(DEBUG) {
@@ -236,9 +242,39 @@ public class EGLDisplayUtil {
             return singletonEGLDisplay.eglDisplay;
         }
 
+        if( !eglGetPlatformDisplayProbed ) {
+            boolean viaVersion = false;
+            boolean viaExtension = false;
+            // A display of EGL_NO_DISPLAY is supported only if the EGL version is 1.5 or greater.
+            final GLVersionNumber eglVersion = GLVersionNumber.create( EGL.eglQueryString(EGL.EGL_NO_DISPLAY, EGL.EGL_VERSION) );
+            final int eglVersionErr = EGL.eglGetError();
+            eglGetPlatformDisplayAvail = EGL.EGL_SUCCESS == eglVersionErr &&
+                                         eglVersion.isValid() &&
+                                         eglVersion.compareTo(eglGetPlatformDisplayMinVersion) >= 0;
+            viaVersion = eglGetPlatformDisplayAvail;
+            final int eglExtsErr;
+            if( !eglGetPlatformDisplayAvail ) {
+                final String eglExts = EGL.eglQueryString(EGL.EGL_NO_DISPLAY, EGL.EGL_EXTENSIONS);
+                eglExtsErr = EGL.eglGetError();
+                if( EGL.EGL_SUCCESS == eglExtsErr && null != eglExts && eglExts.length() > 0 ) {
+                    if( eglExts.indexOf("EGL_EXT_platform_base") >= 0 ) {
+                        eglGetPlatformDisplayAvail = true;
+                        viaExtension = true;
+                    }
+                }
+            } else {
+                eglExtsErr = EGL.EGL_SUCCESS;
+            }
+            eglGetPlatformDisplayProbed = true;
+            if(DEBUG) {
+                System.err.println("EGLDisplayUtil.eglGetDisplay.p: eglGetPlatformDisplay available: "+eglGetPlatformDisplayAvail+
+                                   ", eglClientVersion '"+eglVersion+"' via[Version "+viaVersion+", err 0x"+Integer.toHexString(eglVersionErr)+
+                                                                              " / Extension "+viaExtension+", err 0x"+Integer.toHexString(eglExtsErr)+"]");
+            }
+        }
         final int eglPlatform = getEGLPlatformType(true);
         final long eglDisplay;
-        if( 0 != eglPlatform ) {
+        if( eglGetPlatformDisplayAvail && 0 != eglPlatform ) {
             eglDisplay = EGL.eglGetPlatformDisplay(eglPlatform, nativeDisplay_id, null);
         } else {
             eglDisplay = EGL.eglGetDisplay(nativeDisplay_id);

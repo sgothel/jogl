@@ -49,6 +49,7 @@ public class NEWTGearsES2ActivityLauncher extends LauncherUtil.BaseActivityLaunc
        props.setProperty("nativewindow.debug.GraphicsConfiguration", "true");
        // props.setProperty("jogl.debug", "all");
        // properties.setProperty("jogl.debug.GLProfile", "true");
+       props.setProperty("jogl.debug.EGLDisplayUtil", "true");
        // props.setProperty("jogl.debug.GLDrawable", "true");
        props.setProperty("jogl.debug.GLContext", "true");
        props.setProperty("jogl.debug.GLSLCode", "true");
