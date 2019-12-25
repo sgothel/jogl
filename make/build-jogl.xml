@@ -45,6 +45,8 @@
    - Some environment defs affecting native compilation (only)
        setup.noNativeDesktop     - drop native desktop bindings (glx, wgl, ..)
 
+       setup.addNativeFFmpeg     - add binding to FFmpeg
+
        setup.addNativeOpenMAX    - add experimental binding to Khrono's OpenMAX
 
        setup.addNativeNVidiaCG   - add experimental binding to NVidia's Cg language 
@@ -1760,11 +1762,7 @@
       </sequential>
     </macrodef>  
 
-    <target name="c.build.jogl.prepare">
-      <!-- Generate the waveout Mixer header -->
-      <!-- FIXME: this is temporary until we move this to another workspace -->
-      <!--javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="com.jogamp.audio.windows.waveout.Mixer" /-->
-
+    <target name="c.build.jogl.ffmpeg" if="setup.addNativeFFmpeg">
       <c.build.ffmpeg version.lav="lavc53_lavf53_lavu51"
                output.lib.name="jogl_ffmpegv08"
                compiler.cfg.id="${compiler.cfg.id}"
@@ -1787,6 +1785,10 @@
     </target>
 
     <target name="c.build.jogl.desktop" unless="setup.noNativeDesktop">
+      <!-- Generate the waveout Mixer header -->
+      <!-- FIXME: this is temporary until we move this to another workspace -->
+      <!--javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="com.jogamp.audio.windows.waveout.Mixer" /-->
+
       <c.build c.compiler.src.files="c.src.files.jogl.desktop"
                c.compiler.obj.files="c.obj.files.ffmpeg.inject"
                output.lib.name="jogl_desktop"
@@ -1823,7 +1825,7 @@
       <antcall target="c.manifest.cg" inheritRefs="true" />
     </target>
 
-    <target name="c.build.jogl" depends="c.configure,c.build.jogl.prepare,c.build.jogl.desktop,c.build.jogl.mobile,c.build.jogl.cg">
+    <target name="c.build.jogl" depends="c.configure,c.build.jogl.ffmpeg,c.build.jogl.desktop,c.build.jogl.mobile,c.build.jogl.cg">
       <antcall target="c.manifest" inheritRefs="true" />
     </target>
 

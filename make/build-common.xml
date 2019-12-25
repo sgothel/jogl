@@ -2,7 +2,9 @@
 
 <!--
    - Some environment defs affecting native compilation
-       setup.addNativeDRMGBM  ( always true if 'isLinux' )
+       setup.addNativeDRMGBM  ( true if 'isLinux' )
+
+       setup.addNativeFFmpeg  ( true if not 'isAndroid' )
 -->
 <project name="JOGLCommonStuff" basedir="." default="common.init">
 
@@ -120,10 +122,17 @@
             <isset property="isLinux"/>
         </condition>
 
+        <condition property="setup.addNativeFFmpeg">
+            <not>
+                <istrue value="${isAndroid}" />
+            </not>
+        </condition>
+
         <echo message="setup.noAWT: ${setup.noAWT}" />
         <echo message="setup.noNativeAWT: ${setup.noNativeAWT}" />
         <echo message="setup.noNativeDesktop: ${setup.noNativeDesktop}" />
         <echo message="setup.addNativeDRMGBM: ${setup.addNativeDRMGBM}" />
+        <echo message="setup.addNativeFFmpeg: ${setup.addNativeFFmpeg}" />
 
         <!-- Load the user specified properties file that defines various host
            - specific paths.  The user will be notified if this is does not
