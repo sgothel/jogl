@@ -37,7 +37,7 @@ import com.jogamp.opengl.egl.EGL;
 
 public class DisplayDriver extends jogamp.newt.DisplayImpl {
     static {
-        NEWTJNILibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWTHead();
 
         if (!WindowDriver.initIDs0()) {
             throw new NativeWindowException("Failed to initialize Android NEWT Windowing library");

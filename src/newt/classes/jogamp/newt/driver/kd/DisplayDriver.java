@@ -45,7 +45,7 @@ import jogamp.opengl.egl.EGLDisplayUtil;
 
 public class DisplayDriver extends DisplayImpl {
     static {
-        NEWTJNILibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWTHead();
 
         if (!WindowDriver.initIDs()) {
             throw new NativeWindowException("Failed to initialize kd.Window jmethodIDs");

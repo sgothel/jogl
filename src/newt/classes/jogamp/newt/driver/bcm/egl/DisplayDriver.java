@@ -45,7 +45,7 @@ import com.jogamp.opengl.egl.EGL;
 public class DisplayDriver extends jogamp.newt.DisplayImpl {
 
     static {
-        NEWTJNILibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWTHead();
 
         if (!WindowDriver.initIDs()) {
             throw new NativeWindowException("Failed to initialize BCEGL Window jmethodIDs");

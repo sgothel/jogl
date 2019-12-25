@@ -39,7 +39,7 @@ import jogamp.newt.NEWTJNILibLoader;
 public class DisplayDriver extends DisplayImpl {
 
     static {
-        NEWTJNILibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWTHead();
 
         if(!initUIApplication0()) {
             throw new NativeWindowException("Failed to initialize native Application hook");

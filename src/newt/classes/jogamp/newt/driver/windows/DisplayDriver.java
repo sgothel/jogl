@@ -60,7 +60,7 @@ public class DisplayDriver extends DisplayImpl {
     private static RegisteredClassFactory sharedClassFactory;
 
     static {
-        NEWTJNILibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWTHead();
         {
             final long[] _defaultIconHandle = { 0, 0 };
             if( DisplayImpl.isPNGUtilAvailable() ) {

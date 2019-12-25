@@ -526,6 +526,9 @@
         <syslibset libs="Xi"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
+      </linker>
+
+      <linker id="linker.cfg.linux.newt.drm" extends="linker.cfg.linux">
         <syslibset libs="drm"/>
         <syslibset libs="gbm"/>
       </linker>
@@ -537,6 +540,9 @@
         <syslibset libs="Xi"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
+      </linker>
+
+      <linker id="linker.cfg.linux.x86.newt.drm" extends="linker.cfg.linux.x86">
         <syslibset libs="drm"/>
         <syslibset libs="gbm"/>
       </linker>
@@ -548,6 +554,9 @@
         <syslibset libs="Xi"/>
         <!--syslibset libs="xcb" /-->
         <!--syslibset libs="X11-xcb" /-->
+      </linker>
+
+      <linker id="linker.cfg.linux.amd64.newt.drm" extends="linker.cfg.linux.amd64">
         <syslibset libs="drm"/>
         <syslibset libs="gbm"/>
       </linker>
@@ -557,6 +566,9 @@
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xrandr" />
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xcursor" />
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xi" />
+      </linker>
+
+      <linker id="linker.cfg.linux.armv6.newt.drm" extends="linker.cfg.linux.armv6">
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="drm" />
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="gbm" />
       </linker>
@@ -566,6 +578,9 @@
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xrandr" />
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xcursor" />
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="Xi" />
+      </linker>
+
+      <linker id="linker.cfg.linux.aarch64.newt.drm" extends="linker.cfg.linux.aarch64">
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="drm" />
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="gbm" />
       </linker>
@@ -672,7 +687,7 @@
                                                             else="linker.cfg.linux.x86">
           <isset property="isX11" />
       </condition>
-      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.x86.newt.drm"/>
     </target>
 
     <target name="c.configure.linux.amd64" if="isLinuxAMD64">
@@ -682,7 +697,7 @@
                                                             else="linker.cfg.linux.amd64">
           <isset property="isX11" />
       </condition>
-      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.amd64.newt.drm"/>
     </target>
 
     <target name="c.configure.linux.armv6" if="isLinuxARMv6">
@@ -692,7 +707,7 @@
                                                             else="linker.cfg.linux.armv6">
           <isset property="isX11" />
       </condition>
-      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.armv6.newt.drm"/>
     </target>
 
     <target name="c.configure.linux.aarch64" if="isLinuxARM64">
@@ -702,7 +717,7 @@
                                                             else="linker.cfg.linux.aarch64">
           <isset property="isX11" />
       </condition>
-      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.aarch64.newt.drm"/>
     </target>
 
     <target name="c.configure.linux.hppa" if="isLinuxHppa">
@@ -712,7 +727,7 @@
                                                             else="linker.cfg.linux">
           <isset property="isX11" />
       </condition>
-      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.newt.drm"/>
     </target>
 
     <target name="c.configure.linux.mips" if="isLinuxMips">
@@ -722,7 +737,7 @@
                                                             else="linker.cfg.linux">
           <isset property="isX11" />
       </condition>
-      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.newt.drm"/>
     </target>
 
     <target name="c.configure.linux.mipsel" if="isLinuxMipsel">
@@ -732,7 +747,7 @@
                                                             else="linker.cfg.linux">
           <isset property="isX11" />
       </condition>
-      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.newt.drm"/>
     </target>
 
     <target name="c.configure.linux.ppc" if="isLinuxPpc">
@@ -742,7 +757,7 @@
                                                             else="linker.cfg.linux">
           <isset property="isX11" />
       </condition>
-      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.newt.drm"/>
     </target>
 
     <target name="c.configure.linux.s390" if="isLinuxs390">
@@ -752,7 +767,7 @@
                                                             else="linker.cfg.linux">
           <isset property="isX11" />
       </condition>
-      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.newt.drm"/>
     </target>
 
     <target name="c.configure.linux.sparc" if="isLinuxSparc">
@@ -762,13 +777,14 @@
                                                             else="linker.cfg.linux">
           <isset property="isX11" />
       </condition>
-      <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.newt.drm"/>
     </target>
 
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.newt.x11" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.newt.drm"/>
     </target>
 
     <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.armv6,c.configure.linux.aarch64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.linux.ia64,c.configure.x11" if="isLinux"/>
@@ -870,7 +886,7 @@
 
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
-        <patternset id="c.src.files.newt">
+        <patternset id="c.src.files.newt.head">
           <include name="${rootrel.src.c}/JVM_JNI8.c" />
           <include name="${rootrel.src.c}/NewtCommon.c" />
           <!-- include name="${rootrel.src.c}/timespec.c"   /--> <!-- currently used for X11 and OSX with special PERF DEBUG MODE-->
@@ -892,6 +908,11 @@
           <include name="${rootrel.src.c}/IntelGDL.c"         if="setup.addNativeIntelGDL"/>
           <include name="${rootrel.src.c}/bcm_egl.c"          if="setup.addNativeBroadcom"/>
           <include name="${rootrel.src.c}/bcm_vc_iv.c"        if="setup.addNativeBroadcom"/>
+        </patternset>
+
+        <patternset id="c.src.files.newt.drmgbm">
+          <include name="${rootrel.src.c}/JVM_JNI8.c" />
+          <include name="${rootrel.src.c}/NewtCommon.c" />
           <include name="${rootrel.src.c}/drm_gbm.c"          if="setup.addNativeDRMGBM"/>
           <include name="${rootrel.src.c}/drm_gbm_legacy.c"   if="setup.addNativeDRMGBM"/>
         </patternset>
@@ -978,11 +999,20 @@
       </sequential>
     </macrodef>
 
-    <target name="c.build.newt.windowlib" unless="setup.nonatives">
+    <target name="c.build.newt.windowlib.drmgbm" if="setup.addNativeDRMGBM">
+      <echo message="Using compiler.cfg.id ${compiler.cfg.id}" />
+      <echo message="Using linker.cfg.id.drm   ${linker.cfg.id.drm}" />
+      <c.build c.compiler.src.files="c.src.files.newt.drmgbm"
+               output.lib.name="newt_drm"
+               compiler.cfg.id="${compiler.cfg.id}"
+               linker.cfg.id="${linker.cfg.id.drm}"/>
+    </target>
+
+    <target name="c.build.newt.windowlib.head" unless="setup.nonatives">
       <echo message="Using compiler.cfg.id ${compiler.cfg.id}" />
       <echo message="Using linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
-      <c.build c.compiler.src.files="c.src.files.newt"
-               output.lib.name="newt"
+      <c.build c.compiler.src.files="c.src.files.newt.head"
+               output.lib.name="newt_head"
                compiler.cfg.id="${compiler.cfg.id}"
                linker.cfg.id="${linker.cfg.id.oswin}"/>
     </target>
@@ -992,7 +1022,7 @@
       <msvc.manifest objdir="${obj.newt}" dllname="newt" />
     </target>
 
-    <target name="c.build.newt.natives" depends="c.build.newt.windowlib" unless="setup.nonatives">
+    <target name="c.build.newt.natives" depends="c.build.newt.windowlib.head, c.build.newt.windowlib.drmgbm" unless="setup.nonatives">
     </target>
 
     <target name="c.build.newt" depends="c.configure,c.build.newt.natives">

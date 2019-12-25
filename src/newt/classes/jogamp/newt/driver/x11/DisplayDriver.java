@@ -50,7 +50,7 @@ import jogamp.newt.NEWTJNILibLoader;
 public class DisplayDriver extends DisplayImpl {
 
     static {
-        NEWTJNILibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWTHead();
 
         if ( !initIDs0(X11Util.XERROR_STACKDUMP) ) {
             throw new NativeWindowException("Failed to initialize X11Display jmethodIDs");

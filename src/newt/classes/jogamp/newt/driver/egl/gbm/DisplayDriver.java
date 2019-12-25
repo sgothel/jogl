@@ -50,7 +50,7 @@ import jogamp.opengl.egl.EGLDisplayUtil;
 
 public class DisplayDriver extends DisplayImpl {
     static {
-        NEWTJNILibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWTDrmGbm();
         GLProfile.initSingleton();
 
         if (!DisplayDriver.initIDs()) {

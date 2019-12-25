@@ -52,7 +52,7 @@ public class DisplayDriver extends DisplayImpl {
     static final PNGPixelRect defaultPointerIconImage;
 
     static {
-        NEWTJNILibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWTHead();
         GLProfile.initSingleton();
 
         if (!DisplayDriver.initIDs()) {

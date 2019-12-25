@@ -41,7 +41,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
     static int initCounter = 0;
 
     static {
-        NEWTJNILibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWTHead();
 
         if (!ScreenDriver.initIDs()) {
             throw new NativeWindowException("Failed to initialize GDL Screen jmethodIDs");

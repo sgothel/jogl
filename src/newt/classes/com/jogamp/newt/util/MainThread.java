@@ -104,7 +104,7 @@ public class MainThread {
 
     static {
         NativeWindowFactory.initSingleton();
-        NEWTJNILibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWTHead();
         HINT_USE_MAIN_THREAD = !NativeWindowFactory.isAWTAvailable() ||
                                 PropertyAccess.getBooleanProperty("newt.MainThread.force", true);
         osType = Platform.getOSType();

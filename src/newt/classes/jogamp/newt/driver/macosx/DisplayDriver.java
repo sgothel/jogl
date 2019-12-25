@@ -59,7 +59,7 @@ public class DisplayDriver extends DisplayImpl {
     private  static final boolean USE_APPKIT_EDTUTIL;
 
     static {
-        NEWTJNILibLoader.loadNEWT();
+        NEWTJNILibLoader.loadNEWTHead();
 
         if(!initNSApplication0()) {
             throw new NativeWindowException("Failed to initialize native Application hook");
