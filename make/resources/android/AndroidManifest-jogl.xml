@@ -9,7 +9,7 @@
 
     <uses-library android:name="com.jogamp.common" android:required="true" />
 
-    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="14"/>
+    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28"/>
 
     <application android:icon="@drawable/icon" 
                  android:label="@string/app_name"

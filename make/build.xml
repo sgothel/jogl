@@ -212,7 +212,17 @@
             androidresources.path="resources/android/res-jogl"
             jarmanifest.path="${build.jogl}/manifest.mf"
             version.code="${jogamp.version.int}"
-            version.name="${jogamp.version}" />
+            version.name="${jogamp.version}">
+          <d8-classpaths>
+              <arg line="--classpath ${gluegen-rt-android.jar}"/> 
+              <arg line="--classpath ${joal.jar}"/> 
+              <arg line="--classpath ${jogl-all.jar}"/> 
+              <arg line="--classpath ${jogl-all-android.jar}"/> 
+              <arg line="--classpath ${swt.jar}"/> 
+              <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-base-11.jar"/>
+              <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar"/>
+          </d8-classpaths>
+        </aapt.signed>
     </target>
 
     <target name="one.dir.skip.check" depends="init,gluegen.cpptasks.detect.os">
