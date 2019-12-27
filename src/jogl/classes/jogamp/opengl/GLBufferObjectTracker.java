@@ -167,7 +167,8 @@ public class GLBufferObjectTracker {
         final boolean invalidSize = (  mutableBuffer && 0 > size )   // glBufferData, glNamedBufferData
                                  || ( !mutableBuffer && 0 >= size ); // glBufferStorage
         if( invalidSize ) {
-            throw new GLException(String.format("%s: Invalid size %d for buffer %d on target 0x%X", GL_INVALID_VALUE, size, bufferName, target));
+            throw new GLException(String.format("%s: Invalid size %d for %s buffer %d on target 0x%X",
+                    GL_INVALID_VALUE, size, mutableBuffer ? "mutable" : "immutable", bufferName, target));
         }
 
         dispatch.create(target, size, data, mutableBuffer ? mutableUsage : immutableFlags);
@@ -211,18 +212,18 @@ public class GLBufferObjectTracker {
         if (DEBUG && GL.GL_NO_ERROR != glerrPre) {
             System.err.printf("%s.%s glerr-pre 0x%X%n", msgClazzName, msgCreateNamed, glerrPre);
         }
-        if ( 0 > size ) { // glBufferData, glNamedBufferData
-            throw new GLException(String.format("%s: Invalid size %d for buffer %d", GL_INVALID_VALUE, size, bufferName));
-        }
         final boolean mutableBuffer = 0 != mutableUsage;
-        if( !mutableBuffer ) {
-            throw new InternalError("Immutable glNamedBufferStorage not supported yet");
+        final boolean invalidSize = (  mutableBuffer && 0 > size )   // glBufferData, glNamedBufferData
+                                 || ( !mutableBuffer && 0 >= size ); // glBufferStorage
+        if( invalidSize ) {
+            throw new GLException(String.format("%s: Invalid size %d for %s buffer %d",
+                    GL_INVALID_VALUE, size, mutableBuffer ? "mutable" : "immutable", bufferName));
         }
-        dispatch.create(bufferName, size, data, mutableUsage);
+        dispatch.create(bufferName, size, data, mutableBuffer ? mutableUsage : immutableFlags);
         final int glerrPost = caller.glGetError(); // be safe, catch failure!
         if(GL.GL_NO_ERROR != glerrPost) {
             throw new GLException(String.format("GL-Error 0x%X while creating %s storage for buffer %d of size %d with data %s",
-                                                glerrPost, "mutable", bufferName, size, data));
+                                                glerrPost, mutableBuffer ? "mutable" : "immutable", bufferName, size, data));
         }
         final GLBufferStorageImpl objOld = (GLBufferStorageImpl) bufferName2StorageMap.get(bufferName);
         if( null != objOld ) {
