@@ -1647,6 +1647,9 @@ public abstract class GLContext {
       ctp[0]          = ( bits32 & 0x0000FFFF )        ;
       return new VersionNumber(major, minor, 0);
   }
+  protected static int getCTPFromBits(final int bits32) {
+      return ( bits32 & 0x0000FFFF );
+  }
 
   protected static void validateProfileBits(final int bits, final String argName) {
     int num = 0;

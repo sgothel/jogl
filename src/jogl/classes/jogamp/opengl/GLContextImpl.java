@@ -63,6 +63,7 @@ import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLRendererQuirks;
+
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.NativeSurface;
@@ -1098,13 +1099,24 @@ public abstract class GLContextImpl extends GLContext {
   }
 
 
-  protected static void remapAvailableGLVersions(final AbstractGraphicsDevice fromDevice, final AbstractGraphicsDevice toDevice) {
+  /**
+   * Remaps all available GL Version from {@code fromDevice} to {@code toDevice}.
+   *
+   * @param fromDevice the required matching device key to be mapped
+   * @param toDevice mapped GL version target
+   * @param overwrite if {@code true} overwrites previous mapping, otherwise leaves it untouched
+   * @param ctpCriteria the given GL Version context profile required to map a {@code fromDevice} GL Version.
+   * To map all GL Versions, just pass {@link GLContext#CTX_PROFILE_ES} | {@link GLContext#CTX_PROFILE_CORE} | {@link GLContext#CTX_PROFILE_COMPAT}
+   */
+  protected static void remapAvailableGLVersions(final AbstractGraphicsDevice fromDevice, final AbstractGraphicsDevice toDevice,
+                                                 final boolean overwrite, final int ctpCriteria) {
     if( fromDevice == toDevice || fromDevice.getUniqueID() == toDevice.getUniqueID() ) {
         return; // NOP
     }
     synchronized(deviceVersionAvailable) {
         if(DEBUG) {
-            System.err.println(getThreadName() + ": createContextARB-MapGLVersions REMAP "+fromDevice+" -> "+toDevice);
+            System.err.println(getThreadName() + ": createContextARB-MapGLVersions REMAP "+fromDevice+" -> "+toDevice+
+                               ", overwrite "+overwrite+", ctpCriteria "+getGLProfile(new StringBuilder(), ctpCriteria).toString());
         }
         final IdentityHashMap<String, Integer> newDeviceVersionAvailable = new IdentityHashMap<String, Integer>();
         final Set<String> keys = deviceVersionAvailable.keySet();
@@ -1115,7 +1127,7 @@ public abstract class GLContextImpl extends GLContext {
                 if(DEBUG) {
                     final int[] ctp = { 0 };
                     final VersionNumber version = decomposeBits(valI.intValue(), ctp);
-                    System.err.println(" MapGLVersions REMAP OLD "+origKey+" -> "+GLContext.getGLVersion(new StringBuilder(), version, ctp[0], null).toString());
+                    System.err.println(" MapGLVersions REMAP VAL0 "+origKey+" == "+GLContext.getGLVersion(new StringBuilder(), version, ctp[0], null).toString());
                 }
                 newDeviceVersionAvailable.put(origKey, valI);
                 final int devSepIdx = origKey.lastIndexOf('-');
@@ -1124,12 +1136,29 @@ public abstract class GLContextImpl extends GLContext {
                 }
                 final String devUniqueID = origKey.substring(0, devSepIdx);
                 if( fromDevice.getUniqueID().equals(devUniqueID) ) {
+                    // key/val pair from 'fromDevice' to be mapped to 'toDevice'
                     final String profileReq = origKey.substring(devSepIdx);
                     final String newKey = (toDevice.getUniqueID()+profileReq).intern();
-                    if(DEBUG) {
-                        System.err.println(" MapGLVersions REMAP NEW "+newKey+" -> (ditto)");
+                    final Integer preI = deviceVersionAvailable.get(newKey);
+                    final int valCTP = getCTPFromBits(valI.intValue());
+                    final boolean write = ( overwrite || null == preI ) && 0 != ( ctpCriteria & valCTP );
+                    if( write ) {
+                        newDeviceVersionAvailable.put(newKey, valI);
                     }
-                    newDeviceVersionAvailable.put(newKey, valI);
+                    if(DEBUG) {
+                        if( write ) {
+                            System.err.println(" MapGLVersions REMAP NEW0 "+newKey+" -> (ditto)");
+                        } else {
+                            System.err.println(" MapGLVersions REMAP NEW0 "+newKey+" (unchanged)");
+                        }
+                        if( null != preI ) {
+                            final int[] ctp = { 0 };
+                            final VersionNumber version = decomposeBits(preI.intValue(), ctp);
+                            System.err.println(" MapGLVersions REMAP OLD1 "+newKey+" :: "+GLContext.getGLVersion(new StringBuilder(), version, ctp[0], null).toString());
+                        } else {
+                            System.err.println(" MapGLVersions REMAP OLD1 "+newKey+" :: (nil)");
+                        }
+                    }
                 }
             }
         }

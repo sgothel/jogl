@@ -659,7 +659,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             }
 
             if( mappedToDefaultDevice[0] ) {
-                EGLContext.remapAvailableGLVersions(defaultDevice, adevice);
+                // map all GL versions (ES, CORE or COMPAT) to 'adevice' if not existing (no overwrite)
+                EGLContext.remapAvailableGLVersions(defaultDevice, adevice, false /* overwrite */,
+                        EGLContext.CTX_PROFILE_ES | EGLContext.CTX_PROFILE_CORE | EGLContext.CTX_PROFILE_COMPAT );
                 sr = defaultSharedResource;
             } else {
                 if( hasX11 ) {

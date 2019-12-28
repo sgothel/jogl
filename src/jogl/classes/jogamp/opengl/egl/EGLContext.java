@@ -480,8 +480,12 @@ public class EGLContext extends GLContextImpl {
         return GLContext.getGLProfile(sb, ctp);
     }
     /* pp */ int getContextOptions() { return ctxOptions; }
-    protected static void remapAvailableGLVersions(final AbstractGraphicsDevice fromDevice, final AbstractGraphicsDevice toDevice) {
-        GLContextImpl.remapAvailableGLVersions(fromDevice, toDevice);
+    /**
+     * Delegates to {@link GLContextImpl#remapAvailableGLVersions(AbstractGraphicsDevice, AbstractGraphicsDevice, boolean, int)}
+     */
+    protected static void remapAvailableGLVersions(final AbstractGraphicsDevice fromDevice, final AbstractGraphicsDevice toDevice,
+                                                   final boolean overwrite, final int ctpCriteria) {
+        GLContextImpl.remapAvailableGLVersions(fromDevice, toDevice, overwrite, ctpCriteria);
     }
     protected static synchronized void setMappedGLVersionListener(final MappedGLVersionListener mvl) {
         GLContextImpl.setMappedGLVersionListener(mvl);

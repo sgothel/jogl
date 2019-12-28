@@ -1982,8 +1982,16 @@ public class GLProfile {
             }
         }
 
-        if( !addedDesktopProfile && !addedMobileProfile ) {
-            setProfileMap(device, new HashMap<String /*GLProfile_name*/, GLProfile>()); // empty
+        final HashMap<String, GLProfile> mappedAllProfiles;
+        if( addedMobileProfile ) {
+            // If run on actual desktop device, e.g. '.x11_:0_0',
+            // GLContextImpl.remapAvailableGLVersion('.egl_:0_0' -> '.x11_:0_0')
+            // ensures EGL profiles being mapped to upstream desktop device '.x11_:0_0'.
+            mappedAllProfiles = mappedEGLProfiles;
+        } else if( addedDesktopProfile ) {
+            mappedAllProfiles = mappedDesktopProfiles;
+        } else {
+            mappedAllProfiles = new HashMap<String /*GLProfile_name*/, GLProfile>(); // empty
             if(DEBUG) {
                 System.err.println("GLProfile: device could not be initialized: "+device);
                 System.err.println("GLProfile: compatible w/ desktop: "+deviceIsDesktopCompatible+
@@ -1993,16 +2001,8 @@ public class GLProfile {
                 System.err.println("GLProfile: hasGLES1Impl         "+hasGLES1Impl);
                 System.err.println("GLProfile: hasGLES3Impl         "+hasGLES3Impl);
             }
-        } else {
-            final HashMap<String, GLProfile> mappedAllProfiles = new HashMap<String, GLProfile>();
-            if( addedMobileProfile ) {
-                mappedAllProfiles.putAll(mappedEGLProfiles);
-            }
-            if( addedDesktopProfile ) {
-                mappedAllProfiles.putAll(mappedDesktopProfiles);
-            }
-            setProfileMap(device, mappedAllProfiles); // union
         }
+        setProfileMap(device, mappedAllProfiles); // merged mappedEGLProfiles if available, otherwise mappedDesktopProfiles
 
         GLContext.setAvailableGLVersionsSet(device, true);
 
