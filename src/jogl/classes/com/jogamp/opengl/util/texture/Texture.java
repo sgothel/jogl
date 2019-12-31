@@ -41,6 +41,7 @@ import java.nio.*;
 
 import com.jogamp.opengl.*;
 import com.jogamp.opengl.glu.*;
+import com.jogamp.common.util.Bitfield;
 import com.jogamp.nativewindow.NativeWindowFactory;
 
 import jogamp.opengl.*;
@@ -538,7 +539,7 @@ public class Texture {
         data.setHaveGL12(gl.isExtensionAvailable(GLExtensions.VERSION_1_2));
 
         // Indicates whether both width and height are power of two
-        final boolean isPOT = isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight);
+        final boolean isPOT = Bitfield.Util.isPowerOf2(imgWidth) && Bitfield.Util.isPowerOf2(imgHeight);
 
         // Note that automatic mipmap generation doesn't work for
         // GL_ARB_texture_rectangle
@@ -553,8 +554,8 @@ public class Texture {
             // two. It also doesn't really matter exactly what the texture
             // width and height are because the texture coords are always
             // between 0.0 and 1.0.
-            imgWidth = nextPowerOfTwo(imgWidth);
-            imgHeight = nextPowerOfTwo(imgHeight);
+            imgWidth = Bitfield.Util.roundToPowerOf2(imgWidth);
+            imgHeight = Bitfield.Util.roundToPowerOf2(imgHeight);
             texWidth = imgWidth;
             texHeight = imgHeight;
             texTarget = GL.GL_TEXTURE_2D;
@@ -628,8 +629,8 @@ public class Texture {
             if (data.getBorder() != 0) {
                 throw new RuntimeException("Scaling up a non-power-of-two texture which has a border won't work");
             }
-            texWidth = nextPowerOfTwo(imgWidth);
-            texHeight = nextPowerOfTwo(imgHeight);
+            texWidth = Bitfield.Util.roundToPowerOf2(imgWidth);
+            texHeight = Bitfield.Util.roundToPowerOf2(imgHeight);
             texTarget = GL.GL_TEXTURE_2D;
         }
         texParamTarget = texTarget;
@@ -967,31 +968,6 @@ public class Texture {
     //----------------------------------------------------------------------
     // Internals only below this point
     //
-
-    /**
-     * Returns true if the given value is a power of two.
-     *
-     * @return true if the given value is a power of two, false otherwise
-     */
-    private static boolean isPowerOfTwo(final int val) {
-        return ((val & (val - 1)) == 0);
-    }
-
-    /**
-     * Returns the nearest power of two that is larger than the given value.
-     * If the given value is already a power of two, this method will simply
-     * return that value.
-     *
-     * @param val the value
-     * @return the next power of two
-     */
-    private static int nextPowerOfTwo(final int val) {
-        int ret = 1;
-        while (ret < val) {
-            ret <<= 1;
-        }
-        return ret;
-    }
 
     private void updateTexCoords() {
         if ( GL2.GL_TEXTURE_RECTANGLE_ARB == imageTarget ) {
