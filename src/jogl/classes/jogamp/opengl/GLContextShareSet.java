@@ -47,6 +47,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import com.jogamp.common.util.WeakIdentityHashMap;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLException;
 
@@ -61,11 +62,11 @@ public class GLContextShareSet {
   // This class is implemented using a HashMap which maps from all shared contexts
   // to a share set, containing all shared contexts itself.
 
-  private static final Map<GLContext, ShareSet> shareMap = new IdentityHashMap<GLContext, ShareSet>();
+  private static final Map<GLContext, ShareSet> shareMap = new WeakIdentityHashMap<GLContext, ShareSet>();
 
   private static class ShareSet {
     private final Map<GLContext, GLContext> createdShares   = new IdentityHashMap<GLContext, GLContext>();
-    private final Map<GLContext, GLContext> destroyedShares = new IdentityHashMap<GLContext, GLContext>();
+    private final Map<GLContext, GLContext> destroyedShares = new WeakIdentityHashMap<GLContext, GLContext>();
 
     public final void mapNewEntry(final GLContext slave, final GLContext master) {
         final GLContext preMaster;

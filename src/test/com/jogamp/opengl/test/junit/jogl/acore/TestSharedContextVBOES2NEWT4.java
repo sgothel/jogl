@@ -54,7 +54,9 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 /**
- * Test sharing w/ different shared-master context.
+ * Expected error test sharing w/ different shared-master context,
+ * i.e. 3rd instance using GL buffers from 1st instance
+ * but the context from the 2nd instance.
  * <p>
  * This is achieved by using the 1st GLWindow as the <i>master</i>
  * and synchronizing via GLSharedContextSetter to postpone creation
@@ -111,10 +113,10 @@ public class TestSharedContextVBOES2NEWT4 extends UITestCase {
         f2.setVisible(true);
 
         final GearsES2 g3 = new GearsES2(0);
-        g3.setSharedGears(g1);
+        g3.setSharedGears(g1); // GL objects from 1st instance
         final GLWindow f3 = createGLWindow(f1.getX()+0,
                                            f1.getY()+height+insets.getTotalHeight(), g3);
-        f3.setSharedAutoDrawable(f2); // Mixed master!
+        f3.setSharedAutoDrawable(f2); // GL context from 2nd instance: ERROR! (Mixed master)
         animator.add(f3);
         final AtomicBoolean gotAnimException = new AtomicBoolean(false);
         final AtomicBoolean gotOtherException = new AtomicBoolean(false);

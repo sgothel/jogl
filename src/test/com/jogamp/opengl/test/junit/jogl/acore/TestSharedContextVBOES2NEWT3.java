@@ -226,6 +226,24 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
         Assert.assertTrue(NewtTestUtil.waitForRealized(f3, false, null));
 
         animator.stop();
+        {
+            final List<GLContext> ctx1Shares = ctx1.getCreatedShares();
+            final List<GLContext> ctx2Shares = ctx2.getCreatedShares();
+            final List<GLContext> ctx3Shares = ctx3.getCreatedShares();
+            MiscUtils.dumpSharedGLContext("XXX-C-3.1", ctx1);
+            MiscUtils.dumpSharedGLContext("XXX-C-3.2", ctx2);
+            MiscUtils.dumpSharedGLContext("XXX-C-3.3", ctx3);
+
+            Assert.assertTrue("Ctx1 is shared", !ctx1.isShared());
+            Assert.assertTrue("Ctx2 is shared", !ctx2.isShared());
+            Assert.assertTrue("Ctx3 is shared", !ctx3.isShared());
+            Assert.assertEquals("Ctx1 has unexpected number of created shares", 0, ctx1Shares.size());
+            Assert.assertEquals("Ctx2 has unexpected number of created shares", 0, ctx2Shares.size());
+            Assert.assertEquals("Ctx3 has unexpected number of created shares", 0, ctx3Shares.size());
+            Assert.assertEquals("Ctx1 Master Context is set", null, ctx1.getSharedMaster());
+            Assert.assertEquals("Ctx2 Master Context is set", null, ctx2.getSharedMaster());
+            Assert.assertEquals("Ctx3 Master Context is set", null, ctx3.getSharedMaster());
+        }
     }
 
     @Test
@@ -374,8 +392,8 @@ public class TestSharedContextVBOES2NEWT3 extends UITestCase {
         Assert.assertTrue(NewtTestUtil.waitForRealized(f3, false, null));
     }
 
-    static long duration = 1000; // ms
-    static long durationPostDestroy = 1000; // ms - ~60 frames post destroy
+    static long duration = 1000; // ms - ~60 frames
+    static long durationPostDestroy = 170; // ms - ~10 frames post destroy
     static boolean mainRun = false;
 
     public static void main(final String args[]) {

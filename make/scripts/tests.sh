@@ -110,7 +110,7 @@ function jrun() {
     #X_ARGS="-Dsun.awt.disableMixing=true"
     #X_ARGS="--illegal-access=warn"
 
-    D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext"
+    #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext"
     #D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
@@ -461,7 +461,7 @@ function testawtswt() {
 #testnoawt com.jogamp.newt.NewtVersion $*
 #testnoawt com.jogamp.oculusvr.OVRVersion $*
 
-testnoawt com.jogamp.newt.opengl.GLWindow $*
+#testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLVersionParsing00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
@@ -599,6 +599,7 @@ testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT4 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT5 $*
 #testswt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextWithJTabbedPaneAWT $*
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedExternalContextAWT $*
