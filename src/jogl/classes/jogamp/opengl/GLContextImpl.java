@@ -184,7 +184,7 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   private final void clearStates() {
-      if( !GLContextShareSet.hasCreatedSharedLeft(this) ) {
+      if( !GLContextShareSet.hasCreatedSharesLeft(this) ) {
         bufferObjectTracker.clear();
       }
       bufferStateTracker.clear();
@@ -500,7 +500,7 @@ public abstract class GLContextImpl extends GLContext {
                   contextHandle = 0;
                   glDebugHandler = null;
                   // this maybe impl. in a platform specific way to release remaining shared ctx.
-                  if( GLContextShareSet.contextDestroyed(this) && !GLContextShareSet.hasCreatedSharedLeft(this) ) {
+                  if( GLContextShareSet.contextDestroyed(this) && !GLContextShareSet.hasCreatedSharesLeft(this) ) {
                       GLContextShareSet.unregisterSharing(this);
                   }
                   resetStates(false);

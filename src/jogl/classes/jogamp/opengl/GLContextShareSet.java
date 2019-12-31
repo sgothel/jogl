@@ -40,6 +40,7 @@
 
 package jogamp.opengl;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -66,7 +67,7 @@ public class GLContextShareSet {
     private final Map<GLContext, GLContext> createdShares   = new IdentityHashMap<GLContext, GLContext>();
     private final Map<GLContext, GLContext> destroyedShares = new IdentityHashMap<GLContext, GLContext>();
 
-    public final void addNew(final GLContext slave, final GLContext master) {
+    public final void mapNewEntry(final GLContext slave, final GLContext master) {
         final GLContext preMaster;
         if ( slave.isCreated() ) {
             preMaster = createdShares.put(slave, master);
@@ -78,10 +79,9 @@ public class GLContextShareSet {
                                     " is not new w/ master "+toHexString(preMaster.hashCode()));
         }
     }
-    public final void addIfNew(final GLContext slave, final GLContext master) {
-        final GLContext preMaster = getMaster(master);
-        if( null == preMaster ) {
-            addNew(slave, master);
+    public final void mapEntryIfNew(final GLContext slave, final GLContext master) {
+        if( null == getMaster(master) ) {
+            mapNewEntry(slave, master);
         }
     }
 
@@ -139,10 +139,10 @@ public class GLContextShareSet {
       if ( null == share ) {
           share = new ShareSet();
       }
-      share.addNew(slave, master);
-      share.addIfNew(master, master); // this master could have a different master shared registered earlier!
-      addEntry(slave, share);
-      addEntry(master, share);
+      share.mapNewEntry(slave, master);
+      share.mapEntryIfNew(master, master); // this master could have a different master shared registered earlier!
+      mapEntryIfNew(slave, share);
+      mapEntryIfNew(master, share);
       if (DEBUG) {
           System.err.println("GLContextShareSet: registereSharing: 1: " +
                   toHexString(slave.hashCode()) + ", 2: " + toHexString(master.hashCode()));
@@ -222,9 +222,19 @@ public class GLContextShareSet {
   }
 
   /** Returns true if the given GLContext has shared and created GLContext left including itself, otherwise false. */
-  public static synchronized boolean hasCreatedSharedLeft(final GLContext context) {
+  public static synchronized boolean hasCreatedSharesLeft(final GLContext context) {
       final Set<GLContext> s = getCreatedSharesImpl(context);
       return null != s && s.size() > 0;
+  }
+  /** Returns number of created shares for the given GLContext including itself, zero if none. */
+  public static synchronized int getCreatedShareCount(final GLContext context) {
+      final Set<GLContext> s = getCreatedSharesImpl(context);
+      return null != s ? s.size() : 0;
+  }
+  /** Returns number of destroyed shares for the given GLContext including itself, zero if none. */
+  public static synchronized int getDestroyedShareCount(final GLContext context) {
+      final Set<GLContext> s = getDestroyedSharesImpl(context);
+      return null != s ? s.size() : 0;
   }
 
   /** Returns a new array-list of created GLContext shared with the given GLContext. */
@@ -277,6 +287,44 @@ public class GLContextShareSet {
     return false;
   }
 
+  /** Returns the number of tracked shared GLContext. */
+  public static synchronized int getSize() {
+      return shareMap.size();
+  }
+
+  public static void printMap(final PrintStream out) {
+      int ctxMapCount = 0, ctxCreateCount = 0, ctxDestroyCount = 0;
+      final Map<GLContext, GLContext> createdCtxSet = new IdentityHashMap<GLContext, GLContext>();
+      final Map<GLContext, GLContext> destroyedCtxSet = new IdentityHashMap<GLContext, GLContext>();
+
+      final Set<GLContext> keys = shareMap.keySet();
+      for( final GLContext key : keys ) {
+          final ShareSet sset = shareMap.get(key);
+          if( null != sset ) {
+              for( final GLContext kc : sset.createdShares.keySet() ) {
+                  createdCtxSet.putIfAbsent(kc, kc);
+              }
+              for( final GLContext kd : sset.destroyedShares.keySet() ) {
+                  destroyedCtxSet.putIfAbsent(kd, kd);
+              }
+          }
+          final GLContext master = key.getSharedMaster();
+          final boolean isMaster = master == key;
+          final int masterHash = null != master ? master.hashCode() : 0;
+          out.println(ctxMapCount+": hash 0x"+Integer.toHexString(key.hashCode())+
+                  ", \t(isShared "+isShared(key)+", created "+key.isCreated()+", master 0x"+Integer.toHexString(masterHash)+", isMaster "+isMaster+
+                  ", createdShares "+getCreatedShareCount(key)+", destroyedShares "+getDestroyedShareCount(key)+")");
+          ctxMapCount++;
+      }
+      for (final GLContext c : createdCtxSet.keySet() ) {
+          out.println("  Created   Ctx #"+(ctxCreateCount++)+": hash 0x"+Integer.toHexString(c.hashCode())+", \t(created "+c.isCreated()+")");
+      }
+      for (final GLContext c : destroyedCtxSet.keySet() ) {
+          out.println("  Destroyed Ctx #"+(ctxDestroyCount++)+": hash 0x"+Integer.toHexString(c.hashCode())+", \t(created "+c.isCreated()+")");
+      }
+      out.println("\t Total created "+ctxCreateCount+" + destroyed "+ctxDestroyCount+" = "+(ctxCreateCount+ctxDestroyCount)+" - Total Mapped "+ctxMapCount+"/"+getSize());
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
 
@@ -285,9 +333,9 @@ public class GLContextShareSet {
     return shareMap.get(context);
   }
 
-  private static void addEntry(final GLContext context, final ShareSet share) {
-    if (shareMap.get(context) == null) {
-      shareMap.put(context, share);
+  private static void mapEntryIfNew(final GLContext context, final ShareSet share) {
+    if ( null == shareMap.get(context) ) {
+        shareMap.put(context, share);
     }
   }
   private static ShareSet removeEntry(final GLContext context) {
