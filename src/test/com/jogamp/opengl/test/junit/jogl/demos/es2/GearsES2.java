@@ -196,7 +196,9 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
     @Override
     public void init(final GLAutoDrawable drawable) {
         if(null != sharedGears && !sharedGears.isInit() ) {
-            System.err.println(Thread.currentThread()+" GearsES2.init.0 "+sid()+": pending shared Gears .. re-init later XXXXX");
+            if(verbose) {
+                System.err.println(Thread.currentThread()+" GearsES2.init.0 "+sid()+": pending shared Gears .. re-init later XXXXX");
+            }
             drawable.setGLEventListenerInitState(this, false);
             return;
         }
@@ -255,10 +257,14 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
             }
             if( gl.getContext().hasRendererQuirk(GLRendererQuirks.NeedSharedObjectSync) ) {
                 syncObjects = sharedGears;
-                System.err.println("Shared GearsES2: Synchronized Objects due to quirk "+GLRendererQuirks.toString(GLRendererQuirks.NeedSharedObjectSync));
+                if(verbose) {
+                    System.err.println("Shared GearsES2: Synchronized Objects due to quirk "+GLRendererQuirks.toString(GLRendererQuirks.NeedSharedObjectSync));
+                }
             } else if( null == syncObjects ) {
                 syncObjects = new Object();
-                System.err.println("Shared GearsES2: Unsynchronized Objects");
+                if(verbose) {
+                    System.err.println("Shared GearsES2: Unsynchronized Objects");
+                }
             }
         } else {
             gear1 = new GearsObjectES2(gl, useMappedBuffers, st, gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU, validateBuffers);

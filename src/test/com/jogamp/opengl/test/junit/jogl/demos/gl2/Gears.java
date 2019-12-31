@@ -3,6 +3,7 @@ package com.jogamp.opengl.test.junit.jogl.demos.gl2;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL2ES3;
 import com.jogamp.opengl.GL2GL3;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
@@ -153,7 +154,9 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
 
   public boolean init(final GL2 gl) {
     if(null != sharedGears && !sharedGears.isInit() ) {
-      System.err.println(Thread.currentThread()+" GearsES1.init.0: pending shared Gears .. re-init later XXXXX");
+      if(verbose) {
+          System.err.println(Thread.currentThread()+" GearsES1.init.0: pending shared Gears .. re-init later XXXXX");
+      }
       return false;
     }
     final float lightPos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
@@ -183,15 +186,21 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
         gear1 = sharedGears.getGear1();
         gear2 = sharedGears.getGear2();
         gear3 = sharedGears.getGear3();
-        System.err.println("gear1 list reused: "+gear1);
-        System.err.println("gear2 list reused: "+gear2);
-        System.err.println("gear3 list reused: "+gear3);
+        if(verbose) {
+            System.err.println("gear1 list reused: "+gear1);
+            System.err.println("gear2 list reused: "+gear2);
+            System.err.println("gear3 list reused: "+gear3);
+        }
         if( gl.getContext().hasRendererQuirk(GLRendererQuirks.NeedSharedObjectSync) ) {
             syncObjects = sharedGears;
-            System.err.println("Shared Gears: Synchronized Objects due to quirk "+GLRendererQuirks.toString(GLRendererQuirks.NeedSharedObjectSync));
+            if(verbose) {
+                System.err.println("Shared Gears: Synchronized Objects due to quirk "+GLRendererQuirks.toString(GLRendererQuirks.NeedSharedObjectSync));
+            }
         } else {
             syncObjects = new Object();
-            System.err.println("Shared Gears: Unsynchronized Objects");
+            if(verbose) {
+                System.err.println("Shared Gears: Unsynchronized Objects");
+            }
         }
     } else {
         gear1 = gl.glGenLists(1);
@@ -199,21 +208,27 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
         gl.glMaterialfv(GL.GL_FRONT, GLLightingFunc.GL_AMBIENT_AND_DIFFUSE, red, 0);
         gear(gl, 1.0f, 4.0f, 1.0f, 20, 0.7f);
         gl.glEndList();
-        System.err.println("gear1 list created: "+gear1);
+        if(verbose) {
+            System.err.println("gear1 list created: "+gear1);
+        }
 
         gear2 = gl.glGenLists(1);
         gl.glNewList(gear2, GL2.GL_COMPILE);
         gl.glMaterialfv(GL.GL_FRONT, GLLightingFunc.GL_AMBIENT_AND_DIFFUSE, green, 0);
         gear(gl, 0.5f, 2.0f, 2.0f, 10, 0.7f);
         gl.glEndList();
-        System.err.println("gear2 list created: "+gear2);
+        if(verbose) {
+            System.err.println("gear2 list created: "+gear2);
+        }
 
         gear3 = gl.glGenLists(1);
         gl.glNewList(gear3, GL2.GL_COMPILE);
         gl.glMaterialfv(GL.GL_FRONT, GLLightingFunc.GL_AMBIENT_AND_DIFFUSE, blue, 0);
         gear(gl, 1.3f, 2.0f, 0.5f, 10, 0.7f);
         gl.glEndList();
-        System.err.println("gear3 list created: "+gear3);
+        if(verbose) {
+            System.err.println("gear3 list created: "+gear3);
+        }
 
         syncObjects = new Object();
     }
@@ -245,7 +260,9 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   }
 
   public void reshape(final GL2 gl, final int tileX, final int tileY, final int tileWidth, final int tileHeight, final int imageWidth, final int imageHeight) {
-    System.err.println(Thread.currentThread()+" Gears.reshape "+tileX+"/"+tileY+" "+tileWidth+"x"+tileHeight+" of "+imageWidth+"x"+imageHeight+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(gl.getContext().getGLDrawable().getHandle())+", tileRendererInUse "+tileRendererInUse);
+    if(verbose) {
+        System.err.println(Thread.currentThread()+" Gears.reshape "+tileX+"/"+tileY+" "+tileWidth+"x"+tileHeight+" of "+imageWidth+"x"+imageHeight+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(gl.getContext().getGLDrawable().getHandle())+", tileRendererInUse "+tileRendererInUse);
+    }
 
     // compute projection parameters 'normal'
     float left, right, bottom, top;
@@ -294,7 +311,9 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
   public void dispose(final GLAutoDrawable drawable) {
     if( !isInit ) { return; }
     isInit = false;
-    System.err.println(Thread.currentThread()+" Gears.dispose: tileRendererInUse "+tileRendererInUse);
+    if(verbose) {
+        System.err.println(Thread.currentThread()+" Gears.dispose: tileRendererInUse "+tileRendererInUse);
+    }
     try {
         final Object upstreamWidget = drawable.getUpstreamWidget();
         if (upstreamWidget instanceof Window) {
@@ -433,7 +452,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     gl.glEnd();
 
     /* draw front sides of teeth */
-    gl.glBegin(GL2GL3.GL_QUADS);
+    gl.glBegin(GL2ES3.GL_QUADS);
     for (i = 0; i < teeth; i++)
       {
         angle = i * 2.0f * (float) Math.PI / teeth;
@@ -457,7 +476,7 @@ public class Gears implements GLEventListener, TileRendererBase.TileRendererList
     gl.glEnd();
 
     /* draw back sides of teeth */
-    gl.glBegin(GL2GL3.GL_QUADS);
+    gl.glBegin(GL2ES3.GL_QUADS);
     for (i = 0; i < teeth; i++)
       {
         angle = i * 2.0f * (float) Math.PI / teeth;
