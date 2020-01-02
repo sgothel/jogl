@@ -447,6 +447,7 @@
             <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
+            <arg value="--frames"/>
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/> 
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
             <arg value="${javadoc.xarg1}"/>
@@ -474,6 +475,7 @@
             <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
+            <arg value="--frames"/>
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <link offline="false" href="../javadoc_nativewindow_spec" />
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
@@ -502,6 +504,7 @@
             <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
+            <arg value="--frames"/>
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
             <arg value="${javadoc.xarg1}"/>
@@ -529,6 +532,7 @@
             <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
+            <arg value="--frames"/>
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
             <arg value="${javadoc.xarg1}"/>
