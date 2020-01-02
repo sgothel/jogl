@@ -360,9 +360,9 @@
       -->
 
     <!-- copies ${gluegen-javadoc.path}/** to ${javadoc.root.path}/gluegen/ 
-         gluegen-javadoc.path is the parent folder of package-list:
+         gluegen-javadoc.path is the parent folder of element-list:
             gluegen-javadoc.path := build/javadoc/gluegen 
-            with build/javadoc/gluegen/javadoc/package-list
+            with build/javadoc/gluegen/javadoc/element-list
       -->
     <target name="javadoc.gluegen" depends="init" if="gluegen-javadoc.path">
         <delete dir="${javadoc.root.path}/gluegen" includeEmptyDirs="true" quiet="true" failonerror="false" />
@@ -404,10 +404,11 @@
 
         <!-- if gluegen-javadoc.path is not set, check in default location, 
              ${gluegen.root}/${rootrel.build}/javadoc/gluegen -->
-        <available file="${gluegen.root}/${rootrel.build}/javadoc/gluegen/javadoc/package-list" 
+        <available file="${gluegen.root}/${rootrel.build}/javadoc/gluegen/javadoc/element-list" 
                    type="file"
                    property="gluegen-javadoc.path"
                    value="${gluegen.root}/${rootrel.build}/javadoc/gluegen" />
+        <echo message="gluegen-javadoc.path ${gluegen-javadoc.path}"/>
         <antcall target="javadoc.gluegen" inheritRefs="true" />
 
         <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
@@ -424,7 +425,7 @@
 
         <property name="javadoc.dev.packagenames" value="${javadoc.packagenames}, com.jogamp.opengl.*, com.jogamp.graph.*, com.jogamp.nativewindow.*, com.jogamp.newt.*, com.jogamp.gluegen.opengl.*, com.jogamp.gluegen.runtime.opengl.*, jogamp.nativewindow.*, jogamp.opengl.*, jogamp.graph.*, jogamp.newt.*" />
 
-        <property name="java.excludes.javadoc.packagenames" value="jogamp.opengl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
+        <property name="java.excludes.javadoc.packagenames" value="jogamp.opengl.gl2.fixme.*,com.jogamp.newt.util.applet3.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
         <property name="javadoc.bottom" value="Copyright 2010 JogAmp Community." />
     </target>
 
