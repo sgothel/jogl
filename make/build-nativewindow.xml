@@ -1093,7 +1093,7 @@
                         nativejarfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar"
                         manifestfile="${build.nativewindow}/manifest-natives.mf"
                         module="nativewindow"
-                        includelibs="*.${native.library.suffix}" />
+                        includelibs="*.${native.library.suffix} *.symbols" />
     </target>
 
     <!-- ================================================================== -->
