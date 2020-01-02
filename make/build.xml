@@ -91,10 +91,10 @@
     <target name="one.lib.dir" depends="init,gluegen.cpptasks.detect.os" unless="one.dir.skip">
         <mkdir dir="${lib}" />
         <copy todir="${lib}">
-            <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix}" />
-            <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix}" />
-            <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix}" />
-            <!-- fileset dir="${build}/oculusvr/obj" includes="*.${native.library.suffix}" /-->
+            <fileset dir="${build}/jogl/obj" includes="*.${native.library.suffix} *.symbols" />
+            <fileset dir="${build}/nativewindow/obj" includes="*.${native.library.suffix} *.symbols" />
+            <fileset dir="${build}/newt/obj" includes="*.${native.library.suffix} *.symbols" />
+            <!-- fileset dir="${build}/oculusvr/obj" includes="*.${native.library.suffix} *.symbols" /-->
         </copy>
     </target>
 
@@ -185,7 +185,7 @@
                         manifestfile="${build}/manifest-all-natives.mf"
                         module="opengl"
                         includelibs="*.${native.library.suffix} *.symbols" 
-                        excludelibs="*jogl_cg.${native.library.suffix}" />
+                        excludelibs="*jogl_cg.${native.library.suffix} *jogl_cg.symbols" />
         <!-- Produce duplicates for diff 'all' configuration, since non-native-jar aliasing (Bug 1023/Bug 1024) -->
         <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-noawt-natives-${os.and.arch}.jar" />
         <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-mobile-natives-${os.and.arch}.jar" />
