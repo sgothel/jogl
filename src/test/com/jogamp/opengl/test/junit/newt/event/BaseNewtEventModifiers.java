@@ -388,7 +388,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     // pay more attention to the NEWT event modifier stuff.
 
     @Test(timeout=180000) // TO 3 min
-    public void testSingleButtonPressAndRelease() throws Exception {
+    public void test01SingleButtonPressAndRelease() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
             public void run() {
                 try {
@@ -398,7 +398,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     }
 
     @Test(timeout=180000) // TO 3 min
-    public void testSingleButtonPressAndReleaseWithShift() throws Exception {
+    public void test02SingleButtonPressAndReleaseWithShift() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
             public void run() {
                 try {
@@ -408,7 +408,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     }
 
     @Test(timeout=180000) // TO 3 min
-    public void testSingleButtonPressAndReleaseWithCtrl() throws Exception {
+    public void test03SingleButtonPressAndReleaseWithCtrl() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
             public void run() {
                 try {
@@ -421,7 +421,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
      * The META and ALT tests get too tied up with functions of the window system on X11,
      * so it's probably best to leave them commented out.
         @Test(timeout=180000) // TO 3 min
-        public void testSingleButtonPressAndReleaseWithMeta() throws Exception {
+        public void test04SingleButtonPressAndReleaseWithMeta() throws Exception {
             execOffThreadWithOnThreadEventDispatch(new Runnable() {
                 public void run() {
                     try {
@@ -431,7 +431,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         }
 
         @Test(timeout=180000) // TO 3 min
-        public void testSingleButtonPressAndReleaseWithAlt() throws Exception {
+        public void test05SingleButtonPressAndReleaseWithAlt() throws Exception {
             execOffThreadWithOnThreadEventDispatch(new Runnable() {
                 public void run() {
                     try {
@@ -448,7 +448,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
      * My US keyboard doesn't have an AltGr key, so maybe X is smart
      * enough to not let this modifier slip through (?).
         @Test
-        public void testSingleButtonPressAndReleaseWithAltGraph() throws Exception {
+        public void test06SingleButtonPressAndReleaseWithAltGraph() throws Exception {
             execOffThreadWithOnThreadEventDispatch(new Runnable() {
                 public void run() {
                     try {
@@ -461,7 +461,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     ////////////////////////////////////////////////////////////////////////////
 
     @Test(timeout=180000) // TO 3 min
-    public void testHoldOneButtonAndPressAnother() throws Exception {
+    public void test10HoldOneButtonAndPressAnother() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
             public void run() {
                 try {
@@ -471,7 +471,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     }
 
     @Test(timeout=180000) // TO 3 min
-    public void testPressAllButtonsInSequence() throws Exception {
+    public void test20PressAllButtonsInSequence() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
             public void run() {
                 try {
@@ -481,7 +481,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     }
 
     @Test(timeout=180000) // TO 3 min
-    public void testSingleButtonClickAndDrag() throws Exception {
+    public void test30SingleButtonClickAndDrag() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
             public void run() {
                 try {

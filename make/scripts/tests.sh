@@ -599,7 +599,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT3 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT4 $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT5 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT5 $*
 #testswt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextWithJTabbedPaneAWT $*
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedExternalContextAWT $*
@@ -968,14 +968,14 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT5 $
 # 2.4.0 Regressions
 #
 # OSX OpenJDK11U
-#testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
+# Always
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
-#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug816OSXCALayerPos04bAWT $*
+testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
+# Sometimes
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
 
 # Linux DRM/GBM
 #

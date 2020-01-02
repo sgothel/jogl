@@ -39,6 +39,7 @@ import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.NativeWindowException;
+import com.jogamp.nativewindow.OffscreenLayerOption;
 import com.jogamp.nativewindow.MutableSurface;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.VisualIDHolder;
@@ -523,6 +524,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
     private Point getLocationOnScreenByParent(final int x, final int y, final NativeWindow parent) {
         // return new Point(x, y).translate( parent.getLocationOnScreen(null) ); // Bug 1393: deadlock AppKit + EDT
+
+        // If parent is JAWT on OSX (offscreen), we need to query its non-blocking position
+        if( parent instanceof OffscreenLayerOption && ((OffscreenLayerOption)parent).isOffscreenLayerSurfaceEnabled() ) {
+            return new Point(x, y).translate( parent.getLocationOnScreen(null) ); // uses non-blocking specialization
+        }
         return new Point(x, y).translate( OSXUtil.GetLocationOnScreen(parent.getWindowHandle(), 0, 0) ); // non-blocking
     }
 
@@ -542,7 +548,13 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         // screen position -> rel child window position
                         final Point absPos = new Point(newX, newY);
                         // final Point parentOnScreen = parent.getLocationOnScreen(null); // Bug 1393: deadlock AppKit + EDT
-                        final Point parentOnScreen = OSXUtil.GetLocationOnScreen(parent.getWindowHandle(), 0, 0); // non-blocking
+                        final Point parentOnScreen;
+                        if( parent instanceof OffscreenLayerOption && ((OffscreenLayerOption)parent).isOffscreenLayerSurfaceEnabled() ) {
+                            // If parent is JAWT on OSX (offscreen), we need to query its non-blocking position
+                            parentOnScreen = parent.getLocationOnScreen(null); // uses non-blocking specialization
+                        } else {
+                            parentOnScreen = OSXUtil.GetLocationOnScreen(parent.getWindowHandle(), 0, 0); // non-blocking
+                        }
                         absPos.translate( parentOnScreen.scale(-1, -1) );
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("MacWindow.positionChanged.1 (Screen Pos - CHILD): ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> absPos "+newX+"/"+newY+", parentOnScreen "+parentOnScreen+" -> "+absPos);
