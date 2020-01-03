@@ -38,6 +38,7 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.TimeFrameI;
@@ -174,6 +175,34 @@ pkt install pkg:/video/ffmpeg
  */
 public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
+    /**
+     * Defaults to {@code true} for now.
+     * However, in case we ship our own ffmpeg library this may change.
+     * <p>
+     * Property {@code jogl.ffmpeg.lib} set to {@code internal}
+     * will set {@code PREFER_SYSTEM_LIBS} to {@code false}.
+     * </p>
+     * <p>
+     * Non system internal libraries are named 'internal_<basename>',
+     * e.g. 'internal_avutil'.
+     * </p>
+     * <p>
+     * System default libraries are named '<basename>',
+     * e.g. 'avutil'.
+     * </p>
+     * <p>
+     * If {@code PREFER_SYSTEM_LIBS} is {@code true} (default),
+     * we lookup the default library first,
+     * then the versioned library names and last the internal library.
+     * </p>
+     * <p>
+     * If {@code PREFER_SYSTEM_LIBS} is {@code false},
+     * we lookup the internal library first,
+     * then the versioned library names and last the default library.
+     * </p>
+     */
+    /* pp */ static final boolean PREFER_SYSTEM_LIBS;
+
     /** POSIX ENOSYS {@value}: Function not implemented. FIXME: Move to GlueGen ?!*/
     private static final int ENOSYS = 38;
 
@@ -189,6 +218,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private static final boolean enableSwResample;
 
     static {
+        // PREFER_SYSTEM_LIBS default on all systems is true for now!
+        final String choice = PropertyAccess.getProperty("jogl.ffmpeg.lib", true);
+        PREFER_SYSTEM_LIBS = null == choice || !choice.equals("internal");
+
         final boolean libAVGood = FFMPEGDynamicLibraryBundleInfo.initSingleton();
         final boolean libAVVersionGood;
         if( FFMPEGDynamicLibraryBundleInfo.libsLoaded() ) {

@@ -252,6 +252,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     static {
         // native ffmpeg media player implementation is included in jogl_desktop and jogl_mobile
         GLProfile.initSingleton();
+
         boolean _ready = false;
         /** util, format, codec, avresample, swresample */
         final VersionNumber[] _versions = new VersionNumber[5];
@@ -348,97 +349,157 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         // 6: util, format, codec, device, avresample, swresample
 
         final List<String> avutil = new ArrayList<String>();
-        avutil.add("avutil");        // default
-
-        avutil.add("libavutil.so.55");     // dummy future proof
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            avutil.add("avutil");          // system default
+        } else {
+            avutil.add("internal_avutil"); // internal
+        }
+        avutil.add("libavutil.so.56");     // ffmpeg 4.[0-x] (Debian-10)
+        avutil.add("libavutil.so.55");     //
         avutil.add("libavutil.so.54");     // ffmpeg 2.[4-x] / libav 11
         avutil.add("libavutil.so.53");     // ffmpeg 2.[0-3] / libav 10
         avutil.add("libavutil.so.52");     // ffmpeg 1.2 + 2.[0-3] / libav 9
         avutil.add("libavutil.so.51");     // 0.8
         avutil.add("libavutil.so.50");     // 0.7
 
-        avutil.add("avutil-55");     // dummy future proof
-        avutil.add("avutil-54");     // ffmpeg 2.[4-x] / libav 11
-        avutil.add("avutil-53");     // ffmpeg 2.[0-3] / libav 10
-        avutil.add("avutil-52");     // ffmpeg 1.2 + 2.[0-3] / libav 9
-        avutil.add("avutil-51");     // 0.8
-        avutil.add("avutil-50");     // 0.7
+        avutil.add("avutil-56");           // ffmpeg 4.[0-x]
+        avutil.add("avutil-55");           //
+        avutil.add("avutil-54");           // ffmpeg 2.[4-x] / libav 11
+        avutil.add("avutil-53");           // ffmpeg 2.[0-3] / libav 10
+        avutil.add("avutil-52");           // ffmpeg 1.2 + 2.[0-3] / libav 9
+        avutil.add("avutil-51");           // 0.8
+        avutil.add("avutil-50");           // 0.7
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            avutil.add("internal_avutil"); // internal
+        } else {
+            avutil.add("avutil");          // system default
+        }
         libsList.add(avutil);
 
         final List<String> avformat = new ArrayList<String>();
-        avformat.add("avformat");    // default
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            avformat.add("avformat");          // system default
+        } else {
+            avformat.add("internal_avformat"); // internal
+        }
+        avformat.add("libavformat.so.58");     // ffmpeg 4.[0-x] (Debian-10)
+        avformat.add("libavformat.so.57");     //
+        avformat.add("libavformat.so.56");     // ffmpeg 2.[4-x] / libav 11
+        avformat.add("libavformat.so.55");     // ffmpeg 2.[0-3] / libav 10
+        avformat.add("libavformat.so.54");     // ffmpeg 1.2 / libav 9
+        avformat.add("libavformat.so.53");     // 0.8
+        avformat.add("libavformat.so.52");     // 0.7
 
-        avformat.add("libavformat.so.57"); // dummy future proof
-        avformat.add("libavformat.so.56"); // ffmpeg 2.[4-x] / libav 11
-        avformat.add("libavformat.so.55"); // ffmpeg 2.[0-3] / libav 10
-        avformat.add("libavformat.so.54"); // ffmpeg 1.2 / libav 9
-        avformat.add("libavformat.so.53"); // 0.8
-        avformat.add("libavformat.so.52"); // 0.7
-
-        avformat.add("avformat-57"); // dummy future proof
-        avformat.add("avformat-56"); // ffmpeg 2.[4-x] / libav 11
-        avformat.add("avformat-55"); // ffmpeg 2.[0-3] / libav 10
-        avformat.add("avformat-54"); // ffmpeg 1.2 / libav 9
-        avformat.add("avformat-53"); // 0.8
-        avformat.add("avformat-52"); // 0.7
+        avformat.add("avformat-58");           // ffmpeg 4.[0-x]
+        avformat.add("avformat-57");           //
+        avformat.add("avformat-56");           // ffmpeg 2.[4-x] / libav 11
+        avformat.add("avformat-55");           // ffmpeg 2.[0-3] / libav 10
+        avformat.add("avformat-54");           // ffmpeg 1.2 / libav 9
+        avformat.add("avformat-53");           // 0.8
+        avformat.add("avformat-52");           // 0.7
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            avformat.add("internal_avformat"); // internal
+        } else {
+            avformat.add("avformat");          // system default
+        }
         libsList.add(avformat);
 
         final List<String> avcodec = new ArrayList<String>();
-        avcodec.add("avcodec");      // default
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            avcodec.add("avcodec");            // system default
+        } else {
+            avcodec.add("internal_avcodec");   // internal
+        }
+        avcodec.add("libavcodec.so.58");       // ffmpeg 4.[0-x] (Debian-10)
+        avcodec.add("libavcodec.so.57");       //
+        avcodec.add("libavcodec.so.56");       // ffmpeg 2.[4-x] / libav 11
+        avcodec.add("libavcodec.so.55");       // ffmpeg 2.[0-3] / libav 10
+        avcodec.add("libavcodec.so.54");       // ffmpeg 1.2 / libav 9
+        avcodec.add("libavcodec.so.53");       // 0.8
+        avcodec.add("libavcodec.so.52");       // 0.7
 
-        avcodec.add("libavcodec.so.57");   // dummy future proof
-        avcodec.add("libavcodec.so.56");   // ffmpeg 2.[4-x] / libav 11
-        avcodec.add("libavcodec.so.55");   // ffmpeg 2.[0-3] / libav 10
-        avcodec.add("libavcodec.so.54");   // ffmpeg 1.2 / libav 9
-        avcodec.add("libavcodec.so.53");   // 0.8
-        avcodec.add("libavcodec.so.52");   // 0.7
-
-        avcodec.add("avcodec-57");   // dummy future proof
-        avcodec.add("avcodec-56");   // ffmpeg 2.[4-x] / libav 11
-        avcodec.add("avcodec-55");   // ffmpeg 2.[0-3] / libav 10
-        avcodec.add("avcodec-54");   // ffmpeg 1.2 / libav 9
-        avcodec.add("avcodec-53");   // 0.8
-        avcodec.add("avcodec-52");   // 0.7
+        avcodec.add("avcodec-58");             // ffmpeg 4.[0-x]
+        avcodec.add("avcodec-57");             //
+        avcodec.add("avcodec-56");             // ffmpeg 2.[4-x] / libav 11
+        avcodec.add("avcodec-55");             // ffmpeg 2.[0-3] / libav 10
+        avcodec.add("avcodec-54");             // ffmpeg 1.2 / libav 9
+        avcodec.add("avcodec-53");             // 0.8
+        avcodec.add("avcodec-52");             // 0.7
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            avcodec.add("internal_avcodec");   // internal
+        } else {
+            avcodec.add("avcodec");            // system default
+        }
         libsList.add(avcodec);
 
         final List<String> avdevice = new ArrayList<String>();
-        avdevice.add("avdevice");        // default
-
-        avdevice.add("libavdevice.so.57");     // dummy future proof
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            avdevice.add("avdevice");          // system default
+        } else {
+            avdevice.add("internal_avdevice"); // internal
+        }
+        avdevice.add("libavdevice.so.58");     // ffmpeg 4.[0-x] (Debian-10)
+        avdevice.add("libavdevice.so.57");     //
         avdevice.add("libavdevice.so.56");     // ffmpeg 2.[4-x]
         avdevice.add("libavdevice.so.55");     // ffmpeg 2.[0-3] / libav 11
         avdevice.add("libavdevice.so.54");     // ffmpeg 1.2 / libav 10
         avdevice.add("libavdevice.so.53");     // 0.8 && libav 9
 
-        avdevice.add("avdevice-57");     // dummy future proof
-        avdevice.add("avdevice-56");     // ffmpeg 2.[4-x]
-        avdevice.add("avdevice-55");     // ffmpeg 2.[0-3] / libav 11
-        avdevice.add("avdevice-54");     // ffmpeg 1.2 / libav 10
-        avdevice.add("avdevice-53");     // 0.8 && libav 9
+        avdevice.add("avdevice-58");           // ffmpeg 4.[0-x]
+        avdevice.add("avdevice-57");           //
+        avdevice.add("avdevice-56");           // ffmpeg 2.[4-x]
+        avdevice.add("avdevice-55");           // ffmpeg 2.[0-3] / libav 11
+        avdevice.add("avdevice-54");           // ffmpeg 1.2 / libav 10
+        avdevice.add("avdevice-53");           // 0.8 && libav 9
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            avdevice.add("internal_avdevice"); // internal
+        } else {
+            avdevice.add("avdevice");          // system default
+        }
         libsList.add(avdevice);
 
         final List<String> avresample = new ArrayList<String>();
-        avresample.add("avresample");        // default
-
-        avresample.add("libavresample.so.3");     // dummy future proof
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            avresample.add("avresample");         // system default
+        } else {
+            avresample.add("internal_avresample");// internal
+        }
+        avresample.add("libavresample.so.4");     // ffmpeg 4.[0-x] (Debian-10)
+        avresample.add("libavresample.so.3");     //
         avresample.add("libavresample.so.2");     // libav 11
         avresample.add("libavresample.so.1");     // libav 9 + 10
 
-        avresample.add("avresample-3");     // dummy future proof
-        avresample.add("avresample-2");     // libav 11
-        avresample.add("avresample-1");     // libav 9 + 10
+        avresample.add("avresample-4");           // ffmpeg 4.[0-x]
+        avresample.add("avresample-3");           //
+        avresample.add("avresample-2");           // libav 11
+        avresample.add("avresample-1");           // libav 9 + 10
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            avresample.add("internal_avresample");// internal
+        } else {
+            avresample.add("avresample");         // system default
+        }
         libsList.add(avresample);
 
         final List<String> swresample = new ArrayList<String>();
-        swresample.add("swresample");        // default
-
-        swresample.add("libswresample.so.2");     // dummy future proof
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            swresample.add("swresample");         // system default
+        } else {
+            swresample.add("internal_swresample");// internal
+        }
+        swresample.add("libswresample.so.3");     // ffmpeg 4.[0-x] (Debian-10)
+        swresample.add("libswresample.so.2");     //
         swresample.add("libswresample.so.1");     // ffmpeg 2.[4-x]
         swresample.add("libswresample.so.0");     // ffmpeg 1.2 + 2.[0-3]
 
-        swresample.add("swresample-2");     // dummy future proof
-        swresample.add("swresample-1");     // ffmpeg 2.[4-x]
-        swresample.add("swresample-0");     // ffmpeg 1.2 + 2.[0-3]
+        swresample.add("swresample-3");           // ffmpeg 4.[0-x]
+        swresample.add("swresample-2");           //
+        swresample.add("swresample-1");           // ffmpeg 2.[4-x]
+        swresample.add("swresample-0");           // ffmpeg 1.2 + 2.[0-3]
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            swresample.add("internal_swresample");// internal
+        } else {
+            swresample.add("swresample");         // system default
+        }
         libsList.add(swresample);
 
         return libsList;

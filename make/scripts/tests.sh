@@ -355,7 +355,7 @@ function jrun() {
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogl.debug.AudioSink -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogl.debug.AudioSink"
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogl.debug.AudioSink -Djoal.openal.lib=system"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
+    D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
@@ -529,7 +529,7 @@ function testawtswt() {
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.CrossFadePlayer $*
 
 #
@@ -955,24 +955,13 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT $*
 
 #
-# OSX bugs
-#
-
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus02SwingAWTRobot $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocus03KeyTraversalAWT $*
-
-# test rotation change
-#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT
-
-#
 # 2.4.0 Regressions
 #
 # OSX OpenJDK11U
 # Always
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
-testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
-# Sometimes
+# Sometimes, might be removed
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
