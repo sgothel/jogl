@@ -155,11 +155,11 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                     if( null != nativeWindow || validateNative() ) {
                         if( newtChildReady ) {
                             if( postSetSize ) {
-                                newtChild.setSize(clientAreaPixels.width, clientAreaPixels.height);
+                                newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
                                 postSetSize = false;
                             }
                             if( postSetPos ) {
-                                newtChild.setPosition(clientAreaPixels.x, clientAreaPixels.y);
+                                newtChild.setPosition(clientAreaWindow.x, clientAreaWindow.y);
                                 postSetPos = false;
                             }
                             newtChild.windowRepaint(0, 0, clientAreaPixels.width, clientAreaPixels.height);
@@ -270,14 +270,14 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         }
         if( sizeChanged ) {
             if( newtChildReady ) {
-                newtChild.setSize(nClientAreaPixels.width, nClientAreaPixels.height);
+                newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
             } else {
                 postSetSize = true;
             }
         }
         if( updatePos && posChanged ) {
             if( newtChildReady ) {
-                newtChild.setPosition(nClientAreaPixels.x, nClientAreaPixels.y);
+                newtChild.setPosition(clientAreaWindow.x, clientAreaWindow.y);
             } else {
                 postSetPos = true;
             }
@@ -427,8 +427,8 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         newtChild.setFocusAction(null); // no AWT focus traversal ..
         if(add) {
             updatePosSizeCheck(false);
-            final int w = clientAreaPixels.width;
-            final int h = clientAreaPixels.height;
+            final int w = clientAreaWindow.width;
+            final int h = clientAreaWindow.height;
 
             // set SWT EDT and start it
             {
@@ -526,12 +526,12 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         @Override
         public int getWidth() {
-            return getSurfaceWidth(); // FIXME: Use 'scale' or an actual window-width
+            return clientAreaWindow.width;
         }
 
         @Override
         public int getHeight() {
-            return getSurfaceHeight(); // FIXME: Use 'scale' or an actual window-width
+            return clientAreaWindow.height;
         }
 
         @Override
