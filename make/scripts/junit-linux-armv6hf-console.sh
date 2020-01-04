@@ -2,8 +2,8 @@
 
 SDIR=`dirname $0` 
 
-if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh ] ; then
-    . $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh
+if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogamp-x86_64.sh ] ; then
+    . $SDIR/../../../gluegen/make/scripts/setenv-build-jogamp-x86_64.sh
 fi
 
 LOGF=junit.jogl.all.linux-armv6hf-console.log

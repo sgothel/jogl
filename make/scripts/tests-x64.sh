@@ -25,8 +25,8 @@ SDIR=`dirname $0`
 #JAVA_HOME=/opt-linux-x86_64/j2se7
 #export J2RE_HOME JAVA_HOME
 
-if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh ] ; then
-    . $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh
+if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogamp-x86_64.sh ] ; then
+    . $SDIR/../../../gluegen/make/scripts/setenv-build-jogamp-x86_64.sh
 fi
 
 export SWT_CLASSPATH=`pwd`/lib/swt/gtk-linux-x86_64/swt.jar

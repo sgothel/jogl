@@ -2,8 +2,8 @@
 
 SDIR=`dirname $0` 
 
-if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86.sh ] ; then
-    . $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86.sh
+if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogamp-x86.sh ] ; then
+    . $SDIR/../../../gluegen/make/scripts/setenv-build-jogamp-x86.sh
 fi
 
 if [ "$1" = "-libdir" ] ; then
