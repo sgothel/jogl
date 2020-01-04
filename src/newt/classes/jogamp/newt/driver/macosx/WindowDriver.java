@@ -109,16 +109,17 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     /**
-     * Essentially updates {@code maxPixelScale} ..
+     * Essentially updates {@code hasPixelScale} and {@code maxPixelScale} ..
      */
     private boolean updateMaxScreenPixelScaleByWindowHandle(final boolean sendEvent) {
         final long handle = getWindowHandle();
         if( 0 != handle ) {
             final float maxPixelScaleRaw = OSXUtil.GetScreenPixelScale(handle);
+            final float newPixelScaleRaw = OSXUtil.GetWindowPixelScale(handle);
             if( DEBUG_IMPLEMENTATION ) {
-                System.err.println("WindowDriver.updatePixelScale.2: req "+reqPixelScale[0]+", has "+hasPixelScale[0]+", max "+maxPixelScaleRaw);
+                System.err.println("WindowDriver.updatePixelScale.2: req "+reqPixelScale[0]+", has "+hasPixelScale[0]+", new "+newPixelScaleRaw+", max "+maxPixelScaleRaw);
             }
-            return updatePixelScale(sendEvent, true /* defer */, false /*offthread */, hasPixelScale[0], maxPixelScaleRaw);
+            return updatePixelScale(sendEvent, true /* defer */, false /*offthread */, newPixelScaleRaw, maxPixelScaleRaw);
         } else {
             return false;
         }
@@ -168,15 +169,21 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     changed = updatePixelScale(true /* sendEvent */, true /* defer */, true /*offthread */, reqPixelScale[0], maxPixelScale[0]); // HiDPI: uniformPixelScale
                 }
             } else {
-                // set pixelScale in native code, will issue an update updatePixelScale(..)
-                // hence we pre-query whether pixel-scale will change, without affecting current state 'hasPixelScale'!
+                // setPixelScale0(..) _should_ issue an update updatePixelScale(..) via NSView::viewDidChangeBackingProperties
+                // We pre-query whether pixel-scale will change, without affecting current state 'hasPixelScale',
+                // but to issue setPixelScale0(..) only when required.
                 final float[] _hasPixelScale = new float[2];
                 System.arraycopy(hasPixelScale, 0, _hasPixelScale, 0, 2);
                 if( SurfaceScaleUtils.setNewPixelScale(_hasPixelScale, _hasPixelScale, reqPixelScale, minPixelScale, maxPixelScale, DEBUG_IMPLEMENTATION ? getClass().getName() : null) ) {
                     OSXUtil.RunOnMainThread(true, false, new Runnable() {
                         @Override
                         public void run() {
-                            setPixelScale0(getWindowHandle(), surfaceHandle, _hasPixelScale[0]); // HiDPI: uniformPixelScale
+                            final long windowHandle = getWindowHandle();
+                            setPixelScale0(windowHandle, surfaceHandle, _hasPixelScale[0]); // HiDPI: uniformPixelScale
+                            // For some reason NSView::viewDidChangeBackingProperties won't get called on child windows after creation
+                            // hence explicitly call it here.
+                            final float newPixelScaleRaw = OSXUtil.GetWindowPixelScale(windowHandle);
+                            updatePixelScale(true /* sendEvent */, true /* defer */, false /*offthread */, newPixelScaleRaw, maxPixelScale[0]);
                         }
                     } );
                     changed = true;
@@ -755,7 +762,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("MacWindow.createWindow on thread "+Thread.currentThread().getName()+
                                ": offscreen "+offscreenInstance+", recreate "+recreate+
-                               ", pS "+pS+", "+width+"x"+height+", state "+getReconfigStateMaskString(flags)+
+                               ", pS "+pS+", "+width+"x"+height+", reqPixelScale "+reqPixelScale[0]+", state "+getReconfigStateMaskString(flags)+
                                ", preWinHandle "+toHexString(oldWinHandle)+", parentWin "+toHexString(parentWinHandle)+
                                ", surfaceHandle "+toHexString(surfaceHandle));
             // Thread.dumpStack();

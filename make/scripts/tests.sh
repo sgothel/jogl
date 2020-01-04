@@ -156,7 +156,7 @@ function jrun() {
 
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug.SWT"
-    #D_ARGS="-Dnativewindow.debug.SWT -Dnativewindow.debug.X11Util -Dnewt.debug.Window"
+    D_ARGS="-Dnativewindow.debug.SWT -Dnativewindow.debug.X11Util -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug=all -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all -Djogamp.debug.Lock"
 
@@ -355,7 +355,7 @@ function jrun() {
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogl.debug.AudioSink -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogl.debug.AudioSink"
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogl.debug.AudioSink -Djoal.openal.lib=system"
-    D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
@@ -529,7 +529,7 @@ function testawtswt() {
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.CrossFadePlayer $*
 
 #
@@ -792,7 +792,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor01 $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02NewtGLWindow $*
-#testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
+testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
