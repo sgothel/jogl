@@ -517,6 +517,16 @@
         <syslibset libs="gbm"/>
       </linker>
 
+      <linker id="linker.cfg.linux.x86.nativewindow.drm" extends="linker.cfg.linux.x86">
+        <syslibset libs="drm"/>
+        <syslibset libs="gbm"/>
+      </linker>
+
+      <linker id="linker.cfg.linux.amd64.nativewindow.drm" extends="linker.cfg.linux.amd64">
+        <syslibset libs="drm"/>
+        <syslibset libs="gbm"/>
+      </linker>
+
       <linker id="linker.cfg.linux.armv6.nativewindow.drm" extends="linker.cfg.linux.armv6">
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="drm" />
         <syslibset dir="${TARGET_PLATFORM_USRLIBS}" libs="gbm" />
@@ -651,14 +661,14 @@
       <echo message="Linux.x86" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.x86" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.x86.nativewindow.x11" />
-      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.nativewindow.drm" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.x86.nativewindow.drm" />
     </target>
     
     <target name="c.configure.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" />
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.nativewindow.x11" />
-      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.nativewindow.drm" />
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.amd64.nativewindow.drm" />
     </target>
     
     <target name="c.configure.linux.armv6" if="isLinuxARMv6">
