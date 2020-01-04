@@ -80,6 +80,8 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
     private WindowClosingMode newtChildClosingMode = WindowClosingMode.DISPOSE_ON_CLOSE;
     private final WindowClosingMode closingMode = WindowClosingMode.DISPOSE_ON_CLOSE;
     private volatile Rectangle clientAreaPixels, clientAreaWindow;
+    /** pixelScale = pixelUnit / windowUnix */
+    private volatile float[] pixelScale = new float[] { 1f, 1f };
 
     private volatile SWTNativeWindow nativeWindow;
     private volatile Window newtChild = null;
@@ -131,6 +133,13 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         clientAreaPixels = SWTAccessor.getClientAreaInPixels(this);
         clientAreaWindow = getClientArea();
+        if( 0 < clientAreaWindow.width && 0 < clientAreaWindow.height ) {
+            pixelScale[0] = clientAreaPixels.width / clientAreaWindow.width;
+            pixelScale[1] = clientAreaPixels.height / clientAreaWindow.height;
+        } else {
+            pixelScale[0] = 1f;
+            pixelScale[1] = 1f;
+        }
 
         final AbstractGraphicsDevice device = SWTAccessor.getDevice(this);
         screen = SWTAccessor.getScreen(device, -1 /* default */);
@@ -138,6 +147,15 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         if(null != child) {
             setNEWTChild(child);
+        }
+        if(DEBUG) {
+            final long nsh = newtChildReady ? newtChild.getSurfaceHandle() : 0;
+            System.err.println("NewtCanvasSWT: "+
+                    ", ("+Thread.currentThread().getName()+"): newtChildReady "+newtChildReady+
+                    ", pixel "+clientAreaPixels.x+"/"+clientAreaPixels.y+" "+clientAreaPixels.width+"x"+clientAreaPixels.height+
+                    ", window "+clientAreaWindow.x+"/"+clientAreaWindow.y+" "+clientAreaWindow.width+"x"+clientAreaWindow.height+
+                    ", scale "+pixelScale[0]+"/"+pixelScale[1]+
+                    " - surfaceHandle 0x"+Long.toHexString(nsh));
         }
 
         // Bug 1362 fix or workaround: Seems SWT/GTK3 at least performs lazy initialization
@@ -260,17 +278,30 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             if( sizeChanged || posChanged ) {
                 clientAreaPixels = nClientAreaPixels;
                 clientAreaWindow = getClientArea();
+                if( 0 < clientAreaWindow.width && 0 < clientAreaWindow.height ) {
+                    pixelScale[0] = clientAreaPixels.width / clientAreaWindow.width;
+                    pixelScale[1] = clientAreaPixels.height / clientAreaWindow.height;
+                } else {
+                    pixelScale[0] = 1f;
+                    pixelScale[1] = 1f;
+                }
             } else {
                 nClientAreaPixels = clientAreaPixels;
             }
         }
         if(DEBUG) {
             final long nsh = newtChildReady ? newtChild.getSurfaceHandle() : 0;
-            System.err.println("NewtCanvasSWT.updatePosSizeCheck: sizeChanged "+sizeChanged+", posChanged "+posChanged+", updatePos "+updatePos+", ("+Thread.currentThread().getName()+"): newtChildReady "+newtChildReady+", "+nClientAreaPixels.x+"/"+nClientAreaPixels.y+" "+nClientAreaPixels.width+"x"+nClientAreaPixels.height+" - surfaceHandle 0x"+Long.toHexString(nsh));
+            System.err.println("NewtCanvasSWT.updatePosSizeCheck: sizeChanged "+sizeChanged+", posChanged "+posChanged+", updatePos "+updatePos+
+                    ", ("+Thread.currentThread().getName()+"): newtChildReady "+newtChildReady+
+                    ", pixel "+clientAreaPixels.x+"/"+clientAreaPixels.y+" "+clientAreaPixels.width+"x"+clientAreaPixels.height+
+                    ", window "+clientAreaWindow.x+"/"+clientAreaWindow.y+" "+clientAreaWindow.width+"x"+clientAreaWindow.height+
+                    ", scale "+pixelScale[0]+"/"+pixelScale[1]+
+                    " - surfaceHandle 0x"+Long.toHexString(nsh));
         }
         if( sizeChanged ) {
             if( newtChildReady ) {
                 newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
+                newtChild.setSurfaceScale(pixelScale);
             } else {
                 postSetSize = true;
             }
@@ -442,6 +473,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             newtChild.reparentWindow(nativeWindow, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
             newtChild.setVisible(true);
             configureNewtChild(true);
+            newtChild.setSurfaceScale(pixelScale); // ensure this to be set after creation, otherwise updatePosSizeCheck is being used
             newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
 
             // force this SWT Canvas to be focus-able,
@@ -536,12 +568,16 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         @Override
         public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
-            return pixelUnitsAndResult; // FIXME HiDPI: use 'pixelScale'
+            pixelUnitsAndResult[0] /= pixelScale[0];
+            pixelUnitsAndResult[1] /= pixelScale[1];
+            return pixelUnitsAndResult;
         }
 
         @Override
         public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
-            return windowUnitsAndResult; // FIXME HiDPI: use 'pixelScale'
+            windowUnitsAndResult[0] *= pixelScale[0];
+            windowUnitsAndResult[1] *= pixelScale[1];
+            return windowUnitsAndResult;
         }
 
         @Override
