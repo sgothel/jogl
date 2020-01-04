@@ -184,7 +184,7 @@
                         nativejarfile="${jar}/jogl-all-natives-${os.and.arch}.jar"
                         manifestfile="${build}/manifest-all-natives.mf"
                         module="opengl"
-                        includelibs="*.${native.library.suffix} *.symbols" 
+                        includelibs="*.${native.library.suffix}" 
                         excludelibs="*jogl_cg.${native.library.suffix} *jogl_cg.symbols" />
         <!-- Produce duplicates for diff 'all' configuration, since non-native-jar aliasing (Bug 1023/Bug 1024) -->
         <copy file="${jar}/jogl-all-natives-${os.and.arch}.jar" tofile="${jar}/jogl-all-noawt-natives-${os.and.arch}.jar" />

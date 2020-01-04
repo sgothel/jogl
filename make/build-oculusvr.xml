@@ -731,7 +731,7 @@
                         nativejarfile="${build.oculusvr}/oculusvr-natives-${os.and.arch}.jar"
                         manifestfile="${build.oculusvr}/manifest-natives.mf"
                         module="oculusvr"
-                        includelibs="*oculusvr.${native.library.suffix} *.symbols" />
+                        includelibs="*oculusvr.${native.library.suffix}" />
     </target>
 
     <!-- ================================================================== -->

@@ -1162,7 +1162,7 @@
                         nativejarfile="${build.newt}/newt-natives-${os.and.arch}.jar"
                         manifestfile="${build.newt}/manifest-natives.mf"
                         module="newt"
-                        includelibs="*.${native.library.suffix} *.symbols" />
+                        includelibs="*.${native.library.suffix}" />
     </target>
 
     <!-- ================================================================== -->

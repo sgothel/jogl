@@ -1992,14 +1992,14 @@
                         nativejarfile="${build.jogl}/jogl-natives-${os.and.arch}.jar"
                         manifestfile="${build.jogl}/manifest-natives.mf"
                         module="opengl"
-                        includelibs="*.${native.library.suffix} *.symbols" 
+                        includelibs="*.${native.library.suffix}" 
                         excludelibs="*jogl_cg.${native.library.suffix} *jogl_cg.symbols" />
 
         <native.tag.jar objdir="${obj.jogl}"
                         nativejarfile="${build.jogl}/jogl-cg-natives-${os.and.arch}.jar"
                         manifestfile="${build.jogl}/manifest-natives.mf"
                         module="cg"
-                        includelibs="*jogl_cg.${native.library.suffix} *jogl_cg.symbols" />
+                        includelibs="*jogl_cg.${native.library.suffix}" />
     </target>
 
     <!-- ================================================================== -->
