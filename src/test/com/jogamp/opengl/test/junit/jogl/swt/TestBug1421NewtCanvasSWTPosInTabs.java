@@ -58,15 +58,17 @@ import com.jogamp.opengl.util.FPSAnimator;
 
 /**
  * Test for Bug 1421: Child Newt Window position within an SWT (tab) layout
- * using NewtCanvasSWT on MacOS High-DPI.
+ * using NewtCanvasSWT on MacOS.
  * <p>
  * Bug 1421 {@link #test01_tabFolderParent()} shows that the
  * inner child NEWT GLWindow is position wrongly.
- * It's position is shifted down about the height of the
+ * It's position is shifted down abo0ut the height of the
  * parent TabFolder and right about the width of the same.
- * Since this works well on non High-DPI, I have to assume that
- * the scaling multiple is missing in calculating the window
- * position offset somehow.
+ * </p>
+ * This positioning issue occurs on MacOS
+ * with and without High-DPI Retina,
+ * therefor it is a general issue on MacOS.
+ * This issue does not occur on GNU/Linux GTK nor on Windows.
  * </p>
  */
 public class TestBug1421NewtCanvasSWTPosInTabs {
