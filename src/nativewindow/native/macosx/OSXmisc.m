@@ -358,16 +358,13 @@ JNIEXPORT jfloat JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetWindowPixelS
     NSObject *nsObj = (NSObject*) (intptr_t) winOrView;
     NSWindow* win = NULL;
     NSView* view = NULL;
-    NSScreen *screen = NULL;
 
     if( [nsObj isKindOfClass:[NSWindow class]] ) {
         win = (NSWindow*) nsObj;
         view = [win contentView];
-        screen = [win screen];
     } else if( nsObj != NULL && [nsObj isKindOfClass:[NSView class]] ) {
         view = (NSView*) nsObj;
         win = [view window];
-        screen = [win screen];
     } else {
         NativewindowCommon_throwNewRuntimeException(env, "neither win nor view %p\n", nsObj);
     }
@@ -386,6 +383,43 @@ NS_ENDHANDLER
     [pool release];
 
     return (jfloat)pixelScale;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    SetWindowPixelScale1
+ * Signature: (JF)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_SetWindowPixelScale1
+  (JNIEnv *env, jclass unused, jlong winOrView, jfloat reqPixelScale)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    NSObject *nsObj = (NSObject*) (intptr_t) winOrView;
+    NSWindow* win = NULL;
+    NSView* view = NULL;
+
+    if( [nsObj isKindOfClass:[NSWindow class]] ) {
+        win = (NSWindow*) nsObj;
+        view = [win contentView];
+    } else if( nsObj != NULL && [nsObj isKindOfClass:[NSView class]] ) {
+        view = (NSView*) nsObj;
+        win = [view window];
+    } else {
+        NativewindowCommon_throwNewRuntimeException(env, "neither win nor view %p\n", nsObj);
+    }
+
+NS_DURING
+    // HiDPI scaling: Setup - Available >= 10.7
+    if( 1.0 == reqPixelScale ) {
+        [view setWantsBestResolutionOpenGLSurface: NO];
+    } else {
+        [view setWantsBestResolutionOpenGLSurface: YES];
+    }
+NS_HANDLER
+NS_ENDHANDLER
+
+    [pool release];
 }
 
 /*

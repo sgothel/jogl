@@ -55,6 +55,7 @@ import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.GLSharedContextSetter;
 import com.jogamp.opengl.Threading;
 
+import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
@@ -64,6 +65,7 @@ import jogamp.opengl.GLDrawableImpl;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.internal.DPIUtil;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -581,6 +583,15 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
            }
        } else {
            nativeWindowHandle = SWTAccessor.getWindowHandle(this);
+           if( SWTAccessor.isOSX ) {
+               final float reqPixelScale = DPIUtil.autoScaleUp(this, 1f);
+               if( DEBUG ) {
+                   System.err.println(getThreadName()+": SWT.GLCanvas.OSX "+toHexString(hashCode())+": Scaling: devZoom "+DPIUtil.getDeviceZoom()+", general "+DPIUtil.autoScaleUp(1f)+", onWidged "+reqPixelScale);
+               }
+               if( reqPixelScale > 1f ) {
+                   OSXUtil.SetWindowPixelScale(nativeWindowHandle, reqPixelScale);
+               }
+           }
        }
        final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(capsRequested.getGLProfile());
 
@@ -593,11 +604,13 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
        if(!_drawable.isRealized()) {
            // oops
            if(DEBUG) {
+               System.err.println(getThreadName()+": SWT.GLCanvas.validate.X "+proxySurface);
                System.err.println(getThreadName()+": SWT.GLCanvas.validate.X "+toHexString(hashCode())+": Drawable could not be realized: "+_drawable);
            }
        } else {
            if(DEBUG) {
-               System.err.println(getThreadName()+": SWT.GLCanvas.validate "+toHexString(hashCode())+": Drawable created and realized");
+               System.err.println(getThreadName()+": SWT.GLCanvas.validate "+proxySurface);
+               System.err.println(getThreadName()+": SWT.GLCanvas.validate "+toHexString(hashCode())+": Drawable created and realized: "+_drawable);
            }
            drawable = _drawable;
        }
