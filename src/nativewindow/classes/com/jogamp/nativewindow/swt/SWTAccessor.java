@@ -28,12 +28,14 @@
 package com.jogamp.nativewindow.swt;
 
 import com.jogamp.common.os.Platform;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import org.eclipse.swt.graphics.GCData;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.internal.DPIUtil;
 import org.eclipse.swt.widgets.Control;
@@ -59,6 +61,8 @@ public class SWTAccessor {
     private static final boolean DEBUG = Debug.debug("SWT");
 
     private static final Method swt_scrollable_clientAreaInPixels;
+    private static final Method swt_control_locationInPixels;
+    private static final Method swt_control_sizeInPixels;
 
     private static final Field swt_control_handle;
     private static final boolean swt_uses_long_handles;
@@ -144,6 +148,30 @@ public class SWTAccessor {
         isX11 = NativeWindowFactory.TYPE_X11 == nwt;
 
         Method m = null;
+        try {
+            m = Control.class.getDeclaredMethod("getLocationInPixels");
+            m.setAccessible(true);
+        } catch (final Exception ex) {
+            m = null;
+            if( DEBUG ) {
+                System.err.println("getLocationInPixels not implemented: "+ex.getMessage());
+            }
+        }
+        swt_control_locationInPixels = m;
+
+        m = null;
+        try {
+            m = Control.class.getDeclaredMethod("getSizeInPixels");
+            m.setAccessible(true);
+        } catch (final Exception ex) {
+            m = null;
+            if( DEBUG ) {
+                System.err.println("getSizeInPixels not implemented: "+ex.getMessage());
+            }
+        }
+        swt_control_sizeInPixels = m;
+
+        m = null;
         try {
             m = Scrollable.class.getDeclaredMethod("getClientAreaInPixels");
             m.setAccessible(true);
@@ -262,7 +290,8 @@ public class SWTAccessor {
         isX11GTK = isX11 && null != OS_gtk_class;
 
         if(DEBUG) {
-            System.err.println("SWTAccessor.<init>: GTK Version: "+OS_gtk_version);
+            System.err.println("SWTAccessor.<init>: isX11 "+isX11+", isX11GTK "+isX11GTK+" (GTK Version: "+OS_gtk_version+")");
+            System.err.println("SWTAccessor.<init>: isOSX "+isOSX+", isWindows "+isWindows);
         }
     }
 
@@ -398,6 +427,27 @@ public class SWTAccessor {
         }
         try {
             return (Rectangle) swt_scrollable_clientAreaInPixels.invoke(s);
+        } catch (final Throwable e) {
+            throw new NativeWindowException(e);
+        }
+    }
+
+    public static Point getLocationInPixels(final Control c) throws NativeWindowException {
+        if( null == swt_control_locationInPixels ) {
+            return DPIUtil.autoScaleUp(c.getLocation());
+        }
+        try {
+            return (Point) swt_control_locationInPixels.invoke(c);
+        } catch (final Throwable e) {
+            throw new NativeWindowException(e);
+        }
+    }
+    public static Point getSizeInPixels(final Control c) throws NativeWindowException {
+        if( null == swt_control_sizeInPixels ) {
+            return DPIUtil.autoScaleUp(c.getSize());
+        }
+        try {
+            return (Point) swt_control_sizeInPixels.invoke(c);
         } catch (final Throwable e) {
             throw new NativeWindowException(e);
         }
@@ -671,4 +721,27 @@ public class SWTAccessor {
     public static void destroyGDKWindow(final long gdkWindow) {
         // OS.gdk_window_destroy (gdkWindow);
     }
+
+    public static com.jogamp.nativewindow.util.Point getLocationOnScreen(final com.jogamp.nativewindow.util.Point storage,
+                                                                         Control comp)
+    {
+        while(null != comp) {
+            final org.eclipse.swt.graphics.Point p = comp.getLocation();
+            final int dx = p.x;
+            final int dy = p.y;
+            storage.translate(dx, dy);
+            comp = comp.getParent();
+        }
+        return storage;
+    }
+    public static Control getTopControl(Control comp)
+    {
+        Control last = null;
+        while(null != comp) {
+            last = comp;
+            comp = comp.getParent();
+        }
+        return last;
+    }
+
 }
