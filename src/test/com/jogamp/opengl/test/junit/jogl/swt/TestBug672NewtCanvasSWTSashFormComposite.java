@@ -40,6 +40,7 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -52,9 +53,11 @@ import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.PointImmutable;
 import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.swt.GLCanvas;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -171,60 +174,77 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
             }
         }
     }
-    final WaitAction awtRobotWaitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
+    final WaitAction waitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
     final WaitAction generalWaitAction = new WaitAction(10);
 
-    protected void runTestGL(final GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(final boolean useNewtCanvasSWT, final GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
         final com.jogamp.newt.Screen screen = NewtFactory.createScreen(swtNewtDisplay, screenIdx);
-        final GLWindow glWindow = GLWindow.create(screen, caps);
-        Assert.assertNotNull(glWindow);
+        final GLWindow glWindow;
+        final GLCanvas glCanvas;
+        final GLAutoDrawable glad;
+        final NewtCanvasSWT newtCanvasSWT;
+        if( useNewtCanvasSWT ) {
+            glWindow = GLWindow.create(screen, caps);
+            glad = glWindow;
+            glCanvas = null;
+            Assert.assertNotNull(glWindow);
+            newtCanvasSWT = NewtCanvasSWT.create( innerComposite, 0, glWindow );
+            Assert.assertNotNull( newtCanvasSWT );
+        } else {
+            glCanvas = GLCanvas.create( innerComposite, 0, caps, null);
+            glad = glCanvas;
+            glWindow = null;
+            Assert.assertNotNull(glCanvas);
+            newtCanvasSWT = null;
+        }
+        Assert.assertNotNull(glad);
 
         final GearsES2 demo = new GearsES2(1);
-        glWindow.addGLEventListener(demo);
+        glad.addGLEventListener(demo);
 
         final Animator animator = new Animator();
         animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
 
         final QuitAdapter quitAdapter = new QuitAdapter();
-        //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
-        //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
-        glWindow.addKeyListener(quitAdapter);
-        glWindow.addWindowListener(quitAdapter);
+        if( useNewtCanvasSWT ) {
+            //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
+            //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
+            glWindow.addKeyListener(quitAdapter);
+            glWindow.addWindowListener(quitAdapter);
 
-        glWindow.addWindowListener(new WindowAdapter() {
-            public void windowResized(final WindowEvent e) {
-                System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
-            }
-            public void windowMoved(final WindowEvent e) {
-                System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
-            }
-        });
-
-        glWindow.addKeyListener(new KeyAdapter() {
-            public void keyReleased(final KeyEvent e) {
-                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
-                    return;
+            glWindow.addWindowListener(new WindowAdapter() {
+                public void windowResized(final WindowEvent e) {
+                    System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
                 }
-                if(e.getKeyChar()=='f') {
-                    glWindow.invokeOnNewThread(null, false, new Runnable() {
-                        public void run() {
-                            final Thread t = glWindow.setExclusiveContextThread(null);
-                            System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
-                            glWindow.setFullscreen(!glWindow.isFullscreen());
-                            System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
-                            glWindow.setExclusiveContextThread(t);
-                    } } );
+                public void windowMoved(final WindowEvent e) {
+                    System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
                 }
-            }
-        });
+            });
 
-        animator.add(glWindow);
+            glWindow.addKeyListener(new KeyAdapter() {
+                public void keyReleased(final KeyEvent e) {
+                    if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                        return;
+                    }
+                    if(e.getKeyChar()=='f') {
+                        glWindow.invokeOnNewThread(null, false, new Runnable() {
+                            public void run() {
+                                final Thread t = glWindow.setExclusiveContextThread(null);
+                                System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                                glWindow.setFullscreen(!glWindow.isFullscreen());
+                                System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                                glWindow.setExclusiveContextThread(t);
+                        } } );
+                    }
+                }
+            });
+        }
+
+        animator.add(glad);
         animator.start();
         Assert.assertTrue(animator.isStarted());
         Assert.assertTrue(animator.isAnimating());
         animator.setUpdateFPSFrames(60, null);
-        final NewtCanvasSWT canvas1 = NewtCanvasSWT.create( innerComposite, 0, glWindow );
-        Assert.assertNotNull( canvas1 );
 
         display.syncExec( new Runnable() {
            public void run() {
@@ -236,14 +256,21 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
               shell.open();
            }
         });
-        Assert.assertTrue("GLWindow didn't become visible natively!", NewtTestUtil.waitForRealized(glWindow, true, awtRobotWaitAction));
-        Assert.assertNotNull( canvas1.getNativeWindow() );
-
-        System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
-        System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz.0: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
-        System.err.println("GLWindow LOS.0: "+glWindow.getLocationOnScreen(null));
-        System.err.println("NewtCanvasSWT LOS.0: "+canvas1.getNativeWindow().getLocationOnScreen(null));
+        if( useNewtCanvasSWT ) {
+            Assert.assertTrue("GLWindow didn't become visible natively!", NewtTestUtil.waitForRealized(glWindow, true, waitAction));
+            Assert.assertNotNull( newtCanvasSWT.getNativeWindow() );
+            System.err.println("NewtCanvasSWT LOS.0: "+newtCanvasSWT.getNativeWindow().getLocationOnScreen(null));
+            System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
+            System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
+            System.err.println("window pos/siz.0: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
+            System.err.println("GLWindow LOS.0: "+glWindow.getLocationOnScreen(null));
+        } else {
+            System.err.println("GL chosen: "+glCanvas.getChosenGLCapabilities());
+            System.err.println("GLCanvas pixel-units  pos/siz.0: pos "+SWTAccessor.getLocationInPixels(glCanvas)+", size "+SWTAccessor.getSizeInPixels(glCanvas));
+            System.err.println("GLCanvas window-units pos/siz.0: pos "+glCanvas.getLocation()+", size "+glCanvas.getSize());
+            System.err.println("GLCanvas LOS.0: "+SWTAccessor.getLocationOnScreen(new Point(), glCanvas));
+        }
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized(glad, true, waitAction));
 
         if( null != rwsize ) {
             for(int i=0; i<50; i++) { // 500 ms dispatched delay
@@ -254,20 +281,32 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
                   shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
                }
             });
-            System.err.println("window resize pos/siz.1: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
-            System.err.println("GLWindow LOS.1: "+glWindow.getLocationOnScreen(null));
-            System.err.println("NewtCanvasSWT LOS.1: "+canvas1.getNativeWindow().getLocationOnScreen(null));
+            if( useNewtCanvasSWT ) {
+                System.err.println("window resize pos/siz.1: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
+                System.err.println("GLWindow LOS.1: "+glWindow.getLocationOnScreen(null));
+                System.err.println("NewtCanvasSWT LOS.1: "+newtCanvasSWT.getNativeWindow().getLocationOnScreen(null));
+            } else {
+                System.err.println("GLCanvas pixel-units  pos/siz.1: pos "+SWTAccessor.getLocationInPixels(glCanvas)+", size "+SWTAccessor.getSizeInPixels(glCanvas));
+                System.err.println("GLCanvas window-units pos/siz.1: pos "+glCanvas.getLocation()+", size "+glCanvas.getSize());
+                System.err.println("GLCanvas LOS.1: "+SWTAccessor.getLocationOnScreen(new Point(), glCanvas));
+            }
         }
 
-        final PointImmutable pSashRightClient = new Point(wsize.getWidth(), 0);
-        final PointImmutable pNatWinLOS = canvas1.getNativeWindow().getLocationOnScreen(null);
-        final PointImmutable pGLWinLOS = glWindow.getLocationOnScreen(null);
-
-        System.err.println("GLWindow LOS: "+pGLWinLOS);
-        System.err.println("NewtCanvasSWT LOS: "+pNatWinLOS);
-
-        Assert.assertTrue( "NewtCanvasAWT LOS "+pNatWinLOS+" not >= sash-right "+pSashRightClient, pNatWinLOS.compareTo(pSashRightClient) >= 0 );
-        Assert.assertTrue( "GLWindow LOS "+pGLWinLOS+" not >= sash-right "+pSashRightClient, pGLWinLOS.compareTo(pSashRightClient) >= 0 );
+        {
+            final PointImmutable pSashRightClient = new Point(wsize.getWidth(), 0);
+            final PointImmutable pGLWinLOS;
+            if( useNewtCanvasSWT ) {
+                final PointImmutable pNatWinLOS = newtCanvasSWT.getNativeWindow().getLocationOnScreen(null);
+                pGLWinLOS = glWindow.getLocationOnScreen(null);
+                System.err.println("GLWindow LOS: "+pGLWinLOS);
+                System.err.println("NewtCanvasSWT LOS: "+pNatWinLOS);
+                Assert.assertTrue( "NewtCanvasAWT LOS "+pNatWinLOS+" not >= sash-right "+pSashRightClient, pNatWinLOS.compareTo(pSashRightClient) >= 0 );
+            } else {
+                pGLWinLOS = SWTAccessor.getLocationOnScreen(new Point(), glCanvas);
+                System.err.println("GLCanvas LOS: "+pGLWinLOS);
+            }
+            Assert.assertTrue( "GLWindow LOS "+pGLWinLOS+" not >= sash-right "+pSashRightClient, pGLWinLOS.compareTo(pSashRightClient) >= 0 );
+        }
 
         while( !quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration ) {
             generalWaitAction.run();
@@ -276,18 +315,28 @@ public class TestBug672NewtCanvasSWTSashFormComposite extends UITestCase {
         animator.stop();
         Assert.assertFalse(animator.isAnimating());
         Assert.assertFalse(animator.isStarted());
-        Assert.assertEquals(null, glWindow.getExclusiveContextThread());
 
-        canvas1.dispose();
-        glWindow.destroy();
-        Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, false, null));
+        if( useNewtCanvasSWT ) {
+            newtCanvasSWT.dispose();
+            glWindow.destroy();
+            Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, false, null));
+        } else {
+            glCanvas.dispose();
+        }
     }
 
     @Test
-    public void test01() throws InterruptedException, InvocationTargetException {
+    public void test01_SashFormNewtCanvasSWT() throws InterruptedException, InvocationTargetException {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps);
+        runTestGL(true /* NewtCanvasSWT */, caps);
+    }
+
+    @Test
+    public void test02_SashFormGLCanvas() throws InterruptedException, InvocationTargetException {
+        final GLProfile glp = GLProfile.getGL2ES2();
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(false /* NewtCanvasSWT */, caps);
     }
 
     public static void main(final String args[]) throws IOException {

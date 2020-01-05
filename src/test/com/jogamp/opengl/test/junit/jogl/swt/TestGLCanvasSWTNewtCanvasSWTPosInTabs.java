@@ -71,7 +71,7 @@ import com.jogamp.opengl.util.FPSAnimator;
  * This issue does not occur on GNU/Linux GTK nor on Windows.
  * </p>
  */
-public class TestBug1421NewtCanvasSWTPosInTabs {
+public class TestGLCanvasSWTNewtCanvasSWTPosInTabs {
 
     static int duration = 250;
     Display display = null;
@@ -135,7 +135,7 @@ public class TestBug1421NewtCanvasSWTPosInTabs {
             }
         }
     }
-    final WaitAction awtRobotWaitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
+    final WaitAction waitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
     final WaitAction generalWaitAction = new WaitAction(10);
 
     protected void runTestInLayout() throws InterruptedException {
@@ -149,9 +149,9 @@ public class TestBug1421NewtCanvasSWTPosInTabs {
 		tabFolder.setBorderVisible(true);
 		tabFolder.setLayoutData(new FillLayout());
 		final CTabItem tabItem1 = new CTabItem(tabFolder, SWT.NONE, 0);
-		tabItem1.setText("GLTab");
+		tabItem1.setText("GLTab1");
 		final CTabItem tabItem2 = new CTabItem(tabFolder, SWT.NONE, 1);
-		tabItem2.setText("Tab");
+		tabItem2.setText("GLTab2");
 
 		// Get the default OpenGL profile, reflecting the best for your running platform
 		final GLProfile glp = GLProfile.getDefault();
@@ -195,7 +195,7 @@ public class TestBug1421NewtCanvasSWTPosInTabs {
               shell.open();
            }
         });
-        Assert.assertTrue("GLWindow didn't become visible natively!", NewtTestUtil.waitForRealized(window, true, awtRobotWaitAction));
+        Assert.assertTrue("GLWindow didn't become visible natively!", NewtTestUtil.waitForRealized(window, true, waitAction));
 
         final long lStartTime = System.currentTimeMillis();
         final long lEndTime = lStartTime + duration;
@@ -235,6 +235,6 @@ public class TestBug1421NewtCanvasSWTPosInTabs {
             }
         }
         System.out.println("durationPerTest: "+duration);
-        org.junit.runner.JUnitCore.main(TestBug1421NewtCanvasSWTPosInTabs.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLCanvasSWTNewtCanvasSWTPosInTabs.class.getName());
     }
 }
