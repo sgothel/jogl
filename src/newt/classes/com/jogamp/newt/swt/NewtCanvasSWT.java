@@ -256,8 +256,12 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         return r;
     }
     private Rectangle getClientArea2InPixels() {
-        // SWTAccessor.getClientAreaInPixels(this);
-        return DPIUtil.autoScaleUp(getClientArea2());
+        if( SWTAccessor.isOSX ) {
+            return DPIUtil.autoScaleUp(getClientArea2());
+        } else {
+            // Essentially the same as: DPIUtil.autoScaleUp(getClientArea())
+            return SWTAccessor.getClientAreaInPixels(this);
+        }
     }
 
     @Override
