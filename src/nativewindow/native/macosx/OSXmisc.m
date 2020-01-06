@@ -180,6 +180,42 @@ static NSScreen * OSXUtil_getNSScreenByCGDirectDisplayID(CGDirectDisplayID displ
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    getLocation0
+ * Signature: (J)Lcom/jogamp/nativewindow/util/Point;
+ */
+JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocation0
+  (JNIEnv *env, jclass unused, jlong winOrView)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    /**
+     * return location in 0/0 top-left space,
+     * OSX is 0/0 bottom-left space naturally
+     */
+    NSObject *nsObj = (NSObject*) (intptr_t) winOrView;
+    NSWindow* win = NULL;
+    NSView* view = NULL;
+
+    if( [nsObj isKindOfClass:[NSWindow class]] ) {
+        win = (NSWindow*) nsObj;
+        view = [win contentView];
+    } else if( nsObj != NULL && [nsObj isKindOfClass:[NSView class]] ) {
+        view = (NSView*) nsObj;
+        win = [view window];
+    } else {
+        NativewindowCommon_throwNewRuntimeException(env, "neither win nor view %p\n", nsObj);
+    }
+    NSRect viewFrame = [view frame];
+
+    jobject res = (*env)->NewObject(env, pointClz, pointCstr, (jint)viewFrame.origin.x, (jint)viewFrame.origin.y);
+
+    [pool release];
+
+    return res;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    getLocationOnScreen0
  * Signature: (JII)Lcom/jogamp/nativewindow/util/Point;
  */
