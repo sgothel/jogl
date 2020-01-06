@@ -56,7 +56,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -108,7 +107,6 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
     CTabItem tabItem1 = null;
     CTabItem tabItem2 = null;
     SashForm sash = null;
-    Composite sashRightComposite = null;
 
     static PointImmutable wpos = null;
     static DimensionImmutable wsize = new Dimension(640, 480), rwsize = null;
@@ -124,9 +122,6 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             if( null != display ) {
                 display.syncExec(new Runnable() {
                    public void run() {
-                    if( null != sashRightComposite ) {
-                        sashRightComposite.dispose();
-                    }
                     if( null != sash ) {
                         sash.dispose();
                     }
@@ -159,7 +154,6 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         tabItem1 = null;
         tabItem2 = null;
         sash = null;
-        sashRightComposite = null;
     }
 
     class WaitAction implements Runnable {
@@ -180,7 +174,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
     final WaitAction waitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
     final WaitAction generalWaitAction = new WaitAction(10);
 
-    protected void runTestInLayout(final boolean focusOnTab1, final boolean useNewtCanvasSWT, final GLCapabilitiesImmutable caps)
+    protected void runTestInLayout(final boolean focusOnTab1, final boolean useNewtCanvasSWT, final boolean addComposite, final GLCapabilitiesImmutable caps)
             throws InterruptedException
     {
         display = new Display();
@@ -190,6 +184,9 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         shell.setText( getSimpleTestName(".") );
         shell.setLayout(new FillLayout());
         shell.setSize( wsize.getWidth(), wsize.getHeight() );
+        if( null != wpos ) {
+            shell.setLocation(wpos.getX(), wpos.getY());
+        }
 
         composite = new Composite(shell, SWT.NONE);
         composite.setLayout(new FillLayout());
@@ -200,14 +197,14 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         tabItem1.setText("PlainGL");
         tabItem2 = new CTabItem(tabFolder, SWT.NONE, 1);
         tabItem2.setText("SashGL");
-        sash = new SashForm(tabFolder, SWT.NONE);
-        Assert.assertNotNull( sash );
-        final org.eclipse.swt.widgets.Label c = new org.eclipse.swt.widgets.Label(sash, SWT.NONE);
-        c.setText("Left cell");
-        sashRightComposite = new Composite(sash, SWT.NONE);
-        Assert.assertNotNull( sashRightComposite );
-        sashRightComposite.setLayout( new FillLayout() );
-        tabItem2.setControl(sash);
+        final Composite tab1Comp;
+        if( addComposite ) {
+            tab1Comp = new Composite(tabFolder, SWT.NONE);
+            tab1Comp.setLayout(new FillLayout());
+            tabItem1.setControl(tab1Comp);
+        } else {
+            tab1Comp = null;
+        }
 
         final GLWindow glWindow1;
         final NewtCanvasSWT newtCanvasSWT1;
@@ -219,22 +216,37 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             glWindow1 = GLWindow.create(caps);
             glad1 = glWindow1;
             Assert.assertNotNull(glWindow1);
-            newtCanvasSWT1 = NewtCanvasSWT.create( tabFolder, 0, glWindow1 );
+            newtCanvasSWT1 = NewtCanvasSWT.create( addComposite ? tab1Comp : tabFolder, 0, glWindow1 );
             Assert.assertNotNull( newtCanvasSWT1 );
             canvas1 = newtCanvasSWT1;
         } else {
             glWindow1 = null;
             newtCanvasSWT1 = null;
-            glCanvas1 = GLCanvas.create( tabFolder, 0, caps, null);
+            glCanvas1 = GLCanvas.create( addComposite ? tab1Comp : tabFolder, 0, caps, null);
             glad1 = glCanvas1;
             Assert.assertNotNull(glCanvas1);
             canvas1 = glCanvas1;
         }
         Assert.assertNotNull(canvas1);
         Assert.assertNotNull(glad1);
-        tabItem1.setControl(canvas1);
         final GearsES2 demo1 = new GearsES2(1);
         glad1.addGLEventListener(demo1);
+        if( !addComposite ) {
+            tabItem1.setControl(canvas1);
+        }
+
+        sash = new SashForm(tabFolder, SWT.NONE);
+        Assert.assertNotNull( sash );
+        final org.eclipse.swt.widgets.Label c = new org.eclipse.swt.widgets.Label(sash, SWT.NONE);
+        c.setText("Left cell");
+        final Composite sashRight;
+        if( addComposite ) {
+            sashRight = new Composite(sash, SWT.NONE);
+            sashRight.setLayout(new FillLayout());
+        } else {
+            sashRight = null;
+        }
+        tabItem2.setControl(sash);
 
         final Animator animator1 = new Animator();
         animator1.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
@@ -250,11 +262,11 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             glad2 = glWindow2;
             glCanvas2 = null;
             Assert.assertNotNull(glWindow2);
-            newtCanvasSWT2 = NewtCanvasSWT.create( sashRightComposite, 0, glWindow2 );
+            newtCanvasSWT2 = NewtCanvasSWT.create( addComposite ? sashRight : sash, 0, glWindow2 );
             Assert.assertNotNull( newtCanvasSWT2 );
             canvas2 = newtCanvasSWT2;
         } else {
-            glCanvas2 = GLCanvas.create( sashRightComposite, 0, caps, null);
+            glCanvas2 = GLCanvas.create( addComposite ? sashRight : sash, 0, caps, null);
             glad2 = glCanvas2;
             glWindow2 = null;
             Assert.assertNotNull(glCanvas2);
@@ -338,24 +350,26 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
 
         shell.open(); // from here on, manipulation of SWT elements might be thread sensitive
 
+        Assert.assertEquals(true,  GLTestUtil.waitForRealized( focusOnTab1 ? glad1 : glad2, true, waitAction));
+        {
+            final Canvas canvas = focusOnTab1 ? canvas1 : canvas2;
+            System.err.println("Canvas pixel-units  pos/siz.0: pos "+SWTAccessor.getLocationInPixels(canvas)+", size "+SWTAccessor.getSizeInPixels(canvas));
+            System.err.println("Canvas window-units pos/siz.0: pos "+canvas.getLocation()+", size "+canvas.getSize());
+            System.err.println("Canvas LOS.0: "+SWTAccessor.getLocationOnScreen(new Point(), canvas));
+        }
         if( useNewtCanvasSWT ) {
             final GLWindow glWindow = focusOnTab1 ? glWindow1 : glWindow2;
             final NewtCanvasSWT newtCanvasSWT = focusOnTab1 ? newtCanvasSWT1 : newtCanvasSWT2;
-            Assert.assertTrue("GLWindow didn't become visible natively!", NewtTestUtil.waitForRealized(glWindow, true, waitAction));
             Assert.assertNotNull( newtCanvasSWT.getNativeWindow() );
             System.err.println("NewtCanvasSWT LOS.0: "+newtCanvasSWT.getNativeWindow().getLocationOnScreen(null));
+            System.err.println("GLWindow LOS.0: "+glWindow.getLocationOnScreen(null));
+            System.err.println("GLWindow pos/siz.0: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
             System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
             System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-            System.err.println("window pos/siz.0: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
-            System.err.println("GLWindow LOS.0: "+glWindow.getLocationOnScreen(null));
         } else {
             final GLCanvas glCanvas = focusOnTab1 ? glCanvas1: glCanvas2;
             System.err.println("GL chosen: "+glCanvas.getChosenGLCapabilities());
-            System.err.println("GLCanvas pixel-units  pos/siz.0: pos "+SWTAccessor.getLocationInPixels(glCanvas)+", size "+SWTAccessor.getSizeInPixels(glCanvas));
-            System.err.println("GLCanvas window-units pos/siz.0: pos "+glCanvas.getLocation()+", size "+glCanvas.getSize());
-            System.err.println("GLCanvas LOS.0: "+SWTAccessor.getLocationOnScreen(new Point(), glCanvas));
         }
-        Assert.assertEquals(true,  GLTestUtil.waitForRealized( focusOnTab1 ? glad1 : glad2, true, waitAction));
 
         if( null != rwsize ) {
             for(int i=0; i<50; i++) { // 500 ms dispatched delay
@@ -366,17 +380,18 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
                   shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
                }
             });
+            {
+                final Canvas canvas = focusOnTab1 ? canvas1 : canvas2;
+                System.err.println("Canvas pixel-units  pos/siz.1: pos "+SWTAccessor.getLocationInPixels(canvas)+", size "+SWTAccessor.getSizeInPixels(canvas));
+                System.err.println("Canvas window-units pos/siz.1: pos "+canvas.getLocation()+", size "+canvas.getSize());
+                System.err.println("Canvas LOS.1: "+SWTAccessor.getLocationOnScreen(new Point(), canvas));
+            }
             if( useNewtCanvasSWT ) {
                 final GLWindow glWindow = focusOnTab1 ? glWindow1 : glWindow2;
                 final NewtCanvasSWT newtCanvasSWT = focusOnTab1 ? newtCanvasSWT1 : newtCanvasSWT2;
-                System.err.println("window resize pos/siz.1: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
-                System.err.println("GLWindow LOS.1: "+glWindow.getLocationOnScreen(null));
                 System.err.println("NewtCanvasSWT LOS.1: "+newtCanvasSWT.getNativeWindow().getLocationOnScreen(null));
-            } else {
-                final GLCanvas glCanvas = focusOnTab1 ? glCanvas1: glCanvas2;
-                System.err.println("GLCanvas pixel-units  pos/siz.1: pos "+SWTAccessor.getLocationInPixels(glCanvas)+", size "+SWTAccessor.getSizeInPixels(glCanvas));
-                System.err.println("GLCanvas window-units pos/siz.1: pos "+glCanvas.getLocation()+", size "+glCanvas.getSize());
-                System.err.println("GLCanvas LOS.1: "+SWTAccessor.getLocationOnScreen(new Point(), glCanvas));
+                System.err.println("GLWindow LOS.1: "+glWindow.getLocationOnScreen(null));
+                System.err.println("window resize pos/siz.1: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
             }
         }
 
@@ -391,9 +406,9 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
                 Assert.assertTrue( "NewtCanvasAWT2 LOS "+pNatWinLOS+" not >= sash-right "+pSashRightClient, pNatWinLOS.compareTo(pSashRightClient) >= 0 );
             } else {
                 pGLWinLOS = SWTAccessor.getLocationOnScreen(new Point(), glCanvas2);
-                System.err.println("GLCanvas LOS: "+pGLWinLOS);
+                System.err.println("GLCanvas2 LOS: "+pGLWinLOS);
             }
-            Assert.assertTrue( "GLWindow LOS "+pGLWinLOS+" not >= sash-right "+pSashRightClient, pGLWinLOS.compareTo(pSashRightClient) >= 0 );
+            Assert.assertTrue( "GLWindow2 LOS "+pGLWinLOS+" not >= sash-right "+pSashRightClient, pGLWinLOS.compareTo(pSashRightClient) >= 0 );
         }
 
         while( animator1.isAnimating() || animator2.isAnimating() ) {
@@ -437,32 +452,61 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
 	}
 
     @Test
-    public void test01_GLCanvasTabPlainGL() throws InterruptedException {
+    public void test01_GLCanvasTabPlainGLDirect() throws InterruptedException {
         if( 0 != manualTest && 1 != manualTest ) {
             return;
         }
-        runTestInLayout(true /* focusOnTab1 */, false /* useNewtCanvasSWT */, new GLCapabilities(GLProfile.getGL2ES2()));
+        runTestInLayout(true /* focusOnTab1 */, false /* useNewtCanvasSWT */, false /* addComposite */, new GLCapabilities(GLProfile.getGL2ES2()));
     }
     @Test
-    public void test02_GLCanvasTabSashGL() throws InterruptedException {
+    public void test02_GLCanvasTabSashGLDirect() throws InterruptedException {
         if( 0 != manualTest && 2 != manualTest ) {
             return;
         }
-        runTestInLayout(false /* focusOnTab1 */, false /* useNewtCanvasSWT */, new GLCapabilities(GLProfile.getGL2ES2()));
+        runTestInLayout(false /* focusOnTab1 */, false /* useNewtCanvasSWT */, false /* addComposite */, new GLCapabilities(GLProfile.getGL2ES2()));
     }
     @Test
-    public void test11_NewtCanvasSWTTabPlainGL() throws InterruptedException {
+    public void test11_GLCanvasTabPlainGLWComp() throws InterruptedException {
         if( 0 != manualTest && 11 != manualTest ) {
             return;
         }
-        runTestInLayout(true /* focusOnTab1 */, true  /* useNewtCanvasSWT */, new GLCapabilities(GLProfile.getGL2ES2()));
+        runTestInLayout(true /* focusOnTab1 */, false /* useNewtCanvasSWT */, true /* addComposite */, new GLCapabilities(GLProfile.getGL2ES2()));
     }
     @Test
-    public void test12_NewtCanvasSWTTabSashGL() throws InterruptedException {
+    public void test12_GLCanvasTabSashGLWComp() throws InterruptedException {
         if( 0 != manualTest && 12 != manualTest ) {
             return;
         }
-        runTestInLayout(false /* focusOnTab1 */, true /* useNewtCanvasSWT */, new GLCapabilities(GLProfile.getGL2ES2()));
+        runTestInLayout(false /* focusOnTab1 */, false /* useNewtCanvasSWT */, true /* addComposite */, new GLCapabilities(GLProfile.getGL2ES2()));
+    }
+
+    @Test
+    public void test21_NewtCanvasSWTTabPlainGLDirect() throws InterruptedException {
+        if( 0 != manualTest && 21 != manualTest ) {
+            return;
+        }
+        runTestInLayout(true /* focusOnTab1 */, true  /* useNewtCanvasSWT */, false /* addComposite */, new GLCapabilities(GLProfile.getGL2ES2()));
+    }
+    @Test
+    public void test22_NewtCanvasSWTTabSashGLDirect() throws InterruptedException {
+        if( 0 != manualTest && 22 != manualTest ) {
+            return;
+        }
+        runTestInLayout(false /* focusOnTab1 */, true /* useNewtCanvasSWT */, false /* addComposite */, new GLCapabilities(GLProfile.getGL2ES2()));
+    }
+    @Test
+    public void test31_NewtCanvasSWTTabPlainGLWComp() throws InterruptedException {
+        if( 0 != manualTest && 31 != manualTest ) {
+            return;
+        }
+        runTestInLayout(true /* focusOnTab1 */, true  /* useNewtCanvasSWT */, true /* addComposite */, new GLCapabilities(GLProfile.getGL2ES2()));
+    }
+    @Test
+    public void test32_NewtCanvasSWTTabSashGLWComp() throws InterruptedException {
+        if( 0 != manualTest && 32 != manualTest ) {
+            return;
+        }
+        runTestInLayout(false /* focusOnTab1 */, true /* useNewtCanvasSWT */, true /* addComposite */, new GLCapabilities(GLProfile.getGL2ES2()));
     }
 
     static int manualTest = 0;

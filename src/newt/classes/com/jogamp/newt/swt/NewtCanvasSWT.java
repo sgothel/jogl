@@ -55,6 +55,7 @@ import jogamp.newt.swt.SWTEDTUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.internal.DPIUtil;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -131,8 +132,8 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         SWTAccessor.setRealized(this, true);
 
-        clientAreaPixels = SWTAccessor.getClientAreaInPixels(this);
-        clientAreaWindow = getClientArea();
+        clientAreaPixels = getClientArea2InPixels();
+        clientAreaWindow = getClientArea2();
         if( 0 < clientAreaWindow.width && 0 < clientAreaWindow.height ) {
             pixelScale[0] = clientAreaPixels.width / clientAreaWindow.width;
             pixelScale[1] = clientAreaPixels.height / clientAreaWindow.height;
@@ -215,6 +216,50 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         addListener (SWT.Dispose, listener);
     }
 
+    private Rectangle getClientArea2() {
+        final Rectangle r = this.getClientArea();
+        if( SWTAccessor.isOSX ) {
+            // On MacOS SWT implementation is as follows:
+            // Scrollable.getClientArea():
+            //   - Either using scrollView.contenview.bounds.position and scrollView.contentSize
+            //   - Or using 0/0 and view.bounds.size
+            //
+            // Control's getSize() and getLocation() uses position and size of topView().frame()
+            //
+            final Rectangle parentClientArea = getParent().getClientArea();
+            final org.eclipse.swt.graphics.Point l = getLocation();
+            final org.eclipse.swt.graphics.Point s = getSize();
+            if( DEBUG ) {
+                System.err.println("XXX parent.clientArea: "+parentClientArea);
+                System.err.println("XXX clientArea: "+r);
+                System.err.println("XXX location:   "+l);
+                System.err.println("XXX size:       "+s);
+            }
+            // Bug 1421
+            // Subtracting parentClientArea's position fixes using:
+            // - CTabFolder parent: y-position no more pushed down about tab-height (parentClientArea.x/y)
+            // - SashForm parent: Offset is preserved, as it is not part of parentClientArea.x/y
+            // Notable, this almost mimics the original 'getClientArea()' but
+            // preserves SashForm's offset.
+            //
+            // The resulting offset still shows a 1-2 pixel x/y
+            // lower-left corner overlap ..
+            // Our GLCanvas doesn't show this behavior.
+            r.x = l.x - parentClientArea.x; // FIXME +1?
+            r.y = l.y - parentClientArea.y; // FIXME -1?
+            r.width = s.x;
+            r.height = s.y;
+            if( DEBUG ) {
+                System.err.println("XXX clientArea2:"+r);
+            }
+        }
+        return r;
+    }
+    private Rectangle getClientArea2InPixels() {
+        // SWTAccessor.getClientAreaInPixels(this);
+        return DPIUtil.autoScaleUp(getClientArea2());
+    }
+
     @Override
     public void setBounds(final int x, final int y, final int width, final int height) {
     	super.setBounds(x, y, width, height);
@@ -270,38 +315,40 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
     }
 
     protected final void updatePosSizeCheck(final boolean updatePos) {
+        final Rectangle oClientAreaWindow = clientAreaWindow;
+        final Rectangle nClientAreaPixels = getClientArea2InPixels();
+        final Rectangle nClientAreaWindow = getClientArea2();
         final boolean sizeChanged, posChanged;
-        Rectangle nClientAreaPixels = SWTAccessor.getClientAreaInPixels(this);
         {
-            final Rectangle oClientAreaPixels = clientAreaPixels;
-            sizeChanged = nClientAreaPixels.width != oClientAreaPixels.width || nClientAreaPixels.height != oClientAreaPixels.height;
-            posChanged = nClientAreaPixels.x != oClientAreaPixels.x || nClientAreaPixels.y != oClientAreaPixels.y;
+            sizeChanged = nClientAreaWindow.width != oClientAreaWindow.width || nClientAreaWindow.height != oClientAreaWindow.height;
+            posChanged = nClientAreaWindow.x != oClientAreaWindow.x || nClientAreaWindow.y != oClientAreaWindow.y;
             if( sizeChanged || posChanged ) {
                 clientAreaPixels = nClientAreaPixels;
-                clientAreaWindow = getClientArea();
-                if( 0 < clientAreaWindow.width && 0 < clientAreaWindow.height ) {
-                    pixelScale[0] = clientAreaPixels.width / clientAreaWindow.width;
-                    pixelScale[1] = clientAreaPixels.height / clientAreaWindow.height;
+                clientAreaWindow = nClientAreaWindow;
+                if( 0 < nClientAreaWindow.width && 0 < nClientAreaWindow.height ) {
+                    pixelScale[0] = nClientAreaPixels.width / nClientAreaWindow.width;
+                    pixelScale[1] = nClientAreaPixels.height / nClientAreaWindow.height;
                 } else {
                     pixelScale[0] = 1f;
                     pixelScale[1] = 1f;
                 }
-            } else {
-                nClientAreaPixels = clientAreaPixels;
             }
         }
         if(DEBUG) {
             final long nsh = newtChildReady ? newtChild.getSurfaceHandle() : 0;
             System.err.println("NewtCanvasSWT.updatePosSizeCheck: sizeChanged "+sizeChanged+", posChanged "+posChanged+", updatePos "+updatePos+
                     ", ("+Thread.currentThread().getName()+"): newtChildReady "+newtChildReady+
-                    ", pixel "+clientAreaPixels.x+"/"+clientAreaPixels.y+" "+clientAreaPixels.width+"x"+clientAreaPixels.height+
-                    ", window "+clientAreaWindow.x+"/"+clientAreaWindow.y+" "+clientAreaWindow.width+"x"+clientAreaWindow.height+
+                    ", pixel "+nClientAreaPixels.x+"/"+nClientAreaPixels.y+" "+nClientAreaPixels.width+"x"+nClientAreaPixels.height+
+                    ", window "+nClientAreaWindow.x+"/"+nClientAreaWindow.y+" "+nClientAreaWindow.width+"x"+nClientAreaWindow.height+
                     ", scale "+pixelScale[0]+"/"+pixelScale[1]+
                     " - surfaceHandle 0x"+Long.toHexString(nsh));
+            System.err.println("NewtCanvasSWT.updatePosSizeCheck.self: pixel-units pos "+SWTAccessor.getLocationInPixels(this)+", size "+SWTAccessor.getSizeInPixels(this));
+            System.err.println("NewtCanvasSWT.updatePosSizeCheck.self: window-units pos "+this.getLocation()+", size "+this.getSize());
+            System.err.println("NewtCanvasSWT.updatePosSizeCheck.self: LOS.0: "+SWTAccessor.getLocationOnScreen(new Point(), this));
         }
         if( sizeChanged ) {
             if( newtChildReady ) {
-                newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
+                newtChild.setSize(nClientAreaWindow.width, nClientAreaWindow.height);
                 newtChild.setSurfaceScale(pixelScale);
             } else {
                 postSetSize = true;
@@ -309,10 +356,13 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         }
         if( updatePos && posChanged ) {
             if( newtChildReady ) {
-                newtChild.setPosition(clientAreaWindow.x, clientAreaWindow.y);
+                newtChild.setPosition(nClientAreaWindow.x, nClientAreaWindow.y);
             } else {
                 postSetPos = true;
             }
+        }
+        if( DEBUG ) {
+            System.err.println("NewtCanvasSWT.updatePosSizeCheck.X END");
         }
     }
 
