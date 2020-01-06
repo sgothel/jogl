@@ -194,7 +194,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                     if( DEBUG ) {
                         System.err.println("NewtCanvasSWT.Event.RESIZE, "+event);
                     }
-                    updatePosSizeCheck(false);
+                    updatePosSizeCheck(false /* updatePos */);
                     break;
                 case SWT.Dispose:
                     if( DEBUG ) {
@@ -230,9 +230,9 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
     /** assumes nativeWindow == null ! */
     protected final boolean validateNative() {
-        updatePosSizeCheck(false);
-        final Rectangle nClientArea = clientAreaPixels;
-        if(0 >= nClientArea.width || 0 >= nClientArea.height) {
+        updatePosSizeCheck(false /* updatePos */);
+        final Rectangle nClientAreaWindow = clientAreaWindow;
+        if(0 >= nClientAreaWindow.width || 0 >= nClientAreaWindow.height) {
             return false;
         }
         screen.getDevice().open();
@@ -262,7 +262,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             reparentWindow( true );
         	if( SWTAccessor.isOSX && newtChildReady ) {
         	    // initial positioning for OSX, called when the window is created
-        	    newtChild.setPosition(getLocation().x, getLocation().y);
+        	    newtChild.setPosition(clientAreaWindow.x, clientAreaWindow.y);
         	}
         }
 
@@ -459,8 +459,6 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         newtChild.setFocusAction(null); // no AWT focus traversal ..
         if(add) {
             updatePosSizeCheck(false);
-            final int w = clientAreaWindow.width;
-            final int h = clientAreaWindow.height;
 
             // set SWT EDT and start it
             {
@@ -470,7 +468,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                 newtDisplay.setEDTUtil( edtUtil );
             }
 
-            newtChild.setSize(w, h);
+            newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
             newtChild.reparentWindow(nativeWindow, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
             newtChild.setVisible(true);
             configureNewtChild(true);
@@ -644,7 +642,8 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         public Point getLocationOnScreen(final Point point) {
             final Point los; // client window location on screen
             if( SWTAccessor.isOSX ) {
-            	// let getLOS provide the point where the child window may be placed
+                // top-level position -> client window position: OSX needs to add SWT parent position incl. insets
+            	// Bug 969 comment 2: let getLOS provide the point where the child window may be placed
             	// from, as taken from SWT Control.toDisplay();
             	los = getParentLocationOnScreen();
             } else if (SWTAccessor.isX11) {
