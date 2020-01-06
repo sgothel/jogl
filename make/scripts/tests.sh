@@ -798,8 +798,6 @@ function testawtswt() {
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 testswt com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs $*
-#testswt com.jogamp.opengl.test.junit.jogl.swt.TestBug672NewtCanvasSWTSashFormComposite $*
-#testswt com.jogamp.opengl.test.junit.jogl.swt.TestBug672NewtCanvasSWTSashForm $*
 #testswt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 
 #
