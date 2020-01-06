@@ -222,7 +222,8 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
     	    System.err.println("NewtCanvasSWT.setBounds: "+x+"/"+y+" "+width+"x"+height);
     	}
     	if( SWTAccessor.isOSX ) {
-            // Force newtChild to update its size and position (OSX only)
+    	    // Propagate the setBounds method coming from parent elements to this element
+    	    // and force newtChild to update its position (OSX only)
     	    updatePosSizeCheck(true /* updatePos */);
     	}
     }

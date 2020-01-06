@@ -543,7 +543,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
               res = false;
           }
           if(DEBUG) {
-              System.err.println(getThreadName()+": SWT.GLCanvas.validate.X  "+toHexString(hashCode())+": "+res+", drawable-realized "+drawable.isRealized()+", has context "+(null!=context));
+              final boolean isDrawableNull = null == drawable;
+              final boolean isDrawableRealized = !isDrawableNull ? drawable.isRealized() : false;
+              System.err.println(getThreadName()+": SWT.GLCanvas.validate.X  "+toHexString(hashCode())+": "+res+", drawable[null "+isDrawableNull+", realized "+isDrawableRealized+"], has context "+(null!=context));
           }
       } finally {
           _lock.unlock();
