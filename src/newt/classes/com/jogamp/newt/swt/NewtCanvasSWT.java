@@ -145,6 +145,10 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         screen = SWTAccessor.getScreen(device, -1 /* default */);
         nativeWindow = null;
 
+        // Bug 1362 fix or workaround: Seems SWT/GTK3 at least performs lazy initialization
+        // Minimal action required: setBackground of the parent canvas before reparenting!
+        setBackground(new Color(parent.getDisplay(), 255, 255, 255));
+
         if(null != child) {
             setNEWTChild(child);
         }
@@ -157,10 +161,6 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                     ", scale "+pixelScale[0]+"/"+pixelScale[1]+
                     " - surfaceHandle 0x"+Long.toHexString(nsh));
         }
-
-        // Bug 1362 fix or workaround: Seems SWT/GTK3 at least performs lazy initialization
-        // Minimal action required: setBackground of the parent canvas before reparenting!
-        setBackground(new Color(parent.getDisplay(), 255, 255, 255));
 
         final Listener listener = new Listener () {
             @Override
