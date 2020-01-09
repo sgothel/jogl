@@ -31,11 +31,18 @@
 
 #if defined (JNI_VERSION_1_8)
 
-JNIEXPORT jint JNICALL JNI_OnLoad_newt(JavaVM *vm, void *reserved) {
+JNIEXPORT jint JNICALL JNI_OnLoad_newt_head(JavaVM *vm, void *reserved) {
     return JNI_VERSION_1_8;
 }
 
-JNIEXPORT void JNICALL JNI_OnUnload_newt(JavaVM *vm, void *reserved) {
+JNIEXPORT jint JNICALL JNI_OnLoad_newt_drm(JavaVM *vm, void *reserved) {
+    return JNI_VERSION_1_8;
+}
+
+JNIEXPORT void JNICALL JNI_OnUnload_newt_head(JavaVM *vm, void *reserved) {
+}
+
+JNIEXPORT void JNICALL JNI_OnUnload_newt_drm(JavaVM *vm, void *reserved) {
 }
 
 #endif /* defined (JNI_VERSION_1_8) */
