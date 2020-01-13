@@ -280,6 +280,7 @@
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
+            <var name="test.class.result.file" unset="true"/>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.log"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <apply dir="." executable="${jvmJava.exe}"
@@ -306,6 +307,9 @@
             </apply>
           </sequential>
         </for>
+        <var name="test.class.path" unset="true"/>
+        <var name="test.class.fqn" unset="true"/>
+        <var name="test.class.result.file" unset="true"/>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
     </target>
 
@@ -377,6 +381,7 @@
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
+            <var name="test.class.result.file" unset="true"/>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <apply dir="." executable="${jvmJava.exe}"
@@ -416,6 +421,9 @@
           </sequential>
         </for>
         <var name="generic.junit.run.newt.headless.include.pattern" unset="true"/>
+        <var name="test.class.path" unset="true"/>
+        <var name="test.class.fqn" unset="true"/>
+        <var name="test.class.result.file" unset="true"/>
     </target>  
 
     <target name="junit.run.newt.headless" depends="test.compile">
@@ -471,6 +479,10 @@
     <target name="generic.junit.run.awt" unless="setup.noAWT">
         <!-- attribute name="generic.junit.run.awt.include.pattern" -->
 
+        <echo message="+++ "/>
+        <echo message="+++ generic.junit.run.awt"/>
+        <echo message="+++ Pattern: ${generic.junit.run.awt.include.pattern}"/>
+        <echo message="+++ "/>
         <!-- Test*AWT* -->
         <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -517,6 +529,10 @@
     <target name="generic.junit.run.newt.awt" unless="setup.noAWT">
         <!-- attribute name="generic.junit.run.newt.awt.include.pattern" -->
 
+        <echo message="+++ "/>
+        <echo message="+++ generic.junit.run.newt.awt"/>
+        <echo message="+++ Pattern: ${generic.junit.run.newt.awt.include.pattern}"/>
+        <echo message="+++ "/>
         <!-- Test*AWT* -->
         <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
@@ -644,6 +660,7 @@
 
              Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
           --> 
+        <var name="test.class.result.file" unset="true"/>
         <var name="test.class.result.file" value="${results.test}/TEST-${testclass}.xml"/>
         <echo message="Testing ${testclass} -- ${test.class.result.file}"/>
         <apply dir="." executable="${jvmJava.exe}"
@@ -678,6 +695,7 @@
             <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,${test.class.result.file}"/>
             <fileset dir="${results.test}" includes="dummy.txt"/>
         </apply>
+        <var name="test.class.result.file" unset="true"/>
     </target>
 
     <target name="generic.junit.run.swt.headless" unless="setup.noSWT">
@@ -689,6 +707,10 @@
 
              Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
           --> 
+        <echo message="+++ "/>
+        <echo message="+++ generic.junit.run.swt.headless"/>
+        <echo message="+++ Pattern: ${generic.junit.run.swt.headless.include.pattern}"/>
+        <echo message="+++ "/>
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">
@@ -707,6 +729,7 @@
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
+            <var name="test.class.result.file" unset="true"/>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <apply dir="." executable="${jvmJava.exe}"
@@ -745,6 +768,9 @@
           </sequential>
         </for>
         <var name="generic.junit.run.swt.headless.include.pattern" unset="true"/>
+        <var name="test.class.path" unset="true"/>
+        <var name="test.class.fqn" unset="true"/>
+        <var name="test.class.result.file" unset="true"/>
     </target>  
 
     <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests." unless="setup.noSWT" if="isSWTRuntimeAvailable">
@@ -778,6 +804,7 @@
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
+            <var name="test.class.result.file" unset="true"/>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <apply dir="." executable="${jvmJava.exe}"
@@ -816,6 +843,9 @@
             </apply>
           </sequential>
         </for>
+        <var name="test.class.path" unset="true"/>
+        <var name="test.class.fqn" unset="true"/>
+        <var name="test.class.result.file" unset="true"/>
     </target>
 
     <target name="junit.run.local" unless="isCrosscompilation" >
@@ -909,6 +939,7 @@ cd ${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make ${line.separator}
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
+            <var name="test.class.result.file" unset="true"/>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <echo message="${line.separator}
@@ -955,6 +986,7 @@ ${line.separator}
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
+            <var name="test.class.result.file" unset="true"/>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <echo message="${line.separator}
@@ -979,6 +1011,9 @@ ${line.separator}
 " append="true" file="${build.test}/targetcommand.sh" />
           </sequential>
         </for>
+        <var name="test.class.path" unset="true"/>
+        <var name="test.class.fqn" unset="true"/>
+        <var name="test.class.result.file" unset="true"/>
         <exec dir="." executable="sh" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line='-x -c "
             chmod 0755 ${build.test}/targetcommand.sh ;
@@ -1015,6 +1050,7 @@ cd ${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make ${line.separator}
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
+            <var name="test.class.result.file" unset="true"/>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <echo message="${line.separator}
@@ -1041,6 +1077,9 @@ ${line.separator}
 " append="true" file="${build.test}/targetcommand.sh" />
           </sequential>
         </for>
+        <var name="test.class.path" unset="true"/>
+        <var name="test.class.fqn" unset="true"/>
+        <var name="test.class.result.file" unset="true"/>
 
         <exec dir="." executable="sh" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line='-x -c "
@@ -1080,6 +1119,7 @@ cd ${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make ${line.separator}
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
+            <var name="test.class.result.file" unset="true"/>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <echo message="${line.separator}
