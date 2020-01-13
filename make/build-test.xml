@@ -714,7 +714,7 @@
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">
-                <include name="@{generic.junit.run.swt.headless.include.pattern}"/>
+                <include name="${generic.junit.run.swt.headless.include.pattern}"/>
                 <exclude name="**/*AWT*"/>
                 <exclude name="**/*$$*"/>
             </fileset>
