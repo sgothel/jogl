@@ -117,13 +117,6 @@ public class OSXUtil implements ToolkitProperties {
 
     /**
      * @param windowOrView
-     * @return top-left client-area position in window units
-     */
-    public static Point GetLocation(final long windowOrView) {
-      return (Point) GetLocation0(windowOrView);
-    }
-    /**
-     * @param windowOrView
      * @param src_x
      * @param src_y
      * @return top-left client-area position in window units
@@ -443,7 +436,6 @@ public class OSXUtil implements ToolkitProperties {
     private static native boolean initIDs0();
     private static native boolean isNSView0(long object);
     private static native boolean isNSWindow0(long object);
-    private static native Object GetLocation0(long windowOrView);
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);
     private static native Object GetInsets0(long windowOrView);
     private static native float GetScreenPixelScale1(int displayID);

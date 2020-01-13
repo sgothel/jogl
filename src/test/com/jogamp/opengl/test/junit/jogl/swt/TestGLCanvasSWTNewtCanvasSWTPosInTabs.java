@@ -355,7 +355,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             final Canvas canvas = focusOnTab1 ? canvas1 : canvas2;
             System.err.println("Canvas pixel-units  pos/siz.0: pos "+SWTAccessor.getLocationInPixels(canvas)+", size "+SWTAccessor.getSizeInPixels(canvas));
             System.err.println("Canvas window-units pos/siz.0: pos "+canvas.getLocation()+", size "+canvas.getSize());
-            System.err.println("Canvas LOS.0: "+SWTAccessor.getLocationOnScreen(new Point(), canvas));
+            System.err.println("Canvas LOS.0: "+canvas.toDisplay(0, 0));
         }
         if( useNewtCanvasSWT ) {
             final GLWindow glWindow = focusOnTab1 ? glWindow1 : glWindow2;
@@ -384,7 +384,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
                 final Canvas canvas = focusOnTab1 ? canvas1 : canvas2;
                 System.err.println("Canvas pixel-units  pos/siz.1: pos "+SWTAccessor.getLocationInPixels(canvas)+", size "+SWTAccessor.getSizeInPixels(canvas));
                 System.err.println("Canvas window-units pos/siz.1: pos "+canvas.getLocation()+", size "+canvas.getSize());
-                System.err.println("Canvas LOS.1: "+SWTAccessor.getLocationOnScreen(new Point(), canvas));
+                System.err.println("Canvas LOS.1: "+canvas.toDisplay(0, 0));
             }
             if( useNewtCanvasSWT ) {
                 final GLWindow glWindow = focusOnTab1 ? glWindow1 : glWindow2;
@@ -405,7 +405,8 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
                 System.err.println("NewtCanvasSWT2 LOS: "+pNatWinLOS);
                 Assert.assertTrue( "NewtCanvasAWT2 LOS "+pNatWinLOS+" not >= sash-right "+pSashRightClient, pNatWinLOS.compareTo(pSashRightClient) >= 0 );
             } else {
-                pGLWinLOS = SWTAccessor.getLocationOnScreen(new Point(), glCanvas2);
+                final org.eclipse.swt.graphics.Point los = glCanvas2.toDisplay(0, 0);
+                pGLWinLOS = new Point(los.x, los.y);
                 System.err.println("GLCanvas2 LOS: "+pGLWinLOS);
             }
             Assert.assertTrue( "GLWindow2 LOS "+pGLWinLOS+" not >= sash-right "+pSashRightClient, pGLWinLOS.compareTo(pSashRightClient) >= 0 );

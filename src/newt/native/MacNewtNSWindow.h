@@ -172,9 +172,9 @@ CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen);
 - (void) attachToParent: (NSWindow*) parent;
 - (void) detachFromParent: (NSWindow*) parent;
 
-- (NSPoint) newtAbsClientTLWinPos2AbsBLScreenPos: (NSPoint) p;
-- (NSPoint) newtAbsClientTLWinPos2AbsBLScreenPos: (NSPoint) p size: (NSSize) nsz;
-- (NSPoint) newtRelClientTLWinPos2AbsBLScreenPos: (NSPoint) p;
+- (NSPoint) newtTLScreenPos2BLScreenPos: (NSPoint) p;
+- (NSPoint) newtTLScreenPos2BLScreenPos: (NSPoint) p size: (NSSize) nsz;
+- (NSPoint) newtTLViewPos2BLScreenPos: (NSPoint) p;
 - (NSSize) newtClientSize2TLSize: (NSSize) nsz;
 - (NSPoint) getLocationOnScreen: (NSPoint) p;
 

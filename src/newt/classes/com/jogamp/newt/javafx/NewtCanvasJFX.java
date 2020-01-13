@@ -168,7 +168,7 @@ public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowC
     }
 
     private final void repaintAction(final boolean visible) {
-        if( visible && ( null != nativeWindow || validateNative(true /* completeReparent */) ) ) {
+        if( visible && validateNative(true /* completeReparent */) ) {
             if( newtChildReady ) {
                 if( postSetSize ) {
                     newtChild.setSize(clientArea.getWidth(), clientArea.getHeight());
@@ -322,10 +322,12 @@ public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowC
     }
 
     private final boolean validateNative(final boolean completeReparent) {
+        if( null != nativeWindow ) {
+            return true; // already valid
+        }
         if( null == parentWindow ) {
             return false;
         }
-        assert null == nativeWindow;
         updatePosSizeCheck();
         if(0 >= clientArea.getWidth() || 0 >= clientArea.getHeight()) {
             return false;
@@ -393,7 +395,7 @@ public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowC
         }
         // add new one, reparent only if ready
         newtChild = newChild;
-        if( null != newtChild && ( null != nativeWindow || validateNative(false /* completeReparent */) ) ) {
+        if( null != newtChild && validateNative(false /* completeReparent */) ) {
             reparentWindow( true );
         }
         return prevChild;

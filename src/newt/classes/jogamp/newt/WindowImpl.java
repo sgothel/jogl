@@ -2912,7 +2912,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
                 // Let the window be positioned if !fullscreen and position changed or being a child window.
                 if ( ( isReconfigureMaskSupported(STATE_MASK_REPOSITIONABLE) || !isNativeValid() ) &&
-                     !isFullscreen() && ( getX() != x || getY() != y || null != getParent() /* Bug 969 comment 2 */ )
+                     !isFullscreen() && ( getX() != x || getY() != y )
                    )
                 {
                     if(isNativeValid()) {

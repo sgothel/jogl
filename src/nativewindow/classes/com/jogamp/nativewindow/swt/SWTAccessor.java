@@ -721,27 +721,4 @@ public class SWTAccessor {
     public static void destroyGDKWindow(final long gdkWindow) {
         // OS.gdk_window_destroy (gdkWindow);
     }
-
-    public static com.jogamp.nativewindow.util.Point getLocationOnScreen(final com.jogamp.nativewindow.util.Point storage,
-                                                                         Control comp)
-    {
-        while(null != comp) {
-            final org.eclipse.swt.graphics.Point p = comp.getLocation();
-            final int dx = p.x;
-            final int dy = p.y;
-            storage.translate(dx, dy);
-            comp = comp.getParent();
-        }
-        return storage;
-    }
-    public static Control getTopControl(Control comp)
-    {
-        Control last = null;
-        while(null != comp) {
-            last = comp;
-            comp = comp.getParent();
-        }
-        return last;
-    }
-
 }

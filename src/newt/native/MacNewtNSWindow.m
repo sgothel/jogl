@@ -695,18 +695,20 @@ static jmethodID windowRepaintID = NULL;
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
 }
 
+/**
+ * Converts bottom-left screen point 'p' to top-left view point.
+ */ 
 - (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p
 {
     NSRect viewFrame = [self frame];
 
-    NSRect r;
-    r.origin.x = p.x;
-    r.origin.y = p.y;
-    r.size.width = 0;
-    r.size.height = 0;
-    // NSRect rS = [[self window] convertRectFromScreen: r]; // 10.7
-    NSPoint oS = [[self window] convertScreenToBase: r.origin];
-    oS.y = viewFrame.size.height - oS.y; // y-flip
+    NSPoint oS = NSMakePoint(p.x, p.y);
+    oS = [[self window] convertScreenToBase: oS]; // BL-screen -> BL-window
+    [self convertPoint: oS fromView:nil]; // BL-window -> BL-view
+    if( ![self isFlipped] ) {
+        // y-flip for 0/0 top-left: BL-view -> TL-view
+        oS.y = viewFrame.size.height - oS.y;
+    }
     return oS;
 }
 
@@ -1020,25 +1022,27 @@ NS_ENDHANDLER
 }
 
 /**
+ * Converts top-left screen point to bottom-left screen point.
  * p abs screen position of client-area pos w/ top-left origin, using contentView's client NSSize
  * returns: abs screen position w/ bottom-left origin
  */
-- (NSPoint) newtAbsClientTLWinPos2AbsBLScreenPos: (NSPoint) p
+- (NSPoint) newtTLScreenPos2BLScreenPos: (NSPoint) p
 {
     NSView* mView = [self contentView];
     NSRect mViewFrame = [mView frame]; 
-    return [self newtAbsClientTLWinPos2AbsBLScreenPos: p size: mViewFrame.size];
+    return [self newtTLScreenPos2BLScreenPos: p size: mViewFrame.size];
 }
 
 /**
+ * Converts top-left screen point to bottom-left screen point.
  * p abs screen position of client-area pos w/ top-left origin, using given client NSSize
  * returns: abs screen position w/ bottom-left origin
  */
-- (NSPoint) newtAbsClientTLWinPos2AbsBLScreenPos: (NSPoint) p size: (NSSize) nsz
+- (NSPoint) newtTLScreenPos2BLScreenPos: (NSPoint) p size: (NSSize) nsz
 {
     int totalHeight = nsz.height + cachedInsets[3]; // height + insets.bottom
 
-    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: point-in[%d/%d], size-in[%dx%d], insets bottom %d -> totalHeight %d\n", 
+    DBG_PRINT( "newtTLScreenPos2BLScreenPos: point-in[%d/%d], size-in[%dx%d], insets bottom %d -> totalHeight %d\n", 
         (int)p.x, (int)p.y, (int)nsz.width, (int)nsz.height, cachedInsets[3], totalHeight);
 
     NSScreen* screen = [self screen];
@@ -1048,7 +1052,7 @@ NS_ENDHANDLER
     NSRect frameBL = [screen frame]; // origin bottom-left
     NSPoint r = NSMakePoint(p.x, frameBL.origin.y + frameBL.size.height - ( p.y - frameTL.origin.y ) - totalHeight); // y-flip from TL-screen -> BL-screen
 
-    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: screen tl[%d/%d %dx%d] bl[%d/%d %dx%d ->  %d/%d\n",
+    DBG_PRINT( "newtTLScreenPos2BLScreenPos: screen tl[%d/%d %dx%d] bl[%d/%d %dx%d ->  %d/%d\n",
         (int)frameTL.origin.x, (int)frameTL.origin.y, (int)frameTL.size.width, (int)frameTL.size.height,
         (int)frameBL.origin.x, (int)frameBL.origin.y, (int)frameBL.size.width, (int)frameBL.size.height,
         (int)r.x, (int)r.y);
@@ -1057,25 +1061,33 @@ NS_ENDHANDLER
 }
 
 /**
+ * Converts top-left view point to bottom-left screen point.
  * p rel client window position w/ top-left origin
  * returns: abs screen position w/ bottom-left origin
  */
-- (NSPoint) newtRelClientTLWinPos2AbsBLScreenPos: (NSPoint) p
+- (NSPoint) newtTLViewPos2BLScreenPos: (NSPoint) p
 {
-    NSRect winFrame = [self frame];
-
     NSView* mView = [self contentView];
     NSRect mViewFrame = [mView frame]; 
-    NSPoint r = NSMakePoint(winFrame.origin.x + p.x,
-                            winFrame.origin.y + ( mViewFrame.size.height - p.y ) ); // y-flip in view
+    NSPoint oS = NSMakePoint(p.x, p.y);
+    if( ![mView isFlipped] ) {
+        // y-flip for 0/0 top-left: BL-view -> TL-view
+        oS.y = mViewFrame.size.height - oS.y;
+    }
+    oS = [mView convertPoint: oS toView:nil]; // BL-view -> BL-window
+    oS = [self convertBaseToScreen: oS]; // BL-window -> BL-screen
+#ifdef VERBOSE_ON
+    {
+        NSRect winFrame = [self frame];
 
-    DBG_PRINT( "newtRelClientTLWinPos2AbsBLScreenPos: point-in[%d/%d], winFrame[%d/%d %dx%d], viewFrame[%d/%d %dx%d] -> %d/%d\n",
-        (int)p.x, (int)p.y,
-        (int)winFrame.origin.x, (int)winFrame.origin.y, (int)winFrame.size.width, (int)winFrame.size.height,
-        (int)mViewFrame.origin.x, (int)mViewFrame.origin.y, (int)mViewFrame.size.width, (int)mViewFrame.size.height,
-        (int)r.x, (int)r.y);
-
-    return r;
+        DBG_PRINT( "newtTLViewPos2BLScreenPos: point-in[%d/%d], winFrame[%d/%d %dx%d], viewFrame[%d/%d %dx%d] -> %d/%d\n",
+            (int)p.x, (int)p.y,
+            (int)winFrame.origin.x, (int)winFrame.origin.y, (int)winFrame.size.width, (int)winFrame.size.height,
+            (int)mViewFrame.origin.x, (int)mViewFrame.origin.y, (int)mViewFrame.size.width, (int)mViewFrame.size.height,
+            (int)oS.x, (int)oS.y);
+    }
+#endif
+    return oS;
 }
 
 - (NSSize) newtClientSize2TLSize: (NSSize) nsz
@@ -1085,7 +1097,6 @@ NS_ENDHANDLER
 }
 
 /**
- * y-flips input / output
  * p rel client window position w/ top-left origin
  * returns: location in 0/0 top-left space.
  */
@@ -1093,13 +1104,14 @@ NS_ENDHANDLER
 {
     NSView* view = [self contentView];
     NSRect viewFrame = [view frame];
-    NSRect r;
-    r.origin.x = p.x;
-    r.origin.y = viewFrame.size.height - p.y; // y-flip
-    r.size.width = 0;
-    r.size.height = 0;
-    // NSRect rS = [self convertRectToScreen: r]; // 10.7
-    NSPoint oS = [self convertBaseToScreen: r.origin]; // BL-screen
+
+    NSPoint oS = NSMakePoint(p.x, p.y);
+    if( ![view isFlipped] ) {
+        // y-flip for 0/0 top-left: TL-view -> BL-view
+        oS.y = viewFrame.size.height - oS.y;
+    }
+    oS = [view convertPoint: oS toView:nil]; // BL-view -> BL-window
+    oS = [self convertBaseToScreen: oS]; // BL-window -> BL-screen
 
     NSScreen* screen = [self screen];
     CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);

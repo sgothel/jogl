@@ -66,7 +66,7 @@ static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
 
 static void setWindowClientTopLeftPoint(NewtNSWindow* mWin, jint x, jint y, BOOL doDisplay) {
     DBG_PRINT( "setWindowClientTopLeftPoint.0 - window: %p %d/%d, display %d\n", mWin, (int)x, (int)y, (int)doDisplay);
-    NSPoint pS = [mWin newtAbsClientTLWinPos2AbsBLScreenPos: NSMakePoint(x, y)];
+    NSPoint pS = [mWin newtTLScreenPos2BLScreenPos: NSMakePoint(x, y)];
     DBG_PRINT( "setWindowClientTopLeftPoint.1: %d/%d\n", (int)pS.x, (int)pS.y);
 
     [mWin setFrameOrigin: pS];
@@ -81,7 +81,7 @@ static void setWindowClientTopLeftPoint(NewtNSWindow* mWin, jint x, jint y, BOOL
 static void setWindowClientTopLeftPointAndSize(NewtNSWindow* mWin, jint x, jint y, jint width, jint height, BOOL doDisplay) {
     DBG_PRINT( "setWindowClientTopLeftPointAndSize.0 - window: %p %d/%d %dx%d, display %d\n", mWin, (int)x, (int)y, (int)width, (int)height, (int)doDisplay);
     NSSize clientSZ = NSMakeSize(width, height);
-    NSPoint pS = [mWin newtAbsClientTLWinPos2AbsBLScreenPos: NSMakePoint(x, y) size: clientSZ];
+    NSPoint pS = [mWin newtTLScreenPos2BLScreenPos: NSMakePoint(x, y) size: clientSZ];
     NSSize topSZ = [mWin newtClientSize2TLSize: clientSZ];
     NSRect rect = { pS, topSZ };
     DBG_PRINT( "setWindowClientTopLeftPointAndSize.1: %d/%d %dx%d\n", (int)rect.origin.x, (int)rect.origin.y, (int)rect.size.width, (int)rect.size.height);
@@ -1564,7 +1564,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_warpPointer0
         return;
     }
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    [nView setMousePosition: [mWin newtRelClientTLWinPos2AbsBLScreenPos: NSMakePoint(x, y)]];
+    [nView setMousePosition: [mWin newtTLViewPos2BLScreenPos: NSMakePoint(x, y)]];
     [pool release];
 }
 
