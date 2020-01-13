@@ -193,6 +193,9 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                     if( DEBUG ) {
                         System.err.println(shortName()+".Event.ACTIVATE, "+event);
                     }
+                    if( newtChildReady ) {
+                        newtChild.requestFocus(false /* wait */);
+                    }
                     break;
                 case SWT.Deactivate: // lost focus
                     if( DEBUG ) {
@@ -203,10 +206,16 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                     if( DEBUG ) {
                         System.err.println(shortName()+".Event.SHOW, "+event);
                     }
+                    if( newtChildReady ) {
+                        newtChild.setVisible(true);
+                    }
                     break;
                 case SWT.Hide:
                     if( DEBUG ) {
                         System.err.println(shortName()+".Event.HIDE, "+event);
+                    }
+                    if( newtChildReady ) {
+                        newtChild.setVisible(false);
                     }
                     break;
                 case SWT.Resize:
