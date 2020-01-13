@@ -73,6 +73,7 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
@@ -336,6 +337,20 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             };
             glWindow1.addKeyListener(kl);
             glWindow2.addKeyListener(kl);
+            {
+                final NEWTDemoListener newtDemoListener1 = new NEWTDemoListener(glWindow1);
+                newtDemoListener1.quitAdapterEnable(false);
+                glWindow1.addKeyListener(newtDemoListener1);
+                glWindow1.addMouseListener(newtDemoListener1);
+                glWindow1.addWindowListener(newtDemoListener1);
+            }
+            {
+                final NEWTDemoListener newtDemoListener2 = new NEWTDemoListener(glWindow2);
+                newtDemoListener2.quitAdapterEnable(false);
+                glWindow2.addKeyListener(newtDemoListener2);
+                glWindow2.addMouseListener(newtDemoListener2);
+                glWindow2.addWindowListener(newtDemoListener2);
+            }
         }
 
         animator1.start();

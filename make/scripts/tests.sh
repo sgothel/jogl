@@ -492,7 +492,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT $*
-#testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
+testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
 
 #
@@ -790,7 +790,7 @@ function testawtswt() {
 # SWT (testswt)
 #
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor01 $*
-testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02NewtGLWindow $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02NewtGLWindow $*
 # testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*

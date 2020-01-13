@@ -38,6 +38,7 @@ import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -194,6 +195,11 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
                 }
             }
         });
+        final NEWTDemoListener newtDemoListener = new NEWTDemoListener(glWindow);
+        newtDemoListener.quitAdapterEnable(false);
+        glWindow.addKeyListener(newtDemoListener);
+        glWindow.addMouseListener(newtDemoListener);
+        glWindow.addWindowListener(newtDemoListener);
 
         animator.add(glWindow);
         animator.start();
