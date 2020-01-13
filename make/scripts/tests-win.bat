@@ -160,10 +160,11 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenti
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT %*
 
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02NewtGLWindow %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTBug628ResizeDeadlock %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTBug643AsyncExec %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT %*

@@ -31,8 +31,6 @@ package com.jogamp.opengl.test.junit.jogl.swt;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -46,7 +44,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
@@ -60,12 +57,17 @@ import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.swt.NewtCanvasSWT;
+import com.jogamp.newt.util.EDTUtil;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+
+import jogamp.newt.swt.SWTEDTUtil;
 
 /**
  * Tests utilizing {@link SWTAccessor#getWindowHandle(org.eclipse.swt.widgets.Control)}
@@ -88,17 +90,6 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
     Display display = null;
     Shell shell = null;
     Composite composite = null;
-
-    @BeforeClass
-    public static void startup() {
-        if( Platform.getOSType() == Platform.OSType.MACOS ) {
-            // NSLocking issues on OSX and AWT, able to freeze whole test suite!
-            // Since this test is merely a technical nature to validate the accessor w/ SWT
-            // we can drop it w/o bothering.
-            JunitTracer.setTestSupported(false);
-            return;
-        }
-    }
 
     protected void init() throws InterruptedException, InvocationTargetException {
         System.err.println("SWT Platform: "+SWT.getPlatform()+", Version "+SWT.getVersion());
@@ -155,10 +146,17 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
         glwin.addGLEventListener(demo);
         glwin.setSize(600, 600);
 
+        // set SWT EDT and start it
+        {
+            final com.jogamp.newt.Display newtDisplay = glwin.getScreen().getDisplay();
+            final EDTUtil edtUtil = new SWTEDTUtil(newtDisplay, display);
+            edtUtil.start();
+            newtDisplay.setEDTUtil( edtUtil );
+        }
         final Canvas canvas[] = { null };
         try {
-            SWTAccessor.invoke(true, new Runnable() {
-                public void run() {
+            display.syncExec( new Runnable() {
+               public void run() {
                     canvas[0] = new Canvas (composite, SWT.NO_BACKGROUND);
                     // Bug 1362 fix or workaround: Seems SWT/GTK3 at least performs lazy initialization
                     // Minimal action required: setBackground of the parent canvas before reparenting!
@@ -202,38 +200,32 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
                     canvas[0].addListener (SWT.Paint, listener);
                     canvas[0].addListener (SWT.Dispose, listener);
 
-                    final NativeWindow parentWindow = NativeWindowFactory.createWrappedWindow(aScreen, 0 /* surfaceHandle*/, parentWinHandle, upstreamSizePosHook);
-                    glwin.reparentWindow(parentWindow, 0, 0, 0);
                     final Rectangle r = canvas[0].getClientArea();
+                    final NativeWindow parentWindow = NativeWindowFactory.createWrappedWindow(aScreen, 0 /* surfaceHandle*/, parentWinHandle, upstreamSizePosHook);
                     glwin.setSize(r.width, r.height);
+                    glwin.reparentWindow(parentWindow, 0, 0, 0);
+                    glwin.setPosition(r.x, r.y);
                     glwin.setVisible(true);
                     canvas[0].redraw();
                 }});
+
+            final Runnable waitAction = new Runnable() {
+                public void run() {
+                    if( !display.readAndDispatch() ) {
+                        try {
+                            Thread.sleep(10);
+                        } catch (final InterruptedException e) { }
+                    }
+                } };
+            Assert.assertEquals(true,  NewtTestUtil.waitForVisible(glwin, true, waitAction));
+            Assert.assertEquals(true,  GLTestUtil.waitForRealized(glwin, true, waitAction));
 
             System.err.println("Window handle.1 0x"+Long.toHexString(SWTAccessor.getWindowHandle(canvas[0])));
 
             final long lStartTime = System.currentTimeMillis();
             final long lEndTime = lStartTime + duration;
-            try {
-                while( (System.currentTimeMillis() < lEndTime) && !composite.isDisposed() ) {
-                    SWTAccessor.invoke(true, new Runnable() {
-                        public void run() {
-                            if( !display.readAndDispatch() ) {
-                                // blocks on linux .. display.sleep();
-                                try {
-                                    Thread.sleep(10);
-                                } catch (final InterruptedException e) { }
-                            }
-                        }});
-                }
-                SWTAccessor.invoke(true, new Runnable() {
-                    public void run() {
-                        System.err.println("Window handle.X 0x"+Long.toHexString(SWTAccessor.getWindowHandle(canvas[0])));
-                    }});
-            }
-            catch( final Throwable throwable ) {
-                throwable.printStackTrace();
-                Assume.assumeNoException( throwable );
+            while( System.currentTimeMillis() < lEndTime && !composite.isDisposed() ) {
+                waitAction.run();
             }
         } finally {
             release(glwin);
