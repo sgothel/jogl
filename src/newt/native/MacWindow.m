@@ -925,7 +925,11 @@ NS_ENDHANDLER
 
     if( visible ) {
       #if 1
-        [myWindow orderFront: myWindow];
+        if( NULL == parentWindow ) {
+            [myWindow orderFront: myWindow];
+        } else {
+            [myWindow orderWindow: NSWindowAbove relativeTo: [parentWindow windowNumber]];
+        }
         // [myWindow performSelector:@selector(orderFront) withObject:myWindow afterDelay:0];
       #elif 0
         [myWindow makeKeyAndOrderFront: myWindow];
@@ -1237,7 +1241,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_resignFocus0
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderFront0
   (JNIEnv *env, jobject unused, jlong window)
 {
-    NSWindow* mWin = (NSWindow*) ((intptr_t) window);
+    NewtNSWindow* mWin = (NewtNSWindow*) (intptr_t) window;
     if( NULL == mWin ) {
         DBG_PRINT( "orderFront0 - NULL NEWT win - abort\n");
         return;
@@ -1248,12 +1252,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderFront0
     DBG_PRINT( "orderFront0 - window: (parent %p) %p visible %d (START)\n", pWin, mWin, [mWin isVisible]);
 
     if( NULL == pWin ) {
-        [mWin orderFrontRegardless];
+        [mWin orderFront: mWin];
     } else {
         [mWin orderWindow: NSWindowAbove relativeTo: [pWin windowNumber]];
     }
 
-    DBG_PRINT( "orderFront0 - window: (parent %p) %p (END)\n", pWin, mWin);
+    DBG_PRINT( "orderFront0 - window: (parent %p) %p visible %d (END)\n", pWin, mWin, [mWin isVisible]);
 
     [pool release];
 }
@@ -1266,7 +1270,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderFront0
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderOut0
   (JNIEnv *env, jobject unused, jlong window)
 {
-    NSWindow* mWin = (NSWindow*) ((intptr_t) window);
+    NewtNSWindow* mWin = (NewtNSWindow*) (intptr_t) window;
     if( NULL == mWin ) {
         DBG_PRINT( "orderOut0 - NULL NEWT win - abort\n");
         return;
@@ -1276,13 +1280,21 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderOut0
 
     DBG_PRINT( "orderOut0 - window: (parent %p) %p visible %d (START)\n", pWin, mWin, [mWin isVisible]);
 
+    // NSWindow - Child Windows Ordering Out
+    //   For applications linked on 10.7 and later, ordering out a child window will now first remove itself from its parent window. 
+    //   Previously, ordering out a child window would implicitly order out the parent window too.
+    // https://developer.apple.com/library/archive/releasenotes/AppKit/RN-AppKitOlderNotes/index.html#X10_7Notes
+    //
+    // '[mWin detachFromParent: pWin];' would cause serious troubles with other toolkits like SWT
+    // hence we only can move the window back!
     if( NULL == pWin ) {
         [mWin orderOut: mWin];
     } else {
+        // NSWindowOut: The window is removed from the screen list and otherWin is ignored.
         [mWin orderWindow: NSWindowOut relativeTo: [pWin windowNumber]];
     }
 
-    DBG_PRINT( "orderOut0 - window: (parent %p) %p (END)\n", pWin, mWin);
+    DBG_PRINT( "orderOut0 - window: (parent %p) %p visible %d (END)\n", pWin, mWin, [mWin isVisible]);
 
     [pool release];
 }

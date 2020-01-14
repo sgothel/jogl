@@ -1004,7 +1004,12 @@ NS_ENDHANDLER
 - (void) attachToParent: (NSWindow*) parent
 {
     DBG_PRINT( "attachToParent.1\n");
+NS_DURING
+    // this causes troubles w/ SWT toolkit
+    // exception 'NSInvalidArgumentException', reason: '-[SWTCanvasView addChildWindow:ordered:]: unrecognized selector sent to instance 0x7fc198f66580'
     [parent addChildWindow: self ordered: NSWindowAbove];
+NS_HANDLER
+NS_ENDHANDLER
     DBG_PRINT( "attachToParent.2\n");
     [self setParentWindow: parent];
     DBG_PRINT( "attachToParent.X\n");
@@ -1016,7 +1021,12 @@ NS_ENDHANDLER
     [self setParentWindow: nil];
     if(NULL != parent) {
         DBG_PRINT( "detachFromParent.2\n");
+NS_DURING
+        // this causes troubles w/ SWT toolkit
+        // exception 'NSInvalidArgumentException', reason: '-[SWTCanvasView removeChildWindow:]: unrecognized selector sent to instance 0x7fbb5cc65ed0'
         [parent removeChildWindow: self];
+NS_HANDLER
+NS_ENDHANDLER
     }
     DBG_PRINT( "detachFromParent.X\n");
 }
