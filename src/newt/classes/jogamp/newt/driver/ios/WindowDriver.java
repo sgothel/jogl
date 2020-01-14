@@ -376,15 +376,16 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
     @Override
     protected boolean reconfigureWindowImpl(int _x, int _y, int _width, int _height, final int flags) {
-        final boolean _isOffscreenInstance = isOffscreenInstance(this, this.getParent());
+        final NativeWindow parent = getParent();
+        final boolean useParent = useParent(parent);
+        final boolean _isOffscreenInstance = isOffscreenInstance(this, parent);
         isOffscreenInstance = 0 != sscSurfaceHandle || _isOffscreenInstance;
         final PointImmutable pClientLevelOnSreen;
         if( isOffscreenInstance ) {
             _x = 0; _y = 0;
             pClientLevelOnSreen = new Point(0, 0);
         } else  {
-            final NativeWindow parent = getParent();
-            if( useParent(parent) ) {
+            if( useParent ) {
                 pClientLevelOnSreen = getLocationOnScreenByParent(_x, _y, parent);
             } else {
                 if( 0 != ( ( CHANGE_MASK_MAXIMIZED_HORZ | CHANGE_MASK_MAXIMIZED_VERT ) & flags ) ) {
@@ -405,11 +406,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
         if(DEBUG_IMPLEMENTATION) {
             final AbstractGraphicsConfiguration cWinCfg = this.getGraphicsConfiguration();
-            final NativeWindow pWin = getParent();
-            final AbstractGraphicsConfiguration pWinCfg = null != pWin ? pWin.getGraphicsConfiguration() : null;
+            final AbstractGraphicsConfiguration pWinCfg = null != parent ? parent.getGraphicsConfiguration() : null;
             System.err.println("MacWindow reconfig.0: "+x+"/"+y+" -> clientPosOnScreen "+pClientLevelOnSreen+" - "+width+"x"+height+
                                ", "+getReconfigStateMaskString(flags)+
-                               ",\n\t parent type "+(null != pWin ? pWin.getClass().getName() : null)+
+                               ",\n\t parent type "+(null != parent ? parent.getClass().getName() : null)+
                                ",\n\t   this-chosenCaps "+(null != cWinCfg ? cWinCfg.getChosenCapabilities() : null)+
                                ",\n\t parent-chosenCaps "+(null != pWinCfg ? pWinCfg.getChosenCapabilities() : null)+
                                ", isOffscreenInstance(sscSurfaceHandle "+toHexString(sscSurfaceHandle)+
@@ -418,21 +418,21 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             // Thread.dumpStack();
         }
 
+        final long oldWindowHandle = getWindowHandle();
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) &&
             0 == ( STATE_MASK_VISIBLE & flags) )
         {
-            if ( !isOffscreenInstance ) {
+            if ( 0 != oldWindowHandle && !isOffscreenInstance ) {
                 IOSUtil.RunOnMainThread(false, false, new Runnable() {
                         @Override
                         public void run() {
-                            orderOut0(getWindowHandle());
+                            orderOut0(oldWindowHandle);
                             visibleChanged(false);
                         } } );
             } else {
                 visibleChanged(false);
             }
         }
-        final long oldWindowHandle = getWindowHandle();
         if( ( 0 == oldWindowHandle && 0 != ( STATE_MASK_VISIBLE & flags) ) ||
             0 != ( CHANGE_MASK_PARENTING & flags)  ||
             0 != ( CHANGE_MASK_DECORATION & flags) ||
