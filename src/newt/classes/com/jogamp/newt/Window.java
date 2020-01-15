@@ -1049,12 +1049,30 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
     void runOnEDTIfAvail(boolean wait, final Runnable task);
 
     /**
-     * Appends this class string representation to the given {@link StringBuilder} instance
-     * @param sb given instance where this class string representation is added to
+     * Appends this class simple string one-line representation to the given {@link StringBuilder} instance
+     * @param sb given instance where this class simple string representation is added to
      * @return the given {@link StringBuilder} for chaining
      */
-    StringBuilder append(StringBuilder sb);
+    StringBuilder toSimpleString(StringBuilder sb);
 
+    /**
+     * Returns a simple string one-line representation of this instance using {@link #toSimpleString(StringBuilder)}.
+     */
+    String toSimpleString();
+
+    /**
+     * Appends this class full string multi-line representation to the given {@link StringBuilder} instance
+     * @param sb given instance where this class full string representation is added to
+     * @return the given {@link StringBuilder} for chaining
+     */
+    StringBuilder toString(StringBuilder sb);
+
+    /**
+     * Returns a full string multi-line representation of this instance using {@link #toString(StringBuilder)}.
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     */
     @Override
     String toString();
 

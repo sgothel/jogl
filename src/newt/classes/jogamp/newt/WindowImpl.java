@@ -60,6 +60,7 @@ import com.jogamp.nativewindow.util.PointImmutable;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 
@@ -145,6 +146,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /** Timeout of queued events (repaint and resize) */
     static final long QUEUED_EVENT_TO = 1200; // ms
+
+    private static final String COMMA = ", ";
 
     private static final PointerType[] constMousePointerTypes = new PointerType[] { PointerType.Mouse };
 
@@ -335,6 +338,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     protected static StringBuilder appendStateBits(final StringBuilder sb, final int mask, final boolean showChangeFlags) {
+
         sb.append("[");
 
         if( showChangeFlags ) {
@@ -346,86 +350,95 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
         }
         sb.append((0 != ( STATE_MASK_VISIBLE & mask))?"visible":"invisible");
-        sb.append(", ");
 
-        sb.append((0 != ( STATE_MASK_AUTOPOSITION & mask))?"autopos, ":"");
+        if( 0 != ( STATE_MASK_AUTOPOSITION & mask) ) {
+            sb.append(COMMA);
+            sb.append("autopos");
+        }
 
         if( showChangeFlags ) {
+            sb.append(COMMA);
             if( 0 != ( CHANGE_MASK_PARENTING & mask) ) {
                 sb.append("*");
             }
             sb.append((0 != ( STATE_MASK_CHILDWIN & mask))?"child":"toplevel");
-            sb.append(", ");
         } else if( 0 != ( STATE_MASK_CHILDWIN & mask) ) {
+            sb.append(COMMA);
             sb.append("child");
-            sb.append(", ");
         }
 
-        sb.append((0 != ( STATE_MASK_FOCUSED & mask))?"focused, ":"");
+        if( 0 != ( STATE_MASK_FOCUSED & mask) ) {
+            sb.append(COMMA);
+            sb.append("focused");
+        }
 
         if( showChangeFlags ) {
+            sb.append(COMMA);
             if( 0 != ( CHANGE_MASK_DECORATION & mask) ) {
                 sb.append("*");
             }
             sb.append((0 != ( STATE_MASK_UNDECORATED & mask))?"undecor":"decor");
-            sb.append(", ");
         } else if( 0 != ( STATE_MASK_UNDECORATED & mask) ) {
+            sb.append(COMMA);
             sb.append("undecor");
-            sb.append(", ");
         }
 
         if( showChangeFlags ) {
+            sb.append(COMMA);
             if( 0 != ( CHANGE_MASK_ALWAYSONTOP & mask) ) {
                 sb.append("*");
             }
-            sb.append((0 != ( STATE_MASK_ALWAYSONTOP & mask))?"aontop":"!aontop");
-            sb.append(", ");
-        } else if( 0 != ( STATE_MASK_ALWAYSONTOP & mask) ) {
+            if( 0 == ( STATE_MASK_ALWAYSONTOP & mask) ) {
+                sb.append("!");
+            }
             sb.append("aontop");
-            sb.append(", ");
+        } else if( 0 != ( STATE_MASK_ALWAYSONTOP & mask) ) {
+            sb.append(COMMA);
+            sb.append("aontop");
         }
 
         if( showChangeFlags ) {
+            sb.append(COMMA);
             if( 0 != ( CHANGE_MASK_ALWAYSONBOTTOM & mask) ) {
                 sb.append("*");
             }
             sb.append((0 != ( STATE_MASK_ALWAYSONBOTTOM & mask))?"aonbottom":"!aonbottom");
-            sb.append(", ");
         } else if( 0 != ( STATE_MASK_ALWAYSONBOTTOM & mask) ) {
+            sb.append(COMMA);
             sb.append("aonbottom");
-            sb.append(", ");
         }
 
         if( showChangeFlags ) {
+            sb.append(COMMA);
             if( 0 != ( CHANGE_MASK_STICKY & mask) ) {
                 sb.append("*");
             }
             sb.append((0 != ( STATE_MASK_STICKY & mask))?"sticky":"unsticky");
-            sb.append(", ");
         } else if( 0 != ( STATE_MASK_STICKY & mask) ) {
+            sb.append(COMMA);
             sb.append("sticky");
-            sb.append(", ");
         }
 
         if( showChangeFlags ) {
+            sb.append(COMMA);
             sb.append((0 != ( STATE_MASK_REPOSITIONABLE & mask))?"repositionable":"fixed-position");
-            sb.append(", ");
         } else if( 0 != ( STATE_MASK_REPOSITIONABLE & mask) ) {
+            sb.append(COMMA);
             sb.append("repositionable");
-            sb.append(", ");
         }
         if( showChangeFlags ) {
+            sb.append(COMMA);
             if( 0 != ( CHANGE_MASK_RESIZABLE & mask) ) {
                 sb.append("*");
             }
             sb.append((0 != ( STATE_MASK_RESIZABLE & mask))?"resizable":"fixed-size");
-            sb.append(", ");
         } else if( 0 != ( STATE_MASK_RESIZABLE & mask) ) {
+            sb.append(COMMA);
             sb.append("resizable");
-            sb.append(", ");
         }
 
         if( showChangeFlags ) {
+            sb.append(COMMA);
             sb.append("max[");
             if( 0 != ( CHANGE_MASK_MAXIMIZED_HORZ & mask) ) {
                 sb.append("*");
@@ -442,8 +455,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 sb.append("!");
             }
             sb.append("v");
-            sb.append("], ");
+            sb.append("]");
         } else if( 0 != ( ( STATE_MASK_MAXIMIZED_HORZ | STATE_MASK_MAXIMIZED_VERT ) & mask) ) {
+            sb.append(COMMA);
             sb.append("max[");
             if( 0 != ( STATE_MASK_MAXIMIZED_HORZ & mask) ) {
                 sb.append("h");
@@ -451,50 +465,51 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if( 0 != ( STATE_MASK_MAXIMIZED_VERT & mask) ) {
                 sb.append("v");
             }
-            sb.append("], ");
+            sb.append("]");
         }
 
         if( showChangeFlags ) {
+            sb.append(COMMA);
             if( 0 != ( CHANGE_MASK_FULLSCREEN & mask) ) {
                 sb.append("*");
             }
             sb.append("fullscreen[");
             sb.append(0 != ( STATE_MASK_FULLSCREEN & mask));
             sb.append((0 != ( STATE_MASK_FULLSCREEN_SPAN & mask))?", span":"");
-            sb.append("], ");
+            sb.append("]");
         } else if( 0 != ( STATE_MASK_FULLSCREEN & mask) ) {
+            sb.append(COMMA);
             sb.append("fullscreen");
-            sb.append(", ");
         }
 
         if( showChangeFlags ) {
-                sb.append("pointer[");
-                if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ) {
-                    sb.append("invisible");
-                } else {
-                    sb.append("visible");
-                }
-                sb.append(", ");
-                if( 0 != ( STATE_MASK_POINTERCONFINED & mask) ) {
-                    sb.append("confined");
-                } else {
-                    sb.append("free");
-                }
-                sb.append("]");
-        } else {
-            if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ||
-                0 != ( STATE_MASK_POINTERCONFINED & mask) )
-            {
-                sb.append("pointer[");
-                if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ) {
-                    sb.append("invisible");
-                    sb.append(", ");
-                }
-                if( 0 != ( STATE_MASK_POINTERCONFINED & mask) ) {
-                    sb.append("confined");
-                }
-                sb.append("]");
+            sb.append(COMMA);
+            sb.append("pointer[");
+            if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ) {
+                sb.append("invisible");
+            } else {
+                sb.append("visible");
             }
+            sb.append(COMMA);
+            if( 0 != ( STATE_MASK_POINTERCONFINED & mask) ) {
+                sb.append("confined");
+            } else {
+                sb.append("free");
+            }
+            sb.append("]");
+        } else if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ||
+                   0 != ( STATE_MASK_POINTERCONFINED & mask) )
+        {
+            sb.append(COMMA);
+            sb.append("pointer[");
+            if( 0 == ( STATE_MASK_POINTERVISIBLE & mask) ) {
+                sb.append("invisible");
+            }
+            if( 0 != ( STATE_MASK_POINTERCONFINED & mask) ) {
+                sb.append(COMMA);
+                sb.append("confined");
+            }
+            sb.append("]");
         }
         sb.append("]");
         return sb;
@@ -2755,45 +2770,71 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final StringBuilder append(final StringBuilder sb) {
-        sb.append(getClass().getName()+"[State "+getStateMaskString()+
-                    ",\n Reconfig "+getSupportedStateMaskString()+
-                    ",\n "+screen+
-                    ",\n window["+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" wu, "+getSurfaceWidth()+"x"+getSurfaceHeight()+" pixel]"+
-                    ",\n Config "+config+
-                    ",\n ParentWindow "+parentWindow+
-                    ",\n ParentWindowHandle "+toHexString(parentWindowHandle)+" ("+(0!=getParentWindowHandle())+")"+
-                    ",\n WindowHandle "+toHexString(getWindowHandle())+
-                    ",\n SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt window "+windowLock.isLockedByOtherThread()+", surface "+isSurfaceLockedByOtherThread()+")"+
-                    ",\n WrappedSurface "+getWrappedSurface()+
-                    ",\n ChildWindows "+childWindows.size());
+    public final StringBuilder toSimpleString(final StringBuilder sb) {
+        sb.append(getClass().getSimpleName()).append("[").append("State ").append(getStateMaskString())
+                    .append("; ").append("Window").append("[").append(getX()).append("/").append(getY())
+                    .append(" ").append(getWidth()).append("x").append(getHeight()).append(" wu").append(COMMA)
+                    .append(getSurfaceWidth()).append("x").append(getSurfaceHeight()).append(" pixel").append("]")
+                    .append(" handle ").append(toHexString(getWindowHandle())).append(COMMA).append("surfaceHandle ")
+                    .append(toHexString(getSurfaceHandle())).append(COMMA).append("children ").append(childWindows.size())
+                    .append("; ").append("ParentWindow ").append(parentWindow).append(" (handle ")
+                    .append(toHexString(parentWindowHandle)).append(")")
+        .append("]");
+        return sb;
+    }
+    @Override
+    public final String toSimpleString() {
+        return toSimpleString(new StringBuilder()).toString();
+    }
+    @Override
+    public final StringBuilder toString(final StringBuilder sb) {
+        sb.append(getClass().getName()).append("[").append("State ").append(getStateMaskString())
+                    .append(COMMA).append("supported ").append(getSupportedStateMaskString())
+                    .append("; ").append("Window").append("[").append(getX()).append("/").append(getY())
+                    .append(" ").append(getWidth()).append("x").append(getHeight()).append(" wu").append(COMMA)
+                    .append(getSurfaceWidth()).append("x").append(getSurfaceHeight()).append(" pixel").append("]")
+                    .append(" handle ").append(toHexString(getWindowHandle())).append(COMMA).append("surfaceHandle ")
+                    .append(toHexString(getSurfaceHandle())).append(COMMA).append("children ").append(childWindows.size())
+                    .append("; ").append("ParentWindow ").append(parentWindow).append(" (handle ")
+                    .append(toHexString(parentWindowHandle)).append(")")
+        .append(COMMA).append(PlatformPropsImpl.NEWLINE).append("  ").append(screen)
+        .append(COMMA).append(PlatformPropsImpl.NEWLINE).append("  Config ").append(config)
+        .append(COMMA).append(PlatformPropsImpl.NEWLINE).append("  WrappedSurface ").append(getWrappedSurface())
+        .append(COMMA).append(PlatformPropsImpl.NEWLINE);
 
-        sb.append(", SurfaceUpdatedListeners num "+surfaceUpdatedHelper.size()+" [");
+        sb.append("  SurfaceUpdatedListeners num ").append(surfaceUpdatedHelper.size()).append(" [");
         for (int i = 0; i < surfaceUpdatedHelper.size(); i++ ) {
           sb.append(surfaceUpdatedHelper.get(i)+", ");
         }
-        sb.append("], WindowListeners num "+windowListeners.size()+" [");
+        sb.append("]").append(COMMA).append(PlatformPropsImpl.NEWLINE)
+        .append("  WindowListeners num ").append(windowListeners.size()).append(" [");
         for (int i = 0; i < windowListeners.size(); i++ ) {
           sb.append(windowListeners.get(i)+", ");
         }
-        sb.append("], MouseListeners num "+mouseListeners.size()+" [");
+        sb.append("]").append(COMMA).append(PlatformPropsImpl.NEWLINE)
+        .append("  MouseListeners num ").append(mouseListeners.size()).append(" [");
         for (int i = 0; i < mouseListeners.size(); i++ ) {
           sb.append(mouseListeners.get(i)+", ");
         }
-        sb.append("], PointerGestures default "+defaultGestureHandlerEnabled+", custom "+pointerGestureHandler.size()+" [");
+        sb.append("]").append(COMMA).append(PlatformPropsImpl.NEWLINE)
+        .append("  PointerGestures default ").append(defaultGestureHandlerEnabled).append(COMMA)
+        .append("custom ").append(pointerGestureHandler.size()).append(" [");
         for (int i = 0; i < pointerGestureHandler.size(); i++ ) {
           sb.append(pointerGestureHandler.get(i)+", ");
         }
-        sb.append("], KeyListeners num "+keyListeners.size()+" [");
+        sb.append("]").append(COMMA).append(PlatformPropsImpl.NEWLINE)
+        .append("  KeyListeners num ").append(keyListeners.size()).append(" [");
         for (int i = 0; i < keyListeners.size(); i++ ) {
           sb.append(keyListeners.get(i)+", ");
         }
-        sb.append("], windowLock "+windowLock+", surfaceLockCount "+surfaceLockCount+"]");
+        sb.append("]").append(COMMA).append(PlatformPropsImpl.NEWLINE)
+        .append("  windowLock ").append(windowLock).append(COMMA).append("surfaceLockCount ").append(surfaceLockCount)
+        .append("]");
         return sb;
     }
     @Override
     public final String toString() {
-        return append(new StringBuilder()).toString();
+        return toString(new StringBuilder()).toString();
     }
 
     protected final void setWindowHandle(final long handle) {

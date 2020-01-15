@@ -67,6 +67,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.GLSharedContextSetter;
 
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.newt.WindowImpl;
 import jogamp.opengl.GLAutoDrawableBase;
 import jogamp.opengl.GLContextImpl;
@@ -535,18 +536,31 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
-    public final StringBuilder append(final StringBuilder sb) {
-        sb.append("NEWT-GLWindow[ \n\tHelper: " + helper + ", \n\tDrawable: " + drawable +
-               ", \n\tContext: " + context + ", \n\tWindow: ");
-        window.append(sb);
-        // sb.append(", \n\tFactory: "+factory);
-        sb.append("]");
+    public final StringBuilder toSimpleString(final StringBuilder sb) {
+        sb.append("GLWindow[");
+        window.toSimpleString(sb).append("]");
+        return sb;
+    }
+    @Override
+    public final String toSimpleString() {
+        return toSimpleString(new StringBuilder()).toString();
+    }
+    @Override
+    public final StringBuilder toString(final StringBuilder sb) {
+        sb.append("GLWindow").append("[")
+        .append(PlatformPropsImpl.NEWLINE).append("\t").append("Helper: ").append(helper)
+        .append(", ").append(PlatformPropsImpl.NEWLINE).append("\t").append("Drawable: ").append(drawable)
+        .append(", ").append(PlatformPropsImpl.NEWLINE).append("\t").append("Context: ").append(context)
+        .append(", ").append(PlatformPropsImpl.NEWLINE).append("\t").append("Window: ");
+        window.toString(sb)
+        // .append(", ").append(Platform.NEWLINE).append("\t").append("Factory: ").append(factory)
+        .append("]");
         return sb;
     }
 
     @Override
     public final String toString() {
-        return append(new StringBuilder()).toString();
+        return toString(new StringBuilder()).toString();
     }
 
     @Override
