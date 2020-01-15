@@ -535,9 +535,18 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
+    public final StringBuilder append(final StringBuilder sb) {
+        sb.append("NEWT-GLWindow[ \n\tHelper: " + helper + ", \n\tDrawable: " + drawable +
+               ", \n\tContext: " + context + ", \n\tWindow: ");
+        window.append(sb);
+        // sb.append(", \n\tFactory: "+factory);
+        sb.append("]");
+        return sb;
+    }
+
+    @Override
     public final String toString() {
-        return "NEWT-GLWindow[ \n\tHelper: " + helper + ", \n\tDrawable: " + drawable +
-               ", \n\tContext: " + context + ", \n\tWindow: "+window+ /** ", \n\tFactory: "+factory+ */ "]";
+        return append(new StringBuilder()).toString();
     }
 
     @Override

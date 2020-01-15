@@ -1048,6 +1048,15 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
 
     void runOnEDTIfAvail(boolean wait, final Runnable task);
 
+    /**
+     * Appends this class string representation to the given {@link StringBuilder} instance
+     * @param sb given instance where this class string representation is added to
+     * @return the given {@link StringBuilder} for chaining
+     */
+    StringBuilder append(StringBuilder sb);
+
+    @Override
+    String toString();
 
     //
     // WindowListener

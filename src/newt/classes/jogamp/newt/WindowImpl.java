@@ -2755,9 +2755,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public final String toString() {
-        final StringBuilder sb = new StringBuilder();
-
+    public final StringBuilder append(final StringBuilder sb) {
         sb.append(getClass().getName()+"[State "+getStateMaskString()+
                     ",\n Reconfig "+getSupportedStateMaskString()+
                     ",\n "+screen+
@@ -2791,7 +2789,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
           sb.append(keyListeners.get(i)+", ");
         }
         sb.append("], windowLock "+windowLock+", surfaceLockCount "+surfaceLockCount+"]");
-        return sb.toString();
+        return sb;
+    }
+    @Override
+    public final String toString() {
+        return append(new StringBuilder()).toString();
     }
 
     protected final void setWindowHandle(final long handle) {
