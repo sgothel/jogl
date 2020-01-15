@@ -484,9 +484,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         public void run() {
                             if( useParent && 0 == ( STATE_MASK_VISIBLE & flags) ) {
                                 // Fake invisible child window: We can't use true orderOut
+                                // Ensure it stays out of sight by moving it to 2x width/height of viewport.
                                 final RectangleImmutable r = getScreen().getViewportInWindowUnits();
                                 setWindowClientTopLeftPointAndSize0(oldWindowHandle,
-                                        r.getX()+r.getWidth(), r.getY()+r.getHeight(),
+                                        r.getX()+2*r.getWidth(), r.getY()+2*r.getHeight(),
                                         width, height, false /* no display */);
                             } else {
                                 // Normal visibility
