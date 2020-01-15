@@ -51,8 +51,12 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
@@ -238,8 +242,15 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
 
         sash = new SashForm(tabFolder, SWT.NONE);
         Assert.assertNotNull( sash );
-        final org.eclipse.swt.widgets.Label c = new org.eclipse.swt.widgets.Label(sash, SWT.NONE);
-        c.setText("Left cell");
+        final Text text = new Text (sash, SWT.MULTI | SWT.BORDER);
+        text.setText("Left Sash Cell");
+        text.append(Text.DELIMITER);
+        if( useNewtCanvasSWT ) {
+            text.append("SWT running with JogAmp, JOGL and NEWT using NewtCanvasSWT");
+        } else {
+            text.append("SWT running with JogAmp and JOGL using JOGL's GLCanvas");
+        }
+        text.append(Text.DELIMITER);
         final Composite sashRight;
         if( addComposite ) {
             sashRight = new Composite(sash, SWT.NONE);
@@ -278,6 +289,43 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         Assert.assertNotNull(glad2);
         final RedSquareES2 demo2 = new RedSquareES2(1);
         glad2.addGLEventListener(demo2);
+
+        if( useNewtCanvasSWT ) {
+            // We have to forward essential events of interest from CTabItem's Control
+            // to our NewtCanvasSWT/GLWindow, as only the direct CTabItem's Control
+            // receives the event.
+            //
+            // Essential events are at least SWT.Show and SWT.Hide!
+            //
+            // In case we use 'addComposite' or a SashForm' etc,
+            // we need to forward these events of interest!
+            // Index 0 -> newtCanvasSWT1 ( glWindow1 )
+            // Index 1 -> newtCanvasSWT2 ( glWindow2 )
+            {
+                final Listener swtListener = new Listener() {
+                    @Override
+                    public void handleEvent(final Event event) {
+                        newtCanvasSWT1.notifyListeners(event.type, event);
+                    } };
+                final Control itemControl = tabFolder.getItem(0).getControl();
+                if( itemControl != newtCanvasSWT1 ) {
+                    itemControl.addListener(SWT.Show, swtListener);
+                    itemControl.addListener(SWT.Hide, swtListener);
+                }
+            }
+            {
+                final Listener swtListener = new Listener() {
+                    @Override
+                    public void handleEvent(final Event event) {
+                        newtCanvasSWT2.notifyListeners(event.type, event);
+                    } };
+                final Control itemControl = tabFolder.getItem(1).getControl();
+                if( itemControl != newtCanvasSWT2 ) {
+                    itemControl.addListener(SWT.Show, swtListener);
+                    itemControl.addListener(SWT.Hide, swtListener);
+                }
+            }
+        }
 
         final Animator animator2 = new Animator();
         animator2.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
