@@ -29,16 +29,19 @@ package com.jogamp.nativewindow.swt;
 
 import com.jogamp.common.os.Platform;
 
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GCData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.internal.DPIUtil;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Scrollable;
 
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
@@ -288,11 +291,6 @@ public class SWTAccessor {
         OS_gdk_window_set_background_pattern = mb;
 
         isX11GTK = isX11 && null != OS_gtk_class;
-
-        if(DEBUG) {
-            System.err.println("SWTAccessor.<init>: isX11 "+isX11+", isX11GTK "+isX11GTK+" (GTK Version: "+OS_gtk_version+")");
-            System.err.println("SWTAccessor.<init>: isOSX "+isOSX+", isWindows "+isWindows);
-        }
     }
 
     private static Number getIntOrLong(final long arg) {
@@ -394,6 +392,46 @@ public class SWTAccessor {
     //
     // Common any toolkit
     //
+    public static void printInfo(final PrintStream out, final Display d) {
+        out.println("SWT: Platform: "+SWT.getPlatform()+", Version "+SWT.getVersion());
+        out.println("SWT: isX11 "+isX11+", isX11GTK "+isX11GTK+" (GTK Version: "+OS_gtk_version+")");
+        out.println("SWT: isOSX "+isOSX+", isWindows "+isWindows);
+        out.println("SWT: Display.DPI "+d.getDPI()+", DPIUtil: scalingFactor "+getScalingFactor()+", deviceZoom "+DPIUtil.getDeviceZoom()+
+                    ", useCairoAutoScale "+DPIUtil.useCairoAutoScale());
+    }
+
+    public static float getScalingFactor() {
+        final int deviceZoom = DPIUtil.getDeviceZoom();
+        if ( 100 == deviceZoom || DPIUtil.useCairoAutoScale() ) {
+            return 1f;
+        }
+        return deviceZoom/100f;
+    }
+    public static int autoScaleUp (final int v) {
+        final int deviceZoom = DPIUtil.getDeviceZoom();
+        if (100 == deviceZoom || DPIUtil.useCairoAutoScale()) {
+            return v;
+        }
+        final float scaleFactor = deviceZoom/100f;
+        return Math.round (v * scaleFactor);
+    }
+    public static com.jogamp.nativewindow.util.Point autoScaleUp (final com.jogamp.nativewindow.util.Point v) {
+        final int deviceZoom = DPIUtil.getDeviceZoom();
+        if (100 == deviceZoom || DPIUtil.useCairoAutoScale() || null == v) {
+            return v;
+        }
+        final float scaleFactor = deviceZoom/100f;
+        return v.set(Math.round(v.getX() * scaleFactor), Math.round(v.getY() * scaleFactor));
+    }
+    public static com.jogamp.nativewindow.util.Rectangle autoScaleUp (final com.jogamp.nativewindow.util.Rectangle v) {
+        final int deviceZoom = DPIUtil.getDeviceZoom();
+        if (100 == deviceZoom || DPIUtil.useCairoAutoScale() || null == v) {
+            return v;
+        }
+        final float scaleFactor = deviceZoom/100f;
+        return v.set(Math.round(v.getX() * scaleFactor), Math.round(v.getY() * scaleFactor),
+                     Math.round(v.getWidth() * scaleFactor), Math.round(v.getHeight() * scaleFactor));
+    }
 
     /**
      * Returns the unscaled {@link Scrollable#getClientArea()} in pixels.

@@ -83,12 +83,11 @@ public class TestSWTAccessor01 extends UITestCase {
     }
 
     protected void init() throws InterruptedException, InvocationTargetException {
-        System.err.println("SWT Platform: "+SWT.getPlatform()+", Version "+SWT.getVersion());
-        System.err.println("GTK_VERSION: "+SWTAccessor.GTK_VERSION());
         SWTAccessor.invoke(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
+                SWTAccessor.printInfo(System.err, display);
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
                 shell.setLayout( new GridLayout(3, false) );

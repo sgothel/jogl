@@ -55,6 +55,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -82,7 +83,7 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
             // NSLocking issues on OSX and AWT, able to freeze whole test suite!
             // Since this test is merely a technical nature to validate the accessor w/ SWT
             // we can drop it w/o bothering.
-            UITestCase.setTestSupported(false);
+            JunitTracer.setTestSupported(false);
             return;
         }
         System.out.println( "GLProfile " + GLProfile.glAvailabilityToString() );
@@ -107,6 +108,7 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
+                SWTAccessor.printInfo(System.err, display);
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
                 shell.setLayout( new FillLayout() );

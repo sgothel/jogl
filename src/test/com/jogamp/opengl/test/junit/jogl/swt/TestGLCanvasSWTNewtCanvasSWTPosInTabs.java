@@ -184,6 +184,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
     {
         display = new Display();
         Assert.assertNotNull( display );
+        SWTAccessor.printInfo(System.err, display);
 
         shell = new Shell( display );
         shell.setText( getSimpleTestName(".") );

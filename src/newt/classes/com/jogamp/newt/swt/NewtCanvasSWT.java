@@ -176,6 +176,29 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         addListener (SWT.FocusOut, swtListener);
     }
 
+    /**
+     * Set's the NEWT {@link Window}'s size using {@link Window#setSize(int, int)}.
+     * <p>
+     * For all non-native DPI autoscale platforms, it utilizes {@link SWTAccessor#autoScaleUp(Point)}
+     * by multiplying the given {@link Rectangle} size to emulate DPI scaling, see Bug 1422.
+     * </p>
+     * <p>
+     * Currently native DPI autoscale platforms are
+     * <ul>
+     *  <li>{@link SWTAccessor#isOSX}</li>
+     * </ul>
+     * hence the emulated DPI scaling is enabled for all other platforms.
+     * </p>
+     * @param r containing desired size
+     */
+    private final void setNewtChildSize(final Rectangle r) {
+        if( !SWTAccessor.isOSX ) {
+            final Point p = SWTAccessor.autoScaleUp(new Point(r.width, r.height));
+            newtChild.setSize(p.getX(), p.getY());
+        } else {
+            newtChild.setSize(r.width, r.height);
+        }
+    }
     private final Listener swtListener = new Listener () {
         @Override
         public void handleEvent (final Event event) {
@@ -187,7 +210,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                 }
                 if( validateNative() && newtChildReady ) {
                     if( postSetSize ) {
-                        newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
+                        setNewtChildSize(clientAreaWindow);
                         postSetSize = false;
                     }
                     if( postSetPos ) {
@@ -357,7 +380,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         }
         if( sizeChanged ) {
             if( newtChildReady ) {
-                newtChild.setSize(nClientAreaWindow.width, nClientAreaWindow.height);
+                setNewtChildSize(nClientAreaWindow);
                 newtChild.setSurfaceScale(pixelScale);
             } else {
                 postSetSize = true;
@@ -529,7 +552,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                 newtDisplay.setEDTUtil( edtUtil );
             }
 
-            newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
+            setNewtChildSize(clientAreaWindow);
             newtChild.reparentWindow(nativeWindow, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
             newtChild.setPosition(clientAreaWindow.x, clientAreaWindow.y);
             newtChild.setVisible(true);
