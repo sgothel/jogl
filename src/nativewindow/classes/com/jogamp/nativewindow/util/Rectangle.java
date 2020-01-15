@@ -73,35 +73,31 @@ public class Rectangle implements Cloneable, RectangleImmutable {
     @Override
     public final int getHeight() { return height; }
 
-    public final void set(final int x, final int y, final int width, final int height) {
+    public final Rectangle set(final int x, final int y, final int width, final int height) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        return this;
     }
-    public final void set(final Rectangle s) {
-        this.x = s.x;
-        this.y = s.y;
-        this.width = s.width;
-        this.height = s.height;
-    }
-    public final void set(final RectangleImmutable s) {
+    public final Rectangle set(final RectangleImmutable s) {
         this.x = s.getX();
         this.y = s.getY();
         this.width = s.getWidth();
         this.height = s.getHeight();
+        return this;
     }
-    public final void setX(final int x) { this.x = x; }
-    public final void setY(final int y) { this.y = y; }
-    public final void setWidth(final int width) { this.width = width; }
-    public final void setHeight(final int height) { this.height = height; }
+    public final Rectangle setX(final int x) { this.x = x; return this; }
+    public final Rectangle setY(final int y) { this.y = y; return this; }
+    public final Rectangle setWidth(final int width) { this.width = width; return this; }
+    public final Rectangle setHeight(final int height) { this.height = height; return this; }
 
     @Override
-    public final RectangleImmutable union(final RectangleImmutable r) {
+    public final Rectangle union(final RectangleImmutable r) {
         return union(r.getX(), r.getY(), r.getX() + r.getWidth(), r.getY() + r.getHeight());
     }
     @Override
-    public final RectangleImmutable union(final int rx1, final int ry1, final int rx2, final int ry2) {
+    public final Rectangle union(final int rx1, final int ry1, final int rx2, final int ry2) {
         final int x1 = Math.min(x, rx1);
         final int y1 = Math.min(y, ry1);
         final int x2 = Math.max(x + width, rx2);
@@ -123,16 +119,15 @@ public class Rectangle implements Cloneable, RectangleImmutable {
             y1 = Math.min(y1, vp.getY());
             y2 = Math.max(y2, vp.getY() + vp.getHeight());
         }
-        set(x1, y1, x2 - x1, y2 - y1);
-        return this;
+        return new Rectangle(x1, y1, x2 - x1, y2 - y1);
     }
 
     @Override
-    public final RectangleImmutable intersection(final RectangleImmutable r) {
+    public final Rectangle intersection(final RectangleImmutable r) {
         return intersection(r.getX(), r.getY(), r.getX() + r.getWidth(), r.getY() + r.getHeight());
     }
     @Override
-    public final RectangleImmutable intersection(final int rx1, final int ry1, final int rx2, final int ry2) {
+    public final Rectangle intersection(final int rx1, final int ry1, final int rx2, final int ry2) {
         final int x1 = Math.max(x, rx1);
         final int y1 = Math.max(y, ry1);
         final int x2 = Math.min(x + width, rx2);

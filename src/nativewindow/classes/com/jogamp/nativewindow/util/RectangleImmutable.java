@@ -41,14 +41,14 @@ public interface RectangleImmutable extends WriteCloneable, Comparable<Rectangle
 
     int getY();
 
-    /** Returns the union of this rectangle and the given rectangle. */
-    RectangleImmutable union(final RectangleImmutable r);
-    /** Returns the union of this rectangleand the given coordinates. */
-    RectangleImmutable union(final int rx1, final int ry1, final int rx2, final int ry2);
-    /** Returns the intersection of this rectangleand the given rectangle. */
-    RectangleImmutable intersection(RectangleImmutable r);
-    /** Returns the intersection of this rectangleand the given coordinates. */
-    RectangleImmutable intersection(final int rx1, final int ry1, final int rx2, final int ry2);
+    /** Returns a new {@link Rectangle} instance containing the union of this rectangle and the given rectangle. */
+    Rectangle union(final RectangleImmutable r);
+    /** Returns a new {@link Rectangle} instance containing the union of this rectangle and the given coordinates. */
+    Rectangle union(final int rx1, final int ry1, final int rx2, final int ry2);
+    /** Returns a new {@link Rectangle} instance containing the intersection of this rectangle and the given rectangle. */
+    Rectangle intersection(RectangleImmutable r);
+    /** Returns a new {@link Rectangle} instance containing the intersection of this rectangle and the given coordinates. */
+    Rectangle intersection(final int rx1, final int ry1, final int rx2, final int ry2);
     /**
      * Returns the coverage of given rectangle w/ this this one, i.e. between <code>0.0</code> and <code>1.0</code>.
      * <p>
