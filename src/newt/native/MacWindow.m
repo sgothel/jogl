@@ -67,10 +67,13 @@ static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
 static void setWindowClientTopLeftPoint(NewtNSWindow* mWin, jint x, jint y, BOOL doDisplay) {
     DBG_PRINT( "setWindowClientTopLeftPoint.0 - window: %p %d/%d, display %d\n", mWin, (int)x, (int)y, (int)doDisplay);
     NSPoint pS = [mWin newtTLScreenPos2BLScreenPos: NSMakePoint(x, y)];
-    DBG_PRINT( "setWindowClientTopLeftPoint.1: %d/%d\n", (int)pS.x, (int)pS.y);
+    DBG_PRINT( "setWindowClientTopLeftPoint.1: window: (parent %p) %p visible %d: %d/%d\n", 
+        [mWin parentWindow], mWin, [mWin isVisible], (int)pS.x, (int)pS.y);
 
     [mWin setFrameOrigin: pS];
-    DBG_PRINT( "setWindowClientTopLeftPoint.X: %d/%d\n", (int)pS.x, (int)pS.y);
+
+    DBG_PRINT( "setWindowClientTopLeftPoint.X: window: (parent %p) %p visible %d: %d/%d\n", 
+        [mWin parentWindow], mWin, [mWin isVisible], (int)pS.x, (int)pS.y);
 
     if( doDisplay ) {
         NSView* mView = [mWin contentView];
@@ -84,10 +87,16 @@ static void setWindowClientTopLeftPointAndSize(NewtNSWindow* mWin, jint x, jint 
     NSPoint pS = [mWin newtTLScreenPos2BLScreenPos: NSMakePoint(x, y) size: clientSZ];
     NSSize topSZ = [mWin newtClientSize2TLSize: clientSZ];
     NSRect rect = { pS, topSZ };
-    DBG_PRINT( "setWindowClientTopLeftPointAndSize.1: %d/%d %dx%d\n", (int)rect.origin.x, (int)rect.origin.y, (int)rect.size.width, (int)rect.size.height);
+
+    DBG_PRINT( "setWindowClientTopLeftPointAndSize.1: window: (parent %p) %p visible %d: %d/%d %dx%d\n", 
+        [mWin parentWindow], mWin, [mWin isVisible], 
+        (int)rect.origin.x, (int)rect.origin.y, (int)rect.size.width, (int)rect.size.height);
 
     [mWin setFrame: rect display:doDisplay];
-    DBG_PRINT( "setWindowClientTopLeftPointAndSize.X: %d/%d %dx%d\n", (int)rect.origin.x, (int)rect.origin.y, (int)rect.size.width, (int)rect.size.height);
+
+    DBG_PRINT( "setWindowClientTopLeftPointAndSize.X: window: (parent %p) %p visible %d: %d/%d %dx%d\n", 
+        [mWin parentWindow], mWin, [mWin isVisible], 
+        (int)rect.origin.x, (int)rect.origin.y, (int)rect.size.width, (int)rect.size.height);
 
     // -> display:YES
     // if( doDisplay ) {
@@ -1190,14 +1199,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_requestFocus0
 #ifdef VERBOSE_ON
     BOOL hasFocus = [mWin isKeyWindow];
 #endif
-    DBG_PRINT( "requestFocus - window: %p, force %d, hasFocus %d (START)\n", mWin, force, hasFocus);
+    DBG_PRINT( "requestFocus - window: %p, parent %p, force %d, hasFocus %d (START)\n", mWin, [mWin parentWindow], force, hasFocus);
 
     [mWin setAcceptsMouseMovedEvents: YES];
     [mWin makeFirstResponder: nil];
     [mWin orderFrontRegardless];
     [mWin makeKeyWindow];
 
-    DBG_PRINT( "requestFocus - window: %p, force %d (END)\n", mWin, force);
+    DBG_PRINT( "requestFocus - window: %p, parent %p, force %d (END)\n", mWin, [mWin parentWindow], force);
 
     [pool release];
 }
@@ -1228,7 +1237,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_resignFocus0
             [pWin resignKeyWindow];
         }
     }
-    DBG_PRINT( "resignFocus0 - window: %p (END)\n", mWin);
+    DBG_PRINT( "resignFocus0 - window: %p, parent %p (END)\n", mWin, pWin);
 
     [pool release];
 }
@@ -1342,7 +1351,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_contentView0
         newtView = (NewtNSView *) nsView;
     }
 
-    DBG_PRINT( "contentView0 - window: %p, view: %p, newtView %p\n", win, nsView, newtView);
+    DBG_PRINT( "contentView0 - window: %p, parent: %p view: %p, newtView %p\n", win, [win parentWindow], nsView, newtView);
 
     jlong res = (jlong) ((intptr_t) nsView);
 
@@ -1365,8 +1374,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_changeContent
     NewtNSView* newView = (NewtNSView *) ((intptr_t) jview);
     NewtNSWindow* win = (NewtNSWindow*) ((intptr_t) window);
 
-    DBG_PRINT( "changeContentView0.0 -  win %p, view (%p,%d)\n", 
-        win, newView, getRetainCount(newView));
+    DBG_PRINT( "changeContentView0.0 -  win %p, parent %p, view (%p,%d)\n", 
+        win, [win parentWindow], newView, getRetainCount(newView));
 
     NSObject *nsParentObj = (NSObject*) ((intptr_t) parentWindowOrView);
     NSView* pView = NULL;
@@ -1397,11 +1406,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_updateSizePos
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtNSWindow* mWin = (NewtNSWindow*) ((intptr_t) window);
 
-    DBG_PRINT( "updateSizePosInsets - window: %p, defer %d (START)\n", mWin, (int)defer);
+    DBG_PRINT( "updateSizePosInsets - window: %p, parent %p, defer %d (START)\n", mWin, [mWin parentWindow], (int)defer);
 
     [mWin updateSizePosInsets: env jwin:jthis defer:defer];
 
-    DBG_PRINT( "updateSizePosInsets - window: %p, defer %d (END)\n", mWin, (int)defer);
+    DBG_PRINT( "updateSizePosInsets - window: %p, parent %p, defer %d (END)\n", mWin, [mWin parentWindow], (int)defer);
 
     [pool release];
 }
@@ -1417,11 +1426,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setWindowClie
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtNSWindow* mWin = (NewtNSWindow*) ((intptr_t) window);
 
-    DBG_PRINT( "setWindowClientTopLeftPointAndSize - window: %p (START)\n", mWin);
+    DBG_PRINT( "setWindowClientTopLeftPointAndSize - window: %p, parent %p (START)\n", mWin, [mWin parentWindow]);
 
     setWindowClientTopLeftPointAndSize(mWin, x, y, w, h, display);
 
-    DBG_PRINT( "setWindowClientTopLeftPointAndSize - window: %p (END)\n", mWin);
+    DBG_PRINT( "setWindowClientTopLeftPointAndSize - window: %p, parent %p (END)\n", mWin, [mWin parentWindow]);
 
     [pool release];
 }
@@ -1441,11 +1450,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setWindowClie
     }
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    DBG_PRINT( "setWindowClientTopLeftPoint - window: %p (START)\n", mWin);
+    DBG_PRINT( "setWindowClientTopLeftPoint - window: %p, parent %p (START)\n", mWin, [mWin parentWindow]);
 
     setWindowClientTopLeftPoint(mWin, x, y, display);
 
-    DBG_PRINT( "setWindowClientTopLeftPoint - window: %p (END)\n", mWin);
+    DBG_PRINT( "setWindowClientTopLeftPoint - window: %p, parent %p (END)\n", mWin, [mWin parentWindow]);
 
     [pool release];
 }
