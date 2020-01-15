@@ -1007,7 +1007,9 @@ NS_ENDHANDLER
 NS_DURING
     // this causes troubles w/ SWT toolkit
     // exception 'NSInvalidArgumentException', reason: '-[SWTCanvasView addChildWindow:ordered:]: unrecognized selector sent to instance 0x7fc198f66580'
-    [parent addChildWindow: self ordered: NSWindowAbove];
+    // if( ![[parent childWindows] containsObject: self] ) {
+        [parent addChildWindow: self ordered: NSWindowAbove];
+    // }
 NS_HANDLER
 NS_ENDHANDLER
     DBG_PRINT( "attachToParent.2\n");
@@ -1055,14 +1057,19 @@ NS_ENDHANDLER
     DBG_PRINT( "newtTLScreenPos2BLScreenPos: point-in[%d/%d], size-in[%dx%d], insets bottom %d -> totalHeight %d\n", 
         (int)p.x, (int)p.y, (int)nsz.width, (int)nsz.height, cachedInsets[3], totalHeight);
 
-    NSScreen* screen = [self screen];
-
-    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+    NSScreen* _screen = [self screen];
+    NSWindow* pWin = [self parentWindow];
+    NSRect frameBL = [_screen frame]; // origin bottom-left
+    if( frameBL.size.width <= 0 && frameBL.size.height <= 0 && NULL != pWin ) {
+        // Fake invisible child window: Own NSScreen instance could be invalid if moved off viewport
+        _screen = [pWin screen];
+        frameBL = [_screen frame]; // origin bottom-left
+    }
+    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(_screen);
     CGRect frameTL = CGDisplayBounds (display); // origin top-left
-    NSRect frameBL = [screen frame]; // origin bottom-left
     NSPoint r = NSMakePoint(p.x, frameBL.origin.y + frameBL.size.height - ( p.y - frameTL.origin.y ) - totalHeight); // y-flip from TL-screen -> BL-screen
 
-    DBG_PRINT( "newtTLScreenPos2BLScreenPos: screen tl[%d/%d %dx%d] bl[%d/%d %dx%d ->  %d/%d\n",
+    DBG_PRINT( "newtTLScreenPos2BLScreenPos: screen tl[%d/%d %dx%d] bl[%d/%d %dx%d] ->  %d/%d\n",
         (int)frameTL.origin.x, (int)frameTL.origin.y, (int)frameTL.size.width, (int)frameTL.size.height,
         (int)frameBL.origin.x, (int)frameBL.origin.y, (int)frameBL.size.width, (int)frameBL.size.height,
         (int)r.x, (int)r.y);

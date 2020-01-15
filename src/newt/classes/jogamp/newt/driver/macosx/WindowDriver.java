@@ -45,6 +45,7 @@ import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.VisualIDHolder;
 import com.jogamp.nativewindow.util.Point;
 import com.jogamp.nativewindow.util.PointImmutable;
+import com.jogamp.nativewindow.util.RectangleImmutable;
 
 import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.macosx.OSXUtil;
@@ -54,6 +55,7 @@ import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.DriverClearFocus;
 import jogamp.newt.driver.DriverUpdatePosition;
 
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MonitorEvent;
@@ -480,10 +482,19 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     OSXUtil.RunOnMainThread(true, false, new Runnable() {
                         @Override
                         public void run() {
-                            setWindowClientTopLeftPointAndSize0(oldWindowHandle,
-                                    pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(),
-                                    width, height, 0 != ( STATE_MASK_VISIBLE & flags));
-                            updateSizePosInsets0(oldWindowHandle, false); // calls: sizeScreenPosInsetsChanged(..)
+                            if( useParent && 0 == ( STATE_MASK_VISIBLE & flags) ) {
+                                // Fake invisible child window: We can't use true orderOut
+                                final RectangleImmutable r = getScreen().getViewportInWindowUnits();
+                                setWindowClientTopLeftPointAndSize0(oldWindowHandle,
+                                        r.getX()+r.getWidth(), r.getY()+r.getHeight(),
+                                        width, height, false /* no display */);
+                            } else {
+                                // Normal visibility
+                                setWindowClientTopLeftPointAndSize0(oldWindowHandle,
+                                        pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(),
+                                        width, height, 0 != ( STATE_MASK_VISIBLE & flags));
+                                updateSizePosInsets0(oldWindowHandle, false); // calls: sizeScreenPosInsetsChanged(..)
+                            }
                         } } );
                 } else { // else offscreen size is realized via recreation
                     // no native event (fullscreen, some reparenting)
@@ -544,12 +555,19 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         // passed coordinates are in screen position of the client area
         if( isNativeValid() ) {
             final NativeWindow parent = getParent();
-            if( !useParent(parent) || isOffscreenInstance ) {
+            final boolean useParent = useParent(parent);
+            if( !useParent || isOffscreenInstance ) {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("MacWindow.positionChanged.0 (Screen Pos - TOP): ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> "+newX+"/"+newY);
                 }
                 positionChanged(defer, newX, newY);
+            } else if( useParent && !isVisible() ) {
+                // Fake invisible child window: drop fake position update for fake invisibility
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("MacWindow.positionChanged.1 (Screen Pos - invisible CHILD): ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+", ignoring absPos "+newX+"/"+newY);
+                }
             } else {
+                // visible childWindow or offscreen instance
                 final Runnable action = new Runnable() {
                     public void run() {
                         // screen position -> rel child window position
@@ -583,10 +601,12 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     @Override
     protected void sizeChanged(final boolean defer, final int newWidth, final int newHeight, final boolean force) {
         if(force || getWidth() != newWidth || getHeight() != newHeight) {
-            if( isNativeValid() && !isOffscreenInstance ) {
+            if( isNativeValid() && isVisible() && !isOffscreenInstance ) {
                 final NativeWindow parent = getParent();
                 final boolean useParent = useParent(parent);
                 if( useParent ) {
+                    // Visible child-windows: Reset position
+                    // Fake invisible child window: These are ignored
                     final int x=getX(), y=getY();
                     final Point p0S = getLocationOnScreenByParent(x, y, parent);
                     if(DEBUG_IMPLEMENTATION) {
