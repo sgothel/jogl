@@ -164,93 +164,118 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                     " - surfaceHandle 0x"+Long.toHexString(nsh));
         }
 
-        final Listener listener = new Listener () {
-            @Override
-            public void handleEvent (final Event event) {
-                switch (event.type) {
-                case SWT.Paint:
-                    if( DEBUG ) {
-                        System.err.println(shortName()+".Event.PAINT, "+event);
+        addListener (SWT.Paint, swtListener);
+        addListener (SWT.Move, swtListener);
+        addListener (SWT.Show, swtListener);
+        addListener (SWT.Hide, swtListener);
+        addListener (SWT.Resize, swtListener);
+        addListener (SWT.Dispose, swtListener);
+        addListener (SWT.Activate, swtListener);
+        addListener (SWT.Deactivate, swtListener);
+        addListener (SWT.FocusIn, swtListener);
+        addListener (SWT.FocusOut, swtListener);
+    }
+
+    private final Listener swtListener = new Listener () {
+        @Override
+        public void handleEvent (final Event event) {
+            switch (event.type) {
+            case SWT.Paint:
+                if( DEBUG ) {
+                    System.err.println(shortName()+".Event.PAINT, "+event);
+                    System.err.println(shortName()+".Event.PAINT, "+newtChild.getDelegatedWindow());
+                }
+                if( validateNative() && newtChildReady ) {
+                    if( postSetSize ) {
+                        newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
+                        postSetSize = false;
                     }
-                    if( validateNative() && newtChildReady ) {
-                        if( postSetSize ) {
-                            newtChild.setSize(clientAreaWindow.width, clientAreaWindow.height);
-                            postSetSize = false;
-                        }
-                        if( postSetPos ) {
-                            newtChild.setPosition(clientAreaWindow.x, clientAreaWindow.y);
-                            postSetPos = false;
-                        }
-                        newtChild.windowRepaint(0, 0, clientAreaPixels.width, clientAreaPixels.height);
+                    if( postSetPos ) {
+                        newtChild.setPosition(clientAreaWindow.x, clientAreaWindow.y);
+                        postSetPos = false;
                     }
-                    break;
-                case SWT.Move:
-                    if( DEBUG ) {
-                        System.err.println(shortName()+".Event.MOVE, "+event);
-                    }
-                    break;
-                case SWT.Activate: // receives focus
-                    if( DEBUG ) {
-                        System.err.println(shortName()+".Event.ACTIVATE, "+event);
-                    }
-                    if( newtChildReady ) {
-                        newtChild.requestFocus(false /* wait */);
-                    }
-                    break;
-                case SWT.Deactivate: // lost focus
-                    if( DEBUG ) {
-                        System.err.println(shortName()+".Event.DEACTIVATE, "+event);
-                    }
-                    break;
-                case SWT.Show:
-                    if( DEBUG ) {
-                        System.err.println(shortName()+".Event.SHOW, "+event);
-                    }
-                    if( newtChildReady ) {
-                        newtChild.setVisible(true);
-                    }
-                    break;
-                case SWT.Hide:
-                    if( DEBUG ) {
-                        System.err.println(shortName()+".Event.HIDE, "+event);
-                    }
-                    if( newtChildReady ) {
-                        newtChild.setVisible(false);
-                    }
-                    break;
-                case SWT.Resize:
-                    if( DEBUG ) {
-                        System.err.println(shortName()+".Event.RESIZE, "+event);
-                    }
-                    if( isNativeValid() ) {
-                        // ensure this is being called if already valid
-                        updatePosSizeCheck();
-                    } else {
-                        validateNative();
-                    }
-                    break;
-                case SWT.Dispose:
-                    if( DEBUG ) {
-                        System.err.println(shortName()+".Event.DISPOSE, "+event);
-                    }
-                    NewtCanvasSWT.this.dispose();
-                    break;
-                default:
-                    if( DEBUG ) {
-                        System.err.println(shortName()+".Event.misc: "+event.type+", "+event);
-                    }
+                    newtChild.windowRepaint(0, 0, clientAreaPixels.width, clientAreaPixels.height);
+                }
+                break;
+            case SWT.Move:
+                if( DEBUG ) {
+                    System.err.println(shortName()+".Event.MOVE, "+event);
+                    System.err.println(shortName()+".Event.MOVE, "+newtChild.getDelegatedWindow());
+                }
+                break;
+            case SWT.Show:
+                if( DEBUG ) {
+                    System.err.println(shortName()+".Event.SHOW, "+event);
+                    System.err.println(shortName()+".Event.SHOW, "+newtChild.getDelegatedWindow());
+                }
+                if( newtChildReady ) {
+                    newtChild.setVisible(true /* wait */, true /* visible */);
+                }
+                break;
+            case SWT.Hide:
+                if( DEBUG ) {
+                    System.err.println(shortName()+".Event.HIDE, "+event);
+                    System.err.println(shortName()+".Event.HIDE, "+newtChild.getDelegatedWindow());
+                }
+                if( newtChildReady ) {
+                    newtChild.setVisible(true /* wait */, false /* visible */);
+                }
+                break;
+            case SWT.Resize:
+                if( DEBUG ) {
+                    System.err.println(shortName()+".Event.RESIZE, "+event);
+                    System.err.println(shortName()+".Event.RESIZE, "+newtChild.getDelegatedWindow());
+                }
+                if( isNativeValid() ) {
+                    // ensure this is being called if already valid
+                    updatePosSizeCheck();
+                } else {
+                    validateNative();
+                }
+                break;
+            case SWT.Dispose:
+                if( DEBUG ) {
+                    System.err.println(shortName()+".Event.DISPOSE, "+event);
+                    System.err.println(shortName()+".Event.DISPOSE, "+newtChild.getDelegatedWindow());
+                }
+                NewtCanvasSWT.this.dispose();
+                break;
+            case SWT.Activate: // receives focus ??
+                if( DEBUG ) {
+                    System.err.println(shortName()+".Event.ACTIVATE, "+event);
+                    System.err.println(shortName()+".Event.ACTIVATE, "+newtChild.getDelegatedWindow());
+                }
+                break;
+            case SWT.Deactivate: // lost focus ??
+                if( DEBUG ) {
+                    System.err.println(shortName()+".Event.DEACTIVATE, "+event);
+                    System.err.println(shortName()+".Event.DEACTIVATE, "+newtChild.getDelegatedWindow());
+                }
+                break;
+            case SWT.FocusIn: // receives focus
+                if( DEBUG ) {
+                    System.err.println(shortName()+".Event.FOCUS_IN, "+event);
+                    System.err.println(shortName()+".Event.FOCUS_IN, "+newtChild.getDelegatedWindow());
+                }
+                if( newtChildReady ) {
+                    newtChild.requestFocus(false /* wait */);
+                }
+                break;
+            case SWT.FocusOut: // lost focus
+                if( DEBUG ) {
+                    System.err.println(shortName()+".Event.FOCUS_OUT, "+event);
+                    System.err.println(shortName()+".Event.FOCUS_OUT, "+newtChild.getDelegatedWindow());
+                }
+                // we lack newtChild.releaseFocus(..) as this should be handled by the WM
+                break;
+            default:
+                if( DEBUG ) {
+                    System.err.println(shortName()+".Event.misc: "+event.type+", "+event);
+                    System.err.println(shortName()+".Event.misc: "+newtChild.getDelegatedWindow());
                 }
             }
-        };
-        // addListener (SWT.Move, listener);
-        addListener (SWT.Resize, listener);
-        addListener (SWT.Paint, listener);
-        addListener (SWT.Dispose, listener);
-        addListener (SWT.Show, listener);
-        addListener (SWT.Hide, listener);
-        addListener (SWT.Activate, listener);
-        addListener (SWT.Deactivate, listener);
-    }
+        }
+    };
 
     @Override
     public void setBounds(final int x, final int y, final int width, final int height) {
@@ -367,6 +392,17 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
      */
     @Override
     public void dispose() {
+        removeListener (SWT.Paint, swtListener);
+        removeListener (SWT.Move, swtListener);
+        removeListener (SWT.Show, swtListener);
+        removeListener (SWT.Hide, swtListener);
+        removeListener (SWT.Resize, swtListener);
+        removeListener (SWT.Dispose, swtListener);
+        removeListener (SWT.Activate, swtListener);
+        removeListener (SWT.Deactivate, swtListener);
+        removeListener (SWT.FocusIn, swtListener);
+        removeListener (SWT.FocusOut, swtListener);
+
         if( null != newtChild ) {
             if(DEBUG) {
                 System.err.println(shortName()+".dispose.0: EDTUtil cur "+newtChild.getScreen().getDisplay().getEDTUtil()+
