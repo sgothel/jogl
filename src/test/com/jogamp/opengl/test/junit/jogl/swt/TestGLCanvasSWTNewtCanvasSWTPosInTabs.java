@@ -260,9 +260,9 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         }
         tabItem2.setControl(sash);
 
-        final Animator animator1 = new Animator();
-        animator1.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
-        animator1.add(glad1);
+        final Animator animator = new Animator();
+        animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
+        animator.add(glad1);
 
         final GLWindow glWindow2;
         final GLCanvas glCanvas2;
@@ -327,9 +327,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             }
         }
 
-        final Animator animator2 = new Animator();
-        animator2.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
-        animator2.add(glad2);
+        animator.add(glad2);
 
         if( focusOnTab1 ) {
             canvas1.setFocus();
@@ -401,15 +399,10 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             }
         }
 
-        animator1.start();
-        Assert.assertTrue(animator1.isStarted());
-        Assert.assertTrue(animator1.isAnimating());
-        animator1.setUpdateFPSFrames(60, null);
-
-        animator2.start();
-        Assert.assertTrue(animator2.isStarted());
-        Assert.assertTrue(animator2.isAnimating());
-        animator2.setUpdateFPSFrames(60, null);
+        animator.start();
+        Assert.assertTrue(animator.isStarted());
+        Assert.assertTrue(animator.isAnimating());
+        animator.setUpdateFPSFrames(60, null);
 
         shell.open(); // from here on, manipulation of SWT elements might be thread sensitive
 
@@ -475,26 +468,23 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             Assert.assertTrue( "GLWindow2 LOS "+pGLWinLOS+" not >= sash-right "+pSashRightClient, pGLWinLOS.compareTo(pSashRightClient) >= 0 );
         }
 
-        while( animator1.isAnimating() || animator2.isAnimating() ) {
+        while( animator.isAnimating() ) {
             final boolean keepGoing = !quitAdapter.shouldQuit() &&
-                                      ( animator1.isAnimating() || animator2.isAnimating() ) &&
-                                      ( animator1.getTotalFPSDuration()<duration || animator2.getTotalFPSDuration()<duration );
+                                      animator.isAnimating() &&
+                                      animator.getTotalFPSDuration()<duration;
             if( !keepGoing ) {
                 new Thread() {
                     @Override
                     public void run() {
-                        animator1.stop();
-                        animator2.stop();
+                        animator.stop();
                     }
                 }.start();
             }
             generalWaitAction.run();
         }
 
-        Assert.assertFalse(animator1.isAnimating());
-        Assert.assertFalse(animator1.isStarted());
-        Assert.assertFalse(animator2.isAnimating());
-        Assert.assertFalse(animator2.isStarted());
+        Assert.assertFalse(animator.isAnimating());
+        Assert.assertFalse(animator.isStarted());
 
         try {
             if( useNewtCanvasSWT ) {
