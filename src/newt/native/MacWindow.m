@@ -1267,7 +1267,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderFront0
     }
 
     DBG_PRINT( "orderFront0 - window: (parent %p) %p visible %d (END)\n", pWin, mWin, [mWin isVisible]);
-
     [pool release];
 }
 
@@ -1300,7 +1299,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderOut0
         [mWin orderOut: mWin];
     } else {
         // NSWindowOut: The window is removed from the screen list and otherWin is ignored.
-        [mWin orderWindow: NSWindowOut relativeTo: [pWin windowNumber]];
+        // This would remove this window from its parent -> AVOID!
+        // [mWin orderWindow: NSWindowOut relativeTo: [pWin windowNumber]];
+        [mWin orderBack: mWin];
     }
 
     DBG_PRINT( "orderOut0 - window: (parent %p) %p visible %d (END)\n", pWin, mWin, [mWin isVisible]);
