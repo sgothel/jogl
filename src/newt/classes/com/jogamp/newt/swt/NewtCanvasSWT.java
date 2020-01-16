@@ -179,8 +179,12 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
     /**
      * Set's the NEWT {@link Window}'s size using {@link Window#setSize(int, int)}.
      * <p>
-     * For all non-native DPI autoscale platforms, it utilizes {@link SWTAccessor#autoScaleUp(Point)}
-     * by multiplying the given {@link Rectangle} size to emulate DPI scaling, see Bug 1422.
+     * For all non-native DPI autoscale platforms method uses {@link SWTAccessor#deviceZoomScaleUp(Point)},
+     * which multiplies the given {@link Rectangle} size with {@link SWTAccessor#getDeviceZoomScalingFactor()}
+     * to emulate DPI scaling, see Bug 1422.
+     * </p>
+     * <p>
+     * Otherwise this method uses the given {@link Rectangle} as-is.
      * </p>
      * <p>
      * Currently native DPI autoscale platforms are
@@ -193,10 +197,20 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
      */
     private final void setNewtChildSize(final Rectangle r) {
         if( !SWTAccessor.isOSX ) {
-            final Point p = SWTAccessor.autoScaleUp(new Point(r.width, r.height));
+            final Point p = SWTAccessor.deviceZoomScaleUp(new Point(r.width, r.height));
             newtChild.setSize(p.getX(), p.getY());
         } else {
             newtChild.setSize(r.width, r.height);
+        }
+    }
+    /**
+     * See {@link #setNewtChildSize(Rectangle)}
+     */
+    private final int newtScaleUp(final int v) {
+        if( !SWTAccessor.isOSX ) {
+            return SWTAccessor.deviceZoomScaleUp(v);
+        } else {
+            return v;
         }
     }
     private final Listener swtListener = new Listener () {
@@ -642,12 +656,12 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         @Override
         public int getWidth() {
-            return clientAreaWindow.width;
+            return newtScaleUp(clientAreaWindow.width);
         }
 
         @Override
         public int getHeight() {
-            return clientAreaWindow.height;
+            return newtScaleUp(clientAreaWindow.height);
         }
 
         @Override
@@ -666,12 +680,12 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         @Override
         public int getSurfaceWidth() {
-            return clientAreaPixels.width;
+            return newtScaleUp(clientAreaPixels.width);
         }
 
         @Override
         public int getSurfaceHeight() {
-            return clientAreaPixels.height;
+            return newtScaleUp(clientAreaPixels.height);
         }
 
         @Override

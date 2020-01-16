@@ -49,7 +49,6 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.VisualIDHolder;
-
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
@@ -66,6 +65,7 @@ public class SWTAccessor {
     private static final Method swt_scrollable_clientAreaInPixels;
     private static final Method swt_control_locationInPixels;
     private static final Method swt_control_sizeInPixels;
+    private static final Method swt_dpiutil_getScalingFactor;
 
     private static final Field swt_control_handle;
     private static final boolean swt_uses_long_handles;
@@ -185,6 +185,18 @@ public class SWTAccessor {
             }
         }
         swt_scrollable_clientAreaInPixels = m;
+
+        m = null;
+        try {
+            m = DPIUtil.class.getDeclaredMethod("getScalingFactor");
+            m.setAccessible(true);
+        } catch (final Exception ex) {
+            m = null;
+            if( DEBUG ) {
+                System.err.println("getScalingFactor not implemented: "+ex.getMessage());
+            }
+        }
+        swt_dpiutil_getScalingFactor = m;
 
         Field f = null;
         if( !isOSX ) {
@@ -396,17 +408,42 @@ public class SWTAccessor {
         out.println("SWT: Platform: "+SWT.getPlatform()+", Version "+SWT.getVersion());
         out.println("SWT: isX11 "+isX11+", isX11GTK "+isX11GTK+" (GTK Version: "+OS_gtk_version+")");
         out.println("SWT: isOSX "+isOSX+", isWindows "+isWindows);
-        out.println("SWT: Display.DPI "+d.getDPI()+", DPIUtil: scalingFactor "+getScalingFactor()+", deviceZoom "+DPIUtil.getDeviceZoom()+
-                    ", useCairoAutoScale "+DPIUtil.useCairoAutoScale());
+        out.println("SWT: DeviceZoom: "+DPIUtil.getDeviceZoom()+", deviceZoomScalingFactor "+getDeviceZoomScalingFactor());
+        out.println("SWT: Display.DPI "+d.getDPI()+"; DPIUtil: autoScalingFactor "+
+                        getAutoScalingFactor()+" (use-swt "+(null != swt_dpiutil_getScalingFactor)+
+                        "), useCairoAutoScale "+DPIUtil.useCairoAutoScale());
     }
 
-    public static float getScalingFactor() {
+    //
+    // SWT DPIUtil Compatible auto-scale functionality
+    //
+    /**
+     * Returns SWT compatible auto scale-factor, used by {@link DPIUtil}
+     * <p>
+     * We need to keep track of SWT's implementation in this regard!
+     * </p>
+     */
+    public static float getAutoScalingFactor() throws NativeWindowException {
+        if( null != swt_dpiutil_getScalingFactor ) {
+            try {
+                return (float) swt_dpiutil_getScalingFactor.invoke(null);
+            } catch (final Throwable e) {
+                throw new NativeWindowException(e);
+            }
+        }
+        // Mimick original code ..
         final int deviceZoom = DPIUtil.getDeviceZoom();
         if ( 100 == deviceZoom || DPIUtil.useCairoAutoScale() ) {
             return 1f;
         }
         return deviceZoom/100f;
     }
+    /**
+     * Returns SWT auto scaled-up value {@code v}, compatible with {@link DPIUtil#autoScaleUp(int)}
+     * <p>
+     * We need to keep track of SWT's implementation in this regard!
+     * </p>
+     */
     public static int autoScaleUp (final int v) {
         final int deviceZoom = DPIUtil.getDeviceZoom();
         if (100 == deviceZoom || DPIUtil.useCairoAutoScale()) {
@@ -415,22 +452,118 @@ public class SWTAccessor {
         final float scaleFactor = deviceZoom/100f;
         return Math.round (v * scaleFactor);
     }
-    public static com.jogamp.nativewindow.util.Point autoScaleUp (final com.jogamp.nativewindow.util.Point v) {
+    /**
+     * Returns SWT auto scaled-down value {@code v}, compatible with {@link DPIUtil#autoScaleDown(int)}
+     * <p>
+     * We need to keep track of SWT's implementation in this regard!
+     * </p>
+     */
+    public static int autoScaleDown (final int v) {
         final int deviceZoom = DPIUtil.getDeviceZoom();
-        if (100 == deviceZoom || DPIUtil.useCairoAutoScale() || null == v) {
+        if (100 == deviceZoom || DPIUtil.useCairoAutoScale()) {
+            return v;
+        }
+        final float scaleFactor = deviceZoom/100f;
+        return Math.round (v / scaleFactor);
+    }
+
+    //
+    // SWT DPIUtil derived deviceZoom scale functionality,
+    // not considering the higher-toolkit's compensation like 'DPIUtil.useCairoAutoScale()'
+    //
+    /**
+     * Returns SWT derived scale-factor based on {@link DPIUtil#getDeviceZoom()}
+     * only, not considering higher-toolkit's compensation like {@link DPIUtil#useCairoAutoScale()}.
+     * <p>
+     * This method should be used instead of {@link #getAutoScalingFactor()}
+     * for native toolkits not caring about DPI scaling like X11 or GDI.
+     * </p>
+     * <p>
+     * We need to keep track of SWT's implementation in this regard!
+     * </p>
+     */
+    public static float getDeviceZoomScalingFactor() {
+        final int deviceZoom = DPIUtil.getDeviceZoom();
+        if ( 100 == deviceZoom ) {
+            return 1f;
+        }
+        return deviceZoom/100f;
+    }
+    /**
+     * Returns SWT derived scaled-up value {@code v}, based on {@link DPIUtil#getDeviceZoom()}
+     * only, not considering higher-toolkit's compensation like {@link DPIUtil#useCairoAutoScale()}.
+     * <p>
+     * This method should be used instead of {@link #autoScaleUp(int)}
+     * for native toolkits not caring about DPI scaling like X11 or GDI.
+     * </p>
+     * <p>
+     * We need to keep track of SWT's implementation in this regard!
+     * </p>
+     */
+    public static int deviceZoomScaleUp (final int v) {
+        final int deviceZoom = DPIUtil.getDeviceZoom();
+        if (100 == deviceZoom) {
+            return v;
+        }
+        final float scaleFactor = deviceZoom/100f;
+        return Math.round (v * scaleFactor);
+    }
+    /**
+     * Returns SWT derived scaled-down value {@code v}, based on {@link DPIUtil#getDeviceZoom()}
+     * only, not considering higher-toolkit's compensation like {@link DPIUtil#useCairoAutoScale()}.
+     * <p>
+     * This method should be used instead of {@link #autoScaleDown(int)}
+     * for native toolkits not caring about DPI scaling like X11 or GDI.
+     * </p>
+     * <p>
+     * We need to keep track of SWT's implementation in this regard!
+     * </p>
+     */
+    public static int deviceZoomScaleDown (final int v) {
+        final int deviceZoom = DPIUtil.getDeviceZoom();
+        if (100 == deviceZoom) {
+            return v;
+        }
+        final float scaleFactor = deviceZoom/100f;
+        return Math.round (v / scaleFactor);
+    }
+    /**
+     * Returns SWT derived scaled-up value {@code v}, based on {@link DPIUtil#getDeviceZoom()}
+     * only, not considering higher-toolkit's compensation like {@link DPIUtil#useCairoAutoScale()}.
+     * <p>
+     * This method should be used instead of {@link #autoScaleUp(com.jogamp.nativewindow.util.Point)}
+     * for native toolkits not caring about DPI scaling like X11 or GDI.
+     * </p>
+     * <p>
+     * We need to keep track of SWT's implementation in this regard!
+     * </p>
+     */
+    public static com.jogamp.nativewindow.util.Point deviceZoomScaleUp (final com.jogamp.nativewindow.util.Point v) {
+        final int deviceZoom = DPIUtil.getDeviceZoom();
+        if (100 == deviceZoom || null == v) {
             return v;
         }
         final float scaleFactor = deviceZoom/100f;
         return v.set(Math.round(v.getX() * scaleFactor), Math.round(v.getY() * scaleFactor));
     }
-    public static com.jogamp.nativewindow.util.Rectangle autoScaleUp (final com.jogamp.nativewindow.util.Rectangle v) {
+    /**
+     * Returns SWT derived scaled-down value {@code v}, based on {@link DPIUtil#getDeviceZoom()}
+     * only, not considering higher-toolkit's compensation like {@link DPIUtil#useCairoAutoScale()}.
+     * <p>
+     * This method should be used instead of {@link #autoScaleDown(com.jogamp.nativewindow.util.Point)}
+     * for native toolkits not caring about DPI scaling like X11 or GDI.
+     * </p>
+     * <p>
+     * We need to keep track of SWT's implementation in this regard!
+     * </p>
+     */
+    public static com.jogamp.nativewindow.util.Point deviceZoomScaleDown (final com.jogamp.nativewindow.util.Point v) {
         final int deviceZoom = DPIUtil.getDeviceZoom();
-        if (100 == deviceZoom || DPIUtil.useCairoAutoScale() || null == v) {
+        if (100 == deviceZoom || null == v) {
             return v;
         }
         final float scaleFactor = deviceZoom/100f;
-        return v.set(Math.round(v.getX() * scaleFactor), Math.round(v.getY() * scaleFactor),
-                     Math.round(v.getWidth() * scaleFactor), Math.round(v.getHeight() * scaleFactor));
+        return v.set(Math.round(v.getX() / scaleFactor), Math.round(v.getY() / scaleFactor));
     }
 
     /**
@@ -451,6 +584,7 @@ public class SWTAccessor {
      * Note to Eclipse authors: Scaling up the fonts and images hardly works on GTK/SWT/Eclipse.
      * GDK_SCALE, GDK_DPI_SCALE and swt.autoScale produce inconsistent results with Eclipse.
      * Broken High-DPI for .. some years now.
+     * This is especially true for using native high-dpi w/ scaling-factor 1f.
      * </p>
      *
      * Requires SWT >= 3.105 (DPIUtil)

@@ -157,6 +157,8 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug.SWT"
     D_ARGS="-Dnativewindow.debug.SWT -Dnewt.debug.Window -Djogl.debug.GLCanvas"
+    #D_ARGS="-Dnativewindow.debug.SWT -Dnewt.debug.Window -Djogl.debug.GLCanvas -Dswt.autoScale=200"
+    #export GDK_DPI_SCALE=2
     #D_ARGS="-Dnativewindow.debug.SWT -Dnativewindow.debug.X11Util -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug=all -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all -Djogamp.debug.Lock"
