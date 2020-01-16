@@ -117,6 +117,10 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
         if( e.isAutoRepeat() || e.isConsumed() ) {
             return;
         }
+        if( !glWindow.isVisible() ) {
+            printlnState("[key "+e+" but invisible]");
+            return;
+        }
         final int keySymbol = e.getKeySymbol();
         switch(keySymbol) {
             case KeyEvent.VK_SPACE:

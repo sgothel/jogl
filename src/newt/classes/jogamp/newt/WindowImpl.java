@@ -3099,7 +3099,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 final boolean tempInvisible = !_fullscreen && wasVisible && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true);
 
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window "+x+"/"+y+" "+w+"x"+h+
+                    System.err.println("FullScreen.run.0: Window "+x+"/"+y+" "+w+"x"+h+
                                        ", virtl-screenSize: "+sviewport+" [wu], monitorsViewport "+viewport+" [wu]"+
                                        ", wasVisible "+wasVisible+", tempInvisible "+tempInvisible+
                                        ", hasParent "+(null!=parentWindow)+
@@ -3191,7 +3191,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         display.dispatchMessagesNative(); // status up2date
                     }
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window fs done: ok " + ok + ", " + WindowImpl.this);
+                        System.err.println("FullScreen.run.X1: wasVisible, ok "+ok+", Window " + WindowImpl.this);
+                    }
+                } else {
+                    if(DEBUG_IMPLEMENTATION) {
+                        System.err.println("FullScreen.run.X2: !wasVisible, Window " + WindowImpl.this);
                     }
                 }
             } finally {
