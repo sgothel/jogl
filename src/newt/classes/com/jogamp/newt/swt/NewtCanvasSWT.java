@@ -204,13 +204,23 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         }
     }
     /**
+     * Return scaled-up value {@code scaleUp} using {@link SWTAccessor#deviceZoomScaleUp(int)}
+     * for all non-native DPI autoscale platforms, currently !{@link SWTAccessor#isOSX}.
+     * <p>
+     * Return passthrough value {@code passthrough} unchanged
+     * for all native DPI autoscale platforms, currently {@link SWTAccessor#isOSX}.
+     * </p>
+     * <p>
      * See {@link #setNewtChildSize(Rectangle)}
+     * </p>
+     * @param scaleUp value to be used for non-native DPI autoscale platforms for upscale
+     * @param passthrough value to be used for native DPI autoscale platforms for passthrough
      */
-    private final int newtScaleUp(final int v) {
+    private final int newtScaleUp(final int scaleUp, final int passthrough) {
         if( !SWTAccessor.isOSX ) {
-            return SWTAccessor.deviceZoomScaleUp(v);
+            return SWTAccessor.deviceZoomScaleUp(scaleUp);
         } else {
-            return v;
+            return passthrough;
         }
     }
     private final Listener swtListener = new Listener () {
@@ -656,12 +666,12 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         @Override
         public int getWidth() {
-            return newtScaleUp(clientAreaWindow.width);
+            return newtScaleUp(clientAreaWindow.width, clientAreaWindow.width);
         }
 
         @Override
         public int getHeight() {
-            return newtScaleUp(clientAreaWindow.height);
+            return newtScaleUp(clientAreaWindow.height, clientAreaWindow.height);
         }
 
         @Override
@@ -680,12 +690,12 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
         @Override
         public int getSurfaceWidth() {
-            return newtScaleUp(clientAreaPixels.width);
+            return newtScaleUp(clientAreaWindow.width, clientAreaPixels.width);
         }
 
         @Override
         public int getSurfaceHeight() {
-            return newtScaleUp(clientAreaPixels.height);
+            return newtScaleUp(clientAreaWindow.height, clientAreaPixels.height);
         }
 
         @Override
