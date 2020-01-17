@@ -19,7 +19,8 @@ REM set FFMPEG_LIB=C:\ffmpeg_libav\lavc54_lavf54_lavu52_lavr01-libav\x64
 
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\PVRVFrame\OGLES-2.0\Windows_x86_64;%PATH%
-set PATH=%J2RE_HOME%\bin;%JAVA_HOME%\bin;%ANT_PATH%\bin;%FFMPEG_LIB%;%PATH%
+set PATH=%J2RE_HOME%\bin;%JAVA_HOME%\bin;%ANT_PATH%\bin;C:\temp;%FFMPEG_LIB%;%PATH%
+echo PATH %PATH%
 
 set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\atomic\oculusvr.jar;%BLD_DIR%\jar\jogl-test.jar;..\..\joal\%BLD_SUB%\joal.jar;..\..\gluegen\%BLD_SUB%\gluegen-rt.jar;..\..\gluegen\%BLD_SUB%\gluegen-test-util.jar;..\..\gluegen\make\lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;%BLD_DIR%\..\make\lib\swt\win32-win32-x86_64\swt.jar
 
@@ -71,7 +72,7 @@ REM set D_ARGS="-Djogl.debug.GLContext" "-Djogl.debug.GLJPanel"
 REM set D_ARGS="-Djogl.gljpanel.noverticalflip"
 REM set D_ARGS="-Dnewt.debug=all"
 REM set D_ARGS="-Dnewt.debug.Window"
-set D_ARGS="-Dnativewindow.debug.SWT" "-Dnewt.debug.Window"
+set D_ARGS="-Dnativewindow.debug.SWT" "-Dnewt.debug.Window" "-Djogl.debug.GLCanvas"
 REM set D_ARGS="-Dnativewindow.debug.JFX" "-Dnewt.debug.Window"
 REM set D_ARGS="-Dnewt.debug.Window.KeyEvent"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Window.KeyEvent" "-Dnewt.debug.EDT"
