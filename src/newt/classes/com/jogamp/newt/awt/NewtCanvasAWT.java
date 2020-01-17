@@ -643,6 +643,9 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
             if( dWin instanceof WindowImpl ) {
                 final float[] maxPixelScale = jawtWindow.getMaximumSurfaceScale(new float[2]);
                 final float[] minPixelScale = jawtWindow.getMinimumSurfaceScale(new float[2]);
+                // FIXME: Bug 1373, 1374: Implement general High-DPI for even non native DPI toolkit aware platforms (Linux, Windows)
+                // final float[] curPixelScale = jawtWindow.getCurrentSurfaceScale(new float[2]);
+                // ((WindowImpl)dWin).pixelScaleChangeNotify(curPixelScale, minPixelScale, maxPixelScale);
                 ((WindowImpl)dWin).pixelScaleChangeNotify(minPixelScale, maxPixelScale, true);
                 // ((WindowImpl)dWin).sizeChangedNotify(true /* defer */, getWidth(), getHeight(), true /* force */);
             } else {

@@ -707,6 +707,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   private void createJAWTDrawableAndContext() {
     if ( !Beans.isDesignTime() ) {
+
+        /**
+         * FIXME: Bug 1373, 1374: Implement general High-DPI for even non native DPI toolkit aware platforms (Linux, Windows)
+        JAWTUtil.getPixelScale(awtConfig.getAWTGraphicsConfiguration(), minPixelScale, maxPixelScale);
+        SurfaceScaleUtils.setNewPixelScale(hasPixelScale, hasPixelScale, reqPixelScale, minPixelScale, maxPixelScale, DEBUG ? getClass().getSimpleName() : null);
+         */
         jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
         jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
         jawtWindow.lockSurface();

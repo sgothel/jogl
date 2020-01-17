@@ -2643,6 +2643,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return hasPixelScale[1];
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * FIXME: Bug 1373, 1374: Implement general High-DPI for even non native DPI toolkit aware platforms (Linux, Windows)
+     * </p>
+     */
     @Override
     public boolean setSurfaceScale(final float[] pixelScale) {
         System.arraycopy(pixelScale, 0, reqPixelScale, 0, 2);
@@ -4561,6 +4567,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /**
      * Notify to update the pixel-scale values.
+     * <p>
+     * FIXME: Bug 1373, 1374: Implement general High-DPI for even non native DPI toolkit aware platforms (Linux, Windows)
+     * A variation may be be desired like
+     * {@code pixelScaleChangeNotify(final float[] curPixelScale, final float[] minPixelScale, final float[] maxPixelScale)}.
+     * </p>
+     * <p>
+     * Maybe create interface {@code ScalableSurface.Upstream} with above method,
+     * to allow downstream to notify upstream ScalableSurface implementations like NEWT's {@link Window} to act accordingly.
+     * </p>
      * @param minPixelScale
      * @param maxPixelScale
      * @param reset if {@code true} {@link #setSurfaceScale(float[]) reset pixel-scale} w/ {@link #getRequestedSurfaceScale(float[]) requested values}
