@@ -355,6 +355,7 @@
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/drm/DRMLib.java" />
             <include name="jogamp/nativewindow/drm/DRMUtil.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
     </target>
     <target name="javah.x11" if="isX11">
@@ -373,6 +374,7 @@
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/x11/X11Lib.java" />
             <include name="jogamp/nativewindow/x11/X11Util.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
     </target>
     <target name="javah.windows" if="isWindows">
@@ -391,6 +393,7 @@
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/windows/GDI.java" />
             <include name="jogamp/nativewindow/windows/GDIUtil.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
     </target>
     <target name="javah.macos" if="isOSX">
@@ -409,6 +412,7 @@
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/jawt/macosx/MacOSXJAWTWindow.java" />
             <include name="jogamp/nativewindow/macosx/OSXUtil.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
     </target>
     <target name="javah.ios" if="isIOS">
@@ -426,6 +430,7 @@
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <include name="jogamp/nativewindow/ios/IOSUtil.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
     </target>
 

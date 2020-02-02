@@ -1094,6 +1094,7 @@
             <classpath refid="nativewindow_gluegen.classpath"/>
             <include name="jogamp/opengl/GLDebugMessageHandler.java" />
             <include name="jogamp/opengl/GLContextImpl.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <!-- generate libav native headers -->
@@ -1114,6 +1115,7 @@
             <include name="jogamp/opengl/util/av/impl/FFMPEGv09Natives.java" />
             <include name="jogamp/opengl/util/av/impl/FFMPEGv10Natives.java" />
             <include name="jogamp/opengl/util/av/impl/FFMPEGv11Natives.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <!-- generate openmax native headers -->
@@ -1130,6 +1132,7 @@
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <include name="jogamp/opengl/util/av/impl/OMXGLMediaPlayer.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <!-- Perform the first pass Java compile. -->

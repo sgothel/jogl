@@ -265,6 +265,7 @@
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/kd/WindowDriver.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <!-- create Intel GDL native headers -->
@@ -284,6 +285,7 @@
             <include name="jogamp/newt/driver/intel/gdl/DisplayDriver.java" />
             <include name="jogamp/newt/driver/intel/gdl/ScreenDriver.java" />
             <include name="jogamp/newt/driver/intel/gdl/WindowDriver.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <!-- create Broadcom EGL native headers -->
@@ -301,6 +303,7 @@
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
             <include name="jogamp/newt/driver/bcm/egl/WindowDriver.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <!-- create Broadcom VideoCore IV native headers -->
@@ -320,6 +323,7 @@
             <include name="jogamp/newt/driver/bcm/vc/iv/DisplayDriver.java" />
             <include name="jogamp/newt/driver/bcm/vc/iv/ScreenDriver.java" />
             <include name="jogamp/newt/driver/bcm/vc/iv/WindowDriver.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <!-- create EGL GBM native headers -->
@@ -339,6 +343,7 @@
             <include name="jogamp/newt/driver/egl/gbm/DisplayDriver.java" />
             <include name="jogamp/newt/driver/egl/gbm/ScreenDriver.java" />
             <include name="jogamp/newt/driver/egl/gbm/WindowDriver.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <!-- create Windows native headers -->
@@ -358,6 +363,7 @@
             <include name="jogamp/newt/driver/windows/WindowDriver.java" />
             <include name="jogamp/newt/driver/windows/ScreenDriver.java" />
             <include name="jogamp/newt/driver/windows/DisplayDriver.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <!-- create MacOS native headers -->
@@ -377,6 +383,7 @@
             <include name="jogamp/newt/driver/macosx/WindowDriver.java" />
             <include name="jogamp/newt/driver/macosx/ScreenDriver.java" />
             <include name="jogamp/newt/driver/macosx/DisplayDriver.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <!-- create iOS native headers -->
@@ -396,6 +403,7 @@
             <include name="jogamp/newt/driver/ios/WindowDriver.java" />
             <include name="jogamp/newt/driver/ios/ScreenDriver.java" />
             <include name="jogamp/newt/driver/ios/DisplayDriver.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <!-- create X11 native headers -->
@@ -417,6 +425,7 @@
             <include name="jogamp/newt/driver/x11/DisplayDriver.java" />
             <include name="jogamp/newt/driver/x11/RandR11.java" />
             <include name="jogamp/newt/driver/x11/RandR13.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
         
         <javac destdir="${classes}"
@@ -451,6 +460,7 @@
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="jogl_nativewindow_gluegen_android.classpath"/>
             <include name="jogamp/newt/driver/android/WindowDriver.java" />
+          <compilerarg value="-implicit:none" />
         </javac>
 
         <javac destdir="${classes}"
