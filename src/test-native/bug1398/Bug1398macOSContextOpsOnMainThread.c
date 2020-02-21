@@ -35,6 +35,13 @@ void *create_vm(const char *jvm_lib_path)
 	return sym;
 }
 
+#ifndef CLASSPATH
+#define CLASSPATH ".:/Users/jogamp/projects/JogAmp/gluegen/build/gluegen-rt.jar:/Users/jogamp/projects/JogAmp/jogl/build/jar/jogl-all.jar"
+#endif
+#ifndef LIBPATH
+#define LIBPATH "/Users/jogamp/projects/JogAmp/gluegen/build/obj:/Users/jogamp/projects/JogAmp/jogl/build/lib"
+#endif
+
 static void *launchJava(void *ptr)
 {
 	int k = 0;
@@ -49,16 +56,24 @@ static void *launchJava(void *ptr)
 	// JDK > 1.5
 	JavaVMInitArgs	vm_args;
 
-	vm_args.nOptions = 3;
+    TRACE("launchJava.1.1%s", "");
+	vm_args.nOptions = 7;
 	JavaVMOption options[vm_args.nOptions];
-	options[0].optionString	   = "-Djava.class.path=.:../../../gluegen/build/gluegen-rt.jar:../../build/jar/jogl-all.jar";
-//	options[1].optionString	   = "-Djava.library.path=lib";
-	options[1].optionString	   = "-Dnativewindow.debug=all";
-	options[2].optionString	   = "-Djogl.debug=all";
+	options[0].optionString	   = "-Djava.class.path="CLASSPATH;
+	options[1].optionString	   = "-Djava.library.path="LIBPATH;
+	options[2].optionString	   = "-DNjogamp.debug=all";
+	options[3].optionString	   = "-DNjogamp.debug.NativeLibrary=true";
+	options[4].optionString	   = "-DNjogamp.debug.JNILibLoader=true";
+	options[5].optionString	   = "-DNnativewindow.debug=all";
+	options[6].optionString	   = "-DNjogl.debug=all";
 
 	vm_args.version		   = JNI_VERSION_1_4;
 	vm_args.options		   = options;
 	vm_args.ignoreUnrecognized = JNI_TRUE;
+
+    TRACE("launchJava.1.2%s", "");
+    TRACE(".. using CLASSPATH %s", CLASSPATH);
+    TRACE(".. using LIBPATH %s", LIBPATH);
 
 	/* Create the Java VM */
 	CREATEVM *CreateVM = create_vm((char *)ptr);
@@ -71,34 +86,40 @@ static void *launchJava(void *ptr)
 		TRACE("VM Created%s", "");
 	}
 
+    TRACE("launchJava.1.3%s", "");
 	cls = (*env)->FindClass(env, "Bug1398macOSContextOpsOnMainThread");
 	ex = (*env)->ExceptionOccurred(env);
 	if (ex) {
 		die(env);
 	}
 
+    TRACE("launchJava.1.4%s", "");
 	mid = (*env)->GetMethodID(env, cls, "<init>", "()V");
 	if (mid == NULL)
 		goto destroy;
 
+    TRACE("launchJava.1.5%s", "");
 	gui = (*env)->NewObject(env, cls, mid);
 	TRACE("Just passed NewObject()...%s", "");
+
 
 destroy:
 	if ((*env)->ExceptionOccurred(env)) {
 		// handle exception
+        TRACE("Exception occured...%s", "");
 	}
 
 	if (err)
-		fclose(err);
+		fflush(err);
 
 	if (jvm_lib) {
 		dlclose(jvm_lib);
 		jvm_lib = NULL;
 	}
 
-	die(env);
+	// die(env);
 
+    TRACE("launchJava.1.X%s", "");
 	return 0;
 }
 
@@ -158,6 +179,7 @@ void create_jvm_thread(const char *jvm_lib_path)
 		}
 	}
 
+    TRACE("create_jvm_thread.1.1%s", "");
 	pthread_attr_t thread_attr;
 	pthread_attr_init(&thread_attr);
 	pthread_attr_setscope(&thread_attr, PTHREAD_SCOPE_SYSTEM);
@@ -165,12 +187,16 @@ void create_jvm_thread(const char *jvm_lib_path)
 	if (stack_size > 0) {
 		pthread_attr_setstacksize(&thread_attr, stack_size);
 	}
+    TRACE("create_jvm_thread.1.2%s", "");
 
 	pthread_create(&vmthread, &thread_attr, launchJava, (void *)jvm_lib_path);
 	pthread_attr_destroy(&thread_attr);
+    TRACE("create_jvm_thread.1.X%s", "");
 }
 
 static AppDelegate* _appDelegate;
+
+#if 0 
 
 int main(int argc, const char *argv[])
 {
@@ -183,19 +209,70 @@ int main(int argc, const char *argv[])
 		TRACE("Usage: Bug1398macOSContextOpsOnMainThread %s", "[libjli.dylib path]");
 		exit(1);
 	}
+    TRACE("main.1%s", "");
 	@autoreleasepool
 	{
+        TRACE("main.1.1%s", "");
 		_appDelegate = [AppDelegate new];
+        TRACE("main.1.2%s", "");
 		[NSApplication sharedApplication];
+        TRACE("main.1.3%s", "");
 		[NSApp activateIgnoringOtherApps:YES];
 		[NSApp setDelegate:_appDelegate];
+        TRACE("main.1.5%s", "");
 
 		create_jvm_thread(argv[1]);
+        TRACE("main.1.6%s", "");
 
 		return NSApplicationMain(argc, (const char **)argv);
+        TRACE("main.1.X%s", "");
 	}
 }
 
+#else
+
+int NSApplicationMain(int argc, const char *argv[]) {
+    // [NSApplication sharedApplication];
+    // [NSBundle loadNibNamed:@"myMain" owner:NSApp];
+    // [NSApp run];
+
+	err = stderr;
+
+	for (int k = 1; k < argc; k++) {
+		TRACE("argv[%d]:%s", k, argv[k]);
+	}
+	if (argc < 2) {
+		TRACE("Usage: Bug1398macOSContextOpsOnMainThread %s", "[libjli.dylib path]");
+		exit(1);
+	}
+    TRACE("main.1%s", "");
+	@autoreleasepool
+	{
+        TRACE("main.1.1%s", "");
+		_appDelegate = [AppDelegate new];
+        TRACE("main.1.2%s", "");
+		[NSApplication sharedApplication];
+        TRACE("main.1.3%s", "");
+		[NSApp activateIgnoringOtherApps:YES];
+		[NSApp setDelegate:_appDelegate];
+        TRACE("main.1.5%s", "");
+
+		create_jvm_thread(argv[1]);
+        TRACE("main.1.6%s", "");
+
+        [NSApp run];
+		// return NSApplicationMain(argc, (const char **)argv);
+        TRACE("main.1.X%s", "");
+	}
+    return 0;
+}
+
+int main(int argc, const char *argv[])
+{
+    return NSApplicationMain(argc, (const char **)argv);
+}
+
+#endif
 
 @interface AppDelegate ()
 

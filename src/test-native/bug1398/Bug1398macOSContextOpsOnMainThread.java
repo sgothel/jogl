@@ -43,7 +43,9 @@ public class Bug1398macOSContextOpsOnMainThread extends JFrame implements GLEven
 		System.out.println("w:" + dm.getWidth() + " h:" + dm.getHeight() + " rr:" + dm.getRefreshRate() + " bits:" + dm.getBitDepth() + " dim.w:" + dim.width + " dim.h:" + dim.height);
 		GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
 		canvas = new GLCanvas(caps);
-		canvas.setBounds(0, 0, 1, 1);
+        canvas.addGLEventListener(new RedSquareES2());
+		// canvas.setBounds(0, 0, 1, 1);
+		canvas.setBounds(0, 0, 800, 600);
 
 		JPanel panel = new JPanel();
 		panel.setLayout(null);
@@ -69,7 +71,7 @@ public class Bug1398macOSContextOpsOnMainThread extends JFrame implements GLEven
 		setLocation(x, y);
 		setVisible(true);
 
-		final FPSAnimator animator = new FPSAnimator(canvas, 5, true);
+		final FPSAnimator animator = new FPSAnimator(canvas, 30, true);
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
 				// Run this on another thread than the AWT event queue to
