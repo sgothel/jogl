@@ -1,3 +1,4 @@
+#include <string.h>
 #include <Cocoa/Cocoa.h>
 #include <JavaVM/jni.h>
 #include <dlfcn.h>
@@ -6,6 +7,14 @@
 #define DEBUG_TRACE	1
 #define TRACE(fmt, ...) \
 	do { if (DEBUG_TRACE) fprintf(err, "%s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, __VA_ARGS__); fflush(err); } while (0)
+
+static const char * classpath_arg_prelim = "-Djava.class.path=";
+static const char * libpath_arg_prelim = "-Djava.library.path=";
+static const char * arg_closing = "";
+
+static char * classpath_arg = NULL;
+static char * libpath_arg = NULL;
+static char * jvm_libjli_path = NULL;
 
 // JNI_CreateJavaVM
 typedef jint (JNICALL CREATEVM)(JavaVM **pvm, void **env, void *args);
@@ -22,27 +31,20 @@ JavaVM *jvm = NULL;
 static const char *JNI_CREATEJAVAVM = "JNI_CreateJavaVM";
 void *jvm_lib = NULL;
 
-void *create_vm(const char *jvm_lib_path)
+void *create_vm(void)
 {
 	void *sym = NULL;
-	jvm_lib = dlopen(jvm_lib_path, RTLD_LAZY | RTLD_GLOBAL);
+	jvm_lib = dlopen(jvm_libjli_path, RTLD_LAZY | RTLD_GLOBAL);
 	if (jvm_lib) {
-		TRACE("Found libjli.dylib%s", "");
+		TRACE("Found libjli.dylib %s", jvm_libjli_path);
 		sym = dlsym(jvm_lib, JNI_CREATEJAVAVM);
 	} else {
-		TRACE("Unable to find libjli.dylib%s", "");
+		TRACE("Unable to find libjli.dylib %s", jvm_libjli_path);
 	}
 	return sym;
 }
 
-#ifndef CLASSPATH
-#define CLASSPATH ".:/Users/jogamp/projects/JogAmp/gluegen/build/gluegen-rt.jar:/Users/jogamp/projects/JogAmp/jogl/build/jar/jogl-all.jar"
-#endif
-#ifndef LIBPATH
-#define LIBPATH "/Users/jogamp/projects/JogAmp/gluegen/build/obj:/Users/jogamp/projects/JogAmp/jogl/build/lib"
-#endif
-
-static void *launchJava(void *ptr)
+static void *launchJava(void *unused)
 {
 	int k = 0;
 
@@ -59,8 +61,8 @@ static void *launchJava(void *ptr)
     TRACE("launchJava.1.1%s", "");
 	vm_args.nOptions = 7;
 	JavaVMOption options[vm_args.nOptions];
-	options[0].optionString	   = "-Djava.class.path="CLASSPATH;
-	options[1].optionString	   = "-Djava.library.path="LIBPATH;
+	options[0].optionString	   = classpath_arg;
+	options[1].optionString	   = libpath_arg;
 	options[2].optionString	   = "-DNjogamp.debug=all";
 	options[3].optionString	   = "-DNjogamp.debug.NativeLibrary=true";
 	options[4].optionString	   = "-DNjogamp.debug.JNILibLoader=true";
@@ -72,11 +74,11 @@ static void *launchJava(void *ptr)
 	vm_args.ignoreUnrecognized = JNI_TRUE;
 
     TRACE("launchJava.1.2%s", "");
-    TRACE(".. using CLASSPATH %s", CLASSPATH);
-    TRACE(".. using LIBPATH %s", LIBPATH);
+    TRACE(".. using CLASSPATH %s", classpath_arg);
+    TRACE(".. using LIBPATH %s", libpath_arg);
 
 	/* Create the Java VM */
-	CREATEVM *CreateVM = create_vm((char *)ptr);
+	CREATEVM *CreateVM = create_vm();
 	TRACE("CreateVM:%lx env:%lx vm_args:%lx", (long unsigned int)CreateVM, (long unsigned int)&env, (long unsigned int)&vm_args);
 	res = CreateVM(&jvm, (void**)&env, &vm_args);
 	if (res < 0) {
@@ -165,7 +167,7 @@ void die(JNIEnv *env)
 	exit(0);
 }
 
-void create_jvm_thread(const char *jvm_lib_path)
+void create_jvm_thread(void)
 {
 	pthread_t vmthread;
 
@@ -189,7 +191,7 @@ void create_jvm_thread(const char *jvm_lib_path)
 	}
     TRACE("create_jvm_thread.1.2%s", "");
 
-	pthread_create(&vmthread, &thread_attr, launchJava, (void *)jvm_lib_path);
+	pthread_create(&vmthread, &thread_attr, launchJava, NULL);
 	pthread_attr_destroy(&thread_attr);
     TRACE("create_jvm_thread.1.X%s", "");
 }
@@ -238,11 +240,36 @@ int NSApplicationMain(int argc, const char *argv[]) {
 
 	err = stderr;
 
+    const int arg_closing_len = strlen(arg_closing);
+
 	for (int k = 1; k < argc; k++) {
-		TRACE("argv[%d]:%s", k, argv[k]);
+        if( !strcmp("-classpath", argv[k]) && k+1 < argc ) {
+            const int classpath_arg_prelim_len = strlen(classpath_arg_prelim);
+            const int classpath_len = strlen(argv[++k]);
+            classpath_arg = calloc(classpath_len + classpath_arg_prelim_len + arg_closing_len + 1, 1);
+            strncpy(classpath_arg, classpath_arg_prelim, classpath_arg_prelim_len+1);
+            strncpy(classpath_arg+classpath_arg_prelim_len, argv[k], classpath_len+1);
+            strncpy(classpath_arg+classpath_arg_prelim_len+classpath_len, arg_closing, arg_closing_len+1);
+            TRACE("argv[%d]: classpath arg %s", k, classpath_arg);
+        } else if( !strcmp("-libpath", argv[k]) && k+1 < argc ) {
+            const int libpath_arg_prelim_len = strlen(libpath_arg_prelim);
+            const int libpath_len = strlen(argv[++k]);
+            libpath_arg = calloc(libpath_len + libpath_arg_prelim_len + arg_closing_len + 1, 1);
+            strncpy(libpath_arg, libpath_arg_prelim, libpath_arg_prelim_len+1);
+            strncpy(libpath_arg+libpath_arg_prelim_len, argv[k], libpath_len+1);
+            strncpy(libpath_arg+libpath_arg_prelim_len+libpath_len, arg_closing, arg_closing_len+1);
+            TRACE("argv[%d]: libpath arg %s", k, libpath_arg);
+        } else if( !strcmp("-jvmlibjli", argv[k]) && k+1 < argc ) {
+            const int len = strlen(argv[++k]);
+            jvm_libjli_path = calloc(len + 1, 1);
+            strncpy(jvm_libjli_path, argv[k], len+1);
+            TRACE("argv[%d]: jvmlibjli %s", k, jvm_libjli_path);
+        } else {
+            TRACE("argv[%d]:%s", k, argv[k]);
+        }
 	}
-	if (argc < 2) {
-		TRACE("Usage: Bug1398macOSContextOpsOnMainThread %s", "[libjli.dylib path]");
+	if ( NULL == classpath_arg || NULL == libpath_arg || NULL == jvm_libjli_path ) {
+		TRACE("Usage: Bug1398macOSContextOpsOnMainThread -classpath CLASSPATH -libpath LIBPATH -jvmlibjli libjli.dylib%s", "");
 		exit(1);
 	}
     TRACE("main.1%s", "");
@@ -257,7 +284,7 @@ int NSApplicationMain(int argc, const char *argv[]) {
 		[NSApp setDelegate:_appDelegate];
         TRACE("main.1.5%s", "");
 
-		create_jvm_thread(argv[1]);
+		create_jvm_thread();
         TRACE("main.1.6%s", "");
 
         [NSApp run];

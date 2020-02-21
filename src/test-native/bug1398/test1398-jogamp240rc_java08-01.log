@@ -1,0 +1,86 @@
+Bug1398macOSContextOpsOnMainThread.c:266:NSApplicationMain(): argv[2]: jvmlibjli /Library/Java/JavaVirtualMachines/jdk1.8.0_192.jdk/Contents/MacOS/libjli.dylib
+Bug1398macOSContextOpsOnMainThread.c:253:NSApplicationMain(): argv[4]: classpath arg -Djava.class.path=.:/Users/jogamp/projects/JogAmp/gluegen/build/gluegen-rt.jar:/Users/jogamp/projects/JogAmp/jogl/build/jar/jogl-all.jar
+Bug1398macOSContextOpsOnMainThread.c:261:NSApplicationMain(): argv[6]: libpath arg -Djava.library.path=/Users/jogamp/projects/JogAmp/gluegen/build/obj:/Users/jogamp/projects/JogAmp/jogl/build/lib
+Bug1398macOSContextOpsOnMainThread.c:275:NSApplicationMain(): main.1
+Bug1398macOSContextOpsOnMainThread.c:278:NSApplicationMain(): main.1.1
+2020-02-21 19:14:37.376 Bug1398macOSContextOpsOnMainThread[1057:21063] init
+Bug1398macOSContextOpsOnMainThread.c:280:NSApplicationMain(): main.1.2
+Bug1398macOSContextOpsOnMainThread.c:282:NSApplicationMain(): main.1.3
+Bug1398macOSContextOpsOnMainThread.c:285:NSApplicationMain(): main.1.5
+Bug1398macOSContextOpsOnMainThread.c:184:create_jvm_thread(): create_jvm_thread.1.1
+Bug1398macOSContextOpsOnMainThread.c:192:create_jvm_thread(): create_jvm_thread.1.2
+Bug1398macOSContextOpsOnMainThread.c:61:launchJava(): launchJava.1.1
+Bug1398macOSContextOpsOnMainThread.c:76:launchJava(): launchJava.1.2
+Bug1398macOSContextOpsOnMainThread.c:77:launchJava(): .. using CLASSPATH -Djava.class.path=.:/Users/jogamp/projects/JogAmp/gluegen/build/gluegen-rt.jar:/Users/jogamp/projects/JogAmp/jogl/build/jar/jogl-all.jar
+Bug1398macOSContextOpsOnMainThread.c:78:launchJava(): .. using LIBPATH -Djava.library.path=/Users/jogamp/projects/JogAmp/gluegen/build/obj:/Users/jogamp/projects/JogAmp/jogl/build/lib
+Bug1398macOSContextOpsOnMainThread.c:196:create_jvm_thread(): create_jvm_thread.1.X
+Bug1398macOSContextOpsOnMainThread.c:288:NSApplicationMain(): main.1.6
+Bug1398macOSContextOpsOnMainThread.c:39:create_vm(): Found libjli.dylib /Library/Java/JavaVirtualMachines/jdk1.8.0_192.jdk/Contents/MacOS/libjli.dylib
+Bug1398macOSContextOpsOnMainThread.c:82:launchJava(): CreateVM:110285b80 env:700003d1ada8 vm_args:700003d1ad68
+2020-02-21 19:14:37.439 Bug1398macOSContextOpsOnMainThread[1057:21063] App starting...
+Bug1398macOSContextOpsOnMainThread.c:88:launchJava(): VM Created
+Bug1398macOSContextOpsOnMainThread.c:91:launchJava(): launchJava.1.3
+Bug1398macOSContextOpsOnMainThread.c:98:launchJava(): launchJava.1.4
+Bug1398macOSContextOpsOnMainThread.c:103:launchJava(): launchJava.1.5
+Java version: 1.8 (1.8.0_192)
+classloader:sun.misc.Launcher$AppClassLoader@764c12b6
+OS: Mac OS X 10.15.2 x86_64
+w:1920 h:1080 rr:60 bits:32 dim.w:800 dim.h:600
+gc.bounds: java.awt.Rectangle[x=0,y=0,width=1920,height=1080]
+dim: java.awt.Dimension[width=1920,height=1080]
+Thread[AWT-EventQueue-0,6,main] RedSquareES2.init: tileRendererInUse null on Thread[AWT-EventQueue-0,6,main]
+-----------------------------------------------------------------------------------------------------
+Platform: MACOS / Mac OS X 10.15.2 (10.15.2), x86_64 (X86_64, GENERIC_ABI), 4 cores, littleEndian true
+MachineDataInfo: runtimeValidated true, 32Bit false, primitive size / alignment:
+  int8    1 / 1, int16   2 / 2
+  int     4 / 4, long    8 / 8
+  int32   4 / 4, int64   8 / 8
+  float   4 / 4, double  8 / 8, ldouble 16 / 16
+  pointer 8 / 8, page    4096
+Platform: Java Version: 1.8.0_192 (1.8.0u192), VM: Java HotSpot(TM) 64-Bit Server VM, Runtime: Java(TM) SE Runtime Environment
+Platform: Java Vendor: Oracle Corporation, http://java.oracle.com/, JavaSE: true, Java9: false, Java6: true, dynamicLib: true, AWT enabled: true
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+Package: com.jogamp.opengl
+Extension Name: com.jogamp.opengl
+Specification Title: Java Bindings for OpenGL API Specification
+Specification Vendor: JogAmp Community
+Specification Version: 2.4
+Implementation Title: Java Bindings for OpenGL Runtime Environment
+Implementation Vendor: JogAmp Community
+Implementation Vendor ID: com.jogamp
+Implementation URL: http://jogamp.org/
+Implementation Version: 2.4.0-rc-20200106
+Implementation Build: 2.4-bmanual-20200106
+Implementation Branch: master
+Implementation Commit: 0209655c26e9240639c5f0a76ca6ca54ae0584b1
+Implementation SHA Sources: null
+Implementation SHA Classes: null
+Implementation SHA Classes-this: null
+Implementation SHA Natives: null
+Implementation SHA Natives-this: null
+-----------------------------------------------------------------------------------------------------
+Chosen GLCapabilities: GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]]
+INIT GL IS: jogamp.opengl.gl4.GL4bcImpl
+Swap Interval  0
+GL Profile     GLProfile[GL2/GL2.hw]
+GL Version     2.1 (Compat profile, arb, compat[], FBO, hardware) - 2.1 INTEL-14.3.9 [GL 2.1.0, vendor 14.3.9 (INTEL-14.3.9)]
+Quirks         [NoOffscreenBitmap, GL4NeedsGL3Request, NeedSharedObjectSync]
+Impl. class    jogamp.opengl.gl4.GL4bcImpl
+GL_VENDOR      Intel Inc.
+GL_RENDERER    Intel Iris OpenGL Engine
+GL_VERSION     2.1 INTEL-14.3.9
+GLSL           true, has-compiler-func: true, version: 1.20 / 1.20.0
+GL FBO: basic true, full true
+GL_EXTENSIONS  128
+GLX_EXTENSIONS 0
+-----------------------------------------------------------------------------------------------------
+ShaderState: attachShaderProgram: -1 -> 1 (enable: true)
+	null
+	ShaderProgram[id=1, linked=false, inUse=false, program: 1,
+   ShaderCode[id=1, type=VERTEX_SHADER, valid=true, shader:  2, source]
+   ShaderCode[id=2, type=FRAGMENT_SHADER, valid=true, shader:  3, source]]
+Thread[AWT-EventQueue-0,6,main] RedSquareES2.init FIN
+Thread[AWT-EventQueue-0,6,main] RedSquareES2.reshape 0/0 800x600 of 800x600, swapInterval 1, drawable 0x7ff875d200c0, tileRendererInUse null
+Thread[AWT-EventQueue-0,6,main] RedSquareES2.reshape FIN
+2020-02-21 19:14:40.445 Bug1398macOSContextOpsOnMainThread[1057:21063] startUpCompletionOperation main thread? ANS - YES

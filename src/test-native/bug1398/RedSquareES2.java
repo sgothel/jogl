@@ -27,6 +27,7 @@
  */
 // package com.jogamp.opengl.demos.es2;
 
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -93,12 +94,13 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
     @Override
     public void init(final GLAutoDrawable glad) {
         if(verbose) {
-            System.err.println(Thread.currentThread()+" RedSquareES2.init: tileRendererInUse "+tileRendererInUse);
+            System.err.println(Thread.currentThread()+" RedSquareES2.init: tileRendererInUse "+tileRendererInUse+" on "+Thread.currentThread());
+            System.err.println(VersionUtil.getPlatformInfo());
+            System.err.println(JoglVersion.getInstance());
         }
         final GL2ES2 gl = glad.getGL().getGL2ES2();
 
         if(verbose) {
-            System.err.println("RedSquareES2 init on "+Thread.currentThread());
             System.err.println("Chosen GLCapabilities: " + glad.getChosenGLCapabilities());
             System.err.println("INIT GL IS: " + gl.getClass().getName());
             System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());

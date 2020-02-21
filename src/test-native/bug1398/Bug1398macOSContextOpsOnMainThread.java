@@ -85,6 +85,13 @@ public class Bug1398macOSContextOpsOnMainThread extends JFrame implements GLEven
 			}
 		});
 		animator.start();
+
+        try {
+            Thread.sleep(1000);
+        } catch (Exception e) {}
+
+        animator.stop();
+        System.exit(0);
 	}
 
 	/**

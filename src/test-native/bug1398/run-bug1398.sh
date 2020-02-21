@@ -1,16 +1,20 @@
 #! /bin/bash
 
-# export LD_LIBRARY_PATH=/Users/jogamp/projects/JogAmp/gluegen/build/obj:/Users/jogamp/projects/JogAmp/jogl/build/lib
-# export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH
+JVM_JLI_LIB=/Library/Java/JavaVirtualMachines/jdk1.8.0_192.jdk/Contents/MacOS/libjli.dylib
+# JVM_JLI_LIB=/Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/MacOS/libjli.dylib
 
-#rm -rf natives
-#mkdir -p natives/macosx-universal
-#cp -av /Users/jogamp/projects/JogAmp/gluegen/build/obj/libgluegen_rt.so natives/macosx-universal/
-#cp -av natives/macosx-universal/libgluegen_rt.so natives/macosx-universal/libgluegen_rt.dylib
-#cp -av /Users/jogamp/projects/JogAmp/jogl/build/lib/*dylib natives/macosx-universal/
+JOGAMP_VERSION=v2.3.2
+#JOGAMP_VERSION=v2.2.4
 
-# ./Bug1398macOSContextOpsOnMainThread /Users/jogamp/projects/JogAmp/gluegen/build/obj:/Users/jogamp/projects/JogAmp/jogl/build/lib/lib
-# ./Bug1398macOSContextOpsOnMainThread /Library/Java/JavaVirtualMachines/jdk1.8.0_192.jdk/Contents/Home/jre/lib/server/libjvm.dylib
+if [ -z "$JOGAMP_VERSION" ] ; then
+    ./Bug1398macOSContextOpsOnMainThread -jvmlibjli $JVM_JLI_LIB \
+        -classpath ".:/Users/jogamp/projects/JogAmp/gluegen/build/gluegen-rt.jar:/Users/jogamp/projects/JogAmp/jogl/build/jar/jogl-all.jar" \
+        -libpath "/Users/jogamp/projects/JogAmp/gluegen/build/obj:/Users/jogamp/projects/JogAmp/jogl/build/lib"
+else
 
-./Bug1398macOSContextOpsOnMainThread /Library/Java/JavaVirtualMachines/jdk1.8.0_192.jdk/Contents/MacOS/libjli.dylib
-# ./Bug1398macOSContextOpsOnMainThread /Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/MacOS/libjli.dylib
+    ./Bug1398macOSContextOpsOnMainThread -jvmlibjli $JVM_JLI_LIB \
+        -classpath ".:/Users/jogamp/projects/JogAmp/builds/$JOGAMP_VERSION/jogamp-all-platforms/jar/gluegen-rt.jar:/Users/jogamp/projects/JogAmp/builds/v2.3.2/jogamp-all-platforms/jar/jogl-all.jar" \
+        -libpath "/Users/jogamp/projects/JogAmp/builds/$JOGAMP_VERSION/jogamp-all-platforms/lib/macosx-universal"
+
+fi
+
