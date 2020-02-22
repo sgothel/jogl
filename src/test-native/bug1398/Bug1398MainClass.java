@@ -19,7 +19,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.FPSAnimator;
 
-public class Bug1398macOSContextOpsOnMainThread extends JFrame implements GLEventListener {
+public class Bug1398MainClass extends JFrame implements GLEventListener {
 
 	protected GLCanvas canvas;
 
@@ -27,12 +27,12 @@ public class Bug1398macOSContextOpsOnMainThread extends JFrame implements GLEven
 		GLProfile.initSingleton();
 	}
 
-	public Bug1398macOSContextOpsOnMainThread() throws Exception {
+	public Bug1398MainClass() throws Exception {
 		System.out.println("Java version: " + Runtime.class.getPackage().getSpecificationVersion() + " (" + Runtime.class.getPackage().getImplementationVersion() + ")");
 		System.out.println("classloader:" + Thread.currentThread().getContextClassLoader());
 		System.out.println("OS: " + System.getProperty("os.name") + " " + System.getProperty("os.version") + " " + System.getProperty("os.arch"));
 
-		setTitle("Bug1398macOSContextOpsOnMainThread");
+		setTitle("Bug1398MainClass");
 		//setUndecorated(true);
 		//setResizable(false);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);

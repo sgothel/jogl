@@ -59,7 +59,7 @@ static void *launchJava(void *unused)
 	JavaVMInitArgs	vm_args;
 
     TRACE("launchJava.1.1%s", "");
-	vm_args.nOptions = 7;
+	vm_args.nOptions = 9;
 	JavaVMOption options[vm_args.nOptions];
 	options[0].optionString	   = classpath_arg;
 	options[1].optionString	   = libpath_arg;
@@ -67,7 +67,9 @@ static void *launchJava(void *unused)
 	options[3].optionString	   = "-DNjogamp.debug.NativeLibrary=true";
 	options[4].optionString	   = "-DNjogamp.debug.JNILibLoader=true";
 	options[5].optionString	   = "-DNnativewindow.debug=all";
-	options[6].optionString	   = "-DNjogl.debug=all";
+	options[6].optionString	   = "-Djogl.debug.GLContext";
+	options[7].optionString	   = "-Djogl.debug.GLDrawable";
+	options[8].optionString	   = "-Djogl.debug.GLProfile";
 
 	vm_args.version		   = JNI_VERSION_1_4;
 	vm_args.options		   = options;
@@ -89,7 +91,7 @@ static void *launchJava(void *unused)
 	}
 
     TRACE("launchJava.1.3%s", "");
-	cls = (*env)->FindClass(env, "Bug1398macOSContextOpsOnMainThread");
+	cls = (*env)->FindClass(env, "Bug1398MainClass");
 	ex = (*env)->ExceptionOccurred(env);
 	if (ex) {
 		die(env);
@@ -208,7 +210,7 @@ int main(int argc, const char *argv[])
 		TRACE("argv[%d]:%s", k, argv[k]);
 	}
 	if (argc < 2) {
-		TRACE("Usage: Bug1398macOSContextOpsOnMainThread %s", "[libjli.dylib path]");
+		TRACE("Usage: Bug1398Launcher %s", "[libjli.dylib path]");
 		exit(1);
 	}
     TRACE("main.1%s", "");
@@ -240,6 +242,8 @@ int NSApplicationMain(int argc, const char *argv[]) {
 
 	err = stderr;
 
+    fprintf(stderr, "Starting Bug1398Launcher: %s\n", argv[0]);
+
     const int arg_closing_len = strlen(arg_closing);
 
 	for (int k = 1; k < argc; k++) {
@@ -269,7 +273,7 @@ int NSApplicationMain(int argc, const char *argv[]) {
         }
 	}
 	if ( NULL == classpath_arg || NULL == libpath_arg || NULL == jvm_libjli_path ) {
-		TRACE("Usage: Bug1398macOSContextOpsOnMainThread -classpath CLASSPATH -libpath LIBPATH -jvmlibjli libjli.dylib%s", "");
+		TRACE("Usage: %s -classpath CLASSPATH -libpath LIBPATH -jvmlibjli libjli.dylib", argv[0]);
 		exit(1);
 	}
     TRACE("main.1%s", "");
