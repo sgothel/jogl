@@ -44,6 +44,8 @@ public class IOSUtil implements ToolkitProperties {
     private static boolean isInit = false;
     private static final boolean DEBUG = Debug.debug("IOSUtil");
 
+    private static final ThreadLocal<Boolean> tlsIsMainThread = new ThreadLocal<Boolean>();
+
     /** FIXME HiDPI: OSX unique and maximum value {@value} */
     public static final int MAX_PIXELSCALE = 2;
 
@@ -290,8 +292,22 @@ public class IOSUtil implements ToolkitProperties {
         }
     }
 
+    /**
+     * Returns true if the current is the UIApplication main-thread.
+     * <p>
+     * Implementation utilizes a {@link ThreadLocal} storage boolean holding the answer,
+     * which only gets set at the first call from each individual thread.
+     * This minimizes unnecessary native callbacks.
+     * </p>
+     * @return {@code true} if current thread is the UIApplication main-thread, otherwise false.
+     */
     public static boolean IsMainThread() {
-        return IsMainThread0();
+        Boolean isMainThread = tlsIsMainThread.get();
+        if( null == isMainThread ) {
+            isMainThread = new Boolean(IsMainThread0());
+            tlsIsMainThread.set(isMainThread);
+        }
+        return isMainThread.booleanValue();
     }
 
     /** Returns the screen refresh rate in Hz. If unavailable, returns 60Hz. */
