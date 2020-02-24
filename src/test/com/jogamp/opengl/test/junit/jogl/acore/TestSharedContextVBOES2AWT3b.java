@@ -98,6 +98,8 @@ public class TestSharedContextVBOES2AWT3b extends UITestCase {
         final Frame f1 = new Frame();
         final Animator animator = new Animator();
         final GearsES2 g1 = new GearsES2(0);
+        // g1.setUseMappedBuffers(useMappedBuffers);
+        g1.setValidateBuffers(true);
         final GLJPanel c1 = createGLJPanel(f1, 0, 0, g1);
         animator.add(c1);
 
@@ -196,6 +198,9 @@ public class TestSharedContextVBOES2AWT3b extends UITestCase {
         final Frame f1 = new Frame();
         final Animator a1 = new Animator();
         final GearsES2 g1 = new GearsES2(0);
+        g1.setSyncObjects(g1); // this is master, since rendered we must use it as sync
+        // g1.setUseMappedBuffers(useMappedBuffers);
+        g1.setValidateBuffers(true);
         final GLJPanel c1 = createGLJPanel(f1, 0, 0, g1);
         a1.add(c1);
         a1.start();

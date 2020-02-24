@@ -180,6 +180,8 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
     public void test01SyncedOneAnimator() throws InterruptedException {
         final Animator animator = new Animator();
         final GearsES2 g1 = new GearsES2(0);
+        // g1.setUseMappedBuffers(useMappedBuffers);
+        g1.setValidateBuffers(true);
         final GLCanvas c1 = createGLCanvas(shell1, composite1, 0, 0, g1);
         animator.add(c1);
 
@@ -208,7 +210,7 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
             public void run() {
                 if( !display.readAndDispatch() ) {
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(200);
                     } catch (final InterruptedException e) { }
                 }
             } };
@@ -268,6 +270,9 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
     public void test02AsyncEachAnimator() throws InterruptedException {
         final Animator a1 = new Animator();
         final GearsES2 g1 = new GearsES2(0);
+        g1.setSyncObjects(g1); // this is master, since rendered we must use it as sync
+        // g1.setUseMappedBuffers(useMappedBuffers);
+        g1.setValidateBuffers(true);
         final GLCanvas c1 = createGLCanvas(shell1, composite1, 0, 0, g1);
         a1.add(c1);
         display.syncExec(new Runnable() {
@@ -280,7 +285,7 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
             public void run() {
                 if( !display.readAndDispatch() ) {
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(200);
                     } catch (final InterruptedException e) { }
                 }
             } };
