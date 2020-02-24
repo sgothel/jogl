@@ -59,7 +59,7 @@ static void *launchJava(void *unused)
 	JavaVMInitArgs	vm_args;
 
     TRACE("launchJava.1.1%s", "");
-	vm_args.nOptions = 9;
+	vm_args.nOptions = 10;
 	JavaVMOption options[vm_args.nOptions];
 	options[0].optionString	   = classpath_arg;
 	options[1].optionString	   = libpath_arg;
@@ -68,8 +68,9 @@ static void *launchJava(void *unused)
 	options[4].optionString	   = "-DNjogamp.debug.JNILibLoader=true";
 	options[5].optionString	   = "-DNnativewindow.debug=all";
 	options[6].optionString	   = "-Djogl.debug.GLContext";
-	options[7].optionString	   = "-Djogl.debug.GLDrawable";
-	options[8].optionString	   = "-Djogl.debug.GLProfile";
+	options[7].optionString	   = "-DNjogl.debug.GLDrawable";
+	options[8].optionString	   = "-DNjogl.debug.GLProfile";
+	options[9].optionString	   = "-Dnativewindow.debug.OSXUtil.MainThreadChecker";
 
 	vm_args.version		   = JNI_VERSION_1_4;
 	vm_args.options		   = options;
