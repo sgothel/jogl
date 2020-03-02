@@ -1,0 +1,1020 @@
+Starting Bug1398Launcher: ./Bug1398LauncherSDK1011
+Bug1398Launcher.c:270:NSApplicationMain(): argv[2]: jvmlibjli /Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/MacOS/libjli.dylib
+Bug1398Launcher.c:257:NSApplicationMain(): argv[4]: classpath arg -Djava.class.path=.:/Users/jogamp/projects/JogAmp/gluegen/build/gluegen-rt.jar:/Users/jogamp/projects/JogAmp/jogl/build/jar/jogl-all.jar
+Bug1398Launcher.c:265:NSApplicationMain(): argv[6]: libpath arg -Djava.library.path=/Users/jogamp/projects/JogAmp/gluegen/build/obj:/Users/jogamp/projects/JogAmp/jogl/build/lib
+Bug1398Launcher.c:279:NSApplicationMain(): main.1
+Bug1398Launcher.c:282:NSApplicationMain(): main.1.1
+2020-02-22 14:51:27.907 Bug1398LauncherSDK1011[2325:148219] init
+Bug1398Launcher.c:284:NSApplicationMain(): main.1.2
+Bug1398Launcher.c:286:NSApplicationMain(): main.1.3
+Bug1398Launcher.c:289:NSApplicationMain(): main.1.5
+Bug1398Launcher.c:186:create_jvm_thread(): create_jvm_thread.1.1
+Bug1398Launcher.c:194:create_jvm_thread(): create_jvm_thread.1.2
+Bug1398Launcher.c:198:create_jvm_thread(): create_jvm_thread.1.X
+Bug1398Launcher.c:292:NSApplicationMain(): main.1.6
+Bug1398Launcher.c:61:launchJava(): launchJava.1.1
+Bug1398Launcher.c:78:launchJava(): launchJava.1.2
+Bug1398Launcher.c:79:launchJava(): .. using CLASSPATH -Djava.class.path=.:/Users/jogamp/projects/JogAmp/gluegen/build/gluegen-rt.jar:/Users/jogamp/projects/JogAmp/jogl/build/jar/jogl-all.jar
+Bug1398Launcher.c:80:launchJava(): .. using LIBPATH -Djava.library.path=/Users/jogamp/projects/JogAmp/gluegen/build/obj:/Users/jogamp/projects/JogAmp/jogl/build/lib
+Bug1398Launcher.c:39:create_vm(): Found libjli.dylib /Library/Java/JavaVirtualMachines/adoptopenjdk-11.jdk/Contents/MacOS/libjli.dylib
+Bug1398Launcher.c:84:launchJava(): CreateVM:10cbee151 env:700004b72da8 vm_args:700004b72d68
+2020-02-22 14:51:27.970 Bug1398LauncherSDK1011[2325:148219] App starting...
+Bug1398Launcher.c:90:launchJava(): VM Created
+Bug1398Launcher.c:93:launchJava(): launchJava.1.3
+GLProfile.initSingleton() - thread main
+    [2]: com.jogamp.opengl.GLProfile.initSingleton(GLProfile.java:216)
+    [3]: Bug1398MainClass.<clinit>(Bug1398MainClass.java:27)
+GLProfile.init - thread: main
+-----------------------------------------------------------------------------------------------------
+Platform: MACOS / Mac OS X 10.15.3 (10.15.3), x86_64 (X86_64, GENERIC_ABI), 4 cores, littleEndian true
+MachineDataInfo: runtimeValidated true, 32Bit false, primitive size / alignment:
+  int8    1 / 1, int16   2 / 2
+  int     4 / 4, long    8 / 8
+  int32   4 / 4, int64   8 / 8
+  float   4 / 4, double  8 / 8, ldouble 16 / 16
+  pointer 8 / 8, page    4096
+Platform: Java Version: 11.0.3 (11.0.3u0), VM: OpenJDK 64-Bit Server VM, Runtime: OpenJDK Runtime Environment
+Platform: Java Vendor: AdoptOpenJDK, https://adoptopenjdk.net/, JavaSE: true, Java9: true, Java6: true, dynamicLib: true, AWT enabled: true
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+Package: com.jogamp.common
+Extension Name: com.jogamp.common
+Specification Title: GlueGen Java Bindings Generator
+Specification Vendor: JogAmp Community
+Specification Version: 2.4
+Implementation Title: GlueGen Run-Time
+Implementation Vendor: JogAmp Community
+Implementation Vendor ID: com.jogamp
+Implementation URL: http://jogamp.org/
+Implementation Version: 2.4.0-rc-20200219
+Implementation Build: 2.4-bmanual-20200219
+Implementation Branch: master
+Implementation Commit: 0b441cfc14947b1c8cabdc87705ae95a0afec4d9
+Implementation SHA Sources: 8d908b6f7f3983b3f1b8fe7dbbf4409635e0eddc4cc83fc0b3109dbd48c12b0a
+Implementation SHA Classes: ed9b47cddf3dfd80b0f8f06472d115736bdc538f72e3ba6ac5a9246e72ab54f8
+Implementation SHA Classes-this: 2cf35278c9b3972ccb1ab6f94828bc55e8deea691814b8a6ff13a426f115354c
+Implementation SHA Natives: e665dac3f562d9c94fa5e36e5a4e0b529ba2049ac0a4e24adc8b01bfa299ff34
+Implementation SHA Natives-this: 0
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+Package: com.jogamp.nativewindow
+Extension Name: com.jogamp.opengl
+Specification Title: Java Bindings for OpenGL API Specification
+Specification Vendor: JogAmp Community
+Specification Version: 2.4
+Implementation Title: Java Bindings for OpenGL Runtime Environment
+Implementation Vendor: JogAmp Community
+Implementation Vendor ID: com.jogamp
+Implementation URL: http://jogamp.org/
+Implementation Version: 2.4.0-rc-20200106
+Implementation Build: 2.4-bmanual-20200106
+Implementation Branch: master
+Implementation Commit: 0209655c26e9240639c5f0a76ca6ca54ae0584b1
+Implementation SHA Sources: null
+Implementation SHA Classes: null
+Implementation SHA Classes-this: null
+Implementation SHA Natives: null
+Implementation SHA Natives-this: null
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+Package: com.jogamp.opengl
+Extension Name: com.jogamp.opengl
+Specification Title: Java Bindings for OpenGL API Specification
+Specification Vendor: JogAmp Community
+Specification Version: 2.4
+Implementation Title: Java Bindings for OpenGL Runtime Environment
+Implementation Vendor: JogAmp Community
+Implementation Vendor ID: com.jogamp
+Implementation URL: http://jogamp.org/
+Implementation Version: 2.4.0-rc-20200106
+Implementation Build: 2.4-bmanual-20200106
+Implementation Branch: master
+Implementation Commit: 0209655c26e9240639c5f0a76ca6ca54ae0584b1
+Implementation SHA Sources: null
+Implementation SHA Classes: null
+Implementation SHA Classes-this: null
+Implementation SHA Natives: null
+Implementation SHA Natives-this: null
+-----------------------------------------------------------------------------------------------------
+GLDrawableFactory.static - Native OS Factory for: .macosx: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory
+Info: EGLDrawableFactory: EGL ES2 - NOPE
+Info: EGLDrawableFactory: EGL ES1 - NOPE (ES1 lib)
+Info: EGLDrawableFactory: EGL GLn - NOPE (GLn lib)
+Info: GLProfile.init - Mobile GLDrawable factory not available
+Info: GLProfile.init - Default device is desktop derived: MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]
+Info: GLProfile.initProfilesForDevice: MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]] (com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice), isSet false, hasDesktopGLFactory true, hasEGLFactory false
+GLProfile.init map .macosx_decon_0, desktopCtxUndef true, esCtxUndef true
+GLProfile.init map GLProfile[GL4bc/GL4bc.sw] on device .macosx_decon_0
+GLProfile.init map defaultAny GLProfile[GL4bc/GL4bc.sw] on device .macosx_decon_0
+GLProfile.init map GLProfile[GL3bc/GL3bc.sw] on device .macosx_decon_0
+GLProfile.init map GLProfile[GL2/GL2.sw] on device .macosx_decon_0
+GLProfile.init map GLProfile[GL4/GL4.sw] on device .macosx_decon_0
+GLProfile.init map GLProfile[GL3/GL3.sw] on device .macosx_decon_0
+GLProfile.init map *** no mapping for GLES3 on device .macosx_decon_0
+GLProfile.init map GLProfile[GL4ES3/GL4bc.sw] on device .macosx_decon_0
+GLProfile.init map GLProfile[GL2GL3/GL2.sw] on device .macosx_decon_0
+GLProfile.init map *** no mapping for GLES2 on device .macosx_decon_0
+GLProfile.init map GLProfile[GL2ES2/GL2.sw] on device .macosx_decon_0
+GLProfile.init map *** no mapping for GLES1 on device .macosx_decon_0
+GLProfile.init map GLProfile[GL2ES1/GL2.sw] on device .macosx_decon_0
+main: setRealized: drawable MacOSXOnscreenCGLDrawable, surface WrappedSurface, isProxySurface true: false -> true
+    [2]: jogamp.opengl.GLDrawableImpl.setRealized(GLDrawableImpl.java:176)
+    [3]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:261)
+    [4]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:83)
+    [5]: jogamp.opengl.GLDrawableFactoryImpl.getOrCreateSharedResource(GLDrawableFactoryImpl.java:188)
+    [6]: jogamp.opengl.GLDrawableFactoryImpl.createSharedResourceImpl(GLDrawableFactoryImpl.java:217)
+    [7]: com.jogamp.opengl.GLDrawableFactory.createSharedResource(GLDrawableFactory.java:385)
+    [8]: com.jogamp.opengl.GLProfile.initProfilesForDeviceCritical(GLProfile.java:1938)
+    [9]: com.jogamp.opengl.GLProfile.initProfilesForDevice(GLProfile.java:1895)
+    [10]: com.jogamp.opengl.GLProfile.initProfilesForDefaultDevices(GLProfile.java:1862)
+    [11]: com.jogamp.opengl.GLProfile.access$000(GLProfile.java:80)
+    [12]: com.jogamp.opengl.GLProfile$1.run(GLProfile.java:239)
+    [13]: java.base/java.security.AccessController.doPrivileged(Native Method)
+    [14]: com.jogamp.opengl.GLProfile.initSingleton(GLProfile.java:225)
+    [15]: Bug1398MainClass.<clinit>(Bug1398MainClass.java:27)
+main: GLContext.resetStates(isInit true)
+main: MacOSXCGLContext.createImpl: START GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]], share 0x0
+main: Use ARB[avail[disabled false, quirk false] -> true]]
+main: createContextARB-MapGLVersions is SET (decon): false
+main: createContextARB-MapGLVersions START (GLDesktop true, GLES false, minorVersion true) on MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]
+main: createContextARBVersions.1: share 0, direct true, version 3.3 [3.3 .. 3.1]
+NS viewHandle.2: drawableHandle 0x7fc4c15ce0d0 -> nsViewHandle 0x7fc4c15ce0d0: isNSView true, isNSWindow false, isFBO false, isPBuffer false, isSurfaceless false, jogamp.opengl.macosx.cgl.MacOSXOnscreenCGLDrawable,
+	MacOSXOnscreenCGLDrawable[Realized true,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	Handle    0x7fc4c15ce0d0,
+	Surface   WrappedSurface[ displayHandle 0x0
+, surfaceHandle 0x7fc4c15ce0d0
+, size 64x64
+, UOB[ OWNS_SURFACE | WINDOW_INVISIBLE ]
+, MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]]
+, surfaceLock <2f7c2f4f, 6af93788>[count 1, qsz 0, owner <main>]
+, OSXDummyUpstreamSurfaceHook[pixel 64x64]
+, upstreamSurface false ]]
+NS create OSX>=lion true, OSX>=mavericks true
+NS create incompleteView: true
+NS create backingLayerHost: null
+NS create share: 0
+NS create drawable type: jogamp.opengl.macosx.cgl.MacOSXOnscreenCGLDrawable
+NS create drawable handle: isPBuffer false, isFBO false, isSurfaceless false
+NS create pixelFormat: 0x7fc4c15daea0
+NS create chosenCaps: GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]
+NS create fixedCaps: GLCaps[rgba 8/8/8/8, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]
+NS create drawable native-handle: 0x7fc4c15ce0d0
+NS create drawable NSView-handle: 0x7fc4c15ce0d0
+NS create screen refresh-rate: 60 hz, 16666 micros
+main: createContextARBImpl: OK 3.3 (Core profile, arb, compat[], hardware) - @creation, share 0, direct true on OSX 10.15.3
+main: GLContext.setGLFuncAvail: glGetStringi 0x7fff3b6641a3 (opt), glGetString 0x7fff3b65fbc6, glGetIntegerv 0x7fff3b65fa20
+main: GLContext.setGLFuncAvail: Given MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]] - requested 3.3 (Core profile, arb, compat[], hardware) - 4.1 INTEL-14.4.23, has Number(Str) 4.1.0
+main: GLContext.setGLFuncAvail: Pre version verification: requested 3.3 (Core profile, arb, compat[], hardware), drawable.glp GLProfile[GL2/GL2.sw], strictMatch true, glVersionsMapping true, hasGLVersionByString 4.1.0
+main: GLContext.setGLFuncAvail: Version verification (Int): String 4.1 INTEL-14.4.23, Number(Int) 4.1.0 - 4.1 (Core profile, arb, compat[], hardware)
+main: GLContext.setGLFuncAvail: Post version verification: requested 3.3 (Core profile, arb, compat[], hardware) -> has 4.1 (Core profile, arb, compat[], hardware), strictMatch true, versionValidated true, versionGL3IntOK true
+Quirk: NoOffscreenBitmap: cause: OS MACOS
+Quirk: NeedSharedObjectSync: cause: OS MACOS
+Quirk: GL4NeedsGL3Request: cause: OS MACOS, OS Version 10.15.3, req 3.3
+Quirks local.0: [NoOffscreenBitmap, GL4NeedsGL3Request, NeedSharedObjectSync]
+Quirks local.X: [NoOffscreenBitmap, GL4NeedsGL3Request, NeedSharedObjectSync]
+Quirks sticky on MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]: [GL4NeedsGL3Request]
+main: GLContext.setGLFuncAvail.0 validated FQN: .macosx_decon_0-0x4010005 - 4.1 (Core profile, arb, compat[], hardware) - 4.1 INTEL-14.4.23
+main: Initializing CGL extension address table: MacOSX-.macosx_decon_0
+main: GLContext CGL ProcAddressTable mapping key(MacOSX-.macosx_decon_0) -> 0x6f96c77
+main: GLContext GL ProcAddressTable mapping key(.macosx_decon_0-0x4010005 - 4.1 (Core profile, arb, compat[], hardware)) -> 0x3d680b5a: jogamp.opengl.gl4.GL4bcProcAddressTable
+Info: setGL (OpenGL null): main, <null> -> GL4bcImpl, jogamp.opengl.gl4.GL4bcImpl@635eaaf1
+    [2]: jogamp.opengl.GLContextImpl.setGL(GLContextImpl.java:358)
+    [3]: jogamp.opengl.GLContextImpl.setGLFunctionAvailability(GLContextImpl.java:2125)
+    [4]: jogamp.opengl.GLContextImpl.createContextARBVersions(GLContextImpl.java:1456)
+    [5]: jogamp.opengl.GLContextImpl.createContextARBMapVersionsAvailable(GLContextImpl.java:1395)
+    [6]: jogamp.opengl.GLContextImpl.mapGLVersions(GLContextImpl.java:1234)
+    [7]: jogamp.opengl.GLContextImpl.createContextARB(GLContextImpl.java:969)
+    [8]: jogamp.opengl.macosx.cgl.MacOSXCGLContext.createImpl(MacOSXCGLContext.java:314)
+    [9]: jogamp.opengl.GLContextImpl.makeCurrentWithinLock(GLContextImpl.java:770)
+    [10]: jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:653)
+    [11]: jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:591)
+    [12]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:267)
+    [13]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:83)
+    [14]: jogamp.opengl.GLDrawableFactoryImpl.getOrCreateSharedResource(GLDrawableFactoryImpl.java:188)
+    [15]: jogamp.opengl.GLDrawableFactoryImpl.createSharedResourceImpl(GLDrawableFactoryImpl.java:217)
+    [16]: com.jogamp.opengl.GLDrawableFactory.createSharedResource(GLDrawableFactory.java:385)
+    [17]: com.jogamp.opengl.GLProfile.initProfilesForDeviceCritical(GLProfile.java:1938)
+    [18]: com.jogamp.opengl.GLProfile.initProfilesForDevice(GLProfile.java:1895)
+    [19]: com.jogamp.opengl.GLProfile.initProfilesForDefaultDevices(GLProfile.java:1862)
+    [20]: com.jogamp.opengl.GLProfile.access$000(GLProfile.java:80)
+    [21]: com.jogamp.opengl.GLProfile$1.run(GLProfile.java:239)
+    [22]: java.base/java.security.AccessController.doPrivileged(Native Method)
+    [23]: com.jogamp.opengl.GLProfile.initSingleton(GLProfile.java:225)
+    [24]: Bug1398MainClass.<clinit>(Bug1398MainClass.java:27)
+main:ExtensionAvailabilityCache: Pre-caching init jogamp.opengl.gl4.GL4bcImpl@635eaaf1, OpenGL 4.1 (Core profile, arb, compat[], hardware) - 4.1 INTEL-14.4.23
+main:ExtensionAvailabilityCache: Pre-caching extension availability OpenGL 4.1 (Core profile, arb, compat[], hardware) - 4.1 INTEL-14.4.23, use glGetStringi
+main:ExtensionAvailabilityCache: GL_EXTENSIONS: 45, used glGetStringi
+main:ExtensionAvailabilityCache: GLX_EXTENSIONS: 0
+main:ExtensionAvailabilityCache: GL vendor: Intel Inc.
+main:ExtensionAvailabilityCache: ALL EXTENSIONS: 45
+main:ExtensionAvailabilityCache: Added GL_VERSION_4_1 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_4_0 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_3_3 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_3_2 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_3_1 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_3_0 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_2_1 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_2_0 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_5 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_4 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_3 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_2 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_1 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_0 to known extensions
+main: GLContext GL ExtensionAvailabilityCache mapping key(.macosx_decon_0-0x4010005) -> 0x7a69b07 - entries: 60
+CGL setSwapInterval: 1
+main: GLContext.setGLFuncAvail.X: OK .macosx_decon_0-0x4010005 - 4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware) - glErr 0x0
+main: createContextARBVersions.X: ctx 0x7fc4c140f840, share 0, direct true, version 3.3 [3.3 .. 3.1]
+main: createContextARB-MapGLVersions MAP MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]: 3 (Core profile, compat[], hardware) -> 4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)
+main: createContextARB-MapGLVersions HAVE MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]] 3 (Core profile, compat[], hardware)[3.1 .. 3.3]: [None] -> [4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)]
+main: createContextARB-MapGLVersions MAP MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]: 4 (Core profile, compat[], hardware) -> 4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)
+main: createContextARB-MapGLVersions: Quirk Triggerd: GL4NeedsGL3Request: cause: OS MACOS, OS Version 10.15.3
+main: GLContext.resetStates(isInit false)
+main: createContextARBVersions.1: share 0, direct true, version 4.6 [4.6 .. 4.0]
+main: createContextARBImpl: Not supported 4.6 (Compat profile, arb, compat[], hardware) - @creation on OSX 10.15.3
+main: createContextARBVersions.2: share 0, direct true, version 4.5 [4.6 .. 4.0]
+main: createContextARBImpl: Not supported 4.5 (Compat profile, arb, compat[], hardware) - @creation on OSX 10.15.3
+main: createContextARBVersions.3: share 0, direct true, version 4.4 [4.6 .. 4.0]
+main: createContextARBImpl: Not supported 4.4 (Compat profile, arb, compat[], hardware) - @creation on OSX 10.15.3
+main: createContextARBVersions.4: share 0, direct true, version 4.3 [4.6 .. 4.0]
+main: createContextARBImpl: Not supported 4.3 (Compat profile, arb, compat[], hardware) - @creation on OSX 10.15.3
+main: createContextARBVersions.5: share 0, direct true, version 4.2 [4.6 .. 4.0]
+main: createContextARBImpl: Not supported 4.2 (Compat profile, arb, compat[], hardware) - @creation on OSX 10.15.3
+main: createContextARBVersions.6: share 0, direct true, version 4.1 [4.6 .. 4.0]
+main: createContextARBImpl: Not supported 4.1 (Compat profile, arb, compat[], hardware) - @creation on OSX 10.15.3
+main: createContextARBVersions.7: share 0, direct true, version 4.0 [4.6 .. 4.0]
+main: createContextARBImpl: Not supported 4.0 (Compat profile, arb, compat[], hardware) - @creation on OSX 10.15.3
+main: createContextARBVersions.X: ctx 0x0, share 0, direct true, version 4.0 [4.6 .. 4.0]
+main: createContextARB-MapGLVersions NOPE MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], 4 (Compat profile, compat[], hardware) [4.6 .. 4.0]
+main: createContextARBVersions.1: share 0, direct true, version 3.3 [3.3 .. 3.1]
+main: createContextARBImpl: Not supported 3.3 (Compat profile, arb, compat[], hardware) - @creation on OSX 10.15.3
+main: createContextARBVersions.2: share 0, direct true, version 3.2 [3.3 .. 3.1]
+main: createContextARBImpl: Not supported 3.2 (Compat profile, arb, compat[], hardware) - @creation on OSX 10.15.3
+main: createContextARBVersions.3: share 0, direct true, version 3.1 [3.3 .. 3.1]
+main: createContextARBImpl: Not supported 3.1 (Compat profile, arb, compat[], hardware) - @creation on OSX 10.15.3
+main: createContextARBVersions.X: ctx 0x0, share 0, direct true, version 3.1 [3.3 .. 3.1]
+main: createContextARB-MapGLVersions NOPE MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], 3 (Compat profile, compat[], hardware) [3.3 .. 3.1]
+main: createContextARBVersions.1: share 0, direct true, version 3.0 [3.0 .. 2.0]
+main: createContextARBImpl: Not supported 3.0 (Compat profile, arb, compat[], hardware) - @creation on OSX 10.15.3
+main: createContextARBVersions.2: share 0, direct true, version 2.1 [3.0 .. 2.0]
+NS viewHandle.2: drawableHandle 0x7fc4c15ce0d0 -> nsViewHandle 0x7fc4c15ce0d0: isNSView true, isNSWindow false, isFBO false, isPBuffer false, isSurfaceless false, jogamp.opengl.macosx.cgl.MacOSXOnscreenCGLDrawable,
+	MacOSXOnscreenCGLDrawable[Realized true,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	Handle    0x7fc4c15ce0d0,
+	Surface   WrappedSurface[ displayHandle 0x0
+, surfaceHandle 0x7fc4c15ce0d0
+, size 64x64
+, UOB[ OWNS_SURFACE | WINDOW_INVISIBLE ]
+, MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/8, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]]
+, surfaceLock <2f7c2f4f, 6af93788>[count 1, qsz 0, owner <main>]
+, OSXDummyUpstreamSurfaceHook[pixel 64x64]
+, upstreamSurface false ]]
+NS create OSX>=lion true, OSX>=mavericks true
+NS create incompleteView: true
+NS create backingLayerHost: null
+NS create share: 0
+NS create drawable type: jogamp.opengl.macosx.cgl.MacOSXOnscreenCGLDrawable
+NS create drawable handle: isPBuffer false, isFBO false, isSurfaceless false
+NS create pixelFormat: 0x7fc4c14f2e60
+NS create chosenCaps: GLCaps[rgba 8/8/8/8, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]
+NS create fixedCaps: GLCaps[rgba 8/8/8/8, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]
+NS create drawable native-handle: 0x7fc4c15ce0d0
+NS create drawable NSView-handle: 0x7fc4c15ce0d0
+NS create screen refresh-rate: 60 hz, 16666 micros
+main: createContextARBImpl: OK 2.1 (Compat profile, arb, compat[], hardware) - @creation, share 0, direct true on OSX 10.15.3
+main: GLContext.setGLFuncAvail: glGetStringi 0x7fff3b6641a3 (opt), glGetString 0x7fff3b65fbc6, glGetIntegerv 0x7fff3b65fa20
+main: GLContext.setGLFuncAvail: Given MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]] - requested 2.1 (Compat profile, arb, compat[], hardware) - 2.1 INTEL-14.4.23, has Number(Str) 2.1.0
+main: GLContext.setGLFuncAvail: Pre version verification: requested 2.1 (Compat profile, arb, compat[], hardware), drawable.glp GLProfile[GL2/GL2.sw], strictMatch true, glVersionsMapping true, hasGLVersionByString 2.1.0
+main: GLContext.setGLFuncAvail: Version verification (String): String 2.1 INTEL-14.4.23, Number(Str) 2.1.0
+main: GLContext.setGLFuncAvail: Post version verification: requested 2.1 (Compat profile, arb, compat[], hardware) -> has 2.1 (Compat profile, arb, compat[], hardware), strictMatch true, versionValidated true, versionGL3IntOK false
+Quirk: NoOffscreenBitmap: cause: OS MACOS
+Quirk: NeedSharedObjectSync: cause: OS MACOS
+Quirks local.0: [NoOffscreenBitmap, NeedSharedObjectSync]
+Quirks local.X: [NoOffscreenBitmap, GL4NeedsGL3Request, NeedSharedObjectSync]
+Quirks sticky on MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]: [GL4NeedsGL3Request]
+main: GLContext.setGLFuncAvail.0 validated FQN: .macosx_decon_0-0x2010003 - 2.1 (Compat profile, arb, compat[], hardware) - 2.1 INTEL-14.4.23
+main: Initializing CGL extension address table: MacOSX-.macosx_decon_0
+main: GLContext CGL ProcAddressTable reusing key(MacOSX-.macosx_decon_0) -> 0x6f96c77
+main: GLContext GL ProcAddressTable mapping key(.macosx_decon_0-0x2010003 - 2.1 (Compat profile, arb, compat[], hardware)) -> 0x41e36e46: jogamp.opengl.gl4.GL4bcProcAddressTable
+Info: setGL (OpenGL null): main, <null> -> GL4bcImpl, jogamp.opengl.gl4.GL4bcImpl@15c43bd9
+    [2]: jogamp.opengl.GLContextImpl.setGL(GLContextImpl.java:358)
+    [3]: jogamp.opengl.GLContextImpl.setGLFunctionAvailability(GLContextImpl.java:2125)
+    [4]: jogamp.opengl.GLContextImpl.createContextARBVersions(GLContextImpl.java:1456)
+    [5]: jogamp.opengl.GLContextImpl.createContextARBMapVersionsAvailable(GLContextImpl.java:1395)
+    [6]: jogamp.opengl.GLContextImpl.mapGLVersions(GLContextImpl.java:1317)
+    [7]: jogamp.opengl.GLContextImpl.createContextARB(GLContextImpl.java:969)
+    [8]: jogamp.opengl.macosx.cgl.MacOSXCGLContext.createImpl(MacOSXCGLContext.java:314)
+    [9]: jogamp.opengl.GLContextImpl.makeCurrentWithinLock(GLContextImpl.java:770)
+    [10]: jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:653)
+    [11]: jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:591)
+    [12]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:267)
+    [13]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:83)
+    [14]: jogamp.opengl.GLDrawableFactoryImpl.getOrCreateSharedResource(GLDrawableFactoryImpl.java:188)
+    [15]: jogamp.opengl.GLDrawableFactoryImpl.createSharedResourceImpl(GLDrawableFactoryImpl.java:217)
+    [16]: com.jogamp.opengl.GLDrawableFactory.createSharedResource(GLDrawableFactory.java:385)
+    [17]: com.jogamp.opengl.GLProfile.initProfilesForDeviceCritical(GLProfile.java:1938)
+    [18]: com.jogamp.opengl.GLProfile.initProfilesForDevice(GLProfile.java:1895)
+    [19]: com.jogamp.opengl.GLProfile.initProfilesForDefaultDevices(GLProfile.java:1862)
+    [20]: com.jogamp.opengl.GLProfile.access$000(GLProfile.java:80)
+    [21]: com.jogamp.opengl.GLProfile$1.run(GLProfile.java:239)
+    [22]: java.base/java.security.AccessController.doPrivileged(Native Method)
+    [23]: com.jogamp.opengl.GLProfile.initSingleton(GLProfile.java:225)
+    [24]: Bug1398MainClass.<clinit>(Bug1398MainClass.java:27)
+main:ExtensionAvailabilityCache: Pre-caching init jogamp.opengl.gl4.GL4bcImpl@15c43bd9, OpenGL 2.1 (Compat profile, arb, compat[], hardware) - 2.1 INTEL-14.4.23
+main:ExtensionAvailabilityCache: Pre-caching extension availability OpenGL 2.1 (Compat profile, arb, compat[], hardware) - 2.1 INTEL-14.4.23, use glGetString
+main:ExtensionAvailabilityCache: GL_EXTENSIONS: 128, used glGetString
+main:ExtensionAvailabilityCache: GLX_EXTENSIONS: 0
+main:ExtensionAvailabilityCache: GL vendor: Intel Inc.
+main:ExtensionAvailabilityCache: ALL EXTENSIONS: 128
+main:ExtensionAvailabilityCache: Added GL_VERSION_2_1 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_2_0 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_5 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_4 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_3 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_2 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_1 to known extensions
+main:ExtensionAvailabilityCache: Added GL_VERSION_1_0 to known extensions
+main: GLContext GL ExtensionAvailabilityCache mapping key(.macosx_decon_0-0x2010003) -> 0x3d74bf60 - entries: 137
+CGL setSwapInterval: 1
+main: GLContext.setGLFuncAvail.X: OK .macosx_decon_0-0x2010003 - 2.1 (Compat profile, arb, compat[], FBO, hardware) - glErr 0x0
+main: createContextARBVersions.X: ctx 0x7fc4c140f840, share 0, direct true, version 2.1 [3.0 .. 2.0]
+main: createContextARB-MapGLVersions MAP MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]: 2 (Compat profile, compat[], hardware) -> 2.1 (Compat profile, arb, compat[], FBO, hardware)
+main: createContextARB-MapGLVersions HAVE MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]] 2 (Compat profile, compat[], hardware)[2.0 .. 3.0]: [None] -> [2.1 (Compat profile, arb, compat[], FBO, hardware)]
+main: GLContext.resetStates(isInit false)
+main: createContextARB-MapGLVersions SET .macosx_decon_0
+MapGLVersions .macosx_decon_0-0x2020000: 2.1 (Compat profile, arb, compat[], FBO, hardware)
+MapGLVersions .macosx_decon_0-0x4040000: 4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)
+MapGLVersions .macosx_decon_0-0x3040000: 4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)
+main: createContextARB-MapGLVersions END (success true) on MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], profileAliasing: true, total 734.591508ms
+MapGLVersions .macosx_decon_0-0x2020000: 2.1 (Compat profile, arb, compat[], FBO, hardware)
+MapGLVersions .macosx_decon_0-0x4040000: 4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)
+MapGLVersions .macosx_decon_0-0x3040000: 4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)
+main: createContextARB-MapGLVersions requested GLProfile[GL2/GL2.sw] -> 2.0 (Compat profile, compat[], hardware)
+main: createContextARB-MapGLVersions Mapped 2.1 (Compat profile, arb, compat[], FBO, hardware)
+NS viewHandle.2: drawableHandle 0x7fc4c15ce0d0 -> nsViewHandle 0x7fc4c15ce0d0: isNSView true, isNSWindow false, isFBO false, isPBuffer false, isSurfaceless false, jogamp.opengl.macosx.cgl.MacOSXOnscreenCGLDrawable,
+	MacOSXOnscreenCGLDrawable[Realized true,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	Handle    0x7fc4c15ce0d0,
+	Surface   WrappedSurface[ displayHandle 0x0
+, surfaceHandle 0x7fc4c15ce0d0
+, size 64x64
+, UOB[ OWNS_SURFACE | WINDOW_INVISIBLE ]
+, MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/8, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]]
+, surfaceLock <2f7c2f4f, 6af93788>[count 1, qsz 0, owner <main>]
+, OSXDummyUpstreamSurfaceHook[pixel 64x64]
+, upstreamSurface false ]]
+NS create OSX>=lion true, OSX>=mavericks true
+NS create incompleteView: true
+NS create backingLayerHost: null
+NS create share: 0
+NS create drawable type: jogamp.opengl.macosx.cgl.MacOSXOnscreenCGLDrawable
+NS create drawable handle: isPBuffer false, isFBO false, isSurfaceless false
+NS create pixelFormat: 0x7fc4c1743320
+NS create chosenCaps: GLCaps[rgba 8/8/8/8, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]
+NS create fixedCaps: GLCaps[rgba 8/8/8/8, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]
+NS create drawable native-handle: 0x7fc4c15ce0d0
+NS create drawable NSView-handle: 0x7fc4c15ce0d0
+NS create screen refresh-rate: 60 hz, 16666 micros
+main: createContextARBImpl: OK 2.1 (Compat profile, arb, compat[], FBO, hardware) - @creation, share 0, direct true on OSX 10.15.3
+main: GLContext.setGLFuncAvail: glGetStringi 0x7fff3b6641a3 (opt), glGetString 0x7fff3b65fbc6, glGetIntegerv 0x7fff3b65fa20
+main: GLContext.setGLFuncAvail: Given MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]] - requested 2.1 (Compat profile, arb, compat[], FBO, hardware) - 2.1 INTEL-14.4.23, has Number(Str) 2.1.0
+main: GLContext.setGLFuncAvail: Pre version verification: requested 2.1 (Compat profile, arb, compat[], FBO, hardware), drawable.glp GLProfile[GL2/GL2.sw], strictMatch false, glVersionsMapping false, hasGLVersionByString 2.1.0
+main: GLContext.setGLFuncAvail: Version verification (String): String 2.1 INTEL-14.4.23, Number(Str) 2.1.0
+main: GLContext.setGLFuncAvail: Post version verification: requested 2.1 (Compat profile, arb, compat[], FBO, hardware) -> has 2.1 (Compat profile, arb, compat[], FBO, hardware), strictMatch false, versionValidated true, versionGL3IntOK false
+Quirk: NoOffscreenBitmap: cause: OS MACOS
+Quirk: NeedSharedObjectSync: cause: OS MACOS
+Quirks local.0: [NoOffscreenBitmap, NeedSharedObjectSync]
+Quirks local.X: [NoOffscreenBitmap, GL4NeedsGL3Request, NeedSharedObjectSync]
+Quirks sticky on MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]: [GL4NeedsGL3Request]
+main: GLContext.setGLFuncAvail.0 validated FQN: .macosx_decon_0-0x2010003 - 2.1 (Compat profile, arb, compat[], FBO, hardware) - 2.1 INTEL-14.4.23
+main: Initializing CGL extension address table: MacOSX-.macosx_decon_0
+main: GLContext CGL ProcAddressTable reusing key(MacOSX-.macosx_decon_0) -> 0x6f96c77
+main: GLContext GL ProcAddressTable reusing key(.macosx_decon_0-0x2010003 - 2.1 (Compat profile, arb, compat[], FBO, hardware)) -> 0x41e36e46: jogamp.opengl.gl4.GL4bcProcAddressTable -> jogamp.opengl.gl4.GL4bc
+Info: setGL (OpenGL null): main, <null> -> GL4bcImpl, jogamp.opengl.gl4.GL4bcImpl@2145b572
+    [2]: jogamp.opengl.GLContextImpl.setGL(GLContextImpl.java:358)
+    [3]: jogamp.opengl.GLContextImpl.setGLFunctionAvailability(GLContextImpl.java:2125)
+    [4]: jogamp.opengl.GLContextImpl.createContextARB(GLContextImpl.java:993)
+    [5]: jogamp.opengl.macosx.cgl.MacOSXCGLContext.createImpl(MacOSXCGLContext.java:314)
+    [6]: jogamp.opengl.GLContextImpl.makeCurrentWithinLock(GLContextImpl.java:770)
+    [7]: jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:653)
+    [8]: jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:591)
+    [9]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:267)
+    [10]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:83)
+    [11]: jogamp.opengl.GLDrawableFactoryImpl.getOrCreateSharedResource(GLDrawableFactoryImpl.java:188)
+    [12]: jogamp.opengl.GLDrawableFactoryImpl.createSharedResourceImpl(GLDrawableFactoryImpl.java:217)
+    [13]: com.jogamp.opengl.GLDrawableFactory.createSharedResource(GLDrawableFactory.java:385)
+    [14]: com.jogamp.opengl.GLProfile.initProfilesForDeviceCritical(GLProfile.java:1938)
+    [15]: com.jogamp.opengl.GLProfile.initProfilesForDevice(GLProfile.java:1895)
+    [16]: com.jogamp.opengl.GLProfile.initProfilesForDefaultDevices(GLProfile.java:1862)
+    [17]: com.jogamp.opengl.GLProfile.access$000(GLProfile.java:80)
+    [18]: com.jogamp.opengl.GLProfile$1.run(GLProfile.java:239)
+    [19]: java.base/java.security.AccessController.doPrivileged(Native Method)
+    [20]: com.jogamp.opengl.GLProfile.initSingleton(GLProfile.java:225)
+    [21]: Bug1398MainClass.<clinit>(Bug1398MainClass.java:27)
+main: GLContext GL ExtensionAvailabilityCache reusing key(.macosx_decon_0-0x2010003) -> 0x3d74bf60 - entries: 137
+CGL setSwapInterval: 1
+main: GLContext.setGLFuncAvail.X: OK .macosx_decon_0-0x2010003 - 2.1 (Compat profile, arb, compat[], FBO, hardware) - glErr 0x0
+main: Create GL context OK: For jogamp.opengl.macosx.cgl.MacOSXCGLContext - 2.1 (Compat profile, arb, compat[], FBO, hardware) - 2.1 INTEL-14.4.23 - obj 0x4690b489, ctx 0x7fc4c15ddea0, isShared false, surf true 0x7fc4c15ce0d0, <39529185, 72f926e6>[count 1, qsz 0, owner <main>]
+MaxOSXCGLContext.NSOpenGLImpl.associateDrawable: true, ctx 0x7fc4c15ddea0, hasBackingLayerHost false, attachGLLayerCmd null
+NS viewHandle.2: drawableHandle 0x7fc4c15ce0d0 -> nsViewHandle 0x7fc4c15ce0d0: isNSView true, isNSWindow false, isFBO false, isPBuffer false, isSurfaceless false, jogamp.opengl.macosx.cgl.MacOSXOnscreenCGLDrawable,
+	MacOSXOnscreenCGLDrawable[Realized true,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	Handle    0x7fc4c15ce0d0,
+	Surface   WrappedSurface[ displayHandle 0x0
+, surfaceHandle 0x7fc4c15ce0d0
+, size 64x64
+, UOB[ OWNS_SURFACE | WINDOW_INVISIBLE ]
+, MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/8, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]]
+, surfaceLock <2f7c2f4f, 6af93788>[count 1, qsz 0, owner <main>]
+, OSXDummyUpstreamSurfaceHook[pixel 64x64]
+, upstreamSurface false ]]
+main: setRealized: drawable MacOSXOnscreenCGLDrawable, surface WrappedSurface, isProxySurface true: false -> true
+    [2]: jogamp.opengl.GLDrawableImpl.setRealized(GLDrawableImpl.java:176)
+    [3]: jogamp.opengl.GLDrawableFactoryImpl.probeSurfacelessCtx(GLDrawableFactoryImpl.java:124)
+    [4]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:278)
+    [5]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:83)
+    [6]: jogamp.opengl.GLDrawableFactoryImpl.getOrCreateSharedResource(GLDrawableFactoryImpl.java:188)
+    [7]: jogamp.opengl.GLDrawableFactoryImpl.createSharedResourceImpl(GLDrawableFactoryImpl.java:217)
+    [8]: com.jogamp.opengl.GLDrawableFactory.createSharedResource(GLDrawableFactory.java:385)
+    [9]: com.jogamp.opengl.GLProfile.initProfilesForDeviceCritical(GLProfile.java:1938)
+    [10]: com.jogamp.opengl.GLProfile.initProfilesForDevice(GLProfile.java:1895)
+    [11]: com.jogamp.opengl.GLProfile.initProfilesForDefaultDevices(GLProfile.java:1862)
+    [12]: com.jogamp.opengl.GLProfile.access$000(GLProfile.java:80)
+    [13]: com.jogamp.opengl.GLProfile$1.run(GLProfile.java:239)
+    [14]: java.base/java.security.AccessController.doPrivileged(Native Method)
+    [15]: com.jogamp.opengl.GLProfile.initSingleton(GLProfile.java:225)
+    [16]: Bug1398MainClass.<clinit>(Bug1398MainClass.java:27)
+MaxOSXCGLContext.NSOpenGLImpl.associateDrawable: false, ctx 0x7fc4c15ddea0, hasBackingLayerHost false, attachGLLayerCmd null
+main: GLContext.makeCurrent: Surfaceless evaluate
+main: GLContext.makeCurrent: Surfaceless OK - validated
+MaxOSXCGLContext.NSOpenGLImpl.associateDrawable: true, ctx 0x7fc4c15ddea0, hasBackingLayerHost false, attachGLLayerCmd null
+NS viewHandle.2: drawableHandle 0x0 -> nsViewHandle 0x0: isNSView false, isNSWindow false, isFBO false, isPBuffer false, isSurfaceless true, jogamp.opengl.macosx.cgl.MacOSXOnscreenCGLDrawable,
+	MacOSXOnscreenCGLDrawable[Realized true,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	Handle    0x0,
+	Surface   WrappedSurface[ displayHandle 0x0
+, surfaceHandle 0x0
+, size 64x64
+, UOB[ OWNS_SURFACE | OWNS_DEVICE | WINDOW_INVISIBLE | SURFACELESS ]
+, MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]]
+, surfaceLock <27ce24aa, 481a996b>[count 1, qsz 0, owner <main>]
+, GenericUpstreamSurfacelessHook[pixel 64x64]
+, upstreamSurface false ]]
+SharedDevice:  MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]
+SharedContext: MacOSXCGLContext [Version 2.1 (Compat profile, arb, compat[], FBO, hardware) - 2.1 INTEL-14.4.23 [GL 2.1.0, vendor 14.4.23 (INTEL-14.4.23)], options 0x4003, this 0x4690b489, handle 0x7fc4c15ddea0, isShared false, jogamp.opengl.gl4.GL4bcImpl@2145b572,
+	 quirks: [NoOffscreenBitmap, GL4NeedsGL3Request, NeedSharedObjectSync],
+	Drawable: MacOSXOnscreenCGLDrawable[Realized true,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	Handle    0x0,
+	Surface   WrappedSurface[ displayHandle 0x0
+, surfaceHandle 0x0
+, size 64x64
+, UOB[ OWNS_SURFACE | OWNS_DEVICE | WINDOW_INVISIBLE | SURFACELESS ]
+, MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.sw], on-scr[.]]]
+, surfaceLock <27ce24aa, 481a996b>[count 1, qsz 0, owner <main>]
+, GenericUpstreamSurfacelessHook[pixel 64x64]
+, upstreamSurface false ]], mode NSOPENGL] , madeCurrent true
+  NPOT true, RECT true, FloatPixels true
+  allowsSurfacelessCtx true
+  glRendererQuirks [NoOffscreenBitmap, GL4NeedsGL3Request, NeedSharedObjectSync]
+main: GLContextImpl.destroy.0: obj 0x4690b489, ctx 0x7fc4c15ddea0, isShared false, surf true 0x0, <39529185, 72f926e6>[count 1, qsz 0, owner <main>]
+MaxOSXCGLContext.NSOpenGLImpl.associateDrawable: false, ctx 0x7fc4c15ddea0, hasBackingLayerHost false, attachGLLayerCmd null
+main: GLContext.resetStates(isInit false)
+main: GLContextImpl.destroy.X: obj 0x4690b489, ctx 0x0, isShared false, surf true 0x0, <39529185, 72f926e6>[count 0, qsz 0, owner <NULL>]
+main: setRealized: drawable MacOSXOnscreenCGLDrawable, surface WrappedSurface, isProxySurface true: true -> false
+    [2]: jogamp.opengl.GLDrawableImpl.setRealized(GLDrawableImpl.java:176)
+    [3]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:321)
+    [4]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:83)
+    [5]: jogamp.opengl.GLDrawableFactoryImpl.getOrCreateSharedResource(GLDrawableFactoryImpl.java:188)
+    [6]: jogamp.opengl.GLDrawableFactoryImpl.createSharedResourceImpl(GLDrawableFactoryImpl.java:217)
+    [7]: com.jogamp.opengl.GLDrawableFactory.createSharedResource(GLDrawableFactory.java:385)
+    [8]: com.jogamp.opengl.GLProfile.initProfilesForDeviceCritical(GLProfile.java:1938)
+    [9]: com.jogamp.opengl.GLProfile.initProfilesForDevice(GLProfile.java:1895)
+    [10]: com.jogamp.opengl.GLProfile.initProfilesForDefaultDevices(GLProfile.java:1862)
+    [11]: com.jogamp.opengl.GLProfile.access$000(GLProfile.java:80)
+    [12]: com.jogamp.opengl.GLProfile$1.run(GLProfile.java:239)
+    [13]: java.base/java.security.AccessController.doPrivileged(Native Method)
+    [14]: com.jogamp.opengl.GLProfile.initSingleton(GLProfile.java:225)
+    [15]: Bug1398MainClass.<clinit>(Bug1398MainClass.java:27)
+main: setRealized: drawable MacOSXOnscreenCGLDrawable, surface WrappedSurface, isProxySurface true: true -> false
+    [2]: jogamp.opengl.GLDrawableImpl.setRealized(GLDrawableImpl.java:176)
+    [3]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:324)
+    [4]: jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory.getOrCreateSharedResourceImpl(MacOSXCGLDrawableFactory.java:83)
+    [5]: jogamp.opengl.GLDrawableFactoryImpl.getOrCreateSharedResource(GLDrawableFactoryImpl.java:188)
+    [6]: jogamp.opengl.GLDrawableFactoryImpl.createSharedResourceImpl(GLDrawableFactoryImpl.java:217)
+    [7]: com.jogamp.opengl.GLDrawableFactory.createSharedResource(GLDrawableFactory.java:385)
+    [8]: com.jogamp.opengl.GLProfile.initProfilesForDeviceCritical(GLProfile.java:1938)
+    [9]: com.jogamp.opengl.GLProfile.initProfilesForDevice(GLProfile.java:1895)
+    [10]: com.jogamp.opengl.GLProfile.initProfilesForDefaultDevices(GLProfile.java:1862)
+    [11]: com.jogamp.opengl.GLProfile.access$000(GLProfile.java:80)
+    [12]: com.jogamp.opengl.GLProfile$1.run(GLProfile.java:239)
+    [13]: java.base/java.security.AccessController.doPrivileged(Native Method)
+    [14]: com.jogamp.opengl.GLProfile.initSingleton(GLProfile.java:225)
+    [15]: Bug1398MainClass.<clinit>(Bug1398MainClass.java:27)
+GLProfile.init map .macosx_decon_0, desktopCtxUndef false, esCtxUndef false
+GLProfile.init map *** no mapping for GL4bc on device .macosx_decon_0
+GLProfile.init map *** no mapping for GL3bc on device .macosx_decon_0
+GLProfile.init map GLProfile[GL2/GL2.hw] on device .macosx_decon_0
+GLProfile.init map defaultHW GLProfile[GL2/GL2.hw] on device .macosx_decon_0
+GLProfile.init map GLProfile[GL4/GL4.hw] on device .macosx_decon_0
+GLProfile.init map defaultAny GLProfile[GL4/GL4.hw] on device .macosx_decon_0
+GLProfile.init map GLProfile[GL3/GL4.hw] on device .macosx_decon_0
+GLProfile.init map *** no mapping for GLES3 on device .macosx_decon_0
+GLProfile.init map GLProfile[GL4ES3/GL4.hw] on device .macosx_decon_0
+GLProfile.init map GLProfile[GL2GL3/GL4.hw] on device .macosx_decon_0
+GLProfile.init map *** no mapping for GLES2 on device .macosx_decon_0
+GLProfile.init map GLProfile[GL2ES2/GL4.hw] on device .macosx_decon_0
+GLProfile.init map *** no mapping for GLES1 on device .macosx_decon_0
+GLProfile.init map GLProfile[GL2ES1/GL2.hw] on device .macosx_decon_0
+GLProfile.initProfilesForDevice: MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]: desktop Shared Ctx true, profiles: 8
+main: createContextARB-MapGLVersions SET .macosx_decon_0
+MapGLVersions .macosx_decon_0-0x2020000: 2.1 (Compat profile, arb, compat[], FBO, hardware)
+MapGLVersions .macosx_decon_0-0x4040000: 4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)
+MapGLVersions .macosx_decon_0-0x3040000: 4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)
+GLProfile.initProfilesForDevice: .macosx_decon_0: added profile(s): desktop true, mobile false
+GLProfile.initProfilesForDevice: .macosx_decon_0: Natives[GL4bc false, GL4 true [4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)], GLES3 false, GL3bc false, GL3 true [4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)], GL2 true [2.1 (Compat profile, arb, compat[], FBO, hardware)], GLES2 false, GLES1 false, count 3 / 8], Common[, GL4ES3 true, GL2GL3 true, GL2ES2 true, GL2ES1 true], Mappings[GL2ES1 GLProfile[GL2ES1/GL2.hw], GL4ES3 GLProfile[GL4ES3/GL4.hw], GL2ES2 GLProfile[GL2ES2/GL4.hw], GL2 GLProfile[GL2/GL2.hw], GL4 GLProfile[GL4/GL4.hw], GL3 GLProfile[GL3/GL4.hw], GL2GL3 GLProfile[GL2GL3/GL4.hw], , default GLProfile[GL2/GL2.hw], count 7 / 12]
+GLProfile.dumpGLInfo: shared context n/a
+MacOSXGraphicsDevice[type .macosx, connection decon]:
+	Natives
+		GL4bc 	false
+		GL4 	true [4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)]
+		GLES3 	false
+		GL3bc 	false
+		GL3 	true [4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)]
+		GL2 	true [2.1 (Compat profile, arb, compat[], FBO, hardware)]
+		GLES2 	false
+		GLES1 	false
+		Count	3 / 8
+	Common
+		GL4ES3 	true
+		GL2GL3 	true
+		GL2ES2 	true
+		GL2ES1 	true
+	Mappings
+		GL2ES1 	GLProfile[GL2ES1/GL2.hw]
+		GL4ES3 	GLProfile[GL4ES3/GL4.hw]
+		GL2ES2 	GLProfile[GL2ES2/GL4.hw]
+		GL2 	GLProfile[GL2/GL2.hw]
+		GL4 	GLProfile[GL4/GL4.hw]
+		GL3 	GLProfile[GL3/GL4.hw]
+		GL2GL3 	GLProfile[GL2GL3/GL4.hw]
+		default GLProfile[GL2/GL2.hw]
+		Count	7 / 12
+
+GLProfile.init addedAnyProfile       true (desktop: true, mobile false)
+GLProfile.init isAWTAvailable        true
+GLProfile.init hasDesktopGLFactory   true
+GLProfile.init hasGL234Impl          true
+GLProfile.init hasMobileFactory      false
+GLProfile.init hasGLES1Impl          false
+GLProfile.init hasGLES3Impl          false
+GLProfile.init hasGL234OnEGLImpl     false
+GLProfile.init defaultDevice         MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]
+GLProfile.init defaultDevice Desktop MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]
+GLProfile.init defaultDevice Mobile  null
+GLProfile.init profile order         [GL4bc, GL3bc, GL2, GL4, GL3, GLES3, GL4ES3, GL2GL3, GLES2, GL2ES2, GLES1, GL2ES1]
+GLProfiles on device MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]
+	Natives
+		GL4bc 	false
+		GL4 	true [4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)]
+		GLES3 	false
+		GL3bc 	false
+		GL3 	true [4.1 (Core profile, arb, compat[ES2, ES3], FBO, hardware)]
+		GL2 	true [2.1 (Compat profile, arb, compat[], FBO, hardware)]
+		GLES2 	false
+		GLES1 	false
+		Count	3 / 8
+	Common
+		GL4ES3 	true
+		GL2GL3 	true
+		GL2ES2 	true
+		GL2ES1 	true
+	Mappings
+		GL2ES1 	GLProfile[GL2ES1/GL2.hw]
+		GL4ES3 	GLProfile[GL4ES3/GL4.hw]
+		GL2ES2 	GLProfile[GL2ES2/GL4.hw]
+		GL2 	GLProfile[GL2/GL2.hw]
+		GL4 	GLProfile[GL4/GL4.hw]
+		GL3 	GLProfile[GL3/GL4.hw]
+		GL2GL3 	GLProfile[GL2GL3/GL4.hw]
+		default GLProfile[GL2/GL2.hw]
+		Count	7 / 12
+
+
+Capabilities for MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]
+	none
+
+
+Bug1398Launcher.c:100:launchJava(): launchJava.1.4
+Bug1398Launcher.c:105:launchJava(): launchJava.1.5
+Java version: null (null)
+classloader:jdk.internal.loader.ClassLoaders$AppClassLoader@799f7e29
+OS: Mac OS X 10.15.3 x86_64
+w:1920 h:1080 rr:60 bits:32 dim.w:800 dim.h:600
+GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable -> Offscreen-Layer
+requestedCaps: GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]
+chosenCaps:    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[auto-cfg]]
+chosenCapsMod: GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]]
+OffscreenLayerSurface: **** JAWTWindow[0x68c72235][JVM version: 11.0.3 (11.0.3 update 0)
+JAWT version: 0x80010004, CA_LAYER: true, isLayeredSurface true, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], pixelScale 1.0x1.0, shallUseOffscreenLayer false, isOffscreenLayerSurface true, attachedSurfaceLayer 0x0, windowHandle 0x7fc4c3b4e690, surfaceHandle 0x7fc4c3b561c0, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], window [0/0 800x600], pixels[scale 1.0, 1.0 -> 800x600], visible true, lockedExt false,
+	config AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]],
+	awtComponent AWT-GLCanvas[Realized false,
+	null-drawable,
+	Factory   null,
+	handle    0x0,
+	Drawable size -1x-1 surface[800x600],
+	AWT[pos 0/0, size 800x600,
+	visible true, displayable true, showing false,
+	AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]]]],
+	surfaceLock <1eb5174b, 67080771>[count 1, qsz 0, owner <main>]]
+forceOnscreenFBOLayer: **** false, fboTextureUnit 0
+Target: **** JAWTWindow[0x68c72235][JVM version: 11.0.3 (11.0.3 update 0)
+JAWT version: 0x80010004, CA_LAYER: true, isLayeredSurface true, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], pixelScale 1.0x1.0, shallUseOffscreenLayer false, isOffscreenLayerSurface true, attachedSurfaceLayer 0x0, windowHandle 0x7fc4c3b4e690, surfaceHandle 0x7fc4c3b561c0, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], window [0/0 800x600], pixels[scale 1.0, 1.0 -> 800x600], visible true, lockedExt false,
+	config AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]],
+	awtComponent AWT-GLCanvas[Realized false,
+	null-drawable,
+	Factory   null,
+	handle    0x0,
+	Drawable size -1x-1 surface[800x600],
+	AWT[pos 0/0, size 800x600,
+	visible true, displayable true, showing false,
+	AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]]]],
+	surfaceLock <1eb5174b, 67080771>[count 1, qsz 0, owner <main>]]
+    [2]: jogamp.opengl.GLDrawableFactoryImpl.createGLDrawable(GLDrawableFactoryImpl.java:351)
+    [3]: com.jogamp.opengl.awt.GLCanvas.createJAWTDrawableAndContext(GLCanvas.java:715)
+    [4]: com.jogamp.opengl.awt.GLCanvas.addNotify(GLCanvas.java:621)
+    [5]: java.desktop/java.awt.Container.addNotify(Container.java:2800)
+    [6]: java.desktop/javax.swing.JComponent.addNotify(JComponent.java:4783)
+    [7]: java.desktop/java.awt.Container.addNotify(Container.java:2800)
+    [8]: java.desktop/javax.swing.JComponent.addNotify(JComponent.java:4783)
+    [9]: java.desktop/java.awt.Container.addNotify(Container.java:2800)
+    [10]: java.desktop/javax.swing.JComponent.addNotify(JComponent.java:4783)
+    [11]: java.desktop/java.awt.Container.addNotify(Container.java:2800)
+    [12]: java.desktop/javax.swing.JComponent.addNotify(JComponent.java:4783)
+    [13]: java.desktop/javax.swing.JRootPane.addNotify(JRootPane.java:733)
+    [14]: java.desktop/java.awt.Container.addNotify(Container.java:2800)
+    [15]: java.desktop/java.awt.Window.addNotify(Window.java:786)
+    [16]: java.desktop/java.awt.Frame.addNotify(Frame.java:490)
+    [17]: java.desktop/java.awt.Window.pack(Window.java:824)
+    [18]: Bug1398MainClass.<init>(Bug1398MainClass.java:59)
+GLDrawableFactoryImpl.createGLDrawable: GLFBODrawableImpl[Initialized false, realized false, texUnit 0, samples 0,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	Handle    0x7fc4c3b561c0,
+	Caps      GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	fboI back 0, front 0, num 0,
+	FBO front read 0, null,
+	FBO back  write 0, null,
+	Surface   JAWTWindow[0x68c72235][JVM version: 11.0.3 (11.0.3 update 0)
+JAWT version: 0x80010004, CA_LAYER: true, isLayeredSurface true, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], pixelScale 1.0x1.0, shallUseOffscreenLayer false, isOffscreenLayerSurface true, attachedSurfaceLayer 0x0, windowHandle 0x7fc4c3b4e690, surfaceHandle 0x7fc4c3b561c0, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], window [0/0 800x600], pixels[scale 1.0, 1.0 -> 800x600], visible true, lockedExt false,
+	config AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]],
+	awtComponent AWT-GLCanvas[Realized false,
+	null-drawable,
+	Factory   null,
+	handle    0x0,
+	Drawable size -1x-1 surface[800x600],
+	AWT[pos 0/0, size 800x600,
+	visible true, displayable true, showing false,
+	AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]]]],
+	surfaceLock <1eb5174b, 67080771>[count 1, qsz 0, owner <main>]]]
+main: GLContext.resetStates(isInit true)
+gc.bounds: java.awt.Rectangle[x=0,y=0,width=1920,height=1080]
+dim: java.awt.Dimension[width=1920,height=1080]
+GLDrawableHelper.setExclusiveContextThread(): START switch nop, thread null -> null -- currentThread Thread[main-FPSAWTAnimator#00-Timer0,5,main]
+GLDrawableHelper.setExclusiveContextThread(): END switch nop, thread null -- currentThread Thread[main-FPSAWTAnimator#00-Timer0,5,main]
+AWT-EventQueue-0: setRealized: drawable GLFBODrawableImpl, surface MacOSXJAWTWindow, isProxySurface false: false -> true
+    [2]: jogamp.opengl.GLDrawableImpl.setRealized(GLDrawableImpl.java:176)
+    [3]: com.jogamp.opengl.awt.GLCanvas.setRealizedImpl(GLCanvas.java:455)
+    [4]: com.jogamp.opengl.awt.GLCanvas.access$100(GLCanvas.java:167)
+    [5]: com.jogamp.opengl.awt.GLCanvas$3.run(GLCanvas.java:465)
+    [6]: java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:303)
+    [7]: java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:770)
+    [8]: java.desktop/java.awt.EventQueue$4.run(EventQueue.java:721)
+    [9]: java.desktop/java.awt.EventQueue$4.run(EventQueue.java:715)
+    [10]: java.base/java.security.AccessController.doPrivileged(Native Method)
+    [11]: java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:85)
+    [12]: java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:740)
+    [13]: java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+    [14]: java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+    [15]: java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+    [16]: java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+    [17]: java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+    [18]: java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+AWT-EventQueue-0: setRealized: drawable MacOSXOnscreenCGLDrawable, surface MacOSXJAWTWindow, isProxySurface false: false -> true
+    [2]: jogamp.opengl.GLDrawableImpl.setRealized(GLDrawableImpl.java:176)
+    [3]: jogamp.opengl.GLFBODrawableImpl.setRealizedImpl(GLFBODrawableImpl.java:422)
+    [4]: jogamp.opengl.GLDrawableImpl.setRealized(GLDrawableImpl.java:193)
+    [5]: com.jogamp.opengl.awt.GLCanvas.setRealizedImpl(GLCanvas.java:455)
+    [6]: com.jogamp.opengl.awt.GLCanvas.access$100(GLCanvas.java:167)
+    [7]: com.jogamp.opengl.awt.GLCanvas$3.run(GLCanvas.java:465)
+    [8]: java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:303)
+    [9]: java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:770)
+    [10]: java.desktop/java.awt.EventQueue$4.run(EventQueue.java:721)
+    [11]: java.desktop/java.awt.EventQueue$4.run(EventQueue.java:715)
+    [12]: java.base/java.security.AccessController.doPrivileged(Native Method)
+    [13]: java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:85)
+    [14]: java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:740)
+    [15]: java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+    [16]: java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+    [17]: java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+    [18]: java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+    [19]: java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+    [20]: java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+AWT-EventQueue-0: MacOSXCGLContext.createImpl: START GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]], share 0x0
+AWT-EventQueue-0: Use ARB[avail[disabled false, quirk false] -> true]]
+AWT-EventQueue-0: createContextARB-MapGLVersions is SET (decon): true
+AWT-EventQueue-0: createContextARB-MapGLVersions requested GLProfile[GL2/GL2.hw] -> 2.0 (Compat profile, compat[], hardware)
+AWT-EventQueue-0: createContextARB-MapGLVersions Mapped 2.1 (Compat profile, arb, compat[], FBO, hardware)
+NS viewHandle.1: GLFBODrawableImpl drawable: isFBO true, isPBuffer false, isSurfaceless false, jogamp.opengl.GLFBODrawableImpl,
+	GLFBODrawableImpl[Initialized false, realized true, texUnit 0, samples 0,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	Handle    0x7fc4c3b561c0,
+	Caps      GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	fboI back 0, front 0, num 0,
+	FBO front read 0, null,
+	FBO back  write 0, null,
+	Surface   JAWTWindow[0x68c72235][JVM version: 11.0.3 (11.0.3 update 0)
+JAWT version: 0x80010004, CA_LAYER: true, isLayeredSurface true, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], pixelScale 1.0x1.0, shallUseOffscreenLayer false, isOffscreenLayerSurface true, attachedSurfaceLayer 0x0, windowHandle 0x7fc4c3b4e690, surfaceHandle 0x7fc4c3b561c0, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], window [0/0 800x600], pixels[scale 1.0, 1.0 -> 800x600], visible true, lockedExt false,
+	config AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]],
+	awtComponent AWT-GLCanvas[Realized true,
+	jogamp.opengl.GLFBODrawableImpl,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	handle    0x7fc4c3b561c0,
+	Drawable size 800x600 surface[800x600],
+	AWT[pos 0/0, size 800x600,
+	visible true, displayable true, showing true,
+	AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]]]],
+	surfaceLock <1eb5174b, 67080771>[count 1, qsz 0, owner <AWT-EventQueue-0>]]]
+NS create OSX>=lion true, OSX>=mavericks true
+NS create incompleteView: true
+NS create backingLayerHost: JAWTWindow[0x68c72235][JVM version: 11.0.3 (11.0.3 update 0)
+JAWT version: 0x80010004, CA_LAYER: true, isLayeredSurface true, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], pixelScale 1.0x1.0, shallUseOffscreenLayer false, isOffscreenLayerSurface true, attachedSurfaceLayer 0x0, windowHandle 0x7fc4c3b4e690, surfaceHandle 0x7fc4c3b561c0, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], window [0/0 800x600], pixels[scale 1.0, 1.0 -> 800x600], visible true, lockedExt false,
+	config AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]],
+	awtComponent AWT-GLCanvas[Realized true,
+	jogamp.opengl.GLFBODrawableImpl,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	handle    0x7fc4c3b561c0,
+	Drawable size 800x600 surface[800x600],
+	AWT[pos 0/0, size 800x600,
+	visible true, displayable true, showing true,
+	AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]]]],
+	surfaceLock <1eb5174b, 67080771>[count 1, qsz 0, owner <AWT-EventQueue-0>]]
+NS create share: 0
+NS create drawable type: jogamp.opengl.GLFBODrawableImpl
+NS create drawable handle: isPBuffer false, isFBO true, isSurfaceless false
+NS create pixelFormat: 0x7fc4c3c33e00
+NS create chosenCaps: GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]]
+NS create fixedCaps: GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]]
+NS create drawable native-handle: 0x7fc4c3b561c0
+NS create drawable NSView-handle: 0x0
+NS create screen refresh-rate: 60 hz, 16666 micros
+AWT-EventQueue-0: createContextARBImpl: OK 2.1 (Compat profile, arb, compat[], FBO, hardware) - @creation, share 0, direct true on OSX 10.15.3
+AWT-EventQueue-0: GLContext.setGLFuncAvail: glGetStringi 0x7fff3b6641a3 (opt), glGetString 0x7fff3b65fbc6, glGetIntegerv 0x7fff3b65fa20
+AWT-EventQueue-0: GLContext.setGLFuncAvail: Given MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]] - requested 2.1 (Compat profile, arb, compat[], FBO, hardware) - 2.1 INTEL-14.4.23, has Number(Str) 2.1.0
+AWT-EventQueue-0: GLContext.setGLFuncAvail: Pre version verification: requested 2.1 (Compat profile, arb, compat[], FBO, hardware), drawable.glp GLProfile[GL2/GL2.hw], strictMatch false, glVersionsMapping false, hasGLVersionByString 2.1.0
+AWT-EventQueue-0: GLContext.setGLFuncAvail: Version verification (String): String 2.1 INTEL-14.4.23, Number(Str) 2.1.0
+AWT-EventQueue-0: GLContext.setGLFuncAvail: Post version verification: requested 2.1 (Compat profile, arb, compat[], FBO, hardware) -> has 2.1 (Compat profile, arb, compat[], FBO, hardware), strictMatch false, versionValidated true, versionGL3IntOK false
+Quirk: NoOffscreenBitmap: cause: OS MACOS
+Quirk: NeedSharedObjectSync: cause: OS MACOS
+Quirks local.0: [NoOffscreenBitmap, NeedSharedObjectSync]
+Quirks local.X: [NoOffscreenBitmap, GL4NeedsGL3Request, NeedSharedObjectSync]
+Quirks sticky on MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]]: [GL4NeedsGL3Request]
+AWT-EventQueue-0: GLContext.setGLFuncAvail.0 validated FQN: .macosx_decon_0-0x2010003 - 2.1 (Compat profile, arb, compat[], FBO, hardware) - 2.1 INTEL-14.4.23
+AWT-EventQueue-0: Initializing CGL extension address table: MacOSX-.macosx_decon_0
+AWT-EventQueue-0: GLContext CGL ProcAddressTable reusing key(MacOSX-.macosx_decon_0) -> 0x6f96c77
+AWT-EventQueue-0: GLContext GL ProcAddressTable reusing key(.macosx_decon_0-0x2010003 - 2.1 (Compat profile, arb, compat[], FBO, hardware)) -> 0x41e36e46: jogamp.opengl.gl4.GL4bcProcAddressTable -> jogamp.opengl.gl4.GL4bc
+Info: setGL (OpenGL null): AWT-EventQueue-0, <null> -> GL4bcImpl, jogamp.opengl.gl4.GL4bcImpl@7e96fe83
+    [2]: jogamp.opengl.GLContextImpl.setGL(GLContextImpl.java:358)
+    [3]: jogamp.opengl.GLContextImpl.setGLFunctionAvailability(GLContextImpl.java:2125)
+    [4]: jogamp.opengl.GLContextImpl.createContextARB(GLContextImpl.java:993)
+    [5]: jogamp.opengl.macosx.cgl.MacOSXCGLContext.createImpl(MacOSXCGLContext.java:314)
+    [6]: jogamp.opengl.GLContextImpl.makeCurrentWithinLock(GLContextImpl.java:770)
+    [7]: jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:653)
+    [8]: jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:591)
+    [9]: jogamp.opengl.GLDrawableHelper.invokeGLImpl(GLDrawableHelper.java:1279)
+    [10]: jogamp.opengl.GLDrawableHelper.invokeGL(GLDrawableHelper.java:1147)
+    [11]: com.jogamp.opengl.awt.GLCanvas$12.run(GLCanvas.java:1436)
+    [12]: java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:303)
+    [13]: java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:770)
+    [14]: java.desktop/java.awt.EventQueue$4.run(EventQueue.java:721)
+    [15]: java.desktop/java.awt.EventQueue$4.run(EventQueue.java:715)
+    [16]: java.base/java.security.AccessController.doPrivileged(Native Method)
+    [17]: java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:85)
+    [18]: java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:740)
+    [19]: java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+    [20]: java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+    [21]: java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+    [22]: java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+    [23]: java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+    [24]: java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+AWT-EventQueue-0: GLContext GL ExtensionAvailabilityCache reusing key(.macosx_decon_0-0x2010003) -> 0x3d74bf60 - entries: 137
+AWT-EventQueue-0: GLContext.setGLFuncAvail.X: OK .macosx_decon_0-0x2010003 - 2.1 (Compat profile, arb, compat[], FBO, hardware) - glErr 0x0
+AWT-EventQueue-0: Create GL context OK: For jogamp.opengl.macosx.cgl.MacOSXCGLContext - 2.1 (Compat profile, arb, compat[], FBO, hardware) - 2.1 INTEL-14.4.23 - obj 0x2a19d0ed, ctx 0x7fc4c151f940, isShared false, surf true 0x7fc4c3b561c0, <51920ca4, 6e080ee6>[count 1, qsz 0, owner <AWT-EventQueue-0>]
+GLFBODrawableImpl.initialize(): samples 0 -> 0/8
+GLFBODrawableImpl.initialize(true): GLFBODrawableImpl[Initialized true, realized true, texUnit 0, samples 0,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	Handle    0x7fc4c3b561c0,
+	Caps      GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	fboI back 0, front 1, num 2,
+	FBO front read 2, FBO[name r/w 2/2, init true, bound false, size 800x600, samples 0/8, modified true/true, depth RenderAttachment[type DEPTH, format 0x81a5, samples 0, 800x600, name 0x2, obj 0x50aeb3da], stencil null, colorbuffer attachments: 1/8, with 1 textures: [TextureAttachment[type COLOR_TEXTURE, target GL_TEXTURE_2D, level 0, format 0x8051, 800x600, border 0, dataFormat 0x1907, dataType 0x1401; min/mag 0x2600/0x2600, wrap S/T 0x812f/0x812f; name 0x2, obj 0x26ab1c69], null, null, null, null, null, null, null], msaa[null, hasSink false, dirty true], state OK, obj 0x2e18a5f2],
+	FBO back  write 1, FBO[name r/w 1/1, init true, bound false, size 800x600, samples 0/8, modified true/true, depth RenderAttachment[type DEPTH, format 0x81a5, samples 0, 800x600, name 0x1, obj 0x5f3270b3], stencil null, colorbuffer attachments: 1/8, with 1 textures: [TextureAttachment[type COLOR_TEXTURE, target GL_TEXTURE_2D, level 0, format 0x8051, 800x600, border 0, dataFormat 0x1907, dataType 0x1401; min/mag 0x2600/0x2600, wrap S/T 0x812f/0x812f; name 0x1, obj 0x6e97e18a], null, null, null, null, null, null, null], msaa[null, hasSink false, dirty true], state OK, obj 0x7a2738ec],
+	Surface   JAWTWindow[0x68c72235][JVM version: 11.0.3 (11.0.3 update 0)
+JAWT version: 0x80010004, CA_LAYER: true, isLayeredSurface true, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], pixelScale 1.0x1.0, shallUseOffscreenLayer false, isOffscreenLayerSurface true, attachedSurfaceLayer 0x0, windowHandle 0x7fc4c3b4e690, surfaceHandle 0x7fc4c3b561c0, bounds [ 0 / 0  800 x 600 ], insets [ l 0, r 0 - t 0, b 0 - 0x0], window [0/0 800x600], pixels[scale 1.0, 1.0 -> 800x600], visible true, lockedExt false,
+	config AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]],
+	awtComponent AWT-GLCanvas[Realized true,
+	jogamp.opengl.GLFBODrawableImpl,
+	Factory   jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory@1b1473ab,
+	handle    0x7fc4c3b561c0,
+	Drawable size 800x600 surface[800x600],
+	AWT[pos 0/0, size 800x600,
+	visible true, displayable true, showing true,
+	AWTGraphicsConfiguration[AWTGraphicsScreen[AWTGraphicsDevice[type .awt, connection Display 861422593, unitID 0, awtDevice sun.awt.CGraphicsDevice@10959ece, handle 0x0], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]],
+	CGLGraphicsConfig[dev=861422593,pixfmt=0],
+	encapsulated MacOSXCGLGraphicsConfiguration[DefaultGraphicsScreen[MacOSXGraphicsDevice[type .macosx, connection decon, unitID 0, handle 0x0, owner false, NullToolkitLock[obj 0x7995092a]], idx 0],
+	chosen    GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]],
+	requested GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], on-scr[.]]]]]],
+	surfaceLock <1eb5174b, 67080771>[count 1, qsz 0, owner <AWT-EventQueue-0>]]]
+    [2]: jogamp.opengl.GLFBODrawableImpl.initialize(GLFBODrawableImpl.java:264)
+    [3]: jogamp.opengl.GLFBODrawableImpl.associateContext(GLFBODrawableImpl.java:435)
+    [4]: jogamp.opengl.GLContextImpl.associateDrawable(GLContextImpl.java:854)
+    [5]: jogamp.opengl.macosx.cgl.MacOSXCGLContext.associateDrawable(MacOSXCGLContext.java:418)
+    [6]: jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:717)
+    [7]: jogamp.opengl.GLContextImpl.makeCurrent(GLContextImpl.java:591)
+    [8]: jogamp.opengl.GLDrawableHelper.invokeGLImpl(GLDrawableHelper.java:1279)
+    [9]: jogamp.opengl.GLDrawableHelper.invokeGL(GLDrawableHelper.java:1147)
+    [10]: com.jogamp.opengl.awt.GLCanvas$12.run(GLCanvas.java:1436)
+    [11]: java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:303)
+    [12]: java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:770)
+    [13]: java.desktop/java.awt.EventQueue$4.run(EventQueue.java:721)
+    [14]: java.desktop/java.awt.EventQueue$4.run(EventQueue.java:715)
+    [15]: java.base/java.security.AccessController.doPrivileged(Native Method)
+    [16]: java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:85)
+    [17]: java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:740)
+    [18]: java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+    [19]: java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+    [20]: java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+    [21]: java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+    [22]: java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+    [23]: java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+MaxOSXCGLContext.NSOpenGLImpl.associateDrawable: true, ctx 0x7fc4c151f940, hasBackingLayerHost true, attachGLLayerCmd null
+MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(true): AttachGLLayerCmd[valid false, size tex[800x600], win[800x600], ctx 0x7fc4c151f940, opaque true, texID 2, pbuffer 0x0, nsOpenGLLayer 0x0]
+GLDrawableHelper GLAnimatorControl: com.jogamp.opengl.util.FPSAnimator[started true, animating true, paused false, drawable 1, totals[dt 0, frames 0, fps 0.0], modeBits 1, init'ed true, animThread Thread[main-FPSAWTAnimator#00-Timer0,5,main], exclCtxThread false(null)], GLEventListeners num 1 [RedSquareES2@6ff29830[init false], ].invokeGL(): Running initAction
+Thread[AWT-EventQueue-0,6,main] RedSquareES2.init: tileRendererInUse null on Thread[AWT-EventQueue-0,6,main]
+-----------------------------------------------------------------------------------------------------
+Platform: MACOS / Mac OS X 10.15.3 (10.15.3), x86_64 (X86_64, GENERIC_ABI), 4 cores, littleEndian true
+MachineDataInfo: runtimeValidated true, 32Bit false, primitive size / alignment:
+  int8    1 / 1, int16   2 / 2
+  int     4 / 4, long    8 / 8
+  int32   4 / 4, int64   8 / 8
+  float   4 / 4, double  8 / 8, ldouble 16 / 16
+  pointer 8 / 8, page    4096
+Platform: Java Version: 11.0.3 (11.0.3u0), VM: OpenJDK 64-Bit Server VM, Runtime: OpenJDK Runtime Environment
+Platform: Java Vendor: AdoptOpenJDK, https://adoptopenjdk.net/, JavaSE: true, Java9: true, Java6: true, dynamicLib: true, AWT enabled: true
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+Package: com.jogamp.opengl
+Extension Name: com.jogamp.opengl
+Specification Title: Java Bindings for OpenGL API Specification
+Specification Vendor: JogAmp Community
+Specification Version: 2.4
+Implementation Title: Java Bindings for OpenGL Runtime Environment
+Implementation Vendor: JogAmp Community
+Implementation Vendor ID: com.jogamp
+Implementation URL: http://jogamp.org/
+Implementation Version: 2.4.0-rc-20200106
+Implementation Build: 2.4-bmanual-20200106
+Implementation Branch: master
+Implementation Commit: 0209655c26e9240639c5f0a76ca6ca54ae0584b1
+Implementation SHA Sources: null
+Implementation SHA Classes: null
+Implementation SHA Classes-this: null
+Implementation SHA Natives: null
+Implementation SHA Natives-this: null
+-----------------------------------------------------------------------------------------------------
+Chosen GLCapabilities: GLCaps[rgba 8/8/8/0, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GL2/GL2.hw], offscr[fbo]]
+INIT GL IS: jogamp.opengl.gl4.GL4bcImpl
+Swap Interval  0
+GL Profile     GLProfile[GL2/GL2.hw]
+GL Version     2.1 (Compat profile, arb, compat[], FBO, hardware) - 2.1 INTEL-14.4.23 [GL 2.1.0, vendor 14.4.23 (INTEL-14.4.23)]
+Quirks         [NoOffscreenBitmap, GL4NeedsGL3Request, NeedSharedObjectSync]
+Impl. class    jogamp.opengl.gl4.GL4bcImpl
+GL_VENDOR      Intel Inc.
+GL_RENDERER    Intel Iris OpenGL Engine
+GL_VERSION     2.1 INTEL-14.4.23
+GLSL           true, has-compiler-func: true, version: 1.20 / 1.20.0
+GL FBO: basic true, full true
+GL_EXTENSIONS  128
+GLX_EXTENSIONS 0
+-----------------------------------------------------------------------------------------------------
+NSOpenGLLayer.Attach: Re-Queue, drawableHandle 0x7fc4c3b561c0 - AppKit Thread
+NSOpenGLLayer.Attach: Re-Queue, drawableHandle 0x7fc4c3b561c0 - AppKit Thread
+NSOpenGLLayer.Attach: Re-Queue, drawableHandle 0x7fc4c3b561c0 - AppKit Thread
+ShaderState: attachShaderProgram: -1 -> 1 (enable: true)
+	null
+	ShaderProgram[id=1, linked=false, inUse=false, program: 1,
+   ShaderCode[id=1, type=VERTEX_SHADER, valid=true, shader:  2, source]
+   ShaderCode[id=2, type=FRAGMENT_SHADER, valid=true, shader:  3, source]]
+NSOpenGLLayer.Attach: Re-Queue, drawableHandle 0x7fc4c3b561c0 - AppKit Thread
+NSOpenGLLayer.Attach: Re-Queue, drawableHandle 0x7fc4c3b561c0 - AppKit Thread
+NSOpenGLLayer.Attach: Re-Queue, drawableHandle 0x7fc4c3b561c0 - AppKit Thread
+Thread[AWT-EventQueue-0,6,main] RedSquareES2.init FIN
+NSOpenGLLayer.Attach: Re-Queue, drawableHandle 0x7fc4c3b561c0 - AppKit Thread
+NSOpenGLLayer.Attach: Re-Queue, drawableHandle 0x7fc4c3b561c0 - AppKit Thread
+CGL setSwapInterval: 1
+Thread[AWT-EventQueue-0,6,main] RedSquareES2.reshape 0/0 800x600 of 800x600, swapInterval 1, drawable 0x7fc4c3b561c0, tileRendererInUse null
+Thread[AWT-EventQueue-0,6,main] RedSquareES2.reshape FIN
+NSOpenGLLayer.Attach: Re-Queue, drawableHandle 0x7fc4c3b561c0 - AppKit Thread
+NSOpenGLLayer.Attach: Re-Queue, drawableHandle 0x7fc4c3b561c0 - AppKit Thread
+NS setSwapInterval: 1 -> 17666 micros
+CGL setSwapInterval: 1
+NSOpenGLLayer.Attach: OK, layer 0x7fc4c3b6c610 w/ pbuffer 0x0, texID 2, texSize 800x600, drawableHandle 0x7fc4c3b561c0 - AppKit Thread
+2020-02-22 14:51:30.975 Bug1398LauncherSDK1011[2325:148219] startUpCompletionOperation main thread? ANS - YES
+GLDrawableFactory.shutdownAll 2 instances, on thread NativeWindowFactory_ShutdownHook
+GLDrawableFactory.shutdownAll[1/2]:  jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory
+DisplayGamma: Reset
+MacOSXCGLDrawableFactory.shutdown
+GLDrawableFactory.shutdownAll[2/2]:  jogamp.opengl.egl.EGLDrawableFactory
+DisplayGamma: Reset
+EGLDrawableFactory.shutdown
+EGLDisplayUtil.EGLDisplays: Shutdown (open: 0)
+GLDrawableFactory.shutdownAll.X on thread NativeWindowFactory_ShutdownHook

@@ -348,14 +348,17 @@ public class MacOSXCGLContext extends GLContextImpl
         lastWidth = -1;
         lastHeight = -1;
         if( isCreated() && drawable.getChosenGLCapabilities().isOnscreen() && isNSContext() ) {
-            final boolean incompleteView;
+            final boolean isSurfaceless, isIncompleteView;
             final NativeSurface surface = drawable.getNativeSurface();
             if( surface instanceof ProxySurface ) {
-              incompleteView = ((ProxySurface)surface).containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
+              final ProxySurface ps = (ProxySurface)surface;
+              isSurfaceless = ps.containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_SURFACELESS );
+              isIncompleteView = isSurfaceless || ps.containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
             } else {
-              incompleteView = false;
+              isSurfaceless = false;
+              isIncompleteView = false;
             }
-            if(!incompleteView) {
+            if( !isIncompleteView ) {
                 if( useAppKit ) {
                     OSXUtil.RunOnMainThread(true, false, new Runnable() {
                         @Override
@@ -551,18 +554,92 @@ public class MacOSXCGLContext extends GLContextImpl
     return sb.toString();
   }
 
+  static class NSViewDescriptor {
+      final boolean isSurfaceless;
+      final boolean isIncomplete;
+      final boolean isPBuffer;
+      final boolean isFBO;
+      /** Only returns a valid NSView. If !NSView, return null and mark either isPBuffer, isFBO or isSurfaceless. */
+      final long nsViewHandle;
+
+      NSViewDescriptor(final GLDrawableImpl drawable) {
+          final NativeSurface surface = drawable.getNativeSurface();
+          if( surface instanceof ProxySurface ) {
+              final ProxySurface ps = (ProxySurface)surface;
+              isSurfaceless = ps.containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_SURFACELESS );
+              isIncomplete = isSurfaceless || ps.containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
+          } else {
+              isSurfaceless = false;
+              isIncomplete = false;
+          }
+
+          if( drawable instanceof GLFBODrawableImpl ) {
+              nsViewHandle = 0;
+              isPBuffer = false;
+              isFBO = true;
+          } else if( isSurfaceless || isIncomplete ) {
+              nsViewHandle = 0;
+              isPBuffer = false;
+              isFBO = false;
+          } else {
+              final long drawableHandle = drawable.getHandle();
+              final boolean isNSView = OSXUtil.isNSView(drawableHandle);
+              final boolean isNSWindow = OSXUtil.isNSWindow(drawableHandle);
+              isPBuffer = CGL.isNSOpenGLPixelBuffer(drawableHandle);
+              isFBO = false;
+
+              if( isPBuffer ) {
+                  nsViewHandle = 0;
+              } else if( isNSView ) {
+                  nsViewHandle = drawableHandle;
+              } else if( isNSWindow ) {
+                  nsViewHandle = OSXUtil.GetNSView(drawableHandle);
+              } else {
+                  throw new GLException("Drawable's handle neither NSView, NSWindow nor PBuffer: drawableHandle "+toHexString(drawableHandle)+", isNSView "+isNSView+", isNSWindow "+isNSWindow+", isFBO "+isFBO+", isPBuffer "+isPBuffer+", "+drawable.getClass().getName()+",\n\t"+drawable);
+              }
+          }
+      }
+
+      @Override
+      public String toString() {
+          return "NSViewDescr[nsViewHandle "+toHexString(nsViewHandle)+", isSurfaceless "+isSurfaceless+", isIncomplete "+isIncomplete+", isFBO "+isFBO+", isPBuffer "+isPBuffer+"]";
+      }
+  }
+
   // NSOpenGLContext-based implementation
   class NSOpenGLImpl implements GLBackendImpl {
-      private OffscreenLayerSurface backingLayerHost = null;
+      private OffscreenLayerSurface backingLayerHost;
       /** lifecycle:  [create - destroy] */
-      private long pixelFormat = 0;
+      private long pixelFormat;
       /** microSec - defaults to 1/60s */
-      private int screenVSyncTimeout = 16666;
+      private int screenVSyncTimeout;
       /** microSec - for nsOpenGLLayer mode - defaults to 1/60s + 1ms */
-      private volatile int vsyncTimeout = 16666 + 1000;
-      private int lastWidth=0, lastHeight=0; // allowing to detect size change
-      private boolean needsSetContextPBuffer = false;
-      private ShaderProgram gl3ShaderProgram = null;
+      private volatile int vsyncTimeout;
+      private int lastWidth, lastHeight; // allowing to detect size change
+      private boolean needsSetContextPBuffer;
+      private ShaderProgram gl3ShaderProgram;
+      private boolean drawableAssociated;
+      private AttachGLLayerCmd attachGLLayerCmd;
+      private NSViewDescriptor lastNSViewDescr; // Bug 1398
+      private SetNSViewCmd lastSetNSViewCmd; // Bug 1398
+      private boolean lockCGL; // Bug 1398
+
+      NSOpenGLImpl() { resetState(); }
+
+      private void resetState() {
+          backingLayerHost = null;
+          pixelFormat = 0;
+          screenVSyncTimeout = 16666;
+          vsyncTimeout = 16666 + 1000;
+          lastWidth=0; lastHeight=0;
+          needsSetContextPBuffer = false;
+          gl3ShaderProgram = null;
+          drawableAssociated = false;
+          attachGLLayerCmd = null;
+          lastNSViewDescr = null;
+          lastSetNSViewCmd = null;
+          lockCGL = true;
+      }
 
       @Override
       public boolean isNSContext() { return true; }
@@ -570,73 +647,18 @@ public class MacOSXCGLContext extends GLContextImpl
       @Override
       public boolean isUsingCALayer() { return null != backingLayerHost; }
 
-      /** Only returns a valid NSView. If !NSView, return null and mark either isPBuffer, isFBO or isSurfaceless. */
-      private long getNSViewHandle(final boolean[] isPBuffer, final boolean[] isFBO, final boolean[] isSurfaceless) {
-          final long nsViewHandle;
-          if(drawable instanceof GLFBODrawableImpl) {
-              nsViewHandle = 0;
-              isPBuffer[0] = false;
-              isFBO[0] = true;
-              isSurfaceless[0] = false;
-              if(DEBUG) {
-                  System.err.println("NS viewHandle.1: GLFBODrawableImpl drawable: isFBO "+isFBO[0]+", isPBuffer "+isPBuffer[0]+", isSurfaceless "+isSurfaceless[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
-              }
-          } else {
-              final long drawableHandle = drawable.getHandle();
-              final boolean isNSView = OSXUtil.isNSView(drawableHandle);
-              final boolean isNSWindow = OSXUtil.isNSWindow(drawableHandle);
-              isPBuffer[0] = CGL.isNSOpenGLPixelBuffer(drawableHandle);
-              isFBO[0] = false;
-              isSurfaceless[0] = false;
-
-              if( isNSView ) {
-                  nsViewHandle = drawableHandle;
-              } else if( isNSWindow ) {
-                  nsViewHandle = OSXUtil.GetNSView(drawableHandle);
-              } else if( isPBuffer[0] ) {
-                  nsViewHandle = 0;
-              } else if( isSurfaceless() ) {
-                  isSurfaceless[0] = true;
-                  nsViewHandle = 0;
-              } else {
-                  throw new GLException("Drawable's handle neither NSView, NSWindow nor PBuffer: drawableHandle "+toHexString(drawableHandle)+", isNSView "+isNSView+", isNSWindow "+isNSWindow+", isFBO "+isFBO[0]+", isPBuffer "+isPBuffer[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
-              }
-              if(DEBUG) {
-                  System.err.println("NS viewHandle.2: drawableHandle "+toHexString(drawableHandle)+" -> nsViewHandle "+toHexString(nsViewHandle)+": isNSView "+isNSView+", isNSWindow "+isNSWindow+", isFBO "+isFBO[0]+", isPBuffer "+isPBuffer[0]+", isSurfaceless "+isSurfaceless[0]+", "+drawable.getClass().getName()+",\n\t"+drawable);
-              }
-          }
-          needsSetContextPBuffer = isPBuffer[0];
-          return nsViewHandle;
-      }
-
       @Override
       public long create(final long share, final int ctp, final int major, final int minor) {
           long ctx = 0;
           final NativeSurface surface = drawable.getNativeSurface();
           final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) surface.getGraphicsConfiguration();
           final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-          final long nsViewHandle;
-          final boolean isPBuffer;
-          final boolean isFBO;
-          final boolean isSurfaceless;
-          {
-              final boolean[] _isPBuffer = { false };
-              final boolean[] _isFBO = { false };
-              final boolean[] _isSurfaceless = { false };
-              nsViewHandle = getNSViewHandle(_isPBuffer, _isFBO, _isSurfaceless);
-              isPBuffer = _isPBuffer[0];
-              isFBO = _isFBO[0];
-              isSurfaceless = _isSurfaceless[0];
-          }
           final OffscreenLayerSurface backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
-
-          boolean incompleteView = null != backingLayerHost;
-          if( !incompleteView && surface instanceof ProxySurface ) {
-              incompleteView = ((ProxySurface)surface).containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
-          }
+          final NSViewDescriptor nsViewDescr = new NSViewDescriptor(drawable);
+          needsSetContextPBuffer = nsViewDescr.isPBuffer;
           {
               final GLCapabilitiesImmutable targetCaps;
-              if( isFBO ) {
+              if( nsViewDescr.isFBO ) {
                   // Use minimum GLCapabilities for the target surface w/ same profile
                   targetCaps = new GLCapabilities( chosenCaps.getGLProfile() );
               } else {
@@ -651,18 +673,18 @@ public class MacOSXCGLContext extends GLContextImpl
               return 0;
           }
           final GLCapabilitiesImmutable fixedCaps;
-          if( isFBO ) {
+          if( nsViewDescr.isFBO ) {
               // pixelformat of target doesn't affect caps w/ FBO
               fixedCaps = chosenCaps;
           } else {
               final GLCapabilities _fixedCaps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(chosenCaps.getGLProfile(), pixelFormat);
-              if( !_fixedCaps.isPBuffer() && isPBuffer ) {
+              if( !_fixedCaps.isPBuffer() && nsViewDescr.isPBuffer ) {
                   throw new InternalError("handle is PBuffer, fixedCaps not: "+drawable);
               }
               // determine on-/offscreen caps, since pformat is ambiguous
-              _fixedCaps.setPBuffer( isPBuffer ); // exclusive
+              _fixedCaps.setPBuffer( nsViewDescr.isPBuffer ); // exclusive
               _fixedCaps.setBitmap( false );      // n/a in our OSX impl.
-              _fixedCaps.setOnscreen( !isFBO && !isPBuffer && !isSurfaceless );
+              _fixedCaps.setOnscreen( !nsViewDescr.isFBO && !nsViewDescr.isPBuffer && !nsViewDescr.isSurfaceless );
               fixedCaps = GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(_fixedCaps, chosenCaps.isBackgroundOpaque());
           }
           final int sRefreshRate = OSXUtil.GetScreenRefreshRate(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getIndex());
@@ -671,28 +693,25 @@ public class MacOSXCGLContext extends GLContextImpl
           }
           if(DEBUG) {
               System.err.println("NS create OSX>=lion "+isLionOrLater+", OSX>=mavericks "+isMavericksOrLater);
-              System.err.println("NS create incompleteView: "+incompleteView);
+              System.err.println("NS create drawable type: "+drawable.getClass().getName());
+              System.err.println("NS create surface type: "+surface.getClass().getName());
+              System.err.println("NS create drawable native-handle: "+toHexString(drawable.getHandle()));
+              System.err.println("NS create: "+nsViewDescr);
               System.err.println("NS create backingLayerHost: "+backingLayerHost);
               System.err.println("NS create share: "+share);
-              System.err.println("NS create drawable type: "+drawable.getClass().getName());
-              System.err.println("NS create drawable handle: isPBuffer "+isPBuffer+", isFBO "+isFBO+", isSurfaceless "+isSurfaceless);
               System.err.println("NS create pixelFormat: "+toHexString(pixelFormat));
               System.err.println("NS create chosenCaps: "+chosenCaps);
               System.err.println("NS create fixedCaps: "+fixedCaps);
-              System.err.println("NS create drawable native-handle: "+toHexString(drawable.getHandle()));
-              System.err.println("NS create drawable NSView-handle: "+toHexString(nsViewHandle));
               System.err.println("NS create screen refresh-rate: "+sRefreshRate+" hz, "+screenVSyncTimeout+" micros");
               // Thread.dumpStack();
           }
           config.setChosenCapabilities(fixedCaps);
 
-          final IntBuffer viewNotReady = Buffers.newDirectIntBuffer(1);
-          // Try to allocate a context with this
-          ctx = CGL.createContext(share, nsViewHandle, incompleteView,
-                                  pixelFormat, chosenCaps.isBackgroundOpaque(), viewNotReady);
+          // Bug 1398: Associate NSView with NSOpenGLContext in makeCurrent
+          ctx = CGL.createContext(share, pixelFormat, chosenCaps.isBackgroundOpaque());
           if (0 == ctx) {
               if(DEBUG) {
-                  System.err.println("NS create failed: viewNotReady: "+ (1 == viewNotReady.get(0)));
+                  System.err.println("NS createContext failed: share "+toHexString(share)+", pfmt "+toHexString(pixelFormat)+", opaque "+chosenCaps.isBackgroundOpaque());
               }
               return 0;
           }
@@ -710,6 +729,7 @@ public class MacOSXCGLContext extends GLContextImpl
               CGL.deletePixelFormat(pixelFormat);
               pixelFormat = 0;
           }
+          resetState();
           return CGL.deleteContext(ctx, true);
       }
 
@@ -739,7 +759,7 @@ public class MacOSXCGLContext extends GLContextImpl
           /** Synchronized by instance's monitor */
           long nsOpenGLLayer;
           /** Synchronized by instance's monitor */
-          boolean valid;
+          boolean done;
 
           AttachGLLayerCmd(final OffscreenLayerSurface ols, final long ctx, final int shaderProgram, final long pfmt, final long pbuffer, final int texID,
                            final boolean isOpaque, final int texWidth, final int texHeight, final int winWidth, final int winHeight) {
@@ -754,12 +774,12 @@ public class MacOSXCGLContext extends GLContextImpl
               this.texHeight = texHeight;
               this.winWidth = winWidth;
               this.winHeight = winHeight;
-              this.valid = false;
+              this.done = false;
               this.nsOpenGLLayer = 0;
           }
 
           public final String contentToString() {
-              return "valid "+valid+", size tex["+texWidth+"x"+texHeight+"], win["+winWidth+"x"+winHeight+"], ctx "+toHexString(ctx)+", opaque "+isOpaque+", texID "+texID+", pbuffer "+toHexString(pbuffer)+", nsOpenGLLayer "+toHexString(nsOpenGLLayer);
+              return "done "+done+", size tex["+texWidth+"x"+texHeight+"], win["+winWidth+"x"+winHeight+"], ctx "+toHexString(ctx)+", opaque "+isOpaque+", texID "+texID+", pbuffer "+toHexString(pbuffer)+", nsOpenGLLayer "+toHexString(nsOpenGLLayer);
           }
 
           @Override
@@ -770,7 +790,7 @@ public class MacOSXCGLContext extends GLContextImpl
           @Override
           public void run() {
               synchronized(this) {
-                  if( !valid ) {
+                  if( !done ) {
                       try {
                           final int maxwait = screenVSyncTimeout/2000; // TO 1/2 of current screen-vsync in [ms]
                           final RecursiveLock surfaceLock = ols.getLock();
@@ -784,7 +804,7 @@ public class MacOSXCGLContext extends GLContextImpl
                                           final int currentInterval = MacOSXCGLContext.this.getSwapInterval();
                                           final int interval = 0 <= currentInterval ? currentInterval : 1;
                                           setSwapIntervalImpl(nsOpenGLLayer, interval); // enabled per default in layered surface
-                                          valid = true;
+                                          done = true;
                                           if (DEBUG) {
                                               System.err.println("NSOpenGLLayer.Attach: OK, layer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbuffer)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", drawableHandle "+toHexString(drawable.getHandle())+" - "+getThreadName());
                                           }
@@ -799,7 +819,7 @@ public class MacOSXCGLContext extends GLContextImpl
                       } catch (final InterruptedException e) {
                           e.printStackTrace();
                       }
-                      if( !valid ) {
+                      if( !done ) {
                           // could not acquire lock, re-queue
                           if (DEBUG) {
                               System.err.println("NSOpenGLLayer.Attach: Re-Queue, drawableHandle "+toHexString(drawable.getHandle())+" - "+getThreadName());
@@ -807,10 +827,10 @@ public class MacOSXCGLContext extends GLContextImpl
                           OSXUtil.RunLater(true /* onMain */, this, 1);
                       }
                   }
+                  this.notifyAll();
               }
           }
       }
-      AttachGLLayerCmd attachGLLayerCmd = null;
 
       class DetachGLLayerCmd implements Runnable {
         final AttachGLLayerCmd cmd;
@@ -827,7 +847,7 @@ public class MacOSXCGLContext extends GLContextImpl
         @Override
         public void run() {
             synchronized( cmd ) {
-                if( cmd.valid ) {
+                if( cmd.done ) {
                     // still having a valid OLS attached to surface (parent OLS could have been removed)
                     try {
                         final OffscreenLayerSurface ols = cmd.ols;
@@ -844,10 +864,11 @@ public class MacOSXCGLContext extends GLContextImpl
                         System.err.println("NSOpenGLLayer.Detach: OK, layer "+toHexString(cmd.nsOpenGLLayer)+" - "+getThreadName());
                     }
                     cmd.nsOpenGLLayer = 0;
-                    cmd.valid = false;
+                    cmd.done = false;
                 } else if(DEBUG) {
                     System.err.println("NSOpenGLLayer.Detach: Skipped "+toHexString(cmd.nsOpenGLLayer)+" - "+getThreadName());
                 }
+                cmd.notifyAll();
             }
         }
       }
@@ -863,6 +884,7 @@ public class MacOSXCGLContext extends GLContextImpl
           }
 
           if( bound ) {
+              drawableAssociated = true;
               if( null != backingLayerHost ) {
                   final GLCapabilitiesImmutable chosenCaps;
                   final long ctx;
@@ -915,18 +937,15 @@ public class MacOSXCGLContext extends GLContextImpl
                           backingLayerHost, ctx, gl3ShaderProgramName, pixelFormat, pbufferHandle, texID,
                           chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight, winSize[0], winSize[1] );
                   if(DEBUG) {
-                      System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(true): "+attachGLLayerCmd);
+                      System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(true).calayer: "+attachGLLayerCmd);
                   }
                   OSXUtil.RunOnMainThread(false, false /* kickNSApp */, attachGLLayerCmd);
               } else { // -> null == backingLayerHost
                   lastWidth = drawable.getSurfaceWidth();
                   lastHeight = drawable.getSurfaceHeight();
-                  final boolean[] isPBuffer = { false };
-                  final boolean[] isFBO = { false };
-                  final boolean[] isSurfaceless = { false };
-                  CGL.setContextView(contextHandle, getNSViewHandle(isPBuffer, isFBO, isSurfaceless));
               }
           } else { // -> !bound
+              drawableAssociated = false;
               if( null != backingLayerHost ) {
                   final AttachGLLayerCmd cmd = attachGLLayerCmd;
                   attachGLLayerCmd = null;
@@ -937,13 +956,13 @@ public class MacOSXCGLContext extends GLContextImpl
                       CGL.setContextPBuffer(contextHandle, 0);
                   }
                   synchronized(cmd) {
-                      if( !cmd.valid ) {
-                          cmd.valid = true; // skip pending creation
+                      if( !cmd.done ) {
+                          cmd.done = true; // skip pending creation
                       } else {
                           // All CALayer lifecycle ops are deferred on main-thread
                           final DetachGLLayerCmd dCmd = new DetachGLLayerCmd(cmd);
                           if(DEBUG) {
-                              System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(false): "+dCmd+" - "+Thread.currentThread().getName());
+                              System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(false).calayer: "+dCmd+" - "+Thread.currentThread().getName());
                           }
                           OSXUtil.RunOnMainThread(false, true /* kickNSApp */, dCmd);
                           if( null != gl3ShaderProgram ) {
@@ -993,11 +1012,37 @@ public class MacOSXCGLContext extends GLContextImpl
 
       @Override
       public boolean makeCurrent(final long ctx) {
+          // Bug 1398: Perform SetNSViewCmd's on Main-Thread async w/o blocking.
+          // - Only issue SetNSViewCmd if changed (boolean nsViewChanged).
+          // - Avoid CGLLockContext until async SetNSViewCmd is done (boolean lockCGL).
+          // - See api-doc in SetNSViewCmd
+          //
+          final NSViewDescriptor nsViewDescr = new NSViewDescriptor(drawable);
+          needsSetContextPBuffer = nsViewDescr.isPBuffer;
+          final boolean nsViewChanged = null == lastNSViewDescr ||
+                                        lastNSViewDescr.nsViewHandle != nsViewDescr.nsViewHandle;
+          lastNSViewDescr = nsViewDescr;
+          if( nsViewChanged ) {
+              final SetNSViewCmd cmd = new SetNSViewCmd(ctx, nsViewDescr);
+              lastSetNSViewCmd = cmd;
+              OSXUtil.RunOnMainThread(false /* wait */, false /* kickNSApp */, cmd);
+          }
+          if( null != lastSetNSViewCmd ) {
+              synchronized( lastSetNSViewCmd ) {
+                  lockCGL = lastSetNSViewCmd.done;
+                  if( lockCGL ) {
+                      lastSetNSViewCmd = null; // no more required
+                  }
+              }
+          } else {
+              lockCGL = true;
+          }
+
           final long cglCtx = CGL.getCGLContext(ctx);
           if(0 == cglCtx) {
               throw new InternalError("Null CGLContext for: "+this);
           }
-          final int err = CGL.CGLLockContext(cglCtx);
+          final int err = lockCGL ? CGL.CGLLockContext(cglCtx) : CGL.kCGLNoError;
           if(CGL.kCGLNoError == err) {
               validatePBufferConfig(ctx); // required to handle pbuffer change ASAP
               return CGL.makeCurrentContext(ctx);
@@ -1024,9 +1069,19 @@ public class MacOSXCGLContext extends GLContextImpl
           if(0 == cglCtx) {
               throw new InternalError("Null CGLContext for: "+this);
           }
-          final int err = CGL.CGLUnlockContext(cglCtx);
+          final int err = lockCGL ? CGL.CGLUnlockContext(cglCtx) : CGL.kCGLNoError;
+          lockCGL = true;
           if(DEBUG && CGL.kCGLNoError != err) {
               System.err.println("CGL: Could not unlock context: err 0x"+Integer.toHexString(err)+": "+this);
+          }
+          if( !drawableAssociated ) {
+              lastNSViewDescr = null;
+              lastSetNSViewCmd = null;
+              OSXUtil.RunOnMainThread(true /* wait */, true /* kickNSApp */, new Runnable() {
+                  @Override
+                  public void run() {
+                      CGL.setContextView(ctx, 0);
+                  } } );
           }
           return res && CGL.kCGLNoError == err;
       }
@@ -1043,7 +1098,7 @@ public class MacOSXCGLContext extends GLContextImpl
           final AttachGLLayerCmd cmd = attachGLLayerCmd;
           if(null != cmd) {
               synchronized(cmd) {
-                  if( cmd.valid && 0 != cmd.nsOpenGLLayer) {
+                  if( cmd.done && 0 != cmd.nsOpenGLLayer) {
                       setSwapIntervalImpl(cmd.nsOpenGLLayer, interval);
                       return true;
                   }
@@ -1082,7 +1137,7 @@ public class MacOSXCGLContext extends GLContextImpl
           final AttachGLLayerCmd cmd = attachGLLayerCmd;
           if(null != cmd) {
               synchronized(cmd) {
-                  if( cmd.valid && 0 != cmd.nsOpenGLLayer) {
+                  if( cmd.done && 0 != cmd.nsOpenGLLayer) {
                       if( validateDrawableSizeConfig(contextHandle) ) {
                           // skip wait-for-vsync for a few frames if size has changed,
                           // allowing to update the texture IDs ASAP.
@@ -1169,6 +1224,62 @@ public class MacOSXCGLContext extends GLContextImpl
           return CGL.flushBuffer(contextHandle);
       }
 
+      /**
+       * Set NSOpenGLContext's NSView via [NSOpenGLContext setView:]
+       * on the main-thread as enforced since XCode 11 using SDL macosx10.15,
+       * see Bug 1398.
+       * <p>
+       * This operation must be performed async w/o blocking to allow
+       * other tasks locking the NativeSurface on main-thread to complete.
+       * </p>
+       * <p>
+       * Further, since [NSOpenGLContext setView:] acquired the CGLContext lock,
+       * it can't be locked until this task has been completed.
+       * </p>
+       * <p>
+       * Worst case scenario for a late [NSOpenGLContext setView:] issuance
+       * might be corrupt initial frame(s) displayed.
+       * </p>
+       * <p>
+       * Since all concurrent locking is performed within JOGL,
+       * the unlocked CGLContext window risk is only academic.
+       * However, if native 3rd party toolkits take share control,
+       * we might have a situation.
+       * </p>
+       */
+      class SetNSViewCmd implements Runnable {
+          final long ctx;
+          final NSViewDescriptor nsViewDescr;
+          boolean done;
+
+          SetNSViewCmd(final long ctx, final NSViewDescriptor nsViewDescr) {
+              this.ctx = ctx;
+              this.nsViewDescr = nsViewDescr;
+              this.done = false;
+          }
+
+          @Override
+          public final String toString() {
+              return "SetNSViewCmd[ctx "+toHexString(ctx)+", drawable "+toHexString(drawable.hashCode())+", "+nsViewDescr+"]";
+          }
+
+          @Override
+          public void run() {
+              synchronized(this) {
+                  try {
+                      CGL.setContextView(ctx, nsViewDescr.nsViewHandle);
+                      if (DEBUG) {
+                          System.err.println("SetNSViewCmd: OK, drawable "+toHexString(drawable.hashCode())+", "+nsViewDescr+" - "+getThreadName());
+                      }
+                  } catch (final Throwable t) {
+                      System.err.println("Caught exception on thread "+getThreadName());
+                      t.printStackTrace();
+                  }
+                  done = true;
+                  this.notifyAll();
+              }
+          }
+      }
   }
 
   class CGLImpl implements GLBackendImpl {

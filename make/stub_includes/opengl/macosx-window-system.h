@@ -30,12 +30,9 @@ NSOpenGLContext* getCurrentContext(void);
 CGLContextObj getCGLContext(NSOpenGLContext* ctx);
 NSView* getNSView(NSOpenGLContext* ctx);
 
-NSOpenGLContext* createContext(NSOpenGLContext* shareContext,
-                    NSView* nsView,
-                    Bool incompleteView,
-                    NSOpenGLPixelFormat* pixelFormat,
-                    Bool opaque,
-                    int* viewNotReady);
+NSOpenGLContext* createContext(NSOpenGLContext* share,
+                    NSOpenGLPixelFormat* fmt,
+                    Bool opaque);
 void setContextView(NSOpenGLContext* ctx, NSView* view);
 void clearDrawable(NSOpenGLContext* ctx);
 Bool  makeCurrentContext(NSOpenGLContext* ctx);

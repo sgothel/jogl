@@ -1,4 +1,24 @@
 
+/** 
+ * Interface to C language function: <br> <code>void setContextView(NSOpenGLContext *  ctx, NSView *  view)</code>
+ * <p>
+ * A GLException is thrown if this method has not been called from the NSApplication Main-Thread.<br>
+ * Bug 1398: Such pre-emptive exception aligns behavior across all OSX variations,
+ * by complying to the newly enforced [NSOpenGLContext setView:] implementation
+ * which crashes with a SIGILL signal.
+ * </p>
+ */
+public static void setContextView(long ctx, long nsView) {
+    if( 0 == ctx ) {
+        throw new IllegalArgumentException("given ctx is null");    
+    }
+    if( !OSXUtil.IsMainThread() ) {
+      throw new GLException("Not called from the NSApplication Main-Thread. Current Thread: "+Thread.currentThread());
+    }
+    setContextViewImpl(ctx, nsView);
+}
+
+
 /**
  * Creates the NSOpenGLLayer for FBO/PBuffer w/ optional GL3 shader program
  * <p>
