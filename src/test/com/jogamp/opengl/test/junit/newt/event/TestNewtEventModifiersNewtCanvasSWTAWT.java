@@ -72,7 +72,7 @@ public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifie
         final boolean[] res = { false };
         int i=0;
         do {
-            SWTAccessor.invoke(_display, true, new Runnable() {
+            SWTAccessor.invokeOnSWTThread(_display, true, new Runnable() {
                public void run() {
                    if( !_display.isDisposed() ) {
                        res[0] = _display.readAndDispatch();

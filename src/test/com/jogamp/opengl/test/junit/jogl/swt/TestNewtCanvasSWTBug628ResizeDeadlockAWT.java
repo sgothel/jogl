@@ -61,6 +61,8 @@ import com.jogamp.newt.swt.NewtCanvasSWT ;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NewtTestUtil;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -257,7 +259,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
         volatile com.jogamp.newt.Display swtNewtDisplay = null;
 
         public void init() {
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                 public void run() {
                     display = new Display();
                     Assert.assertNotNull( display );
@@ -285,7 +287,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                     composite.dispose();
                     shell.dispose();
                    }});
-                SWTAccessor.invoke(true, new Runnable() {
+                SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                    public void run() {
                     display.dispose();
                    }});
@@ -299,22 +301,6 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
             shell = null;
             composite = null;
         }
-        class WaitAction implements Runnable {
-            private final long sleepMS;
-
-            WaitAction(final long sleepMS) {
-                this.sleepMS = sleepMS;
-            }
-            public void run() {
-                if( !display.readAndDispatch() ) {
-                    // blocks on linux .. display.sleep();
-                    try {
-                        Thread.sleep(sleepMS);
-                    } catch (final InterruptedException e) { }
-                }
-            }
-        }
-        final WaitAction awtRobotWaitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
     }
 
     @Test
@@ -350,7 +336,11 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                dsc.shell.setSize( 400, 450 ) ;
                dsc.shell.open() ;
             } } );
-        Assert.assertTrue("GLWindow didn't become visible natively!", NewtTestUtil.waitForRealized(glWindow, true, dsc.awtRobotWaitAction));
+
+        final SWTTestUtil.WaitAction awtRobotWaitAction = new SWTTestUtil.WaitAction(dsc.display, true, TestUtil.TIME_SLICE);
+        final SWTTestUtil.WaitAction generalWaitAction = new SWTTestUtil.WaitAction(dsc.display, true, 10);
+
+        Assert.assertTrue("GLWindow didn't become visible natively!", NewtTestUtil.waitForRealized(glWindow, true, awtRobotWaitAction));
 
         AWTRobotUtil.requestFocus(robot, glWindow, false);
         AWTRobotUtil.setMouseToClientLocation(robot, glWindow, 50, 50);
@@ -397,15 +387,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
 
         try {
             while( !shallStop && !dsc.display.isDisposed() ) {
-                dsc.display.syncExec( new Runnable() {
-                    public void run() {
-                       if( !dsc.display.isDisposed() && !dsc.display.readAndDispatch() && !shallStop ) {
-                           // blocks on linux .. dsc.display.sleep();
-                           try {
-                               Thread.sleep(10);
-                           } catch (final InterruptedException ie) { ie.printStackTrace(); }
-                       }
-                    } } );
+                generalWaitAction.run();
             }
         } catch (final Exception e0) {
             e0.printStackTrace();

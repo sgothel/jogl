@@ -55,7 +55,9 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
@@ -84,7 +86,7 @@ public class TestParenting04SWT extends UITestCase {
 
     @Before
     public void init() {
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
@@ -114,7 +116,7 @@ public class TestParenting04SWT extends UITestCase {
         Assert.assertNotNull( composite1 );
         Assert.assertNotNull( composite2 );
         try {
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                public void run() {
                 composite1.dispose();
                 composite2.dispose();
@@ -165,7 +167,7 @@ public class TestParenting04SWT extends UITestCase {
         final NewtCanvasSWT canvas1 = NewtCanvasSWT.create( composite1, 0, glWindow1 );
         final NewtCanvasSWT canvas2 = NewtCanvasSWT.create( composite2, 0, glWindow2 );
 
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
            public void run() {
               shell1.setText( getSimpleTestName(".")+"-Win1" );
               shell1.setSize( width, height);
@@ -183,17 +185,15 @@ public class TestParenting04SWT extends UITestCase {
         anim1.start();
         anim2.start();
 
+        final SWTTestUtil.WaitAction waitAction = new SWTTestUtil.WaitAction(display, true, 16);
         int state;
         for(state=0; state<3; state++) {
             for(int i=0; i*10<durationPerTest; i++) {
-                if( !display.readAndDispatch() ) {
-                    // blocks on linux .. display.sleep();
-                    Thread.sleep(10);
-                }
+                waitAction.run();
             }
             switch(state) {
                 case 0:
-                    SWTAccessor.invoke(true, new Runnable() {
+                    SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
                        public void run() {
                            // 1 -> 2
                            if(detachFirst) {
@@ -207,7 +207,7 @@ public class TestParenting04SWT extends UITestCase {
                        } } );
                     break;
                 case 1:
-                    SWTAccessor.invoke(true, new Runnable() {
+                    SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
                        public void run() {
                            // 2 -> 1
                            if(detachFirst) {
@@ -223,8 +223,11 @@ public class TestParenting04SWT extends UITestCase {
             }
         }
 
-        canvas1.dispose();
-        canvas2.dispose();
+        SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
+            public void run() {
+                canvas1.dispose();
+                canvas2.dispose();
+            } } );
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertEquals(false, glWindow2.isNativeValid());
     }
@@ -256,18 +259,7 @@ public class TestParenting04SWT extends UITestCase {
                 durationPerTest = atoi(args[++i]);
             }
         }
-        final String tstname = TestParenting04SWT.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(TestParenting04SWT.class.getName());
     }
 
 }

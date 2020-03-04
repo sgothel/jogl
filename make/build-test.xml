@@ -37,10 +37,7 @@
         <property name="java.dir.bugs"        value="${java.dir.test}/bugs"/>
 
         <property name="test.archive.name"    value="${archive.name}-test-results-${build.node.name}"/>
-        <condition property="jvmarg.mainthrd" value="-XstartOnFirstThread"><isset property="isOSX"/></condition>
-        <condition property="jvmarg.mainthrd" value="-Ddummy"><not><isset property="isOSX"/></not></condition>
-        <condition property="jvmarg.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
-        <condition property="jvmarg.headless" value="-Djava.awt.headless=true"><not><isset property="isOSX"/></not></condition>
+        <property name="jvmarg.headless"      value="-Djava.awt.headless=true"/>
 
         <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
     </target>
@@ -353,8 +350,7 @@
 
         <!-- Test*NEWT* 
 
-             Emulation of junit task,
-             due to the fact that we have to place invoke our MainThread class first (-> MacOSX).
+             Emulation of junit task.
 
              Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
           --> 
@@ -397,11 +393,9 @@
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.headless}"/>
-                <arg line="${jvmarg.mainthrd}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 -->
-                <arg line="com.jogamp.newt.util.MainThread"/>
                 <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
                 <srcfile/>
                 <arg line="filtertrace=true"/>
@@ -655,8 +649,7 @@
     <target name="junit.run.newt.headless.singletest" depends="test.compile, junit.run.settings">
         <!-- Test*NEWT* 
 
-             Emulation of junit task,
-             due to the fact that we have to place invoke our MainThread class first (-> MacOSX).
+             Emulation of junit task.
 
              Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
           --> 
@@ -676,11 +669,9 @@
             <arg line="${jvmDataModel.arg}"/>
             <arg value="-Djava.library.path=${obj.all.paths}"/>
             <arg line="${jvmarg.headless}"/>
-            <arg line="${jvmarg.mainthrd}"/>
             <!--
             <arg line="-Dnewt.debug.EDT"/>
             -->
-            <arg line="com.jogamp.newt.util.MainThread"/>
             <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
             <!-- srcfile/ -->
             <arg line="${testclass}"/>
@@ -745,7 +736,6 @@
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.headless}"/>
-                <arg line="${jvmarg.mainthrd}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 -->
@@ -950,7 +940,6 @@ ${junit.run.arg1}\${line.separator}
 ${jvmDataModel.arg}\${line.separator}
 -cp ${junit_jogl_noawt.run.remote.jars}\${line.separator}
 ${jvmarg.headless}\${line.separator}
-com.jogamp.newt.util.MainThread\${line.separator}
 org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner \${line.separator}
 ${test.class.fqn} \${line.separator}
 filtertrace=true \${line.separator}
@@ -1061,7 +1050,6 @@ ${junit.run.arg1}\${line.separator}
 ${jvmDataModel.arg}\${line.separator}
 -cp ${junit_jogl_noawt.run.remote.jars}\${line.separator}
 ${jvmarg.headless}\${line.separator}
-com.jogamp.newt.util.MainThread\${line.separator}
 org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner \${line.separator}
 ${test.class.fqn} \${line.separator}
 filtertrace=true \${line.separator}

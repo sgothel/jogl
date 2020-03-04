@@ -40,6 +40,8 @@ import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.io.IOException;
@@ -111,7 +113,9 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
     CTabFolder tabFolder = null;
     CTabItem tabItem1 = null;
     CTabItem tabItem2 = null;
+    Composite tab1Comp = null;
     SashForm sash = null;
+    Composite sashRight = null;
 
     static PointImmutable wpos = null;
     static DimensionImmutable wsize = new Dimension(640, 480), rwsize = null;
@@ -130,6 +134,9 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
                     if( null != sash ) {
                         sash.dispose();
                     }
+                    if( null != tab1Comp ) {
+                        tab1Comp.dispose();
+                    }
                     if( null != tabFolder ) {
                         tabFolder.dispose();
                     }
@@ -141,7 +148,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
                     }
                    }});
             }
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                public void run() {
                 if( null != display ) {
                     display.dispose();
@@ -158,59 +165,53 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         tabFolder = null;
         tabItem1 = null;
         tabItem2 = null;
+        tab1Comp = null;
         sash = null;
+        sashRight = null;
     }
-
-    class WaitAction implements Runnable {
-        private final long sleepMS;
-
-        WaitAction(final long sleepMS) {
-            this.sleepMS = sleepMS;
-        }
-        public void run() {
-            if( !display.readAndDispatch() ) {
-                // blocks on linux .. display.sleep();
-                try {
-                    Thread.sleep(sleepMS);
-                } catch (final InterruptedException e) { }
-            }
-        }
-    }
-    final WaitAction waitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
-    final WaitAction generalWaitAction = new WaitAction(10);
 
     protected void runTestInLayout(final boolean focusOnTab1, final boolean useNewtCanvasSWT, final boolean addComposite, final GLCapabilitiesImmutable caps)
             throws InterruptedException
     {
-        display = new Display();
-        Assert.assertNotNull( display );
-        SWTAccessor.printInfo(System.err, display);
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
+            public void run() {
+                display = new Display();
+                Assert.assertNotNull( display );
+                SWTAccessor.printInfo(System.err, display);
+            }});
 
-        shell = new Shell( display );
-        shell.setText( getSimpleTestName(".") );
-        shell.setLayout(new FillLayout());
-        shell.setSize( wsize.getWidth(), wsize.getHeight() );
-        if( null != wpos ) {
-            shell.setLocation(wpos.getX(), wpos.getY());
-        }
+        display.syncExec(new Runnable() {
+            public void run() {
+                shell = new Shell( display );
+                Assert.assertNotNull( shell );
+                shell.setText( getSimpleTestName(".") );
+                shell.setLayout( new FillLayout() );
+                shell.setSize( wsize.getWidth(), wsize.getHeight() );
+                if( null != wpos ) {
+                    shell.setLocation(wpos.getX(), wpos.getY());
+                }
+                composite = new Composite( shell, SWT.NONE );
+                composite.setLayout( new FillLayout() );
+                Assert.assertNotNull( composite );
 
-        composite = new Composite(shell, SWT.NONE);
-        composite.setLayout(new FillLayout());
-        tabFolder = new CTabFolder(composite, SWT.TOP);
-        tabFolder.setBorderVisible(true);
-        tabFolder.setLayoutData(new FillLayout());
-        tabItem1 = new CTabItem(tabFolder, SWT.NONE, 0);
-        tabItem1.setText("PlainGL");
-        tabItem2 = new CTabItem(tabFolder, SWT.NONE, 1);
-        tabItem2.setText("SashGL");
-        final Composite tab1Comp;
-        if( addComposite ) {
-            tab1Comp = new Composite(tabFolder, SWT.NONE);
-            tab1Comp.setLayout(new FillLayout());
-            tabItem1.setControl(tab1Comp);
-        } else {
-            tab1Comp = null;
-        }
+                tabFolder = new CTabFolder(composite, SWT.TOP);
+                tabFolder.setBorderVisible(true);
+                tabFolder.setLayoutData(new FillLayout());
+                tabItem1 = new CTabItem(tabFolder, SWT.NONE, 0);
+                tabItem1.setText("PlainGL");
+                tabItem2 = new CTabItem(tabFolder, SWT.NONE, 1);
+                tabItem2.setText("SashGL");
+                if( addComposite ) {
+                    tab1Comp = new Composite(tabFolder, SWT.NONE);
+                    tab1Comp.setLayout(new FillLayout());
+                    tabItem1.setControl(tab1Comp);
+                } else {
+                    tab1Comp = null;
+                }
+            }});
+
+        final SWTTestUtil.WaitAction waitAction = new SWTTestUtil.WaitAction(display, true, TestUtil.TIME_SLICE);
+        final SWTTestUtil.WaitAction generalWaitAction = new SWTTestUtil.WaitAction(display, true, 10);
 
         final GLWindow glWindow1;
         final NewtCanvasSWT newtCanvasSWT1;
@@ -237,29 +238,32 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         Assert.assertNotNull(glad1);
         final GearsES2 demo1 = new GearsES2(1);
         glad1.addGLEventListener(demo1);
-        if( !addComposite ) {
-            tabItem1.setControl(canvas1);
-        }
 
-        sash = new SashForm(tabFolder, SWT.NONE);
-        Assert.assertNotNull( sash );
-        final Text text = new Text (sash, SWT.MULTI | SWT.BORDER);
-        text.setText("Left Sash Cell");
-        text.append(Text.DELIMITER);
-        if( useNewtCanvasSWT ) {
-            text.append("SWT running with JogAmp, JOGL and NEWT using NewtCanvasSWT");
-        } else {
-            text.append("SWT running with JogAmp and JOGL using JOGL's GLCanvas");
-        }
-        text.append(Text.DELIMITER);
-        final Composite sashRight;
-        if( addComposite ) {
-            sashRight = new Composite(sash, SWT.NONE);
-            sashRight.setLayout(new FillLayout());
-        } else {
-            sashRight = null;
-        }
-        tabItem2.setControl(sash);
+        display.syncExec(new Runnable() {
+            public void run() {
+                if( !addComposite ) {
+                    tabItem1.setControl(canvas1);
+                }
+
+                sash = new SashForm(tabFolder, SWT.NONE);
+                Assert.assertNotNull( sash );
+                final Text text = new Text (sash, SWT.MULTI | SWT.BORDER);
+                text.setText("Left Sash Cell");
+                text.append(Text.DELIMITER);
+                if( useNewtCanvasSWT ) {
+                    text.append("SWT running with JogAmp, JOGL and NEWT using NewtCanvasSWT");
+                } else {
+                    text.append("SWT running with JogAmp and JOGL using JOGL's GLCanvas");
+                }
+                text.append(Text.DELIMITER);
+                if( addComposite ) {
+                    sashRight = new Composite(sash, SWT.NONE);
+                    sashRight.setLayout(new FillLayout());
+                } else {
+                    sashRight = null;
+                }
+                tabItem2.setControl(sash);
+            } } );
 
         final Animator animator = new Animator();
         animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
@@ -302,41 +306,44 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             // we need to forward these events of interest!
             // Index 0 -> newtCanvasSWT1 ( glWindow1 )
             // Index 1 -> newtCanvasSWT2 ( glWindow2 )
-            {
-                final Listener swtListener = new Listener() {
-                    @Override
-                    public void handleEvent(final Event event) {
-                        newtCanvasSWT1.notifyListeners(event.type, event);
-                    } };
-                final Control itemControl = tabFolder.getItem(0).getControl();
-                if( itemControl != newtCanvasSWT1 ) {
-                    itemControl.addListener(SWT.Show, swtListener);
-                    itemControl.addListener(SWT.Hide, swtListener);
-                }
-            }
-            {
-                final Listener swtListener = new Listener() {
-                    @Override
-                    public void handleEvent(final Event event) {
-                        newtCanvasSWT2.notifyListeners(event.type, event);
-                    } };
-                final Control itemControl = tabFolder.getItem(1).getControl();
-                if( itemControl != newtCanvasSWT2 ) {
-                    itemControl.addListener(SWT.Show, swtListener);
-                    itemControl.addListener(SWT.Hide, swtListener);
-                }
-            }
+            display.syncExec(new Runnable() {
+                public void run() {
+                    final Listener swtListener0 = new Listener() {
+                        @Override
+                        public void handleEvent(final Event event) {
+                            newtCanvasSWT1.notifyListeners(event.type, event);
+                        } };
+                    final Control itemControl0 = tabFolder.getItem(0).getControl();
+                    if( itemControl0 != newtCanvasSWT1 ) {
+                        itemControl0.addListener(SWT.Show, swtListener0);
+                        itemControl0.addListener(SWT.Hide, swtListener0);
+                    }
+
+                    final Listener swtListener1 = new Listener() {
+                        @Override
+                        public void handleEvent(final Event event) {
+                            newtCanvasSWT2.notifyListeners(event.type, event);
+                        } };
+                    final Control itemControl1 = tabFolder.getItem(1).getControl();
+                    if( itemControl1 != newtCanvasSWT2 ) {
+                        itemControl1.addListener(SWT.Show, swtListener1);
+                        itemControl1.addListener(SWT.Hide, swtListener1);
+                    }
+                } } );
         }
 
         animator.add(glad2);
 
-        if( focusOnTab1 ) {
-            canvas1.setFocus();
-            tabFolder.setSelection(0);
-        } else {
-            canvas2.setFocus();
-            tabFolder.setSelection(1);
-        }
+        display.syncExec(new Runnable() {
+            public void run() {
+                if( focusOnTab1 ) {
+                    canvas1.setFocus();
+                    tabFolder.setSelection(0);
+                } else {
+                    canvas2.setFocus();
+                    tabFolder.setSelection(1);
+                }
+            } } );
 
         final QuitAdapter quitAdapter = new QuitAdapter();
         if( useNewtCanvasSWT ) {
@@ -405,15 +412,19 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         Assert.assertTrue(animator.isAnimating());
         animator.setUpdateFPSFrames(60, null);
 
-        shell.open(); // from here on, manipulation of SWT elements might be thread sensitive
+        display.syncExec(new Runnable() {
+            public void run() {
+                shell.open();
+            } } );
 
         Assert.assertEquals(true,  GLTestUtil.waitForRealized( focusOnTab1 ? glad1 : glad2, true, waitAction));
-        {
-            final Canvas canvas = focusOnTab1 ? canvas1 : canvas2;
-            System.err.println("Canvas pixel-units  pos/siz.0: pos "+SWTAccessor.getLocationInPixels(canvas)+", size "+SWTAccessor.getSizeInPixels(canvas));
-            System.err.println("Canvas window-units pos/siz.0: pos "+canvas.getLocation()+", size "+canvas.getSize());
-            System.err.println("Canvas LOS.0: "+canvas.toDisplay(0, 0));
-        }
+        display.syncExec(new Runnable() {
+            public void run() {
+                final Canvas canvas = focusOnTab1 ? canvas1 : canvas2;
+                System.err.println("Canvas pixel-units  pos/siz.0: pos "+SWTAccessor.getLocationInPixels(canvas)+", size "+SWTAccessor.getSizeInPixels(canvas));
+                System.err.println("Canvas window-units pos/siz.0: pos "+canvas.getLocation()+", size "+canvas.getSize());
+                System.err.println("Canvas LOS.0: "+canvas.toDisplay(0, 0));
+            } } );
         if( useNewtCanvasSWT ) {
             final GLWindow glWindow = focusOnTab1 ? glWindow1 : glWindow2;
             final NewtCanvasSWT newtCanvasSWT = focusOnTab1 ? newtCanvasSWT1 : newtCanvasSWT2;
@@ -434,15 +445,12 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             }
             display.syncExec( new Runnable() {
                public void run() {
-                  shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
-               }
-            });
-            {
-                final Canvas canvas = focusOnTab1 ? canvas1 : canvas2;
-                System.err.println("Canvas pixel-units  pos/siz.1: pos "+SWTAccessor.getLocationInPixels(canvas)+", size "+SWTAccessor.getSizeInPixels(canvas));
-                System.err.println("Canvas window-units pos/siz.1: pos "+canvas.getLocation()+", size "+canvas.getSize());
-                System.err.println("Canvas LOS.1: "+canvas.toDisplay(0, 0));
-            }
+                   shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
+                   final Canvas canvas = focusOnTab1 ? canvas1 : canvas2;
+                   System.err.println("Canvas pixel-units  pos/siz.1: pos "+SWTAccessor.getLocationInPixels(canvas)+", size "+SWTAccessor.getSizeInPixels(canvas));
+                   System.err.println("Canvas window-units pos/siz.1: pos "+canvas.getLocation()+", size "+canvas.getSize());
+                   System.err.println("Canvas LOS.1: "+canvas.toDisplay(0, 0));
+               } } );
             if( useNewtCanvasSWT ) {
                 final GLWindow glWindow = focusOnTab1 ? glWindow1 : glWindow2;
                 final NewtCanvasSWT newtCanvasSWT = focusOnTab1 ? newtCanvasSWT1 : newtCanvasSWT2;
@@ -454,19 +462,22 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
 
         if( !focusOnTab1 ) {
             final PointImmutable pSashRightClient = new Point(wsize.getWidth(), 0);
-            final PointImmutable pGLWinLOS;
+            final PointImmutable[] pGLWinLOS = { null };
             if( useNewtCanvasSWT ) {
                 final PointImmutable pNatWinLOS = newtCanvasSWT2.getNativeWindow().getLocationOnScreen(null);
-                pGLWinLOS = glWindow2.getLocationOnScreen(null);
+                pGLWinLOS[0] = glWindow2.getLocationOnScreen(null);
                 System.err.println("GLWindow2 LOS: "+pGLWinLOS);
                 System.err.println("NewtCanvasSWT2 LOS: "+pNatWinLOS);
                 Assert.assertTrue( "NewtCanvasAWT2 LOS "+pNatWinLOS+" not >= sash-right "+pSashRightClient, pNatWinLOS.compareTo(pSashRightClient) >= 0 );
             } else {
-                final org.eclipse.swt.graphics.Point los = glCanvas2.toDisplay(0, 0);
-                pGLWinLOS = new Point(los.x, los.y);
-                System.err.println("GLCanvas2 LOS: "+pGLWinLOS);
+                display.syncExec(new Runnable() {
+                    public void run() {
+                        final org.eclipse.swt.graphics.Point los = glCanvas2.toDisplay(0, 0);
+                        pGLWinLOS[0] = new Point(los.x, los.y);
+                        System.err.println("GLCanvas2 LOS: "+pGLWinLOS);
+                    } } );
             }
-            Assert.assertTrue( "GLWindow2 LOS "+pGLWinLOS+" not >= sash-right "+pSashRightClient, pGLWinLOS.compareTo(pSashRightClient) >= 0 );
+            Assert.assertTrue( "GLWindow2 LOS "+pGLWinLOS[0]+" not >= sash-right "+pSashRightClient, pGLWinLOS[0].compareTo(pSashRightClient) >= 0 );
         }
 
         while( animator.isAnimating() ) {
@@ -489,15 +500,24 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
 
         try {
             if( useNewtCanvasSWT ) {
-                newtCanvasSWT1.dispose();
+                display.syncExec( new Runnable() {
+                   public void run() {
+                       newtCanvasSWT1.dispose();
+                   } } );
                 glWindow1.destroy();
                 Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow1, false, null));
-                newtCanvasSWT2.dispose();
+                display.syncExec( new Runnable() {
+                    public void run() {
+                        newtCanvasSWT2.dispose();
+                    } } );
                 glWindow2.destroy();
                 Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow2, false, null));
             } else {
-                glCanvas1.dispose();
-                glCanvas2.dispose();
+                display.syncExec( new Runnable() {
+                    public void run() {
+                        glCanvas1.dispose();
+                        glCanvas2.dispose();
+                    } } );
             }
         }
         catch( final Throwable throwable ) {

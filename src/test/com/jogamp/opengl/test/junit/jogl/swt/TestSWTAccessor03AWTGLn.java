@@ -104,7 +104,7 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
     }
 
     protected void init() throws InterruptedException, InvocationTargetException {
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
@@ -138,7 +138,7 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
         // javax.swing.SwingUtilities.invokeAndWait( releaseAWT );
         releaseAWT.run();
 
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 composite.dispose();
                 shell.close();
@@ -182,7 +182,7 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
                 }
             });
 
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                 public void run() {
                     shell.setText( getClass().getName() );
                     shell.setSize( 640, 480 );
@@ -193,7 +193,7 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
             final long lEndTime = lStartTime + duration;
             try {
                 while( (System.currentTimeMillis() < lEndTime) && !composite.isDisposed() ) {
-                    SWTAccessor.invoke(true, new Runnable() {
+                    SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                         public void run() {
                             if( !display.readAndDispatch() ) {
                                 // blocks on linux .. display.sleep();

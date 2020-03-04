@@ -83,7 +83,7 @@ public class TestSWTAccessor01 extends UITestCase {
     }
 
     protected void init() throws InterruptedException, InvocationTargetException {
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
@@ -114,7 +114,7 @@ public class TestSWTAccessor01 extends UITestCase {
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
 
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 composite.dispose();
                 shell.close();
@@ -130,7 +130,7 @@ public class TestSWTAccessor01 extends UITestCase {
         init();
         final Canvas canvas[] = { null };
         try {
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                 public void run() {
                     canvas[0] = new Canvas (composite, SWT.NONE);
                     canvas[0].setBackground(new Color(display, 255, 255, 255));
@@ -159,7 +159,7 @@ public class TestSWTAccessor01 extends UITestCase {
             final long lEndTime = lStartTime + duration;
             try {
                 while( (System.currentTimeMillis() < lEndTime) && !composite.isDisposed() ) {
-                    SWTAccessor.invoke(true, new Runnable() {
+                    SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                         public void run() {
                             if( !display.readAndDispatch() ) {
                                 // blocks on linux .. display.sleep();
@@ -169,7 +169,7 @@ public class TestSWTAccessor01 extends UITestCase {
                             }
                         }});
                 }
-                SWTAccessor.invoke(true, new Runnable() {
+                SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                     public void run() {
                         System.err.println("Window handle.X 0x"+Long.toHexString(SWTAccessor.getWindowHandle(canvas[0])));
                     }});

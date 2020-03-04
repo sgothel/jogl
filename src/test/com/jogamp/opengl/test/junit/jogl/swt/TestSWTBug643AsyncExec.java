@@ -60,6 +60,8 @@ import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NewtTestUtil;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
@@ -171,7 +173,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         Composite composite;
 
         public void init() {
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                 public void run() {
                     display = new Display();
                     Assert.assertNotNull( display );
@@ -198,7 +200,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                     composite.dispose();
                     shell.dispose();
                    }});
-                SWTAccessor.invoke(true, new Runnable() {
+                SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                    public void run() {
                     display.dispose();
                    }});
@@ -229,7 +231,11 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                 final GearsES2 demo = new GearsES2();
                 final GLCanvas glc = GLCanvas.create(dsc.composite, 0, caps, null);
                 final SWTNewtEventFactory swtNewtEventFactory = new SWTNewtEventFactory();
-                swtNewtEventFactory.attachDispatchListener(glc, glc, demo.gearsMouse, demo.gearsKeys);
+                dsc.display.syncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        swtNewtEventFactory.attachDispatchListener(glc, glc, demo.gearsMouse, demo.gearsKeys);
+                    } } );
                 glc.addGLEventListener( demo ) ;
                 glad = glc;
                 newtDisplay = null;
@@ -296,13 +302,12 @@ public class TestSWTBug643AsyncExec extends UITestCase {
             t.start();
         }
 
+        final SWTTestUtil.WaitAction generalWaitAction = new SWTTestUtil.WaitAction(dsc.display, true, 10);
+
         try {
             final Display d = dsc.display;
             while( !shallStop && !d.isDisposed() ) {
-                if( !d.readAndDispatch() && !shallStop ) {
-                    // blocks on linux .. dsc.display.sleep();
-                    Thread.sleep(10);
-                }
+                generalWaitAction.run();
             }
         } catch (final Exception e0) {
             e0.printStackTrace();

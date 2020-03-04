@@ -31,7 +31,6 @@ spath=`dirname $0`
 unset CLASSPATH
 
 MOSX=0
-MOSX_MT=0
 uname -a | grep -i Darwin && MOSX=1
 if [ $MOSX -eq 1 ] ; then
     echo setup OSX environment vars
@@ -41,7 +40,6 @@ if [ $MOSX -eq 1 ] ; then
     echo NSZombieEnabled $NSZombieEnabled 2>&1 | tee -a java-run.log
     echo NSTraceEvents $NSTraceEvents  2>&1 | tee -a java-run.log
     echo OBJC_PRINT_EXCEPTIONS $OBJC_PRINT_EXCEPTIONS  2>&1 | tee -a java-run.log
-    MOSX_MT=1
 fi
 
 # We use TempJarCache and JAR files per default now!
@@ -111,7 +109,7 @@ function jrun() {
     #X_ARGS="--illegal-access=warn"
 
     #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext"
-    D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.OSXUtil.MainThreadChecker"
+    D_ARGS="-Dnativewindow.debug.OSXUtil.MainThreadChecker -Djogamp.common.utils.locks.Lock.timeout=600000"
     #D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
@@ -401,18 +399,6 @@ function jrun() {
     #X_ARGS="-Dnativewindow.ws.name=jogamp.newt.driver.broadcom.egl $X_ARGS"
     echo USE_BUILDDIR $USE_BUILDDIR
     echo USE_CLASSPATH $USE_CLASSPATH
-    if [ $MOSX_MT -eq 1 ] ; then
-        if [ $awton -eq 0 -a $swton -eq 0 ] ; then
-            # No AWT, No SWT -> Preserve Main-Thread
-            X_ARGS="-XstartOnFirstThread $X_ARGS"
-            C_ARG="com.jogamp.newt.util.MainThread"
-        elif [ $awton -eq 0 -a $swton -eq 1 ] ; then
-            # SWT Only: Launch on Main-Thread
-            X_ARGS="-XstartOnFirstThread $X_ARGS"
-        # elif [ $awton -eq 1 -a $swton -eq 1 ] ; then
-            # AWT and SWT -> Use AWT Main-Thread
-        fi
-    fi
     echo
     echo "Test Start: $*"
     echo
@@ -437,12 +423,10 @@ function testnoawt() {
 }
 
 function testjfx() {
-    MOSX_MT=0
     jrun  1 0 $* 2>&1 | tee -a java-run.log
 }
 
 function testawt() {
-    MOSX_MT=0
     jrun  1 0 $* 2>&1 | tee -a java-run.log
 }
 
@@ -485,7 +469,7 @@ function testawtswt() {
 #
 # HiDPI
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
@@ -793,7 +777,7 @@ function testawtswt() {
 #
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor01 $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02NewtGLWindow $*
-# testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
@@ -803,8 +787,6 @@ function testawtswt() {
 
 #
 # awtswt (testawtswt) 
-#   Per default (unit tests) all test are performed this way
-#   with OSX: -XstartOnFirstThread
 #
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn $*
@@ -961,15 +943,15 @@ function testawtswt() {
 # Always
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
-# Sometimes, might be removed
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit02AWT $*
-#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
 #
 # OSX Bug 1398 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#
+#testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
+#
 
 # Linux DRM/GBM
 #

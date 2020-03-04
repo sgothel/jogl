@@ -51,6 +51,7 @@ import jogamp.newt.Debug;
 import jogamp.newt.swt.SWTEDTUtil;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
@@ -436,9 +437,16 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
      *   <li> Remove reference to the NEWT Child</li>
      * </ul>
      * @see Window#destroy()
+     * @throws SWTException If this method is not called
+     * {@link SWTAccessor#isOnSWTThread(org.eclipse.swt.widgets.Display) from the SWT thread},
+     * an {@link SWTException} is thrown for compliance across platforms.
+     * User may utilize {@link SWTAccessor#invokeOnSWTThread(org.eclipse.swt.widgets.Display, boolean, Runnable)}.
      */
     @Override
-    public void dispose() {
+    public void dispose() throws SWTException {
+        if( !SWTAccessor.isOnSWTThread( getDisplay() ) ) {
+            throw new SWTException("Invalid thread access");
+        }
         removeListener (SWT.Paint, swtListener);
         removeListener (SWT.Move, swtListener);
         removeListener (SWT.Show, swtListener);
@@ -514,8 +522,18 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
      *       via {@link Display#setEDTUtil(EDTUtil)}.
      * </p>
      * @return the previous attached newt child.
+     *
+     * @throws SWTException If this method is not called
+     * {@link SWTAccessor#isOnSWTThread(org.eclipse.swt.widgets.Display) from the SWT thread},
+     * an {@link SWTException} is thrown for compliance across platforms.
+     * User may utilize {@link SWTAccessor#invokeOnSWTThread(org.eclipse.swt.widgets.Display, boolean, Runnable)}.
      */
-    public Window setNEWTChild(final Window newChild) {
+    public Window setNEWTChild(final Window newChild) throws SWTException {
+        if( !SWTAccessor.isOnSWTThread( getDisplay() ) ) {
+            throw new SWTException("Invalid thread access");
+        }
+
+        // if( org.eclipse.swt.widgets.Display.s)
         final Window prevChild = newtChild;
         if(DEBUG) {
             System.err.println(shortName()+".setNEWTChild.0: win "+newtWinHandleToHexString(prevChild)+" -> "+newtWinHandleToHexString(newChild));

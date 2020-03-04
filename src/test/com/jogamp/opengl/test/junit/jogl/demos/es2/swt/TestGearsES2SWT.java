@@ -36,6 +36,7 @@ import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NewtTestUtil;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
@@ -100,7 +101,7 @@ public class TestGearsES2SWT extends UITestCase {
 
     @Before
     public void init() {
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
@@ -127,7 +128,7 @@ public class TestGearsES2SWT extends UITestCase {
                 composite.dispose();
                 shell.dispose();
                }});
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                public void run() {
                 display.dispose();
                }});
@@ -173,14 +174,8 @@ public class TestGearsES2SWT extends UITestCase {
 
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
 
-        final Runnable waitAction = new Runnable() {
-            public void run() {
-                if( !display.readAndDispatch() ) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (final InterruptedException e) { }
-                }
-            } };
+        final SWTTestUtil.WaitAction waitAction = new SWTTestUtil.WaitAction(display, true, 16);
+
         Assert.assertEquals(true,  GLTestUtil.waitForRealized(canvas, true, waitAction));
 
         while(animator.isAnimating() && !canvas.isRealized() && animator.getTotalFPSDuration()<duration) {
@@ -188,14 +183,14 @@ public class TestGearsES2SWT extends UITestCase {
         }
         System.err.println("NW chosen: "+canvas.getDelegatedDrawable().getChosenGLCapabilities());
         System.err.println("GL chosen: "+canvas.getChosenGLCapabilities());
-        System.err.println("window pos/siz: "+canvas.getLocation()+" "+canvas.getSurfaceWidth()+"x"+canvas.getSurfaceHeight());
+        display.syncExec(new Runnable() {
+            public void run() {
+                System.err.println("window pos/siz: "+canvas.getLocation()+" "+canvas.getSurfaceWidth()+"x"+canvas.getSurfaceHeight());
+            } } );
 
         if( null != rwsize ) {
             for(int i=0; i<50; i++) { // 500 ms dispatched delay
-                if( !display.readAndDispatch() ) {
-                    // blocks on linux .. display.sleep();
-                    Thread.sleep(10);
-                }
+                waitAction.run();
             }
             display.syncExec( new Runnable() {
                public void run() {
@@ -206,10 +201,7 @@ public class TestGearsES2SWT extends UITestCase {
         }
 
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
-            if( !display.readAndDispatch() ) {
-                // blocks on linux .. display.sleep();
-                Thread.sleep(10);
-            }
+            waitAction.run();
         }
 
         Assert.assertEquals(exclusiveContext ? animator.getThread() : null, canvas.getExclusiveContextThread());

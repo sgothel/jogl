@@ -55,6 +55,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -80,10 +81,14 @@ public class TestParenting01aSWT extends UITestCase {
 
     @Before
     public void init() {
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
+            } } );
+
+        SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
+           public void run() {
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
                 shell.setLayout( new FillLayout() );
@@ -100,7 +105,7 @@ public class TestParenting01aSWT extends UITestCase {
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite1 );
         try {
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
                public void run() {
                 composite1.dispose();
                 shell.dispose();
@@ -137,7 +142,7 @@ public class TestParenting01aSWT extends UITestCase {
         Assert.assertEquals(false, glWindow1.isNativeValid());
         Assert.assertNull(glWindow1.getParent());
 
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
            public void run() {
               shell.setText( getSimpleTestName(".") );
               shell.setSize( 640, 480 );
@@ -148,28 +153,30 @@ public class TestParenting01aSWT extends UITestCase {
         // visible test
         Assert.assertEquals(canvas1.getNativeWindow(),glWindow1.getParent());
 
+        final SWTTestUtil.WaitAction generalWaitAction = new SWTTestUtil.WaitAction(display, true, 16);
+
         for(int i=0; i*10<durationPerTest; i++) {
-            if( !display.readAndDispatch() ) {
-                // blocks on linux .. display.sleep();
-                Thread.sleep(10);
-            }
+            generalWaitAction.run();
         }
 
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
            public void run() {
                canvas1.setVisible(false);
            }
         });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
            public void run() {
                canvas1.setVisible(true);
            }
         });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        canvas1.dispose();
+        SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
+           public void run() {
+               canvas1.dispose();
+           } } );
 
         Assert.assertEquals(false, glWindow1.isNativeValid());
     }
@@ -201,18 +208,7 @@ public class TestParenting01aSWT extends UITestCase {
                 durationPerTest = atoi(args[++i]);
             }
         }
-        final String tstname = TestParenting01aSWT.class.getName();
-        org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
-            tstname,
-            "filtertrace=true",
-            "haltOnError=false",
-            "haltOnFailure=false",
-            "showoutput=true",
-            "outputtoformatters=true",
-            "logfailedtests=true",
-            "logtestlistenerevents=true",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+        org.junit.runner.JUnitCore.main(TestParenting01aSWT.class.getName());
     }
 
 }

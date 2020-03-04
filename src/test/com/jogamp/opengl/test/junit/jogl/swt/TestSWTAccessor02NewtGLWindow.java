@@ -65,6 +65,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NewtTestUtil;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import jogamp.newt.swt.SWTEDTUtil;
@@ -92,7 +93,7 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
     Composite composite = null;
 
     protected void init() throws InterruptedException, InvocationTargetException {
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
@@ -123,7 +124,7 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
 
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 glwin.destroy();
                 composite.dispose();
@@ -208,14 +209,7 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
                     canvas[0].redraw();
                 }});
 
-            final Runnable waitAction = new Runnable() {
-                public void run() {
-                    if( !display.readAndDispatch() ) {
-                        try {
-                            Thread.sleep(10);
-                        } catch (final InterruptedException e) { }
-                    }
-                } };
+            final SWTTestUtil.WaitAction waitAction = new SWTTestUtil.WaitAction(display, true, 10);
             Assert.assertEquals(true,  NewtTestUtil.waitForVisible(glwin, true, waitAction));
             Assert.assertEquals(true,  GLTestUtil.waitForRealized(glwin, true, waitAction));
 

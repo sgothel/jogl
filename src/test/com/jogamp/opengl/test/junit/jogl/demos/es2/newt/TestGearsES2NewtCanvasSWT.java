@@ -31,6 +31,7 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.KeyAdapter;
@@ -45,8 +46,12 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NewtTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
+
+import jogamp.newt.DisplayImpl;
+
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import com.jogamp.nativewindow.util.Dimension;
@@ -109,7 +114,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
 
     @Before
     public void init() {
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
@@ -137,7 +142,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
                 composite.dispose();
                 shell.dispose();
                }});
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                public void run() {
                 display.dispose();
                }});
@@ -152,7 +157,29 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
         composite = null;
     }
 
+    private String isOSXMainThread() {
+        if( NativeWindowFactory.getNativeWindowType(true) == NativeWindowFactory.TYPE_MACOSX ) {
+            return ", isOSX-Main-Thread: " + jogamp.nativewindow.macosx.OSXUtil.IsMainThread();
+        } else {
+            return "";
+        }
+    }
     protected void runTestGL(final GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
+        System.err.println("CCC00: Run Thread: "+Thread.currentThread()+isOSXMainThread());
+        display.syncExec( new Runnable() {
+           public void run() {
+               System.err.println("CCC01: SWT Thread: "+Thread.currentThread()+isOSXMainThread());
+           }
+        });
+        {
+            final DisplayImpl d = (DisplayImpl)NewtFactory.createDisplay(null);
+            d.runOnEDTIfAvail(true, new Runnable() {
+               public void run() {
+                   System.err.println("CCC02: NEWT EDT Thread: "+Thread.currentThread()+isOSXMainThread());
+               }
+            });
+        }
+
         System.err.println("requested: vsync "+swapInterval+", "+caps);
         final com.jogamp.newt.Screen screen = NewtFactory.createScreen(swtNewtDisplay, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
@@ -223,14 +250,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
 
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
 
-        final Runnable waitAction = new Runnable() {
-            public void run() {
-                if( !display.readAndDispatch() ) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (final InterruptedException e) { }
-                }
-            } };
+        final SWTTestUtil.WaitAction waitAction = new SWTTestUtil.WaitAction(display, true, 10);
         Assert.assertEquals(true,  NewtTestUtil.waitForVisible(glWindow, true, waitAction));
         Assert.assertEquals(true,  GLTestUtil.waitForRealized(glWindow, true, waitAction));
 
@@ -260,7 +280,11 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
         Assert.assertFalse(animator.isStarted());
         Assert.assertEquals(null, glWindow.getExclusiveContextThread());
 
-        canvas1.dispose();
+        display.syncExec( new Runnable() {
+            public void run() {
+                canvas1.dispose();
+            }
+        });
         glWindow.destroy();
         Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, false, null));
     }

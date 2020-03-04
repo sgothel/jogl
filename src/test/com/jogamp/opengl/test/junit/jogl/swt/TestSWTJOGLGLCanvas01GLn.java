@@ -53,6 +53,7 @@ import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -66,7 +67,7 @@ import com.jogamp.opengl.util.texture.TextureIO;
  * independent from the already instantiated SWT visual.
  * </p>
  * <p>
- * Note that {@link SWTAccessor#invoke(boolean, Runnable)} is still used to comply w/
+ * Note that {@link SWTAccessor#invokeOnOSTKThread(boolean, Runnable)} is still used to comply w/
  * SWT running on Mac OSX, i.e. to enforce UI action on the main thread.
  * </p>
  * @author Wade Walker, et al.
@@ -91,7 +92,7 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
 
     @Before
     public void init() {
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
@@ -118,7 +119,7 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
                 composite.dispose();
                 shell.dispose();
                }});
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                public void run() {
                 display.dispose();
                }});
@@ -164,14 +165,12 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
             anim.start();
         }
 
+        final SWTTestUtil.WaitAction waitAction = new SWTTestUtil.WaitAction(display, true, 16);
         final long lStartTime = System.currentTimeMillis();
         final long lEndTime = lStartTime + duration;
         try {
             while( (System.currentTimeMillis() < lEndTime) && !canvas.isDisposed() ) {
-                if( !display.readAndDispatch() ) {
-                    // blocks on linux .. display.sleep();
-                    Thread.sleep(10);
-                }
+                waitAction.run();
             }
         } catch( final Throwable throwable ) {
             throwable.printStackTrace();

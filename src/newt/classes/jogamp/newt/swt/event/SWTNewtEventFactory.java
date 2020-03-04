@@ -30,8 +30,10 @@ package jogamp.newt.swt.event;
 
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.nativewindow.NativeSurfaceHolder;
+import com.jogamp.nativewindow.swt.SWTAccessor;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
@@ -359,14 +361,25 @@ public class SWTNewtEventFactory {
         return false;
     }
 
+    /**
+     * @throws SWTException If this method is not called
+     * {@link SWTAccessor#isOnSWTThread(org.eclipse.swt.widgets.Display) from the SWT thread},
+     * an {@link SWTException} is thrown for compliance across platforms.
+     * User may utilize {@link SWTAccessor#invokeOnSWTThread(org.eclipse.swt.widgets.Display, boolean, Runnable)}.
+     */
     public final void attachDispatchListener(final org.eclipse.swt.widgets.Control ctrl, final NativeSurfaceHolder sourceHolder,
                                              final com.jogamp.newt.event.MouseListener ml,
-                                             final com.jogamp.newt.event.KeyListener kl) {
+                                             final com.jogamp.newt.event.KeyListener kl)
+                                                     throws SWTException
+    {
       if(null==ctrl) {
           throw new IllegalArgumentException("Argument ctrl is null");
       }
       if(null==sourceHolder) {
           throw new IllegalArgumentException("Argument source is null");
+      }
+      if( !SWTAccessor.isOnSWTThread( ctrl.getDisplay() ) ) {
+          throw new SWTException("Invalid thread access");
       }
 
       if( null != ml ) {

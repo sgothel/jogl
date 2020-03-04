@@ -669,7 +669,7 @@ public class SWTAccessor {
         final long handle = getHandle(swtControl);
 
         if(null != OS_gtk_class) {
-            invoke(true, new Runnable() {
+            invokeOnOSTKThread(true, new Runnable() {
                 @Override
                 public void run() {
                     if(realize) {
@@ -744,7 +744,7 @@ public class SWTAccessor {
 
     public static long newGC(final Control swtControl, final GCData gcData) {
         final Object[] o = new Object[1];
-        invoke(true, new Runnable() {
+        invokeOnOSTKThread(true, new Runnable() {
             @Override
             public void run() {
                 o[0] = ReflectionUtil.callMethod(swtControl, swt_control_internal_new_GC, new Object[] { gcData });
@@ -758,7 +758,7 @@ public class SWTAccessor {
     }
 
     public static void disposeGC(final Control swtControl, final long gc, final GCData gcData) {
-        invoke(true, new Runnable() {
+        invokeOnOSTKThread(true, new Runnable() {
             @Override
             public void run() {
                 if(swt_uses_long_handles) {
@@ -771,7 +771,7 @@ public class SWTAccessor {
     }
 
    /**
-    * Runs the specified action in an SWT compatible thread, which is:
+    * Runs the specified action in an SWT compatible OS toolkit thread, which is:
     * <ul>
     *   <li>Mac OSX
     *   <ul>
@@ -786,10 +786,10 @@ public class SWTAccessor {
     * @see Platform#AWT_AVAILABLE
     * @see Platform#getOSType()
     */
-    public static void invoke(final boolean wait, final Runnable runnable) {
+    public static void invokeOnOSTKThread(final boolean blocking, final Runnable runnable) {
         if( isOSX ) {
             // Use SWT main thread! Only reliable config w/ -XStartOnMainThread !?
-            OSXUtil.RunOnMainThread(wait, false, runnable);
+            OSXUtil.RunOnMainThread(blocking, false, runnable);
         } else {
             runnable.run();
         }
@@ -798,18 +798,26 @@ public class SWTAccessor {
    /**
     * Runs the specified action on the SWT UI thread.
     * <p>
-    * If <code>display</code> is disposed or the current thread is the SWT UI thread
-    * {@link #invoke(boolean, Runnable)} is being used.
-    * @see #invoke(boolean, Runnable)
+    * If {@code blocking} is {@code true} implementation uses {@link org.eclipse.swt.widgets.Display#syncExec(Runnable)},
+    * otherwise  {@link org.eclipse.swt.widgets.Display#asyncExec(Runnable)}.
+    * <p>
+    * If <code>display</code> is {@code null} or disposed or the current thread is the SWT UI thread
+    * {@link #invokeOnOSTKThread(boolean, Runnable)} is being used.
+    * @see #invokeOnOSTKThread(boolean, Runnable)
     */
-    public static void invoke(final org.eclipse.swt.widgets.Display display, final boolean wait, final Runnable runnable) {
-        if( display.isDisposed() || Thread.currentThread() == display.getThread() ) {
-            invoke(wait, runnable);
-        } else if( wait ) {
+    public static void invokeOnSWTThread(final org.eclipse.swt.widgets.Display display, final boolean blocking, final Runnable runnable) {
+        if( null == display || display.isDisposed() || Thread.currentThread() == display.getThread() ) {
+            invokeOnOSTKThread(blocking, runnable);
+        } else if( blocking ) {
             display.syncExec(runnable);
         } else {
             display.asyncExec(runnable);
         }
+    }
+
+    /** Return true if the current thread is the SWT UI thread, otherwise false. */
+    public static boolean isOnSWTThread(final org.eclipse.swt.widgets.Display display) {
+        return null != display && Thread.currentThread() == display.getThread();
     }
 
     //

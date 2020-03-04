@@ -58,6 +58,8 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NewtTestUtil;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
+import com.jogamp.opengl.test.junit.util.TestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -96,7 +98,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
 
     @Before
     public void init() {
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
@@ -124,7 +126,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
                 composite.dispose();
                 shell.dispose();
                }});
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                public void run() {
                 display.dispose();
                }});
@@ -138,24 +140,6 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         shell = null;
         composite = null;
     }
-
-    class WaitAction implements Runnable {
-        private final long sleepMS;
-
-        WaitAction(final long sleepMS) {
-            this.sleepMS = sleepMS;
-        }
-        public void run() {
-            if( !display.readAndDispatch() ) {
-                // blocks on linux .. display.sleep();
-                try {
-                    Thread.sleep(sleepMS);
-                } catch (final InterruptedException e) { }
-            }
-        }
-    }
-    final WaitAction awtRobotWaitAction = new WaitAction(AWTRobotUtil.TIME_SLICE);
-    final WaitAction generalWaitAction = new WaitAction(10);
 
     protected void runTestAGL( final GLCapabilitiesImmutable caps, final GLEventListener demo,
                                final boolean postAttach, final boolean useAnimator ) throws InterruptedException {
@@ -192,8 +176,14 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         });
 
         if(postAttach) {
-            canvas1.setNEWTChild(glWindow1);
+            display.syncExec( new Runnable() {
+               public void run() {
+                   canvas1.setNEWTChild(glWindow1);
+               } } );
         }
+
+        final SWTTestUtil.WaitAction awtRobotWaitAction = new SWTTestUtil.WaitAction(display, true, TestUtil.TIME_SLICE);
+        final SWTTestUtil.WaitAction generalWaitAction = new SWTTestUtil.WaitAction(display, true, 10);
 
         Assert.assertTrue("GLWindow didn't become visible natively!", NewtTestUtil.waitForRealized(glWindow1, true, awtRobotWaitAction));
 
@@ -224,7 +214,10 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
             anim.stop();
         }
 
-        canvas1.dispose();
+        display.syncExec( new Runnable() {
+           public void run() {
+               canvas1.dispose();
+           } } );
     }
 
     @Test

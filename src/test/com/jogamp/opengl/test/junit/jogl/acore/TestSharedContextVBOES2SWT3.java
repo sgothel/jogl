@@ -40,6 +40,7 @@ import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NewtTestUtil;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
@@ -102,7 +103,7 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
 
     @Before
     public void init() {
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
@@ -145,7 +146,7 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
                 composite1.dispose();
                 shell1.dispose();
                }});
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
                public void run() {
                 display.dispose();
                }});
@@ -206,14 +207,7 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
         final long t0 = System.currentTimeMillis();
         animator.start(); // kicks off GLContext .. and hence gears of f2 + f3 completion
 
-        final Runnable waitAction = new Runnable() {
-            public void run() {
-                if( !display.readAndDispatch() ) {
-                    try {
-                        Thread.sleep(200);
-                    } catch (final InterruptedException e) { }
-                }
-            } };
+        final SWTTestUtil.WaitAction waitAction = new SWTTestUtil.WaitAction(display, true, 200);
         Assert.assertEquals(true,  GLTestUtil.waitForRealized(c1, true, waitAction));
         Assert.assertEquals(true,  GLTestUtil.waitForContextCreated(c1, true, waitAction));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));
@@ -281,14 +275,7 @@ public class TestSharedContextVBOES2SWT3 extends UITestCase {
            } } );
         a1.start();
 
-        final Runnable waitAction = new Runnable() {
-            public void run() {
-                if( !display.readAndDispatch() ) {
-                    try {
-                        Thread.sleep(200);
-                    } catch (final InterruptedException e) { }
-                }
-            } };
+        final SWTTestUtil.WaitAction waitAction = new SWTTestUtil.WaitAction(display, true, 200);
         Assert.assertEquals(true,  GLTestUtil.waitForRealized(c1, true, waitAction));
         Assert.assertEquals(true,  GLTestUtil.waitForContextCreated(c1, true, waitAction));
         Assert.assertTrue("Gears1 not initialized", g1.waitForInit(true));

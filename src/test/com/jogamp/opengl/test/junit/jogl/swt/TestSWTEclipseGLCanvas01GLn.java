@@ -57,6 +57,7 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
+import com.jogamp.opengl.test.junit.util.SWTTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -77,6 +78,9 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
     Display display = null;
     Shell shell = null;
     Composite composite = null;
+    GLCanvas glcanvas = null;
+    volatile boolean triangleSet = false;
+
 
     @BeforeClass
     public static void startup() {
@@ -85,10 +89,14 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
 
     @Before
     public void init() {
-        SWTAccessor.invoke(true, new Runnable() {
+        triangleSet = false;
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
+            } } );
+        SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
+            public void run() {
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
                 shell.setLayout( new FillLayout() );
@@ -104,8 +112,11 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
         try {
-            SWTAccessor.invoke(true, new Runnable() {
+            SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
                public void run() {
+                if( null != glcanvas ) {
+                    glcanvas.dispose();
+                }
                 composite.dispose();
                 shell.dispose();
                 display.dispose();
@@ -118,64 +129,82 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
         display = null;
         shell = null;
         composite = null;
+        glcanvas = null;
     }
 
     protected void runTestAGL( final GLProfile glprofile ) throws InterruptedException {
-        final GLData gldata = new GLData();
-        gldata.doubleBuffer = true;
-        // need SWT.NO_BACKGROUND to prevent SWT from clearing the window
-        // at the wrong times (we use glClear for this instead)
-        final GLCanvas glcanvas = new GLCanvas( composite, SWT.NO_BACKGROUND, gldata );
-        Assert.assertNotNull( glcanvas );
-        glcanvas.setCurrent();
-        final GLContext glcontext = GLDrawableFactory.getFactory( glprofile ).createExternalGLContext();
-        Assert.assertNotNull( glcontext );
+        final GLContext glcontext[] = { null };
 
-        // fix the viewport when the user resizes the window
-        glcanvas.addListener( SWT.Resize, new Listener() {
-            public void handleEvent( final Event event ) {
-                final Rectangle rectangle = glcanvas.getClientArea();
+        SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
+            public void run() {
+                shell.setText( getClass().getName() );
+                shell.setSize( 640, 480 );
+                shell.open();
+
+                final GLData gldata = new GLData();
+                gldata.doubleBuffer = true;
+
+                // need SWT.NO_BACKGROUND to prevent SWT from clearing the window
+                // at the wrong times (we use glClear for this instead)
+                glcanvas = new GLCanvas( composite, SWT.NO_BACKGROUND, gldata );
+                Assert.assertNotNull( glcanvas );
+
                 glcanvas.setCurrent();
-                glcontext.makeCurrent();
-                final GL2ES1 gl = glcontext.getGL().getGL2ES1();
-                OneTriangle.setup( gl, rectangle.width, rectangle.height );
-                glcontext.release();
-                System.err.println("resize");
-            }
-        });
+                glcontext[0] = GLDrawableFactory.getFactory( glprofile ).createExternalGLContext();
+                Assert.assertNotNull( glcontext[0] );
 
-        // draw the triangle when the OS tells us that any part of the window needs drawing
-        glcanvas.addPaintListener( new PaintListener() {
-            public void paintControl( final PaintEvent paintevent ) {
-                final Rectangle rectangle = glcanvas.getClientArea();
-                glcanvas.setCurrent();
-                glcontext.makeCurrent();
-                final GL2ES1 gl = glcontext.getGL().getGL2ES1();
-                OneTriangle.render( gl, rectangle.width, rectangle.height );
-                glcanvas.swapBuffers();
-                glcontext.release();
-                System.err.println("paint");
-            }
-        });
+                // fix the viewport when the user resizes the window
+                glcanvas.addListener( SWT.Resize, new Listener() {
+                    public void handleEvent( final Event event ) {
+                        final Rectangle rectangle = glcanvas.getClientArea();
+                        glcanvas.setCurrent();
+                        glcontext[0].makeCurrent();
+                        final GL2ES1 gl = glcontext[0].getGL().getGL2ES1();
+                        OneTriangle.setup( gl, rectangle.width, rectangle.height );
+                        triangleSet = true;
+                        glcontext[0].release();
+                        System.err.println("resize");
+                    }
+                });
 
-        shell.setText( getClass().getName() );
-        shell.setSize( 640, 480 );
-        shell.open();
+                // draw the triangle when the OS tells us that any part of the window needs drawing
+                glcanvas.addPaintListener( new PaintListener() {
+                    public void paintControl( final PaintEvent paintevent ) {
+                        final Rectangle rectangle = glcanvas.getClientArea();
+                        glcanvas.setCurrent();
+                        glcontext[0].makeCurrent();
+                        final GL2ES1 gl = glcontext[0].getGL().getGL2ES1();
+                        if( !triangleSet ) {
+                            OneTriangle.setup( gl, rectangle.width, rectangle.height );
+                            triangleSet = true;
+                        }
+                        OneTriangle.render( gl, rectangle.width, rectangle.height );
+                        glcanvas.swapBuffers();
+                        glcontext[0].release();
+                        System.err.println("paint");
+                    }
+                });
+            } } );
+
+        final SWTTestUtil.WaitAction generalWaitAction = new SWTTestUtil.WaitAction(display, true, 16);
 
         final long lStartTime = System.currentTimeMillis();
         final long lEndTime = lStartTime + duration;
         try {
             while( (System.currentTimeMillis() < lEndTime) && !glcanvas.isDisposed() ) {
-                if( !display.readAndDispatch() ) {
-                    // blocks on linux .. display.sleep();
-                    Thread.sleep(10);
-                }
+                SWTAccessor.invokeOnSWTThread(display, true, new Runnable() {
+                    public void run() {
+                        if( !triangleSet ) {
+                            glcanvas.setSize( 640, 480 );
+                        }
+                        // glcanvas.redraw();
+                    } } );
+                generalWaitAction.run();
             }
         } catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        glcanvas.dispose();
     }
 
     @Test
