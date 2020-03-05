@@ -29,6 +29,7 @@
 package com.jogamp.newt.javafx;
 
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.Capabilities;
@@ -96,6 +97,7 @@ public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowC
     private volatile boolean postSetPos = false; // pending pos
 
     private final EventHandler<javafx.stage.WindowEvent> windowClosingListener = new EventHandler<javafx.stage.WindowEvent>() {
+        @Override
         public final void handle(final javafx.stage.WindowEvent e) {
             if( DEBUG ) {
                 System.err.println("NewtCanvasJFX.Event.DISPOSE, "+e+", closeOp "+closingMode);
@@ -108,6 +110,7 @@ public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowC
             }
         } };
     private final EventHandler<javafx.stage.WindowEvent> windowShownListener = new EventHandler<javafx.stage.WindowEvent>() {
+        @Override
         public final void handle(final javafx.stage.WindowEvent e) {
             if( DEBUG ) {
                 System.err.println("NewtCanvasJFX.Event.SHOWN, "+e);
@@ -528,6 +531,9 @@ public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowC
             this.nativeWindowHandle = nativeWindowHandle;
             this.insets = new Insets(0, 0, 0, 0);
         }
+
+        @Override
+        public RecursiveLock getLock() { return null; }
 
         @Override
         public int lockSurface() throws NativeWindowException, RuntimeException {

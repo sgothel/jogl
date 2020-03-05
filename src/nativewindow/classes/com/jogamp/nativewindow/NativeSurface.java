@@ -28,6 +28,8 @@
 
 package com.jogamp.nativewindow;
 
+import com.jogamp.common.util.locks.RecursiveLock;
+
 /**
  * Provides low-level information required for
  * hardware-accelerated rendering using a surface in a platform-independent manner.
@@ -54,6 +56,23 @@ public interface NativeSurface extends SurfaceUpdatedListener {
 
   /** Returned by {@link #lockSurface()} if the surface is locked, and is unchanged, {@value}. */
   public static final int LOCK_SUCCESS = 3;
+
+
+  /**
+   * Returns the implementation's {@link RecursiveLock} synchronizing multithreaded access
+   * if used. Otherwise {@code null} is being returned.
+   * <p>
+   * {@link NativeSurface}'s {@link RecursiveLock} is only exposed to resolve special
+   * situations within the implementation and its usage is not advised if not absolutely necessary.
+   * </p>
+   * <p>
+   * Note that certain {@link NativeSurface} implementations only use the {@link RecursiveLock}
+   * as an upfront re-entrance lock vehicle, but actually acquire and release
+   * the underlying windowing toolkit's lock facility on the first or last re-entrance lock,
+   * respectively.
+   * </p>
+   */
+  public RecursiveLock getLock();
 
   /**
    * Lock the surface of this native window.

@@ -28,6 +28,7 @@
 
 package com.jogamp.newt.swt;
 
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
@@ -625,6 +626,9 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
                 this.insets = new Insets(0, 0, 0, 0);
             }
         }
+
+        @Override
+        public RecursiveLock getLock() { return null; }
 
         @Override
         public int lockSurface() throws NativeWindowException, RuntimeException {

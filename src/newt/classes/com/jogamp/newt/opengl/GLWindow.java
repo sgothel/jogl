@@ -971,6 +971,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     //
 
     @Override
+    public RecursiveLock getLock() {
+        return window.getLock();
+    }
+
+    @Override
     public final int lockSurface() throws NativeWindowException, RuntimeException {
         return window.lockSurface();
     }
