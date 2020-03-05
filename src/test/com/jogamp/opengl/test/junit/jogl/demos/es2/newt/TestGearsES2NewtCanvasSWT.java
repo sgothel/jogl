@@ -115,11 +115,13 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
     @Before
     public void init() {
         SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
+            @Override
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
             }});
         display.syncExec(new Runnable() {
+            @Override
             public void run() {
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
@@ -138,14 +140,16 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
         Assert.assertNotNull( composite );
         try {
             display.syncExec(new Runnable() {
-               public void run() {
-                composite.dispose();
-                shell.dispose();
-               }});
+                @Override
+                public void run() {
+                    composite.dispose();
+                    shell.dispose();
+                }});
             SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
-               public void run() {
-                display.dispose();
-               }});
+                @Override
+                public void run() {
+                    display.dispose();
+                }});
         }
         catch( final Throwable throwable ) {
             throwable.printStackTrace();
@@ -167,17 +171,18 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
     protected void runTestGL(final GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
         System.err.println("CCC00: Run Thread: "+Thread.currentThread()+isOSXMainThread());
         display.syncExec( new Runnable() {
-           public void run() {
-               System.err.println("CCC01: SWT Thread: "+Thread.currentThread()+isOSXMainThread());
-           }
-        });
+           @Override
+            public void run() {
+                   System.err.println("CCC01: SWT Thread: "+Thread.currentThread()+isOSXMainThread());
+            } } );
         {
             final DisplayImpl d = (DisplayImpl)NewtFactory.createDisplay(null);
             d.runOnEDTIfAvail(true, new Runnable() {
-               public void run() {
-                   System.err.println("CCC02: NEWT EDT Thread: "+Thread.currentThread()+isOSXMainThread());
-               }
-            });
+               @Override
+                public void run() {
+                       System.err.println("CCC02: NEWT EDT Thread: "+Thread.currentThread()+isOSXMainThread());
+                   }
+                });
         }
 
         System.err.println("requested: vsync "+swapInterval+", "+caps);
@@ -199,21 +204,25 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
         glWindow.addWindowListener(quitAdapter);
 
         glWindow.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowResized(final WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
+            @Override
             public void windowMoved(final WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
         });
 
         glWindow.addKeyListener(new KeyAdapter() {
+            @Override
             public void keyReleased(final KeyEvent e) {
                 if( !e.isPrintableKey() || e.isAutoRepeat() ) {
                     return;
                 }
                 if(e.getKeyChar()=='f') {
                     glWindow.invokeOnNewThread(null, false, new Runnable() {
+                        @Override
                         public void run() {
                             System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setFullscreen(!glWindow.isFullscreen());
@@ -238,15 +247,15 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
         Assert.assertNotNull( canvas1 );
 
         display.syncExec( new Runnable() {
-           public void run() {
-              shell.setText( getSimpleTestName(".") );
-              shell.setSize( wsize.getWidth(), wsize.getHeight() );
-              if( null != wpos ) {
-                  shell.setLocation( wpos.getX(), wpos.getY() );
-              }
-              shell.open();
-           }
-        });
+            @Override
+            public void run() {
+                shell.setText( getSimpleTestName(".") );
+                shell.setSize( wsize.getWidth(), wsize.getHeight() );
+                if( null != wpos ) {
+                    shell.setLocation( wpos.getX(), wpos.getY() );
+                }
+                shell.open();
+            } } );
 
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
 
@@ -263,10 +272,10 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
                 waitAction.run();
             }
             display.syncExec( new Runnable() {
-               public void run() {
-                  shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
-               }
-            });
+                @Override
+                public void run() {
+                    shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
+                } } );
             System.err.println("window resize pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
         }
 
@@ -281,6 +290,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
         Assert.assertEquals(null, glWindow.getExclusiveContextThread());
 
         display.syncExec( new Runnable() {
+            @Override
             public void run() {
                 canvas1.dispose();
             }

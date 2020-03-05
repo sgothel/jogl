@@ -67,7 +67,11 @@ public class GLSLMiscHelper {
         }
     }
 
-    public static void displayVCArrays(final GLDrawable drawable, final GL2ES2 gl, final ShaderState st, final boolean preEnable, final GLArrayDataServer vertices, final GLArrayDataServer colors, final boolean postDisable, final int num, final long postDelay) throws InterruptedException {
+    public static void displayVCArrays(final GLDrawable drawable, final GL2ES2 gl, final ShaderState st,
+            final boolean preEnable, final GLArrayDataServer vertices, final GLArrayDataServer colors,
+            final boolean postDisable, final int num, final long postDelay)
+                    throws InterruptedException
+    {
         System.err.println("screen #"+num);
         if(preEnable) {
             vertices.enableBuffer(gl, true);
