@@ -543,6 +543,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         void clearButton() {
             lastButtonPressTime = 0;
         }
+        @Override
         public String toString() { return "PState0[inside "+insideSurface+", exitSent "+exitSent+", lastPress "+lastButtonPressTime+", dragging "+dragging+"]"; }
     }
     private final PointerState0 pState0 = new PointerState0();
@@ -577,6 +578,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
             return null;
         }
+        @Override
         public final String toString() { return "PState1[inside "+insideSurface+", exitSent "+exitSent+", lastPress "+lastButtonPressTime+
                             ", pressed [button "+buttonPressed+", mask "+buttonPressedMask+", dragging "+dragging+", clickCount "+lastButtonClickCount+"]"; }
     }
@@ -1115,6 +1117,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return windowLock.getOwner();
     }
 
+    @Override
     public final RecursiveLock getLock() {
         return windowLock;
     }
@@ -2487,6 +2490,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if( this.pointerIcon != piImpl ) {
             if( isNativeValid() ) {
                 runOnEDTIfAvail(true, new Runnable() {
+                    @Override
                     public void run() {
                         setPointerIconIntern(piImpl);
                     } } );
