@@ -61,6 +61,7 @@ import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.nativewindow.macosx.OSXUtil;
+import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
@@ -93,6 +94,7 @@ public class MacOSXCGLContext extends GLContextImpl
         void associateDrawable(boolean bound);
         boolean copyImpl(long src, int mask);
         boolean makeCurrent(long ctx);
+        void contextMadeCurrent(final boolean current);
         boolean release(long ctx);
         boolean detachPBuffer();
         boolean setSwapInterval(int interval);
@@ -102,12 +104,14 @@ public class MacOSXCGLContext extends GLContextImpl
   /* package */ static final boolean isTigerOrLater;
   /* package */ static final boolean isLionOrLater;
   /* package */ static final boolean isMavericksOrLater;
+  private static final boolean DEBUG1398;
 
   static {
     final VersionNumber osvn = Platform.getOSVersionNumber();
     isTigerOrLater = osvn.compareTo(Platform.OSXVersion.Tiger) >= 0;
     isLionOrLater = osvn.compareTo(Platform.OSXVersion.Lion) >= 0;
     isMavericksOrLater = osvn.compareTo(Platform.OSXVersion.Mavericks) >= 0;
+    DEBUG1398 = DEBUG || Debug.debug("Bug1398");
   }
 
   static boolean isGLProfileSupported(final int ctp, final int major, final int minor) {
@@ -326,6 +330,12 @@ public class MacOSXCGLContext extends GLContextImpl
       throw new GLException("Error making Context current: "+this);
     }
     drawableUpdatedNotify();
+  }
+
+  @Override
+  protected void contextMadeCurrent(final boolean current) {
+      impl.contextMadeCurrent(current);
+      super.contextMadeCurrent(current);
   }
 
   @Override
@@ -622,7 +632,7 @@ public class MacOSXCGLContext extends GLContextImpl
       private AttachGLLayerCmd attachGLLayerCmd;
       private NSViewDescriptor lastNSViewDescr; // Bug 1398
       private SetNSViewCmd lastSetNSViewCmd; // Bug 1398
-      private boolean lockCGL; // Bug 1398
+      private boolean cglContextLocked; // Bug 1398
 
       NSOpenGLImpl() { resetState(); }
 
@@ -638,7 +648,7 @@ public class MacOSXCGLContext extends GLContextImpl
           attachGLLayerCmd = null;
           lastNSViewDescr = null;
           lastSetNSViewCmd = null;
-          lockCGL = true;
+          cglContextLocked = false;
       }
 
       @Override
@@ -1012,10 +1022,11 @@ public class MacOSXCGLContext extends GLContextImpl
 
       @Override
       public boolean makeCurrent(final long ctx) {
-          // Bug 1398: Perform SetNSViewCmd's on Main-Thread async w/o blocking.
+          // Bug 1398: Perform SetNSViewCmd's on Main-Thread w/o blocking other tasks
           // - Only issue SetNSViewCmd if changed (boolean nsViewChanged).
-          // - Avoid CGLLockContext until async SetNSViewCmd is done (boolean lockCGL).
-          // - See api-doc in SetNSViewCmd
+          // - Skip CGLLockContext if SetNSViewCmd is pending (bool lockCGLContext -> cglContextLocked).
+          // - Potentially skipped CGLLockContext gets cured in contextMadeCurrent(true) below
+          // - See SetNSViewCmd API-doc
           //
           final NSViewDescriptor nsViewDescr = new NSViewDescriptor(drawable);
           needsSetContextPBuffer = nsViewDescr.isPBuffer;
@@ -1027,29 +1038,81 @@ public class MacOSXCGLContext extends GLContextImpl
               lastSetNSViewCmd = cmd;
               OSXUtil.RunOnMainThread(false /* wait */, false /* kickNSApp */, cmd);
           }
+          final boolean lockCGLContext;
           if( null != lastSetNSViewCmd ) {
               synchronized( lastSetNSViewCmd ) {
-                  lockCGL = lastSetNSViewCmd.done;
-                  if( lockCGL ) {
+                  lockCGLContext = lastSetNSViewCmd.done;
+                  if( lockCGLContext ) {
                       lastSetNSViewCmd = null; // no more required
+                  } else if( DEBUG1398 ) {
+                      System.err.println("MaxOSXCGLContext.NSOpenGLImpl.makeCurrent: Skip CGLLockContext (Bug1398)");
                   }
               }
           } else {
-              lockCGL = true;
+              lockCGLContext = true;
           }
 
           final long cglCtx = CGL.getCGLContext(ctx);
           if(0 == cglCtx) {
               throw new InternalError("Null CGLContext for: "+this);
           }
-          final int err = lockCGL ? CGL.CGLLockContext(cglCtx) : CGL.kCGLNoError;
+          final int err = lockCGLContext ? CGL.CGLLockContext(cglCtx) : CGL.kCGLNoError;
           if(CGL.kCGLNoError == err) {
+              cglContextLocked = lockCGLContext;
               validatePBufferConfig(ctx); // required to handle pbuffer change ASAP
               return CGL.makeCurrentContext(ctx);
-          } else if(DEBUG) {
-              System.err.println("NSGL: Could not lock context: err 0x"+Integer.toHexString(err)+": "+this);
+          } else {
+              cglContextLocked = false;
+              if(DEBUG) {
+                  System.err.println("MaxOSXCGLContext.NSOpenGLImpl.makeCurrent: Could not lock context: err 0x"+Integer.toHexString(err)+": "+this);
+              }
           }
           return false;
+      }
+
+      boolean insideContextMadeCurrent = false; // ensure no recursion occurs
+
+      @Override
+      public void contextMadeCurrent(final boolean current) {
+          if( current && !insideContextMadeCurrent && !cglContextLocked ) {
+              // Bug 1398: Cure missing CGLContextLock by context release/makeCurrent cycle outside context acquisition code,
+              // only for user makeCurrent calls, not createContext*() only.
+              // See SetNSViewCmd API-doc.
+              insideContextMadeCurrent = true;
+              try {
+                  final RecursiveLock surfaceLock = drawable.getNativeSurface().getLock();
+                  final int surfaceLockCount = null != surfaceLock ? surfaceLock.getHoldCount() : 1;
+
+                  if(DEBUG1398) {
+                      System.err.println("MaxOSXCGLContext.NSOpenGLImpl.contextMadeCurrent: Cure missing CGLContextLock (Bug1398), surfaceLock "+surfaceLock);
+                  }
+                  // Reduce lock-count so context.release()'s surface.unlockSurface() will actually release the lock
+                  for(int i=1; i<surfaceLockCount; i++) {
+                      surfaceLock.unlock();
+                  }
+                  MacOSXCGLContext.this.release(); // implies final surface.unlockSurface();
+
+                  if( null != lastSetNSViewCmd ) {
+                      synchronized( lastSetNSViewCmd ) {
+                          while( !lastSetNSViewCmd.done ) {
+                              try {
+                                  if(DEBUG1398) {
+                                      System.err.println("MaxOSXCGLContext.NSOpenGLImpl.contextMadeCurrent: Wait for SetNSViewCmd (Bug1398), surfaceLock "+surfaceLock);
+                                  }
+                                  lastSetNSViewCmd.wait();
+                              } catch (final InterruptedException e) { }
+                          }
+                      }
+                  }
+                  MacOSXCGLContext.this.makeCurrent();
+                  // Repair original lock-count
+                  for(int i=1; i<surfaceLockCount; i++) {
+                      surfaceLock.lock();
+                  }
+              } finally {
+                  insideContextMadeCurrent = false;
+              }
+          }
       }
 
       @Override
@@ -1069,8 +1132,8 @@ public class MacOSXCGLContext extends GLContextImpl
           if(0 == cglCtx) {
               throw new InternalError("Null CGLContext for: "+this);
           }
-          final int err = lockCGL ? CGL.CGLUnlockContext(cglCtx) : CGL.kCGLNoError;
-          lockCGL = true;
+          final int err = cglContextLocked ? CGL.CGLUnlockContext(cglCtx) : CGL.kCGLNoError;
+          cglContextLocked = false;
           if(DEBUG && CGL.kCGLNoError != err) {
               System.err.println("CGL: Could not unlock context: err 0x"+Integer.toHexString(err)+": "+this);
           }
@@ -1225,26 +1288,40 @@ public class MacOSXCGLContext extends GLContextImpl
       }
 
       /**
-       * Set NSOpenGLContext's NSView via [NSOpenGLContext setView:]
-       * on the main-thread as enforced since XCode 11 using SDL macosx10.15,
+       * Command sets NSOpenGLContext's NSView via [NSOpenGLContext setView:]
+       * on the main-thread as enforced since XCode 11 using SDK macosx10.15,
        * see Bug 1398.
        * <p>
-       * This operation must be performed async w/o blocking to allow
-       * other tasks locking the NativeSurface on main-thread to complete.
+       * This command is injected into OSX's main-thread @ {@link NSOpenGLImpl#makeCurrent(long)}
+       * only if required, i.e. issued only for a newly bound NSView and
+       * skipped for surface-less or offscreen 'surfaces'.
        * </p>
        * <p>
-       * Further, since [NSOpenGLContext setView:] acquired the CGLContext lock,
-       * it can't be locked until this task has been completed.
+       * This operation must be performed w/o blocking
+       * other tasks locking the {@link NativeSurface} on main-thread to complete.
        * </p>
        * <p>
-       * Worst case scenario for a late [NSOpenGLContext setView:] issuance
-       * might be corrupt initial frame(s) displayed.
+       * Since [NSOpenGLContext setView:] acquires the CGLContext lock on the main-thread,
+       * it can't be locked by the calling thread until this task has been completed.
+       * <br>
+       * Command issuer {@link NSOpenGLImpl#makeCurrent(long)} will not acquire the CGLContext lock
+       * if this command is pending.
        * </p>
        * <p>
-       * Since all concurrent locking is performed within JOGL,
-       * the unlocked CGLContext window risk is only academic.
-       * However, if native 3rd party toolkits take share control,
-       * we might have a situation.
+       * {@link NSOpenGLImpl#contextMadeCurrent(boolean) contextMadeCurrent(true)} cures the potential unlocked CGLContext
+       * by issuing a whole {@link GLContext#release()} and {@link GLContext#makeCurrent()} cycle
+       * while waiting for this command to be completed in-between.
+       * <br>
+       * This {@link GLContext} cycle also ensures an unlocked {@link NativeSurface#getLock()}
+       * in-between, allowing potentially blocked other tasks on the main-thread to complete
+       * and hence this queued command to execute.
+       * </p>
+       * <p>
+       * Notable test provoking critical multithreading issues is
+       * {@link com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT}.
+       * <br>
+       * Notable test exposing issues with an unlocked CGLContext is
+       * {@link com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT}.
        * </p>
        */
       class SetNSViewCmd implements Runnable {
@@ -1367,6 +1444,10 @@ public class MacOSXCGLContext extends GLContextImpl
               System.err.println("CGL: Could not lock context: err 0x"+Integer.toHexString(err)+": "+this);
           }
           return false;
+      }
+
+      @Override
+      public void contextMadeCurrent(final boolean current) {
       }
 
       @Override

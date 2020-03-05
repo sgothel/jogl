@@ -967,9 +967,12 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
 #
 # OSX Bug 1398 
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
+#
+# to re-test:
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
 
 # Linux DRM/GBM
 #
