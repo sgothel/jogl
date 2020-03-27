@@ -40,6 +40,7 @@
 
 package jogamp.opengl.macosx.cgl;
 
+import java.awt.EventQueue;
 import java.nio.IntBuffer;
 import java.util.Map;
 
@@ -111,7 +112,7 @@ public class MacOSXCGLContext extends GLContextImpl
     isTigerOrLater = osvn.compareTo(Platform.OSXVersion.Tiger) >= 0;
     isLionOrLater = osvn.compareTo(Platform.OSXVersion.Lion) >= 0;
     isMavericksOrLater = osvn.compareTo(Platform.OSXVersion.Mavericks) >= 0;
-    DEBUG1398 = DEBUG || Debug.debug("Bug1398");
+    DEBUG1398 = Debug.debug("Bug1398");
   }
 
   static boolean isGLProfileSupported(final int ctp, final int major, final int minor) {
@@ -702,11 +703,11 @@ public class MacOSXCGLContext extends GLContextImpl
               screenVSyncTimeout = 1000000 / sRefreshRate;
           }
           if(DEBUG) {
-              System.err.println("NS create OSX>=lion "+isLionOrLater+", OSX>=mavericks "+isMavericksOrLater);
+              System.err.println("NS create OSX>=lion "+isLionOrLater+", OSX>=mavericks "+isMavericksOrLater+" - isAWTEDT "+EventQueue.isDispatchThread()+", "+Thread.currentThread());
               System.err.println("NS create drawable type: "+drawable.getClass().getName());
               System.err.println("NS create surface type: "+surface.getClass().getName());
               System.err.println("NS create drawable native-handle: "+toHexString(drawable.getHandle()));
-              System.err.println("NS create: "+nsViewDescr);
+              System.err.println("NS create NSViewDescriptor: "+nsViewDescr);
               System.err.println("NS create backingLayerHost: "+backingLayerHost);
               System.err.println("NS create share: "+share);
               System.err.println("NS create pixelFormat: "+toHexString(pixelFormat));
@@ -1030,9 +1031,19 @@ public class MacOSXCGLContext extends GLContextImpl
           //
           final NSViewDescriptor nsViewDescr = new NSViewDescriptor(drawable);
           needsSetContextPBuffer = nsViewDescr.isPBuffer;
-          final boolean nsViewChanged = null == lastNSViewDescr ||
-                                        lastNSViewDescr.nsViewHandle != nsViewDescr.nsViewHandle;
+          final boolean nsViewChanged = null == lastNSViewDescr && 0 != nsViewDescr.nsViewHandle || /** only if initial nsView is onscreen */
+                                        null != lastNSViewDescr && lastNSViewDescr.nsViewHandle != nsViewDescr.nsViewHandle; /** if nsView has changed */
+
+          if( DEBUG1398 ) {
+              if(!insideContextMadeCurrent) {
+                  System.err.println();
+              }
+              System.err.println("MaxOSXCGLContext.makeCurrent Bug1398: recursive "+insideContextMadeCurrent+", nsViewChanged "+nsViewChanged+", isAWTEDT "+EventQueue.isDispatchThread()+", "+Thread.currentThread());
+              System.err.println("  NSViewDescriptor: last "+lastNSViewDescr);
+              System.err.println("  NSViewDescriptor: curr "+nsViewDescr);
+          }
           lastNSViewDescr = nsViewDescr;
+
           if( nsViewChanged ) {
               final SetNSViewCmd cmd = new SetNSViewCmd(ctx, nsViewDescr);
               lastSetNSViewCmd = cmd;
@@ -1043,9 +1054,9 @@ public class MacOSXCGLContext extends GLContextImpl
               synchronized( lastSetNSViewCmd ) {
                   lockCGLContext = lastSetNSViewCmd.done;
                   if( lockCGLContext ) {
-                      lastSetNSViewCmd = null; // no more required
+                      lastSetNSViewCmd = null; // done, no more required
                   } else if( DEBUG1398 ) {
-                      System.err.println("MaxOSXCGLContext.NSOpenGLImpl.makeCurrent: Skip CGLLockContext (Bug1398)");
+                      System.err.println("MaxOSXCGLContext.makeCurrent Bug1398: Skip CGLLockContext, "+Thread.currentThread());
                   }
               }
           } else {
@@ -1064,27 +1075,32 @@ public class MacOSXCGLContext extends GLContextImpl
           } else {
               cglContextLocked = false;
               if(DEBUG) {
-                  System.err.println("MaxOSXCGLContext.NSOpenGLImpl.makeCurrent: Could not lock context: err 0x"+Integer.toHexString(err)+": "+this);
+                  System.err.println("MaxOSXCGLContext.makeCurrent: Could not lock context: err 0x"+Integer.toHexString(err)+": "+this);
               }
+              return false;
           }
-          return false;
       }
 
       boolean insideContextMadeCurrent = false; // ensure no recursion occurs
 
       @Override
       public void contextMadeCurrent(final boolean current) {
-          if( current && !insideContextMadeCurrent && !cglContextLocked ) {
+          if( current && !insideContextMadeCurrent && !cglContextLocked && !EventQueue.isDispatchThread() ) {
               // Bug 1398: Cure missing CGLContextLock by context release/makeCurrent cycle outside context acquisition code,
               // only for user makeCurrent calls, not createContext*() only.
               // See SetNSViewCmd API-doc.
+              //
+              // Notice: We can't block on AWTEDT until SetNSViewCmd is done on AppKit,
+              // as there is a feedback flush loop AppKit -> AWTEDT in the AWT-AppKit code.
+              // See sun.lwawt.macosx.CPlatformWindow.flushBuffers(CPlatformWindow.java:957) and TestBug1398Deadlock02AWT
               insideContextMadeCurrent = true;
               try {
                   final RecursiveLock surfaceLock = drawable.getNativeSurface().getLock();
                   final int surfaceLockCount = null != surfaceLock ? surfaceLock.getHoldCount() : 1;
 
                   if(DEBUG1398) {
-                      System.err.println("MaxOSXCGLContext.NSOpenGLImpl.contextMadeCurrent: Cure missing CGLContextLock (Bug1398), surfaceLock "+surfaceLock);
+                      System.err.println("MaxOSXCGLContext.contextMadeCurrent.0 Bug1398: Cure missing CGLContextLock, "+Thread.currentThread());
+                      System.err.println("  SurfaceLock: "+surfaceLock);
                   }
                   // Reduce lock-count so context.release()'s surface.unlockSurface() will actually release the lock
                   for(int i=1; i<surfaceLockCount; i++) {
@@ -1092,19 +1108,24 @@ public class MacOSXCGLContext extends GLContextImpl
                   }
                   MacOSXCGLContext.this.release(); // implies final surface.unlockSurface();
 
-                  if( null != lastSetNSViewCmd ) {
-                      synchronized( lastSetNSViewCmd ) {
-                          while( !lastSetNSViewCmd.done ) {
+                  final SetNSViewCmd _lastSetNSViewCmd = lastSetNSViewCmd;
+                  if( null != _lastSetNSViewCmd ) {
+                      synchronized( _lastSetNSViewCmd ) {
+                          final long t0 = Platform.currentTimeMillis();
+                          long t1 = t0;
+                          while( !_lastSetNSViewCmd.done && SetNSViewCmd.Timeout > t1-t0 ) {
                               try {
-                                  if(DEBUG1398) {
-                                      System.err.println("MaxOSXCGLContext.NSOpenGLImpl.contextMadeCurrent: Wait for SetNSViewCmd (Bug1398), surfaceLock "+surfaceLock);
-                                  }
-                                  lastSetNSViewCmd.wait();
+                                  _lastSetNSViewCmd.wait(SetNSViewCmd.Timeout); // last resort avoiding deadlock via timeout
                               } catch (final InterruptedException e) { }
+                              t1 = Platform.currentTimeMillis();
                           }
+                          if(DEBUG1398) {
+                              System.err.println("MaxOSXCGLContext.contextMadeCurrent.1 Bug1398: SetNSViewCmd[waited "+(t1-t0)+"ms, done "+_lastSetNSViewCmd.done+"], surfaceLock "+surfaceLock);
+                          }
+                          lastSetNSViewCmd = null; // if !done due to timeout, avoid another !cglContextLocked and hence SetNSViewCmd issuance
                       }
                   }
-                  MacOSXCGLContext.this.makeCurrent();
+                  MacOSXCGLContext.this.makeCurrent(); // makes current again w/ cglContextLocked
                   // Repair original lock-count
                   for(int i=1; i<surfaceLockCount; i++) {
                       surfaceLock.lock();
@@ -1125,6 +1146,12 @@ public class MacOSXCGLContext extends GLContextImpl
               if(DEBUG) {
                   System.err.println("MacOSXCGLContext.NSOpenGLImpl.release: INFO: glFlush() caught exception:");
                   gle.printStackTrace();
+              }
+          }
+          if( DEBUG1398 ) {
+              System.err.println("MaxOSXCGLContext.release Bug1398: recursive "+insideContextMadeCurrent+", cglContextLocked "+cglContextLocked+", isAWTEDT "+EventQueue.isDispatchThread()+", "+Thread.currentThread());
+              if(!insideContextMadeCurrent) {
+                  System.err.println();
               }
           }
           final boolean res = CGL.clearCurrentContext(ctx);
@@ -1325,6 +1352,9 @@ public class MacOSXCGLContext extends GLContextImpl
        * </p>
        */
       class SetNSViewCmd implements Runnable {
+          /** 500ms ~30 frames @ 60hz timeout */
+          static final long Timeout = 500;
+
           final long ctx;
           final NSViewDescriptor nsViewDescr;
           boolean done;
@@ -1343,17 +1373,19 @@ public class MacOSXCGLContext extends GLContextImpl
           @Override
           public void run() {
               synchronized(this) {
-                  try {
-                      CGL.setContextView(ctx, nsViewDescr.nsViewHandle);
-                      if (DEBUG) {
-                          System.err.println("SetNSViewCmd: OK, drawable "+toHexString(drawable.hashCode())+", "+nsViewDescr+" - "+getThreadName());
+                  if( !done ) {
+                      try {
+                          CGL.setContextView(ctx, nsViewDescr.nsViewHandle);
+                          if (DEBUG1398) {
+                              System.err.println("MaxOSXCGLContext.SetNSViewCmd Bug1398: OK, drawable "+toHexString(drawable.hashCode())+", "+nsViewDescr+" - "+getThreadName());
+                          }
+                      } catch (final Throwable t) {
+                          System.err.println("Caught exception on thread "+getThreadName());
+                          t.printStackTrace();
                       }
-                  } catch (final Throwable t) {
-                      System.err.println("Caught exception on thread "+getThreadName());
-                      t.printStackTrace();
+                      done = true;
+                      this.notifyAll();
                   }
-                  done = true;
-                  this.notifyAll();
               }
           }
       }
