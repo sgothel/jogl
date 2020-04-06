@@ -109,7 +109,7 @@ function jrun() {
     #X_ARGS="--illegal-access=warn"
 
     #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext"
-    D_ARGS="-Dnativewindow.debug.OSXUtil.MainThreadChecker -Djogamp.common.utils.locks.Lock.timeout=600000"
+    #D_ARGS="-Dnativewindow.debug.OSXUtil.MainThreadChecker -Djogamp.common.utils.locks.Lock.timeout=600000"
     #D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
@@ -122,6 +122,7 @@ function jrun() {
     #D_ARGS="-Djogl.quirks.force=NoDoubleBufferedPBuffer" 
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000"
+    D_ARGS="-Djogl.debug.Bug1398"
 
     #D_ARGS="-Djogamp.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
@@ -946,7 +947,9 @@ function testawtswt() {
 #
 # OSX Bug 1398 
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
+testawt com.jogamp.opengl.test.junit.jogl.acore.TestBug1398Deadlock02AWT $*
+
 #
 # to re-test:
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
