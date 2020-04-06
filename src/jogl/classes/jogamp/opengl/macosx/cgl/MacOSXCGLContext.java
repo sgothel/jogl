@@ -40,7 +40,6 @@
 
 package jogamp.opengl.macosx.cgl;
 
-import java.awt.EventQueue;
 import java.nio.IntBuffer;
 import java.util.Map;
 
@@ -617,6 +616,14 @@ public class MacOSXCGLContext extends GLContextImpl
       }
   }
 
+  private static final boolean isAWTEventDispatchThread() {
+      if( NativeWindowFactory.isAWTAvailable() ) {
+          return java.awt.EventQueue.isDispatchThread();
+      } else {
+          return false;
+      }
+  }
+
   // NSOpenGLContext-based implementation
   class NSOpenGLImpl implements GLBackendImpl {
       private OffscreenLayerSurface backingLayerHost;
@@ -703,7 +710,7 @@ public class MacOSXCGLContext extends GLContextImpl
               screenVSyncTimeout = 1000000 / sRefreshRate;
           }
           if(DEBUG) {
-              System.err.println("NS create OSX>=lion "+isLionOrLater+", OSX>=mavericks "+isMavericksOrLater+" - isAWTEDT "+EventQueue.isDispatchThread()+", "+Thread.currentThread());
+              System.err.println("NS create OSX>=lion "+isLionOrLater+", OSX>=mavericks "+isMavericksOrLater+" - isAWTEDT "+isAWTEventDispatchThread()+", "+Thread.currentThread());
               System.err.println("NS create drawable type: "+drawable.getClass().getName());
               System.err.println("NS create surface type: "+surface.getClass().getName());
               System.err.println("NS create drawable native-handle: "+toHexString(drawable.getHandle()));
@@ -1038,7 +1045,7 @@ public class MacOSXCGLContext extends GLContextImpl
               if(!insideContextMadeCurrent) {
                   System.err.println();
               }
-              System.err.println("MaxOSXCGLContext.makeCurrent Bug1398: recursive "+insideContextMadeCurrent+", nsViewChanged "+nsViewChanged+", isAWTEDT "+EventQueue.isDispatchThread()+", "+Thread.currentThread());
+              System.err.println("MaxOSXCGLContext.makeCurrent Bug1398: recursive "+insideContextMadeCurrent+", nsViewChanged "+nsViewChanged+", isAWTEDT "+isAWTEventDispatchThread()+", "+Thread.currentThread());
               System.err.println("  NSViewDescriptor: last "+lastNSViewDescr);
               System.err.println("  NSViewDescriptor: curr "+nsViewDescr);
           }
@@ -1085,7 +1092,7 @@ public class MacOSXCGLContext extends GLContextImpl
 
       @Override
       public void contextMadeCurrent(final boolean current) {
-          if( current && !insideContextMadeCurrent && !cglContextLocked && !EventQueue.isDispatchThread() ) {
+          if( current && !insideContextMadeCurrent && !cglContextLocked && !isAWTEventDispatchThread() ) {
               // Bug 1398: Cure missing CGLContextLock by context release/makeCurrent cycle outside context acquisition code,
               // only for user makeCurrent calls, not createContext*() only.
               // See SetNSViewCmd API-doc.
@@ -1149,7 +1156,7 @@ public class MacOSXCGLContext extends GLContextImpl
               }
           }
           if( DEBUG1398 ) {
-              System.err.println("MaxOSXCGLContext.release Bug1398: recursive "+insideContextMadeCurrent+", cglContextLocked "+cglContextLocked+", isAWTEDT "+EventQueue.isDispatchThread()+", "+Thread.currentThread());
+              System.err.println("MaxOSXCGLContext.release Bug1398: recursive "+insideContextMadeCurrent+", cglContextLocked "+cglContextLocked+", isAWTEDT "+isAWTEventDispatchThread()+", "+Thread.currentThread());
               if(!insideContextMadeCurrent) {
                   System.err.println();
               }
