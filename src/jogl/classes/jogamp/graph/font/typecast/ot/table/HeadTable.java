@@ -65,6 +65,8 @@ import jogamp.graph.font.typecast.ot.LongDateTime;
  * Glyphs with no contours should be ignored for the purposes of these
  * calculations.
  * 
+ * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/head"
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class HeadTable implements Table {
@@ -73,51 +75,118 @@ public class HeadTable implements Table {
      * @see #getMagicNumber()
      */
     public static final int MAGIC = 0x5F0F3CF5;
+    
+    /**
+     * @see #getMajorVersion()
+     */
+    public static final int MAJOR_VERSION = 1;
 
+    /**
+     * @see #getMinorVersion()
+     */
+    public static final int MINOR_VERSION = 0;
+    
     /**
      * @see #getGlyphDataFormat()
      */
     public static final short GLYPH_DATA_FORMAT = 0;
 
-    private int _versionNumber;
+    /**
+     * @see #getMajorVersion()
+     */
+    private int _majorVersion = MAJOR_VERSION;
     
+    /**
+     * @see #getMinorVersion()
+     */
+    private int _minorVersion = MINOR_VERSION;
+    
+    /**
+     * @see #getFontRevision()
+     */
     private int _fontRevision;
     
+    /**
+     * @see #getCheckSumAdjustment()
+     */
     private int _checkSumAdjustment;
     
+    /**
+     * @see #getMagicNumber()
+     */
     private int _magicNumber = MAGIC;
     
+    /**
+     * @see #getFlags()
+     */
     private short _flags;
     
+    /**
+     * @see #getUnitsPerEm()
+     */
     private short _unitsPerEm;
     
+    /**
+     * @see #getCreated()
+     */
     private long _created;
     
+    /**
+     * @see #getModified()
+     */
     private long _modified;
     
+    /**
+     * @see #getXMin()
+     */
     private short _xMin;
     
+    /**
+     * @see #getYMin()
+     */
     private short _yMin;
     
+    /**
+     * @see #getXMax()
+     */
     private short _xMax;
     
+    /**
+     * @see #getYMax()
+     */
     private short _yMax;
     
+    /**
+     * @see #getMacStyle()
+     */
     private short _macStyle;
     
+    /**
+     * @see #getLowestRecPPEM()
+     */
     private short _lowestRecPPEM;
     
+    /**
+     * @see #getFontDirectionHint()
+     */
     private short _fontDirectionHint;
     
+    /**
+     * @see #getIndexToLocFormat()
+     */
     private short _indexToLocFormat;
     
+    /**
+     * @see #getGlyphDataFormat()
+     */
     private short _glyphDataFormat = GLYPH_DATA_FORMAT;
 
     /**
      * Creates a {@link HeadTable} from binary encoding.
      */
     public HeadTable(DataInput di) throws IOException {
-        _versionNumber = di.readInt();
+        _majorVersion = di.readUnsignedShort();
+        _minorVersion = di.readUnsignedShort();
         _fontRevision = di.readInt();
         _checkSumAdjustment = di.readInt();
         _magicNumber = di.readInt();
@@ -140,13 +209,36 @@ public class HeadTable implements Table {
     public int getType() {
         return head;
     }
+    
+    /**
+     * uint16     majorVersion     Major version number of the font header table — set to {@link #MAJOR_VERSION}.
+     */
+    public int getMajorVersion() {
+        return _majorVersion;
+    }
+    
+    /**
+     * uint16     minorVersion     Minor version number of the font header table — set to {@link #MINOR_VERSION}.
+     */
+    public int getMinorVersion() {
+        return _minorVersion;
+    }
 
     /**
-     * uint16     majorVersion     Major version number of the font header table — set to 1.
-     * uint16     minorVersion     Minor version number of the font header table — set to 0.
+     * Composed version number from {@link #getMajorVersion()} and {@link #getMinorVersion()}.
      */
     public int getVersionNumber() {
-        return _versionNumber;
+        return _majorVersion << 16 | _minorVersion;
+    }
+    
+    /**
+     * Printable version number.
+     * 
+     * @see #getMajorVersion()
+     * @see #getMinorVersion()
+     */
+    public String getVersion() {
+        return _majorVersion + "." + _minorVersion;
     }
 
     public long getCreated() {
@@ -160,9 +252,11 @@ public class HeadTable implements Table {
     /**
      * Fixed Set by font manufacturer.
      * 
+     * <p>
      * For historical reasons, the fontRevision value contained in this table is
      * not used by Windows to determine the version of a font. Instead, Windows
      * evaluates the version string (ID 5) in the 'name' table.
+     * </p>
      */
     public int getFontRevision(){
         return _fontRevision;
@@ -407,7 +501,7 @@ public class HeadTable implements Table {
     @Override
     public String toString() {
         return "'head' Table - Font Header\n--------------------------" +
-                "\n  'head' version:      " + Fixed.floatValue(_versionNumber) +
+                "\n  'head' version:      " + getVersion() +
                 "\n  fontRevision:        " + Fixed.roundedFloatValue(_fontRevision, 8) +
                 "\n  checkSumAdjustment:  0x" + Integer.toHexString(_checkSumAdjustment).toUpperCase() +
                 "\n  magicNumber:         0x" + Integer.toHexString(_magicNumber).toUpperCase() +
