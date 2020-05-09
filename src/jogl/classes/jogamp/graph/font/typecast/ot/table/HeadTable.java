@@ -53,6 +53,7 @@ package jogamp.graph.font.typecast.ot.table;
 import java.io.DataInput;
 import java.io.IOException;
 
+import jogamp.graph.font.typecast.ot.Bits;
 import jogamp.graph.font.typecast.ot.Fixed;
 import jogamp.graph.font.typecast.ot.LongDateTime;
 
@@ -91,6 +92,36 @@ public class HeadTable implements Table {
      */
     public static final short GLYPH_DATA_FORMAT = 0;
 
+    /**
+     * 0: Fully mixed directional glyphs;
+     * @see #getFontDirectionHint()
+     */
+    public static final short FONT_DIRECTION_MIXED = 0;
+    
+    /**
+     * 1: Only strongly left to right;
+     * @see #getFontDirectionHint()
+     */
+    public static final short FONT_DIRECTION_LEFT_TO_RIGHT = 1;
+
+    /**
+     * 2: Like 1 but also contains neutrals;
+     * @see #getFontDirectionHint()
+     */
+    public static final short FONT_DIRECTION_LEFT_TO_RIGHT_AND_NEUTRAL = 2;
+
+    /**
+     * -1: Only strongly right to left;
+     * @see #getFontDirectionHint()
+     */
+    public static final short FONT_DIRECTION_RIGHT_TO_LEFT = -1;
+    
+    /**
+     * -2: Like -1 but also contains neutrals.
+     * @see #getFontDirectionHint()
+     */
+    public static final short FONT_DIRECTION_RIGHT_TO_LEFT_AND_NEUTRAL = -2;
+    
     /**
      * @see #getMajorVersion()
      */
@@ -169,7 +200,7 @@ public class HeadTable implements Table {
     /**
      * @see #getFontDirectionHint()
      */
-    private short _fontDirectionHint;
+    private short _fontDirectionHint = FONT_DIRECTION_LEFT_TO_RIGHT_AND_NEUTRAL;
     
     /**
      * @see #getIndexToLocFormat()
@@ -412,6 +443,8 @@ public class HeadTable implements Table {
     /**
      * uint16
      * 
+     * Contains information concerning the nature of the font patterns.
+     * 
      * Bit 0: Bold (if set to 1);
      * 
      * Bit 1: Italic (if set to 1)
@@ -428,15 +461,76 @@ public class HeadTable implements Table {
      * 
      * Bits 7–15: Reserved (set to 0).
      * 
-     * Note that the macStyle bits must agree with the OS/2 table fsSelection
-     * bits. The fsSelection bits are used over the macStyle bits in Microsoft
-     * Windows. The PANOSE values and 'post' table values are ignored for
-     * determining bold or italic fonts.
+     * Note that the macStyle bits must agree with the OS/2 table
+     * {@link Os2Table#getSelection() fsSelection} bits. The fsSelection bits
+     * are used over the macStyle bits in Microsoft Windows. The PANOSE values
+     * and 'post' table values are ignored for determining bold or italic fonts.
      */
     public short getMacStyle() {
         return _macStyle;
     }
+    
+    /**
+     * Whether the glyphs are emboldened.
+     * 
+     * @see #getMacStyle()
+     */
+    public boolean isMacBold() {
+        return Bits.bit(_macStyle, 0);
+    }
 
+    /**
+     * Font contains italic or oblique glyphs, otherwise they are upright.
+     * 
+     * @see #getMacStyle()
+     */
+    public boolean isMacItalic() {
+        return Bits.bit(_macStyle, 1);
+    }
+    
+    /**
+     * Glyphs are underscored.
+     * 
+     * @see #getMacStyle()
+     */
+    public boolean isMacUnderline() {
+        return Bits.bit(_macStyle, 2);
+    }
+    
+    /**
+     * Outline (hollow) glyphs, otherwise they are solid.
+     * 
+     * @see #getMacStyle()
+     */
+    public boolean isMacOutline() {
+        return Bits.bit(_macStyle, 3);
+    }
+    
+    /**
+     * Whether the font has shadow.
+     * 
+     * @see #getMacStyle()
+     */
+    public boolean isMacShadow() {
+        return Bits.bit(_macStyle, 4);
+    }
+    
+    /**
+     * Whether the font is condensed.
+     * 
+     * @see #getMacStyle()
+     */
+    public boolean isMacCondensed() {
+        return Bits.bit(_macStyle, 5);
+    }
+    
+    /**
+     * @see #getMacStyle()
+     */
+    public boolean isMacExtended() {
+        return Bits.bit(_macStyle, 6);
+    }
+    
     /**
      * uint16     
      * 
@@ -449,17 +543,7 @@ public class HeadTable implements Table {
     /**
      * int16
      * 
-     * Deprecated (Set to 2).
-     * 
-     * 0: Fully mixed directional glyphs;
-     * 
-     * 1: Only strongly left to right;
-     * 
-     * 2: Like 1 but also contains neutrals;
-     * 
-     * -1: Only strongly right to left;
-     * 
-     * -2: Like -1 but also contains neutrals.
+     * Deprecated (Set to {@link #FONT_DIRECTION_LEFT_TO_RIGHT_AND_NEUTRAL}).
      * 
      * (A neutral character has no inherent directionality; it is not a
      * character with zero (0) width. Spaces and punctuation are examples of
@@ -468,6 +552,12 @@ public class HeadTable implements Table {
      * letters (right-to-left) have directionality. In a “normal” Roman font
      * where spaces and punctuation are present, the font direction hints should
      * be set to two (2).)
+     * 
+     * @see #FONT_DIRECTION_MIXED
+     * @see #FONT_DIRECTION_LEFT_TO_RIGHT
+     * @see #FONT_DIRECTION_LEFT_TO_RIGHT_AND_NEUTRAL
+     * @see #FONT_DIRECTION_RIGHT_TO_LEFT
+     * @see #FONT_DIRECTION_RIGHT_TO_LEFT_AND_NEUTRAL
      */
     public short getFontDirectionHint() {
         return _fontDirectionHint;
