@@ -92,10 +92,8 @@ public class TableDirectory {
         }
 
         String getTagAsString() {
-            return String.valueOf((char) ((_tag >> 24) & 0xff)) +
-                    (char) ((_tag >> 16) & 0xff) +
-                    (char) ((_tag >> 8) & 0xff) +
-                    (char) ((_tag) & 0xff);
+            int tag = _tag;
+            return TableDirectory.toStringTag(tag);
         }
 
         @Override
@@ -173,5 +171,28 @@ public class TableDirectory {
             sb.append("  ").append(Fmt.pad(2, i)).append(": ").append(_entries[i].toString()).append("\n");
         }
         return sb.toString();
+    }
+
+    /**
+     * Converts a {@link Table} tag back to {@link String}.
+     */
+    public static String toStringTag(int tag) {
+        return String.valueOf(
+            (char) ((tag >> 24) & 0xff)) +
+            (char) ((tag >> 16) & 0xff) +
+            (char) ((tag >> 8) & 0xff) +
+            (char) (tag & 0xff);
+    }
+
+    /**
+     * Converts a {@link Table} tag {@link String} to an ID.
+     */
+    public static int fromStringTag(String tag) {
+        assert tag.length() == 4;
+        return 
+            ((tag.charAt(0) & 0xFF) << 24) |
+            ((tag.charAt(1) & 0xFF) << 16) |
+            ((tag.charAt(2) & 0xFF) << 8) |
+            (tag.charAt(3) & 0xff);
     }
 }
