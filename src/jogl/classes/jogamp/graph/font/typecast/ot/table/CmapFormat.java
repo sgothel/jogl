@@ -23,6 +23,8 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
+ * Entry in the {@link CmapTable}.
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public abstract class CmapFormat {
@@ -64,8 +66,20 @@ public abstract class CmapFormat {
         }
     }
 
+    /**
+     * The format version.
+     * 
+     * @see CmapFormat0
+     * @see CmapFormat2
+     * @see CmapFormat4
+     * @see CmapFormat6
+     * @see CmapFormat12
+     */
     protected abstract int getFormat();
 
+    /**
+     * The length in bytes of the subtable.
+     */
     public abstract int getLength();
 
     protected abstract int getLanguage();
@@ -75,6 +89,12 @@ public abstract class CmapFormat {
     public abstract Range getRange(int index)
         throws ArrayIndexOutOfBoundsException;
 
+    /**
+     * Maps the given character to the index of the glyph to use for this
+     * character.
+     * 
+     * @see GlyfTable#getDescription(int)
+     */
     public abstract int mapCharCode(int charCode);
     
     @Override

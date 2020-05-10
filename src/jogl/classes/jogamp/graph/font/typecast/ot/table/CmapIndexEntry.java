@@ -54,13 +54,35 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
+ * Encoding record.
+ * 
+ * <p>
+ * The array of encoding records specifies particular encodings and the offset
+ * to the subtable for each encoding.
+ * </p>
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class CmapIndexEntry implements Comparable<CmapIndexEntry> {
 
+    /**
+     * @see #getPlatformId()
+     */
     private int _platformId;
+
+    /**
+     * @see #getEncodingId()
+     */
     private int _encodingId;
+
+    /**
+     * @see #getOffset()
+     */
     private int _offset;
+    
+    /**
+     * @see #getFormat()
+     */
     private CmapFormat _format;
 
     CmapIndexEntry(DataInput di) throws IOException {
@@ -69,14 +91,43 @@ public class CmapIndexEntry implements Comparable<CmapIndexEntry> {
         _offset = di.readInt();
     }
 
+    /**
+     * uint16
+     * 
+     * Platform ID.
+     * 
+     * <p>
+     * Complete details on platform IDs and platform-specific encoding and
+     * language IDs are provided in the {@link NameTable}.
+     * </p>
+     * 
+     * @see xxxx
+     */
     public int getPlatformId() {
         return _platformId;
     }
 
+    /**
+     * uint16
+     * 
+     * Platform-specific encoding ID.
+     * 
+     * <p>
+     * The platform ID and platform-specific encoding ID in the encoding record
+     * are used to specify a particular character encoding. In the case of the
+     * Macintosh platform, a language field within the mapping subtable is also
+     * used for this purpose.
+     * </p>
+     */
     public int getEncodingId() {
         return _encodingId;
     }
 
+    /**
+     * Offset32
+     * 
+     * Byte offset from beginning of table to the subtable for this encoding.
+     */
     public int getOffset() {
         return _offset;
     }

@@ -23,6 +23,9 @@ import java.io.IOException;
 
 /**
  * Format 6: Trimmed table mapping
+ * 
+ * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/cmap#format-6-trimmed-table-mapping"
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class CmapFormat6 extends CmapFormat {

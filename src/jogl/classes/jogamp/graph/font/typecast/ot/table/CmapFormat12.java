@@ -21,6 +21,21 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
+ * Format 12: Segmented coverage
+ * 
+ * <p>
+ * This is the standard character-to-glyph-index mapping table for the Windows
+ * platform for fonts supporting Unicode supplementary-plane characters (U+10000
+ * to U+10FFFF).
+ * </p>
+ * 
+ * <p>
+ * Format 12 is similar to {@link CmapFormat4 format 4} in that it defines
+ * segments for sparse representation. It differs, however, in that it uses
+ * 32-bit character codes.
+ * </p>
+ * 
+ * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/cmap#format-12-segmented-coverage"
  *
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */

@@ -55,21 +55,81 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
+ * Character to Glyph Index Mapping Table
+ * 
+ * <p>
+ * This table defines the mapping of character codes to the glyph index values
+ * used in the font. It may contain more than one subtable, in order to support
+ * more than one character encoding scheme.
+ * </p>
+ * 
+ * <h2>Overview</h2>
+ * 
+ * <p>
+ * This table defines mapping of character codes to a default glyph index.
+ * Different subtables may be defined that each contain mappings for different
+ * character encoding schemes. The table header indicates the character
+ * encodings for which subtables are present.
+ * </p>
+ * 
+ * <p>
+ * Regardless of the encoding scheme, character codes that do not correspond to
+ * any glyph in the font should be mapped to glyph index 0. The glyph at this
+ * location must be a special glyph representing a missing character, commonly
+ * known as .notdef.
+ * </p>
+ * 
+ * <p>
+ * Each subtable is in one of seven possible formats and begins with a format
+ * field indicating the format used. The first four formats — formats 0, 2, 4
+ * and 6 — were originally defined prior to Unicode 2.0. These formats allow for
+ * 8-bit single-byte, 8-bit multi-byte, and 16-bit encodings. With the
+ * introduction of supplementary planes in Unicode 2.0, the Unicode addressable
+ * code space extends beyond 16 bits. To accommodate this, three additional
+ * formats were added — formats 8, 10 and 12 — that allow for 32-bit encoding
+ * schemes.
+ * </p>
+ * 
+ * <p>
+ * Other enhancements in Unicode led to the addition of other subtable formats.
+ * Subtable format 13 allows for an efficient mapping of many characters to a
+ * single glyph; this is useful for “last-resort” fonts that provide fallback
+ * rendering for all possible Unicode characters with a distinct fallback glyph
+ * for different Unicode ranges. Subtable format 14 provides a unified mechanism
+ * for supporting Unicode variation sequences.
+ * </p>
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class CmapTable implements Table {
 
-    private int _version;
+    /**
+     * @see #getVersion()
+     */
+    public static final int VERSION = 0x0000;
+    
+    private int _version = VERSION;
     private int _numTables;
     private CmapIndexEntry[] _entries;
 
+    /**
+     * Creates a {@link CmapTable}.
+     *
+     * @param di The reader to read from.
+     */
     public CmapTable(DataInput di) throws IOException {
         _version = di.readUnsignedShort();
         _numTables = di.readUnsignedShort();
         long bytesRead = 4;
-        _entries = new CmapIndexEntry[_numTables];
-
+        
         // Get each of the index entries
+        
+        // Note: The encoding record entries in the 'cmap' header must be sorted
+        // first by platform ID, then by platform-specific encoding ID, and then
+        // by the language field in the corresponding subtable. Each platform
+        // ID, platform-specific encoding ID, and subtable language combination
+        // may appear only once in the 'cmap' table.
+        _entries = new CmapIndexEntry[_numTables];
         for (int i = 0; i < _numTables; i++) {
             _entries[i] = new CmapIndexEntry(di);
             bytesRead += 8;
@@ -79,7 +139,7 @@ public class CmapTable implements Table {
         Arrays.sort(_entries);
 
         // Get each of the tables
-        int lastOffset = 0;
+        int lastOffset = -1;
         CmapFormat lastFormat = null;
         for (int i = 0; i < _numTables; i++) {
             if (_entries[i].getOffset() == lastOffset) {
@@ -107,10 +167,23 @@ public class CmapTable implements Table {
         return cmap;
     }
 
+    /**
+     * uint16 Table version number ({@link #VERSION}}).
+     * 
+     * <p>
+     * Note: The 'cmap' table version number remains at {@link #VERSION} for
+     * fonts that make use of the newer subtable formats.
+     * </p>
+     */
     public int getVersion() {
         return _version;
     }
     
+    /**
+     * uint16
+     * 
+     * Number of encoding tables that follow.
+     */
     public int getNumTables() {
         return _numTables;
     }

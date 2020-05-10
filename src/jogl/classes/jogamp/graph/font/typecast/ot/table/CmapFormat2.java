@@ -23,23 +23,97 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
- * High-byte mapping through table cmap format.
+ * Format 2: High-byte mapping through table.
+ * 
+ * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/cmap#format-2-high-byte-mapping-through-table"
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class CmapFormat2 extends CmapFormat {
 
-    private static class SubHeader {
+    static class SubHeader {
+        /**
+         * uint16
+         * 
+         * First valid low byte for this SubHeader.
+         * 
+         * @see #_entryCount
+         */
         int _firstCode;
+        
+        /**
+         * uint16
+         * 
+         * Number of valid low bytes for this SubHeader.
+         * 
+         * <p>
+         * The {@link #_firstCode} and {@link #_entryCount} values specify a
+         * subrange that begins at {@link #_firstCode} and has a length equal to
+         * the value of {@link #_entryCount}. This subrange stays within the
+         * 0-255 range of the byte being mapped. Bytes outside of this subrange
+         * are mapped to glyph index 0 (missing glyph). The offset of the byte
+         * within this subrange is then used as index into a corresponding
+         * subarray of {@link #_glyphIndexArray}. This subarray is also of
+         * length {@link #_entryCount}. The value of the {@link #_idRangeOffset}
+         * is the number of bytes past the actual location of the
+         * {@link #_idRangeOffset} word where the {@link #_glyphIndexArray}
+         * element corresponding to {@link #_firstCode} appears.
+         * </p>
+         * <p>
+         * Finally, if the value obtained from the subarray is not 0 (which
+         * indicates the missing glyph), you should add {@link #_idDelta} to it
+         * in order to get the glyphIndex. The value {@link #_idDelta} permits
+         * the same subarray to be used for several different subheaders. The
+         * {@link #_idDelta} arithmetic is modulo 65536.
+         * </p>
+         */
         int _entryCount;
+        
+        /**
+         * @see #_entryCount
+         */
         short _idDelta;
+
+        /**
+         * @see #_entryCount
+         */
         int _idRangeOffset;
+
         int _arrayIndex;
     }
     
+    /**
+     * uint16
+     * 
+     * @see #getLength()
+     */
     private final int _length;
+
+    /**
+     * uint16
+     * 
+     * @see #getLanguage()
+     */
     private final int _language;
+    
+    /**
+     * uint16[256]
+     * 
+     * Array that maps high bytes to subHeaders: value is subHeader index × 8.
+     */
     private final int[] _subHeaderKeys = new int[256];
+    
+    /**
+     * Variable-length array of SubHeader records.
+     */
     private final SubHeader[] _subHeaders;
+    
+    /**
+     * uint16
+     * 
+     * Variable-length array containing subarrays used for mapping the low byte
+     * of 2-byte characters.
+     */
     private final int[] _glyphIndexArray;
 
     CmapFormat2(DataInput di) throws IOException {

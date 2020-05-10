@@ -24,21 +24,92 @@ import java.io.IOException;
 import java.util.Arrays;
 
 /**
+ * Format 4: Segment mapping to delta values
+ * 
+ * <p>
+ * This is the standard character-to-glyph-index mapping table for the Windows
+ * platform for fonts that support Unicode BMP characters.
+ * </p>
+ * 
+ * <p>
+ * This format is used when the character codes for the characters represented
+ * by a font fall into several contiguous ranges, possibly with holes in some or
+ * all of the ranges (that is, some of the codes in a range may not have a
+ * representation in the font). The format-dependent data is divided into three
+ * parts, which must occur in the following order:
+ * </p>
+ * <ol>
+ * <li>A four-word header gives parameters for an optimized search of the
+ * segment list;
+ * <li>Four parallel arrays describe the segments (one segment for each
+ * contiguous range of codes);
+ * <li>A variable-length array of glyph IDs (unsigned words).
+ * </ol>
+ * 
+ * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/cmap#format-4-segment-mapping-to-delta-values"
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class CmapFormat4 extends CmapFormat {
 
+    /**
+     * uint16   length  This is the length in bytes of the subtable.
+     */
     private final int _length;
+    
+    /**
+     * uint16   language
+     */
     private final int _language;
+    
+    /**
+     * uint16   segCountX2  2 × segCount.
+     */
     private final int _segCountX2;
+    
+    /**
+     * uint16   searchRange     2 × (2**floor(log2(segCount)))
+     */
     private final int _searchRange;
+    
+    /**
+     * uint16   entrySelector   log2(searchRange/2)
+     */
     private final int _entrySelector;
+    
+    /**
+     * uint16   rangeShift  2 × segCount - searchRange
+     */
     private final int _rangeShift;
+    
+    /**
+     * uint16   endCode[segCount]   End characterCode for each segment, last=0xFFFF.
+     */
     private final int[] _endCode;
+    
+    /**
+     * uint16   startCode[segCount]     Start character code for each segment.
+     */
     private final int[] _startCode;
+    
+    /**
+     * int16    idDelta[segCount]   Delta for all character codes in segment.
+     */
     private final int[] _idDelta;
+    
+    /**
+     * uint16   idRangeOffset[segCount]     Offsets into glyphIdArray or 0
+     */
     private final int[] _idRangeOffset;
+    
+    /**
+     * uint16   glyphIdArray[ ]     Glyph index array (arbitrary length)
+     */
     private final int[] _glyphIdArray;
+    
+    /**
+     * @see #_segCountX2
+     */
     private final int _segCount;
 
     CmapFormat4(DataInput di) throws IOException {

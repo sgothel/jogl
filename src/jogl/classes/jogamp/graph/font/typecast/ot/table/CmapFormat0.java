@@ -23,14 +23,32 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
+ * Format 0: Byte encoding table
+ * 
+ * <p>
  * Simple Macintosh cmap table, mapping only the ASCII character set to glyphs.
+ * </p>
+ * 
+ * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/cmap#format-0-byte-encoding-table"
  *
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class CmapFormat0 extends CmapFormat {
 
+    /**
+     * uint16   
+     * 
+     * @see #getLength()
+     */
     private final int _length;
+    
+    /**
+     * uint16 
+     * 
+     * @see #getLanguage()
+     */
     private final int _language;
+    
     private final int[] _glyphIdArray = new int[256];
 
     CmapFormat0(DataInput di) throws IOException {
