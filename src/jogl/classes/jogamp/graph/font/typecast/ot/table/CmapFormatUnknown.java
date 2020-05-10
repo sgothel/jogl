@@ -45,12 +45,11 @@ public class CmapFormatUnknown extends CmapFormat {
             // We don't know how to handle this data, so we'll just skip over it
             di.skipBytes(_length - 6);
         } else {
-            di.readUnsignedShort(); // reserved
             _length = di.readInt();
             _language = di.readInt();
 
             // We don't know how to handle this data, so we'll just skip over it
-            di.skipBytes(_length - 12);
+            di.skipBytes(_length - 10);
         }
     }
 
