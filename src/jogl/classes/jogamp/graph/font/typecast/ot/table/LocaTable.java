@@ -12,12 +12,42 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
+ * Index to Location table
+ * 
+ * <p>
+ * The indexToLoc table stores the offsets to the locations of the glyphs in the
+ * font, relative to the beginning of the glyphData table. In order to compute
+ * the length of the last glyph element, there is an extra entry after the last
+ * valid index.
+ * </p>
+ * 
+ * <p>
+ * By definition, index zero points to the “missing character”, which is the
+ * character that appears if a character is not found in the font. The missing
+ * character is commonly represented by a blank box or a space. If the font does
+ * not contain an outline for the missing character, then the first and second
+ * offsets should have the same value. This also applies to any other characters
+ * without an outline, such as the space character. If a glyph has no outline,
+ * then loca[n] = loca[n+1]. In the particular case of the last glyph(s),
+ * loca[n] will be equal the length of the glyph data ('glyf') table. The
+ * offsets must be in ascending order with loca[n] <= loca[n+1].
+ * </p>
+ * 
+ * <p>
+ * Most routines will look at the 'maxp' table to determine the number of glyphs
+ * in the font, but the value in the 'loca' table must agree.
+ * </p>
+ * 
+ * <p>
+ * There are two versions of this table: a short version, and a long version.
+ * The version is specified in the indexToLocFormat entry in the 'head' table.
+ * </p>
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class LocaTable implements Table {
 
     private int[] _offsets;
-    private short _factor;
     private int _length;
 
     public LocaTable(
@@ -29,12 +59,10 @@ public class LocaTable implements Table {
         boolean shortEntries = head.useShortEntries();
         // FIXME boolean shortEntries = head.getIndexToLocFormat() == 0;
         if (shortEntries) {
-            _factor = 2;
             for (int i = 0; i <= maxp.getNumGlyphs(); i++) {
-                _offsets[i] = di.readUnsignedShort();
+                _offsets[i] = 2 * di.readUnsignedShort();
             }
         } else {
-            _factor = 1;
             for (int i = 0; i <= maxp.getNumGlyphs(); i++) {
                 _offsets[i] = di.readInt();
             }
@@ -62,7 +90,7 @@ public class LocaTable implements Table {
         if (_offsets == null) {
             return 0;
         }
-        return _offsets[i] * _factor;
+        return _offsets[i];
     }
 
     @Override
