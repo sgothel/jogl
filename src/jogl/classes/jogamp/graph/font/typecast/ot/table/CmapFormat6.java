@@ -20,6 +20,7 @@ package jogamp.graph.font.typecast.ot.table;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Format 6: Trimmed table mapping
@@ -82,5 +83,15 @@ public class CmapFormat6 extends CmapFormat {
         } else {
             return 0;
         }
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() +
+            "    format:         " + getFormat() + "\n" +
+            "    language:       " + getLanguage() + "\n" +
+            "    firstCode:      " + _firstCode + "\n" +
+            "    entryCount:     " + _entryCount + "\n" +
+            "    glyphIdArray:   " + Arrays.toString(_glyphIdArray) + "\n";
     }
 }

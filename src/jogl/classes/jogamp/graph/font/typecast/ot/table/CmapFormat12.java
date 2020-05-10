@@ -112,7 +112,26 @@ public class CmapFormat12 extends CmapFormat {
     @Override
     public String toString() {
         return super.toString() +
-                ", nGroups: " +
-                _nGroups;
+            "    format:         " + getFormat() + "\n" +
+            "    language:       " + getLanguage() + "\n" +
+            "    nGroups:        " + _nGroups + "\n" + 
+            "    mapping:        " + toStringMappingTable() + "\n"; 
     }
+
+    private String toStringMappingTable() {
+        StringBuilder result = new StringBuilder();
+        for (int n = 0; n < _nGroups; n++) {
+            if (n > 0) {
+                result.append(", ");
+            }
+            result.append("[");
+            result.append(_startCharCode[n]);
+            result.append(", ");
+            result.append(_endCharCode[n]);
+            result.append("]: ");
+            result.append(_startGlyphId[n]);
+        }
+        return result.toString();
+    }
+
 }

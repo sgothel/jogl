@@ -142,16 +142,13 @@ public class CmapIndexEntry implements Comparable<CmapIndexEntry> {
 
     @Override
     public String toString() {
-        return "platform id: " +
-                _platformId +
-                " (" +
-                ID.getPlatformName((short) _platformId) +
-                "), encoding id: " +
-                _encodingId +
-                " (" +
-                ID.getEncodingName((short) _platformId, (short) _encodingId) +
-                "), offset: " +
-                _offset;
+        return 
+            "    Index entry\n"+
+            "    -----------\n"+
+            "    platformId:     " + _platformId + " (" + ID.getPlatformName((short) _platformId) + ")\n" + 
+            "    encodingId:     " + _encodingId + " (" + ID.getEncodingName((short) _platformId, (short) _encodingId) + ")\n" + 
+            "    offset:         " + _offset + "\n" +
+            _format;
     }
 
     @Override

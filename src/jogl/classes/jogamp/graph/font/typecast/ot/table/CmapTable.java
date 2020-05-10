@@ -206,11 +206,15 @@ public class CmapTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder().append("cmap\n");
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("cmap Table\n");
+        sb.append("----------\n");
+        sb.append("  numTables: " + _numTables + "\n");
 
         // Get each of the index entries
         for (int i = 0; i < _numTables; i++) {
-            sb.append("\t").append(_entries[i].toString()).append("\n");
+            sb.append("\n").append(_entries[i].toString());
         }
 
         // Get each of the tables

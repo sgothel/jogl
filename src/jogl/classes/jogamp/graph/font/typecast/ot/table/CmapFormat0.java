@@ -21,6 +21,7 @@ package jogamp.graph.font.typecast.ot.table;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Format 0: Byte encoding table
@@ -94,5 +95,13 @@ public class CmapFormat0 extends CmapFormat {
         } else {
             return 0;
         }
+    }
+    
+    @Override
+    public String toString() {
+        return super.toString() +
+            "    format:         " + getFormat() + "\n" +
+            "    language:       " + getLanguage() + "\n" +
+            "    glyphIdArray:   " + Arrays.toString(_glyphIdArray) + "\n";
     }
 }

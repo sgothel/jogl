@@ -21,6 +21,7 @@ package jogamp.graph.font.typecast.ot.table;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Format 2: High-byte mapping through table.
@@ -231,5 +232,14 @@ public class CmapFormat2 extends CmapFormat {
             glyphIndex %= 65536;
         }
         return glyphIndex;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() +
+            "    format:         " + getFormat() + "\n" +
+            "    language:       " + getLanguage() + "\n" +
+            "    subHeaderKeys:  " + Arrays.toString(_subHeaderKeys) + "\n" +
+            "    glyphIndexArray:" + Arrays.toString(_glyphIndexArray) + "\n";
     }
 }

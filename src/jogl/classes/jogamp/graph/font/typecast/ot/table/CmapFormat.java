@@ -99,11 +99,9 @@ public abstract class CmapFormat {
     
     @Override
     public String toString() {
-        return "format: " +
-                getFormat() +
-                ", length: " +
-                getLength() +
-                ", language: " +
-                getLanguage();
+        return
+            "    format:         " + getFormat() + "\n" +
+            "    length:         " + getLength() + "\n" + 
+            "    language:       " + getLanguage() + "\n";
     }
 }

@@ -205,21 +205,14 @@ public class CmapFormat4 extends CmapFormat {
     @Override
     public String toString() {
         return super.toString() +
-                ", segCountX2: " +
-                _segCountX2 +
-                ", searchRange: " +
-                _searchRange +
-                ", entrySelector: " +
-                _entrySelector +
-                ", rangeShift: " +
-                _rangeShift +
-                ", endCode: " +
-                Arrays.toString(_endCode) +
-                ", startCode: " +
-                Arrays.toString(_endCode) +
-                ", idDelta: " +
-                Arrays.toString(_idDelta) +
-                ", idRangeOffset: " +
-                Arrays.toString(_idRangeOffset);
+            "    format:         " + getFormat() + "\n" +
+            "    segCountX2:     " + _segCountX2 + "\n" +
+            "    searchRange:    " + _searchRange + "\n" +
+            "    entrySelector:  " + _entrySelector + "\n" +
+            "    rangeShift:     " + _rangeShift + "\n" +
+            "    endCode:        " + Arrays.toString(_endCode) + "\n" +
+            "    startCode:      " + Arrays.toString(_startCode) + "\n" +
+            "    idDelta:        " + Arrays.toString(_idDelta) + "\n" +
+            "    idRangeOffset:  " + Arrays.toString(_idRangeOffset) + "\n";
     }
 }
