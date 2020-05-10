@@ -30,6 +30,39 @@ import jogamp.graph.font.typecast.cff.TopDictIndex;
 
 /**
  * Compact Font Format Table
+ * 
+ * <p>
+ * This table contains a Compact Font Format font representation (also known as
+ * a PostScript Type 1, or CIDFont) and is structured according to Adobe
+ * Technical Note #5176: “The Compact Font Format Specification,” and Adobe
+ * Technical Note #5177: “Type 2 Charstring Format.”
+ * </p>
+ * 
+ * <p>
+ * OpenType fonts with TrueType outlines use a glyph index to specify and access
+ * glyphs within a font; e.g., to index within the 'loca' table and thereby
+ * access glyph data in the 'glyf' table. This concept is retained in OpenType
+ * CFF fonts, except that glyph data is accessed through the CharStrings INDEX
+ * of the 'CFF ' table.
+ * </p>
+ * 
+ * <p>
+ * The Name INDEX in the CFF data must contain only one entry; that is, there
+ * must be only one font in the CFF FontSet. It is not a requirement that this
+ * name be the same as name ID 6 entries in the 'name' table. Note that, in an
+ * OpenType font collection file, a single 'CFF ' table can be shared across
+ * multiple fonts; names used by applications must be those provided in the
+ * 'name' table, not the Name INDEX entry. The CFF Top DICT must specify a
+ * CharstringType value of 2. The numGlyphs field in the 'maxp' table must be
+ * the same as the number of entries in the CFF’s CharStrings INDEX. The
+ * OpenType font glyph index is the same as the CFF glyph index for all glyphs
+ * in the font.
+ * </p>
+ * 
+ * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/cff"
+ * @see "https://wwwimages2.adobe.com/content/dam/acom/en/devnet/font/pdfs/5176.CFF.pdf"
+ * @see "https://wwwimages2.adobe.com/content/dam/acom/en/devnet/font/pdfs/5177.Type2.pdf"
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class CffTable implements Table {
@@ -46,7 +79,8 @@ public class CffTable implements Table {
 
     private final byte[] _buf;
 
-    /** Creates a new instance of CffTable
+    /** Creates a new instance of {@link CffTable}
+     * 
      * @param di
      * @param length
      * @throws java.io.IOException */
