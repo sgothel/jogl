@@ -152,6 +152,21 @@ public class GlyfTable implements Table {
         return glyf;
     }
 
+    
+    /**
+     * Number of glyphs.
+     * 
+     * @see #getDescription(int)
+     */
+    public int getNumGlyphs() {
+        return _descript.length;
+    }
+ 
+    /**
+     * The glyph with the given index.
+     * 
+     * @see #getNumGlyphs()
+     */
     public GlyfDescript getDescription(final int i) {
         if (i < _descript.length) {
             return _descript[i];

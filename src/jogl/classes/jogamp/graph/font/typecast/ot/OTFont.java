@@ -54,11 +54,16 @@ public abstract class OTFont {
     private final GsubTable _gsub;
 
     /**
-     *
      * @param dis input stream marked at start with read-ahead set to known stream length
-     * @param tableDirectory
-     * @param tablesOrigin
-     * @throws IOException
+     * @param directoryOffset The Table Directory offset within the file.  For a
+     * regular TTF/OTF file this will be zero, but for a TTC (Font Collection)
+     * the offset is retrieved from the TTC header.  For a Mac font resource,
+     * offset is retrieved from the resource headers.
+     * @param tablesOrigin The point the table offsets are calculated from.
+     * Once again, in a regular TTF file, this will be zero.  In a TTC is is
+     * also zero, but within a Mac resource, it is the beginning of the
+     * individual font resource data.
+     * @throws java.io.IOException
      */
     OTFont(final DataInputStream dis, final TableDirectory tableDirectory, final int tablesOrigin) throws IOException {
         // Load some prerequisite tables
@@ -98,6 +103,13 @@ public abstract class OTFont {
         _os2 = new Os2Table(dis);
 
         _gsub = null; // FIXME: delete?
+    }
+    
+    /**
+     * {@link TableDirectory} with all font tables.
+     */
+    public TableDirectory getTableDirectory() {
+        return _tableDirectory;
     }
 
     public Os2Table getOS2Table() {
@@ -200,6 +212,9 @@ public abstract class OTFont {
      * Dumps information of all tables to the given {@link Writer}.
      */
     public void dumpTo(Writer out) throws IOException {
+        out.write(getTableDirectory().toString());
+        out.write("\n");
+        
         dump(out, getHeadTable());
         dump(out, getOS2Table());
         dump(out, getCmapTable());

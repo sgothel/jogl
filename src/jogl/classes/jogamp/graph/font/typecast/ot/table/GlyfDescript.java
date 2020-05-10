@@ -182,8 +182,8 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
             final int glyphIndex,
             final short numberOfContours,
             final DataInput di) throws IOException {
-        _parentTable = parentTable;
         _glyphIndex = glyphIndex;
+        _parentTable = parentTable;
         _numberOfContours = numberOfContours;
         _xMin = di.readShort();
         _yMin = di.readShort();

@@ -33,7 +33,6 @@ import jogamp.graph.font.typecast.ot.table.HdmxTable;
 import jogamp.graph.font.typecast.ot.table.KernTable;
 import jogamp.graph.font.typecast.ot.table.LocaTable;
 import jogamp.graph.font.typecast.ot.table.Table;
-import jogamp.graph.font.typecast.ot.table.TableDirectory;
 import jogamp.graph.font.typecast.ot.table.VdmxTable;
 
 public class TTFont extends OTFont {
@@ -119,27 +118,31 @@ public class TTFont extends OTFont {
         int length = seekTable(tableDirectory, dis, tablesOrigin, Table.loca);
         final LocaTable loca = new LocaTable(dis, length, this.getHeadTable(), this.getMaxpTable());
 
+        // 'loca' is required by 'glyf'
+        int length = seekTable(dis, tablesOrigin, Table.loca);
+        LocaTable loca = new LocaTable(dis, length, this.getHeadTable(), this.getMaxpTable());
+
         // If this is a TrueType outline, then we'll have at least the
         // 'glyf' table (along with the 'loca' table)
-        length = seekTable(tableDirectory, dis, tablesOrigin, Table.glyf);
+        length = seekTable(dis, tablesOrigin, Table.glyf);
         _glyf = new GlyfTable(dis, length, this.getMaxpTable(), loca);
 
-        length = seekTable(tableDirectory, dis, tablesOrigin, Table.gasp);
+        length = seekTable(dis, tablesOrigin, Table.gasp);
         if (length > 0) {
             _gasp = new GaspTable(dis);
         }
 
-        length = seekTable(tableDirectory, dis, tablesOrigin, Table.kern);
+        length = seekTable(dis, tablesOrigin, Table.kern);
         if (length > 0) {
             _kern = new KernTable(dis);
         }
 
-        length = seekTable(tableDirectory, dis, tablesOrigin, Table.hdmx);
+        length = seekTable(dis, tablesOrigin, Table.hdmx);
         if (length > 0) {
             _hdmx = new HdmxTable(dis, length, this.getMaxpTable());
         }
 
-        length = seekTable(tableDirectory, dis, tablesOrigin, Table.VDMX);
+        length = seekTable(dis, tablesOrigin, Table.VDMX);
         if (length > 0) {
             _vdmx = new VdmxTable(dis);
         }
