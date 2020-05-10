@@ -54,14 +54,54 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.Writer;
 
 /**
+ * Glyph Data
+ * 
+ * <p>
+ * This table contains information that describes the glyphs in the font in the
+ * TrueType outline format. Information regarding the rasterizer (scaler) refers
+ * to the TrueType rasterizer.
+ * </p>
+ * 
+ * <h2>Table Organization</h2>
+ * 
+ * The 'glyf' table is comprised of a list of glyph data blocks, each of which
+ * provides the description for a single glyph. Glyphs are referenced by
+ * identifiers (glyph IDs), which are sequential integers beginning at zero. The
+ * total number of glyphs is specified by the {@link MaxpTable#getNumGlyphs()
+ * numGlyphs} field in the {@link MaxpTable 'maxp'} table. The 'glyf' table does
+ * not include any overall table header or records providing offsets to glyph
+ * data blocks. Rather, the {@link LocaTable 'loca'} table provides an array of
+ * offsets, indexed by glyph IDs, which provide the location of each glyph data
+ * block within the 'glyf' table. Note that the 'glyf' table must always be used
+ * in conjunction with the 'loca' and 'maxp' tables. The size of each glyph data
+ * block is inferred from the difference between two consecutive offsets in the
+ * 'loca' table (with one extra offset provided to give the size of the last
+ * glyph data block). As a result of the 'loca' format, glyph data blocks within
+ * the 'glyf' table must be in glyph ID order.
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
+ * 
+ * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/glyf"
  */
 public class GlyfTable implements Table {
 
     private final GlyfDescript[] _descript;
 
+    /**
+     * Creates a {@link GlyfTable}.
+     *
+     * @param di
+     *        The reader to read from.
+     * @param length
+     *        The length of the table in bytes.
+     * @param maxp
+     *        The corresponding {@link MaxpTable}.
+     * @param loca
+     *        The corresponding {@link LocaTable}.
+     */
     public GlyfTable(
             final DataInput di,
             final int length,
@@ -117,6 +157,33 @@ public class GlyfTable implements Table {
             return _descript[i];
         } else {
             return null;
+        }
+    }
+    
+    @Override
+    public String toString() {
+        return "'glyf' Table - Glyph Data\n--------------------------" +
+                "\n  numGlyphs:        " + getNumGlyphs();
+    }
+    
+    @Override
+    public void dump(Writer out) throws IOException {
+        Table.super.dump(out);
+        out.write("\n");
+        
+        for (int n = 0, cnt = getNumGlyphs(); n< cnt; n++) {
+            GlyfDescript glyph = getDescription(n);
+            out.write("    Glyph ");
+            out.write(Integer.toString(n));
+            out.write(": ");
+            if (glyph == null) {
+                out.write("(none)");
+            } else {
+                out.write("\n");
+                out.write(glyph.toString());
+                out.write("\n");
+            }
+            out.write("\n");
         }
     }
 

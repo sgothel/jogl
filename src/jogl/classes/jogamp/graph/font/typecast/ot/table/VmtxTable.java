@@ -65,7 +65,7 @@ class VmtxTable implements Table {
         }
     }
 
-    private short getTopSideBearing(int i) {
+    public short getTopSideBearing(int i) {
         if (_vMetrics == null) {
             return 0;
         }

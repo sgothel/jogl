@@ -56,23 +56,64 @@ package jogamp.graph.font.typecast.ot.table;
  */
 public interface GlyphDescription {
     
+    /**
+     * Index of the glyph in the {@link GlyfTable}.
+     * 
+     * @see GlyfTable#getDescription(int)
+     */
     int getGlyphIndex();
     
-    int getEndPtOfContours(int i);
+    /**
+     * int16
+     * 
+     * If the number of contours is greater than or equal to zero, this is a
+     * simple glyph. If negative, this is a composite glyph — the value -1
+     * should be used for composite glyphs.
+     */
+    int getNumberOfContours();
+
+    /**
+     * int16    xMin    Minimum x for coordinate data.
+     */
+    short getXMinimum();
+
+    /**
+     * int16    yMin    Minimum y for coordinate data.
+     */
+    short getYMinimum();
+
+    /**
+     * int16    xMax    Maximum x for coordinate data.
+     */
+    short getXMaximum();
+
+    /**
+     * int16    yMax    Maximum y for coordinate data.
+     */
+    short getYMaximum();
+
+    /**
+     * uint16 endPtsOfContours[numberOfContours] Array of point indices for the
+     * last point of each contour, in increasing numeric order.
+     */
+    int getEndPtOfContours(int contour);
     
+    /**
+     * The flags for the point with the given index.
+     * 
+     * @see GlyfDescript#ON_CURVE_POINT
+     * @see GlyfDescript#X_SHORT_VECTOR
+     * @see GlyfDescript#Y_SHORT_VECTOR
+     * @see GlyfDescript#REPEAT_FLAG
+     * @see GlyfDescript#X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR
+     * @see GlyfDescript#Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR
+     * @see GlyfDescript#OVERLAP_SIMPLE
+     */
     byte getFlags(int i);
     
     short getXCoordinate(int i);
     
     short getYCoordinate(int i);
-    
-    short getXMaximum();
-    
-    short getXMinimum();
-    
-    short getYMaximum();
-    
-    short getYMinimum();
     
     boolean isComposite();
     

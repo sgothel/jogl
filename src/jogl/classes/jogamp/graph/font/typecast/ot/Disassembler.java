@@ -87,7 +87,7 @@ public class Disassembler {
             for (int i = 0; i < leadingSpaces; i++) {
                 sb.append(" ");
             }
-            sb.append(ip).append(": ");
+            sb.append(Fmt.pad(3, ip)).append(": ");
             sb.append(Mnemonic.getMnemonic(instructions[ip]));
             if (getPushCount(instructions, ip) > 0) {
                 int[] data = getPushData(instructions, ip);

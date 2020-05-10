@@ -54,6 +54,7 @@ import java.io.DataInput;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Glyph description for composite glyphs.  Composite glyphs are made up of one
@@ -64,8 +65,24 @@ import java.util.ArrayList;
  */
 public class GlyfCompositeDescript extends GlyfDescript {
 
-    private final ArrayList<GlyfCompositeComp> _components = new ArrayList<>();
+    /**
+     * See {@link #getComponent(int)}
+     */
+    private final List<GlyfCompositeComp> _components = new ArrayList<>();
 
+    /**
+     * Creates a {@link GlyfCompositeDescript} from the given reader.
+     * 
+     * <p>
+     * A composite glyph starts with two uint16 values (“flags” and
+     * “glyphIndex,” i.e. the index of the first contour in this composite
+     * glyph); the data then varies according to “flags”).
+     * </p>
+     *
+     * @param parentTable See {@link #getParentTable()}.
+     * @param glyphIndex See {@link #getGlyphIndex()}.
+     * @param di The reader to read from.
+     */
     public GlyfCompositeDescript(
             final GlyfTable parentTable,
             final int glyphIndex,
@@ -74,13 +91,13 @@ public class GlyfCompositeDescript extends GlyfDescript {
 
         // Get all of the composite components
         GlyfCompositeComp comp;
-        int firstIndex = 0;
+        int index = 0;
         int firstContour = 0;
         do {
-            _components.add(comp = new GlyfCompositeComp(firstIndex, firstContour, di));
-            final GlyfDescript desc = parentTable.getDescription(comp.getGlyphIndex());
+            _components.add(comp = new GlyfCompositeComp(index, firstContour, di));
+            GlyfDescript desc = parentTable.getDescription(comp.getGlyphIndex());
             if (desc != null) {
-                firstIndex += desc.getPointCount();
+                index += desc.getPointCount();
                 firstContour += desc.getContourCount();
             }
         } while ((comp.getFlags() & GlyfCompositeComp.MORE_COMPONENTS) != 0);
@@ -92,11 +109,11 @@ public class GlyfCompositeDescript extends GlyfDescript {
     }
 
     @Override
-    public int getEndPtOfContours(final int i) {
-        final GlyfCompositeComp c = getCompositeCompEndPt(i);
+    public int getEndPtOfContours(int contour) {
+        GlyfCompositeComp c = getCompositeCompEndPt(contour);
         if (c != null) {
-            final GlyphDescription gd = _parentTable.getDescription(c.getGlyphIndex());
-            return gd.getEndPtOfContours(i - c.getFirstContour()) + c.getFirstIndex();
+            final GlyphDescription gd = getReferencedGlyph(c);
+            return gd.getEndPtOfContours(contour - c.getFirstContour()) + c.getFirstIndex();
         }
         return 0;
     }
@@ -105,7 +122,7 @@ public class GlyfCompositeDescript extends GlyfDescript {
     public byte getFlags(final int i) {
         final GlyfCompositeComp c = getCompositeComp(i);
         if (c != null) {
-            final GlyphDescription gd = _parentTable.getDescription(c.getGlyphIndex());
+            final GlyphDescription gd = getReferencedGlyph(c);
             return gd.getFlags(i - c.getFirstIndex());
         }
         return 0;
@@ -115,28 +132,27 @@ public class GlyfCompositeDescript extends GlyfDescript {
     public short getXCoordinate(final int i) {
         final GlyfCompositeComp c = getCompositeComp(i);
         if (c != null) {
-            final GlyphDescription gd = _parentTable.getDescription(c.getGlyphIndex());
+            final GlyphDescription gd = getReferencedGlyph(c);
             final int n = i - c.getFirstIndex();
             final int x = gd.getXCoordinate(n);
             final int y = gd.getYCoordinate(n);
-            short x1 = (short) c.scaleX(x, y);
-            x1 += c.getXTranslate();
-            return x1;
+            return c.transformX(x, y);
         }
         return 0;
     }
 
-    @Override
-    public short getYCoordinate(final int i) {
-        final GlyfCompositeComp c = getCompositeComp(i);
+    private GlyfDescript getReferencedGlyph(GlyfCompositeComp c) {
+        return c.getReferencedGlyph(_parentTable);
+    }
+
+    public short getYCoordinate(int i) {
+        GlyfCompositeComp c = getCompositeComp(i);
         if (c != null) {
-            final GlyphDescription gd = _parentTable.getDescription(c.getGlyphIndex());
-            final int n = i - c.getFirstIndex();
-            final int x = gd.getXCoordinate(n);
-            final int y = gd.getYCoordinate(n);
-            short y1 = (short) c.scaleY(x, y);
-            y1 += c.getYTranslate();
-            return y1;
+            GlyphDescription gd = getReferencedGlyph(c);
+            int n = i - c.getFirstIndex();
+            int x = gd.getXCoordinate(n);
+            int y = gd.getYCoordinate(n);
+            return c.transformY(x, y);
         }
         return 0;
     }
@@ -148,10 +164,10 @@ public class GlyfCompositeDescript extends GlyfDescript {
 
     @Override
     public int getPointCount() {
-        final GlyfCompositeComp c = _components.get(_components.size()-1);
-        final GlyphDescription gd = _parentTable.getDescription(c.getGlyphIndex());
+        GlyfCompositeComp last = lastComponent();
+        GlyphDescription gd = getReferencedGlyph(last);
         if (gd != null) {
-            return c.getFirstIndex() + gd.getPointCount();
+            return last.getFirstIndex() + gd.getPointCount();
         } else {
             return 0;
         }
@@ -159,44 +175,73 @@ public class GlyfCompositeDescript extends GlyfDescript {
 
     @Override
     public int getContourCount() {
-        final GlyfCompositeComp c = _components.get(_components.size()-1);
-        final GlyfDescript d = _parentTable.getDescription(c.getGlyphIndex());
-        return c.getFirstContour() + ( null != d ? d.getContourCount() : 0 );
+        GlyfCompositeComp last = lastComponent();
+        return last.getFirstContour() + getReferencedGlyph(last).getContourCount();
+    }
+
+    private GlyfCompositeComp lastComponent() {
+        return _components.get(_components.size() - 1);
     }
 
     public int getComponentIndex(final int i) {
         return _components.get(i).getFirstIndex();
     }
 
+    /**
+     * The number of {@link GlyfCompositeComp} in this {@link GlyfCompositeDescript}.
+     * 
+     * @see #getComponent(int)
+     */
     public int getComponentCount() {
         return _components.size();
     }
 
-    public GlyfCompositeComp getComponent(final int i) {
+    /**
+     * The {@link GlyfCompositeComp} with the given index.
+     * 
+     * @see #getComponentCount()
+     */
+    public GlyfCompositeComp getComponent(int i) {
         return _components.get(i);
     }
 
-    private GlyfCompositeComp getCompositeComp(final int i) {
-        for (final GlyfCompositeComp c : _components) {
-            final GlyphDescription gd = _parentTable.getDescription(c.getGlyphIndex());
-            if( null != gd ) {
-                if (c.getFirstIndex() <= i && i < (c.getFirstIndex() + gd.getPointCount())) {
-                    return c;
-                }
+    private GlyfCompositeComp getCompositeComp(int i) {
+        GlyfCompositeComp c;
+        for (GlyfCompositeComp component : _components) {
+            c = component;
+            GlyphDescription gd = getReferencedGlyph(c);
+            if (c.getFirstIndex() <= i && i < (c.getFirstIndex() + gd.getPointCount())) {
+                return c;
             }
         }
         return null;
     }
 
-    private GlyfCompositeComp getCompositeCompEndPt(final int i) {
-        for (final GlyfCompositeComp c : _components) {
-            final GlyphDescription gd = _parentTable.getDescription(c.getGlyphIndex());
-            if( null != gd ) {
-                if (c.getFirstContour() <= i && i < (c.getFirstContour() + gd.getContourCount())) {
-                    return c;
-                }
+    private GlyfCompositeComp getCompositeCompEndPt(int i) {
+        GlyfCompositeComp c;
+        for (GlyfCompositeComp component : _components) {
+            c = component;
+            GlyphDescription gd = getReferencedGlyph(c);
+            if (c.getFirstContour() <= i && i < (c.getFirstContour() + gd.getContourCount())) {
+                return c;
             }
         }
         return null;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("        Composite Glyph\n");
+        sb.append("        ---------------\n");
+        sb.append(super.toString());
+        sb.append("\n\n");
+        for (GlyfCompositeComp component : _components) {
+            sb.append("        Component\n");
+            sb.append("        ---------\n");
+            sb.append(component.toString());
+            sb.append("\n\n");
+        }
+        return sb.toString();
     }
 }

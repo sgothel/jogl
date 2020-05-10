@@ -41,4 +41,11 @@ public class Bits {
         return 0x01 << n;
     }
 
+    /** 
+     * Whether all bits in the given mask are set in the given bit set.
+     */
+    public static boolean isSet(int bitSet, int mask) {
+        return (bitSet & mask) == mask;
+    }
+
 }

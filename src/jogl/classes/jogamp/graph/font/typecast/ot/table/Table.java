@@ -17,6 +17,9 @@
  */
 package jogamp.graph.font.typecast.ot.table;
 
+import java.io.IOException;
+import java.io.Writer;
+
 /**
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
@@ -65,4 +68,11 @@ public interface Table {
      * The type code of this {@link Table}.
      */
     int getType();
+
+    /** 
+     * Writes full debug information to the given writer.
+     */
+    default void dump(Writer out) throws IOException {
+        out.write(toString());
+    }
 }

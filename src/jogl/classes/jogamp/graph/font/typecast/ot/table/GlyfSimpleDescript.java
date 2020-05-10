@@ -52,19 +52,65 @@ package jogamp.graph.font.typecast.ot.table;
 
 import java.io.DataInput;
 import java.io.IOException;
+
 import jogamp.graph.font.typecast.ot.Disassembler;
+import jogamp.graph.font.typecast.ot.Fmt;
 
 /**
+ * Simple Glyph Description
+ * 
+ * <p>
+ * This is the table information needed if numberOfContours is greater than or
+ * equal to zero, that is, a glyph is not a composite. Note that point numbers
+ * are base-zero indices that are numbered sequentially across all of the
+ * contours for a glyph; that is, the first point number of each contour (except
+ * the first) is one greater than the last point number of the preceding
+ * contour.
+ * </p>
+ * 
+ * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/glyf"
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class GlyfSimpleDescript extends GlyfDescript {
 
+    /**
+     * @see #getEndPtOfContours(int)
+     */
     private int[] _endPtsOfContours;
+    
+    /**
+     * @see #getFlags(int)
+     */
     private byte[] _flags;
+    
+    /**
+     * @see #getXCoordinate(int)
+     */
     private short[] _xCoordinates;
+    
+    /**
+     * @see #getYCoordinate(int)
+     */
     private short[] _yCoordinates;
+    
+    /**
+     * @see #getPointCount()
+     */
     private int _count;
 
+    /**
+     * Creates a {@link GlyfSimpleDescript}.
+     *
+     * @param parentTable
+     *        The {@link GlyfTable} this instance belongs to.
+     * @param glyphIndex
+     *        See {@link #getGlyphIndex()}
+     * @param numberOfContours
+     *        See {@link #getNumberOfContours()}
+     * @param di
+     *        The reader to read from.
+     */
     public GlyfSimpleDescript(
             GlyfTable parentTable,
             int glyphIndex,
@@ -75,7 +121,7 @@ public class GlyfSimpleDescript extends GlyfDescript {
         // Simple glyph description
         _endPtsOfContours = new int[numberOfContours];
         for (int i = 0; i < numberOfContours; i++) {
-            _endPtsOfContours[i] = di.readShort();
+            _endPtsOfContours[i] = di.readUnsignedShort();
         }
 
         // The last end point index reveals the total number of points
@@ -84,36 +130,48 @@ public class GlyfSimpleDescript extends GlyfDescript {
         _xCoordinates = new short[_count];
         _yCoordinates = new short[_count];
 
-        int instructionCount = di.readShort();
+        int instructionCount = di.readUnsignedShort();
         readInstructions(di, instructionCount);
         readFlags(_count, di);
         readCoords(_count, di);
     }
-
-    public int getEndPtOfContours(int i) {
-        return _endPtsOfContours[i];
+    
+    @Override
+    public int getNumberOfContours() {
+        return _endPtsOfContours.length;
     }
 
+    @Override
+    public int getEndPtOfContours(int contour) {
+        return _endPtsOfContours[contour];
+    }
+
+    @Override
     public byte getFlags(int i) {
         return _flags[i];
     }
 
+    @Override
     public short getXCoordinate(int i) {
         return _xCoordinates[i];
     }
 
+    @Override
     public short getYCoordinate(int i) {
         return _yCoordinates[i];
     }
 
+    @Override
     public boolean isComposite() {
         return false;
     }
 
+    @Override
     public int getPointCount() {
         return _count;
     }
 
+    @Override
     public int getContourCount() {
         return getNumberOfContours();
     }
@@ -126,20 +184,39 @@ public class GlyfSimpleDescript extends GlyfDescript {
     return 1;
     }
      */
+
     /**
+     * Reads the glyph coordinates.
+     * 
+     * <p>
+     * Note: In the 'glyf' table, the position of a point is not stored in
+     * absolute terms but as a vector relative to the previous point. The
+     * delta-x and delta-y vectors represent these (often small) changes in
+     * position. Coordinate values are in font design units, as defined by the
+     * {@link HeadTable#getUnitsPerEm() unitsPerEm} field in the
+     * {@link HeadTable 'head'} table. Note that smaller
+     * {@link HeadTable#getUnitsPerEm() unitsPerEm} values will make it more
+     * likely that delta-x and delta-y values can fit in a smaller
+     * representation (8-bit rather than 16-bit), though with a trade-off in the
+     * level or precision that can be used for describing an outline.
+     * </p>
+     * 
+     * <p>
      * The table is stored as relative values, but we'll store them as absolutes
+     * </p>
      */
     private void readCoords(int count, DataInput di) throws IOException {
         short x = 0;
         short y = 0;
         for (int i = 0; i < count; i++) {
-            if ((_flags[i] & xDual) != 0) {
-                if ((_flags[i] & xShortVector) != 0) {
+            byte flag = _flags[i];
+            if ((flag & X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR) != 0) {
+                if ((flag & X_SHORT_VECTOR) != 0) {
                     x += (short) di.readUnsignedByte();
                 }
             } else {
-                if ((_flags[i] & xShortVector) != 0) {
-                    x += (short) -((short) di.readUnsignedByte());
+                if ((flag & X_SHORT_VECTOR) != 0) {
+                    x -= (short) di.readUnsignedByte();
                 } else {
                     x += di.readShort();
                 }
@@ -148,13 +225,13 @@ public class GlyfSimpleDescript extends GlyfDescript {
         }
 
         for (int i = 0; i < count; i++) {
-            if ((_flags[i] & yDual) != 0) {
-                if ((_flags[i] & yShortVector) != 0) {
+            if ((_flags[i] & Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR) != 0) {
+                if ((_flags[i] & Y_SHORT_VECTOR) != 0) {
                     y += (short) di.readUnsignedByte();
                 }
             } else {
-                if ((_flags[i] & yShortVector) != 0) {
-                    y += (short) -((short) di.readUnsignedByte());
+                if ((_flags[i] & Y_SHORT_VECTOR) != 0) {
+                    y -= (short) di.readUnsignedByte();
                 } else {
                     y += di.readShort();
                 }
@@ -164,14 +241,38 @@ public class GlyfSimpleDescript extends GlyfDescript {
     }
 
     /**
-     * The flags are run-length encoded
+     * Reads the flags table.
+     * 
+     * <p>
+     * Note: The flags are run-length encoded.
+     * </p>
+     * 
+     * <p>
+     * Each element in the flags array is a single byte, each of which has
+     * multiple flag bits with distinct meanings, see {@link #getFlags(int)}.
+     * </p>
+     * 
+     * <p>
+     * In logical terms, there is one flag byte element, one x-coordinate, and
+     * one y-coordinate for each point. Note, however, that the flag byte
+     * elements and the coordinate arrays use packed representations. In
+     * particular, if a logical sequence of flag elements or sequence of x- or
+     * y-coordinates is repeated, then the actual flag byte element or
+     * coordinate value can be given in a single entry, with special flags used
+     * to indicate that this value is repeated for subsequent logical entries.
+     * The actual stored size of the flags or coordinate arrays must be
+     * determined by parsing the flags array entries. See the flag descriptions
+     * below for details.
+     * </p>
+     * 
+     * @see #getFlags(int)
      */
     private void readFlags(int flagCount, DataInput di) throws IOException {
         try {
             for (int index = 0; index < flagCount; index++) {
                 _flags[index] = di.readByte();
-                if ((_flags[index] & repeat) != 0) {
-                    int repeats = di.readByte();
+                if ((_flags[index] & REPEAT_FLAG) != 0) {
+                    int repeats = di.readUnsignedByte();
                     for (int i = 1; i <= repeats; i++) {
                         _flags[index + i] = _flags[index];
                     }
@@ -183,45 +284,58 @@ public class GlyfSimpleDescript extends GlyfDescript {
         }
     }
     
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("        Simple Glyph\n");
+        sb.append("        ------------\n");
         sb.append(super.toString());
-        sb.append("\n\n        EndPoints\n        ---------");
+        sb.append("\n\n");
+        sb.append("        EndPoints\n");
+        sb.append("        ---------");
         for (int i = 0; i < _endPtsOfContours.length; i++) {
             sb.append("\n          ").append(i).append(": ").append(_endPtsOfContours[i]);
         }
-        sb.append("\n\n          Length of Instructions: ");
+        sb.append("\n\n");
+        sb.append("        Instructions\n");
+        sb.append("        ------------\n");
+        sb.append("          length: ");
         sb.append(getInstructions().length).append("\n");
-        sb.append(Disassembler.disassemble(getInstructions(), 8));
+        sb.append(Disassembler.disassemble(getInstructions(), 10));
         sb.append("\n        Flags\n        -----");
         for (int i = 0; i < _flags.length; i++) {
-            sb.append("\n          ").append(i).append(":  ");
-            if ((_flags[i] & 0x20) != 0) {
+            sb.append("\n          ").append(Fmt.pad(3, i)).append(":  ");
+            if ((_flags[i] & OVERLAP_SIMPLE) != 0) {
+                sb.append("SOver ");
+            } else {
+                sb.append("      ");
+            }
+            if ((_flags[i] & Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR) != 0) {
                 sb.append("YDual ");
             } else {
                 sb.append("      ");
             }
-            if ((_flags[i] & 0x10) != 0) {
+            if ((_flags[i] & X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR) != 0) {
                 sb.append("XDual ");
             } else {
                 sb.append("      ");
             }
-            if ((_flags[i] & 0x08) != 0) {
+            if ((_flags[i] & REPEAT_FLAG) != 0) {
                 sb.append("Repeat ");
             } else {
                 sb.append("       ");
             }
-            if ((_flags[i] & 0x04) != 0) {
+            if ((_flags[i] & Y_SHORT_VECTOR) != 0) {
                 sb.append("Y-Short ");
             } else {
                 sb.append("        ");
             }
-            if ((_flags[i] & 0x02) != 0) {
+            if ((_flags[i] & X_SHORT_VECTOR) != 0) {
                 sb.append("X-Short ");
             } else {
                 sb.append("        ");
             }
-            if ((_flags[i] & 0x01) != 0) {
+            if ((_flags[i] & ON_CURVE_POINT) != 0) {
                 sb.append("On");
             } else {
                 sb.append("  ");
@@ -231,7 +345,7 @@ public class GlyfSimpleDescript extends GlyfDescript {
         short oldX = 0;
         short oldY = 0;
         for (int i = 0; i < _xCoordinates.length; i++) {
-            sb.append("\n          ").append(i)
+            sb.append("\n          ").append(Fmt.pad(3, i))
                 .append(": Rel (").append(_xCoordinates[i] - oldX)
                 .append(", ").append(_yCoordinates[i] - oldY)
                 .append(")  ->  Abs (").append(_xCoordinates[i])

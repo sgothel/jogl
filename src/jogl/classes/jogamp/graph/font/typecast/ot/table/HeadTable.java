@@ -320,7 +320,7 @@ public class HeadTable implements Table {
      * Bit 0: Baseline for font at y=0;
      * 
      * Bit 1: Left sidebearing point at x=0 (relevant only for TrueType
-     * rasterizers) — see the note below regarding variable fonts;
+     * rasterizers) — see {@link #isLeftSidebearingNormalized()};
      * 
      * Bit 2: Instructions may depend on point size;
      * 
@@ -371,6 +371,22 @@ public class HeadTable implements Table {
      */
     public short getFlags() {
         return _flags;
+    }
+    
+    /**
+     * The Left sidebearing point is at x=0 for all glyphs (relevant only for
+     * TrueType rasterizers)
+     * 
+     * <p>
+     * Note: The scaler will perform better if the glyph coordinates have been
+     * created such that the xMin is equal to the lsb. For example, if the lsb
+     * is 123, then xMin for the glyph should be 123. If the lsb is -12 then the
+     * xMin should be -12. If the lsb is 0 then xMin is 0. If all glyphs are
+     * done like this, set bit 1 of flags field in the 'head' table.
+     * </p>
+     */
+    public boolean isLeftSidebearingNormalized() {
+        return Bits.bit(_flags, 1);
     }
 
     /**

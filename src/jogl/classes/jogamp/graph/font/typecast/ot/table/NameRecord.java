@@ -136,7 +136,7 @@ public class NameRecord {
                 "\n             Name ID:           " + _nameId +
                 "\n             Length:            " + _stringLength +
                 "\n             Offset:            " + _stringOffset +
-                "\n\n" + _record;
+                "\n             Record:            " + _record;
         return sb;
     }
 }

@@ -17,11 +17,29 @@ import java.io.IOException;
 abstract class Program {
 
     private short[] instructions;
+    
+    /**
+     * uint16 instructionLength Total number of bytes for instructions. If
+     * instructionLength is zero, no instructions are present for this glyph,
+     * and this field is followed directly by the flags field.
+     */
+    public int getInstructionLength() {
+        return instructions.length;
+    }
 
-    short[] getInstructions() {
+    /**
+     * uint8 instructions[{@link #getInstructionLength()}] Array of instruction
+     * byte code for the glyph.
+     */
+    public short[] getInstructions() {
         return instructions;
     }
 
+    /**
+     * Reads the instructions array.
+     * 
+     * @see #getInstructions()
+     */
     void readInstructions(DataInput di, int count) throws IOException {
         instructions = new short[count];
         for (int i = 0; i < count; i++) {

@@ -105,7 +105,7 @@ public class TTGlyph extends Glyph {
             _points[i] = new Point(
                     gd.getXCoordinate(i),
                     gd.getYCoordinate(i),
-                    (gd.getFlags(i) & GlyfDescript.onCurve) != 0,
+                    (gd.getFlags(i) & GlyfDescript.ON_CURVE_POINT) != 0,
                     endPt);
         }
 

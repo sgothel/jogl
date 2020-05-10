@@ -54,12 +54,24 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * The naming table allows multilingual strings to be associated with the
- * OpenType font file.  These strings can represent copyright notices, font
+ * OpenType font file. These strings can represent copyright notices, font
  * names, family names, style names, and so on.
+ * 
+ * Other parts of the OpenType font that require these strings can refer to them
+ * using a language-independent name ID. In addition to language variants, the
+ * table also allows for platform-specific character-encoding variants. Clients
+ * that need a particular string can look it up by its platform ID, encoding ID,
+ * language ID and name ID. Note that different platforms may have different
+ * requirements for the encoding of strings.
+ * 
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
+ * 
+ * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/name"
  */
 public class NameTable implements Table {
 
@@ -92,14 +104,31 @@ public class NameTable implements Table {
                     new DataInputStream(new ByteArrayInputStream(buffer)));
         }
     }
-
+    
     @Override
     public int getType() {
         return name;
     }
 
+    /**
+     * uint16   Format selector (=0 or 1).
+     */
+    public short getFormat() {
+        return _formatSelector;
+    }
+
+    /**
+     * uint16   count   Number of name records.
+     */
     public short getNumberOfNameRecords() {
         return _numberOfNameRecords;
+    }
+    
+    /**
+     * Offset16     stringOffset    Offset to start of string storage (from start of table).
+     */
+    public short getStringStorageOffset() {
+        return _stringStorageOffset;
     }
 
 
@@ -127,6 +156,16 @@ public class NameTable implements Table {
             }
         }
         return "";
+    }
+
+    @Override
+    public String toString() {
+        return "'name' Table - Naming Table\n--------------------------------" +
+                "\n        'name' format:       " + _formatSelector +
+                "\n        count:               " + _numberOfNameRecords +
+                "\n        stringOffset:        " + _stringStorageOffset +
+                "\n        records:" +
+                Arrays.asList(_records).stream().map(r -> "\n" + r.toString()).collect(Collectors.joining("\n"));
     }
 
 }
