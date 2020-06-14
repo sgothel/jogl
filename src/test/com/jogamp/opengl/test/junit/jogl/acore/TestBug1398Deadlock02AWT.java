@@ -33,6 +33,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.GLTestUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
@@ -98,8 +99,8 @@ public class TestBug1398Deadlock02AWT extends UITestCase {
             Assume.assumeNoException(t);
         }
         animator.start();
-        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glCanvas, true));
-        Assert.assertEquals(true, AWTRobotUtil.waitForContextCreated(glCanvas, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glCanvas, true, null));
+        Assert.assertEquals(true, GLTestUtil.waitForContextCreated(glCanvas, true, null));
 
         Thread.sleep(1000); // 1s
 
