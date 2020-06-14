@@ -167,7 +167,7 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
                 }
                 winConfig.preselectGraphicsConfiguration(drawableFactory, pfdIDs);
                 final int gcIdx = pfdIDOSet.indexOf(Integer.valueOf(winConfig.getPixelFormatID()));
-                if( 0 > gcIdx ) {
+                if( 0 <= gcIdx ) {
                     chosenGC = configs[gcIdx];
                     if(DEBUG) {
                         System.err.println("WindowsAWTWGLGraphicsConfigurationFactory: Found matching AWT PFD ID "+winConfig.getPixelFormatID()+" -> "+winConfig);
