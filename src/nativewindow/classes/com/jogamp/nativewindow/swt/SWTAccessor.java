@@ -95,6 +95,7 @@ public class SWTAccessor {
 
     private static final String str_OS_gtk_class = "org.eclipse.swt.internal.gtk.OS";    // used by earlier versions of SWT
     private static final String str_GTK_gtk_class = "org.eclipse.swt.internal.gtk.GTK";  // used by later versions of SWT
+    private static final String str_GTK3_gtk_class = "org.eclipse.swt.internal.gtk3.GTK3";  // used by later versions of SWT (4.21+)
     private static final String str_GDK_gtk_class = "org.eclipse.swt.internal.gtk.GDK";  // used by later versions of SWT
     public static final Class<?> OS_gtk_class;
     private static final String str_OS_gtk_version = "GTK_VERSION";
@@ -123,6 +124,8 @@ public class SWTAccessor {
     private static final String str_gdk_x11_window_get_xid = "gdk_x11_window_get_xid";
     private static final String str_gdk_window_set_back_pixmap = "gdk_window_set_back_pixmap";
     private static final String str_gdk_window_set_background_pattern = "gdk_window_set_background_pattern";
+
+    private static final int SWT_VERSION_4_20 = 4944;
 
     private static final VersionNumber GTK_VERSION_2_14_0 = new VersionNumber(2, 14, 0);
     private static final VersionNumber GTK_VERSION_2_24_0 = new VersionNumber(2, 24, 0);
@@ -261,7 +264,12 @@ public class SWTAccessor {
                 _gtk_version = GTK_VERSION(field_OS_gtk_version.getInt(null));
                 m1 = cGTK.getDeclaredMethod(str_gtk_widget_realize, handleType);
                 if (_gtk_version.compareTo(GTK_VERSION_2_14_0) >= 0) {
-                    m4 = cGTK.getDeclaredMethod(str_gtk_widget_get_window, handleType);
+                    if (SWT.getVersion() < SWT_VERSION_4_20) {
+                        m4 = cGTK.getDeclaredMethod(str_gtk_widget_get_window, handleType);
+                    } else {
+                        Class<?> cGTK3 = ReflectionUtil.getClass(str_GTK3_gtk_class, false, cl);
+                        m4 = cGTK3.getDeclaredMethod(str_gtk_widget_get_window, handleType);
+                    }
                 } else {
                     m3 = cGTK.getDeclaredMethod(str_GTK_WIDGET_WINDOW, handleType);
                 }
