@@ -40,10 +40,10 @@ Bool  clearCurrentContext(NSOpenGLContext *ctx);
 Bool  deleteContext(NSOpenGLContext* ctx, Bool releaseOnMainThread);
 Bool  flushBuffer(NSOpenGLContext* ctx);
 void  setContextOpacity(NSOpenGLContext* ctx, int opacity);
-void  updateContext(NSOpenGLContext* ctx);
+void  updateContext(NSOpenGLContext* ctx, Bool onMainThread);
 void  copyContext(NSOpenGLContext* dest, NSOpenGLContext* src, int mask);
 
-void* updateContextRegister(NSOpenGLContext* ctx, NSView* view);
+void* updateContextRegister(NSOpenGLContext* ctx, NSView* view, Bool onMainThread);
 Bool updateContextNeedsUpdate(void* updater);
 void  updateContextUnregister(void* updater);
 

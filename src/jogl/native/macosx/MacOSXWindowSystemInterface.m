@@ -643,12 +643,17 @@ void setContextOpacity(NSOpenGLContext* ctx, int opacity) {
   [ctx setValues:&opacity forParameter:NSOpenGLCPSurfaceOpacity];
 }
 
-void updateContext(NSOpenGLContext* ctx) {
+void updateContext(NSOpenGLContext* ctx, Bool onMainThread) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
   NSView *nsView = [ctx view];
   if(NULL != nsView) {
-      DBG_PRINT("updateContext.0: ctx %p, ctx.view %p\n", ctx, nsView);
-      [ctx update];
+      Bool isMainThread = [NSThread isMainThread];
+      DBG_PRINT("updateContext.0: ctx %p, ctx.view %p, onMain %d, isMain %d\n", ctx, nsView, onMainThread, isMainThread);
+      if(onMainThread && NO == isMainThread) {
+          [ctx performSelectorOnMainThread:@selector(update) withObject:nil waitUntilDone:NO];
+      } else {
+          [ctx update];
+      }
       DBG_PRINT("updateContext.X\n");
   }
   [pool release];
@@ -658,14 +663,25 @@ void copyContext(NSOpenGLContext* dest, NSOpenGLContext* src, int mask) {
   [dest copyAttributesFromContext: src withMask: mask];
 }
 
-void* updateContextRegister(NSOpenGLContext* ctx, NSView* view) {
+void* updateContextRegister(NSOpenGLContext* ctx, NSView* view, Bool onMainThread) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-  DBG_PRINT("updateContextRegister.0: ctx %p, view %p\n", ctx, view);
-  ContextUpdater *contextUpdater = [[ContextUpdater alloc] initWithContext: ctx view: view];
-  DBG_PRINT("updateContextRegister.X: ctxupd %p\n", contextUpdater);
-  [pool release];
-  return contextUpdater;
+  Bool isMainThread = [NSThread isMainThread];
+  DBG_PRINT("updateContextRegister.0: ctx %p, view %p, onMain %d, isMain %d\n", ctx, view, onMainThread, isMainThread);
+  if(onMainThread && NO == isMainThread) {
+      __block ContextUpdater *contextUpdater = NULL;
+      dispatch_sync(dispatch_get_main_queue(), ^{
+          contextUpdater = [[ContextUpdater alloc] initWithContext: ctx view: view];
+      });
+      DBG_PRINT("updateContextRegister.XM: ctxupd %p\n", contextUpdater);
+      [pool release];
+      return contextUpdater;
+  } else {
+      ContextUpdater *contextUpdater = [[ContextUpdater alloc] initWithContext: ctx view: view];
+      DBG_PRINT("updateContextRegister.X_: ctxupd %p\n", contextUpdater);
+      [pool release];
+      return contextUpdater;
+  }
 }
 
 Bool updateContextNeedsUpdate(void* updater) {
