@@ -1188,7 +1188,8 @@ public class MacOSXCGLContext extends GLContextImpl
           if( !drawableAssociated ) {
               lastNSViewDescr = null;
               lastSetNSViewCmd = null;
-              OSXUtil.RunOnMainThread(true /* wait */, true /* kickNSApp */, new Runnable() {
+              final boolean wait = !MacOSXCGLContext.isMojaveOrLater; // wait if < 10.14
+              OSXUtil.RunOnMainThread(wait, true /* kickNSApp */, new Runnable() {
                   @Override
                   public void run() {
                       CGL.setContextView(ctx, 0);
