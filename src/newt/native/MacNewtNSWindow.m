@@ -110,6 +110,12 @@ static jint mods2JavaMods(NSUInteger mods)
     return javaMods;
 }
 
+#if 0
+
+//
+// Disabled due to crash on MacOS >= 13, see CKCH_CreateDictionaries() below
+//
+
 static CFStringRef CKCH_CreateStringForKey(CGKeyCode keyCode, const UCKeyboardLayout *keyboardLayout) {
     UInt32 keysDown = 0;
     UniChar chars[4];
@@ -123,12 +129,14 @@ static CFStringRef CKCH_CreateStringForKey(CGKeyCode keyCode, const UCKeyboardLa
     return CFStringCreateWithCharacters(kCFAllocatorDefault, chars, 1);
 }
 
-static CFMutableDictionaryRef CKCH_CreateCodeToCharDict(TISInputSourceRef keyboard) {
-    CFDataRef layoutData = (CFDataRef) TISGetInputSourceProperty(keyboard, kTISPropertyUnicodeKeyLayoutData);
+static CFMutableDictionaryRef CKCH_CreateCodeToCharDict(CFDataRef layoutData) {
     if( NULL == layoutData ) {
         return NULL;
     }
     const UCKeyboardLayout *keyboardLayout = (const UCKeyboardLayout *)CFDataGetBytePtr(layoutData);
+    if( NULL == keyboardLayout ) {
+        return NULL;
+    }
 
     CFMutableDictionaryRef codeToCharDict = CFDictionaryCreateMutable(kCFAllocatorDefault, 128, NULL, NULL);
     if ( NULL != codeToCharDict ) {
@@ -152,10 +160,41 @@ static CFMutableDictionaryRef CKCH_CreateCodeToCharDict(TISInputSourceRef keyboa
 static CFMutableDictionaryRef CKCH_USCodeToNNChar = NULL;
 
 static void CKCH_CreateDictionaries() {
-    TISInputSourceRef currentKeyboard = TISCopyCurrentKeyboardInputSource();
-    if( NULL != currentKeyboard ) {
-        CKCH_USCodeToNNChar = CKCH_CreateCodeToCharDict(currentKeyboard);
-        CFRelease(currentKeyboard);
+    bool done = false;
+    TISInputSourceRef inputSource;
+    inputSource = TISCopyCurrentKeyboardInputSource();
+    if( NULL != inputSource ) {
+        /**
+         * Crash on MacOS >= 13
+         *
+         * thread #3, stop reason = ESR_EC_BRK_AARCH64 (fault address: 0x1f287d300)
+         * frame #0: 0x0000000196e7c924 libdispatch.dylib`_dispatch_assert_queue_fail + 120
+         * frame #1: 0x0000000196e7c8ac libdispatch.dylib`dispatch_assert_queue + 196
+         * frame #2: 0x00000001a07b66a4 HIToolbox`islGetInputSourceListWithAdditions + 160
+         * frame #3: 0x00000001a07b8ccc HIToolbox`isValidateInputSourceRef + 92
+         * frame #4: 0x00000001a07b8b8c HIToolbox`TSMGetInputSourceProperty + 44
+         * frame #5: 0x000000012c961890 libnewt_head.dylib`CKCH_CreateDictionaries at MacNewtNSWindow.m:166:48
+         * frame #6: 0x000000012c95f68c libnewt_head.dylib`+[NewtNSWindow initNatives:forClass:](self=0x000000012c96d600, _cmd="initNatives:forClass:", env=0x000000014b80e2a8
+         */
+        CFDataRef layoutData = (CFDataRef) TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData);
+        if( NULL != layoutData ) {
+            CKCH_USCodeToNNChar = CKCH_CreateCodeToCharDict(layoutData);
+            done = true;
+        }
+        CFRelease(inputSource);
+    }
+    if( !done ) {
+        // TISGetInputSourceProperty returns null with  Japanese keyboard layout.
+        // Using TISCopyCurrentKeyboardLayoutInputSource to fix NULL return.
+        inputSource = TISCopyCurrentKeyboardLayoutInputSource();
+        if( NULL != inputSource ) {
+            CFDataRef layoutData = (CFDataRef) TISGetInputSourceProperty(inputSource, kTISPropertyUnicodeKeyLayoutData);
+            if( NULL != layoutData ) {
+                CKCH_USCodeToNNChar = CKCH_CreateCodeToCharDict(layoutData);
+                done = true;
+            }
+            CFRelease(inputSource);
+        }
     }
 }
 
@@ -173,6 +212,8 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
     }
     return rChar;
 }
+
+#endif
 
 static jmethodID enqueueMouseEventID = NULL;
 static jmethodID enqueueKeyEventID = NULL;
@@ -761,7 +802,9 @@ static jmethodID windowRepaintID = NULL;
         for (i = 0; i < len; i++) {
             // Note: the key code in the NSEvent does not map to anything we can use
             UniChar keyChar = (UniChar) [chars characterAtIndex: i];
-            UniChar keySymChar = CKCH_CharForKeyCode(keyCode);
+            // Disabled due to crash on MacOS >= 13, see CKCH_CreateDictionaries() below
+            // UniChar keySymChar = CKCH_CharForKeyCode(keyCode);
+            UniChar keySymChar = 0;
 
             DBG_PRINT("sendKeyEvent: %d/%d code 0x%X, char 0x%X, mods 0x%X/0x%X -> keySymChar 0x%X\n", i, len, (int)keyCode, (int)keyChar, 
                       (int)mods, (int)javaMods, (int)keySymChar);
@@ -848,7 +891,9 @@ NS_ENDHANDLER
         insetsChangedID && sizeScreenPosInsetsChangedID &&
         screenPositionChangedID && focusChangedID && windowDestroyNotifyID && requestFocusID && windowRepaintID)
     {
-        CKCH_CreateDictionaries();
+        //
+        // Disabled due to crash on MacOS >= 13, see CKCH_CreateDictionaries() below
+        // CKCH_CreateDictionaries();
         return YES;
     }
     return NO;
