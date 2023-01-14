@@ -34,11 +34,15 @@
 	<classpathentry kind="src" path="src/oculusvr/classes"/>
 	<classpathentry kind="src" path="oculusvr-sdk/jogl/src/classes"/>
 	<classpathentry kind="src" path="src/demos"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/gluegen"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/joal"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Ant"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/SWT"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/joal"/>
 	<classpathentry kind="lib" path="/gluegen/make/lib/junit.jar" sourcepath="/gluegen/make/lib/junit-sources.jar"/>
 	<classpathentry kind="lib" path="make/lib/plugin3/plugin3-public.jar" sourcepath="make/lib/plugin3/plugin3-public-src.zip"/>
 	<classpathentry kind="lib" path="/gluegen/make/lib/semantic-versioning/semver.jar" sourcepath="/gluegen/make/lib/semantic-versioning/semver-src.zip"/>
