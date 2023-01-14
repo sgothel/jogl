@@ -122,7 +122,7 @@ function jrun() {
     #D_ARGS="-Djogl.quirks.force=NoDoubleBufferedPBuffer" 
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000"
-    D_ARGS="-Djogl.debug.Bug1398"
+    #D_ARGS="-Djogl.debug.Bug1398"
 
     #D_ARGS="-Djogamp.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
@@ -495,10 +495,10 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawtatomics com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
-#testnoawtatomics com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWTAnalyzeBug455 $*
@@ -948,7 +948,7 @@ function testawtswt() {
 # OSX Bug 1398 
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestBug1398Deadlock02AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestBug1398Deadlock02AWT $*
 
 #
 # to re-test:

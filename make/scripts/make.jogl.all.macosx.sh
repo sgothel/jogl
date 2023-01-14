@@ -13,8 +13,8 @@ JAVA_HOME=`/usr/libexec/java_home -version 11`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 
-
 #    -Dc.compiler.debug=true \
+#    -Dc.compiler.optimise=none \
 #    -Djavacdebug="true" \
 #    -Djavacdebuglevel="source,lines,vars" \
 #
