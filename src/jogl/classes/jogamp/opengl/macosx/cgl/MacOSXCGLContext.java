@@ -101,16 +101,30 @@ public class MacOSXCGLContext extends GLContextImpl
         boolean swapBuffers();
   }
 
-  /* package */ static final boolean isTigerOrLater;
-  /* package */ static final boolean isLionOrLater;
-  /* package */ static final boolean isMavericksOrLater;
+  /* package */ static final boolean isLionOrLater; // >= 10.7.0
+  /* package */ static final boolean isMavericksOrLater; // >= 10.9.0
+  /* package */ static final boolean isMojaveOrLater; // >= 10.14.0
   private static final boolean DEBUG1398;
 
   static {
     final VersionNumber osvn = Platform.getOSVersionNumber();
-    isTigerOrLater = osvn.compareTo(Platform.OSXVersion.Tiger) >= 0;
-    isLionOrLater = osvn.compareTo(Platform.OSXVersion.Lion) >= 0;
-    isMavericksOrLater = osvn.compareTo(Platform.OSXVersion.Mavericks) >= 0;
+    if( osvn.compareTo(Platform.OSXVersion.Mojave) >= 0 ) {
+        isLionOrLater = true;
+        isMavericksOrLater = true;
+        isMojaveOrLater = true;
+    } else if( osvn.compareTo(Platform.OSXVersion.Mavericks) >= 0 ) {
+        isLionOrLater = true;
+        isMavericksOrLater = true;
+        isMojaveOrLater = false;
+    } else if( osvn.compareTo(Platform.OSXVersion.Lion) >= 0 ) {
+        isLionOrLater = true;
+        isMavericksOrLater = false;
+        isMojaveOrLater = false;
+    } else {
+        isLionOrLater = false;
+        isMavericksOrLater = false;
+        isMojaveOrLater = false;
+    }
     DEBUG1398 = Debug.debug("Bug1398");
   }
 
