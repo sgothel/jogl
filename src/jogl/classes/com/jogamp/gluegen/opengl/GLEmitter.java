@@ -504,7 +504,7 @@ public class GLEmitter extends ProcAddressEmitter {
         w.println("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
         w.println("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
         w.println("    final int funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
-        w.println("    final java.lang.reflect.Field addressField = java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
+        w.println("    final java.lang.reflect.Field addressField = com.jogamp.common.util.SecurityUtil.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
         w.println("        public final java.lang.reflect.Field run() {");
         w.println("            java.lang.reflect.Field addressField = null;");
         w.println("            for(int i = 0; i < funcNamePermNum; i++) {");
@@ -542,7 +542,7 @@ public class GLEmitter extends ProcAddressEmitter {
         w.println("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
         w.println("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
         w.println("    final int  funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
-        w.println("    final java.lang.reflect.Field addressField = java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
+        w.println("    final java.lang.reflect.Field addressField = com.jogamp.common.util.SecurityUtil.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
         w.println("        public final java.lang.reflect.Field run() {");
         w.println("            java.lang.reflect.Field addressField = null;");
         w.println("            for(int i = 0; i < funcNamePermNum; i++) {");
