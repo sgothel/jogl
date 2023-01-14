@@ -32,13 +32,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.graph.font.FontConstructor;
@@ -141,7 +141,7 @@ public class FontFactory {
         final int[] streamLen = { 0 };
         final File tempFile[] = { null };
 
-        final InputStream bis = AccessController.doPrivileged(new PrivilegedAction<InputStream>() {
+        final InputStream bis = SecurityUtil.doPrivileged(new PrivilegedAction<InputStream>() {
             @Override
             public InputStream run() {
                 InputStream bis = null;
@@ -179,7 +179,7 @@ public class FontFactory {
                 bis.close();
             }
             if( null != tempFile[0] ) {
-                AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
                     @Override
                     public Object run() {
                         tempFile[0].delete();

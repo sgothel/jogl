@@ -35,7 +35,6 @@ package com.jogamp.nativewindow;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,6 +60,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
@@ -233,7 +233,7 @@ public abstract class NativeWindowFactory {
         final String[] _tmp = new String[] { null };
         final String[] _nativeWindowingTypeNative = new String[] { null };
 
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
                 Platform.initSingleton(); // last resort ..
@@ -398,7 +398,7 @@ public abstract class NativeWindowFactory {
             if( Platform.AWT_AVAILABLE &&
                 ReflectionUtil.isClassAvailable("com.jogamp.nativewindow.awt.AWTGraphicsDevice", cl) ) {
 
-                final Method[] jawtUtilMethods = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
+                final Method[] jawtUtilMethods = SecurityUtil.doPrivileged(new PrivilegedAction<Method[]>() {
                     @Override
                     public Method[] run() {
                         try {

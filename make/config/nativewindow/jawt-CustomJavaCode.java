@@ -9,7 +9,7 @@ protected static boolean getJAWT(final JAWT jawt, final int jawt_version_flags) 
     // Workaround for 4845371.
     // Make sure the first reference to the JNI GetDirectBufferAddress is done
     // from a privileged context so the VM's internal class lookups will succeed.
-    return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+    return SecurityUtil.doPrivileged(new PrivilegedAction<Boolean>() {
         public Boolean run() {
           jawt.setVersion(jawt_version_flags);
           if (JAWTFactory.JAWT_GetAWT(jawt)) {

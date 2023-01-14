@@ -39,11 +39,11 @@
 
 package jogamp.newt;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 public class NEWTJNILibLoader extends JNILibLoaderBase {
@@ -52,7 +52,7 @@ public class NEWTJNILibLoader extends JNILibLoaderBase {
      * i.e. X11 for Unix, GDI for Windows .. and so forth.
      */
     public static boolean loadNEWTHead() {
-        return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+        return SecurityUtil.doPrivileged(new PrivilegedAction<Boolean>() {
             @Override
             public Boolean run() {
                 Platform.initSingleton();
@@ -68,7 +68,7 @@ public class NEWTJNILibLoader extends JNILibLoaderBase {
      * Loads the NEWT native library for the drm/gbm display.
      */
     public static boolean loadNEWTDrmGbm() {
-        return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+        return SecurityUtil.doPrivileged(new PrivilegedAction<Boolean>() {
             @Override
             public Boolean run() {
                 Platform.initSingleton();

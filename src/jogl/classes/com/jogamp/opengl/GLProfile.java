@@ -48,6 +48,7 @@ import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 import com.jogamp.common.util.locks.LockFactory;
@@ -62,7 +63,6 @@ import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 
 import java.lang.reflect.Constructor;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.List;
@@ -222,7 +222,7 @@ public class GLProfile {
 
                 // run the whole static initialization privileged to speed up,
                 // since this skips checking further access
-                AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
                     @Override
                     public Object run() {
                         Platform.initSingleton();

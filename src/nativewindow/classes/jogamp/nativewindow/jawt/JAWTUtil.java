@@ -45,7 +45,6 @@ import java.awt.Toolkit;
 import java.awt.geom.AffineTransform;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Map;
@@ -67,6 +66,7 @@ import jogamp.nativewindow.x11.X11Lib;
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.UnsafeUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.locks.LockFactory;
@@ -362,7 +362,7 @@ public class JAWTUtil {
         // Always enforce using sun.awt.SunToolkit's awtLock even on JVM >= Java_9,
         // as we have no other official means to synchronize native UI locks especially for X11
         {
-            final SunToolkitData std = AccessController.doPrivileged(new PrivilegedAction<SunToolkitData>() {
+            final SunToolkitData std = SecurityUtil.doPrivileged(new PrivilegedAction<SunToolkitData>() {
                 @Override
                 public SunToolkitData run() {
                     return UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<SunToolkitData>() {
@@ -407,7 +407,7 @@ public class JAWTUtil {
             gdGetScaleFactorMID = null;
             gdGetCGDisplayIDMIDOnOSX = null;
         } else {
-            final GraphicsDeviceData gdd = (GraphicsDeviceData) AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            final GraphicsDeviceData gdd = (GraphicsDeviceData) SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
                 @Override
                 public Object run() {
                     final GraphicsDeviceData d = new GraphicsDeviceData();

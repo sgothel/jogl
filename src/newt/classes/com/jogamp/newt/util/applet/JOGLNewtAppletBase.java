@@ -28,7 +28,6 @@
 package com.jogamp.newt.util.applet;
 
 import java.lang.reflect.Field;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.nativewindow.NativeWindow;
@@ -43,6 +42,7 @@ import com.jogamp.opengl.GLPipelineFactory;
 import jogamp.newt.Debug;
 
 import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -119,7 +119,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
         Object instance = null;
 
         try {
-            final Class<?> clazz = AccessController.doPrivileged(new PrivilegedAction<Class<?>>() {
+            final Class<?> clazz = SecurityUtil.doPrivileged(new PrivilegedAction<Class<?>>() {
                 @Override
                 public Class<?> run() {
                     final ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -312,7 +312,8 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
        if(e.getKeyChar()=='r' && 0==e.getModifiers() && null!=parentWin) {
            e.setConsumed(true);
            glWindow.invokeOnNewThread(null, false, new Runnable() {
-               public void run() {
+               @Override
+            public void run() {
                    if(null == glWindow.getParent()) {
                         glWindow.reparentWindow(parentWin, -1, -1, 0 /* hints */);
                   } else {

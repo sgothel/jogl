@@ -7,7 +7,7 @@ static {
       throw new RuntimeException("Couldn't instantiate CgProcAddressTable");
     }
 
-    cgDynamicLookupHelper = AccessController.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
+    cgDynamicLookupHelper = SecurityUtil.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
                                 public DynamicLibraryBundle run() {
                                     return new DynamicLibraryBundle(new CgDynamicLibraryBundleInfo());
                                 } } );

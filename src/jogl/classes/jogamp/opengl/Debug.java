@@ -28,10 +28,10 @@
 
 package jogamp.opengl;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.common.util.SecurityUtil;
 
 /** Helper routines for logging and debugging. */
 
@@ -41,7 +41,7 @@ public class Debug extends PropertyAccess {
   private static final boolean debugAll;
 
   static {
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
         @Override
         public Object run() {
             PropertyAccess.addTrustedPrefix("jogl.");

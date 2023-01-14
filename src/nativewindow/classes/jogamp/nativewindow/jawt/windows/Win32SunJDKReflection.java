@@ -44,10 +44,10 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.UnsafeUtil;
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 
@@ -68,7 +68,7 @@ public class Win32SunJDKReflection {
   private static boolean  initialized;
 
   static {
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
         @Override
         public Object run() {
             return UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<Object>() {

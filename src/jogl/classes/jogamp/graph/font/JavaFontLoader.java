@@ -32,12 +32,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.FontFactory;
@@ -68,7 +68,7 @@ public class JavaFontLoader implements FontSet {
     final String javaFontPath;
 
     private JavaFontLoader() {
-        final String javaHome = AccessController.doPrivileged(new PrivilegedAction<String>() {
+        final String javaHome = SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
             @Override
             public String run() {
                 return System.getProperty("java.home");
@@ -158,7 +158,7 @@ public class JavaFontLoader implements FontSet {
     private Font abspathImpl(final String fname, final int family, final int style) throws IOException {
         final Exception[] privErr = { null };
         final int[] streamLen = { 0 };
-        final InputStream stream = AccessController.doPrivileged(new PrivilegedAction<InputStream>() {
+        final InputStream stream = SecurityUtil.doPrivileged(new PrivilegedAction<InputStream>() {
             @Override
             public InputStream run() {
                 try {

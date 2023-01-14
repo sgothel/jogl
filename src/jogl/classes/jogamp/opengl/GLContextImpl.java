@@ -42,7 +42,6 @@ package jogamp.opengl;
 
 import java.lang.reflect.Method;
 import java.nio.IntBuffer;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -55,6 +54,7 @@ import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.Bitfield;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.VersionNumberString;
 import com.jogamp.common.util.locks.RecursiveLock;
@@ -1022,7 +1022,8 @@ public abstract class GLContextImpl extends GLContext {
           this.preCtxVersion = preCtxVersion;
           this.preCtxOptions = preCtxOptions;
       }
-      public final String toString() {
+      @Override
+    public final String toString() {
           return toString(new StringBuilder(), -1, -1, -1, -1).toString();
       }
       public final StringBuilder toString(final StringBuilder sb, final int minMajor, final int minMinor, final int maxMajor, final int maxMinor) {
@@ -1621,7 +1622,7 @@ public abstract class GLContextImpl extends GLContext {
       GLEmitter by looking up anew all of its function pointers
       using the given {@link GLDynamicLookupHelper}. */
   protected final void resetProcAddressTable(final ProcAddressTable table, final GLDynamicLookupHelper dlh) {
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
         @Override
         public Object run() {
             table.reset( dlh );
@@ -1777,7 +1778,7 @@ public abstract class GLContextImpl extends GLContext {
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
 
     if( !glGetPtrInit ) {
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
                 final GLDynamicLookupHelper glDynLookupHelper = getGLDynamicLookupHelper(reqMajor, reqCtxProfileBits);
@@ -2665,7 +2666,7 @@ public abstract class GLContextImpl extends GLContext {
         throw new GLException("No GLDynamicLookupHelper for "+this);
     }
     final String tmpBase = GLNameResolver.normalizeVEN(GLNameResolver.normalizeARB(glFunctionName, true), true);
-    return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+    return SecurityUtil.doPrivileged(new PrivilegedAction<Boolean>() {
         @Override
         public Boolean run() {
             boolean res = false;

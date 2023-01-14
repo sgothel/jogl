@@ -39,17 +39,17 @@
 
 package jogamp.nativewindow.jawt;
 
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.nativewindow.NativeWindowFactory;
 
 import jogamp.nativewindow.NWJNILibLoader;
 
 import java.awt.Toolkit;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 public class JAWTJNILibLoader extends NWJNILibLoader {
   static {
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
       @Override
       public Object run() {
         // Make sure that awt.dll is loaded before loading jawt.dll. Otherwise

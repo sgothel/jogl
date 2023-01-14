@@ -32,7 +32,6 @@ import com.jogamp.common.os.Platform;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import org.eclipse.swt.SWT;
@@ -50,6 +49,7 @@ import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.VisualIDHolder;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
@@ -138,7 +138,7 @@ public class SWTAccessor {
     }
 
     static {
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
                 NativeWindowFactory.initSingleton(); // last resort ..

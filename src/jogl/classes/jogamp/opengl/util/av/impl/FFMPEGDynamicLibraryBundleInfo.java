@@ -28,7 +28,6 @@
 
 package jogamp.opengl.util.av.impl;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +40,7 @@ import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import com.jogamp.common.util.RunnableExecutor;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 
 /**
@@ -217,7 +217,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             throw new InternalError("XXX0 "+symbolNames.length+" != "+symbolCount);
         }
 
-        final DynamicLibraryBundle dl = AccessController.doPrivileged(privInitSymbolsAction);
+        final DynamicLibraryBundle dl = SecurityUtil.doPrivileged(privInitSymbolsAction);
         if( null == dl ) {
             return false;
         }

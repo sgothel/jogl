@@ -27,7 +27,6 @@
  */
 package jogamp.opengl;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 
@@ -41,6 +40,7 @@ import jogamp.common.os.PlatformPropsImpl;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.GLExtensions;
 
@@ -114,7 +114,7 @@ public class GLDebugMessageHandler {
     }
 
     private final long getAddressFor(final ProcAddressTable table, final String functionName) {
-        return AccessController.doPrivileged(new PrivilegedAction<Long>() {
+        return SecurityUtil.doPrivileged(new PrivilegedAction<Long>() {
             @Override
             public Long run() {
                 try {

@@ -2,7 +2,7 @@
     static final DynamicLibraryBundle dynamicLookupHelper;
 
     static {
-        dynamicLookupHelper = AccessController.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
+        dynamicLookupHelper = SecurityUtil.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
                     public DynamicLibraryBundle run() {
                         final DynamicLibraryBundle bundle =  new DynamicLibraryBundle(new OVRDynamicLibraryBundleInfo());
                         if(null==bundle) {

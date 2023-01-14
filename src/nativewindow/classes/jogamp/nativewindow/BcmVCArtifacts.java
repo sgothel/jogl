@@ -29,8 +29,9 @@
 package jogamp.nativewindow;
 
 import java.io.File;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
+
+import com.jogamp.common.util.SecurityUtil;
 
 /**
  * Heuristics about Broadcom (BCM) VideoCore (VC) existence and usage
@@ -48,7 +49,7 @@ public class BcmVCArtifacts {
         final File driCard0Location = new File(
             "/dev/dri/card0");
         final boolean[] res = new boolean [3];
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
                 @Override
                 public Object run() {
                     res[0] = vcLibLocation.isFile();

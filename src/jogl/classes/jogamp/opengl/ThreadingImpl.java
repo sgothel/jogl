@@ -35,7 +35,6 @@
 package jogamp.opengl;
 
 import java.lang.reflect.InvocationTargetException;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.nativewindow.NativeWindowFactory;
@@ -46,6 +45,7 @@ import com.jogamp.opengl.Threading.Mode;
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.SecurityUtil;
 
 /** Implementation of the {@link com.jogamp.opengl.Threading} class. */
 
@@ -63,7 +63,7 @@ public class ThreadingImpl {
 
     static {
         threadingPlugin =
-            AccessController.doPrivileged(new PrivilegedAction<ToolkitThreadingPlugin>() {
+            SecurityUtil.doPrivileged(new PrivilegedAction<ToolkitThreadingPlugin>() {
                     @Override
                     public ToolkitThreadingPlugin run() {
                         final String singleThreadProp;

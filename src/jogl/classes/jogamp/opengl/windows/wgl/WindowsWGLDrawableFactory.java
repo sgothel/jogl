@@ -42,7 +42,6 @@ package jogamp.opengl.windows.wgl;
 
 import java.nio.Buffer;
 import java.nio.ShortBuffer;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.List;
 
@@ -78,6 +77,7 @@ import jogamp.opengl.SharedResourceRunner;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.opengl.GLExtensions;
@@ -155,7 +155,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
     synchronized(WindowsWGLDrawableFactory.class) {
         if( null == windowsWGLDynamicLookupHelper ) {
-            windowsWGLDynamicLookupHelper = AccessController.doPrivileged(new PrivilegedAction<DesktopGLDynamicLookupHelper>() {
+            windowsWGLDynamicLookupHelper = SecurityUtil.doPrivileged(new PrivilegedAction<DesktopGLDynamicLookupHelper>() {
                 @Override
                 public DesktopGLDynamicLookupHelper run() {
                     DesktopGLDynamicLookupHelper tmp;

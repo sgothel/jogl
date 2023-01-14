@@ -28,7 +28,6 @@
 package com.jogamp.nativewindow.javafx;
 
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
@@ -43,6 +42,7 @@ import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.InterruptedRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.RunnableTask;
+import com.jogamp.common.util.SecurityUtil;
 import com.sun.javafx.tk.TKStage;
 
 import javafx.application.Platform;
@@ -69,7 +69,7 @@ public class JFXAccessor {
     static {
         final boolean[] _DEBUG = new boolean[] { true };
 
-        final Method[] res = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
+        final Method[] res = SecurityUtil.doPrivileged(new PrivilegedAction<Method[]>() {
             @Override
             public Method[] run() {
                 NativeWindowFactory.initSingleton(); // last resort ..
@@ -270,6 +270,7 @@ public class JFXAccessor {
     public static long getWindowHandle(final Window stageWindow) throws NativeWindowException {
         final long h[] = { 0 };
         runOnJFXThread(true, new Runnable() {
+            @Override
             public void run() {
                 try {
                     final TKStage tkStage = (TKStage) tkStageGetter.invoke(stageWindow);

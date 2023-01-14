@@ -2,11 +2,11 @@ package com.jogamp.nativewindow.awt;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.RunnableTask;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.UnsafeUtil;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
@@ -28,7 +28,7 @@ public class AppContextInfo {
   static {
       DEBUG = JAWTUtil.DEBUG;
       final Method[] _getAppContextMethod = { null };
-      AccessController.doPrivileged(new PrivilegedAction<Object>() {
+      SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
           @Override
           public Object run() {
               return UnsafeUtil.doWithoutIllegalAccessLogger(new PrivilegedAction<Object>() {

@@ -39,7 +39,6 @@ package jogamp.opengl.x11.glx;
 
 import java.nio.Buffer;
 import java.nio.ShortBuffer;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.List;
 
@@ -72,6 +71,7 @@ import jogamp.opengl.SharedResourceRunner;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
@@ -96,7 +96,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
     synchronized(X11GLXDrawableFactory.class) {
         if( null == x11GLXDynamicLookupHelper ) {
-            x11GLXDynamicLookupHelper = AccessController.doPrivileged(new PrivilegedAction<DesktopGLDynamicLookupHelper>() {
+            x11GLXDynamicLookupHelper = SecurityUtil.doPrivileged(new PrivilegedAction<DesktopGLDynamicLookupHelper>() {
                 @Override
                 public DesktopGLDynamicLookupHelper run() {
                     DesktopGLDynamicLookupHelper tmp;

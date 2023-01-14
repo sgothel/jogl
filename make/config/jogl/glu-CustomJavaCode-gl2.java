@@ -1,7 +1,7 @@
 private static boolean useJavaMipmapCode = true;
 
 static {
-  AccessController.doPrivileged(new PrivilegedAction() {
+  SecurityUtil.doPrivileged(new PrivilegedAction() {
       public Object run() {
         String val = System.getProperty("jogl.glu.nojava");
         if (val != null && !val.toLowerCase().equals("false")) {

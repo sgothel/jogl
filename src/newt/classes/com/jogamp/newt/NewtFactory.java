@@ -34,7 +34,6 @@
 
 package com.jogamp.newt;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 
@@ -48,6 +47,7 @@ import com.jogamp.nativewindow.NativeWindowFactory;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.common.util.SecurityUtil;
 
 import jogamp.newt.Debug;
 import jogamp.newt.DisplayImpl;
@@ -63,7 +63,7 @@ public class NewtFactory {
     private static String sysPaths = "newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png";
 
     static {
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
                 NativeWindowFactory.initSingleton(); // last resort ..

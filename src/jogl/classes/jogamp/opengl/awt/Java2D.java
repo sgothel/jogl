@@ -48,7 +48,6 @@ import java.awt.Rectangle;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.opengl.GL;
@@ -58,6 +57,7 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.SecurityUtil;
 
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.opengl.Debug;
@@ -118,7 +118,7 @@ public class Java2D {
   private static Method destroyOGLContextMethod;
 
   static {
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
         @Override
         public Object run() {
           if (DEBUG) {

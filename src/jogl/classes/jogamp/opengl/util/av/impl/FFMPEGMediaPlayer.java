@@ -30,7 +30,6 @@ package jogamp.opengl.util.av.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.opengl.GL;
@@ -39,6 +38,7 @@ import com.jogamp.opengl.GLException;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.TimeFrameI;
@@ -422,7 +422,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         final int audioQueueLimit;
         if( null != gl && STREAM_ID_NONE != getVID() ) {
             final GLContextImpl ctx = (GLContextImpl)gl.getContext();
-            AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
                 @Override
                 public Object run() {
                     final ProcAddressTable pt = ctx.getGLProcAddressTable();
