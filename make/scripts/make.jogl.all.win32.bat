@@ -1,7 +1,7 @@
 set THISDIR="C:\JogAmp"
 
-set J2RE_HOME=c:\jre-11.0.4+11_x32
-set JAVA_HOME=c:\jdk-11.0.4+11_x32
+set J2RE_HOME=c:\jre-17
+set JAVA_HOME=c:\jdk-17
 set ANT_PATH=C:\apache-ant-1.10.5
 set GIT_PATH=C:\cygwin64\bin
 set SEVENZIP=C:\Program Files\7-Zip

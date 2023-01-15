@@ -12,7 +12,7 @@ fi
 export SDKROOT=iphonesimulator13.2
 xcrun --show-sdk-path
 
-JAVA_HOME=`/usr/libexec/java_home -version 11`
+JAVA_HOME=`/usr/libexec/java_home -version 17`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 which java

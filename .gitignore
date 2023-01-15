@@ -8,3 +8,4 @@ temp/*
 **~
 build*/
 make/lib/external/*
+*.log
