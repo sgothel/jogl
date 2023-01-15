@@ -108,15 +108,15 @@ public class MacOSXCGLContext extends GLContextImpl
 
   static {
     final VersionNumber osvn = Platform.getOSVersionNumber();
-    if( osvn.compareTo(Platform.OSXVersion.Mojave) >= 0 ) {
+    if( osvn.compareTo(MacOSVersion.Mojave) >= 0 ) {
         isLionOrLater = true;
         isMavericksOrLater = true;
         isMojaveOrLater = true;
-    } else if( osvn.compareTo(Platform.OSXVersion.Mavericks) >= 0 ) {
+    } else if( osvn.compareTo(MacOSVersion.Mavericks) >= 0 ) {
         isLionOrLater = true;
         isMavericksOrLater = true;
         isMojaveOrLater = false;
-    } else if( osvn.compareTo(Platform.OSXVersion.Lion) >= 0 ) {
+    } else if( osvn.compareTo(MacOSVersion.Lion) >= 0 ) {
         isLionOrLater = true;
         isMavericksOrLater = false;
         isMojaveOrLater = false;

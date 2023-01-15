@@ -86,6 +86,29 @@ import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLProfile;
 
 public abstract class GLContextImpl extends GLContext {
+
+  /** Selected {@link Platform.OSType#MACOS} or {@link Platform.OSType#IOS} {@link VersionNumber}s. */
+  public static class MacOSVersion {
+      /** OSX Lion, i.e. 10.7.0 */
+      public static final VersionNumber Lion;
+      /** OSX Mavericks, i.e. 10.9.0 */
+      public static final VersionNumber Mavericks;
+      /** OSX Mojave, i.e. 10.14.0 */
+      public static final VersionNumber Mojave;
+
+      static {
+          if( Platform.getOSType() == Platform.OSType.MACOS ) {
+              Lion = new VersionNumber(10,7,0);
+              Mavericks = new VersionNumber(10,9,0);
+              Mojave = new VersionNumber(10,14,0);
+          } else {
+              Lion = null;
+              Mavericks = null;
+              Mojave = null;
+          }
+      }
+  }
+
   /**
    * Context full qualified name: display_type + display_connection + major + minor + ctp.
    * This is the key for all cached GL ProcAddressTables, etc, to support multi display/device setups.
@@ -1227,7 +1250,7 @@ public abstract class GLContextImpl extends GLContext {
         // ensuring proper user behavior across platforms due to different feature sets!
         //
         if( Platform.OSType.MACOS == Platform.getOSType() &&
-            Platform.getOSVersionNumber().compareTo(Platform.OSXVersion.Mavericks) >= 0 ) {
+            Platform.getOSVersionNumber().compareTo(MacOSVersion.Mavericks) >= 0 ) {
             /**
              * OSX 10.9 GLRendererQuirks.GL4NeedsGL3Request, quirk is added as usual @ setRendererQuirks(..)
              */
@@ -2324,7 +2347,7 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks.addQuirk( quirk );
         }
-        if( Platform.getOSVersionNumber().compareTo(Platform.OSXVersion.Mavericks) >= 0 && 3==reqMajor && 4==hasMajor ) {
+        if( Platform.getOSVersionNumber().compareTo(MacOSVersion.Mavericks) >= 0 && 3==reqMajor && 4==hasMajor ) {
             final int quirk = GLRendererQuirks.GL4NeedsGL3Request;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber()+", req "+reqMajor+"."+reqMinor);
@@ -2340,7 +2363,7 @@ public abstract class GLContextImpl extends GLContext {
                 }
                 quirks.addQuirk( quirk );
             }
-            if( Platform.getOSVersionNumber().compareTo(Platform.OSXVersion.Lion) < 0 ) { // < OSX 10.7.0 w/ NV has unstable GLSL
+            if( Platform.getOSVersionNumber().compareTo(MacOSVersion.Lion) < 0 ) { // < OSX 10.7.0 w/ NV has unstable GLSL
                 final int quirk = GLRendererQuirks.GLSLNonCompliant;
                 if(DEBUG) {
                     System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber()+", Renderer "+glRenderer);
