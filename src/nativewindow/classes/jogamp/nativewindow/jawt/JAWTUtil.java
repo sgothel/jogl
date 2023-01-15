@@ -80,11 +80,10 @@ public class JAWTUtil {
   /** OSX JAWT version option to use CALayer */
   public static final int JAWT_MACOSX_USE_CALAYER = 0x80000000;
 
-  /** OSX JAWT CALayer availability on Mac OS X >= 10.6 Update 4 (recommended) */
-  public static final VersionNumber JAWT_MacOSXCALayerMinVersion = new VersionNumber(10,6,4);
-
   /** OSX JAWT CALayer required with Java >= 1.7.0 (implies OS X >= 10.7  */
-  public static final VersionNumber JAWT_MacOSXCALayerRequiredForJavaVersion = Platform.Version17;
+  private static final int MacOS_JVM_1_7_COMPARE;
+  /** OSX JAWT CALayer availability on Mac OS X >= 10.6 Update 4 (recommended) */
+  private static final int MacOS_10_6_4_COMPARE;
 
   // See whether we're running in headless mode
   private static final boolean headlessMode;
@@ -125,16 +124,14 @@ public class JAWTUtil {
    * Returns true if this platform's JAWT implementation supports offscreen layer.
    */
   public static boolean isOffscreenLayerSupported() {
-    return PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS &&
-           PlatformPropsImpl.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0;
+    return PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS && MacOS_10_6_4_COMPARE >= 0;
   }
 
   /**
    * Returns true if this platform's JAWT implementation requires using offscreen layer.
    */
   public static boolean isOffscreenLayerRequired() {
-    return PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS &&
-           PlatformPropsImpl.JAVA_VERSION_NUMBER.compareTo(JAWT_MacOSXCALayerRequiredForJavaVersion)>=0;
+    return PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS && MacOS_JVM_1_7_COMPARE >= 0;
   }
 
   /**
@@ -238,14 +235,11 @@ public class JAWTUtil {
    */
   public static int getOSXCALayerQuirks() {
     int res = 0;
-    if( PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS &&
-        PlatformPropsImpl.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0 ) {
-
+    if( PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS && MacOS_10_6_4_COMPARE >= 0 ) {
         /** Knowing impl. all expose the SIZE bug */
         res |= JAWT_OSX_CALAYER_QUIRK_SIZE;
 
-        final int c = PlatformPropsImpl.JAVA_VERSION_NUMBER.compareTo(PlatformPropsImpl.Version17);
-        if( c < 0 || c == 0 && PlatformPropsImpl.JAVA_VERSION_UPDATE < 40 ) {
+        if( MacOS_JVM_1_7_COMPARE < 0 || MacOS_JVM_1_7_COMPARE == 0 && PlatformPropsImpl.JAVA_VERSION_UPDATE < 40 ) {
             res |= JAWT_OSX_CALAYER_QUIRK_POSITION;
         } else {
             res |= JAWT_OSX_CALAYER_QUIRK_LAYOUT;
@@ -269,7 +263,7 @@ public class JAWTUtil {
 
     if(isOffscreenLayerRequired()) {
         if(PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
-            if(PlatformPropsImpl.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0) {
+            if(MacOS_10_6_4_COMPARE >= 0) {
                 jawt_version_flags_offscreen |= JAWTUtil.JAWT_MACOSX_USE_CALAYER;
                 tryOffscreenLayer = true;
                 tryOnscreen = false;
@@ -324,6 +318,14 @@ public class JAWTUtil {
     if(DEBUG) {
         System.err.println("JAWTUtil initialization (JAWT/JNI/...); SKIP_AWT_HIDPI "+SKIP_AWT_HIDPI);
         // Thread.dumpStack();
+    }
+
+    if( PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS ) {
+        MacOS_JVM_1_7_COMPARE = PlatformPropsImpl.JAVA_VERSION_NUMBER.compareTo(new VersionNumber(1, 7, 0));
+        MacOS_10_6_4_COMPARE = PlatformPropsImpl.OS_VERSION_NUMBER.compareTo(new VersionNumber(10,6,4));
+    } else {
+        MacOS_JVM_1_7_COMPARE = -1;
+        MacOS_10_6_4_COMPARE = -1;
     }
 
     headlessMode = GraphicsEnvironment.isHeadless();
