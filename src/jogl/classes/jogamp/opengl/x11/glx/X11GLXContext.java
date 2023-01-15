@@ -551,24 +551,16 @@ public class X11GLXContext extends GLContextImpl {
                              ", server: "+ GLXUtil.getGLXServerVersionNumber(x11Device));
         }
         if(((X11GLXDrawableFactory)drawable.getFactoryImpl()).isGLXVersionGreaterEqualOneOne(x11Device)) {
-            {
+            if (ns.getScreenIndex() < 0) {
                 final String ret = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_EXTENSIONS);
                 if (DEBUG) {
                   System.err.println("GLX extensions (glXGetClientString): " + ret);
                 }
                 sb.append(ret).append(" ");
-            }
-            {
+            } else {
                 final String ret = GLX.glXQueryExtensionsString(x11Device.getHandle(), ns.getScreenIndex());
                 if (DEBUG) {
                   System.err.println("GLX extensions (glXQueryExtensionsString): " + ret);
-                }
-                sb.append(ret).append(" ");
-            }
-            {
-                final String ret = GLX.glXQueryServerString(x11Device.getHandle(), ns.getScreenIndex(), GLX.GLX_EXTENSIONS);
-                if (DEBUG) {
-                  System.err.println("GLX extensions (glXQueryServerString): " + ret);
                 }
                 sb.append(ret).append(" ");
             }
