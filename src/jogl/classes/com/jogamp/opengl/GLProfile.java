@@ -2293,7 +2293,17 @@ public class GLProfile {
         } else if(GL3 == profile && hasAnyGL234Impl && ( desktopCtxUndef || GLContext.isGL3Available(device, isHardwareRasterizer))) {
             return desktopCtxUndef ? GL3 : GLContext.getAvailableGLProfileName(device, 3, GLContext.CTX_PROFILE_CORE);
         } else if(GL2 == profile && hasAnyGL234Impl && ( desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer))) {
-            return desktopCtxUndef ? GL2 : GLContext.getAvailableGLProfileName(device, 2, GLContext.CTX_PROFILE_COMPAT);
+            // return desktopCtxUndef ? GL2 : GLContext.getAvailableGLProfileName(device, 2, GLContext.CTX_PROFILE_COMPAT);
+            if( desktopCtxUndef ) {
+                return GL2;
+            } else {
+                final String gl2_impl = GLContext.getAvailableGLProfileName(device, 2, GLContext.CTX_PROFILE_COMPAT);
+                if( GL3bc == gl2_impl && !GLContext.isGL3bcAvailable(device, isHardwareRasterizer) ) {
+                    return GL2;
+                } else {
+                    return gl2_impl;
+                }
+            }
         } else if(GLES3 == profile && hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, isHardwareRasterizer))) {
             return esCtxUndef ? GLES3 : GLContext.getAvailableGLProfileName(device, 3, GLContext.CTX_PROFILE_ES);
         } else if(GLES2 == profile && hasGLES3Impl && ( esCtxUndef || GLContext.isGLES2Available(device, isHardwareRasterizer))) {
