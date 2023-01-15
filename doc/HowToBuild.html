@@ -38,10 +38,10 @@
                     <ul>
                         <li> <b>Java</b><br/>
                            <ul>
-                              <li>Build &amp; Runtime: An <a href="http://openjdk.java.net/">OpenJDK</a> 11 compliant SDK.</li>
+                              <li>Build &amp; Runtime: An <a href="http://openjdk.java.net/">OpenJDK</a> 17 compliant SDK.</li>
                               <li>Runtime: An OpenJDK 8 compliant JRE.</li>
                            </ul>
-                           You may find an appropriate <a href="http://openjdk.java.net/">OpenJDK</a> build @ <a href="https://adoptopenjdk.net/">AdoptOpenJDK</a>.<br/>
+                           You may find an appropriate <a href="http://openjdk.java.net/">OpenJDK</a> build @ <a href="https://adoptium.net/temurin/releases/">Adoptium</a>.<br/>
                            <br/>
                            Or you may try one of the following SDK's and/or Runtimes:
                            <ul>
@@ -55,7 +55,7 @@
                                 <li> Use your Unix distribution's version, if available, or</li>
                                 <li> <a href="http://www.kernel.org/pub/software/scm/git/">Source Code for GNU/Linux, MacOS, ..</a>, or</li>
                                 <li> Git on Windows is provided by <a href="https://cygwin.com">cygwin</a></li>
-                                <li> Git &ge; 2.11 on MacOS is provided by Xcode &ge; 8.3.3</li>
+                                <li> Git &ge; 2.37 provided by Xcode &ge; 14</li>
                             </ul>
                         </li>
                         <li> Optional <b>NVidia Cg 2.2</b> <br/>
@@ -68,7 +68,7 @@
                             <ul>
                                 <li> <b><a href="https://www.freebsd.org/releases/">FreeBSD</a></b> 12 or later <i>(todo: test)</i>
                                     <ul>
-                                        <li>openjdk11</li>
+                                        <li>openjdk17</li>
                                         <li>ant</li>
                                         <li>git</li>
                                         <li>awk</li>
@@ -83,8 +83,8 @@
                             <ul>
                                 <li> <b>Debian</b> 10 or later
                                     <ul>
-                                        <li>openjdk-11-jre</li>
-                                        <li>openjdk-11-jdk</li>
+                                        <li>openjdk-17-jre</li>
+                                        <li>openjdk-17-jdk</li>
                                         <li>openjfx</li>
                                         <li>ant</li>
                                         <li>git</li>
@@ -118,7 +118,7 @@
                                     <ul>
                                       <li><b>Debian</b> 10 Buster
                                       <pre>
-apt-get install openjdk-11-jre openjdk-11-jdk openjfx ant git-all p7zip-full gcc cmake libdrm-dev libgbm-dev libgles2-mesa-dev libegl1-mesa-dev libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libxi-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++-8-dev
+apt-get install openjdk-17-jre openjdk-17-jdk openjfx ant git-all p7zip-full gcc cmake libdrm-dev libgbm-dev libgles2-mesa-dev libegl1-mesa-dev libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libxi-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++-8-dev
                                       </pre></li>
                                     </ul>
                                     Optional: Add <i>kernel</i> build utilities:
@@ -131,7 +131,7 @@ apt-get install kernel-package build-essential
                                         <pre>
 dpkg --add-architecture i386
 apt-get update
-apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libdrm2:i386 libdrm-dev:i386 libgbm1:i386 libgbm-dev:i386 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-11-jre:i386 openjdk-11-jdk:i386
+apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libdrm2:i386 libdrm-dev:i386 libgbm1:i386 libgbm-dev:i386 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-17-jre:i386 openjdk-17-jdk:i386
 
 cd /usr/lib/i386-linux-gnu/
 ln -s libXrender.so.1 libXrender.so
@@ -146,7 +146,7 @@ ln -s libudev.so.1 libudev.so
                                 </li>
                                 <li> <b>OpenSuSE</b> 15.0 or later
                                     <ul>
-                                        <li>java-11-openjdk</li>
+                                        <li>java-17-openjdk</li>
                                         <li>ant</li>
                                         <li>git</li>
                                         <li>gawk</li>
@@ -161,7 +161,7 @@ ln -s libudev.so.1 libudev.so
                                 </li>
                                 <li> <b>CentOS 7 / Red Hat Enterprise Linux 7.6</b> or later<br/>
                                     <ul>
-                                        <li>java-11-openjdk</li>
+                                        <li>java-17-openjdk</li>
                                         <li>ant</li>
                                         <li>git</li>
                                         <li>gawk</li>
@@ -202,14 +202,29 @@ ln -s libudev.so.1 libudev.so
                                 <li><a href="https://www.openindiana.org/">OpenIndiana</a> using illumus's OpenSolaris continuation <i>(todo: test)</i></li>
                             </ul>
                         </li>
-                        <li> <b>MacOS and iOS</b> Intel and Arm64
+                        <li> <b>MacOS and iOS</b> x86_64 and aarch64
                             <ul>
-                                <li>git &ge; 2.11 provided by Xcode &ge; 8.3.3</li>
+                                <li>git &ge; 2.37 provided by Xcode &ge; 14</li>
                                 <li>awk is provided by MacOS</li>
                                 <li><a href="https://cmake.org/">CMake 3.15.2</a>, and install the <a href="https://stackoverflow.com/questions/30668601/installing-cmake-command-line-tools-on-a-mac">command line tools</a></li>
-                                <li><a href="http://www.apple.com/macosx/">Mac OS</a> 10.13 or later (note: may not work with earlier releases) </li>
-                                <li><a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> 8.3.3 or later for gcc, etc (included in MacOS)</li>
+                                <li><a href="http://www.apple.com/macosx/">Mac OS</a> 11 or later (note: may not work with earlier releases) </li>
+                                <li><a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> 14 or later for clang, etc (included in MacOS)</li>
                             </ul>
+                            Prepare fat universal OpenJDK libraries
+                            <ul>
+                                <li>Open a terminal in your home folder, e.g. <i>/Users/jogamp</i></li>
+                                <li>The OpenJDK library folder of each target platform, x86_64 or aarch64, is <i>/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/lib</i></li>
+                                <li>Transfer the x86_64 OpenJDK library folder to <i>temurin-17.jdk.amd64.lib</i><li>
+                                <li>Transfer the aarch64 OpenJDK library folder to <i> temurin-17.jdk.arm64.lib</i></li>
+                                <li>Run the script <i>gluegen/make/scripts/make.macosx.jdk_lipo_libs.sh</i></li>
+                                <li>Fat universal OpenJDK libraries are produced into <i>temurin-17.jdk.fat.lib</i></li>
+                            </ul>
+                            Now we have to tell the <i>gluegen</i> build framework to use <i>temurin-17.jdk.fat.lib</i>,
+                            by adding an <i>ant</i> macro in <i>$HOME/gluegen.properties</i>
+                            <pre>
+                                java.lib.dir.platform=/Users/jogamp/temurin-17.jdk.fat.lib
+                            </pre>
+                            Replace <i>jogamp</i> with your user name.
                         </li>
                         <li> <b>Windows</b>/x86 (32 bit)
                             <ul>
