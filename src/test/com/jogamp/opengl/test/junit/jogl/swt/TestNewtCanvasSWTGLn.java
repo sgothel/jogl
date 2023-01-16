@@ -99,11 +99,13 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
     @Before
     public void init() {
         SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
+            @Override
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
             }});
         display.syncExec(new Runnable() {
+            @Override
             public void run() {
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
@@ -122,12 +124,14 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         Assert.assertNotNull( composite );
         try {
             display.syncExec(new Runnable() {
-               public void run() {
+               @Override
+            public void run() {
                 composite.dispose();
                 shell.dispose();
                }});
             SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
-               public void run() {
+               @Override
+            public void run() {
                 display.dispose();
                }});
         }
@@ -154,13 +158,17 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         glWindow1.addGLEventListener(demo);
         glWindow1.addGLEventListener(new GLEventListener() {
            int displayCount = 0;
+           @Override
            public void init(final GLAutoDrawable drawable) { }
+           @Override
            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
+           @Override
            public void display(final GLAutoDrawable drawable) {
-              if(displayCount < 3) {
-                  snapshot(displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
-              }
+               if(displayCount < 3) {
+                   snapshot(displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
+               }
            }
+           @Override
            public void dispose(final GLAutoDrawable drawable) { }
         });
 
@@ -168,18 +176,20 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         Assert.assertNotNull( canvas1 );
 
         display.syncExec( new Runnable() {
-           public void run() {
-              shell.setText( getSimpleTestName(".") );
-              shell.setSize( 640, 480 );
-              shell.open();
-           }
+            @Override
+            public void run() {
+                shell.setText( getSimpleTestName(".") );
+                shell.setSize( 640, 480 );
+                shell.open();
+            }
         });
 
         if(postAttach) {
             display.syncExec( new Runnable() {
-               public void run() {
-                   canvas1.setNEWTChild(glWindow1);
-               } } );
+                @Override
+                public void run() {
+                    canvas1.setNEWTChild(glWindow1);
+                } } );
         }
 
         final SWTTestUtil.WaitAction awtRobotWaitAction = new SWTTestUtil.WaitAction(display, true, TestUtil.TIME_SLICE);
@@ -215,9 +225,12 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         }
 
         display.syncExec( new Runnable() {
-           public void run() {
-               canvas1.dispose();
-           } } );
+            @Override
+            public void run() {
+                if( !canvas1.isDisposed() ) {
+                    canvas1.dispose();
+                }
+            } } );
     }
 
     @Test
