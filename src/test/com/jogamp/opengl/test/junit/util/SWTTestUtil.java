@@ -31,17 +31,22 @@ package com.jogamp.opengl.test.junit.util;
 
 import org.eclipse.swt.widgets.Display;
 
+import com.jogamp.newt.util.EDTUtil;
+
 public class SWTTestUtil {
     public static class WaitAction implements Runnable {
         final Display display;
         final boolean blocking;
         final long sleepMS;
+
         public WaitAction(final Display display, final boolean blocking, final long sleepMS) {
             this.display = display;
             this.blocking = blocking;
             this.sleepMS = sleepMS;
         }
+
         final Runnable waitAction0 = new Runnable() {
+            @Override
             public void run() {
                 if( !display.readAndDispatch() ) {
                     try {
@@ -49,15 +54,45 @@ public class SWTTestUtil {
                     } catch (final InterruptedException e) { }
                 }
             } };
-            public void run() {
-                if( blocking ) {
-                    display.syncExec( waitAction0 );
-                } else {
-                    display.asyncExec( waitAction0 );
-                }
-            };
+
+        @Override
+        public void run() {
+            if( blocking ) {
+                display.syncExec( waitAction0 );
+            } else {
+                display.asyncExec( waitAction0 );
+            }
+        };
     }
 
+    public static class WaitAction2 implements Runnable {
+        final EDTUtil edt;
+        final Display display;
+        final boolean blocking;
+        final long sleepMS;
+
+        public WaitAction2(final EDTUtil edt, final Display display, final boolean blocking, final long sleepMS) {
+            this.edt = edt;
+            this.display = display;
+            this.blocking = blocking;
+            this.sleepMS = sleepMS;
+        }
+
+        final Runnable waitAction0 = new Runnable() {
+            @Override
+            public void run() {
+                if( !display.readAndDispatch() ) {
+                    try {
+                        Thread.sleep(sleepMS);
+                    } catch (final InterruptedException e) { }
+                }
+            } };
+
+        @Override
+        public void run() {
+            edt.invoke(blocking, waitAction0);
+        };
+    }
 }
 
 

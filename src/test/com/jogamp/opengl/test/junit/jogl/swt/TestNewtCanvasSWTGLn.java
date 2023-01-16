@@ -192,6 +192,8 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
                 } } );
         }
 
+        // final SWTTestUtil.WaitAction2 awtRobotWaitAction = new SWTTestUtil.WaitAction2(glWindow1.getScreen().getDisplay().getEDTUtil(), display, true, TestUtil.TIME_SLICE);
+        // final SWTTestUtil.WaitAction2 generalWaitAction = new SWTTestUtil.WaitAction2(glWindow1.getScreen().getDisplay().getEDTUtil(), display, true, 10);
         final SWTTestUtil.WaitAction awtRobotWaitAction = new SWTTestUtil.WaitAction(display, true, TestUtil.TIME_SLICE);
         final SWTTestUtil.WaitAction generalWaitAction = new SWTTestUtil.WaitAction(display, true, 10);
 
