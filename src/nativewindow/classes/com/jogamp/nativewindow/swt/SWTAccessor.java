@@ -317,6 +317,16 @@ public class SWTAccessor {
         }
     }
 
+    /**
+     * Call this method, if this class shall be initialized before any other of its methods are called
+     * within the regular workflow.
+     *
+     * This could be desired to ensure initialization before AWT.
+     *
+     * This method does nothing, but initializes this class's static SWT accessors if using this class for the first time.
+     */
+    public static void initSingleton() {}
+
     private static Number getIntOrLong(final long arg) {
         if(swt_uses_long_handles) {
             return Long.valueOf(arg);
@@ -328,10 +338,12 @@ public class SWTAccessor {
         ReflectionUtil.callMethod(null, m, new Object[] { getIntOrLong(arg) });
     }
 
+    @SuppressWarnings("unused")
     private static void callStaticMethodLL2V(final Method m, final long arg0, final long arg1) {
         ReflectionUtil.callMethod(null, m, new Object[] { getIntOrLong(arg0), getIntOrLong(arg1) });
     }
 
+    @SuppressWarnings("unused")
     private static void callStaticMethodLLZ2V(final Method m, final long arg0, final long arg1, final boolean arg3) {
         ReflectionUtil.callMethod(null, m, new Object[] { getIntOrLong(arg0), getIntOrLong(arg1), Boolean.valueOf(arg3) });
     }

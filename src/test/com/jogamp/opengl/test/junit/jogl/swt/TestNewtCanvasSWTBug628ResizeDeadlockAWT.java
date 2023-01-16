@@ -77,6 +77,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
     {
         float r = 0f, g = 0f, b = 0f;
 
+        @Override
         public void init( final GLAutoDrawable drawable )
         {
             final GL2 gl = drawable.getGL().getGL2() ;
@@ -88,6 +89,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
             gl.glBlendFunc( GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA ) ;
         }
 
+        @Override
         public void reshape( final GLAutoDrawable drawable, final int x, final int y, final int width, final int height )
         {
             // System.err.println( ">>>>>>>> reshape " + x + ", " + y + ", " + width + ", " +height ) ;
@@ -103,6 +105,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
             gl.glLoadIdentity() ;
         }
 
+        @Override
         public void display( final GLAutoDrawable drawable )
         {
             // System.err.println( ">>>> display" ) ;
@@ -140,6 +143,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
             }
         }
 
+        @Override
         public void dispose( final GLAutoDrawable drawable )
         {
         }
@@ -158,6 +162,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
         }
 
         final Runnable resizeAction = new Runnable() {
+            @Override
             public void run()
             {
                 System.err.println("[R-i shallStop "+shallStop+", disposed "+_shell.isDisposed()+"]");
@@ -177,6 +182,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                 ++_n ;
             }  };
 
+        @Override
         public void run()
         {
             // The problem was originally observed by grabbing the lower right
@@ -224,6 +230,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
             _display = display;
         }
 
+        @Override
         public void run()
         {
             System.err.println("[K-0]");
@@ -260,12 +267,14 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
 
         public void init() {
             SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
+                @Override
                 public void run() {
                     display = new Display();
                     Assert.assertNotNull( display );
                 }});
 
             display.syncExec(new Runnable() {
+                @Override
                 public void run() {
                     shell = new Shell( display );
                     Assert.assertNotNull( shell );
@@ -283,14 +292,16 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
             Assert.assertNotNull( composite );
             try {
                 display.syncExec(new Runnable() {
-                   public void run() {
-                    composite.dispose();
-                    shell.dispose();
-                   }});
+                    @Override
+                    public void run() {
+                        composite.dispose();
+                        shell.dispose();
+                    }});
                 SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
-                   public void run() {
-                    display.dispose();
-                   }});
+                    @Override
+                    public void run() {
+                        display.dispose();
+                    }});
             }
             catch( final Throwable throwable ) {
                 throwable.printStackTrace();
@@ -305,10 +316,41 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
 
     @Test
     public void test() throws InterruptedException, AWTException, InvocationTargetException {
-        final Robot robot = new Robot();
+        /**
+         * Use AWT _after_ SWT (4.26) or else .. (on GTK/X11, OpenJDK 17):
+         *   (java:786260): GLib-GObject-WARNING **: 04:32:25.870: cannot register existing type 'GdkDisplayManager'
+         *   (java:786260): GLib-CRITICAL **: 04:32:25.870: g_once_init_leave: assertion 'result != 0' failed
+         *   (java:786260): GLib-GObject-CRITICAL **: 04:32:25.870: g_object_new_with_properties: assertion 'G_TYPE_IS_OBJECT (object_type)' failed
+         * SIGSEGV (0xb) at pc=0x00007faabf781b30, pid=786260, tid=786261
+         *
+         * JRE version: OpenJDK Runtime Environment (17.0.4+8) (build 17.0.4+8-Debian-1deb11u1)
+         * Java VM: OpenJDK 64-Bit Server VM (17.0.4+8-Debian-1deb11u1, mixed mode, sharing, tiered, compressed oops, compressed class ptrs, g1 gc, linux-amd64)
+         * Problematic frame:
+         * C  [libgdk-3.so.0+0x38b30]  gdk_display_manager_get_default_display+0x0
+         *
+         * Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+         * C  [libgdk-3.so.0+0x38b30]  gdk_display_manager_get_default_display+0x0
+         * j  org.eclipse.swt.internal.gtk.OS.isX11()Z+6
+         * j  org.eclipse.swt.internal.gtk.OS.<clinit>()V+1929
+         * v  ~StubRoutines::call_stub
+         * V  [libjvm.so+0x81b665]
+         * V  [libjvm.so+0x7faa0c]
+         * V  [libjvm.so+0x7fae23]
+         * V  [libjvm.so+0x8eb27e]
+         * V  [libjvm.so+0x8ee3c4]  JVM_FindClassFromCaller+0x124
+         * C  [libjava.so+0xd138]  Java_java_lang_Class_forName0+0xc8
+         * j  java.lang.Class.forName0(Ljava/lang/String;ZLjava/lang/ClassLoader;Ljava/lang/Class;)Ljava/lang/Class;+0 java.base@17.0.4
+         * j  java.lang.Class.forName(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;+43 java.base@17.0.4
+         * j  com.jogamp.common.util.ReflectionUtil.getClassImpl(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;+209
+         * j  com.jogamp.common.util.ReflectionUtil.getClass(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;+3
+         * j  com.jogamp.nativewindow.swt.SWTAccessor.<clinit>()V+785
+         */
+        // final Robot robot = new Robot();
 
         final SWT_DSC dsc = new SWT_DSC();
         dsc.init();
+
+        final Robot robot = new Robot();
 
         final GLWindow glWindow;
         {
@@ -331,6 +373,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
         }
 
         dsc.display.syncExec( new Runnable() {
+            @Override
             public void run() {
                dsc.shell.setText( "NewtCanvasSWT Resize Bug Demo" ) ;
                dsc.shell.setSize( 400, 450 ) ;
