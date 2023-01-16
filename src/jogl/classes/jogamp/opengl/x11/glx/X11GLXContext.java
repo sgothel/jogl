@@ -551,6 +551,10 @@ public class X11GLXContext extends GLContextImpl {
                              ", server: "+ GLXUtil.getGLXServerVersionNumber(x11Device));
         }
         if(((X11GLXDrawableFactory)drawable.getFactoryImpl()).isGLXVersionGreaterEqualOneOne(x11Device)) {
+            /**
+             * Return either glXQueryClientString or glXQueryExtensionsString when getting the GLX extensions
+             * https://github.com/sgothel/jogl/pull/107
+             */
             if (ns.getScreenIndex() < 0) {
                 final String ret = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_EXTENSIONS);
                 if (DEBUG) {
