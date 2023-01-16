@@ -273,7 +273,8 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             case SWT.Resize:
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.RESIZE, "+event);
-                    System.err.println(shortName()+".Event.RESIZE, "+newtChild.getDelegatedWindow().toSimpleString());
+                    // Cannot invoke "com.jogamp.newt.Window.getDelegatedWindow()" because the return value of "com.jogamp.newt.swt.NewtCanvasSWT.access$200(com.jogamp.newt.swt.NewtCanvasSWT)" is null
+                    // System.err.println(shortName()+".Event.RESIZE, "+newtChild.getDelegatedWindow().toSimpleString());
                 }
                 if( isNativeValid() ) {
                     // ensure this is being called if already valid
@@ -285,7 +286,8 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             case SWT.Dispose:
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.DISPOSE, "+event);
-                    System.err.println(shortName()+".Event.DISPOSE, "+newtChild.getDelegatedWindow().toSimpleString());
+                    // Cannot invoke "com.jogamp.newt.Window.getDelegatedWindow()" because the return value of "com.jogamp.newt.swt.NewtCanvasSWT.access$200(com.jogamp.newt.swt.NewtCanvasSWT)" is null
+                    // System.err.println(shortName()+".Event.DISPOSE, "+newtChild.getDelegatedWindow().toSimpleString());
                 }
                 NewtCanvasSWT.this.dispose();
                 break;
