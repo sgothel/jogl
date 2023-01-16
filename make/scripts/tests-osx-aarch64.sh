@@ -11,7 +11,7 @@ JAVA_HOME=`/usr/libexec/java_home -version 17`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 
-export SWT_CLASSPATH=`pwd`/lib/swt/cocoa-macosx-x86_64/swt.jar
+export SWT_CLASSPATH=`pwd`/lib/swt/cocoa-macosx-aarch64/swt.jar
 
 spath=`dirname $0`
 
