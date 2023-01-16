@@ -2,6 +2,9 @@ build
 javadoc_public
 build-temp
 make/temp*
+make/Test*png
+make/cmp-old2new/
+make/lib/swt-*
 temp/*
 .idea/workspace.xml
 .settings/*
