@@ -37,7 +37,12 @@
         <property name="java.dir.bugs"        value="${java.dir.test}/bugs"/>
 
         <property name="test.archive.name"    value="${archive.name}-test-results-${build.node.name}"/>
+
         <property name="jvmarg.headless"      value="-Djava.awt.headless=true"/>
+
+        <!-- NOTE: the value of the jvmarg.swt.headless property will not be overridden if already set (by conditional isOSX) -->
+        <condition property="jvmarg.swt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
+        <property name="jvmarg.swt.headless"  value="-Djava.awt.headless=true"/>
 
         <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
     </target>
@@ -735,7 +740,7 @@
                 <arg line="${junit.run.arg1}"/>
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
-                <arg line="${jvmarg.headless}"/>
+                <arg line="${jvmarg.swt.headless}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 -->

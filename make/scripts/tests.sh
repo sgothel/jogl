@@ -375,6 +375,9 @@ function jrun() {
         export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
         echo USE_CLASSPATH $USE_CLASSPATH
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
+        if [ $MOSX -eq 1 ] ; then
+            X_ARGS="-XstartOnFirstThread $X_ARGS"
+        fi
     elif [ $awton -eq -1 ] ; then
         export USE_CLASSPATH=$JOGAMP_ATOMICS_NOAWT_CLASSPATH
     else
