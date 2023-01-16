@@ -110,8 +110,6 @@ public class SWTAccessor {
     private static final Method OS_gdk_window_get_display;
     private static final Method OS_gdk_x11_drawable_get_xid;
     private static final Method OS_gdk_x11_window_get_xid;
-    private static final Method OS_gdk_window_set_back_pixmap;
-    private static final Method OS_gdk_window_set_background_pattern;
 
     private static final String str_gtk_widget_realize = "gtk_widget_realize";
     private static final String str_gtk_widget_unrealize = "gtk_widget_unrealize";
@@ -122,15 +120,12 @@ public class SWTAccessor {
     private static final String str_gdk_window_get_display = "gdk_window_get_display";
     private static final String str_gdk_x11_drawable_get_xid = "gdk_x11_drawable_get_xid";
     private static final String str_gdk_x11_window_get_xid = "gdk_x11_window_get_xid";
-    private static final String str_gdk_window_set_back_pixmap = "gdk_window_set_back_pixmap";
-    private static final String str_gdk_window_set_background_pattern = "gdk_window_set_background_pattern";
-
-    private static final int SWT_VERSION_4_20 = 4944;
 
     private static final VersionNumber GTK_VERSION_2_14_0 = new VersionNumber(2, 14, 0);
     private static final VersionNumber GTK_VERSION_2_24_0 = new VersionNumber(2, 24, 0);
     private static final VersionNumber GTK_VERSION_2_90_0 = new VersionNumber(2, 90, 0);
     private static final VersionNumber GTK_VERSION_3_0_0  = new VersionNumber(3,  0, 0);
+    // private static final VersionNumber GTK_VERSION_4_0_0  = new VersionNumber(4,  0, 0);
 
     private static VersionNumber GTK_VERSION(final int version) {
         // return (major << 16) + (minor << 8) + micro;
@@ -141,6 +136,10 @@ public class SWTAccessor {
     }
 
     static {
+        final int SWT_VERSION_4_20 = 4944;
+        // final int SWT_VERSION_4_26 = 4956;
+        // major * 1000 + minor;
+
         SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
@@ -152,6 +151,11 @@ public class SWTAccessor {
         isOSX = NativeWindowFactory.TYPE_MACOSX == nwt;
         isWindows = NativeWindowFactory.TYPE_WINDOWS == nwt;
         isX11 = NativeWindowFactory.TYPE_X11 == nwt;
+        final int swt_version = SWT.getVersion();
+
+        if( DEBUG ) {
+            System.err.println("SWT: Platform: "+SWT.getPlatform()+", Version: "+swt_version);
+        }
 
         Method m = null;
         try {
@@ -160,7 +164,7 @@ public class SWTAccessor {
         } catch (final Exception ex) {
             m = null;
             if( DEBUG ) {
-                System.err.println("getLocationInPixels not implemented: "+ex.getMessage());
+                System.err.println("SWT: getLocationInPixels not implemented: "+ex.getMessage());
             }
         }
         swt_control_locationInPixels = m;
@@ -172,7 +176,7 @@ public class SWTAccessor {
         } catch (final Exception ex) {
             m = null;
             if( DEBUG ) {
-                System.err.println("getSizeInPixels not implemented: "+ex.getMessage());
+                System.err.println("SWT: getSizeInPixels not implemented: "+ex.getMessage());
             }
         }
         swt_control_sizeInPixels = m;
@@ -184,7 +188,7 @@ public class SWTAccessor {
         } catch (final Exception ex) {
             m = null;
             if( DEBUG ) {
-                System.err.println("getClientAreaInPixels not implemented: "+ex.getMessage());
+                System.err.println("SWT: getClientAreaInPixels not implemented: "+ex.getMessage());
             }
         }
         swt_scrollable_clientAreaInPixels = m;
@@ -196,7 +200,7 @@ public class SWTAccessor {
         } catch (final Exception ex) {
             m = null;
             if( DEBUG ) {
-                System.err.println("getScalingFactor not implemented: "+ex.getMessage());
+                System.err.println("SWT: getScalingFactor not implemented: "+ex.getMessage());
             }
         }
         swt_dpiutil_getScalingFactor = m;
@@ -243,7 +247,8 @@ public class SWTAccessor {
 
         Class<?> cGTK=null;
         VersionNumber _gtk_version = new VersionNumber(0, 0, 0);
-        Method m1=null, m2=null, m3=null, m4=null, m5=null, m6=null, m7=null, m8=null, m9=null, ma=null, mb=null;
+        Method m1=null, m2=null, m3=null, m4=null, m5=null, m6=null, m7=null, m8=null, m9=null;
+        final Method ma=null, mb=null;
         final Class<?> handleType = swt_uses_long_handles  ? long.class : int.class ;
         if( isX11 ) {
             // mandatory
@@ -262,12 +267,15 @@ public class SWTAccessor {
                     cGDK = ReflectionUtil.getClass(str_GDK_gtk_class, false, cl);
                 }
                 _gtk_version = GTK_VERSION(field_OS_gtk_version.getInt(null));
+                if( DEBUG ) {
+                    System.err.println("SWT: GTK Version: "+_gtk_version.toString());
+                }
                 m1 = cGTK.getDeclaredMethod(str_gtk_widget_realize, handleType);
                 if (_gtk_version.compareTo(GTK_VERSION_2_14_0) >= 0) {
-                    if (SWT.getVersion() < SWT_VERSION_4_20) {
+                    if (swt_version < SWT_VERSION_4_20) {
                         m4 = cGTK.getDeclaredMethod(str_gtk_widget_get_window, handleType);
                     } else {
-                        Class<?> cGTK3 = ReflectionUtil.getClass(str_GTK3_gtk_class, false, cl);
+                        final Class<?> cGTK3 = ReflectionUtil.getClass(str_GTK3_gtk_class, false, cl);
                         m4 = cGTK3.getDeclaredMethod(str_gtk_widget_get_window, handleType);
                     }
                 } else {
@@ -283,12 +291,6 @@ public class SWTAccessor {
                     m9 = cGDK.getDeclaredMethod(str_gdk_x11_window_get_xid, handleType);
                 } else {
                     m8 = cGTK.getDeclaredMethod(str_gdk_x11_drawable_get_xid, handleType);
-                }
-
-                if (_gtk_version.compareTo(GTK_VERSION_2_90_0) >= 0) {
-                    mb = cGDK.getDeclaredMethod(str_gdk_window_set_background_pattern, handleType, handleType);
-                } else {
-                    ma = cGTK.getDeclaredMethod(str_gdk_window_set_back_pixmap, handleType, handleType, boolean.class);
                 }
             } catch (final Exception ex) { throw new NativeWindowException(ex); }
             // optional
@@ -307,10 +309,12 @@ public class SWTAccessor {
         OS_gdk_window_get_display = m7;
         OS_gdk_x11_drawable_get_xid = m8;
         OS_gdk_x11_window_get_xid = m9;
-        OS_gdk_window_set_back_pixmap = ma;
-        OS_gdk_window_set_background_pattern = mb;
 
         isX11GTK = isX11 && null != OS_gtk_class;
+
+        if( DEBUG ) {
+            printInfo(System.err, null);
+        }
     }
 
     private static Number getIntOrLong(final long arg) {
@@ -399,16 +403,6 @@ public class SWTAccessor {
         return xWindow;
     }
 
-    public static void gdk_window_set_back_pixmap(final long window, final long pixmap, final boolean parent_relative) {
-       if(OS_gdk_window_set_back_pixmap != null) {
-           callStaticMethodLLZ2V(OS_gdk_window_set_back_pixmap, window, pixmap, parent_relative);
-       }
-       // in recent GTK, can't set background to pixmap any more; this sets it relative to parent
-       else if(OS_gdk_window_set_background_pattern != null) {
-               callStaticMethodLL2V(OS_gdk_window_set_background_pattern, window, 0);
-       }
-    }
-
     //
     // Common any toolkit
     //
@@ -417,7 +411,8 @@ public class SWTAccessor {
         out.println("SWT: isX11 "+isX11+", isX11GTK "+isX11GTK+" (GTK Version: "+OS_gtk_version+")");
         out.println("SWT: isOSX "+isOSX+", isWindows "+isWindows);
         out.println("SWT: DeviceZoom: "+DPIUtil.getDeviceZoom()+", deviceZoomScalingFactor "+getDeviceZoomScalingFactor());
-        out.println("SWT: Display.DPI "+d.getDPI()+"; DPIUtil: autoScalingFactor "+
+        final Point dpi = null != d ? d.getDPI() : null;
+        out.println("SWT: Display.DPI "+dpi+"; DPIUtil: autoScalingFactor "+
                         getAutoScalingFactor()+" (use-swt "+(null != swt_dpiutil_getScalingFactor)+
                         "), useCairoAutoScale "+DPIUtil.useCairoAutoScale());
     }
