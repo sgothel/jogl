@@ -249,6 +249,8 @@
         <compilerarg value="i386" if="use.macosx32"/>
         <compilerarg value="-arch" if="use.macosx64"/>
         <compilerarg value="x86_64" if="use.macosx64"/>
+        <compilerarg value="-arch" if="use.macosx64"/>
+        <compilerarg value="arm64" if="use.macosx64"/>
         <compilerarg value="-Wmost" />
         <!-- compilerarg value="-ObjC" / -->
         <compilerarg value="-mmacosx-version-min=10.5"/>
