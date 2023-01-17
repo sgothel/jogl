@@ -122,6 +122,8 @@ public class JAWTUtil {
 
   /**
    * Returns true if this platform's JAWT implementation supports offscreen layer.
+   *
+   * Currently only JAWT on MacOS >= 10.6.4 supports offscreen rendering.
    */
   public static boolean isOffscreenLayerSupported() {
     return PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS && MacOS_10_6_4_COMPARE >= 0;
@@ -129,6 +131,8 @@ public class JAWTUtil {
 
   /**
    * Returns true if this platform's JAWT implementation requires using offscreen layer.
+   *
+   * Currently only JAWT on MacOS with JVM >= 1.7 supports offscreen rendering.
    */
   public static boolean isOffscreenLayerRequired() {
     return PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS && MacOS_JVM_1_7_COMPARE >= 0;
