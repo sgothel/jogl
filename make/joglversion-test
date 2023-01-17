@@ -14,5 +14,6 @@ Extension-Name: com.jogamp.opengl.test
 Implementation-Vendor-Id: com.jogamp
 Permissions: sandbox
 Application-Library-Allowable-Codebase: *
+Add-Opens: java.desktop/sun.awt java.desktop/sun.java2d
 @JAR_CODEBASE_TAG@
 
