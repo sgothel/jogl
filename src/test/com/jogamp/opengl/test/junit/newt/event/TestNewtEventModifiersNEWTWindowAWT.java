@@ -54,6 +54,8 @@ public class TestNewtEventModifiersNEWTWindowAWT extends BaseNewtEventModifiers 
 
     @BeforeClass
     public static void beforeClass() throws Exception {
+        BaseNewtEventModifiers.baseBeforeClass();
+
         _glWindow = GLWindow.create( new GLCapabilities( GLProfile.getGL2ES2() ) );
         _glWindow.setTitle("Event Modifier Test GLWindow");
         _glWindow.addGLEventListener( new RedSquareES2() ) ;

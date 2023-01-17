@@ -63,8 +63,10 @@ public class TestNewtEventModifiersNewtCanvasAWT extends BaseNewtEventModifiers 
 
     @BeforeClass
     public static void beforeClass() throws Exception {
+        BaseNewtEventModifiers.baseBeforeClass();
 
         SwingUtilities.invokeAndWait( new Runnable() {
+            @Override
             public void run() {
 
                 _testFrame = new JFrame( "Event Modifier Test NewtCanvasAWT" ) ;
@@ -101,6 +103,7 @@ public class TestNewtEventModifiersNewtCanvasAWT extends BaseNewtEventModifiers 
     @AfterClass
     public static void afterClass() throws Exception {
         SwingUtilities.invokeAndWait( new Runnable() {
+            @Override
             public void run() {
                 if( null != _testFrame ) {
                     _testFrame.dispose() ;

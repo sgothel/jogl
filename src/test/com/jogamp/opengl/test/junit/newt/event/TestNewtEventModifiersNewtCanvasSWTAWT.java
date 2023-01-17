@@ -66,20 +66,25 @@ public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifie
 
     protected static void eventDispatchImpl() {
         final int maxEvents = 10;
-        try {
-            Thread.sleep(100);
-        } catch (final InterruptedException e) { }
         final boolean[] res = { false };
         int i=0;
         do {
             SWTAccessor.invokeOnSWTThread(_display, true, new Runnable() {
-               public void run() {
-                   if( !_display.isDisposed() ) {
-                       res[0] = _display.readAndDispatch();
-                   } else {
-                       res[0] = false;
-                   }
-               } } );
+                @Override
+                public void run() {
+                    if( !_display.isDisposed() ) {
+                        if( !_display.readAndDispatch() ) {
+                            res[0] = false;
+                            try {
+                                Thread.sleep(100);
+                            } catch (final InterruptedException e) { }
+                        } else {
+                            res[0] = true;
+                        }
+                    } else {
+                        res[0] = false;
+                    }
+                }});
             i++;
         } while( i<maxEvents && res[0] );
     }
@@ -94,17 +99,22 @@ public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifie
     @BeforeClass
     public static void beforeClass() throws Exception {
 
+        SWTAccessor.initSingleton();
+        BaseNewtEventModifiers.baseBeforeClass();
+
         // FIXME: Hangs .. w/ Java7 .. every now and then!
+        // FIXME: Implementation must still be overhauled
         setTestSupported(false);
 
-        /***
-        SWTAccessor.invoke(true, new Runnable() {
+        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
+            @Override
             public void run() {
                 _display = new Display();
             }});
         Assert.assertNotNull( _display );
 
-        SWTAccessor.invoke(_display, true, new Runnable() {
+        SWTAccessor.invokeOnSWTThread(_display, true, new Runnable() {
+            @Override
             public void run() {
                 _shell = new Shell( _display );
                 Assert.assertNotNull( _shell );
@@ -116,18 +126,19 @@ public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifie
             }});
 
         {
-            GLCapabilities caps = new GLCapabilities( GLProfile.get( GLProfile.GL2ES2 ) ) ;
+            final GLCapabilities caps = new GLCapabilities( GLProfile.get( GLProfile.GL2ES2 ) ) ;
             _glWindow = GLWindow.create( caps ) ;
             _glWindow.addGLEventListener( new RedSquareES2() ) ;
 
             NewtCanvasSWT.create( _composite, SWT.NO_BACKGROUND, _glWindow ) ;
         }
 
-        SWTAccessor.invoke(_display, true, new Runnable() {
-           public void run() {
-              _shell.setBounds( TEST_FRAME_X, TEST_FRAME_Y, TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT ) ;
-              _shell.open();
-           }
+        SWTAccessor.invokeOnSWTThread(_display, true, new Runnable() {
+            @Override
+            public void run() {
+                _shell.setBounds( TEST_FRAME_X, TEST_FRAME_Y, TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT ) ;
+                _shell.open();
+            }
         });
 
         // no AWT idling, may deadlock on OSX!
@@ -141,18 +152,17 @@ public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifie
         eventDispatchImpl();
 
         _glWindow.addMouseListener( _testMouseListener ) ;
-        */
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
     @AfterClass
     public static void afterClass() throws Exception {
-        /**
         _glWindow.destroy() ;
 
         try {
-            SWTAccessor.invoke(_display, true, new Runnable() {
+            SWTAccessor.invokeOnSWTThread(_display, true, new Runnable() {
+                @Override
                 public void run() {
                     if( null != _composite ) {
                         _composite.dispose();
@@ -160,15 +170,19 @@ public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifie
                     if( null != _shell ) {
                         _shell.dispose();
                     }
+                }});
+            SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
+                @Override
+                public void run() {
                     if( null != _display && !_display.isDisposed()) {
                         _display.dispose();
                     }
                 }});
         }
-        catch( Throwable throwable ) {
+        catch( final Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        } */
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////

@@ -40,6 +40,7 @@ import org.junit.BeforeClass ;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.event.awt.AWTMouseAdapter ;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
@@ -58,6 +59,7 @@ public class TestNewtEventModifiersAWTCanvas extends BaseNewtEventModifiers {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
+        BaseNewtEventModifiers.baseBeforeClass();
 
         final GLCanvas canvas = new GLCanvas() ;
         canvas.addGLEventListener( new RedSquareES2() ) ;
@@ -67,6 +69,7 @@ public class TestNewtEventModifiersAWTCanvas extends BaseNewtEventModifiers {
         _testFrame.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE ) ;
 
         SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 _testFrame.getContentPane().add( canvas ) ;
                 _testFrame.setBounds( TEST_FRAME_X, TEST_FRAME_Y, TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT ) ;
@@ -87,6 +90,7 @@ public class TestNewtEventModifiersAWTCanvas extends BaseNewtEventModifiers {
     @AfterClass
     public static void afterClass() throws Exception {
         SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 if( null != _testFrame ) {
                     _testFrame.dispose() ;

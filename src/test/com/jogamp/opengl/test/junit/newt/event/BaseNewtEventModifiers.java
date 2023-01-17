@@ -178,6 +178,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             }
         }
 
+        @Override
         public synchronized void mousePressed( final com.jogamp.newt.event.MouseEvent event ) {
             _eventCount.incrementAndGet();
             if( _debug ) {
@@ -186,6 +187,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             _checkModifiers( event ) ;
         }
 
+        @Override
         public synchronized void mouseReleased( final com.jogamp.newt.event.MouseEvent event ) {
             _eventCount.incrementAndGet();
             if( _debug ) {
@@ -194,6 +196,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             _checkModifiers( event ) ;
         }
 
+        @Override
         public synchronized void mouseDragged( final com.jogamp.newt.event.MouseEvent event ) {
             _eventCount.incrementAndGet();
             if( _debug ) {
@@ -206,6 +209,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         // IGNORED
         //
 
+        @Override
         public synchronized void mouseMoved( final com.jogamp.newt.event.MouseEvent event ) {
             // Ignored, since mouse MOVE doesn't hold mouse button, we look for DRAGGED!
             // _eventCount++;
@@ -215,6 +219,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             // _checkModifiers( event ) ;
         }
 
+        @Override
         public synchronized void mouseClicked( final com.jogamp.newt.event.MouseEvent event ) {
             // Ignored, since we look for PRESS/RELEASE only!
             // _eventCount++;
@@ -224,6 +229,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             // _checkModifiers( event ) ;
         }
 
+        @Override
         public synchronized void mouseWheelMoved( final com.jogamp.newt.event.MouseEvent event ) {
             // _eventCount++;
             if( _debug ) {
@@ -232,6 +238,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             // _checkModifiers( event ) ;
         }
 
+        @Override
         public synchronized void mouseEntered( final com.jogamp.newt.event.MouseEvent event ) {
             // _eventCount++;
             if( _debug ) {
@@ -240,6 +247,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             // _checkModifiers( event ) ;
         }
 
+        @Override
         public synchronized void mouseExited( final com.jogamp.newt.event.MouseEvent event ) {
             // _eventCount++;
             if( _debug ) {
@@ -274,7 +282,11 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         return m;
     }
 
-    @BeforeClass
+    /**
+     * Must be called from subclass `@BeforeClass` code,
+     * allowing it to perform its specific initialization first.
+     * @throws Exception
+     */
     public static void baseBeforeClass() throws Exception {
 
         // Who know how many buttons the AWT will say exist on given platform.
@@ -390,6 +402,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     @Test(timeout=180000) // TO 3 min
     public void test01SingleButtonPressAndRelease() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
+            @Override
             public void run() {
                 try {
                     _doSingleButtonPressAndRelease( 0, 0 );
@@ -400,6 +413,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     @Test(timeout=180000) // TO 3 min
     public void test02SingleButtonPressAndReleaseWithShift() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
+            @Override
             public void run() {
                 try {
                     _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_SHIFT, java.awt.event.InputEvent.SHIFT_DOWN_MASK ) ;
@@ -410,6 +424,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     @Test(timeout=180000) // TO 3 min
     public void test03SingleButtonPressAndReleaseWithCtrl() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
+            @Override
             public void run() {
                 try {
                     _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_CONTROL, java.awt.event.InputEvent.CTRL_DOWN_MASK ) ;
@@ -463,6 +478,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     @Test(timeout=180000) // TO 3 min
     public void test10HoldOneButtonAndPressAnother() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
+            @Override
             public void run() {
                 try {
                     _doHoldOneButtonAndPressAnother( 0, 0 ) ;
@@ -473,6 +489,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     @Test(timeout=180000) // TO 3 min
     public void test20PressAllButtonsInSequence() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
+            @Override
             public void run() {
                 try {
                     _doPressAllButtonsInSequence( 0, 0 ) ;
@@ -483,6 +500,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     @Test(timeout=180000) // TO 3 min
     public void test30SingleButtonClickAndDrag() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() {
+            @Override
             public void run() {
                 try {
                     _doSingleButtonClickAndDrag( 0, 0 ) ;
