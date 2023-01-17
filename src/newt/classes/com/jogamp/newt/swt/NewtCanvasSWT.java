@@ -232,7 +232,8 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             case SWT.Paint:
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.PAINT, "+event);
-                    System.err.println(shortName()+".Event.PAINT, "+newtChild.getDelegatedWindow().toSimpleString());
+                    // Cannot invoke "com.jogamp.newt.Window.getDelegatedWindow()" because the return value of "com.jogamp.newt.swt.NewtCanvasSWT.access$200(com.jogamp.newt.swt.NewtCanvasSWT)" is null
+                    // System.err.println(shortName()+".Event.PAINT, "+newtChild.getDelegatedWindow().toSimpleString());
                 }
                 if( validateNative() && newtChildReady ) {
                     if( postSetSize ) {
@@ -249,13 +250,13 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             case SWT.Move:
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.MOVE, "+event);
-                    System.err.println(shortName()+".Event.MOVE, "+newtChild.getDelegatedWindow().toSimpleString());
+                    // System.err.println(shortName()+".Event.MOVE, "+newtChild.getDelegatedWindow().toSimpleString());
                 }
                 break;
             case SWT.Show:
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.SHOW, "+event);
-                    System.err.println(shortName()+".Event.SHOW, "+newtChild.getDelegatedWindow().toSimpleString());
+                    // System.err.println(shortName()+".Event.SHOW, "+newtChild.getDelegatedWindow().toSimpleString());
                 }
                 if( newtChildReady ) {
                     newtChild.setVisible(true /* wait */, true /* visible */);
@@ -264,7 +265,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             case SWT.Hide:
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.HIDE, "+event);
-                    System.err.println(shortName()+".Event.HIDE, "+newtChild.getDelegatedWindow().toSimpleString());
+                    // System.err.println(shortName()+".Event.HIDE, "+newtChild.getDelegatedWindow().toSimpleString());
                 }
                 if( newtChildReady ) {
                     newtChild.setVisible(true /* wait */, false /* visible */);
@@ -273,7 +274,6 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             case SWT.Resize:
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.RESIZE, "+event);
-                    // Cannot invoke "com.jogamp.newt.Window.getDelegatedWindow()" because the return value of "com.jogamp.newt.swt.NewtCanvasSWT.access$200(com.jogamp.newt.swt.NewtCanvasSWT)" is null
                     // System.err.println(shortName()+".Event.RESIZE, "+newtChild.getDelegatedWindow().toSimpleString());
                 }
                 if( isNativeValid() ) {
@@ -294,19 +294,19 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             case SWT.Activate: // receives focus ??
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.ACTIVATE, "+event);
-                    System.err.println(shortName()+".Event.ACTIVATE, "+newtChild.getDelegatedWindow().toSimpleString());
+                    // System.err.println(shortName()+".Event.ACTIVATE, "+newtChild.getDelegatedWindow().toSimpleString());
                 }
                 break;
             case SWT.Deactivate: // lost focus ??
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.DEACTIVATE, "+event);
-                    System.err.println(shortName()+".Event.DEACTIVATE, "+newtChild.getDelegatedWindow().toSimpleString());
+                    // System.err.println(shortName()+".Event.DEACTIVATE, "+newtChild.getDelegatedWindow().toSimpleString());
                 }
                 break;
             case SWT.FocusIn: // receives focus
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.FOCUS_IN, "+event);
-                    System.err.println(shortName()+".Event.FOCUS_IN, "+newtChild.getDelegatedWindow().toSimpleString());
+                    // System.err.println(shortName()+".Event.FOCUS_IN, "+newtChild.getDelegatedWindow().toSimpleString());
                 }
                 if( newtChildReady ) {
                     newtChild.requestFocus(false /* wait */);
@@ -315,14 +315,14 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             case SWT.FocusOut: // lost focus
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.FOCUS_OUT, "+event);
-                    System.err.println(shortName()+".Event.FOCUS_OUT, "+newtChild.getDelegatedWindow().toSimpleString());
+                    // System.err.println(shortName()+".Event.FOCUS_OUT, "+newtChild.getDelegatedWindow().toSimpleString());
                 }
                 // we lack newtChild.releaseFocus(..) as this should be handled by the WM
                 break;
             default:
                 if( DEBUG ) {
                     System.err.println(shortName()+".Event.misc: "+event.type+", "+event);
-                    System.err.println(shortName()+".Event.misc: "+newtChild.getDelegatedWindow().toSimpleString());
+                    // System.err.println(shortName()+".Event.misc: "+newtChild.getDelegatedWindow().toSimpleString());
                 }
             }
         }
