@@ -24,6 +24,5 @@ ant  \
     -Dsetup.noAWT=true \
     -Dsetup.noSWT=true \
     -Drootrel.build=build-x86_64 \
-    -Djunit.run.arg0="--illegal-access=warn" \
     $TARGET 2>&1 | tee -a $LOGF
 

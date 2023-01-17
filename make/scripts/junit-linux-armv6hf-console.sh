@@ -26,7 +26,6 @@ ant  \
     -Dsetup.noAWT=true \
     -Dsetup.noSWT=true \
     -Drootrel.build=build-linux-armv6hf \
-    -Djunit.run.arg0="--illegal-access=warn" \
     -Dsetup.addNativeKD=true \
     -Dsetup.addNativeOpenMAX=true \
     -Dsetup.addNativeBroadcom=true \

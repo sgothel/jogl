@@ -24,5 +24,4 @@ export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 # BUILD_ARCHIVE=true \
 ant \
     -Drootrel.build=build-macosx \
-    -Djunit.run.arg0="--illegal-access=warn" \
     $* 2>&1 | tee make.jogl.all.macosx.log

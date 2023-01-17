@@ -17,5 +17,5 @@ spath=`dirname $0`
 
 ulimit -c unlimited
 
-. $spath/tests.sh  $JAVA_HOME/bin/java --illegal-access=warn ../build-macosx $*
+. $spath/tests.sh  $JAVA_HOME/bin/java -DummyArg ../build-macosx $*
 

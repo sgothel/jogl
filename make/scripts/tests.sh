@@ -99,6 +99,10 @@ function jrun() {
     swton=$1
     shift
 
+    # MODULE_ARGS="--illegal-access=warn"
+    # MODULE_ARGS="--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED"
+    MODULE_ARGS="--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED"
+
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=True -Dsun.java2d.xrender=false"
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=false -Dsun.java2d.xrender=false"
     #X_ARGS="-verbose:jni"
@@ -106,7 +110,6 @@ function jrun() {
     #X_ARGS="-Xcheck:jni -verbose:jni"
     #X_ARGS="-Xrs"
     #X_ARGS="-Dsun.awt.disableMixing=true"
-    #X_ARGS="--illegal-access=warn"
 
     #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext"
     #D_ARGS="-Dnativewindow.debug.OSXUtil.MainThreadChecker -Djogamp.common.utils.locks.Lock.timeout=600000"
@@ -156,7 +159,7 @@ function jrun() {
 
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug.SWT"
-    D_ARGS="-Dnativewindow.debug.SWT -Dnewt.debug.Window -Djogl.debug.GLCanvas"
+    #D_ARGS="-Dnativewindow.debug.SWT -Dnewt.debug.Window -Djogl.debug.GLCanvas -Dnewt.debug.EDT"
     #D_ARGS="-Dnativewindow.debug.SWT -Dnewt.debug.Window -Djogl.debug.GLCanvas -Dswt.autoScale=200"
     #export GDK_DPI_SCALE=2
     #D_ARGS="-Dnativewindow.debug.SWT -Dnativewindow.debug.X11Util -Dnewt.debug.Window"
@@ -409,10 +412,10 @@ function jrun() {
     # export __GL_THREADED_OPTIMIZATIONS=1
     echo __GL_THREADED_OPTIMIZATIONS $__GL_THREADED_OPTIMIZATIONS
     echo
-    echo "$javaexe" $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
-    #gdb --args "$javaexe" $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
-    "$javaexe" $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
-    #strace $javaexe $javaxargs $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
+    echo "$javaexe" $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
+    #gdb --args "$javaexe" $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
+    "$javaexe" $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
+    #strace $javaexe $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
     echo
     echo "Test End: $*"
     echo
@@ -781,7 +784,7 @@ function testawtswt() {
 #
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor01 $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02NewtGLWindow $*
-testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
@@ -797,7 +800,14 @@ testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTBug628ResizeDeadlockAWT $*
+#testawtswt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWTAWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTBug643AsyncExec $*
+
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 
 #
 # newt.awt (testawt)

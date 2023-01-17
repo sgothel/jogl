@@ -1,6 +1,6 @@
-set THISDIR="C:\JOGL"
+set THISDIR="C:\JogAmp"
 
-set J2RE_HOME=c:\jre-17
+set J2RE_HOME=c:\jdk-17
 set JAVA_HOME=c:\jdk-17
 set ANT_PATH=C:\apache-ant-1.10.5
 set GIT_PATH=C:\cygwin64\bin
@@ -24,4 +24,4 @@ set TARGET_RT_JAR=C:\jre1.8.0_212\lib\rt.jar
 REM set JOGAMP_JAR_CODEBASE=Codebase: *.jogamp.org
 set JOGAMP_JAR_CODEBASE=Codebase: *.goethel.localnet
 
-ant -Drootrel.build=build-win64 "-Djunit.run.arg0=--illegal-access=warn" %1 %2 %3 %4 %5 %6 %7 %8 %9 > make.jogl.all.win64.log 2>&1
+ant -Drootrel.build=build-win64 %1 %2 %3 %4 %5 %6 %7 %8 %9 > make.jogl.all.win64.log 2>&1
