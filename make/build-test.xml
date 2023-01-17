@@ -38,11 +38,32 @@
 
         <property name="test.archive.name"    value="${archive.name}-test-results-${build.node.name}"/>
 
+        <!-- not required:     java.base/java.lang=ALL-UNNAMED -->
+        <!-- required for AWT: java.desktop/sun.awt=ALL-UNNAMED java.desktop/sun.java2d=ALL-UNNAMED -->
+        <condition property="jvmarg.modules"  value="--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED">
+            <isset property="minJava17"/>
+        </condition>
+        <condition property="jvmarg.modules"  value="--illegal-access=warn">
+            <and>
+                <isset property="minJava11"/>
+                <not>
+                    <isset property="minJava17"/>
+                </not>
+            </and>
+        </condition>
+        <property name="jvmarg.modules"      value=""/> <!-- default is empty -->
+        <property name="jvmarg.generic"      value="${jvmarg.modules}"/>
+
         <property name="jvmarg.headless"      value="-Djava.awt.headless=true"/>
 
         <!-- NOTE: the value of the jvmarg.swt.headless property will not be overridden if already set (by conditional isOSX) -->
         <condition property="jvmarg.swt.headless" value="-XstartOnFirstThread -Djava.awt.headless=true"><isset property="isOSX"/></condition>
         <property name="jvmarg.swt.headless"  value="-Djava.awt.headless=true"/>
+
+        <echo message="jvmarg.modules        ${jvmarg.modules}"/>
+        <echo message="jvmarg.generic        ${jvmarg.generic}"/>
+        <echo message="jvmarg.headless       ${jvmarg.headless}"/>
+        <echo message="jvmarg.swt.headless   ${jvmarg.swt.headless}"/>
 
         <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
     </target>
@@ -298,6 +319,7 @@
                 <arg line="${junit.run.arg1}"/>
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
+                <arg line="${jvmarg.generic}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 -->
@@ -323,6 +345,7 @@
             <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+            <jvmarg line="${jvmarg.generic}"/>
 
             <!--
             <jvmarg value="-Djogl.debug=all"/>
@@ -397,6 +420,7 @@
                 <arg line="${junit.run.arg1}"/>
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
+                <arg line="${jvmarg.generic}"/>
                 <arg line="${jvmarg.headless}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
@@ -444,6 +468,7 @@
             <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+            <jvmarg line="${jvmarg.generic}"/>
 
             <!--
             <jvmarg value="-Dnewt.debug.EDT"/>
@@ -489,6 +514,7 @@
             <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+            <jvmarg line="${jvmarg.generic}"/>
 
             <!--
             <jvmarg value="-Djogl.debug=all"/>
@@ -539,6 +565,7 @@
             <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+            <jvmarg line="${jvmarg.generic}"/>
 
             <!--
             <jvmarg value="-Dnewt.debug.EDT"/>
@@ -631,6 +658,7 @@
             <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+            <jvmarg line="${jvmarg.generic}"/>
 
             <!--
             <jvmarg value="-Djogl.debug=all"/>
@@ -673,6 +701,7 @@
             <arg line="${junit.run.arg1}"/>
             <arg line="${jvmDataModel.arg}"/>
             <arg value="-Djava.library.path=${obj.all.paths}"/>
+            <arg line="${jvmarg.generic}"/>
             <arg line="${jvmarg.headless}"/>
             <!--
             <arg line="-Dnewt.debug.EDT"/>
@@ -740,6 +769,7 @@
                 <arg line="${junit.run.arg1}"/>
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
+                <arg line="${jvmarg.generic}"/>
                 <arg line="${jvmarg.swt.headless}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
