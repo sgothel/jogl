@@ -53,7 +53,6 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
-import java.applet.Applet;
 
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
@@ -96,7 +95,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   private volatile AWTGraphicsConfiguration awtConfig; // control access through delegation
 
   // lifetime: valid after lock but may change with each 1st lock, purges after invalidate
-  private boolean isApplet;
   private JAWT jawt;
   private boolean isOffscreenLayerSurface;
   protected long drawable;
@@ -130,7 +128,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     this.jawtComponentListener = new JAWTComponentListener();
     invalidate();
     this.awtConfig = (AWTGraphicsConfiguration) config;
-    this.isApplet = false;
     this.offscreenSurfaceLayer = 0;
     if(DEBUG) {
         System.err.println(jawtStr2("ctor"));
@@ -447,11 +444,14 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   /**
-   * Returns true if the AWT component is parented to an {@link java.applet.Applet},
+   *
+   * Return false since there is no more {@link java.applet.Applet} support.
+   *
+   * Historical: Returns true if the AWT component is parented to an {@link java.applet.Applet},
    * otherwise false. This information is valid only after {@link #lockSurface()}.
    */
   public final boolean isApplet() {
-      return isApplet;
+      return false; // return isApplet;
   }
 
   /** Returns the underlying JAWT instance created @ {@link #lockSurface()}. */
@@ -578,6 +578,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   @Override
   public final boolean setCursor(final PixelRectangle pixelrect, final PointImmutable hotSpot) {
       AWTEDTExecutor.singleton.invoke(false, new Runnable() {
+          @Override
           public void run() {
               Cursor c = null;
               if( null == pixelrect || null == hotSpot ) {
@@ -600,6 +601,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   @Override
   public final boolean hideCursor() {
       AWTEDTExecutor.singleton.invoke(false, new Runnable() {
+          @Override
           public void run() {
               final Cursor cursor = AWTMisc.getNullCursor();
               if( null != cursor ) {
@@ -613,13 +615,15 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   // NativeSurface
   //
 
+  /**
   private void determineIfApplet() {
+    boolean isApplet = false; // dummy
     Component c = component;
     while(!isApplet && null != c) {
-        isApplet = c instanceof Applet;
+        isApplet = c instanceof java.applet.Applet;
         c = c.getParent();
     }
-  }
+  } */
 
   /**
    * If JAWT offscreen layer is supported,
@@ -665,7 +669,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 gc = awtConfig.getAWTGraphicsConfiguration();
             }
 
-            determineIfApplet();
+            // determineIfApplet();
             try {
                 final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
                 adevice.lock();
