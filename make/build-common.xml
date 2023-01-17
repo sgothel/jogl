@@ -167,8 +167,7 @@
               <istrue value="${isIOS}" /> <!-- FIXME JAU .. hack -->
           </or>
         </condition>
-        <property name="swt-cocoa-macosx-x86_64.jar" value="${project.root}/make/lib/swt/cocoa-macosx-x86_64/swt.jar"/>
-        <condition property="swt.jar" value="${swt-cocoa-macosx-x86_64.jar}">
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/cocoa-macosx-x86_64/swt.jar">
           <and>
             <istrue value="${isOSX}" />
             <or>
@@ -177,14 +176,10 @@
             </or>                
           </and>
         </condition>
-        <property name="swt-cocoa-macosx-x86_32.jar" value="${project.root}/make/lib/swt/cocoa-macosx/swt.jar"/>
-        <condition property="swt.jar" value="${swt-cocoa-macosx-x86_32.jar}"> <!-- no more supported since SWT 4.10 -->
+        <condition property="swt.jar" value="${project.root}/make/lib/swt/cocoa-macosx-aarch64/swt.jar">
           <and>
             <istrue value="${isOSX}" />
-            <or>
-              <os arch="i386" />
-              <os arch="x86" />
-            </or>
+            <os arch="aarch64" />
           </and>
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-solaris-x86/swt.jar">
