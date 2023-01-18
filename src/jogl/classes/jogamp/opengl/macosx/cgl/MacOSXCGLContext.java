@@ -1052,9 +1052,10 @@ public class MacOSXCGLContext extends GLContextImpl
               OSXUtil.RunOnMainThread(false /* wait */, false /* kickNSApp */, cmd);
           }
           final boolean lockCGLContext;
-          if( null != lastSetNSViewCmd ) {
-              synchronized( lastSetNSViewCmd ) {
-                  lockCGLContext = lastSetNSViewCmd.done;
+          final SetNSViewCmd _lastSetNSViewCmd = lastSetNSViewCmd;
+          if( null != _lastSetNSViewCmd ) {
+              synchronized( _lastSetNSViewCmd ) {
+                  lockCGLContext = _lastSetNSViewCmd.done;
                   if( lockCGLContext ) {
                       lastSetNSViewCmd = null; // done, no more required
                   } else if( DEBUG1398 ) {
