@@ -71,8 +71,10 @@ import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.SharedResourceRunner;
+import jogamp.opengl.GLContextImpl.MacOSVersion;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
@@ -393,8 +395,9 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   @Override
   public boolean canCreateGLPbuffer(final AbstractGraphicsDevice device, final GLProfile glp) {
     if( glp.isGL2() ) {
-        // OSX only supports pbuffer w/ compatible, non-core, context.
-        return true;
+        // OSX only supports pbuffer w/ compatible, non-core, context
+        // on MacMacOS < 12  (my setup) or <= 10.14.0 (Mojave) (FIXME)
+        return Platform.getOSVersionNumber().compareTo(MacOSVersion.Mojave) <= 0;
     } else {
         return false;
     }
