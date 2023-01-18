@@ -31,7 +31,9 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.InterruptSource;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
@@ -39,6 +41,7 @@ import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 
 import org.junit.Test;
+import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
@@ -73,6 +76,7 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
             this.frameCount = frameCount;
         }
 
+        @Override
         public void run() {
             System.err.println("Animatr "+id+", count "+frameCount+": PRE: "+Thread.currentThread().getName());
 
@@ -105,6 +109,7 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
             this.actionCount = actionCount;
         }
 
+        @Override
         public void run() {
             System.err.println("Resizer "+id+", count "+actionCount+": PRE: "+Thread.currentThread().getName());
 
@@ -112,6 +117,7 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
                 final int _c = c;
                 win.runOnEDTIfAvail(true, new Runnable() {
                     int i = _c;
+                    @Override
                     public void run() {
                         System.err.println("Resizer "+id+": Action "+i+" / "+actionCount+": "+Thread.currentThread().getName());
                         // Normal resize, may trigger immediate display within lock
@@ -259,7 +265,18 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
         runJOGLTasks(3, 100, 3, 50);
     }
 
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        if( !manual_test ) {
+            if( Platform.OSType.MACOS == Platform.getOSType() ) {
+                JunitTracer.setTestSupported(false);
+            }
+        }
+    }
+    static boolean manual_test = false;
+
     public static void main(final String args[]) throws IOException {
+        manual_test = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

@@ -44,6 +44,8 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.io.IOException;
 
+import com.jogamp.common.os.Platform;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.nativewindow.NativeSurface;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
@@ -55,6 +57,7 @@ import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -266,7 +269,18 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         NEWTGLContext.destroyWindow(winctx);
     }
 
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        if( !manual_test ) {
+            if( Platform.OSType.MACOS == Platform.getOSType() ) {
+                JunitTracer.setTestSupported(false);
+            }
+        }
+    }
+    static boolean manual_test = false;
+
     public static void main(final String args[]) throws IOException {
+        manual_test = true;
         System.err.println("main - start");
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {

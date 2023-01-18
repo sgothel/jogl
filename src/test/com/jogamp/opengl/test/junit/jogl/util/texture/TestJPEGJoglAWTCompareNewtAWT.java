@@ -29,7 +29,9 @@
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.TextureDraw01Accessor;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.TextureDraw01ES2Listener;
@@ -58,6 +60,7 @@ import java.io.InputStream;
 import java.net.URLConnection;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -144,6 +147,7 @@ public class TestJPEGJoglAWTCompareNewtAWT extends UITestCase {
 
             @Override public void init(final GLAutoDrawable drawable) {}
 
+            @Override
             public void display(final GLAutoDrawable drawable) {
                 // 1 snapshot
                 if(null!=((TextureDraw01Accessor)gle).getTexture() && !shot) {
@@ -203,6 +207,7 @@ public class TestJPEGJoglAWTCompareNewtAWT extends UITestCase {
 
             @Override public void init(final GLAutoDrawable drawable) {}
 
+            @Override
             public void display(final GLAutoDrawable drawable) {
                 // 1 snapshot
                 if( null!=gle && null!=((TextureDraw01Accessor)gle).getTexture() && !shot) {
@@ -258,7 +263,18 @@ public class TestJPEGJoglAWTCompareNewtAWT extends UITestCase {
         testImpl(files[8]);
     }
 
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        if( !manual_test ) {
+            if( Platform.OSType.MACOS == Platform.getOSType() ) {
+                JunitTracer.setTestSupported(false);
+            }
+        }
+    }
+    static boolean manual_test = false;
+
     public static void main(final String args[]) throws IOException {
+        manual_test = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
