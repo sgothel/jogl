@@ -49,13 +49,10 @@ import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.DefaultGraphicsScreen;
 import com.jogamp.nativewindow.MutableSurface;
 import com.jogamp.nativewindow.NativeSurface;
-import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.nativewindow.ProxySurface;
 import com.jogamp.nativewindow.UpstreamSurfaceHook;
-import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
 import com.jogamp.nativewindow.VisualIDHolder;
-import com.jogamp.nativewindow.VisualIDHolder.VIDType;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesChooser;
@@ -67,9 +64,6 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 
 import jogamp.common.os.PlatformPropsImpl;
-import jogamp.nativewindow.drm.DRMLib;
-import jogamp.nativewindow.drm.DRMUtil;
-import jogamp.nativewindow.drm.GBMDummyUpstreamSurfaceHook;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextImpl.MappedGLVersion;
@@ -90,7 +84,6 @@ import com.jogamp.nativewindow.GenericUpstreamSurfacelessHook;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.egl.EGL;
-import com.jogamp.opengl.egl.EGLExt;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG; // allow package access
@@ -180,6 +173,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 }
             }
         }
+        @Override
         public final String toString() {
             return "EGLFeatures[vendor "+vendor+", version "+version+
                    ", has[GL-API "+hasGLAPI+", KHR[CreateContext "+hasKHRCreateContext+", Surfaceless "+hasKHRSurfaceless+"]]]";
@@ -380,7 +374,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     // Hence opening will happen later, eventually
                     final long nativeDisplayID;
                     if( isDRM_GBM ) { // Bug 1402 related and in case surfaceless is n/a
-                        nativeDisplayID = DRMLib.gbm_create_device(DRMUtil.getDrmFd());
+                        nativeDisplayID = jogamp.nativewindow.drm.DRMLib.gbm_create_device(jogamp.nativewindow.drm.DRMUtil.getDrmFd());
                     } else {
                         nativeDisplayID = EGL.EGL_DEFAULT_DISPLAY;
                     }
@@ -418,7 +412,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
         if(null != defaultDevice) {
             if( isDRM_GBM ) { // Bug 1402 related and in case surfaceless is n/a
-                DRMLib.gbm_device_destroy(defaultDevice.getNativeDisplayID());
+                jogamp.nativewindow.drm.DRMLib.gbm_device_destroy(defaultDevice.getNativeDisplayID());
             }
             defaultDevice.close();
             defaultDevice = null;
@@ -1148,8 +1142,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         final UpstreamSurfaceHook ush;
         final int nativeVisualID;
         if( isDRM_GBM ) {
-            ush = new GBMDummyUpstreamSurfaceHook(width, height);
-            nativeVisualID = DRMUtil.GBM_FORMAT_XRGB8888;
+            ush = new jogamp.nativewindow.drm.GBMDummyUpstreamSurfaceHook(width, height);
+            nativeVisualID = jogamp.nativewindow.drm.DRMUtil.GBM_FORMAT_XRGB8888;
         } else {
             ush = new EGLDummyUpstreamSurfaceHook(width, height);
             chosenCaps = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(chosenCaps); // complete validation in EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(..) above
