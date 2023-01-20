@@ -69,6 +69,9 @@
         <property name="java.part.core"
                   value="com/jogamp/nativewindow/* com/jogamp/nativewindow/util/* com/jogamp/nativewindow/egl/* com/jogamp/nativewindow/swt/** com/jogamp/nativewindow/javafx/** jogamp/nativewindow/*"/>
 
+        <property name="java.part.swt"
+                  value="com/jogamp/nativewindow/swt/*"/>
+
         <property name="java.part.awt"
                   value="com/jogamp/nativewindow/awt/* jogamp/nativewindow/jawt/** jogamp/nativewindow/**/awt/**"/>
 
@@ -1055,6 +1058,13 @@
         </copy>
     </target>
 
+    <target name="build-jars-swt" depends="setup-manifestfile">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-swt.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.swt}" />
+        </jar>
+    </target>
+
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
         <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-awt.jar}" filesonly="true">
             <fileset dir="${classes}"
@@ -1098,11 +1108,11 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-drm,build-jars-x11,build-jars-windows,build-jars-macosx,build-jars-ios">
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-swt,build-jars-awt,build-jars-drm,build-jars-x11,build-jars-windows,build-jars-macosx,build-jars-ios">
         <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
-                     excludes="${java.part.awt} ${java.part.drm} ${java.part.x11} ${java.part.windows}"/>
+                     excludes="${java.part.swt} ${java.part.awt} ${java.part.drm} ${java.part.x11} ${java.part.windows}"/>
         </jar>
         <native.tag.jar objdir="${obj.nativewindow}"
                         nativejarfile="${build.nativewindow}/nativewindow-natives-${os.and.arch}.jar"

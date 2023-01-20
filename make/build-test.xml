@@ -238,7 +238,6 @@
           <d8-classpaths>
               <arg line="--classpath ${gluegen-rt-android.jar}"/> 
               <arg line="--classpath ${joal.jar}"/> 
-              <arg line="--classpath ${jogl-all.jar}"/> 
               <arg line="--classpath ${jogl-all-android.jar}"/> 
               <arg line="--classpath ${gluegen-test-util.jar}"/> 
               <arg line="--classpath ${junit.jar}"/> 
@@ -246,7 +245,6 @@
               <arg line="--classpath ${ant-junit.jar}"/> 
               <arg line="--classpath ${ant-junit4.jar}"/> 
               <arg line="--classpath ${semver.jar}"/> 
-              <arg line="--classpath ${swt.jar}"/> 
               <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-base-11.jar"/>
               <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar"/>
           </d8-classpaths>

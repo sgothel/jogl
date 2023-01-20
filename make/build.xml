@@ -138,7 +138,7 @@
         <jar manifest="${build}/manifest-all.mf" destfile="${jogl-all-android.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
-                    <path refid="nativewindow_core_atoms.classpath"/>
+                    <path refid="nativewindow_android_atoms.classpath"/>
                     <path refid="jogl_all-android_atoms.classpath"/>
                     <path refid="newt_all-android_atoms.classpath"/>
                 </zips>
@@ -216,9 +216,7 @@
           <d8-classpaths>
               <arg line="--classpath ${gluegen-rt-android.jar}"/> 
               <arg line="--classpath ${joal.jar}"/> 
-              <arg line="--classpath ${jogl-all.jar}"/> 
               <arg line="--classpath ${jogl-all-android.jar}"/> 
-              <arg line="--classpath ${swt.jar}"/> 
               <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-base-11.jar"/>
               <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar"/>
           </d8-classpaths>

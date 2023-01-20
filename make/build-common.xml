@@ -296,6 +296,7 @@
         <!-- Atomic JavaSE JARS -->
 
         <property name="nativewindow.jar"        value="${build.nativewindow}/nativewindow.jar" />
+        <property name="nativewindow-swt.jar"    value="${build.nativewindow}/nativewindow-swt.jar"  />
         <property name="nativewindow-awt.jar"    value="${build.nativewindow}/nativewindow-awt.jar"  />
         <property name="nativewindow-os-drm.jar" value="${build.nativewindow}/nativewindow-os-drm.jar"  />
         <property name="nativewindow-os-x11.jar" value="${build.nativewindow}/nativewindow-os-x11.jar"  />
@@ -305,6 +306,7 @@
 
         <path id="nativewindow_all_atoms.classpath">
             <pathelement location="${nativewindow.jar}" />
+            <pathelement location="${nativewindow-swt.jar}" />
             <pathelement location="${nativewindow-awt.jar}" />
             <pathelement location="${nativewindow-os-drm.jar}" />
             <pathelement location="${nativewindow-os-x11.jar}" />
@@ -314,11 +316,15 @@
         </path>
         <path id="nativewindow_all-noawt_atoms.classpath">
             <pathelement location="${nativewindow.jar}" />
+            <pathelement location="${nativewindow-swt.jar}" />
             <pathelement location="${nativewindow-os-drm.jar}" />
             <pathelement location="${nativewindow-os-x11.jar}" />
             <pathelement location="${nativewindow-os-win.jar}" />
             <pathelement location="${nativewindow-os-osx.jar}" />
             <pathelement location="${nativewindow-os-ios.jar}" />
+        </path>
+        <path id="nativewindow_android_atoms.classpath">
+            <pathelement location="${nativewindow.jar}" />
         </path>
         <path id="nativewindow_core_atoms.classpath">
             <pathelement location="${nativewindow.jar}" />
