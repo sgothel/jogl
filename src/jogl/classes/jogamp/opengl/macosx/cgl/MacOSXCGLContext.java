@@ -773,6 +773,8 @@ public class MacOSXCGLContext extends GLContextImpl
           long nsOpenGLLayer;
           /** Synchronized by instance's monitor */
           boolean done;
+          /** Synchronized by instance's monitor */
+          boolean revoke;
 
           AttachGLLayerCmd(final OffscreenLayerSurface ols, final long ctx, final int shaderProgram, final long pfmt, final long pbuffer, final int texID,
                            final boolean isOpaque, final int texWidth, final int texHeight, final int winWidth, final int winHeight) {
@@ -788,11 +790,12 @@ public class MacOSXCGLContext extends GLContextImpl
               this.winWidth = winWidth;
               this.winHeight = winHeight;
               this.done = false;
+              this.revoke = false;
               this.nsOpenGLLayer = 0;
           }
 
           public final String contentToString() {
-              return "done "+done+", size tex["+texWidth+"x"+texHeight+"], win["+winWidth+"x"+winHeight+"], ctx "+toHexString(ctx)+", opaque "+isOpaque+", texID "+texID+", pbuffer "+toHexString(pbuffer)+", nsOpenGLLayer "+toHexString(nsOpenGLLayer);
+              return "done "+done+", revoke "+revoke+", size tex["+texWidth+"x"+texHeight+"], win["+winWidth+"x"+winHeight+"], ctx "+toHexString(ctx)+", opaque "+isOpaque+", texID "+texID+", pbuffer "+toHexString(pbuffer)+", nsOpenGLLayer "+toHexString(nsOpenGLLayer);
           }
 
           @Override
@@ -803,7 +806,7 @@ public class MacOSXCGLContext extends GLContextImpl
           @Override
           public void run() {
               synchronized(this) {
-                  if( !done ) {
+                  if( !done && !revoke ) {
                       try {
                           final int maxwait = screenVSyncTimeout/2000; // TO 1/2 of current screen-vsync in [ms]
                           final RecursiveLock surfaceLock = ols.getLock();
@@ -872,7 +875,9 @@ public class MacOSXCGLContext extends GLContextImpl
                         System.err.println("Caught exception on thread "+getThreadName());
                         t.printStackTrace();
                     }
-                    CGL.releaseNSOpenGLLayer(cmd.nsOpenGLLayer);
+                    if( 0 != cmd.nsOpenGLLayer ) {
+                        CGL.releaseNSOpenGLLayer(cmd.nsOpenGLLayer);
+                    }
                     if(DEBUG) {
                         System.err.println("NSOpenGLLayer.Detach: OK, layer "+toHexString(cmd.nsOpenGLLayer)+" - "+getThreadName());
                     }
@@ -881,6 +886,7 @@ public class MacOSXCGLContext extends GLContextImpl
                 } else if(DEBUG) {
                     System.err.println("NSOpenGLLayer.Detach: Skipped "+toHexString(cmd.nsOpenGLLayer)+" - "+getThreadName());
                 }
+                cmd.revoke = true; // revoke is essential if attach hasn't been done yet.
                 cmd.notifyAll();
             }
         }
@@ -952,7 +958,7 @@ public class MacOSXCGLContext extends GLContextImpl
                   if(DEBUG) {
                       System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(true).calayer: "+attachGLLayerCmd);
                   }
-                  OSXUtil.RunOnMainThread(false, false /* kickNSApp */, attachGLLayerCmd);
+                  OSXUtil.RunOnMainThread(false /* wait */, false /* kickNSApp */, attachGLLayerCmd);
               } else { // -> null == backingLayerHost
                   lastWidth = drawable.getSurfaceWidth();
                   lastHeight = drawable.getSurfaceHeight();
@@ -977,7 +983,7 @@ public class MacOSXCGLContext extends GLContextImpl
                           if(DEBUG) {
                               System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(false).calayer: "+dCmd+" - "+Thread.currentThread().getName());
                           }
-                          OSXUtil.RunOnMainThread(false, true /* kickNSApp */, dCmd);
+                          OSXUtil.RunOnMainThread(false /* wait */, true /* kickNSApp */, dCmd);
                           if( null != gl3ShaderProgram ) {
                               gl3ShaderProgram.destroy(MacOSXCGLContext.this.gl.getGL3());
                               gl3ShaderProgram = null;
