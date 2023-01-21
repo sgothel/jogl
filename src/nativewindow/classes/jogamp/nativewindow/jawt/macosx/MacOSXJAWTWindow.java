@@ -83,12 +83,12 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
-  protected void invalidateNative() {
+  protected void invalidateNative(final long _offscreenSurfaceLayer) {
       if(DEBUG) {
           System.err.println("MacOSXJAWTWindow.invalidateNative(): osh-enabled "+isOffscreenLayerSurfaceEnabled()+
                              ", osd-set "+offscreenSurfaceDrawableSet+
                              ", osd "+toHexString(offscreenSurfaceDrawable)+
-                             ", osl "+toHexString(getAttachedSurfaceLayer())+
+                             ", osl "+toHexString(_offscreenSurfaceLayer)+
                              ", jsl "+toHexString(jawtSurfaceLayersHandle)+
                              ", rsl "+toHexString(rootSurfaceLayer)+
                              ", wh "+toHexString(windowHandle)+" - "+Thread.currentThread().getName());
@@ -99,7 +99,6 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           if(0 != windowHandle) {
               OSXUtil.DestroyNSWindow(windowHandle);
           }
-          final long _offscreenSurfaceLayer = getAttachedSurfaceLayer(); // Bug 1389
           OSXUtil.RunOnMainThread(false, true /* kickNSApp */, new Runnable() {
               @Override
               public void run() {

@@ -64,7 +64,7 @@ public class WindowsJAWTWindow extends JAWTWindow {
   }
 
   @Override
-  protected void invalidateNative() {
+  protected void invalidateNative(final long _offscreenSurfaceLayer) {
     windowHandle = 0;
   }
 

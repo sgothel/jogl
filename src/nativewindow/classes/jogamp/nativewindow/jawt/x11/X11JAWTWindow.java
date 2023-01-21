@@ -61,7 +61,8 @@ public class X11JAWTWindow extends JAWTWindow {
   }
 
   @Override
-  protected void invalidateNative() { }
+  protected void invalidateNative(final long _offscreenSurfaceLayer) {
+  }
 
   @Override
   protected JAWT fetchJAWTImpl() throws NativeWindowException {

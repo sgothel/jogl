@@ -268,7 +268,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         }
         // Thread.dumpStack();
     }
-    invalidateNative();
+    {
+        final long osl = offscreenSurfaceLayer;
+        offscreenSurfaceLayer = 0;
+        invalidateNative(osl);
+    }
     jawt = null;
     awtConfig = null;
     offscreenSurfaceLayer = 0; // Bug 1389
@@ -285,7 +289,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     maxPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
     hasPixelScaleChanged = false;
   }
-  protected abstract void invalidateNative();
+  protected abstract void invalidateNative(final long offscreenSurfaceLayer);
 
   /**
    * Set a new {@link AWTGraphicsConfiguration} instance,
@@ -544,19 +548,17 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       if(DEBUG) {
         System.err.println("JAWTWindow.detachSurfaceHandle(): osh "+toHexString(offscreenSurfaceLayer)+" - "+Thread.currentThread().getName());
       }
-      detachSurfaceLayerImpl(offscreenSurfaceLayer, detachSurfaceLayerNotify);
+      {
+          final long osl = offscreenSurfaceLayer;
+          offscreenSurfaceLayer = 0;
+          detachSurfaceLayerImpl(osl);
+      }
   }
-  private final Runnable detachSurfaceLayerNotify = new Runnable() {
-    @Override
-    public void run() {
-        offscreenSurfaceLayer = 0;
-    }
-  };
 
   /**
    * @param detachNotify Runnable to be called before native detachment
    */
-  protected void detachSurfaceLayerImpl(final long layerHandle, final Runnable detachNotify) {
+  protected void detachSurfaceLayerImpl(final long layerHandle) {
       throw new UnsupportedOperationException("offscreen layer not supported");
   }
 
