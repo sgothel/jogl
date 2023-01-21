@@ -204,7 +204,13 @@ public class TestSharedContextVBOES2NEWT5 extends UITestCase {
                 sf[i] = null;
                 sc[i] = null;
             }
-            System.gc();
+            {
+                // Ensure nulled objects got destroyed and taken from the GLContextShareSet map.
+                System.gc();
+                try { Thread.sleep(100); } catch (final InterruptedException ie) {}
+                System.gc();
+                try { Thread.sleep(100); } catch (final InterruptedException ie) {}
+            }
             System.err.println("XXX-"+j+"-X-SX2 - GLContextShareSet.Map");
             GLContextShareSet.printMap(System.err);
             Assert.assertEquals("GLContextShareSet ctx1.createdCount is not 1", 1, GLContextShareSet.getCreatedShareCount(ctx1));

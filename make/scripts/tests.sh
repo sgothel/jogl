@@ -803,12 +803,6 @@ function testawtswt() {
 #testawtswt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWTAWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTBug643AsyncExec $*
 
-testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
-
 #
 # newt.awt (testawt)
 #
@@ -962,6 +956,16 @@ testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestBug1398Deadlock02AWT $*
+
+# OSX OpenJDK17 x86_64
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT5 $*
+#testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextWithJTabbedPaneAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
+#testswt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
+#testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs $*
+#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTBug643AsyncExec $*
 
 #
 # to re-test:
