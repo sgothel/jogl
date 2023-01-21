@@ -130,9 +130,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     }
     this.component = (Component)comp;
     this.jawtComponentListener = new JAWTComponentListener();
+    this.offscreenSurfaceLayer = 0;
     invalidate();
     this.awtConfig = (AWTGraphicsConfiguration) config;
-    this.offscreenSurfaceLayer = 0;
     if(DEBUG) {
         System.err.println(jawtStr2("ctor"));
     }
