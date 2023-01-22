@@ -289,7 +289,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     maxPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
     hasPixelScaleChanged = false;
   }
-  protected abstract void invalidateNative(final long offscreenSurfaceLayer);
+  protected abstract void invalidateNative(final long _offscreenSurfaceLayer);
 
   /**
    * Set a new {@link AWTGraphicsConfiguration} instance,
@@ -514,7 +514,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
               }
           } };
 
-  protected void attachSurfaceLayerImpl(final long layerHandle) {
+  protected void attachSurfaceLayerImpl(final long _offscreenSurfaceLayer) {
       throw new UnsupportedOperationException("offscreen layer not supported");
   }
 
@@ -558,7 +558,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   /**
    * @param detachNotify Runnable to be called before native detachment
    */
-  protected void detachSurfaceLayerImpl(final long layerHandle) {
+  protected void detachSurfaceLayerImpl(final long _offscreenSurfaceLayer) {
       throw new UnsupportedOperationException("offscreen layer not supported");
   }
 
