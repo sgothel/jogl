@@ -63,7 +63,6 @@ import jogamp.nativewindow.jawt.JAWTFactory;
 import jogamp.nativewindow.jawt.JAWTUtil;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurface;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
-import jogamp.nativewindow.jawt.macosx.JAWT_MacOSXDrawingSurfaceInfo;
 import jogamp.nativewindow.macosx.OSXUtil;
 
 public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
@@ -99,20 +98,23 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           if(0 != windowHandle) {
               OSXUtil.DestroyNSWindow(windowHandle);
           }
-          OSXUtil.RunOnMainThread(false, true /* kickNSApp */, new Runnable() {
+          final long _rootSurfaceLayer = rootSurfaceLayer;
+          rootSurfaceLayer = 0;
+          final long _jawtSurfaceLayersHandle = jawtSurfaceLayersHandle;
+          jawtSurfaceLayersHandle = 0;
+          OSXUtil.RunOnMainThread(false /* wait */, true /* kickNSApp */, new Runnable() {
               @Override
               public void run() {
-                  if( 0 != _offscreenSurfaceLayer ) { // Bug 1389
-                      OSXUtil.RemoveCASublayer(rootSurfaceLayer, _offscreenSurfaceLayer, true);
+                  if( 0 != _rootSurfaceLayer && 0 != _offscreenSurfaceLayer ) { // Bug 1389
+                      // throws if null == _rootSurfaceLayer
+                      OSXUtil.RemoveCASublayer(_rootSurfaceLayer, _offscreenSurfaceLayer, true);
                   }
-                  if( 0 != jawtSurfaceLayersHandle) {
+                  if( 0 != _jawtSurfaceLayersHandle) {
                       // null rootSurfaceLayer OK
-                      UnsetJAWTRootSurfaceLayer0(jawtSurfaceLayersHandle, rootSurfaceLayer);
+                      UnsetJAWTRootSurfaceLayer0(_jawtSurfaceLayersHandle, _rootSurfaceLayer);
                   }
-                  jawtSurfaceLayersHandle = 0;
-                  if( 0 != rootSurfaceLayer ) {
-                      OSXUtil.DestroyCALayer(rootSurfaceLayer);
-                      rootSurfaceLayer = 0;
+                  if( 0 != _rootSurfaceLayer ) {
+                      OSXUtil.DestroyCALayer(_rootSurfaceLayer);
                   }
               }
           });
