@@ -531,11 +531,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * @see #isOffscreenLayerSurfaceEnabled()
    * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
    */
-  protected void layoutSurfaceLayerImpl(final long layerHandle, final boolean visible) {}
+  protected void layoutSurfaceLayerImpl(final boolean visible) {}
 
   private final void layoutSurfaceLayerIfEnabled(final boolean visible) throws NativeWindowException {
       if( isOffscreenLayerSurfaceEnabled() && 0 != offscreenSurfaceLayer ) {
-          layoutSurfaceLayerImpl(offscreenSurfaceLayer, visible);
+          layoutSurfaceLayerImpl(visible);
       }
   }
 

@@ -177,7 +177,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
-  protected void layoutSurfaceLayerImpl(final long layerHandle, final boolean visible) {
+  protected void layoutSurfaceLayerImpl(final boolean visible) {
       final int caLayerQuirks = JAWTUtil.getOSXCALayerQuirks();
       // AWT position is top-left w/ insets, where CALayer position is bottom/left from root CALayer w/o insets.
       // Determine p0: components location on screen w/o insets.
@@ -199,14 +199,22 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           if( null != outterInsets ) {
               pA1.translate(-outterInsets.left, -outterInsets.top);
           }
-          System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", quirks "+caLayerQuirks+", visible "+visible+
+          System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(getAttachedSurfaceLayer()) + ", quirks "+caLayerQuirks+", visible "+visible+
                   ", [ins "+outterInsets+"], pA "+pA0+" -> "+pA1+
                   ", p0 "+p0+" -> "+p1+", bounds "+bounds);
       } else if( DEBUG ) {
-          System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(layerHandle) + ", quirks "+caLayerQuirks+", visible "+visible+
+          System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(getAttachedSurfaceLayer()) + ", quirks "+caLayerQuirks+", visible "+visible+
                   ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+bounds);
       }
-      OSXUtil.FixCALayerLayout(rootSurfaceLayer, layerHandle, visible, p1.getX(), p1.getY(), getWidth(), getHeight(), caLayerQuirks);
+      OSXUtil.RunOnMainThread(false /* wait */, false, new Runnable() {
+          @Override
+          public void run() {
+              final long osl = getAttachedSurfaceLayer();
+              if( 0 != rootSurfaceLayer && 0 != osl ) {
+                  OSXUtil.FixCALayerLayout(rootSurfaceLayer, osl, visible, p1.getX(), p1.getY(), getWidth(), getHeight(), caLayerQuirks);
+              }
+          }
+      });
   }
 
   @Override
