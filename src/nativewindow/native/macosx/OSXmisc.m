@@ -911,8 +911,6 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RemoveCASublayer0
     MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
     CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
 
-    (void)rootLayer; // no warnings
-
     DBG_PRINT("CALayer::RemoveCASublayer0.0: root %p (refcnt %d) .sub %p (refcnt %d)\n", 
         rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount]);
 
@@ -927,8 +925,9 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RemoveCASublayer0
     [rootLayer release]; // Pairs w/ AddCASublayer
 
     [CATransaction commit];
-
+            
     [pool release];
+    
     DBG_PRINT("CALayer::RemoveCASublayer0.X: root %p (refcnt %d) .sub %p (refcnt %d)\n", 
         rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount]);
 }
@@ -983,7 +982,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Ge
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_SetJAWTRootSurfaceLayer0
-  (JNIEnv *env, jclass unused, jlong jawtSurfaceLayersHandle, jlong caLayer)
+  (JNIEnv *env, jclass unused, jlong jawtSurfaceLayersHandle, jlong rootCALayer)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
@@ -992,15 +991,15 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Set
 
     NSObject *surfaceLayersObj = (NSObject*) (intptr_t) jawtSurfaceLayersHandle;
     id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)surfaceLayersObj;
-    MyCALayer* layer = (MyCALayer*) (intptr_t) caLayer;
-    DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.0: pre %p -> root %p (refcnt %d)\n", [surfaceLayers layer], layer, (int)[layer retainCount]);
+    MyCALayer* rootLayer = (MyCALayer*) (intptr_t) rootCALayer;
+    DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.0: pre %p -> root %p (refcnt %d)\n", [surfaceLayers layer], rootLayer, (int)[rootLayer retainCount]);
 
-    [surfaceLayers setLayer: [layer retain]]; // Pairs w/ Unset
+    [surfaceLayers setLayer: [rootLayer retain]]; // Pairs w/ Unset
 
     [CATransaction commit];
 
     [pool release];
-    DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.X: root %p (refcnt %d)\n", layer, (int)[layer retainCount]);
+    DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.X: root %p (refcnt %d)\n", layer, (int)[rootLayer retainCount]);
 }
 
 /*
@@ -1009,7 +1008,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Set
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_UnsetJAWTRootSurfaceLayer0
-  (JNIEnv *env, jclass unused, jlong jawtSurfaceLayersHandle, jlong caLayer)
+  (JNIEnv *env, jclass unused, jlong jawtSurfaceLayersHandle, jlong rootCALayer)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
@@ -1020,14 +1019,14 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
     id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)surfaceLayersObj;
     DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.0: surfaceLayers %p (refcnt %d)\n", surfaceLayersObj, (int)[surfaceLayersObj retainCount]);
 
-    MyCALayer* layer = (MyCALayer*) (intptr_t) caLayer;
-    if(NULL != layer) {
-        if(layer != [surfaceLayers layer]) {
-            NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, layer);
+    MyCALayer* rootLayer = (MyCALayer*) (intptr_t) rootCALayer;
+    if(NULL != rootLayer) {
+        if(rootLayer != [surfaceLayers layer]) {
+            NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, rootLayer);
             return;
         }
-        DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.1: root %p (refcnt %d) -> nil\n", layer, (int)[layer retainCount]);
-        [layer release]; // Pairs w/ Set
+        DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.1: root %p (refcnt %d) -> nil\n", rootLayer, (int)[rootLayer retainCount]);
+        [rootLayer release]; // Pairs w/ Set
         [surfaceLayers setLayer: NULL]; // Pairs w/ Set
     }
     [surfaceLayersObj release]; // Pairs w/ Get
