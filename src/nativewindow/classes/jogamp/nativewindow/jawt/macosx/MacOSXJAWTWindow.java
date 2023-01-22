@@ -95,9 +95,8 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
       offscreenSurfaceDrawable=0;
       offscreenSurfaceDrawableSet=false;
       if( isOffscreenLayerSurfaceEnabled() ) {
-          if(0 != windowHandle) {
-              OSXUtil.DestroyNSWindow(windowHandle);
-          }
+          final long _windowHandle = windowHandle;
+          windowHandle = 0;
           final long _rootSurfaceLayer = rootSurfaceLayer;
           rootSurfaceLayer = 0;
           final long _jawtSurfaceLayersHandle = jawtSurfaceLayersHandle;
@@ -105,6 +104,9 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           OSXUtil.RunOnMainThread(false /* wait */, true /* kickNSApp */, new Runnable() {
               @Override
               public void run() {
+                  if(0 != _windowHandle) {
+                      OSXUtil.DestroyNSWindow(_windowHandle);
+                  }
                   if( 0 != _rootSurfaceLayer && 0 != _offscreenSurfaceLayer ) { // Bug 1389
                       // throws if null == _rootSurfaceLayer
                       OSXUtil.RemoveCASublayer(_rootSurfaceLayer, _offscreenSurfaceLayer, true);
@@ -372,8 +374,13 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
         }
         if(null != errMsg) {
             if(0 != windowHandle) {
-              OSXUtil.DestroyNSWindow(windowHandle);
-              windowHandle = 0;
+                final long _windowHandle = windowHandle;
+                windowHandle = 0;
+                OSXUtil.RunOnMainThread(false /* wait */, false, new Runnable() {
+                        @Override
+                        public void run() {
+                            OSXUtil.DestroyNSWindow(_windowHandle);
+                        } } );
             }
             drawable = 0;
             unlockSurfaceImpl();
