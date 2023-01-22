@@ -36,6 +36,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.awt.GLCanvas;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -100,6 +101,7 @@ public class TestGearsES2AWT extends UITestCase {
     public static void initClass() {
         try {
             EventQueue.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     awtEDT = Thread.currentThread();
                 } } );
@@ -116,6 +118,7 @@ public class TestGearsES2AWT extends UITestCase {
     static void setComponentSize(final Frame frame, final Component comp, final java.awt.Dimension new_sz) {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     comp.setMinimumSize(new_sz);
                     comp.setPreferredSize(new_sz);
@@ -132,6 +135,7 @@ public class TestGearsES2AWT extends UITestCase {
     static void setFrameSize(final Frame frame, final boolean frameLayout, final java.awt.Dimension new_sz) {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     frame.setSize(new_sz);
                     if( frameLayout ) {
@@ -162,11 +166,15 @@ public class TestGearsES2AWT extends UITestCase {
         final float[] maxSurfacePixelScale = glc.getMaximumSurfaceScale(new float[2]);
         final float[] reqSurfacePixelScale = glc.getRequestedSurfaceScale(new float[2]);
         final float[] hasSurfacePixelScale = glc.getCurrentSurfaceScale(new float[2]);
-        frame.setTitle("GLCanvas["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight()+
-                ", scale[min "+minSurfacePixelScale[0]+"x"+minSurfacePixelScale[1]+", max "+
-                maxSurfacePixelScale[0]+"x"+maxSurfacePixelScale[1]+", req "+
-                reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" -> has "+
-                hasSurfacePixelScale[0]+"x"+hasSurfacePixelScale[1]+"]");
+        AWTEDTExecutor.singleton.invoke(false, new Runnable() {
+            @Override
+            public void run() {
+                frame.setTitle("GLCanvas["+capsA+"], swapI "+swapInterval+", win: ["+b.x+"/"+b.y+" "+b.width+"x"+b.height+"], pix: "+glc.getSurfaceWidth()+"x"+glc.getSurfaceHeight()+
+                        ", scale[min "+minSurfacePixelScale[0]+"x"+minSurfacePixelScale[1]+", max "+
+                        maxSurfacePixelScale[0]+"x"+maxSurfacePixelScale[1]+", req "+
+                        reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" -> has "+
+                        hasSurfacePixelScale[0]+"x"+hasSurfacePixelScale[1]+"]");
+            } } );
     }
 
     protected void runTestGL(final GLCapabilities caps, final ResizeBy resizeBy, final FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {
@@ -275,6 +283,7 @@ public class TestGearsES2AWT extends UITestCase {
         new AWTKeyAdapter(kl, glCanvas).addTo(glCanvas);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                if( ResizeBy.Frame == resizeBy ) {
                    frame.validate();
@@ -332,11 +341,13 @@ public class TestGearsES2AWT extends UITestCase {
         }
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 frame.setVisible(false);
             }});
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 if(shutdownRemoveGLCanvas) {
                     frame.remove(glCanvas);

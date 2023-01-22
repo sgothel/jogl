@@ -29,12 +29,11 @@ package com.jogamp.opengl.test.junit.newt.parenting;
 
 import java.awt.Frame;
 
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.NativeWindowHolder;
-import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.NEWTDemoListener;
 
@@ -59,7 +58,11 @@ public class NewtAWTReparentingKeyAdapter extends NewtReparentingKeyAdapter {
         final CapabilitiesImmutable caps = null != chosenCaps ? chosenCaps : reqCaps;
         final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
         {
-            frame.setTitle("Frame["+capsA+"], win: "+getNativeWinTitle(nw));
+            AWTEDTExecutor.singleton.invoke(false, new Runnable() {
+                @Override
+                public void run() {
+                    frame.setTitle("Frame["+capsA+"], win: "+getNativeWinTitle(nw));
+                } } );
         }
         super.setTitle(nw, win);
     }

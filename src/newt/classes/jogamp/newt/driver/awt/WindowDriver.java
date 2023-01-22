@@ -49,6 +49,7 @@ import jogamp.nativewindow.awt.AWTMisc;
 import jogamp.newt.WindowImpl;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
@@ -97,7 +98,11 @@ public class WindowDriver extends WindowImpl {
     @Override
     protected void setTitleImpl(final String title) {
         if (awtFrame != null) {
-            awtFrame.setTitle(title);
+            AWTEDTExecutor.singleton.invoke(false, new Runnable() {
+                @Override
+                public void run() {
+                    awtFrame.setTitle(title);
+                } } );
         }
     }
 
