@@ -790,7 +790,6 @@ public class SWTAccessor {
     * <ul>
     *   <li>Mac OSX
     *   <ul>
-    *     <!--li>AWT EDT: In case AWT is available, the AWT EDT is the OSX UI main thread</li-->
     *     <li><i>Main Thread</i>: Run on OSX UI main thread. 'wait' is implemented on Java site via lock/wait on {@link RunnableTask} to not freeze OSX main thread.</li>
     *   </ul></li>
     *   <li>Linux, Windows, ..
@@ -803,7 +802,7 @@ public class SWTAccessor {
     */
     public static void invokeOnOSTKThread(final boolean blocking, final Runnable runnable) {
         if( isOSX ) {
-            // Use SWT main thread! Only reliable config w/ -XStartOnMainThread !?
+            // Use SWT main thread! Only reliable config w/ -XstartOnFirstThread - or - AWT enabled, i.e. `-Djava.awt.headless=false`
             OSXUtil.RunOnMainThread(blocking, false, runnable);
         } else {
             runnable.run();
