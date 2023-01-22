@@ -965,10 +965,15 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
 
-testswt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
+# On MacOS 12+ and SWT 4.26 while not using AWT (-Djava.awt.headless=true, -XstartOnFirstThread),
+# we recently get the following Exception from SWT (suppressed):
+#   java.lang.NullPointerException: Cannot invoke "org.eclipse.swt.internal.cocoa.NSGraphicsContext.saveGraphicsState()" because "context" is null
+#
+# This is not observed if running using AWT (-Djava.awt.headless=false).
+#
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
-#testswt com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs $*
-#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTBug643AsyncExec $*
+#testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
+testswt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 
 #
 # to re-test:

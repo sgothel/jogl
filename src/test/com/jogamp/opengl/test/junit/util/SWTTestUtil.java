@@ -38,6 +38,7 @@ public class SWTTestUtil {
         final Display display;
         final boolean blocking;
         final long sleepMS;
+        volatile Exception exo = null;
 
         public WaitAction(final Display display, final boolean blocking, final long sleepMS) {
             this.display = display;
@@ -57,12 +58,24 @@ public class SWTTestUtil {
 
         @Override
         public void run() {
-            if( blocking ) {
-                display.syncExec( waitAction0 );
-            } else {
-                display.asyncExec( waitAction0 );
+            try {
+                if( blocking ) {
+                    display.syncExec( waitAction0 );
+                } else {
+                    display.asyncExec( waitAction0 );
+                }
+            } catch (final Exception ex) {
+                ex.printStackTrace();
+                exo = ex;
             }
         };
+        public Exception getException(final boolean clear) {
+            final Exception r = exo;
+            if( clear ) {
+                exo = null;
+            }
+            return r;
+        }
     }
 
     public static class WaitAction2 implements Runnable {

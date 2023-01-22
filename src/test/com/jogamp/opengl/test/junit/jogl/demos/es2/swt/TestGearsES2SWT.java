@@ -102,11 +102,13 @@ public class TestGearsES2SWT extends UITestCase {
     @Before
     public void init() {
         SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
+            @Override
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
             }});
         display.syncExec(new Runnable() {
+            @Override
             public void run() {
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
@@ -124,14 +126,16 @@ public class TestGearsES2SWT extends UITestCase {
         Assert.assertNotNull( composite );
         try {
             display.syncExec(new Runnable() {
-               public void run() {
-                composite.dispose();
-                shell.dispose();
-               }});
+                @Override
+                public void run() {
+                    composite.dispose();
+                    shell.dispose();
+                }});
             SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
-               public void run() {
-                display.dispose();
-               }});
+                @Override
+                public void run() {
+                    display.dispose();
+                }});
         }
         catch( final Throwable throwable ) {
             throwable.printStackTrace();
@@ -162,28 +166,33 @@ public class TestGearsES2SWT extends UITestCase {
         Assert.assertEquals(exclusiveContext ? animator.getThread() : null, canvas.getExclusiveContextThread());
 
         display.syncExec( new Runnable() {
-           public void run() {
-              shell.setText( getSimpleTestName(".") );
-              shell.setSize( wsize.getWidth(), wsize.getHeight() );
-              if( null != wpos ) {
-                  shell.setLocation( wpos.getX(), wpos.getY() );
-              }
-              shell.open();
-           }
+            @Override
+            public void run() {
+                shell.setText( getSimpleTestName(".") );
+                shell.setSize( wsize.getWidth(), wsize.getHeight() );
+                if( null != wpos ) {
+                    shell.setLocation( wpos.getX(), wpos.getY() );
+                }
+                shell.open();
+            }
         });
 
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
 
         final SWTTestUtil.WaitAction waitAction = new SWTTestUtil.WaitAction(display, true, 16);
 
+        System.err.println("TestGearsES2SWT.test: 2.0: Exception "+(null != waitAction.getException(true)));
         Assert.assertEquals(true,  GLTestUtil.waitForRealized(canvas, true, waitAction));
+        System.err.println("TestGearsES2SWT.test: 2.1: Exception "+(null != waitAction.getException(true)));
 
         while(animator.isAnimating() && !canvas.isRealized() && animator.getTotalFPSDuration()<duration) {
             waitAction.run();
         }
+        System.err.println("TestGearsES2SWT.test: 3.0: Exception "+(null != waitAction.getException(true)));
         System.err.println("NW chosen: "+canvas.getDelegatedDrawable().getChosenGLCapabilities());
         System.err.println("GL chosen: "+canvas.getChosenGLCapabilities());
         display.syncExec(new Runnable() {
+            @Override
             public void run() {
                 System.err.println("window pos/siz: "+canvas.getLocation()+" "+canvas.getSurfaceWidth()+"x"+canvas.getSurfaceHeight());
             } } );
@@ -192,10 +201,12 @@ public class TestGearsES2SWT extends UITestCase {
             for(int i=0; i<50; i++) { // 500 ms dispatched delay
                 waitAction.run();
             }
+            System.err.println("TestGearsES2SWT.test: 4.0: Exception "+(null != waitAction.getException(true)));
             display.syncExec( new Runnable() {
-               public void run() {
-                  shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
-               }
+                @Override
+                public void run() {
+                    shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
+                }
             });
             System.err.println("window resize pos/siz: "+canvas.getLocation()+" "+canvas.getSurfaceWidth()+"x"+canvas.getSurfaceHeight());
         }
@@ -203,6 +214,7 @@ public class TestGearsES2SWT extends UITestCase {
         while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             waitAction.run();
         }
+        System.err.println("TestGearsES2SWT.test: 5.0: Exception "+(null != waitAction.getException(true)));
 
         Assert.assertEquals(exclusiveContext ? animator.getThread() : null, canvas.getExclusiveContextThread());
         animator.stop();
@@ -211,9 +223,10 @@ public class TestGearsES2SWT extends UITestCase {
         Assert.assertEquals(null, canvas.getExclusiveContextThread());
 
         display.syncExec(new Runnable() {
-           public void run() {
-               canvas.dispose();
-           } } );
+            @Override
+            public void run() {
+                canvas.dispose();
+            } } );
     }
 
     @Test

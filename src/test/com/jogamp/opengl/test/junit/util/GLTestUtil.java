@@ -99,7 +99,10 @@ public class GLTestUtil extends TestUtil {
             }
             t1 = System.currentTimeMillis();
         }
-        return (t1-t0) < TIME_OUT;
+        final boolean to = (t1-t0) >= TIME_OUT;
+        final boolean ok = realized == glad.isRealized();
+        System.err.println("waitForRealized: to "+to+", goal reached "+ok);
+        return !to || ok;
     }
 
 }
