@@ -86,7 +86,11 @@ public class AWTRobotUtil extends TestUtil {
             return awtEDTAliveFlag;
         }
     }
-    private static Runnable aliveRun = new Runnable() { public void run() { awtEDTAliveFlag = true; } };
+    private static Runnable aliveRun = new Runnable() {
+        @Override
+        public void run() {
+            awtEDTAliveFlag = true;
+        } };
     private static Object awtEDTAliveSync = new Object();
     private static volatile boolean awtEDTAliveFlag = false;
 
@@ -109,6 +113,7 @@ public class AWTRobotUtil extends TestUtil {
             robot.setAutoWaitForIdle(true);
         }
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 System.err.println("******** clearAWTFocus.0");
                 java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
@@ -209,6 +214,7 @@ public class AWTRobotUtil extends TestUtil {
         do {
             final int _wait = wait;
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     if(0==_wait) {
                         window.setVisible(true);
@@ -262,19 +268,24 @@ public class AWTRobotUtil extends TestUtil {
         awtRobotMouseMove(robot, p0[0], p0[1] );
     }
 
+    private static int getAWTClickTimeout() {
+        if(null == AWT_CLICK_TO) {
+            AWT_CLICK_TO =
+                (Integer) java.awt.Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval");
+            if(null == AWT_CLICK_TO) {
+                AWT_CLICK_TO = new Integer(500);
+            }
+        }
+        return AWT_CLICK_TO.intValue();
+    }
     // FIXME: AWTRobotUtil Cleanup: Use specific type for argument object
     public static int getClickTimeout(final Object obj) {
         if(obj instanceof com.jogamp.newt.Window) {
-            return com.jogamp.newt.event.MouseEvent.getClickTimeout();
+            final int newt_to = com.jogamp.newt.event.MouseEvent.getClickTimeout();
+            final int awt_to = getAWTClickTimeout();
+            return Math.max(awt_to, newt_to);
         } else if(NativeWindowFactory.isAWTAvailable() && obj instanceof java.awt.Component) {
-            if(null == AWT_CLICK_TO) {
-                AWT_CLICK_TO =
-                    (Integer) java.awt.Toolkit.getDefaultToolkit().getDesktopProperty("awt.multiClickInterval");
-                if(null == AWT_CLICK_TO) {
-                    AWT_CLICK_TO = new Integer(500);
-                }
-            }
-            return AWT_CLICK_TO.intValue();
+            return getAWTClickTimeout();
         } else {
             throw new RuntimeException("Neither AWT nor NEWT: "+obj);
         }
@@ -327,6 +338,7 @@ public class AWTRobotUtil extends TestUtil {
     private static void requestFocusAWT(final java.awt.Component comp, final boolean onTitleBarIfWindow)
         throws AWTException, InterruptedException, InvocationTargetException {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 comp.requestFocus();
                 System.err.println("requestFocus: AWT Component");
@@ -748,6 +760,7 @@ public class AWTRobotUtil extends TestUtil {
         final java.awt.Toolkit tk = java.awt.Toolkit.getDefaultToolkit();
         final java.awt.EventQueue evtQ = tk.getSystemEventQueue();
         AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+            @Override
             public void run() {
                 evtQ.postEvent(new java.awt.event.WindowEvent(win, java.awt.event.WindowEvent.WINDOW_CLOSING));
             } });
@@ -757,6 +770,7 @@ public class AWTRobotUtil extends TestUtil {
     public static TestUtil.WindowClosingListener addClosingListener(final java.awt.Window win) {
         final AWTWindowClosingAdapter acl = new AWTWindowClosingAdapter();
         AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+            @Override
             public void run() {
                 win.addWindowListener(acl);
             } } );
@@ -768,30 +782,38 @@ public class AWTRobotUtil extends TestUtil {
         AtomicInteger closing = new AtomicInteger(0);
         AtomicInteger closed = new AtomicInteger(0);
 
+        @Override
         public void reset() {
             closing.set(0);
             closed.set(0);
         }
+        @Override
         public int getWindowClosingCount() {
             return closing.get();
         }
+        @Override
         public int getWindowClosedCount() {
             return closed.get();
         }
+        @Override
         public boolean isWindowClosing() {
             return 0 < closing.get();
         }
+        @Override
         public boolean isWindowClosed() {
             return 0 < closed.get();
         }
+        @Override
         public void windowClosing(final java.awt.event.WindowEvent e) {
             closing.incrementAndGet();
             System.err.println("AWTWindowClosingAdapter.windowClosing: "+this);
         }
+        @Override
         public void windowClosed(final java.awt.event.WindowEvent e) {
             closed.incrementAndGet();
             System.err.println("AWTWindowClosingAdapter.windowClosed: "+this);
         }
+        @Override
         public String toString() {
             return "AWTWindowClosingAdapter[closing "+closing+", closed "+closed+"]";
         }
