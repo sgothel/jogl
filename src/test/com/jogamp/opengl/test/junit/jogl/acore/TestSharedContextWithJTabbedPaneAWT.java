@@ -212,6 +212,7 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
         f.setTitle("Shared GLContext AWT GLCanvas JTabbedPane");
         final DemoInstance demo = new DemoInstance(f);
         SwingUtilities.invokeLater(new Runnable() {
+            @Override
             public void run() {
                 System.err.println("XXX SetVisible XXX");
                 f.setVisible(true);
@@ -223,35 +224,41 @@ public class TestSharedContextWithJTabbedPaneAWT extends UITestCase {
           }
       } else {
           javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 demo.tabbedPanel.setSelectedIndex(0);
             }});
           Thread.sleep(durationPerTest/4);
 
           javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 demo.tabbedPanel.setSelectedIndex(1);
             }});
           Thread.sleep(durationPerTest/4);
 
           javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 demo.tabbedPanel.setSelectedIndex(0);
             }});
           Thread.sleep(durationPerTest/4);
 
           javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 demo.tabbedPanel.setSelectedIndex(1);
             }});
           Thread.sleep(durationPerTest/4);
       }
 
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                System.err.println("XXX SetVisible XXX");
-                f.dispose();
-            } });
+      SwingUtilities.invokeLater(new Runnable() {
+      // SwingUtilities.invokeAndWait(new Runnable() {
+          @Override
+          public void run() {
+              System.err.println("XXX SetVisible XXX");
+              f.dispose();
+          } });
     }
 
     public static void main(final String args[]) {

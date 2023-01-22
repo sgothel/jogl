@@ -84,11 +84,13 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
 
         final JFrame f = new JFrame();
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 f.setSize(100,100);
                 f.setVisible(true);
             } } );
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 f.dispose();
             } } );
@@ -168,6 +170,7 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
         jFrame1.setContentPane(jPanel1);
         jFrame1.setSize(width, height);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 jFrame1.setVisible(true);
             } } );
@@ -273,6 +276,7 @@ public class TestParentingFocus02SwingAWTRobot extends UITestCase {
         Assert.assertEquals(false, animator1.isAnimating());
 
         SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     jFrame1.setVisible(false);
                     jPanel1.remove(container1);

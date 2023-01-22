@@ -49,28 +49,35 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
         reset();
     }
 
+    @Override
     public synchronized void setVerbose(final boolean v) { verbose = v; }
 
+    @Override
     public synchronized boolean isPressed() {
         return pressed;
     }
 
+    @Override
     public synchronized int getCount() {
         return mouseClicked;
     }
 
+    @Override
     public synchronized int getConsumedCount() {
         return consumed;
     }
 
+    @Override
     public synchronized List<EventObject> copyQueue() {
         return new ArrayList<EventObject>(queue);
     }
 
+    @Override
     public synchronized int getQueueSize() {
         return queue.size();
     }
 
+    @Override
     public synchronized void reset() {
         mouseClicked = 0;
         consumed = 0;
@@ -78,6 +85,7 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
         queue.clear();
     }
 
+    @Override
     public synchronized void mousePressed(final MouseEvent e) {
         pressed = true;
         queue.add(e);
@@ -86,6 +94,7 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
         }
     }
 
+    @Override
     public synchronized void mouseReleased(final MouseEvent e) {
         pressed = false;
         queue.add(e);
@@ -94,6 +103,7 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
         }
     }
 
+    @Override
     public synchronized void mouseClicked(final MouseEvent e) {
         mouseClicked+=e.getClickCount();
         if(e.isConsumed()) {
@@ -105,6 +115,7 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
         }
     }
 
+    @Override
     public String toString() { return prefix+"[pressed "+pressed+", clicked "+mouseClicked+", consumed "+consumed+"]"; }
 }
 
