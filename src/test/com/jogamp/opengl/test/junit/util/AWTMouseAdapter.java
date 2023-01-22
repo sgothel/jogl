@@ -35,9 +35,9 @@ import java.util.List;
 
 public class AWTMouseAdapter extends java.awt.event.MouseAdapter implements InputEventCountAdapter {
     String prefix;
-    int mouseClicked;
-    int consumed;
-    boolean pressed;
+    volatile int mouseClicked;
+    volatile int consumed;
+    volatile boolean pressed;
     List<EventObject> queue = new ArrayList<EventObject>();
     boolean verbose = true;
 

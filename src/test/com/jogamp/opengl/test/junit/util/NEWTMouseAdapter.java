@@ -38,9 +38,9 @@ import com.jogamp.newt.event.MouseEvent;
 public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAdapter {
 
     String prefix;
-    int mouseClicked;
-    int consumed;
-    boolean pressed;
+    volatile int mouseClicked;
+    volatile int consumed;
+    volatile boolean pressed;
     List<EventObject> queue = new ArrayList<EventObject>();
     boolean verbose = true;
 
