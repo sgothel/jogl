@@ -842,6 +842,7 @@
                 <arg line="${junit.run.arg1}"/>
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
+                <arg line="${jvmarg.generic}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 <arg line="-Dnativewindow.debug=all"/>
