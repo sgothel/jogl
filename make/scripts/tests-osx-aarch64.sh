@@ -15,7 +15,5 @@ export SWT_CLASSPATH=`pwd`/lib/swt/cocoa-macosx-aarch64/swt.jar
 
 spath=`dirname $0`
 
-ulimit -c unlimited
-
 . $spath/tests.sh  $JAVA_HOME/bin/java -DummyArg ../build-macosx $*
 
