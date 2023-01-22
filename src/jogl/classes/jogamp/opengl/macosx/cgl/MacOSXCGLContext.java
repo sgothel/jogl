@@ -125,7 +125,7 @@ public class MacOSXCGLContext extends GLContextImpl
         isMavericksOrLater = false;
         isMojaveOrLater = false;
     }
-    DEBUG1398 = Debug.debug("Bug1398");
+    DEBUG1398 = Debug.debugNotAll("Bug1398");
   }
 
   static boolean isGLProfileSupported(final int ctp, final int major, final int minor) {
