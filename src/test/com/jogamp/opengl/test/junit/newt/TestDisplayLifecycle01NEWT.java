@@ -140,7 +140,8 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         window.setVisible(false);
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(false,window.isVisible());
-        Assert.assertTrue(NewtTestUtil.hasPositionMax2xInsetsOr64Pix(window, xy_pos, xy_pos));
+        // Invisible window might have been moved away (Windows 10), informal only:
+        NewtTestUtil.hasPositionMax2xInsetsOr64Pix(window, xy_pos, xy_pos);
 
         // just make the Window visible again
         window.resetFPSCounter();

@@ -45,30 +45,38 @@ public class NewtTestUtil extends TestUtil {
         AtomicInteger closing = new AtomicInteger(0);
         AtomicInteger closed = new AtomicInteger(0);
 
+        @Override
         public void reset() {
             closing.set(0);
             closed.set(0);
         }
+        @Override
         public int getWindowClosingCount() {
             return closing.get();
         }
+        @Override
         public int getWindowClosedCount() {
             return closed.get();
         }
+        @Override
         public boolean isWindowClosing() {
             return 0 < closing.get();
         }
+        @Override
         public boolean isWindowClosed() {
             return 0 < closed.get();
         }
+        @Override
         public void windowDestroyNotify(final WindowEvent e) {
             closing.incrementAndGet();
             System.err.println("NEWTWindowClosingAdapter.windowDestroyNotify: "+this);
         }
+        @Override
         public void windowDestroyed(final WindowEvent e) {
             closed.incrementAndGet();
             System.err.println("NEWTWindowClosingAdapter.windowDestroyed: "+this);
         }
+        @Override
         public String toString() {
             return "NEWTWindowClosingAdapter[closing "+closing+", closed "+closed+"]";
         }
@@ -217,12 +225,19 @@ public class NewtTestUtil extends TestUtil {
         }
         return hasPosition(win, shouldX, shouldY, maxDX, maxDY);
     }
+
     /**
-     * Validates whether the window position is on the given position within the given tolerances.
+     * Validates whether the window position is within the expected position including given tolerance.
      */
-    public static boolean hasPosition(final Window win, final int shouldX, final int shouldY, final int maxDX, final int maxDY) {
-        final boolean ok = Math.abs(shouldX - win.getX()) <= maxDX &&
-                     Math.abs(shouldY - win.getY()) <= maxDY ;
+    public static boolean hasPosition(final Window win, final int expX, final int expY, final int maxDX, final int maxDY) {
+        final int dx = Math.abs(expX - win.getX());
+        final int dy = Math.abs(expY - win.getY());
+        final boolean ok = dx <= maxDX && dy <= maxDY ;
+        if( !ok ) {
+            System.err.println("Position OFF: abs( exp "+expX+"/"+expY+" - has "+win.getX()+"/"+win.getY()+" ) = "+dx+"/"+dy+" > "+maxDX+"/"+maxDY);
+        } else {
+            System.err.println("Position OK : abs( exp "+expX+"/"+expY+" - has "+win.getX()+"/"+win.getY()+" ) = "+dx+"/"+dy+" <= "+maxDX+"/"+maxDY);
+        }
         return ok;
     }
 }
