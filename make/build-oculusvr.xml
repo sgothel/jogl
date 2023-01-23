@@ -409,10 +409,6 @@
 
     <target name="c.configure" depends="c.configure.1,c.configure.2" />
 
-    <target name="rename.mingw.dll" if="isMingW">
-        <move file="${src}" tofile="${dest}" />
-    </target>
-
     <macrodef name="c.build">
       <attribute name="compiler.cfg.id" />
       <attribute name="linker.cfg.id" />
@@ -657,13 +653,6 @@
               </linker>
             </cc>
     
-            <!-- FIXME: this is a hack; the cpptask should have an option to change the
-                 suffix or at least understand the override from so to dll -->
-            <antcall target="rename.mingw.dll" inheritRefs="true">
-                <param name="src"  value="${obj.oculusvr}/lib@{output.lib.name}.so" />
-                <param name="dest" value="${obj.oculusvr}/@{output.lib.name}.dll" />
-            </antcall>
-
             <!-- this stripping may be called more than once on the same library dir,
                  but that should cause no harm, and doing it here inside outofdate
                  prevents the JARs from always being rebuilt even if no source code changes -->

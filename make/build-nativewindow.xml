@@ -813,10 +813,6 @@
 
     <target name="c.configure" depends="c.configure.1,c.configure.2" />
 
-    <target name="rename.mingw.dll" if="isMingW">
-        <move file="${src}" tofile="${dest}" />
-    </target>
-
     <macrodef name="c.build">
       <attribute name="c.compiler.src.files" />
       <attribute name="compiler.cfg.id" />
@@ -945,13 +941,6 @@
                 <syslibset dir="${java.lib.dir.platform}/server" libs="jvm" if="@{output.lib.name}.useLibJVM"/>
               </linker>
             </cc>
-
-            <!-- FIXME: this is a hack; the cpptask should have an option to change the
-                 suffix or at least understand the override from so to dll -->
-            <antcall target="rename.mingw.dll" inheritRefs="true">
-                <param name="src"  value="${obj.nativewindow}/lib@{output.lib.name}.so" />
-                <param name="dest" value="${obj.nativewindow}/@{output.lib.name}.dll" />
-            </antcall>
 
             <gluegen.make.libsymbols builddir="${build}" 
                 nativelib="${obj.nativewindow}/${native.library.prefix}@{output.lib.name}.${native.library.suffix}"
