@@ -125,6 +125,25 @@ apt-get install openjdk-17-jre openjdk-17-jdk openjfx ant git-all p7zip-full gcc
                                     <pre>
 apt-get install kernel-package build-essential 
                                     </pre>
+                                    Optional: Add <i>multiarch</i> i386 next to amd64 
+                                    <ul>
+                                      <li><b>Debian</b> 11 Bullseye
+                                        <pre>
+dpkg --add-architecture i386
+apt-get update
+apt-get install gcc-multilib lib32gomp1 lib32itm1 lib32quadmath0 libdrm2:i386 libdrm-dev:i386 libgbm1:i386 libgbm-dev:i386 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-17-jre:i386 openjdk-17-jdk:i386
+
+cd /usr/lib/i386-linux-gnu/
+ln -s libXrender.so.1 libXrender.so
+ln -s libXxf86vm.so.1 libXxf86vm.so
+ln -s libXrandr.so.2 libXrandr.so
+ln -s libXcursor.so.1 libXcursor.so
+ln -s libXi.so.6 libXi.so
+cd /lib/i386-linux-gnu/
+ln -s libudev.so.1 libudev.so
+                                        </pre></li>
+                                    </ul>
+
                                 </li>
                                 <li> <b>OpenSuSE</b> 15.0 or later
                                     <ul>
