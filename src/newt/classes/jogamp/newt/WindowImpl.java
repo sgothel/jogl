@@ -1,6 +1,7 @@
 /*
+ * Copyright (c) 2010-2023 Gothel Software e.K. All rights reserved.
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
-   Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -4490,6 +4491,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    //
+    // Native callbacks for WM events
+    //
+
     /** Triggered by implementation's WM events to update the focus state. */
     protected void focusChanged(final boolean defer, final boolean focusGained) {
         if( stateMask.get(PSTATE_BIT_FOCUS_CHANGE_BROKEN) ||
@@ -4520,78 +4525,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    /** Returns -1 if failed, otherwise remaining time until {@link #TIMEOUT_NATIVEWINDOW}, maybe zero. */
-    private long waitForVisible(final boolean visible, final boolean failFast) {
-        return waitForVisible(visible, failFast, TIMEOUT_NATIVEWINDOW);
-    }
-
-    /** Returns -1 if failed, otherwise remaining time until <code>timeOut</code>, maybe zero. */
-    private long waitForVisible(final boolean visible, final boolean failFast, final long timeOut) {
-        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
-        display.dispatchMessagesNative(); // status up2date
-        long remaining;
-        boolean _visible = stateMask.get(STATE_BIT_VISIBLE);
-        for(remaining = timeOut; 0 < remaining && _visible != visible; remaining-=10 ) {
-            try { Thread.sleep(10); } catch (final InterruptedException ie) {}
-            display.dispatchMessagesNative(); // status up2date
-            _visible = stateMask.get(STATE_BIT_VISIBLE);
-        }
-        if( visible != _visible ) {
-            final String msg = "Visibility not reached as requested within "+timeOut+"ms : requested "+visible+", is "+_visible;
-            if(DEBUG_FREEZE_AT_VISIBILITY_FAILURE) {
-                System.err.println("XXXX: "+msg);
-                System.err.println("XXXX: FREEZE");
-                try {
-                    while(true) {
-                        Thread.sleep(100);
-                        display.dispatchMessagesNative(); // status up2date
-                    }
-                } catch (final InterruptedException e) {
-                    ExceptionUtils.dumpThrowable("", e);
-                    Thread.currentThread().interrupt(); // keep state
-                }
-                throw new NativeWindowException(msg);
-            } else {
-                if(failFast) {
-                    throw new NativeWindowException(msg);
-                } else {
-                    if (DEBUG_IMPLEMENTATION) {
-                        System.err.println(msg);
-                        ExceptionUtils.dumpStack(System.err);
-                    }
-                    return -1;
-                }
-            }
-        } else if( 0 < remaining ) {
-            return remaining;
-        } else {
-            return 0;
-        }
-    }
-
-    /**
-     * Notify to update the pixel-scale values.
-     * <p>
-     * FIXME: Bug 1373, 1374: Implement general High-DPI for even non native DPI toolkit aware platforms (Linux, Windows)
-     * A variation may be be desired like
-     * {@code pixelScaleChangeNotify(final float[] curPixelScale, final float[] minPixelScale, final float[] maxPixelScale)}.
-     * </p>
-     * <p>
-     * Maybe create interface {@code ScalableSurface.Upstream} with above method,
-     * to allow downstream to notify upstream ScalableSurface implementations like NEWT's {@link Window} to act accordingly.
-     * </p>
-     * @param minPixelScale
-     * @param maxPixelScale
-     * @param reset if {@code true} {@link #setSurfaceScale(float[]) reset pixel-scale} w/ {@link #getRequestedSurfaceScale(float[]) requested values}
-     *        value to reflect the new minimum and maximum values.
-     */
-    public final void pixelScaleChangeNotify(final float[] minPixelScale, final float[] maxPixelScale, final boolean reset) {
-        System.arraycopy(minPixelScale, 0, this.minPixelScale, 0, 2);
-        System.arraycopy(maxPixelScale, 0, this.maxPixelScale, 0, 2);
-        if( reset ) {
-            setSurfaceScale(reqPixelScale);
-        }
-    }
 
     /** Triggered by implementation's WM events to update the client-area size in window units w/o insets/decorations. */
     protected void sizeChanged(final boolean defer, final int newWidth, final int newHeight, final boolean force) {
@@ -4616,28 +4549,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    private boolean waitForSize(final int w, final int h, final boolean failFast, final long timeOut) {
-        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
-        display.dispatchMessagesNative(); // status up2date
-        long sleep;
-        for(sleep = timeOut; 0<sleep && w!=getWidth() && h!=getHeight(); sleep-=10 ) {
-            try { Thread.sleep(10); } catch (final InterruptedException ie) {}
-            display.dispatchMessagesNative(); // status up2date
-        }
-        if(0 >= sleep) {
-            final String msg = "Size/Pos not reached as requested within "+timeOut+"ms : requested "+w+"x"+h+", is "+getWidth()+"x"+getHeight();
-            if(failFast) {
-                throw new NativeWindowException(msg);
-            } else if (DEBUG_IMPLEMENTATION) {
-                System.err.println(msg);
-                ExceptionUtils.dumpStack(System.err);
-            }
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     /** Triggered by implementation's WM events to update the position. */
     protected final void positionChanged(final boolean defer, final int newX, final int newY) {
         if ( getX() != newX || getY() != newY ) {
@@ -4653,49 +4564,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         } else {
             stateMask.clear(STATE_BIT_AUTOPOSITION); // ensure it's off even w/ same position
         }
-    }
-
-    /**
-     * Wait until position is reached within tolerances, either auto-position or custom position.
-     * <p>
-     * Since WM may not obey our positional request exactly, we allow a tolerance of 2 times insets[left/top], or 64 pixels, whichever is greater.
-     * </p>
-     */
-    private boolean waitForPosition(final boolean useCustomPosition, final int x, final int y, final long timeOut) {
-        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
-        final int maxDX, maxDY;
-        {
-            final InsetsImmutable insets = getInsets();
-            maxDX = Math.max(64, insets.getLeftWidth() * 2);
-            maxDY = Math.max(64, insets.getTopHeight() * 2);
-        }
-        long remaining = timeOut;
-        boolean _autopos = false;
-        boolean ok;
-        do {
-            if( useCustomPosition && isReconfigureMaskSupported(STATE_MASK_REPOSITIONABLE) ) {
-                ok = Math.abs(x - getX()) <= maxDX && Math.abs(y - getY()) <= maxDY ;
-            } else {
-                _autopos = stateMask.get(STATE_BIT_AUTOPOSITION);
-                ok = !_autopos;
-            }
-            if( !ok ) {
-                try { Thread.sleep(10); } catch (final InterruptedException ie) {}
-                display.dispatchMessagesNative(); // status up2date
-                remaining-=10;
-            }
-        } while ( 0<remaining && !ok );
-        if (DEBUG_IMPLEMENTATION) {
-            if( !ok ) {
-                if( useCustomPosition ) {
-                    System.err.println("Custom position "+x+"/"+y+" not reached within timeout, has "+getX()+"/"+getY()+", remaining "+remaining);
-                } else {
-                    System.err.println("Auto position not reached within timeout, has "+getX()+"/"+getY()+", autoPosition "+_autopos+", remaining "+remaining);
-                }
-                ExceptionUtils.dumpStack(System.err);
-            }
-        }
-        return ok;
     }
 
     /**
@@ -4778,43 +4646,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return destroyed;
     }
 
-    @Override
-    public final void windowRepaint(final int x, final int y, final int width, final int height) {
-        windowRepaint(false, x, y, width, height);
-    }
-
-    /**
-     * Triggered by implementation's WM events to update the content
-     * @param defer if true sent event later, otherwise wait until processed.
-     * @param x dirty-region y-pos in pixel units
-     * @param y dirty-region x-pos in pixel units
-     * @param width dirty-region width in pixel units
-     * @param height dirty-region height in pixel units
-     */
-    protected final void windowRepaint(final boolean defer, final int x, final int y, int width, int height) {
-        width = ( 0 >= width ) ? getSurfaceWidth() : width;
-        height = ( 0 >= height ) ? getSurfaceHeight() : height;
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.windowRepaint "+getThreadName()+" (defer: "+defer+") "+x+"/"+y+" "+width+"x"+height);
-        }
-
-        if(isNativeValid()) {
-            final NEWTEvent e = new WindowUpdateEvent(WindowEvent.EVENT_WINDOW_REPAINT, this, System.currentTimeMillis(),
-                                                new Rectangle(x, y, width, height));
-            doEvent(defer, false, e);
-        }
-    }
-
-    //
-    // Accumulated actions
-    //
-
-    /** Triggered by implementation. */
-    protected final void sendMouseEventRequestFocus(final short eventType, final int modifiers,
-                                                    final int x, final int y, final short button, final float rotation) {
-        sendMouseEvent(eventType, modifiers, x, y, button, rotation);
-        requestFocus(false /* wait */);
-    }
     /**
      * Triggered by implementation's WM events to update the visibility state and send- or enqueue one mouse event
      *
@@ -4956,6 +4787,202 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if( 0 <= visibleChange ) { // ignore visible < 0
             visibleChanged(0 < visibleChange);
         }
+    }
+
+    /**
+     * Triggered by implementation's WM events to update the content
+     * @param defer if true sent event later, otherwise wait until processed.
+     * @param x dirty-region y-pos in pixel units
+     * @param y dirty-region x-pos in pixel units
+     * @param width dirty-region width in pixel units
+     * @param height dirty-region height in pixel units
+     */
+    protected final void windowRepaint(final boolean defer, final int x, final int y, int width, int height) {
+        width = ( 0 >= width ) ? getSurfaceWidth() : width;
+        height = ( 0 >= height ) ? getSurfaceHeight() : height;
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("Window.windowRepaint "+getThreadName()+" (defer: "+defer+") "+x+"/"+y+" "+width+"x"+height);
+        }
+
+        if(isNativeValid()) {
+            final NEWTEvent e = new WindowUpdateEvent(WindowEvent.EVENT_WINDOW_REPAINT, this, System.currentTimeMillis(),
+                                                new Rectangle(x, y, width, height));
+            doEvent(defer, false, e);
+        }
+    }
+
+    //
+    // Implementation enforced constraints
+    //
+
+    /** Returns -1 if failed, otherwise remaining time until {@link #TIMEOUT_NATIVEWINDOW}, maybe zero. */
+    private long waitForVisible(final boolean visible, final boolean failFast) {
+        return waitForVisible(visible, failFast, TIMEOUT_NATIVEWINDOW);
+    }
+
+    /** Returns -1 if failed, otherwise remaining time until <code>timeOut</code>, maybe zero. */
+    private long waitForVisible(final boolean visible, final boolean failFast, final long timeOut) {
+        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
+        display.dispatchMessagesNative(); // status up2date
+        long remaining;
+        boolean _visible = stateMask.get(STATE_BIT_VISIBLE);
+        for(remaining = timeOut; 0 < remaining && _visible != visible; remaining-=10 ) {
+            try { Thread.sleep(10); } catch (final InterruptedException ie) {}
+            display.dispatchMessagesNative(); // status up2date
+            _visible = stateMask.get(STATE_BIT_VISIBLE);
+        }
+        if( visible != _visible ) {
+            final String msg = "Visibility not reached as requested within "+timeOut+"ms : requested "+visible+", is "+_visible;
+            if(DEBUG_FREEZE_AT_VISIBILITY_FAILURE) {
+                System.err.println("XXXX: "+msg);
+                System.err.println("XXXX: FREEZE");
+                try {
+                    while(true) {
+                        Thread.sleep(100);
+                        display.dispatchMessagesNative(); // status up2date
+                    }
+                } catch (final InterruptedException e) {
+                    ExceptionUtils.dumpThrowable("", e);
+                    Thread.currentThread().interrupt(); // keep state
+                }
+                throw new NativeWindowException(msg);
+            } else {
+                if(failFast) {
+                    throw new NativeWindowException(msg);
+                } else {
+                    if (DEBUG_IMPLEMENTATION) {
+                        System.err.println(msg);
+                        ExceptionUtils.dumpStack(System.err);
+                    }
+                    return -1;
+                }
+            }
+        } else if( 0 < remaining ) {
+            return remaining;
+        } else {
+            return 0;
+        }
+    }
+
+    protected void sizeChangedOffThread(final boolean defer, final int newWidth, final int newHeight, final boolean force) {
+        if( defer ) {
+            new InterruptSource.Thread() {
+                @Override
+                public void run() {
+                    WindowImpl.this.sizeChanged(false /* defer */, newWidth, newHeight, force);
+                } }.start();
+        } else {
+            WindowImpl.this.sizeChanged(false /* defer */, newWidth, newHeight, force);
+        }
+    }
+
+    private boolean waitForSize(final int w, final int h, final boolean failFast, final long timeOut) {
+        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
+        display.dispatchMessagesNative(); // status up2date
+        long sleep;
+        for(sleep = timeOut; 0<sleep && w!=getWidth() && h!=getHeight(); sleep-=10 ) {
+            try { Thread.sleep(10); } catch (final InterruptedException ie) {}
+            display.dispatchMessagesNative(); // status up2date
+        }
+        if(0 >= sleep) {
+            final String msg = "Size/Pos not reached as requested within "+timeOut+"ms : requested "+w+"x"+h+", is "+getWidth()+"x"+getHeight();
+            if(failFast) {
+                throw new NativeWindowException(msg);
+            } else if (DEBUG_IMPLEMENTATION) {
+                System.err.println(msg);
+                ExceptionUtils.dumpStack(System.err);
+            }
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Wait until position is reached within tolerances, either auto-position or custom position.
+     * <p>
+     * Since WM may not obey our positional request exactly, we allow a tolerance of 2 times insets[left/top], or 64 pixels, whichever is greater.
+     * </p>
+     */
+    private boolean waitForPosition(final boolean useCustomPosition, final int x, final int y, final long timeOut) {
+        final DisplayImpl display = (DisplayImpl) screen.getDisplay();
+        final int maxDX, maxDY;
+        {
+            final InsetsImmutable insets = getInsets();
+            maxDX = Math.max(64, insets.getLeftWidth() * 2);
+            maxDY = Math.max(64, insets.getTopHeight() * 2);
+        }
+        long remaining = timeOut;
+        boolean _autopos = false;
+        boolean ok;
+        do {
+            if( useCustomPosition && isReconfigureMaskSupported(STATE_MASK_REPOSITIONABLE) ) {
+                ok = Math.abs(x - getX()) <= maxDX && Math.abs(y - getY()) <= maxDY ;
+            } else {
+                _autopos = stateMask.get(STATE_BIT_AUTOPOSITION);
+                ok = !_autopos;
+            }
+            if( !ok ) {
+                try { Thread.sleep(10); } catch (final InterruptedException ie) {}
+                display.dispatchMessagesNative(); // status up2date
+                remaining-=10;
+            }
+        } while ( 0<remaining && !ok );
+        if (DEBUG_IMPLEMENTATION) {
+            if( !ok ) {
+                if( useCustomPosition ) {
+                    System.err.println("Custom position "+x+"/"+y+" not reached within timeout, has "+getX()+"/"+getY()+", remaining "+remaining);
+                } else {
+                    System.err.println("Auto position not reached within timeout, has "+getX()+"/"+getY()+", autoPosition "+_autopos+", remaining "+remaining);
+                }
+                ExceptionUtils.dumpStack(System.err);
+            }
+        }
+        return ok;
+    }
+
+    //
+    // Misc
+    //
+
+    /**
+     * Notify to update the pixel-scale values.
+     * <p>
+     * FIXME: Bug 1373, 1374: Implement general High-DPI for even non native DPI toolkit aware platforms (Linux, Windows)
+     * A variation may be be desired like
+     * {@code pixelScaleChangeNotify(final float[] curPixelScale, final float[] minPixelScale, final float[] maxPixelScale)}.
+     * </p>
+     * <p>
+     * Maybe create interface {@code ScalableSurface.Upstream} with above method,
+     * to allow downstream to notify upstream ScalableSurface implementations like NEWT's {@link Window} to act accordingly.
+     * </p>
+     * @param minPixelScale
+     * @param maxPixelScale
+     * @param reset if {@code true} {@link #setSurfaceScale(float[]) reset pixel-scale} w/ {@link #getRequestedSurfaceScale(float[]) requested values}
+     *        value to reflect the new minimum and maximum values.
+     */
+    public final void pixelScaleChangeNotify(final float[] minPixelScale, final float[] maxPixelScale, final boolean reset) {
+        System.arraycopy(minPixelScale, 0, this.minPixelScale, 0, 2);
+        System.arraycopy(maxPixelScale, 0, this.maxPixelScale, 0, 2);
+        if( reset ) {
+            setSurfaceScale(reqPixelScale);
+        }
+    }
+
+    @Override
+    public final void windowRepaint(final int x, final int y, final int width, final int height) {
+        windowRepaint(false, x, y, width, height);
+    }
+
+    //
+    // Accumulated actions
+    //
+
+    /** Triggered by implementation. */
+    protected final void sendMouseEventRequestFocus(final short eventType, final int modifiers,
+                                                    final int x, final int y, final short button, final float rotation) {
+        sendMouseEvent(eventType, modifiers, x, y, button, rotation);
+        requestFocus(false /* wait */);
     }
 
     //
