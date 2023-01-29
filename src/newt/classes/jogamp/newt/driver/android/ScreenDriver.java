@@ -100,10 +100,11 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
             }
         }
 
+        final int crt_id = 0;
         final int[] props = new int[MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES - 1 - MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES];
         int i = 0;
         props[i++] = props.length;
-        props[i++] = 0; // crt_idx
+        props[i++] = crt_id;
         props[i++] = 0; // is-clone
         props[i++] = 1; // is-primary
         i = getScreenSizeMM(outMetrics, props, i); // sizeMM
@@ -115,7 +116,7 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
         props[i++] = 0; // rotated viewport y window-units
         props[i++] = outMetrics.widthPixels; // rotated viewport width window-units
         props[i++] = outMetrics.heightPixels; // rotated viewport height window-units
-        MonitorModeProps.streamInMonitorDevice(cache, this, currentMode, null, cache.monitorModes, props, 0, null);
+        MonitorModeProps.streamInMonitorDevice(cache, this, crt_id, currentMode, null, cache.monitorModes, props, 0, null);
     }
 
     @Override

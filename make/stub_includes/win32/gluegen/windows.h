@@ -38,6 +38,7 @@ typedef HANDLE              HINSTANCE;
 typedef HANDLE              HPALETTE;
 typedef HANDLE              HWND;
 typedef HANDLE              HRGN;
+typedef HANDLE              HMONITOR;
 typedef const char*         LPCSTR;
 typedef void*               PVOID;
 typedef void*               LPVOID;

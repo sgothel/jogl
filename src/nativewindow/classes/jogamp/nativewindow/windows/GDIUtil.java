@@ -28,6 +28,7 @@
 package jogamp.nativewindow.windows;
 
 import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 
@@ -232,6 +233,27 @@ public class GDIUtil implements ToolkitProperties {
     public static boolean IsChild(final long win) {
         return IsChild0(win);
     }
+
+    public static long GetMonitorFromWindow(final long windowHandle) {
+      return GDI.GetMonitorFromWindow(windowHandle);
+    }
+    public static long GetMonitorFromPoint(final int x, final int y) {
+      return GDI.GetMonitorFromPoint(x, y);
+    }
+    public static long GetMonitorFromRect(final int x_left, final int y_top, final int width, final int height) {
+      return GDI.GetMonitorFromRect(x_left, y_top, x_left + width - 1 /* right */, y_top + height - 1 /* bottom */);
+    }
+    public static long GetMonitorFromRect(final Rectangle rect) {
+      return GetMonitorFromRect(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+    }
+
+    public static boolean GetMonitorPixelScale(final long hmon, final float[] pixel_scale_xy) {
+      return GDI.ShcGetMonitorPixelScale1(hmon, pixel_scale_xy, 0);
+    }
+    /**
+    public static boolean GetMonitorPixelScale(final int x, final int y, final float[] pixel_scale_xy) {
+      return GDI.ShcGetMonitorPixelScale2(x, y, pixel_scale_xy, 0);
+    } */
 
     public static void SetProcessThreadsAffinityMask(final long affinityMask, final boolean verbose) {
         SetProcessThreadsAffinityMask0(affinityMask, verbose);

@@ -108,18 +108,21 @@ public class TestScreenMode00aNEWT extends UITestCase {
             Assert.assertEquals(modeOut, modeIn);
         }
 
+        final long monitor_handle = -1;
+        final int monitor_id = -1;
         final DimensionImmutable sizeMM = new Dimension(50, 50);
         final Rectangle viewport = new Rectangle(0, 0, 1920, 1080);
         final ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
         supportedModes.add(modeOut);
-        final MonitorDevice monOut = new MonitorDeviceImpl(null, -1, false, true, sizeMM, modeOut, null, viewport, viewport, supportedModes);
+        final MonitorDevice monOut = new MonitorDeviceImpl(null, monitor_handle, monitor_id, false, true, sizeMM, modeOut, null, viewport, viewport, supportedModes);
         System.err.println("01 out : "+monOut);
         cache.monitorDevices.add(monOut);
         {
             final int[] props = MonitorModeProps.streamOutMonitorDevice(monOut);
-            final MonitorDevice monIn = MonitorModeProps.streamInMonitorDevice(cache, null, null, props, 0, null);
+            final MonitorDevice monIn = MonitorModeProps.streamInMonitorDevice(cache, null, monitor_handle, null, props, 0, null);
             System.err.println("01 in : "+monIn);
 
+            Assert.assertEquals(monOut.getHandle(), monIn.getHandle());
             Assert.assertEquals(monOut.getId(), monIn.getId());
             Assert.assertEquals(monOut.isClone(), monIn.isClone());
             Assert.assertEquals(monOut.isPrimary(), monIn.isPrimary());

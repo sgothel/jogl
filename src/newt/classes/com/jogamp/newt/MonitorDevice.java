@@ -60,7 +60,8 @@ import com.jogamp.common.util.ArrayHashSet;
  */
 public abstract class MonitorDevice {
     protected final Screen screen; // backref
-    protected final int nativeId; // unique monitor device ID
+    protected final long nativeHandle; // unique monitor device long handle, implementation specific
+    protected final int nativeId; // unique monitor device integer Id, implementation specific
     protected final DimensionImmutable sizeMM; // in [mm]
     protected final MonitorMode originalMode;
     protected final ArrayHashSet<MonitorMode> supportedModes; // FIXME: May need to support mutable mode, i.e. adding modes on the fly!
@@ -74,7 +75,8 @@ public abstract class MonitorDevice {
 
     /**
      * @param screen associated {@link Screen}
-     * @param nativeId unique monitor device ID
+     * @param nativeHandle unique monitor device long handle, implementation specific
+     * @param nativeId unique monitor device integer Id, implementation specific
      * @param isClone flag
      * @param isPrimary flag
      * @param sizeMM size in millimeters
@@ -84,16 +86,17 @@ public abstract class MonitorDevice {
      * @param viewportWU viewport in window-units
      * @param supportedModes all supported {@link MonitorMode}s
      */
-    protected MonitorDevice(final Screen screen, final int nativeId,
+    protected MonitorDevice(final Screen screen, final long nativeHandle, final int nativeId,
                             final boolean isClone, final boolean isPrimary,
                             final DimensionImmutable sizeMM, final MonitorMode currentMode, final float[] pixelScale,
                             final Rectangle viewportPU, final Rectangle viewportWU, final ArrayHashSet<MonitorMode> supportedModes) {
         this.screen = screen;
+        this.nativeHandle = nativeHandle;
         this.nativeId = nativeId;
         this.sizeMM = sizeMM;
         this.originalMode = currentMode;
         this.supportedModes = supportedModes;
-        this.pixelScale = null != pixelScale ? pixelScale : new float[] { 1.0f, 1.0f };
+        this.pixelScale = null != pixelScale ? pixelScale : new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
         this.viewportPU = viewportPU;
         this.viewportWU = viewportWU;
 
@@ -137,7 +140,10 @@ public abstract class MonitorDevice {
         return nativeId;
     }
 
-    /** @return the immutable unique native Id of this monitor device. */
+    /** @return the immutable unique native long handle of this monitor device, implementation specific. */
+    public final long getHandle() { return nativeHandle; }
+
+    /** @return the immutable unique native integer Id of this monitor device, implementation specific. */
     public final int getId() { return nativeId; }
 
     /** @return {@code true} if this device represents a <i>clone</i>, otherwise return {@code false}. */
@@ -345,7 +351,14 @@ public abstract class MonitorDevice {
         final StringBuilder sb = new StringBuilder();
         sb.append("Monitor[Id ").append(Display.toHexString(nativeId)).append(" [");
         {
+            if( nativeHandle != nativeId ) {
+                sb.append("handle ").append(Display.toHexString(nativeHandle));
+                preComma = true;
+            }
             if( isClone() ) {
+                if( preComma ) {
+                    sb.append(", ");
+                }
                 sb.append("clone");
                 preComma = true;
             }

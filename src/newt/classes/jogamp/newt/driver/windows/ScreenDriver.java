@@ -34,8 +34,10 @@
 package jogamp.newt.driver.windows;
 
 import com.jogamp.nativewindow.DefaultGraphicsScreen;
+import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.util.Rectangle;
 
+import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.newt.MonitorModeProps;
 import jogamp.newt.ScreenImpl;
 
@@ -70,6 +72,9 @@ public class ScreenDriver extends ScreenImpl {
     }
     private final String getMonitorName(final String adapterName, final int monitor_idx, final boolean onlyActive) {
         return getMonitorName0(adapterName, monitor_idx, onlyActive);
+    }
+    private final String getMonitorName(final long hmon) {
+        return getMonitorName1(hmon);
     }
 
     private final MonitorMode getMonitorModeImpl(final MonitorModeProps.Cache cache, final String adapterName, final int mode_idx) {
@@ -120,12 +125,31 @@ public class ScreenDriver extends ScreenImpl {
                     // has at least one mode -> add device
                     final MonitorMode currentMode = getMonitorModeImpl(cache, adapterName, -1);
                     if ( null != currentMode ) { // enabled
-                        final int[] monitorProps = getMonitorDevice0(adapterIdx, monitorIdx, getMonitorId(adapterIdx, monitorIdx));
-                        // merge monitor-props + supported modes
-                        MonitorModeProps.streamInMonitorDevice(cache, this, currentMode, null, supportedModes, monitorProps, 0, null);
+                        final int monitor_id = getMonitorId(adapterIdx, monitorIdx);
+                        final float pixel_scale[] = { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+                        final int[] monitorProps = getMonitorDevice0(adapterIdx, monitorIdx, monitor_id);
+                        if( null != monitorProps && monitorProps.length >= MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT + 4 ) {
+                            final int v_left = monitorProps[MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT+0];
+                            final int v_top = monitorProps[MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT+1];
+                            final int v_width = monitorProps[MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT+2];
+                            final int v_height = monitorProps[MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT+3];
+                            long monitor_handle = GDIUtil.GetMonitorFromRect(v_left, v_top, v_width, v_height);
+                            if( 0 != monitor_handle ) {
+                                final float pixel_scale_raw[] = new float[2];
+                                if( GDIUtil.GetMonitorPixelScale(monitor_handle, pixel_scale_raw) ) {
+                                    System.arraycopy(pixel_scale_raw, 0, pixel_scale, 0, 2);
+                                }
+                            } else {
+                                monitor_handle = monitor_id;
+                            }
+                            // merge monitor-props + supported modes
+                            MonitorModeProps.streamInMonitorDevice(cache, this, monitor_handle, currentMode, pixel_scale, supportedModes, monitorProps, 0, null);
 
-                        // next monitor, 1st mode
-                        supportedModes = new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
+                            // next monitor, 1st mode
+                            supportedModes = new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
+                        } else {
+                            throw new RuntimeException("monitorProps length should be > "+(MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT+4)+", but is "+(monitorProps.length));
+                        }
                     }
                 }
             }
@@ -187,6 +211,7 @@ public class ScreenDriver extends ScreenImpl {
     private static native void dumpMonitorInfo0();
     private native String getAdapterName0(int adapter_idx);
     private native String getMonitorName0(String adapterName, int monitor_idx, boolean onlyActive);
+    private native String getMonitorName1(long hmon);
     private native int[] getMonitorMode0(String adapterName, int mode_idx);
     private native int[] getMonitorDevice0(int adapter_idx, int monitor_idx, int monitorId);
     private native boolean setMonitorMode0(int adapter_idx, int x, int y, int width, int height, int bits, int freq, int flags, int rot);

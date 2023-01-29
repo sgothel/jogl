@@ -150,11 +150,12 @@ public class ScreenDriver extends ScreenImpl {
                     }
                     if( cache.monitorModes.size() > 0 ) {
                         for(int i = 0; i < crtCount; i++) {
-                            final int[] monitorProps = rAndR.getMonitorDeviceProps(device.getHandle(), this, cache, crt_ids[i]);
+                            final int crt_id = crt_ids[i];
+                            final int[] monitorProps = rAndR.getMonitorDeviceProps(device.getHandle(), this, cache, crt_id);
                             if( null != monitorProps &&
                                 MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES <= monitorProps[0] && // Enabled ? I.e. contains active modes ?
                                 MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES <= monitorProps.length ) {
-                                MonitorModeProps.streamInMonitorDevice(cache, this, null, monitorProps, 0, null);
+                                MonitorModeProps.streamInMonitorDevice(cache, this, crt_id, null, monitorProps, 0, null);
                             }
                         }
                     }

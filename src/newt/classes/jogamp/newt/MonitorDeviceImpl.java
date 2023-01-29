@@ -40,7 +40,8 @@ public class MonitorDeviceImpl extends MonitorDevice {
 
     /**
      * @param screen associated {@link Screen}
-     * @param nativeId unique monitor device ID
+     * @param nativeHandle unique monitor device long handle, implementation specific
+     * @param nativeId unique monitor device integer Id, implementation specific
      * @param isClone flag
      * @param isPrimary flag
      * @param sizeMM size in millimeters
@@ -50,11 +51,11 @@ public class MonitorDeviceImpl extends MonitorDevice {
      * @param viewportWU viewport in window-units
      * @param supportedModes all supported {@link MonitorMode}s
      */
-    public MonitorDeviceImpl(final ScreenImpl screen, final int nativeId,
+    public MonitorDeviceImpl(final ScreenImpl screen, final long nativeHandle, final int nativeId,
                              final boolean isClone, final boolean isPrimary,
                              final DimensionImmutable sizeMM, final MonitorMode currentMode, final float[] pixelScale,
                              final Rectangle viewportPU, final Rectangle viewportWU, final ArrayHashSet<MonitorMode> supportedModes) {
-        super(screen, nativeId, isClone, isPrimary, sizeMM, currentMode, pixelScale, viewportPU, viewportWU, supportedModes);
+        super(screen, nativeHandle, nativeId, isClone, isPrimary, sizeMM, currentMode, pixelScale, viewportPU, viewportWU, supportedModes);
     }
 
     @Override

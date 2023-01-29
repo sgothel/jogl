@@ -271,6 +271,7 @@ public class MonitorModeProps {
      * </p>
      * @param cache hash arrays of unique {@link MonitorMode} components and {@link MonitorDevice}s, allowing to avoid duplicates
      * @param screen the associated {@link ScreenImpl}
+     * @param monitor_handle unique monitor long handle, implementation specific
      * @param pixelScale pre-fetched current pixel-scale, maybe {@code null} for {@link ScalableSurface#IDENTITY_PIXELSCALE}.
      * @param monitorProperties the input data inclusive supported modes.
      * @param offset the offset to the input data
@@ -279,9 +280,9 @@ public class MonitorModeProps {
      *         matching the input <code>modeProperties</code>, or null if input could not be processed.
      */
     public static MonitorDevice streamInMonitorDevice(final Cache cache, final ScreenImpl screen,
-                                                      final float[] pixelScale,
-                                                      final int[] monitorProperties, int offset,
-                                                      final int[] monitor_idx) {
+                                                      final long monitor_handle,
+                                                      final float[] pixelScale, final int[] monitorProperties,
+                                                      int offset, final int[] monitor_idx) {
         // min 11: count, id, ScreenSizeMM[width, height], Viewport[x, y, width, height], currentMonitorModeId, rotation, supportedModeId+
         final int count = monitorProperties[offset];
         if(MIN_MONITOR_DEVICE_PROPERTIES > count) {
@@ -318,7 +319,7 @@ public class MonitorModeProps {
                 }
             }
         }
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, isClone, isPrimary,
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, monitor_handle, id, isClone, isPrimary,
                                                             sizeMM, currentMode, pixelScale,
                                                             viewportPU, viewportWU, supportedModes);
         if(null!=cache) {
@@ -356,6 +357,7 @@ public class MonitorModeProps {
      * </p>
      * @param cache hash arrays of unique {@link MonitorMode} components and {@link MonitorDevice}s, allowing to avoid duplicates
      * @param screen the associated {@link ScreenImpl}
+     * @param monitor_handle unique monitor long handle, implementation specific
      * @param currentMode pre-fetched current {@link MonitorMode}s from cache.
      * @param pixelScale pre-fetched current pixel-scale, maybe {@code null} for {@link ScalableSurface#IDENTITY_PIXELSCALE}.
      * @param supportedModes pre-assembled list of supported {@link MonitorMode}s from cache.
@@ -366,6 +368,7 @@ public class MonitorModeProps {
      *         matching the input <code>modeProperties</code>, or null if input could not be processed.
      */
     public static MonitorDevice streamInMonitorDevice(final Cache cache, final ScreenImpl screen,
+                                                      final long monitor_handle,
                                                       final MonitorMode currentMode,
                                                       final float[] pixelScale,
                                                       final ArrayHashSet<MonitorMode> supportedModes,
@@ -383,13 +386,13 @@ public class MonitorModeProps {
             throw new RuntimeException("properties array too short (count), should be >= "+count+", is "+(monitorProperties.length-offset));
         }
         offset++;
-        final int id = monitorProperties[offset++];
+        final int monitor_id = monitorProperties[offset++];
         final boolean isClone = 0 == monitorProperties[offset++] ? false : true;
         final boolean isPrimary = 0 == monitorProperties[offset++] ? false : true;
         final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
         final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, id, isClone, isPrimary,
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, monitor_handle, monitor_id, isClone, isPrimary,
                                                             sizeMM, currentMode, pixelScale,
                                                             viewportPU, viewportWU, supportedModes);
         if(null!=cache) {
