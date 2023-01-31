@@ -761,7 +761,7 @@ static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
         (int) ( wud->insets.left + wud->insets.right ), (int) (wud->insets.top + wud->insets.bottom), wud->isInCreation);
     if( !wud->isInCreation ) {
         (*env)->CallVoidMethod(env, window, insetsChangedID, 
-                               (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom);
+                               JNI_FALSE, (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom);
     }
 }
 
@@ -809,7 +809,7 @@ static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
             jboolean v = wud->isMaximized ? JNI_TRUE : JNI_FALSE;
             (*env)->CallVoidMethod(env, window, maximizedChangedID, v, v);
         }
-        (*env)->CallVoidMethod(env, window, sizeChangedID, JNI_FALSE, wud->width, wud->height, JNI_FALSE);
+        (*env)->CallBooleanMethod(env, window, sizeChangedID, JNI_FALSE, JNI_FALSE, wud->width, wud->height, JNI_FALSE);
     }
 }
 
@@ -1071,7 +1071,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             wud->ypos = (int)GET_Y_LPARAM(lParam);
             DBG_PRINT("*** WindowsWindow: WM_MOVE window %p, %d/%d, at-init %d\n", wnd, wud->xpos, wud->ypos, wud->isInCreation);
             if( !wud->isInCreation ) {
-                (*env)->CallVoidMethod(env, window, positionChangedID, JNI_FALSE, (jint)wud->xpos, (jint)wud->ypos);
+                (*env)->CallBooleanMethod(env, window, positionChangedID, JNI_FALSE, JNI_FALSE, (jint)wud->xpos, (jint)wud->ypos);
             }
             useDefWindowProc = 1;
             break;
@@ -1798,11 +1798,11 @@ static LPCTSTR NewtScreen_getMonitorName1(HMONITOR hmon, MONITORINFOEXA * info) 
     }
     memset(info, 0, sizeof(MONITORINFOEXA)); 
     info->cbSize = sizeof(MONITORINFOEXA);
-    if( FALSE == GetMonitorInfo(hmon, info) ) {
+    if( FALSE == GetMonitorInfo(hmon, (LPMONITORINFO)info) ) {
         DBG_PRINT("*** WindowsWindow: getMonitorName1.GetMonitorInfo(hmon %p) -> FALSE\n", (void*)hmon);
         return NULL;
     }
-    if( NULL == info->DszDeviceeviceName || 0 == _tcslen(device->DeviceName) ) {
+    if( 0 == _tcslen(info->szDevice) ) {
         return NULL;
     }
 
@@ -1916,7 +1916,7 @@ JNIEXPORT jstring JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getMonito
  * Signature: (J)Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getMonitorName1
-  (JNIEnv *env, jobject obj, long jhmon)
+  (JNIEnv *env, jobject obj, jlong jhmon)
 {
     HMONITOR hmon = (HMONITOR) (intptr_t) jhmon;
     MONITORINFOEXA info;
@@ -2162,13 +2162,13 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
 {
     NewtCommon_init(env);
 
-    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(IIII)V");
-    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
+    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
+    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZZIIZ)Z");
     maximizedChangedID = (*env)->GetMethodID(env, clazz, "maximizedChanged", "(ZZ)V");
-    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
+    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZZII)Z");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
-    sizePosInsetsFocusVisibleChangedID = (*env)->GetMethodID(env, clazz, "sizePosInsetsFocusVisibleChanged", "(ZIIIIIIIIIIZ)V");
+    sizePosInsetsFocusVisibleChangedID = (*env)->GetMethodID(env, clazz, "sizePosInsetsFocusVisibleChanged", "(ZZIIIIIIIIIIZ)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)V");
@@ -2450,7 +2450,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_InitWindow0
     if( wud->isMaximized ) {
         (*env)->CallVoidMethod(env, wud->jinstance, maximizedChangedID, JNI_TRUE, JNI_TRUE);
     }
-    (*env)->CallVoidMethod(env, wud->jinstance, sizePosInsetsFocusVisibleChangedID, JNI_FALSE,
+    (*env)->CallVoidMethod(env, wud->jinstance, sizePosInsetsFocusVisibleChangedID, JNI_FALSE, JNI_FALSE,
                            (jint)wud->xpos, (jint)wud->ypos,
                            (jint)wud->width, (jint)wud->height,
                            (jint)wud->insets.left, (jint)wud->insets.right, (jint)wud->insets.top, (jint)wud->insets.bottom,
@@ -2462,21 +2462,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_InitWindow0
     if( wud->supportsMTouch ) {
         WinTouch_RegisterTouchWindow(hwnd, 0);
     }
-}
-
-/*
- * Class:     jogamp_newt_driver_windows_WindowDriver
- * Method:    MonitorFromWindow
- * Signature: (J)J
- */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_MonitorFromWindow0
-  (JNIEnv *env, jobject obj, jlong window)
-{
-    #if (_WIN32_WINNT >= 0x0500 || _WIN32_WINDOWS >= 0x0410 || WINVER >= 0x0500) && !defined(_WIN32_WCE)
-        return (jlong) (intptr_t) MonitorFromWindow((HWND) (intptr_t) window, MONITOR_DEFAULTTOPRIMARY);
-    #else
-        return 0;
-    #endif
 }
 
 /*

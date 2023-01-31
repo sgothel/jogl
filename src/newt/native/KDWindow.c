@@ -131,7 +131,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_kd_DisplayDriver_DispatchMessages
                                 KDint32 v[2];
                                 if(!kdGetWindowPropertyiv(kdWindow, KD_WINDOWPROPERTY_SIZE, v)) {
                                     DBG_PRINT( "event window size change : src: %p %dx%d\n", userData, v[0], v[1]);
-                                    (*env)->CallVoidMethod(env, javaWindow, sizeChangedID, JNI_FALSE, (jint) v[0], (jint) v[1], JNI_FALSE);
+                                    (*env)->CallBooleanMethod(env, javaWindow, sizeChangedID, JNI_FALSE, JNI_FALSE, (jint) v[0], (jint) v[1], JNI_FALSE);
                                 } else {
                                     DBG_PRINT( "event window size change error: src: %p %dx%d\n", userData, v[0], v[1]);
                                 }
@@ -191,7 +191,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_kd_WindowDriver_initIDs
     #endif
 #endif
     windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
-    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
+    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZZIIZ)Z");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)V");
@@ -307,6 +307,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_kd_WindowDriver_setSize0
     DBG_PRINT( "[setSize] v=%dx%d, res=%d\n", width, height, res);
     (void)res;
 
-    (*env)->CallVoidMethod(env, obj, sizeChangedID, JNI_FALSE, (jint) width, (jint) height, JNI_FALSE);
+    (*env)->CallBooleanMethod(env, obj, sizeChangedID, JNI_FALSE, JNI_FALSE, (jint) width, (jint) height, JNI_FALSE);
 }
 

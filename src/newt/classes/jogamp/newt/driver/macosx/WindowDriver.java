@@ -55,7 +55,6 @@ import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.DriverClearFocus;
 import jogamp.newt.driver.DriverUpdatePosition;
 
-import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MonitorEvent;
@@ -84,14 +83,14 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         // We keep minPixelScale at [1f, 1f]!
 
         if( SurfaceScaleUtils.setNewPixelScale(hasPixelScale, hasPixelScale, newPixelScale, minPixelScale, maxPixelScale, DEBUG_IMPLEMENTATION ? getClass().getName() : null) ) {
-            if( sendEvent ) {
-                if( defer && deferOffThread ) {
-                    superSizeChangedOffThread(defer, getWidth(), getHeight(), true);
-                } else {
-                    super.sizeChanged(defer, getWidth(), getHeight(), true);
-                }
+            if( sendEvent && defer && deferOffThread ) {
+                new InterruptSource.Thread() {
+                    @Override
+                    public void run() {
+                        updatePixelPosSize(true, true);
+                    } }.start();
             } else {
-                defineSize(getWidth(), getHeight());
+                updatePixelPosSize(sendEvent, defer);
             }
             return true;
         } else {
@@ -113,7 +112,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     /**
      * Essentially updates {@code hasPixelScale} and {@code maxPixelScale} ..
      */
-    private boolean updateMaxScreenPixelScaleByWindowHandle(final boolean sendEvent) {
+    private boolean updatePixelScaleByWindowHandle(final boolean sendEvent) {
         final long handle = getWindowHandle();
         if( 0 != handle ) {
             final float maxPixelScaleRaw = OSXUtil.GetScreenPixelScale(handle);
@@ -148,7 +147,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
     @Override
     protected void monitorModeChanged(final MonitorEvent me, final boolean success) {
-        updateMaxScreenPixelScaleByWindowHandle(false /* sendEvent*/); // send reshape event itself
+        updatePixelScaleByWindowHandle(false /* sendEvent*/); // send reshape event itself
     }
 
     @Override
@@ -376,7 +375,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         setWindowClientTopLeftPoint0(getWindowHandle(), p0S.getX(), p0S.getY(), isVisible());
                     } } );
             // no native event (fullscreen, some reparenting)
-            positionChanged(true, x, y);
+            positionChanged(true, true, x, y);
         }
     }
 
@@ -466,10 +465,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 createWindow(false, 0 != oldWindowHandle, pClientLevelOnSreen, width, height, flags);
             }
             // no native event (fullscreen, some reparenting)
-            updateMaxScreenPixelScaleByWindowHandle(false /* sendEvent */);
+            updatePixelScaleByWindowHandle(false /* sendEvent */);
             if( isOffscreenInstance ) {
-                super.sizeChanged(false, width, height, true);
-                positionChanged(false,  x, y);
+                super.sizeChanged(false, true /* windowUnits */, width, height, true);
+                positionChanged(false,  true, x, y);
             } else {
                 OSXUtil.RunOnMainThread(true, false, new Runnable() {
                     @Override
@@ -504,8 +503,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         } } );
                 } else { // else offscreen size is realized via recreation
                     // no native event (fullscreen, some reparenting)
-                    super.sizeChanged(false, width, height, false);
-                    positionChanged(false,  x, y);
+                    super.sizeChanged(false, true /* windowUnits */, width, height, false);
+                    positionChanged(false,  true, x, y);
                 }
             }
             if( 0 != ( CHANGE_MASK_VISIBILITY & flags) &&
@@ -566,7 +565,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("MacWindow.positionChanged.0 (Screen Pos - TOP): ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> "+newX+"/"+newY);
                 }
-                positionChanged(defer, newX, newY);
+                positionChanged(defer, true, newX, newY);
             } else if( useParentLoc && !isVisible() ) {
                 // Fake invisible child window: drop fake position update for fake invisibility
                 if(DEBUG_IMPLEMENTATION) {
@@ -575,6 +574,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             } else {
                 // visible childWindow or offscreen instance
                 final Runnable action = new Runnable() {
+                    @Override
                     public void run() {
                         // screen position -> rel child window position
                         final Point absPos = new Point(newX, newY);
@@ -590,7 +590,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("MacWindow.positionChanged.1 (Screen Pos - CHILD): ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> absPos "+newX+"/"+newY+", parentOnScreen "+parentOnScreen+" -> "+absPos);
                         }
-                        positionChanged(false, absPos.getX(), absPos.getY());
+                        positionChanged(false, true, absPos.getX(), absPos.getY());
                     } };
                 if( defer ) {
                     new InterruptSource.Thread(null, action).start();
@@ -605,8 +605,13 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    protected void sizeChanged(final boolean defer, final int newWidth, final int newHeight, final boolean force) {
-        if(force || getWidth() != newWidth || getHeight() != newHeight) {
+    protected boolean sizeChanged(final boolean defer, final boolean windowUnits, final int newWidth, final int newHeight, final boolean force) {
+        final int[] windowSizeI = this.getWindowSizeI();
+        final int[] pixelSizeI = this.getPixelSizeI();
+        if ( force ||
+             (  windowUnits && ( windowSizeI[0] != newWidth || windowSizeI[1] != newHeight ) ) ||
+             ( !windowUnits && ( pixelSizeI[0] != newWidth || pixelSizeI[1] != newHeight ) ) )
+        {
             if( isNativeValid() && isVisible() && !isOffscreenInstance ) {
                 final NativeWindow parent = getParent();
                 final boolean useParentLoc = useParentLocation(parent);
@@ -625,17 +630,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         } } );
                 }
             }
-            superSizeChangedOffThread(defer, newWidth, newHeight, force);
-        }
-    }
-    private void superSizeChangedOffThread(final boolean defer, final int newWidth, final int newHeight, final boolean force) {
-        if( defer ) {
-            new InterruptSource.Thread() {
-                public void run() {
-                    WindowDriver.super.sizeChanged(false /* defer */, newWidth, newHeight, force);
-                } }.start();
+            super.sizeChangedOffThread(defer, windowUnits, newWidth, newHeight, force);
+            return true;
         } else {
-            WindowDriver.super.sizeChanged(false /* defer */, newWidth, newHeight, force);
+            return false;
         }
     }
 
@@ -654,9 +652,9 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         if( withinLiveResize && !resizeAnimatorPaused && null!=lh ) {
             resizeAnimatorPaused = lh.pauseRenderingAction();
         }
-        sizeChanged(defer, newWidth, newHeight, force);
+        sizeChanged(defer, false, newWidth, newHeight, force);
         screenPositionChanged(defer, newX, newY);
-        insetsChanged(left, right, top, bottom);
+        insetsChanged(false, left, right, top, bottom);
         if( !withinLiveResize && resizeAnimatorPaused ) {
             resizeAnimatorPaused = false;
             if( null!=lh ) {

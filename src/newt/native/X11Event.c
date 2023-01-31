@@ -199,9 +199,9 @@ void X11EventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                         int left, right, top, bottom;
                         NewtWindows_updateInsets(env, w->jwindow, dpy, evt.xany.window, &left, &right, &top, &bottom);
                     }
-                    (*env)->CallVoidMethod(env, w->jwindow, sizeChangedID, JNI_FALSE,
+                    (*env)->CallBooleanMethod(env, w->jwindow, sizeChangedID, JNI_FALSE, JNI_FALSE,
                                             (jint) evt.xconfigure.width, (jint) evt.xconfigure.height, JNI_FALSE);
-                    (*env)->CallVoidMethod(env, w->jwindow, positionChangedID, JNI_FALSE,
+                    (*env)->CallBooleanMethod(env, w->jwindow, positionChangedID, JNI_FALSE, JNI_FALSE,
                                             (jint) evt.xconfigure.x, (jint) evt.xconfigure.y);
                 }
                 break;

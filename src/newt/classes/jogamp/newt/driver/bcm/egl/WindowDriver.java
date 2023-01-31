@@ -88,7 +88,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
             // n/a in BroadcomEGL
             System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
         } else {
-            defineSize(width, height);
+            defineWindowSize(width, height);
         }
     }
 
@@ -113,7 +113,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
                 // n/a in BroadcomEGL
                 System.err.println("BCEGL Window.setSizeImpl n/a in BroadcomEGL with realized window");
             } else {
-                defineSize((width>0)?width:getWidth(), (height>0)?height:getHeight());
+                defineWindowSize((width>0)?width:getWidth(), (height>0)?height:getHeight());
             }
         }
         if(x>=0 || y>=0) {
@@ -160,7 +160,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     }
 
     private void windowCreated(final int cfgID, final int width, final int height) {
-        defineSize(width, height);
+        defineWindowSize(width, height);
         final GLCapabilitiesImmutable capsReq = (GLCapabilitiesImmutable) getGraphicsConfiguration().getRequestedCapabilities();
         final AbstractGraphicsConfiguration cfg = EGLGraphicsConfiguration.create(capsReq, getScreen().getGraphicsScreen(), cfgID);
         if (null == cfg) {

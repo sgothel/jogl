@@ -146,8 +146,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     private        native void SetBounds0(long surfaceHandle, int scrn_width, int scrn_height, int x, int y, int width, int height);
 
     private void updateBounds(final int x, final int y, final int width, final int height) {
-        definePosition(x, y);
-        defineSize(width, height);
+        defineWindowPosition(x, y);
+        defineWindowSize(width, height);
     }
 
     private long   surfaceHandle;

@@ -219,7 +219,7 @@ static jmethodID windowRepaintID = NULL;
 
     CGRect viewFrame = [self frame];
 
-    (*env)->CallVoidMethod(env, javaWindowObject, windowRepaintID, JNI_TRUE, // defer ..
+    (*env)->CallVoidMethod(env, javaWindowObject, windowRepaintID, JNI_TRUE /* defer */,
         (int)dirtyRect.origin.x, (int)viewFrame.size.height - (int)dirtyRect.origin.y, 
         (int)dirtyRect.size.width, (int)dirtyRect.size.height);
 
@@ -441,10 +441,10 @@ static jmethodID windowRepaintID = NULL;
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
 {
     sendTouchScreenEventID = (*env)->GetMethodID(env, clazz, "sendTouchScreenEvent", "(SI[I[S[I[I[I[FF)V");
-    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
+    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZZIIZ)Z");
     updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFFFZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
-    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(IIII)V");
+    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
     sizeScreenPosInsetsChangedID = (*env)->GetMethodID(env, clazz, "sizeScreenPosInsetsChanged", "(ZIIIIIIIIZZ)V");
     screenPositionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
@@ -691,7 +691,7 @@ static jmethodID windowRepaintID = NULL;
     DBG_PRINT( "updateInsets: [ l %d, r %d, t %d, b %d ]\n", cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
 
     if( NULL != env && NULL != javaWin ) {
-        (*env)->CallVoidMethod(env, javaWin, insetsChangedID, cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
+        (*env)->CallVoidMethod(env, javaWin, insetsChangedID, JNI_FALSE, cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
     }
 }
 

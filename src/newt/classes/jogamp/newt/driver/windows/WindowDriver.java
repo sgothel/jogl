@@ -409,7 +409,6 @@ public class WindowDriver extends WindowImpl {
     private native long CreateWindow0(long hInstance, String wndClassName, String wndName, int winMajor, int winMinor,
                                       long parentWindowHandle, int x, int y, int width, int height, int flags);
     private native void InitWindow0(long windowHandle, int flags);
-    private native long MonitorFromWindow0(long windowHandle);
     private native void reconfigureWindow0(long parentWindowHandle, long windowHandle,
                                            int x, int y, int width, int height, int flags);
     private static native void setTitle0(long windowHandle, String title);

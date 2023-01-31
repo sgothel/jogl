@@ -1,4 +1,5 @@
 /**
+ * Copyright 2014-2023 Gothel Software e.K. All rights reserved.
  * Copyright 2014 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
@@ -70,11 +71,40 @@ public class SurfaceScaleUtils {
      * @param pixelScale the float[2] scale factors
      * @return the result for chaining
      */
+    public static int[] scale(final int[] result, final int x, final int y, final float[] pixelScale) {
+        result[0] = (int) ( x * pixelScale[0] + 0.5f );
+        result[1] = (int) ( y * pixelScale[1] + 0.5f );
+        return result;
+    }
+
+    /**
+     * Returns integer rounded product, i.e. {@code (int) ( a / pixelScale + 0.5f )}
+     *
+     * @param result the int[2] result, may be {@code a} for in-place operation
+     * @param a the int[2] values
+     * @param pixelScale the float[2] scale factors
+     * @return the result for chaining
+     */
+    public static int[] scaleInv(final int[] result, final int x, final int y, final float[] pixelScale) {
+        result[0] = (int) ( x / pixelScale[0] + 0.5f );
+        result[1] = (int) ( y / pixelScale[1] + 0.5f );
+        return result;
+    }
+
+    /**
+     * Returns integer rounded product, i.e. {@code (int) ( a * pixelScale + 0.5f )}
+     *
+     * @param result the int[2] result, may be {@code a} for in-place operation
+     * @param a the int[2] values
+     * @param pixelScale the float[2] scale factors
+     * @return the result for chaining
+     */
     public static int[] scale(final int[] result, final int[] a, final float[] pixelScale) {
         result[0] = (int) ( a[0] * pixelScale[0] + 0.5f );
         result[1] = (int) ( a[1] * pixelScale[1] + 0.5f );
         return result;
     }
+
     /**
      * Returns integer rounded product, i.e. {@code (int) ( a / pixelScale + 0.5f )}
      *

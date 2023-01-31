@@ -225,8 +225,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         surface = null;
         surfaceHandle = 0;
         eglSurface = 0;
-        definePosition(0, 0); // default to 0/0
-        defineSize(0, 0); // default size -> TBD !
+        defineWindowPosition(0, 0); // default to 0/0
+        defineWindowSize(0, 0); // default size -> TBD !
 
         setBrokenFocusChange(true);
     }
@@ -287,8 +287,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         if( isFullscreen() ) {
             final MonitorDevice mainMonitor = getMainMonitor();
             final RectangleImmutable winRect = mainMonitor.getViewportInWindowUnits();
-            definePosition(winRect.getX(), winRect.getY());
-            defineSize(winRect.getWidth(), winRect.getHeight());
+            defineWindowPosition(winRect.getX(), winRect.getY());
+            defineWindowSize(winRect.getWidth(), winRect.getHeight());
         }
 
         final boolean b;
@@ -472,7 +472,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                 Log.d(MD.TAG, "reconfigureWindowImpl.setSize n/a");
                 res = false;
             } else {
-                defineSize(width, height);
+                defineWindowSize(width, height);
             }
         }
         if(getX() != x || getY() != y) {
@@ -480,7 +480,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                 Log.d(MD.TAG, "reconfigureWindowImpl.setPos n/a");
                 res = false;
             } else {
-                definePosition(x, y);
+                defineWindowPosition(x, y);
             }
         }
         if( 0 != ( CHANGE_MASK_VISIBILITY & flags) ) {
@@ -574,7 +574,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         }
 
         if(0>getX() || 0>getY()) {
-            positionChanged(false, 0, 0);
+            positionChanged(false, true, 0, 0);
         }
 
         if(0 == surfaceHandle) {
@@ -590,7 +590,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             final int[] newSurfSize = { getWidth0(surfaceHandle), getHeight0(surfaceHandle) };
             final int[] newWinSize = convertToWindowUnits(new int[]{ newSurfSize[0], newSurfSize[1] }); // HiDPI: Not necessary yet ..
             capsByFormat = (GLCapabilitiesImmutable) fixCaps(true /* matchFormatPrecise */, nativeFormat, getRequestedCapabilities());
-            sizeChanged(false, newWinSize[0], newWinSize[1], false);
+            sizeChanged(false, false, newWinSize[0], newWinSize[1], false);
 
             Log.d(MD.TAG, "surfaceRealized: isValid: "+surface.isValid()+
                           ", new surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
@@ -601,7 +601,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                setVisible(false, true);
             }
         }
-        sizeChanged(false, aWidth, aHeight, false);
+        sizeChanged(false, false, aWidth, aHeight, false);
         windowRepaint(0, 0, aWidth, aHeight);
         Log.d(MD.TAG, "surfaceChanged: X");
     }

@@ -954,7 +954,7 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
         // send insets before visibility, allowing java code a proper sync point!
         XSync(dpy, False);
         if( NewtWindows_updateInsets(dpy, javaWindow, True /* wait */, &left, &right, &top, &bottom) ) {
-            (*env)->CallVoidMethod(env, javaWindow->jwindow, insetsVisibleChangedID, left, right, top, bottom, 1);
+            (*env)->CallVoidMethod(env, javaWindow->jwindow, insetsVisibleChangedID, JNI_FALSE, left, right, top, bottom, 1);
             NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Window.CreateWindow: Exception occured at insetsVisibleChanged(..)");
         } else {
             (*env)->CallVoidMethod(env, javaWindow->jwindow, visibleChangedID, JNI_TRUE);

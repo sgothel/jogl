@@ -155,11 +155,11 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void sizeChanged(final boolean defer, final int newWidth, final int newHeight, final boolean force) {
+    protected boolean sizeChanged(final boolean defer, final boolean windowUnits, final int newWidth, final int newHeight, final boolean force) {
         if(isFullscreen()) {
             ((ScreenDriver)getScreen()).sizeChanged(getWidth(), getHeight());
         }
-        super.sizeChanged(defer, newWidth, newHeight, force);
+        return super.sizeChanged(defer, windowUnits, newWidth, newHeight, force);
     }
 
     private long   eglWindowHandle;

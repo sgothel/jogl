@@ -330,8 +330,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_ScreenDriver_initNative
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_initIDs
   (JNIEnv *env, jclass clazz)
 {
-    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
-    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
+    sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZZIIZ)Z");
+    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZZII)Z");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     if (sizeChangedID == NULL ||
@@ -450,10 +450,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_reconfigur
 
     bcm_moveTo( p->handle, p->layer, p->x, p->y, p->width, p->height);
     if( posChanged ) {
-        (*env)->CallVoidMethod(env, obj, positionChangedID, JNI_FALSE, x, y);
+        (*env)->CallBooleanMethod(env, obj, positionChangedID, JNI_FALSE, JNI_FALSE, x, y);
     }
     if( sizeChanged ) {
-        (*env)->CallVoidMethod(env, obj, sizeChangedID, JNI_FALSE, width, height, JNI_FALSE);
+        (*env)->CallBooleanMethod(env, obj, sizeChangedID, JNI_FALSE, JNI_FALSE, width, height, JNI_FALSE);
     }
 }
 

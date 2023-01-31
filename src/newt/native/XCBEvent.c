@@ -201,9 +201,9 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                             evt.xconfigure.override_redirect, evt.xconfigure.window != evt.xconfigure.event);
                 if ( evt.xconfigure.window == evt.xconfigure.event ) {
                     // ignore child window change notification
-                    (*env)->CallVoidMethod(env, w->jwindow, sizeChangedID, 
+                    (*env)->CallBooleanMethod(env, w->jwindow, sizeChangedID, 
                                             (jint) evt.xconfigure.width, (jint) evt.xconfigure.height, JNI_FALSE);
-                    (*env)->CallVoidMethod(env, w->jwindow, positionChangedID, 
+                    (*env)->CallBooleanMethod(env, w->jwindow, positionChangedID, 
                                             (jint) evt.xconfigure.x, (jint) evt.xconfigure.y);
                 }
                 break;

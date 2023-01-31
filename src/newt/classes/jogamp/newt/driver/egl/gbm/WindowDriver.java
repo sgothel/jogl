@@ -79,7 +79,7 @@ public class WindowDriver extends WindowImpl {
             modPos = true;
         }
         if( modPos ) {
-            definePosition(x, y);
+            defineWindowPosition(x, y);
         }
     }
     private void adjustSize(final ScreenDriver screen, int w, int h) {
@@ -95,7 +95,7 @@ public class WindowDriver extends WindowImpl {
             modSize = true;
         }
         if( modSize ) {
-            defineSize(w, h);
+            defineWindowSize(w, h);
         }
     }
 

@@ -132,10 +132,10 @@ public class WindowDriver extends WindowImpl {
         if( modPos || modSize ) {
             if( definePosSize ) {
                 if( modPos ) {
-                    definePosition(x, y);
+                    defineWindowPosition(x, y);
                 }
                 if( modSize ) {
-                    defineSize(w, h);
+                    defineWindowSize(w, h);
                 }
             }
             return new Rectangle(x, y, w, h);
@@ -152,7 +152,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void createNativeImpl() {
+    protected void createNativeImpl(boolean[] positionModified) {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
