@@ -73,6 +73,60 @@ public abstract class MonitorDevice {
     protected MonitorMode currentMode;
     protected boolean modeChanged;
 
+    public static enum Orientation {
+        clone(0),
+        right_of(1),
+        left_of(-1),
+        below(2),
+        above(-2);
+
+        public final int value;
+
+        private Orientation(final int v) {
+            value = v;
+        }
+    }
+
+    /**
+     * Returns the orientation of this monitor to the other
+     * @param other the other monitor
+     * @param move_diff int[2] to store the move delta for each axis from this-monitor to the other.
+     * @return Orientation of this-monitor to the other
+     */
+    public final Orientation getOrientationTo(final MonitorDevice other, final int move_diff[/*2*/]) {
+        Orientation orientation = Orientation.clone;
+        // Move from other -> this
+        if( null != other ) {
+            // Move from vp0 -> vp1
+            final RectangleImmutable vp0 = other.getViewport(); // pixel units
+            final RectangleImmutable vp1 = this.getViewport(); // pixel units
+            if( vp0.getY() == vp1.getY() || vp0.getY() + vp0.getHeight() - 1 == vp1.getY() + vp1.getHeight() - 1 ) {
+                // vp0.y == vp1.y, i.e. horizontal move
+                if( vp1.getX() > vp0.getX() + vp0.getWidth() - 1 ) {
+                    // vp1 right-of vp0
+                    move_diff[0] = vp1.getX() - ( vp0.getX() + vp0.getWidth() - 1 ); // > 0
+                    orientation = Orientation.right_of;
+                } else if( vp1.getX() + vp1.getWidth() - 1 < vp0.getX() ) {
+                    // vp1 left-of vp0
+                    move_diff[0] = ( vp1.getX() + vp1.getWidth() - 1 ) - vp0.getX(); // < 0
+                    orientation = Orientation.left_of;
+                } // else same .. i.e. clone
+            } else if( vp0.getX() == vp1.getX() || vp0.getX() + vp0.getWidth() - 1 == vp1.getX() + vp1.getWidth() - 1 ) {
+                // vp0.x == vp1.x, i.e. vertical move
+                if( vp1.getY() + vp0.getHeight() - 1 < vp0.getY() ) {
+                    // vp1 above vp0
+                    move_diff[1] = ( vp1.getY() + vp1.getHeight() - 1 ) - vp0.getY() ; // < 0
+                    orientation = Orientation.above;
+                } else if( vp1.getY() > vp0.getY() + vp0.getHeight() - 1 ) {
+                    // vp1 below vp0
+                    move_diff[1] = vp1.getY() - ( vp0.getY() + vp0.getHeight() - 1 ); // > 0
+                    orientation = Orientation.below;
+                }
+            }
+        }
+        return orientation;
+    }
+
     /**
      * @param screen associated {@link Screen}
      * @param nativeHandle unique monitor device long handle, implementation specific
