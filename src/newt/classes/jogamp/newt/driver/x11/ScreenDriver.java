@@ -37,9 +37,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 
+import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.Debug;
 import jogamp.newt.DisplayImpl;
@@ -57,10 +59,26 @@ import com.jogamp.newt.MonitorMode;
 
 public class ScreenDriver extends ScreenImpl {
     protected static final boolean DEBUG_TEST_RANDR13_DISABLED;
+    protected static final float[] global_pixel_scale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+    protected static final boolean global_pixel_scale_set;
 
     static {
         Debug.initSingleton();
         DEBUG_TEST_RANDR13_DISABLED = PropertyAccess.isPropertyDefined("newt.test.Screen.disableRandR13", true);
+
+        final String[] env_var_names = new String[] { "GDK_SCALE", "QT_SCALE_FACTOR", "SOFT_SCALE" };
+        int var_name_idx = -1;
+        try {
+            var_name_idx = SurfaceScaleUtils.getGlobalPixelScaleEnv(env_var_names, global_pixel_scale);
+        } catch (final Throwable t) { t.printStackTrace(); }
+        if( 0 <= var_name_idx && var_name_idx < env_var_names.length ) {
+            global_pixel_scale_set = true;
+            if( DEBUG ) {
+                System.err.println("X11Screen: Global PixelScale Set: "+env_var_names[var_name_idx]+": "+global_pixel_scale[0]+"/"+global_pixel_scale[1]);
+            }
+        } else {
+            global_pixel_scale_set = false;
+        }
 
         DisplayDriver.initSingleton();
     }
@@ -120,6 +138,10 @@ public class ScreenDriver extends ScreenImpl {
         try {
             if( rAndR.beginInitialQuery(device.getHandle(), this) ) {
                 try {
+                    final float pixel_scale[] = { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+                    if( global_pixel_scale_set ) {
+                        System.arraycopy(global_pixel_scale, 0, pixel_scale, 0, 2);
+                    }
                     final int[] crt_ids = rAndR.getMonitorDeviceIds(device.getHandle(), this);
                     final int crtCount = null != crt_ids ? crt_ids.length : 0;
 
@@ -155,7 +177,8 @@ public class ScreenDriver extends ScreenImpl {
                             if( null != monitorProps &&
                                 MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES <= monitorProps[0] && // Enabled ? I.e. contains active modes ?
                                 MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES <= monitorProps.length ) {
-                                MonitorModeProps.streamInMonitorDevice(cache, this, crt_id, null, monitorProps, 0, null);
+                                MonitorModeProps.streamInMonitorDevice(cache, this, crt_id, pixel_scale, true /* invscale_wuviewport */,
+                                                                       monitorProps, 0, null);
                             }
                         }
                     }
@@ -177,6 +200,7 @@ public class ScreenDriver extends ScreenImpl {
             if( null != viewportProps ) {
                 viewportPU.set(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]);
                 viewportWU.set(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]); // equal window-units and pixel-units
+                viewportWU.scaleInv(pixelScale[0], pixelScale[1]);
                 return true;
             } else {
                 return false;

@@ -70,7 +70,7 @@ fi
 
 #export LIBGL_DEBUG=verbose 
 #export MESA_DEBUG=true 
-#export LIBGL_ALWAYS_SOFTWARE=true
+export LIBGL_ALWAYS_SOFTWARE=true
 #export INTEL_DEBUG="buf bat"
 #export INTEL_STRICT_CONFORMANCE=1 
 
@@ -242,7 +242,7 @@ function jrun() {
     #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
     #D_ARGS="-Djogl.debug.GLArrayData"
-    #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
+    D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.window.icons=null,null"
@@ -981,7 +981,11 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
-testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
+#testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch10NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch11NewtAWT $*
 
 # Linux DRM/GBM
 #

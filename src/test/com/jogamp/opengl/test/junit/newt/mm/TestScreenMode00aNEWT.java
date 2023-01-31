@@ -119,7 +119,7 @@ public class TestScreenMode00aNEWT extends UITestCase {
         cache.monitorDevices.add(monOut);
         {
             final int[] props = MonitorModeProps.streamOutMonitorDevice(monOut);
-            final MonitorDevice monIn = MonitorModeProps.streamInMonitorDevice(cache, null, monitor_handle, null, props, 0, null);
+            final MonitorDevice monIn = MonitorModeProps.streamInMonitorDevice(cache, null, monitor_handle, null, false /* invscale_wuviewport */, props, 0, null);
             System.err.println("01 in : "+monIn);
 
             Assert.assertEquals(monOut.getHandle(), monIn.getHandle());

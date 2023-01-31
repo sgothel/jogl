@@ -143,7 +143,8 @@ public class ScreenDriver extends ScreenImpl {
                                 monitor_handle = monitor_id;
                             }
                             // merge monitor-props + supported modes
-                            MonitorModeProps.streamInMonitorDevice(cache, this, monitor_handle, currentMode, pixel_scale, supportedModes, monitorProps, 0, null);
+                            MonitorModeProps.streamInMonitorDevice(cache, this, monitor_handle, currentMode, pixel_scale, true /* invscale_wuviewport */,
+                                                                   supportedModes, monitorProps, 0, null);
 
                             // next monitor, 1st mode
                             supportedModes = new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
@@ -168,6 +169,7 @@ public class ScreenDriver extends ScreenImpl {
                 int offset = MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT;
                 viewportPU.set(monitorProps[offset++], monitorProps[offset++], monitorProps[offset++], monitorProps[offset++]);
                 viewportWU.set(monitorProps[offset++], monitorProps[offset++], monitorProps[offset++], monitorProps[offset++]);
+                viewportWU.scaleInv(pixelScale[0], pixelScale[1]);
                 return true;
             }
         }

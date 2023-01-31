@@ -5,7 +5,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestMainVersion
 REM scripts\java-win.bat com.jogamp.oculusvr.OVRVersion %*
 REM 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 4000 -x 10 -y 10 -width 100 -height 100 -screen 0
@@ -188,7 +188,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aN
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.ManualScreenMode03sNEWT %*
 
-scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 
 REM scripts\java-win.bat testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1AWT %*

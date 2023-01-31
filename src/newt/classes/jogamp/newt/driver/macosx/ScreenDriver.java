@@ -183,7 +183,8 @@ public class ScreenDriver extends ScreenImpl {
             // merge monitor-props + supported modes
             final float pixelScale = crtProps.pixelScaleArray[crtIdx];
             MonitorModeProps.streamInMonitorDevice(cache, this, crt_id, currentMode,
-                                                   new float[] { pixelScale, pixelScale }, supportedModes, crtProps.propsFixedArray[crtIdx], 0, null);
+                                                   new float[] { pixelScale, pixelScale }, false /* invscale_wuviewport */,
+                                                   supportedModes, crtProps.propsFixedArray[crtIdx], 0, null);
         }
     }
 

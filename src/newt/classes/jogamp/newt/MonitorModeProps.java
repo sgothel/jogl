@@ -273,6 +273,7 @@ public class MonitorModeProps {
      * @param screen the associated {@link ScreenImpl}
      * @param monitor_handle unique monitor long handle, implementation specific
      * @param pixelScale pre-fetched current pixel-scale, maybe {@code null} for {@link ScalableSurface#IDENTITY_PIXELSCALE}.
+     * @param invscale_wuviewport if true, the viewport in window-units will be scaled by 1/pixelScale for soft-pixel-scale
      * @param monitorProperties the input data inclusive supported modes.
      * @param offset the offset to the input data
      * @param monitor_idx if not null, returns the index of resulting {@link MonitorDevice} within {@link Cache#monitorDevices}.
@@ -281,8 +282,8 @@ public class MonitorModeProps {
      */
     public static MonitorDevice streamInMonitorDevice(final Cache cache, final ScreenImpl screen,
                                                       final long monitor_handle,
-                                                      final float[] pixelScale, final int[] monitorProperties,
-                                                      int offset, final int[] monitor_idx) {
+                                                      final float[] pixelScale, final boolean invscale_wuviewport,
+                                                      final int[] monitorProperties, int offset, final int[] monitor_idx) {
         // min 11: count, id, ScreenSizeMM[width, height], Viewport[x, y, width, height], currentMonitorModeId, rotation, supportedModeId+
         final int count = monitorProperties[offset];
         if(MIN_MONITOR_DEVICE_PROPERTIES > count) {
@@ -303,6 +304,9 @@ public class MonitorModeProps {
         final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
         final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
+        if( invscale_wuviewport && null != pixelScale ) {
+            viewportWU.scaleInv(pixelScale[0], pixelScale[1]);
+        }
         final MonitorMode currentMode;
         {
             final int modeId = monitorProperties[offset++];
@@ -360,6 +364,7 @@ public class MonitorModeProps {
      * @param monitor_handle unique monitor long handle, implementation specific
      * @param currentMode pre-fetched current {@link MonitorMode}s from cache.
      * @param pixelScale pre-fetched current pixel-scale, maybe {@code null} for {@link ScalableSurface#IDENTITY_PIXELSCALE}.
+     * @param invscale_wuviewport if true, the viewport in window-units will be scaled by 1/pixelScale for soft-pixel-scale
      * @param supportedModes pre-assembled list of supported {@link MonitorMode}s from cache.
      * @param monitorProperties the input data minus supported modes!
      * @param offset the offset to the input data
@@ -371,9 +376,9 @@ public class MonitorModeProps {
                                                       final long monitor_handle,
                                                       final MonitorMode currentMode,
                                                       final float[] pixelScale,
-                                                      final ArrayHashSet<MonitorMode> supportedModes,
-                                                      final int[] monitorProperties, int offset,
-                                                      final int[] monitor_idx) {
+                                                      final boolean invscale_wuviewport,
+                                                      final ArrayHashSet<MonitorMode> supportedModes, final int[] monitorProperties,
+                                                      int offset, final int[] monitor_idx) {
         // min 11: count, id, ScreenSizeMM[width, height], Viewport[x, y, width, height], currentMonitorModeId, rotation, supportedModeId+
         final int count = monitorProperties[offset];
         if(MIN_MONITOR_DEVICE_PROPERTIES - 1 - NUM_MONITOR_MODE_PROPERTIES != count) {
@@ -392,6 +397,9 @@ public class MonitorModeProps {
         final DimensionImmutable sizeMM = streamInResolution(monitorProperties, offset); offset+=NUM_RESOLUTION_PROPERTIES;
         final Rectangle viewportPU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
         final Rectangle viewportWU = new Rectangle(monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++], monitorProperties[offset++]);
+        if( invscale_wuviewport && null != pixelScale ) {
+            viewportWU.scaleInv(pixelScale[0], pixelScale[1]);
+        }
         MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, monitor_handle, monitor_id, isClone, isPrimary,
                                                             sizeMM, currentMode, pixelScale,
                                                             viewportPU, viewportWU, supportedModes);

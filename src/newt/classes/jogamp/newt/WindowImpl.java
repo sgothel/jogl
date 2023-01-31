@@ -2966,12 +2966,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         boolean res = false;
         if( DEBUG_IMPLEMENTATION ) {
             System.err.println("Window.SoftPixelScale.0a: req "+reqPixelScale[0]+", has "+hasPixelScale[0]+", new "+newPixelScale[0]+" - "+getThreadName());
-            Thread.dumpStack();
+            // Thread.dumpStack();
         }
         synchronized( scaleLock ) {
-            if( DEBUG_IMPLEMENTATION ) {
-                System.err.println("Window.SoftPixelScale.0b: req "+reqPixelScale[0]+", has "+hasPixelScale[0]+", new "+newPixelScale[0]+" - "+getThreadName());
-            }
             try {
                 res = applySoftPixelScaleImpl(move_diff, sendEvent, defer, newPixelScale);
             } finally {

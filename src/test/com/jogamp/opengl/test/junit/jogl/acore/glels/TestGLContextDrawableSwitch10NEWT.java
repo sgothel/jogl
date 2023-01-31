@@ -106,6 +106,7 @@ public class TestGLContextDrawableSwitch10NEWT extends UITestCase {
         window.setVisible(true);
         Assert.assertTrue(NewtTestUtil.waitForVisible(window, true, null));
         Assert.assertTrue(NewtTestUtil.waitForRealized(window, true, null));
+        Assert.assertTrue(NewtTestUtil.waitForSize(window, width, height, null));
 
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         final GLDrawable drawable = factory.createGLDrawable(window);
@@ -113,6 +114,8 @@ public class TestGLContextDrawableSwitch10NEWT extends UITestCase {
 
         drawable.setRealized(true);
         Assert.assertTrue(drawable.isRealized());
+        Assert.assertEquals(drawable.getSurfaceWidth(), window.getSurfaceWidth());
+        Assert.assertEquals(drawable.getSurfaceHeight(), window.getSurfaceHeight());
 
         final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, null, window, false, null) {
             @Override
@@ -123,6 +126,7 @@ public class TestGLContextDrawableSwitch10NEWT extends UITestCase {
         };
 
         window.setWindowDestroyNotifyAction( new Runnable() {
+            @Override
             public void run() {
                 glad.windowDestroyNotifyOp();
             } } );

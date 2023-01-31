@@ -28,15 +28,20 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.gl2.newt;
 
+import com.jogamp.nativewindow.ScalableSurface;
+import com.jogamp.nativewindow.util.Dimension;
+import com.jogamp.nativewindow.util.DimensionImmutable;
+import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.PointImmutable;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.NEWTDemoListener;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
-import com.jogamp.opengl.test.junit.newt.parenting.NewtReparentingKeyAdapter;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 
@@ -58,15 +63,18 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestGearsNEWT extends UITestCase {
     static GLProfile glp;
-    static int width, height;
+    static PointImmutable wpos;
+    static DimensionImmutable wsize;
+    static float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
     @BeforeClass
     public static void initClass() {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
-            width  = 640;
-            height = 480;
+            if(null == wsize) {
+                wsize = new Dimension(640, 480);
+            }
         } else {
             setTestSupported(false);
         }
@@ -95,10 +103,29 @@ public class TestGearsNEWT extends UITestCase {
         glWindow.addKeyListener(newtDemoListener);
         glWindow.addMouseListener(newtDemoListener);
 
-        glWindow.setSize(width, height);
+        glWindow.setSize(wsize.getWidth(), wsize.getHeight());
+        if(null != wpos) {
+            glWindow.setPosition(wpos.getX(), wpos.getY());
+        }
+        glWindow.setSurfaceScale(reqSurfacePixelScale);
+        final float[] valReqSurfacePixelScale = glWindow.getRequestedSurfaceScale(new float[2]);
+
         glWindow.setVisible(true);
         animator.setUpdateFPSFrames(1, null);
         animator.start();
+
+        System.err.println("Window Current State   : "+glWindow.getStateMaskString());
+        System.err.println("Window Supported States: "+glWindow.getSupportedStateMaskString());
+        System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
+        System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
+        System.err.println("window insets: "+glWindow.getInsets());
+        System.err.println("window bounds (window): "+glWindow.getBounds());
+        System.err.println("window bounds (pixels): "+glWindow.getSurfaceBounds());
+
+        final float[] hasSurfacePixelScale1 = glWindow.getCurrentSurfaceScale(new float[2]);
+        System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
+                           valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
+                           hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
@@ -117,14 +144,42 @@ public class TestGearsNEWT extends UITestCase {
     static long duration = 500; // ms
 
     public static void main(final String args[]) {
+        int x=0, y=0, w=640, h=480;
+        boolean usePos = false;
+
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (final Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-width")) {
+                i++;
+                w = MiscUtils.atoi(args[i], w);
+            } else if(args[i].equals("-height")) {
+                i++;
+                h = MiscUtils.atoi(args[i], h);
+            } else if(args[i].equals("-x")) {
+                i++;
+                x = MiscUtils.atoi(args[i], x);
+                usePos = true;
+            } else if(args[i].equals("-y")) {
+                i++;
+                y = MiscUtils.atoi(args[i], y);
+                usePos = true;
+            } else if(args[i].equals("-pixelScale")) {
+                i++;
+                final float pS = MiscUtils.atof(args[i], reqSurfacePixelScale[0]);
+                reqSurfacePixelScale[0] = pS;
+                reqSurfacePixelScale[1] = pS;
             }
         }
+        wsize = new Dimension(w, h);
+        if(usePos) {
+            wpos = new Point(x, y);
+        }
+        System.err.println("position "+wpos);
+        System.err.println("size "+wsize);
         org.junit.runner.JUnitCore.main(TestGearsNEWT.class.getName());
     }
 }

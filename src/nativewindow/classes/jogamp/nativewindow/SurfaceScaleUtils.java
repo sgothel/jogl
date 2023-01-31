@@ -28,6 +28,10 @@
  */
 package jogamp.nativewindow;
 
+import java.security.PrivilegedAction;
+import java.util.Map;
+
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.nativewindow.ScalableSurface;
 
 /**
@@ -221,5 +225,47 @@ public class SurfaceScaleUtils {
         result[0] = resultX;
         result[1] = resultY;
         return changed;
+    }
+
+    /**
+     * Get global pixel-scale values from environment variables, e.g.:
+     * - QT_SCALE_FACTOR
+     * - GDK_SCALE
+     * See https://wiki.archlinux.org/title/HiDPI
+     * @param env_var_names array of potential environment variable names, treated as float.
+     * @param pixel_scale_xy store for resulting scale factors
+     * @return index of first found variable name within env_var_names, otherwise -1
+     */
+    public static int getGlobalPixelScaleEnv(final String[] env_var_names, final float[] pixel_scale_xy) {
+        final Map<String, String> env = SecurityUtil.doPrivileged(new PrivilegedAction<Map<String, String>>() {
+            @Override
+            public Map<String, String> run() {
+                return System.getenv();
+            }
+        });
+        float value = -1.0f;
+        boolean done = false;
+        int var_idx = 0;
+        while( var_idx < env_var_names.length && !done ) {
+            final String env_var_name = env_var_names[var_idx];
+            final String s_value = env.get(env_var_name);
+            if( null != s_value ) {
+                try {
+                    value = Float.valueOf(s_value);
+                    done = true;
+                } catch(final NumberFormatException nfe) {
+                    ++var_idx;
+                }
+            } else {
+                ++var_idx;
+            }
+        }
+        if( done ) {
+            pixel_scale_xy[0] = value;
+            pixel_scale_xy[1] = value;
+            return var_idx;
+        } else {
+            return -1;
+        }
     }
 }

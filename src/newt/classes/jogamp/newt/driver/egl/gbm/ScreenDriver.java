@@ -129,7 +129,7 @@ public class ScreenDriver extends ScreenImpl {
         props[i++] = 0; // rotated viewport y window-units
         props[i++] = mode[scridx].getHdisplay(); // rotated viewport width window-units
         props[i++] = mode[scridx].getVdisplay(); // rotated viewport height window-units
-        MonitorModeProps.streamInMonitorDevice(cache, this, crt_id, currentMode, null, cache.monitorModes, props, 0, null);
+        MonitorModeProps.streamInMonitorDevice(cache, this, crt_id, currentMode, null, false, cache.monitorModes, props, 0, null);
 
         crtc_ids = new int[] { encoder[scridx].getCrtc_id() };
 
