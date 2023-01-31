@@ -2875,7 +2875,114 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    private static int sign(final int v) {
+        if( 0 == v ) {
+            return 0;
+        } else if( 0 < v ) {
+            return 1;
+        } else {
+            return -1;
+        }
     }
+
+    private boolean applySoftPixelScaleImpl(final int[] move_diff, final boolean sendEvent, final boolean defer, final float[] newPixelScaleRaw) {
+        boolean res = false;
+        final float[] newPixelScale = new float[2];
+        final float[] maxPixelScale = new float[2];
+        {
+            if( FloatUtil.isZero(newPixelScaleRaw[0], FloatUtil.EPSILON) || FloatUtil.isZero(newPixelScaleRaw[1], FloatUtil.EPSILON) ) {
+                newPixelScale[0]= ScalableSurface.IDENTITY_PIXELSCALE;
+                newPixelScale[1]= ScalableSurface.IDENTITY_PIXELSCALE;
+            } else {
+                System.arraycopy(newPixelScaleRaw, 0, newPixelScale, 0, 2);
+            }
+            System.arraycopy(newPixelScale, 0, maxPixelScale, 0, 2);
+        }
+        // We keep minPixelScale at [1f, 1f]!
+        if( SurfaceScaleUtils.setNewPixelScale(hasPixelScale, hasPixelScale, newPixelScale, minPixelScale, maxPixelScale, DEBUG_IMPLEMENTATION ? getClass().getName() : null) ) {
+            final int[] windowSize = getWindowSizeI();
+            final int[] pixelPos = getPixelPosI();
+            final int[] oldWindowPos = getWindowPosI();
+            final int[] newWindowPos = SurfaceScaleUtils.scaleInv(new int[2], pixelPos, hasPixelScale);
+            final int[] oldPixelSize = getPixelSizeI();
+            final int[] newPixelSize = SurfaceScaleUtils.scale(new int[2], windowSize, hasPixelScale);
+
+            if( DEBUG_IMPLEMENTATION ) {
+                System.err.println("Window.SoftPixelScale.1: "+getThreadName());
+                System.err.println("Window.SoftPixelScale.1: windowSize: "+windowSize[0]+"x"+windowSize[1]+" const");
+                System.err.println("Window.SoftPixelScale.1: pixelPos: "+pixelPos[0]+"/"+pixelPos[1]+" const");
+                System.err.println("Window.SoftPixelScale.1: oldWindowPos: "+oldWindowPos[0]+"/"+oldWindowPos[1]);
+                System.err.println("Window.SoftPixelScale.1: newWindowPos: "+newWindowPos[0]+"/"+newWindowPos[1]);
+                System.err.println("Window.SoftPixelScale.1: oldPixelSize: "+oldPixelSize[0]+"x"+oldPixelSize[1]);
+                System.err.println("Window.SoftPixelScale.1: newPixelSize: "+newPixelSize[0]+"x"+newPixelSize[1]);
+                if( null != move_diff ) {
+                    System.err.println("Window.SoftPixelScale.1: move_diff: "+move_diff[0]+"/"+move_diff[1]+" [pixels]");
+                } else {
+                    System.err.println("Window.SoftPixelScale.1: move_diff: null");
+                }
+            }
+            // this width/height will be set by windowChanged, called by the native implementation
+
+            final int newX, newY;
+            if( null != move_diff ) {
+                final int[] move_dir = new int[] { sign(move_diff[0]), sign(move_diff[1]) };
+                final int[] d_winpos = new int[] { (int)( Math.abs( newPixelSize[0] - oldPixelSize[0] ) * 0.5f + 0.5f ),
+                                                   (int)( Math.abs( newPixelSize[1] - oldPixelSize[1] ) * 0.5f + 0.5f ) };
+                SurfaceScaleUtils.scaleInv(d_winpos, d_winpos, hasPixelScale);
+                SurfaceScaleUtils.scaleInv(move_diff, move_diff, hasPixelScale);
+                newX = newWindowPos[0] + move_dir[0] * d_winpos[0] + move_diff[0];
+                newY = newWindowPos[1] + move_dir[1] * d_winpos[1] + move_diff[1];
+            } else {
+                newX = newWindowPos[0];
+                newY = newWindowPos[1];
+            }
+            if( DEBUG_IMPLEMENTATION ) {
+                System.err.println("Window.SoftPixelScale.2: Position: "+oldWindowPos[0]+"/"+oldWindowPos[1]+" -> "+newX+"/"+newY);
+            }
+            setPosSizeImpl(newX, newY, windowSize[0], windowSize[1], false /* waitForSz */, true /* force */); // updates both, position and size according to new scale
+
+            res = true;
+        }
+        return res;
+    }
+
+    /**
+     * Apply software pixel-scale by multiplying the underlying surface pixel-size with the scale-factor
+     * and dividing the window position and size by same scale-factor.
+     *
+     * Hence the window position and size space is kept virtually steady at virtually assumed DPI 96 at higher actual screen DPI
+     * and the surface size is adjusted.
+     *
+     * @param move_diff null if not called when moving to e.g. a new monitor, otherwise int[2] denoting the pixel-unit delta for both axis towards e.g. an entered monitor,
+     * > 0 for left to right or top to down, < 0 for right to left and down to top and == 0 for no change.
+     * See {@link MonitorDevice#getOrientationTo(MonitorDevice, int[])} to produce a proper move_diff pair.
+     *
+     * @param sendEvent true to send a resize event
+     * @param defer to defer a resize event
+     * @param newPixelScale the new pixel scale
+     * @return true if a pixel scale change occured, otherwise false.
+     */
+    protected boolean applySoftPixelScale(final int[] move_diff, final boolean sendEvent, final boolean defer, final float[] newPixelScale) {
+        boolean res = false;
+        if( DEBUG_IMPLEMENTATION ) {
+            System.err.println("Window.SoftPixelScale.0a: req "+reqPixelScale[0]+", has "+hasPixelScale[0]+", new "+newPixelScale[0]+" - "+getThreadName());
+            Thread.dumpStack();
+        }
+        synchronized( scaleLock ) {
+            if( DEBUG_IMPLEMENTATION ) {
+                System.err.println("Window.SoftPixelScale.0b: req "+reqPixelScale[0]+", has "+hasPixelScale[0]+", new "+newPixelScale[0]+" - "+getThreadName());
+            }
+            try {
+                res = applySoftPixelScaleImpl(move_diff, sendEvent, defer, newPixelScale);
+            } finally {
+                if( DEBUG_IMPLEMENTATION ) {
+                    System.err.println("Window.SoftPixelScale.X: res "+res+", has "+hasPixelScale[0]+" - "+getThreadName());
+                }
+            }
+        }
+        return res;
+    }
+    private final Object scaleLock = new Object();
 
     @Override
     public final boolean isVisible() {
