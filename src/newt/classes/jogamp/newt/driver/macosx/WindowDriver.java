@@ -630,10 +630,22 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         } } );
                 }
             }
-            super.sizeChangedOffThread(defer, windowUnits, newWidth, newHeight, force);
+            superSizeChangedOffThread(defer, windowUnits, newWidth, newHeight, force);
             return true;
         } else {
             return false;
+        }
+    }
+
+    private void superSizeChangedOffThread(final boolean defer, final boolean windowUnits, final int newWidth, final int newHeight, final boolean force) {
+        if( defer ) {
+            new InterruptSource.Thread() {
+                @Override
+                public void run() {
+                    WindowDriver.super.sizeChanged(false /* defer */, windowUnits, newWidth, newHeight, force);
+                } }.start();
+        } else {
+            WindowDriver.super.sizeChanged(false /* defer */, windowUnits, newWidth, newHeight, force);
         }
     }
 

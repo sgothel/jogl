@@ -5175,18 +5175,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    protected void sizeChangedOffThread(final boolean defer, final boolean windowUnits, final int newWidth, final int newHeight, final boolean force) {
-        if( defer ) {
-            new InterruptSource.Thread() {
-                @Override
-                public void run() {
-                    WindowImpl.this.sizeChanged(false /* defer */, windowUnits, newWidth, newHeight, force);
-                } }.start();
-        } else {
-            WindowImpl.this.sizeChanged(false /* defer */, windowUnits, newWidth, newHeight, force);
-        }
-    }
-
     private boolean waitForSize(final int w, final int h, final boolean failFast, final long timeOut) {
         final DisplayImpl display = (DisplayImpl) screen.getDisplay();
         display.dispatchMessagesNative(); // status up2date
