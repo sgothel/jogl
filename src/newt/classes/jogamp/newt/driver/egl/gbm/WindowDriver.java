@@ -107,7 +107,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void createNativeImpl() {
+    protected void createNativeImpl(boolean[] positionModified) {
         if (0 != getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }

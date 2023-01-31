@@ -48,7 +48,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl {
     static long nextWindowHandle = 1;
 
     @Override
-    protected void createNativeImpl() {
+    protected void createNativeImpl(boolean[] positionModified) {
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("GDL Window does not support window parenting");
         }

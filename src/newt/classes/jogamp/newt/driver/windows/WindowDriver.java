@@ -130,7 +130,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void createNativeImpl() {
+    protected void createNativeImpl(final boolean[] positionModified) {
         final ScreenDriver  screen = (ScreenDriver) getScreen();
         final DisplayDriver display = (DisplayDriver) screen.getDisplay();
         final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(

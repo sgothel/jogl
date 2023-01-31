@@ -764,7 +764,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
                 if(canCreateNativeImpl()) {
                     final int wX, wY;
-                    final boolean usePosition;
+                    boolean usePosition;
+                    final boolean[] positionModified = new boolean[] { false };
                     if( stateMask.get(STATE_BIT_AUTOPOSITION) ) {
                         wX = 0;
                         wY = 0;
@@ -775,7 +776,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         usePosition = true;
                     }
                     final long t0 = System.currentTimeMillis();
-                    createNativeImpl();
+                    createNativeImpl( positionModified );
+                    usePosition = usePosition && !positionModified[0];
                     supportedReconfigStateMask = getSupportedReconfigMaskImpl() & STATE_MASK_ALL_RECONFIG;
                     if( DEBUG_IMPLEMENTATION) {
                         final boolean minimumOK = minimumReconfigStateMask == ( minimumReconfigStateMask & supportedReconfigStateMask );
@@ -819,7 +821,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             }
                         }
                         if (DEBUG_IMPLEMENTATION) {
-                            System.err.println("Window.createNative(): elapsed "+(System.currentTimeMillis()-t0)+" ms");
+                            System.err.println("Window.createNative(): position[modified "+positionModified[0]+", use "+usePosition+
+                                               "], elapsed "+(System.currentTimeMillis()-t0)+" ms");
                         }
                         postParentlockFocus = true;
                     }
@@ -954,14 +957,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * The implementation should invoke the referenced java state callbacks
      * to notify this Java object of state changes.</p>
      *
+     * @param positionModified returns indication that the position has been modified and shall not be waited upon.
+     *
      * @see #windowDestroyNotify(boolean)
      * @see #focusChanged(boolean, boolean)
      * @see #visibleChanged(boolean)
      * @see #sizeChanged(int,int)
-     * @see #positionChanged(boolean,int, int)
+     * @see #positionChanged(boolean,boolean, int, int)
      * @see #windowDestroyNotify(boolean)
      */
-    protected abstract void createNativeImpl();
+    protected abstract void createNativeImpl(boolean[] positionModified);
 
     protected abstract void closeNativeImpl();
 
@@ -987,12 +992,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * </p>
      * <p>
      * Will be called twice. Once after simple {@link #instantiationFinished()}
-     * pre native window creation and once right after {@link #createNativeImpl() native creation}.
+     * pre native window creation and once right after {@link #createNativeImpl(boolean[]) native creation}.
      * </p>
      * @see #getSupportedStateMask()
      * @see #reconfigureWindowImpl(int, int, int, int, int)
      * @see #instantiationFinished()
-     * @see #createNativeImpl()
+     * @see #createNativeImpl(boolean[])
      */
     protected abstract int getSupportedReconfigMaskImpl();
 

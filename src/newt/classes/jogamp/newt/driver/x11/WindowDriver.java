@@ -95,7 +95,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void createNativeImpl() {
+    protected void createNativeImpl(boolean[] positionModified) {
         final ScreenDriver screen = (ScreenDriver) getScreen();
         final DisplayDriver display = (DisplayDriver) screen.getDisplay();
         final AbstractGraphicsDevice edtDevice = display.getGraphicsDevice();

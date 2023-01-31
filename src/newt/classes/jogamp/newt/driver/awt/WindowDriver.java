@@ -119,7 +119,7 @@ public class WindowDriver extends WindowImpl {
     };
 
     @Override
-    protected void createNativeImpl() {
+    protected void createNativeImpl(boolean[] positionModified) {
         if( withinLocalDispose ) {
             setupHandleAndGC();
             defineWindowPosition(getX(), getY()); // clear AUTOPOS

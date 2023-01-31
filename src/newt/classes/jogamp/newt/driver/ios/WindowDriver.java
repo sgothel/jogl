@@ -187,7 +187,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    protected void createNativeImpl() {
+    protected void createNativeImpl(boolean[] positionModified) {
         final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {

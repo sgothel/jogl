@@ -324,7 +324,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     }
 
     @Override
-    protected final void createNativeImpl() {
+    protected final void createNativeImpl(boolean[] positionModified) {
         // Create own screen/device resource instance allowing independent ownership,
         // while still utilizing shared EGL resources.
         final AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();

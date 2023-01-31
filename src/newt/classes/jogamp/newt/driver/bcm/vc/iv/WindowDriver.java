@@ -87,7 +87,7 @@ public class WindowDriver extends WindowImpl {
      *
      * @param screen
      * @param rect the {@link RectangleImmutable} in pixel units
-     * @param definePosSize if {@code true} issue {@link #definePosition(int, int)} and {@link #defineSize(int, int)}
+     * @param definePosSize if {@code true} issue {@link #defineWindowPosition(int, int)} and {@link #defineWindowSize(int, int)}
      *                      if either has changed.
      * @return If position or size has been clamped a new {@link RectangleImmutable} instance w/ clamped values
      *         will be returned, otherwise the given {@code rect} is returned.
