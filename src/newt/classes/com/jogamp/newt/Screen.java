@@ -245,6 +245,18 @@ public abstract class Screen {
         return monitors.get(0);
     }
 
+    public final MonitorDevice getFullyEnteredMonitor(final RectangleImmutable r) {
+        final List<MonitorDevice> monitors = getMonitorDevices();
+        final int monitorCount = monitors.size();
+        for(int i=0; i<monitorCount; i++) {
+            final MonitorDevice monitor = monitors.get(i);
+            if( !monitor.isClone() && monitor.getViewportInWindowUnits().contains(r) ) {
+                return monitor;
+            }
+        }
+        return null;
+    }
+
     public final MonitorDevice getMonitorById(final int monitorId) {
         final List<MonitorDevice> monitors = getMonitorDevices();
         final int monitorCount = monitors.size();

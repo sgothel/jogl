@@ -250,10 +250,6 @@ public class GDIUtil implements ToolkitProperties {
     public static boolean GetMonitorPixelScale(final long hmon, final float[] pixel_scale_xy) {
       return GDI.ShcGetMonitorPixelScale1(hmon, pixel_scale_xy, 0);
     }
-    /**
-    public static boolean GetMonitorPixelScale(final int x, final int y, final float[] pixel_scale_xy) {
-      return GDI.ShcGetMonitorPixelScale2(x, y, pixel_scale_xy, 0);
-    } */
 
     public static void SetProcessThreadsAffinityMask(final long affinityMask, final boolean verbose) {
         SetProcessThreadsAffinityMask0(affinityMask, verbose);

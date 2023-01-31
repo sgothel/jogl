@@ -664,7 +664,7 @@ public class JAWTUtil {
       boolean gotSXZ = false;
       if( !SKIP_AWT_HIDPI ) {
           if( null != gdGetCGDisplayIDMIDOnOSX ) {
-              // OSX specific for Java<9, preserving double type
+              // OSX specific for Java < 9, preserving double type
               try {
                   final Object res = gdGetCGDisplayIDMIDOnOSX.invoke(device);
                   if (res instanceof Integer) {
@@ -676,7 +676,7 @@ public class JAWTUtil {
               } catch (final Throwable t) {}
           }
           if( !gotSXZ && null != gdGetScaleFactorMID ) {
-              // Generic for Java<9
+              // Generic for Java < 9
               try {
                   final Object res = gdGetScaleFactorMID.invoke(device);
                   if (res instanceof Integer) {

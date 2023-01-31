@@ -175,7 +175,7 @@ public class NewtFactoryAWT extends NewtFactory {
       try {
           final Integer dispID = JAWTUtil.getMonitorDisplayID( gc.getDevice() );
           if( null != dispID ) {
-              res = screen.getMonitor( dispID.intValue() );
+              res = screen.getMonitorById( dispID.intValue() );
           }
           if( null == res ) {
               // Fallback, use AWT component coverage

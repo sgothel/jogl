@@ -105,6 +105,7 @@ public abstract class Display {
          * {@inheritDoc}
          * </p>
          */
+        @Override
         boolean isGLOriented();
 
         /**
@@ -455,7 +456,8 @@ public abstract class Display {
     }
 
     public static String getThreadName() {
-        return Thread.currentThread().getName();
+        final Thread ct = Thread.currentThread();
+        return "Thread["+toHexString(ct.hashCode()) + ", " + ct.getName()+"]";
     }
 
     public static String toHexString(final int hex) {

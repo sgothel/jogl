@@ -29,7 +29,6 @@
 
 package com.jogamp.newt.awt;
 
-import java.applet.Applet;
 import java.awt.AWTKeyStroke;
 import java.awt.Component;
 import java.awt.EventQueue;
@@ -458,11 +457,12 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
     /** See {@link #setSkipJAWTDestroy(boolean)}. */
     public final boolean getSkipJAWTDestroy() { return skipJAWTDestroy; }
 
+    @SuppressWarnings("removal")
     private final void determineIfApplet() {
         isApplet = false;
         Component c = this;
         while(!isApplet && null != c) {
-            isApplet = c instanceof Applet;
+            isApplet = c instanceof java.applet.Applet;
             c = c.getParent();
         }
     }
