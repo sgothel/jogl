@@ -108,6 +108,11 @@ public class WindowDriver extends WindowImpl {
         if( null != md ) {
             final float newPixelScale[] = { 0, 0 };
             md.getPixelScale(newPixelScale);
+            if( DEBUG_IMPLEMENTATION ) {
+                System.err.println("Window.updatePixelScaleByMonitor: pixel "+getSurfaceBounds()+", window "+getBounds());
+                System.err.println("Window.updatePixelScaleByMonitor: monitor "+md);
+                System.err.println("Window.updatePixelScaleByMonitor: has "+hasPixelScale[0]+", new "+newPixelScale[0]+" - "+getThreadName());
+            }
             res = applySoftPixelScale(move_diff, sendEvent, defer, newPixelScale);
         }
         return res;

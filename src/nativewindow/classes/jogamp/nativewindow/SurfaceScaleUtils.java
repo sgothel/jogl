@@ -228,42 +228,106 @@ public class SurfaceScaleUtils {
     }
 
     /**
+     * Returns a proper string representation of the monitor-name to float[2] pixel-scale map.
+     */
+    public static String toString(final Map<String,float[/*2*/]> monitorNameToScale) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("{ ");
+        for(final String name: monitorNameToScale.keySet()) {
+            sb.append("'").append(name).append("'").append(" = ( ");
+            final float[] value = monitorNameToScale.get(name);
+            if( null != value && 2 == value.length ) {
+               sb.append(value[0]).append(" / ").append(value[1]);
+            }
+            sb.append(" ), ");
+        }
+        sb.append(" }");
+        return sb.toString();
+    }
+
+    /**
      * Get global pixel-scale values from environment variables, e.g.:
+     * - QT_SCREEN_SCALE_FACTORS
      * - QT_SCALE_FACTOR
      * - GDK_SCALE
      * See https://wiki.archlinux.org/title/HiDPI
      * @param env_var_names array of potential environment variable names, treated as float.
-     * @param pixel_scale_xy store for resulting scale factors
-     * @return index of first found variable name within env_var_names, otherwise -1
+     * @param global_pixel_scale_xy store for resulting scale factors
+     * @param monitorNameToScale storage mapping monitor names to their pixel_scale_xy, if variable value is of regular expression '(<string>=<float>;)+',
+     *        i.e. QT_SCREEN_SCALE_FACTORS='DP-1=1.25;DP-2=1.25;HDMI-1=1.25;'
+     * @return index of first found global variable name within env_var_names, otherwise -1
      */
-    public static int getGlobalPixelScaleEnv(final String[] env_var_names, final float[] pixel_scale_xy) {
+    public static int getPixelScaleEnv(final String[] env_var_names, final float[] global_pixel_scale_xy, final Map<String,float[/*2*/]> monitorNameToScale) {
         final Map<String, String> env = SecurityUtil.doPrivileged(new PrivilegedAction<Map<String, String>>() {
             @Override
             public Map<String, String> run() {
                 return System.getenv();
             }
         });
-        float value = -1.0f;
+        float global_value = -1.0f;
+        int global_idx = -1;
+        int mapping_idx = -1;
         boolean done = false;
-        int var_idx = 0;
-        while( var_idx < env_var_names.length && !done ) {
+        for(int var_idx = 0; var_idx < env_var_names.length && !done; ++var_idx ) {
             final String env_var_name = env_var_names[var_idx];
             final String s_value = env.get(env_var_name);
-            if( null != s_value ) {
-                try {
-                    value = Float.valueOf(s_value);
-                    done = true;
-                } catch(final NumberFormatException nfe) {
-                    ++var_idx;
-                }
-            } else {
-                ++var_idx;
+            if( null == s_value || s_value.isEmpty()) {
+                continue; // next
             }
+            try {
+                final float v = Float.valueOf(s_value);
+                if( 0 > global_idx ) { // no overwrite
+                    global_value = v;
+                    global_idx = var_idx;
+                }
+            } catch(final NumberFormatException nfe) {
+                if( 0 <= mapping_idx ) {
+                    continue;
+                }
+                // Attempt to parse regular expression '(<string>=<float>;)+',
+                // i.e. QT_SCREEN_SCALE_FACTORS='DP-1=1.25;DP-2=1.25;HDMI-1=1.25;'
+                final String[] pairs = s_value.split(";");
+                if( null != pairs ) {
+                    for(final String pair : pairs) {
+                        if( null == pair || pair.isEmpty() ) {
+                            continue; // empty is OK, next
+                        }
+                        final String[] elems = pair.split("=");
+                        if( null == elems || 2 != elems.length ) {
+                            // syntax error, bail out
+                            monitorNameToScale.clear();
+                            break;
+                        }
+                        if( null == elems[0] || elems[0].isEmpty() ) {
+                            // syntax error (empty name), bail out
+                            monitorNameToScale.clear();
+                            break;
+                        }
+                        if( null == elems[1] || elems[1].isEmpty() ) {
+                            // syntax error (empty value), bail out
+                            monitorNameToScale.clear();
+                            break;
+                        }
+                        try {
+                            final float pair_value = Float.valueOf(elems[1]);
+                            monitorNameToScale.put(elems[0], new float[] { pair_value, pair_value} );
+                            mapping_idx = var_idx;
+                        } catch(final NumberFormatException nfe2) {
+                            // syntax error, bail out
+                            monitorNameToScale.clear();
+                            break;
+                        }
+                    }
+                }
+            }
+            done = 0 <= mapping_idx && 0 <= global_idx;
         }
-        if( done ) {
-            pixel_scale_xy[0] = value;
-            pixel_scale_xy[1] = value;
-            return var_idx;
+        if( 0 <= global_idx ) {
+            global_pixel_scale_xy[0] = global_value;
+            global_pixel_scale_xy[1] = global_value;
+            return global_idx;
+        } else if( 0 <= mapping_idx ) {
+            return mapping_idx;
         } else {
             return -1;
         }
