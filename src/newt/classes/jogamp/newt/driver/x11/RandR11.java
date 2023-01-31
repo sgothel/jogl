@@ -215,6 +215,11 @@ class RandR11 implements RandR {
     }
 
     @Override
+    public String getMonitorName(final long dpy, final ScreenDriver screen, final int crt_id) {
+        return null;
+    }
+
+    @Override
     public int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_id) {
         if( SINGLE_CRT_ID != crt_id ) {
             // RandR11 only supports 1 CRT

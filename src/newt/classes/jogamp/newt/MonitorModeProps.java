@@ -272,6 +272,7 @@ public class MonitorModeProps {
      * @param cache hash arrays of unique {@link MonitorMode} components and {@link MonitorDevice}s, allowing to avoid duplicates
      * @param screen the associated {@link ScreenImpl}
      * @param monitor_handle unique monitor long handle, implementation specific
+     * @param monitor_name optional monitor name, maybe null
      * @param pixelScale pre-fetched current pixel-scale, maybe {@code null} for {@link ScalableSurface#IDENTITY_PIXELSCALE}.
      * @param invscale_wuviewport if true, the viewport in window-units will be scaled by 1/pixelScale for soft-pixel-scale
      * @param monitorProperties the input data inclusive supported modes.
@@ -281,9 +282,8 @@ public class MonitorModeProps {
      *         matching the input <code>modeProperties</code>, or null if input could not be processed.
      */
     public static MonitorDevice streamInMonitorDevice(final Cache cache, final ScreenImpl screen,
-                                                      final long monitor_handle,
-                                                      final float[] pixelScale, final boolean invscale_wuviewport,
-                                                      final int[] monitorProperties, int offset, final int[] monitor_idx) {
+                                                      final long monitor_handle, final String monitor_name, final float[] pixelScale,
+                                                      final boolean invscale_wuviewport, final int[] monitorProperties, int offset, final int[] monitor_idx) {
         // min 11: count, id, ScreenSizeMM[width, height], Viewport[x, y, width, height], currentMonitorModeId, rotation, supportedModeId+
         final int count = monitorProperties[offset];
         if(MIN_MONITOR_DEVICE_PROPERTIES > count) {
@@ -323,7 +323,7 @@ public class MonitorModeProps {
                 }
             }
         }
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, monitor_handle, id, isClone, isPrimary,
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, monitor_handle, id, monitor_name, isClone, isPrimary,
                                                             sizeMM, currentMode, pixelScale,
                                                             viewportPU, viewportWU, supportedModes);
         if(null!=cache) {
@@ -362,6 +362,7 @@ public class MonitorModeProps {
      * @param cache hash arrays of unique {@link MonitorMode} components and {@link MonitorDevice}s, allowing to avoid duplicates
      * @param screen the associated {@link ScreenImpl}
      * @param monitor_handle unique monitor long handle, implementation specific
+     * @param monitor_name optional monitor name, maybe null
      * @param currentMode pre-fetched current {@link MonitorMode}s from cache.
      * @param pixelScale pre-fetched current pixel-scale, maybe {@code null} for {@link ScalableSurface#IDENTITY_PIXELSCALE}.
      * @param invscale_wuviewport if true, the viewport in window-units will be scaled by 1/pixelScale for soft-pixel-scale
@@ -373,12 +374,11 @@ public class MonitorModeProps {
      *         matching the input <code>modeProperties</code>, or null if input could not be processed.
      */
     public static MonitorDevice streamInMonitorDevice(final Cache cache, final ScreenImpl screen,
-                                                      final long monitor_handle,
+                                                      final long monitor_handle, final String monitor_name,
                                                       final MonitorMode currentMode,
                                                       final float[] pixelScale,
-                                                      final boolean invscale_wuviewport,
-                                                      final ArrayHashSet<MonitorMode> supportedModes, final int[] monitorProperties,
-                                                      int offset, final int[] monitor_idx) {
+                                                      final boolean invscale_wuviewport, final ArrayHashSet<MonitorMode> supportedModes,
+                                                      final int[] monitorProperties, int offset, final int[] monitor_idx) {
         // min 11: count, id, ScreenSizeMM[width, height], Viewport[x, y, width, height], currentMonitorModeId, rotation, supportedModeId+
         final int count = monitorProperties[offset];
         if(MIN_MONITOR_DEVICE_PROPERTIES - 1 - NUM_MONITOR_MODE_PROPERTIES != count) {
@@ -400,9 +400,9 @@ public class MonitorModeProps {
         if( invscale_wuviewport && null != pixelScale ) {
             viewportWU.scaleInv(pixelScale[0], pixelScale[1]);
         }
-        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, monitor_handle, monitor_id, isClone, isPrimary,
-                                                            sizeMM, currentMode, pixelScale,
-                                                            viewportPU, viewportWU, supportedModes);
+        MonitorDevice monitorDevice = new MonitorDeviceImpl(screen, monitor_handle, monitor_id, monitor_name, isClone,
+                                                            isPrimary, sizeMM, currentMode,
+                                                            pixelScale, viewportPU, viewportWU, supportedModes);
         if(null!=cache) {
             monitorDevice = cache.monitorDevices.getOrAdd(monitorDevice);
             if( monitorDevice.isPrimary() ) {

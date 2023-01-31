@@ -333,7 +333,7 @@ public class WindowDriver extends WindowImpl {
                     if(DEBUG_IMPLEMENTATION) {
                         System.err.println("Info: Window Device Changed (P: "+newX+"/"+newY+
                                            ", crt_move[orient "+orientation+", diff "+move_diff[0]+"/"+move_diff[1]+") "+
-                                           ", monitor "+last_monitor.getId()+" -> "+new_monitor.getId()+
+                                           ", monitor "+last_monitor.getName()+" -> "+new_monitor.getName()+
                                            " - "+Thread.currentThread().getName());
                     }
                     last_monitor = new_monitor;

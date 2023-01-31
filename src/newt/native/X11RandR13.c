@@ -458,7 +458,7 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDevice
 {
     Display * dpy = (Display *) (intptr_t) display;
     XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
-    RRCrtc crtc = findRRCrtc( resources, (RRCrtc)(intptr_t)crt_id );
+    RRCrtc crtc = findRRCrtc( resources, (RRCrtc)(intptr_t)crt_id ); // just re-validation
     if( 0 == crtc ) {
         // n/a
         return NULL;
@@ -522,6 +522,45 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDevice
 
 /*
  * Class:     jogamp_newt_driver_x11_RandR13
+ * Method:    getMonitorName0
+ * Signature: (JJJJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorName0
+  (JNIEnv *env, jclass clazz, jlong display, jlong screenResources, jlong monitorInfo, jint crt_id)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
+    RRCrtc crtc = findRRCrtc( resources, (RRCrtc)(intptr_t)crt_id ); // just re-validation
+    if( 0 == crtc ) {
+        // n/a
+        return NULL;
+    }
+    XRRCrtcInfo *xrrCrtcInfo = (XRRCrtcInfo *) (intptr_t) monitorInfo;
+    if( NULL == xrrCrtcInfo ) {
+        // n/a
+        return NULL;
+    }
+
+    RROutput output = xrrCrtcInfo->outputs[0];
+    XRROutputInfo * xrrOutputInfo = XRRGetOutputInfo (dpy, resources, output);
+    int name_len = xrrOutputInfo->nameLen;
+    char* name = xrrOutputInfo->name;
+    if( NULL == name || 0 == name_len ) {
+        // n/a
+        return NULL;
+    }
+    char * name_copy = strndup(name, name_len);
+    XRRFreeOutputInfo (xrrOutputInfo);
+    if( NULL == name_copy ) {
+        return NULL;
+    }
+    jstring res = (*env)->NewStringUTF(env, name_copy);
+    free(name_copy);
+    return res;
+}
+
+/*
+ * Class:     jogamp_newt_driver_x11_RandR13
  * Method:    setMonitorMode0
  * Signature: (JJJIIIII)Z
  */
@@ -534,7 +573,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR13_setMonitorMode0
     Display * dpy = (Display *) (intptr_t) display;
     Window root = RootWindow(dpy, (int)screen_idx);
     XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
-    RRCrtc crtc = findRRCrtc( resources, (RRCrtc)(intptr_t)crt_id );
+    RRCrtc crtc = findRRCrtc( resources, (RRCrtc)(intptr_t)crt_id ); // just re-validation
     if( 0 == crtc ) {
         // n/a
         DBG_PRINT("RandR13_setMonitorMode0.0: n/a: resources %p (%d), crt_id %#lx \n", 

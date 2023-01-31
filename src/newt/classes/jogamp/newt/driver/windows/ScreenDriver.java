@@ -110,7 +110,8 @@ public class ScreenDriver extends ScreenImpl {
                 new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
         String adapterName;
         for(int adapterIdx=0; null != ( adapterName = getAdapterName(adapterIdx) ); adapterIdx++ ) {
-            for(int monitorIdx=0; null != getMonitorName(adapterName, monitorIdx, true); monitorIdx++ ) {
+            String monitor_name = null;
+            for(int monitorIdx=0; null != (monitor_name = getMonitorName(adapterName, monitorIdx, true)); monitorIdx++ ) {
                 int modeIdx = 0;
                 MonitorMode mode;
                 do {
@@ -143,8 +144,8 @@ public class ScreenDriver extends ScreenImpl {
                                 monitor_handle = monitor_id;
                             }
                             // merge monitor-props + supported modes
-                            MonitorModeProps.streamInMonitorDevice(cache, this, monitor_handle, currentMode, pixel_scale, true /* invscale_wuviewport */,
-                                                                   supportedModes, monitorProps, 0, null);
+                            MonitorModeProps.streamInMonitorDevice(cache, this, monitor_handle, monitor_name, currentMode, pixel_scale,
+                                                                   true /* invscale_wuviewport */, supportedModes, monitorProps, 0, null);
 
                             // next monitor, 1st mode
                             supportedModes = new ArrayHashSet<MonitorMode>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);

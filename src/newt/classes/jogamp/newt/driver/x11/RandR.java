@@ -80,6 +80,7 @@ public interface RandR {
      */
     int[] getMonitorModeProps(final long dpy, final ScreenDriver screen, final int mode_idx);
     int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, MonitorModeProps.Cache cache, final int crt_id);
+    String getMonitorName(final long dpy, final ScreenDriver screen, final int crt_id);
     int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_id);
     int[] getCurrentMonitorModeProps(final long dpy, final ScreenDriver screen, final int crt_id);
     /** The device shall be locked, blocking message handling.  */

@@ -62,6 +62,7 @@ public abstract class MonitorDevice {
     protected final Screen screen; // backref
     protected final long nativeHandle; // unique monitor device long handle, implementation specific
     protected final int nativeId; // unique monitor device integer Id, implementation specific
+    protected final String name; // optional monitor name, maybe an empty string
     protected final DimensionImmutable sizeMM; // in [mm]
     protected final MonitorMode originalMode;
     protected final ArrayHashSet<MonitorMode> supportedModes; // FIXME: May need to support mutable mode, i.e. adding modes on the fly!
@@ -131,6 +132,7 @@ public abstract class MonitorDevice {
      * @param screen associated {@link Screen}
      * @param nativeHandle unique monitor device long handle, implementation specific
      * @param nativeId unique monitor device integer Id, implementation specific
+     * @param name optional monitor name, maybe null
      * @param isClone flag
      * @param isPrimary flag
      * @param sizeMM size in millimeters
@@ -141,12 +143,13 @@ public abstract class MonitorDevice {
      * @param supportedModes all supported {@link MonitorMode}s
      */
     protected MonitorDevice(final Screen screen, final long nativeHandle, final int nativeId,
-                            final boolean isClone, final boolean isPrimary,
-                            final DimensionImmutable sizeMM, final MonitorMode currentMode, final float[] pixelScale,
-                            final Rectangle viewportPU, final Rectangle viewportWU, final ArrayHashSet<MonitorMode> supportedModes) {
+                            final String name, final boolean isClone,
+                            final boolean isPrimary, final DimensionImmutable sizeMM, final MonitorMode currentMode,
+                            final float[] pixelScale, final Rectangle viewportPU, final Rectangle viewportWU, final ArrayHashSet<MonitorMode> supportedModes) {
         this.screen = screen;
         this.nativeHandle = nativeHandle;
         this.nativeId = nativeId;
+        this.name = null != name ? name : "";
         this.sizeMM = sizeMM;
         this.originalMode = currentMode;
         this.supportedModes = supportedModes;
@@ -199,6 +202,9 @@ public abstract class MonitorDevice {
 
     /** @return the immutable unique native integer Id of this monitor device, implementation specific. */
     public final int getId() { return nativeId; }
+
+    /** @return optional monitor name, maybe an empty string but never null. */
+    public final String getName() { return name; }
 
     /** @return {@code true} if this device represents a <i>clone</i>, otherwise return {@code false}. */
     public final boolean isClone() { return isClone; }
@@ -405,7 +411,17 @@ public abstract class MonitorDevice {
         final StringBuilder sb = new StringBuilder();
         sb.append("Monitor[Id ").append(Display.toHexString(nativeId)).append(" [");
         {
+            if( !name.isEmpty() ) {
+                if( preComma ) {
+                    sb.append(", ");
+                }
+                sb.append("name ").append("'").append(name).append("'");
+                preComma = true;
+            }
             if( nativeHandle != nativeId ) {
+                if( preComma ) {
+                    sb.append(", ");
+                }
                 sb.append("handle ").append(Display.toHexString(nativeHandle));
                 preComma = true;
             }
@@ -425,8 +441,8 @@ public abstract class MonitorDevice {
         }
         preComma = false;
         sb.append("], ").append(sizeMM).append(" mm, pixelScale [").append(pixelScale[0]).append(", ")
-        .append(pixelScale[1]).append("], viewport ").append(viewportPU).append(" [pixels], ").append(viewportWU)
-        .append(" [window], orig ").append(originalMode).append(", curr ")
+        .append(pixelScale[1]).append("], viewport[pixel ").append(viewportPU).append(", window ").append(viewportWU)
+        .append("], orig ").append(originalMode).append(", curr ")
         .append(currentMode).append(", modeChanged ").append(modeChanged).append(", modeCount ")
         .append(supportedModes.size()).append("]");
         return sb.toString();

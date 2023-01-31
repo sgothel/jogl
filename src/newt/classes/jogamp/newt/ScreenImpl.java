@@ -360,8 +360,8 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
      *   <li>{@link MonitorModeProps#MIN_MONITOR_DEVICE_PROPERTIES}</li>
      * </ul>, i.e.
      * <ul>
-     *   <li>{@link MonitorModeProps#streamInMonitorDevice(jogamp.newt.MonitorModeProps.Cache, ScreenImpl, long, double[], boolean, int[], int, int[])}</li>
-     *   <li>{@link MonitorModeProps#streamInMonitorDevice(int[], jogamp.newt.MonitorModeProps.Cache, long, ArrayHashSet, boolean, int[], int, ScreenImpl)}</li>
+     *   <li>{@link MonitorModeProps#streamInMonitorDevice(jogamp.newt.MonitorModeProps.Cache, ScreenImpl, long, String, double[], boolean, int[], int, int[])}</li>
+     *   <li>{@link MonitorModeProps#streamInMonitorDevice(int[], jogamp.newt.MonitorModeProps.Cache, long, String, ArrayHashSet, boolean, int[], int, ScreenImpl)}</li>
      *   <li>{@link MonitorModeProps#streamInMonitorMode(int[], jogamp.newt.MonitorModeProps.Cache, int[], int)}</li>
      * </ul>
      * @param cache memory pool caching the result
@@ -520,7 +520,8 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         if( MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES != i ) {
             throw new InternalError("XX");
         }
-        return MonitorModeProps.streamInMonitorDevice(cache, this, monitorId, null, false /* invscale_wuviewport */, props, 0, null);
+        final String monitor_name = null;
+        return MonitorModeProps.streamInMonitorDevice(cache, this, monitorId, monitor_name, null, false /* invscale_wuviewport */, props, 0, null);
     }
 
     /**

@@ -282,6 +282,24 @@ public abstract class Screen {
     }
 
     /**
+     * Returns the {@link MonitorDevice} which matches the given name.
+     * <p>
+     * If no match is found or the given name is null or empty, null is being returned
+     * </p>
+     */
+    public final MonitorDevice getMonitorByName(final String name) {
+        if( null == name || name.isEmpty() ) {
+            return null;
+        }
+        for(final MonitorDevice monitor : getMonitorDevices()) {
+            if( name.equals( monitor.getName() ) ) {
+                return monitor;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Calculates the union of all monitor's {@link MonitorDevice#getViewport() viewport} in pixel- and window units.
      * <p>
      * Should be equal to {@link #getX()}, {@link #getY()}, {@link #getWidth()} and {@link #getHeight()},

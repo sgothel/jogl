@@ -194,6 +194,22 @@ class RandR13 implements RandR {
     }
 
     @Override
+    public String getMonitorName(final long dpy, final ScreenDriver screen, final int crt_id) {
+        final int screen_idx = screen.getIndex();
+        final long screenResources = getScreenResourceHandle(dpy, screen_idx);
+        try {
+            final long monitorInfo = getMonitorInfoHandle(dpy, screen_idx, screenResources, crt_id);
+            try {
+                return getMonitorName0(dpy, screenResources, monitorInfo, crt_id);
+            } finally {
+                releaseMonitorInfoHandle(monitorInfo);
+            }
+        } finally {
+            releaseScreenResourceHandle(screenResources);
+        }
+    }
+
+    @Override
     public int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_id) {
         final int screen_idx = screen.getIndex();
         final long screenResources = getScreenResourceHandle(dpy, screen_idx);
@@ -279,6 +295,7 @@ class RandR13 implements RandR {
     private static native int[] getMonitorMode0(long screenResources, int mode_index);
     private static native int[] getMonitorCurrentMode0(long screenResources, long monitorInfo);
     private static native int[] getMonitorDevice0(long display, long screenResources, long monitorInfo, int crtc_id);
+    private static native String getMonitorName0(long display, long screenResources, long monitorInfo, int crtc_id);
 
     private static native boolean setMonitorMode0(long display, int screen_index, long screenResources,
                                                   long monitorInfo, int crtc_id,
