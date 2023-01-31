@@ -869,7 +869,9 @@
         <patternset id="c.src.files.windows">
           <include name="${rootrel.generated.c}/Windows/GDI*.c"/>
           <include name="${rootrel.src.c}/win32/GDImisc.c"/>
+          <include name="${rootrel.src.c}/win32/WindowsUser.c"/>
           <include name="${rootrel.src.c}/win32/WindowsDWM.c"/>
+          <include name="${rootrel.src.c}/win32/WindowsSHC.c"/>
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
           <include name="${rootrel.src.c}/JVM_JNI8.c"/>
         </patternset>
