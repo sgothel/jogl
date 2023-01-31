@@ -1386,12 +1386,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     private class SetSizeAction implements Runnable {
+        int x, y;
+        boolean set_pos;
         int width, height;
+        boolean waitForSz;
         boolean force;
 
-        private SetSizeAction(final int w, final int h, final boolean disregardFS) {
+        private SetSizeAction(final int x, final int y, final boolean set_pos, final int w, final int h, final boolean waitForSz, final boolean disregardFS) {
+            this.x = x;
+            this.y = y;
+            this.set_pos = set_pos;
             this.width = w;
             this.height = h;
+            this.waitForSz = waitForSz;
             this.force = disregardFS;
         }
 
@@ -1410,23 +1417,38 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if(DEBUG_IMPLEMENTATION) {
                         System.err.println("Window setSize: START force "+force+", "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", windowHandle "+toHexString(windowHandle)+", state "+getStateMaskString());
                     }
-                    final boolean _visible = stateMask.get(STATE_BIT_VISIBLE);
+                    final boolean _visible = isVisible();
                     int visibleAction; // 0 nop, 1 invisible, 2 visible (create)
                     if ( _visible && isNativeValid() && ( 0 >= width || 0 >= height ) ) {
                         visibleAction=1; // invisible
-                        defineSize(0, 0);
+                        if( set_pos ) {
+                            defineWindowPosition(x, y);
+                        }
+                        defineWindowSize(0, 0);
                     } else if ( _visible && !isNativeValid() && 0 < width && 0 < height ) {
                         visibleAction = 2; // visible (create)
-                        defineSize(width, height);
+                        if( set_pos ) {
+                            defineWindowPosition(x, y);
+                        }
+                        defineWindowSize(width, height);
                     } else if ( _visible && isNativeValid() ) {
                         visibleAction = 0;
                         // this width/height will be set by windowChanged, called by the native implementation
-                        reconfigureWindowImpl(getX(), getY(), width, height, getReconfigureMask(0, isVisible()));
-                        WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
+                        if( set_pos ) {
+                            reconfigureWindowImpl(x, y, width, height, getReconfigureMask(0, _visible));
+                        } else {
+                            reconfigureWindowImpl(getX(), getY(), width, height, getReconfigureMask(0, _visible));
+                        }
+                        if( waitForSz ) {
+                            WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
+                        }
                     } else {
                         // invisible or invalid w/ 0 size
                         visibleAction = 0;
-                        defineSize(width, height);
+                        if( set_pos ) {
+                            defineWindowPosition(x, y);
+                        }
+                        defineWindowSize(width, height);
                     }
                     if(DEBUG_IMPLEMENTATION) {
                         System.err.println("Window setSize: END "+getWidth()+"x"+getHeight()+", visibleAction "+visibleAction);
@@ -1442,12 +1464,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    private void setSize(final int width, final int height, final boolean force) {
-        runOnEDTIfAvail(true, new SetSizeAction(width, height, force));
+    protected void setPosSizeImpl(final int x, final int y, final int width, final int height, final boolean waitForSz, final boolean force) {
+        runOnEDTIfAvail(true, new SetSizeAction(x, y, true, width, height, waitForSz, force));
+    }
+    protected void setSizeImpl(final int width, final int height, final boolean waitForSz, final boolean force) {
+        runOnEDTIfAvail(true, new SetSizeAction(0, 0, false, width, height, waitForSz, force));
     }
     @Override
     public final void setSize(final int width, final int height) {
-        runOnEDTIfAvail(true, new SetSizeAction(width, height, false));
+        setSizeImpl(width, height, true /* waitForSz */, false /* force */);
     }
     @Override
     public final void setSurfaceSize(final int pixelWidth, final int pixelHeight) {
