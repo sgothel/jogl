@@ -9,7 +9,7 @@ import com.jogamp.nativewindow.UpstreamSurfaceHook;
 import com.jogamp.nativewindow.util.Insets;
 import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.nativewindow.util.Point;
-
+import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.UpstreamWindowHookMutableSizePos;
 
 public class WrappedWindow extends WrappedSurface implements NativeWindow {
@@ -102,6 +102,18 @@ public class WrappedWindow extends WrappedSurface implements NativeWindow {
     @Override
     public int getHeight() {
         return ((UpstreamWindowHookMutableSizePos)getUpstreamSurfaceHook()).getHeight();
+    }
+
+    @Override
+    public final Rectangle getBounds() {
+        return new Rectangle(getX(), getY(), getWidth(), getHeight());
+    }
+
+    @Override
+    public final Rectangle getSurfaceBounds() {
+      return new Rectangle(SurfaceScaleUtils.scale(getX(), getPixelScaleX()),
+                           SurfaceScaleUtils.scale(getY(), getPixelScaleY()),
+                           getSurfaceWidth(), getSurfaceHeight());
     }
 
     @Override

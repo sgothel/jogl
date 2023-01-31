@@ -467,6 +467,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
+    public final Rectangle getSurfaceBounds() {
+        return window.getSurfaceBounds();
+    }
+
+    @Override
     public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
         return window.convertToWindowUnits(pixelUnitsAndResult);
     }

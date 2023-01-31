@@ -574,6 +574,16 @@ public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowC
         }
 
         @Override
+        public int getX() {
+            return NewtCanvasJFX.this.clientArea.getX(); // FIXME: Use 'scale' or an actual window-width
+        }
+
+        @Override
+        public int getY() {
+            return NewtCanvasJFX.this.clientArea.getY(); // FIXME: Use 'scale' or an actual window-width
+        }
+
+        @Override
         public int getWidth() {
             return getSurfaceWidth(); // FIXME: Use 'scale' or an actual window-width
         }
@@ -581,6 +591,17 @@ public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowC
         @Override
         public int getHeight() {
             return getSurfaceHeight(); // FIXME: Use 'scale' or an actual window-width
+        }
+
+        @Override
+        public final Rectangle getBounds() {
+            return new Rectangle(getX(), getY(), getWidth(), getHeight());
+        }
+
+        @Override
+        public final Rectangle getSurfaceBounds() {
+            return new Rectangle(getX(), getY(), // FIXME: 'scale' window -> pixel size
+                                 getSurfaceWidth(), getSurfaceHeight());
         }
 
         @Override
@@ -640,16 +661,6 @@ public class NewtCanvasJFX extends Canvas implements NativeWindowHolder, WindowC
         @Override
         public InsetsImmutable getInsets() {
             return insets;
-        }
-
-        @Override
-        public int getX() {
-            return NewtCanvasJFX.this.clientArea.getX();
-        }
-
-        @Override
-        public int getY() {
-            return NewtCanvasJFX.this.clientArea.getY();
         }
 
         @Override

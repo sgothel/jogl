@@ -2621,6 +2621,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
+    public final Rectangle getSurfaceBounds() {
+        return new Rectangle(pixelPos[0], pixelPos[1], pixelSize[0], pixelSize[1]);
+    }
+
+    @Override
     public final int[] convertToWindowUnits(final int[] pixelUnitsAndResult) {
         return SurfaceScaleUtils.scaleInv(pixelUnitsAndResult, pixelUnitsAndResult, hasPixelScale);
     }

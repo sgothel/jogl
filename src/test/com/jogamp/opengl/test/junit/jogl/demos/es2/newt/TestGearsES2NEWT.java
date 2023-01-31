@@ -142,12 +142,13 @@ public class TestGearsES2NEWT extends UITestCase {
         final Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
-        glWindow.setSurfaceScale(reqSurfacePixelScale);
-        final float[] valReqSurfacePixelScale = glWindow.getRequestedSurfaceScale(new float[2]);
         glWindow.setSize(wsize.getWidth(), wsize.getHeight());
         if(null != wpos) {
             glWindow.setPosition(wpos.getX(), wpos.getY());
         }
+        glWindow.setSurfaceScale(reqSurfacePixelScale);
+        final float[] valReqSurfacePixelScale = glWindow.getRequestedSurfaceScale(new float[2]);
+
         glWindow.setUndecorated(undecorated);
         glWindow.setAlwaysOnTop(alwaysOnTop);
         glWindow.setAlwaysOnBottom(alwaysOnBottom);
@@ -207,8 +208,11 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.addGLEventListener(snap);
         if(waitForKey) {
             glWindow.addGLEventListener(new GLEventListener() {
+                @Override
                 public void init(final GLAutoDrawable drawable) { }
+                @Override
                 public void dispose(final GLAutoDrawable drawable) { }
+                @Override
                 public void display(final GLAutoDrawable drawable) {
                     final GLAnimatorControl  actrl = drawable.getAnimator();
                     if(waitForKey && actrl.getTotalFPSFrames() == 60*3) {
@@ -217,6 +221,7 @@ public class TestGearsES2NEWT extends UITestCase {
                         waitForKey = false;
                     }
                 }
+                @Override
                 public void reshape(final GLAutoDrawable drawable, final int x, final int y,
                         final int width, final int height) { }
             });
@@ -229,10 +234,12 @@ public class TestGearsES2NEWT extends UITestCase {
         }
 
         glWindow.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowResized(final WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getBounds()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
                 NEWTDemoListener.setTitle(glWindow);
             }
+            @Override
             public void windowMoved(final WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getBounds()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
                 NEWTDemoListener.setTitle(glWindow);
@@ -308,6 +315,7 @@ public class TestGearsES2NEWT extends UITestCase {
                                     if( edt instanceof DefaultEDTUtil ) {
                                         newtDemoListener.doQuit();
                                         ((DefaultEDTUtil)edt).invokeAndWaitError(new Runnable() {
+                                            @Override
                                             public void run() {
                                                 throw new RuntimeException("XXX Should never ever be seen! - "+Thread.currentThread());
                                             }
@@ -334,7 +342,9 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("Window Supported States: "+glWindow.getSupportedStateMaskString());
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
-        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", "+glWindow.getInsets());
+        System.err.println("window insets: "+glWindow.getInsets());
+        System.err.println("window bounds (window): "+glWindow.getBounds());
+        System.err.println("window bounds (pixels): "+glWindow.getSurfaceBounds());
 
         final float[] hasSurfacePixelScale1 = glWindow.getCurrentSurfaceScale(new float[2]);
         System.err.println("HiDPI PixelScale: "+reqSurfacePixelScale[0]+"x"+reqSurfacePixelScale[1]+" (req) -> "+
@@ -371,6 +381,7 @@ public class TestGearsES2NEWT extends UITestCase {
                         if( edt instanceof DefaultEDTUtil ) {
                             newtDemoListener.doQuit();
                             ((DefaultEDTUtil)edt).invokeAndWaitError(new Runnable() {
+                                @Override
                                 public void run() {
                                     throw new RuntimeException("XXX Should never ever be seen!");
                                 }

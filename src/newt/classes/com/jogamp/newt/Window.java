@@ -625,12 +625,6 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
     //
 
     /**
-     * Returns a newly created {@link Rectangle} containing window origin, {@link #getX()} & {@link #getY()},
-     * and size, {@link #getWidth()} & {@link #getHeight()}, in window units.
-     */
-    Rectangle getBounds();
-
-    /**
      * Returns the <i>pixels per millimeter</i> of this window's {@link NativeSurface}
      * according to the {@link #getMainMonitor() main monitor}'s <i>current</i> {@link MonitorMode mode}'s
      * {@link SurfaceSize#getResolution() surface resolution}.

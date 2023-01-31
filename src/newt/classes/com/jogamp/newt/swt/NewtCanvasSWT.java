@@ -54,7 +54,6 @@ import jogamp.newt.swt.SWTEDTUtil;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -80,7 +79,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
 
     private WindowClosingMode newtChildClosingMode = WindowClosingMode.DISPOSE_ON_CLOSE;
     private final WindowClosingMode closingMode = WindowClosingMode.DISPOSE_ON_CLOSE;
-    private volatile Rectangle clientAreaPixels, clientAreaWindow;
+    private volatile org.eclipse.swt.graphics.Rectangle clientAreaPixels, clientAreaWindow;
     /** pixelScale = pixelUnit / windowUnix */
     private volatile float[] pixelScale = new float[] { 1f, 1f };
 
@@ -197,7 +196,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
      * </p>
      * @param r containing desired size
      */
-    private final void setNewtChildSize(final Rectangle r) {
+    private final void setNewtChildSize(final org.eclipse.swt.graphics.Rectangle r) {
         if( !SWTAccessor.isOSX ) {
             final Point p = SWTAccessor.deviceZoomScaleUp(new Point(r.width, r.height));
             newtChild.setSize(p.getX(), p.getY());
@@ -344,7 +343,7 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
             return true; // already valid
         }
         updatePosSizeCheck();
-        final Rectangle nClientAreaWindow = clientAreaWindow;
+        final org.eclipse.swt.graphics.Rectangle nClientAreaWindow = clientAreaWindow;
         if(0 >= nClientAreaWindow.width || 0 >= nClientAreaWindow.height) {
             return false;
         }
@@ -378,9 +377,9 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
     }
 
     protected final void updatePosSizeCheck() {
-        final Rectangle oClientAreaWindow = clientAreaWindow;
-        final Rectangle nClientAreaPixels = SWTAccessor.getClientAreaInPixels(this);
-        final Rectangle nClientAreaWindow = getClientArea();
+        final org.eclipse.swt.graphics.Rectangle oClientAreaWindow = clientAreaWindow;
+        final org.eclipse.swt.graphics.Rectangle nClientAreaPixels = SWTAccessor.getClientAreaInPixels(this);
+        final org.eclipse.swt.graphics.Rectangle nClientAreaWindow = getClientArea();
         final boolean sizeChanged, posChanged;
         {
             sizeChanged = nClientAreaWindow.width != oClientAreaWindow.width || nClientAreaWindow.height != oClientAreaWindow.height;
@@ -689,6 +688,16 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         }
 
         @Override
+        public int getX() {
+            return 0;
+        }
+
+        @Override
+        public int getY() {
+            return 0;
+        }
+
+        @Override
         public int getWidth() {
             return newtScaleUp(clientAreaWindow.width, clientAreaWindow.width);
         }
@@ -696,6 +705,17 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         @Override
         public int getHeight() {
             return newtScaleUp(clientAreaWindow.height, clientAreaWindow.height);
+        }
+
+        @Override
+        public final com.jogamp.nativewindow.util.Rectangle getBounds() {
+            return new com.jogamp.nativewindow.util.Rectangle(getX(), getY(), getWidth(), getHeight());
+        }
+
+        @Override
+        public final com.jogamp.nativewindow.util.Rectangle getSurfaceBounds() {
+            return new com.jogamp.nativewindow.util.Rectangle(getX(), getY(),
+                                                              getSurfaceWidth(), getSurfaceHeight());
         }
 
         @Override
@@ -759,16 +779,6 @@ public class NewtCanvasSWT extends Canvas implements NativeWindowHolder, WindowC
         @Override
         public InsetsImmutable getInsets() {
             return insets;
-        }
-
-        @Override
-        public int getX() {
-            return 0;
-        }
-
-        @Override
-        public int getY() {
-            return 0;
         }
 
         @Override

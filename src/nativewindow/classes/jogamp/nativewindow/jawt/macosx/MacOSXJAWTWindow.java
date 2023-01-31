@@ -171,9 +171,9 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
                           pA1.translate(-outterInsets.left, -outterInsets.top);
                       }
                       System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(_offscreenSurfaceLayer) + ", [ins "+outterInsets+"], pA "+pA0+" -> "+pA1+
-                              ", p0 "+p0+" -> "+p1+", bounds "+bounds);
+                              ", p0 "+p0+" -> "+p1+", bounds "+jawt_surface_bounds);
                   } else if( DEBUG ) {
-                      System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(_offscreenSurfaceLayer) + ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+bounds);
+                      System.err.println("JAWTWindow.attachSurfaceLayerImpl: "+toHexString(_offscreenSurfaceLayer) + ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+jawt_surface_bounds);
                   }
                   // HiDPI: uniform pixel scale
                   OSXUtil.AddCASublayer(rootSurfaceLayer, _offscreenSurfaceLayer, p1.getX(), p1.getY(), getWidth(), getHeight(), getPixelScaleX(), JAWTUtil.getOSXCALayerQuirks());
@@ -205,10 +205,10 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
           }
           System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(getAttachedSurfaceLayer()) + ", quirks "+caLayerQuirks+", visible "+visible+
                   ", [ins "+outterInsets+"], pA "+pA0+" -> "+pA1+
-                  ", p0 "+p0+" -> "+p1+", bounds "+bounds);
+                  ", p0 "+p0+" -> "+p1+", bounds "+jawt_surface_bounds);
       } else if( DEBUG ) {
           System.err.println("JAWTWindow.layoutSurfaceLayerImpl: "+toHexString(getAttachedSurfaceLayer()) + ", quirks "+caLayerQuirks+", visible "+visible+
-                  ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+bounds);
+                  ", [ins "+outterInsets+"], p0 "+p0+" -> "+p1+", bounds "+jawt_surface_bounds);
       }
       OSXUtil.RunOnMainThread(false /* wait */, false, new Runnable() {
           @Override
@@ -352,7 +352,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
                     public void run() {
                         String errMsg = null;
                         if(0 == rootSurfaceLayer && 0 != jawtSurfaceLayersHandle) {
-                            rootSurfaceLayer = OSXUtil.CreateCALayer(bounds.getWidth(), bounds.getHeight(), getPixelScaleX()); // HiDPI: uniform pixel scale
+                            rootSurfaceLayer = OSXUtil.CreateCALayer(jawt_surface_bounds.getWidth(), jawt_surface_bounds.getHeight(), getPixelScaleX()); // HiDPI: uniform pixel scale
                             if(0 == rootSurfaceLayer) {
                               errMsg = "Could not create root CALayer";
                             } else {

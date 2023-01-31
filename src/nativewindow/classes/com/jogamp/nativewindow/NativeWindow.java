@@ -42,6 +42,7 @@ package com.jogamp.nativewindow;
 
 import com.jogamp.nativewindow.util.InsetsImmutable;
 import com.jogamp.nativewindow.util.Point;
+import com.jogamp.nativewindow.util.Rectangle;
 
 /**
  * Extend the {@link NativeSurface} interface with windowing
@@ -176,6 +177,17 @@ public interface NativeWindow extends NativeSurface, NativeSurfaceHolder {
    * @see NativeSurface#getSurfaceHeight()
    */
   public int getHeight();
+
+  /**
+   * Returns a newly created {@link Rectangle} containing window origin, {@link #getX()} & {@link #getY()},
+   * and size, {@link #getWidth()} & {@link #getHeight()}, in window units.
+   */
+  Rectangle getBounds();
+
+  /**
+   * Returns a newly created {@link Rectangle} containing window's surface origin and size in pixel units.
+   */
+  Rectangle getSurfaceBounds();
 
   /**
    * Returns the window's top-left client-area position in the screen.

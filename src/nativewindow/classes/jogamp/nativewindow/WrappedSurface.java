@@ -101,6 +101,12 @@ public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface 
   protected final void unlockSurfaceImpl() {
   }
 
+  /** @return the safe pixelScale value for x-direction, i.e. never negative or zero. Updated with lock. */
+  protected final float getPixelScaleX() { return hasPixelScale[0]; }
+
+  /** @return the safe pixelScale value for y-direction, i.e. never negative or zero. Updated with lock. */
+  protected final float getPixelScaleY() { return hasPixelScale[1]; }
+
   /**
    * {@inheritDoc}
    * <p>
