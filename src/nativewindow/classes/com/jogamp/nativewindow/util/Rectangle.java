@@ -94,58 +94,54 @@ public class Rectangle implements Cloneable, RectangleImmutable {
 
     @Override
     public final Rectangle union(final RectangleImmutable r) {
-        return union(r.getX(), r.getY(), r.getX() + r.getWidth(), r.getY() + r.getHeight());
+        return union(r.getX(), r.getY(), r.getX() + r.getWidth() - 1, r.getY() + r.getHeight() - 1);
     }
     @Override
     public final Rectangle union(final int rx1, final int ry1, final int rx2, final int ry2) {
         final int x1 = Math.min(x, rx1);
         final int y1 = Math.min(y, ry1);
-        final int x2 = Math.max(x + width, rx2);
-        final int y2 = Math.max(y + height, ry2);
-        return new Rectangle(x1, y1, x2 - x1, y2 - y1);
+        final int x2 = Math.max(x + width - 1, rx2);
+        final int y2 = Math.max(y + height - 1, ry2);
+        return new Rectangle(x1, y1, x2 - x1 + 1, y2 - y1 + 1);
     }
-    /**
-     * Calculates the union of the given rectangles, stores it in this instance and returns this instance.
-     * @param rectangles given list of rectangles
-     * @return this instance holding the union of given rectangles.
-     */
+    @Override
     public final Rectangle union(final List<RectangleImmutable> rectangles) {
         int x1=Integer.MAX_VALUE, y1=Integer.MAX_VALUE;
         int x2=Integer.MIN_VALUE, y2=Integer.MIN_VALUE;
         for(int i=rectangles.size()-1; i>=0; i--) {
             final RectangleImmutable vp = rectangles.get(i);
             x1 = Math.min(x1, vp.getX());
-            x2 = Math.max(x2, vp.getX() + vp.getWidth());
+            x2 = Math.max(x2, vp.getX() + vp.getWidth()); // exclusive
             y1 = Math.min(y1, vp.getY());
-            y2 = Math.max(y2, vp.getY() + vp.getHeight());
+            y2 = Math.max(y2, vp.getY() + vp.getHeight()); // exclusive
         }
         return new Rectangle(x1, y1, x2 - x1, y2 - y1);
     }
 
     @Override
     public final Rectangle intersection(final RectangleImmutable r) {
-        return intersection(r.getX(), r.getY(), r.getX() + r.getWidth(), r.getY() + r.getHeight());
+        return intersection(r.getX(), r.getY(), r.getX() + r.getWidth() - 1, r.getY() + r.getHeight() - 1);
     }
     @Override
     public final Rectangle intersection(final int rx1, final int ry1, final int rx2, final int ry2) {
         final int x1 = Math.max(x, rx1);
         final int y1 = Math.max(y, ry1);
-        final int x2 = Math.min(x + width, rx2);
-        final int y2 = Math.min(y + height, ry2);
+        final int x2 = Math.min(x + width - 1, rx2);
+        final int y2 = Math.min(y + height - 1, ry2);
         final int ix, iy, iwidth, iheight;
         if( x2 < x1 ) {
             ix = 0;
             iwidth = 0;
         } else {
             ix = x1;
-            iwidth = x2 - x1;
+            iwidth = x2 - x1 + 1;
         }
         if( y2 < y1 ) {
             iy = 0;
             iheight = 0;
         } else {
             iy = y1;
-            iheight = y2 - y1;
+            iheight = y2 - y1 + 1;
         }
         return new Rectangle (ix, iy, iwidth, iheight);
     }
@@ -155,6 +151,21 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         final float sqI = isect.getWidth()*isect.getHeight();
         final float sqT = width*height;
         return sqI / sqT;
+    }
+
+    @Override
+    public final boolean contains(final RectangleImmutable r) {
+        final int x2 = x + width - 1;
+        final int y2 = y + height - 1;
+        final int rx1 = r.getX();
+        final int ry1 = r.getY();
+        final int rx2 = rx1 + r.getWidth() - 1;
+        final int ry2 = ry1 + r.getHeight() - 1;
+        if( rx1 < x  || ry1 < y ||
+            rx2 > x2 || ry2 > y2 ) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -173,6 +184,21 @@ public class Rectangle implements Cloneable, RectangleImmutable {
     }
 
     /**
+     * Scale this instance's components,
+     * i.e. multiply them by the given scale factors (rounded).
+     * @param sx scale factor for x
+     * @param sy scale factor for y
+     * @return this instance for scaling
+     */
+    public final Rectangle scale(final float sx, final float sy) {
+        x = (int)( x * sx + 0.5f );
+        y = (int)( y * sy + 0.5f );
+        width = (int)( width * sx + 0.5f );
+        height = (int)( height * sy + 0.5f );
+        return this;
+    }
+
+    /**
      * Inverse scale this instance's components,
      * i.e. divide them by the given scale factors.
      * @param sx inverse scale factor for x
@@ -184,6 +210,21 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         y /= sy ;
         width /= sx ;
         height /= sy ;
+        return this;
+    }
+
+    /**
+     * Inverse scale this instance's components,
+     * i.e. divide them by the given scale factors (rounded).
+     * @param sx inverse scale factor for x
+     * @param sy inverse scale factor for y
+     * @return this instance for scaling
+     */
+    public final Rectangle scaleInv(final float sx, final float sy) {
+        x = (int)( x / sx + 0.5f );
+        y = (int)( y / sy + 0.5f );
+        width = (int)( width / sx + 0.5f );
+        height = (int)( height / sy + 0.5f );
         return this;
     }
 
