@@ -758,13 +758,34 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 if ( evt.xconfigure.window == evt.xconfigure.event ) {
                     // ignore child window change notification
                     // insets: negative values are ignored
+                    int x_pos = evt.xconfigure.x;
+                    int y_pos = evt.xconfigure.y;
+                    {
+                        Window winRoot, winTopParent;
+                        Bool translated = False;
+                        if( 0 != NewtWindows_getRootAndParent(dpy, evt.xconfigure.window, &winRoot, &winTopParent) ) {
+                            int x_return=-1, y_return=-1;
+                            Window child;
+                            if( True == XTranslateCoordinates(dpy, evt.xconfigure.window, winRoot, 0, 0, &x_return, &y_return, &child) ) {
+                                DBG_PRINT( "X11: event . ConfigureNotify call %p POS (Xtrans) %d/%d -> %d/%d\n", 
+                                    (void*)evt.xconfigure.window, x_pos, y_pos, x_return, y_return);
+                                x_pos = x_return;
+                                y_pos = y_return;
+                                translated = True;
+                            }
+                        }
+                        if( False == translated ) {
+                            DBG_PRINT( "X11: event . ConfigureNotify call %p POS (raw) %d/%d\n", 
+                                (void*)evt.xconfigure.window, x_pos, y_pos);
+                        }
+                    }
                     int left=-1, right=-1, top=-1, bottom=-1;
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "ConfigureNotify");
                     NewtWindows_updateInsets(dpy, jw, False /* wait */, &left, &right, &top, &bottom);
                     Bool maxChanged = NewtWindows_updateMaximized(dpy, jw, netWMState);
                     (*env)->CallVoidMethod(env, jw->jwindow, sizePosMaxInsetsVisibleChangedID, JNI_FALSE, JNI_FALSE,
-                                            (jint) evt.xconfigure.x, (jint) evt.xconfigure.y,
+                                            (jint) x_pos, (jint) y_pos,
                                             (jint) evt.xconfigure.width, (jint) evt.xconfigure.height,
                                             (jint)(maxChanged ? ( jw->maxHorz ? 1 : 0 ) : -1), 
                                             (jint)(maxChanged ? ( jw->maxVert ? 1 : 0 ) : -1),
