@@ -153,7 +153,11 @@ public abstract class MonitorDevice {
         this.sizeMM = sizeMM;
         this.originalMode = currentMode;
         this.supportedModes = supportedModes;
-        this.pixelScale = null != pixelScale ? pixelScale : new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+        if( null != pixelScale ) {
+            this.pixelScale = new float[] { pixelScale[0], pixelScale[1] };
+        } else {
+            this.pixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
+        }
         this.viewportPU = viewportPU;
         this.viewportWU = viewportWU;
 
