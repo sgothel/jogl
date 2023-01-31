@@ -167,7 +167,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private volatile int[] windowPos = new int[] { 64, 64 }; // client-area pos w/o insets in window units
     private volatile int[] windowSize = new int[] { 128, 128 }; // client-area size w/o insets in window units, default: may be overwritten by user
 
-    private volatile Insets insets = new Insets(); // insets of decoration in pixel units (if top-level && decorated)
+    private volatile Insets insets = new Insets(); // insets of decoration in window units (if top-level && decorated)
     private boolean blockInsetsChange = false; // block insets change (from same thread)
 
     private final RecursiveLock windowLock = LockFactory.createRecursiveLock();  // Window instance wide lock
