@@ -4835,7 +4835,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if ( (  windowUnits && ( windowPos[0] != newX || windowPos[1] != newY ) ) ||
              ( !windowUnits && ( pixelPos[0] != newX || pixelPos[1] != newY ) ) )
         {
-            if(false && DEBUG_IMPLEMENTATION) {
+            if(DEBUG_IMPLEMENTATION) {
                 final String change;
                 if( windowUnits ) {
                     change = "win["+this.windowPos[0]+"x"+this.windowPos[1]+" -> "+newX+"x"+newY+"]";
