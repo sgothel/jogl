@@ -33,15 +33,13 @@ import java.util.Iterator;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLException;
-
-import jogamp.graph.geom.plane.AffineTransform;
-
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.graph.geom.plane.AffineTransform;
 
 /**
  * Text {@link GLRegion} Utility Class

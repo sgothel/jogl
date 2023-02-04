@@ -30,11 +30,11 @@ package com.jogamp.graph.curve;
 import java.util.ArrayList;
 import java.util.List;
 
-import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.opengl.Debug;
 
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.math.geom.Frustum;

@@ -27,9 +27,8 @@
  */
 package com.jogamp.graph.font;
 
-import jogamp.graph.geom.plane.AffineTransform;
-
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
 
 /**

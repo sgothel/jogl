@@ -17,7 +17,7 @@
 /**
  * @author Denis M. Kishenko
  */
-package jogamp.graph.geom.plane;
+package com.jogamp.graph.geom.plane;
 
 import com.jogamp.opengl.math.FloatUtil;
 

@@ -27,12 +27,11 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import jogamp.graph.geom.plane.AffineTransform;
-
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public class Label0 {

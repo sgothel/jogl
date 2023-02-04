@@ -29,9 +29,8 @@ package com.jogamp.graph.geom;
 
 import java.util.ArrayList;
 
-import jogamp.graph.geom.plane.AffineTransform;
-
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.opengl.math.FloatUtil;

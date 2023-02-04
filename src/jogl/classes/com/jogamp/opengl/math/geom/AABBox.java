@@ -27,8 +27,7 @@
  */
 package com.jogamp.opengl.math.geom;
 
-import jogamp.graph.geom.plane.AffineTransform;
-
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Ray;

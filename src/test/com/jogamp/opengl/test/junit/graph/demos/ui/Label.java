@@ -28,15 +28,13 @@
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import com.jogamp.opengl.GL2ES2;
-
-import jogamp.graph.geom.plane.AffineTransform;
-
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.graph.geom.plane.AffineTransform;
 
 public class Label extends UIShape {
     protected Font font;

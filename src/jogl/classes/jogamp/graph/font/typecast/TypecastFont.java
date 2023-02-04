@@ -34,7 +34,6 @@ import jogamp.graph.font.typecast.ot.table.CmapIndexEntry;
 import jogamp.graph.font.typecast.ot.table.CmapTable;
 import jogamp.graph.font.typecast.ot.table.HdmxTable;
 import jogamp.graph.font.typecast.ot.table.ID;
-import jogamp.graph.geom.plane.AffineTransform;
 
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.OutlineShape;
@@ -42,6 +41,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
 
 class TypecastFont implements Font {
