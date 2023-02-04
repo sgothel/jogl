@@ -16,6 +16,7 @@
  */
 /**
  * @author Denis M. Kishenko
+ * @author Sven Gothel
  */
 package com.jogamp.graph.geom.plane;
 
@@ -30,13 +31,30 @@ public interface PathIterator {
     public static final int SEG_CUBICTO = 3;
     public static final int SEG_CLOSE   = 4;
 
-    public int getWindingRule();
+    int getWindingRule();
 
-    public boolean isDone();
+    /** Return the current {@link #points()} index for the current segment. */
+    int index();
 
-    public void next();
+    /** Returns reference of the point array for the whole Path2D */
+    float[] points();
 
-    public int currentSegment(float[] coords);
+    /** Return current segment type */
+    int getType(final int idx);
 
+    /** Returns true if completed */
+    boolean isDone();
+
+    void next();
+
+    /**
+     * Return the path segment type and copies the current segment's points to given storage
+     * @param coords storage for current segment's points
+     * @return segment type
+     * @see #points()
+     * @see #index()
+     * @see #getType(int)
+     */
+    int currentSegment(float[] coords);
 }
 

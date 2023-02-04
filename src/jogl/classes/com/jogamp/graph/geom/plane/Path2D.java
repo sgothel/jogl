@@ -16,6 +16,7 @@
  */
 /**
  * @author Denis M. Kishenko
+ * @author Sven Gothel
  */
 package com.jogamp.graph.geom.plane;
 
@@ -47,27 +48,27 @@ public final class Path2D implements Cloneable {
     /**
      * The point's types buffer
      */
-    byte[] types;
+    byte[] m_types;
 
     /**
      * The points buffer
      */
-    float[] points;
+    float[] m_points;
 
     /**
      * The point's type buffer size
      */
-    int typeSize;
+    int m_typeSize;
 
     /**
      * The points buffer size
      */
-    int pointSize;
+    int m_pointSize;
 
     /**
      * The path rule
      */
-    int rule;
+    int m_rule;
 
     /**
      * The space amount in points buffer for different segmenet's types
@@ -128,8 +129,17 @@ public final class Path2D implements Cloneable {
         }
 
         @Override
+        public int index() { return typeIndex; }
+
+        @Override
+        public float[] points() { return p.m_points; }
+
+        @Override
+        public int getType(final int idx) { return p.m_types[idx]; }
+
+        @Override
         public boolean isDone() {
-            return typeIndex >= p.typeSize;
+            return typeIndex >= p.m_typeSize;
         }
 
         @Override
@@ -142,9 +152,9 @@ public final class Path2D implements Cloneable {
             if (isDone()) {
                 throw new NoSuchElementException(iteratorOutOfBounds);
             }
-            final int type = p.types[typeIndex];
+            final int type = p.m_types[typeIndex];
             final int count = Path2D.pointShift[type];
-            System.arraycopy(p.points, pointIndex, coords, 0, count);
+            System.arraycopy(p.m_points, pointIndex, coords, 0, count);
             if (t != null) {
                 t.transform(coords, 0, coords, 0, count / 2);
             }
@@ -153,6 +163,10 @@ public final class Path2D implements Cloneable {
         }
 
     }
+
+    public float[] points() { return m_points; }
+    public int getType(final int idx) { return m_types[idx]; }
+    public static int getPointCount(final int type) { return pointShift[type]; }
 
     public Path2D() {
         this(WIND_NON_ZERO, BUFFER_SIZE);
@@ -164,8 +178,8 @@ public final class Path2D implements Cloneable {
 
     public Path2D(final int rule, final int initialCapacity) {
         setWindingRule(rule);
-        types = new byte[initialCapacity];
-        points = new float[initialCapacity * 2];
+        m_types = new byte[initialCapacity];
+        m_points = new float[initialCapacity * 2];
     }
 
     public Path2D(final Path2D path) {
@@ -179,11 +193,11 @@ public final class Path2D implements Cloneable {
         if (rule != WIND_EVEN_ODD && rule != WIND_NON_ZERO) {
             throw new NoSuchElementException(invalidWindingRuleValue);
         }
-        this.rule = rule;
+        this.m_rule = rule;
     }
 
     public int getWindingRule() {
-        return rule;
+        return m_rule;
     }
 
     /**
@@ -191,72 +205,72 @@ public final class Path2D implements Cloneable {
      * @param pointCount - the point count to be added in buffer
      */
     void checkBuf(final int pointCount, final boolean checkMove) {
-        if (checkMove && typeSize == 0) {
+        if (checkMove && m_typeSize == 0) {
             throw new IllegalPathStateException("First segment should be SEG_MOVETO type");
         }
-        if (typeSize == types.length) {
-            final byte tmp[] = new byte[typeSize + BUFFER_CAPACITY];
-            System.arraycopy(types, 0, tmp, 0, typeSize);
-            types = tmp;
+        if (m_typeSize == m_types.length) {
+            final byte tmp[] = new byte[m_typeSize + BUFFER_CAPACITY];
+            System.arraycopy(m_types, 0, tmp, 0, m_typeSize);
+            m_types = tmp;
         }
-        if (pointSize + pointCount > points.length) {
-            final float tmp[] = new float[pointSize + Math.max(BUFFER_CAPACITY * 2, pointCount)];
-            System.arraycopy(points, 0, tmp, 0, pointSize);
-            points = tmp;
+        if (m_pointSize + pointCount > m_points.length) {
+            final float tmp[] = new float[m_pointSize + Math.max(BUFFER_CAPACITY * 2, pointCount)];
+            System.arraycopy(m_points, 0, tmp, 0, m_pointSize);
+            m_points = tmp;
         }
     }
 
     public void moveTo(final float x, final float y) {
-        if (typeSize > 0 && types[typeSize - 1] == PathIterator.SEG_MOVETO) {
-            points[pointSize - 2] = x;
-            points[pointSize - 1] = y;
+        if (m_typeSize > 0 && m_types[m_typeSize - 1] == PathIterator.SEG_MOVETO) {
+            m_points[m_pointSize - 2] = x;
+            m_points[m_pointSize - 1] = y;
         } else {
             checkBuf(2, false);
-            types[typeSize++] = PathIterator.SEG_MOVETO;
-            points[pointSize++] = x;
-            points[pointSize++] = y;
+            m_types[m_typeSize++] = PathIterator.SEG_MOVETO;
+            m_points[m_pointSize++] = x;
+            m_points[m_pointSize++] = y;
         }
     }
 
     public void lineTo(final float x, final float y) {
         checkBuf(2, true);
-        types[typeSize++] = PathIterator.SEG_LINETO;
-        points[pointSize++] = x;
-        points[pointSize++] = y;
+        m_types[m_typeSize++] = PathIterator.SEG_LINETO;
+        m_points[m_pointSize++] = x;
+        m_points[m_pointSize++] = y;
     }
 
     public void quadTo(final float x1, final float y1, final float x2, final float y2) {
         checkBuf(4, true);
-        types[typeSize++] = PathIterator.SEG_QUADTO;
-        points[pointSize++] = x1;
-        points[pointSize++] = y1;
-        points[pointSize++] = x2;
-        points[pointSize++] = y2;
+        m_types[m_typeSize++] = PathIterator.SEG_QUADTO;
+        m_points[m_pointSize++] = x1;
+        m_points[m_pointSize++] = y1;
+        m_points[m_pointSize++] = x2;
+        m_points[m_pointSize++] = y2;
     }
 
     public void curveTo(final float x1, final float y1, final float x2, final float y2, final float x3, final float y3) {
         checkBuf(6, true);
-        types[typeSize++] = PathIterator.SEG_CUBICTO;
-        points[pointSize++] = x1;
-        points[pointSize++] = y1;
-        points[pointSize++] = x2;
-        points[pointSize++] = y2;
-        points[pointSize++] = x3;
-        points[pointSize++] = y3;
+        m_types[m_typeSize++] = PathIterator.SEG_CUBICTO;
+        m_points[m_pointSize++] = x1;
+        m_points[m_pointSize++] = y1;
+        m_points[m_pointSize++] = x2;
+        m_points[m_pointSize++] = y2;
+        m_points[m_pointSize++] = x3;
+        m_points[m_pointSize++] = y3;
     }
 
     final public int size() {
-        return typeSize;
+        return m_typeSize;
     }
 
     final public boolean isClosed() {
-        return typeSize > 0 && types[typeSize - 1] == PathIterator.SEG_CLOSE ;
+        return m_typeSize > 0 && m_types[m_typeSize - 1] == PathIterator.SEG_CLOSE ;
     }
 
     public void closePath() {
         if (!isClosed()) {
             checkBuf(0, true);
-            types[typeSize++] = PathIterator.SEG_CLOSE;
+            m_types[m_typeSize++] = PathIterator.SEG_CLOSE;
         }
     }
 
@@ -271,36 +285,37 @@ public final class Path2D implements Cloneable {
     }
 
     public void append(final PathIterator path, boolean connect) {
-        while (!path.isDone()) {
-            final float coords[] = new float[6];
-            final int segmentType = path.currentSegment(coords);
-            switch (segmentType) {
+        final float[] points = path.points();
+        while ( !path.isDone() ) {
+            final int index = path.index();
+            final int type = path.getType(index);
+            switch ( type ) {
                 case PathIterator.SEG_MOVETO:
-                    if (!connect || typeSize == 0) {
-                        moveTo(coords[0], coords[1]);
+                    if (!connect || m_typeSize == 0) {
+                        moveTo(points[index+0], points[index+1]);
                         break;
                     }
-                    if (types[typeSize - 1] != PathIterator.SEG_CLOSE &&
-                        points[pointSize - 2] == coords[0] &&
-                        points[pointSize - 1] == coords[1])
+                    if (m_types[m_typeSize - 1] != PathIterator.SEG_CLOSE &&
+                        m_points[m_pointSize - 2] == points[index+0] &&
+                        m_points[m_pointSize - 1] == points[index+1])
                     {
                         break;
                     }
                 // NO BREAK;
                 case PathIterator.SEG_LINETO:
-                    lineTo(coords[0], coords[1]);
+                    lineTo(points[index+0], points[index+1]);
                     break;
                 case PathIterator.SEG_QUADTO:
-                    quadTo(coords[0], coords[1], coords[2], coords[3]);
+                    quadTo(points[index+0], points[index+1], points[index+2], points[index+3]);
                     break;
                 case PathIterator.SEG_CUBICTO:
-                    curveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
+                    curveTo(points[index+0], points[index+1], points[index+2], points[index+3], points[index+4], points[index+5]);
                     break;
                 case PathIterator.SEG_CLOSE:
                     closePath();
                     break;
                 default:
-                    throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
+                    throw new IllegalArgumentException("Unhandled Segment Type: "+type);
             }
             path.next();
             connect = false;
@@ -308,30 +323,30 @@ public final class Path2D implements Cloneable {
     }
 
     public SVertex getCurrentPoint() {
-        if (typeSize == 0) {
+        if (m_typeSize == 0) {
             return null;
         }
-        int j = pointSize - 2;
-        if (types[typeSize - 1] == PathIterator.SEG_CLOSE) {
+        int j = m_pointSize - 2;
+        if (m_types[m_typeSize - 1] == PathIterator.SEG_CLOSE) {
 
-            for (int i = typeSize - 2; i > 0; i--) {
-                final int type = types[i];
+            for (int i = m_typeSize - 2; i > 0; i--) {
+                final int type = m_types[i];
                 if (type == PathIterator.SEG_MOVETO) {
                     break;
                 }
                 j -= pointShift[type];
             }
         }
-        return new SVertex(points[j], points[j + 1], 0f, true);
+        return new SVertex(m_points[j], m_points[j + 1], 0f, true);
     }
 
     public void reset() {
-        typeSize = 0;
-        pointSize = 0;
+        m_typeSize = 0;
+        m_pointSize = 0;
     }
 
     public void transform(final AffineTransform t) {
-        t.transform(points, 0, points, 0, pointSize / 2);
+        t.transform(m_points, 0, m_points, 0, m_pointSize / 2);
     }
 
     public Path2D createTransformedShape(final AffineTransform t) {
@@ -344,15 +359,15 @@ public final class Path2D implements Cloneable {
 
     public final synchronized AABBox getBounds2D() {
         float rx1, ry1, rx2, ry2;
-        if (pointSize == 0) {
+        if (m_pointSize == 0) {
             rx1 = ry1 = rx2 = ry2 = 0.0f;
         } else {
-            int i = pointSize - 1;
-            ry1 = ry2 = points[i--];
-            rx1 = rx2 = points[i--];
+            int i = m_pointSize - 1;
+            ry1 = ry2 = m_points[i--];
+            rx1 = rx2 = m_points[i--];
             while (i > 0) {
-                final float y = points[i--];
-                final float x = points[i--];
+                final float y = m_points[i--];
+                final float x = m_points[i--];
                 if (x < rx1) {
                     rx1 = x;
                 } else
@@ -376,7 +391,7 @@ public final class Path2D implements Cloneable {
      * @return true if point is inside path, or false otherwise
      */
     boolean isInside(final int cross) {
-        if (rule == WIND_NON_ZERO) {
+        if (m_rule == WIND_NON_ZERO) {
             return Crossing.isInsideNonZero(cross);
         }
         return Crossing.isInsideEvenOdd(cross);
@@ -424,8 +439,8 @@ public final class Path2D implements Cloneable {
     public Object clone() {
         try {
             final Path2D p = (Path2D) super.clone();
-            p.types = types.clone();
-            p.points = points.clone();
+            p.m_types = m_types.clone();
+            p.m_points = m_points.clone();
             return p;
         } catch (final CloneNotSupportedException e) {
             throw new InternalError();
