@@ -116,17 +116,18 @@ public class TestTextRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);
         System.err.println("Requested: "+caps);
 
-        final GLWindow window = createWindow("text-vbaa1-msaa0", caps, 800,400);
+        final GLWindow window = createWindow("text-vbaa1-msaa0", caps, 1024, 640);
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final TextGLListener textGLListener = new TextGLListener(rs, Region.VBAA_RENDERING_BIT, DEBUG, TRACE);
+        final TextGLListener textGLListener = new TextGLListener(rs, Region.VBAA_RENDERING_BIT, 4 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
 
         if(textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0)) {
             textGLListener.setTech(-400, -30, 0f, -1000, 2);
+            window.display();
             window.display();
             sleep();
 
@@ -141,6 +142,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
 
         if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
             textGLListener.setTech(-400, -30, 0f, -1000, 2);
+            window.display();
             window.display();
             sleep();
 
@@ -165,17 +167,18 @@ public class TestTextRendererNEWT01 extends UITestCase {
         caps.setNumSamples(4);
         System.err.println("Requested: "+caps);
 
-        final GLWindow window = createWindow("text-vbaa0-msaa1", caps, 800, 400);
+        final GLWindow window = createWindow("text-vbaa0-msaa1", caps, 1024, 640);
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final TextGLListener textGLListener = new TextGLListener(rs, 0, DEBUG, TRACE);
+        final TextGLListener textGLListener = new TextGLListener(rs, 0, 0 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
 
         if(textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0)) {
             textGLListener.setTech(-400, -30, 0f, -1000, 0);
+            window.display();
             window.display();
             sleep();
 
@@ -190,6 +193,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
 
         if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
             textGLListener.setTech(-400, -30, 0f, -1000, 0);
+            window.display();
             window.display();
             sleep();
 
@@ -208,10 +212,11 @@ public class TestTextRendererNEWT01 extends UITestCase {
     private static class TextGLListener extends GPUTextRendererListenerBase01 {
         String winTitle;
 
-        public TextGLListener(final RenderState rs, final int type, final boolean debug, final boolean trace) {
-            super(rs, type, 4, true, debug, trace);
+        public TextGLListener(final RenderState rs, final int type, final int sampleCount, final boolean debug, final boolean trace) {
+            super(rs, type, sampleCount, true, debug, trace);
         }
 
+        @Override
         public void attachInputListenerTo(final GLWindow window) {
             super.attachInputListenerTo(window);
             winTitle = window.getTitle();
@@ -220,6 +225,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
             setMatrix(xt, yt, zoom, angle, sampleCount);
         }
 
+        @Override
         public void init(final GLAutoDrawable drawable) {
             super.init(drawable);
 
@@ -231,6 +237,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
             rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
         }
 
+        @Override
         public void display(final GLAutoDrawable drawable) {
             super.display(drawable);
 
