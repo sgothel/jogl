@@ -164,8 +164,6 @@ public final class Path2D implements Cloneable {
 
     }
 
-    public float[] points() { return m_points; }
-    public int getType(final int idx) { return m_types[idx]; }
     public static int getPointCount(final int type) { return pointShift[type]; }
 
     public Path2D() {
@@ -284,6 +282,11 @@ public final class Path2D implements Cloneable {
         append(p, connect);
     }
 
+    /**
+     * Append the given path geometry to this instance
+     * @param path the {@link PathIterator} to append to this {@link Path2D}
+     * @param connect pass true to turn an initial moveTo segment into a lineTo segment to connect the new geometry to the existing path, otherwise pass false.
+     */
     public void append(final PathIterator path, boolean connect) {
         final float[] points = path.points();
         while ( !path.isDone() ) {
@@ -291,17 +294,18 @@ public final class Path2D implements Cloneable {
             final int type = path.getType(index);
             switch ( type ) {
                 case PathIterator.SEG_MOVETO:
-                    if (!connect || m_typeSize == 0) {
+                    if ( !connect || 0 == m_typeSize ) {
                         moveTo(points[index+0], points[index+1]);
                         break;
                     }
-                    if (m_types[m_typeSize - 1] != PathIterator.SEG_CLOSE &&
-                        m_points[m_pointSize - 2] == points[index+0] &&
-                        m_points[m_pointSize - 1] == points[index+1])
+                    if ( m_types[m_typeSize - 1] != PathIterator.SEG_CLOSE &&
+                         m_points[m_pointSize - 2] == points[index+0] &&
+                         m_points[m_pointSize - 1] == points[index+1]
+                       )
                     {
                         break;
                     }
-                // NO BREAK;
+                    // fallthrough: MOVETO -> LINETO
                 case PathIterator.SEG_LINETO:
                     lineTo(points[index+0], points[index+1]);
                     break;
