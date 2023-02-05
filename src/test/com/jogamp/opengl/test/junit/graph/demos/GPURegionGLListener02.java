@@ -97,6 +97,7 @@ public class GPURegionGLListener02 extends GPURendererListenerBase01 {
         region.addOutlineShapes(outlineShapes, null, null);
     }
 
+    @Override
     public void init(final GLAutoDrawable drawable) {
         super.init(drawable);
 
@@ -112,6 +113,7 @@ public class GPURegionGLListener02 extends GPURendererListenerBase01 {
         createTestOutline();
     }
 
+    @Override
     public void display(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -128,7 +130,9 @@ public class GPURegionGLListener02 extends GPURendererListenerBase01 {
         if( weight != regionRenderer.getRenderState().getWeight() ) {
             regionRenderer.getRenderState().setWeight(weight);
         }
+        regionRenderer.enable(gl, true);
         region.draw(gl, regionRenderer, getSampleCount());
+        regionRenderer.enable(gl, false);
 
     }
 }

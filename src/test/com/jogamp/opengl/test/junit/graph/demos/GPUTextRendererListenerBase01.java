@@ -227,6 +227,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         final float pixelSizeHead = font.getPixelSize(fontSizeHead, dpiH);
         final float pixelSizeBottom = font.getPixelSize(fontSizeBottom, dpiH);
 
+        renderer.enable(gl, true);
+
         if( drawFPS ) {
             final float pixelSizeFPS = font.getPixelSize(fontSizeFPS, dpiH);
             final float lfps, tfps, td;
@@ -303,6 +305,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 textRegionUtil.drawString3D(gl, renderer, font, nearPlaneS * pixelSizeBottom, userString.toString(), null, getSampleCount());
             }
         }
+        renderer.enable(gl, false);
     }
     final boolean bottomTextUseFrustum = true;
 
