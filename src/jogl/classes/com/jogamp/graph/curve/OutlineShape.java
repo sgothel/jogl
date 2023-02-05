@@ -31,13 +31,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import jogamp.graph.geom.plane.AffineTransform;
-
 import com.jogamp.graph.curve.tess.Triangulation;
 import com.jogamp.graph.curve.tess.Triangulator;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -97,7 +96,7 @@ import com.jogamp.opengl.math.geom.AABBox;
  * @see Outline
  * @see Region
  */
-public class OutlineShape implements Comparable<OutlineShape> {
+public final class OutlineShape implements Comparable<OutlineShape> {
     /**
      * Outline's vertices have undefined state until transformed.
      */
@@ -167,15 +166,15 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * while transforming the outlines to {@link VerticesState#QUADRATIC_NURBS} and triangulation.
      * @see #setIsQuadraticNurbs()
      */
-    public int getAddedVerticeCount() {
+    public final int getAddedVerticeCount() {
         return addedVerticeCount;
     }
 
     /** Sharpness value, defaults to {@link #DEFAULT_SHARPNESS}. */
-    public float getSharpness() { return sharpness; }
+    public final float getSharpness() { return sharpness; }
 
     /** Sets sharpness, defaults to {@link #DEFAULT_SHARPNESS}. */
-    public void setSharpness(final float s) {
+    public final void setSharpness(final float s) {
         if( this.sharpness != s ) {
             clearCache();
             sharpness=s;
@@ -183,7 +182,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
 
     /** Clears all data and reset all states as if this instance was newly created */
-    public void clear() {
+    public final void clear() {
         outlines.clear();
         outlines.add(new Outline());
         outlineState = VerticesState.UNDEFINED;
@@ -195,7 +194,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
 
     /** Clears cached triangulated data, i.e. {@link #getTriangles(VerticesState)} and {@link #getVertices()}.  */
-    public void clearCache() {
+    public final void clearCache() {
         vertices.clear();
         triangles.clear();
         dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
@@ -207,7 +206,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      */
     public final Vertex.Factory<? extends Vertex> vertexFactory() { return vertexFactory; }
 
-    public final int getOutlineNumber() {
+    public final int getOutlineCount() {
         return outlines.size();
     }
 
@@ -290,7 +289,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
             throw new NullPointerException("OutlineShape is null");
         }
         closeLastOutline(true);
-        for(int i=0; i<outlineShape.getOutlineNumber(); i++) {
+        for(int i=0; i<outlineShape.getOutlineCount(); i++) {
             addOutline(outlineShape.getOutline(i));
         }
     }
@@ -469,7 +468,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      */
     private void checkOverlaps() {
         final ArrayList<Vertex> overlaps = new ArrayList<Vertex>(3);
-        final int count = getOutlineNumber();
+        final int count = getOutlineCount();
         boolean firstpass = true;
         do {
             for (int cc = 0; cc < count; cc++) {
@@ -513,7 +512,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
 
     private Vertex checkTriOverlaps0(final Vertex a, final Vertex b, final Vertex c) {
-        final int count = getOutlineNumber();
+        final int count = getOutlineCount();
         for (int cc = 0; cc < count; cc++) {
             final Outline outline = getOutline(cc);
             final int vertexCount = outline.getVertexCount();
@@ -546,7 +545,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
     }
     @SuppressWarnings("unused")
     private Vertex checkTriOverlaps1(final Vertex a, final Vertex b, final Vertex c) {
-        final int count = getOutlineNumber();
+        final int count = getOutlineCount();
         for (int cc = 0; cc < count; cc++) {
             final Outline outline = getOutline(cc);
             final int vertexCount = outline.getVertexCount();
@@ -580,7 +579,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
 
     private void cleanupOutlines() {
         final boolean transformOutlines2Quadratic = VerticesState.QUADRATIC_NURBS != outlineState;
-        int count = getOutlineNumber();
+        int count = getOutlineCount();
         for (int cc = 0; cc < count; cc++) {
             final Outline outline = getOutline(cc);
             int vertexCount = outline.getVertexCount();
@@ -679,7 +678,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      * @return an arraylist of triangles representing the filled region
      * which is produced by the combination of the outlines
      */
-    public ArrayList<Triangle> getTriangles(final VerticesState destinationType) {
+    public final ArrayList<Triangle> getTriangles(final VerticesState destinationType) {
         final boolean updated;
         if(destinationType != VerticesState.QUADRATIC_NURBS) {
             throw new IllegalStateException("destinationType "+destinationType.name()+" not supported (currently "+outlineState.name()+")");
@@ -767,7 +766,7 @@ public class OutlineShape implements Comparable<OutlineShape> {
      *                 same outlineState, equal bounds and equal outlines in the same order
      */
     @Override
-    public boolean equals(final Object obj) {
+    public final boolean equals(final Object obj) {
         if( obj == this) {
             return true;
         }
@@ -778,13 +777,13 @@ public class OutlineShape implements Comparable<OutlineShape> {
         if(getOutlineState() != o.getOutlineState()) {
             return false;
         }
-        if(getOutlineNumber() != o.getOutlineNumber()) {
+        if(getOutlineCount() != o.getOutlineCount()) {
             return false;
         }
         if( !getBounds().equals( o.getBounds() ) ) {
             return false;
         }
-        for (int i=getOutlineNumber()-1; i>=0; i--) {
+        for (int i=getOutlineCount()-1; i>=0; i--) {
             if( ! getOutline(i).equals( o.getOutline(i) ) ) {
                 return false;
             }
