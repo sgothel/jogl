@@ -356,7 +356,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     /**
      * Adds a vertex to the last open outline to the shape at {@code position}
-     * @param position indx at which the vertex will be added
+     * @param position index within the last open outline, at which the vertex will be added
      * @param v the vertex to be added to the OutlineShape
      */
     public final void addVertex(final int position, final Vertex v) {
@@ -369,8 +369,8 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     }
 
     /**
-     * Add a 2D {@link Vertex} to the last outline by defining the coordinate attribute
-     * of the vertex. The 2D vertex will be represented as Z=0.
+     * Add a 2D {@link Vertex} to the last open outline to the shape's tail.
+     * The 2D vertex will be represented as Z=0.
      *
      * @param x the x coordinate
      * @param y the y coordniate
@@ -382,8 +382,21 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     }
 
     /**
-     * Add a 3D {@link Vertex} to the last outline by defining the coordniate attribute
-     * of the vertex.
+     * Add a 2D {@link Vertex} to the last open outline to the shape at {@code position}.
+     * The 2D vertex will be represented as Z=0.
+     *
+     * @param position index within the last open outline, at which the vertex will be added
+     * @param x the x coordinate
+     * @param y the y coordniate
+     * @param onCurve flag if this vertex is on the final curve or defines a curved region
+     * of the shape around this vertex.
+     */
+    public final void addVertex(final int position, final float x, final float y, final boolean onCurve) {
+        addVertex(position, vertexFactory.create(x, y, 0f, onCurve));
+    }
+
+    /**
+     * Add a 3D {@link Vertex} to the last open outline to the shape's tail.
      * @param x the x coordinate
      * @param y the y coordinate
      * @param z the z coordinate
@@ -395,8 +408,23 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     }
 
     /**
-     * Add a vertex to the last outline by passing a float array and specifying the
-     * offset and length in which. The attributes of the vertex are located.
+     * Add a 3D {@link Vertex} to the last open outline to the shape at {@code position}.
+     *
+     * @param position index within the last open outline, at which the vertex will be added
+     * @param x the x coordinate
+     * @param y the y coordniate
+     * @param z the z coordinate
+     * @param onCurve flag if this vertex is on the final curve or defines a curved region
+     * of the shape around this vertex.
+     */
+    public final void addVertex(final int position, final float x, final float y, final float z, final boolean onCurve) {
+        addVertex(position, vertexFactory.create(x, y, z, onCurve));
+    }
+
+    /**
+     * Add a vertex to the last open outline to the shape's tail.
+     *
+     * The vertex is passed as a float array and its offset where its attributes are located.
      * The attributes should be continuous (stride = 0).
      * Attributes which value are not set (when length less than 3)
      * are set implicitly to zero.
@@ -408,6 +436,24 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      */
     public final void addVertex(final float[] coordsBuffer, final int offset, final int length, final boolean onCurve) {
         addVertex(vertexFactory.create(coordsBuffer, offset, length, onCurve));
+    }
+
+    /**
+     * Add a vertex to the last open outline to the shape at {@code position}.
+     *
+     * The vertex is passed as a float array and its offset where its attributes are located.
+     * The attributes should be continuous (stride = 0).
+     * Attributes which value are not set (when length less than 3)
+     * are set implicitly to zero.
+     * @param position index within the last open outline, at which the vertex will be added
+     * @param coordsBuffer the coordinate array where the vertex attributes are to be picked from
+     * @param offset the offset in the buffer to the x coordinate
+     * @param length the number of attributes to pick from the buffer (maximum 3)
+     * @param onCurve flag if this vertex is on the final curve or defines a curved region
+     * of the shape around this vertex.
+     */
+    public final void addVertex(final int position, final float[] coordsBuffer, final int offset, final int length, final boolean onCurve) {
+        addVertex(position, vertexFactory.create(coordsBuffer, offset, length, onCurve));
     }
 
     /**
