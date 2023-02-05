@@ -69,6 +69,8 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
     static long Duration = 2000; // ms
+    static int win_width = 1024;
+    static int win_height = 640;
     static boolean WaitStartEnd = false;
     static boolean TextAnim = false;
     static int SceneMSAASamples = 0;
@@ -96,6 +98,12 @@ public class TestTextRendererNEWT00 extends UITestCase {
             if(args[i].equals("-time")) {
                 i++;
                 Duration = atoi(args[i]);
+            } else if(args[i].equals("-width")) {
+                i++;
+                win_width = atoi(args[i]);
+            } else if(args[i].equals("-height")) {
+                i++;
+                win_height = atoi(args[i]);
             } else if(args[i].equals("-fontURL")) {
                 i++;
                 fontURL = new URL(args[i]);
@@ -211,7 +219,8 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
         System.err.println("Requested: "+caps+", graph[msaaSamples "+graphMSAASamples+", vbaaSamples "+graphVBAASamples+"]");
 
-        final GLWindow window = createWindow("text-gvbaa"+graphVBAASamples+"-gmsaa"+graphMSAASamples+"-smsaa"+sceneMSAASamples, caps, 1024, 640);
+        final GLWindow window = createWindow("text-gvbaa"+graphVBAASamples+"-gmsaa"+graphMSAASamples+"-smsaa"+sceneMSAASamples, caps, win_width, win_height);
+
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
         if( WaitStartEnd ) {
@@ -322,7 +331,9 @@ public class TestTextRendererNEWT00 extends UITestCase {
         @Override
         public void init(final GLAutoDrawable drawable) {
             super.init(drawable);
-            drawable.getGL().setSwapInterval(SwapInterval);
+            final GL2ES2 gl = drawable.getGL().getGL2ES2();
+            gl.setSwapInterval(SwapInterval);
+            gl.glEnable(GL.GL_DEPTH_TEST);
             t0 = Platform.currentTimeMillis();
 
             final Window win = (Window)drawable.getUpstreamWidget();
