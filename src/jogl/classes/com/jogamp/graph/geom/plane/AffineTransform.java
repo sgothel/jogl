@@ -530,7 +530,7 @@ public class AffineTransform implements Cloneable {
         }
     }
 
-    public final Path2D createTransformedShape(final Path2D src) {
+    public final Path2F createTransformedShape(final Path2F src) {
         if (src == null) {
             return null;
         }

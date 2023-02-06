@@ -53,6 +53,7 @@ public class GPURegionNewtDemo {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
+    static int shape_ctor_mode = 1;
     static int SceneMSAASamples = 0;
     static int GraphVBAASamples = 4;
     static int GraphMSAASamples = 0;
@@ -93,11 +94,15 @@ public class GPURegionNewtDemo {
                 } else if(args[i].equals("-y")) {
                     i++;
                     y = MiscUtils.atoi(args[i], y);
+                } else if(args[i].equals("-shape_ctor")) {
+                    i++;
+                    shape_ctor_mode = MiscUtils.atoi(args[i], shape_ctor_mode);
                 }
             }
         }
         System.err.println("Desired win size "+width+"x"+height);
         System.err.println("Desired win pos  "+x+"/"+y);
+        System.err.println("Shape_ctor_mode  "+shape_ctor_mode);
         System.err.println("Scene MSAA Samples "+SceneMSAASamples);
         System.err.println("Graph MSAA Samples"+GraphMSAASamples);
         System.err.println("Graph VBAA Samples "+GraphVBAASamples);
@@ -128,7 +133,7 @@ public class GPURegionNewtDemo {
         window.setTitle("GPU Curve Region Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (rs, rmode, sampleCount, DEBUG, TRACE);
+        final GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (shape_ctor_mode, rs, rmode, sampleCount, DEBUG, TRACE);
         regionGLListener.attachInputListenerTo(window);
         window.addGLEventListener(regionGLListener);
         window.setVisible(true);
@@ -139,6 +144,7 @@ public class GPURegionNewtDemo {
         animator.add(window);
 
         window.addKeyListener(new KeyAdapter() {
+            @Override
             public void keyPressed(final KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
                     window.destroy();
@@ -146,6 +152,7 @@ public class GPURegionNewtDemo {
             }
         });
         window.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }

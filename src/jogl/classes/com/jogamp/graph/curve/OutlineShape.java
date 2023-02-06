@@ -37,6 +37,8 @@ import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.graph.geom.plane.Path2F;
+import com.jogamp.graph.geom.plane.Winding;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -91,6 +93,7 @@ import com.jogamp.opengl.math.geom.AABBox;
  * <ul>
  *    <li> The first vertex of any outline belonging to the shape should be on-curve</li>
  *    <li> Intersections between off-curved parts of the outline is not handled</li>
+ *    <li> Outline shape winding shall be constructed counter clock wise ({@link Winding#CCW}).</li>
  * </ul>
  *
  * @see Outline
@@ -342,6 +345,9 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     /**
      * Adds a vertex to the last open outline to the shape's tail.
+     *
+     * The constructed shape should be {@link Winding#CCW}.
+     *
      * @param v the vertex to be added to the OutlineShape
      */
     public final void addVertex(final Vertex v) {
@@ -356,6 +362,9 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     /**
      * Adds a vertex to the last open outline to the shape at {@code position}
+     *
+     * The constructed shape should be {@link Winding#CCW}.
+     *
      * @param position index within the last open outline, at which the vertex will be added
      * @param v the vertex to be added to the OutlineShape
      */
@@ -372,6 +381,8 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * Add a 2D {@link Vertex} to the last open outline to the shape's tail.
      * The 2D vertex will be represented as Z=0.
      *
+     * The constructed shape should be {@link Winding#CCW}.
+     *
      * @param x the x coordinate
      * @param y the y coordniate
      * @param onCurve flag if this vertex is on the final curve or defines a curved region
@@ -385,6 +396,8 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * Add a 2D {@link Vertex} to the last open outline to the shape at {@code position}.
      * The 2D vertex will be represented as Z=0.
      *
+     * The constructed shape should be {@link Winding#CCW}.
+     *
      * @param position index within the last open outline, at which the vertex will be added
      * @param x the x coordinate
      * @param y the y coordniate
@@ -397,6 +410,9 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     /**
      * Add a 3D {@link Vertex} to the last open outline to the shape's tail.
+     *
+     * The constructed shape should be {@link Winding#CCW}.
+     *
      * @param x the x coordinate
      * @param y the y coordinate
      * @param z the z coordinate
@@ -409,6 +425,8 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     /**
      * Add a 3D {@link Vertex} to the last open outline to the shape at {@code position}.
+     *
+     * The constructed shape should be {@link Winding#CCW}.
      *
      * @param position index within the last open outline, at which the vertex will be added
      * @param x the x coordinate
@@ -423,6 +441,8 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     /**
      * Add a vertex to the last open outline to the shape's tail.
+     *
+     * The constructed shape should be {@link Winding#CCW}.
      *
      * The vertex is passed as a float array and its offset where its attributes are located.
      * The attributes should be continuous (stride = 0).
@@ -440,6 +460,8 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     /**
      * Add a vertex to the last open outline to the shape at {@code position}.
+     *
+     * The constructed shape should be {@link Winding#CCW}.
      *
      * The vertex is passed as a float array and its offset where its attributes are located.
      * The attributes should be continuous (stride = 0).
@@ -467,8 +489,241 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      *                  otherwise a clone of the last vertex will be prepended.
      */
     public final void closeLastOutline(final boolean closeTail) {
-        if( getLastOutline().setClosed(true) ) {
+        if( getLastOutline().setClosed( closeTail ) ) {
             dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
+        }
+    }
+
+    /**
+     * Append the given path geometry to this outline shape.
+     *
+     * The given path geometry should be {@link Winding#CCW}.
+     *
+     * If the given path geometry is {@link Winding#CW}, use {@link #addPathRev(Path2F, boolean)}.
+     *
+     * @param path the {@link Path2F} to append to this outline shape, should be {@link Winding#CCW}.
+     * @param connect pass true to turn an initial moveTo segment into a lineTo segment to connect the new geometry to the existing path, otherwise pass false.
+     * @see Path2F#getWinding()
+     */
+    public void addPath(final Path2F path, final boolean connect) {
+        addPath(path.iterator(null), connect);
+    }
+
+    /**
+     * Add the given {@link Path2F.Iterator} to this outline shape.
+     *
+     * The given path geometry should be {@link Winding#CCW}.
+     *
+     * If the given path geometry is {@link Winding#CW}, use {@link #addPathRev(Path2F.Iterator, boolean).
+     *
+     * @param pathI the {@link Path2F.Iterator} to append to this outline shape, should be {@link Winding#CCW}.
+     * @param connect pass true to turn an initial moveTo segment into a lineTo segment to connect the new geometry to the existing path, otherwise pass false.
+     * @see Path2F.Iterator#getWinding()
+     */
+    public final void addPath(final Path2F.Iterator pathI, boolean connect) {
+        final float[] points = pathI.points();
+        while ( pathI.hasNext() ) {
+            final int idx = pathI.index();
+            final Path2F.SegmentType type = pathI.next();
+            switch(type) {
+                case MOVETO:
+                    final Outline lo = this.getLastOutline();
+                    final int lo_sz = lo.getVertexCount();
+                    if ( 0 == lo_sz ) {
+                        addVertex(points, idx,   2, true);
+                        break;
+                    } else if ( !connect ) {
+                        closeLastOutline(false);
+                        addEmptyOutline();
+                        addVertex(points, idx,   2, true);
+                        break;
+                    }
+                    {
+                        // Skip if last vertex in last outline matching this point -> already connected.
+                        final float[] llc = lo.getVertex(lo_sz-1).getCoord();
+                        if( llc[0] == points[idx+0] &&
+                            llc[1] == points[idx+1] ) {
+                            break;
+                        }
+                    }
+                    // fallthrough: MOVETO -> LINETO
+                case LINETO:
+                    addVertex(points, idx,   2, true);
+                    break;
+                case QUADTO:
+                    addVertex(points, idx,   2, false);
+                    addVertex(points, idx+2, 2, true);
+                    break;
+                case CUBICTO:
+                    addVertex(points, idx,   2, false);
+                    addVertex(points, idx+2, 2, false);
+                    addVertex(points, idx+4, 2, true);
+                    break;
+                case CLOSE:
+                    closeLastOutline(true);
+                    addEmptyOutline();
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unhandled Segment Type: "+type);
+            }
+            connect = false;
+        }
+    }
+
+    /**
+     * Append the given path geometry to this outline shape in reverse order.
+     *
+     * The given path geometry should be {@link Winding#CW}.
+     *
+     * If the given path geometry is {@link Winding#CCW}, use {@link #addPath(Path2F, boolean)}.
+     *
+     * @param path the {@link Path2F} to append to this outline shape, should be {@link Winding#CW}.
+     * @param connect pass true to turn an initial moveTo segment into a lineTo segment to connect the new geometry to the existing path, otherwise pass false.
+     */
+    public void addPathRev(final Path2F path, final boolean connect) {
+        addPathRev(path.iterator(null), connect);
+    }
+
+    /**
+     * Add the given {@link Path2F.Iterator} to this outline shape in reverse order.
+     *
+     * The given path geometry should be {@link Winding#CW}.
+     *
+     * If the given path geometry is {@link Winding#CCW}, use {@link #addPath(Path2F.Iterator, boolean).
+     *
+     * @param pathI the {@link Path2F.Iterator} to append to this outline shape, should be {@link Winding#CW}.
+     * @param connect pass true to turn an initial moveTo segment into a lineTo segment to connect the new geometry to the existing path, otherwise pass false.
+     */
+    public final void addPathRev(final Path2F.Iterator pathI, boolean connect) {
+        final float[] points = pathI.points();
+        while ( pathI.hasNext() ) {
+            final int idx = pathI.index();
+            final Path2F.SegmentType type = pathI.next();
+            switch(type) {
+                case MOVETO:
+                    final Outline lo = this.getLastOutline();
+                    final int lo_sz = lo.getVertexCount();
+                    if ( 0 == lo_sz ) {
+                        addVertex(0, points, idx,   2, true);
+                        break;
+                    } else if ( !connect ) {
+                        closeLastOutline(false);
+                        addEmptyOutline();
+                        addVertex(0, points, idx,   2, true);
+                        break;
+                    }
+                    {
+                        // Skip if last vertex in last outline matching this point -> already connected.
+                        final float[] llc = lo.getVertex(0).getCoord();
+                        if( llc[0] == points[idx+0] &&
+                            llc[1] == points[idx+1] ) {
+                            break;
+                        }
+                    }
+                    // fallthrough: MOVETO -> LINETO
+                case LINETO:
+                    addVertex(0, points, idx,   2, true);
+                    break;
+                case QUADTO:
+                    addVertex(0, points, idx,   2, false);
+                    addVertex(0, points, idx+2, 2, true);
+                    break;
+                case CUBICTO:
+                    addVertex(0, points, idx,   2, false);
+                    addVertex(0, points, idx+2, 2, false);
+                    addVertex(0, points, idx+4, 2, true);
+                    break;
+                case CLOSE:
+                    closeLastOutline(true);
+                    addEmptyOutline();
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unhandled Segment Type: "+type);
+            }
+            connect = false;
+        }
+    }
+
+    /**
+     * Start a new position for the next line segment at given point x/y (P1).
+     *
+     * The constructed shape should be {@link Winding#CCW}.
+     *
+     * @param x point (P1)
+     * @param y point (P1)
+     * @see Path2F#moveTo(float, float)
+     * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     */
+    public final void moveTo(final float x, final float y) {
+        if ( 0 == getLastOutline().getVertexCount() ) {
+            addVertex(x, y, true);
+        } else {
+            closeLastOutline(false);
+            addEmptyOutline();
+            addVertex(x, y, true);
+        }
+    }
+
+    /**
+     * Add a line segment, intersecting the last point and the given point x/y (P1).
+     *
+     * The constructed shape should be {@link Winding#CCW}.
+     *
+     * @param x final point (P1)
+     * @param y final point (P1)
+     * @see Path2F#lineTo(float, float)
+     * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     */
+    public final void lineTo(final float x, final float y) {
+        addVertex(x, y, true);
+    }
+
+    /**
+     * Add a quadratic curve segment, intersecting the last point and the second given point x2/y2 (P2).
+     *
+     * The constructed shape should be {@link Winding#CCW}.
+     *
+     * @param x1 quadratic parametric control point (P1)
+     * @param y1 quadratic parametric control point (P1)
+     * @param x2 final interpolated control point (P2)
+     * @param y2 final interpolated control point (P2)
+     * @see Path2F#quadTo(float, float, float, float)
+     * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     */
+    public final void quadTo(final float x1, final float y1, final float x2, final float y2) {
+        addVertex(x1, y1, false);
+        addVertex(x2, y2, true);
+    }
+
+    /**
+     * Add a cubic Bézier curve segment, intersecting the last point and the second given point x3/y3 (P3).
+     *
+     * The constructed shape should be {@link Winding#CCW}.
+     *
+     * @param x1 Bézier control point (P1)
+     * @param y1 Bézier control point (P1)
+     * @param x2 Bézier control point (P2)
+     * @param y2 Bézier control point (P2)
+     * @param x3 final interpolated control point (P3)
+     * @param y3 final interpolated control point (P3)
+     * @see Path2F#cubicTo(float, float, float, float, float, float)
+     * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     */
+    public final void cubicTo(final float x1, final float y1, final float x2, final float y2, final float x3, final float y3) {
+        addVertex(x1, y1, false);
+        addVertex(x2, y2, false);
+        addVertex(x3, y3, true);
+    }
+
+    /**
+     * Closes the current sub-path segment by drawing a straight line back to the coordinates of the last moveTo. If the path is already closed then this method has no effect.
+     * @see Path2F#closePath()
+     * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     */
+    public final void closePath() {
+        if ( 0 < getLastOutline().getVertexCount() ) {
+            closeLastOutline(true);
+            addEmptyOutline();
         }
     }
 

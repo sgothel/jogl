@@ -49,7 +49,7 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener01;
-import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener02;
+import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener10;
 import com.jogamp.opengl.test.junit.graph.demos.GPURendererListenerBase01;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -88,7 +88,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
     //    caps.setOnscreen(false);
         caps.setAlphaBits(4);
 
-        final GLWindow window = createWindow("shape-vbaa0-msaa0", caps, 800, 400);
+        final GLWindow window = createWindow("t00-shape-vbaa0-msaa0", caps, 800, 400);
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
 
         final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, 0, 0, false, false);
@@ -122,7 +122,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
 
-        final GLWindow window = createWindow("shape-vbaa0-msaa0", caps, 800, 400);
+        final GLWindow window = createWindow("t01-shape-vbaa0-msaa0", caps, 800, 400);
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
 
         final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.VARWEIGHT_RENDERING_BIT, 0, false, false);
@@ -153,7 +153,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
 
-        final GLWindow window = createWindow("shape-vbaa0-msaa1", caps, 800, 400);
+        final GLWindow window = createWindow("t10-shape-vbaa0-msaa1", caps, 800, 400);
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
 
         final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, 0, 0, false, false);
@@ -189,7 +189,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
 
-        final GLWindow window = createWindow("shape-vbaa0-msaa1", caps, 800, 400);
+        final GLWindow window = createWindow("t11-shape-vbaa0-msaa1", caps, 800, 400);
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
 
         final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.VARWEIGHT_RENDERING_BIT, 0, false, false);
@@ -224,9 +224,9 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         //caps.setOnscreen(false);
         caps.setAlphaBits(4);
 
-        final GLWindow window = createWindow("shape-vbaa1-msaa0", caps, 800,400);
+        final GLWindow window = createWindow("t20-shape-vbaa1-msaa0", caps, 800,400);
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final GPURegionGLListener02  demo02Listener = new GPURegionGLListener02 (rs, Region.VBAA_RENDERING_BIT, 4, false, false);
+        final GPURegionGLListener10  demo02Listener = new GPURegionGLListener10 (rs, Region.VBAA_RENDERING_BIT, 4, false, false);
         demo02Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo02Listener);
 
@@ -245,6 +245,39 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         destroyWindow(window);
     }
 
+    private void test30RegionRendererShapesImpl(final GLCapabilities caps, final int shape_ctor_mode) throws InterruptedException {
+        final GLWindow window = createWindow("t30-shape0"+shape_ctor_mode+"-vbaa0-msaa1", caps, 800, 400);
+        final RenderState rs = RenderState.createRenderState(SVertex.factory());
+
+        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (shape_ctor_mode, rs, 0, 0, false, false);
+        demo01Listener.attachInputListenerTo(window);
+        window.addGLEventListener(demo01Listener);
+
+        final RegionGLListener listener = new RegionGLListener(demo01Listener, window.getTitle(), "GPURegion01");
+        window.addGLEventListener(listener);
+
+        // listener.setTech(-20, 00, -300, 0f, 2);
+        listener.setTech(-20, 00,  -50, 0f, 4);
+        window.display();
+
+        destroyWindow(window);
+    }
+
+    @Test
+    public void test30RegionRendererShapes() throws InterruptedException {
+        final GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
+        final GLCapabilities caps = new GLCapabilities(glp);
+    //    caps.setOnscreen(false);
+        caps.setAlphaBits(4);
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(4);
+
+        test30RegionRendererShapesImpl(caps, 1);
+        test30RegionRendererShapesImpl(caps, 2);
+        test30RegionRendererShapesImpl(caps, 3);
+        test30RegionRendererShapesImpl(caps, 4);
+    }
+
     private static class RegionGLListener implements GLEventListener {
         String winTitle;
         String name;
@@ -260,10 +293,12 @@ public class TestRegionRendererNEWT01 extends UITestCase {
             impl.setMatrix(xt, yt, zt, angle, sampleCount);
         }
 
+        @Override
         public void init(final GLAutoDrawable drawable) {
             impl.init(drawable);
         }
 
+        @Override
         public void display(final GLAutoDrawable drawable) {
             impl.display(drawable);
 
@@ -276,11 +311,13 @@ public class TestRegionRendererNEWT01 extends UITestCase {
             }
         }
 
+        @Override
         public void dispose(final GLAutoDrawable drawable) {
             impl.dispose(drawable);
 
         }
 
+        @Override
         public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
             impl.reshape(drawable, x, y, width, height);
 

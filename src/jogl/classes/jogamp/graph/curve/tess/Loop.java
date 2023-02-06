@@ -31,6 +31,7 @@ import java.util.ArrayList;
 
 
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.plane.Winding;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -40,7 +41,7 @@ public class Loop {
     private final AABBox box = new AABBox();
     private GraphOutline initialOutline = null;
 
-    public Loop(final GraphOutline polyline, final VectorUtil.Winding winding){
+    public Loop(final GraphOutline polyline, final Winding winding){
         initialOutline = polyline;
         this.root = initFromPolyline(initialOutline, winding);
     }
@@ -94,23 +95,23 @@ public class Loop {
      * from the boundary profile
      * @param reqWinding requested winding of edges (CCW or CW)
      */
-    private HEdge initFromPolyline(final GraphOutline outline, final VectorUtil.Winding reqWinding){
+    private HEdge initFromPolyline(final GraphOutline outline, final Winding reqWinding){
         final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
 
         if(vertices.size()<3) {
             throw new IllegalArgumentException("outline's vertices < 3: " + vertices.size());
         }
-        final VectorUtil.Winding hasWinding = VectorUtil.getWinding(
+        final Winding hasWinding = VectorUtil.getWinding(
                                  vertices.get(0).getPoint(),
                                  vertices.get(1).getPoint(),
                                  vertices.get(2).getPoint());
         //FIXME: handle case when vertices come inverted - Rami
         // skips inversion CW -> CCW
         final boolean invert =  hasWinding != reqWinding &&
-                                reqWinding == VectorUtil.Winding.CW;
+                                reqWinding == Winding.CW;
 
         final int max;
-        final int edgeType = reqWinding == VectorUtil.Winding.CCW ? HEdge.BOUNDARY : HEdge.HOLE ;
+        final int edgeType = reqWinding == Winding.CCW ? HEdge.BOUNDARY : HEdge.HOLE ;
         int index;
         HEdge firstEdge = null;
         HEdge lastEdge = null;
@@ -158,7 +159,7 @@ public class Loop {
     public void addConstraintCurve(final GraphOutline polyline) {
         //        GraphOutline outline = new GraphOutline(polyline);
         /**needed to generate vertex references.*/
-        initFromPolyline(polyline, VectorUtil.Winding.CW);
+        initFromPolyline(polyline, Winding.CW);
 
         final GraphVertex v3 = locateClosestVertex(polyline);
         final HEdge v3Edge = v3.findBoundEdge();

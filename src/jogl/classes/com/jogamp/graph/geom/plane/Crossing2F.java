@@ -21,9 +21,7 @@ package com.jogamp.graph.geom.plane;
 
 import com.jogamp.opengl.math.FloatUtil;
 
-
-
-public class Crossing {
+/* pp */ class Crossing2F {
 
     /**
      * Allowable tolerance for bounds comparison
@@ -464,38 +462,36 @@ public class Crossing {
     /**
      * Returns how many times ray from point (x,y) cross path
      */
-    public static int crossPath(final PathIterator p, final float x, final float y) {
+    public static int crossPath(final Path2F.Iterator p, final float x, final float y) {
         int cross = 0;
         float mx, my, cx, cy;
         mx = my = cx = cy = 0.0f;
-        final float coords[] = new float[6];
-
-        while (!p.isDone()) {
-            final int segmentType = p.currentSegment(coords);
+        final float[] points = p.points();
+        while ( p.hasNext() ) {
+            final int idx = p.index();
+            final Path2F.SegmentType segmentType = p.next();
             switch (segmentType) {
-                case PathIterator.SEG_MOVETO:
+                case MOVETO:
                     if (cx != mx || cy != my) {
                         cross += crossLine(cx, cy, mx, my, x, y);
                     }
-                    mx = cx = coords[0];
-                    my = cy = coords[1];
+                    mx = cx = points[idx+0];
+                    my = cy = points[idx+1];
                     break;
-                case PathIterator.SEG_LINETO:
-                    cross += crossLine(cx, cy, cx = coords[0], cy = coords[1], x, y);
+                case LINETO:
+                    cross += crossLine(cx, cy, cx = points[idx+0], cy = points[idx+1], x, y);
                     break;
-                case PathIterator.SEG_QUADTO:
-                    cross += crossQuad(cx, cy, coords[0], coords[1], cx = coords[2], cy = coords[3], x, y);
+                case QUADTO:
+                    cross += crossQuad(cx, cy, points[idx+0], points[idx+1], cx = points[idx+2], cy = points[idx+3], x, y);
                     break;
-                case PathIterator.SEG_CUBICTO:
-                    cross += crossCubic(cx, cy, coords[0], coords[1], coords[2], coords[3], cx = coords[4], cy = coords[5], x, y);
+                case CUBICTO:
+                    cross += crossCubic(cx, cy, points[idx+0], points[idx+1], points[idx+2], points[idx+3], cx = points[idx+4], cy = points[idx+5], x, y);
                     break;
-                case PathIterator.SEG_CLOSE:
+                case CLOSE:
                     if (cy != my || cx != mx) {
                         cross += crossLine(cx, cy, cx = mx, cy = my, x, y);
                     }
                     break;
-                default:
-                    throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
             }
 
             // checks if the point (x,y) is the vertex of shape with PathIterator p
@@ -504,7 +500,6 @@ public class Crossing {
                 cy = my;
                 break;
             }
-            p.next();
         }
         if (cy != my) {
             cross += crossLine(cx, cy, mx, my, x, y);
@@ -515,7 +510,7 @@ public class Crossing {
     /**
      * Returns how many times ray from point (x,y) cross shape
      */
-    public static int crossShape(final Path2D s, final float x, final float y) {
+    public static int crossShape(final Path2F s, final float x, final float y) {
         if (!s.getBounds2D().contains(x, y)) {
             return 0;
         }
@@ -819,54 +814,53 @@ public class Crossing {
     /**
      * Returns how many times rectangle stripe cross path or the are intersect
      */
-    public static int intersectPath(final PathIterator p, final float x, final float y, final float w, final float h) {
+    public static int intersectPath(final Path2F.Iterator p, final float x, final float y, final float w, final float h) {
 
         int cross = 0;
         int count;
         float mx, my, cx, cy;
         mx = my = cx = cy = 0.0f;
-        final float coords[] = new float[6];
 
         final float rx1 = x;
         final float ry1 = y;
         final float rx2 = x + w;
         final float ry2 = y + h;
 
-        while (!p.isDone()) {
+        final float[] points = p.points();
+
+        while ( p.hasNext() ) {
+            final int idx = p.index();
+            final Path2F.SegmentType segmentType = p.next();
             count = 0;
-            final int segmentType = p.currentSegment(coords);
             switch (segmentType) {
-                case PathIterator.SEG_MOVETO:
+                case MOVETO:
                     if (cx != mx || cy != my) {
                         count = intersectLine(cx, cy, mx, my, rx1, ry1, rx2, ry2);
                     }
-                    mx = cx = coords[0];
-                    my = cy = coords[1];
+                    mx = cx = points[idx+0];
+                    my = cy = points[idx+1];
                     break;
-                case PathIterator.SEG_LINETO:
-                    count = intersectLine(cx, cy, cx = coords[0], cy = coords[1], rx1, ry1, rx2, ry2);
+                case LINETO:
+                    count = intersectLine(cx, cy, cx = points[idx+0], cy = points[idx+1], rx1, ry1, rx2, ry2);
                     break;
-                case PathIterator.SEG_QUADTO:
-                    count = intersectQuad(cx, cy, coords[0], coords[1], cx = coords[2], cy = coords[3], rx1, ry1, rx2, ry2);
+                case QUADTO:
+                    count = intersectQuad(cx, cy, points[idx+0], points[idx+1], cx = points[idx+2], cy = points[idx+3], rx1, ry1, rx2, ry2);
                     break;
-                case PathIterator.SEG_CUBICTO:
-                    count = intersectCubic(cx, cy, coords[0], coords[1], coords[2], coords[3], cx = coords[4], cy = coords[5], rx1, ry1, rx2, ry2);
+                case CUBICTO:
+                    count = intersectCubic(cx, cy, points[idx+0], points[idx+1], points[idx+2], points[idx+3], cx = points[idx+4], cy = points[idx+5], rx1, ry1, rx2, ry2);
                     break;
-                case PathIterator.SEG_CLOSE:
+                case CLOSE:
                     if (cy != my || cx != mx) {
                         count = intersectLine(cx, cy, mx, my, rx1, ry1, rx2, ry2);
                     }
                     cx = mx;
                     cy = my;
                     break;
-                default:
-                    throw new IllegalArgumentException("Unhandled Segment Type: "+segmentType);
             }
             if (count == CROSSING) {
                 return CROSSING;
             }
             cross += count;
-            p.next();
         }
         if (cy != my) {
             count = intersectLine(cx, cy, mx, my, rx1, ry1, rx2, ry2);
@@ -881,7 +875,7 @@ public class Crossing {
     /**
      * Returns how many times rectangle stripe cross shape or the are intersect
      */
-    public static int intersectShape(final Path2D s, final float x, final float y, final float w, final float h) {
+    public static int intersectShape(final Path2F s, final float x, final float y, final float w, final float h) {
         if (!s.getBounds2D().intersects2DRegion(x, y, w, h)) {
             return 0;
         }

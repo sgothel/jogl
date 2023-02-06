@@ -29,6 +29,8 @@ package com.jogamp.opengl.math;
 
 import java.util.ArrayList;
 
+import com.jogamp.graph.geom.plane.Winding;
+
 public final class VectorUtil {
 
     public static final float[] VEC3_ONE = { 1f, 1f, 1f };
@@ -37,16 +39,6 @@ public final class VectorUtil {
     public static final float[] VEC3_UNIT_Y_NEG = { 0f, -1f, 0f };
     public static final float[] VEC3_UNIT_Z = { 0f, 0f, 1f };
     public static final float[] VEC3_UNIT_Z_NEG = { 0f, 0f, -1f };
-
-    public enum Winding {
-        CW(-1), CCW(1);
-
-        public final int dir;
-
-        Winding(final int dir) {
-            this.dir = dir;
-        }
-    }
 
     /**
      * Copies a vector of length 2

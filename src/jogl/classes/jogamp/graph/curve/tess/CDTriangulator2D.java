@@ -35,6 +35,7 @@ import com.jogamp.graph.curve.tess.Triangulator;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.plane.Winding;
 import com.jogamp.opengl.math.VectorUtil;
 
 import jogamp.opengl.Debug;
@@ -89,7 +90,7 @@ public class CDTriangulator2D implements Triangulator {
             final GraphOutline outline = new GraphOutline(polyline);
             final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, false, sharpness);
             // vertices.addAll(polyline.getVertices());
-            loop = new Loop(innerPoly, VectorUtil.Winding.CCW);
+            loop = new Loop(innerPoly, Winding.CCW);
             loops.add(loop);
         } else {
             final GraphOutline outline = new GraphOutline(polyline);

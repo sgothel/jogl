@@ -70,7 +70,7 @@ fi
 
 #export LIBGL_DEBUG=verbose 
 #export MESA_DEBUG=true 
-export LIBGL_ALWAYS_SOFTWARE=true
+#export LIBGL_ALWAYS_SOFTWARE=true
 #export INTEL_DEBUG="buf bat"
 #export INTEL_STRICT_CONFORMANCE=1 
 
@@ -191,6 +191,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
+    #D_ARGS="-Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.TaskBase.TraceSource"
@@ -203,7 +204,6 @@ function jrun() {
     #D_ARGS="-Djogl.debug.FixedFuncPipeline"
     #D_ARGS="-Djogl.debug.ImmModeSink.Buffer -Djogl.debug.ImmModeSink.Draw"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState -Djogl.debug.ImmModeSink.Buffer -Djogl.debug.ImmModeSink.Draw"
-    #D_ARGS="-Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.FBObject -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch -Djogl.debug.GLDrawable"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.FBObject"
@@ -242,7 +242,7 @@ function jrun() {
     #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
     #D_ARGS="-Djogl.debug.GLArrayData"
-    D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
+    #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.window.icons=null,null"
@@ -930,7 +930,7 @@ function testawtswt() {
 #
 # Graph
 #
-#testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
+testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
@@ -983,7 +983,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch10NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch11NewtAWT $*
 
