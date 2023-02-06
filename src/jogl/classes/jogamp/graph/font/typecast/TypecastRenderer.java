@@ -39,6 +39,9 @@ import com.jogamp.graph.geom.Vertex.Factory;
  * Factory to build an {@link OutlineShape} from
  * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}s.
  *
+ * TTF Glyph's have Winding.CW, hence we add the OutlineShape in reverse order,
+ * i.e. each new vertex at position 0.
+ *
  * http://www.freetype.org/freetype2/docs/glyphs/glyphs-3.html
  * http://walon.org/pub/ttf/ttf_glyphs.htm
  */
