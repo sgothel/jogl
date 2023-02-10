@@ -201,7 +201,11 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(dx, dy, z0);
-        textRenderUtil.drawString3D(gl, renderer, font, fontSize, text, null, sampleCount);
+        {
+            final float sxy = fontSize / font.getMetrics().getUnitsPerEM();
+            pmv.glScalef(sxy, sxy, 1.0f);
+        }
+        textRenderUtil.drawString3D(gl, renderer, font, text, null, sampleCount);
 
         lastRow = row;
     }

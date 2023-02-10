@@ -44,6 +44,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.opengl.test.junit.graph.TextRendererGLELBase;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -93,7 +94,7 @@ public abstract class GLReadBuffer00Base extends UITestCase {
             final String text = String.format("Frame %04d (%03d): %04dx%04d", frameNo, userCounter, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
             System.err.println("TextRendererGLEL.display: "+text);
             if( null != renderer ) {
-                final float pixelSize = font.getPixelSize(14f, dpiH);
+                final float pixelSize = FontScale.toPixels(14f, dpiH);
                 drawable.getGL().glClearColor(1f, 1f, 1f, 0f);
                 renderString(drawable, font, pixelSize, text, 0 /* col */, 0 /* row */, 0, 0, -1, regionFPS);
             } else {

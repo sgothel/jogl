@@ -47,6 +47,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
@@ -194,7 +195,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
             final String text4 = mPlayer.getUri().path.decode();
             if( displayOSD && null != renderer ) {
                 // We share ClearColor w/ MovieSimple's init !
-                final float pixelSize = font.getPixelSize(fontSize, dpiH);
+                final float pixelSize = FontScale.toPixels(fontSize, dpiH);
                 if( null != regionFPS ) {
                     renderString(drawable, font, pixelSize, text1, 1 /* col */,  1 /* row */, 0,      0, -1, regionFPS); // no-cache
                 } else {
@@ -210,6 +211,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
     private boolean displayOSD = false;
 
     private final MouseListener mouseAction = new MouseAdapter() {
+        @Override
         public void mousePressed(final MouseEvent e) {
             if(e.getY()<=surfHeight/2 && null!=mPlayer && 1 == e.getClickCount()) {
                 if(GLMediaPlayer.State.Playing == mPlayer.getState()) {
@@ -219,6 +221,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                 }
             }
         }
+        @Override
         public void mouseReleased(final MouseEvent e) {
             if(e.getY()<=surfHeight/2) {
                 rotate = -1;
@@ -226,10 +229,12 @@ public class MovieSBSStereo implements StereoGLEventListener {
                 System.err.println("zoom: "+zoom);
             }
         }
+        @Override
         public void mouseMoved(final MouseEvent e) {
             prevMouseX = e.getX();
             // prevMouseY = e.getY();
         }
+        @Override
         public void mouseDragged(final MouseEvent e) {
             final int x = e.getX();
             final int y = e.getY();
@@ -247,6 +252,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
             prevMouseX = x;
             // prevMouseY = y;
         }
+        @Override
         public void mouseWheelMoved(final MouseEvent e) {
             if( !e.isShiftDown() ) {
                 zoom += e.getRotation()[1]/10f; // vertical: wheel
@@ -255,6 +261,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
         } };
 
     private final KeyListener keyAction = new KeyAdapter() {
+        @Override
         public void keyReleased(final KeyEvent e)  {
             if( e.isAutoRepeat() ) {
                 return;
@@ -802,6 +809,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
     static class StereoGLMediaEventListener implements GLMediaEventListener {
             void destroyWindow(final Window window) {
                 new InterruptSource.Thread() {
+                    @Override
                     public void run() {
                         window.destroy();
                     } }.start();
@@ -848,6 +856,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                     } else {
                         System.err.println("MovieSimple State: EOS");
                         new InterruptSource.Thread() {
+                            @Override
                             public void run() {
                                 mp.setPlaySpeed(1f);
                                 mp.seek(0);

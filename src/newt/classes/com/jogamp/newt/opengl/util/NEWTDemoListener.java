@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.newt.Window;
@@ -126,6 +127,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_SPACE:
                 e.setConsumed(true);
                 glWindow.invokeOnCurrentThread(new Runnable() {
+                    @Override
                     public void run() {
                         final GLAnimatorControl anim = glWindow.getAnimator();
                         if( null != anim ) {
@@ -140,6 +142,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_A:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         printlnState("[set alwaysontop pre]");
                         glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
@@ -149,6 +152,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_B:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         printlnState("[set alwaysonbottom pre]");
                         glWindow.setAlwaysOnBottom(!glWindow.isAlwaysOnBottom());
@@ -158,6 +162,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_C:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         if( null != pointerIcons ) {
                             printlnState("[set pointer-icon pre]");
@@ -177,6 +182,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_D:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         printlnState("[set undecorated pre]");
                         glWindow.setUndecorated(!glWindow.isUndecorated());
@@ -187,6 +193,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
                 e.setConsumed(true);
                 quitAdapterOff();
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         printlnState("[set fullscreen pre]");
                         if( glWindow.isFullscreen() ) {
@@ -205,6 +212,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_G:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         final float newGamma = gamma + ( e.isShiftDown() ? -0.1f : 0.1f );
                         System.err.println("[set gamma]: "+gamma+" -> "+newGamma);
@@ -216,6 +224,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_I:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         printlnState("[set pointer-visible pre]");
                         glWindow.setPointerVisible(!glWindow.isPointerVisible());
@@ -225,6 +234,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_J:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         printlnState("[set pointer-confined pre]", "warp-center: "+e.isShiftDown());
                         final boolean confine = !glWindow.isPointerConfined();
@@ -240,6 +250,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_M:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         // none:  max-v
                         // alt:   max-h
@@ -271,6 +282,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_P:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         printlnState("[set position pre]");
                         glWindow.setPosition(100, 100);
@@ -286,6 +298,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_R:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         printlnState("[set resizable pre]");
                         glWindow.setResizable(!glWindow.isResizable());
@@ -295,6 +308,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_S:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         printlnState("[set sticky pre]");
                         glWindow.setSticky(!glWindow.isSticky());
@@ -331,6 +345,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
                     });
                 } else {
                     glWindow.invokeOnNewThread(null, false, new Runnable() {
+                        @Override
                         public void run() {
                             final boolean wasVisible = glWindow.isVisible();
                             {
@@ -354,6 +369,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             case KeyEvent.VK_W:
                 e.setConsumed(true);
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         printlnState("[set pointer-pos pre]");
                         glWindow.warpPointer(glWindow.getSurfaceWidth()/2, glWindow.getSurfaceHeight()/2);
@@ -441,6 +457,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
     public boolean shouldQuit() { return quitAdapterShouldQuit; }
     public void doQuit() { quitAdapterShouldQuit=true; }
 
+    @Override
     public void windowDestroyNotify(final WindowEvent e) {
         if( quitAdapterEnabled && quitAdapterEnabled2 ) {
             System.err.println("QUIT Window "+Thread.currentThread());
@@ -458,9 +475,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
         final CapabilitiesImmutable reqCaps = win.getRequestedCapabilities();
         final CapabilitiesImmutable caps = null != chosenCaps ? chosenCaps : reqCaps;
         final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
-        final float[] sDPI = win.getPixelsPerMM(new float[2]);
-        sDPI[0] *= 25.4f;
-        sDPI[1] *= 25.4f;
+        final float[] sDPI = FontScale.perMMToPerInch( win.getPixelsPerMM(new float[2]) );
         final float[] minSurfacePixelScale = win.getMinimumSurfaceScale(new float[2]);
         final float[] maxSurfacePixelScale = win.getMaximumSurfaceScale(new float[2]);
         final float[] reqSurfacePixelScale = win.getRequestedSurfaceScale(new float[2]);

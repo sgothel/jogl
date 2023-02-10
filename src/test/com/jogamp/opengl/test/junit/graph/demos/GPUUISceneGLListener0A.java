@@ -23,6 +23,7 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.Window;
@@ -357,6 +358,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             @Override
             public void mouseClicked(final MouseEvent e) {
                 new InterruptSource.Thread() {
+                    @Override
                     public void run() {
                         if( null != cDrawable ) {
                             final GLAnimatorControl actrl = cDrawable.getAnimator();
@@ -668,12 +670,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if( upObj instanceof Window ) {
             final Window upWin = (Window)upObj;
             final MonitorDevice mm = upWin.getMainMonitor();
-            final float[] monitorDPI = mm.getPixelsPerMM(new float[2]);
-            monitorDPI[0] *= 25.4f;
-            monitorDPI[1] *= 25.4f;
-            final float[] sDPI = upWin.getPixelsPerMM(new float[2]);
-            sDPI[0] *= 25.4f;
-            sDPI[1] *= 25.4f;
+            final float[] monitorDPI = FontScale.perMMToPerInch( mm.getPixelsPerMM(new float[2]) );
+            final float[] sDPI = FontScale.perMMToPerInch( upWin.getPixelsPerMM(new float[2]) );
             dpiH = sDPI[1];
             System.err.println("Monitor detected: "+mm);
             System.err.println("Monitor dpi: "+monitorDPI[0]+" x "+monitorDPI[1]);
@@ -731,7 +729,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         sceneUIController.addShape(jogampLabel);
         jogampLabel.setEnabled(enableOthers);
 
-        final float pixelSize10Pt = font.getPixelSize(fontSizePt, dpiH);
+        final float pixelSize10Pt = FontScale.toPixels(fontSizePt, dpiH);
         System.err.println("10Pt PixelSize: Display "+dpiH+" dpi, fontSize "+fontSizePt+" ppi -> "+pixelSize10Pt+" pixel-size");
         truePtSizeLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSize10Pt, truePtSize);
         sceneUIController.addShape(truePtSizeLabel);

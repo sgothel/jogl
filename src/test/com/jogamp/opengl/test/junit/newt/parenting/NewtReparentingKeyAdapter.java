@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.newt.parenting;
 
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.NativeWindowHolder;
@@ -69,6 +70,7 @@ public class NewtReparentingKeyAdapter extends NEWTDemoListener {
                 e.setConsumed(true);
                 quitAdapterOff();
                 glWindow.invokeOnNewThread(null, false, new Runnable() {
+                    @Override
                     public void run() {
                         final java.lang.Thread t = glWindow.setExclusiveContextThread(null);
                         if(glWindow.getParent()==null) {
@@ -103,9 +105,7 @@ public class NewtReparentingKeyAdapter extends NEWTDemoListener {
         final CapabilitiesImmutable reqCaps = win.getRequestedCapabilities();
         final CapabilitiesImmutable caps = null != chosenCaps ? chosenCaps : reqCaps;
         final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
-        final float[] sDPI = win.getPixelsPerMM(new float[2]);
-        sDPI[0] *= 25.4f;
-        sDPI[1] *= 25.4f;
+        final float[] sDPI = FontScale.perMMToPerInch( win.getPixelsPerMM(new float[2]) );
         win.setTitle("GLWindow["+capsA+"], win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight()+", sDPI "+sDPI[0]+" x "+sDPI[1]);
     }
 }

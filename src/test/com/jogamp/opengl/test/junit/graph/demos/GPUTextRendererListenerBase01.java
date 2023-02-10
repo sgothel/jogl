@@ -43,6 +43,9 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.font.FontScale;
+import com.jogamp.graph.font.FontSet;
+import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -68,13 +71,13 @@ import com.jogamp.opengl.util.PMVMatrix;
  */
 public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerBase01 {
     public final TextRegionUtil textRegionUtil;
-    private final GLRegion regionFPS, regionBottom;
+    private final GLRegion regionFPS, regionHead, regionBottom;
     int fontSet = FontFactory.UBUNTU;
     Font font;
 
     int headType = 0;
     boolean drawFPS = true;
-    final float fontSizeFName = 8f;
+    final float fontSizeFName = 10f;
     final float fontSizeFPS = 10f;
     final int[] sampleCountFPS = new int[] { 8 };
     float fontSizeHead = 12f;
@@ -88,28 +91,54 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     static final String text1 = "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789.:,;(*!?/\\\")$%^&-+@~#<>{}[]";
     static final String text2 = "The quick brown fox jumps over the lazy dog";
-    static final String textX =
+    public static final String textX =
         "JOGAMP graph demo using Resolution Independent NURBS\n"+
         "JOGAMP JOGL - OpenGL ES2 profile\n"+
         "Press 1/2 to zoom in/out the below text\n"+
         "Press 3/4 to incr/decs font size (alt: head, w/o bottom)\n"+
         "Press 6/7 to edit texture size if using VBAA\n"+
         "Press 0/9 to rotate the below string\n"+
+        "Press s to screenshot\n"+
         "Press v to toggle vsync\n"+
         "Press i for live input text input (CR ends it, backspace supported)\n"+
         "Press f to toggle fps. H for different text, space for font type\n";
 
-    static final String textX2 =
+    public static final String textX2 =
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus. \n"+
         "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
         "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices ultricies nec a elit. \n"+
-        "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia pharetra at venenatis est.\n"+
-        "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat nec, volutpat nec nisi.\n"+
+        "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia pharetra at venenatis est. \n"+
+        "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat nec, volutpat nec nisi. \n"+
         "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum id tempus quis, semper \n"+
-        "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem,\n" +
+        "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem, \n" +
         "-------Press H to change text---------";
 
-    StringBuilder userString = new StringBuilder();
+    public static final String textX3 =
+        "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*.\n"+
+        "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail.\n"+
+        "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale.\n"+
+        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway, Kyulu in Kenya, not in Rwanda.…\n"+
+        "Miłosz and Wū Wŭ all in the library? 1510–1620, 11:00 pm, and the 1980s are over.\n"+
+        "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
+        "-------Press H to change text---------";
+
+    public static final String textX30 =
+        "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*.\n"+
+        "Two of [of] (of) ‘of’ “of” of? of! of*. Ydes, Yffignac and Ygrande are in France: so are Ypres,\n"+
+        "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail.\n"+
+        "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale.\n"+
+        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway, Kyulu in Kenya, not in Rwanda.…\n"+
+        "Walton’s in West Virginia, but «Wren» is in Oregon. Tlálpan is near Xochimilco in México.\n"+
+        "The Zygos & Xylophagou are in Cyprus, Zwettl in Austria, Fænø in Denmark, the Vøringsfossen and Værøy in Norway.\n"+
+        "Tchula is in Mississippi, the Tittabawassee in Michigan. Twodot is here in Montana, Ywamun in Burma.\n"+
+        "Yggdrasil and Ymir, Yngvi and Vóden, Vídrið and Skeggjöld and Týr are all in the Eddas.\n"+
+        "Tørberget and Våg, of course, are in Norway, Ktipas and Tmolos in Greece, but Vázquez is in Argentina, Vreden in Germany,\n"+
+        "Von-Vincke-Straße in Münster, Vdovino in Russia, Ytterbium in the periodic table. Are Toussaint L’Ouverture, Wölfflin, Wolfe,\n"+
+        "Miłosz and Wū Wŭ all in the library? 1510–1620, 11:00 pm, and the 1980s are over.\n"+
+        "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
+        "-------Press H to change text---------";
+
+    StringBuilder userString = new StringBuilder(textX2);
     boolean userInput = false;
     public GPUTextRendererListenerBase01(final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
         // NOTE_ALPHA_BLENDING: We use alpha-blending
@@ -119,9 +148,11 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRegionUtil = new TextRegionUtil(renderModes);
         this.regionFPS = GLRegion.create(renderModes, null);
+        this.regionHead = GLRegion.create(renderModes, null);
         this.regionBottom = GLRegion.create(renderModes, null);
         try {
-            this.font = FontFactory.get(fontSet).getDefault();
+            // this.font = FontFactory.get(fontSet).getDefault();
+            this.font = FontFactory.get(fontSet).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE);
             dumpFontNames();
 
             this.fontName = font.toString();
@@ -139,7 +170,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     }
 
     void switchHeadBox() {
-        headType = ( headType + 1 ) % 4 ;
+        headType = ( headType + 1 ) % 5 ;
         switch(headType) {
           case 0:
               headtext = null;
@@ -151,12 +182,15 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
           case 2:
               headtext= textX;
               break;
+          case 3:
+              headtext= textX3;
+              break;
 
           default:
               headtext = text1;
         }
         if(null != headtext) {
-            headbox = font.getMetricBounds(headtext, font.getPixelSize(fontSizeHead, dpiH));
+            headbox = font.getMetricBounds(headtext, FontScale.toPixels(fontSizeHead, dpiH));
         }
     }
 
@@ -166,15 +200,13 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
             final Window window = (Window) upObj;
-            final float[] sDPI = window.getPixelsPerMM(new float[2]);
-            sDPI[0] *= 25.4f;
-            sDPI[1] *= 25.4f;
+            final float[] sDPI = FontScale.perMMToPerInch( window.getPixelsPerMM(new float[2]) );
             dpiH = sDPI[1];
             System.err.println("Using screen DPI of "+dpiH);
         } else {
             System.err.println("Using default DPI of "+dpiH);
         }
-        fontNameBox = font.getMetricBounds(fontName, font.getPixelSize(fontSizeFName, dpiH));
+        fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiH));
         switchHeadBox();
 
     }
@@ -198,6 +230,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     @Override
     public void dispose(final GLAutoDrawable drawable) {
         regionFPS.destroy(drawable.getGL().getGL2ES2());
+        regionHead.destroy(drawable.getGL().getGL2ES2());
         regionBottom.destroy(drawable.getGL().getGL2ES2());
         super.dispose(drawable);
     }
@@ -223,14 +256,14 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
-        final float pixelSizeFName = font.getPixelSize(fontSizeFName, dpiH);
-        final float pixelSizeHead = font.getPixelSize(fontSizeHead, dpiH);
-        final float pixelSizeBottom = font.getPixelSize(fontSizeBottom, dpiH);
+        final float pixelSizeFName = FontScale.toPixels(fontSizeFName, dpiH);
+        final float pixelSizeHead = FontScale.toPixels(fontSizeHead, dpiH);
+        final float pixelSizeBottom = FontScale.toPixels(fontSizeBottom, dpiH);
 
         renderer.enable(gl, true);
 
         if( drawFPS ) {
-            final float pixelSizeFPS = font.getPixelSize(fontSizeFPS, dpiH);
+            final float pixelSizeFPS = FontScale.toPixels(fontSizeFPS, dpiH);
             final float lfps, tfps, td;
             final GLAnimatorControl animator = drawable.getAnimator();
             if( null != animator ) {
@@ -250,20 +283,27 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
             // bottom, half line up
             pmv.glTranslatef(nearPlaneX0, nearPlaneY0+(nearPlaneS * pixelSizeFPS / 2f), nearPlaneZ0);
-
+            {
+                final float sxy = ( nearPlaneS * pixelSizeFPS ) / font.getMetrics().getUnitsPerEM();
+                pmv.glScalef(sxy, sxy, 1.0f);
+            }
             // No cache, keep region alive!
-            TextRegionUtil.drawString3D(gl, regionFPS, renderer, font, nearPlaneS * pixelSizeFPS, text, null, sampleCountFPS,
-                                        textRegionUtil.tempT1, textRegionUtil.tempT2);
+            TextRegionUtil.drawString3D(gl, regionFPS, renderer, font, text, null, sampleCountFPS, textRegionUtil.tempT1,
+                                        textRegionUtil.tempT2);
         }
 
-        float dx = width-fontNameBox.getWidth()-2f;
-        float dy = height - 10f;
+        float dx = width-fontNameBox.getWidth()-font.getAdvanceWidth(Glyph.ID_SPACE, pixelSizeFName);
+        float dy = height-fontNameBox.getHeight();
 
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
+        {
+            final float sxy = ( nearPlaneS * pixelSizeFName ) / font.getMetrics().getUnitsPerEM();
+            pmv.glScalef(sxy, sxy, 1.0f);
+        }
         // System.err.printf("FontN: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
-        textRegionUtil.drawString3D(gl, renderer, font, nearPlaneS * pixelSizeFName, fontName, null, getSampleCount());
+        textRegionUtil.drawString3D(gl, renderer, font, fontName, null, getSampleCount());
 
         dx  =  10f;
         dy += -fontNameBox.getHeight() - 10f;
@@ -273,8 +313,12 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             pmv.glLoadIdentity();
             // System.err.printf("Head: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
             pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
+            {
+                final float sxy = ( nearPlaneS * pixelSizeHead ) / font.getMetrics().getUnitsPerEM();
+                pmv.glScalef(sxy, sxy, 1.0f);
+            }
             // pmv.glTranslatef(x0, y1, z0);
-            textRegionUtil.drawString3D(gl, renderer, font, nearPlaneS * pixelSizeHead, headtext, null, getSampleCount());
+            textRegionUtil.drawString3D(gl, renderer, font, headtext, null, getSampleCount());
         }
 
         dy += -headbox.getHeight() - font.getLineHeight(pixelSizeBottom);
@@ -285,6 +329,10 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         // System.err.printf("Bottom: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
         pmv.glTranslatef(getXTran(), getYTran(), getZTran());
         pmv.glRotatef(getAngle(), 0, 1, 0);
+        {
+            final float sxy = ( nearPlaneS * pixelSizeBottom ) / font.getMetrics().getUnitsPerEM();
+            pmv.glScalef(sxy, sxy, 1.0f);
+        }
         rs.setColorStatic(0.9f, 0.0f, 0.0f, 1.0f);
 
         if( bottomTextUseFrustum ) {
@@ -292,22 +340,25 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         }
         if(!userInput) {
             if( bottomTextUseFrustum ) {
-                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, nearPlaneS * pixelSizeBottom, text2, null, getSampleCount(),
-                                            textRegionUtil.tempT1, textRegionUtil.tempT2);
+                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, text2, null, getSampleCount(), textRegionUtil.tempT1,
+                                            textRegionUtil.tempT2);
             } else {
-                textRegionUtil.drawString3D(gl, renderer, font, nearPlaneS * pixelSizeBottom, text2, null, getSampleCount());
+                textRegionUtil.drawString3D(gl, renderer, font, text2, null, getSampleCount());
             }
         } else {
             if( bottomTextUseFrustum ) {
-                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, nearPlaneS * pixelSizeBottom, userString.toString(), null, getSampleCount(),
-                                            textRegionUtil.tempT1, textRegionUtil.tempT2);
+                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, userString.toString(), null, getSampleCount(), textRegionUtil.tempT1,
+                                            textRegionUtil.tempT2);
             } else {
-                textRegionUtil.drawString3D(gl, renderer, font, nearPlaneS * pixelSizeBottom, userString.toString(), null, getSampleCount());
+                textRegionUtil.drawString3D(gl, renderer, font, userString.toString(), null, getSampleCount());
             }
         }
         renderer.enable(gl, false);
     }
     final boolean bottomTextUseFrustum = true;
+
+    public Font getFont() { return font; }
+    public float getFontSizeHead() { return fontSizeHead; }
 
     public void fontBottomIncr(final int v) {
         fontSizeBottom = Math.abs((fontSizeBottom + v) % fontSizeModulo) ;
@@ -317,7 +368,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     public void fontHeadIncr(final int v) {
         fontSizeHead = Math.abs((fontSizeHead + v) % fontSizeModulo) ;
         if(null != headtext) {
-            headbox = font.getMetricBounds(headtext, font.getPixelSize(fontSizeHead, dpiH));
+            headbox = font.getMetricBounds(headtext, FontScale.toPixels(fontSizeHead, dpiH));
         }
     }
 
@@ -329,7 +380,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 fontSet = set;
                 font = _font;
                 fontName = font.getFullFamilyName(null).toString();
-                fontNameBox = font.getMetricBounds(fontName, font.getPixelSize(fontSizeFName, dpiH));
+                fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiH));
                 dumpFontNames();
                 return true;
             }
@@ -346,7 +397,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 fontSet = set;
                 font = _font;
                 fontName = font.getFullFamilyName(null).toString();
-                fontNameBox = font.getMetricBounds(fontName, font.getPixelSize(fontSizeFName, dpiH));
+                fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiH));
                 dumpFontNames();
                 return true;
             }
@@ -361,7 +412,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     void dumpMatrix(final boolean bbox) {
         System.err.println("Matrix: " + getXTran() + "/" + getYTran() + " x"+getZTran() + " @"+getAngle() +" fontSize "+fontSizeBottom);
         if(bbox) {
-            System.err.println("bbox: "+font.getMetricBounds(text2, nearPlaneS * font.getPixelSize(fontSizeBottom, dpiH)));
+            System.err.println("bbox: "+font.getMetricBounds(text2, nearPlaneS * FontScale.toPixels(fontSizeBottom, dpiH)));
         }
     }
 

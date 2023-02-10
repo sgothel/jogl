@@ -33,12 +33,13 @@ import jogamp.graph.font.typecast.ot.table.HheaTable;
 import com.jogamp.graph.font.Font.Metrics;
 import com.jogamp.opengl.math.geom.AABBox;
 
-class TypecastHMetrics implements Metrics {
+final class TypecastHMetrics implements Metrics {
     private final TypecastFont fontImpl;
 
     // HeadTable
     private final HeadTable headTable;
-    private final float unitsPerEM_Inv;
+    private final int unitsPerEM;
+    private final float unitsPerEM_inv;
     private final AABBox bbox;
     // HheaTable
     private final HheaTable hheaTable;
@@ -50,39 +51,55 @@ class TypecastHMetrics implements Metrics {
         headTable = this.fontImpl.font.getHeadTable();
         hheaTable = this.fontImpl.font.getHheaTable();
         // vheaTable = this.fontImpl.font.getVheaTable();
-        unitsPerEM_Inv = 1.0f / ( headTable.getUnitsPerEm() );
+        unitsPerEM = headTable.getUnitsPerEm();
+        unitsPerEM_inv = 1.0f / unitsPerEM;
 
         final int maxWidth = headTable.getXMax() - headTable.getXMin();
         final int maxHeight = headTable.getYMax() - headTable.getYMin();
-        final float lowx= headTable.getXMin();
-        final float lowy = -(headTable.getYMin()+maxHeight);
-        final float highx = lowx + maxWidth;
-        final float highy = lowy + maxHeight;
+        final int lowx= headTable.getXMin();
+        final int lowy = -(headTable.getYMin()+maxHeight);
+        final int highx = lowx + maxWidth;
+        final int highy = lowy + maxHeight;
         bbox = new AABBox(lowx, lowy, 0, highx, highy, 0); // invert
     }
 
     @Override
-    public final float getAscent(final float pixelSize) {
-        return getScale(pixelSize) * -hheaTable.getAscender(); // invert
+    public int getAscentFU() {
+        return -hheaTable.getAscender(); // inverted
     }
+
     @Override
-    public final float getDescent(final float pixelSize) {
-        return getScale(pixelSize) * -hheaTable.getDescender(); // invert
+    public int getDescentFU() {
+        return -hheaTable.getDescender(); // inverted
     }
+
     @Override
-    public final float getLineGap(final float pixelSize) {
-        return getScale(pixelSize) * -hheaTable.getLineGap(); // invert
+    public int getLineGapFU() {
+        return -hheaTable.getLineGap(); // inverted
     }
+
     @Override
-    public final float getMaxExtend(final float pixelSize) {
-        return getScale(pixelSize) * hheaTable.getXMaxExtent();
+    public int getMaxExtendFU() {
+        return hheaTable.getXMaxExtent();
     }
+
     @Override
-    public final float getScale(final float pixelSize) {
-        return pixelSize * unitsPerEM_Inv;
+    public final int getUnitsPerEM() {
+        return unitsPerEM;
     }
+
+    @Override
+    public final float getScale(final int funits) {
+        return funits * unitsPerEM_inv;
+    }
+
+    @Override
+    public final AABBox getBBox(final AABBox dest) {
+        return dest.copy(bbox);
+    }
+
     @Override
     public final AABBox getBBox(final AABBox dest, final float pixelSize, final float[] tmpV3) {
-        return dest.setSize(bbox.getLow(), bbox.getHigh()).scale(getScale(pixelSize), tmpV3);
+        return dest.setSize(bbox.getLow(), bbox.getHigh()).scale(pixelSize*unitsPerEM_inv, tmpV3);
     }
 }

@@ -35,7 +35,10 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.font.Font.Glyph;
+import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 
@@ -64,30 +67,45 @@ public class TestFontsNEWT00 extends UITestCase {
         final float dpi = 96;
         for(int i=0; i<fonts.length; i++) {
             final Font font = fonts[i];
-            final float pixelSize = font.getPixelSize(fontSize, dpi);
+            final float pixelSize = FontScale.toPixels(fontSize, dpi);
             System.err.println(font.getFullFamilyName(null).toString()+": "+fontSize+"p, "+dpi+"dpi -> "+pixelSize+"px:");
-            testFontGlyphAdvancedSize(font, ' ', Glyph.ID_SPACE, fontSize, dpi, pixelSize);
-            testFontGlyphAdvancedSize(font, 'X', 'X', fontSize, dpi, pixelSize);
+            testFontGlyphAdvancedSize(font, 'X', pixelSize);
+            testFontGlyphAdvancedSize(font, 'j', pixelSize);
+            testFontGlyphAdvancedSize(font, ' ', pixelSize);
         }
     }
-    void testFontGlyphAdvancedSize(final Font font, final char c, final int glyphID,
-                                   final float fontSize, final float dpi, final float pixelSize) {
-        final float glyphScale = font.getGlyph(c).getScale(pixelSize);
-        final float fontScale = font.getMetrics().getScale(pixelSize);
+    void testFontGlyphAdvancedSize(final Font font, final char c, final float pixelSize) {
+        final int glyphID = font.getGlyphID(c);
+        final int s0 = font.getAdvanceWidthFU(glyphID);
+        final Font.Glyph glyph = font.getGlyph(c);
+        final int s1 = glyph.getAdvanceFU();
 
-        // return this.metrics.getAdvance(pixelSize, useFrationalMetrics);
-        // this.metrics.getAdvance(pixelSize, useFrationalMetrics)
-        // this.advance * this.font.getMetrics().getScale(pixelSize)
-        // font.getHmtxTable().getAdvanceWidth(glyphID) * this.font.getMetrics().getScale(pixelSize)
-        final float spaceAdvanceSizeOfGlyph = font.getGlyph(c).getAdvance(pixelSize, true);
+        final int unitsPerEM = font.getMetrics().getUnitsPerEM();
 
-        // font.getHmtxTable().getAdvanceWidth(glyphID) * metrics.getScale(pixelSize);
-        // font.getHmtxTable().getAdvanceWidth(glyphID) * pixelSize * unitsPerEM_Inv;
-        final float spaceAdvanceWidth = font.getAdvanceWidth(glyphID, pixelSize);
-        System.err.println("    Char '"+c+"', "+glyphID+":");
-        System.err.println("        glyphScale "+glyphScale);
-        System.err.println("        glyphSize  "+spaceAdvanceSizeOfGlyph);
-        System.err.println("        fontScale  "+fontScale);
-        System.err.println("        fontWidth  "+spaceAdvanceWidth);
+        final float s0_em = font.getAdvanceWidth(glyphID);
+        final float s1_em = glyph.getAdvance();
+
+        final float s0_px = font.getAdvanceWidth(glyphID, pixelSize);
+        final float s1_px = glyph.getAdvance(pixelSize);
+
+        System.err.println("    Char '"+c+"', id "+glyphID+", font-px "+pixelSize+", unitsPerEM "+unitsPerEM+":");
+        System.err.println("      "+glyph);
+        System.err.println("      Advance");
+        System.err.println("        funits "+s0+", "+s1);
+        System.err.println("            em "+s0_em+", "+s1_em);
+        System.err.println("            px "+s0_px+", "+s1_px);
+        System.err.println("      AABBox");
+        System.err.println("        funits "+glyph.getBBoxFU());
+        System.err.println("            px "+glyph.getBBox(new AABBox(), pixelSize, new float[3]));
+
+        Assert.assertEquals(s0, s1);
+
+        Assert.assertEquals((float)s0/(float)unitsPerEM, s0_em, FloatUtil.EPSILON);
+        Assert.assertEquals((float)s1/(float)unitsPerEM, s1_em, FloatUtil.EPSILON);
+        Assert.assertEquals(s0_em, s1_em, FloatUtil.EPSILON);
+
+        Assert.assertEquals(s0_em*pixelSize, s0_px, FloatUtil.EPSILON);
+        Assert.assertEquals(s1_em*pixelSize, s1_px, FloatUtil.EPSILON);
+        Assert.assertEquals(s0_px, s1_px, FloatUtil.EPSILON);
     }
 }

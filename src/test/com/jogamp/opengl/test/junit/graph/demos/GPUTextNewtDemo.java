@@ -29,9 +29,12 @@ package com.jogamp.opengl.test.junit.graph.demos;
 
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
-
+import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -130,19 +133,38 @@ public class GPUTextNewtDemo {
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);
         window.addGLEventListener(textGLListener);
         window.setVisible(true);
+
+        {
+            final Font font = textGLListener.getFont();
+            final float[] sDPI = FontScale.perMMToPerInch( window.getPixelsPerMM(new float[2]) );
+            final float font_ptpi = 12f;
+            final float font_ppi = FontScale.toPixels(font_ptpi, sDPI[1]);
+            final AABBox fontNameBox = font.getMetricBounds(GPUTextRendererListenerBase01.textX2, font_ppi);
+            System.err.println("GPU Text Newt Demo: "+font.fullString());
+            System.err.println("GPU Text Newt Demo: screen-dpi: "+sDPI[0]+"x"+sDPI[1]+", font "+font_ptpi+" pt, "+font_ppi+" pixel");
+            System.err.println("GPU Text Newt Demo: textX2: "+fontNameBox+" pixel");
+            window.setSurfaceSize((int)(fontNameBox.getWidth()*1.1f), (int)(fontNameBox.getHeight()*2f));
+        }
+
         // FPSAnimator animator = new FPSAnimator(60);
         final Animator animator = new Animator();
         animator.setUpdateFPSFrames(60, System.err);
         animator.add(window);
 
         window.addKeyListener(new KeyAdapter() {
+            @Override
             public void keyPressed(final KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
-                    window.destroy();
+                    new InterruptSource.Thread() {
+                        @Override
+                        public void run() {
+                            window.destroy();
+                        } }.start();
                 }
             }
         });
         window.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }

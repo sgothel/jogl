@@ -40,6 +40,7 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.Window;
@@ -145,8 +146,8 @@ public abstract class TextRendererGLELBase implements GLEventListener {
 
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
-            final float[] pixelsPerMM = ((Window)upObj).getPixelsPerMM(new float[2]);
-            dpiH = pixelsPerMM[1]*25.4f;
+            final float[] dpi = FontScale.perMMToPerInch( ((Window)upObj).getPixelsPerMM(new float[2]) );
+            dpiH = dpi[1];
         }
     }
 
@@ -183,7 +184,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      *
      * @param drawable
      * @param font
-     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
+     * @param pixelSize Use {@link Font#toPixels(float, float)} for resolution correct pixel-size.
      * @param text
      * @param column
      * @param tx
@@ -209,7 +210,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      *
      * @param drawable
      * @param font
-     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
+     * @param pixelSize Use {@link Font#toPixels(float, float)} for resolution correct pixel-size.
      * @param text
      * @param column
      * @param row
@@ -261,19 +262,20 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 pmvMatrix.glLoadIdentity();
             }
             pmvMatrix.glTranslatef(dx, dy, tz);
+            final float sxy = ( pixelScale * pixelSize ) / font.getMetrics().getUnitsPerEM();
             if( flipVerticalInGLOrientation && drawable.isGLOriented() ) {
-                pmvMatrix.glScalef(pixelScale, -1f*pixelScale, 1f);
-            } else if( 1f != pixelScale ) {
-                pmvMatrix.glScalef(pixelScale, pixelScale, 1f);
+                pmvMatrix.glScalef(sxy, -1f*sxy, 1.0f);
+            } else {
+                pmvMatrix.glScalef(sxy, sxy, 1.0f);
             }
             renderer.enable(gl, true);
             if( cacheRegion ) {
-                textRenderUtil.drawString3D(gl, renderer, font, pixelSize, text, null, vbaaSampleCount);
+                textRenderUtil.drawString3D(gl, renderer, font, text, null, vbaaSampleCount);
             } else if( null != region ) {
-                TextRegionUtil.drawString3D(gl, region, renderer, font, pixelSize, text, null, vbaaSampleCount,
+                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, vbaaSampleCount,
                                             textRenderUtil.tempT1, textRenderUtil.tempT2);
             } else {
-                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, pixelSize, text, null, vbaaSampleCount,
+                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, vbaaSampleCount,
                                             textRenderUtil.tempT1, textRenderUtil.tempT2);
             }
             renderer.enable(gl, false);

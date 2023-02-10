@@ -74,41 +74,41 @@ public class TextRegionUtil {
 
     /**
      * Visit each {@link Font.Glyph}'s {@link OutlineShape} with the given {@link ShapeVisitor}
-     * additionally passing the progressed {@link AffineTransform}.
-     * The latter reflects the given font metric, pixelSize and hence character position.
+     * additionally passing the progressed {@link AffineTransform} in font-units.
+     * The latter reflects the given font metric in font-units and hence character position.
      * @param visitor
      * @param transform optional given transform
      * @param font the target {@link Font}
-     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str string text
      * @param temp1 temporary AffineTransform storage, mandatory, will be passed to {@link ShapeVisitor#visit(OutlineShape, AffineTransform)} and can be modified.
      * @param temp2 temporary AffineTransform storage, mandatory, can be re-used in {@link ShapeVisitor#visit(OutlineShape, AffineTransform)} by user code.
      */
     public static void processString(final ShapeVisitor visitor, final AffineTransform transform,
-                                     final Font font, final float pixelSize, final CharSequence str,
+                                     final Font font, final CharSequence str,
                                      final AffineTransform temp1, final AffineTransform temp2) {
         final int charCount = str.length();
 
         // region.setFlipped(true);
         final Font.Metrics metrics = font.getMetrics();
-        final float lineHeight = font.getLineHeight(pixelSize);
+        final int lineHeight = font.getLineHeightFU();
 
-        final float scale = metrics.getScale(pixelSize);
-
-        float y = 0;
-        float advanceTotal = 0;
+        int y = 0;
+        int advanceTotal = 0;
+        char left_character = 0;
+        int left_glyphid = 0;
 
         for(int i=0; i< charCount; i++) {
             final char character = str.charAt(i);
             if( '\n' == character ) {
                 y -= lineHeight;
                 advanceTotal = 0;
+                left_glyphid = 0;
+                left_character = 0;
             } else if (character == ' ') {
-                advanceTotal += font.getAdvanceWidth(Glyph.ID_SPACE, pixelSize);
+                advanceTotal += font.getAdvanceWidthFU(Glyph.ID_SPACE);
+                left_glyphid = 0;
+                left_character = character;
             } else {
-                if(Region.DEBUG_INSTANCE) {
-                    System.err.println("XXXXXXXXXXXXXXx char: "+character+", scale: "+scale+"; translate: "+advanceTotal+", "+y);
-                }
                 // reset transform
                 if( null != transform ) {
                     temp1.setTransform(transform);
@@ -116,51 +116,65 @@ public class TextRegionUtil {
                     temp1.setToIdentity();
                 }
                 temp1.translate(advanceTotal, y, temp2);
-                temp1.scale(scale, scale, temp2);
 
                 final Font.Glyph glyph = font.getGlyph(character);
                 final OutlineShape glyphShape = glyph.getShape();
                 if( null == glyphShape ) {
+                    left_glyphid = 0;
                     continue;
                 }
                 visitor.visit(glyphShape, temp1);
-
-                advanceTotal += glyph.getAdvance(pixelSize, true);
+                final int right_glyphid = glyph.getID();
+                final int kern = font.getKerningFU(left_glyphid, right_glyphid);
+                final int advance = glyph.getAdvanceFU();
+                advanceTotal += advance + kern;
+                if( Region.DEBUG_INSTANCE && 0 != left_character && kern > 0f ) {
+                    System.err.println(": '"+left_character+"'/"+left_glyphid+" -> '"+character+"'/"+right_glyphid+
+                                       ": a "+advance+"px + k ["+kern+"em, "+kern+"px = "+(advance+kern)+"px -> "+advanceTotal+"px, y "+y);
+                }
+                // advanceTotal += glyph.getAdvance(pixelSize, true)
+                //               + font.getKerning(left_glyphid, right_glyphid);
+                left_glyphid = right_glyphid;
+                left_character = character;
             }
         }
     }
 
     /**
-     * Add the string in 3D space w.r.t. the font and pixelSize at the end of the {@link GLRegion}.
+     * Add the string in 3D space w.r.t. the font using font-units at the end of the {@link GLRegion}.
+     * <p>
+     * The resulting GLRegion should be scaled by the chosen pixelSize of the font divided by the font's unitsPerEM.
+     * </p>
      * @param region the {@link GLRegion} sink
      * @param vertexFactory vertex impl factory {@link Factory}
      * @param font the target {@link Font}
-     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str string text
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param temp1 temporary AffineTransform storage, mandatory
      * @param temp2 temporary AffineTransform storage, mandatory
      */
     public static void addStringToRegion(final GLRegion region, final Factory<? extends Vertex> vertexFactory,
-                                         final Font font, final float pixelSize, final CharSequence str, final float[] rgbaColor,
+                                         final Font font, final CharSequence str, final float[] rgbaColor,
                                          final AffineTransform temp1, final AffineTransform temp2) {
         final ShapeVisitor visitor = new ShapeVisitor() {
+            @Override
             public final void visit(final OutlineShape shape, final AffineTransform t) {
                 region.addOutlineShape(shape, t, region.hasColorChannel() ? rgbaColor : null);
             } };
-        processString(visitor, null, font, pixelSize, str, temp1, temp2);
+        processString(visitor, null, font, str, temp1, temp2);
     }
 
     /**
-     * Render the string in 3D space w.r.t. the font and pixelSize
-     * using a cached {@link GLRegion} for reuse.
+     * Render the string in 3D space w.r.t. the font using font-units at the end of an internally cached {@link GLRegion}.
+     * <p>
+     * The resulting GLRegion should be scaled by the chosen pixelSize of the font divided by the font's unitsPerEM.
+     * </p>
      * <p>
      * Cached {@link GLRegion}s will be destroyed w/ {@link #clear(GL2ES2)} or to free memory.
      * </p>
      * @param gl the current GL state
      * @param renderer TODO
      * @param font {@link Font} to be used
-     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str text to be rendered
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
@@ -168,34 +182,35 @@ public class TextRegionUtil {
      * @throws Exception if TextRenderer not initialized
      */
     public void drawString3D(final GL2ES2 gl,
-                             final RegionRenderer renderer, final Font font, final float pixelSize,
-                             final CharSequence str, final float[] rgbaColor, final int[/*1*/] sampleCount) {
+                             final RegionRenderer renderer, final Font font, final CharSequence str,
+                             final float[] rgbaColor, final int[/*1*/] sampleCount) {
         if( !renderer.isInitialized() ) {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final int special = 0;
-        GLRegion region = getCachedRegion(font, str, pixelSize, special);
+        GLRegion region = getCachedRegion(font, str, special);
         if(null == region) {
             region = GLRegion.create(renderModes, null);
-            addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor, tempT1, tempT2);
-            addCachedRegion(gl, font, str, pixelSize, special, region);
+            addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, str, rgbaColor, tempT1, tempT2);
+            addCachedRegion(gl, font, str, special, region);
         }
         region.draw(gl, renderer, sampleCount);
     }
 
     /**
-     * Render the string in 3D space w.r.t. the font and pixelSize
-     * using a temporary {@link GLRegion}, which will be destroyed afterwards.
+     * Render the string in 3D space w.r.t. the font using font-units at the end of an internally temporary {@link GLRegion}.
+     * <p>
+     * The resulting GLRegion should be scaled by the chosen pixelSize of the font divided by the font's unitsPerEM.
+     * </p>
      * <p>
      * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
      * is a huge performance impact.
-     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, float, CharSequence, float[], int[], AffineTransform, AffineTransform)}
+     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)}
      * instead.
      * </p>
      * @param gl the current GL state
      * @param renderModes TODO
      * @param font {@link Font} to be used
-     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str text to be rendered
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
@@ -205,24 +220,26 @@ public class TextRegionUtil {
      * @throws Exception if TextRenderer not initialized
      */
     public static void drawString3D(final GL2ES2 gl, final int renderModes,
-                                    final RegionRenderer renderer, final Font font, final float pixelSize,
-                                    final CharSequence str, final float[] rgbaColor, final int[/*1*/] sampleCount,
-                                    final AffineTransform temp1, final AffineTransform temp2) {
+                                    final RegionRenderer renderer, final Font font, final CharSequence str,
+                                    final float[] rgbaColor, final int[/*1*/] sampleCount, final AffineTransform temp1,
+                                    final AffineTransform temp2) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final GLRegion region = GLRegion.create(renderModes, null);
-        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor, temp1, temp2);
+        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, str, rgbaColor, temp1, temp2);
         region.draw(gl, renderer, sampleCount);
         region.destroy(gl);
     }
 
     /**
-     * Render the string in 3D space w.r.t. the font and pixelSize
-     * using the given {@link GLRegion}, which will {@link GLRegion#clear(GL2ES2) cleared} beforehand.
+     * Render the string in 3D space w.r.t. the font using font-units at the end of the given {@link GLRegion},
+     * which will {@link GLRegion#clear(GL2ES2) cleared} beforehand.
+     * <p>
+     * The resulting GLRegion should be scaled by the chosen pixelSize of the font divided by the font's unitsPerEM.
+     * </p>
      * @param gl the current GL state
      * @param font {@link Font} to be used
-     * @param pixelSize Use {@link Font#getPixelSize(float, float)} for resolution correct pixel-size.
      * @param str text to be rendered
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
@@ -232,14 +249,14 @@ public class TextRegionUtil {
      * @throws Exception if TextRenderer not initialized
      */
     public static void drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
-                                    final Font font, final float pixelSize, final CharSequence str,
-                                    final float[] rgbaColor, final int[/*1*/] sampleCount,
-                                    final AffineTransform temp1, final AffineTransform temp2) {
+                                    final Font font, final CharSequence str, final float[] rgbaColor,
+                                    final int[/*1*/] sampleCount, final AffineTransform temp1,
+                                    final AffineTransform temp2) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         region.clear(gl);
-        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, pixelSize, str, rgbaColor, temp1, temp2);
+        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, str, rgbaColor, temp1, temp2);
         region.draw(gl, renderer, sampleCount);
     }
 
@@ -297,13 +314,13 @@ public class TextRegionUtil {
        }
    }
 
-   protected final GLRegion getCachedRegion(final Font font, final CharSequence str, final float pixelSize, final int special) {
-       return stringCacheMap.get(getKey(font, str, pixelSize, special));
+   protected final GLRegion getCachedRegion(final Font font, final CharSequence str, final int special) {
+       return stringCacheMap.get(getKey(font, str, special));
    }
 
-   protected final void addCachedRegion(final GL2ES2 gl, final Font font, final CharSequence str, final float pixelSize, final int special, final GLRegion glyphString) {
+   protected final void addCachedRegion(final GL2ES2 gl, final Font font, final CharSequence str, final int special, final GLRegion glyphString) {
        if ( 0 != getCacheLimit() ) {
-           final String key = getKey(font, str, pixelSize, special);
+           final String key = getKey(font, str, special);
            final GLRegion oldRegion = stringCacheMap.put(key, glyphString);
            if ( null == oldRegion ) {
                // new entry ..
@@ -313,8 +330,8 @@ public class TextRegionUtil {
        }
    }
 
-   protected final void removeCachedRegion(final GL2ES2 gl, final Font font, final CharSequence str, final int pixelSize, final int special) {
-       final String key = getKey(font, str, pixelSize, special);
+   protected final void removeCachedRegion(final GL2ES2 gl, final Font font, final CharSequence str, final int special) {
+       final String key = getKey(font, str, special);
        final GLRegion region = stringCacheMap.remove(key);
        if(null != region) {
            region.destroy(gl);
@@ -332,10 +349,10 @@ public class TextRegionUtil {
        }
    }
 
-   protected final String getKey(final Font font, final CharSequence str, final float pixelSize, final int special) {
+   protected final String getKey(final Font font, final CharSequence str, final int special) {
        final StringBuilder sb = new StringBuilder();
        return font.getName(sb, Font.NAME_UNIQUNAME)
-              .append(".").append(str.hashCode()).append(".").append(Float.floatToIntBits(pixelSize)).append(special).toString();
+              .append(".").append(str.hashCode()).append(".").append(special).toString();
    }
 
    /** Default cache limit, see {@link #setCacheLimit(int)} */

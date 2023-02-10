@@ -47,6 +47,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
@@ -118,6 +119,7 @@ public class MovieCube implements GLEventListener {
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
                     new InterruptSource.Thread() {
+                        @Override
                         public void run() {
                             // loop for-ever ..
                             mPlayer.seek(0);
@@ -196,8 +198,8 @@ public class MovieCube implements GLEventListener {
             this.setSharedPMVMatrix(cube.pmvMatrix);
             super.init(drawable);
 
-            pixelSize1 = font.getPixelSize(fontSize1, dpiH);
-            pixelSize2 = font.getPixelSize(fontSize2, dpiH);
+            pixelSize1 = FontScale.toPixels(fontSize1, dpiH);
+            pixelSize2 = FontScale.toPixels(fontSize2, dpiH);
             pixelScale = 1.0f / ( pixelSize1 * 20f );
             // underlineSize: 'underline' amount of pixel below 0/0 (Note: lineGap is negative)
             final Font.Metrics metrics = font.getMetrics();
@@ -270,6 +272,7 @@ public class MovieCube implements GLEventListener {
     private boolean displayOSD = true;
 
     private final KeyListener keyAction = new KeyAdapter() {
+        @Override
         public void keyReleased(final KeyEvent e)  {
             if( e.isAutoRepeat() ) {
                 return;
@@ -562,6 +565,7 @@ public class MovieCube implements GLEventListener {
         final GLWindow window = GLWindow.create(caps);
         final Animator anim = new Animator(window);
         window.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowDestroyed(final WindowEvent e) {
                 anim.stop();
             }
@@ -601,6 +605,7 @@ public class MovieCube implements GLEventListener {
                         se.printStackTrace();
                     }
                     new InterruptSource.Thread() {
+                        @Override
                         public void run() {
                             window.destroy();
                         } }.start();

@@ -54,6 +54,7 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Window;
@@ -338,10 +339,10 @@ public class TestTextRendererNEWT00 extends UITestCase {
 
             final Window win = (Window)drawable.getUpstreamWidget();
             final float[] pixelsPerMM = win.getPixelsPerMM(new float[2]);
-            final float[] dotsPerInch = new float[] { pixelsPerMM[0]*25.4f, pixelsPerMM[1]*25.4f };
+            final float[] dotsPerInch = FontScale.ppmmToPPI(pixelsPerMM, new float[2]);
             dpiH = dotsPerInch[1];
             System.err.println(getFontInfo());
-            System.err.println("fontSize "+fontSizeFixed+", dotsPerMM "+pixelsPerMM[0]+"x"+pixelsPerMM[1]+", dpi "+dotsPerInch[0]+"x"+dotsPerInch[1]+", pixelSize "+font.getPixelSize(fontSizeFixed, dotsPerInch[1] /* dpi display */));
+            System.err.println("fontSize "+fontSizeFixed+", dotsPerMM "+pixelsPerMM[0]+"x"+pixelsPerMM[1]+", dpi "+dotsPerInch[0]+"x"+dotsPerInch[1]+", pixelSize "+FontScale.toPixels(fontSizeFixed, dotsPerInch[1] /* dpi display */));
         }
 
         @Override
@@ -395,8 +396,8 @@ public class TestTextRendererNEWT00 extends UITestCase {
                 fontSizeDelta *= -1f;
             }
 
-            final float pixelSize = font.getPixelSize(fontSizeFixed, dpiH);
-            final float pixelSizeAnim = font.getPixelSize(fontSizeAnim, dpiH);
+            final float pixelSize = FontScale.toPixels(fontSizeFixed, dpiH);
+            final float pixelSizeAnim = FontScale.toPixels(fontSizeAnim, dpiH);
 
             final String modeS = Region.getRenderModeString(renderModes);
 

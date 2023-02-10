@@ -107,7 +107,7 @@ public class LabelButton extends RoundButton {
         }
 
         // Setting pixelSize based on actual text-box size
-        final AABBox lbox1 = label.font.getPointsBounds(null, label.text, lPixelSize1, tempT1, tempT2);
+        final AABBox lbox1 = label.font.getPointsBounds(null, label.text, lPixelSize1);
         // Center text .. (share same center w/ button)
         final float[] lctr = lbox1.getCenter();
         final float[] ctr = box.getCenter();

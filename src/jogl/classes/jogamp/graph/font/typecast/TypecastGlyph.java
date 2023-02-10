@@ -32,52 +32,63 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.opengl.math.geom.AABBox;
 
+import jogamp.graph.font.typecast.ot.table.PostTable;
+
 public final class TypecastGlyph implements Font.Glyph {
+
+    /** Scaled hmtx value */
     public static final class Advance
     {
         private final Font      font;
-        private final float     advance;
-        private final IntIntHashMap size2advanceI = new IntIntHashMap();
+        private final int       advance; // in font-units
+        private final IntIntHashMap size2advanceI;
 
-        public Advance(final Font font, final float advance)
+        public Advance(final Font font, final int advance)
         {
             this.font = font;
             this.advance = advance;
-            size2advanceI.setKeyNotFoundValue(0);
+            if( TypecastFont.USE_PRESCALED_ADVANCE ) {
+                size2advanceI = new IntIntHashMap();
+                size2advanceI.setKeyNotFoundValue(0);
+            } else {
+                size2advanceI = null;
+            }
         }
 
         public final void reset() {
-            size2advanceI.clear();
+            if( TypecastFont.USE_PRESCALED_ADVANCE ) {
+                size2advanceI.clear();
+            }
         }
 
         public final Font getFont() { return font; }
 
-        public final float getScale(final float pixelSize)
+        public final int getUnitsPerEM() { return this.font.getMetrics().getUnitsPerEM(); }
+
+        public final float getScale(final int funits)
         {
-            return this.font.getMetrics().getScale(pixelSize);
+            return this.font.getMetrics().getScale(funits);
         }
 
-        public final void add(final float advance, final float size)
+        public final void add(final float pixelSize, final float advance)
         {
-            size2advanceI.put(Float.floatToIntBits(size), Float.floatToIntBits(advance));
-        }
-
-        public final float get(final float pixelSize, final boolean useFrationalMetrics)
-        {
-            final int sI = Float.floatToIntBits(pixelSize);
-            final int aI = size2advanceI.get(sI);
-            if( 0 != aI ) {
-                return Float.intBitsToFloat(aI);
+            if( TypecastFont.USE_PRESCALED_ADVANCE ) {
+                size2advanceI.put(Float.floatToIntBits(pixelSize), Float.floatToIntBits(advance));
             }
-            final float a;
-            if ( useFrationalMetrics ) {
-                a = this.advance * getScale(pixelSize);
+        }
+
+        public final float get(final float pixelSize)
+        {
+            if( !TypecastFont.USE_PRESCALED_ADVANCE ) {
+                return pixelSize * font.getMetrics().getScale( advance );
             } else {
-                // a = Math.ceil(this.advance * getScale(pixelSize));
-                a = Math.round(this.advance * getScale(pixelSize)); // TODO: check whether ceil should be used instead?
+                final int sI = Float.floatToIntBits( (float) Math.ceil( pixelSize ) );
+                final int aI = size2advanceI.get(sI);
+                if( 0 != aI ) {
+                    return Float.intBitsToFloat(aI);
+                }
+                return pixelSize * font.getMetrics().getScale( advance );
             }
-            size2advanceI.put(sI, Float.floatToIntBits(a));
-            return a;
         }
 
         @Override
@@ -91,39 +102,59 @@ public final class TypecastGlyph implements Font.Glyph {
 
     public static final class Metrics
     {
-        private final AABBox    bbox;
-        private final Advance advance;
+        private final TypecastFont font;
+        private final AABBox    bbox; // in font-units
+        private final int      advance; // in font-units
+        private final Advance advance2;
 
-        public Metrics(final Font font, final AABBox bbox, final float advance)
+        /**
+         *
+         * @param font
+         * @param bbox in font-units
+         * @param advance hmtx value in font-units
+         */
+        public Metrics(final TypecastFont font, final AABBox bbox, final int advance)
         {
+            this.font = font;
             this.bbox = bbox;
-            this.advance = new Advance(font, advance);
+            this.advance = advance;
+            if( TypecastFont.USE_PRESCALED_ADVANCE ) {
+                this.advance2 = new Advance(font, advance);
+            } else {
+                this.advance2 = null;
+            }
         }
 
         public final void reset() {
-            advance.reset();
+            if( TypecastFont.USE_PRESCALED_ADVANCE ) {
+                advance2.reset();
+            }
         }
 
-        public final Font getFont() { return advance.getFont(); }
+        public final TypecastFont getFont() { return font; }
 
-        public final float getScale(final float pixelSize)
-        {
-            return this.advance.getScale(pixelSize);
+        public final int getUnitsPerEM() { return font.getMetrics().getUnitsPerEM(); }
+
+        public final float getScale(final int funits) { return font.getMetrics().getScale(funits); }
+
+        /** in font-units */
+        public final AABBox getBBoxFU() { return this.bbox; }
+
+        /** Return advance in font units to be divided by unitsPerEM */
+        public final int getAdvanceFU() { return this.advance; }
+
+        public final void addAdvance(final float pixelSize, final float advance) {
+            if( TypecastFont.USE_PRESCALED_ADVANCE ) {
+                this.advance2.add(pixelSize, advance);
+            }
         }
 
-        public final AABBox getBBox()
-        {
-            return this.bbox;
-        }
-
-        public final void addAdvance(final float advance, final float size)
-        {
-            this.advance.add(advance, size);
-        }
-
-        public final float getAdvance(final float pixelSize, final boolean useFrationalMetrics)
-        {
-            return this.advance.get(pixelSize, useFrationalMetrics);
+        public final float getAdvance(final float pixelSize) {
+            if( TypecastFont.USE_PRESCALED_ADVANCE ) {
+                return this.advance2.get(pixelSize);
+            } else {
+                return pixelSize * font.getMetrics().getScale( advance );
+            }
         }
 
         @Override
@@ -131,7 +162,8 @@ public final class TypecastGlyph implements Font.Glyph {
         {
             return "\nMetrics:"+
                 "\n  bbox: "+this.bbox+
-                this.advance;
+                "\n  advance: "+this.advance+
+                "\n  advance2: "+this.advance2;
         }
     }
 
@@ -140,10 +172,19 @@ public final class TypecastGlyph implements Font.Glyph {
 
     private final char symbol;
     private final OutlineShape shape; // in EM units
-    private final short id;
+    private final int id;
     private final Metrics metrics;
 
-    protected TypecastGlyph(final Font font, final char symbol, final short id, final AABBox bbox, final int advance, final OutlineShape shape) {
+    /**
+     *
+     * @param font
+     * @param symbol
+     * @param id
+     * @param bbox in font-units
+     * @param advance from hmtx in font-units
+     * @param shape
+     */
+    protected TypecastGlyph(final TypecastFont font, final char symbol, final int id, final AABBox bbox, final int advance, final OutlineShape shape) {
         this.symbol = symbol;
         this.shape = shape;
         this.id = id;
@@ -160,41 +201,50 @@ public final class TypecastGlyph implements Font.Glyph {
         return this.symbol;
     }
 
-    final AABBox getBBoxUnsized() {
-        return this.metrics.getBBox();
-    }
-
-    @Override
-    public final AABBox getBBox() {
-        return this.metrics.getBBox();
-    }
-
     public final Metrics getMetrics() {
         return this.metrics;
     }
 
     @Override
-    public final short getID() {
+    public final int getID() {
         return this.id;
     }
 
     @Override
-    public final float getScale(final float pixelSize) {
-        return this.metrics.getScale(pixelSize);
+    public final float getScale(final int funits) {
+        return this.metrics.getScale(funits);
     }
 
     @Override
     public final AABBox getBBox(final AABBox dest, final float pixelSize, final float[] tmpV3) {
-        return dest.copy(getBBox()).scale(getScale(pixelSize), tmpV3);
-    }
-
-    protected final void addAdvance(final float advance, final float size) {
-        this.metrics.addAdvance(advance, size);
+        return dest.copy(metrics.getBBoxFU()).scale(pixelSize/metrics.getUnitsPerEM(), tmpV3);
     }
 
     @Override
-    public final float getAdvance(final float pixelSize, final boolean useFrationalMetrics) {
-        return this.metrics.getAdvance(pixelSize, useFrationalMetrics);
+    public final AABBox getBBoxFU(final AABBox dest) {
+        return dest.copy(metrics.getBBoxFU());
+    }
+
+    @Override
+    public final AABBox getBBoxFU() {
+        return metrics.getBBoxFU();
+    }
+
+    @Override
+    public final int getAdvanceFU() { return metrics.getAdvanceFU(); }
+
+    @Override
+    public float getAdvance() { return getScale( getAdvanceFU() ); }
+
+    protected final void addAdvance(final float pixelSize, final float advance) {
+        if( TypecastFont.USE_PRESCALED_ADVANCE ) {
+            this.metrics.addAdvance(pixelSize, advance);
+        }
+    }
+
+    @Override
+    public final float getAdvance(final float pixelSize) {
+        return metrics.getAdvance(pixelSize);
     }
 
     @Override
@@ -207,5 +257,16 @@ public final class TypecastGlyph implements Font.Glyph {
         // 31 * x == (x << 5) - x
         final int hash = 31 + getFont().getName(Font.NAME_UNIQUNAME).hashCode();
         return ((hash << 5) - hash) + id;
+    }
+
+    @Override
+    public String toString() {
+        final PostTable post = metrics.getFont().getPostTable();
+        final String glyph_name = null != post ? post.getGlyphName(id) : "n/a";
+        return new StringBuilder()
+            .append("Glyph id ").append(id).append(" '").append(glyph_name).append("'")
+            .append(", advance ").append(getAdvanceFU())
+            .append(", ").append(getBBoxFU())
+            .toString();
     }
 }
