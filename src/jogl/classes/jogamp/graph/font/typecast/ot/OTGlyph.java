@@ -67,6 +67,7 @@ import com.jogamp.opengl.math.geom.AABBox;
  */
 public final class OTGlyph {
 
+    private final int _glyphIndex;
     private final short _leftSideBearing;
     private final int _advanceWidth;
     private Point[] _points;
@@ -76,10 +77,11 @@ public final class OTGlyph {
      * Construct a Glyph from a TrueType outline described by
      * a GlyphDescription.
      * @param cs The Charstring describing the glyph.
-     * @param lsb The Left Side Bearing.
-     * @param advance The advance width.
+     * @param lsb The Left Side Bearing (hmtx).
+     * @param advance The advance width (hmtx).
      */
     public OTGlyph(final GlyphDescription gd, final short lsb, final int advance) {
+        _glyphIndex = gd.getGlyphIndex();
         _leftSideBearing = lsb;
         _advanceWidth = advance;
         describe(gd);
@@ -91,7 +93,8 @@ public final class OTGlyph {
      * @param lsb The Left Side Bearing.
      * @param advance The advance width.
      */
-    public OTGlyph(final Charstring cs, final short lsb, final int advance) {
+    public OTGlyph(final int glyphID, final Charstring cs, final short lsb, final int advance) {
+        _glyphIndex = glyphID;
         _leftSideBearing = lsb;
         _advanceWidth = advance;
         if (cs instanceof CharstringType2) {
@@ -102,6 +105,10 @@ public final class OTGlyph {
         }
     }
 
+    public int getGlyphIndex() {
+        return _glyphIndex;
+    }
+
     public final void clearPointData() {
         _points = null;
     }
@@ -110,10 +117,12 @@ public final class OTGlyph {
         return _bbox;
     }
 
+    /** hmtx value */
     public final int getAdvanceWidth() {
         return _advanceWidth;
     }
 
+    /** hmtx value */
     public final short getLeftSideBearing() {
         return _leftSideBearing;
     }
@@ -163,5 +172,14 @@ public final class OTGlyph {
         // _points[gd.getPointCount()+1] = new Point(_advanceWidth, 0, true, true);
 
         _bbox = new AABBox(gd.getXMinimum(), gd.getYMinimum(), 0, gd.getXMaximum(), gd.getYMaximum(), 0);
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuilder()
+            .append("OTGlyph id ").append(_glyphIndex).append(", points ").append(_points.length)
+            .append(", advance ").append(getAdvanceWidth())
+            .append(", ").append(_bbox)
+            .toString();
     }
 }
