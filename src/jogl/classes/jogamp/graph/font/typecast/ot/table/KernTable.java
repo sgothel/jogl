@@ -12,6 +12,8 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
+ * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6kern.html
+ * https://learn.microsoft.com/en-us/typography/opentype/spec/kern
  *
  * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
  * @version $Id: KernTable.java,v 1.1.1.1 2004-12-05 23:14:48 davidsch Exp $
@@ -22,6 +24,7 @@ public class KernTable implements Table {
     private final int version;
     private final int nTables;
     private final KernSubtable[] tables;
+    private final KernSubtableFormat0 table0;
 
     /** Creates new KernTable */
     protected KernTable(final DirectoryEntry de, final DataInput di) throws IOException {
@@ -29,9 +32,14 @@ public class KernTable implements Table {
         version = di.readUnsignedShort();
         nTables = di.readUnsignedShort();
         tables = new KernSubtable[nTables];
+        KernSubtableFormat0 _table0 = null;
         for (int i = 0; i < nTables; i++) {
             tables[i] = KernSubtable.read(di);
+            if( null == _table0 && 0 == tables[i].getSubtableFormat() ) {
+                _table0 = (KernSubtableFormat0)tables[i];
+            }
         }
+        table0 = _table0;
     }
 
     public int getSubtableCount() {
@@ -40,6 +48,10 @@ public class KernTable implements Table {
 
     public KernSubtable getSubtable(final int i) {
         return tables[i];
+    }
+
+    public KernSubtableFormat0 getSubtable0() {
+        return table0;
     }
 
     /** Get the table type, as a table directory value.
@@ -61,4 +73,16 @@ public class KernTable implements Table {
         return de;
     }
 
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("'kern' Table\n--------------------------")
+          .append("\n  version:   ").append(version)
+          .append("\n  subtables: ").append(nTables);
+        for (int i = 0; i < nTables; i++) {
+            sb.append("\n  ");
+            sb.append(tables[i].toString());
+        }
+        return sb.toString();
+    }
 }

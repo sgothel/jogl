@@ -25,7 +25,8 @@ public class KernSubtableFormat0 extends KernSubtable {
     private final KerningPair[] kerningPairs;
 
     /** Creates new KernSubtableFormat0 */
-    protected KernSubtableFormat0(final DataInput di) throws IOException {
+    protected KernSubtableFormat0(final int version, final int length, final int coverage, final DataInput di) throws IOException {
+        super(version, length, coverage);
         nPairs = di.readUnsignedShort();
         searchRange = di.readUnsignedShort();
         entrySelector = di.readUnsignedShort();
@@ -39,6 +40,16 @@ public class KernSubtableFormat0 extends KernSubtable {
     @Override
     public int getKerningPairCount() {
         return nPairs;
+    }
+
+    public int getSearchRange() {
+        return searchRange;
+    }
+    public int getEntrySelector() {
+        return entrySelector;
+    }
+    public int getRangeShift() {
+        return rangeShift;
     }
 
     @Override

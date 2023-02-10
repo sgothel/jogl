@@ -24,7 +24,8 @@ public class KernSubtableFormat2 extends KernSubtable {
     private final int array;
 
     /** Creates new KernSubtableFormat2 */
-    protected KernSubtableFormat2(final DataInput di) throws IOException {
+    protected KernSubtableFormat2(final int version, final int length, final int coverage, final DataInput di) throws IOException {
+        super(version, length, coverage);
         rowWidth = di.readUnsignedShort();
         leftClassTable = di.readUnsignedShort();
         rightClassTable = di.readUnsignedShort();

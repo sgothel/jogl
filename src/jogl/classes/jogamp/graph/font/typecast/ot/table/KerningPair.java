@@ -18,9 +18,9 @@ import java.io.IOException;
  */
 public class KerningPair {
 
-    private final int left;
-    private final int right;
-    private final short value;
+    private final int left; // uint16
+    private final int right; // uint16
+    private final short value; // sint16 in FUnits
 
     /** Creates new KerningPair */
     protected KerningPair(final DataInput di) throws IOException {
@@ -29,14 +29,17 @@ public class KerningPair {
         value = di.readShort();
     }
 
+    /** left glyph index */
     public int getLeft() {
         return left;
     }
 
+    /** right glyph index */
     public int getRight() {
         return right;
     }
 
+    /** sint16 in FUnits between left and right glyph within a word */
     public short getValue() {
         return value;
     }
