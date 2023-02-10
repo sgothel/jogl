@@ -61,6 +61,7 @@ import jogamp.graph.font.typecast.ot.table.HdmxTable;
 import jogamp.graph.font.typecast.ot.table.HeadTable;
 import jogamp.graph.font.typecast.ot.table.HheaTable;
 import jogamp.graph.font.typecast.ot.table.HmtxTable;
+import jogamp.graph.font.typecast.ot.table.KernTable;
 import jogamp.graph.font.typecast.ot.table.LocaTable;
 import jogamp.graph.font.typecast.ot.table.MaxpTable;
 import jogamp.graph.font.typecast.ot.table.NameTable;
@@ -94,6 +95,7 @@ public class OTFont {
     private NameTable _name;
     private PostTable _post;
     private VheaTable _vhea;
+    private KernTable _kern;
 
     /**
      * Constructor
@@ -171,6 +173,10 @@ public class OTFont {
 
     public VheaTable getVheaTable() {
         return _vhea;
+    }
+
+    public KernTable getKernTable() {
+        return _kern;
     }
 
     public int getAscent() {
@@ -281,6 +287,8 @@ public class OTFont {
         // If this is a TrueType outline, then we'll have at least the
         // 'glyf' table (along with the 'loca' table)
         _glyf = (GlyfTable) getTable(Table.glyf);
+
+        _kern = (KernTable) getTable(Table.kern);
     }
 
     @Override
