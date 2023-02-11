@@ -64,28 +64,28 @@ import java.io.IOException;
 public class NameTable implements Table {
 
     @SuppressWarnings("unused")
-    private short _formatSelector;
-    private short _numberOfNameRecords;
-    private short _stringStorageOffset;
-    private NameRecord[] _records;
+    private final short _formatSelector;
+    private final short _numberOfNameRecords;
+    private final short _stringStorageOffset;
+    private final NameRecord[] _records;
 
-    public NameTable(DataInput di, int length) throws IOException {
+    public NameTable(final DataInput di, final int length) throws IOException {
         _formatSelector = di.readShort();
         _numberOfNameRecords = di.readShort();
         _stringStorageOffset = di.readShort();
         _records = new NameRecord[_numberOfNameRecords];
-        
+
         // Load the records, which contain the encoding information and string
         // offsets
         for (int i = 0; i < _numberOfNameRecords; i++) {
             _records[i] = new NameRecord(di);
         }
-        
+
         // Load the string data into a buffer so the records can copy out the
         // bits they are interested in
-        byte[] buffer = new byte[length - _stringStorageOffset];
+        final byte[] buffer = new byte[length - _stringStorageOffset];
         di.readFully(buffer);
-        
+
         // Now let the records get their hands on them
         for (int i = 0; i < _numberOfNameRecords; i++) {
             _records[i].loadString(
@@ -109,12 +109,12 @@ public class NameTable implements Table {
         if(_numberOfNameRecords > i) {
             return _records[i].getRecordString();
         } else {
-            return Table.notAvailable;
+            return "";
         }
     }
-    
+
     /** Return a named record string */
-    public String getRecordString(short nameId) {
+    public String getRecordString(final short nameId) {
         // Search for the first instance of this name ID
         for (int i = 0; i < _numberOfNameRecords; i++) {
             if (_records[i].getNameId() == nameId) {
