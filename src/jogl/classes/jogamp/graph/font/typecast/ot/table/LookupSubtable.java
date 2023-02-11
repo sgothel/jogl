@@ -52,8 +52,7 @@ package jogamp.graph.font.typecast.ot.table;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: LookupSubtable.java,v 1.2 2007-01-24 09:47:45 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public abstract class LookupSubtable {
     public abstract String getTypeAsString();

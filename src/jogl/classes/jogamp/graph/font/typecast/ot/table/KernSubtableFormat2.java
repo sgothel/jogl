@@ -13,14 +13,17 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: KernSubtableFormat2.java,v 1.1.1.1 2004-12-05 23:14:48 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class KernSubtableFormat2 extends KernSubtable {
 
+    @SuppressWarnings("unused")
     private final int rowWidth;
+    @SuppressWarnings("unused")
     private final int leftClassTable;
+    @SuppressWarnings("unused")
     private final int rightClassTable;
+    @SuppressWarnings("unused")
     private final int array;
 
     /** Creates new KernSubtableFormat2 */
@@ -32,6 +35,10 @@ public class KernSubtableFormat2 extends KernSubtable {
         array = di.readUnsignedShort();
     }
 
+    @Override
+    public void clearKerningPairs() {
+    }
+    
     @Override
     public int getKerningPairCount() {
         return 0;

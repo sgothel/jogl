@@ -52,11 +52,12 @@ package jogamp.graph.font.typecast.ot.table;
 
 import java.io.DataInput;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: CoverageFormat2.java,v 1.2 2007-01-24 09:43:30 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class CoverageFormat2 extends Coverage {
 
@@ -64,7 +65,7 @@ public class CoverageFormat2 extends Coverage {
     private final RangeRecord[] _rangeRecords;
 
     /** Creates new CoverageFormat2 */
-    protected CoverageFormat2(final DataInput di) throws IOException {
+    CoverageFormat2(DataInput di) throws IOException {
         _rangeCount = di.readUnsignedShort();
         _rangeRecords = new RangeRecord[_rangeCount];
         for (int i = 0; i < _rangeCount; i++) {
@@ -78,9 +79,9 @@ public class CoverageFormat2 extends Coverage {
     }
 
     @Override
-    public int findGlyph(final int glyphId) {
+    public int findGlyph(int glyphId) {
         for (int i = 0; i < _rangeCount; i++) {
-            final int n = _rangeRecords[i].getCoverageIndex(glyphId);
+            int n = _rangeRecords[i].getCoverageIndex(glyphId);
             if (n > -1) {
                 return n;
             }
@@ -88,4 +89,14 @@ public class CoverageFormat2 extends Coverage {
         return -1;
     }
 
+    @Override
+    public int[] getGlyphIds() {
+        List<Integer> ids = new ArrayList<>();
+        for (RangeRecord record : _rangeRecords) {
+            for (int i = record.getStart(); i < record.getEnd(); ++i) {
+                ids.add(i);
+            }
+        }
+        return ids.stream().mapToInt(i->i).toArray();
+    }
 }

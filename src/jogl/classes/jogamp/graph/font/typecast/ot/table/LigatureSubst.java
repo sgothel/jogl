@@ -55,15 +55,14 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: LigatureSubst.java,v 1.2 2007-01-24 09:47:48 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public abstract class LigatureSubst extends LookupSubtable {
 
-    public static LigatureSubst read(final DataInputStream dis, final int offset) throws IOException {
+    public static LigatureSubst read(DataInputStream dis, int offset) throws IOException {
         dis.reset();
         dis.skipBytes(offset);
-        final int format = dis.readUnsignedShort();
+        int format = dis.readUnsignedShort();
         if (format == 1) {
             return new LigatureSubstFormat1(dis, offset);
         }

@@ -1,9 +1,7 @@
 /*
- * $Id: CmapFormatUnknown.java,v 1.1 2004-12-21 10:21:23 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
- * Copyright (c) 2004 David Schweinsberg
+ * Copyright (c) 2004-2016 David Schweinsberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,32 +24,63 @@ import java.io.IOException;
 /**
  * When we encounter a cmap format we don't understand, we can use this class
  * to hold the bare minimum information about it.
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: CmapFormatUnknown.java,v 1.1 2004-12-21 10:21:23 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class CmapFormatUnknown extends CmapFormat {
-
-    /** Creates a new instance of CmapFormatUnknown */
-    protected CmapFormatUnknown(final int format, final DataInput di) throws IOException {
-        super(di);
+    
+    private final int _format;
+    private final int _length;
+    private final int _language;
+    
+    /** Creates a new instance of CmapFormatUnknown
+     * @param format
+     * @param di
+     * @throws java.io.IOException */
+    CmapFormatUnknown(int format, DataInput di) throws IOException {
         _format = format;
+        if (_format < 8) {
+            _length = di.readUnsignedShort();
+            _language = di.readUnsignedShort();
+        
+            // We don't know how to handle this data, so we'll just skip over it
+            di.skipBytes(_length - 6);
+        } else {
+            di.readUnsignedShort(); // reserved
+            _length = di.readInt();
+            _language = di.readInt();
 
-        // We don't know how to handle this data, so we'll just skip over it
-        di.skipBytes(_length - 4);
+            // We don't know how to handle this data, so we'll just skip over it
+            di.skipBytes(_length - 12);
+        }
+    }
+
+    @Override
+    public int getFormat() {
+        return _format;
+    }
+
+    @Override
+    public int getLength() {
+        return _length;
+    }
+
+    @Override
+    public int getLanguage() {
+        return _language;
     }
 
     @Override
     public int getRangeCount() {
         return 0;
     }
-
+    
     @Override
-    public Range getRange(final int index) throws ArrayIndexOutOfBoundsException {
+    public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
         throw new ArrayIndexOutOfBoundsException();
     }
 
     @Override
-    public int mapCharCode(final int charCode) {
+    public int mapCharCode(int charCode) {
         return 0;
     }
 }

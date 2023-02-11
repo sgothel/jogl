@@ -1,6 +1,4 @@
 /*
- * $Id: ResourceHeader.java,v 1.1.1.1 2004-12-05 23:14:32 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
  * Copyright (c) 2004 David Schweinsberg
@@ -25,18 +23,17 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: ResourceHeader.java,v 1.1.1.1 2004-12-05 23:14:32 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class ResourceHeader {
 
-    private final int dataOffset;
-    private final int mapOffset;
-    private final int dataLen;
-    private final int mapLen;
+    private int dataOffset;
+    private int mapOffset;
+    private int dataLen;
+    private int mapLen;
 
     /** Creates new ResourceHeader */
-    public ResourceHeader(final DataInput di) throws IOException {
+    public ResourceHeader(DataInput di) throws IOException {
         dataOffset = di.readInt();
         mapOffset = di.readInt();
         dataLen = di.readInt();
@@ -46,15 +43,15 @@ public class ResourceHeader {
     public int getDataOffset() {
         return dataOffset;
     }
-
+    
     public int getMapOffset() {
         return mapOffset;
     }
-
+    
     public int getDataLength() {
         return dataLen;
     }
-
+    
     public int getMapLength() {
         return mapLen;
     }

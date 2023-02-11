@@ -54,20 +54,19 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
- * @version $Id: NameRecord.java,v 1.2 2004-12-09 23:47:23 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class NameRecord {
 
-    private final short _platformId;
-    private final short _encodingId;
-    private final short _languageId;
-    private final short _nameId;
-    private final short _stringLength;
-    private final short _stringOffset;
+    private short _platformId;
+    private short _encodingId;
+    private short _languageId;
+    private short _nameId;
+    private short _stringLength;
+    private short _stringOffset;
     private String _record;
 
-    protected NameRecord(final DataInput di) throws IOException {
+    NameRecord(DataInput di) throws IOException {
         _platformId = di.readShort();
         _encodingId = di.readShort();
         _languageId = di.readShort();
@@ -75,33 +74,32 @@ public class NameRecord {
         _stringLength = di.readShort();
         _stringOffset = di.readShort();
     }
-
+    
     public short getEncodingId() {
         return _encodingId;
     }
-
+    
     public short getLanguageId() {
         return _languageId;
     }
-
+    
     public short getNameId() {
         return _nameId;
     }
-
+    
     public short getPlatformId() {
         return _platformId;
     }
 
-    public StringBuilder getRecordString(final StringBuilder sb) {
-        sb.append(_record);
-        return sb;
+    public String getRecordString() {
+        return _record;
     }
 
-    protected void loadString(final DataInput di) throws IOException {
-        final StringBuilder sb = new StringBuilder();
+    void loadString(DataInput di) throws IOException {
+        StringBuilder sb = new StringBuilder();
         di.skipBytes(_stringOffset);
         if (_platformId == ID.platformUnicode) {
-
+            
             // Unicode (big-endian)
             for (int i = 0; i < _stringLength/2; i++) {
                 sb.append(di.readChar());
@@ -113,13 +111,13 @@ public class NameRecord {
                 sb.append((char) di.readByte());
             }
         } else if (_platformId == ID.platformISO) {
-
+            
             // ISO encoding, ASCII
             for (int i = 0; i < _stringLength; i++) {
                 sb.append((char) di.readByte());
             }
         } else if (_platformId == ID.platformMicrosoft) {
-
+            
             // Microsoft encoding, Unicode
             char c;
             for (int i = 0; i < _stringLength/2; i++) {
@@ -130,18 +128,15 @@ public class NameRecord {
         _record = sb.toString();
     }
 
-    @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
 
-        sb.append("             Platform ID:       ").append(_platformId)
-            .append("\n             Specific ID:       ").append(_encodingId)
-            .append("\n             Language ID:       ").append(_languageId)
-            .append("\n             Name ID:           ").append(_nameId)
-            .append("\n             Length:            ").append(_stringLength)
-            .append("\n             Offset:            ").append(_stringOffset)
-            .append("\n\n").append(_record);
-
-        return sb.toString();
+        String sb = "             Platform ID:       " + _platformId +
+                "\n             Specific ID:       " + _encodingId +
+                "\n             Language ID:       " + _languageId +
+                "\n             Name ID:           " + _nameId +
+                "\n             Length:            " + _stringLength +
+                "\n             Offset:            " + _stringOffset +
+                "\n\n" + _record;
+        return sb;
     }
 }

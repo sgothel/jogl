@@ -55,23 +55,22 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: LookupList.java,v 1.2 2007-01-24 09:47:47 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class LookupList {
 
-    private final int _lookupCount;
-    private final int[] _lookupOffsets;
-    private final Lookup[] _lookups;
+    private int _lookupCount;
+    private int[] _lookupOffsets;
+    private Lookup[] _lookups;
 
     /** Creates new LookupList */
-    public LookupList(final DataInputStream dis, final int offset, final LookupSubtableFactory factory)
+    public LookupList(DataInputStream dis, int offset, LookupSubtableFactory factory)
     throws IOException {
-
+        
         // Ensure we're in the right place
         dis.reset();
         dis.skipBytes(offset);
-
+        
         // Start reading
         _lookupCount = dis.readUnsignedShort();
         _lookupOffsets = new int[_lookupCount];
@@ -87,18 +86,18 @@ public class LookupList {
     public int getLookupCount() {
         return _lookupCount;
     }
-
-    public int getLookupOffset(final int i) {
+    
+    public int getLookupOffset(int i) {
         return _lookupOffsets[i];
     }
-
-    public Lookup getLookup(final int i) {
+    
+    public Lookup getLookup(int i) {
         return _lookups[i];
     }
 
-    public Lookup getLookup(final Feature feature, final int index) {
+    public Lookup getLookup(Feature feature, int index) {
         if (feature.getLookupCount() > index) {
-            final int i = feature.getLookupListIndex(index);
+            int i = feature.getLookupListIndex(index);
             return _lookups[i];
         }
         return null;

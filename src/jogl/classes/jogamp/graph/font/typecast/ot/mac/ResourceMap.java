@@ -1,6 +1,4 @@
 /*
- * $Id: ResourceMap.java,v 1.1.1.1 2004-12-05 23:14:32 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
  * Copyright (c) 2004 David Schweinsberg
@@ -25,57 +23,61 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: ResourceMap.java,v 1.1.1.1 2004-12-05 23:14:32 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class ResourceMap {
 
     private final byte[] headerCopy = new byte[16];
-    // private final int nextResourceMap;
-    // private final int fileReferenceNumber;
-    // private final int attributes;
-    private final ResourceType[] types;
-
+    @SuppressWarnings("unused")
+    private int nextResourceMap;
+    @SuppressWarnings("unused")
+    private int fileReferenceNumber;
+    @SuppressWarnings("unused")
+    private int attributes;
+    private ResourceType[] types;
+    
     /** Creates new ResourceMap */
-    public ResourceMap(final DataInput di) throws IOException {
+    @SuppressWarnings("unused")
+    public ResourceMap(DataInput di) throws IOException {
         di.readFully(headerCopy);
-        /* nextResourceMap = */ di.readInt();
-        /* fileReferenceNumber = */ di.readUnsignedShort();
-        /* attributes = */ di.readUnsignedShort();
-        /* final int typeOffset = */ di.readUnsignedShort();
-        /* final int nameOffset = */ di.readUnsignedShort();
-        final int typeCount = di.readUnsignedShort() + 1;
-
+        nextResourceMap = di.readInt();
+        fileReferenceNumber = di.readUnsignedShort();
+        attributes = di.readUnsignedShort();
+        int typeOffset = di.readUnsignedShort();
+        int nameOffset = di.readUnsignedShort();
+        int typeCount = di.readUnsignedShort() + 1;
+        
         // Read types
         types = new ResourceType[typeCount];
         for (int i = 0; i < typeCount; i++) {
             types[i] = new ResourceType(di);
         }
-
+        
         // Read the references
         for (int i = 0; i < typeCount; i++) {
             types[i].readRefs(di);
         }
-
+        
         // Read the names
         for (int i = 0; i < typeCount; i++) {
             types[i].readNames(di);
         }
     }
 
-    public ResourceType getResourceType(final String typeName) {
-        for (int i = 0; i < types.length; i++) {
-            if (types[i].getTypeAsString().equals(typeName)) {
-                return types[i];
+    public ResourceType getResourceType(String typeName) {
+        for (ResourceType type : types) {
+            String s = type.getTypeAsString();
+            if (type.getTypeAsString().equals(typeName)) {
+                return type;
             }
         }
         return null;
     }
 
-    public ResourceType getResourceType(final int i) {
+    public ResourceType getResourceType(int i) {
         return types[i];
     }
-
+    
     public int getResourceTypeCount() {
         return types.length;
     }

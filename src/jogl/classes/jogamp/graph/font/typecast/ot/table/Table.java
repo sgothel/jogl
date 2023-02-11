@@ -1,22 +1,32 @@
-/*****************************************************************************
- * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- *
- * This software is published under the terms of the Apache Software License *
- * version 1.1, a copy of which has been included with this distribution in  *
- * the LICENSE file.                                                         *
- *****************************************************************************/
-
+/*
+ * Typecast - The Font Development Environment
+ *
+ * Copyright (c) 2004-2016 David Schweinsberg
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package jogamp.graph.font.typecast.ot.table;
 
 /**
- * @version $Id: Table.java,v 1.1.1.1 2004-12-05 23:14:59 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public interface Table {
 
     // Table constants
     public static final int BASE = 0x42415345; // Baseline data [OpenType]
     public static final int CFF  = 0x43464620; // PostScript font program (compact font format) [PostScript]
+    public static final int COLR = 0x434f4c52; // Color Table
+    public static final int CPAL = 0x4350414c; // Color Palette Table
     public static final int DSIG = 0x44534947; // Digital signature
     public static final int EBDT = 0x45424454; // Embedded bitmap data
     public static final int EBLC = 0x45424c43; // Embedded bitmap location data
@@ -47,23 +57,10 @@ public interface Table {
     public static final int name = 0x6e616d65; // naming table [r]
     public static final int prep = 0x70726570; // CVT Program
     public static final int post = 0x706f7374; // PostScript information [r]
+    public static final int sbix = 0x73626978; // Extended Bitmaps
     public static final int vhea = 0x76686561; // Vertical Metrics header
     public static final int vmtx = 0x766d7478; // Vertical Metrics
 
     public static final String notAvailable = "n/a";
-
-    /**
-     * Get the table type, as a table directory value.
-     * @return The table type
-     */
-    public int getType();
-
-    /**
-     * Get a directory entry for this table.  This uniquely identifies the
-     * table in collections where there may be more than one instance of a
-     * particular table.
-     * @return A directory entry
-     */
-    public DirectoryEntry getDirectoryEntry();
 
 }

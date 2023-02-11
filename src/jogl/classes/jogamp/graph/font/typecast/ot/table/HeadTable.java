@@ -55,14 +55,11 @@ import java.io.IOException;
 
 import jogamp.graph.font.typecast.ot.Fixed;
 
-
 /**
- * @version $Id: HeadTable.java,v 1.2 2004-12-21 10:23:20 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class HeadTable implements Table {
 
-    private final DirectoryEntry _de;
     private final int _versionNumber;
     private final int _fontRevision;
     private final int _checkSumAdjustment;
@@ -81,8 +78,7 @@ public class HeadTable implements Table {
     private final short _indexToLocFormat;
     private final short _glyphDataFormat;
 
-    protected HeadTable(final DirectoryEntry de, final DataInput di) throws IOException {
-        this._de = (DirectoryEntry) de.clone();
+    public HeadTable(final DataInput di) throws IOException {
         _versionNumber = di.readInt();
         _fontRevision = di.readInt();
         _checkSumAdjustment = di.readInt();
@@ -142,7 +138,6 @@ public class HeadTable implements Table {
         return _modified;
     }
 
-    @Override
     public int getType() {
         return head;
     }
@@ -173,37 +168,24 @@ public class HeadTable implements Table {
 
     @Override
     public String toString() {
-        return new StringBuilder()
-            .append("'head' Table - Font Header\n--------------------------")
-            .append("\n  'head' version:      ").append(Fixed.floatValue(_versionNumber))
-            .append("\n  fontRevision:        ").append(Fixed.roundedFloatValue(_fontRevision, 8))
-            .append("\n  checkSumAdjustment:  0x").append(Integer.toHexString(_checkSumAdjustment).toUpperCase())
-            .append("\n  magicNumber:         0x").append(Integer.toHexString(_magicNumber).toUpperCase())
-            .append("\n  flags:               0x").append(Integer.toHexString(_flags).toUpperCase())
-            .append("\n  unitsPerEm:          ").append(_unitsPerEm)
-            .append("\n  created:             ").append(_created)
-            .append("\n  modified:            ").append(_modified)
-            .append("\n  xMin:                ").append(_xMin)
-            .append("\n  yMin:                ").append(_yMin)
-            .append("\n  xMax:                ").append(_xMax)
-            .append("\n  yMax:                ").append(_yMax)
-            .append("\n  macStyle bits:       ").append(Integer.toHexString(_macStyle).toUpperCase())
-            .append("\n  lowestRecPPEM:       ").append(_lowestRecPPEM)
-            .append("\n  fontDirectionHint:   ").append(_fontDirectionHint)
-            .append("\n  indexToLocFormat:    ").append(_indexToLocFormat)
-            .append("\n  glyphDataFormat:     ").append(_glyphDataFormat)
-            .toString();
-    }
-
-    /**
-     * Get a directory entry for this table.  This uniquely identifies the
-     * table in collections where there may be more than one instance of a
-     * particular table.
-     * @return A directory entry
-     */
-    @Override
-    public DirectoryEntry getDirectoryEntry() {
-        return _de;
+        return "'head' Table - Font Header\n--------------------------" +
+                "\n  'head' version:      " + Fixed.floatValue(_versionNumber) +
+                "\n  fontRevision:        " + Fixed.roundedFloatValue(_fontRevision, 8) +
+                "\n  checkSumAdjustment:  0x" + Integer.toHexString(_checkSumAdjustment).toUpperCase() +
+                "\n  magicNumber:         0x" + Integer.toHexString(_magicNumber).toUpperCase() +
+                "\n  flags:               0x" + Integer.toHexString(_flags).toUpperCase() +
+                "\n  unitsPerEm:          " + _unitsPerEm +
+                "\n  created:             " + _created +
+                "\n  modified:            " + _modified +
+                "\n  xMin:                " + _xMin +
+                "\n  yMin:                " + _yMin +
+                "\n  xMax:                " + _xMax +
+                "\n  yMax:                " + _yMax +
+                "\n  macStyle bits:       " + Integer.toHexString(_macStyle).toUpperCase() +
+                "\n  lowestRecPPEM:       " + _lowestRecPPEM +
+                "\n  fontDirectionHint:   " + _fontDirectionHint +
+                "\n  indexToLocFormat:    " + _indexToLocFormat +
+                "\n  glyphDataFormat:     " + _glyphDataFormat;
     }
 
 }

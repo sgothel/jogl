@@ -1,17 +1,16 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- *
- * This software is published under the terms of the Apache Software License *
- * version 1.1, a copy of which has been included with this distribution in  *
- * the LICENSE file.                                                         *
+ * ------------------------------------------------------------------------- * 
+ * This software is published under the terms of the Apache Software License * 
+ * version 1.1, a copy of which has been included with this distribution in  * 
+ * the LICENSE file.                                                         * 
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot;
 
 /**
  * The Mnemonic representations of the TrueType instruction set.
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: Mnemonic.java,v 1.1.1.1 2004-12-05 23:14:30 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class Mnemonic {
 
@@ -72,9 +71,9 @@ public class Mnemonic {
     public static final short RS = 0x43;
     public static final short WCVTP = 0x44;
     public static final short RCVT = 0x45;
-    public static final short GC = 0x46;    // [a]
+    public static final short GC = 0x46;	// [a]
     public static final short SCFS = 0x48;
-    public static final short MD = 0x49;    // [a]
+    public static final short MD = 0x49;	// [a]
     public static final short MPPEM = 0x4B;
     public static final short MPS = 0x4C;
     public static final short FLIPON = 0x4D;
@@ -143,7 +142,7 @@ public class Mnemonic {
      * @param opcode The opcode for which the mnemonic is required
      * @return The mnemonic, with a description
      */
-    public static String getMnemonic(final short opcode) {
+    public static String getMnemonic(short opcode) {
         if (opcode >= MIRP) return "MIRP["+((opcode&16)==0?"nrp0,":"srp0,")+((opcode&8)==0?"nmd,":"md,")+((opcode&4)==0?"nrd,":"rd,")+(opcode&3)+"]";
         else if (opcode >= MDRP) return "MDRP["+((opcode&16)==0?"nrp0,":"srp0,")+((opcode&8)==0?"nmd,":"md,")+((opcode&4)==0?"nrd,":"rd,")+(opcode&3)+"]";
         else if (opcode >= PUSHW) return "PUSHW["+((opcode&7)+1)+"]";
@@ -269,7 +268,7 @@ public class Mnemonic {
         else return "????";
     }
 
-    public static String getComment(final short opcode) {
+    public static String getComment(short opcode) {
         if (opcode >= MIRP) return "MIRP["+((opcode&16)==0?"nrp0,":"srp0,")+((opcode&8)==0?"nmd,":"md,")+((opcode&4)==0?"nrd,":"rd,")+(opcode&3)+"]\t\tMove Indirect Relative Point";
         else if (opcode >= MDRP) return "MDRP["+((opcode&16)==0?"nrp0,":"srp0,")+((opcode&8)==0?"nmd,":"md,")+((opcode&4)==0?"nrd,":"rd,")+(opcode&3)+"]\t\tMove Direct Relative Point";
         else if (opcode >= PUSHW) return "PUSHW["+((opcode&7)+1)+"]";

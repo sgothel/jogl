@@ -1,6 +1,4 @@
 /*
- * $Id: ResourceType.java,v 1.1.1.1 2004-12-05 23:14:33 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
  * Copyright (c) 2004 David Schweinsberg
@@ -25,31 +23,30 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: ResourceType.java,v 1.1.1.1 2004-12-05 23:14:33 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class ResourceType {
 
-    private final int type;
-    private final int count;
-    private final int offset;
-    private final ResourceReference[] references;
-
+    private int type;
+    private int count;
+    private int offset;
+    private ResourceReference[] references;
+    
     /** Creates new ResourceType */
-    protected ResourceType(final DataInput di) throws IOException {
+    ResourceType(DataInput di) throws IOException {
         type = di.readInt();
         count = di.readUnsignedShort() + 1;
         offset = di.readUnsignedShort();
         references = new ResourceReference[count];
     }
-
-    protected void readRefs(final DataInput di) throws IOException {
+    
+    void readRefs(DataInput di) throws IOException {
         for (int i = 0; i < count; i++) {
             references[i] = new ResourceReference(di);
         }
     }
 
-    protected void readNames(final DataInput di) throws IOException {
+    void readNames(DataInput di) throws IOException {
         for (int i = 0; i < count; i++) {
             references[i].readName(di);
         }
@@ -58,25 +55,23 @@ public class ResourceType {
     public int getType() {
         return type;
     }
-
+    
     public String getTypeAsString() {
-        return new StringBuilder()
-            .append((char)((type>>24)&0xff))
-            .append((char)((type>>16)&0xff))
-            .append((char)((type>>8)&0xff))
-            .append((char)((type)&0xff))
-            .toString();
+        return String.valueOf((char) ((type >> 24) & 0xff)) +
+                (char) ((type >> 16) & 0xff) +
+                (char) ((type >> 8) & 0xff) +
+                (char) ((type) & 0xff);
     }
-
+    
     public int getCount() {
         return count;
     }
-
+    
     public int getOffset() {
         return offset;
     }
 
-    public ResourceReference getReference(final int i) {
+    public ResourceReference getReference(int i) {
         return references[i];
     }
 }

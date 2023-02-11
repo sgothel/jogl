@@ -52,34 +52,33 @@ package jogamp.graph.font.typecast.ot.table;
 
 /**
  * Specifies access to glyph description classes, simple and composite.
- * @version $Id: GlyphDescription.java,v 1.3 2007-01-24 09:47:45 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public interface GlyphDescription {
-
-    public int getGlyphIndex();
-
-    public int getEndPtOfContours(int i);
-
-    public byte getFlags(int i);
-
-    public short getXCoordinate(int i);
-
-    public short getYCoordinate(int i);
-
-    public short getXMaximum();
-
-    public short getXMinimum();
-
-    public short getYMaximum();
-
-    public short getYMinimum();
-
-    public boolean isComposite();
-
-    public int getPointCount();
-
-    public int getContourCount();
+    
+    int getGlyphIndex();
+    
+    int getEndPtOfContours(int i);
+    
+    byte getFlags(int i);
+    
+    short getXCoordinate(int i);
+    
+    short getYCoordinate(int i);
+    
+    short getXMaximum();
+    
+    short getXMinimum();
+    
+    short getYMaximum();
+    
+    short getYMinimum();
+    
+    boolean isComposite();
+    
+    int getPointCount();
+    
+    int getContourCount();
 
     //  public int getComponentIndex(int c);
     //  public int getComponentCount();

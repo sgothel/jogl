@@ -55,8 +55,7 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: Lookup.java,v 1.2 2007-01-24 09:47:47 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class Lookup {
 
@@ -66,20 +65,20 @@ public class Lookup {
     public static final int IGNORE_BASE_MARKS = 0x0008;
     public static final int MARK_ATTACHMENT_TYPE = 0xFF00;
 
-    private final int _type;
-    private final int _flag;
-    private final int _subTableCount;
-    private final int[] _subTableOffsets;
-    private final LookupSubtable[] _subTables;
+    private int _type;
+    private int _flag;
+    private int _subTableCount;
+    private int[] _subTableOffsets;
+    private LookupSubtable[] _subTables;
 
     /** Creates new Lookup */
-    public Lookup(final LookupSubtableFactory factory, final DataInputStream dis, final int offset)
+    public Lookup(LookupSubtableFactory factory, DataInputStream dis, int offset)
     throws IOException {
 
         // Ensure we're in the right place
         dis.reset();
         dis.skipBytes(offset);
-
+        
         // Start reading
         _type = dis.readUnsignedShort();
         _flag = dis.readUnsignedShort();
@@ -102,7 +101,7 @@ public class Lookup {
         return _subTableCount;
     }
 
-    public LookupSubtable getSubtable(final int i) {
+    public LookupSubtable getSubtable(int i) {
         return _subTables[i];
     }
 

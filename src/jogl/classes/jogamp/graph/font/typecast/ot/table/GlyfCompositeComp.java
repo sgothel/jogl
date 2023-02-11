@@ -54,18 +54,17 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
- * @version $Id: GlyfCompositeComp.java,v 1.3 2010-08-10 11:41:55 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class GlyfCompositeComp {
 
-    public static final short ARG_1_AND_2_ARE_WORDS = 0x0001;
-    public static final short ARGS_ARE_XY_VALUES = 0x0002;
+    private static final short ARG_1_AND_2_ARE_WORDS = 0x0001;
+    private static final short ARGS_ARE_XY_VALUES = 0x0002;
     public static final short ROUND_XY_TO_GRID = 0x0004;
-    public static final short WE_HAVE_A_SCALE = 0x0008;
+    private static final short WE_HAVE_A_SCALE = 0x0008;
     public static final short MORE_COMPONENTS = 0x0020;
-    public static final short WE_HAVE_AN_X_AND_Y_SCALE = 0x0040;
-    public static final short WE_HAVE_A_TWO_BY_TWO = 0x0080;
+    private static final short WE_HAVE_AN_X_AND_Y_SCALE = 0x0040;
+    private static final short WE_HAVE_A_TWO_BY_TWO = 0x0080;
     public static final short WE_HAVE_INSTRUCTIONS = 0x0100;
     public static final short USE_MY_METRICS = 0x0200;
 
@@ -73,8 +72,8 @@ public class GlyfCompositeComp {
     private final int _firstContour;
     private short _argument1;
     private short _argument2;
-    private final int _flags;
-    private final int _glyphIndex;
+    private int _flags;
+    private int _glyphIndex;
     private double _xscale = 1.0;
     private double _yscale = 1.0;
     private double _scale01 = 0.0;
@@ -84,7 +83,7 @@ public class GlyfCompositeComp {
     private int _point1 = 0;
     private int _point2 = 0;
 
-    protected GlyfCompositeComp(final int firstIndex, final int firstContour, final DataInput di)
+    GlyfCompositeComp(int firstIndex, int firstContour, DataInput di)
     throws IOException {
         _firstIndex = firstIndex;
         _firstContour = firstContour;
@@ -111,7 +110,7 @@ public class GlyfCompositeComp {
 
         // Get the scale values (if any)
         if ((_flags & WE_HAVE_A_SCALE) != 0) {
-            final int i = di.readShort();
+            int i = di.readShort();
             _xscale = _yscale = (double) i / (double) 0x4000;
         } else if ((_flags & WE_HAVE_AN_X_AND_Y_SCALE) != 0) {
             short i = di.readShort();
@@ -184,8 +183,8 @@ public class GlyfCompositeComp {
      * @param y The y-coordinate of the point to transform
      * @return The transformed x-coordinate
      */
-    public int scaleX(final int x, final int y) {
-        return (int)(x * _xscale + y * _scale10);
+    public int scaleX(int x, int y) {
+        return (int)((double) x * _xscale + (double) y * _scale10);
     }
 
     /**
@@ -194,7 +193,7 @@ public class GlyfCompositeComp {
      * @param y The y-coordinate of the point to transform
      * @return The transformed y-coordinate
      */
-    public int scaleY(final int x, final int y) {
-        return (int)(x * _scale01 + y * _yscale);
+    public int scaleY(int x, int y) {
+        return (int)((double) x * _scale01 + (double) y * _yscale);
     }
 }

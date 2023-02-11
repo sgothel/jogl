@@ -54,17 +54,16 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
- * @version $Id: CmapIndexEntry.java,v 1.2 2004-12-21 10:22:56 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
-public class CmapIndexEntry implements Comparable {
+public class CmapIndexEntry implements Comparable<CmapIndexEntry> {
 
-    private final int _platformId;
-    private final int _encodingId;
-    private final int _offset;
+    private int _platformId;
+    private int _encodingId;
+    private int _offset;
     private CmapFormat _format;
 
-    protected CmapIndexEntry(final DataInput di) throws IOException {
+    CmapIndexEntry(DataInput di) throws IOException {
         _platformId = di.readUnsignedShort();
         _encodingId = di.readUnsignedShort();
         _offset = di.readInt();
@@ -85,35 +84,27 @@ public class CmapIndexEntry implements Comparable {
     public CmapFormat getFormat() {
         return _format;
     }
-
-    public void setFormat(final CmapFormat format) {
+    
+    public void setFormat(CmapFormat format) {
         _format = format;
     }
 
     @Override
     public String toString() {
-        return new StringBuilder()
-            .append("platform id: ")
-            .append(_platformId)
-            .append(" (")
-            .append(ID.getPlatformName((short) _platformId))
-            .append("), encoding id: ")
-            .append(_encodingId)
-            .append(" (")
-            .append(ID.getEncodingName((short) _platformId, (short) _encodingId))
-            .append("), offset: ")
-            .append(_offset).toString();
+        return "platform id: " +
+                _platformId +
+                " (" +
+                ID.getPlatformName((short) _platformId) +
+                "), encoding id: " +
+                _encodingId +
+                " (" +
+                ID.getEncodingName((short) _platformId, (short) _encodingId) +
+                "), offset: " +
+                _offset;
     }
 
     @Override
-    public int compareTo(final java.lang.Object obj) {
-        final CmapIndexEntry entry = (CmapIndexEntry) obj;
-        if (getOffset() < entry.getOffset()) {
-            return -1;
-        } else if (getOffset() > entry.getOffset()) {
-            return 1;
-        } else {
-            return 0;
-        }
+    public int compareTo(CmapIndexEntry entry) {
+        return Integer.compare(getOffset(), entry.getOffset());
     }
 }

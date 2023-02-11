@@ -1,6 +1,4 @@
 /*
- * $Id: GposTable.java,v 1.2 2007-01-24 09:47:47 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
  * Copyright (c) 2004 David Schweinsberg
@@ -25,45 +23,21 @@ import java.io.IOException;
 
 /**
  * TODO: To be implemented
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: GposTable.java,v 1.2 2007-01-24 09:47:47 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
-public class GposTable implements Table {
+class GposTable implements Table {
 
-    private final DirectoryEntry _de;
-
-    protected GposTable(final DirectoryEntry de, final DataInput di) throws IOException {
-        _de = (DirectoryEntry) de.clone();
+    protected GposTable(DataInput di) throws IOException {
 
         // GPOS Header
-        /* final int version = */ di.readInt();
-        /* final int scriptList = */ di.readInt();
-        /* final int featureList = */ di.readInt();
-        /* final int lookupList = */ di.readInt();
+        int version = di.readInt();
+        int scriptList = di.readInt();
+        int featureList = di.readInt();
+        int lookupList = di.readInt();
     }
 
-    /** Get the table type, as a table directory value.
-     * @return The table type
-     */
-    @Override
-    public int getType() {
-        return GPOS;
-    }
-
-    @Override
     public String toString() {
         return "GPOS";
-    }
-
-    /**
-     * Get a directory entry for this table.  This uniquely identifies the
-     * table in collections where there may be more than one instance of a
-     * particular table.
-     * @return A directory entry
-     */
-    @Override
-    public DirectoryEntry getDirectoryEntry() {
-        return _de;
     }
 
 }

@@ -1,6 +1,4 @@
 /*
- * $Id: HdmxTable.java,v 1.2 2007-07-26 11:12:30 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
  * Copyright (c) 2004-2007 David Schweinsberg
@@ -26,18 +24,16 @@ import java.io.IOException;
 /**
  * The Horizontal Device Metrics table for TrueType outlines.  This stores
  * integer advance widths scaled to specific pixel sizes.
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: HdmxTable.java,v 1.2 2007-07-26 11:12:30 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class HdmxTable implements Table {
 
     public static class DeviceRecord {
-
         private final short _pixelSize;
         private final short _maxWidth;
         private final short[] _widths;
 
-        protected DeviceRecord(final int numGlyphs, final DataInput di) throws IOException {
+        DeviceRecord(final int numGlyphs, final DataInput di) throws IOException {
             _pixelSize = di.readByte();
             _maxWidth = di.readByte();
             _widths = new short[numGlyphs];
@@ -61,19 +57,16 @@ public class HdmxTable implements Table {
         public short getWidth(final int glyphidx) {
             return _widths[glyphidx];
         }
-
     }
 
-    private final DirectoryEntry _de;
     private final int _version;
     private final short _numRecords;
     private final int _sizeDeviceRecords;
     private final DeviceRecord[] _records;
+    private final int _length;
 
     /** Creates a new instance of HdmxTable */
-    protected HdmxTable(final DirectoryEntry de, final DataInput di, final MaxpTable maxp)
-    throws IOException {
-        _de = (DirectoryEntry) de.clone();
+    public HdmxTable(final DataInput di, final int length, final MaxpTable maxp) throws IOException {
         _version = di.readUnsignedShort();
         _numRecords = di.readShort();
         _sizeDeviceRecords = di.readInt();
@@ -83,6 +76,7 @@ public class HdmxTable implements Table {
         for (int i = 0; i < _numRecords; ++i) {
             _records[i] = new DeviceRecord(maxp.getNumGlyphs(), di);
         }
+        _length = length;
     }
 
     public int getNumberOfRecords() {
@@ -94,15 +88,10 @@ public class HdmxTable implements Table {
     }
 
     @Override
-    public int getType() {
-        return hdmx;
-    }
-
-    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append("'hdmx' Table - Horizontal Device Metrics\n----------------------------------------\n");
-        sb.append("Size = ").append(_de.getLength()).append(" bytes\n")
+        sb.append("Size = ").append(_length).append(" bytes\n")
             .append("\t'hdmx' version:         ").append(_version).append("\n")
             .append("\t# device records:       ").append(_numRecords).append("\n")
             .append("\tRecord length:          ").append(_sizeDeviceRecords).append("\n");
@@ -120,14 +109,4 @@ public class HdmxTable implements Table {
         return sb.toString();
     }
 
-    /**
-     * Get a directory entry for this table.  This uniquely identifies the
-     * table in collections where there may be more than one instance of a
-     * particular table.
-     * @return A directory entry
-     */
-    @Override
-    public DirectoryEntry getDirectoryEntry() {
-        return _de;
-    }
 }

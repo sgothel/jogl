@@ -52,21 +52,65 @@ package jogamp.graph.font.typecast.ot.table;
 
 import java.io.DataInput;
 import java.io.IOException;
-
 import jogamp.graph.font.typecast.ot.Fixed;
 
 /**
- * @version $Id: TableDirectory.java,v 1.2 2004-12-09 23:46:21 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class TableDirectory {
 
-    private int _version = 0;
-    private short _numTables = 0;
-    private short _searchRange = 0;
-    private short _entrySelector = 0;
-    private short _rangeShift = 0;
-    private final DirectoryEntry[] _entries;
+    public static class Entry {
+
+        private final int _tag;
+        private final int _checksum;
+        private final int _offset;
+        private final int _length;
+
+        Entry(final DataInput di) throws IOException {
+            _tag = di.readInt();
+            _checksum = di.readInt();
+            _offset = di.readInt();
+            _length = di.readInt();
+        }
+
+        public int getChecksum() {
+            return _checksum;
+        }
+
+        public int getLength() {
+            return _length;
+        }
+
+        public int getOffset() {
+            return _offset;
+        }
+
+        int getTag() {
+            return _tag;
+        }
+
+        String getTagAsString() {
+            return String.valueOf((char) ((_tag >> 24) & 0xff)) +
+                    (char) ((_tag >> 16) & 0xff) +
+                    (char) ((_tag >> 8) & 0xff) +
+                    (char) ((_tag) & 0xff);
+        }
+
+        @Override
+        public String toString() {
+            return "'" + getTagAsString() +
+                    "' - chksm = 0x" + Integer.toHexString(_checksum) +
+                    ", off = 0x" + Integer.toHexString(_offset) +
+                    ", len = " + _length;
+        }
+    }
+
+    private final int _version;
+    private final short _numTables;
+    private final short _searchRange;
+    private final short _entrySelector;
+    private final short _rangeShift;
+    private final Entry[] _entries;
 
     public TableDirectory(final DataInput di) throws IOException {
         _version = di.readInt();
@@ -74,17 +118,17 @@ public class TableDirectory {
         _searchRange = di.readShort();
         _entrySelector = di.readShort();
         _rangeShift = di.readShort();
-        _entries = new DirectoryEntry[_numTables];
+        _entries = new Entry[_numTables];
         for (int i = 0; i < _numTables; i++) {
-            _entries[i] = new DirectoryEntry(di);
+            _entries[i] = new Entry(di);
         }
     }
 
-    public DirectoryEntry getEntry(final int index) {
+    public Entry getEntry(final int index) {
         return _entries[index];
     }
 
-    public DirectoryEntry getEntryByTag(final int tag) {
+    public Entry getEntryByTag(final int tag) {
         for (int i = 0; i < _numTables; i++) {
             if (_entries[i].getTag() == tag) {
                 return _entries[i];

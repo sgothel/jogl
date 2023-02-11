@@ -12,23 +12,18 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
- * https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6kern.html
- * https://learn.microsoft.com/en-us/typography/opentype/spec/kern
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: KernTable.java,v 1.1.1.1 2004-12-05 23:14:48 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class KernTable implements Table {
 
-    private final DirectoryEntry de;
     private final int version;
     private final int nTables;
     private final KernSubtable[] tables;
     private final KernSubtableFormat0 table0;
 
     /** Creates new KernTable */
-    protected KernTable(final DirectoryEntry de, final DataInput di) throws IOException {
-        this.de = (DirectoryEntry) de.clone();
+    public KernTable(final DataInput di) throws IOException {
         version = di.readUnsignedShort();
         nTables = di.readUnsignedShort();
         tables = new KernSubtable[nTables];
@@ -52,25 +47,6 @@ public class KernTable implements Table {
 
     public KernSubtableFormat0 getSubtable0() {
         return table0;
-    }
-
-    /** Get the table type, as a table directory value.
-     * @return The table type
-     */
-    @Override
-    public int getType() {
-        return kern;
-    }
-
-    /**
-     * Get a directory entry for this table.  This uniquely identifies the
-     * table in collections where there may be more than one instance of a
-     * particular table.
-     * @return A directory entry
-     */
-    @Override
-    public DirectoryEntry getDirectoryEntry() {
-        return de;
     }
 
     @Override

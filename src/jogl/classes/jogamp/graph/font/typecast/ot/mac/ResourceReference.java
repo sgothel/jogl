@@ -1,6 +1,4 @@
 /*
- * $Id: ResourceReference.java,v 1.1.1.1 2004-12-05 23:14:32 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
  * Copyright (c) 2004 David Schweinsberg
@@ -25,20 +23,19 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: ResourceReference.java,v 1.1.1.1 2004-12-05 23:14:32 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class ResourceReference {
 
-    private final int id;
-    private final short nameOffset;
-    private final short attributes;
-    private final int dataOffset;
-    private final int handle;
+    private int id;
+    private short nameOffset;
+    private short attributes;
+    private int dataOffset;
+    private int handle;
     private String name;
-
+    
     /** Creates new ResourceReference */
-    protected ResourceReference(final DataInput di) throws IOException {
+    ResourceReference(DataInput di) throws IOException {
         id = di.readUnsignedShort();
         nameOffset = di.readShort();
         attributes = (short) di.readUnsignedByte();
@@ -46,10 +43,10 @@ public class ResourceReference {
         handle = di.readInt();
     }
 
-    protected void readName(final DataInput di) throws IOException {
+    void readName(DataInput di) throws IOException {
         if (nameOffset > -1) {
-            final int len = di.readUnsignedByte();
-            final byte[] buf = new byte[len];
+            int len = di.readUnsignedByte();
+            byte[] buf = new byte[len];
             di.readFully(buf);
             name = new String(buf);
         }
@@ -58,23 +55,23 @@ public class ResourceReference {
     public int getId() {
         return id;
     }
-
+    
     public short getNameOffset() {
         return nameOffset;
     }
-
+    
     public short getAttributes() {
         return attributes;
     }
-
+    
     public int getDataOffset() {
         return dataOffset;
     }
-
+    
     public int getHandle() {
         return handle;
     }
-
+    
     public String getName() {
         return name;
     }

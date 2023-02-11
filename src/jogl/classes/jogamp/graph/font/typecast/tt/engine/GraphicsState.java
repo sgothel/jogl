@@ -1,6 +1,4 @@
 /*
- * $Id: GraphicsState.java,v 1.1.1.1 2004-12-05 23:15:01 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
  * Copyright (c) 2004 David Schweinsberg
@@ -22,8 +20,7 @@ package jogamp.graph.font.typecast.tt.engine;
 
 /**
  * Maintains the graphics state whilst interpreting hinting instructions.
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: GraphicsState.java,v 1.1.1.1 2004-12-05 23:15:01 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 class GraphicsState {
 

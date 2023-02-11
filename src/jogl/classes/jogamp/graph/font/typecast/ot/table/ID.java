@@ -1,9 +1,7 @@
 /*
- * $Id: ID.java,v 1.1.1.1 2004-12-05 23:14:47 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
- * Copyright (c) 2004 David Schweinsberg
+ * Copyright (c) 2004-2016 David Schweinsberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +20,7 @@ package jogamp.graph.font.typecast.ot.table;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: ID.java,v 1.1.1.1 2004-12-05 23:14:47 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public abstract class ID {
 
@@ -34,163 +31,166 @@ public abstract class ID {
     public static final short platformMicrosoft = 3;
 
     // Unicode Encoding IDs
-    public static final short encodingUnicode10Semantics = 0;
-    public static final short encodingUnicode11Semantics = 1;
-    public static final short encodingISO10646Semantics = 2;
-    public static final short encodingUnicode20Semantics = 3;
-
+    private static final short encodingUnicode10Semantics = 0;
+    private static final short encodingUnicode11Semantics = 1;
+    private static final short encodingISO10646Semantics = 2;
+    private static final short encodingUnicode20SemanticsBMPOnly = 3;
+    private static final short encodingUnicode20Semantics = 4;
+    private static final short encodingUnicodeVariationSequences = 5;
+    private static final short encodingFullUnicodeCoverage = 6;
+    
     // Microsoft Encoding IDs
 //    public static final short encodingUndefined = 0;
 //    public static final short encodingUGL = 1;
     public static final short encodingSymbol = 0;
     public static final short encodingUnicode = 1;
-    public static final short encodingShiftJIS = 2;
-    public static final short encodingPRC = 3;
-    public static final short encodingBig5 = 4;
-    public static final short encodingWansung = 5;
-    public static final short encodingJohab = 6;
-    public static final short encodingUCS4 = 10;
+    private static final short encodingShiftJIS = 2;
+    private static final short encodingPRC = 3;
+    private static final short encodingBig5 = 4;
+    private static final short encodingWansung = 5;
+    private static final short encodingJohab = 6;
+    private static final short encodingUCS4 = 10;
 
     // Macintosh Encoding IDs
     public static final short encodingRoman = 0;
-    public static final short encodingJapanese = 1;
-    public static final short encodingChinese = 2;
-    public static final short encodingKorean = 3;
-    public static final short encodingArabic = 4;
-    public static final short encodingHebrew = 5;
-    public static final short encodingGreek = 6;
-    public static final short encodingRussian = 7;
-    public static final short encodingRSymbol = 8;
-    public static final short encodingDevanagari = 9;
-    public static final short encodingGurmukhi = 10;
-    public static final short encodingGujarati = 11;
-    public static final short encodingOriya = 12;
-    public static final short encodingBengali = 13;
-    public static final short encodingTamil = 14;
-    public static final short encodingTelugu = 15;
-    public static final short encodingKannada = 16;
-    public static final short encodingMalayalam = 17;
-    public static final short encodingSinhalese = 18;
-    public static final short encodingBurmese = 19;
-    public static final short encodingKhmer = 20;
-    public static final short encodingThai = 21;
-    public static final short encodingLaotian = 22;
-    public static final short encodingGeorgian = 23;
-    public static final short encodingArmenian = 24;
-    public static final short encodingMaldivian = 25;
-    public static final short encodingTibetan = 26;
-    public static final short encodingMongolian = 27;
-    public static final short encodingGeez = 28;
-    public static final short encodingSlavic = 29;
-    public static final short encodingVietnamese = 30;
-    public static final short encodingSindhi = 31;
-    public static final short encodingUninterp = 32;
+    private static final short encodingJapanese = 1;
+    private static final short encodingChinese = 2;
+    private static final short encodingKorean = 3;
+    private static final short encodingArabic = 4;
+    private static final short encodingHebrew = 5;
+    private static final short encodingGreek = 6;
+    private static final short encodingRussian = 7;
+    private static final short encodingRSymbol = 8;
+    private static final short encodingDevanagari = 9;
+    private static final short encodingGurmukhi = 10;
+    private static final short encodingGujarati = 11;
+    private static final short encodingOriya = 12;
+    private static final short encodingBengali = 13;
+    private static final short encodingTamil = 14;
+    private static final short encodingTelugu = 15;
+    private static final short encodingKannada = 16;
+    private static final short encodingMalayalam = 17;
+    private static final short encodingSinhalese = 18;
+    private static final short encodingBurmese = 19;
+    private static final short encodingKhmer = 20;
+    private static final short encodingThai = 21;
+    private static final short encodingLaotian = 22;
+    private static final short encodingGeorgian = 23;
+    private static final short encodingArmenian = 24;
+    private static final short encodingMaldivian = 25;
+    private static final short encodingTibetan = 26;
+    private static final short encodingMongolian = 27;
+    private static final short encodingGeez = 28;
+    private static final short encodingSlavic = 29;
+    private static final short encodingVietnamese = 30;
+    private static final short encodingSindhi = 31;
+    private static final short encodingUninterp = 32;
 
     // ISO Encoding IDs
-    public static final short encodingASCII = 0;
-    public static final short encodingISO10646 = 1;
-    public static final short encodingISO8859_1 = 2;
+    private static final short encodingASCII = 0;
+    private static final short encodingISO10646 = 1;
+    private static final short encodingISO8859_1 = 2;
 
     // Microsoft Language IDs
-    public static final short languageSQI = 0x041c;
-    public static final short languageEUQ = 0x042d;
-    public static final short languageBEL = 0x0423;
-    public static final short languageBGR = 0x0402;
-    public static final short languageCAT = 0x0403;
-    public static final short languageSHL = 0x041a;
-    public static final short languageCSY = 0x0405;
-    public static final short languageDAN = 0x0406;
-    public static final short languageNLD = 0x0413;
-    public static final short languageNLB = 0x0813;
-    public static final short languageENU = 0x0409;
-    public static final short languageENG = 0x0809;
-    public static final short languageENA = 0x0c09;
-    public static final short languageENC = 0x1009;
-    public static final short languageENZ = 0x1409;
-    public static final short languageENI = 0x1809;
-    public static final short languageETI = 0x0425;
-    public static final short languageFIN = 0x040b;
-    public static final short languageFRA = 0x040c;
-    public static final short languageFRB = 0x080c;
-    public static final short languageFRC = 0x0c0c;
-    public static final short languageFRS = 0x100c;
-    public static final short languageFRL = 0x140c;
-    public static final short languageDEU = 0x0407;
-    public static final short languageDES = 0x0807;
-    public static final short languageDEA = 0x0c07;
-    public static final short languageDEL = 0x1007;
-    public static final short languageDEC = 0x1407;
-    public static final short languageELL = 0x0408;
-    public static final short languageHUN = 0x040e;
-    public static final short languageISL = 0x040f;
-    public static final short languageITA = 0x0410;
-    public static final short languageITS = 0x0810;
-    public static final short languageLVI = 0x0426;
-    public static final short languageLTH = 0x0427;
-    public static final short languageNOR = 0x0414;
-    public static final short languageNON = 0x0814;
-    public static final short languagePLK = 0x0415;
-    public static final short languagePTB = 0x0416;
-    public static final short languagePTG = 0x0816;
-    public static final short languageROM = 0x0418;
-    public static final short languageRUS = 0x0419;
-    public static final short languageSKY = 0x041b;
-    public static final short languageSLV = 0x0424;
-    public static final short languageESP = 0x040a;
-    public static final short languageESM = 0x080a;
-    public static final short languageESN = 0x0c0a;
-    public static final short languageSVE = 0x041d;
-    public static final short languageTRK = 0x041f;
-    public static final short languageUKR = 0x0422;
+    private static final short languageSQI = 0x041c;
+    private static final short languageEUQ = 0x042d;
+    private static final short languageBEL = 0x0423;
+    private static final short languageBGR = 0x0402;
+    private static final short languageCAT = 0x0403;
+    private static final short languageSHL = 0x041a;
+    private static final short languageCSY = 0x0405;
+    private static final short languageDAN = 0x0406;
+    private static final short languageNLD = 0x0413;
+    private static final short languageNLB = 0x0813;
+    private static final short languageENU = 0x0409;
+    private static final short languageENG = 0x0809;
+    private static final short languageENA = 0x0c09;
+    private static final short languageENC = 0x1009;
+    private static final short languageENZ = 0x1409;
+    private static final short languageENI = 0x1809;
+    private static final short languageETI = 0x0425;
+    private static final short languageFIN = 0x040b;
+    private static final short languageFRA = 0x040c;
+    private static final short languageFRB = 0x080c;
+    private static final short languageFRC = 0x0c0c;
+    private static final short languageFRS = 0x100c;
+    private static final short languageFRL = 0x140c;
+    private static final short languageDEU = 0x0407;
+    private static final short languageDES = 0x0807;
+    private static final short languageDEA = 0x0c07;
+    private static final short languageDEL = 0x1007;
+    private static final short languageDEC = 0x1407;
+    private static final short languageELL = 0x0408;
+    private static final short languageHUN = 0x040e;
+    private static final short languageISL = 0x040f;
+    private static final short languageITA = 0x0410;
+    private static final short languageITS = 0x0810;
+    private static final short languageLVI = 0x0426;
+    private static final short languageLTH = 0x0427;
+    private static final short languageNOR = 0x0414;
+    private static final short languageNON = 0x0814;
+    private static final short languagePLK = 0x0415;
+    private static final short languagePTB = 0x0416;
+    private static final short languagePTG = 0x0816;
+    private static final short languageROM = 0x0418;
+    private static final short languageRUS = 0x0419;
+    private static final short languageSKY = 0x041b;
+    private static final short languageSLV = 0x0424;
+    private static final short languageESP = 0x040a;
+    private static final short languageESM = 0x080a;
+    private static final short languageESN = 0x0c0a;
+    private static final short languageSVE = 0x041d;
+    private static final short languageTRK = 0x041f;
+    private static final short languageUKR = 0x0422;
 
     // Macintosh Language IDs
-    public static final short languageEnglish = 0;
-    public static final short languageFrench = 1;
-    public static final short languageGerman = 2;
-    public static final short languageItalian = 3;
-    public static final short languageDutch = 4;
-    public static final short languageSwedish = 5;
-    public static final short languageSpanish = 6;
-    public static final short languageDanish = 7;
-    public static final short languagePortuguese = 8;
-    public static final short languageNorwegian = 9;
-    public static final short languageHebrew = 10;
-    public static final short languageJapanese = 11;
-    public static final short languageArabic = 12;
-    public static final short languageFinnish = 13;
-    public static final short languageGreek = 14;
-    public static final short languageIcelandic = 15;
-    public static final short languageMaltese = 16;
-    public static final short languageTurkish = 17;
-    public static final short languageYugoslavian = 18;
-    public static final short languageChinese = 19;
-    public static final short languageUrdu = 20;
-    public static final short languageHindi = 21;
-    public static final short languageThai = 22;
+    private static final short languageEnglish = 0;
+    private static final short languageFrench = 1;
+    private static final short languageGerman = 2;
+    private static final short languageItalian = 3;
+    private static final short languageDutch = 4;
+    private static final short languageSwedish = 5;
+    private static final short languageSpanish = 6;
+    private static final short languageDanish = 7;
+    private static final short languagePortuguese = 8;
+    private static final short languageNorwegian = 9;
+    private static final short languageHebrew = 10;
+    private static final short languageJapanese = 11;
+    private static final short languageArabic = 12;
+    private static final short languageFinnish = 13;
+    private static final short languageGreek = 14;
+    private static final short languageIcelandic = 15;
+    private static final short languageMaltese = 16;
+    private static final short languageTurkish = 17;
+    private static final short languageYugoslavian = 18;
+    private static final short languageChinese = 19;
+    private static final short languageUrdu = 20;
+    private static final short languageHindi = 21;
+    private static final short languageThai = 22;
 
     // Name IDs
-    public static final short nameCopyrightNotice = 0;
+    private static final short nameCopyrightNotice = 0;
     public static final short nameFontFamilyName = 1;
-    public static final short nameFontSubfamilyName = 2;
-    public static final short nameUniqueFontIdentifier = 3;
-    public static final short nameFullFontName = 4;
-    public static final short nameVersionString = 5;
-    public static final short namePostscriptName = 6;
-    public static final short nameTrademark = 7;
-    public static final short nameManufacturerName = 8;
-    public static final short nameDesigner = 9;
-    public static final short nameDescription = 10;
-    public static final short nameURLVendor = 11;
-    public static final short nameURLDesigner = 12;
-    public static final short nameLicenseDescription = 13;
-    public static final short nameLicenseInfoURL = 14;
-    public static final short namePreferredFamily = 16;
-    public static final short namePreferredSubfamily = 17;
-    public static final short nameCompatibleFull = 18;
-    public static final short nameSampleText = 19;
-    public static final short namePostScriptCIDFindfontName = 20;
+    private static final short nameFontSubfamilyName = 2;
+    private static final short nameUniqueFontIdentifier = 3;
+    private static final short nameFullFontName = 4;
+    private static final short nameVersionString = 5;
+    private static final short namePostscriptName = 6;
+    private static final short nameTrademark = 7;
+    private static final short nameManufacturerName = 8;
+    private static final short nameDesigner = 9;
+    private static final short nameDescription = 10;
+    private static final short nameURLVendor = 11;
+    private static final short nameURLDesigner = 12;
+    private static final short nameLicenseDescription = 13;
+    private static final short nameLicenseInfoURL = 14;
+    private static final short namePreferredFamily = 16;
+    private static final short namePreferredSubfamily = 17;
+    private static final short nameCompatibleFull = 18;
+    private static final short nameSampleText = 19;
+    private static final short namePostScriptCIDFindfontName = 20;
 
-    public static String getPlatformName(final short platformId) {
+    public static String getPlatformName(short platformId) {
         switch (platformId) {
             case platformUnicode:   return "Unicode";
             case platformMacintosh: return "Macintosh";
@@ -200,17 +200,20 @@ public abstract class ID {
         }
     }
 
-    public static String getEncodingName(final short platformId, final short encodingId) {
+    public static String getEncodingName(short platformId, short encodingId) {
 
         if (platformId == platformUnicode) {
-
+            
             // Unicode specific encodings
             switch (encodingId) {
-                case encodingUnicode10Semantics: return "Unicode 1.0 semantics";
-                case encodingUnicode11Semantics: return "Unicode 1.1 semantics";
-                case encodingISO10646Semantics:  return "ISO 10646:1993 semantics";
-                case encodingUnicode20Semantics: return "Unicode 2.0 and onwards semantics";
-                default:                         return "";
+                case encodingUnicode10Semantics:        return "Unicode 1.0 semantics";
+                case encodingUnicode11Semantics:        return "Unicode 1.1 semantics";
+                case encodingISO10646Semantics:         return "ISO 10646:1993 semantics";
+                case encodingUnicode20SemanticsBMPOnly: return "Unicode 2.0 and onwards semantics (BMP only)";
+                case encodingUnicode20Semantics:        return "Unicode 2.0 and onwards semantics (non-BMP allowed)";
+                case encodingUnicodeVariationSequences: return "Unicode Variation Sequences";
+                case encodingFullUnicodeCoverage:       return "Full Unicode coverage";
+                default:                                return "";
             }
 
         } else if (platformId == platformMacintosh) {
@@ -284,7 +287,7 @@ public abstract class ID {
         return "";
     }
 
-    public static String getLanguageName(final short platformId, final short languageId) {
+    public static String getLanguageName(short platformId, short languageId) {
 
         if (platformId == platformMacintosh) {
             switch (languageId) {
@@ -371,7 +374,7 @@ public abstract class ID {
         return "";
     }
 
-    public static String getNameName(final short nameId) {
+    public static String getNameName(short nameId) {
         switch (nameId) {
             case nameCopyrightNotice: return "Copyright notice";
             case nameFontFamilyName: return "Font Family name";

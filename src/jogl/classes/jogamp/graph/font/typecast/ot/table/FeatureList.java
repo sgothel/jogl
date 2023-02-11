@@ -55,22 +55,21 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: FeatureList.java,v 1.3 2007-01-24 09:54:44 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class FeatureList {
 
-    private final int _featureCount;
-    private final FeatureRecord[] _featureRecords;
-    private final Feature[] _features;
+    private int _featureCount;
+    private FeatureRecord[] _featureRecords;
+    private Feature[] _features;
 
     /** Creates new FeatureList */
-    public FeatureList(final DataInputStream dis, final int offset) throws IOException {
-
+    public FeatureList(DataInputStream dis, int offset) throws IOException {
+        
         // Ensure we're in the right place
         dis.reset();
         dis.skipBytes(offset);
-
+        
         // Start reading
         _featureCount = dis.readUnsignedShort();
         _featureRecords = new FeatureRecord[_featureCount];
@@ -88,20 +87,20 @@ public class FeatureList {
     public int getFeatureCount() {
         return _featureCount;
     }
-
-    public FeatureRecord getFeatureRecord(final int i) {
+    
+    public FeatureRecord getFeatureRecord(int i) {
         return _featureRecords[i];
     }
-
-    public Feature getFeature(final int i) {
+    
+    public Feature getFeature(int i) {
         return _features[i];
     }
 
-    public Feature findFeature(final LangSys langSys, final String tag) {
+    public Feature findFeature(LangSys langSys, String tag) {
         if (tag.length() != 4) {
             return null;
         }
-        final int tagVal = ((tag.charAt(0)<<24)
+        int tagVal = ((tag.charAt(0)<<24)
             | (tag.charAt(1)<<16)
             | (tag.charAt(2)<<8)
             | tag.charAt(3));

@@ -1,9 +1,7 @@
 /*
- * $Id: CffStandardStrings.java,v 1.1 2007-02-05 12:41:52 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
- * Copyright (c) 2004-2007 David Schweinsberg
+ * Copyright (c) 2004-2015 David Schweinsberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +16,14 @@
  * limitations under the License.
  */
 
-package jogamp.graph.font.typecast.ot.table;
+package jogamp.graph.font.typecast.cff;
 
 /**
  * Compact Font Format Standard Strings.  As per Appendix A of the Adobe
  * CFF specification.
- * @version $Id: CffStandardStrings.java,v 1.1 2007-02-05 12:41:52 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
-public class CffStandardStrings {
+class CffStandardStrings {
 
     public static final String[] standardStrings = {
         ".notdef",

@@ -1,62 +1,29 @@
 /*
-
- ============================================================================
-                   The Apache Software License, Version 1.1
- ============================================================================
-
- Copyright (C) 1999-2003 The Apache Software Foundation. All rights reserved.
-
- Redistribution and use in source and binary forms, with or without modifica-
- tion, are permitted provided that the following conditions are met:
-
- 1. Redistributions of  source code must  retain the above copyright  notice,
-    this list of conditions and the following disclaimer.
-
- 2. Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution.
-
- 3. The end-user documentation included with the redistribution, if any, must
-    include  the following  acknowledgment:  "This product includes  software
-    developed  by the  Apache Software Foundation  (http://www.apache.org/)."
-    Alternately, this  acknowledgment may  appear in the software itself,  if
-    and wherever such third-party acknowledgments normally appear.
-
- 4. The names "Batik" and  "Apache Software Foundation" must  not  be
-    used to  endorse or promote  products derived from  this software without
-    prior written permission. For written permission, please contact
-    apache@apache.org.
-
- 5. Products  derived from this software may not  be called "Apache", nor may
-    "Apache" appear  in their name,  without prior written permission  of the
-    Apache Software Foundation.
-
- THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
- INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- FITNESS  FOR A PARTICULAR  PURPOSE ARE  DISCLAIMED.  IN NO  EVENT SHALL  THE
- APACHE SOFTWARE  FOUNDATION  OR ITS CONTRIBUTORS  BE LIABLE FOR  ANY DIRECT,
- INDIRECT, INCIDENTAL, SPECIAL,  EXEMPLARY, OR CONSEQUENTIAL  DAMAGES (INCLU-
- DING, BUT NOT LIMITED TO, PROCUREMENT  OF SUBSTITUTE GOODS OR SERVICES; LOSS
- OF USE, DATA, OR  PROFITS; OR BUSINESS  INTERRUPTION)  HOWEVER CAUSED AND ON
- ANY  THEORY OF LIABILITY,  WHETHER  IN CONTRACT,  STRICT LIABILITY,  OR TORT
- (INCLUDING  NEGLIGENCE OR  OTHERWISE) ARISING IN  ANY WAY OUT OF THE  USE OF
- THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
- This software  consists of voluntary contributions made  by many individuals
- on  behalf of the Apache Software  Foundation. For more  information on the
- Apache Software Foundation, please see <http://www.apache.org/>.
-
-*/
+ * Typecast
+ *
+ * Copyright © 2004-2019 David Schweinsberg
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package jogamp.graph.font.typecast.ot;
 
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 
 import jogamp.graph.font.typecast.ot.table.CmapTable;
-import jogamp.graph.font.typecast.ot.table.DirectoryEntry;
-import jogamp.graph.font.typecast.ot.table.GlyfDescript;
-import jogamp.graph.font.typecast.ot.table.GlyfTable;
+import jogamp.graph.font.typecast.ot.table.GsubTable;
 import jogamp.graph.font.typecast.ot.table.HdmxTable;
 import jogamp.graph.font.typecast.ot.table.HeadTable;
 import jogamp.graph.font.typecast.ot.table.HheaTable;
@@ -64,71 +31,70 @@ import jogamp.graph.font.typecast.ot.table.HmtxTable;
 import jogamp.graph.font.typecast.ot.table.KernTable;
 import jogamp.graph.font.typecast.ot.table.LocaTable;
 import jogamp.graph.font.typecast.ot.table.MaxpTable;
+import jogamp.graph.font.typecast.ot.table.NameRecord;
 import jogamp.graph.font.typecast.ot.table.NameTable;
 import jogamp.graph.font.typecast.ot.table.Os2Table;
 import jogamp.graph.font.typecast.ot.table.PostTable;
 import jogamp.graph.font.typecast.ot.table.Table;
 import jogamp.graph.font.typecast.ot.table.TableDirectory;
-import jogamp.graph.font.typecast.ot.table.TableFactory;
 import jogamp.graph.font.typecast.ot.table.VheaTable;
 
 
 /**
  * The TrueType font.
- * @version $Id: OTFont.java,v 1.6 2007-01-31 01:49:18 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>, Sven Gothel
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
-public class OTFont {
+public abstract class OTFont {
 
-    private final OTFontCollection _fc;
-    private TableDirectory _tableDirectory = null;
-    private Table[] _tables;
-    private Os2Table _os2;
-    private CmapTable _cmap;
-    private GlyfTable _glyf;
-    private HeadTable _head;
-    private HheaTable _hhea;
-    private HdmxTable _hdmx;
-    private HmtxTable _hmtx;
-    private LocaTable _loca;
-    private MaxpTable _maxp;
-    private NameTable _name;
-    private PostTable _post;
-    private VheaTable _vhea;
-    private KernTable _kern;
+    private final Os2Table _os2;
+    private final CmapTable _cmap;
+    private final HeadTable _head;
+    private final HheaTable _hhea;
+    private final HmtxTable _hmtx;
+    private final MaxpTable _maxp;
+    private final NameTable _name;
+    private final PostTable _post;
+    private final VheaTable _vhea;
+    private final GsubTable _gsub;
 
-    /**
-     * Constructor
-     */
-    public OTFont(final OTFontCollection fc) {
-        _fc = fc;
-    }
-    public StringBuilder getName(final int nameIndex, StringBuilder sb) {
-        if(null == sb) {
-            sb = new StringBuilder();
+    OTFont(final DataInputStream dis, TableDirectory tableDirectory, final int tablesOrigin) throws IOException {
+        // Load some prerequisite tables
+        // (These are tables that are referenced by other tables, so we need to load
+        // them first)
+        seekTable(tableDirectory, dis, tablesOrigin, Table.head);
+        _head = new HeadTable(dis);
+
+        // 'hhea' is required by 'hmtx'
+        seekTable(tableDirectory, dis, tablesOrigin, Table.hhea);
+        _hhea = new HheaTable(dis);
+
+        // 'maxp' is required by 'glyf', 'hmtx', 'loca', and 'vmtx'
+        seekTable(tableDirectory, dis, tablesOrigin, Table.maxp);
+        _maxp = new MaxpTable(dis);
+
+        // 'vhea' is required by 'vmtx'
+        int length = seekTable(tableDirectory, dis, tablesOrigin, Table.vhea);
+        if (length > 0) {
+            _vhea = new VheaTable(dis);
+        } else {
+            _vhea = null;
         }
-        return _name.getRecordsRecordString(sb, nameIndex);
-    }
 
-    public StringBuilder getAllNames(StringBuilder sb, final String separator) {
-        if(null != _name) {
-            if(null == sb) {
-                sb = new StringBuilder();
-            }
-            for(int i=0; i<_name.getNumberOfNameRecords(); i++) {
-                _name.getRecord(i).getRecordString(sb).append(separator);
-            }
-        }
-        return sb;
-    }
+        // 'post' is required by 'glyf'
+        seekTable(tableDirectory, dis, tablesOrigin, Table.post);
+        _post = new PostTable(dis);
 
-    public Table getTable(final int tableType) {
-        for (int i = 0; i < _tables.length; i++) {
-            if ((_tables[i] != null) && (_tables[i].getType() == tableType)) {
-                return _tables[i];
-            }
-        }
-        return null;
+        // Load all the other required tables
+        seekTable(tableDirectory, dis, tablesOrigin, Table.cmap);
+        _cmap = new CmapTable(dis);
+        length = seekTable(tableDirectory, dis, tablesOrigin, Table.hmtx);
+        _hmtx = new HmtxTable(dis, length, _hhea, _maxp);
+        length = seekTable(tableDirectory, dis, tablesOrigin, Table.name);
+        _name = new NameTable(dis, length);
+        seekTable(tableDirectory, dis, tablesOrigin, Table.OS_2);
+        _os2 = new Os2Table(dis);
+        
+        _gsub = null; // FIXME: delete?
     }
 
     public Os2Table getOS2Table() {
@@ -147,16 +113,8 @@ public class OTFont {
         return _hhea;
     }
 
-    public HdmxTable getHdmxTable() {
-        return _hdmx;
-    }
-
     public HmtxTable getHmtxTable() {
         return _hmtx;
-    }
-
-    public LocaTable getLocaTable() {
-        return _loca;
     }
 
     public MaxpTable getMaxpTable() {
@@ -175,8 +133,8 @@ public class OTFont {
         return _vhea;
     }
 
-    public KernTable getKernTable() {
-        return _kern;
+    public GsubTable getGsubTable() {
+        return _gsub;
     }
 
     public int getAscent() {
@@ -191,112 +149,43 @@ public class OTFont {
         return _maxp.getNumGlyphs();
     }
 
-    public OTGlyph getGlyph(final int i) {
+    public abstract Glyph getGlyph(int i);
 
-        final GlyfDescript _glyfDescr = _glyf.getDescription(i);
-        return (null != _glyfDescr)
-            ? new OTGlyph(
-                _glyfDescr,
-                _hmtx.getLeftSideBearing(i),
-                _hmtx.getAdvanceWidth(i))
-            : null;
-    }
-
-    public TableDirectory getTableDirectory() {
-        return _tableDirectory;
-    }
-
-    private Table readTable(
+    int seekTable(
+            final TableDirectory tableDirectory,
             final DataInputStream dis,
             final int tablesOrigin,
             final int tag) throws IOException {
         dis.reset();
-        final DirectoryEntry entry = _tableDirectory.getEntryByTag(tag);
+        final TableDirectory.Entry entry = tableDirectory.getEntryByTag(tag);
         if (entry == null) {
-            return null;
+            return 0;
         }
         dis.skip(tablesOrigin + entry.getOffset());
-        return TableFactory.create(_fc, this, entry, dis);
+        return entry.getLength();
     }
 
-    /**
-     * @param dis OpenType/TrueType font file data.
-     * @param directoryOffset The Table Directory offset within the file.  For a
-     * regular TTF/OTF file this will be zero, but for a TTC (Font Collection)
-     * the offset is retrieved from the TTC header.  For a Mac font resource,
-     * offset is retrieved from the resource headers.
-     * @param tablesOrigin The point the table offsets are calculated from.
-     * Once again, in a regular TTF file, this will be zero.  In a TTC is is
-     * also zero, but within a Mac resource, it is the beggining of the
-     * individual font resource data.
-     */
-    protected void read(
-            final DataInputStream dis,
-            final int directoryOffset,
-            final int tablesOrigin) throws IOException {
+    public String getName(final int nameIndex) {
+        return _name.getRecordsRecordString(nameIndex);
+    }
 
-        // Load the table directory
-        dis.reset();
-        dis.skip(directoryOffset);
-        _tableDirectory = new TableDirectory(dis);
-        _tables = new Table[_tableDirectory.getNumTables()];
-
-        // Load some prerequisite tables
-        _head = (HeadTable) readTable(dis, tablesOrigin, Table.head);
-        _hhea = (HheaTable) readTable(dis, tablesOrigin, Table.hhea);
-        _maxp = (MaxpTable) readTable(dis, tablesOrigin, Table.maxp);
-        _loca = (LocaTable) readTable(dis, tablesOrigin, Table.loca);
-        _vhea = (VheaTable) readTable(dis, tablesOrigin, Table.vhea);
-
-        int index = 0;
-        _tables[index++] = _head;
-        _tables[index++] = _hhea;
-        _tables[index++] = _maxp;
-        if (_loca != null) {
-            _tables[index++] = _loca;
-        }
-        if (_vhea != null) {
-            _tables[index++] = _vhea;
-        }
-
-        // Load all other tables
-        for (int i = 0; i < _tableDirectory.getNumTables(); i++) {
-            final DirectoryEntry entry = _tableDirectory.getEntry(i);
-            if (entry.getTag() == Table.head
-                    || entry.getTag() == Table.hhea
-                    || entry.getTag() == Table.maxp
-                    || entry.getTag() == Table.loca
-                    || entry.getTag() == Table.vhea) {
-                continue;
+    public StringBuilder getAllNames(StringBuilder sb, final String separator) {
+        if(null != _name) {
+            if(null == sb) {
+                sb = new StringBuilder();
             }
-            dis.reset();
-            dis.skip(tablesOrigin + entry.getOffset());
-            _tables[index] = TableFactory.create(_fc, this, entry, dis);
-            ++index;
+            for(int i=0; i<_name.getNumberOfNameRecords(); i++) {
+                final NameRecord nr = _name.getRecord(i);
+                if( null != nr ) {
+                    sb.append( nr.getRecordString() ).append(separator);
+                }
+            }
         }
-
-        // Get references to commonly used tables (these happen to be all the
-        // required tables)
-        _cmap = (CmapTable) getTable(Table.cmap);
-        _hdmx = (HdmxTable) getTable(Table.hdmx);
-        _hmtx = (HmtxTable) getTable(Table.hmtx);
-        _name = (NameTable) getTable(Table.name);
-        _os2 = (Os2Table) getTable(Table.OS_2);
-        _post = (PostTable) getTable(Table.post);
-
-        // If this is a TrueType outline, then we'll have at least the
-        // 'glyf' table (along with the 'loca' table)
-        _glyf = (GlyfTable) getTable(Table.glyf);
-
-        _kern = (KernTable) getTable(Table.kern);
+        return sb;
     }
-
+    
     @Override
     public String toString() {
-        if (_tableDirectory != null) {
-            return _tableDirectory.toString();
-        } else {
-            return "Empty font";
-        }
+        return _head.toString();
     }
 }

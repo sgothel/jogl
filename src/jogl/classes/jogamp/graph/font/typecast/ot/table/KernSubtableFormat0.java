@@ -13,19 +13,18 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: KernSubtableFormat0.java,v 1.1.1.1 2004-12-05 23:14:48 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class KernSubtableFormat0 extends KernSubtable {
 
-    private final int nPairs;
+    private int nPairs;
     private final int searchRange;
     private final int entrySelector;
     private final int rangeShift;
-    private final KerningPair[] kerningPairs;
+    private KerningPair[] kerningPairs;
 
     /** Creates new KernSubtableFormat0 */
-    protected KernSubtableFormat0(final int version, final int length, final int coverage, final DataInput di) throws IOException {
+    KernSubtableFormat0(final int version, final int length, final int coverage, final DataInput di) throws IOException {
         super(version, length, coverage);
         nPairs = di.readUnsignedShort();
         searchRange = di.readUnsignedShort();
@@ -35,6 +34,12 @@ public class KernSubtableFormat0 extends KernSubtable {
         for (int i = 0; i < nPairs; i++) {
             kerningPairs[i] = new KerningPair(di);
         }
+    }
+
+    @Override
+    public void clearKerningPairs() {
+        nPairs = 0;
+        kerningPairs = null;
     }
 
     @Override

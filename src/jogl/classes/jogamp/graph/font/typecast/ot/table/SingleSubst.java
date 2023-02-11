@@ -55,20 +55,19 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: SingleSubst.java,v 1.2 2007-01-24 09:47:46 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public abstract class SingleSubst extends LookupSubtable {
 
     public abstract int getFormat();
 
     public abstract int substitute(int glyphId);
-
-    public static SingleSubst read(final DataInputStream dis, final int offset) throws IOException {
+    
+    public static SingleSubst read(DataInputStream dis, int offset) throws IOException {
         SingleSubst s = null;
         dis.reset();
         dis.skipBytes(offset);
-        final int format = dis.readUnsignedShort();
+        int format = dis.readUnsignedShort();
         if (format == 1) {
             s = new SingleSubstFormat1(dis, offset);
         } else if (format == 2) {

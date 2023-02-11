@@ -52,28 +52,26 @@ package jogamp.graph.font.typecast.ot.table;
 
 import java.io.DataInput;
 import java.io.IOException;
-
 import jogamp.graph.font.typecast.ot.Disassembler;
 
 /**
- * @version $Id: GlyfSimpleDescript.java,v 1.3 2007-01-24 09:47:47 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class GlyfSimpleDescript extends GlyfDescript {
 
-    private final int[] _endPtsOfContours;
-    private final byte[] _flags;
-    private final short[] _xCoordinates;
-    private final short[] _yCoordinates;
-    private final int _count;
+    private int[] _endPtsOfContours;
+    private byte[] _flags;
+    private short[] _xCoordinates;
+    private short[] _yCoordinates;
+    private int _count;
 
     public GlyfSimpleDescript(
-            final GlyfTable parentTable,
-            final int glyphIndex,
-            final short numberOfContours,
-            final DataInput di) throws IOException {
+            GlyfTable parentTable,
+            int glyphIndex,
+            short numberOfContours,
+            DataInput di) throws IOException {
         super(parentTable, glyphIndex, numberOfContours, di);
-
+        
         // Simple glyph description
         _endPtsOfContours = new int[numberOfContours];
         for (int i = 0; i < numberOfContours; i++) {
@@ -86,43 +84,36 @@ public class GlyfSimpleDescript extends GlyfDescript {
         _xCoordinates = new short[_count];
         _yCoordinates = new short[_count];
 
-        final int instructionCount = di.readShort();
+        int instructionCount = di.readShort();
         readInstructions(di, instructionCount);
         readFlags(_count, di);
         readCoords(_count, di);
     }
 
-    @Override
-    public int getEndPtOfContours(final int i) {
+    public int getEndPtOfContours(int i) {
         return _endPtsOfContours[i];
     }
 
-    @Override
-    public byte getFlags(final int i) {
+    public byte getFlags(int i) {
         return _flags[i];
     }
 
-    @Override
-    public short getXCoordinate(final int i) {
+    public short getXCoordinate(int i) {
         return _xCoordinates[i];
     }
 
-    @Override
-    public short getYCoordinate(final int i) {
+    public short getYCoordinate(int i) {
         return _yCoordinates[i];
     }
 
-    @Override
     public boolean isComposite() {
         return false;
     }
 
-    @Override
     public int getPointCount() {
         return _count;
     }
 
-    @Override
     public int getContourCount() {
         return getNumberOfContours();
     }
@@ -138,7 +129,7 @@ public class GlyfSimpleDescript extends GlyfDescript {
     /**
      * The table is stored as relative values, but we'll store them as absolutes
      */
-    private void readCoords(final int count, final DataInput di) throws IOException {
+    private void readCoords(int count, DataInput di) throws IOException {
         short x = 0;
         short y = 0;
         for (int i = 0; i < count; i++) {
@@ -175,26 +166,25 @@ public class GlyfSimpleDescript extends GlyfDescript {
     /**
      * The flags are run-length encoded
      */
-    private void readFlags(final int flagCount, final DataInput di) throws IOException {
+    private void readFlags(int flagCount, DataInput di) throws IOException {
         try {
             for (int index = 0; index < flagCount; index++) {
                 _flags[index] = di.readByte();
                 if ((_flags[index] & repeat) != 0) {
-                    final int repeats = di.readByte();
+                    int repeats = di.readByte();
                     for (int i = 1; i <= repeats; i++) {
                         _flags[index + i] = _flags[index];
                     }
                     index += repeats;
                 }
             }
-        } catch (final ArrayIndexOutOfBoundsException e) {
+        } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println("error: array index out of bounds");
         }
     }
-
-    @Override
+    
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         sb.append(super.toString());
         sb.append("\n\n        EndPoints\n        ---------");
         for (int i = 0; i < _endPtsOfContours.length; i++) {

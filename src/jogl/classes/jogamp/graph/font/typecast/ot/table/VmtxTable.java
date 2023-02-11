@@ -1,6 +1,4 @@
 /*
- * $Id: VmtxTable.java,v 1.1 2007-01-31 01:18:04 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
  * Copyright (c) 2004-2007 David Schweinsberg
@@ -25,21 +23,17 @@ import java.io.IOException;
 
 /**
  * Vertical Metrics Table
- * @version $Id: VmtxTable.java,v 1.1 2007-01-31 01:18:04 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
-public class VmtxTable implements Table {
+class VmtxTable implements Table {
 
-    private final DirectoryEntry _de;
-    private int[] _vMetrics = null;
-    private short[] _topSideBearing = null;
+    private int[] _vMetrics;
+    private short[] _topSideBearing;
 
     protected VmtxTable(
-            final DirectoryEntry de,
-            final DataInput di,
-            final VheaTable vhea,
-            final MaxpTable maxp) throws IOException {
-        _de = (DirectoryEntry) de.clone();
+            DataInput di,
+            VheaTable vhea,
+            MaxpTable maxp) throws IOException {
         _vMetrics = new int[vhea.getNumberOfLongVerMetrics()];
         for (int i = 0; i < vhea.getNumberOfLongVerMetrics(); ++i) {
             _vMetrics[i] =
@@ -48,14 +42,14 @@ public class VmtxTable implements Table {
                     | di.readUnsignedByte()<<8
                     | di.readUnsignedByte();
         }
-        final int tsbCount = maxp.getNumGlyphs() - vhea.getNumberOfLongVerMetrics();
+        int tsbCount = maxp.getNumGlyphs() - vhea.getNumberOfLongVerMetrics();
         _topSideBearing = new short[tsbCount];
         for (int i = 0; i < tsbCount; ++i) {
             _topSideBearing[i] = di.readShort();
         }
     }
 
-    public int getAdvanceHeight(final int i) {
+    private int getAdvanceHeight(int i) {
         if (_vMetrics == null) {
             return 0;
         }
@@ -66,7 +60,7 @@ public class VmtxTable implements Table {
         }
     }
 
-    public short getTopSideBearing(final int i) {
+    private short getTopSideBearing(int i) {
         if (_vMetrics == null) {
             return 0;
         }
@@ -77,17 +71,11 @@ public class VmtxTable implements Table {
         }
     }
 
-    @Override
-    public int getType() {
-        return vmtx;
-    }
-
-    @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         sb.append("'vmtx' Table - Vertical Metrics\n-------------------------------\n");
-        sb.append("Size = ").append(_de.getLength()).append(" bytes, ")
-            .append(_vMetrics.length).append(" entries\n");
+//        sb.append("Size = ").append(_de.getLength()).append(" bytes, ")
+            sb.append(_vMetrics.length).append(" entries\n");
         for (int i = 0; i < _vMetrics.length; i++) {
             sb.append("        ").append(i)
                 .append(". advHeight: ").append(getAdvanceHeight(i))
@@ -102,14 +90,4 @@ public class VmtxTable implements Table {
         return sb.toString();
     }
 
-    /**
-     * Get a directory entry for this table.  This uniquely identifies the
-     * table in collections where there may be more than one instance of a
-     * particular table.
-     * @return A directory entry
-     */
-    @Override
-    public DirectoryEntry getDirectoryEntry() {
-        return _de;
-    }
 }

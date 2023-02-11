@@ -56,35 +56,32 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 /**
- * @version $Id: GlyfTable.java,v 1.6 2010-08-10 11:46:30 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class GlyfTable implements Table {
 
-    private final DirectoryEntry _de;
     private final GlyfDescript[] _descript;
 
-    protected GlyfTable(
-            final DirectoryEntry de,
-            final DataInput di,
-            final MaxpTable maxp,
-            final LocaTable loca) throws IOException {
-        _de = (DirectoryEntry) de.clone();
+    public GlyfTable(
+            DataInput di,
+            int length,
+            MaxpTable maxp,
+            LocaTable loca) throws IOException {
         _descript = new GlyfDescript[maxp.getNumGlyphs()];
-
+        
         // Buffer the whole table so we can randomly access it
-        final byte[] buf = new byte[de.getLength()];
+        byte[] buf = new byte[length];
         di.readFully(buf);
-        final ByteArrayInputStream bais = new ByteArrayInputStream(buf);
-
+        ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+        
         // Process all the simple glyphs
         for (int i = 0; i < maxp.getNumGlyphs(); i++) {
-            final int len = loca.getOffset(i + 1) - loca.getOffset(i);
+            int len = loca.getOffset(i + 1) - loca.getOffset(i);
             if (len > 0) {
                 bais.reset();
                 bais.skip(loca.getOffset(i));
-                final DataInputStream dis = new DataInputStream(bais);
-                final short numberOfContours = dis.readShort();
+                DataInputStream dis = new DataInputStream(bais);
+                short numberOfContours = dis.readShort();
                 if (numberOfContours >= 0) {
                     _descript[i] = new GlyfSimpleDescript(this, i, numberOfContours, dis);
                 }
@@ -95,12 +92,12 @@ public class GlyfTable implements Table {
 
         // Now do all the composite glyphs
         for (int i = 0; i < maxp.getNumGlyphs(); i++) {
-            final int len = loca.getOffset(i + 1) - loca.getOffset(i);
+            int len = loca.getOffset(i + 1) - loca.getOffset(i);
             if (len > 0) {
                 bais.reset();
                 bais.skip(loca.getOffset(i));
-                final DataInputStream dis = new DataInputStream(bais);
-                final short numberOfContours = dis.readShort();
+                DataInputStream dis = new DataInputStream(bais);
+                short numberOfContours = dis.readShort();
                 if (numberOfContours < 0) {
                     _descript[i] = new GlyfCompositeDescript(this, i, dis);
                 }
@@ -108,7 +105,7 @@ public class GlyfTable implements Table {
         }
     }
 
-    public GlyfDescript getDescription(final int i) {
+    public GlyfDescript getDescription(int i) {
         if (i < _descript.length) {
             return _descript[i];
         } else {
@@ -116,19 +113,4 @@ public class GlyfTable implements Table {
         }
     }
 
-    @Override
-    public int getType() {
-        return glyf;
-    }
-
-    /**
-     * Get a directory entry for this table.  This uniquely identifies the
-     * table in collections where there may be more than one instance of a
-     * particular table.
-     * @return A directory entry
-     */
-    @Override
-    public DirectoryEntry getDirectoryEntry() {
-        return _de;
-    }
 }

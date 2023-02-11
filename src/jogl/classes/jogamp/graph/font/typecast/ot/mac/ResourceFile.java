@@ -1,6 +1,4 @@
 /*
- * $Id: ResourceFile.java,v 1.2 2007-01-29 04:01:53 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
  * Copyright (c) 2004 David Schweinsberg
@@ -26,51 +24,50 @@ import java.io.RandomAccessFile;
 /**
  * Mac resource loading test.
  * TODO: incorporate this into the test suite.
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: ResourceFile.java,v 1.2 2007-01-29 04:01:53 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
-public class ResourceFile {
+class ResourceFile {
 
-    private final ResourceHeader header;
-    private final ResourceMap map;
-
+    private ResourceHeader header;
+    private ResourceMap map;
+    
     /** Creates new Resource */
-    public ResourceFile(final RandomAccessFile raf) throws IOException {
+    private ResourceFile(RandomAccessFile raf) throws IOException {
 
         // Read header at the beginning of the file
         raf.seek(0);
         header = new ResourceHeader(raf);
-
+        
         // Seek to the map offset and read the map
         raf.seek(header.getMapOffset());
         map = new ResourceMap(raf);
     }
 
-    public ResourceMap getResourceMap() {
+    private ResourceMap getResourceMap() {
         return map;
     }
 
-    public static void main(final String[] args) {
+    public static void main(String[] args) {
         try {
             //RandomAccessFile raf = new RandomAccessFile("/Library/Fonts/GillSans.dfont", "r");
-
+            
             // Tests loading a font from a resource fork on Mac OS X
-            final RandomAccessFile raf = new RandomAccessFile("/Library/Fonts/Georgia/..namedfork/rsrc", "r");
-            final ResourceFile resource = new ResourceFile(raf);
+            RandomAccessFile raf = new RandomAccessFile("/Library/Fonts/Georgia/..namedfork/rsrc", "r");
+            ResourceFile resource = new ResourceFile(raf);
             for (int i = 0; i < resource.getResourceMap().getResourceTypeCount(); i++) {
                 System.out.println(resource.getResourceMap().getResourceType(i).getTypeAsString());
             }
-
+            
             // Get the first 'sfnt' resource
             ResourceType type = resource.getResourceMap().getResourceType("sfnt");
             ResourceReference reference = type.getReference(0);
-
+            
             type = resource.getResourceMap().getResourceType("FOND");
             for (int i = 0; i < type.getCount(); ++i) {
                 reference = type.getReference(i);
                 System.out.println(reference.getName());
             }
-        } catch (final Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

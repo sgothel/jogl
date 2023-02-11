@@ -1,6 +1,4 @@
 /*
- * $Id: TableException.java,v 1.1.1.1 2004-12-05 23:15:00 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
  * Copyright (c) 2004 David Schweinsberg
@@ -22,11 +20,10 @@ package jogamp.graph.font.typecast.ot.table;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: TableException.java,v 1.1.1.1 2004-12-05 23:15:00 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class TableException extends java.lang.Exception {
-
+    
     private static final long serialVersionUID = 1L;
 
     /**
@@ -34,13 +31,13 @@ public class TableException extends java.lang.Exception {
      */
     public TableException() {
     }
-
-
+    
+    
     /**
      * Constructs an instance of <code>TableException</code> with the specified detail message.
      * @param msg the detail message.
      */
-    public TableException(final String msg) {
+    public TableException(String msg) {
         super(msg);
     }
 }

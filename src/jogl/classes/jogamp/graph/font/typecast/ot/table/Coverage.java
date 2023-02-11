@@ -55,8 +55,7 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: Coverage.java,v 1.3 2007-01-24 09:43:30 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public abstract class Coverage {
 
@@ -68,10 +67,12 @@ public abstract class Coverage {
      * can't be found.
      */
     public abstract int findGlyph(int glyphId);
-
-    protected static Coverage read(final DataInput di) throws IOException {
+    
+    public abstract int[] getGlyphIds();
+    
+    static Coverage read(DataInput di) throws IOException {
         Coverage c = null;
-        final int format = di.readUnsignedShort();
+        int format = di.readUnsignedShort();
         if (format == 1) {
             c = new CoverageFormat1(di);
         } else if (format == 2) {

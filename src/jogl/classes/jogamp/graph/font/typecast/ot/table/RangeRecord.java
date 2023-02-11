@@ -56,32 +56,42 @@ import java.io.IOException;
 /**
  * Coverage Index (GlyphID) = StartCoverageIndex + GlyphID - Start GlyphID
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: RangeRecord.java,v 1.2 2007-01-24 09:47:47 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
-public class RangeRecord {
+class RangeRecord {
 
     private final int _start;
     private final int _end;
     private final int _startCoverageIndex;
 
     /** Creates new RangeRecord */
-    public RangeRecord(final DataInput di) throws IOException {
+    public RangeRecord(DataInput di) throws IOException {
         _start = di.readUnsignedShort();
         _end = di.readUnsignedShort();
         _startCoverageIndex = di.readUnsignedShort();
     }
 
-    public boolean isInRange(final int glyphId) {
-        return (_start <= glyphId && glyphId <= _end);
+    public int getStart() {
+        return _start;
+    }
+    
+    public int getEnd() {
+        return _end;
+    }
+    
+    public int getStartCoverageIndex() {
+        return _startCoverageIndex;
     }
 
-    public int getCoverageIndex(final int glyphId) {
+    private boolean isInRange(int glyphId) {
+        return (_start <= glyphId && glyphId <= _end);
+    }
+    
+    public int getCoverageIndex(int glyphId) {
         if (isInRange(glyphId)) {
             return _startCoverageIndex + glyphId - _start;
         }
         return -1;
     }
-
 }
 

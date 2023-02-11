@@ -55,16 +55,15 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: FeatureRecord.java,v 1.2 2007-01-24 09:47:48 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class FeatureRecord {
 
-    private final int _tag;
-    private final int _offset;
+    private int _tag;
+    private int _offset;
 
     /** Creates new FeatureRecord */
-    protected FeatureRecord(final DataInput di) throws IOException {
+    FeatureRecord(DataInput di) throws IOException {
         _tag = di.readInt();
         _offset = di.readUnsignedShort();
     }
@@ -72,17 +71,15 @@ public class FeatureRecord {
     public int getTag() {
         return _tag;
     }
-
+    
     public int getOffset() {
         return _offset;
     }
 
     public String getTagAsString() {
-        return new StringBuilder()
-            .append((char)((_tag>>24)&0xff))
-            .append((char)((_tag>>16)&0xff))
-            .append((char)((_tag>>8)&0xff))
-            .append((char)((_tag)&0xff))
-            .toString();
+        return String.valueOf((char) ((_tag >> 24) & 0xff)) +
+                (char) ((_tag >> 16) & 0xff) +
+                (char) ((_tag >> 8) & 0xff) +
+                (char) ((_tag) & 0xff);
     }
 }

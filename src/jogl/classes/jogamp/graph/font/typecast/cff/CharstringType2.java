@@ -1,9 +1,7 @@
 /*
- * $Id: CharstringType2.java,v 1.4 2007-07-26 11:13:44 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
- * Copyright (c) 2004-2007 David Schweinsberg
+ * Copyright (c) 2004-2015 David Schweinsberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +16,14 @@
  * limitations under the License.
  */
 
-package jogamp.graph.font.typecast.ot.table;
-
-import jogamp.graph.font.typecast.ot.table.CffTable;
+package jogamp.graph.font.typecast.cff;
 
 /**
  * CFF Type 2 Charstring
- * @version $Id: CharstringType2.java,v 1.4 2007-07-26 11:13:44 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class CharstringType2 extends Charstring {
-
+    
     private static final String[] _oneByteOperators = {
         "-Reserved-",
         "hstem",
@@ -105,34 +100,40 @@ public class CharstringType2 extends Charstring {
         "flex1",
         "-Reserved-"
     };
-
+    
+    private final CffFont _font;
     private final int _index;
     private final String _name;
     private final int[] _data;
     private final int _offset;
     private final int _length;
-    private final CffTable.Index _localSubrIndex;
-    private final CffTable.Index _globalSubrIndex;
-    private int _ip;
 
-    /** Creates a new instance of CharstringType2 */
-    protected CharstringType2(
-            final int index,
-            final String name,
-            final int[] data,
-            final int offset,
-            final int length,
-            final CffTable.Index localSubrIndex,
-            final CffTable.Index globalSubrIndex) {
+    /** Creates a new instance of CharstringType2
+     * @param font
+     * @param index
+     * @param name
+     * @param data
+     * @param offset
+     * @param length */
+    public CharstringType2(
+            CffFont font,
+            int index,
+            String name,
+            int[] data,
+            int offset,
+            int length) {
+        _font = font;
         _index = index;
         _name = name;
         _data = data;
         _offset = offset;
         _length = length;
-        _localSubrIndex = localSubrIndex;
-        _globalSubrIndex = globalSubrIndex;
     }
-
+    
+    public CffFont getFont() {
+        return _font;
+    }
+    
     @Override
     public int getIndex() {
         return _index;
@@ -142,18 +143,18 @@ public class CharstringType2 extends Charstring {
     public String getName() {
         return _name;
     }
-
-    private void disassemble(final StringBuilder sb) {
-        Number operand = null;
-        while (isOperandAtIndex()) {
-            operand = nextOperand();
+    
+    private int disassemble(int ip, StringBuilder sb) {
+        while (isOperandAtIndex(ip)) {
+            Number operand = operandAtIndex(ip);
             sb.append(operand).append(" ");
+            ip = nextOperandIndex(ip);
         }
-        int operator = nextByte();
+        int operator = byteAtIndex(ip++);
         String mnemonic;
         if (operator == 12) {
-            operator = nextByte();
-
+            operator = byteAtIndex(ip++);
+            
             // Check we're not exceeding the upper limit of our mnemonics
             if (operator > 38) {
                 operator = 38;
@@ -163,74 +164,95 @@ public class CharstringType2 extends Charstring {
             mnemonic = _oneByteOperators[operator];
         }
         sb.append(mnemonic);
+        return ip;
+    }
+    
+    public int getFirstIndex() {
+        return _offset;
     }
 
-    public void resetIP() {
-        _ip = _offset;
+    public boolean isOperandAtIndex(int ip) {
+        int b0 = _data[ip];
+        return (32 <= b0 && b0 <= 255) || b0 == 28;
     }
 
-    public boolean isOperandAtIndex() {
-        final int b0 = _data[_ip];
-        if ((32 <= b0 && b0 <= 255) || b0 == 28) {
-            return true;
-        }
-        return false;
-    }
-
-    public Number nextOperand() {
-        final int b0 = _data[_ip];
+    public Number operandAtIndex(int ip) {
+        int b0 = _data[ip];
         if (32 <= b0 && b0 <= 246) {
 
             // 1 byte integer
-            ++_ip;
-            return Integer.valueOf(b0 - 139);
+            return b0 - 139;
         } else if (247 <= b0 && b0 <= 250) {
 
             // 2 byte integer
-            final int b1 = _data[_ip + 1];
-            _ip += 2;
-            return Integer.valueOf((b0 - 247) * 256 + b1 + 108);
+            int b1 = _data[ip + 1];
+            return (b0 - 247) * 256 + b1 + 108;
         } else if (251 <= b0 && b0 <= 254) {
 
             // 2 byte integer
-            final int b1 = _data[_ip + 1];
-            _ip += 2;
-            return Integer.valueOf(-(b0 - 251) * 256 - b1 - 108);
+            int b1 = _data[ip + 1];
+            return -(b0 - 251) * 256 - b1 - 108;
         } else if (b0 == 28) {
 
             // 3 byte integer
-            final int b1 = _data[_ip + 1];
-            final int b2 = _data[_ip + 2];
-            _ip += 3;
-            return Integer.valueOf(b1 << 8 | b2);
+            int b1 = (byte)_data[ip + 1];
+            int b2 = _data[ip + 2];
+            return b1 << 8 | b2;
         } else if (b0 == 255) {
 
             // 16-bit signed integer with 16 bits of fraction
-            final int b1 = (byte) _data[_ip + 1];
-            final int b2 = _data[_ip + 2];
-            final int b3 = _data[_ip + 3];
-            final int b4 = _data[_ip + 4];
-            _ip += 5;
-            return Float.valueOf((b1 << 8 | b2) + ((b3 << 8 | b4) / 65536f));
+            int b1 = (byte) _data[ip + 1];
+            int b2 = _data[ip + 2];
+            int b3 = _data[ip + 3];
+            int b4 = _data[ip + 4];
+            return (float) ((b1 << 8 | b2) + ((b3 << 8 | b4) / 65536.0));
         } else {
             return null;
         }
     }
 
-    public int nextByte() {
-        return _data[_ip++];
-    }
+    public int nextOperandIndex(int ip) {
+        int b0 = _data[ip];
+        if (32 <= b0 && b0 <= 246) {
 
-    public boolean moreBytes() {
-        return _ip < _offset + _length;
+            // 1 byte integer
+            return ip + 1;
+        } else if (247 <= b0 && b0 <= 250) {
+
+            // 2 byte integer
+            return ip + 2;
+        } else if (251 <= b0 && b0 <= 254) {
+
+            // 2 byte integer
+            return ip + 2;
+        } else if (b0 == 28) {
+
+            // 3 byte integer
+            return ip + 3;
+        } else if (b0 == 255) {
+
+            return ip + 5;
+        } else {
+            return ip;
+        }
+    }
+    
+    public int byteAtIndex(int ip) {
+        return _data[ip];
+    }
+    
+    public boolean moreBytes(int ip) {
+        return ip < _offset + _length;
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        resetIP();
-        while (moreBytes()) {
-            disassemble(sb);
+        StringBuilder sb = new StringBuilder();
+        int ip = getFirstIndex();
+        while (moreBytes(ip)) {
+//            sb.append(ip);
+//            sb.append(": ");
+            ip = disassemble(ip, sb);
             sb.append("\n");
         }
         return sb.toString();

@@ -55,24 +55,23 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: Script.java,v 1.2 2007-01-24 09:47:47 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class Script {
 
-    private final int _defaultLangSysOffset;
-    private final int _langSysCount;
+    private int _defaultLangSysOffset;
+    private int _langSysCount;
     private LangSysRecord[] _langSysRecords;
     private LangSys _defaultLangSys;
     private LangSys[] _langSys;
-
+    
     /** Creates new ScriptTable */
-    protected Script(final DataInputStream dis, final int offset) throws IOException {
+    Script(DataInputStream dis, int offset) throws IOException {
 
         // Ensure we're in the right place
         dis.reset();
         dis.skipBytes(offset);
-
+        
         // Start reading
         _defaultLangSysOffset = dis.readUnsignedShort();
         _langSysCount = dis.readUnsignedShort();
@@ -102,8 +101,8 @@ public class Script {
     public int getLangSysCount() {
         return _langSysCount;
     }
-
-    public LangSysRecord getLangSysRecord(final int i) {
+    
+    public LangSysRecord getLangSysRecord(int i) {
         return _langSysRecords[i];
     }
 
@@ -111,7 +110,7 @@ public class Script {
         return _defaultLangSys;
     }
 
-    public LangSys getLangSys(final int i) {
+    public LangSys getLangSys(int i) {
         return _langSys[i];
     }
 }

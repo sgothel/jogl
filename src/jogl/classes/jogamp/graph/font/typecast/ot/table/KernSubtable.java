@@ -11,12 +11,9 @@ package jogamp.graph.font.typecast.ot.table;
 import java.io.DataInput;
 import java.io.IOException;
 
-import jogamp.graph.font.typecast.ot.Fixed;
-
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: KernSubtable.java,v 1.1.1.1 2004-12-05 23:14:47 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public abstract class KernSubtable {
     private final int version;
@@ -24,7 +21,7 @@ public abstract class KernSubtable {
     private final int coverage;
 
     /** Creates new KernSubtable */
-    protected KernSubtable(final int version, final int length, final int coverage) {
+    KernSubtable(final int version, final int length, final int coverage) {
         this.version = version;
         this.length = length;
         this.coverage = coverage;
@@ -50,7 +47,19 @@ public abstract class KernSubtable {
     public abstract int getKerningPairCount();
 
     public abstract KerningPair getKerningPair(int i);
+    
+    public abstract void clearKerningPairs();
 
+    public short getKerningValue(final int left_glyphid, final int right_glyphid) {
+        for (int i = 0; i < getKerningPairCount(); i++) {
+            final KerningPair kpair = getKerningPair(i);
+            if( kpair.getLeft() == left_glyphid && kpair.getRight() == right_glyphid ) {
+                return kpair.getValue();
+            }
+        }
+        return 0;
+    }    
+    
     public static KernSubtable read(final DataInput di) throws IOException {
         KernSubtable table = null;
         final int version = di.readUnsignedShort();

@@ -54,52 +54,49 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
- * @version $Id: Os2Table.java,v 1.2 2004-12-09 23:46:21 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class Os2Table implements Table {
 
-    private final DirectoryEntry _de;
-    private final int _version;
-    private final short _xAvgCharWidth;
-    private final int _usWeightClass;
-    private final int _usWidthClass;
-    private final short _fsType;
-    private final short _ySubscriptXSize;
-    private final short _ySubscriptYSize;
-    private final short _ySubscriptXOffset;
-    private final short _ySubscriptYOffset;
-    private final short _ySuperscriptXSize;
-    private final short _ySuperscriptYSize;
-    private final short _ySuperscriptXOffset;
-    private final short _ySuperscriptYOffset;
-    private final short _yStrikeoutSize;
-    private final short _yStrikeoutPosition;
-    private final short _sFamilyClass;
-    private final Panose _panose;
-    private final int _ulUnicodeRange1;
-    private final int _ulUnicodeRange2;
-    private final int _ulUnicodeRange3;
-    private final int _ulUnicodeRange4;
-    private final int _achVendorID;
-    private final short _fsSelection;
-    private final int _usFirstCharIndex;
-    private final int _usLastCharIndex;
-    private final short _sTypoAscender;
-    private final short _sTypoDescender;
-    private final short _sTypoLineGap;
-    private final int _usWinAscent;
-    private final int _usWinDescent;
-    private final int _ulCodePageRange1;
-    private final int _ulCodePageRange2;
+    private int _version;
+    private short _xAvgCharWidth;
+    private int _usWeightClass;
+    private int _usWidthClass;
+    private short _fsType;
+    private short _ySubscriptXSize;
+    private short _ySubscriptYSize;
+    private short _ySubscriptXOffset;
+    private short _ySubscriptYOffset;
+    private short _ySuperscriptXSize;
+    private short _ySuperscriptYSize;
+    private short _ySuperscriptXOffset;
+    private short _ySuperscriptYOffset;
+    private short _yStrikeoutSize;
+    private short _yStrikeoutPosition;
+    private short _sFamilyClass;
+    private Panose _panose;
+    private int _ulUnicodeRange1;
+    private int _ulUnicodeRange2;
+    private int _ulUnicodeRange3;
+    private int _ulUnicodeRange4;
+    private int _achVendorID;
+    private short _fsSelection;
+    private int _usFirstCharIndex;
+    private int _usLastCharIndex;
+    private short _sTypoAscender;
+    private short _sTypoDescender;
+    private short _sTypoLineGap;
+    private int _usWinAscent;
+    private int _usWinDescent;
+    private int _ulCodePageRange1;
+    private int _ulCodePageRange2;
     private short _sxHeight;
     private short _sCapHeight;
     private int _usDefaultChar;
     private int _usBreakChar;
     private int _usMaxContext;
 
-    protected Os2Table(final DirectoryEntry de, final DataInput di) throws IOException {
-        this._de = (DirectoryEntry) de.clone();
+    public Os2Table(DataInput di) throws IOException {
         _version = di.readUnsignedShort();
         _xAvgCharWidth = di.readShort();
         _usWeightClass = di.readUnsignedShort();
@@ -116,7 +113,7 @@ public class Os2Table implements Table {
         _yStrikeoutSize = di.readShort();
         _yStrikeoutPosition = di.readShort();
         _sFamilyClass = di.readShort();
-        final byte[] buf = new byte[10];
+        byte[] buf = new byte[10];
         di.readFully(buf);
         _panose = new Panose(buf);
         _ulUnicodeRange1 = di.readInt();
@@ -134,7 +131,7 @@ public class Os2Table implements Table {
         _usWinDescent = di.readUnsignedShort();
         _ulCodePageRange1 = di.readInt();
         _ulCodePageRange2 = di.readInt();
-
+        
         // OpenType 1.3
         if (_version == 2) {
             _sxHeight = di.readShort();
@@ -276,85 +273,65 @@ public class Os2Table implements Table {
     public short getXHeight() {
         return _sxHeight;
     }
-
+    
     public short getCapHeight() {
         return _sCapHeight;
     }
-
+    
     public int getDefaultChar() {
         return _usDefaultChar;
     }
-
+    
     public int getBreakChar() {
         return _usBreakChar;
     }
-
+    
     public int getMaxContext() {
         return _usMaxContext;
     }
 
-    @Override
-    public int getType() {
-        return OS_2;
-    }
-
-    @Override
     public String toString() {
-        return new StringBuilder()
-            .append("'OS/2' Table - OS/2 and Windows Metrics\n---------------------------------------")
-            .append("\n  'OS/2' version:      ").append(_version)
-            .append("\n  xAvgCharWidth:       ").append(_xAvgCharWidth)
-            .append("\n  usWeightClass:       ").append(_usWeightClass)
-            .append("\n  usWidthClass:        ").append(_usWidthClass)
-            .append("\n  fsType:              0x").append(Integer.toHexString(_fsType).toUpperCase())
-            .append("\n  ySubscriptXSize:     ").append(_ySubscriptXSize)
-            .append("\n  ySubscriptYSize:     ").append(_ySubscriptYSize)
-            .append("\n  ySubscriptXOffset:   ").append(_ySubscriptXOffset)
-            .append("\n  ySubscriptYOffset:   ").append(_ySubscriptYOffset)
-            .append("\n  ySuperscriptXSize:   ").append(_ySuperscriptXSize)
-            .append("\n  ySuperscriptYSize:   ").append(_ySuperscriptYSize)
-            .append("\n  ySuperscriptXOffset: ").append(_ySuperscriptXOffset)
-            .append("\n  ySuperscriptYOffset: ").append(_ySuperscriptYOffset)
-            .append("\n  yStrikeoutSize:      ").append(_yStrikeoutSize)
-            .append("\n  yStrikeoutPosition:  ").append(_yStrikeoutPosition)
-            .append("\n  sFamilyClass:        ").append(_sFamilyClass>>8)
-            .append("    subclass = ").append(_sFamilyClass&0xff)
-            .append("\n  PANOSE:              ").append(_panose.toString())
-            .append("\n  Unicode Range 1( Bits 0 - 31 ): ").append(Integer.toHexString(_ulUnicodeRange1).toUpperCase())
-            .append("\n  Unicode Range 2( Bits 32- 63 ): ").append(Integer.toHexString(_ulUnicodeRange2).toUpperCase())
-            .append("\n  Unicode Range 3( Bits 64- 95 ): ").append(Integer.toHexString(_ulUnicodeRange3).toUpperCase())
-            .append("\n  Unicode Range 4( Bits 96-127 ): ").append(Integer.toHexString(_ulUnicodeRange4).toUpperCase())
-            .append("\n  achVendID:           '").append(getVendorIDAsString())
-            .append("'\n  fsSelection:         0x").append(Integer.toHexString(_fsSelection).toUpperCase())
-            .append("\n  usFirstCharIndex:    0x").append(Integer.toHexString(_usFirstCharIndex).toUpperCase())
-            .append("\n  usLastCharIndex:     0x").append(Integer.toHexString(_usLastCharIndex).toUpperCase())
-            .append("\n  sTypoAscender:       ").append(_sTypoAscender)
-            .append("\n  sTypoDescender:      ").append(_sTypoDescender)
-            .append("\n  sTypoLineGap:        ").append(_sTypoLineGap)
-            .append("\n  usWinAscent:         ").append(_usWinAscent)
-            .append("\n  usWinDescent:        ").append(_usWinDescent)
-            .append("\n  CodePage Range 1( Bits 0 - 31 ): ").append(Integer.toHexString(_ulCodePageRange1).toUpperCase())
-            .append("\n  CodePage Range 2( Bits 32- 63 ): ").append(Integer.toHexString(_ulCodePageRange2).toUpperCase())
-            .toString();
+        return "'OS/2' Table - OS/2 and Windows Metrics\n---------------------------------------" +
+                "\n  'OS/2' version:      " + _version +
+                "\n  xAvgCharWidth:       " + _xAvgCharWidth +
+                "\n  usWeightClass:       " + _usWeightClass +
+                "\n  usWidthClass:        " + _usWidthClass +
+                "\n  fsType:              0x" + Integer.toHexString(_fsType).toUpperCase() +
+                "\n  ySubscriptXSize:     " + _ySubscriptXSize +
+                "\n  ySubscriptYSize:     " + _ySubscriptYSize +
+                "\n  ySubscriptXOffset:   " + _ySubscriptXOffset +
+                "\n  ySubscriptYOffset:   " + _ySubscriptYOffset +
+                "\n  ySuperscriptXSize:   " + _ySuperscriptXSize +
+                "\n  ySuperscriptYSize:   " + _ySuperscriptYSize +
+                "\n  ySuperscriptXOffset: " + _ySuperscriptXOffset +
+                "\n  ySuperscriptYOffset: " + _ySuperscriptYOffset +
+                "\n  yStrikeoutSize:      " + _yStrikeoutSize +
+                "\n  yStrikeoutPosition:  " + _yStrikeoutPosition +
+                "\n  sFamilyClass:        " + (_sFamilyClass >> 8) +
+                "    subclass = " + (_sFamilyClass & 0xff) +
+                "\n  PANOSE:              " + _panose.toString() +
+                "\n  Unicode Range 1( Bits 0 - 31 ): " + Integer.toHexString(_ulUnicodeRange1).toUpperCase() +
+                "\n  Unicode Range 2( Bits 32- 63 ): " + Integer.toHexString(_ulUnicodeRange2).toUpperCase() +
+                "\n  Unicode Range 3( Bits 64- 95 ): " + Integer.toHexString(_ulUnicodeRange3).toUpperCase() +
+                "\n  Unicode Range 4( Bits 96-127 ): " + Integer.toHexString(_ulUnicodeRange4).toUpperCase() +
+                "\n  achVendID:           '" + getVendorIDAsString() +
+                "'\n  fsSelection:         0x" + Integer.toHexString(_fsSelection).toUpperCase() +
+                "\n  usFirstCharIndex:    0x" + Integer.toHexString(_usFirstCharIndex).toUpperCase() +
+                "\n  usLastCharIndex:     0x" + Integer.toHexString(_usLastCharIndex).toUpperCase() +
+                "\n  sTypoAscender:       " + _sTypoAscender +
+                "\n  sTypoDescender:      " + _sTypoDescender +
+                "\n  sTypoLineGap:        " + _sTypoLineGap +
+                "\n  usWinAscent:         " + _usWinAscent +
+                "\n  usWinDescent:        " + _usWinDescent +
+                "\n  CodePage Range 1( Bits 0 - 31 ): " + Integer.toHexString(_ulCodePageRange1).toUpperCase() +
+                "\n  CodePage Range 2( Bits 32- 63 ): " + Integer.toHexString(_ulCodePageRange2).toUpperCase();
     }
-
+    
     private String getVendorIDAsString() {
-        return new StringBuilder()
-            .append((char)((_achVendorID>>24)&0xff))
-            .append((char)((_achVendorID>>16)&0xff))
-            .append((char)((_achVendorID>>8)&0xff))
-            .append((char)((_achVendorID)&0xff))
-            .toString();
+        return String.valueOf((char) ((_achVendorID >> 24) & 0xff)) +
+                (char) ((_achVendorID >> 16) & 0xff) +
+                (char) ((_achVendorID >> 8) & 0xff) +
+                (char) ((_achVendorID) & 0xff);
     }
-
-    /**
-     * Get a directory entry for this table.  This uniquely identifies the
-     * table in collections where there may be more than one instance of a
-     * particular table.
-     * @return A directory entry
-     */
-    @Override
-    public DirectoryEntry getDirectoryEntry() {
-        return _de;
-    }
+    
 }

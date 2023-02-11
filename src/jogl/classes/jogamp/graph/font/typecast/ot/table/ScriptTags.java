@@ -53,9 +53,8 @@ package jogamp.graph.font.typecast.ot.table;
 /**
  * Definition of Script tags
  *
- * @version $Id: ScriptTags.java,v 1.2 2007-01-24 09:47:46 davidsch Exp $
  * @author <a href="mailto:vincent.hardy@eng.sun.com">Vincent Hardy</a>
  */
 public interface ScriptTags {
-    public static final String SCRIPT_TAG_ARAB = "arab";
+    String SCRIPT_TAG_ARAB = "arab";
 }

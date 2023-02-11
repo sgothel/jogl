@@ -55,8 +55,7 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: SingleSubstFormat2.java,v 1.2 2007-01-24 09:47:48 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class SingleSubstFormat2 extends SingleSubst {
 
@@ -66,7 +65,7 @@ public class SingleSubstFormat2 extends SingleSubst {
     private final Coverage _coverage;
 
     /** Creates new SingleSubstFormat2 */
-    protected SingleSubstFormat2(final DataInputStream dis, final int offset) throws IOException {
+    SingleSubstFormat2(DataInputStream dis, int offset) throws IOException {
         _coverageOffset = dis.readUnsignedShort();
         _glyphCount = dis.readUnsignedShort();
         _substitutes = new int[_glyphCount];
@@ -84,8 +83,8 @@ public class SingleSubstFormat2 extends SingleSubst {
     }
 
     @Override
-    public int substitute(final int glyphId) {
-        final int i = _coverage.findGlyph(glyphId);
+    public int substitute(int glyphId) {
+        int i = _coverage.findGlyph(glyphId);
         if (i > -1) {
             return _substitutes[i];
         }
@@ -95,6 +94,18 @@ public class SingleSubstFormat2 extends SingleSubst {
     @Override
     public String getTypeAsString() {
         return "SingleSubstFormat2";
-    }
-}
+    }    
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        int[] glyphIds = _coverage.getGlyphIds();
+        for (int glyphId : glyphIds) {
+            int i = _coverage.findGlyph(glyphId);
+            if (i > -1) {
+                sb.append(String.format("%d = %d\n", glyphId, _substitutes[i]));
+            }
+        }
+        return sb.toString();
+    }    
+}

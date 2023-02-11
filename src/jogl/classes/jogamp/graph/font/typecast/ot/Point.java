@@ -9,17 +9,17 @@
 package jogamp.graph.font.typecast.ot;
 
 /**
- * @version $Id: Point.java,v 1.1.1.1 2004-12-05 23:14:31 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class Point {
 
-    public int x = 0;
-    public int y = 0;
-    public boolean onCurve = true;
-    public boolean endOfContour = false;
+    public int x;
+    public int y;
+    public boolean onCurve;
+    public boolean endOfContour;
+    // public boolean touched = false;
 
-    public Point(final int x, final int y, final boolean onCurve, final boolean endOfContour) {
+    public Point(int x, int y, boolean onCurve, boolean endOfContour) {
         this.x = x;
         this.y = y;
         this.onCurve = onCurve;

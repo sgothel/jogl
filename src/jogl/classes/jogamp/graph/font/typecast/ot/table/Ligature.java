@@ -55,17 +55,16 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: Ligature.java,v 1.2 2007-01-24 09:47:48 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
-public class Ligature {
+class Ligature {
 
-    private final int _ligGlyph;
-    private final int _compCount;
-    private final int[] _components;
+    private int _ligGlyph;
+    private int _compCount;
+    private int[] _components;
 
     /** Creates new Ligature */
-    public Ligature(final DataInput di) throws IOException {
+    public Ligature(DataInput di) throws IOException {
         _ligGlyph = di.readUnsignedShort();
         _compCount = di.readUnsignedShort();
         _components = new int[_compCount - 1];
@@ -73,12 +72,12 @@ public class Ligature {
             _components[i] = di.readUnsignedShort();
         }
     }
-
+    
     public int getGlyphCount() {
         return _compCount;
     }
-
-    public int getGlyphId(final int i) {
+    
+    public int getGlyphId(int i) {
         return (i == 0) ? _ligGlyph : _components[i-1];
     }
 

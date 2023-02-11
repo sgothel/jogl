@@ -1,6 +1,4 @@
 /*
- * $Id: VheaTable.java,v 1.1 2007-01-31 01:17:40 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
  * Copyright (c) 2004-2007 David Schweinsberg
@@ -22,32 +20,28 @@ package jogamp.graph.font.typecast.ot.table;
 
 import java.io.DataInput;
 import java.io.IOException;
-
 import jogamp.graph.font.typecast.ot.Fixed;
 
 /**
  * Vertical Header Table
- * @version $Id: VheaTable.java,v 1.1 2007-01-31 01:17:40 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class VheaTable implements Table {
 
-    private final DirectoryEntry _de;
-    private final int _version;
-    private final short _ascent;
-    private final short _descent;
-    private final short _lineGap;
-    private final short _advanceHeightMax;
-    private final short _minTopSideBearing;
-    private final short _minBottomSideBearing;
-    private final short _yMaxExtent;
-    private final short _caretSlopeRise;
-    private final short _caretSlopeRun;
-    private final short _metricDataFormat;
-    private final int _numberOfLongVerMetrics;
+    private int _version;
+    private short _ascent;
+    private short _descent;
+    private short _lineGap;
+    private short _advanceHeightMax;
+    private short _minTopSideBearing;
+    private short _minBottomSideBearing;
+    private short _yMaxExtent;
+    private short _caretSlopeRise;
+    private short _caretSlopeRun;
+    private short _metricDataFormat;
+    private int _numberOfLongVerMetrics;
 
-    protected VheaTable(final DirectoryEntry de, final DataInput di) throws IOException {
-        _de = (DirectoryEntry) de.clone();
+    public VheaTable(DataInput di) throws IOException {
         _version = di.readInt();
         _ascent = di.readShort();
         _descent = di.readShort();
@@ -105,47 +99,29 @@ public class VheaTable implements Table {
         return _numberOfLongVerMetrics;
     }
 
-    @Override
-    public int getType() {
-        return vhea;
-    }
-
     public short getYMaxExtent() {
         return _yMaxExtent;
     }
 
-    @Override
     public String toString() {
-        return new StringBuilder()
-            .append("'vhea' Table - Vertical Header\n------------------------------")
-            .append("\n        'vhea' version:       ").append(Fixed.floatValue(_version))
-            .append("\n        xAscender:            ").append(_ascent)
-            .append("\n        xDescender:           ").append(_descent)
-            .append("\n        xLineGap:             ").append(_lineGap)
-            .append("\n        advanceHeightMax:     ").append(_advanceHeightMax)
-            .append("\n        minTopSideBearing:    ").append(_minTopSideBearing)
-            .append("\n        minBottomSideBearing: ").append(_minBottomSideBearing)
-            .append("\n        yMaxExtent:           ").append(_yMaxExtent)
-            .append("\n        horizCaretSlopeNum:   ").append(_caretSlopeRise)
-            .append("\n        horizCaretSlopeDenom: ").append(_caretSlopeRun)
-            .append("\n        reserved0:            0")
-            .append("\n        reserved1:            0")
-            .append("\n        reserved2:            0")
-            .append("\n        reserved3:            0")
-            .append("\n        reserved4:            0")
-            .append("\n        metricDataFormat:     ").append(_metricDataFormat)
-            .append("\n        numOf_LongVerMetrics: ").append(_numberOfLongVerMetrics)
-            .toString();
+        return "'vhea' Table - Vertical Header\n------------------------------" +
+                "\n        'vhea' version:       " + Fixed.floatValue(_version) +
+                "\n        xAscender:            " + _ascent +
+                "\n        xDescender:           " + _descent +
+                "\n        xLineGap:             " + _lineGap +
+                "\n        advanceHeightMax:     " + _advanceHeightMax +
+                "\n        minTopSideBearing:    " + _minTopSideBearing +
+                "\n        minBottomSideBearing: " + _minBottomSideBearing +
+                "\n        yMaxExtent:           " + _yMaxExtent +
+                "\n        horizCaretSlopeNum:   " + _caretSlopeRise +
+                "\n        horizCaretSlopeDenom: " + _caretSlopeRun +
+                "\n        reserved0:            0" +
+                "\n        reserved1:            0" +
+                "\n        reserved2:            0" +
+                "\n        reserved3:            0" +
+                "\n        reserved4:            0" +
+                "\n        metricDataFormat:     " + _metricDataFormat +
+                "\n        numOf_LongVerMetrics: " + _numberOfLongVerMetrics;
     }
-
-    /**
-     * Get a directory entry for this table.  This uniquely identifies the
-     * table in collections where there may be more than one instance of a
-     * particular table.
-     * @return A directory entry
-     */
-    @Override
-    public DirectoryEntry getDirectoryEntry() {
-        return _de;
-    }
+    
 }

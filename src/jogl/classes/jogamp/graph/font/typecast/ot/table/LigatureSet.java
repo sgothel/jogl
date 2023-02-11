@@ -55,17 +55,16 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: LigatureSet.java,v 1.2 2007-01-24 09:47:46 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
-public class LigatureSet {
+class LigatureSet {
 
-    private final int _ligatureCount;
-    private final int[] _ligatureOffsets;
-    private final Ligature[] _ligatures;
+    private int _ligatureCount;
+    private int[] _ligatureOffsets;
+    private Ligature[] _ligatures;
 
     /** Creates new LigatureSet */
-    public LigatureSet(final DataInputStream dis, final int offset) throws IOException {
+    public LigatureSet(DataInputStream dis, int offset) throws IOException {
         dis.reset();
         dis.skipBytes(offset);
         _ligatureCount = dis.readUnsignedShort();

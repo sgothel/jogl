@@ -57,53 +57,49 @@ import java.io.IOException;
 
 /**
  *
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
- * @version $Id: GsubTable.java,v 1.3 2007-01-24 09:47:46 davidsch Exp $
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class GsubTable implements Table, LookupSubtableFactory {
 
-    private final DirectoryEntry _de;
-    private final ScriptList _scriptList;
-    private final FeatureList _featureList;
-    private final LookupList _lookupList;
-
-    protected GsubTable(final DirectoryEntry de, final DataInput di) throws IOException {
-        _de = (DirectoryEntry) de.clone();
+    private ScriptList _scriptList;
+    private FeatureList _featureList;
+    private LookupList _lookupList;
+    
+    protected GsubTable(DataInput di, int length) throws IOException {
 
         // Load into a temporary buffer, and create another input stream
-        final byte[] buf = new byte[de.getLength()];
+        byte[] buf = new byte[length];
         di.readFully(buf);
-        final DataInputStream dis = new DataInputStream(new ByteArrayInputStream(buf));
+        DataInputStream dis = new DataInputStream(new ByteArrayInputStream(buf));
 
         // GSUB Header
-        /* final int version = */ dis.readInt();
-        final int scriptListOffset = dis.readUnsignedShort();
-        final int featureListOffset = dis.readUnsignedShort();
-        final int lookupListOffset = dis.readUnsignedShort();
+        int version = dis.readInt();
+        int scriptListOffset = dis.readUnsignedShort();
+        int featureListOffset = dis.readUnsignedShort();
+        int lookupListOffset = dis.readUnsignedShort();
 
         // Script List
         _scriptList = new ScriptList(dis, scriptListOffset);
 
         // Feature List
         _featureList = new FeatureList(dis, featureListOffset);
-
+        
         // Lookup List
         _lookupList = new LookupList(dis, lookupListOffset, this);
     }
 
     /**
-     * 1 - Single - Replace one glyph with one glyph
-     * 2 - Multiple - Replace one glyph with more than one glyph
-     * 3 - Alternate - Replace one glyph with one of many glyphs
-     * 4 - Ligature - Replace multiple glyphs with one glyph
-     * 5 - Context - Replace one or more glyphs in context
+     * 1 - Single - Replace one glyph with one glyph 
+     * 2 - Multiple - Replace one glyph with more than one glyph 
+     * 3 - Alternate - Replace one glyph with one of many glyphs 
+     * 4 - Ligature - Replace multiple glyphs with one glyph 
+     * 5 - Context - Replace one or more glyphs in context 
      * 6 - Chaining - Context Replace one or more glyphs in chained context
      */
-    @Override
     public LookupSubtable read(
-            final int type,
-            final DataInputStream dis,
-            final int offset) throws IOException {
+            int type,
+            DataInputStream dis,
+            int offset) throws IOException {
         LookupSubtable s = null;
         switch (type) {
         case 1:
@@ -128,14 +124,6 @@ public class GsubTable implements Table, LookupSubtableFactory {
         return s;
     }
 
-    /** Get the table type, as a table directory value.
-     * @return The table type
-     */
-    @Override
-    public int getType() {
-        return GSUB;
-    }
-
     public ScriptList getScriptList() {
         return _scriptList;
     }
@@ -148,12 +136,11 @@ public class GsubTable implements Table, LookupSubtableFactory {
         return _lookupList;
     }
 
-    @Override
     public String toString() {
         return "GSUB";
     }
 
-    public static String lookupTypeAsString(final int type) {
+    public static String lookupTypeAsString(int type) {
         switch (type) {
         case 1:
             return "Single";
@@ -169,17 +156,6 @@ public class GsubTable implements Table, LookupSubtableFactory {
             return "Chaining";
         }
         return "Unknown";
-    }
-
-    /**
-     * Get a directory entry for this table.  This uniquely identifies the
-     * table in collections where there may be more than one instance of a
-     * particular table.
-     * @return A directory entry
-     */
-    @Override
-    public DirectoryEntry getDirectoryEntry() {
-        return _de;
     }
 
 }

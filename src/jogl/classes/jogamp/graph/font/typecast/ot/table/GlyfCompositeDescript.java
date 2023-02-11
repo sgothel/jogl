@@ -60,13 +60,11 @@ import java.util.ArrayList;
  * or more simple glyphs, usually with some sort of transformation applied to
  * each.
  *
- * @version $Id: GlyfCompositeDescript.java,v 1.5 2007-01-25 08:43:18 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class GlyfCompositeDescript extends GlyfDescript {
 
-    private final ArrayList<GlyfCompositeComp> _components =
-        new ArrayList<GlyfCompositeComp>();
+    private final ArrayList<GlyfCompositeComp> _components = new ArrayList<>();
 
     public GlyfCompositeDescript(
             final GlyfTable parentTable,
@@ -184,10 +182,10 @@ public class GlyfCompositeDescript extends GlyfDescript {
         return _components.get(i);
     }
 
-    protected GlyfCompositeComp getCompositeComp(final int i) {
+    private GlyfCompositeComp getCompositeComp(final int i) {
         GlyfCompositeComp c;
-        for (int n = 0; n < _components.size(); n++) {
-            c = _components.get(n);
+        for (final GlyfCompositeComp component : _components) {
+            c = component;
             final GlyphDescription gd = _parentTable.getDescription(c.getGlyphIndex());
             if (c.getFirstIndex() <= i && i < (c.getFirstIndex() + gd.getPointCount())) {
                 return c;
@@ -196,10 +194,10 @@ public class GlyfCompositeDescript extends GlyfDescript {
         return null;
     }
 
-    protected GlyfCompositeComp getCompositeCompEndPt(final int i) {
+    private GlyfCompositeComp getCompositeCompEndPt(final int i) {
         GlyfCompositeComp c;
-        for (int j = 0; j < _components.size(); j++) {
-            c = _components.get(j);
+        for (final GlyfCompositeComp component : _components) {
+            c = component;
             final GlyphDescription gd = _parentTable.getDescription(c.getGlyphIndex());
             if (c.getFirstContour() <= i && i < (c.getFirstContour() + gd.getContourCount())) {
                 return c;

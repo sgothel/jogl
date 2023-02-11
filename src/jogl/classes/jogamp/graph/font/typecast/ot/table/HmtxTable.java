@@ -54,21 +54,19 @@ import java.io.DataInput;
 import java.io.IOException;
 
 /**
- * @version $Id: HmtxTable.java,v 1.5 2007-07-26 11:11:48 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class HmtxTable implements Table {
 
-    private final DirectoryEntry _de;
-    private int[] _hMetrics = null;
-    private short[] _leftSideBearing = null;
+    private int[] _hMetrics;
+    private short[] _leftSideBearing;
+    private int _length;
 
-    protected HmtxTable(
-            final DirectoryEntry de,
-            final DataInput di,
-            final HheaTable hhea,
-            final MaxpTable maxp) throws IOException {
-        _de = (DirectoryEntry) de.clone();
+    public HmtxTable(
+            DataInput di,
+            int length,
+            HheaTable hhea,
+            MaxpTable maxp) throws IOException {
         _hMetrics = new int[hhea.getNumberOfHMetrics()];
         for (int i = 0; i < hhea.getNumberOfHMetrics(); ++i) {
             _hMetrics[i] =
@@ -77,14 +75,15 @@ public class HmtxTable implements Table {
                     | di.readUnsignedByte()<<8
                     | di.readUnsignedByte();
         }
-        final int lsbCount = maxp.getNumGlyphs() - hhea.getNumberOfHMetrics();
+        int lsbCount = maxp.getNumGlyphs() - hhea.getNumberOfHMetrics();
         _leftSideBearing = new short[lsbCount];
         for (int i = 0; i < lsbCount; ++i) {
             _leftSideBearing[i] = di.readShort();
         }
+        _length = length;
     }
 
-    public int getAdvanceWidth(final int i) {
+    public int getAdvanceWidth(int i) {
         if (_hMetrics == null) {
             return 0;
         }
@@ -95,7 +94,7 @@ public class HmtxTable implements Table {
         }
     }
 
-    public short getLeftSideBearing(final int i) {
+    public short getLeftSideBearing(int i) {
         if (_hMetrics == null) {
             return 0;
         }
@@ -106,16 +105,10 @@ public class HmtxTable implements Table {
         }
     }
 
-    @Override
-    public int getType() {
-        return hmtx;
-    }
-
-    @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         sb.append("'hmtx' Table - Horizontal Metrics\n---------------------------------\n");
-        sb.append("Size = ").append(_de.getLength()).append(" bytes, ")
+        sb.append("Size = ").append(_length).append(" bytes, ")
             .append(_hMetrics.length).append(" entries\n");
         for (int i = 0; i < _hMetrics.length; i++) {
             sb.append("        ").append(i)
@@ -131,14 +124,4 @@ public class HmtxTable implements Table {
         return sb.toString();
     }
 
-    /**
-     * Get a directory entry for this table.  This uniquely identifies the
-     * table in collections where there may be more than one instance of a
-     * particular table.
-     * @return A directory entry
-     */
-    @Override
-    public DirectoryEntry getDirectoryEntry() {
-        return _de;
-    }
 }

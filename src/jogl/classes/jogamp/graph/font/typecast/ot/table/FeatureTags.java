@@ -53,11 +53,10 @@ package jogamp.graph.font.typecast.ot.table;
 /**
  * Definition of Feature tags
  *
- * @version $Id: FeatureTags.java,v 1.2 2007-01-24 09:47:48 davidsch Exp $
  * @author <a href="mailto:vincent.hardy@eng.sun.com">Vincent Hardy</a>
  */
 public interface FeatureTags {
-    public static final String FEATURE_TAG_INIT = "init";
-    public static final String FEATURE_TAG_MEDI = "medi";
-    public static final String FEATURE_TAG_FINA = "fina";
+    String FEATURE_TAG_INIT = "init";
+    String FEATURE_TAG_MEDI = "medi";
+    String FEATURE_TAG_FINA = "fina";
 }

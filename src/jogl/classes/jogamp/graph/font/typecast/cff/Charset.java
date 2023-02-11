@@ -1,15 +1,13 @@
 /*
- * $Id: Charstring.java,v 1.2 2007-02-21 12:25:19 davidsch Exp $
- *
  * Typecast - The Font Development Environment
  *
- * Copyright (c) 2004-2007 David Schweinsberg
+ * Copyright (c) 2004-2015 David Schweinsberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,17 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package jogamp.graph.font.typecast.ot.table;
+package jogamp.graph.font.typecast.cff;
 
 /**
- * CFF Charstring
- * @version $Id: Charstring.java,v 1.2 2007-02-21 12:25:19 davidsch Exp $
- * @author <a href="mailto:davidsch@dev.java.net">David Schweinsberg</a>
+ *
+ * @author dschweinsberg
  */
-public abstract class Charstring {
+public abstract class Charset {
+    
+    Charset() {
+    }
 
-    public abstract int getIndex();
+    public abstract int getFormat();
 
-    public abstract String getName();
+    public abstract int getSID(int gid);
+    
 }
