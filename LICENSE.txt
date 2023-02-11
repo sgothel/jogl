@@ -255,8 +255,8 @@ A.3) The JOGL source tree contains code from David Schweinsberg
 
    Typecast is a font development environment for OpenType font technology.
 
-   <https://github.com/dcsch/typecast>
-   <https://java.net/projects/typecast>
+   Upstream <https://github.com/dcsch/typecast>
+   JOGL Patches <https://jogamp.org/cgit/typecast.git/log/?h=jogl_patches>
 
    Author: David Schweinsberg
 

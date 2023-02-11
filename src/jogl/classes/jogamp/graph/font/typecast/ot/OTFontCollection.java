@@ -166,7 +166,7 @@ public class OTFontCollection {
                 final ResourceReference resourceReference = resourceType.getReference(i);
                 final int offset = resourceHeader.getDataOffset() +
                                    resourceReference.getDataOffset() + 4;
-                _fonts[i] = TTFont.read(dis, offset, offset);
+                _fonts[i] = new TTFont(dis, offset, offset);
             }
 
         } else if (TTCHeader.isTTC(dis)) {
@@ -176,13 +176,13 @@ public class OTFontCollection {
             _ttcHeader = new TTCHeader(dis);
             _fonts = new TTFont[_ttcHeader.getDirectoryCount()];
             for (int i = 0; i < _ttcHeader.getDirectoryCount(); i++) {
-                _fonts[i] = TTFont.read(dis, _ttcHeader.getTableDirectory(i), 0);
+                _fonts[i] = new TTFont(dis, _ttcHeader.getTableDirectory(i), 0);
             }
         } else {
 
             // This is a standalone font file
             _fonts = new TTFont[1];
-            _fonts[0] = TTFont.read(dis, 0, 0);
+            _fonts[0] = new TTFont(dis, 0, 0);
 
             // TODO T2Fonts
         }

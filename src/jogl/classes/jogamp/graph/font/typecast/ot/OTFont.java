@@ -18,18 +18,14 @@
 
 package jogamp.graph.font.typecast.ot;
 
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 
 import jogamp.graph.font.typecast.ot.table.CmapTable;
 import jogamp.graph.font.typecast.ot.table.GsubTable;
-import jogamp.graph.font.typecast.ot.table.HdmxTable;
 import jogamp.graph.font.typecast.ot.table.HeadTable;
 import jogamp.graph.font.typecast.ot.table.HheaTable;
 import jogamp.graph.font.typecast.ot.table.HmtxTable;
-import jogamp.graph.font.typecast.ot.table.KernTable;
-import jogamp.graph.font.typecast.ot.table.LocaTable;
 import jogamp.graph.font.typecast.ot.table.MaxpTable;
 import jogamp.graph.font.typecast.ot.table.NameRecord;
 import jogamp.graph.font.typecast.ot.table.NameTable;
@@ -57,7 +53,14 @@ public abstract class OTFont {
     private final VheaTable _vhea;
     private final GsubTable _gsub;
 
-    OTFont(final DataInputStream dis, TableDirectory tableDirectory, final int tablesOrigin) throws IOException {
+    /**
+     *
+     * @param dis input stream marked at start with read-ahead set to known stream length
+     * @param tableDirectory
+     * @param tablesOrigin
+     * @throws IOException
+     */
+    OTFont(final DataInputStream dis, final TableDirectory tableDirectory, final int tablesOrigin) throws IOException {
         // Load some prerequisite tables
         // (These are tables that are referenced by other tables, so we need to load
         // them first)
@@ -93,7 +96,7 @@ public abstract class OTFont {
         _name = new NameTable(dis, length);
         seekTable(tableDirectory, dis, tablesOrigin, Table.OS_2);
         _os2 = new Os2Table(dis);
-        
+
         _gsub = null; // FIXME: delete?
     }
 
@@ -183,7 +186,7 @@ public abstract class OTFont {
         }
         return sb;
     }
-    
+
     @Override
     public String toString() {
         return _head.toString();
