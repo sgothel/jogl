@@ -47,19 +47,9 @@ public abstract class KernSubtable {
     public abstract int getKerningPairCount();
 
     public abstract KerningPair getKerningPair(int i);
-    
+
     public abstract void clearKerningPairs();
 
-    public short getKerningValue(final int left_glyphid, final int right_glyphid) {
-        for (int i = 0; i < getKerningPairCount(); i++) {
-            final KerningPair kpair = getKerningPair(i);
-            if( kpair.getLeft() == left_glyphid && kpair.getRight() == right_glyphid ) {
-                return kpair.getValue();
-            }
-        }
-        return 0;
-    }    
-    
     public static KernSubtable read(final DataInput di) throws IOException {
         KernSubtable table = null;
         final int version = di.readUnsignedShort();
