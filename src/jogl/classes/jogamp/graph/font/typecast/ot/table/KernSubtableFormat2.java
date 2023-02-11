@@ -27,7 +27,7 @@ public class KernSubtableFormat2 extends KernSubtable {
     private final int array;
 
     /** Creates new KernSubtableFormat2 */
-    protected KernSubtableFormat2(final int version, final int length, final int coverage, final DataInput di) throws IOException {
+    KernSubtableFormat2(final int version, final int length, final int coverage, final DataInput di) throws IOException {
         super(version, length, coverage);
         rowWidth = di.readUnsignedShort();
         leftClassTable = di.readUnsignedShort();
@@ -38,7 +38,7 @@ public class KernSubtableFormat2 extends KernSubtable {
     @Override
     public void clearKerningPairs() {
     }
-    
+
     @Override
     public int getKerningPairCount() {
         return 0;
