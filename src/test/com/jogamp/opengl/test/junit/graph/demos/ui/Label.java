@@ -102,9 +102,13 @@ public class Label extends UIShape {
 
     @Override
     protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
-        TextRegionUtil.processString(shapeVisitor, null, font, pixelSize, text, tempT1, tempT2);
+        final AffineTransform t_sxy = new AffineTransform(); // FIXME ?
+        final float sxy = pixelSize / font.getMetrics().getUnitsPerEM();
+        t_sxy.setToScale(sxy, sxy);
+        TextRegionUtil.processString(shapeVisitor, t_sxy, font, text, tempT1, tempT2);
         final float[] ctr = box.getCenter();
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
+        // scale(sxy, sxy, 1f);
     }
 
     @Override

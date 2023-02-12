@@ -159,7 +159,7 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         for(int i=0; i<fonts.length; i++) {
             final Font font = fonts[i];
-            renderString(drawable, gl, renderer, font, textRenderUtil, font.getFullFamilyName(null).toString()+": "+issues, 0,  0==i?0:-1, -1000, sampleCountIO);
+            renderString(drawable, gl, renderer, font, textRenderUtil, font.getFullFamilyName()+": "+issues, 0,  0==i?0:-1, -1000, sampleCountIO);
             if(!onlyIssues) {
                 renderString(drawable, gl, renderer, font, textRenderUtil, "012345678901234567890123456789", 0,  -1, -1000, sampleCountIO);
                 renderString(drawable, gl, renderer, font, textRenderUtil, "abcdefghijklmnopqrstuvwxyz", 0, -1, -1000, sampleCountIO);

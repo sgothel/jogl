@@ -366,10 +366,9 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
 
         String getFontInfo() {
-            final float unitsPerEM_Inv = font.getMetrics().getScale(1f);
-            final float unitsPerEM = 1f / unitsPerEM_Inv;
+            final float unitsPerEM = font.getMetrics().getUnitsPerEM();
             return String.format("Font %s%n %s%nunitsPerEM %f (upem)",
-                    font.getFullFamilyName(null).toString(),
+                    font.getFullFamilyName(),
                     font.getName(Font.NAME_UNIQUNAME),
                     unitsPerEM);
         }

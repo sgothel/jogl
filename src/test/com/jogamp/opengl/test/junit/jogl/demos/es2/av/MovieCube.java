@@ -203,8 +203,8 @@ public class MovieCube implements GLEventListener {
             pixelScale = 1.0f / ( pixelSize1 * 20f );
             // underlineSize: 'underline' amount of pixel below 0/0 (Note: lineGap is negative)
             final Font.Metrics metrics = font.getMetrics();
-            final float lineGap = metrics.getLineGap(pixelSize1);
-            final float descent = metrics.getDescent(pixelSize1);
+            final float lineGap = pixelSize1 * metrics.getScale( metrics.getLineGapFU() );
+            final float descent = pixelSize1 * metrics.getScale( metrics.getDescentFU() );
             underlineSize = descent - lineGap;
             System.err.println("XXX: dpiH "+dpiH+", fontSize "+fontSize1+", pixelSize "+pixelSize1+", pixelScale "+pixelScale+", fLG "+lineGap+", fDesc "+descent+", underlineSize "+underlineSize);
         }

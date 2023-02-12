@@ -139,11 +139,11 @@ public class GPUTextNewtDemo {
             final float[] sDPI = FontScale.perMMToPerInch( window.getPixelsPerMM(new float[2]) );
             final float font_ptpi = 12f;
             final float font_ppi = FontScale.toPixels(font_ptpi, sDPI[1]);
-            final AABBox fontNameBox = font.getMetricBounds(GPUTextRendererListenerBase01.textX2, font_ppi);
+            final AABBox fontNameBox = font.getMetricBounds(GPUTextRendererListenerBase01.textX1, font_ppi);
             System.err.println("GPU Text Newt Demo: "+font.fullString());
             System.err.println("GPU Text Newt Demo: screen-dpi: "+sDPI[0]+"x"+sDPI[1]+", font "+font_ptpi+" pt, "+font_ppi+" pixel");
             System.err.println("GPU Text Newt Demo: textX2: "+fontNameBox+" pixel");
-            window.setSurfaceSize((int)(fontNameBox.getWidth()*1.1f), (int)(fontNameBox.getHeight()*2f));
+            // window.setSurfaceSize((int)(fontNameBox.getWidth()*1.1f), (int)(fontNameBox.getHeight()*2f));
         }
 
         // FPSAnimator animator = new FPSAnimator(60);

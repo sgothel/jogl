@@ -144,6 +144,8 @@ public interface Font {
 
         Font getFont();
         char getSymbol();
+
+        /** Return this glyph's ID */
         int getID();
 
         /**
@@ -188,20 +190,49 @@ public interface Font {
          */
         float getAdvance(final float pixelSize);
 
+        /** True if kerning values are horizontal, otherwise vertical */
+        boolean isKerningHorizontal();
+        /** True if kerning values are perpendicular to text flow, otherwise along with flow */
+        boolean isKerningCrossstream();
+
+        /** Return the number of kerning values stored for this glyph, associated to a right hand glyph. */
+        int getKerningPairCount();
+
+        /**
+         * Returns the optional kerning inter-glyph distance within words between this glyph and the given right glyph_id in font-units to be divided by unitsPerEM
+         *
+         * @param right_glyphid right glyph code id
+         * @return font-units to be divided by unitsPerEM
+         */
+        int getKerningFU(final int right_glyphid);
+
+        /**
+         * Returns the optional kerning inter-glyph distance within words between this glyph and the given right glyph_id in fractional font em-size [0..1].
+         *
+         * @param right_glyphid right glyph code id
+         * @return fractional font em-size distance [0..1]
+         */
+        float getKerning(final int right_glyphid);
+
         OutlineShape getShape();
 
         @Override
         int hashCode();
+
+        @Override
+        String toString();
+
+        /** Return all glyph details as string. */
+        String fullString();
     }
 
 
     String getName(final int nameIndex);
-    StringBuilder getName(final StringBuilder string, final int nameIndex);
 
     /** Shall return the family and subfamily name, separated a dash.
      * <p>{@link #getName(StringBuilder, int)} w/ {@link #NAME_FAMILY} and {@link #NAME_SUBFAMILY}</p>
      * <p>Example: "{@code Ubuntu-Regular}"</p>  */
-    StringBuilder getFullFamilyName(final StringBuilder buffer);
+    String getFullFamilyName();
 
     StringBuilder getAllNames(final StringBuilder string, final String separator);
 
@@ -225,27 +256,12 @@ public interface Font {
      */
     int getAdvanceWidthFU(final int glyphID);
 
-    /**
-     * Returns the optional kerning inter-glyph distance within words in fractional font em-size [0..1].
-     *
-     * @param left_glyphid left glyph code id
-     * @param right_glyphid right glyph code id
-     * @return fractional font em-size distance [0..1]
-     */
-    float getKerning(final int left_glyphid, final int right_glyphid);
-
-    /**
-     * Returns the optional kerning inter-glyph distance within words in fractional font-units to be divided by unitsPerEM
-     *
-     * @param left_glyphid left glyph code id
-     * @param right_glyphid right glyph code id
-     * @return font-units to be divided by unitsPerEM
-     */
-    int getKerningFU(final int left_glyphid, final int right_glyphid);
-
     Metrics getMetrics();
+
     int getGlyphID(final char symbol);
+
     Glyph getGlyph(final char symbol);
+
     int getNumGlyphs();
 
     /**

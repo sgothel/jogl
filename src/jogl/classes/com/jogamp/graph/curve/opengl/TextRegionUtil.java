@@ -89,25 +89,21 @@ public class TextRegionUtil {
         final int charCount = str.length();
 
         // region.setFlipped(true);
-        final Font.Metrics metrics = font.getMetrics();
         final int lineHeight = font.getLineHeightFU();
 
         int y = 0;
         int advanceTotal = 0;
-        char left_character = 0;
-        int left_glyphid = 0;
+        Font.Glyph left_glyph = null;
 
         for(int i=0; i< charCount; i++) {
             final char character = str.charAt(i);
             if( '\n' == character ) {
                 y -= lineHeight;
                 advanceTotal = 0;
-                left_glyphid = 0;
-                left_character = 0;
+                left_glyph = null;
             } else if (character == ' ') {
                 advanceTotal += font.getAdvanceWidthFU(Glyph.ID_SPACE);
-                left_glyphid = 0;
-                left_character = character;
+                left_glyph = null;
             } else {
                 // reset transform
                 if( null != transform ) {
@@ -115,27 +111,20 @@ public class TextRegionUtil {
                 } else {
                     temp1.setToIdentity();
                 }
-                temp1.translate(advanceTotal, y, temp2);
-
                 final Font.Glyph glyph = font.getGlyph(character);
                 final OutlineShape glyphShape = glyph.getShape();
                 if( null == glyphShape ) {
-                    left_glyphid = 0;
+                    left_glyph = null;
+                    temp1.translate(advanceTotal, y, temp2);
                     continue;
                 }
-                visitor.visit(glyphShape, temp1);
-                final int right_glyphid = glyph.getID();
-                final int kern = font.getKerningFU(left_glyphid, right_glyphid);
-                final int advance = glyph.getAdvanceFU();
-                advanceTotal += advance + kern;
-                if( Region.DEBUG_INSTANCE && 0 != left_character && kern > 0f ) {
-                    System.err.println(": '"+left_character+"'/"+left_glyphid+" -> '"+character+"'/"+right_glyphid+
-                                       ": a "+advance+"px + k ["+kern+"em, "+kern+"px = "+(advance+kern)+"px -> "+advanceTotal+"px, y "+y);
+                if( null != left_glyph ) {
+                    advanceTotal += left_glyph.getKerningFU(glyph.getID());
                 }
-                // advanceTotal += glyph.getAdvance(pixelSize, true)
-                //               + font.getKerning(left_glyphid, right_glyphid);
-                left_glyphid = right_glyphid;
-                left_character = character;
+                temp1.translate(advanceTotal, y, temp2);
+                visitor.visit(glyphShape, temp1);
+                advanceTotal += glyph.getAdvanceFU();
+                left_glyph = glyph;
             }
         }
     }
@@ -351,7 +340,7 @@ public class TextRegionUtil {
 
    protected final String getKey(final Font font, final CharSequence str, final int special) {
        final StringBuilder sb = new StringBuilder();
-       return font.getName(sb, Font.NAME_UNIQUNAME)
+       return sb.append( font.getName(Font.NAME_UNIQUNAME) )
               .append(".").append(str.hashCode()).append(".").append(special).toString();
    }
 

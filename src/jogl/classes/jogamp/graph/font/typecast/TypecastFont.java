@@ -27,13 +27,14 @@
  */
 package jogamp.graph.font.typecast;
 
-import jogamp.graph.font.typecast.ot.OTFont;
 import jogamp.graph.font.typecast.ot.OTFontCollection;
+import jogamp.graph.font.typecast.ot.TTFont;
 import jogamp.graph.font.typecast.ot.table.CmapFormat;
 import jogamp.graph.font.typecast.ot.table.CmapIndexEntry;
 import jogamp.graph.font.typecast.ot.table.CmapTable;
 import jogamp.graph.font.typecast.ot.table.HdmxTable;
 import jogamp.graph.font.typecast.ot.table.ID;
+import jogamp.graph.font.typecast.ot.table.KernSubtable;
 import jogamp.graph.font.typecast.ot.table.KernSubtableFormat0;
 import jogamp.graph.font.typecast.ot.table.KernTable;
 import jogamp.graph.font.typecast.ot.table.KerningPair;
@@ -54,7 +55,7 @@ class TypecastFont implements Font {
     private static final Vertex.Factory<SVertex> vertexFactory = SVertex.factory();
 
     // private final OTFontCollection fontset;
-    /* pp */ final OTFont font;
+    /* pp */ final TTFont font;
     private final CmapFormat cmapFormat;
     private final int cmapentries;
     private final IntObjectHashMap char2Glyph;
@@ -153,22 +154,16 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public StringBuilder getName(final StringBuilder sb, final int nameIndex) {
-        return font.getName(nameIndex, sb);
-    }
-    @Override
     public String getName(final int nameIndex) {
-        return getName(null, nameIndex).toString();
+        return font.getName(nameIndex);
     }
     @Override
     public StringBuilder getAllNames(final StringBuilder sb, final String separator) {
         return font.getAllNames(sb, separator);
     }
     @Override
-    public StringBuilder getFullFamilyName(StringBuilder sb) {
-        sb = getName(sb, Font.NAME_FAMILY).append("-");
-        getName(sb, Font.NAME_SUBFAMILY);
-        return sb;
+    public String getFullFamilyName() {
+        return getName(Font.NAME_FAMILY) + "-" + getName(Font.NAME_SUBFAMILY);
     }
 
     @Override
@@ -187,34 +182,6 @@ class TypecastFont implements Font {
     @Override
     public final Metrics getMetrics() {
         return metrics;
-    }
-
-    @Override
-    public final float getKerning(final int left_glyphid, final int right_glyphid) {
-        return metrics.getScale( getKerningFU(left_glyphid, right_glyphid) );
-    }
-
-    @Override
-    public int getKerningFU(final int left_glyphid, final int right_glyphid) {
-        if( 0 == left_glyphid || 0 == right_glyphid ) {
-            return 0;
-        }
-        final KernTable kern = font.getKernTable();
-        if (kern != null) {
-            final int kernSubtableCount = kern.getSubtableCount();
-            if( 0 < kernSubtableCount ) {
-                final KernSubtableFormat0 kst0 = kern.getSubtable0();
-                if( null != kst0 && kst0.areKerningValues() && kst0.isHorizontal() && !kst0.isCrossstream() ) {
-                    for (int i = 0; i < kst0.getKerningPairCount(); i++) {
-                        final KerningPair kpair = kst0.getKerningPair(i);
-                        if( kpair.getLeft() == left_glyphid && kpair.getRight() == right_glyphid ) {
-                            return kpair.getValue();
-                        }
-                    }
-                }
-            }
-        }
-        return 0;
     }
 
     @Override
@@ -241,7 +208,7 @@ class TypecastFont implements Font {
         if (null == result) {
             final int glyph_id = getGlyphID( symbol );
 
-            jogamp.graph.font.typecast.ot.OTGlyph glyph = font.getGlyph(glyph_id);
+            jogamp.graph.font.typecast.ot.Glyph glyph = font.getGlyph(glyph_id);
             final int glyph_advance;
             final AABBox glyph_bbox;
             if(null == glyph) {
@@ -264,7 +231,14 @@ class TypecastFont implements Font {
                 throw new RuntimeException("Could not retrieve glyph for symbol: <"+symbol+"> "+(int)symbol+" -> glyph id "+glyph_id);
             }
             final OutlineShape shape = TypecastRenderer.buildShape(symbol, glyph, vertexFactory);
-            result = new TypecastGlyph(this, symbol, glyph_id, glyph_bbox, glyph_advance, shape);
+            KernSubtable kernSub = null;
+            {
+                final KernTable kern = font.getKernTable();
+                if (kern != null ) {
+                    kernSub = kern.getSubtable0();
+                }
+            }
+            result = new TypecastGlyph(this, symbol, glyph_id, glyph_bbox, glyph_advance, kernSub, shape);
             if(DEBUG) {
                 final PostTable post = font.getPostTable();
                 final String glyph_name = null != post ? post.getGlyphName(glyph_id) : "n/a";
@@ -557,9 +531,10 @@ class TypecastFont implements Font {
 
     @Override
     public String toString() {
-        return getFullFamilyName(null).toString();
+        return getFullFamilyName();
     }
 
+    @SuppressWarnings("unused")
     @Override
     public String fullString() {
         final StringBuilder sb = new StringBuilder();
@@ -569,7 +544,7 @@ class TypecastFont implements Font {
         if( null != font.getVheaTable() ) {
             sb.append("\n\n").append(font.getVheaTable());
         }
-        if( null != font.getKernTable() ) {
+        if( false && null != font.getKernTable() ) { // too long
             final PostTable post = font.getPostTable();
             final KernTable kern = font.getKernTable();
             sb.append("\n\n").append(kern);

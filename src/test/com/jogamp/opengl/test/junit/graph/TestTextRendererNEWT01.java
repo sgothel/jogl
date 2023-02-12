@@ -36,6 +36,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.math.geom.AABBox;
 
 import jogamp.common.os.PlatformPropsImpl;
 
@@ -48,6 +49,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.GPUTextRendererListenerBase01;
@@ -104,7 +106,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
     }
 
     @Test
-    public void testTextRendererR2T01() throws InterruptedException {
+    public void testTextRendererR2T01() throws InterruptedException, GLException, IOException {
         if(Platform.CPUFamily.X86 != PlatformPropsImpl.CPU_ARCH.family) { // FIXME
             // FIXME: Disabled for now - since it doesn't seem fit for mobile (performance wise).
             System.err.println("disabled on non desktop (x86) arch for now ..");
@@ -124,42 +126,68 @@ public class TestTextRendererNEWT01 extends UITestCase {
         final TextGLListener textGLListener = new TextGLListener(rs, Region.VBAA_RENDERING_BIT, 4 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
+        textGLListener.setHeadBox(2, true);
+        window.display();
+        // final AABBox headbox = textGLListener.getHeadBox();
+        // GPUTextRendererListenerBase01.upsizeWindowSurface(window, false, (int)(headbox.getWidth()*1.5f), (int)(headbox.getHeight()*2f));
 
-        if(textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0)) {
-            textGLListener.setTech(-400, -30, 0f, -1000, 2);
-            window.display();
-            window.display();
-            sleep();
+        final Runnable action_per_font = new Runnable() {
+            @Override
+            public void run() {
+                textGLListener.setHeadBox(1, false);
+                textGLListener.setSampleCount(2);
+                window.display();
+                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                sleep();
 
-            textGLListener.setTech(-400, -30, 0f,  -380, 3);
-            window.display();
-            sleep();
+                textGLListener.setHeadBox(2, false);
+                textGLListener.setSampleCount(2);
+                window.display();
+                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                sleep();
 
-            textGLListener.setTech(-400, -20, 0f,   -80, 4);
-            window.display();
-            sleep();
+                textGLListener.setHeadBox(1, false);
+                textGLListener.setSampleCount(3);
+                window.display();
+                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                sleep();
+
+                textGLListener.setHeadBox(2, false);
+                textGLListener.setSampleCount(3);
+                window.display();
+                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                sleep();
+
+                textGLListener.setHeadBox(1, false);
+                textGLListener.setSampleCount(4);
+                window.display();
+                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                sleep();
+
+                textGLListener.setHeadBox(2, false);
+                textGLListener.setSampleCount(4);
+                window.display();
+                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                sleep();
+            } };
+
+        if(textGLListener.setFontSet(FontFactory.UBUNTU, FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE)) {
+            action_per_font.run();
+        }
+
+        if(textGLListener.setFontSet(FontFactory.UBUNTU, FontSet.FAMILY_REGULAR, FontSet.STYLE_NONE)) {
+            action_per_font.run();
         }
 
         if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
-            textGLListener.setTech(-400, -30, 0f, -1000, 2);
-            window.display();
-            window.display();
-            sleep();
-
-            textGLListener.setTech(-400, -30, 0f,  -380, 3);
-            window.display();
-            sleep();
-
-            textGLListener.setTech(-400, -20, 0f,   -80, 4);
-            window.display();
-            sleep();
+            action_per_font.run();
         }
 
         destroyWindow(window);
     }
 
     @Test
-    public void testTextRendererMSAA01() throws InterruptedException {
+    public void testTextRendererMSAA01() throws InterruptedException, GLException, IOException {
         final GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
@@ -175,43 +203,41 @@ public class TestTextRendererNEWT01 extends UITestCase {
         final TextGLListener textGLListener = new TextGLListener(rs, 0, 0 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
+        textGLListener.setHeadBox(2, true);
+        window.display();
 
-        if(textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0)) {
-            textGLListener.setTech(-400, -30, 0f, -1000, 0);
-            window.display();
-            window.display();
-            sleep();
+        final Runnable action_per_font = new Runnable() {
+            @Override
+            public void run() {
+                textGLListener.setHeadBox(1, false);
+                textGLListener.setSampleCount(0);
+                window.display();
+                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                sleep();
 
-            textGLListener.setTech(-400, -30, 0,   -380, 0);
-            window.display();
-            sleep();
+                textGLListener.setHeadBox(2, false);
+                textGLListener.setSampleCount(0);
+                window.display();
+                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                sleep();
+            } };
 
-            textGLListener.setTech(-400, -20, 0,    -80, 0);
-            window.display();
-            sleep();
+        if(textGLListener.setFontSet(FontFactory.UBUNTU, FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE)) {
+            action_per_font.run();
+        }
+
+        if(textGLListener.setFontSet(FontFactory.UBUNTU, FontSet.FAMILY_REGULAR, FontSet.STYLE_NONE)) {
+            action_per_font.run();
         }
 
         if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
-            textGLListener.setTech(-400, -30, 0f, -1000, 0);
-            window.display();
-            window.display();
-            sleep();
-
-            textGLListener.setTech(-400, -30, 0,   -380, 0);
-            window.display();
-            sleep();
-
-            textGLListener.setTech(-400, -20, 0,    -80, 0);
-            window.display();
-            sleep();
+            action_per_font.run();
         }
 
         destroyWindow(window);
     }
 
     private static class TextGLListener extends GPUTextRendererListenerBase01 {
-        String winTitle;
-
         public TextGLListener(final RenderState rs, final int type, final int sampleCount, final boolean debug, final boolean trace) {
             super(rs, type, sampleCount, true, debug, trace);
         }
@@ -219,10 +245,10 @@ public class TestTextRendererNEWT01 extends UITestCase {
         @Override
         public void attachInputListenerTo(final GLWindow window) {
             super.attachInputListenerTo(window);
-            winTitle = window.getTitle();
         }
-        public void setTech(final float xt, final float yt, final float angle, final int zoom, final int sampleCount){
-            setMatrix(xt, yt, zoom, angle, sampleCount);
+        public void setSampleCount(final int sampleCount){
+            // setMatrix(xt, yt, zoom, angle, sampleCount);
+            setMatrix(0, 0, 0, 0f, sampleCount);
         }
 
         @Override
@@ -240,14 +266,6 @@ public class TestTextRendererNEWT01 extends UITestCase {
         @Override
         public void display(final GLAutoDrawable drawable) {
             super.display(drawable);
-
-            try {
-                printScreen(drawable, "./", winTitle, false);
-            } catch (final GLException e) {
-                e.printStackTrace();
-            } catch (final IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

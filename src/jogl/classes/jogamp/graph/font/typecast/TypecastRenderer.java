@@ -27,7 +27,6 @@
  */
 package jogamp.graph.font.typecast;
 
-import jogamp.graph.font.typecast.ot.OTGlyph;
 import jogamp.graph.font.typecast.ot.Point;
 import jogamp.opengl.Debug;
 
@@ -76,7 +75,7 @@ public class TypecastRenderer {
         shape.addVertex(0, p3.x,  p3.y, p3.onCurve);
     } */
 
-    public static OutlineShape buildShape(final char symbol, final OTGlyph glyph, final Factory<? extends Vertex> vertexFactory) {
+    public static OutlineShape buildShape(final char symbol, final jogamp.graph.font.typecast.ot.Glyph glyph, final Factory<? extends Vertex> vertexFactory) {
         //
         // See Typecast: GlyphPathFactory.addContourToPath(..)
         //
@@ -111,7 +110,7 @@ public class TypecastRenderer {
         }
     } */
 
-    private static void buildShapeImpl(final OutlineShape shape, final char symbol, final OTGlyph glyph) {
+    private static void buildShapeImpl(final OutlineShape shape, final char symbol, final jogamp.graph.font.typecast.ot.Glyph glyph) {
         // Iterate through all of the points in the glyph.  Each time we find a
         // contour end point, add the point range to the path.
         int startIndex = 0;

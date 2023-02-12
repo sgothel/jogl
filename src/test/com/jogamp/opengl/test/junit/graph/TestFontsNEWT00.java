@@ -36,7 +36,6 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontScale;
-import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -67,14 +66,21 @@ public class TestFontsNEWT00 extends UITestCase {
         final float dpi = 96;
         for(int i=0; i<fonts.length; i++) {
             final Font font = fonts[i];
+            System.err.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+            System.err.println(font.getAllNames(null, "\n"));
+            System.err.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
             final float pixelSize = FontScale.toPixels(fontSize, dpi);
-            System.err.println(font.getFullFamilyName(null).toString()+": "+fontSize+"p, "+dpi+"dpi -> "+pixelSize+"px:");
-            testFontGlyphAdvancedSize(font, 'X', pixelSize);
-            testFontGlyphAdvancedSize(font, 'j', pixelSize);
-            testFontGlyphAdvancedSize(font, ' ', pixelSize);
+            System.err.println(font.getFullFamilyName()+": "+fontSize+"p, "+dpi+"dpi -> "+pixelSize+"px:");
+            System.err.println(font.fullString());
+            testFontGlyph01(font, 'X', pixelSize);
+            testFontGlyph01(font, 'j', pixelSize);
+            testFontGlyph01(font, ' ', pixelSize);
+            testFontGlyph02(font, 'X', 'X');
+            testFontGlyph02(font, 't', '.');
+            testFontGlyph02(font, 'f', 'f');
         }
     }
-    void testFontGlyphAdvancedSize(final Font font, final char c, final float pixelSize) {
+    void testFontGlyph01(final Font font, final char c, final float pixelSize) {
         final int glyphID = font.getGlyphID(c);
         final int s0 = font.getAdvanceWidthFU(glyphID);
         final Font.Glyph glyph = font.getGlyph(c);
@@ -107,5 +113,19 @@ public class TestFontsNEWT00 extends UITestCase {
         Assert.assertEquals(s0_em*pixelSize, s0_px, FloatUtil.EPSILON);
         Assert.assertEquals(s1_em*pixelSize, s1_px, FloatUtil.EPSILON);
         Assert.assertEquals(s0_px, s1_px, FloatUtil.EPSILON);
+    }
+    void testFontGlyph02(final Font font, final char left, final char right) {
+        final int glyphid_left = font.getGlyphID(left);
+        final int glyphid_right = font.getGlyphID(right);
+        final Font.Glyph glyph_left = font.getGlyph(left);
+        final Font.Glyph glyph_right = font.getGlyph(right);
+
+        final int k_val = glyph_left.getKerningFU(glyphid_right);
+
+        System.err.println("    Font "+font.getFullFamilyName());
+        System.err.println("    Char left['"+left+"', id "+glyphid_left+", kpairs "+glyph_left.getKerningPairCount()+
+                                "], right['"+right+"', id "+glyphid_right+"], kerning "+k_val);
+        System.err.println("      "+glyph_left);
+        // System.err.println("      "+glyph_left.fullString());
     }
 }

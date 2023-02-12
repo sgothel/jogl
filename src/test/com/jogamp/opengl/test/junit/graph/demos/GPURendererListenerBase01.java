@@ -126,8 +126,9 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
             final Window window = (Window) upObj;
-            final float[] sDPI = FontScale.perMMToPerInch( window.getPixelsPerMM(new float[2]) );
-            System.err.println("DPI "+sDPI[0]+" x "+sDPI[1]);
+            final float[] sPpMM = window.getPixelsPerMM(new float[2]);
+            final float[] sDPI = FontScale.perMMToPerInch( new float[] { sPpMM[0], sPpMM[1] } );
+            System.err.println("DPI "+sDPI[0]+" x "+sDPI[1]+", "+sPpMM[0]+" x "+sPpMM[1]+" pixel/mm");
 
             final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);
             System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
@@ -245,15 +246,29 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
         final StringWriter sw = new StringWriter();
         final PrintWriter pw = new PrintWriter(sw);
-        pw.printf("-%03dx%03d-Z%04d-S%02d-%s", drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), (int)Math.abs(zTran), sampleCount[0], objName);
-
+        pw.printf("-%s-S%02d-Z%04d-snap%02d-%03dx%03d", objName, sampleCount[0], (int)Math.abs(zTran), screenshot_num++, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         final String filename = dir + tech + sw +".png";
         if(screenshot.readPixels(drawable.getGL(), false)) {
             screenshot.write(new File(filename));
         }
     }
+    private int screenshot_num = 0;
 
-    int screenshot_num = 0;
+    public void printScreenOnGLThread(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) {
+        drawable.invoke(false, new GLRunnable() {
+            @Override
+            public boolean run(final GLAutoDrawable drawable) {
+                try {
+                    printScreen(drawable, dir, tech, objName, exportAlpha);
+                } catch (final GLException e) {
+                    e.printStackTrace();
+                } catch (final IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+        });
+    }
 
     public void setIgnoreInput(final boolean v) {
         ignoreInput = v;
@@ -337,25 +352,11 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                 }
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_S){
-                rotate(-1);
-                    if(null != autoDrawable) {
-                        autoDrawable.invoke(false, new GLRunnable() {
-                            @Override
-                            public boolean run(final GLAutoDrawable drawable) {
-                                try {
-                                    final String modeS = Region.getRenderModeString(renderModes);
-                                    final String type = modeS + ( Region.hasVariableWeight(renderModes) ? "-vc" : "-uc" ) ;
-                                    printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
-                                    screenshot_num++;
-                                } catch (final GLException e) {
-                                    e.printStackTrace();
-                                } catch (final IOException e) {
-                                    e.printStackTrace();
-                                }
-                                return true;
-                            }
-                        });
-                    }
+                if(null != autoDrawable) {
+                    final String modeS = Region.getRenderModeString(renderModes);
+                    final String type = modeS + ( Region.hasVariableWeight(renderModes) ? "-vc" : "-uc" ) ;
+                    printScreenOnGLThread(autoDrawable, "./", "demo-"+type, "", false);
+                }
             }
         }
         @Override

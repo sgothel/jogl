@@ -40,11 +40,11 @@ public class TypecastFontConstructor implements FontConstructor  {
 
     @Override
     public Font create(final File ffile) throws IOException {
-        return new TypecastFont( OTFontCollection.create(ffile) );
+        return new TypecastFont( new OTFontCollection(ffile) );
     }
 
     @Override
     public Font create(final InputStream istream, final int streamLen) throws IOException {
-        return new TypecastFont( OTFontCollection.create(istream, streamLen) );
+        return new TypecastFont( new OTFontCollection(istream, streamLen) );
     }
 }

@@ -34,8 +34,9 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -75,23 +76,23 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     int fontSet = FontFactory.UBUNTU;
     Font font;
 
-    int headType = 0;
+    int headType = 1;
     boolean drawFPS = true;
     final float fontSizeFName = 10f;
     final float fontSizeFPS = 10f;
     final int[] sampleCountFPS = new int[] { 8 };
     float fontSizeHead = 12f;
-    float fontSizeBottom = 16f;
-    float dpiH = 96;
+    float fontSizeCenter = 16f;
+    float dpiV = 96;
+    float ppmmV = 1;
     final int fontSizeModulo = 100;
     String fontName;
     AABBox fontNameBox;
     String headtext;
     AABBox headbox;
 
-    static final String text1 = "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789.:,;(*!?/\\\")$%^&-+@~#<>{}[]";
     static final String text2 = "The quick brown fox jumps over the lazy dog";
-    public static final String textX =
+    public static final String text_help =
         "JOGAMP graph demo using Resolution Independent NURBS\n"+
         "JOGAMP JOGL - OpenGL ES2 profile\n"+
         "Press 1/2 to zoom in/out the below text\n"+
@@ -103,7 +104,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         "Press i for live input text input (CR ends it, backspace supported)\n"+
         "Press f to toggle fps. H for different text, space for font type\n";
 
-    public static final String textX2 =
+    public static final String textX1 =
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus. \n"+
         "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
         "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices ultricies nec a elit. \n"+
@@ -113,21 +114,21 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem, \n" +
         "-------Press H to change text---------";
 
-    public static final String textX3 =
-        "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*.\n"+
-        "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail.\n"+
-        "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale.\n"+
-        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway, Kyulu in Kenya, not in Rwanda.…\n"+
-        "Miłosz and Wū Wŭ all in the library? 1510–1620, 11:00 pm, and the 1980s are over.\n"+
-        "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
+    public static final String textX2 = // Kvæven -> Kvaven (error)
+        "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*. X\n"+
+        "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail. X\n"+
+        "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale. X\n"+
+        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvaven in Norway, Kyulu in Kenya, not in Rwanda.… X\n"+
+        "Von-Vincke-Straße in Münster, Vdovino in Russia, Ytterbium in the periodic table. Are Toussaint L’Ouverture, Wölfflin, Wolfe, X\n"+
+        "Miłosz and Wū Wŭ all in the library? 1510–1620, 11:00 pm, and the 1980s are over. X\n"+
         "-------Press H to change text---------";
 
-    public static final String textX30 =
+    public static final String textX20 = // Kvæven -> Kvaven (error)
         "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*.\n"+
         "Two of [of] (of) ‘of’ “of” of? of! of*. Ydes, Yffignac and Ygrande are in France: so are Ypres,\n"+
         "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail.\n"+
         "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale.\n"+
-        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway, Kyulu in Kenya, not in Rwanda.…\n"+
+        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvaven in Norway, Kyulu in Kenya, not in Rwanda.…\n"+
         "Walton’s in West Virginia, but «Wren» is in Oregon. Tlálpan is near Xochimilco in México.\n"+
         "The Zygos & Xylophagou are in Cyprus, Zwettl in Austria, Fænø in Denmark, the Vøringsfossen and Værøy in Norway.\n"+
         "Tchula is in Mississippi, the Tittabawassee in Michigan. Twodot is here in Montana, Ywamun in Burma.\n"+
@@ -138,7 +139,10 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
         "-------Press H to change text---------";
 
-    StringBuilder userString = new StringBuilder(textX2);
+    static final String textXLast = "abcdefghijklmnopqrstuvwxyz\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789.:,;(*!?/\\\")$%^&-+@~#<>{}[]";
+
+    Window upstream_window = null;
+    StringBuilder userString = new StringBuilder(textX1);
     boolean userInput = false;
     public GPUTextRendererListenerBase01(final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
         // NOTE_ALPHA_BLENDING: We use alpha-blending
@@ -153,7 +157,6 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         try {
             // this.font = FontFactory.get(fontSet).getDefault();
             this.font = FontFactory.get(fontSet).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE);
-            dumpFontNames();
 
             this.fontName = font.toString();
         } catch (final IOException ioe) {
@@ -163,34 +166,53 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         setMatrix(0, 0, 0, 0f, sampleCount);
     }
 
-    void dumpFontNames() {
-        System.err.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-        System.err.println(font.getAllNames(null, "\n"));
-        System.err.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-    }
-
     void switchHeadBox() {
-        headType = ( headType + 1 ) % 5 ;
+        setHeadBox( ( headType + 1 ) % 5, true );
+    }
+    public int getHeadBoxType() { return headType; }
+    public AABBox getHeadBox() { return headbox; }
+    public void setHeadBox(final int choice, final boolean resize) {
+        headType =  choice % 5 ;
         switch(headType) {
           case 0:
               headtext = null;
               break;
 
           case 1:
-              headtext= textX2;
+              headtext= textX1;
               break;
           case 2:
-              headtext= textX;
+              headtext= textX2;
               break;
           case 3:
-              headtext= textX3;
+              headtext= text_help;
               break;
 
           default:
-              headtext = text1;
+              headtext = textXLast;
         }
-        if(null != headtext) {
-            headbox = font.getMetricBounds(headtext, FontScale.toPixels(fontSizeHead, dpiH));
+        if(resize && null != headtext) {
+            headbox = font.getMetricBounds(headtext, FontScale.toPixels(fontSizeHead, dpiV));
+            if( headtext != text_help ) {
+                upsizeWindowSurface(upstream_window, true, (int)(headbox.getWidth()*1.1f), (int)(headbox.getHeight()*2f));
+            }
+        }
+    }
+
+    public static void upsizeWindowSurface(final Window window, final boolean off_thread, final int w, final int h) {
+        if( null == window ) {
+            return;
+        }
+        final int w2 = Math.max(window.getSurfaceWidth(), w);
+        final int h2 = Math.max(window.getSurfaceHeight(), h);
+        if( off_thread ) {
+            new InterruptSource.Thread() {
+                @Override
+                public void run() {
+                    window.setSurfaceSize(w2, h2);
+                } }.start();
+        } else {
+            window.setSurfaceSize(w2, h2);
         }
     }
 
@@ -199,21 +221,27 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         super.init(drawable);
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
-            final Window window = (Window) upObj;
-            final float[] sDPI = FontScale.perMMToPerInch( window.getPixelsPerMM(new float[2]) );
-            dpiH = sDPI[1];
-            System.err.println("Using screen DPI of "+dpiH);
+            upstream_window = (Window) upObj;
+            final float[] sPpMM = upstream_window.getPixelsPerMM(new float[2]);
+            final float[] sDPI = FontScale.perMMToPerInch( new float[] { sPpMM[0], sPpMM[1] } );
+            dpiV = sDPI[1];
+            ppmmV = sPpMM[1];
+            System.err.println("Using vertical screen DPI of "+dpiV+", "+ppmmV+" pixel/mm");
         } else {
-            System.err.println("Using default DPI of "+dpiH);
+            System.err.println("Using vertical default DPI of "+dpiV+", "+ppmmV+" pixel/mm");
         }
-        fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiH));
-        switchHeadBox();
+        fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiV));
+        setHeadBox(headType, true);
 
     }
 
     @Override
     public void reshape(final GLAutoDrawable drawable, final int xstart, final int ystart, final int width, final int height) {
         super.reshape(drawable, xstart, ystart, width, height);
+        final Object upObj = drawable.getUpstreamWidget();
+        if( upObj instanceof Window ) {
+            upstream_window = (Window) upObj;
+        }
         final float dist = 100f;
         nearPlaneX0 = nearPlane1Box.getMinX() * dist;
         nearPlaneY0 = nearPlane1Box.getMinY() * dist;
@@ -229,6 +257,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     @Override
     public void dispose(final GLAutoDrawable drawable) {
+        upstream_window = null;
         regionFPS.destroy(drawable.getGL().getGL2ES2());
         regionHead.destroy(drawable.getGL().getGL2ES2());
         regionBottom.destroy(drawable.getGL().getGL2ES2());
@@ -237,6 +266,10 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     @Override
     public void display(final GLAutoDrawable drawable) {
+        final Object upObj = drawable.getUpstreamWidget();
+        if( upObj instanceof Window ) {
+            upstream_window = (Window) upObj;
+        }
         final int width = drawable.getSurfaceWidth();
         final int height = drawable.getSurfaceHeight();
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -256,14 +289,16 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
-        final float pixelSizeFName = FontScale.toPixels(fontSizeFName, dpiH);
-        final float pixelSizeHead = FontScale.toPixels(fontSizeHead, dpiH);
-        final float pixelSizeBottom = FontScale.toPixels(fontSizeBottom, dpiH);
+        final float pixelSizeFName = FontScale.toPixels(fontSizeFName, dpiV);
+        final float pixelSizeHead = FontScale.toPixels(fontSizeHead, dpiV);
+        final float mmSizeHead = pixelSizeHead / ppmmV;
+        final float pixelSizeCenter = FontScale.toPixels(fontSizeCenter, dpiV);
+        final float mmSizeCenter = pixelSizeCenter / ppmmV;
 
         renderer.enable(gl, true);
 
         if( drawFPS ) {
-            final float pixelSizeFPS = FontScale.toPixels(fontSizeFPS, dpiH);
+            final float pixelSizeFPS = FontScale.toPixels(fontSizeFPS, dpiV);
             final float lfps, tfps, td;
             final GLAnimatorControl animator = drawable.getAnimator();
             if( null != animator ) {
@@ -276,8 +311,11 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 td = 0f;
             }
             final String modeS = Region.getRenderModeString(regionFPS.getRenderModes());
-            final String text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize [head %.1f, bottom %.1f], %s-samples [%d, this %d], td %4.1f, blend %b, alpha-bits %d",
-                    lfps, tfps, gl.getSwapInterval(), fontSizeHead, fontSizeBottom, modeS, getSampleCount()[0], sampleCountFPS[0], td,
+            final String text = String.format("%03.1f/%03.1f fps, v-sync %d, dpiV %.2f %.2f px/mm, font[head %.1fpt %.2fpx %.2fmm, center %.1fpt %.2fpx %.2fmm], %s-samples[%d, this %d], blend %b, alpha %d",
+                    lfps, tfps, gl.getSwapInterval(), dpiV, ppmmV,
+                    fontSizeHead, pixelSizeHead, mmSizeHead,
+                    fontSizeCenter, pixelSizeCenter, mmSizeCenter,
+                    modeS, getSampleCount()[0], sampleCountFPS[0],
                     renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
                     drawable.getChosenGLCapabilities().getAlphaBits());
 
@@ -321,7 +359,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             textRegionUtil.drawString3D(gl, renderer, font, headtext, null, getSampleCount());
         }
 
-        dy += -headbox.getHeight() - font.getLineHeight(pixelSizeBottom);
+        dy += -headbox.getHeight() - font.getLineHeight(pixelSizeCenter);
 
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
@@ -330,7 +368,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         pmv.glTranslatef(getXTran(), getYTran(), getZTran());
         pmv.glRotatef(getAngle(), 0, 1, 0);
         {
-            final float sxy = ( nearPlaneS * pixelSizeBottom ) / font.getMetrics().getUnitsPerEM();
+            final float sxy = ( nearPlaneS * pixelSizeCenter ) / font.getMetrics().getUnitsPerEM();
             pmv.glScalef(sxy, sxy, 1.0f);
         }
         rs.setColorStatic(0.9f, 0.0f, 0.0f, 1.0f);
@@ -361,14 +399,14 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     public float getFontSizeHead() { return fontSizeHead; }
 
     public void fontBottomIncr(final int v) {
-        fontSizeBottom = Math.abs((fontSizeBottom + v) % fontSizeModulo) ;
+        fontSizeCenter = Math.abs((fontSizeCenter + v) % fontSizeModulo) ;
         dumpMatrix(true);
     }
 
     public void fontHeadIncr(final int v) {
         fontSizeHead = Math.abs((fontSizeHead + v) % fontSizeModulo) ;
         if(null != headtext) {
-            headbox = font.getMetricBounds(headtext, FontScale.toPixels(fontSizeHead, dpiH));
+            headbox = font.getMetricBounds(headtext, FontScale.toPixels(fontSizeHead, dpiV));
         }
     }
 
@@ -379,9 +417,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             if(null != _font) {
                 fontSet = set;
                 font = _font;
-                fontName = font.getFullFamilyName(null).toString();
-                fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiH));
-                dumpFontNames();
+                fontName = font.getFullFamilyName();
+                fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiV));
                 return true;
             }
         } catch (final IOException ex) {
@@ -396,9 +433,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             if(null != _font) {
                 fontSet = set;
                 font = _font;
-                fontName = font.getFullFamilyName(null).toString();
-                fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiH));
-                dumpFontNames();
+                fontName = font.getFullFamilyName()+" (head "+fontSizeHead+"pt)";
+                fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiV));
                 return true;
             }
         } catch (final IOException ex) {
@@ -410,9 +446,9 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     public boolean isUserInputMode() { return userInput; }
 
     void dumpMatrix(final boolean bbox) {
-        System.err.println("Matrix: " + getXTran() + "/" + getYTran() + " x"+getZTran() + " @"+getAngle() +" fontSize "+fontSizeBottom);
+        System.err.println("Matrix: " + getXTran() + "/" + getYTran() + " x"+getZTran() + " @"+getAngle() +" fontSize "+fontSizeCenter);
         if(bbox) {
-            System.err.println("bbox: "+font.getMetricBounds(text2, nearPlaneS * FontScale.toPixels(fontSizeBottom, dpiH)));
+            System.err.println("bbox: "+font.getMetricBounds(text2, nearPlaneS * FontScale.toPixels(fontSizeCenter, dpiV)));
         }
     }
 
@@ -436,9 +472,10 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         window.removeKeyListener(keyAction);
     }
 
-    public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final boolean exportAlpha) throws GLException, IOException {
-        final String fn = font.getFullFamilyName(null).toString();
-        printScreen(drawable, dir, tech, fn.replace(' ', '_'), exportAlpha);
+    @Override
+    public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
+        final String fn = font.getFullFamilyName().replace(' ', '_').replace('-', '_');
+        super.printScreen(drawable, dir, tech+"-"+fn, "text"+getHeadBoxType()+"-"+objName, exportAlpha);
     }
 
     float fontHeadScale = 1f;
