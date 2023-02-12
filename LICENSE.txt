@@ -257,6 +257,7 @@ A.3) The JOGL source tree contains code from David Schweinsberg
 
    Upstream <https://github.com/dcsch/typecast>
    JOGL Patches <https://jogamp.org/cgit/typecast.git/log/?h=jogl_patches>
+   Aligned with jogl_patches, commit 90c4a8348cbe182bf3f0bcc55fd015f19ed0686f 
 
    Author: David Schweinsberg
 
