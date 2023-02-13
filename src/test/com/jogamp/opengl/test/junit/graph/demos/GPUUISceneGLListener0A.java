@@ -80,9 +80,9 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private final float buttonXSizePVP = 0.105f;
     private final float fontSizePt = 10f;
     /** Proportional Font Size to Window Height  for Main Text, per-vertical-pixels [PVP] */
-    private final float fontSizeFixedPVP = 0.046f;
+    private final float fontSizeFixedPVP = 0.03f;
     /** Proportional Font Size to Window Height for FPS Status Line, per-vertical-pixels [PVP] */
-    private final float fontSizeFpsPVP = 0.038f;
+    private final float fontSizeFpsPVP = 0.03f;
     private float dpiH = 96;
 
     /**

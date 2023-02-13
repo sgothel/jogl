@@ -32,7 +32,6 @@ import jogamp.graph.font.typecast.ot.TTFont;
 import jogamp.graph.font.typecast.ot.table.CmapFormat;
 import jogamp.graph.font.typecast.ot.table.CmapIndexEntry;
 import jogamp.graph.font.typecast.ot.table.CmapTable;
-import jogamp.graph.font.typecast.ot.table.HdmxTable;
 import jogamp.graph.font.typecast.ot.table.ID;
 import jogamp.graph.font.typecast.ot.table.KernSubtable;
 import jogamp.graph.font.typecast.ot.table.KernSubtableFormat0;
@@ -50,7 +49,6 @@ import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
 
 class TypecastFont implements Font {
-    static final boolean USE_PRESCALED_ADVANCE = false;
     static final boolean DEBUG = false;
     private static final Vertex.Factory<SVertex> vertexFactory = SVertex.factory();
 
@@ -167,10 +165,6 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public float getAdvanceWidth(final int glyphID, final float pixelSize) {
-        return pixelSize * metrics.getScale( font.getHmtxTable().getAdvanceWidth(glyphID) );
-    }
-    @Override
     public float getAdvanceWidth(final int glyphID) {
         return metrics.getScale( font.getHmtxTable().getAdvanceWidth(glyphID) );
     }
@@ -230,7 +224,7 @@ class TypecastFont implements Font {
             if(null == glyph) {
                 throw new RuntimeException("Could not retrieve glyph for symbol: <"+symbol+"> "+(int)symbol+" -> glyph id "+glyph_id);
             }
-            final OutlineShape shape = TypecastRenderer.buildShape(symbol, glyph, vertexFactory);
+            final OutlineShape shape = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), symbol, glyph, vertexFactory);
             KernSubtable kernSub = null;
             {
                 final KernTable kern = font.getKernTable();
@@ -248,30 +242,9 @@ class TypecastFont implements Font {
             }
             glyph.clearPointData();
 
-            if( TypecastFont.USE_PRESCALED_ADVANCE ) {
-                final HdmxTable hdmx = font.getHdmxTable();
-                if (null!= result && null != hdmx) {
-                    /*if(DEBUG) {
-                        System.err.println("hdmx "+hdmx);
-                    }*/
-                    for (int i=0; i<hdmx.getNumberOfRecords(); i++)
-                    {
-                        final HdmxTable.DeviceRecord dr = hdmx.getRecord(i);
-                        if(DEBUG) {
-                            System.err.println("hdmx advance : pixelsize "+dr.getPixelSize()+" -> advance "+dr.getWidth(glyph_id));
-                        }
-                        result.addAdvance(dr.getPixelSize(), dr.getWidth(glyph_id));
-                    }
-                }
-            }
             char2Glyph.put(symbol, result);
         }
         return result;
-    }
-
-    @Override
-    public float getLineHeight(final float pixelSize) {
-        return pixelSize * metrics.getScale( getLineHeightFU() );
     }
 
     @Override
@@ -287,26 +260,6 @@ class TypecastFont implements Font {
         final int descent = metrics.getDescentFU() ; // positive value!
         final int advanceY = lineGap - descent + ascent;  // negative value!
         return -advanceY;
-    }
-
-    @Override
-    public float getMetricWidth(final CharSequence string, final float pixelSize) {
-        if( !TypecastFont.USE_PRESCALED_ADVANCE ) {
-            return pixelSize * getMetricWidth(string);
-        } else {
-            float width = 0;
-            final int len = string.length();
-            for (int i=0; i< len; i++) {
-                final char character = string.charAt(i);
-                if (character == '\n') {
-                    width = 0;
-                } else {
-                    final Glyph glyph = getGlyph(character);
-                    width += glyph.getAdvance(pixelSize); // uses pixelSize mapping, different than glyph.getAdvanceFU()
-                }
-            }
-            return width;
-        }
     }
 
     @Override
@@ -331,11 +284,6 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public float getMetricHeight(final CharSequence string, final float pixelSize) {
-        return pixelSize * getMetricHeight(string);
-    }
-
-    @Override
     public float getMetricHeight(final CharSequence string) {
         return metrics.getScale( getMetricHeightFU(string) );
     }
@@ -355,40 +303,8 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public AABBox getMetricBounds(final CharSequence string, final float pixelSize) {
-        if( !TypecastFont.USE_PRESCALED_ADVANCE ) {
-            return getMetricBoundsFU(string).scale(pixelSize/metrics.getUnitsPerEM(), new float[3]);
-        } else {
-            if (string == null) {
-                return new AABBox();
-            }
-            final int charCount = string.length();
-            final float lineHeight = getLineHeight(pixelSize);
-            float totalHeight = 0;
-            float totalWidth = 0;
-            float curLineWidth = 0;
-            for (int i=0; i<charCount; i++) {
-                final char character = string.charAt(i);
-                if (character == '\n') {
-                    totalWidth = Math.max(curLineWidth, totalWidth);
-                    curLineWidth = 0;
-                    totalHeight += lineHeight;
-                    continue;
-                }
-                final Glyph glyph = getGlyph(character);
-                curLineWidth += glyph.getAdvance(pixelSize); // uses pixelSize mapping, different than glyph.getAdvanceFU()
-            }
-            if (curLineWidth > 0) {
-                totalHeight += lineHeight;
-                totalWidth = Math.max(curLineWidth, totalWidth);
-            }
-            return new AABBox(0, 0, 0, totalWidth, totalHeight,0);
-        }
-    }
-
-    @Override
     public AABBox getMetricBounds(final CharSequence string) {
-        return getMetricBoundsFU(string).scale(1.0f/metrics.getUnitsPerEM(), new float[3]);
+        return getMetricBoundsFU(string).scale2(1.0f/metrics.getUnitsPerEM(), new float[3]);
     }
 
     @Override
@@ -416,62 +332,6 @@ class TypecastFont implements Font {
             totalWidth = Math.max(curLineWidth, totalWidth);
         }
         return new AABBox(0, 0, 0, totalWidth, totalHeight,0);
-    }
-
-    @Override
-    public AABBox getPointsBounds(final AffineTransform transform, final CharSequence string, final float pixelSize) {
-        if( !TypecastFont.USE_PRESCALED_ADVANCE ) {
-            return getPointsBoundsFU(transform, string).scale(pixelSize/metrics.getUnitsPerEM(), new float[3]);
-        } else {
-            if (string == null) {
-                return new AABBox();
-            }
-            final AffineTransform temp1 = new AffineTransform();
-            final AffineTransform temp2 = new AffineTransform();
-            final float pixelSize2 = pixelSize / metrics.getUnitsPerEM();
-            final int charCount = string.length();
-            final float lineHeight = getLineHeight(pixelSize);
-            final AABBox tbox = new AABBox();
-            final AABBox res = new AABBox();
-
-            float y = 0;
-            float advanceTotal = 0;
-
-            for(int i=0; i< charCount; i++) {
-                final char character = string.charAt(i);
-                if( '\n' == character ) {
-                    y -= lineHeight;
-                    advanceTotal = 0;
-                } else if (character == ' ') {
-                    advanceTotal += getAdvanceWidth(Glyph.ID_SPACE, pixelSize);
-                } else {
-                    // reset transform
-                    if( null != transform ) {
-                        temp1.setTransform(transform);
-                    } else {
-                        temp1.setToIdentity();
-                    }
-                    temp1.translate(advanceTotal, y, temp2);
-                    temp1.scale(pixelSize2, pixelSize2, temp2);
-                    tbox.reset();
-
-                    final Font.Glyph glyph = getGlyph(character);
-                    res.resize(temp1.transform(glyph.getBBoxFU(), tbox));
-
-                    final OutlineShape glyphShape = glyph.getShape();
-                    if( null == glyphShape ) {
-                        continue;
-                    }
-                    advanceTotal += glyph.getAdvance(pixelSize);
-                }
-            }
-            return res;
-        }
-    }
-
-    @Override
-    public AABBox getPointsBounds(final AffineTransform transform, final CharSequence string) {
-        return getPointsBoundsFU(transform, string).scale(1.0f/metrics.getUnitsPerEM(), new float[3]);
     }
 
     @Override
@@ -517,6 +377,11 @@ class TypecastFont implements Font {
             }
         }
         return res;
+    }
+
+    @Override
+    public AABBox getPointsBounds(final AffineTransform transform, final CharSequence string) {
+        return getPointsBoundsFU(transform, string).scale2(1.0f/metrics.getUnitsPerEM(), new float[3]);
     }
 
     @Override

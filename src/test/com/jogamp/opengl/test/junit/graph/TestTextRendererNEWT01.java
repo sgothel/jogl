@@ -61,6 +61,8 @@ public class TestTextRendererNEWT01 extends UITestCase {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
     static long duration = 100; // ms
+    static int win_width = 1024;
+    static int win_height = 640;
 
     static int atoi(final String a) {
         try {
@@ -73,6 +75,12 @@ public class TestTextRendererNEWT01 extends UITestCase {
             if(args[i].equals("-time")) {
                 i++;
                 duration = atoi(args[i]);
+            } else if(args[i].equals("-width")) {
+                i++;
+                win_width = atoi(args[i]);
+            } else if(args[i].equals("-height")) {
+                i++;
+                win_height = atoi(args[i]);
             }
         }
         final String tstname = TestTextRendererNEWT01.class.getName();
@@ -118,7 +126,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);
         System.err.println("Requested: "+caps);
 
-        final GLWindow window = createWindow("text-vbaa1-msaa0", caps, 1024, 640);
+        final GLWindow window = createWindow("text-vbaa1-msaa0", caps, win_width, win_height);
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 

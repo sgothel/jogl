@@ -30,7 +30,7 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
-
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.event.KeyAdapter;
@@ -64,7 +64,7 @@ public class UINewtDemo01 {
         window.setSize(800, 400);
         window.setTitle("GPU UI Newt Demo 01");
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final UIGLListener01 uiGLListener = new UIGLListener01 (0, rs, DEBUG, TRACE);
+        final UIListener01 uiGLListener = new UIListener01 (0, rs, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
         window.setVisible(true);
@@ -74,13 +74,19 @@ public class UINewtDemo01 {
         animator.add(window);
 
         window.addKeyListener(new KeyAdapter() {
+            @Override
             public void keyPressed(final KeyEvent arg0) {
                 if(arg0.getKeyCode() == KeyEvent.VK_F4) {
-                    window.destroy();
+                    new InterruptSource.Thread() {
+                        @Override
+                        public void run() {
+                            window.destroy();
+                        } }.start();
                 }
             }
         });
         window.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }

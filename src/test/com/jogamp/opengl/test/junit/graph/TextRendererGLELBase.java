@@ -249,10 +249,11 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 final int height = drawable.getSurfaceHeight();
                 dy = height-ty;
             }
+            final float sxy = pixelScale * pixelSize;
             final int newLineCount = TextRegionUtil.getCharCount(text, '\n');
-            final float lineHeight = font.getLineHeight(pixelSize);
-            dx += pixelScale * font.getAdvanceWidth('X', pixelSize) * column;
-            dy -= pixelScale * lineHeight * ( row + 1 );
+            final float lineHeight = font.getLineHeight();
+            dx += sxy * font.getAdvanceWidth('X') * column;
+            dy -= sxy * lineHeight * ( row + 1 );
 
             final PMVMatrix pmvMatrix = rs.getMatrix();
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
@@ -262,7 +263,6 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 pmvMatrix.glLoadIdentity();
             }
             pmvMatrix.glTranslatef(dx, dy, tz);
-            final float sxy = ( pixelScale * pixelSize ) / font.getMetrics().getUnitsPerEM();
             if( flipVerticalInGLOrientation && drawable.isGLOriented() ) {
                 pmvMatrix.glScalef(sxy, -1f*sxy, 1.0f);
             } else {

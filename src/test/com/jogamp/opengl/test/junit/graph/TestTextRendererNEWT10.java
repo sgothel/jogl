@@ -52,6 +52,7 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -70,9 +71,11 @@ public class TestTextRendererNEWT10 extends UITestCase {
     static boolean forceGL3 = false;
     static boolean mainRun = false;
     static boolean useMSAA = true;
+    static int win_width = 1024;
+    static int win_height = 640;
 
     static Font font;
-    static float fontSize = 24;
+    static float fontSize = 24; // in pixel
     static String customStr = null;
 
     @BeforeClass
@@ -95,6 +98,12 @@ public class TestTextRendererNEWT10 extends UITestCase {
             if(args[i].equals("-time")) {
                 i++;
                 duration = atoi(args[i]);
+            } else if(args[i].equals("-width")) {
+                i++;
+                win_width = atoi(args[i]);
+            } else if(args[i].equals("-height")) {
+                i++;
+                win_height = atoi(args[i]);
             } else if(args[i].equals("-noMSAA")) {
                 useMSAA = false;
             } else if(args[i].equals("-es2")) {
@@ -157,7 +166,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         System.err.println("Requested: "+caps);
         System.err.println("Requested: "+Region.getRenderModeString(renderModes));
 
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(caps, 800, 400, true);
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(caps, win_width, win_height, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
 
@@ -186,7 +195,17 @@ public class TestTextRendererNEWT10 extends UITestCase {
         // display
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         if( null == customStr ) {
-            renderString(drawable, gl, renderer, textRenderUtil, "012345678901234567890123456789", 0,  0, -1000, sampleCountIO);
+            {
+                final float[] pixelsPerMM = winctx.window.getPixelsPerMM(new float[2]);
+                final float[] dpi = FontScale.ppmmToPPI(pixelsPerMM, new float[2]);
+                final float mmSize = fontSize / pixelsPerMM[1];
+                final int unitsPerEM = font.getMetrics().getUnitsPerEM();
+                String txt = String.format("Resolution dpiV %.2f, %.2f px/mm", dpi[1], pixelsPerMM[1]);
+                renderString(drawable, gl, renderer, textRenderUtil, txt, 0,  0, -1000, sampleCountIO);
+                txt = String.format("Font %s, unitsPerEM %d, size %.2f px %2f mm", font.getFullFamilyName(), unitsPerEM, fontSize, mmSize);
+                renderString(drawable, gl, renderer, textRenderUtil, txt, 0,  -1, -1000, sampleCountIO);
+            }
+            renderString(drawable, gl, renderer, textRenderUtil, "012345678901234567890123456789", 0, -1, -1000, sampleCountIO);
             renderString(drawable, gl, renderer, textRenderUtil, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, -1, -1000, sampleCountIO);
             renderString(drawable, gl, renderer, textRenderUtil, "Hello World", 0, -1, -1000, sampleCountIO);
             renderString(drawable, gl, renderer, textRenderUtil, "4567890123456", 4, -1, -1000,sampleCountIO);
@@ -200,8 +219,9 @@ public class TestTextRendererNEWT10 extends UITestCase {
         } else {
             renderString(drawable, gl, renderer, textRenderUtil, customStr, 0,  0, -1000, sampleCountIO);
         }
-        drawable.swapBuffers();
+        gl.glFinish();
         printScreen(renderModes, drawable, gl, false, sampleCount);
+        drawable.swapBuffers();
 
         sleep();
 
@@ -218,23 +238,20 @@ public class TestTextRendererNEWT10 extends UITestCase {
     void renderString(final GLDrawable drawable, final GL2ES2 gl, final RegionRenderer renderer, final TextRegionUtil textRenderUtil, final String text, final int column, int row, final int z0, final int[] sampleCount) {
         final int height = drawable.getSurfaceHeight();
 
-        int dx = 0;
-        int dy = height;
+        float dx = 0;
+        float dy = height;
         if(0>row) {
             row = lastRow + 1;
         }
-        final AABBox textBox = font.getMetricBounds(text, fontSize);
-        dx += font.getAdvanceWidth('X', fontSize) * column;
-        dy -= (int)textBox.getHeight() * ( row + 1 );
+        final AABBox textBox = font.getMetricBounds(text); // em-size
+        dx += fontSize * font.getAdvanceWidth('X') * column;
+        dy -= fontSize * textBox.getHeight() * ( row + 1 );
 
         final PMVMatrix pmv = renderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(dx, dy, z0);
-        {
-            final float sxy = fontSize / font.getMetrics().getUnitsPerEM();
-            pmv.glScalef(sxy, sxy, 1.0f);
-        }
+        pmv.glScalef(fontSize, fontSize, 1.0f);
         textRenderUtil.drawString3D(gl, renderer, font, text, null, sampleCount);
 
         lastRow = row;
@@ -249,7 +266,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
         final String modeS = Region.getRenderModeString(renderModes);
         final String bname = String.format((Locale)null, "%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
                 drawable.getChosenGLCapabilities().getNumSamples(),
-                TestTextRendererNEWT10.fontSize, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), modeS, sampleCount);
+                fontSize, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), modeS, sampleCount);
         final String filename = dir + bname +".png";
         if(screenshot.readPixels(gl, false)) {
             screenshot.write(new File(filename));

@@ -71,7 +71,7 @@ public class Label extends UIShape {
     }
 
     public float getLineHeight() {
-        return font.getLineHeight(pixelSize);
+        return pixelSize * font.getLineHeight();
     }
 
     public void setPixelSize(final float pixelSize) {
@@ -102,13 +102,11 @@ public class Label extends UIShape {
 
     @Override
     protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
-        final AffineTransform t_sxy = new AffineTransform(); // FIXME ?
-        final float sxy = pixelSize / font.getMetrics().getUnitsPerEM();
-        t_sxy.setToScale(sxy, sxy);
+        final AffineTransform t_sxy = new AffineTransform();
+        t_sxy.setToScale(pixelSize, pixelSize);
         TextRegionUtil.processString(shapeVisitor, t_sxy, font, text, tempT1, tempT2);
         final float[] ctr = box.getCenter();
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
-        // scale(sxy, sxy, 1f);
     }
 
     @Override

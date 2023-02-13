@@ -287,7 +287,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         final float fontSizeMin, fontSizeMax;
         private long t0;
         float fontSizeAnim, fontSizeDelta;
-        float dpiH;
+        float dpiV, ppmmV;
 
         TextRendererGLEL(final RenderState rs, final int renderModes, final int sampleCount) {
             super(renderModes, new int[] { sampleCount });
@@ -340,7 +340,8 @@ public class TestTextRendererNEWT00 extends UITestCase {
             final Window win = (Window)drawable.getUpstreamWidget();
             final float[] pixelsPerMM = win.getPixelsPerMM(new float[2]);
             final float[] dotsPerInch = FontScale.ppmmToPPI(pixelsPerMM, new float[2]);
-            dpiH = dotsPerInch[1];
+            dpiV = dotsPerInch[1];
+            ppmmV = pixelsPerMM[1];
             System.err.println(getFontInfo());
             System.err.println("fontSize "+fontSizeFixed+", dotsPerMM "+pixelsPerMM[0]+"x"+pixelsPerMM[1]+", dpi "+dotsPerInch[0]+"x"+dotsPerInch[1]+", pixelSize "+FontScale.toPixels(fontSizeFixed, dotsPerInch[1] /* dpi display */));
         }
@@ -358,7 +359,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
             final String modeS = Region.getRenderModeString(renderModes);
             final String bname = String.format((Locale)null, "%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
                     drawable.getChosenGLCapabilities().getNumSamples(),
-                    TestTextRendererNEWT00.fontSizeFixed, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), modeS, vbaaSampleCount[0]);
+                    fontSizeFixed, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), modeS, vbaaSampleCount[0]);
             final String filename = dir + bname +".png";
             if(screenshot.readPixels(drawable.getGL(), false)) {
                 screenshot.write(new File(filename));
@@ -366,11 +367,12 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
 
         String getFontInfo() {
-            final float unitsPerEM = font.getMetrics().getUnitsPerEM();
-            return String.format("Font %s%n %s%nunitsPerEM %f (upem)",
-                    font.getFullFamilyName(),
-                    font.getName(Font.NAME_UNIQUNAME),
-                    unitsPerEM);
+            final float pixelSize = FontScale.toPixels(fontSizeFixed, dpiV);
+            final float mmSize = pixelSize / ppmmV;
+            final int unitsPerEM = font.getMetrics().getUnitsPerEM();
+            return String.format("Resolution dpiV %.2f, %.2f px/mm%nFont %s, unitsPerEM %d, size %.2f pt %.2f px %2f mm%n",
+                    dpiV, ppmmV,
+                    font.getFullFamilyName(),unitsPerEM, fontSizeFixed, pixelSize, mmSize);
         }
 
         @Override
@@ -395,8 +397,8 @@ public class TestTextRendererNEWT00 extends UITestCase {
                 fontSizeDelta *= -1f;
             }
 
-            final float pixelSize = FontScale.toPixels(fontSizeFixed, dpiH);
-            final float pixelSizeAnim = FontScale.toPixels(fontSizeAnim, dpiH);
+            final float pixelSize = FontScale.toPixels(fontSizeFixed, dpiV);
+            final float pixelSizeAnim = FontScale.toPixels(fontSizeAnim, dpiV);
 
             final String modeS = Region.getRenderModeString(renderModes);
 

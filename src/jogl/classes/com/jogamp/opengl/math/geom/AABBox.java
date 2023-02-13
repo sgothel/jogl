@@ -582,7 +582,10 @@ public class AABBox {
     }
 
     /**
-     * Scale this AABBox by a constant
+     * Scale this AABBox by a constant around fixed center
+     * <p>
+     * high and low is recomputed by scaling its distance to fixed center.
+     * </p>
      * @param size a constant float value
      * @param tmpV3 caller provided temporary 3-component vector
      * @return this AABBox for chaining
@@ -601,6 +604,22 @@ public class AABBox {
 
         VectorUtil.scaleVec3(tmpV3, tmpV3, size); // in-place scale
         VectorUtil.addVec3(low, center, tmpV3);
+        return this;
+    }
+
+    /**
+     * Scale this AABBox by a constant, recomputing center
+     * <p>
+     * high and low is scaled and center recomputed.
+     * </p>
+     * @param size a constant float value
+     * @param tmpV3 caller provided temporary 3-component vector
+     * @return this AABBox for chaining
+     */
+    public final AABBox scale2(final float size, final float[] tmpV3) {
+        VectorUtil.scaleVec3(high, high, size); // in-place scale
+        VectorUtil.scaleVec3(low, low, size); // in-place scale
+        computeCenter();
         return this;
     }
 

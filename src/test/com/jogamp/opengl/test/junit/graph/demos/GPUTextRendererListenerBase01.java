@@ -192,9 +192,10 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
               headtext = textXLast;
         }
         if(resize && null != headtext) {
-            headbox = font.getMetricBounds(headtext, FontScale.toPixels(fontSizeHead, dpiV));
+            headbox = font.getMetricBounds(headtext);
             if( headtext != text_help ) {
-                upsizeWindowSurface(upstream_window, true, (int)(headbox.getWidth()*1.1f), (int)(headbox.getHeight()*2f));
+                final float pxSz = FontScale.toPixels(fontSizeHead, dpiV);
+                upsizeWindowSurface(upstream_window, true, (int)(headbox.getWidth()*pxSz*1.1f), (int)(headbox.getHeight()*pxSz*2f));
             }
         }
     }
@@ -230,7 +231,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         } else {
             System.err.println("Using vertical default DPI of "+dpiV+", "+ppmmV+" pixel/mm");
         }
-        fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiV));
+        fontNameBox = font.getMetricBounds(fontName);
         setHeadBox(headType, true);
 
     }
@@ -322,7 +323,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             // bottom, half line up
             pmv.glTranslatef(nearPlaneX0, nearPlaneY0+(nearPlaneS * pixelSizeFPS / 2f), nearPlaneZ0);
             {
-                final float sxy = ( nearPlaneS * pixelSizeFPS ) / font.getMetrics().getUnitsPerEM();
+                final float sxy = nearPlaneS * pixelSizeFPS;
                 pmv.glScalef(sxy, sxy, 1.0f);
             }
             // No cache, keep region alive!
@@ -330,21 +331,21 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                                         textRegionUtil.tempT2);
         }
 
-        float dx = width-fontNameBox.getWidth()-font.getAdvanceWidth(Glyph.ID_SPACE, pixelSizeFName);
-        float dy = height-fontNameBox.getHeight();
+        float dx = width - ( fontNameBox.getWidth() - font.getAdvanceWidth(Glyph.ID_SPACE) ) * pixelSizeFName;
+        float dy = height - fontNameBox.getHeight() * pixelSizeFName;
 
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
         {
-            final float sxy = ( nearPlaneS * pixelSizeFName ) / font.getMetrics().getUnitsPerEM();
+            final float sxy = nearPlaneS * pixelSizeFName;
             pmv.glScalef(sxy, sxy, 1.0f);
         }
         // System.err.printf("FontN: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
         textRegionUtil.drawString3D(gl, renderer, font, fontName, null, getSampleCount());
 
         dx  =  10f;
-        dy += -fontNameBox.getHeight() - 10f;
+        dy += -fontNameBox.getHeight() * pixelSizeFName - 10f;
 
         if(null != headtext) {
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
@@ -352,14 +353,14 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             // System.err.printf("Head: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
             pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
             {
-                final float sxy = ( nearPlaneS * pixelSizeHead ) / font.getMetrics().getUnitsPerEM();
+                final float sxy = nearPlaneS * pixelSizeHead;
                 pmv.glScalef(sxy, sxy, 1.0f);
             }
             // pmv.glTranslatef(x0, y1, z0);
             textRegionUtil.drawString3D(gl, renderer, font, headtext, null, getSampleCount());
         }
 
-        dy += -headbox.getHeight() - font.getLineHeight(pixelSizeCenter);
+        dy += ( -headbox.getHeight() - font.getLineHeight() ) * pixelSizeCenter;
 
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
@@ -368,7 +369,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         pmv.glTranslatef(getXTran(), getYTran(), getZTran());
         pmv.glRotatef(getAngle(), 0, 1, 0);
         {
-            final float sxy = ( nearPlaneS * pixelSizeCenter ) / font.getMetrics().getUnitsPerEM();
+            final float sxy = nearPlaneS * pixelSizeCenter;
             pmv.glScalef(sxy, sxy, 1.0f);
         }
         rs.setColorStatic(0.9f, 0.0f, 0.0f, 1.0f);
@@ -406,7 +407,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     public void fontHeadIncr(final int v) {
         fontSizeHead = Math.abs((fontSizeHead + v) % fontSizeModulo) ;
         if(null != headtext) {
-            headbox = font.getMetricBounds(headtext, FontScale.toPixels(fontSizeHead, dpiV));
+            headbox = font.getMetricBounds(headtext);
         }
     }
 
@@ -418,7 +419,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 fontSet = set;
                 font = _font;
                 fontName = font.getFullFamilyName();
-                fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiV));
+                fontNameBox = font.getMetricBounds(fontName);
                 return true;
             }
         } catch (final IOException ex) {
@@ -434,7 +435,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 fontSet = set;
                 font = _font;
                 fontName = font.getFullFamilyName()+" (head "+fontSizeHead+"pt)";
-                fontNameBox = font.getMetricBounds(fontName, FontScale.toPixels(fontSizeFName, dpiV));
+                fontNameBox = font.getMetricBounds(fontName);
                 return true;
             }
         } catch (final IOException ex) {
@@ -448,7 +449,8 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     void dumpMatrix(final boolean bbox) {
         System.err.println("Matrix: " + getXTran() + "/" + getYTran() + " x"+getZTran() + " @"+getAngle() +" fontSize "+fontSizeCenter);
         if(bbox) {
-            System.err.println("bbox: "+font.getMetricBounds(text2, nearPlaneS * FontScale.toPixels(fontSizeCenter, dpiV)));
+            System.err.println("bbox em: "+font.getMetricBounds(text2));
+            System.err.println("bbox px: "+font.getMetricBounds(text2).scale(nearPlaneS * FontScale.toPixels(fontSizeCenter, dpiV), new float[3]));
         }
     }
 

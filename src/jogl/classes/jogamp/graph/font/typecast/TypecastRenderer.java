@@ -47,70 +47,49 @@ import com.jogamp.graph.geom.Vertex.Factory;
 public class TypecastRenderer {
     private static final boolean DEBUG = Debug.debug("graph.font.Renderer");
 
-    private static void addShapeMoveTo(final OutlineShape shape, final Point p1) {
+    private static void addShapeMoveTo(final float unitsPerEM, final OutlineShape shape, final Point p1) {
         if( DEBUG ) { System.err.println("Shape.MoveTo: "+p1); }
         shape.closeLastOutline(false);
         shape.addEmptyOutline();
-        shape.addVertex(0, p1.x,  p1.y, p1.onCurve);
+        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, p1.onCurve);
     }
-    private static void addShapeLineTo(final OutlineShape shape, final Point p1) {
+    private static void addShapeLineTo(final float unitsPerEM, final OutlineShape shape, final Point p1) {
         if( DEBUG ) { System.err.println("Shape.LineTo: "+p1); }
-        shape.addVertex(0, p1.x,  p1.y, p1.onCurve);
+        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, p1.onCurve);
     }
-    private static void addShapeQuadTo(final OutlineShape shape, final Point p1, final Point p2) {
+    private static void addShapeQuadTo(final float unitsPerEM, final OutlineShape shape, final Point p1, final Point p2) {
         if( DEBUG ) { System.err.println("Shape.QuadTo: "+p1+", "+p2); }
-        shape.addVertex(0, p1.x,  p1.y, p1.onCurve);
-        shape.addVertex(0, p2.x,  p2.y, p2.onCurve);
+        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, p1.onCurve);
+        shape.addVertex(0, p2.x/unitsPerEM,  p2.y/unitsPerEM, p2.onCurve);
     }
-    private static void addShapeQuadTo(final OutlineShape shape, final Point p1, final float p2x,
-                                       final float p2y, final boolean p2OnCurve) {
+    private static void addShapeQuadTo(final float unitsPerEM, final OutlineShape shape, final Point p1,
+                                       final float p2x, final float p2y, final boolean p2OnCurve) {
         if( DEBUG ) { System.err.println("Shape.QuadTo: "+p1+", p2 "+p2x+", "+p2y+", onCurve "+p2OnCurve); }
-        shape.addVertex(0, p1.x,  p1.y, p1.onCurve);
-        shape.addVertex(0, p2x,    p2y, p2OnCurve);
+        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, p1.onCurve);
+        shape.addVertex(0, p2x/unitsPerEM,   p2y/unitsPerEM, p2OnCurve);
     }
     /**
-    private static void addShapeCubicTo(final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1, Point p2, Point p3) {
-        shape.addVertex(0, p1.x,  p1.y, p1.onCurve);
-        shape.addVertex(0, p2.x,  p2.y, p2.onCurve);
-        shape.addVertex(0, p3.x,  p3.y, p3.onCurve);
+    private static void addShapeCubicTo(final float unitsPerEM, final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1, Point p2, Point p3) {
+        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, p1.onCurve);
+        shape.addVertex(0, p2.x/unitsPerEM,  p2.y/unitsPerEM, p2.onCurve);
+        shape.addVertex(0, p3.x/unitsPerEM,  p3.y/unitsPerEM, p3.onCurve);
     } */
 
-    public static OutlineShape buildShape(final char symbol, final jogamp.graph.font.typecast.ot.Glyph glyph, final Factory<? extends Vertex> vertexFactory) {
+    public static OutlineShape buildShape(final int unitsPerEM, final char symbol, final jogamp.graph.font.typecast.ot.Glyph glyph, final Factory<? extends Vertex> vertexFactory) {
         //
         // See Typecast: GlyphPathFactory.addContourToPath(..)
         //
-
         if (glyph == null) {
             return null;
         }
 
         final OutlineShape shape = new OutlineShape(vertexFactory);
-        buildShapeImpl(shape, symbol, glyph);
+        buildShapeImpl(unitsPerEM, shape, symbol, glyph);
         shape.setIsQuadraticNurbs();
         return shape;
     }
 
-    /**
-    private static void buildShapeImpl02(final OutlineShape shape, char symbol, OTGlyph glyph, Factory<? extends Vertex> vertexFactory) {
-        // Iterate through all of the points in the glyph.  Each time we find a
-        // contour end point, add the point range to the path.
-        int startIndex = 0;
-        int count = 0;
-        for (int i = 0; i < glyph.getPointCount(); i++) {
-            count++;
-            if ( glyph.getPoint(i).endOfContour ) {
-                for(int j=0; j<count; j++) {
-                    final Point p = glyph.getPoint(startIndex + j);
-                    shape.addVertex(0, vertexFactory.create(p.x,  p.y, 0, p.onCurve));
-                }
-                shape.closeLastOutline(false);
-                startIndex = i + 1;
-                count = 0;
-            }
-        }
-    } */
-
-    private static void buildShapeImpl(final OutlineShape shape, final char symbol, final jogamp.graph.font.typecast.ot.Glyph glyph) {
+    private static void buildShapeImpl(final float unitsPerEM, final OutlineShape shape, final char symbol, final jogamp.graph.font.typecast.ot.Glyph glyph) {
         // Iterate through all of the points in the glyph.  Each time we find a
         // contour end point, add the point range to the path.
         int startIndex = 0;
@@ -140,7 +119,7 @@ public class TypecastRenderer {
                         System.err.println("\t p3["+p3Idx+"] "+p3);
                     }
                     if(offset == 0) {
-                        addShapeMoveTo(shape, p0);
+                        addShapeMoveTo(unitsPerEM, shape, p0);
                         // gp.moveTo(point.x, point.y);
                     }
 
@@ -156,7 +135,7 @@ public class TypecastRenderer {
 
                             // s = new Line2D.Float(point.x, point.y, p1.x, p1.y);
                             // gp.lineTo( p1.x, p1.y );
-                            addShapeLineTo(shape, p1);
+                            addShapeLineTo(unitsPerEM, shape, p1);
                             offset++;
                         } else {
                             if (p2.onCurve) {
@@ -165,17 +144,17 @@ public class TypecastRenderer {
 
                                 // s = new QuadCurve2D.Float( point.x, point.y, p1.x, p1.y, p2.x, p2.y);
                                 // gp.quadTo(p1.x, p1.y, p2.x, p2.y);
-                                addShapeQuadTo(shape, p1, p2);
+                                addShapeQuadTo(unitsPerEM, shape, p1, p2);
                                 offset+=2;
                             } else {
                                 if (null != p3 && p3.onCurve) {
                                     // Branch-3: point.onCurve && !p1.onCurve && !p2.onCurve && p3.onCurve
                                     if( DEBUG ) { System.err.println("B3 .. 2-quad p0-p1-p1_2, p1_2-p2-p3 **** 2QUAD"); }
                                     // addShapeCubicTo(shape, vertexFactory, p1, p2, p3);
-                                    addShapeQuadTo(shape, p1, midValue(p1.x, p2.x),
+                                    addShapeQuadTo(unitsPerEM, shape, p1, midValue(p1.x, p2.x),
                                                    midValue(p1.y, p2.y),
                                                    true);
-                                    addShapeQuadTo(shape, p2, p3);
+                                    addShapeQuadTo(unitsPerEM, shape, p2, p3);
                                     offset+=3;
                                 } else {
                                     // Branch-4: point.onCurve && !p1.onCurve && !p2.onCurve && !p3.onCurve
@@ -184,7 +163,7 @@ public class TypecastRenderer {
                                     // s = new QuadCurve2D.Float(point.x,point.y,p1.x,p1.y,
                                     //                           midValue(p1.x, p2.x), midValue(p1.y, p2.y));
                                     // gp.quadTo(p1.x, p1.y, midValue(p1.x, p2.x), midValue(p1.y, p2.y));
-                                    addShapeQuadTo(shape, p1, midValue(p1.x, p2.x),
+                                    addShapeQuadTo(unitsPerEM, shape, p1, midValue(p1.x, p2.x),
                                                    midValue(p1.y, p2.y),
                                                    true);
                                     offset+=2; // Skip p2 as done in Typecast
@@ -198,7 +177,7 @@ public class TypecastRenderer {
                             // s = new QuadCurve2D.Float(midValue(pM.x, point.x), midValue(pM.y, point.y),
                             //                           point.x, point.y,
                             //                           midValue(point.x, p1.x), midValue(point.y, p1.y));
-                            addShapeQuadTo(shape, p0, midValue(p0.x, p1.x),
+                            addShapeQuadTo(unitsPerEM, shape, p0, midValue(p0.x, p1.x),
                                            midValue(p0.y, p1.y), true);
                             offset++;
                         } else {
@@ -207,7 +186,7 @@ public class TypecastRenderer {
                             // s = new QuadCurve2D.Float(midValue(pM.x, point.x), midValue(pM.y, point.y),
                             //                           point.x, point.y, p1.x, p1.y);
                             // gp.quadTo(point.x, point.y, p1.x, p1.y);
-                            addShapeQuadTo(shape, p0, p1);
+                            addShapeQuadTo(unitsPerEM, shape, p0, p1);
                             offset++;
                         }
                     }

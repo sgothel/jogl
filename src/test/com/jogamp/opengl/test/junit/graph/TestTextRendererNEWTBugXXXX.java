@@ -188,14 +188,14 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
     void renderString(final GLDrawable drawable, final GL2ES2 gl, final RegionRenderer renderer, final Font font, final TextRegionUtil textRenderUtil, final String text, final int column, int row, final int z0, final int[] sampleCount) {
         final int height = drawable.getSurfaceHeight();
 
-        int dx = 0;
-        int dy = height;
+        float dx = 0;
+        float dy = height;
         if(0>row) {
             row = lastRow + 1;
         }
-        final AABBox textBox = font.getMetricBounds(text, fontSize);
-        dx += font.getAdvanceWidth('X', fontSize) * column;
-        dy -= (int)textBox.getHeight() * ( row + 1 );
+        final AABBox textBox = font.getMetricBounds(text);
+        dx += fontSize * font.getAdvanceWidth('X') * column;
+        dy -= fontSize * textBox.getHeight() * ( row + 1 );
 
         final PMVMatrix pmv = renderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);

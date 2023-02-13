@@ -48,7 +48,7 @@ import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public abstract class UIShape {
-    public static final boolean DRAW_DEBUG_BOX = false;
+    public static final boolean DRAW_DEBUG_BOX = true;
 
     protected static final int DIRTY_SHAPE    = 1 << 0 ;
     protected static final int DIRTY_STATE    = 1 << 1 ;
@@ -280,7 +280,7 @@ public abstract class UIShape {
                 region.clear(gl);
             }
             addShapeToRegion(gl, renderer);
-            if( DRAW_DEBUG_BOX ) {
+            if( false && DRAW_DEBUG_BOX ) {
                 region.clear(gl);
                 final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
                 shape.setSharpness(shapesSharpness);
@@ -436,6 +436,7 @@ public abstract class UIShape {
             this.objPos = objPos;
         }
 
+        @Override
         public String toString() {
             return "EventDetails[winPos ["+glWinX+", "+glWinY+"], objPos ["+objPos[0]+", "+objPos[1]+", "+objPos[2]+"], "+shape+"]";
         }

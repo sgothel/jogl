@@ -42,7 +42,10 @@ import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.geom.plane.AffineTransform;
 
 /**
- * Text {@link GLRegion} Utility Class
+ * Text Type Rendering Utility Class adding the {@link Font.Glyph}s {@link OutlineShape} to a {@link GLRegion}.
+ * <p>
+ * {@link OutlineShape}s are all produced in font em-size [0..1].
+ * </p>
  */
 public class TextRegionUtil {
 
@@ -55,6 +58,9 @@ public class TextRegionUtil {
     public static interface ShapeVisitor {
         /**
          * Visiting the given {@link OutlineShape} with it's corresponding {@link AffineTransform}.
+         * <p>
+         * The shape is in font em-size [0..1].
+         * </p>
          * @param shape may be used as is, otherwise a copy shall be made if intended to be modified.
          * @param t may be used immediately as is, otherwise a copy shall be made if stored.
          */
@@ -74,14 +80,16 @@ public class TextRegionUtil {
 
     /**
      * Visit each {@link Font.Glyph}'s {@link OutlineShape} with the given {@link ShapeVisitor}
-     * additionally passing the progressed {@link AffineTransform} in font-units.
-     * The latter reflects the given font metric in font-units and hence character position.
+     * additionally passing the progressed {@link AffineTransform}.
+     * <p>
+     * The produced shapes are in font em-size [0..1], but can be adjusted with the given transform, progressed and passed to the visitor.
+     * </p>
      * @param visitor
      * @param transform optional given transform
      * @param font the target {@link Font}
      * @param str string text
-     * @param temp1 temporary AffineTransform storage, mandatory, will be passed to {@link ShapeVisitor#visit(OutlineShape, AffineTransform)} and can be modified.
-     * @param temp2 temporary AffineTransform storage, mandatory, can be re-used in {@link ShapeVisitor#visit(OutlineShape, AffineTransform)} by user code.
+     * @param temp1 temporary AffineTransform storage, mandatory
+     * @param temp2 temporary AffineTransform storage, mandatory
      */
     public static void processString(final ShapeVisitor visitor, final AffineTransform transform,
                                      final Font font, final CharSequence str,
@@ -89,10 +97,10 @@ public class TextRegionUtil {
         final int charCount = str.length();
 
         // region.setFlipped(true);
-        final int lineHeight = font.getLineHeightFU();
+        final float lineHeight = font.getLineHeight();
 
-        int y = 0;
-        int advanceTotal = 0;
+        float y = 0;
+        float advanceTotal = 0;
         Font.Glyph left_glyph = null;
 
         for(int i=0; i< charCount; i++) {
@@ -102,7 +110,7 @@ public class TextRegionUtil {
                 advanceTotal = 0;
                 left_glyph = null;
             } else if (character == ' ') {
-                advanceTotal += font.getAdvanceWidthFU(Glyph.ID_SPACE);
+                advanceTotal += font.getAdvanceWidth(Glyph.ID_SPACE);
                 left_glyph = null;
             } else {
                 // reset transform
@@ -115,24 +123,23 @@ public class TextRegionUtil {
                 final OutlineShape glyphShape = glyph.getShape();
                 if( null == glyphShape ) {
                     left_glyph = null;
-                    temp1.translate(advanceTotal, y, temp2);
                     continue;
                 }
                 if( null != left_glyph ) {
-                    advanceTotal += left_glyph.getKerningFU(glyph.getID());
+                    advanceTotal += left_glyph.getKerning(glyph.getID());
                 }
                 temp1.translate(advanceTotal, y, temp2);
                 visitor.visit(glyphShape, temp1);
-                advanceTotal += glyph.getAdvanceFU();
+                advanceTotal += glyph.getAdvance();
                 left_glyph = glyph;
             }
         }
     }
 
     /**
-     * Add the string in 3D space w.r.t. the font using font-units at the end of the {@link GLRegion}.
+     * Add the string in 3D space w.r.t. the font in font em-size [0..1] at the end of the {@link GLRegion}.
      * <p>
-     * The resulting GLRegion should be scaled by the chosen pixelSize of the font divided by the font's unitsPerEM.
+     * The shapes added to the GLRegion are in font em-size [0..1].
      * </p>
      * @param region the {@link GLRegion} sink
      * @param vertexFactory vertex impl factory {@link Factory}
@@ -154,9 +161,9 @@ public class TextRegionUtil {
     }
 
     /**
-     * Render the string in 3D space w.r.t. the font using font-units at the end of an internally cached {@link GLRegion}.
+     * Render the string in 3D space w.r.t. the font int font em-size [0..1] at the end of an internally cached {@link GLRegion}.
      * <p>
-     * The resulting GLRegion should be scaled by the chosen pixelSize of the font divided by the font's unitsPerEM.
+     * The shapes added to the GLRegion are in font em-size [0..1].
      * </p>
      * <p>
      * Cached {@link GLRegion}s will be destroyed w/ {@link #clear(GL2ES2)} or to free memory.
@@ -187,9 +194,9 @@ public class TextRegionUtil {
     }
 
     /**
-     * Render the string in 3D space w.r.t. the font using font-units at the end of an internally temporary {@link GLRegion}.
+     * Render the string in 3D space w.r.t. the font in font em-size [0..1] at the end of an internally temporary {@link GLRegion}.
      * <p>
-     * The resulting GLRegion should be scaled by the chosen pixelSize of the font divided by the font's unitsPerEM.
+     * The shapes added to the GLRegion are in font em-size [0..1].
      * </p>
      * <p>
      * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
@@ -222,10 +229,10 @@ public class TextRegionUtil {
     }
 
     /**
-     * Render the string in 3D space w.r.t. the font using font-units at the end of the given {@link GLRegion},
+     * Render the string in 3D space w.r.t. the font in font em-size [0..1] at the end of the given {@link GLRegion},
      * which will {@link GLRegion#clear(GL2ES2) cleared} beforehand.
      * <p>
-     * The resulting GLRegion should be scaled by the chosen pixelSize of the font divided by the font's unitsPerEM.
+     * The shapes added to the GLRegion are in font em-size [0..1].
      * </p>
      * @param gl the current GL state
      * @param font {@link Font} to be used

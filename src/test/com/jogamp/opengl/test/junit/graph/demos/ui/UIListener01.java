@@ -41,15 +41,21 @@ import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLRunnable;
-
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  *
@@ -61,7 +67,7 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
  * - v: toggle v-sync
  * - s: screenshot
  */
-public abstract class UIListenerBase01 implements GLEventListener {
+public class UIListener01 implements GLEventListener {
     private final GLReadBufferUtil screenshot;
     private final int renderModes;
     private final RegionRenderer rRenderer;
@@ -84,12 +90,29 @@ public abstract class UIListenerBase01 implements GLEventListener {
 
     boolean ignoreInput = false;
 
-    public UIListenerBase01(final int renderModes, final RegionRenderer rRenderer, final boolean debug, final boolean trace) {
+    public UIListener01(final int renderModes, final RenderState rs, final boolean debug, final boolean trace) {
         this.renderModes = renderModes;
-        this.rRenderer = rRenderer;
+        this.rRenderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         this.debug = debug;
         this.trace = trace;
         this.screenshot = new GLReadBufferUtil(false, false);
+
+        setMatrix(-4, -2, 0f, -10);
+        try {
+            final Font font = FontFactory.get(FontFactory.UBUNTU).getDefault();
+            button = new LabelButton(SVertex.factory(), 0, font, "Click me!", 4f, 2f);
+            button.translate(2,1,0);
+            /** Button defaults !
+                button.setLabelColor(1.0f,1.0f,1.0f);
+                button.setButtonColor(0.6f,0.6f,0.6f);
+                button.setCorner(1.0f);
+                button.setSpacing(2.0f);
+             */
+            System.err.println(button);
+        } catch (final IOException ex) {
+            System.err.println("Caught: "+ex.getMessage());
+            ex.printStackTrace();
+        }
     }
 
     public final RegionRenderer getRegionRenderer() { return rRenderer; }
@@ -106,6 +129,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
         this.zoom = zoom;
     }
 
+    @Override
     public void init(final GLAutoDrawable drawable) {
         autoDrawable = drawable;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -117,8 +141,14 @@ public abstract class UIListenerBase01 implements GLEventListener {
         }
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         getRegionRenderer().init(gl, renderModes);
+
+        gl.setSwapInterval(1);
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+        MSAATool.dump(drawable);
     }
 
+    @Override
     public void reshape(final GLAutoDrawable drawable, final int xstart, final int ystart, final int width, final int height) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -127,9 +157,32 @@ public abstract class UIListenerBase01 implements GLEventListener {
         dumpMatrix();
     }
 
-    public void dispose(final GLAutoDrawable drawable) {
-        autoDrawable = null;
+    @Override
+    public void display(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
+
+        gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+
+        final int[] sampleCount = { 4 };
+        final float[] translate = button.getTranslate();
+
+        final RegionRenderer regionRenderer = getRegionRenderer();
+        final PMVMatrix pmv = regionRenderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
+        pmv.glTranslatef(getXTran(), getYTran(), getZoom());
+        pmv.glRotatef(getAngle(), 0, 1, 0);
+        pmv.glTranslatef(translate[0], translate[1], 0);
+        button.drawShape(gl, regionRenderer, sampleCount);
+    }
+
+    @Override
+    public void dispose(final GLAutoDrawable drawable) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        button.destroy(gl, getRegionRenderer());
+
+        autoDrawable = null;
         screenshot.dispose(gl);
         rRenderer.destroy(gl);
     }
@@ -200,36 +253,44 @@ public abstract class UIListenerBase01 implements GLEventListener {
 
     public class MouseAction implements MouseListener{
 
+        @Override
         public void mouseClicked(final MouseEvent e) {
 
         }
 
+        @Override
         public void mouseEntered(final MouseEvent e) {
         }
 
+        @Override
         public void mouseExited(final MouseEvent e) {
         }
 
+        @Override
         public void mousePressed(final MouseEvent e) {
             button.setLabelColor(0.8f,0.8f,0.8f);
             button.setColor(0.1f, 0.1f, 0.1f, 1.0f);
         }
 
+        @Override
         public void mouseReleased(final MouseEvent e) {
             button.setLabelColor(1.0f,1.0f,1.0f);
             button.setColor(0.6f,0.6f,0.6f, 1.0f);
         }
 
+        @Override
         public void mouseMoved(final MouseEvent e) {
             // TODO Auto-generated method stub
 
         }
 
+        @Override
         public void mouseDragged(final MouseEvent e) {
             // TODO Auto-generated method stub
 
         }
 
+        @Override
         public void mouseWheelMoved(final MouseEvent e) {
             // TODO Auto-generated method stub
 
@@ -238,28 +299,29 @@ public abstract class UIListenerBase01 implements GLEventListener {
     }
 
     public class KeyAction implements KeyListener {
+        @Override
         public void keyPressed(final KeyEvent arg0) {
             if(ignoreInput) {
                 return;
             }
 
             if(arg0.getKeyCode() == KeyEvent.VK_1){
-                zoom(10);
+                zoom(2);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_2){
-                zoom(-10);
+                zoom(-2);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_UP){
-                move(0, -1);
-            }
-            else if(arg0.getKeyCode() == KeyEvent.VK_DOWN){
                 move(0, 1);
             }
+            else if(arg0.getKeyCode() == KeyEvent.VK_DOWN){
+                move(0, -1);
+            }
             else if(arg0.getKeyCode() == KeyEvent.VK_LEFT){
-                move(1, 0);
+                move(-1, 0);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_RIGHT){
-                move(-1, 0);
+                move(1, 0);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_4){
                 button.setSpacing(button.getSpacingX()-0.01f, button.getSpacingY()-0.005f);
@@ -316,6 +378,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
                 rotate(-1);
                     if(null != autoDrawable) {
                         autoDrawable.invoke(false, new GLRunnable() {
+                            @Override
                             public boolean run(final GLAutoDrawable drawable) {
                                 try {
                                     final String type = Region.getRenderModeString(renderModes);
@@ -332,6 +395,7 @@ public abstract class UIListenerBase01 implements GLEventListener {
                     }
             }
         }
+        @Override
         public void keyReleased(final KeyEvent arg0) {}
     }
 }

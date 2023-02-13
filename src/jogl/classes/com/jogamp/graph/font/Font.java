@@ -86,9 +86,19 @@ public interface Font {
         int getAscentFU();
 
         /**
+         * @return ascent in font em-size [0..1]
+         */
+        float getAscent();
+
+        /**
          * @return descent in font-units to be divided by {@link #getUnitsPerEM()}
          */
         int getDescentFU();
+
+        /**
+         * @return descend in font em-size [0..1]
+         */
+        float getDescent();
 
         /**
          * @return line-gap in font-units to be divided by {@link #getUnitsPerEM()}
@@ -96,9 +106,19 @@ public interface Font {
         int getLineGapFU();
 
         /**
+         * @return line-gap in font em-size [0..1]
+         */
+        float getLineGap();
+
+        /**
          * @return max-extend in font-units to be divided by {@link #getUnitsPerEM()}
          */
         int getMaxExtendFU();
+
+        /**
+         * @return max-extend in font em-size [0..1]
+         */
+        float getMaxExtend();
 
         /** Returns the font's units per EM from the 'head' table. One em square covers one glyph. */
         int getUnitsPerEM();
@@ -117,15 +137,13 @@ public interface Font {
          * @param dest AABBox instance set to this metrics boundary in font-units
          * @return the given and set AABBox 'dest' in font units
          */
-        AABBox getBBox(final AABBox dest);
+        AABBox getBBoxFU(final AABBox dest);
 
         /**
-         * @param dest AABBox instance set to this metrics boundary w/ given pixelSize
-         * @param pixelSize pixel-size of font, for resolution correct pixel-size use {@link FontScale#toPixels(float, float)}
-         * @param tmpV3 caller provided temporary 3-component vector
-         * @return the given and set AABBox 'dest' in pixel size
+         * @param dest AABBox instance set to this metrics boundary in font em-size [0..1]
+         * @return the given and set AABBox 'dest' in font units
          */
-        AABBox getBBox(final AABBox dest, final float pixelSize, final float[] tmpV3);
+        AABBox getBBox(final AABBox dest, final float[] tmpV3);
     }
 
     /**
@@ -159,12 +177,9 @@ public interface Font {
         float getScale(final int funits);
 
         /**
-         * @param dest AABBox instance set to this metrics boundary w/ given pixelSize
-         * @param pixelSize pixel-size of font, for resolution correct pixel-size use {@link FontScale#toPixels(float, float)}
-         * @param tmpV3 caller provided temporary 3-component vector
-         * @return the given and set AABBox 'dest' in pixel size
+         * Return the AABBox in font-units to be divided by unitsPerEM
          */
-        AABBox getBBox(final AABBox dest, final float pixelSize, float[] tmpV3);
+        AABBox getBBoxFU();
 
         /**
          * Return the AABBox in font-units to be divided by unitsPerEM
@@ -174,21 +189,17 @@ public interface Font {
         AABBox getBBoxFU(final AABBox dest);
 
         /**
-         * Return the AABBox in font-units to be divided by unitsPerEM
+         * @param dest AABBox instance set to this metrics boundary in font em-size [0..1]
+         * @param tmpV3 caller provided temporary 3-component vector
+         * @return the given and set AABBox 'dest' in font em-size [0..1]
          */
-        AABBox getBBoxFU();
+        AABBox getBBox(final AABBox dest, float[] tmpV3);
 
         /** Return advance in font units to be divided by unitsPerEM */
         int getAdvanceFU();
 
         /** Return advance in font em-size [0..1] */
         float getAdvance();
-
-        /**
-         * @param pixelSize pixel-size of font, for resolution correct pixel-size use {@link FontScale#toPixels(float, float)}
-         * @return pixel size of advance
-         */
-        float getAdvance(final float pixelSize);
 
         /** True if kerning values are horizontal, otherwise vertical */
         boolean isKerningHorizontal();
@@ -226,7 +237,6 @@ public interface Font {
         String fullString();
     }
 
-
     String getName(final int nameIndex);
 
     /** Shall return the family and subfamily name, separated a dash.
@@ -237,24 +247,16 @@ public interface Font {
     StringBuilder getAllNames(final StringBuilder string, final String separator);
 
     /**
-     *
+     * Return advance-width of given glyphID in font-units to be divided by unitsPerEM
      * @param glyphID
-     * @param pixelSize pixel-size of font, for resolution correct pixel-size use {@link FontScale#toPixels(float, float)}
-     * @return pixel size of advance width
      */
-    float getAdvanceWidth(final int glyphID, final float pixelSize);
+    int getAdvanceWidthFU(final int glyphID);
 
     /**
      * Return advance-width of given glyphID in font em-size [0..1]
      * @param glyphID
      */
     float getAdvanceWidth(final int glyphID);
-
-    /**
-     * Return advance-width of given glyphID in font-units to be divided by unitsPerEM
-     * @param glyphID
-     */
-    int getAdvanceWidthFU(final int glyphID);
 
     Metrics getMetrics();
 
@@ -265,78 +267,48 @@ public interface Font {
     int getNumGlyphs();
 
     /**
-     *
-     * @param pixelSize pixel-size of font, for resolution correct pixel-size use {@link FontScale#toPixels(float, float)}
-     * @return pixel size of line height
+     * Return line height in font-units to be divided by unitsPerEM
      */
-    float getLineHeight(final float pixelSize);
+    int getLineHeightFU();
 
     /**
      * Return line height in font em-size [0..1]
      */
     float getLineHeight();
 
-    /**
-     * Return line height in font-units to be divided by unitsPerEM
-     */
-    int getLineHeightFU();
-
-    /**
-     *
-     * @param string
-     * @param pixelSize pixel-size of font, for resolution correct pixel-size use {@link FontScale#toPixels(float, float)}
-     * @return pixel size of metric width
-     */
-    float getMetricWidth(final CharSequence string, final float pixelSize);
+    /** Return metric-width in font-units */
+    int getMetricWidthFU(final CharSequence string);
 
     /** Return metric-width in font em-size */
     float getMetricWidth(final CharSequence string);
 
-    /** Return metric-width in font-units */
-    int getMetricWidthFU(final CharSequence string);
-
-    /**
-     *
-     * @param string
-     * @param pixelSize pixel-size of font, for resolution correct pixel-size use {@link FontScale#toPixels(float, float)}
-     * @return pixel size of metric height
-     */
-    float getMetricHeight(final CharSequence string, final float pixelSize);
+    /** Return metric-height in font-units */
+    int getMetricHeightFU(final CharSequence string);
 
     /** Return metric-height in font em-size */
     float getMetricHeight(final CharSequence string);
 
-    /** Return metric-height in font-units */
-    int getMetricHeightFU(final CharSequence string);
-
-    /**
-     * Return the <i>layout</i> bounding box as computed by each glyph's metrics.
-     * The result is not pixel correct, but reflects layout specific metrics.
-     * <p>
-     * See {@link #getPointsBounds(AffineTransform, CharSequence, float, AffineTransform, AffineTransform)} for pixel correct results.
-     * </p>
-     * @param string string text
-     * @param pixelSize pixel-size of font, for resolution correct pixel-size use {@link FontScale#toPixels(float, float)}
-     */
-    AABBox getMetricBounds(final CharSequence string, final float pixelSize);
+    /** Return layout metric-bounds in font-units, see {@link #getMetricBounds(CharSequence, float)} */
+    AABBox getMetricBoundsFU(final CharSequence string);
 
     /** Return layout metric-bounds in font em-size, see {@link #getMetricBounds(CharSequence, float)} */
     AABBox getMetricBounds(final CharSequence string);
 
-    /** Return layout metric-bounds in font-units, see {@link #getMetricBounds(CharSequence, float)} */
-    AABBox getMetricBoundsFU(final CharSequence string);
-
     /**
-     * Return the bounding box by taking each glyph's point-based bounding box into account.
+     * Return the bounding box by taking each glyph's font-unit sized bounding box into account.
      * @param transform optional given transform
      * @param string string text
-     * @param pixelSize pixel-size of font, for resolution correct pixel-size use {@link FontScale#toPixels(float, float)}
+     * @return the bounding box of the given string in font-units [0..1]
      */
-    AABBox getPointsBounds(final AffineTransform transform, final CharSequence string, final float pixelSize);
-
-    AABBox getPointsBounds(final AffineTransform transform, final CharSequence string);
-
     AABBox getPointsBoundsFU(final AffineTransform transform, final CharSequence string);
+
+    /**
+     * Return the bounding box by taking each glyph's font em-sized bounding box into account.
+     * @param transform optional given transform
+     * @param string string text
+     * @return the bounding box of the given string in font em-size [0..1]
+     */
+    AABBox getPointsBounds(final AffineTransform transform, final CharSequence string);
 
     boolean isPrintableChar(final char c);
 

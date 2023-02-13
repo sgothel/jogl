@@ -91,8 +91,8 @@ public class TestFontsNEWT00 extends UITestCase {
         final float s0_em = font.getAdvanceWidth(glyphID);
         final float s1_em = glyph.getAdvance();
 
-        final float s0_px = font.getAdvanceWidth(glyphID, pixelSize);
-        final float s1_px = glyph.getAdvance(pixelSize);
+        final float s0_px = s0_em * pixelSize;
+        final float s1_px = s1_em * pixelSize;
 
         System.err.println("    Char '"+c+"', id "+glyphID+", font-px "+pixelSize+", unitsPerEM "+unitsPerEM+":");
         System.err.println("      "+glyph);
@@ -102,7 +102,7 @@ public class TestFontsNEWT00 extends UITestCase {
         System.err.println("            px "+s0_px+", "+s1_px);
         System.err.println("      AABBox");
         System.err.println("        funits "+glyph.getBBoxFU());
-        System.err.println("            px "+glyph.getBBox(new AABBox(), pixelSize, new float[3]));
+        System.err.println("            em "+glyph.getBBox(new AABBox(), new float[3]));
 
         Assert.assertEquals(s0, s1);
 
@@ -118,7 +118,6 @@ public class TestFontsNEWT00 extends UITestCase {
         final int glyphid_left = font.getGlyphID(left);
         final int glyphid_right = font.getGlyphID(right);
         final Font.Glyph glyph_left = font.getGlyph(left);
-        final Font.Glyph glyph_right = font.getGlyph(right);
 
         final int k_val = glyph_left.getKerningFU(glyphid_right);
 

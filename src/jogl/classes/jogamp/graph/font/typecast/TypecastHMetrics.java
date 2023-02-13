@@ -69,8 +69,18 @@ final class TypecastHMetrics implements Metrics {
     }
 
     @Override
+    public float getAscent() {
+        return getScale( getAscentFU() );
+    }
+
+    @Override
     public int getDescentFU() {
         return -hheaTable.getDescender(); // inverted
+    }
+
+    @Override
+    public float getDescent() {
+        return getScale( getDescentFU() );
     }
 
     @Override
@@ -79,8 +89,18 @@ final class TypecastHMetrics implements Metrics {
     }
 
     @Override
+    public float getLineGap() {
+        return getScale( getLineGapFU() );
+    }
+
+    @Override
     public int getMaxExtendFU() {
         return hheaTable.getXMaxExtent();
+    }
+
+    @Override
+    public float getMaxExtend() {
+        return getScale( getMaxExtendFU() );
     }
 
     @Override
@@ -94,12 +114,12 @@ final class TypecastHMetrics implements Metrics {
     }
 
     @Override
-    public final AABBox getBBox(final AABBox dest) {
+    public final AABBox getBBoxFU(final AABBox dest) {
         return dest.copy(bbox);
     }
 
     @Override
-    public final AABBox getBBox(final AABBox dest, final float pixelSize, final float[] tmpV3) {
-        return dest.setSize(bbox.getLow(), bbox.getHigh()).scale(pixelSize*unitsPerEM_inv, tmpV3);
+    public AABBox getBBox(final AABBox dest, final float[] tmpV3) {
+        return dest.setSize(bbox.getLow(), bbox.getHigh()).scale2(unitsPerEM_inv, tmpV3);
     }
 }
