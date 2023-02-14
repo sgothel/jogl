@@ -152,17 +152,21 @@ public class RegionRenderer {
     private final GLCallback enableCallback;
     private final GLCallback disableCallback;
 
-    private int vp_width;
-    private int vp_height;
+    private final int[] viewport = new int[] { 0, 0, 0, 0 };
     private boolean initialized;
     private boolean vboSupported = false;
 
     public final boolean isInitialized() { return initialized; }
 
+    /** Copies the current viewport in given target and returns it for chaining. */
+    public final int[/*4*/] getViewport(final int[/*4*/] target) {
+        System.arraycopy(viewport, 0, target, 0, 4);
+        return target;
+    }
     /** Return width of current viewport */
-    public final int getWidth() { return vp_width; }
+    public final int getWidth() { return viewport[2]; }
     /** Return height of current viewport */
-    public final int getHeight() { return vp_height; }
+    public final int getHeight() { return viewport[3]; }
 
     public final PMVMatrix getMatrix() { return rs.getMatrix(); }
 
@@ -261,15 +265,16 @@ public class RegionRenderer {
         }
     }
 
-    /** No PMVMatrix operation is performed here. PMVMatrix is marked dirty. */
+    /**
+     * No PMVMatrix operation is performed here.
+     */
     public final void reshapeNotify(final int width, final int height) {
-        this.vp_width = width;
-        this.vp_height = height;
+        viewport[2] = width;
+        viewport[3] = height;
     }
 
     public final void reshapePerspective(final float angle, final int width, final int height, final float near, final float far) {
-        this.vp_width = width;
-        this.vp_height = height;
+        reshapeNotify(width, height);
         final float ratio = (float)width/(float)height;
         final PMVMatrix p = rs.getMatrix();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
@@ -277,9 +282,11 @@ public class RegionRenderer {
         p.gluPerspective(angle, ratio, near, far);
     }
 
+    /**
+     * Perspective orthogonal, method calls {@link #reshapeNotify(int, int, int, int)}.
+     */
     public final void reshapeOrtho(final int width, final int height, final float near, final float far) {
-        this.vp_width = width;
-        this.vp_height = height;
+        reshapeNotify(width, height);
         final PMVMatrix p = rs.getMatrix();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         p.glLoadIdentity();
