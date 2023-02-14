@@ -651,16 +651,17 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      *
      * @param x point (P1)
      * @param y point (P1)
+     * @param z point (P1)
      * @see Path2F#moveTo(float, float)
      * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
      */
-    public final void moveTo(final float x, final float y) {
+    public final void moveTo(final float x, final float y, final float z) {
         if ( 0 == getLastOutline().getVertexCount() ) {
-            addVertex(x, y, true);
+            addVertex(x, y, z, true);
         } else {
             closeLastOutline(false);
             addEmptyOutline();
-            addVertex(x, y, true);
+            addVertex(x, y, z, true);
         }
     }
 
@@ -671,11 +672,12 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      *
      * @param x final point (P1)
      * @param y final point (P1)
+     * @param z final point (P1)
      * @see Path2F#lineTo(float, float)
      * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
      */
-    public final void lineTo(final float x, final float y) {
-        addVertex(x, y, true);
+    public final void lineTo(final float x, final float y, final float z) {
+        addVertex(x, y, z, true);
     }
 
     /**
@@ -685,14 +687,16 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      *
      * @param x1 quadratic parametric control point (P1)
      * @param y1 quadratic parametric control point (P1)
+     * @param z1 quadratic parametric control point (P1)
      * @param x2 final interpolated control point (P2)
      * @param y2 final interpolated control point (P2)
+     * @param z2 quadratic parametric control point (P2)
      * @see Path2F#quadTo(float, float, float, float)
      * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
      */
-    public final void quadTo(final float x1, final float y1, final float x2, final float y2) {
-        addVertex(x1, y1, false);
-        addVertex(x2, y2, true);
+    public final void quadTo(final float x1, final float y1, final float z1, final float x2, final float y2, final float z2) {
+        addVertex(x1, y1, z1, false);
+        addVertex(x2, y2, z2, true);
     }
 
     /**
@@ -702,17 +706,20 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      *
      * @param x1 Bézier control point (P1)
      * @param y1 Bézier control point (P1)
+     * @param z1 Bézier control point (P1)
      * @param x2 Bézier control point (P2)
      * @param y2 Bézier control point (P2)
+     * @param z2 Bézier control point (P2)
      * @param x3 final interpolated control point (P3)
      * @param y3 final interpolated control point (P3)
+     * @param z3 final interpolated control point (P3)
      * @see Path2F#cubicTo(float, float, float, float, float, float)
      * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
      */
-    public final void cubicTo(final float x1, final float y1, final float x2, final float y2, final float x3, final float y3) {
-        addVertex(x1, y1, false);
-        addVertex(x2, y2, false);
-        addVertex(x3, y3, true);
+    public final void cubicTo(final float x1, final float y1, final float z1, final float x2, final float y2, final float z2, final float x3, final float y3, final float z3) {
+        addVertex(x1, y1, z1, false);
+        addVertex(x2, y2, z2, false);
+        addVertex(x3, y3, z3, true);
     }
 
     /**

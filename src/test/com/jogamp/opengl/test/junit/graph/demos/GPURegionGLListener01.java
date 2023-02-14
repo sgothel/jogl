@@ -99,30 +99,30 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
     }
 
     private void createTestOutline01(){
-        outlineShape.moveTo(0.0f,-10.0f);
-        outlineShape.lineTo(15.0f,-10.0f);
-        outlineShape.quadTo(10.0f,5.0f, 15.0f,10.0f);
-        outlineShape.cubicTo(6.0f,15.0f, 5.0f,8.0f, 0.0f,10.0f);
+        outlineShape.moveTo(0.0f,-10.0f, 0f);
+        outlineShape.lineTo(15.0f,-10.0f, 0f);
+        outlineShape.quadTo(10.0f,5.0f,0f, 15.0f,10.0f,0f);
+        outlineShape.cubicTo(6.0f,15.0f,0f, 5.0f,8.0f,0f, 0.0f,10.0f,0f);
         outlineShape.closePath();
-        outlineShape.moveTo(5.0f,-5.0f);
-        outlineShape.quadTo(10.0f,-5.0f, 10.0f,0.0f);
-        outlineShape.quadTo(5.0f,0.0f, 5.0f,-5.0f);
+        outlineShape.moveTo(5.0f,-5.0f,0f);
+        outlineShape.quadTo(10.0f,-5.0f,0f, 10.0f,0.0f,0f);
+        outlineShape.quadTo(5.0f,0.0f,0f, 5.0f,-5.0f,0f);
         outlineShape.closePath();
 
         /** Same shape as above but without any off-curve vertices */
         final float offset = 30;
-        outlineShape.moveTo(offset+0.0f,-10.0f);
-        outlineShape.lineTo(offset+17.0f,-10.0f);
-        outlineShape.lineTo(offset+11.0f,5.0f);
-        outlineShape.lineTo(offset+16.0f,10.0f);
-        outlineShape.lineTo(offset+7.0f,15.0f);
-        outlineShape.lineTo(offset+6.0f,8.0f);
-        outlineShape.lineTo(offset+0.0f,10.0f);
+        outlineShape.moveTo(offset+0.0f,-10.0f,0f);
+        outlineShape.lineTo(offset+17.0f,-10.0f,0f);
+        outlineShape.lineTo(offset+11.0f,5.0f,0f);
+        outlineShape.lineTo(offset+16.0f,10.0f,0f);
+        outlineShape.lineTo(offset+7.0f,15.0f,0f);
+        outlineShape.lineTo(offset+6.0f,8.0f,0f);
+        outlineShape.lineTo(offset+0.0f,10.0f,0f);
         outlineShape.closePath();
-        outlineShape.moveTo(offset+5.0f,0.0f);
-        outlineShape.lineTo(offset+5.0f,-5.0f);
-        outlineShape.lineTo(offset+10.0f,-5.0f);
-        outlineShape.lineTo(offset+10.0f,0.0f);
+        outlineShape.moveTo(offset+5.0f,0.0f,0f);
+        outlineShape.lineTo(offset+5.0f,-5.0f,0f);
+        outlineShape.lineTo(offset+10.0f,-5.0f,0f);
+        outlineShape.lineTo(offset+10.0f,0.0f,0f);
         outlineShape.closePath();
     }
 

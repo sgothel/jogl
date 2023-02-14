@@ -77,24 +77,23 @@ public class CrossHair extends UIShape {
         final float lwh = lineWidth/2f;
 
         final float ctrX = 0f, ctrY = 0f;
-        float ctrZ = 0f;
+        final float ctrZ = 0f;
 
-        // vertical (CCW!)
-        shape.addVertex(ctrX-lwh, ctrY-thh, ctrZ,  true);
-        shape.addVertex(ctrX+lwh, ctrY-thh, ctrZ,  true);
-        shape.addVertex(ctrX+lwh, ctrY+thh, ctrZ,  true);
-        shape.addVertex(ctrX-lwh, ctrY+thh, ctrZ,  true);
-        shape.closeLastOutline(true);
+        // middle vertical (CCW!)
+        shape.moveTo(ctrX-lwh, ctrY-thh, ctrZ);
+        shape.lineTo(ctrX+lwh, ctrY-thh, ctrZ);
+        shape.lineTo(ctrX+lwh, ctrY+thh, ctrZ);
+        shape.lineTo(ctrX-lwh, ctrY+thh, ctrZ);
+        shape.closePath();
 
-        ctrZ -= 0.05f;
+        // ctrZ -= 0.05f;
 
-        // horizontal (CCW!)
-        shape.addEmptyOutline();
-        shape.addVertex(ctrX-twh, ctrY-lwh, ctrZ,  true);
-        shape.addVertex(ctrX+twh, ctrY-lwh, ctrZ,  true);
-        shape.addVertex(ctrX+twh, ctrY+lwh, ctrZ,  true);
-        shape.addVertex(ctrX-twh, ctrY+lwh, ctrZ,  true);
-        shape.closeLastOutline(true);
+        // middle horizontal (CCW!)
+        shape.moveTo(ctrX-twh, ctrY-lwh, ctrZ);
+        shape.lineTo(ctrX+twh, ctrY-lwh, ctrZ);
+        shape.lineTo(ctrX+twh, ctrY+lwh, ctrZ);
+        shape.lineTo(ctrX-twh, ctrY+lwh, ctrZ);
+        shape.closePath();
 
         shape.setIsQuadraticNurbs();
         shape.setSharpness(shapesSharpness);
