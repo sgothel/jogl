@@ -75,7 +75,7 @@ public class TypecastRenderer {
         shape.addVertex(0, p3.x/unitsPerEM,  p3.y/unitsPerEM, p3.onCurve);
     } */
 
-    public static OutlineShape buildShape(final int unitsPerEM, final char symbol, final jogamp.graph.font.typecast.ot.Glyph glyph, final Factory<? extends Vertex> vertexFactory) {
+    public static OutlineShape buildShape(final int unitsPerEM, final jogamp.graph.font.typecast.ot.Glyph glyph, final Factory<? extends Vertex> vertexFactory) {
         //
         // See Typecast: GlyphPathFactory.addContourToPath(..)
         //
@@ -84,12 +84,12 @@ public class TypecastRenderer {
         }
 
         final OutlineShape shape = new OutlineShape(vertexFactory);
-        buildShapeImpl(unitsPerEM, shape, symbol, glyph);
+        buildShapeImpl(unitsPerEM, shape, glyph);
         shape.setIsQuadraticNurbs();
         return shape;
     }
 
-    private static void buildShapeImpl(final float unitsPerEM, final OutlineShape shape, final char symbol, final jogamp.graph.font.typecast.ot.Glyph glyph) {
+    private static void buildShapeImpl(final float unitsPerEM, final OutlineShape shape, final jogamp.graph.font.typecast.ot.Glyph glyph) {
         // Iterate through all of the points in the glyph.  Each time we find a
         // contour end point, add the point range to the path.
         int startIndex = 0;
@@ -105,7 +105,7 @@ public class TypecastRenderer {
                     final Point p2 = glyph.getPoint(startIndex + (offset+2)%count);
                     final Point p3 = offset+3 < count ? glyph.getPoint(startIndex + offset+3) : null;
                     if( DEBUG  ) {
-                        System.err.println("GlyphShape<"+symbol+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
+                        System.err.println("GlyphShape<"+glyph.getGlyphIndex()+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
                         final int pMIdx= (offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count;
                         final Point pM = glyph.getPoint(pMIdx);
                         final int p0Idx = startIndex + offset%count;

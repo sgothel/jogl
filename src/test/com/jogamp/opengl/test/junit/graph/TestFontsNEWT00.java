@@ -83,7 +83,7 @@ public class TestFontsNEWT00 extends UITestCase {
     void testFontGlyph01(final Font font, final char c, final float pixelSize) {
         final int glyphID = font.getGlyphID(c);
         final int s0 = font.getAdvanceWidthFU(glyphID);
-        final Font.Glyph glyph = font.getGlyph(c);
+        final Font.Glyph glyph = font.getGlyph(glyphID);
         final int s1 = glyph.getAdvanceFU();
 
         final int unitsPerEM = font.getMetrics().getUnitsPerEM();
@@ -117,7 +117,7 @@ public class TestFontsNEWT00 extends UITestCase {
     void testFontGlyph02(final Font font, final char left, final char right) {
         final int glyphid_left = font.getGlyphID(left);
         final int glyphid_right = font.getGlyphID(right);
-        final Font.Glyph glyph_left = font.getGlyph(left);
+        final Font.Glyph glyph_left = font.getGlyph(glyphid_left);
 
         final int k_val = glyph_left.getKerningFU(glyphid_right);
 

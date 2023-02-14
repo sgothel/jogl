@@ -119,14 +119,15 @@ public class TextRegionUtil {
                 } else {
                     temp1.setToIdentity();
                 }
-                final Font.Glyph glyph = font.getGlyph(character);
+                final int glyph_id = font.getGlyphID(character);
+                final Font.Glyph glyph = font.getGlyph(glyph_id);
                 final OutlineShape glyphShape = glyph.getShape();
                 if( null == glyphShape ) {
                     left_glyph = null;
                     continue;
                 }
                 if( null != left_glyph ) {
-                    advanceTotal += left_glyph.getKerning(glyph.getID());
+                    advanceTotal += left_glyph.getKerning(glyph_id);
                 }
                 temp1.translate(advanceTotal, y, temp2);
                 visitor.visit(glyphShape, temp1);

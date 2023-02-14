@@ -56,7 +56,7 @@ class TypecastFont implements Font {
     /* pp */ final TTFont font;
     private final CmapFormat cmapFormat;
     private final int cmapentries;
-    private final IntObjectHashMap char2Glyph;
+    private final IntObjectHashMap idToGlyph;
     private final TypecastHMetrics metrics;
     // FIXME: Add cache size to limit memory usage ??
 
@@ -147,7 +147,7 @@ class TypecastFont implements Font {
                 }
             }
         }
-        char2Glyph = new IntObjectHashMap(cmapentries + cmapentries/4);
+        idToGlyph = new IntObjectHashMap(cmapentries + cmapentries/4);
         metrics = new TypecastHMetrics(this);
     }
 
@@ -197,11 +197,9 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public Glyph getGlyph(final char symbol) {
-        TypecastGlyph result = (TypecastGlyph) char2Glyph.get(symbol);
+    public Glyph getGlyph(final int glyph_id) {
+        TypecastGlyph result = (TypecastGlyph) idToGlyph.get(glyph_id);
         if (null == result) {
-            final int glyph_id = getGlyphID( symbol );
-
             jogamp.graph.font.typecast.ot.Glyph glyph = font.getGlyph(glyph_id);
             final int glyph_advance;
             final AABBox glyph_bbox;
@@ -222,9 +220,9 @@ class TypecastFont implements Font {
                     break;
             }
             if(null == glyph) {
-                throw new RuntimeException("Could not retrieve glyph for symbol: <"+symbol+"> "+(int)symbol+" -> glyph id "+glyph_id);
+                throw new RuntimeException("Could not retrieve glyph for glyph id "+glyph_id);
             }
-            final OutlineShape shape = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), symbol, glyph, vertexFactory);
+            final OutlineShape shape = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph, vertexFactory);
             KernSubtable kernSub = null;
             {
                 final KernTable kern = font.getKernTable();
@@ -232,17 +230,17 @@ class TypecastFont implements Font {
                     kernSub = kern.getSubtable0();
                 }
             }
-            result = new TypecastGlyph(this, symbol, glyph_id, glyph_bbox, glyph_advance, kernSub, shape);
+            result = new TypecastGlyph(this, glyph_id, glyph_bbox, glyph_advance, kernSub, shape);
             if(DEBUG) {
                 final PostTable post = font.getPostTable();
                 final String glyph_name = null != post ? post.getGlyphName(glyph_id) : "n/a";
-                System.err.println("New glyph: " + (int)symbol + " ( " + symbol +" ) -> " + glyph_id + "/'"+glyph_name+"', contours " + glyph.getPointCount() + ": " + shape);
+                System.err.println("New glyph: " + glyph_id + "/'"+glyph_name+"', contours " + glyph.getPointCount() + ": " + shape);
                 System.err.println("  "+glyph);
                 System.err.println("  "+result);
             }
             glyph.clearPointData();
 
-            char2Glyph.put(symbol, result);
+            idToGlyph.put(glyph_id, result);
         }
         return result;
     }
@@ -276,7 +274,7 @@ class TypecastFont implements Font {
             if (character == '\n') {
                 width = 0;
             } else {
-                final Glyph glyph = getGlyph(character);
+                final Glyph glyph = getGlyph(getGlyphID(character));
                 width += glyph.getAdvanceFU();
             }
         }
@@ -295,7 +293,7 @@ class TypecastFont implements Font {
         for (int i=0; i<string.length(); i++) {
             final char character = string.charAt(i);
             if (character != ' ') {
-                final Glyph glyph = getGlyph(character);
+                final Glyph glyph = getGlyph(getGlyphID(character));
                 height = (int)Math.ceil(Math.max(glyph.getBBoxFU().getHeight(), height));
             }
         }
@@ -348,14 +346,17 @@ class TypecastFont implements Font {
 
         float y = 0;
         float advanceTotal = 0;
+        Font.Glyph left_glyph = null;
 
         for(int i=0; i< charCount; i++) {
             final char character = string.charAt(i);
             if( '\n' == character ) {
                 y -= lineHeight;
                 advanceTotal = 0;
+                left_glyph = null;
             } else if (character == ' ') {
                 advanceTotal += getAdvanceWidthFU(Glyph.ID_SPACE);
+                left_glyph = null;
             } else {
                 // reset transform
                 if( null != transform ) {
@@ -363,17 +364,19 @@ class TypecastFont implements Font {
                 } else {
                     temp1.setToIdentity();
                 }
-                temp1.translate(advanceTotal, y, temp2);
-                tbox.reset();
-
-                final Font.Glyph glyph = getGlyph(character);
-                res.resize(temp1.transform(glyph.getBBoxFU(), tbox));
-
-                final OutlineShape glyphShape = glyph.getShape();
-                if( null == glyphShape ) {
+                final int glyph_id = getGlyphID(character);
+                final Font.Glyph glyph = getGlyph(glyph_id);
+                if( null == glyph.getShape() ) {
+                    left_glyph = null;
                     continue;
                 }
+                if( null != left_glyph ) {
+                    advanceTotal += left_glyph.getKerningFU(glyph_id);
+                }
+                temp1.translate(advanceTotal, y, temp2);
+                res.resize(temp1.transform(glyph.getBBoxFU(), tbox));
                 advanceTotal += glyph.getAdvanceFU();
+                left_glyph = glyph;
             }
         }
         return res;

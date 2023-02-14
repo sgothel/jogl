@@ -161,7 +161,6 @@ public interface Font {
         public static final int ID_SPACE = 3;
 
         Font getFont();
-        char getSymbol();
 
         /** Return this glyph's ID */
         int getID();
@@ -262,7 +261,7 @@ public interface Font {
 
     int getGlyphID(final char symbol);
 
-    Glyph getGlyph(final char symbol);
+    Glyph getGlyph(final int glyph_id);
 
     int getNumGlyphs();
 

@@ -104,7 +104,6 @@ public final class TypecastGlyph implements Font.Glyph {
         return dst;
     }
 
-    private final char symbol;
     private final int id;
     private final int[/*right_glyphid*/][/*value*/] kerning;
     private final boolean kerning_horizontal;
@@ -115,15 +114,13 @@ public final class TypecastGlyph implements Font.Glyph {
     /**
      *
      * @param font
-     * @param symbol
      * @param id
      * @param bbox in font-units
      * @param advance from hmtx in font-units
      * @param shape
      */
-    protected TypecastGlyph(final TypecastFont font, final char symbol, final int id, final AABBox bbox, final int advance,
+    protected TypecastGlyph(final TypecastFont font, final int id, final AABBox bbox, final int advance,
                             final KernSubtable kernSub, final OutlineShape shape) {
-        this.symbol = symbol;
         this.id = id;
         if( null != kernSub && kernSub.areKerningValues() ) {
             int pair_sz = 64;
@@ -158,11 +155,6 @@ public final class TypecastGlyph implements Font.Glyph {
     @Override
     public final Font getFont() {
         return this.metrics.getFont();
-    }
-
-    @Override
-    public final char getSymbol() {
-        return this.symbol;
     }
 
     public final Metrics getMetrics() {
