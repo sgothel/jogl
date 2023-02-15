@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 JogAmp Community. All rights reserved.
+ * Copyright 2011-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -307,46 +307,53 @@ class TypecastFont implements Font {
 
     @Override
     public AABBox getMetricBoundsFU(final CharSequence string) {
-        if (string == null) {
+        if (null == string || 0 == string.length() ) {
             return new AABBox();
         }
         final int charCount = string.length();
+
         final int lineHeight = getLineHeightFU();
-        int totalHeight = 0;
-        int totalWidth = 0;
-        int curLineWidth = 0;
+
+        int y = 0;
+        int advanceTotal = 0;
+
         for (int i=0; i<charCount; i++) {
             final char character = string.charAt(i);
             if (character == '\n') {
-                totalWidth = Math.max(curLineWidth, totalWidth);
-                curLineWidth = 0;
-                totalHeight += lineHeight;
+                advanceTotal = 0;
+                y -= lineHeight;
                 continue;
             }
-            curLineWidth += getAdvanceWidthFU( getGlyphID( character ) );
+            advanceTotal += getAdvanceWidthFU( getGlyphID( character ) );
         }
-        if (curLineWidth > 0) {
-            totalHeight += lineHeight;
-            totalWidth = Math.max(curLineWidth, totalWidth);
+        if (advanceTotal > 0) {
+            y -= lineHeight;
         }
-        return new AABBox(0, 0, 0, totalWidth, totalHeight,0);
+        return new AABBox(0,y,0, advanceTotal,0,0);
+    }
+
+    @Override
+    public AABBox getPointsBounds(final AffineTransform transform, final CharSequence string) {
+        return getPointsBoundsFU(transform, string).scale2(1.0f/metrics.getUnitsPerEM(), new float[3]);
     }
 
     @Override
     public AABBox getPointsBoundsFU(final AffineTransform transform, final CharSequence string) {
-        if (string == null) {
+        if (null == string || 0 == string.length() ) {
             return new AABBox();
         }
         final AffineTransform temp1 = new AffineTransform();
         final AffineTransform temp2 = new AffineTransform();
-        final int charCount = string.length();
-        final int lineHeight = getLineHeightFU();
-        final AABBox tbox = new AABBox();
-        final AABBox res = new AABBox();
 
-        float y = 0;
-        float advanceTotal = 0;
+        final AABBox res = new AABBox();
+        final int charCount = string.length();
+
+        final int lineHeight = getLineHeightFU();
+
+        int y = 0;
+        int advanceTotal = 0;
         Font.Glyph left_glyph = null;
+        final AABBox temp_box = new AABBox();
 
         for(int i=0; i< charCount; i++) {
             final char character = string.charAt(i);
@@ -366,7 +373,8 @@ class TypecastFont implements Font {
                 }
                 final int glyph_id = getGlyphID(character);
                 final Font.Glyph glyph = getGlyph(glyph_id);
-                if( null == glyph.getShape() ) {
+                final OutlineShape glyphShape = glyph.getShape();
+                if( null == glyphShape ) {
                     left_glyph = null;
                     continue;
                 }
@@ -374,7 +382,7 @@ class TypecastFont implements Font {
                     advanceTotal += left_glyph.getKerningFU(glyph_id);
                 }
                 temp1.translate(advanceTotal, y, temp2);
-                res.resize(temp1.transform(glyph.getBBoxFU(), tbox));
+                res.resize(temp1.transform(glyph.getBBoxFU(), temp_box));
                 advanceTotal += glyph.getAdvanceFU();
                 left_glyph = glyph;
             }
@@ -383,8 +391,77 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public AABBox getPointsBounds(final AffineTransform transform, final CharSequence string) {
-        return getPointsBoundsFU(transform, string).scale2(1.0f/metrics.getUnitsPerEM(), new float[3]);
+    public AABBox getPointsBounds2(final AffineTransform transform, final CharSequence string) {
+        if (null == string || 0 == string.length() ) {
+            return new AABBox();
+        }
+        final OutlineShape.Visitor visitor = new OutlineShape.Visitor() {
+            @Override
+            public final void visit(final OutlineShape shape, final AffineTransform t) {
+                // nop
+            } };
+        return processString(visitor, transform, string);
+    }
+
+    @Override
+    public AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
+                                final CharSequence string) {
+        return processString(visitor, transform, string, new AffineTransform(), new AffineTransform());
+    }
+
+    @Override
+    public AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
+                                final CharSequence string,
+                                final AffineTransform temp1, final AffineTransform temp2) {
+        if (null == string || 0 == string.length() ) {
+            return new AABBox();
+        }
+        final AABBox res = new AABBox();
+        final int charCount = string.length();
+
+        // region.setFlipped(true);
+        final float lineHeight = getLineHeight();
+
+        float y = 0;
+        float advanceTotal = 0;
+        Font.Glyph left_glyph = null;
+        final AABBox temp_box = new AABBox();
+
+        for(int i=0; i< charCount; i++) {
+            final char character = string.charAt(i);
+            if( '\n' == character ) {
+                y -= lineHeight;
+                advanceTotal = 0;
+                left_glyph = null;
+            } else if (character == ' ') {
+                advanceTotal += getAdvanceWidth(Glyph.ID_SPACE);
+                left_glyph = null;
+            } else {
+                // reset transform
+                if( null != transform ) {
+                    temp1.setTransform(transform);
+                } else {
+                    temp1.setToIdentity();
+                }
+                final int glyph_id = getGlyphID(character);
+                final Font.Glyph glyph = getGlyph(glyph_id);
+                final OutlineShape glyphShape = glyph.getShape();
+                if( null == glyphShape ) {
+                    left_glyph = null;
+                    continue;
+                }
+                if( null != left_glyph ) {
+                    advanceTotal += left_glyph.getKerning(glyph_id);
+                }
+                temp1.translate(advanceTotal, y, temp2);
+                res.resize(temp1.transform(glyphShape.getBounds(), temp_box));
+
+                visitor.visit(glyphShape, temp1);
+                advanceTotal += glyph.getAdvance();
+                left_glyph = glyph;
+            }
+        }
+        return res;
     }
 
     @Override

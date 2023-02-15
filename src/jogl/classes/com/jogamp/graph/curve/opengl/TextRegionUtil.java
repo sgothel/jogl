@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2014-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -33,10 +33,10 @@ import java.util.Iterator;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.geom.plane.AffineTransform;
@@ -55,18 +55,6 @@ public class TextRegionUtil {
         this.renderModes = renderModes;
     }
 
-    public static interface ShapeVisitor {
-        /**
-         * Visiting the given {@link OutlineShape} with it's corresponding {@link AffineTransform}.
-         * <p>
-         * The shape is in font em-size [0..1].
-         * </p>
-         * @param shape may be used as is, otherwise a copy shall be made if intended to be modified.
-         * @param t may be used immediately as is, otherwise a copy shall be made if stored.
-         */
-        public void visit(final OutlineShape shape, final AffineTransform t);
-    }
-
     public static int getCharCount(final String s, final char c) {
         final int sz = s.length();
         int count = 0;
@@ -76,65 +64,6 @@ public class TextRegionUtil {
             }
         }
         return count;
-    }
-
-    /**
-     * Visit each {@link Font.Glyph}'s {@link OutlineShape} with the given {@link ShapeVisitor}
-     * additionally passing the progressed {@link AffineTransform}.
-     * <p>
-     * The produced shapes are in font em-size [0..1], but can be adjusted with the given transform, progressed and passed to the visitor.
-     * </p>
-     * @param visitor
-     * @param transform optional given transform
-     * @param font the target {@link Font}
-     * @param str string text
-     * @param temp1 temporary AffineTransform storage, mandatory
-     * @param temp2 temporary AffineTransform storage, mandatory
-     */
-    public static void processString(final ShapeVisitor visitor, final AffineTransform transform,
-                                     final Font font, final CharSequence str,
-                                     final AffineTransform temp1, final AffineTransform temp2) {
-        final int charCount = str.length();
-
-        // region.setFlipped(true);
-        final float lineHeight = font.getLineHeight();
-
-        float y = 0;
-        float advanceTotal = 0;
-        Font.Glyph left_glyph = null;
-
-        for(int i=0; i< charCount; i++) {
-            final char character = str.charAt(i);
-            if( '\n' == character ) {
-                y -= lineHeight;
-                advanceTotal = 0;
-                left_glyph = null;
-            } else if (character == ' ') {
-                advanceTotal += font.getAdvanceWidth(Glyph.ID_SPACE);
-                left_glyph = null;
-            } else {
-                // reset transform
-                if( null != transform ) {
-                    temp1.setTransform(transform);
-                } else {
-                    temp1.setToIdentity();
-                }
-                final int glyph_id = font.getGlyphID(character);
-                final Font.Glyph glyph = font.getGlyph(glyph_id);
-                final OutlineShape glyphShape = glyph.getShape();
-                if( null == glyphShape ) {
-                    left_glyph = null;
-                    continue;
-                }
-                if( null != left_glyph ) {
-                    advanceTotal += left_glyph.getKerning(glyph_id);
-                }
-                temp1.translate(advanceTotal, y, temp2);
-                visitor.visit(glyphShape, temp1);
-                advanceTotal += glyph.getAdvance();
-                left_glyph = glyph;
-            }
-        }
     }
 
     /**
@@ -149,16 +78,17 @@ public class TextRegionUtil {
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param temp1 temporary AffineTransform storage, mandatory
      * @param temp2 temporary AffineTransform storage, mandatory
+     * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] OutlineShape into account.
      */
-    public static void addStringToRegion(final GLRegion region, final Factory<? extends Vertex> vertexFactory,
-                                         final Font font, final CharSequence str, final float[] rgbaColor,
-                                         final AffineTransform temp1, final AffineTransform temp2) {
-        final ShapeVisitor visitor = new ShapeVisitor() {
+    public static AABBox addStringToRegion(final GLRegion region, final Factory<? extends Vertex> vertexFactory,
+                                           final Font font, final CharSequence str, final float[] rgbaColor,
+                                           final AffineTransform temp1, final AffineTransform temp2) {
+        final OutlineShape.Visitor visitor = new OutlineShape.Visitor() {
             @Override
             public final void visit(final OutlineShape shape, final AffineTransform t) {
                 region.addOutlineShape(shape, t, region.hasColorChannel() ? rgbaColor : null);
             } };
-        processString(visitor, null, font, str, temp1, temp2);
+        return font.processString(visitor, null, str, temp1, temp2);
     }
 
     /**
@@ -176,11 +106,12 @@ public class TextRegionUtil {
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
+     * @return the bounding box of the given string from the produced and rendered GLRegion
      * @throws Exception if TextRenderer not initialized
      */
-    public void drawString3D(final GL2ES2 gl,
-                             final RegionRenderer renderer, final Font font, final CharSequence str,
-                             final float[] rgbaColor, final int[/*1*/] sampleCount) {
+    public AABBox drawString3D(final GL2ES2 gl,
+                               final RegionRenderer renderer, final Font font, final CharSequence str,
+                               final float[] rgbaColor, final int[/*1*/] sampleCount) {
         if( !renderer.isInitialized() ) {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
@@ -191,7 +122,10 @@ public class TextRegionUtil {
             addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, str, rgbaColor, tempT1, tempT2);
             addCachedRegion(gl, font, str, special, region);
         }
+        final AABBox res = new AABBox();
+        res.copy(region.getBounds());
         region.draw(gl, renderer, sampleCount);
+        return res;
     }
 
     /**
@@ -202,7 +136,7 @@ public class TextRegionUtil {
      * <p>
      * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
      * is a huge performance impact.
-     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)}
+     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[])}
      * instead.
      * </p>
      * @param gl the current GL state
@@ -212,21 +146,24 @@ public class TextRegionUtil {
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
-     * @param temp1 temporary AffineTransform storage, mandatory
-     * @param temp2 temporary AffineTransform storage, mandatory
      * @throws Exception if TextRenderer not initialized
+     * @return the bounding box of the given string from the produced and rendered GLRegion
      */
-    public static void drawString3D(final GL2ES2 gl, final int renderModes,
-                                    final RegionRenderer renderer, final Font font, final CharSequence str,
-                                    final float[] rgbaColor, final int[/*1*/] sampleCount, final AffineTransform temp1,
-                                    final AffineTransform temp2) {
+    public static AABBox drawString3D(final GL2ES2 gl, final int renderModes,
+                                      final RegionRenderer renderer, final Font font, final CharSequence str,
+                                      final float[] rgbaColor, final int[/*1*/] sampleCount) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
+        final AffineTransform temp1 = new AffineTransform();
+        final AffineTransform temp2 = new AffineTransform();
         final GLRegion region = GLRegion.create(renderModes, null);
         addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, str, rgbaColor, temp1, temp2);
+        final AABBox res = new AABBox();
+        res.copy(region.getBounds());
         region.draw(gl, renderer, sampleCount);
         region.destroy(gl);
+        return res;
     }
 
     /**
@@ -241,20 +178,23 @@ public class TextRegionUtil {
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
-     * @param temp1 temporary AffineTransform storage, mandatory
-     * @param temp2 temporary AffineTransform storage, mandatory
+     * @return the bounding box of the given string from the produced and rendered GLRegion
      * @throws Exception if TextRenderer not initialized
      */
-    public static void drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
-                                    final Font font, final CharSequence str, final float[] rgbaColor,
-                                    final int[/*1*/] sampleCount, final AffineTransform temp1,
-                                    final AffineTransform temp2) {
+    public static AABBox drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
+                                      final Font font, final CharSequence str, final float[] rgbaColor,
+                                      final int[/*1*/] sampleCount) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
+        final AffineTransform temp1 = new AffineTransform();
+        final AffineTransform temp2 = new AffineTransform();
         region.clear(gl);
         addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, str, rgbaColor, temp1, temp2);
+        final AABBox res = new AABBox();
+        res.copy(region.getBounds());
         region.draw(gl, renderer, sampleCount);
+        return res;
     }
 
    /**

@@ -272,11 +272,9 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             if( cacheRegion ) {
                 textRenderUtil.drawString3D(gl, renderer, font, text, null, vbaaSampleCount);
             } else if( null != region ) {
-                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, vbaaSampleCount,
-                                            textRenderUtil.tempT1, textRenderUtil.tempT2);
+                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, vbaaSampleCount);
             } else {
-                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, vbaaSampleCount,
-                                            textRenderUtil.tempT1, textRenderUtil.tempT2);
+                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, vbaaSampleCount);
             }
             renderer.enable(gl, false);
 

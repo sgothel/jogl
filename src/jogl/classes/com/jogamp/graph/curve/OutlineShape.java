@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -111,6 +111,18 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         VerticesState(final int state){
             this.state = state;
         }
+    }
+
+    /**
+     * General purpose {@link OutlineShape} visitor.
+     */
+    public static interface Visitor {
+        /**
+         * Visiting the given {@link OutlineShape} with it's corresponding {@link AffineTransform}.
+         * @param shape may be used as is, otherwise a copy shall be made if intended to be modified.
+         * @param t may be used immediately as is, otherwise a copy shall be made if stored.
+         */
+        public void visit(final OutlineShape shape, final AffineTransform t);
     }
 
     /** Initial {@link #getSharpness()} value, which can be modified via {@link #setSharpness(float)}. */

@@ -1,5 +1,5 @@
 /**
-// * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -294,14 +294,6 @@ public interface Font {
     AABBox getMetricBounds(final CharSequence string);
 
     /**
-     * Return the bounding box by taking each glyph's font-unit sized bounding box into account.
-     * @param transform optional given transform
-     * @param string string text
-     * @return the bounding box of the given string in font-units [0..1]
-     */
-    AABBox getPointsBoundsFU(final AffineTransform transform, final CharSequence string);
-
-    /**
      * Return the bounding box by taking each glyph's font em-sized bounding box into account.
      * @param transform optional given transform
      * @param string string text
@@ -309,9 +301,58 @@ public interface Font {
      */
     AABBox getPointsBounds(final AffineTransform transform, final CharSequence string);
 
+    /**
+     * Return the bounding box by taking each glyph's font-units sized bounding box into account.
+     * @param transform optional given transform
+     * @param string string text
+     * @return the bounding box of the given string in font-units [0..1]
+     */
+    AABBox getPointsBoundsFU(final AffineTransform transform, final CharSequence string);
+
+    /**
+     * Return the bounding box of the given string by taking each glyph's font em-sized OutlineShape into account.
+     * @param transform optional given transform
+     * @param string string text
+     * @return the bounding box of the given string in font-units [0..1]
+     */
+    AABBox getPointsBounds2(final AffineTransform transform, final CharSequence string);
+
     boolean isPrintableChar(final char c);
 
-    /** Shall return {@link #getFullFamilyName()} */
+    /**
+     * Visit each {@link Glyph}'s {@link OutlineShape} of the string with the {@link OutlineShape.Visitor}
+     * while passing the progressed {@link AffineTransform}.
+     * <p>
+     * The produced shapes are in font em-size [0..1], but can be adjusted with the given transform, progressed and passed to the visitor.
+     * </p>
+     * @param visitor handling each glyph's outline shape in font em-size [0..1] and the given {@link AffineTransform}
+     * @param transform optional given transform
+     * @param font the target {@link Font}
+     * @param string string text
+     * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] OutlineShape into account.
+     */
+    AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
+                         final CharSequence string);
+
+    /**
+     * Visit each {@link Glyph}'s {@link OutlineShape} of the string with the {@link OutlineShape.Visitor}
+     * while passing the progressed {@link AffineTransform}.
+     * <p>
+     * The produced shapes are in font em-size [0..1], but can be adjusted with the given transform, progressed and passed to the visitor.
+     * </p>
+     * @param visitor handling each glyph's outline shape in font em-size [0..1] and the given {@link AffineTransform}
+     * @param transform optional given transform
+     * @param font the target {@link Font}
+     * @param string string text
+     * @param temp1 temporary AffineTransform storage, mandatory
+     * @param temp2 temporary AffineTransform storage, mandatory
+     * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] OutlineShape into account.
+     */
+    AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
+                         final CharSequence string,
+                         final AffineTransform temp1, final AffineTransform temp2);
+
+    /** Returns {@link #getFullFamilyName()} */
     @Override
     public String toString();
 

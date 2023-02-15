@@ -29,7 +29,6 @@ package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -74,7 +73,7 @@ public class Label0 {
     private final AffineTransform tempT1 = new AffineTransform();
     private final AffineTransform tempT2 = new AffineTransform();
 
-    private final TextRegionUtil.ShapeVisitor shapeVisitor = new TextRegionUtil.ShapeVisitor() {
+    private final OutlineShape.Visitor shapeVisitor = new OutlineShape.Visitor() {
         @Override
         public void visit(final OutlineShape shape, final AffineTransform t) {
             region.addOutlineShape(shape, t, rgbaColor);
@@ -90,7 +89,7 @@ public class Label0 {
         final AffineTransform t_sxy = new AffineTransform(tLeft);
         final AffineTransform tmp = new AffineTransform();
         t_sxy.scale(pixelSize, pixelSize, tmp);
-        TextRegionUtil.processString(shapeVisitor, t_sxy, font, text, tempT1, tempT2);
+        font.processString(shapeVisitor, t_sxy, text, tempT1, tempT2);
         this.region = null;
         return box;
     }
