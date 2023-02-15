@@ -163,6 +163,10 @@ public class RegionRenderer {
         System.arraycopy(viewport, 0, target, 0, 4);
         return target;
     }
+    /** Borrows the current viewport w/o copying. */
+    public final int[/*4*/] getViewport() {
+        return viewport;
+    }
     /** Return width of current viewport */
     public final int getWidth() { return viewport[2]; }
     /** Return height of current viewport */
