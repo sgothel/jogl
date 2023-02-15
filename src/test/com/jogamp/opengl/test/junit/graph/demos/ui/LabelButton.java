@@ -47,7 +47,7 @@ public class LabelButton extends RoundButton {
     /** {@value} */
     public static final float DEFAULT_SPACING_Y = 0.40f;
 
-    private static final float DEFAULT_2PASS_LABEL_ZOFFSET = -0.05f;
+    private static final float DEFAULT_2PASS_LABEL_ZOFFSET = -0.005f; // -0.05f;
 
     private final Label0 label;
     private float spacingX = DEFAULT_SPACING_X;
@@ -63,6 +63,8 @@ public class LabelButton extends RoundButton {
         setToggleOffColorMod(0.65f, 0.65f, 0.65f, 1.0f);
         setToggleOnColorMod(0.85f, 0.85f, 0.85f, 1.0f);
     }
+
+    public Font getFont() { return label.font; }
 
     @Override
     public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
@@ -91,35 +93,33 @@ public class LabelButton extends RoundButton {
         box.resize(shape.getBounds());
 
         // Precompute text-box size .. guessing pixelSize
-        final float lPixelSize0 = 10f;
         final float lw = width * ( 1f - spacingX ) ;
         final float lh = height * ( 1f - spacingY ) ;
-        final AABBox lbox0_em = label.font.getMetricBounds(label.text);
+        final AABBox lbox0_em = label.font.getPointsBounds(null, label.text);
         final float lsx = lw / lbox0_em.getWidth();
         final float lsy = lh / lbox0_em.getHeight();
-        final float lPixelSize1 = lsx < lsy ? lsx : lsy;
-        if( DRAW_DEBUG_BOX ) {
-            final AABBox lbox0_px = new AABBox(lbox0_em).scale2(lPixelSize0, new float[3]);
-            System.err.println("RIButton: dim "+width+" x "+height+", spacing "+spacingX+", "+spacingY);
-            System.err.println("RIButton: net-text "+lw+" x "+lh+" px");
-            System.err.println("RIButton: shape "+box+" px");
-            System.err.println("RIButton: text "+lbox0_em+" em, "+label.text);
-            System.err.println("RIButton: text "+lbox0_px+" px, "+label.text);
-            System.err.println("RIButton: lscale "+lsx+" x "+lsy+": pixelSize "+lPixelSize0+" -> "+lPixelSize1);
-        }
+        final float lScale = lsx < lsy ? lsx : lsy;
 
         // Setting left-corner transform using text-box in font em-size [0..1]
-        final AABBox lbox1_s = label.font.getPointsBounds(null, label.text).scale2(lPixelSize1, new float[3]);
+        final AABBox lbox1_s = new AABBox(lbox0_em).scale2(lScale, new float[3]);
         // Center text .. (share same center w/ button)
         final float[] lctr = lbox1_s.getCenter();
         final float[] ctr = box.getCenter();
         final float[] ltx = new float[] { ctr[0] - lctr[0], ctr[1] - lctr[1], 0f };
 
-        final AABBox lbox2 = label.addShapeToRegion(lPixelSize1, region, tempT1.setToTranslation(ltx[0], ltx[1]));
         if( DRAW_DEBUG_BOX ) {
-            System.err.printf("RIButton.0: tleft %f / %f, %f / %f%n", ltx[0], ltx[1], ltx[0] * lPixelSize1, ltx[1] * lPixelSize1);
-            System.err.printf("RIButton.0: lbox1 %s scaled%n", lbox1_s);
-            System.err.printf("RIButton.0: lbox2 %s%n", lbox2);
+            System.err.println("RIButton: dim "+width+" x "+height+", spacing "+spacingX+", "+spacingY);
+            System.err.println("RIButton: net-text "+lw+" x "+lh);
+            System.err.println("RIButton: shape "+box);
+            System.err.println("RIButton: text_em "+lbox0_em+" em, "+label.text);
+            System.err.println("RIButton: lscale "+lsx+" x "+lsy+" -> "+lScale);
+            System.err.printf ("RIButton: text_s  %s%n", lbox1_s);
+            System.err.printf ("RIButton: tleft %f / %f, %f / %f%n", ltx[0], ltx[1], ltx[0] * lScale, ltx[1] * lScale);
+        }
+
+        final AABBox lbox2 = label.addShapeToRegion(lScale, region, tempT1.setToTranslation(ltx[0], ltx[1]));
+        if( DRAW_DEBUG_BOX ) {
+            System.err.printf("RIButton.X: lbox2 %s%n", lbox2);
         }
 
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);

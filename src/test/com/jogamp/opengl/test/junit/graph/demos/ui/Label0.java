@@ -27,8 +27,8 @@
  */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
-import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -37,13 +37,11 @@ public class Label0 {
     protected Font font;
     protected String text;
     protected final float[] rgbaColor;
-    protected final AABBox box;
 
     public Label0(final Font font, final String text, final float[] rgbaColor) {
         this.font = font;
         this.text = text;
         this.rgbaColor = rgbaColor;
-        this.box = new AABBox();
     }
 
     public final String getText() { return text; }
@@ -67,31 +65,10 @@ public class Label0 {
         this.font = font;
     }
 
-    public final AABBox getBounds() { return box; }
-
-    private final float[] tmpV3 = new float[3];
-    private final AffineTransform tempT1 = new AffineTransform();
-    private final AffineTransform tempT2 = new AffineTransform();
-
-    private final OutlineShape.Visitor shapeVisitor = new OutlineShape.Visitor() {
-        @Override
-        public void visit(final OutlineShape shape, final AffineTransform t) {
-            region.addOutlineShape(shape, t, rgbaColor);
-            box.resize(shape.getBounds(), t, tmpV3);
-        }
-    };
-
-    private Region region;
-
-    public final AABBox addShapeToRegion(final float pixelSize, final Region region, final AffineTransform tLeft) {
-        box.reset();
-        this.region = region;
+    public final AABBox addShapeToRegion(final float scale, final Region region, final AffineTransform tLeft) {
         final AffineTransform t_sxy = new AffineTransform(tLeft);
-        final AffineTransform tmp = new AffineTransform();
-        t_sxy.scale(pixelSize, pixelSize, tmp);
-        font.processString(shapeVisitor, t_sxy, text, tempT1, tempT2);
-        this.region = null;
-        return box;
+        t_sxy.scale(scale, scale, new AffineTransform());
+        return TextRegionUtil.addStringToRegion(region, font, t_sxy, text, rgbaColor);
     }
 
     @Override

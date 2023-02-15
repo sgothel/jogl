@@ -37,8 +37,7 @@ import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.plane.AffineTransform;
 
 /**
@@ -67,34 +66,62 @@ public class TextRegionUtil {
     }
 
     /**
-     * Add the string in 3D space w.r.t. the font in font em-size [0..1] at the end of the {@link GLRegion}.
+     * Add the string in 3D space w.r.t. the font in font em-size [0..1] at the end of the {@link GLRegion}
+     * while passing the progressed {@link AffineTransform}.
      * <p>
-     * The shapes added to the GLRegion are in font em-size [0..1].
+     * The shapes added to the GLRegion are in font em-size [0..1], but can be adjusted with the given transform, progressed and passed to the visitor.
+     * </p>
+     * <p>
+     * Origin of rendered text is 0/0 at bottom left.
      * </p>
      * @param region the {@link GLRegion} sink
-     * @param vertexFactory vertex impl factory {@link Factory}
      * @param font the target {@link Font}
+     * @param transform optional given transform
+     * @param str string text
+     * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
+     * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] OutlineShape into account.
+     */
+    public static AABBox addStringToRegion(final Region region, final Font font, final AffineTransform transform,
+                                           final CharSequence str, final float[] rgbaColor) {
+        return addStringToRegion(region, font, transform, str, rgbaColor, new AffineTransform(), new AffineTransform());
+    }
+
+    /**
+     * Add the string in 3D space w.r.t. the font in font em-size [0..1] at the end of the {@link GLRegion}
+     * while passing the progressed {@link AffineTransform}.
+     * <p>
+     * The shapes added to the GLRegion are in font em-size [0..1], but can be adjusted with the given transform, progressed and passed to the visitor.
+     * </p>
+     * <p>
+     * Origin of rendered text is 0/0 at bottom left.
+     * </p>
+     * @param region the {@link GLRegion} sink
+     * @param font the target {@link Font}
+     * @param transform optional given transform
      * @param str string text
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param temp1 temporary AffineTransform storage, mandatory
      * @param temp2 temporary AffineTransform storage, mandatory
      * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] OutlineShape into account.
      */
-    public static AABBox addStringToRegion(final GLRegion region, final Factory<? extends Vertex> vertexFactory,
-                                           final Font font, final CharSequence str, final float[] rgbaColor,
+    public static AABBox addStringToRegion(final Region region, final Font font, final AffineTransform transform,
+                                           final CharSequence str, final float[] rgbaColor,
                                            final AffineTransform temp1, final AffineTransform temp2) {
         final OutlineShape.Visitor visitor = new OutlineShape.Visitor() {
             @Override
             public final void visit(final OutlineShape shape, final AffineTransform t) {
                 region.addOutlineShape(shape, t, region.hasColorChannel() ? rgbaColor : null);
             } };
-        return font.processString(visitor, null, str, temp1, temp2);
+        return font.processString(visitor, transform, str, temp1, temp2);
     }
 
     /**
      * Render the string in 3D space w.r.t. the font int font em-size [0..1] at the end of an internally cached {@link GLRegion}.
      * <p>
      * The shapes added to the GLRegion are in font em-size [0..1].
+     * </p>
+     * <p>
+     * Origin of rendered text is 0/0 at bottom left.
      * </p>
      * <p>
      * Cached {@link GLRegion}s will be destroyed w/ {@link #clear(GL2ES2)} or to free memory.
@@ -117,13 +144,15 @@ public class TextRegionUtil {
         }
         final int special = 0;
         GLRegion region = getCachedRegion(font, str, special);
+        AABBox res;
         if(null == region) {
             region = GLRegion.create(renderModes, null);
-            addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, str, rgbaColor, tempT1, tempT2);
+            res = addStringToRegion(region, font, null, str, rgbaColor, tempT1, tempT2);
             addCachedRegion(gl, font, str, special, region);
+        } else {
+            res = new AABBox();
+            res.copy(region.getBounds());
         }
-        final AABBox res = new AABBox();
-        res.copy(region.getBounds());
         region.draw(gl, renderer, sampleCount);
         return res;
     }
@@ -132,6 +161,9 @@ public class TextRegionUtil {
      * Render the string in 3D space w.r.t. the font in font em-size [0..1] at the end of an internally temporary {@link GLRegion}.
      * <p>
      * The shapes added to the GLRegion are in font em-size [0..1].
+     * </p>
+     * <p>
+     * Origin of rendered text is 0/0 at bottom left.
      * </p>
      * <p>
      * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
@@ -155,12 +187,8 @@ public class TextRegionUtil {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        final AffineTransform temp1 = new AffineTransform();
-        final AffineTransform temp2 = new AffineTransform();
         final GLRegion region = GLRegion.create(renderModes, null);
-        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, str, rgbaColor, temp1, temp2);
-        final AABBox res = new AABBox();
-        res.copy(region.getBounds());
+        final AABBox res = addStringToRegion(region, font, null, str, rgbaColor);
         region.draw(gl, renderer, sampleCount);
         region.destroy(gl);
         return res;
@@ -171,6 +199,9 @@ public class TextRegionUtil {
      * which will {@link GLRegion#clear(GL2ES2) cleared} beforehand.
      * <p>
      * The shapes added to the GLRegion are in font em-size [0..1].
+     * </p>
+     * <p>
+     * Origin of rendered text is 0/0 at bottom left.
      * </p>
      * @param gl the current GL state
      * @param font {@link Font} to be used
@@ -187,12 +218,8 @@ public class TextRegionUtil {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        final AffineTransform temp1 = new AffineTransform();
-        final AffineTransform temp2 = new AffineTransform();
         region.clear(gl);
-        addStringToRegion(region, renderer.getRenderState().getVertexFactory(), font, str, rgbaColor, temp1, temp2);
-        final AABBox res = new AABBox();
-        res.copy(region.getBounds());
+        final AABBox res = addStringToRegion(region, font, null, str, rgbaColor);
         region.draw(gl, renderer, sampleCount);
         return res;
     }
