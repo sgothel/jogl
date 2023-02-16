@@ -20,9 +20,7 @@ import com.jogamp.newt.event.PinchToZoomGesture;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Ray;
-import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -130,35 +128,6 @@ public class SceneUIController implements GLEventListener{
         cDrawable = drawable;
     }
 
-    private void transformShape(final PMVMatrix pmv, final UIShape uiShape) {
-        final float[] uiTranslate = uiShape.getTranslate();
-        pmv.glTranslatef(uiTranslate[0], uiTranslate[1], uiTranslate[2]);
-        // final float dz = 100f;
-
-        final Quaternion quat = uiShape.getRotation();
-        final boolean rotate = !quat.isIdentity();
-        final float[] uiScale = uiShape.getScale();
-        final boolean scale = !VectorUtil.isVec3Equal(uiScale, 0, VectorUtil.VEC3_ONE, 0, FloatUtil.EPSILON);
-        if( rotate || scale ) {
-            final float[] rotOrigin = uiShape.getRotationOrigin();
-            final boolean pivot = !VectorUtil.isVec3Zero(rotOrigin, 0, FloatUtil.EPSILON);
-            // pmv.glTranslatef(0f, 0f, dz);
-            if( pivot ) {
-                pmv.glTranslatef(rotOrigin[0], rotOrigin[1], rotOrigin[2]);
-            }
-            if( scale ) {
-                pmv.glScalef(uiScale[0], uiScale[1], uiScale[2]);
-            }
-            if( rotate ) {
-                pmv.glRotate(quat);
-            }
-            if( pivot ) {
-                pmv.glTranslatef(-rotOrigin[0], -rotOrigin[1], -rotOrigin[2]);
-            }
-            // pmv.glTranslatef(0f, 0f, -dz);
-        }
-    }
-
     private static Comparator<UIShape> shapeZAscComparator = new Comparator<UIShape>() {
         @Override
         public int compare(final UIShape s1, final UIShape s2) {
@@ -198,7 +167,7 @@ public class SceneUIController implements GLEventListener{
             if( uiShape.isEnabled() ) {
                 uiShape.validate(gl, renderer);
                 pmv.glPushMatrix();
-                transformShape(pmv, uiShape);
+                uiShape.setTransform(pmv);
                 uiShape.drawShape(gl, renderer, sampleCount);
                 pmv.glPopMatrix();
             }
@@ -243,7 +212,7 @@ public class SceneUIController implements GLEventListener{
 
             if( uiShape.isEnabled() ) {
                 pmv.glPushMatrix();
-                transformShape(pmv, uiShape);
+                uiShape.setTransform(pmv);
                 final boolean ok = pmv.gluUnProjectRay(glWinX, glWinY, winZ0, winZ1, viewport, 0, ray);
                 pmv.glPopMatrix();
                 if( ok ) {
@@ -265,6 +234,14 @@ public class SceneUIController implements GLEventListener{
     private final float[] dpyTmp2V3 = new float[3];
     private final float[] dpyTmp3V3 = new float[3];
 
+    /**
+     * Calling {@link UIShape#winToObjCoord(RegionRenderer, int, int, float[])}, retrieving its object position.
+     * @param activeShape
+     * @param glWinX in GL window coordinates, origin bottom-left
+     * @param glWinY in GL window coordinates, origin bottom-left
+     * @param objPos resulting object position
+     * @param runnable action
+     */
     public void windowToShapeCoords(final UIShape activeShape, final int glWinX, final int glWinY, final float[] objPos, final Runnable runnable) {
         if( null == cDrawable || null == activeShape ) {
             return;
@@ -272,29 +249,11 @@ public class SceneUIController implements GLEventListener{
         cDrawable.invoke(false, new GLRunnable() {
             @Override
             public boolean run(final GLAutoDrawable drawable) {
-                if( windowToShapeCoordsImpl(activeShape, glWinX, glWinY, objPos) ) {
+                if( activeShape.winToObjCoord(renderer, glWinX, glWinY, objPos) ) {
                     runnable.run();
                 }
                 return true;
             } } );
-    }
-    private boolean windowToShapeCoordsImpl(final UIShape activeShape, final int glWinX, final int glWinY, final float[] objPos) {
-        final PMVMatrix pmv = renderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-
-        pmv.glPushMatrix();
-        transformShape(pmv, activeShape);
-        boolean res = false;
-        final float[] ctr = activeShape.getBounds().getCenter();
-        if( pmv.gluProject(ctr[0], ctr[1], ctr[2], viewport, 0, dpyTmp1V3, 0) ) {
-            // System.err.printf("winToShapeCoords.0: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", shapeId, ctr[0], ctr[1], ctr[2], dpyTmp1V3[0], dpyTmp1V3[1], dpyTmp1V3[2]);
-            if( pmv.gluUnProject(glWinX, glWinY, dpyTmp1V3[2], viewport, 0, objPos, 0) ) {
-                // System.err.printf("winToShapeCoords.1: shape %d: win [%d, %d, %f] -> obj [%f, %f, %f]%n", shapeId, glWinX, glWinY, dpyTmp1V3[2], objPos[0], objPos[1], objPos[2]);
-                res = true;
-            }
-        }
-        pmv.glPopMatrix();
-        return res;
     }
 
     @Override
@@ -397,6 +356,7 @@ public class SceneUIController implements GLEventListener{
                     final float[] objPos = new float[3];
                     final UIShape shape = activeShape;
                     windowToShapeCoords(shape, glWinX, glWinY, objPos, new Runnable() {
+                        @Override
                         public void run() {
                             shape.dispatchGestureEvent(gh, glWinX, glWinY, objPos);
                         } } );
@@ -405,6 +365,12 @@ public class SceneUIController implements GLEventListener{
         }
     }
 
+    /**
+     * Dispatch mouse event, either directly sending to activeShape or picking one
+     * @param e original Newt {@link MouseEvent}
+     * @param glWinX in GL window coordinates, origin bottom-left
+     * @param glWinY in GL window coordinates, origin bottom-left
+     */
     final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY) {
         if( null == activeShape ) {
             dispatchMouseEventPickShape(e, glWinX, glWinY, true);
@@ -412,20 +378,36 @@ public class SceneUIController implements GLEventListener{
             dispatchMouseEventForShape(activeShape, e, glWinX, glWinY);
         }
     }
+    /**
+     * Pick the shape using the event coordinates
+     * @param e original Newt {@link MouseEvent}
+     * @param glWinX in GL window coordinates, origin bottom-left
+     * @param glWinY in GL window coordinates, origin bottom-left
+     * @param setActive
+     */
     final void dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY, final boolean setActive) {
         final float[] objPos = new float[3];
         final UIShape[] shape = { null };
         pickShape(glWinX, glWinY, objPos, shape, new Runnable() {
-           public void run() {
+           @Override
+        public void run() {
                if( setActive ) {
                    setActiveShape(shape[0]);
                }
                shape[0].dispatchMouseEvent(e, glWinX, glWinY, objPos);
            } } );
     }
+    /**
+     * Dispatch event to shape
+     * @param shape target active shape of event
+     * @param e original Newt {@link MouseEvent}
+     * @param glWinX in GL window coordinates, origin bottom-left
+     * @param glWinY in GL window coordinates, origin bottom-left
+     */
     final void dispatchMouseEventForShape(final UIShape shape, final MouseEvent e, final int glWinX, final int glWinY) {
         final float[] objPos = new float[3];
         windowToShapeCoords(shape, glWinX, glWinY, objPos, new Runnable() {
+            @Override
             public void run() {
                 shape.dispatchMouseEvent(e, glWinX, glWinY, objPos);
             } } );
@@ -445,7 +427,7 @@ public class SceneUIController implements GLEventListener{
                 ly = e.getY();
                 lId = e.getPointerId(0);
             }
-            // flip to GL window coordinates
+            // flip to GL window coordinates, origin bottom-left
             final int glWinX = e.getX();
             final int glWinY = viewport[3] - e.getY() - 1;
             dispatchMouseEvent(e, glWinX, glWinY);
@@ -453,7 +435,7 @@ public class SceneUIController implements GLEventListener{
 
         @Override
         public void mouseReleased(final MouseEvent e) {
-            // flip to GL window coordinates
+            // flip to GL window coordinates, origin bottom-left
             final int glWinX = e.getX();
             final int glWinY = viewport[3] - e.getY() - 1;
             dispatchMouseEvent(e, glWinX, glWinY);
@@ -484,7 +466,7 @@ public class SceneUIController implements GLEventListener{
                 ly = e.getY();
 
                 // dragged .. delegate to active shape!
-                // flip to GL window coordinates
+                // flip to GL window coordinates, origin bottom-left
                 final int glWinX = lx;
                 final int glWinY = viewport[3] - ly - 1;
                 dispatchMouseEventForShape(activeShape, e, glWinX, glWinY);

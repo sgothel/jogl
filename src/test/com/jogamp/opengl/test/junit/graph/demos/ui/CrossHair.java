@@ -35,7 +35,7 @@ import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 
 /**
- * GPU based resolution independent Button impl
+ * GPU based resolution independent Crosshair
  */
 public class CrossHair extends UIShape {
     private float width, height, lineWidth;
@@ -70,11 +70,12 @@ public class CrossHair extends UIShape {
     protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
 
+        final float lwh = lineWidth/2f;
+
         final float tw = getWidth();
         final float th = getHeight();
         final float twh = tw/2f;
         final float thh = th/2f;
-        final float lwh = lineWidth/2f;
 
         final float ctrX = 0f, ctrY = 0f;
         final float ctrZ = 0f;
@@ -85,8 +86,6 @@ public class CrossHair extends UIShape {
         shape.lineTo(ctrX+lwh, ctrY+thh, ctrZ);
         shape.lineTo(ctrX-lwh, ctrY+thh, ctrZ);
         shape.closePath();
-
-        // ctrZ -= 0.05f;
 
         // middle horizontal (CCW!)
         shape.moveTo(ctrX-twh, ctrY-lwh, ctrZ);

@@ -31,7 +31,7 @@ import java.util.ArrayList;
 
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.opengl.GL2ES2;
-
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
@@ -44,11 +44,14 @@ import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
+import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.util.PMVMatrix;
 
 public abstract class UIShape {
-    public static final boolean DRAW_DEBUG_BOX = true;
+    public static final boolean DRAW_DEBUG_BOX = false;
 
     protected static final int DIRTY_SHAPE    = 1 << 0 ;
     protected static final int DIRTY_STATE    = 1 << 1 ;
@@ -280,7 +283,7 @@ public abstract class UIShape {
                 region.clear(gl);
             }
             addShapeToRegion(gl, renderer);
-            if( false && DRAW_DEBUG_BOX ) {
+            if( DRAW_DEBUG_BOX ) {
                 region.clear(gl);
                 final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
                 shape.setSharpness(shapesSharpness);
@@ -293,6 +296,124 @@ public abstract class UIShape {
             region.markStateDirty();
             dirty &= ~DIRTY_STATE;
         }
+    }
+
+    public void setTransform(final PMVMatrix pmv) {
+        final float[] uiTranslate = getTranslate();
+        pmv.glTranslatef(uiTranslate[0], uiTranslate[1], uiTranslate[2]);
+
+        final Quaternion quat = getRotation();
+        final boolean rotate = !quat.isIdentity();
+        final float[] uiScale = getScale();
+        final boolean scale = !VectorUtil.isVec3Equal(uiScale, 0, VectorUtil.VEC3_ONE, 0, FloatUtil.EPSILON);
+        if( rotate || scale ) {
+            final float[] rotOrigin = getRotationOrigin();
+            final boolean pivot = !VectorUtil.isVec3Zero(rotOrigin, 0, FloatUtil.EPSILON);
+            if( pivot ) {
+                pmv.glTranslatef(rotOrigin[0], rotOrigin[1], rotOrigin[2]);
+            }
+            if( scale ) {
+                pmv.glScalef(uiScale[0], uiScale[1], uiScale[2]);
+            }
+            if( rotate ) {
+                pmv.glRotate(quat);
+            }
+            if( pivot ) {
+                pmv.glTranslatef(-rotOrigin[0], -rotOrigin[1], -rotOrigin[2]);
+            }
+        }
+    }
+
+    /**
+     * Retrieve window surface size of this shape
+     * @param renderer source of viewport and PMVMatrix
+     * @param surfaceSize target surface size
+     * @return true for successful gluProject(..) operation, otherwise false
+     */
+    public boolean getSurfaceSize(final RegionRenderer renderer, final int[/*2*/] surfaceSize) {
+        final PMVMatrix pmv = renderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+
+        pmv.glPushMatrix();
+        setTransform(pmv);
+        boolean res = false;
+        final int[/*4*/] viewport = renderer.getViewport(new int[4]);
+        // System.err.println("UIShape::getSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
+        final float[] winCoordHigh = new float[3];
+        final float[] winCoordLow = new float[3];
+        final float[] high = getBounds().getHigh();
+        final float[] low = getBounds().getLow();
+
+        if( pmv.gluProject(high[0], high[1], high[2], viewport, 0, winCoordHigh, 0) ) {
+            // System.err.printf("UIShape::surfaceSize.H: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), high[0], high[1], high[2], winCoordHigh[0], winCoordHigh[1], winCoordHigh[2]);
+            if( pmv.gluProject(low[0], low[1], low[2], viewport, 0, winCoordLow, 0) ) {
+                // System.err.printf("UIShape::surfaceSize.L: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), low[0], low[1], low[2], winCoordLow[0], winCoordLow[1], winCoordLow[2]);
+                surfaceSize[0] = (int)(winCoordHigh[0] - winCoordLow[0]);
+                surfaceSize[1] = (int)(winCoordHigh[1] - winCoordLow[1]);
+                // System.err.printf("UIShape::surfaceSize.S: shape %d: %f x %f -> %d x %d%n", getName(), winCoordHigh[0] - winCoordLow[0], winCoordHigh[1] - winCoordLow[1], surfaceSize[0], surfaceSize[1]);
+                res = true;
+            }
+        }
+        pmv.glPopMatrix();
+        return res;
+    }
+
+    /**
+     * Map given object coordinate relative to this shape to window coordinates
+     * @param renderer source of viewport and PMVMatrix
+     * @param objPos object position relative to this shape's center
+     * @param glWinPos target window position of objPos relative to this shape
+     * @return true for successful gluProject(..) operation, otherwise false
+     */
+    public boolean objToWinCoord(final RegionRenderer renderer, final float[/*3*/] objPos, final int[/*2*/] glWinPos) {
+        final PMVMatrix pmv = renderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+
+        pmv.glPushMatrix();
+        setTransform(pmv);
+        boolean res = false;
+        final int[/*4*/] viewport = renderer.getViewport(new int[4]);
+        // System.err.println("UIShape::objToWinCoordgetSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
+        final float[] winCoord = new float[3];
+
+        if( pmv.gluProject(objPos[0], objPos[1], objPos[2], viewport, 0, winCoord, 0) ) {
+            // System.err.printf("UIShape::objToWinCoord.0: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), objPos[0], objPos[1], objPos[2], winCoord[0], winCoord[1], winCoord[2]);
+            glWinPos[0] = (int)(winCoord[0]);
+            glWinPos[1] = (int)(winCoord[1]);
+            // System.err.printf("UIShape::objToWinCoord.X: shape %d: %f / %f -> %d / %d%n", getName(), winCoord[0], winCoord[1], glWinPos[0], glWinPos[1]);
+            res = true;
+        }
+        pmv.glPopMatrix();
+        return res;
+    }
+
+    /**
+     * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate.
+     * @param renderer source of viewport and PMVMatrix
+     * @param glWinX in GL window coordinates, origin bottom-left
+     * @param glWinY in GL window coordinates, origin bottom-left
+     * @param objPos target object position of glWinX/glWinY relative to this shape
+     * @return @return true for successful gluProject(..) and gluUnProject(..) operations, otherwise false
+     */
+    public boolean winToObjCoord(final RegionRenderer renderer, final int glWinX, final int glWinY, final float[/*3*/] objPos) {
+        final PMVMatrix pmv = renderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+
+        pmv.glPushMatrix();
+        setTransform(pmv);
+        boolean res = false;
+        final float[] ctr = getBounds().getCenter();
+        final int[] viewport = renderer.getViewport(new int[4]);
+        final float[] tmp = new float[3];
+        if( pmv.gluProject(ctr[0], ctr[1], ctr[2], viewport, 0, tmp, 0) ) {
+            // System.err.printf("UIShape::winToObjCoord.0: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), ctr[0], ctr[1], ctr[2], tmp[0], tmp[1], tmp[2]);
+            if( pmv.gluUnProject(glWinX, glWinY, tmp[2], viewport, 0, objPos, 0) ) {
+                // System.err.printf("UIShape::winToObjCoord.1: shape %d: win [%d, %d, %f] -> obj [%f, %f, %f]%n", getName(), glWinX, glWinY, tmp[2], objPos[0], objPos[1], objPos[2]);
+                res = true;
+            }
+        }
+        pmv.glPopMatrix();
+        return res;
     }
 
     public float[] getColor() {
@@ -420,15 +541,22 @@ public abstract class UIShape {
      * The latter fields are also normalized to lower-left zero origin, allowing easier usage.
      */
     public static class PointerEventInfo {
-        /** The intended {@link UIShape} instance for this event */
+        /** The associated {@link UIShape} for this event */
         public final UIShape shape;
-        /** The relative pointer position inside the intended {@link UIShape}. */
+        /** The relative object coordinate of glWinX/glWinY to the associated {@link UIShape}. */
         public final float[] objPos;
-        /** window x-position in OpenGL model space */
+        /** X-coordinate in GL window coordinates, origin bottom-left */
         public final int glWinX;
-        /** window y-position in OpenGL model space */
+        /** Y-coordinate in GL window coordinates, origin bottom-left */
         public final int glWinY;
 
+        /**
+         * Ctor
+         * @param glWinX in GL window coordinates, origin bottom-left
+         * @param glWinY in GL window coordinates, origin bottom-left
+         * @param shape associated shape
+         * @param objPos relative object coordinate of glWinX/glWinY to the associated shape.
+         */
         PointerEventInfo(final int glWinX, final int glWinY, final UIShape shape, final float[] objPos) {
             this.glWinX = glWinX;
             this.glWinY = glWinY;
@@ -455,10 +583,11 @@ public abstract class UIShape {
     }
 
     /**
-     *
+     * Dispatch given NEWT mouse event to this shape
      * @param e original Newt {@link MouseEvent}
-     * @param glX x-position in OpenGL model space
-     * @param glY y-position in OpenGL model space
+     * @param glWinX in GL window coordinates, origin bottom-left
+     * @param glWinY in GL window coordinates, origin bottom-left
+     * @param objPos object position of mouse event within this shape
      */
     public final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY, final float[] objPos) {
         e.setAttachment(new PointerEventInfo(glWinX, glWinY, this, objPos));
@@ -524,19 +653,26 @@ public abstract class UIShape {
     //
 
     protected OutlineShape createDebugOutline(final OutlineShape shape, final AABBox box) {
-        final float tw = box.getWidth();
-        final float th = box.getHeight();
+        final float d = 0.025f;
+        final float tw = box.getWidth() + d*2f;
+        final float th = box.getHeight() + d*2f;
 
-        final float minX = box.getMinX();
-        final float minY = box.getMinY();
-        final float z = box.getMinZ() + 0.025f;
+        final float minX = box.getMinX() - d;
+        final float minY = box.getMinY() - d;
+        final float z = 0; // box.getMinZ() + 0.025f;
 
         // CCW!
-        shape.addVertex(minX,    minY,      z, true);
-        shape.addVertex(minX+tw, minY,      z, true);
-        shape.addVertex(minX+tw, minY + th, z, true);
-        shape.addVertex(minX,    minY + th, z, true);
-        shape.closeLastOutline(true);
+        shape.moveTo(minX, minY, z);
+        shape.lineTo(minX+tw, minY, z);
+        shape.lineTo(minX+tw, minY + th, z);
+        shape.lineTo(minX,    minY + th, z);
+        shape.closePath();
+
+        // shape.addVertex(minX,    minY,      z, true);
+        // shape.addVertex(minX+tw, minY,      z, true);
+        // shape.addVertex(minX+tw, minY + th, z, true);
+        // shape.addVertex(minX,    minY + th, z, true);
+        // shape.closeLastOutline(true);
 
         return shape;
     }
