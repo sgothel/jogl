@@ -31,25 +31,31 @@ public abstract class Glyph {
     public Glyph(final int glyph_id) {
         _glyph_id = glyph_id;
     }
-    
+
     /** Return the assigned glyph ID of this instance */
     public final int getID() { return _glyph_id; }
-    
+
     public abstract void clearPointData();
 
-    /** Return the AABBox in font-units */
+    /**
+     * Return the AABBox in font-units.
+     * <p>
+     * This is either the GlyphDescripton's min- and maximum for TTF
+     * or the calculated box over all points.
+     * </p>
+     */
     public final AABBox getBBox() { return _bbox; }
-    
+
     /** hmtx value */
     public abstract int getAdvanceWidth();
-    
+
     /** hmtx value */
     public abstract short getLeftSideBearing();
 
     public abstract Point getPoint(int i);
 
     public abstract int getPointCount();
-    
+
     @Override
     public abstract String toString();
 }

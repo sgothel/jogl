@@ -81,42 +81,42 @@ public interface Font {
      */
     public interface Metrics {
         /**
-         * @return ascent in font-units to be divided by {@link #getUnitsPerEM()}
+         * @return ascent in font-units, sourced from `hheaTable' table.
          */
         int getAscentFU();
 
         /**
-         * @return ascent in font em-size [0..1]
+         * @return ascent in font em-size [0..1], sourced from `hheaTable' table.
          */
         float getAscent();
 
         /**
-         * @return descent in font-units to be divided by {@link #getUnitsPerEM()}
+         * @return descent in font-units, sourced from `hheaTable' table.
          */
         int getDescentFU();
 
         /**
-         * @return descend in font em-size [0..1]
+         * @return descend in font em-size [0..1], sourced from `hheaTable' table.
          */
         float getDescent();
 
         /**
-         * @return line-gap in font-units to be divided by {@link #getUnitsPerEM()}
+         * @return line-gap in font-units, sourced from `hheaTable' table.
          */
         int getLineGapFU();
 
         /**
-         * @return line-gap in font em-size [0..1]
+         * @return line-gap in font em-size [0..1], sourced from `hheaTable' table.
          */
         float getLineGap();
 
         /**
-         * @return max-extend in font-units to be divided by {@link #getUnitsPerEM()}
+         * @return max-extend in font-units, sourced from `hheaTable' table.
          */
         int getMaxExtendFU();
 
         /**
-         * @return max-extend in font em-size [0..1]
+         * @return max-extend in font em-size [0..1], sourced from `hheaTable' table.
          */
         float getMaxExtend();
 
@@ -176,25 +176,31 @@ public interface Font {
         float getScale(final int funits);
 
         /**
-         * Return the AABBox in font-units to be divided by unitsPerEM
+         * Return the AABBox in font-units, borrowing internal instance.
          */
         AABBox getBBoxFU();
 
         /**
-         * Return the AABBox in font-units to be divided by unitsPerEM
+         * Return the AABBox in font-units, copying into given dest.
          * @param dest AABBox instance set to this metrics boundary in font-units
          * @return the given and set AABBox 'dest' in font-units
          */
         AABBox getBBoxFU(final AABBox dest);
 
         /**
+         * Return the AABBox in font em-size [0..1], copying into given dest.
          * @param dest AABBox instance set to this metrics boundary in font em-size [0..1]
          * @param tmpV3 caller provided temporary 3-component vector
          * @return the given and set AABBox 'dest' in font em-size [0..1]
          */
         AABBox getBBox(final AABBox dest, float[] tmpV3);
 
-        /** Return advance in font units to be divided by unitsPerEM */
+        /**
+         * Return the AABBox in font em-size [0..1], creating a new copy.
+         */
+        AABBox getBBox();
+
+        /** Return advance in font units, sourced from `hmtx` table. */
         int getAdvanceFU();
 
         /** Return advance in font em-size [0..1] */
@@ -209,10 +215,10 @@ public interface Font {
         int getKerningPairCount();
 
         /**
-         * Returns the optional kerning inter-glyph distance within words between this glyph and the given right glyph_id in font-units to be divided by unitsPerEM
+         * Returns the optional kerning inter-glyph distance within words between this glyph and the given right glyph_id in font-units.
          *
          * @param right_glyphid right glyph code id
-         * @return font-units to be divided by unitsPerEM
+         * @return font-units
          */
         int getKerningFU(final int right_glyphid);
 
@@ -246,7 +252,7 @@ public interface Font {
     StringBuilder getAllNames(final StringBuilder string, final String separator);
 
     /**
-     * Return advance-width of given glyphID in font-units to be divided by unitsPerEM
+     * Return advance-width of given glyphID in font-units, sourced from `hmtx` table.
      * @param glyphID
      */
     int getAdvanceWidthFU(final int glyphID);
@@ -266,7 +272,17 @@ public interface Font {
     int getNumGlyphs();
 
     /**
-     * Return line height in font-units to be divided by unitsPerEM
+     * Return line height in font-units, composed from `hheaTable' table entries.
+     * <pre>
+     *   return abs(lineGap) + abs(descent) abs(ascent);
+     * </pre>
+     * or
+     * <pre>
+     *   // lineGap negative value
+     *   // descent positive value
+     *   // ascent negative value
+     *   return -1 * ( lineGap - descent + ascent );
+     * </pre>
      */
     int getLineHeightFU();
 
@@ -275,47 +291,89 @@ public interface Font {
      */
     float getLineHeight();
 
-    /** Return metric-width in font-units */
-    int getMetricWidthFU(final CharSequence string);
-
-    /** Return metric-width in font em-size */
-    float getMetricWidth(final CharSequence string);
-
-    /** Return metric-height in font-units */
-    int getMetricHeightFU(final CharSequence string);
-
-    /** Return metric-height in font em-size */
-    float getMetricHeight(final CharSequence string);
-
-    /** Return layout metric-bounds in font-units, see {@link #getMetricBounds(CharSequence, float)} */
+    /**
+     * Returns metric-bounds in font-units.
+     * <p>
+     * Metric bounds is based on the `hmtx` table's advance of each glyph and `hheaTable' composed line height.
+     * </p>
+     * <p>
+     * For accurate layout consider using {@link #getGlyphBoundsFU(CharSequence)}.
+     * </p>
+     * @see #getMetricBounds(CharSequence)
+     * @see #getGlyphBoundsFU(CharSequence)
+     */
     AABBox getMetricBoundsFU(final CharSequence string);
 
-    /** Return layout metric-bounds in font em-size, see {@link #getMetricBounds(CharSequence, float)} */
+    /**
+     * Returns metric-bounds in font em-size.
+     * <p>
+     * Metric bounds is based on the `hmtx` table's advance of each glyph and `hheaTable' composed line height.
+     * </p>
+     * <p>
+     * For accurate layout consider using {@link #getGlyphBounds(CharSequence)}.
+     * </p>
+     * @see #getMetricBoundsFU(CharSequence)
+     * @see #getGlyphBounds(CharSequence)
+     * @see #getGlyphShapeBounds(CharSequence)
+     */
     AABBox getMetricBounds(final CharSequence string);
 
     /**
-     * Return the bounding box by taking each glyph's font em-sized bounding box into account.
-     * @param transform optional given transform
+     * Returns accurate bounding box by taking each glyph's font em-sized bounding box into account.
+     * <p>
+     * Glyph bounds is based on each glyph's bounding box and `hheaTable' composed line height.
+     * </p>
      * @param string string text
      * @return the bounding box of the given string in font em-size [0..1]
+     * @see #getGlyphBoundsFU(CharSequence)
+     * @see #getGlyphShapeBounds(CharSequence)
+     * @see #getMetricBounds(CharSequence)
      */
-    AABBox getPointsBounds(final AffineTransform transform, final CharSequence string);
+    AABBox getGlyphBounds(final CharSequence string);
 
     /**
-     * Return the bounding box by taking each glyph's font-units sized bounding box into account.
+     * Returns accurate bounding box by taking each glyph's font-units sized bounding box into account.
+     * <p>
+     * Glyph bounds is based on each glyph's bounding box and `hheaTable' composed line height.
+     * </p>
+     * @param string string text
+     * @return the bounding box of the given string in font-units [0..1]
+     * @see #getGlyphBounds(CharSequence)
+     */
+    AABBox getGlyphBoundsFU(final CharSequence string);
+
+    /**
+     * Returns accurate bounding box by taking each glyph's font em-sized {@link OutlineShape} into account.
+     * <p>
+     * Glyph shape bounds is based on each glyph's {@link OutlineShape} and `hheaTable' composed line height.
+     * </p>
+     * <p>
+     * This method is only exposed to validate the produced {@link OutlineShape} against {@link #getGlyphBounds(CharSequence)}.
+     * </p>
      * @param transform optional given transform
      * @param string string text
      * @return the bounding box of the given string in font-units [0..1]
+     * @see #getGlyphShapeBounds(CharSequence)
+     * @see #getGlyphBounds(CharSequence)
+     * @see #getMetricBounds(CharSequence)
      */
-    AABBox getPointsBoundsFU(final AffineTransform transform, final CharSequence string);
+    AABBox getGlyphShapeBounds(final AffineTransform transform, final CharSequence string);
 
     /**
-     * Return the bounding box of the given string by taking each glyph's font em-sized OutlineShape into account.
-     * @param transform optional given transform
+     * Returns accurate bounding box by taking each glyph's font em-sized {@link OutlineShape} into account.
+     * <p>
+     * Glyph shape bounds is based on each glyph's {@link OutlineShape} and `hheaTable' composed line height.
+     * </p>
+     * <p>
+     * This method is only exposed to validate the produced {@link OutlineShape} against {@link #getGlyphBounds(CharSequence)}.
+     * </p>
      * @param string string text
      * @return the bounding box of the given string in font-units [0..1]
+     * @see #getGlyphShapeBounds(AffineTransform, CharSequence)
+     * @see #getGlyphBounds(CharSequence)
+     * @see #getMetricBounds(CharSequence)
      */
-    AABBox getPointsBounds2(final AffineTransform transform, final CharSequence string);
+    AABBox getGlyphShapeBounds(final CharSequence string);
 
     boolean isPrintableChar(final char c);
 
@@ -329,7 +387,7 @@ public interface Font {
      * @param transform optional given transform
      * @param font the target {@link Font}
      * @param string string text
-     * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] OutlineShape into account.
+     * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] {@link OutlineShape} into account.
      */
     AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
                          final CharSequence string);
@@ -346,7 +404,7 @@ public interface Font {
      * @param string string text
      * @param temp1 temporary AffineTransform storage, mandatory
      * @param temp2 temporary AffineTransform storage, mandatory
-     * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] OutlineShape into account.
+     * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] {@link OutlineShape} into account.
      */
     AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
                          final CharSequence string,

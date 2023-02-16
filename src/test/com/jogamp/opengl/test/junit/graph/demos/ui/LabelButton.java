@@ -95,7 +95,7 @@ public class LabelButton extends RoundButton {
         // Precompute text-box size .. guessing pixelSize
         final float lw = width * ( 1f - spacingX ) ;
         final float lh = height * ( 1f - spacingY ) ;
-        final AABBox lbox0_em = label.font.getPointsBounds(null, label.text);
+        final AABBox lbox0_em = label.font.getGlyphBounds(label.text);
         final float lsx = lw / lbox0_em.getWidth();
         final float lsy = lh / lbox0_em.getHeight();
         final float lScale = lsx < lsy ? lsx : lsy;

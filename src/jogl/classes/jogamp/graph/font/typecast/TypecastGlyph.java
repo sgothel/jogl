@@ -65,7 +65,7 @@ public final class TypecastGlyph implements Font.Glyph {
         /** in font-units */
         public final AABBox getBBoxFU() { return this.bbox; }
 
-        /** Return advance in font units to be divided by unitsPerEM */
+        /** Return advance in font units, sourced from `hmtx` table. */
         public final int getAdvanceFU() { return this.advance; }
 
         @Override
@@ -184,6 +184,12 @@ public final class TypecastGlyph implements Font.Glyph {
     @Override
     public final AABBox getBBox(final AABBox dest, final float[] tmpV3) {
         return dest.copy(metrics.getBBoxFU()).scale2(1.0f/metrics.getUnitsPerEM(), tmpV3);
+    }
+
+    @Override
+    public final AABBox getBBox() {
+        final AABBox dest = new AABBox();
+        return dest.copy(metrics.getBBoxFU()).scale2(1.0f/metrics.getUnitsPerEM(), new float[2]);
     }
 
     @Override
