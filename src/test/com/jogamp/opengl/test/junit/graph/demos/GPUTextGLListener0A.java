@@ -39,14 +39,11 @@ import com.jogamp.newt.opengl.GLWindow;
 
 public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
 
-    public GPUTextGLListener0A() {
-        super(RenderState.createRenderState(SVertex.factory()), Region.VBAA_RENDERING_BIT, 4, true, false, false);
-    }
-
     public GPUTextGLListener0A(final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
         super(rs, renderModes, sampleCount, blending, debug, trace);
     }
 
+    @Override
     public void init(final GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
             final GLWindow glw = (GLWindow) drawable;
@@ -64,6 +61,7 @@ public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
         rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
     }
 
+    @Override
     public void dispose(final GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
             final GLWindow glw = (GLWindow) drawable;

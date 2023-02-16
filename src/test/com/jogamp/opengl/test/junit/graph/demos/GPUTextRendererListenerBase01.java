@@ -154,15 +154,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         this.regionFPS = GLRegion.create(renderModes, null);
         this.regionHead = GLRegion.create(renderModes, null);
         this.regionBottom = GLRegion.create(renderModes, null);
-        try {
-            // this.font = FontFactory.get(fontSet).getDefault();
-            this.font = FontFactory.get(fontSet).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE);
-
-            this.fontName = font.toString();
-        } catch (final IOException ioe) {
-            System.err.println("Caught: "+ioe.getMessage());
-            ioe.printStackTrace();
-        }
+        setFontSet(fontSet, FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE);
         setMatrix(0, 0, 0, 0f, sampleCount);
     }
 
@@ -206,6 +198,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         }
         final int w2 = Math.max(window.getSurfaceWidth(), w);
         final int h2 = Math.max(window.getSurfaceHeight(), h);
+        System.err.println("upsizeWindowSurface: "+window.getSurfaceWidth()+"x"+window.getSurfaceHeight()+" -> "+w+"x"+h+" -> "+w2+"x"+h2);
         if( off_thread ) {
             new InterruptSource.Thread() {
                 @Override
@@ -231,9 +224,17 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         } else {
             System.err.println("Using vertical default DPI of "+dpiV+", "+ppmmV+" pixel/mm");
         }
-        fontNameBox = font.getMetricBounds(fontName);
+        fontNameBox = font.getGlyphBounds(fontName);
         setHeadBox(headType, true);
-
+        {
+            final float pixelSizeFName = FontScale.toPixels(fontSizeFName, dpiV);
+            System.err.println("XXX: fontName size "+fontSizeFName+"pt, dpiV "+dpiV+" -> "+pixelSizeFName+"px");
+            System.err.println("XXX: fontName boxM fu "+font.getMetricBoundsFU(fontName));
+            System.err.println("XXX: fontName boxG fu "+font.getGlyphBoundsFU(fontName));
+            System.err.println("XXX: fontName boxM em "+font.getMetricBounds(fontName));
+            System.err.println("XXX: fontName boxG em "+font.getGlyphBounds(fontName));
+            System.err.println("XXX: fontName box height px "+(fontNameBox.getHeight() * pixelSizeFName));
+        }
     }
 
     @Override
@@ -299,6 +300,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         renderer.enable(gl, true);
 
         if( drawFPS ) {
+            pmv.glPushMatrix();
             final float pixelSizeFPS = FontScale.toPixels(fontSizeFPS, dpiV);
             final float lfps, tfps, td;
             final GLAnimatorControl animator = drawable.getAnimator();
@@ -328,27 +330,29 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             }
             // No cache, keep region alive!
             TextRegionUtil.drawString3D(gl, regionFPS, renderer, font, text, null, sampleCountFPS);
+            pmv.glPopMatrix();
         }
 
-        float dx = width - ( fontNameBox.getWidth() - font.getAdvanceWidth(Glyph.ID_SPACE) ) * pixelSizeFName;
+        // float dx = width - ( fontNameBox.getWidth() + font.getAdvanceWidth( Glyph.ID_SPACE ) ) * pixelSizeFName;
+        float dx = width - ( fontNameBox.getWidth() + 2 * font.getAdvanceWidth( font.getGlyphID('X') ) ) * pixelSizeFName;
         float dy = height - fontNameBox.getHeight() * pixelSizeFName;
-
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmv.glLoadIdentity();
-        pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
         {
-            final float sxy = nearPlaneS * pixelSizeFName;
-            pmv.glScalef(sxy, sxy, 1.0f);
+            pmv.glPushMatrix();
+            pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
+            {
+                final float sxy = nearPlaneS * pixelSizeFName;
+                pmv.glScalef(sxy, sxy, 1.0f);
+            }
+            // System.err.printf("FontN: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
+            textRegionUtil.drawString3D(gl, renderer, font, fontName, null, getSampleCount());
+            pmv.glPopMatrix();
         }
-        // System.err.printf("FontN: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
-        textRegionUtil.drawString3D(gl, renderer, font, fontName, null, getSampleCount());
 
         dx  =  10f;
         dy += -fontNameBox.getHeight() * pixelSizeFName - 10f;
 
         if(null != headtext) {
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
+            pmv.glPushMatrix();
             // System.err.printf("Head: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
             pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
             {
@@ -357,37 +361,40 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             }
             // pmv.glTranslatef(x0, y1, z0);
             textRegionUtil.drawString3D(gl, renderer, font, headtext, null, getSampleCount());
+            pmv.glPopMatrix();
         }
 
         dy += ( -headbox.getHeight() - font.getLineHeight() ) * pixelSizeCenter;
 
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmv.glLoadIdentity();
-        pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
-        // System.err.printf("Bottom: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
-        pmv.glTranslatef(getXTran(), getYTran(), getZTran());
-        pmv.glRotatef(getAngle(), 0, 1, 0);
         {
-            final float sxy = nearPlaneS * pixelSizeCenter;
-            pmv.glScalef(sxy, sxy, 1.0f);
-        }
-        rs.setColorStatic(0.9f, 0.0f, 0.0f, 1.0f);
+            pmv.glPushMatrix();
+            pmv.glTranslatef(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
+            // System.err.printf("Bottom: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
+            pmv.glTranslatef(getXTran(), getYTran(), getZTran());
+            pmv.glRotatef(getAngle(), 0, 1, 0);
+            {
+                final float sxy = nearPlaneS * pixelSizeCenter;
+                pmv.glScalef(sxy, sxy, 1.0f);
+            }
+            rs.setColorStatic(0.9f, 0.0f, 0.0f, 1.0f);
 
-        if( bottomTextUseFrustum ) {
-            regionBottom.setFrustum(pmv.glGetFrustum());
-        }
-        if(!userInput) {
             if( bottomTextUseFrustum ) {
-                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, text2, null, getSampleCount());
-            } else {
-                textRegionUtil.drawString3D(gl, renderer, font, text2, null, getSampleCount());
+                regionBottom.setFrustum(pmv.glGetFrustum());
             }
-        } else {
-            if( bottomTextUseFrustum ) {
-                TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, userString.toString(), null, getSampleCount());
+            if(!userInput) {
+                if( bottomTextUseFrustum ) {
+                    TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, text2, null, getSampleCount());
+                } else {
+                    textRegionUtil.drawString3D(gl, renderer, font, text2, null, getSampleCount());
+                }
             } else {
-                textRegionUtil.drawString3D(gl, renderer, font, userString.toString(), null, getSampleCount());
+                if( bottomTextUseFrustum ) {
+                    TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, userString.toString(), null, getSampleCount());
+                } else {
+                    textRegionUtil.drawString3D(gl, renderer, font, userString.toString(), null, getSampleCount());
+                }
             }
+            pmv.glPopMatrix();
         }
         renderer.enable(gl, false);
     }

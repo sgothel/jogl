@@ -12,8 +12,8 @@ public class FontSet01 {
         final Font[] fonts = new Font[11];
         int i = 0;
         fonts[i++] = FontFactory.get(FontFactory.UBUNTU).getDefault(); // FontSet.FAMILY_REGULAR, FontSet.STYLE_NONE
-        fonts[i++] = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_REGULAR, FontSet.STYLE_ITALIC);
-        fonts[i++] = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_REGULAR, FontSet.STYLE_BOLD);
+        fonts[i++] = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE);
+        fonts[i++] = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_ITALIC);
         fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf",
                 TestTextRendererNEWTBugXXXX.class.getClassLoader(), TestTextRendererNEWTBugXXXX.class).getInputStream(), true);
         fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMonoBold.ttf",
