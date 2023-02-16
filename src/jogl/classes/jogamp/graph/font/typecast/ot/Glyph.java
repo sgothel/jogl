@@ -33,7 +33,7 @@ public abstract class Glyph {
     }
     
     /** Return the assigned glyph ID of this instance */
-    public final int getGlyphIndex() { return _glyph_id; }
+    public final int getID() { return _glyph_id; }
     
     public abstract void clearPointData();
 
