@@ -27,7 +27,9 @@
  */
 package jogamp.graph.font.typecast;
 
+import jogamp.graph.font.typecast.ot.Glyph;
 import jogamp.graph.font.typecast.ot.Point;
+import jogamp.graph.font.typecast.ot.T2Glyph;
 import jogamp.opengl.Debug;
 
 import com.jogamp.graph.curve.OutlineShape;
@@ -46,50 +48,76 @@ import com.jogamp.graph.geom.Vertex.Factory;
  */
 public class TypecastRenderer {
     private static final boolean DEBUG = Debug.debug("graph.font.Renderer");
+    private static final boolean PRINT_CODE = Debug.debug("graph.font.Renderer.Code");
 
     private static void addShapeMoveTo(final float unitsPerEM, final OutlineShape shape, final Point p1) {
-        if( DEBUG ) { System.err.println("Shape.MoveTo: "+p1); }
+        if( PRINT_CODE ) {
+            System.err.println("// Shape.MoveTo:");
+            System.err.printf("shape.closeLastOutline(false);%n");
+            System.err.printf("shape.addEmptyOutline();%n");
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p1.x/unitsPerEM, p1.y/unitsPerEM, true);
+        }
         shape.closeLastOutline(false);
         shape.addEmptyOutline();
-        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, p1.onCurve);
+        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, true);
     }
     private static void addShapeLineTo(final float unitsPerEM, final OutlineShape shape, final Point p1) {
-        if( DEBUG ) { System.err.println("Shape.LineTo: "+p1); }
-        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, p1.onCurve);
+        if( PRINT_CODE ) {
+            System.err.println("// Shape.LineTo:");
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p1.x/unitsPerEM, p1.y/unitsPerEM, true);
+        }
+        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, true);
     }
     private static void addShapeQuadTo(final float unitsPerEM, final OutlineShape shape, final Point p1, final Point p2) {
-        if( DEBUG ) { System.err.println("Shape.QuadTo: "+p1+", "+p2); }
-        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, p1.onCurve);
-        shape.addVertex(0, p2.x/unitsPerEM,  p2.y/unitsPerEM, p2.onCurve);
+        if( PRINT_CODE ) {
+            System.err.println("// Shape.QuadTo:");
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p1.x/unitsPerEM, p1.y/unitsPerEM, false);
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p2.x/unitsPerEM, p2.y/unitsPerEM, true);
+        }
+        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, false);
+        shape.addVertex(0, p2.x/unitsPerEM,  p2.y/unitsPerEM, true);
     }
-    private static void addShapeQuadTo(final float unitsPerEM, final OutlineShape shape, final Point p1,
-                                       final float p2x, final float p2y, final boolean p2OnCurve) {
-        if( DEBUG ) { System.err.println("Shape.QuadTo: "+p1+", p2 "+p2x+", "+p2y+", onCurve "+p2OnCurve); }
-        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, p1.onCurve);
-        shape.addVertex(0, p2x/unitsPerEM,   p2y/unitsPerEM, p2OnCurve);
+    private static void addShapeQuadTo(final float unitsPerEM, final OutlineShape shape, final Point p1, final float p2x, final float p2y) {
+        if( PRINT_CODE ) {
+            System.err.println("// Shape.QuadTo:");
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p1.x/unitsPerEM, p1.y/unitsPerEM, false);
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p2x/unitsPerEM, p2y/unitsPerEM, true);
+        }
+        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, false);
+        shape.addVertex(0, p2x/unitsPerEM,   p2y/unitsPerEM, true);
     }
-    /**
-    private static void addShapeCubicTo(final float unitsPerEM, final OutlineShape shape, Factory<? extends Vertex> vertexFactory, Point p1, Point p2, Point p3) {
-        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, p1.onCurve);
-        shape.addVertex(0, p2.x/unitsPerEM,  p2.y/unitsPerEM, p2.onCurve);
-        shape.addVertex(0, p3.x/unitsPerEM,  p3.y/unitsPerEM, p3.onCurve);
-    } */
+    private static void addShapeCubicTo(final float unitsPerEM, final OutlineShape shape, final Point p1, final Point p2, final Point p3) {
+        if( PRINT_CODE ) {
+            System.err.println("// Shape.CubicTo:");
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p1.x/unitsPerEM, p1.y/unitsPerEM, false);
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p2.x/unitsPerEM, p2.y/unitsPerEM, false);
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p3.x/unitsPerEM, p3.y/unitsPerEM, true);
+        }
+        shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, false);
+        shape.addVertex(0, p2.x/unitsPerEM,  p2.y/unitsPerEM, false);
+        shape.addVertex(0, p3.x/unitsPerEM,  p3.y/unitsPerEM, true);
+    }
 
-    public static OutlineShape buildShape(final int unitsPerEM, final jogamp.graph.font.typecast.ot.Glyph glyph, final Factory<? extends Vertex> vertexFactory) {
-        //
-        // See Typecast: GlyphPathFactory.addContourToPath(..)
-        //
+    public static OutlineShape buildShape(final int unitsPerEM, final Glyph glyph, final Factory<? extends Vertex> vertexFactory) {
         if (glyph == null) {
             return null;
         }
-
         final OutlineShape shape = new OutlineShape(vertexFactory);
-        buildShapeImpl(unitsPerEM, shape, glyph);
-        shape.setIsQuadraticNurbs();
+        if (glyph instanceof T2Glyph) {
+            // Type 1/2: Cubic
+            if( PRINT_CODE ) { System.err.printf("%n// Start Type-2 Shape for Glyph %d%n", glyph.getID()); }
+            buildShapeType2(unitsPerEM, shape, (T2Glyph)glyph);
+        } else {
+            // TTF: quadratic only
+            if( PRINT_CODE ) { System.err.printf("%n// Start TTF Shape for Glyph %d%n", glyph.getID()); }
+            buildShapeTTF(unitsPerEM, shape, glyph);
+            shape.setIsQuadraticNurbs();
+        }
+        if( PRINT_CODE ) { System.err.printf("// End Shape for Glyph %d%n%n", glyph.getID()); }
         return shape;
     }
 
-    private static void buildShapeImpl(final float unitsPerEM, final OutlineShape shape, final jogamp.graph.font.typecast.ot.Glyph glyph) {
+    private static void buildShapeTTF(final float unitsPerEM, final OutlineShape shape, final Glyph glyph) {
         // Iterate through all of the points in the glyph.  Each time we find a
         // contour end point, add the point range to the path.
         int startIndex = 0;
@@ -99,98 +127,74 @@ public class TypecastRenderer {
             count++;
             if ( glyph.getPoint(i).endOfContour ) {
                 int offset = 0;
-                while ( offset < count - 1 ) { // require at least +1 point (last one is end-of-contour)
-                    final Point p0 = glyph.getPoint(startIndex + offset%count);
-                    final Point p1 = glyph.getPoint(startIndex + (offset+1)%count);
-                    final Point p2 = glyph.getPoint(startIndex + (offset+2)%count);
-                    final Point p3 = offset+3 < count ? glyph.getPoint(startIndex + offset+3) : null;
+                while ( offset < count ) {
+                    final int point_0_idx = startIndex + offset%count;
+                    final Point point_m = glyph.getPoint((offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count);
+                    final Point point_0 = glyph.getPoint(point_0_idx);
+                    final Point point_1 = glyph.getPoint(startIndex + (offset+1)%count);
+                    final Point point_2 = glyph.getPoint(startIndex + (offset+2)%count);
+                    // final Point point_3 = offset+3 < count ? glyph.getPoint(startIndex + offset+3) : null;
                     if( DEBUG  ) {
-                        System.err.println("GlyphShape<"+glyph.getGlyphIndex()+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
-                        final int pMIdx= (offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count;
-                        final Point pM = glyph.getPoint(pMIdx);
-                        final int p0Idx = startIndex + offset%count;
-                        final int p1Idx = startIndex + (offset+1)%count;
-                        final int p2Idx = startIndex + (offset+2)%count;
-                        final int p3Idx = startIndex + (offset+3)%count;
-                        System.err.println("\t pM["+pMIdx+"] "+pM);
-                        System.err.println("\t p0["+p0Idx+"] "+p0);
-                        System.err.println("\t p1["+p1Idx+"] "+p1);
-                        System.err.println("\t p2["+p2Idx+"] "+p2);
-                        System.err.println("\t p3["+p3Idx+"] "+p3);
+                        System.err.println("GlyphShape<"+glyph.getID()+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
+                        final int point_m_idx= (offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count;
+                        final int point_1_idx = startIndex + (offset+1)%count;
+                        final int point_2_idx = startIndex + (offset+2)%count;
+                        // final int point_3_idx = startIndex + (offset+3)%count;
+                        System.err.println("\t pM["+point_m_idx+"] "+point_m);
+                        System.err.println("\t p0["+point_0_idx+"] "+point_0);
+                        System.err.println("\t p1["+point_1_idx+"] "+point_1);
+                        System.err.println("\t p2["+point_2_idx+"] "+point_2);
+                        // System.err.println("\t p3["+point_3_idx+"] "+point_3);
                     }
                     if(offset == 0) {
-                        addShapeMoveTo(unitsPerEM, shape, p0);
-                        // gp.moveTo(point.x, point.y);
+                        addShapeMoveTo(unitsPerEM, shape, point_0); // OK
                     }
-
-                    if( p0.endOfContour ) {
-                        // Branch-0: EOC ** SHALL NEVER HAPPEN **
-                        if( DEBUG ) { System.err.println("B0 .. end-of-contour **** EOC"); }
-                        shape.closeLastOutline(false);
-                        break;
-                    } else if (p0.onCurve) {
-                        if (p1.onCurve) {
+                    if (point_0.onCurve) {
+                        if (point_1.onCurve) {
                             // Branch-1: point.onCurve && p1.onCurve
-                            if( DEBUG ) { System.err.println("B1 .. line-to p0-p1"); }
-
-                            // s = new Line2D.Float(point.x, point.y, p1.x, p1.y);
-                            // gp.lineTo( p1.x, p1.y );
-                            addShapeLineTo(unitsPerEM, shape, p1);
+                            if( PRINT_CODE ) { System.err.printf("// %03d: B1: line-to p0-p1%n", point_0_idx); }
+                            addShapeLineTo(unitsPerEM, shape, point_1); // OK
                             offset++;
                         } else {
-                            if (p2.onCurve) {
+                            if (point_2.onCurve) {
                                 // Branch-2: point.onCurve && !p1.onCurve && p2.onCurve
-                                if( DEBUG ) { System.err.println("B2 .. quad-to p0-p1-p2"); }
-
-                                // s = new QuadCurve2D.Float( point.x, point.y, p1.x, p1.y, p2.x, p2.y);
-                                // gp.quadTo(p1.x, p1.y, p2.x, p2.y);
-                                addShapeQuadTo(unitsPerEM, shape, p1, p2);
+                                if( PRINT_CODE ) { System.err.printf("// %03d: B2: quad-to p0-p1-p2%n", point_0_idx); }
+                                addShapeQuadTo(unitsPerEM, shape, point_1, point_2); // OK
                                 offset+=2;
                             } else {
-                                if (null != p3 && p3.onCurve) {
+                                /** if (null != point_3 && point_3.onCurve) {
+                                    // Not required, handled via B4 and subsequent B6!
                                     // Branch-3: point.onCurve && !p1.onCurve && !p2.onCurve && p3.onCurve
-                                    if( DEBUG ) { System.err.println("B3 .. 2-quad p0-p1-p1_2, p1_2-p2-p3 **** 2QUAD"); }
-                                    // addShapeCubicTo(shape, vertexFactory, p1, p2, p3);
-                                    addShapeQuadTo(unitsPerEM, shape, p1, midValue(p1.x, p2.x),
-                                                   midValue(p1.y, p2.y),
-                                                   true);
-                                    addShapeQuadTo(unitsPerEM, shape, p2, p3);
+                                    if( PRINT_CODE ) { System.err.printf("// %03d: B3: p0-p1-p1_2, p1_2-p2-p3 **** 2QUAD%n", point_0_idx); }
+                                    addShapeQuadTo(unitsPerEM, shape, point_1, midValue(point_1.x, point_2.x),
+                                                   midValue(point_1.y, point_2.y));
+                                    addShapeQuadTo(unitsPerEM, shape, point_2, point_3);
                                     offset+=3;
-                                } else {
+                                } else */ {
                                     // Branch-4: point.onCurve && !p1.onCurve && !p2.onCurve && !p3.onCurve
-                                    if( DEBUG ) { System.err.println("B4 .. quad-to p0-p1-p2h **** MID"); }
-
-                                    // s = new QuadCurve2D.Float(point.x,point.y,p1.x,p1.y,
-                                    //                           midValue(p1.x, p2.x), midValue(p1.y, p2.y));
-                                    // gp.quadTo(p1.x, p1.y, midValue(p1.x, p2.x), midValue(p1.y, p2.y));
-                                    addShapeQuadTo(unitsPerEM, shape, p1, midValue(p1.x, p2.x),
-                                                   midValue(p1.y, p2.y),
-                                                   true);
+                                    if( PRINT_CODE ) { System.err.printf("// %03d: B4: quad-to p0-p1-p2h **** MID%n", point_0_idx); }
+                                    addShapeQuadTo(unitsPerEM, shape, point_1, midValue(point_1.x, point_2.x),
+                                                   midValue(point_1.y, point_2.y));
                                     offset+=2; // Skip p2 as done in Typecast
                                 }
                             }
                         }
                     } else {
-                        if (!p1.onCurve) {
+                        if (!point_1.onCurve) {
                             // Branch-5: !point.onCurve && !p1.onCurve
-                            if( DEBUG ) { System.err.println("B5 .. quad-to pMh-p0-p1h ***** MID"); }
-                            // s = new QuadCurve2D.Float(midValue(pM.x, point.x), midValue(pM.y, point.y),
-                            //                           point.x, point.y,
-                            //                           midValue(point.x, p1.x), midValue(point.y, p1.y));
-                            addShapeQuadTo(unitsPerEM, shape, p0, midValue(p0.x, p1.x),
-                                           midValue(p0.y, p1.y), true);
+                            if( PRINT_CODE ) { System.err.printf("// %03d: B5: quad-to pMh-p0-p1h ***** MID%n", point_0_idx); }
+                            addShapeQuadTo(unitsPerEM, shape, point_0, midValue(point_0.x, point_1.x), // OK
+                                           midValue(point_0.y, point_1.y) );
                             offset++;
                         } else {
                             // Branch-6: !point.onCurve && p1.onCurve
-                            if( DEBUG ) { System.err.println("B6 .. quad-to pMh-p0-p1"); }
-                            // s = new QuadCurve2D.Float(midValue(pM.x, point.x), midValue(pM.y, point.y),
-                            //                           point.x, point.y, p1.x, p1.y);
-                            // gp.quadTo(point.x, point.y, p1.x, p1.y);
-                            addShapeQuadTo(unitsPerEM, shape, p0, p1);
+                            if( PRINT_CODE ) { System.err.printf("// %03d: B6: quad-to pMh-p0-p1%n", point_0_idx); }
+                            addShapeQuadTo(unitsPerEM, shape, point_0, point_1); // OK
                             offset++;
                         }
                     }
                 }
+                if( PRINT_CODE ) { System.err.printf("shape.closeLastOutline(false);%n%n"); }
                 shape.closeLastOutline(false);
                 startIndex = i + 1;
                 count = 0;
@@ -198,7 +202,154 @@ public class TypecastRenderer {
         }
     }
 
-    private static float midValue(final float a, final float b) {
-        return a + (b - a)/2f;
+    private static void buildShapeType2(final float unitsPerEM, final OutlineShape shape, final T2Glyph glyph) {
+        // Iterate through all of the points in the glyph.  Each time we find a
+        // contour end point, add the point range to the path.
+        int startIndex = 0;
+        int count = 0;
+        final int totalPoints = glyph.getPointCount();
+        for (int i = 0; i < totalPoints; i++) {
+            count++;
+            if ( glyph.getPoint(i).endOfContour ) {
+                int offset = 0;
+                while ( offset < count ) {
+                    final int point_0_idx = startIndex + offset%count;
+                    final Point point_0 = glyph.getPoint(point_0_idx);
+                    final Point point_1 = glyph.getPoint(startIndex + (offset+1)%count);
+                    final Point point_2 = glyph.getPoint(startIndex + (offset+2)%count);
+                    final Point point_3 = glyph.getPoint(startIndex + (offset+3)%count);
+                    if( DEBUG  ) {
+                        System.err.println("GlyphShape<"+glyph.getID()+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
+                        final int point_1_idx = startIndex + (offset+1)%count;
+                        final int point_2_idx = startIndex + (offset+2)%count;
+                        final int point_3_idx = startIndex + (offset+3)%count;
+                        System.err.println("\t p0["+point_0_idx+"] "+point_0);
+                        System.err.println("\t p1["+point_1_idx+"] "+point_1);
+                        System.err.println("\t p2["+point_2_idx+"] "+point_2);
+                        System.err.println("\t p3["+point_3_idx+"] "+point_3);
+                    }
+                    if(offset == 0) {
+                        addShapeMoveTo(unitsPerEM, shape, point_0); // OK
+                    }
+                    if (point_0.onCurve && point_1.onCurve) {
+                        // Branch-1: point.onCurve && p1.onCurve
+                        if( PRINT_CODE ) { System.err.printf("// %03d: C1: line-to p0-p1%n", point_0_idx); }
+                        addShapeLineTo(unitsPerEM, shape, point_1); // OK
+                        offset++;
+                    } else if (point_0.onCurve && !point_1.onCurve && !point_2.onCurve && point_3.onCurve) {
+                        if( PRINT_CODE ) { System.err.printf("// %03d: C2: cubic-to p0-p1-p2%n", point_0_idx); }
+                        addShapeCubicTo(unitsPerEM, shape, point_0, point_2, point_3);
+                        offset+=3;
+                    } else {
+                        System.out.println("addContourToPath case not catered for!!");
+                        break;
+                    }
+                }
+                if( PRINT_CODE ) { System.err.printf("shape.closeLastOutline(false);%n%n"); }
+                shape.closeLastOutline(false);
+                startIndex = i + 1;
+                count = 0;
+            }
+        }
+    }
+
+    /**
+     * Returns the mid-value of two.
+     * <p>
+     * Intentionally using integer arithmetic on unitPerEM sized values w/o rounding.
+     * </p>
+     */
+    private static int midValue(final int a, final int b) {
+        return a + (b - a)/2;
+    }
+
+    //
+    // Leaving Typecast's orig rendering loop in here, transformed to using our OutlineShape.
+    // This is now actually the same since ours has been re-aligned on 2023-02-15.
+    //
+
+    @SuppressWarnings("unused")
+    private static void buildShapeImplX(final float unitsPerEM, final OutlineShape shape, final Glyph glyph) {
+        // Iterate through all of the points in the glyph.  Each time we find a
+        // contour end point, add the point range to the path.
+        int firstIndex = 0;
+        int count = 0;
+        final int totalPoints = glyph.getPointCount();
+        if (glyph instanceof T2Glyph) {
+            // addContourToPath(unitsPerEM, shape, (T2Glyph) glyph, firstIndex, count);
+            throw new RuntimeException("T2Glyph Not Yet Supported: "+glyph);
+        }
+        if( PRINT_CODE ) { System.err.printf("%n// Start Shape for Glyph %d%n", glyph.getID()); }
+        for (int i = 0; i < totalPoints; i++) {
+            count++;
+            if ( glyph.getPoint(i).endOfContour ) {
+                addContourToPathX1(unitsPerEM, shape, glyph, firstIndex, count);
+                firstIndex = i + 1;
+                count = 0;
+            }
+        }
+        if( PRINT_CODE ) { System.err.printf("// End Shape for Glyph %d%n%n", glyph.getID()); }
+    }
+    private static void addContourToPathX1(final float unitsPerEM, final OutlineShape shape, final Glyph glyph, final int startIndex, final int count) {
+        int offset = 0;
+        while ( offset < count ) {
+            final int point_0_idx = startIndex + offset%count;
+            final Point point_m = glyph.getPoint((offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count);
+            final Point point_0 = glyph.getPoint(point_0_idx);
+            final Point point_1 = glyph.getPoint(startIndex + (offset+1)%count);
+            final Point point_2 = glyph.getPoint(startIndex + (offset+2)%count);
+            // final Point point_3 = offset+3 < count ? glyph.getPoint(startIndex + offset+3) : null;
+            if( DEBUG  ) {
+                System.err.println("GlyphShape<"+glyph.getID()+">: offset "+offset+" of "+count+" points");
+                final int point_m_idx= (offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count;
+                final int point_1_idx = startIndex + (offset+1)%count;
+                final int point_2_idx = startIndex + (offset+2)%count;
+                // final int p3Idx = startIndex + (offset+3)%count;
+                System.err.println("\t pM["+point_m_idx+"] "+point_m);
+                System.err.println("\t p0["+point_0_idx+"] "+point_0);
+                System.err.println("\t p1["+point_1_idx+"] "+point_1);
+                System.err.println("\t p2["+point_2_idx+"] "+point_2);
+                // System.err.println("\t p3["+p3Idx+"] "+point_3);
+            }
+            if(offset == 0) {
+                addShapeMoveTo(unitsPerEM, shape, point_0);
+            }
+            if (point_0.onCurve && point_1.onCurve) {
+                // Branch-1: point.onCurve && p1.onCurve
+                if( PRINT_CODE ) { System.err.printf("// %03d: B1: line-to p0-p1%n", point_0_idx); }
+                addShapeLineTo(unitsPerEM, shape, point_1);
+                offset++;
+            } else if (point_0.onCurve && !point_1.onCurve && point_2.onCurve) {
+                // Branch-2: point.onCurve && !p1.onCurve && p2.onCurve
+                if( PRINT_CODE ) { System.err.printf("// %03d: B2: quad-to p0-p1-p2%n", point_0_idx); }
+                addShapeQuadTo(unitsPerEM, shape, point_1, point_2);
+                offset+=2;
+            } else if (point_0.onCurve && !point_1.onCurve && !point_2.onCurve) {
+                // Branch-4: point.onCurve && !p1.onCurve && !p2.onCurve && !p3.onCurve
+                if( PRINT_CODE ) { System.err.printf("// %03d: B4: quad-to p0-p1-p2h **** MID%n", point_0_idx); }
+                addShapeQuadTo(unitsPerEM, shape, point_1,
+                        midValue(point_1.x, point_2.x),
+                        midValue(point_1.y, point_2.y));
+
+                offset+=2;
+            } else if (!point_0.onCurve && !point_1.onCurve) {
+                // Branch-5: !point.onCurve && !p1.onCurve
+                if( PRINT_CODE ) { System.err.printf("// %03d: B5: quad-to pMh-p0-p1h ***** MID%n", point_0_idx); }
+                addShapeQuadTo(unitsPerEM, shape, point_0,
+                        midValue(point_0.x, point_1.x),
+                        midValue(point_0.y, point_1.y) );
+                offset++;
+            } else if (!point_0.onCurve && point_1.onCurve) {
+                // Branch-6: !point.onCurve && p1.onCurve
+                if( PRINT_CODE ) { System.err.printf("// %03d: B6: quad-to pMh-p0-p1%n", point_0_idx); }
+                addShapeQuadTo(unitsPerEM, shape, point_0, point_1);
+                offset++;
+            } else {
+                System.out.println("addContourToPath case not catered for!!");
+                break;
+            }
+        }
+        if( PRINT_CODE ) { System.err.printf("shape.closeLastOutline(false);%n%n"); }
+        shape.closeLastOutline(false);
     }
 }
