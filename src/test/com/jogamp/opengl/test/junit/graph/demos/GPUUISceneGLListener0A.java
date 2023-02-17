@@ -80,9 +80,9 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private final float buttonXSizePVP = 0.105f;
     private final float fontSizePt = 10f;
     /** Proportional Font Size to Window Height  for Main Text, per-vertical-pixels [PVP] */
-    private final float fontSizeFixedPVP = 0.03f;
+    private final float fontSizeFixedPVP = 0.04f;
     /** Proportional Font Size to Window Height for FPS Status Line, per-vertical-pixels [PVP] */
-    private final float fontSizeFpsPVP = 0.03f;
+    private final float fontSizeFpsPVP = 0.04f;
     private float dpiH = 96;
 
     /**
@@ -660,7 +660,85 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     }
 
 
-    final boolean enableOthers = true;
+    private static final boolean enableOthers = true;
+    private static final boolean reshape_resize = false; // incomplete: button positioning
+
+
+    private void setupUI(final GLAutoDrawable drawable) {
+        final float pixelSizeFixed = fontSizeFixedPVP * drawable.getSurfaceHeight();
+        jogampLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSizeFixed, jogamp);
+        jogampLabel.addMouseListener(dragZoomRotateListener);
+        sceneUIController.addShape(jogampLabel);
+        jogampLabel.setEnabled(enableOthers);
+
+        final float pixelSize10Pt = FontScale.toPixels(fontSizePt, dpiH);
+        System.err.println("10Pt PixelSize: Display "+dpiH+" dpi, fontSize "+fontSizePt+" ppi -> "+pixelSize10Pt+" pixel-size");
+        truePtSizeLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSize10Pt, truePtSize);
+        sceneUIController.addShape(truePtSizeLabel);
+        truePtSizeLabel.setEnabled(enableOthers);
+        truePtSizeLabel.translate(0, - 1.5f * jogampLabel.getLineHeight(), 0f);
+        truePtSizeLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
+
+        /**
+         *
+         * [Label] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 18.814816
+         * [FPS] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 15.679012
+         */
+        final float pixelSizeFPS = fontSizeFpsPVP * drawable.getSurfaceHeight();
+        fpsLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSizeFPS, "Nothing there yet");
+        fpsLabel.addMouseListener(dragZoomRotateListener);
+        sceneUIController.addShape(fpsLabel);
+        fpsLabel.setEnabled(enableOthers);
+        fpsLabel.setColor(0.3f, 0.3f, 0.3f, 1.0f);
+
+        crossHairCtr = new CrossHair(renderer.getRenderState().getVertexFactory(), 0, 100f, 100f, 2f);
+        crossHairCtr.addMouseListener(dragZoomRotateListener);
+        sceneUIController.addShape(crossHairCtr);
+        crossHairCtr.setEnabled(true);
+        crossHairCtr.translate(0f, 0f, -1f);
+
+        initButtons(drawable.getGL().getGL2ES2(), drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), renderer);
+        for(int i=0; i<buttons.size(); i++) {
+            sceneUIController.addShape(buttons.get(i));
+        }
+    }
+
+    private void resetUI(final GLAutoDrawable drawable) {
+        final float pixelSizeFixed = fontSizeFixedPVP * drawable.getSurfaceHeight();
+        jogampLabel.setPixelSize(pixelSizeFixed);
+
+        final float pixelSize10Pt = FontScale.toPixels(fontSizePt, dpiH);
+        System.err.println("10Pt PixelSize: Display "+dpiH+" dpi, fontSize "+fontSizePt+" ppi -> "+pixelSize10Pt+" pixel-size");
+        truePtSizeLabel.setPixelSize(pixelSize10Pt);
+
+        /**
+         *
+         * [Label] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 18.814816
+         * [FPS] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 15.679012
+         */
+        final float pixelSizeFPS = fontSizeFpsPVP * drawable.getSurfaceHeight();
+        fpsLabel.setPixelSize(pixelSizeFPS);
+
+        final float buttonXSize = buttonXSizePVP * drawable.getSurfaceWidth();
+        // final float buttonYSize = buttonYSizePVP * height;
+        final float buttonYSize = buttonXSize / 2.5f;
+        final float button2XSize = 2f*buttonXSize;
+        final float button2YSize = 2f*buttonYSize;
+
+        for(int i=0; i<buttons.size() && i<buttonsLeftCount; i++) {
+            buttons.get(i).setSize(buttonXSize, buttonYSize);
+        }
+        for(int i=buttonsLeftCount; i<buttons.size(); i++) {
+            buttons.get(i).setSize(button2XSize, button2YSize);
+        }
+
+        for(int i=0; i<labels.length; i++) {
+            final Label l = labels[i];
+            if( null != l ) {
+                l.setPixelSize(pixelSizeFixed);
+            }
+        }
+    }
 
     @Override
     public void init(final GLAutoDrawable drawable) {
@@ -721,49 +799,14 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         sceneUIController.setRenderer(renderer);
 
-        final float pixelSizeFixed = fontSizeFixedPVP * drawable.getSurfaceHeight();
-        jogampLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSizeFixed, jogamp);
-        jogampLabel.addMouseListener(dragZoomRotateListener);
-        sceneUIController.addShape(jogampLabel);
-        jogampLabel.setEnabled(enableOthers);
-
-        final float pixelSize10Pt = FontScale.toPixels(fontSizePt, dpiH);
-        System.err.println("10Pt PixelSize: Display "+dpiH+" dpi, fontSize "+fontSizePt+" ppi -> "+pixelSize10Pt+" pixel-size");
-        truePtSizeLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSize10Pt, truePtSize);
-        sceneUIController.addShape(truePtSizeLabel);
-        truePtSizeLabel.setEnabled(enableOthers);
-        truePtSizeLabel.translate(0, - 1.5f * jogampLabel.getLineHeight(), 0f);
-        truePtSizeLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
-
-        /**
-         *
-         * [Label] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 18.814816
-         * [FPS] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 15.679012
-         */
-        final float pixelSizeFPS = fontSizeFpsPVP * drawable.getSurfaceHeight();
-        fpsLabel = new Label(renderer.getRenderState().getVertexFactory(), renderModes, font, pixelSizeFPS, "Nothing there yet");
-        fpsLabel.addMouseListener(dragZoomRotateListener);
-        sceneUIController.addShape(fpsLabel);
-        fpsLabel.setEnabled(enableOthers);
-        fpsLabel.setColor(0.3f, 0.3f, 0.3f, 1.0f);
-
-        crossHairCtr = new CrossHair(renderer.getRenderState().getVertexFactory(), 0, 100f, 100f, 2f);
-        crossHairCtr.addMouseListener(dragZoomRotateListener);
-        sceneUIController.addShape(crossHairCtr);
-        crossHairCtr.setEnabled(true);
-        crossHairCtr.translate(0f, 0f, -1f);
-
-        initButtons(gl, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), renderer);
-        for(int i=0; i<buttons.size(); i++) {
-            sceneUIController.addShape(buttons.get(i));
-        }
-
         sceneUIController.init(drawable);
 
         final GLAnimatorControl a = drawable.getAnimator();
         if( null != a ) {
             a.resetFPSCounter();
         }
+
+        setupUI(drawable);
     }
 
     @Override
@@ -781,12 +824,16 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         final float dxLeft = dw * relLeft;
         final float dxRight = dw;
 
+        if( reshape_resize ) {
+            resetUI(drawable);
+        }
         for(int i=0; i<buttons.size() && i<buttonsLeftCount; i++) {
             buttons.get(i).translate(dxLeft, dyTop, dz);
         }
         for(int i=buttonsLeftCount; i<buttons.size(); i++) {
             buttons.get(i).translate(dxRight, dyTop, dz);
         }
+
         final float dxMiddleAbs = width * relMiddle;
         final float dyTopLabelAbs = drawable.getSurfaceHeight() - 2f*jogampLabel.getLineHeight();
         jogampLabel.setTranslate(dxMiddleAbs, dyTopLabelAbs, dz);
@@ -800,6 +847,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             System.err.println("Label["+currentText+"] MOVE: "+labels[currentText]);
             System.err.println("Label["+currentText+"] MOVE: "+Arrays.toString(labels[currentText].getTranslate()));
         }
+
         crossHairCtr.translate(dw/2f, dh/2f, 0f);
 
         sceneUIController.reshape(drawable, x, y, width, height);
