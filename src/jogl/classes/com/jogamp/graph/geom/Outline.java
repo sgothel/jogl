@@ -148,8 +148,7 @@ public class Outline implements Comparable<Outline> {
         if( 3 > count ) {
             winding = Winding.CCW;
         } else {
-            final ArrayList<Vertex> vertices = getVertices();
-            winding = VectorUtil.getWinding(vertices);
+            winding = VectorUtil.getWinding( getVertices() );
         }
         dirtyWinding = false;
         return winding;
