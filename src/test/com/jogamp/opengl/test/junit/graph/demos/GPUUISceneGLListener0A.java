@@ -113,7 +113,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private final String truePtSize = fontSizePt+" pt font size label - true scale!";
 
     public GPUUISceneGLListener0A() {
-      this(0);
+        this(0);
     }
 
     /**
@@ -127,7 +127,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
      * @param renderModes
      */
     public GPUUISceneGLListener0A(final int renderModes) {
-      this(renderModes, false, false);
+        this(renderModes, false, false);
     }
 
     /**
@@ -524,7 +524,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
             mPlayer.setTextureUnit(texUnitMediaPlayer);
             final MediaPlayerButton mPlayerButton = new MediaPlayerButton(renderer.getRenderState().getVertexFactory(), renderModes,
-                                                                          button2XSize, button2YSize, mPlayer);
+                    button2XSize, button2YSize, mPlayer);
             mPlayerButton.setVerbose(true);
             mPlayerButton.addDefaultEventListener();
             mPlayerButton.translate(xStartRight, yStartTop - diffY*1, 0f);
@@ -548,7 +548,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if( true ) {
             final ImageSequence imgSeq = new ImageSequence(texUnitImageButton, true);
             final ImageSeqButton imgButton = new ImageSeqButton(renderer.getRenderState().getVertexFactory(), renderModes,
-                                                                button2XSize, button2YSize, imgSeq);
+                    button2XSize, button2YSize, imgSeq);
             try {
                 imgSeq.addFrame(gl, GPUUISceneGLListener0A.class, "button-released-145x53.png", TextureIO.PNG);
                 imgSeq.addFrame(gl, GPUUISceneGLListener0A.class, "button-pressed-145x53.png", TextureIO.PNG);
@@ -606,9 +606,9 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 };
             }
             final GLEventListenerButton glelButton = new GLEventListenerButton(renderer.getRenderState().getVertexFactory(), renderModes,
-                                                                       button2XSize, button2YSize,
-                                                                       texUnitGLELButton, glel, false /* useAlpha */,
-                                                                       (int)(button2XSize), (int)(button2YSize));
+                    button2XSize, button2YSize,
+                    texUnitGLELButton, glel, false /* useAlpha */,
+                    (int)(button2XSize), (int)(button2YSize));
             glelButton.setToggleable(true);
             glelButton.setToggle(false); // toggle == true -> animation
             glelButton.setAnimate(false);
@@ -627,20 +627,19 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         strings = new String[4];
         int i = 0;
 
-        strings[i++] =
-                     "- Mouse Scroll Over Object\n"+
-                     "   - General\n"+
-                     "     - Z Translation\n"+
-                     "     - Ctrl: Y-Rotation (Shift: X-Rotation)\n"+
-                     "   - Tilt, Space and Corner\n"+
-                     "     - Their respective action via wheel\n"+
-                     "       (shift = other value)\n"+
-                     "\n"+
-                     "- Mouse Drag On Object\n"+
-                     "   - Click on Object and drag mouse\n"+
-                     "   - Current postion in status line at bottom\n"+
-                     "\n"+
-                     "- Tilt Button Rotate Whole Button Group";
+        strings[i++] = "- Mouse Scroll Over Object\n"+
+                       "   - General\n"+
+                       "     - Z Translation\n"+
+                       "     - Ctrl: Y-Rotation (Shift: X-Rotation)\n"+
+                       "   - Tilt, Space and Corner\n"+
+                       "     - Their respective action via wheel\n"+
+                       "       (shift = other value)\n"+
+                       "\n"+
+                       "- Mouse Drag On Object\n"+
+                       "   - Click on Object and drag mouse\n"+
+                       "   - Current postion in status line at bottom\n"+
+                       "\n"+
+                       "- Tilt Button Rotate Whole Button Group";
 
         strings[i++] = "abcdefghijklmn\nopqrstuvwxyz\n"+
                        "ABCDEFGHIJKL\n"+
@@ -649,14 +648,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         strings[i++] = "The quick brown fox\njumps over the lazy\ndog";
 
-        strings[i++] =
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec \n"+
-            "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel\n"+
-            "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices\n"+
-            "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia\n"+
-            "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat\n"+
-            "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum\n"+
-            "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin.\n";
+        strings[i++] = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec \n"+
+                       "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel\n"+
+                       "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices\n"+
+                       "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia\n"+
+                       "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat\n"+
+                       "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum\n"+
+                       "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin.\n";
 
         labels = new Label[i];
     }
@@ -769,6 +767,49 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     }
 
     @Override
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+        System.err.println("GPUUISceneGLListener0A: reshape");
+
+        //
+        // Layout all shapes: Relational move regarding window coordinates
+        //
+        final float dw = width - lastWidth;
+        final float dh = height - lastHeight;
+
+        final float dz = 0f;
+        final float dyTop = dh * relTop;
+        final float dxLeft = dw * relLeft;
+        final float dxRight = dw;
+
+        for(int i=0; i<buttons.size() && i<buttonsLeftCount; i++) {
+            buttons.get(i).translate(dxLeft, dyTop, dz);
+        }
+        for(int i=buttonsLeftCount; i<buttons.size(); i++) {
+            buttons.get(i).translate(dxRight, dyTop, dz);
+        }
+        final float dxMiddleAbs = width * relMiddle;
+        final float dyTopLabelAbs = drawable.getSurfaceHeight() - 2f*jogampLabel.getLineHeight();
+        jogampLabel.setTranslate(dxMiddleAbs, dyTopLabelAbs, dz);
+        truePtSizeLabel.setTranslate(dxMiddleAbs, dyTopLabelAbs, dz);
+        truePtSizeLabel.setTranslate(dxMiddleAbs, dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight(), 0f);
+        fpsLabel.translate(0f, 0f, 0f);
+        if( null != labels[currentText] ) {
+            labels[currentText].setTranslate(dxMiddleAbs,
+                    dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight()
+                    - 1.5f * truePtSizeLabel.getLineHeight(), 0f);
+            System.err.println("Label["+currentText+"] MOVE: "+labels[currentText]);
+            System.err.println("Label["+currentText+"] MOVE: "+Arrays.toString(labels[currentText].getTranslate()));
+        }
+        crossHairCtr.translate(dw/2f, dh/2f, 0f);
+
+        sceneUIController.reshape(drawable, x, y, width, height);
+
+        lastWidth = width;
+        lastHeight = height;
+    }
+    float lastWidth = 0f, lastHeight = 0f;
+
+    @Override
     public void dispose(final GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
             System.err.println("GPUUISceneGLListener0A: dispose (1)");
@@ -812,8 +853,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
             labels[currentText].setEnabled(enableOthers);
             labels[currentText].translate(dxMiddle,
-                                          dyTop - 1.5f * jogampLabel.getLineHeight()
-                                                - 1.5f * truePtSizeLabel.getLineHeight(), 0f);
+                    dyTop - 1.5f * jogampLabel.getLineHeight()
+                    - 1.5f * truePtSizeLabel.getLineHeight(), 0f);
             labels[currentText].addMouseListener(dragZoomRotateListener);
             sceneUIController.addShape(labels[currentText]);
             System.err.println("Label["+currentText+"] CTOR: "+labels[currentText]);
@@ -836,63 +877,18 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             if( null == actionText ) {
                 final String timePrec = gl.isGLES() ? "4.0" : "4.1";
                 text = String.format("%03.1f/%03.1f fps, v-sync %d, dpi %.1f, fontSize %.1f, %s-samples %d, q %d, td %"+timePrec+"f, blend %b, alpha %d, msaa %d",
-                    lfps, tfps, gl.getSwapInterval(), dpiH, fontSizeFixedPVP, modeS, sceneUIController.getSampleCount(), fpsLabel.getQuality(), td,
-                    renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
-                    drawable.getChosenGLCapabilities().getAlphaBits(),
-                    drawable.getChosenGLCapabilities().getNumSamples());
+                        lfps, tfps, gl.getSwapInterval(), dpiH, fontSizeFixedPVP, modeS, sceneUIController.getSampleCount(), fpsLabel.getQuality(), td,
+                        renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
+                        drawable.getChosenGLCapabilities().getAlphaBits(),
+                        drawable.getChosenGLCapabilities().getNumSamples());
             } else {
                 text = String.format("%03.1f/%03.1f fps, v-sync %d, fontSize %.1f, %s",
-                    lfps, tfps, gl.getSwapInterval(), fontSizeFixedPVP, actionText);
+                        lfps, tfps, gl.getSwapInterval(), fontSizeFixedPVP, actionText);
             }
             fpsLabel.setText(text);
         }
         sceneUIController.display(drawable);
     }
-
-
-    float lastWidth = 0f, lastHeight = 0f;
-
-    @Override
-    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-        System.err.println("GPUUISceneGLListener0A: reshape");
-
-        //
-        // Layout all shapes: Relational move regarding window coordinates
-        //
-        final float dw = width - lastWidth;
-        final float dh = height - lastHeight;
-
-        final float dz = 0f;
-        final float dyTop = dh * relTop;
-        final float dxLeft = dw * relLeft;
-        final float dxRight = dw;
-
-        for(int i=0; i<buttons.size() && i<buttonsLeftCount; i++) {
-            buttons.get(i).translate(dxLeft, dyTop, dz);
-        }
-        for(int i=buttonsLeftCount; i<buttons.size(); i++) {
-            buttons.get(i).translate(dxRight, dyTop, dz);
-        }
-        final float dxMiddleAbs = width * relMiddle;
-        final float dyTopLabelAbs = drawable.getSurfaceHeight() - 2f*jogampLabel.getLineHeight();
-        jogampLabel.setTranslate(dxMiddleAbs, dyTopLabelAbs, dz);
-        truePtSizeLabel.setTranslate(dxMiddleAbs, dyTopLabelAbs, dz);
-        truePtSizeLabel.setTranslate(dxMiddleAbs, dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight(), 0f);
-        fpsLabel.translate(0f, 0f, 0f);
-        if( null != labels[currentText] ) {
-            labels[currentText].setTranslate(dxMiddleAbs,
-                                             dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight()
-                                             - 1.5f * truePtSizeLabel.getLineHeight(), 0f);
-            System.err.println("Label["+currentText+"] MOVE: "+labels[currentText]);
-            System.err.println("Label["+currentText+"] MOVE: "+Arrays.toString(labels[currentText].getTranslate()));
-        }
-        crossHairCtr.translate(dw/2f, dh/2f, 0f);
-
-        sceneUIController.reshape(drawable, x, y, width, height);
-
-        lastWidth = width;
-        lastHeight = height;
-   }
 
     public void attachInputListenerTo(final GLWindow window) {
         if ( !ioAttached ) {
@@ -960,7 +956,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 final boolean isOnscreen = PointerClass.Onscreen == e.getPointerType(0).getPointerClass();
                 if( 0 == ( ~InputEvent.BUTTONALL_MASK & e.getModifiers() ) && !isOnscreen ) {
                     // offscreen vertical mouse wheel zoom
-                    final float tz = 8f*e.getRotation()[1]; // vertical: wheel
+                    final float tz = 10f*e.getRotation()[1]; // vertical: wheel
                     System.err.println("Rotate.Zoom.W: "+tz);
                     shapeEvent.shape.translate(0f, 0f, tz);
                 } else if( isOnscreen || e.isControlDown() ) {

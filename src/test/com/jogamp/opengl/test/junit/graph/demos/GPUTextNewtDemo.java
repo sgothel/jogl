@@ -148,7 +148,7 @@ public class GPUTextNewtDemo {
 
         // FPSAnimator animator = new FPSAnimator(60);
         final Animator animator = new Animator();
-        // animator.setUpdateFPSFrames(60, System.err);
+        animator.setUpdateFPSFrames(60, null);
         animator.add(window);
 
         window.addKeyListener(new KeyAdapter() {

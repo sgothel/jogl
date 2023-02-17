@@ -23,7 +23,7 @@ public class GPUUISceneNewtDemo {
     static float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
     public static void main(final String[] args) {
-        int width = 800, height = 400;
+        int width = 1280, height = 720;
         int x = 10, y = 10;
 
         boolean forceES2 = false;
@@ -135,10 +135,11 @@ public class GPUUISceneNewtDemo {
         sceneGLListener.attachInputListenerTo(window);
 
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(60, System.err);
+        animator.setUpdateFPSFrames(60, null);
         animator.add(window);
 
         window.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }
