@@ -43,19 +43,32 @@ import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 
-
 /**
  * A Generic shape objects which is defined by a list of Outlines.
  * This Shape can be transformed to triangulations.
  * The list of triangles generated are render-able by a Region object.
  * The triangulation produced by this Shape will define the
  * closed region defined by the outlines.
- *
+ * <p>
  * One or more OutlineShape Object can be associated to a region
  * this is left as a high-level representation of the Objects. For
  * optimizations, flexibility requirements for future features.
- *
- * <br><br>
+ * </p>
+ * <p>
+ * <a name="windingrules">
+ * Outline shape general {@link Winding} rules
+ * <ul>
+ *   <li>Outer boundary shapes are required as {@link Winding#CCW}, if unsure
+ *   <ul>
+ *     <li>You may check {@link Winding} via {@link #getWindingOfLastOutline()} or {@link Outline#getWinding()} (optional)</li>
+ *     <li>Use {@link #setWindingOfLastOutline(Winding)} before {@link #closeLastOutline(boolean)} or {@link #closePath()} } to enforce {@link Winding#CCW}, or</li>
+ *     <li>use {@link Outline#setWinding(Winding)} on a specific {@link Outline} to enforce {@link Winding#CCW}.</li>
+ *     <li>If e.g. the {@link Winding} has changed for an {@link Outline} by above operations, its vertices have been reversed.</li>
+ *   </ul></li>
+ *   <li>Inner shapes or holes are adjusted to be {@link Winding#CW}, no user consideration is required here.</li>
+ *   <li>Safe path: Simply create all shapes with {@link Winding#CCW} or apply {@link Outline#setWinding(Winding)}.</li>
+ * </ul>
+ * </p>
  * Example to creating an Outline Shape:
  * <pre>
       addVertex(...)
@@ -67,33 +80,35 @@ import com.jogamp.opengl.math.geom.AABBox;
       addVertex(...)
  * </pre>
  *
+ * <p>
  * The above will create two outlines each with three vertices. By adding these two outlines to
  * the OutlineShape, we are stating that the combination of the two outlines represent the shape.
- * <br>
- *
+ * </p>
+ * <p>
  * To specify that the shape is curved at a region, the on-curve flag should be set to false
  * for the vertex that is in the middle of the curved region (if the curved region is defined by 3
  * vertices (quadratic curve).
- * <br>
+ * </p>
+ * <p>
  * In case the curved region is defined by 4 or more vertices the middle vertices should both have
  * the on-curve flag set to false.
- *
- * <br>Example: <br>
+ * </p>
+ * Example:
  * <pre>
       addVertex(0,0, true);
       addVertex(0,1, false);
       addVertex(1,1, false);
       addVertex(1,0, true);
  * </pre>
- *
+ * <p>
  * The above snippet defines a cubic nurbs curve where (0,1 and 1,1)
  * do not belong to the final rendered shape.
+ * </p>
  *
  * <i>Implementation Notes:</i><br>
  * <ul>
  *    <li> The first vertex of any outline belonging to the shape should be on-curve</li>
  *    <li> Intersections between off-curved parts of the outline is not handled</li>
- *    <li> Outline shape winding shall be constructed counter clock wise ({@link Winding#CCW}).</li>
  * </ul>
  *
  * @see Outline
@@ -223,6 +238,21 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     public final int getOutlineCount() {
         return outlines.size();
+    }
+
+    /**
+     * Compute the {@link Winding} of the {@link #getLastOutline()} using the {@link #area(ArrayList)} function over all of its vertices.
+     * @return {@link Winding#CCW} or {@link Winding#CW}
+     */
+    public final Winding getWindingOfLastOutline() {
+        return getLastOutline().getWinding();
+    }
+
+    /**
+     * Sets the enforced {@link Winding} of the {@link #getLastOutline()}.
+     */
+    public final void setWindingOfLastOutline(final Winding enforced) {
+        getLastOutline().setWinding(enforced);
     }
 
     /**
@@ -358,9 +388,8 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     /**
      * Adds a vertex to the last open outline to the shape's tail.
      *
-     * The constructed shape should be {@link Winding#CCW}.
-     *
      * @param v the vertex to be added to the OutlineShape
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final Vertex v) {
         final Outline lo = getLastOutline();
@@ -375,10 +404,9 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     /**
      * Adds a vertex to the last open outline to the shape at {@code position}
      *
-     * The constructed shape should be {@link Winding#CCW}.
-     *
      * @param position index within the last open outline, at which the vertex will be added
      * @param v the vertex to be added to the OutlineShape
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final int position, final Vertex v) {
         final Outline lo = getLastOutline();
@@ -393,12 +421,10 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * Add a 2D {@link Vertex} to the last open outline to the shape's tail.
      * The 2D vertex will be represented as Z=0.
      *
-     * The constructed shape should be {@link Winding#CCW}.
-     *
      * @param x the x coordinate
      * @param y the y coordniate
-     * @param onCurve flag if this vertex is on the final curve or defines a curved region
-     * of the shape around this vertex.
+     * @param onCurve flag if this vertex is on the final curve or defines a curved region of the shape around this vertex.
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final float x, final float y, final boolean onCurve) {
         addVertex(vertexFactory.create(x, y, 0f, onCurve));
@@ -408,13 +434,11 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * Add a 2D {@link Vertex} to the last open outline to the shape at {@code position}.
      * The 2D vertex will be represented as Z=0.
      *
-     * The constructed shape should be {@link Winding#CCW}.
-     *
      * @param position index within the last open outline, at which the vertex will be added
      * @param x the x coordinate
      * @param y the y coordniate
-     * @param onCurve flag if this vertex is on the final curve or defines a curved region
-     * of the shape around this vertex.
+     * @param onCurve flag if this vertex is on the final curve or defines a curved region of the shape around this vertex.
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final int position, final float x, final float y, final boolean onCurve) {
         addVertex(position, vertexFactory.create(x, y, 0f, onCurve));
@@ -423,13 +447,11 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     /**
      * Add a 3D {@link Vertex} to the last open outline to the shape's tail.
      *
-     * The constructed shape should be {@link Winding#CCW}.
-     *
      * @param x the x coordinate
      * @param y the y coordinate
      * @param z the z coordinate
-     * @param onCurve flag if this vertex is on the final curve or defines a curved region
-     * of the shape around this vertex.
+     * @param onCurve flag if this vertex is on the final curve or defines a curved region of the shape around this vertex.
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final float x, final float y, final float z, final boolean onCurve) {
         addVertex(vertexFactory.create(x, y, z, onCurve));
@@ -438,14 +460,12 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     /**
      * Add a 3D {@link Vertex} to the last open outline to the shape at {@code position}.
      *
-     * The constructed shape should be {@link Winding#CCW}.
-     *
      * @param position index within the last open outline, at which the vertex will be added
      * @param x the x coordinate
      * @param y the y coordniate
      * @param z the z coordinate
-     * @param onCurve flag if this vertex is on the final curve or defines a curved region
-     * of the shape around this vertex.
+     * @param onCurve flag if this vertex is on the final curve or defines a curved region of the shape around this vertex.
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final int position, final float x, final float y, final float z, final boolean onCurve) {
         addVertex(position, vertexFactory.create(x, y, z, onCurve));
@@ -454,8 +474,6 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     /**
      * Add a vertex to the last open outline to the shape's tail.
      *
-     * The constructed shape should be {@link Winding#CCW}.
-     *
      * The vertex is passed as a float array and its offset where its attributes are located.
      * The attributes should be continuous (stride = 0).
      * Attributes which value are not set (when length less than 3)
@@ -463,8 +481,8 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @param coordsBuffer the coordinate array where the vertex attributes are to be picked from
      * @param offset the offset in the buffer to the x coordinate
      * @param length the number of attributes to pick from the buffer (maximum 3)
-     * @param onCurve flag if this vertex is on the final curve or defines a curved region
-     * of the shape around this vertex.
+     * @param onCurve flag if this vertex is on the final curve or defines a curved region of the shape around this vertex.
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final float[] coordsBuffer, final int offset, final int length, final boolean onCurve) {
         addVertex(vertexFactory.create(coordsBuffer, offset, length, onCurve));
@@ -472,8 +490,6 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     /**
      * Add a vertex to the last open outline to the shape at {@code position}.
-     *
-     * The constructed shape should be {@link Winding#CCW}.
      *
      * The vertex is passed as a float array and its offset where its attributes are located.
      * The attributes should be continuous (stride = 0).
@@ -483,8 +499,8 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @param coordsBuffer the coordinate array where the vertex attributes are to be picked from
      * @param offset the offset in the buffer to the x coordinate
      * @param length the number of attributes to pick from the buffer (maximum 3)
-     * @param onCurve flag if this vertex is on the final curve or defines a curved region
-     * of the shape around this vertex.
+     * @param onCurve flag if this vertex is on the final curve or defines a curved region of the shape around this vertex.
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final int position, final float[] coordsBuffer, final int offset, final int length, final boolean onCurve) {
         addVertex(position, vertexFactory.create(coordsBuffer, offset, length, onCurve));
@@ -659,13 +675,12 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     /**
      * Start a new position for the next line segment at given point x/y (P1).
      *
-     * The constructed shape should be {@link Winding#CCW}.
-     *
      * @param x point (P1)
      * @param y point (P1)
      * @param z point (P1)
      * @see Path2F#moveTo(float, float)
      * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void moveTo(final float x, final float y, final float z) {
         if ( 0 == getLastOutline().getVertexCount() ) {
@@ -680,13 +695,12 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     /**
      * Add a line segment, intersecting the last point and the given point x/y (P1).
      *
-     * The constructed shape should be {@link Winding#CCW}.
-     *
      * @param x final point (P1)
      * @param y final point (P1)
      * @param z final point (P1)
      * @see Path2F#lineTo(float, float)
      * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void lineTo(final float x, final float y, final float z) {
         addVertex(x, y, z, true);
@@ -694,8 +708,6 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     /**
      * Add a quadratic curve segment, intersecting the last point and the second given point x2/y2 (P2).
-     *
-     * The constructed shape should be {@link Winding#CCW}.
      *
      * @param x1 quadratic parametric control point (P1)
      * @param y1 quadratic parametric control point (P1)
@@ -705,6 +717,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @param z2 quadratic parametric control point (P2)
      * @see Path2F#quadTo(float, float, float, float)
      * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void quadTo(final float x1, final float y1, final float z1, final float x2, final float y2, final float z2) {
         addVertex(x1, y1, z1, false);
@@ -713,8 +726,6 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     /**
      * Add a cubic Bézier curve segment, intersecting the last point and the second given point x3/y3 (P3).
-     *
-     * The constructed shape should be {@link Winding#CCW}.
      *
      * @param x1 Bézier control point (P1)
      * @param y1 Bézier control point (P1)
@@ -727,6 +738,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @param z3 final interpolated control point (P3)
      * @see Path2F#cubicTo(float, float, float, float, float, float)
      * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     * @see <a href="#windingrules">see winding rules</a>
      */
     public final void cubicTo(final float x1, final float y1, final float z1, final float x2, final float y2, final float z2, final float x3, final float y3, final float z3) {
         addVertex(x1, y1, z1, false);

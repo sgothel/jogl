@@ -34,7 +34,6 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLException;
-import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
@@ -46,7 +45,6 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -114,21 +112,21 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem, \n" +
         "-------Press H to change text---------";
 
-    public static final String textX2 = // Kvæven -> Kvaven (error)
+    public static final String textX2 =
         "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*. X\n"+
         "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail. X\n"+
         "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale. X\n"+
-        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvaven in Norway, Kyulu in Kenya, not in Rwanda.… X\n"+
+        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway, Kyulu in Kenya, not in Rwanda.… X\n"+
         "Von-Vincke-Straße in Münster, Vdovino in Russia, Ytterbium in the periodic table. Are Toussaint L’Ouverture, Wölfflin, Wolfe, X\n"+
         "Miłosz and Wū Wŭ all in the library? 1510–1620, 11:00 pm, and the 1980s are over. X\n"+
         "-------Press H to change text---------";
 
-    public static final String textX20 = // Kvæven -> Kvaven (error)
+    public static final String textX20 =
         "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*.\n"+
         "Two of [of] (of) ‘of’ “of” of? of! of*. Ydes, Yffignac and Ygrande are in France: so are Ypres,\n"+
         "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail.\n"+
         "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale.\n"+
-        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvaven in Norway, Kyulu in Kenya, not in Rwanda.…\n"+
+        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway, Kyulu in Kenya, not in Rwanda.…\n"+
         "Walton’s in West Virginia, but «Wren» is in Oregon. Tlálpan is near Xochimilco in México.\n"+
         "The Zygos & Xylophagou are in Cyprus, Zwettl in Austria, Fænø in Denmark, the Vøringsfossen and Værøy in Norway.\n"+
         "Tchula is in Mississippi, the Tittabawassee in Michigan. Twodot is here in Montana, Ywamun in Burma.\n"+
@@ -444,6 +442,17 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             }
         } catch (final IOException ex) {
             System.err.println("Caught: "+ex.getMessage());
+        }
+        return false;
+    }
+
+    public boolean setFont(final Font _font) {
+        if(null != _font) {
+            // fontSet = ???
+            font = _font;
+            fontName = font.getFullFamilyName()+" (head "+fontSizeHead+"pt)";
+            fontNameBox = font.getMetricBounds(fontName);
+            return true;
         }
         return false;
     }

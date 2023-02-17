@@ -331,6 +331,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.graph.curve.Instance -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.triangulation.LINE_AA -Djogl.debug.graph.curve.Triangulation -Djogl.debug.graph.font.Renderer"
     #D_ARGS="-Djogl.debug.graph.font.Renderer"
+    #D_ARGS="-Djogl.debug.graph.font.Renderer.Code"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.vbaa.resizeLowerBoundary=100"
     #D_ARGS="-Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.graph.curve.instance"
@@ -935,11 +936,13 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestFontsNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWTBugXXXX $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
+
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 $*
-testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UIShapeDemo01 $*
+testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UITypeDemo01 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*

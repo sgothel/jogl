@@ -48,6 +48,7 @@ import org.junit.runners.MethodSorters;
 import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
@@ -142,29 +143,19 @@ public class TestTextRendererNEWT01 extends UITestCase {
         final Runnable action_per_font = new Runnable() {
             @Override
             public void run() {
-                textGLListener.setHeadBox(1, false);
-                textGLListener.setSampleCount(2);
-                window.display();
-                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
-                sleep();
+                if( false ) {
+                    textGLListener.setHeadBox(1, false);
+                    textGLListener.setSampleCount(2);
+                    window.display();
+                    textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                    sleep();
 
-                textGLListener.setHeadBox(2, false);
-                textGLListener.setSampleCount(2);
-                window.display();
-                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
-                sleep();
-
-                textGLListener.setHeadBox(1, false);
-                textGLListener.setSampleCount(3);
-                window.display();
-                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
-                sleep();
-
-                textGLListener.setHeadBox(2, false);
-                textGLListener.setSampleCount(3);
-                window.display();
-                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
-                sleep();
+                    textGLListener.setHeadBox(2, false);
+                    textGLListener.setSampleCount(2);
+                    window.display();
+                    textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                    sleep();
+                }
 
                 textGLListener.setHeadBox(1, false);
                 textGLListener.setSampleCount(4);
@@ -179,18 +170,15 @@ public class TestTextRendererNEWT01 extends UITestCase {
                 sleep();
             } };
 
-        if(textGLListener.setFontSet(FontFactory.UBUNTU, FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE)) {
-            action_per_font.run();
+        final Font[] fonts = FontSet01.getSet01();
+        for(final Font f : fonts) {
+            if( textGLListener.setFont(f) ) {
+                action_per_font.run();
+            }
         }
-
-        if(textGLListener.setFontSet(FontFactory.UBUNTU, FontSet.FAMILY_REGULAR, FontSet.STYLE_NONE)) {
-            action_per_font.run();
-        }
-
         if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
             action_per_font.run();
         }
-
         destroyWindow(window);
     }
 
@@ -230,14 +218,59 @@ public class TestTextRendererNEWT01 extends UITestCase {
                 sleep();
             } };
 
-        if(textGLListener.setFontSet(FontFactory.UBUNTU, FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE)) {
+        final Font[] fonts = FontSet01.getSet01();
+        for(final Font f : fonts) {
+            if( textGLListener.setFont(f) ) {
+                action_per_font.run();
+            }
+        }
+        if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
             action_per_font.run();
         }
 
-        if(textGLListener.setFontSet(FontFactory.UBUNTU, FontSet.FAMILY_REGULAR, FontSet.STYLE_NONE)) {
-            action_per_font.run();
-        }
+        destroyWindow(window);
+    }
 
+    @Test
+    public void testTextRendererNoSampling() throws InterruptedException, GLException, IOException {
+        final GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(4);
+        System.err.println("Requested: "+caps);
+
+        final GLWindow window = createWindow("text-vbaa0-msaa0", caps, 1024, 640);
+        window.display();
+        System.err.println("Chosen: "+window.getChosenGLCapabilities());
+
+        final RenderState rs = RenderState.createRenderState(SVertex.factory());
+        final TextGLListener textGLListener = new TextGLListener(rs, 0, 0 /* sampleCount */, DEBUG, TRACE);
+        textGLListener.attachInputListenerTo(window);
+        window.addGLEventListener(textGLListener);
+        textGLListener.setHeadBox(2, true);
+        window.display();
+
+        final Runnable action_per_font = new Runnable() {
+            @Override
+            public void run() {
+                textGLListener.setHeadBox(1, false);
+                textGLListener.setSampleCount(0);
+                window.display();
+                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                sleep();
+
+                textGLListener.setHeadBox(2, false);
+                textGLListener.setSampleCount(0);
+                window.display();
+                textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
+                sleep();
+            } };
+
+        final Font[] fonts = FontSet01.getSet01();
+        for(final Font f : fonts) {
+            if( textGLListener.setFont(f) ) {
+                action_per_font.run();
+            }
+        }
         if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
             action_per_font.run();
         }

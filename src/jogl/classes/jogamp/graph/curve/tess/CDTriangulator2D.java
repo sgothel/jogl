@@ -80,20 +80,20 @@ public class CDTriangulator2D implements Triangulator {
 
     @Override
     public final void addCurve(final List<Triangle> sink, final Outline polyline, final float sharpness) {
-        Loop loop = null;
-
-        if(!loops.isEmpty()) {
-            loop = getContainerLoop(polyline);
-        }
+        Loop loop = getContainerLoop(polyline);
 
         if(loop == null) {
-            final GraphOutline outline = new GraphOutline(polyline);
+            final Winding winding = Winding.CCW; // -> HEdge.BOUNDARY
+            // Too late: polyline.setWinding(winding);
+            final GraphOutline outline = new GraphOutline(polyline); // , winding);
             final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, false, sharpness);
             // vertices.addAll(polyline.getVertices());
-            loop = new Loop(innerPoly, Winding.CCW);
+            loop = new Loop(innerPoly, winding);
             loops.add(loop);
         } else {
-            final GraphOutline outline = new GraphOutline(polyline);
+            // final Winding winding = Winding.CW; // -> HEdge.HOLE
+            // Not required, handled in Loop.initFromPolyline(): polyline.setWinding(winding);
+            final GraphOutline outline = new GraphOutline(polyline); // , winding);
             final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, true, sharpness);
             // vertices.addAll(innerPoly.getVertices());
             loop.addConstraintCurve(innerPoly);
@@ -221,12 +221,15 @@ public class CDTriangulator2D implements Triangulator {
     }
 
     private Loop getContainerLoop(final Outline polyline) {
-        final ArrayList<Vertex> vertices = polyline.getVertices();
-        for(int i=0; i < loops.size(); i++) {
-            final Loop loop = loops.get(i);
-            for(int j=0; j < vertices.size(); j++) {
-                if( loop.checkInside( vertices.get(j) ) ) {
-                    return loop;
+        final int count = loops.size();
+        if( 0 < count ) {
+            final ArrayList<Vertex> vertices = polyline.getVertices();
+            for(int i=0; i < count; i++) {
+                final Loop loop = loops.get(i);
+                for(int j=0; j < vertices.size(); j++) {
+                    if( loop.checkInside( vertices.get(j) ) ) {
+                        return loop;
+                    }
                 }
             }
         }

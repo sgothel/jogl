@@ -30,6 +30,7 @@ package com.jogamp.graph.geom;
 import java.util.ArrayList;
 
 import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.graph.geom.plane.Winding;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.opengl.math.FloatUtil;
@@ -54,6 +55,8 @@ public class Outline implements Comparable<Outline> {
     private boolean closed;
     private final AABBox bbox;
     private boolean dirtyBBox;
+    private Winding winding;
+    private boolean dirtyWinding;
 
     /**Create an outline defined by control vertices.
      * An outline can contain off Curve vertices which define curved
@@ -64,19 +67,92 @@ public class Outline implements Comparable<Outline> {
         closed = false;
         bbox = new AABBox();
         dirtyBBox = false;
+        winding = Winding.CCW;
+        dirtyWinding = false;
     }
 
     /**
      * Copy ctor
      */
     public Outline(final Outline src) {
-        vertices = new ArrayList<Vertex>(src.vertices.size());
-        for(int i=0; i<vertices.size(); i++) {
+        final int count = src.vertices.size();
+        vertices = new ArrayList<Vertex>(count);
+        winding = src.getWinding();
+        dirtyWinding = false;
+        for(int i=0; i<count; i++) {
             vertices.add( src.vertices.get(i).clone() );
         }
         closed = src.closed;
         bbox = new AABBox(src.bbox);
         dirtyBBox = src.dirtyBBox;
+    }
+
+    /**
+     * Copy ctor w/ enforced Winding
+     * <p>
+     * If the enforced {@link Winding} doesn't match the source Outline, the vertices reversed copied into this new instance.
+     * </p>
+     * @param src the source Outline
+     * @param enforce {@link Winding} to be enforced on this copy
+     */
+    public Outline(final Outline src, final Winding enforce) {
+        final int count = src.vertices.size();
+        vertices = new ArrayList<Vertex>(count);
+        final Winding had_winding = src.getWinding();;
+        winding = had_winding;
+        dirtyWinding = false;
+        if( enforce != had_winding ) {
+            for(int i=count-1; i>=0; --i) {
+                vertices.add( src.vertices.get(i).clone() );
+            }
+            winding = enforce;
+        } else {
+            for(int i=0; i<count; ++i) {
+                vertices.add( src.vertices.get(i).clone() );
+            }
+        }
+        closed = src.closed;
+        bbox = new AABBox(src.bbox);
+        dirtyBBox = src.dirtyBBox;
+    }
+
+    /**
+     * Sets {@link Winding} to this outline
+     * <p>
+     * If the enforced {@link Winding} doesn't match this Outline, the vertices are reversed.
+     * </p>
+     * @param enforce to be enforced {@link Winding}
+     */
+    public final void setWinding(final Winding enforce) {
+        final Winding had_winding = getWinding();
+        if( enforce != had_winding ) {
+            final int count = vertices.size();
+            final ArrayList<Vertex> ccw = new ArrayList<Vertex>(count);
+            for(int i=count-1; i>=0; --i) {
+                ccw.add(vertices.get(i));
+            }
+            vertices = ccw;
+            winding = enforce;
+        }
+    }
+
+    /**
+     * Compute the winding of the {@link #getLastOutline()} using the {@link #area(ArrayList)} function over all of its vertices.
+     * @return {@link Winding#CCW} or {@link Winding#CW}
+     */
+    public final Winding getWinding() {
+        if( !dirtyWinding ) {
+            return winding;
+        }
+        final int count = getVertexCount();
+        if( 3 > count ) {
+            winding = Winding.CCW;
+        } else {
+            final ArrayList<Vertex> vertices = getVertices();
+            winding = VectorUtil.getWinding(vertices);
+        }
+        dirtyWinding = false;
+        return winding;
     }
 
     public final int getVertexCount() {
@@ -107,6 +183,7 @@ public class Outline implements Comparable<Outline> {
         if(!dirtyBBox) {
             bbox.resize(vertex.getCoord());
         }
+        dirtyWinding = true;
     }
 
     /** Replaces the {@link Vertex} element at the given {@code position}.
@@ -123,6 +200,7 @@ public class Outline implements Comparable<Outline> {
         }
         vertices.set(position, vertex);
         dirtyBBox = true;
+        dirtyWinding = true;
     }
 
     public final Vertex getVertex(final int index){
@@ -141,6 +219,7 @@ public class Outline implements Comparable<Outline> {
      */
     public final Vertex removeVertex(final int position) throws IndexOutOfBoundsException {
         dirtyBBox = true;
+        dirtyWinding = true;
         return vertices.remove(position);
     }
 

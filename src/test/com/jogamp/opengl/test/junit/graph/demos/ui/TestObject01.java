@@ -33,6 +33,7 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.graph.geom.plane.Winding;
 
 /**
  * GPU based resolution independent test object
@@ -51,13 +52,17 @@ public class TestObject01 extends UIShape {
     protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
     }
 
+    @SuppressWarnings("unused")
     @Override
     protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
 
         // lower case 'o'
         // Start TTF Shape for Glyph 82
-        if( true ) {
+        if( false ) {
+            // Original Outer shape: Winding.CW
+            // Moved into OutlineShape reverse -> Winding.CCW -> OK
+            //
             // Shape.MoveTo:
             shape.closeLastOutline(false);
             shape.addEmptyOutline();
@@ -126,8 +131,12 @@ public class TestObject01 extends UIShape {
             // Shape.QuadTo:
             shape.addVertex(0, 0.527000f, 0.319000f, false);
             shape.addVertex(0, 0.527000f, 0.258000f, true);
+            System.err.println("TestObject01.shape01a.winding_area: "+shape.getWindingOfLastOutline());
             shape.closeLastOutline(false);
         } else  {
+            // Outer shape: Winding.CW
+            // Moved into OutlineShape same-order -> Winding.CW -> ERROR (so we fix it in the end, see below)
+            //
             // Shape.MoveTo:
             shape.closeLastOutline(false);
             shape.addEmptyOutline();
@@ -196,10 +205,16 @@ public class TestObject01 extends UIShape {
             // Shape.QuadTo:
             shape.addVertex(0.527000f, 0.319000f, false);
             shape.addVertex(0.527000f, 0.258000f, true);
+            System.err.println("TestObject01.shape01b.1.winding_area: "+shape.getWindingOfLastOutline());
+            shape.setWindingOfLastOutline(Winding.CCW);
+            System.err.println("TestObject01.shape01b.2.winding_area: "+shape.getWindingOfLastOutline());
             shape.closeLastOutline(false);
         }
 
-        if( false ) {
+        if( true ) {
+            // Original Inner shape: Winding.CCW
+            // Moved into OutlineShape reverse -> Winding.CW -> OK
+            //
             // Shape.MoveTo:
             shape.closeLastOutline(false);
             shape.addEmptyOutline();
@@ -236,8 +251,12 @@ public class TestObject01 extends UIShape {
             // Shape.QuadTo:
             shape.addVertex(0, 0.458000f, 0.161000f, false);
             shape.addVertex(0, 0.458000f, 0.258000f, true);
+            System.err.println("TestObject01.shape02a.winding_area: "+shape.getWindingOfLastOutline());
             shape.closeLastOutline(false);
         } else {
+            // Inner shape: Winding.CCW
+            // Moved into OutlineShape same-order -> Winding.CCW -> OK
+            //
             // Shape.MoveTo:
             shape.closeLastOutline(false);
             shape.addEmptyOutline();
@@ -276,6 +295,7 @@ public class TestObject01 extends UIShape {
             shape.addVertex(0.458000f, 0.161000f, false);
             shape.addVertex(0.458000f, 0.258000f, true);
 
+            System.err.println("TestObject01.shape02b.winding_area: "+shape.getWindingOfLastOutline());
             shape.closeLastOutline(false);
         }
         // End Shape for Glyph 82

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.plane.Winding;
 
 public class GraphOutline {
     final private Outline outline;
@@ -40,11 +41,14 @@ public class GraphOutline {
         this.outline = new Outline();
     }
 
-    /**Create a control polyline of control vertices
+    /**
+     * Create a control polyline of control vertices
      * the curve pieces can be identified by onCurve flag
      * of each cp the control polyline is open by default
+     *
+     * @param ol the source {@link Outline}
      */
-    public GraphOutline(final Outline ol){
+    public GraphOutline(final Outline ol) {
         this.outline = ol;
         final ArrayList<Vertex> vertices = this.outline.getVertices();
         for(int i = 0; i< vertices.size(); i++){

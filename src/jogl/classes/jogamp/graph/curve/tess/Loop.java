@@ -34,6 +34,7 @@ import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.plane.Winding;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.Vert2fImmutable;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public class Loop {
@@ -91,9 +92,24 @@ public class Loop {
         return (root.getNext().getNext().getNext() == root);
     }
 
-    /**Create a connected list of half edges (loop)
+    private static float area(final ArrayList<GraphVertex> vertices) {
+        final int n = vertices.size();
+        float area = 0.0f;
+        for (int p = n - 1, q = 0; q < n; p = q++) {
+            final float[] pCoord = vertices.get(p).getCoord();
+            final float[] qCoord = vertices.get(q).getCoord();
+            area += pCoord[0] * qCoord[1] - qCoord[0] * pCoord[1];
+        }
+        return area;
+    }
+    private static Winding getWinding(final ArrayList<GraphVertex> vertices) {
+        return area(vertices) >= 0 ? Winding.CCW : Winding.CW ;
+    }
+
+    /**
+     * Create a connected list of half edges (loop)
      * from the boundary profile
-     * @param reqWinding requested winding of edges (CCW or CW)
+     * @param reqWinding requested winding of edges, either {@link Winding#CCW} for {@link HEdge#BOUNDARY} or {@link Winding#CW} for {@link HEdge#HOLE}
      */
     private HEdge initFromPolyline(final GraphOutline outline, final Winding reqWinding){
         final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
@@ -101,57 +117,64 @@ public class Loop {
         if(vertices.size()<3) {
             throw new IllegalArgumentException("outline's vertices < 3: " + vertices.size());
         }
-        final Winding hasWinding = VectorUtil.getWinding(
-                                 vertices.get(0).getPoint(),
-                                 vertices.get(1).getPoint(),
-                                 vertices.get(2).getPoint());
-        //FIXME: handle case when vertices come inverted - Rami
-        // skips inversion CW -> CCW
-        final boolean invert =  hasWinding != reqWinding &&
-                                reqWinding == Winding.CW;
+        final Winding hasWinding = getWinding( vertices ); // requires area-winding detection
 
-        final int max;
         final int edgeType = reqWinding == Winding.CCW ? HEdge.BOUNDARY : HEdge.HOLE ;
-        int index;
         HEdge firstEdge = null;
         HEdge lastEdge = null;
 
-        if(!invert) {
-            max = vertices.size();
-            index = 0;
-        } else {
-            max = -1;
-            index = vertices.size() -1;
-        }
+        /**
+         * The winding conversion CW -> CCW can't be resolved here (-> Rami?)
+         * Therefore we require outline boundaries to be in CCW, see API-doc comment in OutlineShape.
+         *
+         * Original comment:
+         * FIXME: handle case when vertices come inverted - Rami
+         * Skips inversion CW -> CCW
+         */
+        if( hasWinding == reqWinding || reqWinding == Winding.CCW ) {
+            // Correct Winding or skipped CW -> CCW (no inversion possible here, too late ??)
+            final int max = vertices.size() - 1;
+            for(int index = 0; index <= max; ++index) {
+                final GraphVertex v1 = vertices.get(index);
+                box.resize(v1.getX(), v1.getY(), v1.getZ());
 
-        while(index != max){
-            final GraphVertex v1 = vertices.get(index);
-            box.resize(v1.getX(), v1.getY(), v1.getZ());
+                final HEdge edge = new HEdge(v1, edgeType);
 
-            final HEdge edge = new HEdge(v1, edgeType);
-
-            v1.addEdge(edge);
-            if(lastEdge != null) {
-                lastEdge.setNext(edge);
-                edge.setPrev(lastEdge);
-            } else {
-                firstEdge = edge;
-            }
-
-            if(!invert) {
-                if(index == vertices.size()-1) {
+                v1.addEdge(edge);
+                if(lastEdge != null) {
+                    lastEdge.setNext(edge);
+                    edge.setPrev(lastEdge);
+                } else {
+                    firstEdge = edge;
+                }
+                if(index == max ) {
                     edge.setNext(firstEdge);
                     firstEdge.setPrev(edge);
                 }
-                index++;
-            } else {
+                lastEdge = edge;
+            }
+        } else { // if( reqWinding == Winding.CW ) {
+            // CCW -> CW
+            for(int index = vertices.size() - 1; index >= 0; --index) {
+                final GraphVertex v1 = vertices.get(index);
+                box.resize(v1.getX(), v1.getY(), v1.getZ());
+
+                final HEdge edge = new HEdge(v1, edgeType);
+
+                v1.addEdge(edge);
+                if(lastEdge != null) {
+                    lastEdge.setNext(edge);
+                    edge.setPrev(lastEdge);
+                } else {
+                    firstEdge = edge;
+                }
+
                 if (index == 0) {
                     edge.setNext(firstEdge);
                     firstEdge.setPrev(edge);
                 }
-                index--;
+                lastEdge = edge;
             }
-            lastEdge = edge;
         }
         return firstEdge;
     }
@@ -159,7 +182,7 @@ public class Loop {
     public void addConstraintCurve(final GraphOutline polyline) {
         //        GraphOutline outline = new GraphOutline(polyline);
         /**needed to generate vertex references.*/
-        initFromPolyline(polyline, Winding.CW);
+        initFromPolyline(polyline, Winding.CW); // -> HEdge.HOLE
 
         final GraphVertex v3 = locateClosestVertex(polyline);
         final HEdge v3Edge = v3.findBoundEdge();

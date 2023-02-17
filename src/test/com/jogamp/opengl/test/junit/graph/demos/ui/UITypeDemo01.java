@@ -204,7 +204,7 @@ public class UITypeDemo01 implements GLEventListener {
         } else {
             final float scale = 0.15312886f;
             final float size_xz = 0.541f;
-            final UIShape o = new TestObject01(SVertex.factory(), renderModes);
+            final UIShape o = new TestObject02(SVertex.factory(), renderModes);
             o.scale(scale, scale, 1f);
             // o.translate(size_xz, -size_xz, 0f);
             testObj = o;
