@@ -236,6 +236,7 @@ public class GLDebugMessage {
             case GL2ES2.GL_DEBUG_SEVERITY_HIGH: return "High: dangerous undefined behavior";
             case GL2ES2.GL_DEBUG_SEVERITY_MEDIUM: return "Medium: Severe performance/deprecation/other warnings";
             case GL2ES2.GL_DEBUG_SEVERITY_LOW: return "Low: Performance warnings (redundancy/undefined)";
+            case GL4.GL_DEBUG_SEVERITY_NOTIFICATION: return "Notification: Informational messages";
             default: return "Unknown (" + toHexString(dbgSeverity) + ")";
         }
     }
