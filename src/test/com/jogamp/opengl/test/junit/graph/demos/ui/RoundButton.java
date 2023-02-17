@@ -64,7 +64,7 @@ public abstract class RoundButton extends UIShape {
 
     public final float getCorner() { return corner; }
 
-    public void setDimension(final float width, final float height) {
+    public void setSize(final float width, final float height) {
         this.width = width;
         this.height = height;
         markShapeDirty();
