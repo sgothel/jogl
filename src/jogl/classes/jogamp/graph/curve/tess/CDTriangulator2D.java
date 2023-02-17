@@ -182,7 +182,7 @@ public class CDTriangulator2D implements Triangulator {
 
                 final Triangle t;
                 final boolean holeLike;
-                if(VectorUtil.ccw(v0,v1,v2)) {
+                if(VectorUtil.isCCW(v0,v1,v2)) {
                     holeLike = false;
                     t = new Triangle(v0, v1, v2, boundaryVertices);
                 } else {

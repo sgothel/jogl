@@ -878,13 +878,14 @@ public final class VectorUtil {
         return false;
     }
 
-    /** Check if points are in ccw order
+    /**
+     * Check if points are in ccw order
      * @param a first vertex
      * @param b second vertex
      * @param c third vertex
      * @return true if the points a,b,c are in a ccw order
      */
-    public static boolean ccw(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
+    public static boolean isCCW(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
         return triAreaVec2(a,b,c) > 0;
     }
 

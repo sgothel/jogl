@@ -253,7 +253,7 @@ public class Loop {
     private HEdge findClosestValidNeighbor(final HEdge edge, final boolean delaunay) {
         final HEdge next = root.getNext();
 
-        if(!VectorUtil.ccw(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
+        if(!VectorUtil.isCCW(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
                 edge.getGraphPoint().getPoint())){
             return null;
         }
