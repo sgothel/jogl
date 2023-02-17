@@ -249,7 +249,16 @@ public class SceneUIController implements GLEventListener{
         cDrawable.invoke(false, new GLRunnable() {
             @Override
             public boolean run(final GLAutoDrawable drawable) {
-                if( activeShape.winToObjCoord(renderer, glWinX, glWinY, objPos) ) {
+                final boolean ok;
+                {
+                    final PMVMatrix pmv = renderer.getMatrix();
+                    pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+                    pmv.glPushMatrix();
+                    activeShape.setTransform(pmv);
+                    ok = activeShape.winToObjCoord(renderer, glWinX, glWinY, objPos);
+                    pmv.glPopMatrix();
+                }
+                if( ok ) {
                     runnable.run();
                 }
                 return true;

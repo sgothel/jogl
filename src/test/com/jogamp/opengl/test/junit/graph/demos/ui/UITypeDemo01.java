@@ -439,6 +439,9 @@ public class UITypeDemo01 implements GLEventListener {
                     final int glWinY = viewport[3] - e.getY() - 1;
 
                     {
+                        pmv.glPushMatrix();
+                        crossHair.setTransform(pmv);
+
                         final float[] objPosC = crossHair.getBounds().getCenter();
                         final int[] objWinPos = new int[2];
                         System.err.println("\n\nCrossHair: "+crossHair);
@@ -468,6 +471,8 @@ public class UITypeDemo01 implements GLEventListener {
                         final int[] surfaceSize = new int[2];
                         crossHair.getSurfaceSize(renderer, surfaceSize);
                         System.err.println("CrossHair: Size: Pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
+
+                        pmv.glPopMatrix();
                     }
                     return true;
                 } } );

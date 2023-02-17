@@ -298,6 +298,10 @@ public abstract class UIShape {
         }
     }
 
+    /**
+     * Setup the pre-selected {@link GLMatrixFunc#GL_MODELVIEW} {@link PMVMatrix} for this object.
+     * @param pmv the matrix
+     */
     public void setTransform(final PMVMatrix pmv) {
         final float[] uiTranslate = getTranslate();
         pmv.glTranslatef(uiTranslate[0], uiTranslate[1], uiTranslate[2]);
@@ -326,16 +330,15 @@ public abstract class UIShape {
 
     /**
      * Retrieve window surface size of this shape
-     * @param renderer source of viewport and PMVMatrix
+     * <p>
+     * The {@link RegionRenderer#getMatrix()} has to be setup properly for this object,
+     * i.e. reshape for {@link GLMatrixFunc#GL_PROJECTION} and {@link #setTransform(PMVMatrix)} for {@link GLMatrixFunc#GL_MODELVIEW}.
+     * </p>
+     * @param renderer source of viewport and {@link PMVMatrix}
      * @param surfaceSize target surface size
      * @return true for successful gluProject(..) operation, otherwise false
      */
     public boolean getSurfaceSize(final RegionRenderer renderer, final int[/*2*/] surfaceSize) {
-        final PMVMatrix pmv = renderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-
-        pmv.glPushMatrix();
-        setTransform(pmv);
         boolean res = false;
         final int[/*4*/] viewport = renderer.getViewport(new int[4]);
         // System.err.println("UIShape::getSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
@@ -343,6 +346,7 @@ public abstract class UIShape {
         final float[] winCoordLow = new float[3];
         final float[] high = getBounds().getHigh();
         final float[] low = getBounds().getLow();
+        final PMVMatrix pmv = renderer.getMatrix();
 
         if( pmv.gluProject(high[0], high[1], high[2], viewport, 0, winCoordHigh, 0) ) {
             // System.err.printf("UIShape::surfaceSize.H: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), high[0], high[1], high[2], winCoordHigh[0], winCoordHigh[1], winCoordHigh[2]);
@@ -354,27 +358,26 @@ public abstract class UIShape {
                 res = true;
             }
         }
-        pmv.glPopMatrix();
         return res;
     }
 
     /**
      * Map given object coordinate relative to this shape to window coordinates
-     * @param renderer source of viewport and PMVMatrix
+     * <p>
+     * The {@link RegionRenderer#getMatrix()} has to be setup properly for this object,
+     * i.e. reshape for {@link GLMatrixFunc#GL_PROJECTION} and {@link #setTransform(PMVMatrix)} for {@link GLMatrixFunc#GL_MODELVIEW}.
+     * </p>
+     * @param renderer source of viewport and {@link PMVMatrix}
      * @param objPos object position relative to this shape's center
      * @param glWinPos target window position of objPos relative to this shape
      * @return true for successful gluProject(..) operation, otherwise false
      */
     public boolean objToWinCoord(final RegionRenderer renderer, final float[/*3*/] objPos, final int[/*2*/] glWinPos) {
-        final PMVMatrix pmv = renderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-
-        pmv.glPushMatrix();
-        setTransform(pmv);
         boolean res = false;
         final int[/*4*/] viewport = renderer.getViewport(new int[4]);
         // System.err.println("UIShape::objToWinCoordgetSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
         final float[] winCoord = new float[3];
+        final PMVMatrix pmv = renderer.getMatrix();
 
         if( pmv.gluProject(objPos[0], objPos[1], objPos[2], viewport, 0, winCoord, 0) ) {
             // System.err.printf("UIShape::objToWinCoord.0: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), objPos[0], objPos[1], objPos[2], winCoord[0], winCoord[1], winCoord[2]);
@@ -383,28 +386,28 @@ public abstract class UIShape {
             // System.err.printf("UIShape::objToWinCoord.X: shape %d: %f / %f -> %d / %d%n", getName(), winCoord[0], winCoord[1], glWinPos[0], glWinPos[1]);
             res = true;
         }
-        pmv.glPopMatrix();
         return res;
     }
 
     /**
      * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate.
-     * @param renderer source of viewport and PMVMatrix
+     * <p>
+     * The {@link RegionRenderer#getMatrix()} has to be setup properly for this object,
+     * i.e. reshape for {@link GLMatrixFunc#GL_PROJECTION} and {@link #setTransform(PMVMatrix)} for {@link GLMatrixFunc#GL_MODELVIEW}.
+     * </p>
+     * @param renderer source of viewport and {@link PMVMatrix}
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      * @param objPos target object position of glWinX/glWinY relative to this shape
      * @return @return true for successful gluProject(..) and gluUnProject(..) operations, otherwise false
      */
     public boolean winToObjCoord(final RegionRenderer renderer, final int glWinX, final int glWinY, final float[/*3*/] objPos) {
-        final PMVMatrix pmv = renderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-
-        pmv.glPushMatrix();
-        setTransform(pmv);
         boolean res = false;
         final float[] ctr = getBounds().getCenter();
         final int[] viewport = renderer.getViewport(new int[4]);
         final float[] tmp = new float[3];
+        final PMVMatrix pmv = renderer.getMatrix();
+
         if( pmv.gluProject(ctr[0], ctr[1], ctr[2], viewport, 0, tmp, 0) ) {
             // System.err.printf("UIShape::winToObjCoord.0: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), ctr[0], ctr[1], ctr[2], tmp[0], tmp[1], tmp[2]);
             if( pmv.gluUnProject(glWinX, glWinY, tmp[2], viewport, 0, objPos, 0) ) {
@@ -412,7 +415,6 @@ public abstract class UIShape {
                 res = true;
             }
         }
-        pmv.glPopMatrix();
         return res;
     }
 

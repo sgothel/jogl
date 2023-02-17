@@ -941,8 +941,8 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UIShapeDemo01 $*
-testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UITypeDemo01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UITypeDemo01 $*
+testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*

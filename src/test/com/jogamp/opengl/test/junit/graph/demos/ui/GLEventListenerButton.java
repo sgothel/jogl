@@ -84,6 +84,9 @@ public class GLEventListenerButton extends TextureSeqButton {
 
     @Override
     public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+        final int[/*2*/] surfaceSize = new int[2];
+        final boolean got_sz = getSurfaceSize(renderer, surfaceSize);
+
         if( null == fboGLAD ) {
             final ImageSequence imgSeq = (ImageSequence)texSeq;
 
@@ -116,6 +119,22 @@ public class GLEventListenerButton extends TextureSeqButton {
             markStateDirty();
         } else if( 0 != fboWidth*fboHeight ) {
             fboGLAD.setSurfaceSize(fboWidth, fboHeight);
+            fboWidth = 0;
+            fboHeight = 0;
+            markStateDirty();
+        } else if( got_sz && ( fboGLAD.getSurfaceWidth() != surfaceSize[0] || fboGLAD.getSurfaceHeight() != surfaceSize[1] ) ) {
+            // System.err.println("XXX FBO setSurfaceSize "+fboGLAD.getSurfaceWidth()+" x "+fboGLAD.getSurfaceHeight()+" -> "+surfaceSize[0]+" x "+surfaceSize[1]);
+            final ImageSequence imgSeq = (ImageSequence)texSeq;
+
+            fboGLAD.setSurfaceSize(surfaceSize[0], surfaceSize[1]);
+            fboGLAD.display(); // re-init!
+
+            imgSeq.destroy(gl);
+            final FBObject.TextureAttachment texA01 = fboGLAD.getColorbuffer(GL.GL_FRONT).getTextureAttachment();
+            final Texture tex = new Texture(texA01.getName(), imgSeq.getTextureTarget(),
+                                    fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(), fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(),
+                                    false /* mustFlipVertically */);
+            imgSeq.addFrame(gl, tex);
             fboWidth = 0;
             fboHeight = 0;
             markStateDirty();

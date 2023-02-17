@@ -385,6 +385,9 @@ public class UIShapeDemo01 implements GLEventListener {
                     final int glWinY = viewport[3] - e.getY() - 1;
 
                     {
+                        pmv.glPushMatrix();
+                        button.setTransform(pmv);
+
                         final float[] objPos = new float[3];
                         System.err.println("\n\nButton: "+button);
                         button.winToObjCoord(renderer, glWinX, glWinY, objPos);
@@ -393,8 +396,13 @@ public class UIShapeDemo01 implements GLEventListener {
                         final int[] surfaceSize = new int[2];
                         button.getSurfaceSize(renderer, surfaceSize);
                         System.err.println("Button: Size: Pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
+
+                        pmv.glPopMatrix();
                     }
                     {
+                        pmv.glPushMatrix();
+                        crossHair.setTransform(pmv);
+
                         final float[] objPosC = crossHair.getBounds().getCenter();
                         final int[] objWinPos = new int[2];
                         System.err.println("\n\nCrossHair: "+crossHair);
@@ -424,6 +432,8 @@ public class UIShapeDemo01 implements GLEventListener {
                         final int[] surfaceSize = new int[2];
                         crossHair.getSurfaceSize(renderer, surfaceSize);
                         System.err.println("CrossHair: Size: Pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
+
+                        pmv.glPopMatrix();
                     }
                     return true;
                 } } );
