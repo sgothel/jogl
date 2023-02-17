@@ -932,17 +932,18 @@ function testawtswt() {
 # Graph
 #
 #testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestFontsNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWTBugXXXX $*
 
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
+testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT20 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UIShapeDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UITypeDemo01 $*
-testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
