@@ -37,46 +37,6 @@ import jogamp.graph.font.typecast.ot.table.PostTable;
 
 public final class TypecastGlyph implements Font.Glyph {
 
-    public static final class Metrics
-    {
-        private final TypecastFont font;
-        private final AABBox    bbox; // in font-units
-        private final int      advance; // in font-units
-
-        /**
-         *
-         * @param font
-         * @param bbox in font-units
-         * @param advance hmtx value in font-units
-         */
-        public Metrics(final TypecastFont font, final AABBox bbox, final int advance)
-        {
-            this.font = font;
-            this.bbox = bbox;
-            this.advance = advance;
-        }
-
-        public final TypecastFont getFont() { return font; }
-
-        public final int getUnitsPerEM() { return font.getMetrics().getUnitsPerEM(); }
-
-        public final float getScale(final int funits) { return font.getMetrics().getScale(funits); }
-
-        /** in font-units */
-        public final AABBox getBBoxFU() { return this.bbox; }
-
-        /** Return advance in font units, sourced from `hmtx` table. */
-        public final int getAdvanceFU() { return this.advance; }
-
-        @Override
-        public final String toString()
-        {
-            return "\nMetrics:"+
-                "\n  bbox: "+this.bbox+
-                "\n  advance: "+this.advance;
-        }
-    }
-
     public static final short INVALID_ID    = (short)((1 << 16) - 1);
     public static final short MAX_ID        = (short)((1 << 16) - 2);
 
@@ -106,25 +66,36 @@ public final class TypecastGlyph implements Font.Glyph {
 
     private final int id;
     private final String name;
+
+    private final TypecastFont font;
+    private final AABBox bbox; // in font-units
+    private final int advance; // in font-units
+    private final int leftSideBearings; // in font-units
+
     private final int[/*right_glyphid*/][/*value*/] kerning;
     private final boolean kerning_horizontal;
     private final boolean kerning_crossstream;
     private final OutlineShape shape; // in EM units
-    private final Metrics metrics;
 
     /**
      *
      * @param font
-     * @param name
+     * @param name from `post` table
      * @param id
      * @param bbox in font-units
      * @param advance from hmtx in font-units
+     * @param leftSideBearings from hmtx in font-units
      * @param shape
      */
-    protected TypecastGlyph(final TypecastFont font, final int id, final String name, final AABBox bbox, final int advance,
+    protected TypecastGlyph(final TypecastFont font, final int id, final String name,
+                            final AABBox bbox, final int advance, final int leftSideBearings,
                             final KernSubtable kernSub, final OutlineShape shape) {
         this.id = id;
         this.name = name;
+        this.font = font;
+        this.bbox = bbox;
+        this.advance = advance;
+        this.leftSideBearings = leftSideBearings;
         if( null != kernSub && kernSub.areKerningValues() ) {
             int pair_sz = 64;
             int pair_idx = 0;
@@ -152,59 +123,42 @@ public final class TypecastGlyph implements Font.Glyph {
             this.kerning_crossstream = true;
         }
         this.shape = shape;
-        this.metrics = new Metrics(font, bbox, advance);
     }
 
     @Override
-    public final Font getFont() {
-        return this.metrics.getFont();
-    }
-
-    public final Metrics getMetrics() {
-        return this.metrics;
-    }
+    public final int getID() { return id; }
 
     @Override
-    public final int getID() {
-        return this.id;
-    }
+    public final String getName() { return name; }
 
     @Override
-    public final String getName() {
-        return this.name;
-    }
+    public final AABBox getBBoxFU() { return bbox; }
 
     @Override
-    public final float getScale(final int funits) {
-        return this.metrics.getScale(funits);
-    }
-
-    @Override
-    public final AABBox getBBoxFU() {
-        return metrics.getBBoxFU();
-    }
-
-    @Override
-    public final AABBox getBBoxFU(final AABBox dest) {
-        return dest.copy(metrics.getBBoxFU());
-    }
+    public final AABBox getBBoxFU(final AABBox dest) { return dest.copy(bbox); }
 
     @Override
     public final AABBox getBBox(final AABBox dest, final float[] tmpV3) {
-        return dest.copy(metrics.getBBoxFU()).scale2(1.0f/metrics.getUnitsPerEM(), tmpV3);
+        return dest.copy(bbox).scale2(1.0f/font.getMetrics().getUnitsPerEM(), tmpV3);
     }
 
     @Override
     public final AABBox getBBox() {
         final AABBox dest = new AABBox();
-        return dest.copy(metrics.getBBoxFU()).scale2(1.0f/metrics.getUnitsPerEM(), new float[2]);
+        return dest.copy(bbox).scale2(1.0f/font.getMetrics().getUnitsPerEM(), new float[2]);
     }
 
     @Override
-    public final int getAdvanceFU() { return metrics.getAdvanceFU(); }
+    public final int getAdvanceFU() { return advance; }
 
     @Override
-    public float getAdvance() { return getScale( getAdvanceFU() ); }
+    public float getAdvance() { return font.getMetrics().getScale( advance ); }
+
+    @Override
+    public final int getLeftSideBearingsFU() { return leftSideBearings; }
+
+    @Override
+    public final float getLeftSideBearings() { return font.getMetrics().getScale( leftSideBearings ); }
 
     @Override
     public final boolean isKerningHorizontal() { return kerning_horizontal; }
@@ -236,7 +190,7 @@ public final class TypecastGlyph implements Font.Glyph {
 
     @Override
     public final float getKerning(final int right_glyphid) {
-        return getScale( getKerningFU(right_glyphid) );
+        return font.getMetrics().getScale( getKerningFU(right_glyphid) );
     }
 
     @Override
@@ -247,8 +201,19 @@ public final class TypecastGlyph implements Font.Glyph {
     @Override
     public final int hashCode() {
         // 31 * x == (x << 5) - x
-        final int hash = 31 + getFont().getName(Font.NAME_UNIQUNAME).hashCode();
+        final int hash = 31 + font.getName(Font.NAME_UNIQUNAME).hashCode();
         return ((hash << 5) - hash) + id;
+    }
+
+    @Override
+    public final boolean equals(final Object o) {
+        if( this == o ) { return true; }
+        if( o instanceof TypecastGlyph ) {
+            final TypecastGlyph og = (TypecastGlyph)o;
+            return og.font.getName(Font.NAME_UNIQUNAME).equals(font.getName(Font.NAME_UNIQUNAME)) &&
+                   og.id == id;
+        }
+        return false;
     }
 
     @Override
@@ -256,6 +221,7 @@ public final class TypecastGlyph implements Font.Glyph {
         final StringBuilder sb = new StringBuilder();
         sb.append("Glyph[id ").append(id).append(" '").append(name).append("'")
           .append(", advance ").append(getAdvanceFU())
+          .append(", leftSideBearings ").append(getLeftSideBearingsFU())
           .append(", kerning[size ").append(kerning.length).append(", horiz ").append(this.isKerningHorizontal()).append(", cross ").append(this.isKerningCrossstream()).append("]")
           .append(", shape ").append(null != shape).append("]");
         return sb.toString();
@@ -263,11 +229,12 @@ public final class TypecastGlyph implements Font.Glyph {
 
     @Override
     public String fullString() {
-        final PostTable post = metrics.getFont().getPostTable();
+        final PostTable post = font.getPostTable();
         final String glyph_name = null != post ? post.getGlyphName(id) : "n/a";
         final StringBuilder sb = new StringBuilder();
         sb.append("Glyph id ").append(id).append(" '").append(glyph_name).append("'")
           .append(", advance ").append(getAdvanceFU())
+          .append(", leftSideBearings ").append(getLeftSideBearingsFU())
           .append(", ").append(getBBoxFU());
 
         sb.append("\n    Kerning: size ").append(kerning.length).append(", horiz ").append(this.isKerningHorizontal()).append(", cross ").append(this.isKerningCrossstream());

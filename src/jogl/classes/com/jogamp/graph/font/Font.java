@@ -166,23 +166,11 @@ public interface Font {
         // http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08#ba57949e
         public static final int ID_UNKNOWN = 0;
 
-        Font getFont();
-
         /** Return this glyph's ID */
         int getID();
 
         /** Return the glyph's name, source from `post` table */
         String getName();
-
-        /**
-         * Return fractional font em-size [0..1], i.e. funits divided by {@link #getUnitsPerEM()}, i.e.
-         * <pre>
-         *    return funits / head.unitsPerEM;
-         * </pre>
-         * @param funits smallest font unit, where {@link #getUnitsPerEM()} square covers whole glyph
-         * @return fractional font em-size [0..1]
-         */
-        float getScale(final int funits);
 
         /**
          * Return the AABBox in font-units, borrowing internal instance.
@@ -215,8 +203,15 @@ public interface Font {
         /** Return advance in font em-size [0..1], sourced from `hmtx` table. */
         float getAdvance();
 
+        /** Return leftSideBearings in font units, sourced from `hmtx` table. */
+        int getLeftSideBearingsFU();
+
+        /** Return leftSideBearings in font em-size [0..1], sourced from `hmtx` table. */
+        float getLeftSideBearings();
+
         /** True if kerning values are horizontal, otherwise vertical */
         boolean isKerningHorizontal();
+
         /** True if kerning values are perpendicular to text flow, otherwise along with flow */
         boolean isKerningCrossstream();
 
