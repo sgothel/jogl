@@ -32,6 +32,10 @@ import jogamp.graph.font.typecast.ot.TTFont;
 import jogamp.graph.font.typecast.ot.table.CmapFormat;
 import jogamp.graph.font.typecast.ot.table.CmapIndexEntry;
 import jogamp.graph.font.typecast.ot.table.CmapTable;
+import jogamp.graph.font.typecast.ot.table.GlyfDescript;
+import jogamp.graph.font.typecast.ot.table.GlyfTable;
+import jogamp.graph.font.typecast.ot.table.HheaTable;
+import jogamp.graph.font.typecast.ot.table.HmtxTable;
 import jogamp.graph.font.typecast.ot.table.ID;
 import jogamp.graph.font.typecast.ot.table.KernSubtable;
 import jogamp.graph.font.typecast.ot.table.KernSubtableFormat0;
@@ -103,7 +107,11 @@ class TypecastFont implements Font {
             }
             cmapentries = _cmapentries;
         }
+        idToGlyph = new IntObjectHashMap(cmapentries + cmapentries/4);
+        metrics = new TypecastHMetrics(this);
+
         if(DEBUG) {
+            final int max_id = 36; // "A"
             System.err.println("font direction hint: "+font.getHeadTable().getFontDirectionHint());
             System.err.println("num glyphs: "+font.getNumGlyphs());
             System.err.println("num cmap entries: "+cmapentries);
@@ -113,14 +121,35 @@ class TypecastFont implements Font {
                 final CmapFormat.Range range = cmapFormat.getRange(i);
                 for (int j = range.getStartCode(); j <= range.getEndCode(); ++j) {
                     final int code = cmapFormat.mapCharCode(j);
-                    if(code < 15) {
+                    if(code <= max_id) {
                         System.err.println(" char: " + j + " ( " + (char)j +" ) -> " + code);
                     }
                 }
             }
+            final HmtxTable hmtx = font.getHmtxTable();
+            final HheaTable hhea = font.getHheaTable();
+            final GlyfTable glyfTable = font.getGlyfTable();
+            for(int i=0; i <= max_id; ++i) {
+                final jogamp.graph.font.typecast.ot.Glyph tc_g = font.getGlyph(i);
+                final Glyph g = getGlyph(i);
+                final GlyfDescript gd = glyfTable.getDescription(i);
+                System.err.println("Index "+i);
+                System.err.println("  hmtx aw "+hmtx.getAdvanceWidth(i)+" / "+getAdvanceWidthFU(i)+" (glyph "+g.getAdvanceFU()+"), lsb "+hmtx.getLeftSideBearing(i)+")");
+                System.err.println("  hhea aw-max "+hhea.getAdvanceWidthMax()+", x-max "+hhea.getXMaxExtent());
+                if( null != gd ) {
+                    System.err.println("  gdesc idx "+gd.getGlyphIndex()+", isComp "+gd.isComposite()+", contours "+gd.getContourCount()+", points "+gd.getPointCount());
+                } else {
+                    System.err.println("  gdesc null");
+                }
+                if( null != tc_g) {
+                    System.err.println("  tc_glyph "+tc_g);
+                } else {
+                    System.err.println("  tc_glyph null");
+                }
+                System.err.println("  glyph "+g);
+            }
+            System.err.println( fullString() );
         }
-        idToGlyph = new IntObjectHashMap(cmapentries + cmapentries/4);
-        metrics = new TypecastHMetrics(this);
     }
 
     @Override
