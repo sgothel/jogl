@@ -60,67 +60,39 @@ class TypecastFont implements Font {
     private final TypecastHMetrics metrics;
     // FIXME: Add cache size to limit memory usage ??
 
+    private static final boolean forceAscii = false; // FIXME ??? (ASCII/Macintosh cmap format)
+
     public TypecastFont(final OTFontCollection fontset) {
         // this.fontset = fontset;
         this.font = fontset.getFont(0);
 
-        // FIXME: Generic attempt to find the best CmapTable,
-        // which is assumed to be the one with the most entries (stupid 'eh?)
         final CmapTable cmapTable = font.getCmapTable();
-        final CmapFormat[] _cmapFormatP = { null, null, null, null };
         int platform = -1;
-        int platformLength = -1;
         int encoding = -1;
-        for(int i=0; i<cmapTable.getNumTables(); i++) {
-            final CmapIndexEntry cmapIdxEntry = cmapTable.getCmapIndexEntry(i);
-            final int pidx = cmapIdxEntry.getPlatformId();
-            final CmapFormat cf = cmapIdxEntry.getFormat();
-            if(DEBUG) {
-                System.err.println("CmapFormat["+i+"]: platform " + pidx +
-                                   ", encoding "+cmapIdxEntry.getEncodingId() + ": "+cf);
-            }
-            if( _cmapFormatP[pidx] == null ||
-                _cmapFormatP[pidx].getLength() < cf.getLength() ) {
-                _cmapFormatP[pidx] = cf;
-                if( cf.getLength() > platformLength ) {
-                    platformLength = cf.getLength() ;
-                    platform = pidx;
-                    encoding = cmapIdxEntry.getEncodingId();
-                }
+
+        // Decide upon a cmap table to use for our character to glyph look-up
+        CmapFormat cmapFmt;
+        platform = ID.platformMicrosoft;
+        if (forceAscii) {
+            // We've been asked to use the ASCII/Macintosh cmap format
+            encoding = ID.encodingRoman;
+            cmapFmt = cmapTable.getCmapFormat(ID.platformMacintosh, ID.encodingRoman);
+        } else {
+            // The default behaviour is to use the Unicode cmap encoding
+            encoding = ID.encodingUnicode;
+            cmapFmt = cmapTable.getCmapFormat(ID.platformMicrosoft, ID.encodingUnicode);
+            if (cmapFmt == null) {
+                // This might be a symbol font
+                encoding = ID.encodingSymbol;
+                cmapFmt = cmapTable.getCmapFormat(ID.platformMicrosoft, ID.encodingSymbol);
             }
         }
-        if(0 <= platform) {
-            cmapFormat = _cmapFormatP[platform];
-            if(DEBUG) {
-                System.err.println("Selected CmapFormat: platform " + platform +
-                                   ", encoding "+encoding + ": "+cmapFormat);
-            }
-        } else {
-            CmapFormat _cmapFormat = null;
-            /*if(null == _cmapFormat) {
-                platform = ID.platformMacintosh;
-                encoding = ID.encodingASCII;
-                _cmapFormat = cmapTable.getCmapFormat(platform, encoding);
-            } */
-            if(null == _cmapFormat) {
-                // default unicode
-                platform = ID.platformMicrosoft;
-                encoding = ID.encodingUnicode;
-                _cmapFormat = cmapTable.getCmapFormat((short)platform, (short)encoding);
-            }
-            if(null == _cmapFormat) {
-                // maybe a symbol font ?
-                platform = ID.platformMicrosoft;
-                encoding = ID.encodingSymbol;
-                _cmapFormat = cmapTable.getCmapFormat((short)platform, (short)encoding);
-            }
-            if(null == _cmapFormat) {
-                throw new RuntimeException("Cannot find a suitable cmap table for font "+font);
-            }
-            cmapFormat = _cmapFormat;
-            if(DEBUG) {
-                System.err.println("Selected CmapFormat (2): platform " + platform + ", encoding "+encoding + ": "+cmapFormat);
-            }
+        if (cmapFmt == null) {
+            throw new RuntimeException("Cannot find a suitable cmap table");
+        }
+        cmapFormat = cmapFmt;
+        if(DEBUG) {
+            System.err.println("Selected CmapFormat: platform " + platform + ", encoding "+encoding + ": "+cmapFormat);
         }
 
         {
@@ -326,6 +298,7 @@ class TypecastFont implements Font {
                 }
                 temp1.translate(advanceTotal, y, temp2);
                 res.resize(temp1.transform(glyph.getBBoxFU(), temp_box));
+
                 advanceTotal += glyph.getAdvanceFU();
                 left_glyph = glyph;
             }
