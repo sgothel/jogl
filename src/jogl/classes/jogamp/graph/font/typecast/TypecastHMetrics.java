@@ -65,7 +65,7 @@ final class TypecastHMetrics implements Metrics {
 
     @Override
     public int getAscentFU() {
-        return -hheaTable.getAscender(); // inverted
+        return hheaTable.getAscender();
     }
 
     @Override
@@ -75,7 +75,7 @@ final class TypecastHMetrics implements Metrics {
 
     @Override
     public int getDescentFU() {
-        return -hheaTable.getDescender(); // inverted
+        return hheaTable.getDescender();
     }
 
     @Override
@@ -85,7 +85,7 @@ final class TypecastHMetrics implements Metrics {
 
     @Override
     public int getLineGapFU() {
-        return -hheaTable.getLineGap(); // inverted
+        return hheaTable.getLineGap();
     }
 
     @Override

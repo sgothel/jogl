@@ -253,11 +253,7 @@ class TypecastFont implements Font {
     @Override
     public int getLineHeightFU() {
         final Metrics metrics = getMetrics();
-        final int lineGap = metrics.getLineGapFU() ; // negative value!
-        final int descent = metrics.getDescentFU() ; // positive value!
-        final int ascent = metrics.getAscentFU() ;   // negative value!
-        final int advanceY = lineGap - descent + ascent;  // negative value!
-        return -advanceY;
+        return metrics.getAscentFU() - metrics.getDescentFU() + metrics.getLineGapFU();
     }
 
     @Override

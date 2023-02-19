@@ -81,42 +81,50 @@ public interface Font {
      */
     public interface Metrics {
         /**
-         * @return ascent in font-units, sourced from `hheaTable' table.
+         * Distance from baseline of highest ascender, a positive value.
+         * @return ascent in font-units, sourced from `hhea' table.
          */
         int getAscentFU();
 
         /**
-         * @return ascent in font em-size [0..1], sourced from `hheaTable' table.
+         * Distance from baseline of highest ascender, a positive value.
+         * @return ascent in font em-size [0..1], sourced from `hhea' table.
          */
         float getAscent();
 
         /**
-         * @return descent in font-units, sourced from `hheaTable' table.
+         * Distance from baseline of lowest descender, a negative value.
+         * @return descent in font-units, sourced from `hhea' table.
          */
         int getDescentFU();
 
         /**
-         * @return descend in font em-size [0..1], sourced from `hheaTable' table.
+         * Distance from baseline of lowest descender, a negative value.
+         * @return descend in font em-size [0..1], sourced from `hhea' table.
          */
         float getDescent();
 
         /**
-         * @return line-gap in font-units, sourced from `hheaTable' table.
+         * Typographic line gap, a positive value.
+         * @return line-gap in font-units, sourced from `hhea' table.
          */
         int getLineGapFU();
 
         /**
-         * @return line-gap in font em-size [0..1], sourced from `hheaTable' table.
+         * Typographic line gap, a positive value.
+         * @return line-gap in font em-size [0..1], sourced from `hhea' table.
          */
         float getLineGap();
 
         /**
-         * @return max-extend in font-units, sourced from `hheaTable' table.
+         * max(lsb + (xMax-xMin)), a positive value.
+         * @return max-extend in font-units, sourced from `hhea' table.
          */
         int getMaxExtendFU();
 
         /**
-         * @return max-extend in font em-size [0..1], sourced from `hheaTable' table.
+         * max(lsb + (xMax-xMin)), a positive value.
+         * @return max-extend in font em-size [0..1], sourced from `hhea' table.
          */
         float getMaxExtend();
 
@@ -203,7 +211,7 @@ public interface Font {
         /** Return advance in font units, sourced from `hmtx` table. */
         int getAdvanceFU();
 
-        /** Return advance in font em-size [0..1] */
+        /** Return advance in font em-size [0..1], sourced from `hmtx` table. */
         float getAdvance();
 
         /** True if kerning values are horizontal, otherwise vertical */
@@ -258,7 +266,7 @@ public interface Font {
     int getAdvanceWidthFU(final int glyphID);
 
     /**
-     * Return advance-width of given glyphID in font em-size [0..1]
+     * Return advance-width of given glyphID in font em-size [0..1], sourced from `hmtx` table.
      * @param glyphID
      */
     float getAdvanceWidth(final int glyphID);
@@ -272,17 +280,20 @@ public interface Font {
     int getNumGlyphs();
 
     /**
-     * Return line height in font-units, composed from `hheaTable' table entries.
+     * Return line height, baseline-to-baseline in font-units, composed from `hhea' table entries.
      * <pre>
-     *   return abs(lineGap) + abs(descent) abs(ascent);
+     *   return ascent - descent + linegap;
      * </pre>
      * or
      * <pre>
-     *   // lineGap negative value
-     *   // descent positive value
-     *   // ascent negative value
-     *   return -1 * ( lineGap - descent + ascent );
+     *   // lineGap positive value
+     *   // descent negative value
+     *   // ascent positive value
+     *   return ascent - descent + linegap;
      * </pre>
+     * @see Metrics#getAscentFU()
+     * @see Metrics#getDescentFU()
+     * @see Metrics#getLineGapFU()
      */
     int getLineHeightFU();
 
@@ -294,7 +305,7 @@ public interface Font {
     /**
      * Returns metric-bounds in font-units.
      * <p>
-     * Metric bounds is based on the `hmtx` table's advance of each glyph and `hheaTable' composed line height.
+     * Metric bounds is based on the `hmtx` table's advance of each glyph and `hhea' composed line height.
      * </p>
      * <p>
      * For accurate layout consider using {@link #getGlyphBoundsFU(CharSequence)}.
@@ -307,7 +318,7 @@ public interface Font {
     /**
      * Returns metric-bounds in font em-size.
      * <p>
-     * Metric bounds is based on the `hmtx` table's advance of each glyph and `hheaTable' composed line height.
+     * Metric bounds is based on the `hmtx` table's advance of each glyph and `hhea' composed line height.
      * </p>
      * <p>
      * For accurate layout consider using {@link #getGlyphBounds(CharSequence)}.
@@ -321,7 +332,7 @@ public interface Font {
     /**
      * Returns accurate bounding box by taking each glyph's font em-sized bounding box into account.
      * <p>
-     * Glyph bounds is based on each glyph's bounding box and `hheaTable' composed line height.
+     * Glyph bounds is based on each glyph's bounding box and `hhea' composed line height.
      * </p>
      * @param string string text
      * @return the bounding box of the given string in font em-size [0..1]
@@ -334,7 +345,7 @@ public interface Font {
     /**
      * Returns accurate bounding box by taking each glyph's font-units sized bounding box into account.
      * <p>
-     * Glyph bounds is based on each glyph's bounding box and `hheaTable' composed line height.
+     * Glyph bounds is based on each glyph's bounding box and `hhea' composed line height.
      * </p>
      * @param string string text
      * @return the bounding box of the given string in font-units [0..1]
@@ -345,7 +356,7 @@ public interface Font {
     /**
      * Returns accurate bounding box by taking each glyph's font em-sized {@link OutlineShape} into account.
      * <p>
-     * Glyph shape bounds is based on each glyph's {@link OutlineShape} and `hheaTable' composed line height.
+     * Glyph shape bounds is based on each glyph's {@link OutlineShape} and `hhea' composed line height.
      * </p>
      * <p>
      * This method is only exposed to validate the produced {@link OutlineShape} against {@link #getGlyphBounds(CharSequence)}.
@@ -362,7 +373,7 @@ public interface Font {
     /**
      * Returns accurate bounding box by taking each glyph's font em-sized {@link OutlineShape} into account.
      * <p>
-     * Glyph shape bounds is based on each glyph's {@link OutlineShape} and `hheaTable' composed line height.
+     * Glyph shape bounds is based on each glyph's {@link OutlineShape} and `hhea' composed line height.
      * </p>
      * <p>
      * This method is only exposed to validate the produced {@link OutlineShape} against {@link #getGlyphBounds(CharSequence)}.
