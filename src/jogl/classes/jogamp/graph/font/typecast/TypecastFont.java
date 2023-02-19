@@ -180,13 +180,8 @@ class TypecastFont implements Font {
 
     @Override
     public int getGlyphID(final char symbol) {
-        // enforce mapping as some fonts have an erroneous cmap (FreeSerif-Regular)
-        switch(symbol) {
-            case ' ':  return Glyph.ID_SPACE;
-            case '\n': return Glyph.ID_CR;
-        }
         final int glyphID = cmapFormat.mapCharCode(symbol);
-        if( 0 != glyphID ) {
+        if( 0 < glyphID ) {
             return glyphID;
         }
         return Glyph.ID_UNKNOWN;
@@ -200,29 +195,23 @@ class TypecastFont implements Font {
     public Glyph getGlyph(final int glyph_id) {
         TypecastGlyph result = (TypecastGlyph) idToGlyph.get(glyph_id);
         if (null == result) {
-            jogamp.graph.font.typecast.ot.Glyph glyph = font.getGlyph(glyph_id);
+            final jogamp.graph.font.typecast.ot.Glyph glyph = font.getGlyph(glyph_id);
+            final PostTable post = font.getPostTable();
+            final String glyph_name = null != post ? post.getGlyphName(glyph_id) : "";
+
             final int glyph_advance;
             final AABBox glyph_bbox;
-            if(null == glyph) {
-                // fallback
-                glyph = font.getGlyph(Glyph.ID_UNKNOWN);
+            final OutlineShape shape;
+            if( null != glyph ) {
+                glyph_advance = glyph.getAdvanceWidth();
+                glyph_bbox = glyph.getBBox();
+                shape = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph, vertexFactory);
+            } else {
+                final int glyph_height = metrics.getAscentFU() - metrics.getDescentFU();
+                glyph_advance = getAdvanceWidthFU(glyph_id);
+                glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
+                shape = null;
             }
-            switch( glyph_id ) {
-                case Glyph.ID_SPACE:
-                    /** fallthrough */
-                case Glyph.ID_CR:
-                    glyph_advance = getAdvanceWidthFU(glyph_id);
-                    glyph_bbox = new AABBox(0, 0, 0, glyph_advance, getLineHeightFU(), 0);
-                    break;
-                default:
-                    glyph_advance = glyph.getAdvanceWidth();
-                    glyph_bbox = glyph.getBBox();
-                    break;
-            }
-            if(null == glyph) {
-                throw new RuntimeException("Could not retrieve glyph for glyph id "+glyph_id);
-            }
-            final OutlineShape shape = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph, vertexFactory);
             KernSubtable kernSub = null;
             {
                 final KernTable kern = font.getKernTable();
@@ -230,15 +219,15 @@ class TypecastFont implements Font {
                     kernSub = kern.getSubtable0();
                 }
             }
-            result = new TypecastGlyph(this, glyph_id, glyph_bbox, glyph_advance, kernSub, shape);
+            result = new TypecastGlyph(this, glyph_id, glyph_name, glyph_bbox, glyph_advance, kernSub, shape);
             if(DEBUG) {
-                final PostTable post = font.getPostTable();
-                final String glyph_name = null != post ? post.getGlyphName(glyph_id) : "n/a";
-                System.err.println("New glyph: " + glyph_id + "/'"+glyph_name+"', contours " + glyph.getPointCount() + ": " + shape);
-                System.err.println("  "+glyph);
-                System.err.println("  "+result);
+                System.err.println("New glyph: " + glyph_id + "/'"+glyph_name+"', shape " + (null != shape));
+                System.err.println("  tc_glyph "+glyph);
+                System.err.println("     glyph "+result);
             }
-            glyph.clearPointData();
+            if( null != glyph ) {
+                glyph.clearPointData();
+            }
 
             idToGlyph.put(glyph_id, result);
         }
@@ -279,8 +268,6 @@ class TypecastFont implements Font {
             if (character == '\n') {
                 advanceTotal = 0;
                 y -= lineHeight;
-            } else if (character == ' ') {
-                advanceTotal += getAdvanceWidthFU(Glyph.ID_SPACE);
             } else {
                 advanceTotal += getAdvanceWidthFU( getGlyphID( character ) );
             }
@@ -323,17 +310,15 @@ class TypecastFont implements Font {
                 y -= lineHeight;
                 advanceTotal = 0;
                 left_glyph = null;
-            } else if (character == ' ') {
-                advanceTotal += getAdvanceWidthFU(Glyph.ID_SPACE);
-                left_glyph = null;
             } else {
                 // reset transform
                 temp1.setToIdentity();
                 final int glyph_id = getGlyphID(character);
                 final Font.Glyph glyph = getGlyph(glyph_id);
                 final OutlineShape glyphShape = glyph.getShape();
-                if( null == glyphShape ) {
-                    left_glyph = null;
+                if( null == glyphShape ) { // also covers 'space' and all non-contour symbols
+                    advanceTotal += glyph.getAdvanceFU();
+                    left_glyph = null; // break kerning
                     continue;
                 }
                 if( null != left_glyph ) {
@@ -395,9 +380,6 @@ class TypecastFont implements Font {
                 y -= lineHeight;
                 advanceTotal = 0;
                 left_glyph = null;
-            } else if (character == ' ') {
-                advanceTotal += getAdvanceWidth(Glyph.ID_SPACE);
-                left_glyph = null;
             } else {
                 // reset transform
                 if( null != transform ) {
@@ -408,8 +390,9 @@ class TypecastFont implements Font {
                 final int glyph_id = getGlyphID(character);
                 final Font.Glyph glyph = getGlyph(glyph_id);
                 final OutlineShape glyphShape = glyph.getShape();
-                if( null == glyphShape ) {
-                    left_glyph = null;
+                if( null == glyphShape ) { // also covers 'space' and all non-contour symbols
+                    advanceTotal += glyph.getAdvance();
+                    left_glyph = null; // break kerning
                     continue;
                 }
                 if( null != left_glyph ) {

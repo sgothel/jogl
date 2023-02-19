@@ -105,6 +105,7 @@ public final class TypecastGlyph implements Font.Glyph {
     }
 
     private final int id;
+    private final String name;
     private final int[/*right_glyphid*/][/*value*/] kerning;
     private final boolean kerning_horizontal;
     private final boolean kerning_crossstream;
@@ -114,14 +115,16 @@ public final class TypecastGlyph implements Font.Glyph {
     /**
      *
      * @param font
+     * @param name
      * @param id
      * @param bbox in font-units
      * @param advance from hmtx in font-units
      * @param shape
      */
-    protected TypecastGlyph(final TypecastFont font, final int id, final AABBox bbox, final int advance,
+    protected TypecastGlyph(final TypecastFont font, final int id, final String name, final AABBox bbox, final int advance,
                             final KernSubtable kernSub, final OutlineShape shape) {
         this.id = id;
+        this.name = name;
         if( null != kernSub && kernSub.areKerningValues() ) {
             int pair_sz = 64;
             int pair_idx = 0;
@@ -164,6 +167,11 @@ public final class TypecastGlyph implements Font.Glyph {
     @Override
     public final int getID() {
         return this.id;
+    }
+
+    @Override
+    public final String getName() {
+        return this.name;
     }
 
     @Override
@@ -245,12 +253,11 @@ public final class TypecastGlyph implements Font.Glyph {
 
     @Override
     public String toString() {
-        final PostTable post = metrics.getFont().getPostTable();
-        final String glyph_name = null != post ? post.getGlyphName(id) : "n/a";
         final StringBuilder sb = new StringBuilder();
-        sb.append("Glyph id ").append(id).append(" '").append(glyph_name).append("'")
+        sb.append("Glyph[id ").append(id).append(" '").append(name).append("'")
           .append(", advance ").append(getAdvanceFU())
-          .append(", kerning[size ").append(kerning.length).append(", horiz ").append(this.isKerningHorizontal()).append(", cross ").append(this.isKerningCrossstream()).append("]");
+          .append(", kerning[size ").append(kerning.length).append(", horiz ").append(this.isKerningHorizontal()).append(", cross ").append(this.isKerningCrossstream()).append("]")
+          .append(", shape ").append(null != shape).append("]");
         return sb.toString();
     }
 

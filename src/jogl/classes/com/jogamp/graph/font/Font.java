@@ -165,13 +165,14 @@ public interface Font {
         // reserved special glyph IDs
         // http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08#ba57949e
         public static final int ID_UNKNOWN = 0;
-        public static final int ID_CR = 2;
-        public static final int ID_SPACE = 3;
 
         Font getFont();
 
         /** Return this glyph's ID */
         int getID();
+
+        /** Return the glyph's name, source from `post` table */
+        String getName();
 
         /**
          * Return fractional font em-size [0..1], i.e. funits divided by {@link #getUnitsPerEM()}, i.e.
