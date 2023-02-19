@@ -37,7 +37,6 @@ import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.plane.AffineTransform;
 
 /**
@@ -142,13 +141,12 @@ public class TextRegionUtil {
         if( !renderer.isInitialized() ) {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        final int special = 0;
-        GLRegion region = getCachedRegion(font, str, special);
+        GLRegion region = getCachedRegion(font, str);
         AABBox res;
         if(null == region) {
             region = GLRegion.create(renderModes, null);
             res = addStringToRegion(region, font, null, str, rgbaColor, tempT1, tempT2);
-            addCachedRegion(gl, font, str, special, region);
+            addCachedRegion(gl, font, str, region);
         } else {
             res = new AABBox();
             res.copy(region.getBounds());
@@ -270,7 +268,7 @@ public class TextRegionUtil {
     */
    public final int getCacheSize() { return stringCacheArray.size(); }
 
-   protected final void validateCache(final GL2ES2 gl, final int space) {
+   private final void validateCache(final GL2ES2 gl, final int space) {
        if ( getCacheLimit() > 0 ) {
            while ( getCacheSize() + space > getCacheLimit() ) {
                removeCachedRegion(gl, 0);
@@ -278,13 +276,13 @@ public class TextRegionUtil {
        }
    }
 
-   protected final GLRegion getCachedRegion(final Font font, final CharSequence str, final int special) {
-       return stringCacheMap.get(getKey(font, str, special));
+   private final GLRegion getCachedRegion(final Font font, final CharSequence str) {
+       return stringCacheMap.get(new Key(font, str));
    }
 
-   protected final void addCachedRegion(final GL2ES2 gl, final Font font, final CharSequence str, final int special, final GLRegion glyphString) {
+   private final void addCachedRegion(final GL2ES2 gl, final Font font, final CharSequence str, final GLRegion glyphString) {
        if ( 0 != getCacheLimit() ) {
-           final String key = getKey(font, str, special);
+           final Key key = new Key(font, str);
            final GLRegion oldRegion = stringCacheMap.put(key, glyphString);
            if ( null == oldRegion ) {
                // new entry ..
@@ -294,8 +292,8 @@ public class TextRegionUtil {
        }
    }
 
-   protected final void removeCachedRegion(final GL2ES2 gl, final Font font, final CharSequence str, final int special) {
-       final String key = getKey(font, str, special);
+   private final void removeCachedRegion(final GL2ES2 gl, final Font font, final CharSequence str) {
+       final Key key = new Key(font, str);
        final GLRegion region = stringCacheMap.remove(key);
        if(null != region) {
            region.destroy(gl);
@@ -303,8 +301,8 @@ public class TextRegionUtil {
        stringCacheArray.remove(key);
    }
 
-   protected final void removeCachedRegion(final GL2ES2 gl, final int idx) {
-       final String key = stringCacheArray.remove(idx);
+   private final void removeCachedRegion(final GL2ES2 gl, final int idx) {
+       final Key key = stringCacheArray.remove(idx);
        if( null != key ) {
            final GLRegion region = stringCacheMap.remove(key);
            if(null != region) {
@@ -313,10 +311,32 @@ public class TextRegionUtil {
        }
    }
 
-   protected final String getKey(final Font font, final CharSequence str, final int special) {
-       final StringBuilder sb = new StringBuilder();
-       return sb.append( font.getName(Font.NAME_UNIQUNAME) )
-              .append(".").append(str.hashCode()).append(".").append(special).toString();
+   private class Key {
+       private final String fontName;
+       private final CharSequence text;
+       public final int hash;
+
+       public Key(final Font font, final CharSequence text) {
+           this.fontName = font.getName(Font.NAME_UNIQUNAME);
+           this.text = text;
+
+           // 31 * x == (x << 5) - x
+           final int lhash = 31 + fontName.hashCode();
+           this.hash = ((lhash << 5) - lhash) + text.hashCode();
+       }
+
+       @Override
+       public final int hashCode() { return hash; }
+
+       @Override
+       public final boolean equals(final Object o) {
+           if( this == o ) { return true; }
+           if( o instanceof Key ) {
+               final Key ok = (Key)o;
+               return ok.fontName.equals(fontName) && ok.text.equals(text);
+           }
+           return false;
+       }
    }
 
    /** Default cache limit, see {@link #setCacheLimit(int)} */
@@ -324,7 +344,7 @@ public class TextRegionUtil {
 
    public final AffineTransform tempT1 = new AffineTransform();
    public final AffineTransform tempT2 = new AffineTransform();
-   private final HashMap<String, GLRegion> stringCacheMap = new HashMap<String, GLRegion>(DEFAULT_CACHE_LIMIT);
-   private final ArrayList<String> stringCacheArray = new ArrayList<String>(DEFAULT_CACHE_LIMIT);
+   private final HashMap<Key, GLRegion> stringCacheMap = new HashMap<Key, GLRegion>(DEFAULT_CACHE_LIMIT);
+   private final ArrayList<Key> stringCacheArray = new ArrayList<Key>(DEFAULT_CACHE_LIMIT);
    private int stringCacheLimit = DEFAULT_CACHE_LIMIT;
 }
