@@ -190,6 +190,17 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         }
     }
 
+    public void setHeadBox(final String text, final boolean resize) {
+        headtext = text;
+        if(resize && null != headtext) {
+            headbox = font.getMetricBounds(headtext);
+            if( headtext != text_help ) {
+                final float pxSz = FontScale.toPixels(fontSizeHead, dpiV);
+                upsizeWindowSurface(upstream_window, true, (int)(headbox.getWidth()*pxSz*1.1f), (int)(headbox.getHeight()*pxSz*2f));
+            }
+        }
+    }
+
     public static void upsizeWindowSurface(final Window window, final boolean off_thread, final int w, final int h) {
         if( null == window ) {
             return;
@@ -408,8 +419,19 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     public void fontHeadIncr(final int v) {
         fontSizeHead = Math.abs((fontSizeHead + v) % fontSizeModulo) ;
+        updateFontNameBox();
         if(null != headtext) {
             headbox = font.getMetricBounds(headtext);
+        }
+    }
+
+    public void setFontHeadSize(final int v) {
+        if( 0 < v ) {
+            fontSizeHead = v % fontSizeModulo;
+            updateFontNameBox();
+            if(null != headtext) {
+                headbox = font.getMetricBounds(headtext);
+            }
         }
     }
 
@@ -420,8 +442,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             if(null != _font) {
                 fontSet = set;
                 font = _font;
-                fontName = font.getFullFamilyName();
-                fontNameBox = font.getMetricBounds(fontName);
+                updateFontNameBox();
                 return true;
             }
         } catch (final IOException ex) {
@@ -436,8 +457,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             if(null != _font) {
                 fontSet = set;
                 font = _font;
-                fontName = font.getFullFamilyName()+" (head "+fontSizeHead+"pt)";
-                fontNameBox = font.getMetricBounds(fontName);
+                updateFontNameBox();
                 return true;
             }
         } catch (final IOException ex) {
@@ -450,11 +470,15 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         if(null != _font) {
             // fontSet = ???
             font = _font;
-            fontName = font.getFullFamilyName()+" (head "+fontSizeHead+"pt)";
-            fontNameBox = font.getMetricBounds(fontName);
+            updateFontNameBox();
             return true;
         }
         return false;
+    }
+
+    private void updateFontNameBox() {
+        fontName = font.getFullFamilyName()+" (head "+fontSizeHead+"pt)";
+        fontNameBox = font.getMetricBounds(fontName);
     }
 
     public boolean isUserInputMode() { return userInput; }

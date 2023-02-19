@@ -53,8 +53,9 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.font.FontScale;
+import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
@@ -65,9 +66,12 @@ import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  * TestTextRendererNEWT00 Variant
+ * - Testing GLRegion properties, i.e. overflow bug
  * - No listener, all straight forward
- * - Type Rendering via TextRegionUtil
- * - Type Rendering vanilla via GLRegion, GLRegion.addOutlineShape(Font.processString()), ..
+ * - Type Rendering vanilla via TextRegionUtil.addStringToRegion(..)
+ *   - GLRegion.addOutlineShape( Font.processString(..) )
+ *   - Using a single GLRegion instantiation
+ *   - Single GLRegion is filled once with shapes from text
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTextRendererNEWT00 extends UITestCase {
@@ -78,16 +82,17 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static boolean forceGL3 = false;
     static boolean mainRun = false;
     static boolean useMSAA = true;
-    static int win_width = 1024;
-    static int win_height = 640;
+    static int win_width = 1280;
+    static int win_height = 720;
 
     static Font font;
     static float fontSize = 24; // in pixel
+    private final float[] fg_color = new float[] { 0, 0, 0, 1 };
 
     @BeforeClass
     public static void setup() throws IOException {
         if( null == font ) {
-            font = FontFactory.get(FontFactory.UBUNTU).getDefault();
+            font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE);
         }
     }
 
@@ -136,7 +141,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
 
     @Test
     public void test02TextRendererVBAA04() throws InterruptedException, GLException, IOException {
-        final int renderModes = Region.VBAA_RENDERING_BIT;
+        final int renderModes = Region.VBAA_RENDERING_BIT | Region.COLORCHANNEL_RENDERING_BIT;
         final int sampleCount = 4;
         final GLProfile glp;
         if(forceGL3) {
@@ -163,115 +168,122 @@ public class TestTextRendererNEWT00 extends UITestCase {
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
         final RegionRenderer renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
-        final TextRegionUtil textRenderUtil = new TextRegionUtil(renderModes);
 
         // init
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         renderer.init(gl, 0);
         rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
-        screenshot = new GLReadBufferUtil(false, false);
+        final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
 
         // reshape
         gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
 
         // renderer.reshapePerspective(gl, 45.0f, drawable.getWidth(), drawable.getHeight(), 0.1f, 1000.0f);
         renderer.reshapeOrtho(drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), 0.1f, 1000.0f);
+        final int z0 = -1000;
 
         final int[] sampleCountIO = { sampleCount };
         // display
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+
+        final GLRegion region = GLRegion.create(renderModes, null);
+        final float dx = 0;
+        final float dy = drawable.getSurfaceHeight() - 3 * fontSize * font.getLineHeight();
         {
-            {
-                final float[] pixelsPerMM = winctx.window.getPixelsPerMM(new float[2]);
-                final float[] dpi = FontScale.ppmmToPPI(pixelsPerMM, new float[2]);
-                final float mmSize = fontSize / pixelsPerMM[1];
-                final int unitsPerEM = font.getMetrics().getUnitsPerEM();
-                String txt = String.format("Resolution dpiV %.2f, %.2f px/mm", dpi[1], pixelsPerMM[1]);
-                renderString(drawable, gl, renderer, textRenderUtil, txt, 0,  0, -1000, sampleCountIO);
-                txt = String.format("Font %s, unitsPerEM %d, size %.2f px %2f mm", font.getFullFamilyName(), unitsPerEM, fontSize, mmSize);
-                renderString(drawable, gl, renderer, textRenderUtil, txt, 0,  -1, -1000, sampleCountIO);
+            // all sizes in em
+            final float x_width = font.getAdvanceWidth( font.getGlyphID('X') );
+            final AffineTransform t = new AffineTransform();
+
+            t.setToTranslation(3*x_width, 0f);
+            final AABBox tbox_1 = font.getGlyphBounds(text_1);
+            final AABBox rbox_1 = TextRegionUtil.addStringToRegion(region, font, t, text_1, fg_color);
+            System.err.println("Text_1: tbox "+tbox_1);
+            System.err.println("Text_1: rbox "+rbox_1);
+
+            if( true ) {
+                t.setToTranslation(3*x_width, -1f*(rbox_1.getHeight()+font.getLineHeight()));
+                final AABBox tbox_2 = font.getGlyphBounds(text_2);
+                final AABBox rbox_2 = TextRegionUtil.addStringToRegion(region, font, t, text_2, fg_color);
+                System.err.println("Text_1: tbox "+tbox_2);
+                System.err.println("Text_1: rbox "+rbox_2);
             }
-            {
-                final AABBox txt_box_em = glyph.getBBox();
-                final float full_width_s = full_width_o / txt_box_em.getWidth();
-                final float full_height_s = full_height_o / txt_box_em.getHeight();
-                final float txt_scale = full_width_s < full_height_s ? full_width_s/2f : full_height_s/2f;
-                pmv.glPushMatrix();
-                pmv.glScalef(txt_scale, txt_scale, 1f);
-                pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
-                {
-                    final GLRegion region = GLRegion.create(renderModes, null);
-                    region.addOutlineShape(glyph.getShape(), null, region.hasColorChannel() ? fg_color : null);
-                    region.draw(gl, renderer, sampleCount);
-                    region.destroy(gl);
-                }
-                if( once ) {
-                    final AABBox txt_box_em2 = font.getGlyphShapeBounds(null, text);
-                    System.err.println("XXX: full_width: "+full_width_o+" / "+txt_box_em.getWidth()+" -> "+full_width_s);
-                    System.err.println("XXX: full_height: "+full_height_o+" / "+txt_box_em.getHeight()+" -> "+full_height_s);
-                    System.err.println("XXX: txt_scale: "+txt_scale);
-                    System.err.println("XXX: txt_box_em "+txt_box_em);
-                    System.err.println("XXX: txt_box_e2 "+txt_box_em2);
-                    once = false;
-                }
-            }
-            renderString(drawable, gl, renderer, textRenderUtil, "012345678901234567890123456789", 0, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "Hello World", 0, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "4567890123456", 4, -1, -1000,sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "I like JogAmp", 4, -1, -1000, sampleCountIO);
-
-            int c = 0;
-            renderString(drawable, gl, renderer, textRenderUtil, "GlueGen", c++, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "JOAL", c++, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "JOGL", c++, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "JOCL", c++, -1, -1000, sampleCountIO);
         }
-        gl.glFinish();
-        printScreen(renderModes, drawable, gl, false, sampleCount);
-        drawable.swapBuffers();
-
-        sleep();
-
-        // dispose
-        screenshot.dispose(gl);
-        renderer.destroy(gl);
-
-        NEWTGLContext.destroyWindow(winctx);
-    }
-    private boolean once = true;
-
-    private GLReadBufferUtil screenshot;
-    int lastRow = -1;
-
-    void renderString(final GLDrawable drawable, final GL2ES2 gl, final RegionRenderer renderer, final TextRegionUtil textRenderUtil, final String text, final int column, int row, final int z0, final int[] sampleCount) {
-        final int height = drawable.getSurfaceHeight();
-
-        float dx = 0;
-        float dy = height;
-        if(0>row) {
-            row = lastRow + 1;
-        }
-        final AABBox textBox = font.getMetricBounds(text); // em-size
-        dx += fontSize * font.getAdvanceWidth('X') * column;
-        dy -= fontSize * textBox.getHeight() * ( row + 1 );
 
         final PMVMatrix pmv = renderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         pmv.glTranslatef(dx, dy, z0);
-        pmv.glScalef(fontSize, fontSize, 1.0f);
-        textRenderUtil.drawString3D(gl, renderer, font, text, null, sampleCount);
+        pmv.glScalef(fontSize, fontSize, 1f);
+        region.draw(gl, renderer, sampleCountIO);
+        gl.glFinish();
+        printScreen(screenshot, renderModes, drawable, gl, false, sampleCount);
+        drawable.swapBuffers();
 
-        lastRow = row;
+        sleep();
+
+        // dispose
+        region.destroy(gl);;
+        screenshot.dispose(gl);
+        renderer.destroy(gl);
+
+        NEWTGLContext.destroyWindow(winctx);
     }
+    public static final String text_1 =
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus. \n"+
+        "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
+        "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices ultricies nec a elit. \n"+
+        "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia pharetra at venenatis est. \n"+
+        "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat nec, volutpat nec nisi. \n"+
+        "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum id tempus quis, semper \n"+
+        "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem, \n" +
+        "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*. X\n"+
+        "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail. X\n"+
+        "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale. X\n"+
+        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway, Kyulu in Kenya, not in Rwanda.… X\n"+
+        "Von-Vincke-Straße in Münster, Vdovino in Russia, Ytterbium in the periodic table. Are Toussaint L’Ouverture, Wölfflin, Wolfe, X\n"+
+        "Miłosz and Wū Wŭ all in the library? 1510–1620, 11:00 pm, and the 1980s are over. X\n"+
+        "-------Press H to change text---------";
 
-    private int screenshot_num = 0;
+    public static final String text_1b =
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus. \n"+
+        "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
+        "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices ultricies nec a elit. \n"+
+        "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia pharetra at venenatis est. \n"+
+        "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat nec, volutpat nec nisi. \n"+
+        "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum id tempus quis, semper \n"+
+        "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem, \n" +
+        "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of"+
+        "abcdefh";
+        //     ^
+        //     |
+        //"abcdefgh";
+        //       ^
+        //       |
 
-    public void printScreen(final int renderModes, final GLDrawable drawable, final GL gl, final boolean exportAlpha, final int sampleCount) throws GLException, IOException {
+    public static final String text_1o =
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus. \n"+
+        "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
+        "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices ultricies nec a elit. \n"+
+        "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia pharetra at venenatis est. \n"+
+        "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat nec, volutpat nec nisi. \n"+
+        "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum id tempus quis, semper \n"+
+        "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem, \n" +
+        "-------Press H to change text---------";
+
+    public static final String text_2 =
+        "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*. X\n"+
+        "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail. X\n"+
+        "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale. X\n"+
+        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway, Kyulu in Kenya, not in Rwanda.… X\n"+
+        "Von-Vincke-Straße in Münster, Vdovino in Russia, Ytterbium in the periodic table. Are Toussaint L’Ouverture, Wölfflin, Wolfe, X\n"+
+        "Miłosz and Wū Wŭ all in the library? 1510–1620, 11:00 pm, and the 1980s are over. X\n"+
+        "-------Press H to change text---------";
+
+    public static void printScreen(final GLReadBufferUtil screenshot, final int renderModes, final GLDrawable drawable, final GL gl, final boolean exportAlpha, final int sampleCount) throws GLException, IOException {
+        final int screenshot_num = 0;
         final String dir = "./";
-        final String objName = getSimpleTestName(".")+"-snap"+screenshot_num;
-        screenshot_num++;
+        final String objName = "TestTextRendererNEWT00-snap"+screenshot_num;
+        // screenshot_num++;
         final String modeS = Region.getRenderModeString(renderModes);
         final String bname = String.format((Locale)null, "%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
                 drawable.getChosenGLCapabilities().getNumSamples(),

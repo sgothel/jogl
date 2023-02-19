@@ -53,6 +53,7 @@ import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
+import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -86,8 +87,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
     @BeforeClass
     public static void setup() throws IOException {
         if( null == font ) {
-            font = FontFactory.get(FontFactory.UBUNTU).getDefault();
-            // font = FontFactory.get(FontFactory.JAVA).getDefault();
+            font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE);
         }
     }
 
@@ -195,6 +195,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
 
         // renderer.reshapePerspective(gl, 45.0f, drawable.getWidth(), drawable.getHeight(), 0.1f, 1000.0f);
         renderer.reshapeOrtho(drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), 0.1f, 1000.0f);
+        final int z0 = -1000;
 
         final int[] sampleCountIO = { sampleCount };
         // display
@@ -206,23 +207,23 @@ public class TestTextRendererNEWT01 extends UITestCase {
                 final float mmSize = fontSize / pixelsPerMM[1];
                 final int unitsPerEM = font.getMetrics().getUnitsPerEM();
                 String txt = String.format("Resolution dpiV %.2f, %.2f px/mm", dpi[1], pixelsPerMM[1]);
-                renderString(drawable, gl, renderer, textRenderUtil, txt, 0,  0, -1000, sampleCountIO);
+                renderString(drawable, gl, renderer, textRenderUtil, txt, 0,  0, z0, sampleCountIO);
                 txt = String.format("Font %s, unitsPerEM %d, size %.2f px %2f mm", font.getFullFamilyName(), unitsPerEM, fontSize, mmSize);
-                renderString(drawable, gl, renderer, textRenderUtil, txt, 0,  -1, -1000, sampleCountIO);
+                renderString(drawable, gl, renderer, textRenderUtil, txt, 0,  -1, z0, sampleCountIO);
             }
-            renderString(drawable, gl, renderer, textRenderUtil, "012345678901234567890123456789", 0, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "Hello World", 0, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "4567890123456", 4, -1, -1000,sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "I like JogAmp", 4, -1, -1000, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "012345678901234567890123456789", 0, -1, z0, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", 0, -1, z0, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "Hello World", 0, -1, z0, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "4567890123456", 4, -1, z0,sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "I like JogAmp", 4, -1, z0, sampleCountIO);
 
             int c = 0;
-            renderString(drawable, gl, renderer, textRenderUtil, "GlueGen", c++, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "JOAL", c++, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "JOGL", c++, -1, -1000, sampleCountIO);
-            renderString(drawable, gl, renderer, textRenderUtil, "JOCL", c++, -1, -1000, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "GlueGen", c++, -1, z0, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "JOAL", c++, -1, z0, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "JOGL", c++, -1, z0, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, "JOCL", c++, -1, z0, sampleCountIO);
         } else {
-            renderString(drawable, gl, renderer, textRenderUtil, customStr, 0,  0, -1000, sampleCountIO);
+            renderString(drawable, gl, renderer, textRenderUtil, customStr, 0,  0, z0, sampleCountIO);
         }
         gl.glFinish();
         printScreen(renderModes, drawable, gl, false, sampleCount);
@@ -240,7 +241,9 @@ public class TestTextRendererNEWT01 extends UITestCase {
     private GLReadBufferUtil screenshot;
     int lastRow = -1;
 
-    void renderString(final GLDrawable drawable, final GL2ES2 gl, final RegionRenderer renderer, final TextRegionUtil textRenderUtil, final String text, final int column, int row, final int z0, final int[] sampleCount) {
+    void renderString(final GLDrawable drawable, final GL2ES2 gl, final RegionRenderer renderer, final TextRegionUtil textRenderUtil, final String text,
+                      final int column, int row, final int z0, final int[] sampleCount)
+    {
         final int height = drawable.getSurfaceHeight();
 
         float dx = 0;

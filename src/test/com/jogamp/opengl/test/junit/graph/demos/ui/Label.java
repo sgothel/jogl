@@ -28,6 +28,7 @@
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
@@ -86,16 +87,11 @@ public class Label extends UIShape {
     protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
     }
 
-    private final float[] tmpV3 = new float[3];
-    private final AffineTransform tempT1 = new AffineTransform();
-    private final AffineTransform tempT2 = new AffineTransform();
-
     private final OutlineShape.Visitor shapeVisitor = new OutlineShape.Visitor() {
         @Override
         public void visit(final OutlineShape shape, final AffineTransform t) {
             shape.setSharpness(shapesSharpness);
             region.addOutlineShape(shape, t, rgbaColor);
-            box.resize(shape.getBounds(), t, tmpV3);
         }
     };
 
@@ -103,9 +99,10 @@ public class Label extends UIShape {
     protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
         final AffineTransform t_sxy = new AffineTransform();
         t_sxy.setToScale(pixelSize, pixelSize);
-        font.processString(shapeVisitor, t_sxy, text, tempT1, tempT2);
+        final AABBox fbox = font.processString(shapeVisitor, t_sxy, text);
         final float[] ctr = box.getCenter();
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
+        box.resize(fbox);
     }
 
     @Override

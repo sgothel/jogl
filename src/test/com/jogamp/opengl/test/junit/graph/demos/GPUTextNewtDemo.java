@@ -30,10 +30,15 @@ package com.jogamp.opengl.test.junit.graph.demos;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.geom.AABBox;
+
+import java.io.File;
+import java.io.IOException;
+
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.event.KeyAdapter;
@@ -62,7 +67,9 @@ public class GPUTextNewtDemo {
     static int GraphVBAASamples = 4;
     static int GraphMSAASamples = 0;
 
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws IOException {
+        Font opt_font = null;
+        int opt_fontSizeHead = -1;
         int width = 800, height = 400;
         int x = 10, y = 10;
         if( 0 != args.length ) {
@@ -94,6 +101,12 @@ public class GPUTextNewtDemo {
                 } else if(args[i].equals("-y")) {
                     i++;
                     y = MiscUtils.atoi(args[i], y);
+                } else if(args[i].equals("-font")) {
+                    i++;
+                    opt_font = FontFactory.get(new File(args[i]));
+                } else if(args[i].equals("-fontSize")) {
+                    i++;
+                    opt_fontSizeHead = MiscUtils.atoi(args[i], opt_fontSizeHead);
                 }
             }
         }
@@ -130,17 +143,19 @@ public class GPUTextNewtDemo {
 
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
         final GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(rs, rmode, sampleCount, true, DEBUG, TRACE);
+        textGLListener.setFont(opt_font);
+        textGLListener.setFontHeadSize(opt_fontSizeHead);
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);
         window.addGLEventListener(textGLListener);
         window.setVisible(true);
 
         {
-            final Font font = textGLListener.getFont();
+            final Font font2 = textGLListener.getFont();
             final float[] sDPI = FontScale.perMMToPerInch( window.getPixelsPerMM(new float[2]) );
             final float font_ptpi = 12f;
             final float font_ppi = FontScale.toPixels(font_ptpi, sDPI[1]);
-            final AABBox fontNameBox = font.getMetricBounds(GPUTextRendererListenerBase01.textX1);
-            System.err.println("GPU Text Newt Demo: "+font.fullString());
+            final AABBox fontNameBox = font2.getMetricBounds(GPUTextRendererListenerBase01.textX1);
+            System.err.println("GPU Text Newt Demo: "+font2.fullString());
             System.err.println("GPU Text Newt Demo: screen-dpi: "+sDPI[0]+"x"+sDPI[1]+", font "+font_ptpi+" pt, "+font_ppi+" pixel");
             System.err.println("GPU Text Newt Demo: textX2: "+fontNameBox+" em, "+fontNameBox.scale(font_ppi, new float[3])+" px");
             // window.setSurfaceSize((int)(fontNameBox.getWidth()*1.1f), (int)(fontNameBox.getHeight()*2f));

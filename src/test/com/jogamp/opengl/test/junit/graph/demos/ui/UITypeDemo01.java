@@ -300,8 +300,14 @@ public class UITypeDemo01 implements GLEventListener {
                 full_width_o = objCoord1[0] - objCoord0[0];
                 full_height_o = objCoord1[1] - objCoord0[1];
             }
-            final Font.Glyph glyph = Glyph.ID_UNKNOWN != glyph_id ? font.getGlyph(glyph_id) : null;
-            if( null != glyph && null != glyph.getShape() && glyph.getID() != Glyph.ID_UNKNOWN ) {
+            final Font.Glyph glyph;
+            if( Glyph.ID_UNKNOWN != glyph_id ) {
+                glyph = font.getGlyph(glyph_id);
+                System.err.println("glyph_id "+glyph_id+": "+glyph);
+            } else {
+                glyph = null;
+            }
+            if( null != glyph && glyph.getID() != Glyph.ID_UNKNOWN ) {
                 final AABBox txt_box_em = glyph.getBBox();
                 final float full_width_s = full_width_o / txt_box_em.getWidth();
                 final float full_height_s = full_height_o / txt_box_em.getHeight();
@@ -309,7 +315,7 @@ public class UITypeDemo01 implements GLEventListener {
                 pmv.glPushMatrix();
                 pmv.glScalef(txt_scale, txt_scale, 1f);
                 pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
-                {
+                if( null != glyph.getShape() ) {
                     final GLRegion region = GLRegion.create(renderModes, null);
                     region.addOutlineShape(glyph.getShape(), null, region.hasColorChannel() ? fg_color : null);
                     region.draw(gl, renderer, sampleCount);
