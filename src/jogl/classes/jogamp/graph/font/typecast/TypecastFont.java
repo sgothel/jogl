@@ -30,7 +30,6 @@ package jogamp.graph.font.typecast;
 import jogamp.graph.font.typecast.ot.OTFontCollection;
 import jogamp.graph.font.typecast.ot.TTFont;
 import jogamp.graph.font.typecast.ot.table.CmapFormat;
-import jogamp.graph.font.typecast.ot.table.CmapIndexEntry;
 import jogamp.graph.font.typecast.ot.table.CmapTable;
 import jogamp.graph.font.typecast.ot.table.GlyfDescript;
 import jogamp.graph.font.typecast.ot.table.GlyfTable;
@@ -134,7 +133,7 @@ class TypecastFont implements Font {
                 final Glyph g = getGlyph(i);
                 final GlyfDescript gd = glyfTable.getDescription(i);
                 System.err.println("Index "+i);
-                System.err.println("  hmtx aw "+hmtx.getAdvanceWidth(i)+" / "+getAdvanceWidthFU(i)+" (glyph "+g.getAdvanceFU()+"), lsb "+hmtx.getLeftSideBearing(i)+")");
+                System.err.println("  hmtx aw "+hmtx.getAdvanceWidth(i)+", lsb "+hmtx.getLeftSideBearing(i));
                 System.err.println("  hhea aw-max "+hhea.getAdvanceWidthMax()+", x-max "+hhea.getXMaxExtent());
                 if( null != gd ) {
                     System.err.println("  gdesc idx "+gd.getGlyphIndex()+", isComp "+gd.isComposite()+", contours "+gd.getContourCount()+", points "+gd.getPointCount());
@@ -201,15 +200,18 @@ class TypecastFont implements Font {
             final String glyph_name = null != post ? post.getGlyphName(glyph_id) : "";
 
             final int glyph_advance;
+            final int glyph_leftsidebearings;
             final AABBox glyph_bbox;
             final OutlineShape shape;
             if( null != glyph ) {
                 glyph_advance = glyph.getAdvanceWidth();
+                glyph_leftsidebearings = glyph.getLeftSideBearing();
                 glyph_bbox = glyph.getBBox();
                 shape = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph, vertexFactory);
             } else {
                 final int glyph_height = metrics.getAscentFU() - metrics.getDescentFU();
                 glyph_advance = getAdvanceWidthFU(glyph_id);
+                glyph_leftsidebearings = 0;
                 glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
                 shape = null;
             }
@@ -220,7 +222,7 @@ class TypecastFont implements Font {
                     kernSub = kern.getSubtable0();
                 }
             }
-            result = new TypecastGlyph(this, glyph_id, glyph_name, glyph_bbox, glyph_advance, kernSub, shape);
+            result = new TypecastGlyph(this, glyph_id, glyph_name, glyph_bbox, glyph_advance, glyph_leftsidebearings, kernSub, shape);
             if(DEBUG) {
                 System.err.println("New glyph: " + glyph_id + "/'"+glyph_name+"', shape " + (null != shape));
                 System.err.println("  tc_glyph "+glyph);
@@ -419,6 +421,21 @@ class TypecastFont implements Font {
     @Override
     public boolean isPrintableChar( final char c ) {
         return FontFactory.isPrintableChar(c);
+    }
+
+    @Override
+    public final int hashCode() {
+        return font.getName(Font.NAME_UNIQUNAME).hashCode();
+    }
+
+    @Override
+    public final boolean equals(final Object o) {
+        if( this == o ) { return true; }
+        if( o instanceof TypecastFont ) {
+            final TypecastFont of = (TypecastFont)o;
+            return of.font.getName(Font.NAME_UNIQUNAME).equals(font.getName(Font.NAME_UNIQUNAME));
+        }
+        return false;
     }
 
     @Override
