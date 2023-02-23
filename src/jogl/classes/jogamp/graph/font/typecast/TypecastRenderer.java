@@ -61,6 +61,17 @@ public class TypecastRenderer {
         shape.addEmptyOutline();
         shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, true);
     }
+    private static void addShapeMoveTo(final float unitsPerEM, final OutlineShape shape, final float p1x, final float p1y) {
+        if( PRINT_CODE ) {
+            System.err.println("// Shape.MoveTo:");
+            System.err.printf("shape.closeLastOutline(false);%n");
+            System.err.printf("shape.addEmptyOutline();%n");
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p1x/unitsPerEM, p1y/unitsPerEM, true);
+        }
+        shape.closeLastOutline(false);
+        shape.addEmptyOutline();
+        shape.addVertex(0, p1x/unitsPerEM,  p1y/unitsPerEM, true);
+    }
     private static void addShapeLineTo(final float unitsPerEM, final OutlineShape shape, final Point p1) {
         if( PRINT_CODE ) {
             System.err.println("// Shape.LineTo:");
@@ -117,6 +128,13 @@ public class TypecastRenderer {
         return shape;
     }
 
+    private static int cmod(final int start, final int i, final int count) {
+        if( i >= 0 ) {
+            return start + ( i % count );
+        } else {
+            return start + ( i + count );
+        }
+    }
     private static void buildShapeTTF(final float unitsPerEM, final OutlineShape shape, final Glyph glyph) {
         // Iterate through all of the points in the glyph.  Each time we find a
         // contour end point, add the point range to the path.
@@ -126,40 +144,54 @@ public class TypecastRenderer {
         for (int i = 0; i < totalPoints; i++) {
             count++;
             if ( glyph.getPoint(i).endOfContour ) {
+                final int modulus = count;
                 int offset = 0;
                 while ( offset < count ) {
-                    final int point_0_idx = startIndex + offset%count;
-                    final Point point_m = glyph.getPoint((offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count);
+                    final int point_0_idx = cmod(startIndex, offset, modulus);
+                    final Point point_m = glyph.getPoint( cmod(startIndex, offset-1, modulus) );
                     final Point point_0 = glyph.getPoint(point_0_idx);
-                    final Point point_1 = glyph.getPoint(startIndex + (offset+1)%count);
-                    final Point point_2 = glyph.getPoint(startIndex + (offset+2)%count);
+                    final Point point_1 = glyph.getPoint( cmod(startIndex, offset+1, modulus) );
+                    final Point point_2 = glyph.getPoint( cmod(startIndex, offset+2, modulus) );
+
                     // final Point point_3 = offset+3 < count ? glyph.getPoint(startIndex + offset+3) : null;
-                    if( DEBUG  ) {
-                        System.err.println("GlyphShape<"+glyph.getID()+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
-                        final int point_m_idx= (offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count;
-                        final int point_1_idx = startIndex + (offset+1)%count;
-                        final int point_2_idx = startIndex + (offset+2)%count;
+                    if( DEBUG ) {
+                        System.err.println("// GlyphShape<"+glyph.getID()+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
+                        final int point_m_idx= cmod(startIndex, offset-1, modulus);
+                        final int point_1_idx = cmod(startIndex, offset+1, modulus);
+                        final int point_2_idx = cmod(startIndex, offset+2, modulus);
                         // final int point_3_idx = startIndex + (offset+3)%count;
-                        System.err.println("\t pM["+point_m_idx+"] "+point_m);
-                        System.err.println("\t p0["+point_0_idx+"] "+point_0);
-                        System.err.println("\t p1["+point_1_idx+"] "+point_1);
-                        System.err.println("\t p2["+point_2_idx+"] "+point_2);
-                        // System.err.println("\t p3["+point_3_idx+"] "+point_3);
+                        System.err.printf("//  pM[%03d] %s%n", point_m_idx, point_m);
+                        System.err.printf("//  p0[%03d] %s%n", point_0_idx, point_0);
+                        System.err.printf("//  p1[%03d] %s%n", point_1_idx, point_1);
+                        System.err.printf("//  p2[%03d] %s%n", point_2_idx, point_2);
+                        // System.err.printf("\t p3[%03d] %s%n", point_3_idx, point_3);
                     }
                     if(offset == 0) {
-                        addShapeMoveTo(unitsPerEM, shape, point_0); // OK
+                        if (point_0.onCurve) {
+                            if( PRINT_CODE ) { System.err.printf("// %03d: B0a: move-to p0%n", point_0_idx); }
+                            addShapeMoveTo(unitsPerEM, shape, point_0);
+                        } else if (point_m.onCurve) {
+                            if( PRINT_CODE ) { System.err.printf("// %03d: B0b: move-to pM%n", cmod(startIndex, offset-1, modulus)); }
+                            addShapeMoveTo(unitsPerEM, shape, point_m);
+                            offset--;
+                            count--;
+                            continue;
+                        } else {
+                            if( PRINT_CODE ) { System.err.printf("// %03d: B0c: move-to pMh%n", point_0_idx); }
+                            addShapeMoveTo(unitsPerEM, shape, midValue(point_m.x, point_0.x), midValue(point_m.y, point_0.y));
+                        }
                     }
                     if (point_0.onCurve) {
                         if (point_1.onCurve) {
                             // Branch-1: point.onCurve && p1.onCurve
                             if( PRINT_CODE ) { System.err.printf("// %03d: B1: line-to p0-p1%n", point_0_idx); }
-                            addShapeLineTo(unitsPerEM, shape, point_1); // OK
+                            addShapeLineTo(unitsPerEM, shape, point_1);
                             offset++;
                         } else {
                             if (point_2.onCurve) {
                                 // Branch-2: point.onCurve && !p1.onCurve && p2.onCurve
                                 if( PRINT_CODE ) { System.err.printf("// %03d: B2: quad-to p0-p1-p2%n", point_0_idx); }
-                                addShapeQuadTo(unitsPerEM, shape, point_1, point_2); // OK
+                                addShapeQuadTo(unitsPerEM, shape, point_1, point_2);
                                 offset+=2;
                             } else {
                                 /** if (null != point_3 && point_3.onCurve) {
@@ -173,8 +205,8 @@ public class TypecastRenderer {
                                 } else */ {
                                     // Branch-4: point.onCurve && !p1.onCurve && !p2.onCurve && !p3.onCurve
                                     if( PRINT_CODE ) { System.err.printf("// %03d: B4: quad-to p0-p1-p2h **** MID%n", point_0_idx); }
-                                    addShapeQuadTo(unitsPerEM, shape, point_1, midValue(point_1.x, point_2.x),
-                                                   midValue(point_1.y, point_2.y));
+                                    addShapeQuadTo(unitsPerEM, shape, point_1,
+                                                   midValue(point_1.x, point_2.x), midValue(point_1.y, point_2.y));
                                     offset+=2; // Skip p2 as done in Typecast
                                 }
                             }
@@ -183,13 +215,13 @@ public class TypecastRenderer {
                         if (!point_1.onCurve) {
                             // Branch-5: !point.onCurve && !p1.onCurve
                             if( PRINT_CODE ) { System.err.printf("// %03d: B5: quad-to pMh-p0-p1h ***** MID%n", point_0_idx); }
-                            addShapeQuadTo(unitsPerEM, shape, point_0, midValue(point_0.x, point_1.x), // OK
-                                           midValue(point_0.y, point_1.y) );
+                            addShapeQuadTo(unitsPerEM, shape, point_0,
+                                           midValue(point_0.x, point_1.x), midValue(point_0.y, point_1.y) );
                             offset++;
                         } else {
                             // Branch-6: !point.onCurve && p1.onCurve
                             if( PRINT_CODE ) { System.err.printf("// %03d: B6: quad-to pMh-p0-p1%n", point_0_idx); }
-                            addShapeQuadTo(unitsPerEM, shape, point_0, point_1); // OK
+                            addShapeQuadTo(unitsPerEM, shape, point_0, point_1);
                             offset++;
                         }
                     }
@@ -218,23 +250,23 @@ public class TypecastRenderer {
                     final Point point_1 = glyph.getPoint(startIndex + (offset+1)%count);
                     final Point point_2 = glyph.getPoint(startIndex + (offset+2)%count);
                     final Point point_3 = glyph.getPoint(startIndex + (offset+3)%count);
-                    if( DEBUG  ) {
-                        System.err.println("GlyphShape<"+glyph.getID()+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
+                    if( DEBUG ) {
+                        System.err.println("// GlyphShape<"+glyph.getID()+">: offset "+offset+" of "+count+"/"+totalPoints+" points");
                         final int point_1_idx = startIndex + (offset+1)%count;
                         final int point_2_idx = startIndex + (offset+2)%count;
                         final int point_3_idx = startIndex + (offset+3)%count;
-                        System.err.println("\t p0["+point_0_idx+"] "+point_0);
-                        System.err.println("\t p1["+point_1_idx+"] "+point_1);
-                        System.err.println("\t p2["+point_2_idx+"] "+point_2);
-                        System.err.println("\t p3["+point_3_idx+"] "+point_3);
+                        System.err.println("//  p0["+point_0_idx+"] "+point_0);
+                        System.err.println("//  p1["+point_1_idx+"] "+point_1);
+                        System.err.println("//  p2["+point_2_idx+"] "+point_2);
+                        System.err.println("//  p3["+point_3_idx+"] "+point_3);
                     }
                     if(offset == 0) {
-                        addShapeMoveTo(unitsPerEM, shape, point_0); // OK
+                        addShapeMoveTo(unitsPerEM, shape, point_0);
                     }
                     if (point_0.onCurve && point_1.onCurve) {
                         // Branch-1: point.onCurve && p1.onCurve
                         if( PRINT_CODE ) { System.err.printf("// %03d: C1: line-to p0-p1%n", point_0_idx); }
-                        addShapeLineTo(unitsPerEM, shape, point_1); // OK
+                        addShapeLineTo(unitsPerEM, shape, point_1);
                         offset++;
                     } else if (point_0.onCurve && !point_1.onCurve && !point_2.onCurve && point_3.onCurve) {
                         if( PRINT_CODE ) { System.err.printf("// %03d: C2: cubic-to p0-p1-p2%n", point_0_idx); }
@@ -299,16 +331,16 @@ public class TypecastRenderer {
             final Point point_1 = glyph.getPoint(startIndex + (offset+1)%count);
             final Point point_2 = glyph.getPoint(startIndex + (offset+2)%count);
             // final Point point_3 = offset+3 < count ? glyph.getPoint(startIndex + offset+3) : null;
-            if( DEBUG  ) {
-                System.err.println("GlyphShape<"+glyph.getID()+">: offset "+offset+" of "+count+" points");
+            if( DEBUG ) {
+                System.err.println("// GlyphShape<"+glyph.getID()+">: offset "+offset+" of "+count+" points");
                 final int point_m_idx= (offset==0) ? startIndex+count-1 : startIndex+(offset-1)%count;
                 final int point_1_idx = startIndex + (offset+1)%count;
                 final int point_2_idx = startIndex + (offset+2)%count;
                 // final int p3Idx = startIndex + (offset+3)%count;
-                System.err.println("\t pM["+point_m_idx+"] "+point_m);
-                System.err.println("\t p0["+point_0_idx+"] "+point_0);
-                System.err.println("\t p1["+point_1_idx+"] "+point_1);
-                System.err.println("\t p2["+point_2_idx+"] "+point_2);
+                System.err.println("//  pM["+point_m_idx+"] "+point_m);
+                System.err.println("//  p0["+point_0_idx+"] "+point_0);
+                System.err.println("//  p1["+point_1_idx+"] "+point_1);
+                System.err.println("//  p2["+point_2_idx+"] "+point_2);
                 // System.err.println("\t p3["+p3Idx+"] "+point_3);
             }
             if(offset == 0) {
