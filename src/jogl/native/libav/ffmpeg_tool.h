@@ -43,17 +43,12 @@
 
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
+#include "libavdevice/avdevice.h"
 #include "libavutil/avutil.h"
-#if LIBAVCODEC_VERSION_MAJOR >= 54
-    #include "libavresample/avresample.h"
-    #include "libswresample/swresample.h"
-#endif
+#include "libavutil/pixdesc.h"
+#include "libavutil/samplefmt.h"
+#include "libswresample/swresample.h"
 
-#ifndef LIBAVRESAMPLE_VERSION_MAJOR
-#define LIBAVRESAMPLE_VERSION_MAJOR -1
-// Opaque
-typedef void* AVAudioResampleContext;
-#endif
 #ifndef LIBSWRESAMPLE_VERSION_MAJOR
 #define LIBSWRESAMPLE_VERSION_MAJOR -1
 // Opaque
@@ -76,9 +71,15 @@ typedef void (APIENTRYP PFNGLFINISH) (void);
  */
 #define AV_TIME_BASE_MSEC    (AV_TIME_BASE/1000)
 
+#ifndef AV_VERSION_MAJOR
 #define AV_VERSION_MAJOR(i) ( ( i >> 16 ) & 0xFF )
+#endif
+#ifndef AV_VERSION_MINOR
 #define AV_VERSION_MINOR(i) ( ( i >>  8 ) & 0xFF )
+#endif
+#ifndef AV_VERSION_SUB
 #define AV_VERSION_SUB(i)   ( ( i >>  0 ) & 0xFF )
+#endif
 
 /** Sync w/ GLMediaPlayer.STREAM_ID_NONE */
 #define AV_STREAM_ID_NONE -2
@@ -94,9 +95,6 @@ typedef void (APIENTRYP PFNGLFINISH) (void);
 
 /** Constant PTS marking the end of the stream, i.e. Integer.MIN_VALUE - 1 == 0x7FFFFFFF == {@value}. Sync w/ TimeFrameI.END_OF_STREAM_PTS */
 #define END_OF_STREAM_PTS 0x7FFFFFFF
-
-/** Since 54.0.0.1 */
-#define AV_HAS_API_AVRESAMPLE(pAV) ( ( LIBAVRESAMPLE_VERSION_MAJOR >= 0 ) && ( pAV->avresampleVersion != 0 ) )
 
 /** Since 55.0.0.1 */
 #define AV_HAS_API_SWRESAMPLE(pAV) ( ( LIBSWRESAMPLE_VERSION_MAJOR >= 0 ) && ( pAV->swresampleVersion != 0 ) )
@@ -116,6 +114,12 @@ static inline int32_t my_av_q2i32(int64_t snum, AVRational a){
 static inline int my_align(int v, int a){
     return ( v + a - 1 ) & ~( a - 1 );
 }
+
+#if LIBAVCODEC_VERSION_MAJOR < 59
+    typedef void* AVChannelLayoutPtr;
+#else
+    typedef AVChannelLayout* AVChannelLayoutPtr;
+#endif
 
 typedef struct {
     void *origPtr;
@@ -137,26 +141,26 @@ typedef struct {
     uint32_t         avcodecVersion;
     uint32_t         avformatVersion;
     uint32_t         avutilVersion;
-    uint32_t         avresampleVersion;
+    uint32_t         avdeviceVersion;
     uint32_t         swresampleVersion;
-
-    int32_t          useRefCountedFrames;
 
     PFNGLTEXSUBIMAGE2DPROC procAddrGLTexSubImage2D;
     PFNGLGETERRORPROC procAddrGLGetError;
     PFNGLFLUSH procAddrGLFlush;
     PFNGLFINISH procAddrGLFinish;
 
+    AVPacket*        packet;
     AVFormatContext* pFormatCtx;
     int32_t          vid;
     AVStream*        pVStream;
+    AVCodecParameters* pVCodecPar;
     AVCodecContext*  pVCodecCtx;
     AVCodec*         pVCodec;
     AVFrame*         pVFrame; 
     uint32_t         vBufferPlanes; // 1 for RGB*, 3 for YUV, ..
     uint32_t         vBitsPerPixel;
     uint32_t         vBytesPerPixelPerPlane;
-    enum PixelFormat vPixFmt;    // native decoder fmt
+    enum AVPixelFormat vPixFmt;    // native decoder fmt
     int32_t          vPTS;       // msec - overall last video PTS
     PTSStats         vPTSStats;
     int32_t          vTexWidth[4];  // decoded video tex width in bytes for each plane (max 4)
@@ -166,6 +170,7 @@ typedef struct {
 
     int32_t          aid;
     AVStream*        pAStream;
+    AVCodecParameters* pACodecPar;
     AVCodecContext*  pACodecCtx;
     AVCodec*         pACodec;
     AVFrame**        pAFrames;
@@ -177,7 +182,6 @@ typedef struct {
     int32_t          aSampleRate;
     int32_t          aChannels;
     int32_t          aSinkSupport; // supported by AudioSink
-    AVAudioResampleContext* avResampleCtx;
     struct SwrContext*      swResampleCtx;
     uint8_t*         aResampleBuffer;
     enum AVSampleFormat aSampleFmtOut; // out fmt

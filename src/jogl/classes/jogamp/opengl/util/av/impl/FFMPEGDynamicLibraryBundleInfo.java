@@ -51,41 +51,39 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
     private static final List<String> glueLibNames = new ArrayList<String>(); // none
 
-    private static final int symbolCount = 65;
+    private static final int symbolCount = 59;
     private static final String[] symbolNames = {
          "avutil_version",
          "avformat_version",
          "avcodec_version",
-         "avresample_version",
-/* 5 */  "swresample_version",
+         "avdevice_version",   // (opt)
+         "swresample_version",
+         /* 5 */
 
          // libavcodec
-         "avcodec_register_all",
          "avcodec_close",
          "avcodec_string",
          "avcodec_find_decoder",
-         "avcodec_open2",             // 53.6.0    (opt)
-         "avcodec_alloc_frame",
-         "avcodec_get_frame_defaults",
-         "avcodec_free_frame",        // 54.28.0   (opt)
-         "avcodec_default_get_buffer",     // <= 54 (opt), else sp_avcodec_default_get_buffer2
-         "avcodec_default_release_buffer", // <= 54 (opt), else sp_av_frame_unref
-         "avcodec_default_get_buffer2",    // 55 (opt)
-         "avcodec_get_edge_width",
+         "avcodec_alloc_context3",
+         "avcodec_free_context",
+         "avcodec_parameters_to_context",
+         "avcodec_open2",             // 53.6.0
+         "av_frame_alloc",            // >= 55.28.1
+         "av_frame_free",             // >= 55.28.1
+         "avcodec_default_get_buffer2", // 55
          "av_image_fill_linesizes",
-         "avcodec_align_dimensions",
-         "avcodec_align_dimensions2",
          "avcodec_flush_buffers",
-         "av_init_packet",
+         "av_packet_alloc",
+         "av_packet_free",
          "av_new_packet",
-         "av_destruct_packet",
-         "av_free_packet",
-         "avcodec_decode_audio4",     // 53.25.0   (opt)
-/* 27 */ "avcodec_decode_video2",     // 52.23.0
+         "av_packet_unref",
+         "avcodec_send_packet",       // 57
+         "avcodec_receive_frame",     // 57
+         /* +18 = 23 */
 
          // libavutil
-         "av_pix_fmt_descriptors",
-         "av_frame_unref",            // 55.0.0 (opt)
+         "av_pix_fmt_desc_get",       // >= lavu 51.45
+         "av_frame_unref",            // 55.0.0
          "av_realloc",
          "av_free",
          "av_get_bits_per_pixel",
@@ -93,15 +91,19 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_get_bytes_per_sample",   // 51.4.0
          "av_opt_set_int",            // 51.12.0
          "av_dict_get",
-         "av_dict_count",             // 54.*      (opt)
+         "av_dict_count",             // 54.* (opt)
          "av_dict_set",
-/* 28 */ "av_dict_free",
+         "av_dict_free",
+         "av_channel_layout_default", // >= 59 (opt)
+         "av_channel_layout_uninit", // >= 59 (opt)
+         "av_channel_layout_describe", // >= 59 (opt)
+         "av_opt_set_chlayout",        // >= 59
+         /* +16 = 39 */
 
          // libavformat
          "avformat_alloc_context",
-         "avformat_free_context",     // 52.96.0   (opt)
-         "avformat_close_input",      // 53.17.0   (opt)
-         "av_register_all",
+         "avformat_free_context",     // 52.96.0
+         "avformat_close_input",      // 53.17.0
          "av_find_input_format",
          "avformat_open_input",
          "av_dump_format",
@@ -112,85 +114,74 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_read_pause",
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
-/* 54 */ "avformat_find_stream_info", // 53.3.0    (opt)
+         "avformat_find_stream_info", // 53.3.0    (opt)
+         /* +14 = 53 */
 
          // libavdevice
-/* 55 */ "avdevice_register_all",     // supported in all version <= 56
+         "avdevice_register_all",     // supported in all versions (opt)
+         /* +1  = 54 */
 
-         // libavresample
-         "avresample_alloc_context",  //  1.0.1
-         "avresample_open",
-         "avresample_close",
-         "avresample_free",
-/* 60 */ "avresample_convert",
-
-         // libavresample
+         // libswresample
          "av_opt_set_sample_fmt",     // actually lavu .. but exist only w/ swresample!
          "swr_alloc",
          "swr_init",
          "swr_free",
-/* 65 */ "swr_convert",
-
+         "swr_convert",
+         /* +5  = 59 */
     };
 
     // optional symbol names
     private static final String[] optionalSymbolNames = {
          "avformat_seek_file",        // ???       (opt)
-         "avcodec_free_frame",        // 54.28.0   (opt)
-         "av_frame_unref",            // 55.0.0 (opt)
          "av_dict_count",             // 54.*   (opt)
-         "avcodec_default_get_buffer",     // <= 54 (opt), else sp_avcodec_default_get_buffer2
-         "avcodec_default_release_buffer", // <= 54 (opt), else sp_av_frame_unref
-         "avcodec_default_get_buffer2",    // 55 (opt)
+
+         // libavutil
+         "av_channel_layout_default", // >= 59 (opt)
+         "av_channel_layout_uninit", // >= 59 (opt)
+         "av_channel_layout_describe", // >= 59 (opt)
+         "av_opt_set_chlayout",        // >= 59
 
          // libavdevice
+         "avdevice_version",          // (opt)
          "avdevice_register_all",     // 53.0.0 (opt)
-
-         // libavresample
-         "avresample_version",        //  1.0.1
-         "avresample_alloc_context",  //  1.0.1
-         "avresample_open",
-         "avresample_close",
-         "avresample_free",
-         "avresample_convert",
 
          // libswresample
          "av_opt_set_sample_fmt",     // actually lavu .. but exist only w/ swresample!
-         "swresample_version",        //  0
          "swr_alloc",
          "swr_init",
          "swr_free",
          "swr_convert",
     };
 
-    /** util, format, codec, device, avresample, swresample */
-    private static final boolean[] libLoaded = new boolean[6];
-    private static final long[] symbolAddr = new long[symbolCount];
-    private static final boolean ready;
-    private static final boolean libsUFCLoaded;
-    static final VersionNumber avCodecVersion;
-    static final VersionNumber avFormatVersion;
-    static final VersionNumber avUtilVersion;
-    static final VersionNumber avResampleVersion;
-    static final VersionNumber swResampleVersion;
-    private static final FFMPEGNatives natives;
-
+    private static final int LIB_COUNT = 5;
     private static final int LIB_IDX_UTI = 0;
     private static final int LIB_IDX_FMT = 1;
     private static final int LIB_IDX_COD = 2;
     private static final int LIB_IDX_DEV = 3;
-    private static final int LIB_IDX_AVR = 4;
-    private static final int LIB_IDX_SWR = 5;
+    private static final int LIB_IDX_SWR = 4;
+
+    /** util, format, codec, device, swresample */
+    private static final boolean[] libLoaded = new boolean[LIB_COUNT];
+    private static final long[] symbolAddr = new long[symbolCount];
+    private static final boolean ready;
+    private static final boolean libsCFUSLoaded;
+    static final VersionNumber avCodecVersion;
+    static final VersionNumber avFormatVersion;
+    static final VersionNumber avUtilVersion;
+    static final VersionNumber avDeviceVersion;
+    static final VersionNumber swResampleVersion;
+    private static final FFMPEGNatives natives;
 
     private static final PrivilegedAction<DynamicLibraryBundle> privInitSymbolsAction = new PrivilegedAction<DynamicLibraryBundle>() {
         @Override
         public DynamicLibraryBundle run() {
             final DynamicLibraryBundle dl = new DynamicLibraryBundle(new FFMPEGDynamicLibraryBundleInfo());
-            for(int i=0; i<6; i++) {
+            for(int i=0; i<libLoaded.length; i++) {
                 libLoaded[i] = dl.isToolLibLoaded(i);
             }
-            if( !libLoaded[LIB_IDX_UTI] || !libLoaded[LIB_IDX_FMT] || !libLoaded[LIB_IDX_COD] ) {
-                System.err.println("FFMPEG Tool library incomplete: [ avutil "+libLoaded[LIB_IDX_UTI]+", avformat "+libLoaded[LIB_IDX_FMT]+", avcodec "+libLoaded[LIB_IDX_COD]+"]");
+            if( !libLoaded[LIB_IDX_COD] || !libLoaded[LIB_IDX_FMT] || !libLoaded[LIB_IDX_UTI] || !libLoaded[LIB_IDX_SWR]) {
+                System.err.println("FFMPEG Tool library incomplete: [ avcodec "+libLoaded[LIB_IDX_COD]+", avformat "+libLoaded[LIB_IDX_FMT]+
+                                   ", avutil "+libLoaded[LIB_IDX_UTI]+", swres "+libLoaded[LIB_IDX_SWR]+" ]");
                 return null;
             }
             dl.claimAllLinkPermission();
@@ -205,12 +196,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } };
 
     /**
-     * @param loaded 6: util, format, codec, device, avresample, swresample
-     * @param versions 5: util, format, codec, avresample, swresample
+     * @param versions 5: util, format, codec, swresample
      * @return
      */
     private static final boolean initSymbols(final VersionNumber[] versions) {
-        for(int i=0; i<6; i++) {
+        for(int i=0; i<libLoaded.length; i++) {
             libLoaded[i] = false;
         }
         if(symbolNames.length != symbolCount) {
@@ -233,18 +223,22 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
                 // no symbol, check optional and alternative symbols
                 final String symbol = symbolNames[i];
                 if ( !optionalSymbolNameSet.contains(symbol) ) {
-                    System.err.println("Fail: Could not resolve symbol <"+symbolNames[i]+">: not optional, no alternatives.");
+                    System.err.println("FFmpeg: Fail: Could not resolve symbol <"+symbolNames[i]+">: not optional, no alternatives.");
                     res = false;
                 } else if(DEBUG) {
-                    System.err.println("OK: Unresolved optional symbol <"+symbolNames[i]+">");
+                    System.err.println("FFmpeg: OK: Unresolved optional symbol <"+symbolNames[i]+">");
                 }
             }
         }
-        versions[0] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[0]));
-        versions[1] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[1]));
-        versions[2] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[2]));
-        versions[3] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[3]));
-        versions[4] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[4]));
+        versions[LIB_IDX_UTI] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[LIB_IDX_UTI]));
+        versions[LIB_IDX_FMT] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[LIB_IDX_FMT]));
+        versions[LIB_IDX_COD] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[LIB_IDX_COD]));
+        if( 0 != symbolAddr[LIB_IDX_DEV] ) {
+            versions[LIB_IDX_DEV] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[LIB_IDX_DEV]));
+        } else {
+            versions[LIB_IDX_DEV] = new VersionNumber(0, 0, 0);
+        }
+        versions[LIB_IDX_SWR] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[LIB_IDX_SWR]));
 
         return res;
     }
@@ -254,58 +248,75 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         GLProfile.initSingleton();
 
         boolean _ready = false;
-        /** util, format, codec, avresample, swresample */
-        final VersionNumber[] _versions = new VersionNumber[5];
+        /** util, format, codec, swresample */
+        final VersionNumber[] _versions = new VersionNumber[LIB_COUNT];
         try {
             _ready = initSymbols(_versions);
         } catch (final Throwable t) {
             ExceptionUtils.dumpThrowable("", t);
         }
-        libsUFCLoaded = libLoaded[LIB_IDX_UTI] && libLoaded[LIB_IDX_FMT] && libLoaded[LIB_IDX_COD];
-        avUtilVersion = _versions[0];
-        avFormatVersion = _versions[1];
-        avCodecVersion = _versions[2];
-        avResampleVersion = _versions[3];
-        swResampleVersion = _versions[4];
-        if(!libsUFCLoaded) {
-            System.err.println("LIB_AV Not Available: lavu, lavc, lavu");
+        libsCFUSLoaded = libLoaded[LIB_IDX_COD] && libLoaded[LIB_IDX_FMT] && libLoaded[LIB_IDX_UTI] && libLoaded[LIB_IDX_SWR];
+        avUtilVersion = _versions[LIB_IDX_UTI];
+        avFormatVersion = _versions[LIB_IDX_FMT];
+        avCodecVersion = _versions[LIB_IDX_COD];
+        avDeviceVersion = _versions[LIB_IDX_DEV];
+        swResampleVersion = _versions[LIB_IDX_SWR];
+        if(!libsCFUSLoaded) {
+            String missing = "";
+            if( !libLoaded[LIB_IDX_COD] ) {
+                missing = missing + "avcodec, ";
+            }
+            if( !libLoaded[LIB_IDX_FMT] ) {
+                missing = missing + "avformat, ";
+            }
+            if( !libLoaded[LIB_IDX_UTI] ) {
+                missing = missing + "avutil, ";
+            }
+            if( !libLoaded[LIB_IDX_SWR] ) {
+                missing = missing + "swresample";
+            }
+            System.err.println("FFmpeg Not Available, missing libs: "+missing);
             natives = null;
             ready = false;
         } else if(!_ready) {
-            System.err.println("LIB_AV Not Matching");
+            System.err.println("FFmpeg Symbol Lookup Failed");
             natives = null;
             ready = false;
         } else {
             final int avCodecMajor = avCodecVersion.getMajor();
             final int avFormatMajor = avFormatVersion.getMajor();
             final int avUtilMajor = avUtilVersion.getMajor();
-            if(        avCodecMajor == 53 && avFormatMajor == 53 && avUtilMajor == 51 ) {
-                // lavc53.lavf53.lavu51
-                natives = new FFMPEGv08Natives();
-            } else if( avCodecMajor == 54 && avFormatMajor == 54 && avUtilMajor == 52 ) {
-                // lavc54.lavf54.lavu52.lavr01
-                natives = new FFMPEGv09Natives();
-            } else if( avCodecMajor == 55 && avFormatMajor == 55 && ( avUtilMajor == 52 || avUtilMajor == 53 ) ) {
-                // lavc55.lavf55.lavu52.lavr01 (ffmpeg) or lavc55.lavf55.lavu53.lavr01 (libav)
-                natives = new FFMPEGv10Natives();
-            } else if( avCodecMajor == 56 && avFormatMajor == 56 && avUtilMajor == 54 ) {
-                // lavc56.lavf56.lavu54.lavr02
-                natives = new FFMPEGv11Natives();
+            final int avDeviceMajor = avDeviceVersion.getMajor();
+            final int swResampleMajor = swResampleVersion.getMajor();
+            if( avCodecMajor == 58 && avFormatMajor == 58 && ( avDeviceMajor == 58 || avDeviceMajor == 0 ) && avUtilMajor == 56 && swResampleMajor == 3) {
+                // Exact match: ffmpeg 4.x.y
+                natives = new FFMPEGv0400Natives();
+            } else if( avCodecMajor == 59 && avFormatMajor == 59 && ( avDeviceMajor == 59 || avDeviceMajor == 0 ) && avUtilMajor == 57 && swResampleMajor == 4) {
+                // Exact match: ffmpeg 5.x.y
+                natives = new FFMPEGv0500Natives();
+            } else if( avCodecMajor == 60 && avFormatMajor == 60 && ( avDeviceMajor == 60 || avDeviceMajor == 0 ) && avUtilMajor == 58 && swResampleMajor == 4) {
+                // Exact match: ffmpeg 6.x.y
+                natives = new FFMPEGv0600Natives();
             } else {
-                System.err.println("LIB_AV No Version/Native-Impl Match");
                 natives = null;
             }
-            if( null != natives && FFMPEGStaticNatives.initIDs0() ) {
+            if( null == natives ) {
+                System.err.println("FFmpeg Native Class matching runtime-versions not found.");
+                ready = false;
+            } else if( FFMPEGStaticNatives.initIDs0() ) {
                 ready = natives.initSymbols0(symbolAddr, symbolCount);
+                if( !ready ) {
+                    System.err.println("FFmpeg Native Symbols Initialization Failed");
+                }
             } else {
+                System.err.println("FFmpeg Native ID Initialization Failed");
                 ready = false;
             }
         }
     }
 
-    static boolean libsLoaded() { return libsUFCLoaded; }
+    static boolean libsLoaded() { return libsCFUSLoaded; }
     static boolean avDeviceLoaded() { return libLoaded[LIB_IDX_DEV]; }
-    static boolean avResampleLoaded() { return libLoaded[LIB_IDX_AVR]; }
     static boolean swResampleLoaded() { return libLoaded[LIB_IDX_SWR]; }
     static FFMPEGNatives getNatives() { return natives; }
     static boolean initSingleton() { return ready; }
@@ -354,21 +365,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } else {
             avutil.add("internal_avutil"); // internal
         }
-        avutil.add("libavutil.so.56");     // ffmpeg 4.[0-x] (Debian-10)
-        avutil.add("libavutil.so.55");     //
-        avutil.add("libavutil.so.54");     // ffmpeg 2.[4-x] / libav 11
-        avutil.add("libavutil.so.53");     // ffmpeg 2.[0-3] / libav 10
-        avutil.add("libavutil.so.52");     // ffmpeg 1.2 + 2.[0-3] / libav 9
-        avutil.add("libavutil.so.51");     // 0.8
-        avutil.add("libavutil.so.50");     // 0.7
+        avutil.add("libavutil.so.58");     // ffmpeg 6.[0-x]
+        avutil.add("libavutil.so.57");     // ffmpeg 5.[0-x]
+        avutil.add("libavutil.so.56");     // ffmpeg 4.[0-x] (Debian-11)
 
+        avutil.add("avutil-58");           // ffmpeg 6.[0-x]
+        avutil.add("avutil-57");           // ffmpeg 5.[0-x]
         avutil.add("avutil-56");           // ffmpeg 4.[0-x]
-        avutil.add("avutil-55");           //
-        avutil.add("avutil-54");           // ffmpeg 2.[4-x] / libav 11
-        avutil.add("avutil-53");           // ffmpeg 2.[0-3] / libav 10
-        avutil.add("avutil-52");           // ffmpeg 1.2 + 2.[0-3] / libav 9
-        avutil.add("avutil-51");           // 0.8
-        avutil.add("avutil-50");           // 0.7
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             avutil.add("internal_avutil"); // internal
         } else {
@@ -382,21 +385,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } else {
             avformat.add("internal_avformat"); // internal
         }
-        avformat.add("libavformat.so.58");     // ffmpeg 4.[0-x] (Debian-10)
-        avformat.add("libavformat.so.57");     //
-        avformat.add("libavformat.so.56");     // ffmpeg 2.[4-x] / libav 11
-        avformat.add("libavformat.so.55");     // ffmpeg 2.[0-3] / libav 10
-        avformat.add("libavformat.so.54");     // ffmpeg 1.2 / libav 9
-        avformat.add("libavformat.so.53");     // 0.8
-        avformat.add("libavformat.so.52");     // 0.7
+        avformat.add("libavformat.so.60");     // ffmpeg 6.[0-x]
+        avformat.add("libavformat.so.59");     // ffmpeg 5.[0-x]
+        avformat.add("libavformat.so.58");     // ffmpeg 4.[0-x] (Debian-11)
 
+        avformat.add("avformat-60");           // ffmpeg 6.[0-x]
+        avformat.add("avformat-59");           // ffmpeg 5.[0-x]
         avformat.add("avformat-58");           // ffmpeg 4.[0-x]
-        avformat.add("avformat-57");           //
-        avformat.add("avformat-56");           // ffmpeg 2.[4-x] / libav 11
-        avformat.add("avformat-55");           // ffmpeg 2.[0-3] / libav 10
-        avformat.add("avformat-54");           // ffmpeg 1.2 / libav 9
-        avformat.add("avformat-53");           // 0.8
-        avformat.add("avformat-52");           // 0.7
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             avformat.add("internal_avformat"); // internal
         } else {
@@ -410,21 +405,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } else {
             avcodec.add("internal_avcodec");   // internal
         }
-        avcodec.add("libavcodec.so.58");       // ffmpeg 4.[0-x] (Debian-10)
-        avcodec.add("libavcodec.so.57");       //
-        avcodec.add("libavcodec.so.56");       // ffmpeg 2.[4-x] / libav 11
-        avcodec.add("libavcodec.so.55");       // ffmpeg 2.[0-3] / libav 10
-        avcodec.add("libavcodec.so.54");       // ffmpeg 1.2 / libav 9
-        avcodec.add("libavcodec.so.53");       // 0.8
-        avcodec.add("libavcodec.so.52");       // 0.7
+        avcodec.add("libavcodec.so.60");       // ffmpeg 6.[0-x]
+        avcodec.add("libavcodec.so.59");       // ffmpeg 5.[0-x]
+        avcodec.add("libavcodec.so.58");       // ffmpeg 4.[0-x] (Debian-11)
 
+        avcodec.add("avcodec-60");             // ffmpeg 6.[0-x]
+        avcodec.add("avcodec-59");             // ffmpeg 5.[0-x]
         avcodec.add("avcodec-58");             // ffmpeg 4.[0-x]
-        avcodec.add("avcodec-57");             //
-        avcodec.add("avcodec-56");             // ffmpeg 2.[4-x] / libav 11
-        avcodec.add("avcodec-55");             // ffmpeg 2.[0-3] / libav 10
-        avcodec.add("avcodec-54");             // ffmpeg 1.2 / libav 9
-        avcodec.add("avcodec-53");             // 0.8
-        avcodec.add("avcodec-52");             // 0.7
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             avcodec.add("internal_avcodec");   // internal
         } else {
@@ -438,19 +425,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } else {
             avdevice.add("internal_avdevice"); // internal
         }
-        avdevice.add("libavdevice.so.58");     // ffmpeg 4.[0-x] (Debian-10)
-        avdevice.add("libavdevice.so.57");     //
-        avdevice.add("libavdevice.so.56");     // ffmpeg 2.[4-x]
-        avdevice.add("libavdevice.so.55");     // ffmpeg 2.[0-3] / libav 11
-        avdevice.add("libavdevice.so.54");     // ffmpeg 1.2 / libav 10
-        avdevice.add("libavdevice.so.53");     // 0.8 && libav 9
+        avdevice.add("libavdevice.so.60");     // ffmpeg 6.[0-x]
+        avdevice.add("libavdevice.so.59");     // ffmpeg 5.[0-x]
+        avdevice.add("libavdevice.so.58");     // ffmpeg 4.[0-x] (Debian-11)
 
+        avdevice.add("avdevice-60");           // ffmpeg 6.[0-x]
+        avdevice.add("avdevice-59");           // ffmpeg 5.[0-x]
         avdevice.add("avdevice-58");           // ffmpeg 4.[0-x]
-        avdevice.add("avdevice-57");           //
-        avdevice.add("avdevice-56");           // ffmpeg 2.[4-x]
-        avdevice.add("avdevice-55");           // ffmpeg 2.[0-3] / libav 11
-        avdevice.add("avdevice-54");           // ffmpeg 1.2 / libav 10
-        avdevice.add("avdevice-53");           // 0.8 && libav 9
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             avdevice.add("internal_avdevice"); // internal
         } else {
@@ -458,43 +439,17 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         }
         libsList.add(avdevice);
 
-        final List<String> avresample = new ArrayList<String>();
-        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
-            avresample.add("avresample");         // system default
-        } else {
-            avresample.add("internal_avresample");// internal
-        }
-        avresample.add("libavresample.so.4");     // ffmpeg 4.[0-x] (Debian-10)
-        avresample.add("libavresample.so.3");     //
-        avresample.add("libavresample.so.2");     // libav 11
-        avresample.add("libavresample.so.1");     // libav 9 + 10
-
-        avresample.add("avresample-4");           // ffmpeg 4.[0-x]
-        avresample.add("avresample-3");           //
-        avresample.add("avresample-2");           // libav 11
-        avresample.add("avresample-1");           // libav 9 + 10
-        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
-            avresample.add("internal_avresample");// internal
-        } else {
-            avresample.add("avresample");         // system default
-        }
-        libsList.add(avresample);
-
         final List<String> swresample = new ArrayList<String>();
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             swresample.add("swresample");         // system default
         } else {
             swresample.add("internal_swresample");// internal
         }
-        swresample.add("libswresample.so.3");     // ffmpeg 4.[0-x] (Debian-10)
-        swresample.add("libswresample.so.2");     //
-        swresample.add("libswresample.so.1");     // ffmpeg 2.[4-x]
-        swresample.add("libswresample.so.0");     // ffmpeg 1.2 + 2.[0-3]
+        swresample.add("libswresample.so.4");     // ffmpeg 5.[0-x] - 6.[0-x]
+        swresample.add("libswresample.so.3");     // ffmpeg 4.[0-x] (Debian-11)
 
+        swresample.add("swresample-4");           // ffmpeg 5.[0-x] - 6.[0-x]
         swresample.add("swresample-3");           // ffmpeg 4.[0-x]
-        swresample.add("swresample-2");           //
-        swresample.add("swresample-1");           // ffmpeg 2.[4-x]
-        swresample.add("swresample-0");           // ffmpeg 1.2 + 2.[0-3]
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
             swresample.add("internal_swresample");// internal
         } else {

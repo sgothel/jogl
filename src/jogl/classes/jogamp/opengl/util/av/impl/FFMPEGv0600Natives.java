@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 JogAmp Community. All rights reserved.
+ * Copyright 2015-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,7 +27,7 @@
  */
 package jogamp.opengl.util.av.impl;
 
-class FFMPEGv10Natives extends FFMPEGNatives {
+class FFMPEGv0600Natives extends FFMPEGNatives {
     @Override
     native boolean initSymbols0(Object mutex_avcodec_openclose, long[] symbols, int count);
 
@@ -41,13 +41,13 @@ class FFMPEGv10Natives extends FFMPEGNatives {
     native int getAvCodecMajorVersionCC0();
 
     @Override
-    native int getAvResampleMajorVersionCC0();
+    native int getAvDeviceMajorVersionCC0();
 
     @Override
     native int getSwResampleMajorVersionCC0();
 
     @Override
-    native long createInstance0(FFMPEGMediaPlayer upstream, boolean enableAvResample, boolean enableSwResample, boolean verbose);
+    native long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
 
     @Override
     native void destroyInstance0(long moviePtr);

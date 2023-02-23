@@ -576,6 +576,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             this.vid = vid;
             this.aid = aid;
             new InterruptSource.Thread() {
+                @Override
                 public void run() {
                     try {
                         // StreamWorker may be used, see API-doc of StreamWorker

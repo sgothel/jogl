@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 JogAmp Community. All rights reserved.
+ * Copyright 2013-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,8 +26,8 @@
  * or implied, of JogAmp Community.
  */
  
-#include "jogamp_opengl_util_av_impl_FFMPEGv09Natives.h"
+#include "jogamp_opengl_util_av_impl_FFMPEGv0400Natives.h"
 
-#define FF_FUNC(METHOD) Java_jogamp_opengl_util_av_impl_FFMPEGv09Natives_ ## METHOD
+#define FF_FUNC(METHOD) Java_jogamp_opengl_util_av_impl_FFMPEGv0400Natives_ ## METHOD
 
 #include "ffmpeg_impl_template.c"

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 JogAmp Community. All rights reserved.
+ * Copyright 2013-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -40,10 +40,10 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
     abstract int getAvUtilMajorVersionCC0();
     abstract int getAvFormatMajorVersionCC0();
     abstract int getAvCodecMajorVersionCC0();
-    abstract int getAvResampleMajorVersionCC0();
+    abstract int getAvDeviceMajorVersionCC0();
     abstract int getSwResampleMajorVersionCC0();
 
-    abstract long createInstance0(FFMPEGMediaPlayer upstream, boolean enableAvResample, boolean enableSwResample, boolean verbose);
+    abstract long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
     abstract void destroyInstance0(long moviePtr);
 
     /**
