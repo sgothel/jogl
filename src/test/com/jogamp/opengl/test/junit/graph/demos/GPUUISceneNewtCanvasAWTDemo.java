@@ -25,16 +25,10 @@ public class GPUUISceneNewtCanvasAWTDemo {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
-    static int SceneMSAASamples = 0;
-    static boolean GraphVBAAMode = false;
-    static boolean GraphMSAAMode = false;
-    static float GraphAutoMode = GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
-
-    static float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
-
     static void setComponentSize(final Component comp, final DimensionImmutable new_sz) {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     final java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
                     comp.setMinimumSize(d);
@@ -48,6 +42,15 @@ public class GPUUISceneNewtCanvasAWTDemo {
     }
 
     public static void main(final String[] args) throws InterruptedException, InvocationTargetException {
+        String fontfilename = null;
+
+        int SceneMSAASamples = 0;
+        boolean GraphVBAAMode = false;
+        boolean GraphMSAAMode = false;
+        float GraphAutoMode = GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
+
+        final float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+
         int width = 800, height = 400;
         int x = 10, y = 10;
 
@@ -77,6 +80,9 @@ public class GPUUISceneNewtCanvasAWTDemo {
                     GraphVBAAMode = true;
                     i++;
                     GraphAutoMode = MiscUtils.atof(args[i], GraphAutoMode);
+                } else if(args[i].equals("-font")) {
+                    i++;
+                    fontfilename = args[i];
                 } else if(args[i].equals("-width")) {
                     i++;
                     width = MiscUtils.atoi(args[i], width);
@@ -153,8 +159,8 @@ public class GPUUISceneNewtCanvasAWTDemo {
         window.setSurfaceScale(reqSurfacePixelScale);
         final float[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new float[2]);
 
-        final GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(GraphAutoMode, DEBUG, TRACE) :
-                                                                           new GPUUISceneGLListener0A(rmode, DEBUG, TRACE);
+        final GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(fontfilename, GraphAutoMode, DEBUG, TRACE) :
+                                                                           new GPUUISceneGLListener0A(fontfilename, rmode, DEBUG, TRACE);
 
         window.addGLEventListener(sceneGLListener);
         sceneGLListener.attachInputListenerTo(window);
@@ -164,6 +170,7 @@ public class GPUUISceneNewtCanvasAWTDemo {
         animator.add(window);
 
         window.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }
@@ -175,7 +182,8 @@ public class GPUUISceneNewtCanvasAWTDemo {
         setComponentSize(newtCanvasAWT, new Dimension(width, height));
         frame.add(newtCanvasAWT);
         SwingUtilities.invokeAndWait(new Runnable() {
-           public void run() {
+           @Override
+        public void run() {
                frame.pack();
                frame.setVisible(true);
            }

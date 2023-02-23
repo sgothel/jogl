@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos.ui;
+package com.jogamp.opengl.test.junit.graph.demos;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +46,9 @@ import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
+import com.jogamp.opengl.test.junit.graph.demos.ui.CrossHair;
+import com.jogamp.opengl.test.junit.graph.demos.ui.LabelButton;
+import com.jogamp.opengl.test.junit.graph.demos.ui.UIShape;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;

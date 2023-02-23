@@ -15,14 +15,16 @@ public class GPUUISceneNewtDemo {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
-    static int SceneMSAASamples = 0;
-    static boolean GraphVBAAMode = false;
-    static boolean GraphMSAAMode = false;
-    static float GraphAutoMode = GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
-
-    static float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
-
     public static void main(final String[] args) {
+        int SceneMSAASamples = 0;
+        boolean GraphVBAAMode = false;
+        boolean GraphMSAAMode = false;
+        float GraphAutoMode = GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
+
+        final float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+
+        String fontfilename = null;
+
         int width = 1280, height = 720;
         int x = 10, y = 10;
 
@@ -52,6 +54,9 @@ public class GPUUISceneNewtDemo {
                     GraphVBAAMode = true;
                     i++;
                     GraphAutoMode = MiscUtils.atof(args[i], GraphAutoMode);
+                } else if(args[i].equals("-font")) {
+                    i++;
+                    fontfilename = args[i];
                 } else if(args[i].equals("-width")) {
                     i++;
                     width = MiscUtils.atoi(args[i], width);
@@ -128,8 +133,8 @@ public class GPUUISceneNewtDemo {
         window.setSurfaceScale(reqSurfacePixelScale);
         final float[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new float[2]);
 
-        final GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(GraphAutoMode, DEBUG, TRACE) :
-                                                                     new GPUUISceneGLListener0A(rmode, DEBUG, TRACE);
+        final GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(fontfilename, GraphAutoMode, DEBUG, TRACE) :
+                                                                     new GPUUISceneGLListener0A(fontfilename, rmode, DEBUG, TRACE);
 
         window.addGLEventListener(sceneGLListener);
         sceneGLListener.attachInputListenerTo(window);

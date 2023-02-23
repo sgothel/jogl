@@ -43,9 +43,9 @@ import com.jogamp.opengl.math.geom.AABBox;
  */
 public class LabelButton extends RoundButton {
     /** {@value} */
-    public static final float DEFAULT_SPACING_X = 0.08f;
+    public static final float DEFAULT_SPACING_X = 0.12f;
     /** {@value} */
-    public static final float DEFAULT_SPACING_Y = 0.40f;
+    public static final float DEFAULT_SPACING_Y = 0.42f;
 
     private static final float DEFAULT_2PASS_LABEL_ZOFFSET = -0.005f; // -0.05f;
 

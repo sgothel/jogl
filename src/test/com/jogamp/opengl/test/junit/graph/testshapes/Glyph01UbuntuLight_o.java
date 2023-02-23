@@ -25,10 +25,10 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos.ui;
+package com.jogamp.opengl.test.junit.graph.testshapes;
 
 import com.jogamp.opengl.GL2ES2;
-
+import com.jogamp.opengl.test.junit.graph.demos.ui.UIShape;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
@@ -37,10 +37,12 @@ import com.jogamp.graph.geom.plane.Winding;
 
 /**
  * GPU based resolution independent test object
+ * - Ubuntu-Light, lower case 'o'
+ * - TTF Shape for Glyph 82
  */
-public class TestObject01 extends UIShape {
+public class Glyph01UbuntuLight_o extends UIShape {
 
-    public TestObject01(final Factory<? extends Vertex> factory, final int renderModes) {
+    public Glyph01UbuntuLight_o(final Factory<? extends Vertex> factory, final int renderModes) {
         super(factory, renderModes);
     }
 
@@ -57,7 +59,7 @@ public class TestObject01 extends UIShape {
     protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
 
-        // lower case 'o'
+        // Ubuntu-Light, lower case 'o'
         // Start TTF Shape for Glyph 82
         if( false ) {
             // Original Outer shape: Winding.CW
@@ -131,7 +133,7 @@ public class TestObject01 extends UIShape {
             // Shape.QuadTo:
             shape.addVertex(0, 0.527000f, 0.319000f, false);
             shape.addVertex(0, 0.527000f, 0.258000f, true);
-            System.err.println("TestObject01.shape01a.winding_area: "+shape.getWindingOfLastOutline());
+            System.err.println("Glyph01UbuntuLight_o.shape01a.winding_area: "+shape.getWindingOfLastOutline());
             shape.closeLastOutline(false);
         } else  {
             // Outer shape: Winding.CW
@@ -205,9 +207,9 @@ public class TestObject01 extends UIShape {
             // Shape.QuadTo:
             shape.addVertex(0.527000f, 0.319000f, false);
             shape.addVertex(0.527000f, 0.258000f, true);
-            System.err.println("TestObject01.shape01b.1.winding_area: "+shape.getWindingOfLastOutline());
+            System.err.println("Glyph01UbuntuLight_o.shape01b.1.winding_area: "+shape.getWindingOfLastOutline());
             shape.setWindingOfLastOutline(Winding.CCW);
-            System.err.println("TestObject01.shape01b.2.winding_area: "+shape.getWindingOfLastOutline());
+            System.err.println("Glyph01UbuntuLight_o.shape01b.2.winding_area: "+shape.getWindingOfLastOutline());
             shape.closeLastOutline(false);
         }
 
@@ -251,7 +253,7 @@ public class TestObject01 extends UIShape {
             // Shape.QuadTo:
             shape.addVertex(0, 0.458000f, 0.161000f, false);
             shape.addVertex(0, 0.458000f, 0.258000f, true);
-            System.err.println("TestObject01.shape02a.winding_area: "+shape.getWindingOfLastOutline());
+            System.err.println("Glyph01UbuntuLight_o.shape02a.winding_area: "+shape.getWindingOfLastOutline());
             shape.closeLastOutline(false);
         } else {
             // Inner shape: Winding.CCW
@@ -295,7 +297,7 @@ public class TestObject01 extends UIShape {
             shape.addVertex(0.458000f, 0.161000f, false);
             shape.addVertex(0.458000f, 0.258000f, true);
 
-            System.err.println("TestObject01.shape02b.winding_area: "+shape.getWindingOfLastOutline());
+            System.err.println("Glyph01UbuntuLight_o.shape02b.winding_area: "+shape.getWindingOfLastOutline());
             shape.closeLastOutline(false);
         }
         // End Shape for Glyph 82

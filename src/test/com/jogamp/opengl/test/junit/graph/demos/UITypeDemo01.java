@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos.ui;
+package com.jogamp.opengl.test.junit.graph.demos;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +46,12 @@ import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
+import com.jogamp.opengl.test.junit.graph.demos.ui.CrossHair;
+import com.jogamp.opengl.test.junit.graph.demos.ui.Rectangle;
+import com.jogamp.opengl.test.junit.graph.demos.ui.UIShape;
+import com.jogamp.opengl.test.junit.graph.testshapes.Glyph03FreeMonoRegular_M;
+import com.jogamp.opengl.test.junit.graph.testshapes.Glyph04FreeSans_0;
+import com.jogamp.opengl.test.junit.graph.testshapes.Glyph05FreeSerifBoldItalic_ae;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
@@ -90,7 +95,7 @@ public class UITypeDemo01 implements GLEventListener {
     public static void main(final String[] args) throws IOException {
         Font font = null;
         String text = "Hello Origin.";
-        int glyph_id = 0;
+        int glyph_id = Glyph.ID_UNKNOWN;
         if( 0 != args.length ) {
             for(int i=0; i<args.length; i++) {
                 if(args[i].equals("-font")) {
@@ -204,7 +209,7 @@ public class UITypeDemo01 implements GLEventListener {
         } else {
             final float scale = 0.15312886f;
             final float size_xz = 0.541f;
-            final UIShape o = new TestObject02(SVertex.factory(), renderModes);
+            final UIShape o = new Glyph03FreeMonoRegular_M(SVertex.factory(), renderModes);
             o.scale(scale, scale, 1f);
             // o.translate(size_xz, -size_xz, 0f);
             testObj = o;
@@ -273,8 +278,13 @@ public class UITypeDemo01 implements GLEventListener {
         pmv.glLoadIdentity();
         pmv.glTranslatef(xTran, yTran, zTran);
         renderer.enable(gl, true);
-        drawShape(gl, pmv, renderer, testObj);
-        drawShape(gl, pmv, renderer, crossHair);
+        {
+            pmv.glPushMatrix();
+            pmv.glScalef(0.8f, 0.8f, 1f);
+            drawShape(gl, pmv, renderer, testObj);
+            pmv.glPopMatrix();
+        }
+        // drawShape(gl, pmv, renderer, crossHair);
         {
             final float full_width_o;
             final float full_height_o;
@@ -300,10 +310,14 @@ public class UITypeDemo01 implements GLEventListener {
                 full_width_o = objCoord1[0] - objCoord0[0];
                 full_height_o = objCoord1[1] - objCoord0[1];
             }
+            pmv.glPushMatrix();
+
             final Font.Glyph glyph;
-            if( Glyph.ID_UNKNOWN != glyph_id ) {
+            if( Glyph.ID_UNKNOWN < glyph_id ) {
                 glyph = font.getGlyph(glyph_id);
-                System.err.println("glyph_id "+glyph_id+": "+glyph);
+                if( once ) {
+                    System.err.println("glyph_id "+glyph_id+": "+glyph);
+                }
             } else {
                 glyph = null;
             }
@@ -312,7 +326,6 @@ public class UITypeDemo01 implements GLEventListener {
                 final float full_width_s = full_width_o / txt_box_em.getWidth();
                 final float full_height_s = full_height_o / txt_box_em.getHeight();
                 final float txt_scale = full_width_s < full_height_s ? full_width_s/2f : full_height_s/2f;
-                pmv.glPushMatrix();
                 pmv.glScalef(txt_scale, txt_scale, 1f);
                 pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
                 if( null != glyph.getShape() ) {
@@ -328,14 +341,12 @@ public class UITypeDemo01 implements GLEventListener {
                     System.err.println("XXX: txt_scale: "+txt_scale);
                     System.err.println("XXX: txt_box_em "+txt_box_em);
                     System.err.println("XXX: txt_box_e2 "+txt_box_em2);
-                    once = false;
                 }
-            } else {
+            } else if( Glyph.ID_UNKNOWN == glyph_id ) {
                 final AABBox txt_box_em = font.getGlyphBounds(text);
                 final float full_width_s = full_width_o / txt_box_em.getWidth();
                 final float full_height_s = full_height_o / txt_box_em.getHeight();
                 final float txt_scale = full_width_s < full_height_s ? full_width_s/2f : full_height_s/2f;
-                pmv.glPushMatrix();
                 pmv.glScalef(txt_scale, txt_scale, 1f);
                 pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
                 final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, fg_color, sampleCount);
@@ -347,14 +358,21 @@ public class UITypeDemo01 implements GLEventListener {
                     System.err.println("XXX: txt_box_em "+txt_box_em);
                     System.err.println("XXX: txt_box_e2 "+txt_box_em2);
                     System.err.println("XXX: txt_box_rg "+txt_box_r);
-                    once = false;
                 }
             }
             pmv.glPopMatrix();
+            if( once ) {
+                try {
+                    printScreen(drawable);
+                } catch (GLException | IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            once = false;
         }
         renderer.enable(gl, false);
     }
-    static boolean once = true;
+    private boolean once = true;
 
     @Override
     public void dispose(final GLAutoDrawable drawable) {
@@ -391,17 +409,22 @@ public class UITypeDemo01 implements GLEventListener {
         window.removeMouseListener(mouseAction);
     }
 
-    public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
-        final StringWriter sw = new StringWriter();
-        final PrintWriter pw = new PrintWriter(sw);
-        pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), (int)Math.abs(zTran), 0, objName);
+    public void printScreen(final GLAutoDrawable drawable) throws GLException, IOException {
+        final String dir = "./";
+        final String tech="demo-"+Region.getRenderModeString(renderModes);
+        final String objName = "snap"+screenshot_num;
+        {
+            final StringWriter sw = new StringWriter();
+            final PrintWriter pw = new PrintWriter(sw);
+            pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), (int)Math.abs(zTran), 0, objName);
 
-        final String filename = dir + tech + sw +".png";
-        if(screenshot.readPixels(drawable.getGL(), false)) {
-            screenshot.write(new File(filename));
+            final String filename = dir + tech + sw +".png";
+            if(screenshot.readPixels(drawable.getGL(), false)) {
+                screenshot.write(new File(filename));
+            }
         }
+        screenshot_num++;
     }
-
     int screenshot_num = 0;
 
     public void setIgnoreInput(final boolean v) {
@@ -575,9 +598,7 @@ public class UITypeDemo01 implements GLEventListener {
                         @Override
                         public boolean run(final GLAutoDrawable drawable) {
                             try {
-                                final String type = Region.getRenderModeString(renderModes);
-                                printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
-                                screenshot_num++;
+                                printScreen(drawable);
                             } catch (final GLException e) {
                                 e.printStackTrace();
                             } catch (final IOException e) {
