@@ -525,7 +525,7 @@ function testawtswt() {
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.CrossFadePlayer $*
 
 #
@@ -940,7 +940,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT20 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
+testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.UIShapeDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.UITypeDemo01 $*

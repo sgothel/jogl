@@ -31,7 +31,7 @@ package com.jogamp.opengl.test.junit.graph.demos;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
-
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.SVertex;
@@ -39,8 +39,8 @@ import com.jogamp.newt.opengl.GLWindow;
 
 public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
 
-    public GPUTextGLListener0A(final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
-        super(rs, renderModes, sampleCount, blending, debug, trace);
+    public GPUTextGLListener0A(final GLProfile glp, final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
+        super(glp, rs, renderModes, sampleCount, blending, debug, trace);
     }
 
     @Override

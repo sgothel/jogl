@@ -27,6 +27,7 @@
  */
 package com.jogamp.graph.curve;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +36,9 @@ import jogamp.opengl.Debug;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.opengl.GLRegion;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.math.geom.Frustum;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -110,6 +113,8 @@ public abstract class Region {
     protected static final int DIRTY_STATE    = 1 << 1 ;
 
     private final int renderModes;
+    private final boolean use_int32_idx;
+    private final int max_indices;
     private int quality;
     private int dirty = DIRTY_SHAPE | DIRTY_STATE;
     private int numVertices = 0;
@@ -168,19 +173,33 @@ public abstract class Region {
         }
     }
 
-    protected Region(final int regionRenderModes) {
+    protected Region(final int regionRenderModes, final boolean use_int32_idx) {
         this.renderModes = regionRenderModes;
+        this.use_int32_idx = use_int32_idx;
+        if( use_int32_idx ) {
+            this.max_indices = GL_INT32_MAX / Buffers.SIZEOF_INT; // byte-size int32_t limit
+        } else {
+            this.max_indices = GL_UINT16_MAX;
+        }
         this.quality = MAX_QUALITY;
     }
 
-    // FIXME: Better handling of impl. buffer growth .. !
-    // protected abstract void setupInitialComponentCount(int attributeCount, int indexCount);
+    /** Print implementation buffer stats like detailed and total size and capacity in bytes etc */
+    public abstract void printBufferStats(PrintStream out);
+
+    /**
+     * Returns true if implementation uses `int32_t` sized indices implying at least a {@link GLProfile#isGL2ES3()} alike context.
+     * Otherwise method returns false on {@link GLProfile#isGLES2()} using `uint16_t` sized indices.
+     */
+    public final boolean usesI32Idx() { return this.use_int32_idx; }
+
+    protected abstract void growBufferSize(int verticeCount, int indexCount);
 
     protected abstract void pushVertex(final float[] coords, final float[] texParams, float[] rgba);
     protected abstract void pushIndex(int idx);
 
     /**
-     * Return bit-field of render modes, see {@link GLRegion#create(int, TextureSequence)}.
+     * Return bit-field of render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence)}.
      */
     public final int getRenderModes() { return renderModes; }
 
@@ -269,6 +288,9 @@ public abstract class Region {
 
     private final AABBox tmpBox = new AABBox();
 
+    protected static final int GL_UINT16_MAX = 0xffff; // 65,535
+    protected static final int GL_INT32_MAX = 0x7fffffff; // 2,147,483,647
+
     /**
      * Add the given {@link OutlineShape} to this region with the given optional {@link AffineTransform}.
      * <p>
@@ -297,15 +319,17 @@ public abstract class Region {
         }
         final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
         final ArrayList<Vertex> vertsIn = shape.getVertices();
-        if(DEBUG_INSTANCE) {
+        {
             final int addedVerticeCount = shape.getAddedVerticeCount();
             final int verticeCount = vertsIn.size() + addedVerticeCount;
             final int indexCount = trisIn.size() * 3;
-            System.err.println("Region.addOutlineShape().0: tris: "+trisIn.size()+", verts "+vertsIn.size()+", transform "+t);
-            System.err.println("Region.addOutlineShape().0: VerticeCount "+vertsIn.size()+" + "+addedVerticeCount+" = "+verticeCount);
-            System.err.println("Region.addOutlineShape().0: IndexCount "+indexCount);
+            if(DEBUG_INSTANCE) {
+                System.err.println("Region.addOutlineShape().0: tris: "+trisIn.size()+", verts "+vertsIn.size()+", transform "+t);
+                System.err.println("Region.addOutlineShape().0: VerticeCount "+vertsIn.size()+" + "+addedVerticeCount+" = "+verticeCount);
+                System.err.println("Region.addOutlineShape().0: IndexCount "+indexCount);
+            }
+            growBufferSize(verticeCount, indexCount);
         }
-        // setupInitialComponentCount(verticeCount, indexCount); // FIXME: Use it ?
 
         final int idxOffset = numVertices;
         int vertsVNewIdxCount = 0, vertsTMovIdxCount = 0, vertsTNewIdxCount = 0, tris = 0;
@@ -330,7 +354,7 @@ public abstract class Region {
                 // triangles.add( triEx );
                 final Vertex[] triInVertices = triIn.getVertices();
                 final int tv0Idx = triInVertices[0].getId();
-                if( Integer.MAX_VALUE-idxOffset > tv0Idx ) { // Integer.MAX_VALUE != i0 // FIXME: renderer uses SHORT!
+                if ( max_indices - idxOffset > tv0Idx ) {
                     // valid 'known' idx - move by offset
                     if(Region.DEBUG_INSTANCE) {
                         System.err.println("T["+i+"]: Moved "+tv0Idx+" + "+idxOffset+" -> "+(tv0Idx+idxOffset));
@@ -340,7 +364,7 @@ public abstract class Region {
                     pushIndex(triInVertices[2].getId()+idxOffset);
                     vertsTMovIdxCount+=3;
                 } else {
-                    // invalid idx - generate new one
+                    // FIXME: Invalid idx - generate new one
                     if(Region.DEBUG_INSTANCE) {
                         System.err.println("T["+i+"]: New Idx "+numVertices);
                     }
@@ -353,12 +377,13 @@ public abstract class Region {
             }
         }
         if(DEBUG_INSTANCE) {
-            System.err.println("Region.addOutlineShape().X: idxOffset "+idxOffset+", tris: "+tris+", verts [idx "+vertsTNewIdxCount+", add "+vertsTNewIdxCount+" = "+(vertsVNewIdxCount+vertsTNewIdxCount)+"]");
+            System.err.println("Region.addOutlineShape().X: idx[ui32 "+usesI32Idx()+", offset "+idxOffset+"], tris: "+tris+", verts [idx "+vertsTNewIdxCount+", add "+vertsTNewIdxCount+" = "+(vertsVNewIdxCount+vertsTNewIdxCount)+"]");
             System.err.println("Region.addOutlineShape().X: verts: idx[v-new "+vertsVNewIdxCount+", t-new "+vertsTNewIdxCount+" = "+(vertsVNewIdxCount+vertsTNewIdxCount)+"]");
             System.err.println("Region.addOutlineShape().X: verts: idx t-moved "+vertsTMovIdxCount+", numVertices "+numVertices);
             System.err.println("Region.addOutlineShape().X: verts: v-dups "+vertsDupCountV+", t-dups "+vertsDupCountT+", t-known "+vertsKnownMovedT);
             // int vertsDupCountV = 0, vertsDupCountT = 0;
             System.err.println("Region.addOutlineShape().X: box "+box);
+            printBufferStats(System.err);
         }
         markShapeDirty();
     }
@@ -405,6 +430,7 @@ public abstract class Region {
     }
     protected final int getDirtyBits() { return dirty; }
 
+    @Override
     public String toString() {
         return "Region["+getRenderModeString(this.renderModes)+", q "+quality+", dirty "+dirty+", vertices "+numVertices+", box "+box+"]";
     }

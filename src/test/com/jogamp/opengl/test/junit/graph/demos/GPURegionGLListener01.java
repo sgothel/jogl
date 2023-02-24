@@ -272,7 +272,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
                 createTestOutline01();
                 break;
         }
-        region = GLRegion.create(getRenderModes(), null);
+        region = GLRegion.create(gl.getGLProfile(), getRenderModes(), null);
         region.addOutlineShape(outlineShape, null, region.hasColorChannel() ? getRenderer().getRenderState().getColorStatic(new float[4]) : null);
     }
 

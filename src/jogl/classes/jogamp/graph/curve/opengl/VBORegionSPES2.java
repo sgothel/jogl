@@ -27,10 +27,12 @@
  */
 package jogamp.graph.curve.opengl;
 
+import java.io.PrintStream;
 import java.nio.FloatBuffer;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLUniformData;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
@@ -58,13 +60,15 @@ public class VBORegionSPES2 extends GLRegion {
     private final GLUniformData gcu_ColorTexBBox;
     private ShaderProgram spPass1 = null;
 
-    public VBORegionSPES2(final int renderModes, final TextureSequence colorTexSeq) {
-        super(renderModes, colorTexSeq);
+    public VBORegionSPES2(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq) {
+        super(glp, renderModes, colorTexSeq);
 
         rsLocal = new RenderState.ProgramLocal();
 
         final int initialElementCount = 256;
-        indicesBuffer = GLArrayDataServer.createData(3, GL.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        // We leave GLArrayDataClient.DEFAULT_GROWTH_FACTOR intact for avg +19% size, but 15% less CPU overhead compared to 1.2 (19% total)
+
+        indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
 
         gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
                                                         false, initialElementCount, GL.GL_STATIC_DRAW);
@@ -90,6 +94,16 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
+    protected void growBufferSize(final int verticeCount, final int indexCount) {
+        indicesBuffer.growIfNeeded(indexCount);
+        gca_VerticesAttr.growIfNeeded(verticeCount * gca_VerticesAttr.getCompsPerElem());
+        gca_CurveParamsAttr.growIfNeeded(verticeCount * gca_CurveParamsAttr.getCompsPerElem());
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.growIfNeeded(verticeCount * gca_ColorsAttr.getCompsPerElem());
+        }
+    }
+
+    @Override
     protected final void clearImpl(final GL2ES2 gl) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Clear: " + this);
@@ -106,6 +120,23 @@ public class VBORegionSPES2 extends GLRegion {
         if( null != gca_ColorsAttr ) {
             gca_ColorsAttr.clear(gl);
         }
+    }
+
+    @Override
+    protected void printBufferStats(final PrintStream out) {
+        final int[] size= { 0 }, capacity= { 0 };
+        out.println("VBORegionSPES2:");
+        printAndCount(out, "  indices ", indicesBuffer, size, capacity);
+        out.println();
+        printAndCount(out, "  vertices ", gca_VerticesAttr, size, capacity);
+        out.println();
+        printAndCount(out, "  params ", gca_CurveParamsAttr, size, capacity);
+        out.println();
+        printAndCount(out, "  color ", gca_ColorsAttr, size, capacity);
+        final float filled = (float)size[0]/(float)capacity[0];
+        out.println();
+                out.printf("  total [bytes %,d / %,d], filled %.1f%%, left %.1f%%]%n",
+                        size[0], capacity[0], filled*100f, (1f-filled)*100f);
     }
 
     @Override
@@ -132,7 +163,11 @@ public class VBORegionSPES2 extends GLRegion {
 
     @Override
     protected final void pushIndex(final int idx) {
-        indicesBuffer.puts((short)idx);
+        if( usesI32Idx() ) {
+            indicesBuffer.puti(idx);
+        } else {
+            indicesBuffer.puts((short)idx);
+        }
     }
 
     @Override

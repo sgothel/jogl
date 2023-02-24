@@ -144,7 +144,7 @@ public class TextRegionUtil {
         GLRegion region = getCachedRegion(font, str);
         AABBox res;
         if(null == region) {
-            region = GLRegion.create(renderModes, null);
+            region = GLRegion.create(gl.getGLProfile(), renderModes, null);
             res = addStringToRegion(region, font, null, str, rgbaColor, tempT1, tempT2);
             addCachedRegion(gl, font, str, region);
         } else {
@@ -185,7 +185,7 @@ public class TextRegionUtil {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        final GLRegion region = GLRegion.create(renderModes, null);
+        final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null);
         final AABBox res = addStringToRegion(region, font, null, str, rgbaColor);
         region.draw(gl, renderer, sampleCount);
         region.destroy(gl);
@@ -193,8 +193,10 @@ public class TextRegionUtil {
     }
 
     /**
-     * Render the string in 3D space w.r.t. the font in font em-size [0..1] at the end of the given {@link GLRegion},
-     * which will {@link GLRegion#clear(GL2ES2) cleared} beforehand.
+     * Render the string in 3D space w.r.t. the font in font em-size [0..1] at the end of the given {@link GLRegion}.
+     * <p>
+     * User might want to {@link GLRegion#clear(GL2ES2)} the region before calling this method.
+     * </p>
      * <p>
      * The shapes added to the GLRegion are in font em-size [0..1].
      * </p>
@@ -202,6 +204,8 @@ public class TextRegionUtil {
      * Origin of rendered text is 0/0 at bottom left.
      * </p>
      * @param gl the current GL state
+     * @param region
+     * @param renderer
      * @param font {@link Font} to be used
      * @param str text to be rendered
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
@@ -216,14 +220,13 @@ public class TextRegionUtil {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        region.clear(gl);
         final AABBox res = addStringToRegion(region, font, null, str, rgbaColor);
         region.draw(gl, renderer, sampleCount);
         return res;
     }
 
    /**
-    * Clear all cached {@link GLRegions}.
+    * Clear all cached {@link GLRegions} and mapped values.
     */
    public void clear(final GL2ES2 gl) {
        // fluchCache(gl) already called

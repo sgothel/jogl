@@ -34,6 +34,7 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
@@ -142,16 +143,16 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     Window upstream_window = null;
     StringBuilder userString = new StringBuilder(textX1);
     boolean userInput = false;
-    public GPUTextRendererListenerBase01(final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
+    public GPUTextRendererListenerBase01(final GLProfile glp, final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
         // NOTE_ALPHA_BLENDING: We use alpha-blending
         super(RegionRenderer.create(rs, blending ? RegionRenderer.defaultBlendEnable : null,
                                     blending ? RegionRenderer.defaultBlendDisable : null),
                                     renderModes, debug, trace);
         rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRegionUtil = new TextRegionUtil(renderModes);
-        this.regionFPS = GLRegion.create(renderModes, null);
-        this.regionHead = GLRegion.create(renderModes, null);
-        this.regionBottom = GLRegion.create(renderModes, null);
+        this.regionFPS = GLRegion.create(glp, renderModes, null);
+        this.regionHead = GLRegion.create(glp, renderModes, null);
+        this.regionBottom = GLRegion.create(glp, renderModes, null);
         setFontSet(fontSet, FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE);
         setMatrix(0, 0, 0, 0f, sampleCount);
     }
@@ -338,7 +339,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 pmv.glScalef(sxy, sxy, 1.0f);
             }
             // No cache, keep region alive!
-            TextRegionUtil.drawString3D(gl, regionFPS, renderer, font, text, null, sampleCountFPS);
+            TextRegionUtil.drawString3D(gl, regionFPS.clear(gl), renderer, font, text, null, sampleCountFPS);
             pmv.glPopMatrix();
         }
 
@@ -392,13 +393,13 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             }
             if(!userInput) {
                 if( bottomTextUseFrustum ) {
-                    TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, text2, null, getSampleCount());
+                    TextRegionUtil.drawString3D(gl, regionBottom.clear(gl), renderer, font, text2, null, getSampleCount());
                 } else {
                     textRegionUtil.drawString3D(gl, renderer, font, text2, null, getSampleCount());
                 }
             } else {
                 if( bottomTextUseFrustum ) {
-                    TextRegionUtil.drawString3D(gl, regionBottom, renderer, font, userString.toString(), null, getSampleCount());
+                    TextRegionUtil.drawString3D(gl, regionBottom.clear(gl), renderer, font, userString.toString(), null, getSampleCount());
                 } else {
                     textRegionUtil.drawString3D(gl, renderer, font, userString.toString(), null, getSampleCount());
                 }

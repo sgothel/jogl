@@ -134,7 +134,7 @@ public class GPUUISceneNewtDemo {
         final float[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new float[2]);
 
         final GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(fontfilename, GraphAutoMode, DEBUG, TRACE) :
-                                                                     new GPUUISceneGLListener0A(fontfilename, rmode, DEBUG, TRACE);
+                                                                           new GPUUISceneGLListener0A(fontfilename, rmode, DEBUG, TRACE);
 
         window.addGLEventListener(sceneGLListener);
         sceneGLListener.attachInputListenerTo(window);

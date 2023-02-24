@@ -29,6 +29,8 @@ package com.jogamp.graph.curve.opengl;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLArrayData;
+import com.jogamp.opengl.GLProfile;
 
 import jogamp.graph.curve.opengl.VBORegion2PMSAAES2;
 import jogamp.graph.curve.opengl.VBORegion2PVBAAES2;
@@ -37,6 +39,10 @@ import jogamp.graph.curve.opengl.VBORegionSPES2;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.graph.curve.Region;
+
+import java.io.PrintStream;
+
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.OutlineShape;
 
 /** A GLRegion is the OGL binding of one or more OutlineShapes
@@ -57,30 +63,35 @@ public abstract class GLRegion extends Region {
      *
      * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
      * {@link Region#DEFAULT_TWO_PASS_TEXTURE_UNIT} is being used.</p>
+     * @param glp intended GLProfile to use. Instance may use higher OpenGL features if indicated by GLProfile.
      * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
      * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
      */
-    public static GLRegion create(int renderModes, final TextureSequence colorTexSeq) {
+    public static GLRegion create(final GLProfile glp, int renderModes, final TextureSequence colorTexSeq) {
         if( null != colorTexSeq ) {
             renderModes |= Region.COLORTEXTURE_RENDERING_BIT;
         } else if( Region.hasColorTexture(renderModes) ) {
             throw new IllegalArgumentException("COLORTEXTURE_RENDERING_BIT set but null TextureSequence");
         }
         if( isVBAA(renderModes) ) {
-            return new VBORegion2PVBAAES2(renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT);
+            return new VBORegion2PVBAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT);
         } else if( isMSAA(renderModes) ) {
-            return new VBORegion2PMSAAES2(renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT);
+            return new VBORegion2PMSAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT);
         } else {
-            return new VBORegionSPES2(renderModes, colorTexSeq);
+            return new VBORegionSPES2(glp, renderModes, colorTexSeq);
         }
     }
 
+    private final int gl_idx_type;
     protected final TextureSequence colorTexSeq;
 
-    protected GLRegion(final int renderModes, final TextureSequence colorTexSeq) {
-        super(renderModes);
+    protected GLRegion(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq) {
+        super(renderModes, glp.isGL2ES3() /* use_int32_idx */);
+        this.gl_idx_type = usesI32Idx() ? GL.GL_UNSIGNED_INT : GL.GL_UNSIGNED_SHORT;
         this.colorTexSeq = colorTexSeq;
     }
+
+    protected final int glIdxType() { return this.gl_idx_type; }
 
     /**
      * Updates a graph region by updating the ogl related
@@ -94,12 +105,28 @@ public abstract class GLRegion extends Region {
 
     protected abstract void clearImpl(final GL2ES2 gl);
 
+    protected static void printAndCount(final PrintStream out, final String name, final GLArrayData data, final int[] size, final int[] capacity) {
+        out.print(name+"[");
+        if( null != data ) {
+            data.printStats(out);
+            size[0] += data.getSizeInBytes();
+            capacity[0] += data.getCapacityInBytes();
+            out.print("]");
+        } else {
+            out.print("null]");
+        }
+    }
+
     /**
      * Clears all data, i.e. triangles, vertices etc.
+     *
+     * @param gl the current {@link GL2ES2} object
+     * @return this {@link GLRegion} for chaining.
      */
-    public void clear(final GL2ES2 gl) {
+    public GLRegion clear(final GL2ES2 gl) {
         clearImpl(gl);
         clearImpl();
+        return this;
     }
 
     /**

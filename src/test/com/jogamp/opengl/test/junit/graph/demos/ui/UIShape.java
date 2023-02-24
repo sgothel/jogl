@@ -31,6 +31,7 @@ import java.util.ArrayList;
 
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
@@ -264,8 +265,8 @@ public abstract class UIShape {
         getRegion(gl, renderer).draw(gl, renderer, sampleCount);
     }
 
-    protected GLRegion createGLRegion() {
-        return GLRegion.create(renderModes, null);
+    protected GLRegion createGLRegion(final GLProfile glp) {
+        return GLRegion.create(glp, renderModes, null);
     }
 
     /**
@@ -278,7 +279,7 @@ public abstract class UIShape {
         if( isShapeDirty() || null == region ) {
             box.reset();
             if( null == region ) {
-                region = createGLRegion();
+                region = createGLRegion(gl.getGLProfile());
             } else {
                 region.clear(gl);
             }

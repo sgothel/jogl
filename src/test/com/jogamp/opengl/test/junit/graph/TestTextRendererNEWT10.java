@@ -245,7 +245,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
             renderModes = 0;
             sampleCount = 0;
         }
-        final TextRendererGLEL textGLListener = new TextRendererGLEL(rs, renderModes, sampleCount);
+        final TextRendererGLEL textGLListener = new TextRendererGLEL(glp, rs, renderModes, sampleCount);
         System.err.println(textGLListener.getFontInfo());
 
         window.addGLEventListener(textGLListener);
@@ -294,13 +294,13 @@ public class TestTextRendererNEWT10 extends UITestCase {
         float fontSizeAnim, fontSizeDelta;
         float dpiV, ppmmV;
 
-        TextRendererGLEL(final RenderState rs, final int renderModes, final int sampleCount) {
+        TextRendererGLEL(final GLProfile glp, final RenderState rs, final int renderModes, final int sampleCount) {
             super(renderModes, new int[] { sampleCount });
             setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
             setRenderState(rs);
 
-            regionFPS = GLRegion.create(renderModes, null);
-            regionFPSAnim = GLRegion.create(renderModes, null);
+            regionFPS = GLRegion.create(glp, renderModes, null);
+            regionFPSAnim = GLRegion.create(glp, renderModes, null);
             if( null != fontURL ) {
                 Font _font = null;
                 try {
@@ -418,7 +418,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
                 final String text1 = lfps+" / "+tfps+" fps, vsync "+gl.getSwapInterval()+", elapsed "+(t1-t0)/1000.0+
                                      " s, fontSize "+fontSizeFixed+", msaa "+drawable.getChosenGLCapabilities().getNumSamples()+
                                      ", "+modeS+"-samples "+vbaaSampleCount[0];
-                renderString(drawable, font, pixelSize, text1,              0, 0, 0, 0, -1000, regionFPS); // no-cache
+                renderString(drawable, font, pixelSize, text1,              0, 0, 0, 0, -1000, regionFPS.clear(gl)); // no-cache
             } else {
                 final String text1 = String.format("%03.1f/%03.1f fps, vsync %d, elapsed %4.1f s, fontSize %2.2f, msaa %d, %s-samples %d",
                         lfps, tfps, gl.getSwapInterval(), (t1-t0)/1000.0, fontSizeFixed,
@@ -431,9 +431,9 @@ public class TestTextRendererNEWT10 extends UITestCase {
                 renderString(drawable, font, pixelSize, "I like JogAmp",                  4, 0, 0, -1000, true);
                 renderString(drawable, font, pixelSize, "Hello World",                    0, 0, 0, -1000, true);
                 renderString(drawable, font, pixelSize, textX2,                           0, 0, 0, -1000, true);
-                renderString(drawable, font, pixelSize, text1,                            0, 0, 0, -1000, regionFPS); // no-cache
+                renderString(drawable, font, pixelSize, text1,                            0, 0, 0, -1000, regionFPS.clear(gl)); // no-cache
                 if( TextAnim ) {
-                    renderString(drawable, font, pixelSizeAnim, text1,                   0, 0, 0, -1000, regionFPSAnim); // no-cache
+                    renderString(drawable, font, pixelSizeAnim, text1,                   0, 0, 0, -1000, regionFPSAnim.clear(gl)); // no-cache
                 }
             }
         } };

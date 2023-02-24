@@ -176,14 +176,14 @@ public class MovieCube implements GLEventListener {
         private final GLRegion regionFPS;
         private float pixelSize1, pixelSize2, underlineSize;
 
-        InfoTextRendererGLELBase(final int rmode, final boolean lowPerfDevice) {
+        InfoTextRendererGLELBase(final GLProfile glp, final int rmode, final boolean lowPerfDevice) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(rmode, MovieCube.this.textSampleCount);
             this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
             if( lowPerfDevice ) {
                 regionFPS = null;
             } else {
-                regionFPS = GLRegion.create(renderModes, null);
+                regionFPS = GLRegion.create(glp, renderModes, null);
                 System.err.println("RegionFPS "+Region.getRenderModeString(renderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
             }
             staticRGBAColor[0] = 0.1f;
@@ -258,7 +258,7 @@ public class MovieCube implements GLEventListener {
             if( displayOSD && null != renderer ) {
                 gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
                 if( null != regionFPS ) {
-                    renderString(drawable, font, pixelSize1, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, regionFPS); // no-cache
+                    renderString(drawable, font, pixelSize1, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, regionFPS.clear(gl.getGL2ES2())); // no-cache
                 } else {
                     renderString(drawable, font, pixelSize1, text1, 1 /* col */, -1 /* row */, -1+z_diff, yoff1, 1f+z_diff, true);
                 }
@@ -400,7 +400,7 @@ public class MovieCube implements GLEventListener {
         if( showText ) {
             final int rmode = drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT;
             final boolean lowPerfDevice = gl.isGLES();
-            textRendererGLEL = new InfoTextRendererGLELBase(rmode, lowPerfDevice);
+            textRendererGLEL = new InfoTextRendererGLELBase(gl.getGLProfile(), rmode, lowPerfDevice);
             drawable.addGLEventListener(textRendererGLEL);
         }
     }

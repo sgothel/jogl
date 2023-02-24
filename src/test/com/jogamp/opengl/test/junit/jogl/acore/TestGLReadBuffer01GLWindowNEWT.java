@@ -76,7 +76,7 @@ public class TestGLReadBuffer01GLWindowNEWT extends GLReadBuffer00Base {
         }
         final GLReadBufferUtil glReadBufferUtil = new GLReadBufferUtil(false, false);
         final GLWindow glad= GLWindow.create(caps);
-        final TextRendererGLEL textRendererGLEL = new TextRendererGLEL();
+        final TextRendererGLEL textRendererGLEL = new TextRendererGLEL(caps.getGLProfile());
         final SnapshotGLEL snapshotGLEL = doSnapshot ? new SnapshotGLEL(textRendererGLEL, glReadBufferUtil) : null;
         try {
             glad.setPosition(64, 64);

@@ -58,6 +58,7 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GLExtensions;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
@@ -140,14 +141,14 @@ public class MovieSBSStereo implements StereoGLEventListener {
         private final float fontSize = 1f; // 0.01f;
         private final GLRegion regionFPS;
 
-        InfoTextRendererGLELBase(final int rmode, final boolean lowPerfDevice) {
+        InfoTextRendererGLELBase(final GLProfile glp, final int rmode, final boolean lowPerfDevice) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(rmode, textSampleCount);
             this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
             if( lowPerfDevice ) {
                 regionFPS = null;
             } else {
-                regionFPS = GLRegion.create(renderModes, null);
+                regionFPS = GLRegion.create(glp, renderModes, null);
                 System.err.println("RegionFPS "+Region.getRenderModeString(renderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
             }
             staticRGBAColor[0] = 0.9f;
@@ -197,7 +198,8 @@ public class MovieSBSStereo implements StereoGLEventListener {
                 // We share ClearColor w/ MovieSimple's init !
                 final float pixelSize = FontScale.toPixels(fontSize, dpiH);
                 if( null != regionFPS ) {
-                    renderString(drawable, font, pixelSize, text1, 1 /* col */,  1 /* row */, 0,      0, -1, regionFPS); // no-cache
+                    final GL2ES2 gl = drawable.getGL().getGL2ES2();
+                    renderString(drawable, font, pixelSize, text1, 1 /* col */,  1 /* row */, 0,      0, -1, regionFPS.clear(gl)); // no-cache
                 } else {
                     renderString(drawable, font, pixelSize, text1, 1 /* col */,  1 /* row */, 0,      0, -1, true);
                 }
@@ -545,7 +547,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
         final int rmode = drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT;
         final boolean lowPerfDevice = gl.isGLES();
         if( enableTextRendererGLEL ) {
-            textRendererGLEL = new InfoTextRendererGLELBase(rmode, lowPerfDevice);
+            textRendererGLEL = new InfoTextRendererGLELBase(gl.getGLProfile(), rmode, lowPerfDevice);
             textRendererGLEL.init(drawable);
         } else {
             textRendererGLEL = null;

@@ -27,9 +27,12 @@
  */
 package jogamp.graph.curve.opengl;
 
+import java.io.PrintStream;
 import java.nio.FloatBuffer;
 
 import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLArrayData;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLUniformData;
 
@@ -43,6 +46,7 @@ import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.util.GLArrayDataClient;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.Texture;
@@ -134,15 +138,16 @@ public class VBORegion2PMSAAES2  extends GLRegion {
         }
     }
 
-    public VBORegion2PMSAAES2(final int renderModes, final TextureSequence colorTexSeq, final int pass2TexUnit) {
-        super(renderModes, colorTexSeq);
+    public VBORegion2PMSAAES2(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq, final int pass2TexUnit) {
+        super(glp, renderModes, colorTexSeq);
 
         rsLocal = new RenderState.ProgramLocal();
 
         final int initialElementCount = 256;
+        // We leave GLArrayDataClient.DEFAULT_GROWTH_FACTOR intact for avg +19% size, but 15% less CPU overhead compared to 1.2 (19% total)
 
         // Pass 1:
-        indicesBuffer = GLArrayDataServer.createData(3, GL.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
 
         gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
                                                       false, initialElementCount, GL.GL_STATIC_DRAW);
@@ -173,7 +178,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
         // Pass 2:
         gcu_FboTexUnit = new GLUniformData(UniformNames.gcu_FboTexUnit, pass2TexUnit);
 
-        indicesFbo = GLArrayDataServer.createData(3, GL.GL_SHORT, 2, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesFbo = GLArrayDataServer.createData(3, GL.GL_UNSIGNED_SHORT, 2, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
         indicesFbo.puts((short) 0); indicesFbo.puts((short) 1); indicesFbo.puts((short) 3);
         indicesFbo.puts((short) 1); indicesFbo.puts((short) 2); indicesFbo.puts((short) 3);
         indicesFbo.seal(true);
@@ -191,6 +196,16 @@ public class VBORegion2PMSAAES2  extends GLRegion {
     }
 
     @Override
+    protected void growBufferSize(final int verticeCount, final int indexCount) {
+        indicesBuffer.growIfNeeded(indexCount);
+        gca_VerticesAttr.growIfNeeded(verticeCount * gca_VerticesAttr.getCompsPerElem());
+        gca_CurveParamsAttr.growIfNeeded(verticeCount * gca_CurveParamsAttr.getCompsPerElem());
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.growIfNeeded(verticeCount * gca_ColorsAttr.getCompsPerElem());
+        }
+    }
+
+    @Override
     protected final void clearImpl(final GL2ES2 gl) {
         if( null != indicesBuffer ) {
             indicesBuffer.clear(gl);
@@ -205,6 +220,23 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             gca_ColorsAttr.clear(gl);
         }
         fboDirty = true;
+    }
+
+    @Override
+    protected void printBufferStats(final PrintStream out) {
+        final int[] size= { 0 }, capacity= { 0 };
+        out.println("VBORegion2PMSAAES2:");
+        printAndCount(out, "  indices ", indicesBuffer, size, capacity);
+        out.println();
+        printAndCount(out, "  vertices ", gca_VerticesAttr, size, capacity);
+        out.println();
+        printAndCount(out, "  params ", gca_CurveParamsAttr, size, capacity);
+        out.println();
+        printAndCount(out, "  color ", gca_ColorsAttr, size, capacity);
+        final float filled = (float)size[0]/(float)capacity[0];
+        out.println();
+                out.printf("  total [bytes %,d / %,d], filled %.1f%%, left %.1f%%]%n",
+                        size[0], capacity[0], filled*100f, (1f-filled)*100f);
     }
 
     @Override
@@ -231,7 +263,11 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
     @Override
     protected final void pushIndex(final int idx) {
-        indicesBuffer.puts((short)idx);
+        if( usesI32Idx() ) {
+            indicesBuffer.puti(idx);
+        } else {
+            indicesBuffer.puts((short)idx);
+        }
     }
 
     @Override

@@ -128,17 +128,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                                     "\n"+
                                     "The quick brown fox jumps over the lazy dog\n";
 
-    public GPUUISceneGLListener0A() {
-        this(0);
-    }
-
-    /**
-     * @param noAADPIThreshold see {@link #DefaultNoAADPIThreshold}
-     */
-    public GPUUISceneGLListener0A(final float noAADPIThreshold) {
-        this(null, noAADPIThreshold, false, false);
-    }
-
     /**
      * @param renderModes
      */

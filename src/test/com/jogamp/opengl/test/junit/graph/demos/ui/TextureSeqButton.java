@@ -28,7 +28,7 @@
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import com.jogamp.opengl.GL2ES2;
-
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
@@ -50,8 +50,8 @@ public class TextureSeqButton extends RoundButton {
     }
 
     @Override
-    protected GLRegion createGLRegion() {
-        return GLRegion.create(getRenderModes(), texSeq);
+    protected GLRegion createGLRegion(final GLProfile glp) {
+        return GLRegion.create(glp, getRenderModes(), texSeq);
     }
 
     public final TextureSequence getTextureSequence() { return this.texSeq; }

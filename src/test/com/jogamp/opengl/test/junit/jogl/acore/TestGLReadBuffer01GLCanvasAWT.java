@@ -76,10 +76,11 @@ public class TestGLReadBuffer01GLCanvasAWT extends GLReadBuffer00BaseAWT {
         final Frame frame = new Frame();
         final Dimension d = new Dimension(320, 240);
         final GLCanvas glad = createGLCanvas(caps, d);
-        final TextRendererGLEL textRendererGLEL = new TextRendererGLEL();
+        final TextRendererGLEL textRendererGLEL = new TextRendererGLEL(caps.getGLProfile());
         final SnapshotGLELAWT snapshotGLEL = doSnapshot ? new SnapshotGLELAWT(textRendererGLEL, awtGLReadBufferUtil, false) : null;
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     frame.setLocation(64, 64);
                     frame.setLayout(new BorderLayout());
@@ -145,18 +146,21 @@ public class TestGLReadBuffer01GLCanvasAWT extends GLReadBuffer00BaseAWT {
             }
             try { Thread.sleep(duration); } catch (final InterruptedException e) { }
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
                     public void run() {
                         frame.setSize(size1);
                         frame.validate();
                     } } );
             try { Thread.sleep(duration); } catch (final InterruptedException e) { }
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
                     public void run() {
                         frame.setSize(size2);
                         frame.validate();
                     } } );
             try { Thread.sleep(duration); } catch (final InterruptedException e) { }
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
                     public void run() {
                         frame.setSize(size0);
                         frame.validate();
@@ -175,6 +179,7 @@ public class TestGLReadBuffer01GLCanvasAWT extends GLReadBuffer00BaseAWT {
         }
         try {
             SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
                     public void run() {
                         frame.dispose();
                     } } );

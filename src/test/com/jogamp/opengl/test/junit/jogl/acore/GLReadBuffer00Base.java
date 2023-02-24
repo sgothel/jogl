@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
@@ -71,11 +72,11 @@ public abstract class GLReadBuffer00Base extends UITestCase {
         public int userCounter = 0;
         private final GLRegion regionFPS;
 
-        public TextRendererGLEL() {
+        public TextRendererGLEL(final GLProfile glp) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(Region.VBAA_RENDERING_BIT, new int[] { 4 });
             this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-            regionFPS = GLRegion.create(renderModes, null);
+            regionFPS = GLRegion.create(glp, renderModes, null);
 
             staticRGBAColor[0] = 0.9f;
             staticRGBAColor[1] = 0.9f;
@@ -95,8 +96,9 @@ public abstract class GLReadBuffer00Base extends UITestCase {
             System.err.println("TextRendererGLEL.display: "+text);
             if( null != renderer ) {
                 final float pixelSize = FontScale.toPixels(14f, dpiH);
-                drawable.getGL().glClearColor(1f, 1f, 1f, 0f);
-                renderString(drawable, font, pixelSize, text, 0 /* col */, 0 /* row */, 0, 0, -1, regionFPS);
+                final GL2ES2 gl = drawable.getGL().getGL2ES2();
+                gl.glClearColor(1f, 1f, 1f, 0f);
+                renderString(drawable, font, pixelSize, text, 0 /* col */, 0 /* row */, 0, 0, -1, regionFPS.clear(gl));
             } else {
                 System.err.println(text);
             }

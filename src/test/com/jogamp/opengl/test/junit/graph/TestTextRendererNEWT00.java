@@ -56,6 +56,7 @@ import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
@@ -84,6 +85,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static boolean useMSAA = true;
     static int win_width = 1280;
     static int win_height = 720;
+    static boolean loop_inf = false;
 
     static Font font;
     static float fontSize = 24; // in pixel
@@ -103,6 +105,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
     }
 
     public static void main(final String args[]) throws IOException {
+        boolean wait = false;
         mainRun = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -126,7 +129,14 @@ public class TestTextRendererNEWT00 extends UITestCase {
             } else if(args[i].equals("-fontSize")) {
                 i++;
                 fontSize = MiscUtils.atof(args[i], fontSize);
+            } else if(args[i].equals("-wait")) {
+                wait = true;
+            } else if(args[i].equals("-loop")) {
+                loop_inf = true;
             }
+        }
+        if( wait ) {
+            JunitTracer.waitForKey("Start");
         }
         final String tstname = TestTextRendererNEWT00.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
@@ -165,64 +175,73 @@ public class TestTextRendererNEWT00 extends UITestCase {
 
         System.err.println("Chosen: "+winctx.window.getChosenCapabilities());
 
+        final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
+
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
         final RegionRenderer renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
 
-        // init
-        gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        renderer.init(gl, 0);
-        rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
-        final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
+        do {
+            // init
+            final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null);
+            System.err.println("GLRegion: for "+gl.getGLProfile()+" using int32_t indiced: "+region.usesI32Idx());
 
-        // reshape
-        gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+            gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            renderer.init(gl, 0);
+            rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
 
-        // renderer.reshapePerspective(gl, 45.0f, drawable.getWidth(), drawable.getHeight(), 0.1f, 1000.0f);
-        renderer.reshapeOrtho(drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), 0.1f, 1000.0f);
-        final int z0 = -1000;
+            // reshape
+            gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
 
-        final int[] sampleCountIO = { sampleCount };
-        // display
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+            // renderer.reshapePerspective(gl, 45.0f, drawable.getWidth(), drawable.getHeight(), 0.1f, 1000.0f);
+            renderer.reshapeOrtho(drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), 0.1f, 1000.0f);
+            final int z0 = -1000;
 
-        final GLRegion region = GLRegion.create(renderModes, null);
-        final float dx = 0;
-        final float dy = drawable.getSurfaceHeight() - 3 * fontSize * font.getLineHeight();
-        {
-            // all sizes in em
-            final float x_width = font.getAdvanceWidth( font.getGlyphID('X') );
-            final AffineTransform t = new AffineTransform();
+            final int[] sampleCountIO = { sampleCount };
+            // display
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+            region.clear(gl);
 
-            t.setToTranslation(3*x_width, 0f);
-            final AABBox tbox_1 = font.getGlyphBounds(text_1);
-            final AABBox rbox_1 = TextRegionUtil.addStringToRegion(region, font, t, text_1, fg_color);
-            System.err.println("Text_1: tbox "+tbox_1);
-            System.err.println("Text_1: rbox "+rbox_1);
+            final float dx = 0;
+            final float dy = drawable.getSurfaceHeight() - 3 * fontSize * font.getLineHeight();
+            {
+                // all sizes in em
+                final float x_width = font.getAdvanceWidth( font.getGlyphID('X') );
+                final AffineTransform t = new AffineTransform();
 
-            if( true ) {
-                t.setToTranslation(3*x_width, -1f*(rbox_1.getHeight()+font.getLineHeight()));
-                final AABBox tbox_2 = font.getGlyphBounds(text_2);
-                final AABBox rbox_2 = TextRegionUtil.addStringToRegion(region, font, t, text_2, fg_color);
-                System.err.println("Text_1: tbox "+tbox_2);
-                System.err.println("Text_1: rbox "+rbox_2);
+                t.setToTranslation(3*x_width, 0f);
+                final AABBox tbox_1 = font.getGlyphBounds(text_1);
+                final AABBox rbox_1 = TextRegionUtil.addStringToRegion(region, font, t, text_1, fg_color);
+                System.err.println("Text_1: tbox "+tbox_1);
+                System.err.println("Text_1: rbox "+rbox_1);
+
+                if( true ) {
+                    t.setToTranslation(3*x_width, -1f*(rbox_1.getHeight()+font.getLineHeight()));
+                    final AABBox tbox_2 = font.getGlyphBounds(text_2);
+                    final AABBox rbox_2 = TextRegionUtil.addStringToRegion(region, font, t, text_2, fg_color);
+                    System.err.println("Text_1: tbox "+tbox_2);
+                    System.err.println("Text_1: rbox "+rbox_2);
+                }
             }
-        }
 
-        final PMVMatrix pmv = renderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmv.glLoadIdentity();
-        pmv.glTranslatef(dx, dy, z0);
-        pmv.glScalef(fontSize, fontSize, 1f);
-        region.draw(gl, renderer, sampleCountIO);
-        gl.glFinish();
-        printScreen(screenshot, renderModes, drawable, gl, false, sampleCount);
-        drawable.swapBuffers();
+            final PMVMatrix pmv = renderer.getMatrix();
+            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmv.glLoadIdentity();
+            pmv.glTranslatef(dx, dy, z0);
+            pmv.glScalef(fontSize, fontSize, 1f);
+            region.draw(gl, renderer, sampleCountIO);
+            gl.glFinish();
+            if( !loop_inf ) {
+                printScreen(screenshot, renderModes, drawable, gl, false, sampleCount);
+            }
+            drawable.swapBuffers();
+            region.printBufferStats(System.err);
+            region.destroy(gl);
+        } while ( loop_inf );
 
         sleep();
 
         // dispose
-        region.destroy(gl);;
         screenshot.dispose(gl);
         renderer.destroy(gl);
 

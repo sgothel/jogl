@@ -34,6 +34,7 @@ import java.util.List;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.curve.OutlineShape;
@@ -55,7 +56,7 @@ public class GPURegionGLListener10 extends GPURendererListenerBase01 {
         setMatrix(-20, 00, -50, 0f, sampleCount);
     }
 
-    private void createTestOutline(){
+    private void createTestOutline(final GLProfile glp){
         OutlineShape shape = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
         outlineShapes.add(shape);
         shape.addVertex(0.0f,-10.0f,true);
@@ -92,7 +93,7 @@ public class GPURegionGLListener10 extends GPURendererListenerBase01 {
         shape.addVertex(offset+10.0f,0.0f, true);
         shape.closeLastOutline(true);
 
-        region = GLRegion.create(getRenderModes(), null);
+        region = GLRegion.create(glp, getRenderModes(), null);
         region.addOutlineShapes(outlineShapes, null, null);
     }
 
@@ -109,7 +110,7 @@ public class GPURegionGLListener10 extends GPURendererListenerBase01 {
         gl.glEnable(GL.GL_BLEND);
         rs.setColorStatic(0.0f, 0.0f, 0.0f, 1.0f);
 
-        createTestOutline();
+        createTestOutline(gl.getGLProfile());
     }
 
     @Override
