@@ -57,7 +57,7 @@ public abstract class GLVBOArrayHandler implements GLArrayHandler {
         if(!ad.isVBOWritten()) {
             final Buffer buffer = ad.getBuffer();
             if(null!=buffer) {
-                gl.glBufferData(ad.getVBOTarget(), buffer.limit() * ad.getComponentSizeInBytes(), buffer, ad.getVBOUsage());
+                gl.glBufferData(ad.getVBOTarget(), buffer.limit() * ad.getBytesPerComp(), buffer, ad.getVBOUsage());
             }
             ad.setVBOWritten(true);
         }

@@ -114,7 +114,7 @@ public class GearsObjectES2 extends GearsObject {
             }
             array.enableBuffer(gl, true);
             // System.err.println("XXX Draw face "+face+" of "+this);
-            gl.glDrawArrays(mode, 0, array.getElementCount());
+            gl.glDrawArrays(mode, 0, array.getElemCount());
             array.enableBuffer(gl, false);
         }
     }

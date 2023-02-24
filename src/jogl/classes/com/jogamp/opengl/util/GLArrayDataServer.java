@@ -85,11 +85,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                               final Buffer buffer, final int vboUsage)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
-    ads.init(null, index, compsPerElement, dataType, normalized, stride, buffer, buffer.limit(), 0 /* mappedElementCount */, false,
-             glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
-    return ads;
+    return new GLArrayDataServer(null, index, compsPerElement, dataType, normalized, stride, buffer, buffer.limit(), DEFAULT_GROWTH_FACTOR, 0 /* mappedElementCount */,
+                                 false, GLFixedArrayHandler.class, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
   }
 
   /**
@@ -117,11 +114,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                               final int vboUsage)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
-    ads.init(null, index, compsPerElement, dataType, normalized, 0, null, initialElementCount, 0 /* mappedElementCount */, false,
-             glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
-    return ads;
+    return new GLArrayDataServer(null, index, compsPerElement, dataType, normalized, 0, null, initialElementCount, DEFAULT_GROWTH_FACTOR, 0 /* mappedElementCount */,
+                                 false, GLFixedArrayHandler.class, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
   }
 
   /**
@@ -138,11 +132,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                              final int dataType, final boolean normalized, final int initialElementCount, final int vboUsage)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
-    ads.init(name, -1, compsPerElement, dataType, normalized, 0, null, initialElementCount,
-             0 /* mappedElementCount */, true, glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
-    return ads;
+    return new GLArrayDataServer(name, -1, compsPerElement, dataType, normalized, 0, null, initialElementCount,
+                                 DEFAULT_GROWTH_FACTOR, 0 /* mappedElementCount */, true, GLSLArrayHandler.class, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
   }
 
   /**
@@ -159,10 +150,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                                    final int dataType, final boolean normalized, final int mappedElementCount, final int vboUsage)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
-    ads.init(name, -1, compsPerElement, dataType, normalized, 0, null, 0 /* initialElementCount */,
-             mappedElementCount, true, glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
+    final GLArrayDataServer ads = new GLArrayDataServer(name, -1, compsPerElement, dataType, normalized, 0, null, 0 /* initialElementCount */,
+                                                        DEFAULT_GROWTH_FACTOR, mappedElementCount, true, GLSLArrayHandler.class, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
     ads.seal(true);
     return ads;
   }
@@ -183,11 +172,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                              final int vboUsage)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
-    ads.init(name, -1, compsPerElement, dataType, normalized, stride, buffer, buffer.limit(), 0 /* mappedElementCount */, true,
-             glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
-    return ads;
+    return new GLArrayDataServer(name, -1, compsPerElement, dataType, normalized, stride, buffer, buffer.limit(), DEFAULT_GROWTH_FACTOR, 0 /* mappedElementCount */,
+                                 true, GLSLArrayHandler.class, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
   }
 
   /**
@@ -207,11 +193,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                              final Buffer buffer, final int vboUsage, final int vboTarget)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLDataArrayHandler(ads);
-    ads.init(null, -1, compsPerElement, dataType, false, stride, buffer, buffer.limit(), 0 /* mappedElementCount */, false,
-             glArrayHandler, 0, 0, vboUsage, vboTarget, false);
-    return ads;
+    return new GLArrayDataServer(null, -1, compsPerElement, dataType, false, stride, buffer, buffer.limit(), DEFAULT_GROWTH_FACTOR, 0 /* mappedElementCount */,
+                                 false, GLDataArrayHandler.class, 0, 0, vboUsage, vboTarget, false);
   }
 
   /**
@@ -229,11 +212,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                              final int vboUsage, final int vboTarget)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLDataArrayHandler(ads);
-    ads.init(null, -1, compsPerElement, dataType, false, 0, null, initialElementCount, 0 /* mappedElementCount */, false,
-             glArrayHandler, 0, 0, vboUsage, vboTarget, false);
-    return ads;
+    return new GLArrayDataServer(null, -1, compsPerElement, dataType, false, 0, null, initialElementCount, DEFAULT_GROWTH_FACTOR, 0 /* mappedElementCount */,
+                                 false, GLDataArrayHandler.class, 0, 0, vboUsage, vboTarget, false);
   }
 
   /**
@@ -253,11 +233,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                                    final int vboUsage, final int vboTarget)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLDataArrayHandler(ads);
-    ads.init(null, -1, compsPerElement, dataType, false, 0, null, 0 /* initialElementCount */, mappedElementCount, false,
-             glArrayHandler, 0, 0, vboUsage, vboTarget, false);
-    return ads;
+    return new GLArrayDataServer(null, -1, compsPerElement, dataType, false, 0, null, 0 /* initialElementCount */, DEFAULT_GROWTH_FACTOR, mappedElementCount,
+                                 false, GLDataArrayHandler.class, 0, 0, vboUsage, vboTarget, false);
   }
 
   /**
@@ -275,11 +252,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                               final int vboUsage)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLArrayHandlerInterleaved(ads);
-    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, false, 0, null, initialElementCount, 0 /* mappedElementCount */, false,
-             glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
-    return ads;
+    return new GLArrayDataServer(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, false, 0, null, initialElementCount, DEFAULT_GROWTH_FACTOR, 0 /* mappedElementCount */,
+                                 false, GLArrayHandlerInterleaved.class, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
   }
 
   /**
@@ -297,10 +271,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                                                final int vboUsage)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLArrayHandlerInterleaved(ads);
-    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, false, 0, null, 0 /* initialElementCount */, mappedElementCount, false,
-             glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
+    final GLArrayDataServer ads = new GLArrayDataServer(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, false, 0, null, 0 /* initialElementCount */, DEFAULT_GROWTH_FACTOR, mappedElementCount,
+                                                        false, GLArrayHandlerInterleaved.class, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
     ads.seal(true);
     return ads;
   }
@@ -321,11 +293,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                               final int vboUsage)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLArrayHandlerInterleaved(ads);
-    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, normalized, stride, buffer, buffer.limit(), 0 /* mappedElementCount */, false,
-             glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
-    return ads;
+    return new GLArrayDataServer(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, normalized, stride, buffer, buffer.limit(), DEFAULT_GROWTH_FACTOR, 0 /* mappedElementCount */,
+                                 false, GLArrayHandlerInterleaved.class, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
   }
 
   /**
@@ -343,28 +312,28 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * @param vboTarget {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
    */
   public GLArrayData addFixedSubArray(final int index, final int comps, final int vboTarget) {
-      if(interleavedOffset >= getComponentCount() * getComponentSizeInBytes()) {
-          final int iOffC = interleavedOffset / getComponentSizeInBytes();
-          throw new GLException("Interleaved offset > total components ("+iOffC+" > "+getComponentCount()+")");
+      if(interleavedOffset >= getCompsPerElem() * getBytesPerComp()) {
+          final int iOffC = interleavedOffset / getBytesPerComp();
+          throw new GLException("Interleaved offset > total components ("+iOffC+" > "+getCompsPerElem()+")");
       }
       if(usesGLSL) {
           throw new GLException("buffer uses GLSL");
       }
-      final int subStrideB = ( 0 == getStride() ) ? getComponentCount() * getComponentSizeInBytes() : getStride();
+      final int subStrideB = ( 0 == getStride() ) ? getCompsPerElem() * getBytesPerComp() : getStride();
       final GLArrayDataWrapper ad;
       if( 0 < mappedElementCount ) {
           ad = GLArrayDataWrapper.createFixed(
-                  index, comps, getComponentType(),
+                  index, comps, getCompType(),
                   getNormalized(), subStrideB, mappedElementCount,
                   getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);
       } else {
           ad = GLArrayDataWrapper.createFixed(
-                  index, comps, getComponentType(),
+                  index, comps, getCompType(),
                   getNormalized(), subStrideB, getBuffer(),
                   getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);
       }
       ad.setVBOEnabled(isVBO());
-      interleavedOffset += comps * getComponentSizeInBytes();
+      interleavedOffset += comps * getBytesPerComp();
       if(GL.GL_ARRAY_BUFFER == vboTarget) {
           glArrayHandler.addSubHandler(new GLFixedArrayHandlerFlat(ad));
       }
@@ -386,11 +355,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                                         final int vboUsage)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLSLArrayHandlerInterleaved(ads);
-    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, normalized, 0, null, initialElementCount, 0 /* mappedElementCount */, false,
-             glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
-    return ads;
+    return new GLArrayDataServer(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, normalized, 0, null, initialElementCount, DEFAULT_GROWTH_FACTOR, 0 /* mappedElementCount */,
+                                 false, GLSLArrayHandlerInterleaved.class, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
   }
 
   /**
@@ -407,10 +373,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   public static GLArrayDataServer createGLSLInterleavedMapped(final int compsPerElement, final int dataType, final boolean normalized, final int mappedElementCount, final int vboUsage)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLSLArrayHandlerInterleaved(ads);
-    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, normalized, 0, null, 0 /* initialElementCount */, mappedElementCount, false,
-             glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
+    final GLArrayDataServer ads = new GLArrayDataServer(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, normalized, 0, null, 0 /* initialElementCount */, DEFAULT_GROWTH_FACTOR, mappedElementCount,
+                                                  false, GLSLArrayHandlerInterleaved.class, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
     ads.seal(true);
     return ads;
   }
@@ -431,11 +395,8 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                                                         final int vboUsage)
     throws GLException
   {
-    final GLArrayDataServer ads = new GLArrayDataServer();
-    final GLArrayHandler glArrayHandler = new GLSLArrayHandlerInterleaved(ads);
-    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, normalized, stride, buffer, buffer.limit(), 0 /* mappedElementCount */, false,
-             glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
-    return ads;
+    return new GLArrayDataServer(GLPointerFuncUtil.mgl_InterleaveArray, -1, compsPerElement, dataType, normalized, stride, buffer, buffer.limit(), DEFAULT_GROWTH_FACTOR, 0 /* mappedElementCount */,
+                                 false, GLSLArrayHandlerInterleaved.class, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
   }
 
   /**
@@ -452,28 +413,28 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * @param vboTarget {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
    */
   public GLArrayData addGLSLSubArray(final String name, final int comps, final int vboTarget) {
-      if(interleavedOffset >= getComponentCount() * getComponentSizeInBytes()) {
-          final int iOffC = interleavedOffset / getComponentSizeInBytes();
-          throw new GLException("Interleaved offset > total components ("+iOffC+" > "+getComponentCount()+")");
+      if(interleavedOffset >= getCompsPerElem() * getBytesPerComp()) {
+          final int iOffC = interleavedOffset / getBytesPerComp();
+          throw new GLException("Interleaved offset > total components ("+iOffC+" > "+getCompsPerElem()+")");
       }
       if(!usesGLSL) {
           throw new GLException("buffer uses fixed function");
       }
-      final int subStrideB = ( 0 == getStride() ) ? getComponentCount() * getComponentSizeInBytes() : getStride();
+      final int subStrideB = ( 0 == getStride() ) ? getCompsPerElem() * getBytesPerComp() : getStride();
       final GLArrayDataWrapper ad;
       if( 0 < mappedElementCount ) {
           ad = GLArrayDataWrapper.createGLSL(
-                  name, comps, getComponentType(),
+                  name, comps, getCompType(),
                   getNormalized(), subStrideB, mappedElementCount,
                   getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);
       } else {
           ad = GLArrayDataWrapper.createGLSL(
-                  name, comps, getComponentType(),
+                  name, comps, getCompType(),
                   getNormalized(), subStrideB, getBuffer(),
                   getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);
       }
       ad.setVBOEnabled(isVBO());
-      interleavedOffset += comps * getComponentSizeInBytes();
+      interleavedOffset += comps * getBytesPerComp();
       if(GL.GL_ARRAY_BUFFER == vboTarget) {
           glArrayHandler.addSubHandler(new GLSLArrayHandlerFlat(ad));
       }
@@ -597,7 +558,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                        ", usesShaderState "+(null!=shaderState)+
                        ", dataType 0x"+Integer.toHexString(componentType)+
                        ", bufferClazz "+componentClazz+
-                       ", elements "+getElementCount()+
+                       ", elements "+getElemCount()+
                        ", components "+componentsPerElement+
                        ", stride "+strideB+"b "+strideL+"c"+
                        ", initialElementCount "+initialElementCount+
@@ -620,15 +581,14 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   // non public matters ..
   //
 
-  @Override
-  protected void init(final String name, final int index, final int comps, final int dataType, final boolean normalized,
-                      final int stride, final Buffer data, final int initialElementCount, final int mappedElementCount,
-                      final boolean isVertexAttribute,
-                      final GLArrayHandler glArrayHandler, final int vboName, final long vboOffset, final int vboUsage, final int vboTarget, final boolean usesGLSL)
+  protected GLArrayDataServer(final String name, final int index, final int comps, final int dataType, final boolean normalized,
+                              final int stride, final Buffer data, final int initialElementCount, final float growthFactor,
+                              final int mappedElementCount, final boolean isVertexAttribute,
+                              final Class<? extends GLArrayHandler> handlerClass, final int vboName, final long vboOffset, final int vboUsage, final int vboTarget, final boolean usesGLSL)
     throws GLException
   {
-    super.init(name, index, comps, dataType, normalized, stride, data, initialElementCount, mappedElementCount, isVertexAttribute,
-               glArrayHandler, vboName, vboOffset, vboUsage, vboTarget, usesGLSL);
+    super(name, index, comps, dataType, normalized, stride, data, initialElementCount, growthFactor, mappedElementCount,
+          isVertexAttribute, handlerClass, vboName, vboOffset, vboUsage, vboTarget, usesGLSL);
 
     vboEnabled=true;
   }
@@ -645,8 +605,6 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
         }
     }
   }
-
-  protected GLArrayDataServer() { }
 
   /**
    * Copy Constructor

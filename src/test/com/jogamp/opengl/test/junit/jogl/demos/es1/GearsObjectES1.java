@@ -79,7 +79,7 @@ public class GearsObjectES1 extends GearsObject {
                                           ", Name[exp "+bufferName+", has "+hasBufferName+", Size exp "+bufferSize+", Storage "+hasStorage+"]");
                 }
             }
-            gl.glDrawArrays(mode, 0, array.getElementCount());
+            gl.glDrawArrays(mode, 0, array.getElemCount());
             array.enableBuffer(gl, false);
         }
     }

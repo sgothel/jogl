@@ -149,7 +149,7 @@ public class GLSLMiscHelper {
         vDataArray.seal(gl, true);
         Assert.assertTrue(vDataArray.isVBOWritten());
         Assert.assertTrue(vDataArray.sealed());
-        Assert.assertEquals(4, vDataArray.getElementCount());
+        Assert.assertEquals(4, vDataArray.getElemCount());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         Assert.assertEquals(0, gl.getBoundBuffer(GL.GL_ARRAY_BUFFER)); // should be cleared ASAP
         validateGLArrayDataServerState(gl, st, vDataArray);

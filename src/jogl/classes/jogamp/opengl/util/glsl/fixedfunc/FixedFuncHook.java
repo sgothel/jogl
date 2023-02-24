@@ -433,7 +433,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
 
     @Override
     public void glNormalPointer(final GLArrayData array) {
-      if(array.getComponentCount()!=3) {
+      if(array.getCompsPerElem()!=3) {
         throw new GLException("Only 3 components per normal allowed");
       }
       if(array.isVBO()) {

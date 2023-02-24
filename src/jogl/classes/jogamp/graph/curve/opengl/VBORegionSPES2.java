@@ -95,20 +95,16 @@ public class VBORegionSPES2 extends GLRegion {
             System.err.println("VBORegionSPES2 Clear: " + this);
         }
         if( null != indicesBuffer ) {
-            indicesBuffer.seal(gl, false);
-            indicesBuffer.rewind();
+            indicesBuffer.clear(gl);
         }
         if( null != gca_VerticesAttr ) {
-            gca_VerticesAttr.seal(gl, false);
-            gca_VerticesAttr.rewind();
+            gca_VerticesAttr.clear(gl);
         }
         if( null != gca_CurveParamsAttr ) {
-            gca_CurveParamsAttr.seal(gl, false);
-            gca_CurveParamsAttr.rewind();
+            gca_CurveParamsAttr.clear(gl);
         }
         if( null != gca_ColorsAttr ) {
-            gca_ColorsAttr.seal(gl, false);
-            gca_ColorsAttr.rewind();
+            gca_ColorsAttr.clear(gl);
         }
     }
 
@@ -218,7 +214,7 @@ public class VBORegionSPES2 extends GLRegion {
         final int renderModes = getRenderModes();
         useShaderProgram(gl, renderer, renderModes, getQuality());
 
-        if( 0 >= indicesBuffer.getElementCount() ) {
+        if( 0 >= indicesBuffer.getElemCount() ) {
             if(DEBUG_INSTANCE) {
                 System.err.printf("VBORegionSPES2.drawImpl: Empty%n");
             }
@@ -244,10 +240,12 @@ public class VBORegionSPES2 extends GLRegion {
             gcu_ColorTexUnit.setData(colorTexSeq.getTextureUnit());
             gl.glUniform(gcu_ColorTexUnit); // Always update, since program maybe used by multiple regions
             gl.glUniform(gcu_ColorTexBBox); // Always update, since program maybe used by multiple regions
-            gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL.GL_UNSIGNED_SHORT, 0);
+            gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
+            // gl.glDrawElements(GL.GL_LINE_STRIP, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), gl_idx_type, 0);
             tex.disable(gl); // nop on core
         } else {
-            gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), GL.GL_UNSIGNED_SHORT, 0);
+            gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
+            // gl.glDrawElements(GL.GL_LINE_STRIP, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), gl_idx_type, 0);
         }
 
         indicesBuffer.bindBuffer(gl, false);

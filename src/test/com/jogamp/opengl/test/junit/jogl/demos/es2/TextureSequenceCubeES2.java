@@ -397,7 +397,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
             }
         }
         cubeIndicesVBO.bindBuffer(gl, true); // keeps VBO binding
-        gl.glDrawElements(GL.GL_TRIANGLES, cubeIndicesVBO.getElementCount() * cubeIndicesVBO.getComponentCount(), GL.GL_UNSIGNED_SHORT, 0);
+        gl.glDrawElements(GL.GL_TRIANGLES, cubeIndicesVBO.getElemCount() * cubeIndicesVBO.getCompsPerElem(), GL.GL_UNSIGNED_SHORT, 0);
         cubeIndicesVBO.bindBuffer(gl, false);
 
         if(null != tex) {

@@ -1,11 +1,11 @@
   @Override
   public final void glVertexAttribPointer(GLArrayData array) {
-    if(array.getComponentCount()==0) return;
+    if(array.getCompsPerElem()==0) return;
     if(array.isVBO()) {
-        glVertexAttribPointer(array.getLocation(), array.getComponentCount(), array.getComponentType(), 
+        glVertexAttribPointer(array.getLocation(), array.getCompsPerElem(), array.getCompType(), 
                               array.getNormalized(), array.getStride(), array.getVBOOffset());
     } else {
-        glVertexAttribPointer(array.getLocation(), array.getComponentCount(), array.getComponentType(), 
+        glVertexAttribPointer(array.getLocation(), array.getCompsPerElem(), array.getCompType(), 
                               array.getNormalized(), array.getStride(), array.getBuffer());
     }
   }

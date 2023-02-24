@@ -34,7 +34,16 @@ public interface GLArrayDataEditable extends GLArrayData {
     @Override
     public void destroy(GL gl);
 
-    public void reset(GL gl);
+    /**
+     * Clears this buffer.
+     * <p>
+     * Implementation must call {@link #seal(GL, boolean) seal(gl, false)} and {@link #clear()},
+     * i.e. turns-off the GL buffer and then clearing it.
+     * </p>
+     * @see #seal(GL, boolean)
+     * @see #clear()
+     */
+    public void clear(GL gl);
 
     /**
      * Convenience method calling {@link #seal(boolean)} and {@link #enableBuffer(GL, boolean)}.
@@ -105,7 +114,11 @@ public interface GLArrayDataEditable extends GLArrayData {
     // Data modification ..
     //
 
-    public void reset();
+    /**
+     * Clears this buffer and resets states accordingly.
+     * @see #clear(GL)
+     */
+    public void clear();
 
     /**
      * <p>If <i>seal</i> is true, it

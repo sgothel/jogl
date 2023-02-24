@@ -144,7 +144,7 @@ public class ReadBuffer2Screen extends ReadBufferBase {
       if(null!=readTextureCoords) {
           readTextureCoords.enableBuffer(gl, true);
       }
-      gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, readTextureVertices.getElementCount());
+      gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, readTextureVertices.getElemCount());
       /**
       if(null!=readTextureCoords) {
           readTextureCoords.enableBuffer(gl, false);

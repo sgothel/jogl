@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl;
 
+import java.io.PrintStream;
 import java.nio.Buffer;
 
 import com.jogamp.opengl.fixedfunc.GLPointerFunc;
@@ -159,32 +160,39 @@ public interface GLArrayData {
     /**
      * The number of components per element
      */
-    public int getComponentCount();
+    public int getCompsPerElem();
 
     /**
      * The component's GL data type, ie. GL_FLOAT
      */
-    public int getComponentType();
+    public int getCompType();
 
     /**
      * The component's size in bytes
      */
-    public int getComponentSizeInBytes();
+    public int getBytesPerComp();
 
     /**
      * The current number of used elements.
      * <p>
-     * On element consist out of {@link #getComponentCount()} components.
+     * On element consist out of {@link #getCompsPerElem()} components.
      * </p>
      * In case the buffer's position is 0 (sealed, flipped), it's based on it's limit instead of it's position.
      */
-    public int getElementCount();
+    public int getElemCount();
 
     /**
      * The currently used size in bytes.<br>
      * In case the buffer's position is 0 (sealed, flipped), it's based on it's limit instead of it's position.
      */
     public int getSizeInBytes();
+
+    /**
+     * The current capacity in bytes.
+     */
+    public int getCapacityInBytes();
+
+    public void printStats(final PrintStream out);
 
     /**
      * True, if GL shall normalize fixed point data while converting
