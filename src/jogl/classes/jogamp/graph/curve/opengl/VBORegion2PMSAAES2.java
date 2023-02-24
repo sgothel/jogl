@@ -223,7 +223,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
     }
 
     @Override
-    protected void printBufferStats(final PrintStream out) {
+    public void printBufferStats(final PrintStream out) {
         final int[] size= { 0 }, capacity= { 0 };
         out.println("VBORegion2PMSAAES2:");
         printAndCount(out, "  indices ", indicesBuffer, size, capacity);
