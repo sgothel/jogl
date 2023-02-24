@@ -281,28 +281,28 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     if(0!=(v.remaining() % strideL)) {
         throw new GLException("Buffer length ("+v.remaining()+") is not a multiple of component-stride:\n\t"+this);
     } */
-    growBufferIfNecessary(v.remaining());
+    growIfNeeded(v.remaining());
     Buffers.put(buffer, v);
   }
 
   @Override
   public void putb(final byte v) {
     if ( sealed ) return;
-    growBufferIfNecessary(1);
+    growIfNeeded(1);
     Buffers.putb(buffer, v);
   }
 
   @Override
   public void puts(final short v) {
     if ( sealed ) return;
-    growBufferIfNecessary(1);
+    growIfNeeded(1);
     Buffers.puts(buffer, v);
   }
 
   @Override
   public void puti(final int v) {
     if ( sealed ) return;
-    growBufferIfNecessary(1);
+    growIfNeeded(1);
     Buffers.puti(buffer, v);
   }
 
@@ -314,7 +314,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   @Override
   public void putf(final float v) {
     if ( sealed ) return;
-    growBufferIfNecessary(1);
+    growIfNeeded(1);
     Buffers.putf(buffer, v);
   }
 
@@ -341,76 +341,108 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
                        "]";
   }
 
-  // non public matters
+  /**
+   * Returning element-count from given componentCount, rounding up to componentsPerElement.
+   */
+  public int compsToElemCount(final int componentCount) {
+      return ( componentCount + componentsPerElement - 1 ) / componentsPerElement;
+  }
 
-  private final boolean growBufferIfNecessary(final int spareComponents) {
+  /**
+   * Increase the capacity of the buffer if necessary to add given spareComponents components.
+   * <p>
+   * Buffer will not change if current capacity satisfies spareComponents components.
+   * </p>
+   * @param spareComponents number of components to add if necessary.
+   * @return true if buffer size has changed, i.e. grown. Otherwise false.
+   */
+  public final boolean growIfNeeded(final int spareComponents) {
     if( buffer==null || buffer.remaining()<spareComponents ) {
         if( 0 != mappedElementCount ) {
             throw new GLException("Mapped buffer can't grow. Insufficient storage size: Needed "+spareComponents+" components, "+
                                   "mappedElementCount "+mappedElementCount+
                                   ", has mapped buffer "+buffer+"; "+this);
         }
-        final int required_elems = ( spareComponents + componentsPerElement - 1 ) / componentsPerElement;
         if( null == buffer ) {
-            growBuffer( Math.max( initialElementCount, required_elems ) );
+            final int required_elems = compsToElemCount(spareComponents);
+            return reserve( Math.max( initialElementCount, required_elems ) );
         } else {
-            final int add_comps = (int)( buffer.capacity() * ( growthFactor - 1.0f ) + 0.5f );
-            final int add_elems = ( add_comps + componentsPerElement - 1 ) / componentsPerElement;
-            growBuffer( Math.max( add_elems, required_elems ) );
+            final int has_comps = buffer.capacity();
+            final int required_elems = compsToElemCount(has_comps + spareComponents);
+            final int new_elems = compsToElemCount( (int)( has_comps * growthFactor + 0.5f ) );
+            final int elementCount = Math.max( new_elems, required_elems );
+            if(DEBUG) {
+                System.err.println("*** Size: Grow: "+compsToElemCount(has_comps)+" -> "+elementCount);
+            }
+            return reserve( elementCount );
         }
-        return true;
     }
     return false;
   }
 
-  private final void growBuffer(int additionalElements) {
+  /**
+   * Increase the capacity of the buffer to given elementCount element size,
+   * i.e. elementCount * componentsPerElement components.
+   * <p>
+   * Buffer will not change if given elementCount is lower than current size.
+   * </p>
+   * @param elementCount number of elements to hold.
+   * @return true if buffer size has changed, i.e. grown. Otherwise false.
+   */
+  public final boolean reserve(int elementCount) {
     if(!alive || sealed) {
        throw new GLException("Invalid state: "+this);
     }
 
     // add the stride delta
-    additionalElements += (additionalElements/componentsPerElement)*(strideL-componentsPerElement);
+    elementCount += (elementCount/componentsPerElement)*(strideL-componentsPerElement);
 
     final int osize = (buffer!=null) ? buffer.capacity() : 0;
-    final int nsize = osize + ( additionalElements * componentsPerElement );
+    final int nsize = elementCount * componentsPerElement;
+    if( nsize <= osize ) {
+        return false;
+    }
     final Buffer oldBuffer = buffer;
 
     if(componentClazz==ByteBuffer.class) {
         final ByteBuffer newBBuffer = Buffers.newDirectByteBuffer( nsize );
-        if(buffer!=null) {
-            buffer.flip();
-            newBBuffer.put((ByteBuffer)buffer);
+        if(oldBuffer!=null) {
+            oldBuffer.flip();
+            newBBuffer.put((ByteBuffer)oldBuffer);
         }
         buffer = newBBuffer;
     } else if(componentClazz==ShortBuffer.class) {
         final ShortBuffer newSBuffer = Buffers.newDirectShortBuffer( nsize );
-        if(buffer!=null) {
-            buffer.flip();
-            newSBuffer.put((ShortBuffer)buffer);
+        if(oldBuffer!=null) {
+            oldBuffer.flip();
+            newSBuffer.put((ShortBuffer)oldBuffer);
         }
         buffer = newSBuffer;
     } else if(componentClazz==IntBuffer.class) {
         final IntBuffer newIBuffer = Buffers.newDirectIntBuffer( nsize );
-        if(buffer!=null) {
-            buffer.flip();
-            newIBuffer.put((IntBuffer)buffer);
+        if(oldBuffer!=null) {
+            oldBuffer.flip();
+            newIBuffer.put((IntBuffer)oldBuffer);
         }
         buffer = newIBuffer;
     } else if(componentClazz==FloatBuffer.class) {
         final FloatBuffer newFBuffer = Buffers.newDirectFloatBuffer( nsize );
-        if(buffer!=null) {
-            buffer.flip();
-            newFBuffer.put((FloatBuffer)buffer);
+        if(oldBuffer!=null) {
+            oldBuffer.flip();
+            newFBuffer.put((FloatBuffer)oldBuffer);
         }
         buffer = newFBuffer;
     } else {
         throw new GLException("Given Buffer Class not supported: "+componentClazz+":\n\t"+this);
     }
     if(DEBUG) {
-        System.err.println("*** Grow: comps: "+componentsPerElement+", "+(osize/componentsPerElement)+"/"+osize+" -> "+(nsize/componentsPerElement)+"/"+nsize+
+        System.err.println("*** Size: Reserve: comps: "+componentsPerElement+", "+(osize/componentsPerElement)+"/"+osize+" -> "+(nsize/componentsPerElement)+"/"+nsize+
                            "; "+oldBuffer+" -> "+buffer+"; "+this);
     }
+    return true;
   }
+
+  // non public matters
 
   protected final void checkSeal(final boolean test) throws GLException {
     if(!alive) {
@@ -457,7 +489,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     this.bufferWritten = ( 0 == mappedElementCount ) ? false : true;
 
     if(null==buffer && initialElementCount>0) {
-        growBuffer(initialElementCount);
+        reserve(initialElementCount);
     }
   }
 
@@ -520,16 +552,12 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * <p>
    * Default is {@link #DEFAULT_GROWTH_FACTOR}, i.e. the golden ratio 1.618.
    * </p>
-   * @param v new growth factor, which must be >= 1.1, i.e. 10%
-   * @throws IllegalArgumentException if growth factor is < 1.1
+   * @param v new growth factor, which will be clipped to a minimum of 1, i.e. 0% minimum growth.
    * @see #getGrowthFactor()
    * @see #DEFAULT_GROWTH_FACTOR
    */
   public void setGrowthFactor(final float v) {
-      if( v < 1.1f ) {
-          throw new IllegalArgumentException("New growth factor must be > 1.1 but is "+v);
-      }
-      growthFactor = v;
+      growthFactor = Math.max(1f, v);
   }
 
   protected final int initialElementCount;

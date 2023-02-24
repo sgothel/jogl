@@ -269,7 +269,11 @@ public class GLArrayDataWrapper implements GLArrayData {
 
   @Override
   public void printStats(final PrintStream out) {
-      out.printf("elements %,d, bytes %,d / %,d", getElemCount(), getSizeInBytes(), getCapacityInBytes());
+      final int sz_bytes = getSizeInBytes();
+      final int cap_bytes = getCapacityInBytes();
+      final float filled = (float)sz_bytes/(float)cap_bytes;
+      out.printf("elements %,d / %,d, bytes %,d / %,d, filled %.1f%%, left %.1f%%",
+              getElemCount(), cap_bytes / (componentsPerElement * bytesPerComponent), sz_bytes, cap_bytes, filled*100f, (1f-filled)*100f);
   }
 
   @Override
