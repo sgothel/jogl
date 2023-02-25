@@ -40,7 +40,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
-
+import com.jogamp.opengl.GLRunnable;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
@@ -61,6 +61,7 @@ import com.jogamp.opengl.test.junit.graph.TextRendererGLELBase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.TextureSequenceCubeES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
@@ -80,6 +81,7 @@ public class MovieCube implements GLEventListener {
     private boolean swapIntervalSet = true;
     private long lastPerfPos = 0;
     private volatile boolean resetGLState = false;
+    private volatile GLAutoDrawable autoDrawable = null;
 
     /** Blender's Big Buck Bunny: 24f 416p H.264,  AAC 48000 Hz, 2 ch, mpeg stream. */
     public static final Uri defURI;
@@ -150,6 +152,7 @@ public class MovieCube implements GLEventListener {
         this.rotx = rotx;
         this.roty = roty;
         this.showText = showText;
+        screenshot = new GLReadBufferUtil(false, false);
         mPlayer = GLMediaPlayerFactory.createDefault();
     }
 
@@ -198,6 +201,8 @@ public class MovieCube implements GLEventListener {
             this.setSharedPMVMatrix(cube.pmvMatrix);
             super.init(drawable);
 
+            autoDrawable = drawable;
+
             pixelSize1 = FontScale.toPixels(fontSize1, dpiH);
             pixelSize2 = FontScale.toPixels(fontSize2, dpiH);
             pixelScale = 1.0f / ( pixelSize1 * 20f );
@@ -211,6 +216,8 @@ public class MovieCube implements GLEventListener {
 
         @Override
         public void dispose(final GLAutoDrawable drawable) {
+            autoDrawable = null;
+            screenshot.dispose(drawable.getGL());
             if( null != regionFPS ) {
                 regionFPS.destroy(drawable.getGL().getGL2ES2());
             }
@@ -270,6 +277,31 @@ public class MovieCube implements GLEventListener {
     private InfoTextRendererGLELBase textRendererGLEL = null;
     final boolean showText;
     private boolean displayOSD = true;
+
+    public void printScreen(final GLAutoDrawable drawable) throws GLException, IOException {
+        final String filename = String.format("MovieCube-snap%02d-%03dx%03d.png", screenshot_num++, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+        if(screenshot.readPixels(drawable.getGL(), false)) {
+            screenshot.write(new File(filename.toString()));
+        }
+    }
+    private final GLReadBufferUtil screenshot;
+    private int screenshot_num = 0;
+
+    public void printScreenOnGLThread(final GLAutoDrawable drawable) {
+        drawable.invoke(false, new GLRunnable() {
+            @Override
+            public boolean run(final GLAutoDrawable drawable) {
+                try {
+                    printScreen(drawable);
+                } catch (final GLException e) {
+                    e.printStackTrace();
+                } catch (final IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+        });
+    }
 
     private final KeyListener keyAction = new KeyAdapter() {
         @Override
@@ -342,6 +374,11 @@ public class MovieCube implements GLEventListener {
                       }
                       mPlayer.setAudioVolume(audioVolume);
                     } break;
+                case KeyEvent.VK_S:
+                    if(null != autoDrawable) {
+                        printScreenOnGLThread(autoDrawable);
+                    }
+                    break;
             }
 
             if( 0 != pts1 ) {

@@ -42,6 +42,7 @@ import com.jogamp.opengl.GLES2;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
@@ -70,6 +71,7 @@ import com.jogamp.opengl.test.junit.graph.TextRendererGLELBase;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLArrayDataServer;
+import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
@@ -115,6 +117,8 @@ public class MovieSimple implements GLEventListener {
     private float[] verts = null;
     private GLArrayDataServer interleavedVBO;
     private volatile boolean resetGLState = false;
+
+    private volatile GLAutoDrawable autoDrawable = null;
 
     private ShaderState st;
     private PMVMatrix pmvMatrix;
@@ -212,6 +216,31 @@ public class MovieSimple implements GLEventListener {
         } };
     private InfoTextRendererGLELBase textRendererGLEL = null;
     private boolean displayOSD = true;
+
+    public void printScreen(final GLAutoDrawable drawable) throws GLException, IOException {
+        final String filename = String.format("MovieSimple-snap%02d-%03dx%03d.png", screenshot_num++, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+        if(screenshot.readPixels(drawable.getGL(), false)) {
+            screenshot.write(new File(filename.toString()));
+        }
+    }
+    private final GLReadBufferUtil screenshot;
+    private int screenshot_num = 0;
+
+    public void printScreenOnGLThread(final GLAutoDrawable drawable) {
+        drawable.invoke(false, new GLRunnable() {
+            @Override
+            public boolean run(final GLAutoDrawable drawable) {
+                try {
+                    printScreen(drawable);
+                } catch (final GLException e) {
+                    e.printStackTrace();
+                } catch (final IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+        });
+    }
 
     private final MouseListener mouseAction = new MouseAdapter() {
         @Override
@@ -334,6 +363,11 @@ public class MovieSimple implements GLEventListener {
                       }
                       mPlayer.setAudioVolume(audioVolume);
                     } break;
+                case KeyEvent.VK_S:
+                    if(null != autoDrawable) {
+                        printScreenOnGLThread(autoDrawable);
+                    }
+                    break;
             }
 
             if( 0 != pts1 ) {
@@ -390,6 +424,7 @@ public class MovieSimple implements GLEventListener {
 
     /** Custom constructor, user needs to issue {@link #initStream(URI, int, int, int)} afterwards. */
     public MovieSimple(final GLMediaPlayer sharedMediaPlayer) throws IllegalStateException {
+        screenshot = new GLReadBufferUtil(false, false);
         mPlayer = sharedMediaPlayer;
         mPlayerScaleOrig = false;
         mPlayerShared = null != mPlayer;
@@ -489,6 +524,8 @@ public class MovieSimple implements GLEventListener {
         zoom0 =  orthoProjection ? 0f : -2.5f;
         zoom1 = orthoProjection ? 0f : -5f;
         zoom = zoom0;
+
+        autoDrawable = drawable;
 
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
@@ -710,8 +747,10 @@ public class MovieSimple implements GLEventListener {
 
     @Override
     public void dispose(final GLAutoDrawable drawable) {
+        autoDrawable = null;
         drawable.disposeGLEventListener(textRendererGLEL, true);
         textRendererGLEL = null;
+        screenshot.dispose(drawable.getGL());
         disposeImpl(drawable, true);
     }
 

@@ -29,8 +29,6 @@ package com.jogamp.opengl.test.junit.graph.demos;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import com.jogamp.opengl.FPSCounter;
 import com.jogamp.opengl.GL;
@@ -244,9 +242,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     }
 
     public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
-        final StringWriter sw = new StringWriter();
-        final PrintWriter pw = new PrintWriter(sw);
-        pw.printf("-%s-S%02d-Z%04d-snap%02d-%03dx%03d", objName, sampleCount[0], (int)Math.abs(zTran), screenshot_num++, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+        final String sw = String.format("-%s-S%02d-Z%04d-snap%02d-%03dx%03d", objName, sampleCount[0], (int)Math.abs(zTran), screenshot_num++, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         final String filename = dir + tech + sw +".png";
         if(screenshot.readPixels(drawable.getGL(), false)) {
             screenshot.write(new File(filename));

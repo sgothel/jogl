@@ -29,8 +29,6 @@ package com.jogamp.opengl.test.junit.graph.demos;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import com.jogamp.opengl.FPSCounter;
 import com.jogamp.opengl.GL;
@@ -334,9 +332,7 @@ public class UIShapeDemo01 implements GLEventListener {
     }
 
     public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
-        final StringWriter sw = new StringWriter();
-        final PrintWriter pw = new PrintWriter(sw);
-        pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), (int)Math.abs(zTran), 0, objName);
+        final String sw = String.format("-%03dx%03d-Z%04d-T%04d-%s", drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), (int)Math.abs(zTran), 0, objName);
 
         final String filename = dir + tech + sw +".png";
         if(screenshot.readPixels(drawable.getGL(), false)) {
