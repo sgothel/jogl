@@ -986,7 +986,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
                             pAV->aChannels, aChannelsOut, buf1, buf2,
                             pAV->aSampleRate, aSampleRateOut, (int)pAV->aSampleFmt, (int)aSampleFmtOut);
                 }
-                av_channel_layout_uninit(&out_ch_layout);
+                sp_av_channel_layout_uninit(&out_ch_layout);
 #endif
                 sp_av_opt_set_int(pAV->swResampleCtx,        "in_sample_rate",     pAV->aSampleRate,                           0);
                 sp_av_opt_set_int(pAV->swResampleCtx,        "out_sample_rate",    aSampleRateOut,                             0);
