@@ -1,6 +1,29 @@
-Organization of the JOGL source tree
-------------------------------------
+# JOGL, High-Performance Graphics Binding for Java
 
+[Original document location](https://jogamp.org/cgit/jogl.git/about/)
+
+## Git Repository
+This project's canonical repositories is hosted on [JogAmp](https://jogamp.org/cgit/jogl.git/).
+
+## Overview
+The [*JOGL project*](https://jogamp.org/jogl/www/) hosts the development version of the Java™ Binding for the OpenGL® API, and is designed to provide hardware-supported 3D graphics to applications written in Java.
+
+JOGL provides full access to the APIs in the OpenGL [ 1.0 .. 4.5 ], ES [ 1.0 .. 3.2 ] and EGL [ 1.0 .. 1.5 ] specification as well as nearly all vendor extensions.
+OpenGL Evolution & JOGL and the JOGL Specification may give you a brief overview.
+
+JOGL integrates with the AWT, Swing and SWT widget sets, as well as with custom windowing toolkits using the NativeWindow API.
+JOGL also provides its own native windowing toolkit, NEWT.
+
+JOGL is part of [the JogAmp project](https://jogamp.org).
+
+[List of proposed work items & use-cases](https://jogamp.org/wiki/index.php?title=SW_Tracking_Report_Feature_Objectives_Overview)
+and [current blog entries](https://jausoft.com/blog/tag/jogamp/).
+
+**The JogAmp project needs funding and we offer [commercial support](https://jogamp.org/wiki/index.php?title=Maintainer_and_Contacts#Commercial_Support)!**<br/>
+Please contact [Göthel Software (Jausoft)](https://jausoft.com/) or perhaps use [github sponsorship](https://github.com/sponsors/sgothel/).
+
+## Organization of the JOGL source tree
+```
 doc/                Build and user documentation
 make/               Ant build scripts,
                     see top of build.xml for brief invocation instructions
@@ -14,23 +37,17 @@ src/newt            - NEWT
 src/junit           - Unit test cases
 
 www/                Web pages
+```
 
-NativeWindow and NEWT may be build seperately.
+NativeWindow and NEWT might be build seperately.
 
-Contact Us
----------------
+## Contact Us
+- Web                [http://jogamp.org/](http://jogamp.org/)
+- Forum/Mailinglist  [http://forum.jogamp.org/](http://forum.jogamp.org/)
+- Repository         [http://jogamp.org/git/](http://jogamp.org/git/)
+- Email              sgothel _at_ jausoft _dot_ com
 
-Web                http://jogamp.org/
-Forum/Mailinglist  http://forum.jogamp.org/
-Chatrooms
-  IRC              irc.freenode.net #jogamp 
-  Jabber           conference.jabber.org room: jogamp (deprecated!)
-Repository         http://jogamp.org/git/
-Email              mediastream _at_ jogamp _dot_ org
-
-Acknowledgments
----------------
-
+## Acknowledgments
 The JogAmp Community is gratefully acknowledges that the initial
 version of JOGL was authored and developed by Kenneth Bradley Russell
 and Christopher John Kline.
@@ -90,11 +107,11 @@ The following individuals made significant contributions to various
 areas of the project (Alphabetical):
 
 Michael Bien
-Alban Cousini�
+Alban Cousinié
 Athomas Goldberg
 Yuri Vladimir Gushchin
 Gregory Pierce
-Dominik Str�hlein (DemoscenePassivist)
+Dominik Ströhlein (DemoscenePassivist)
 Wade Walker
 Carsten Weisse
 
@@ -105,5 +122,5 @@ contributed discussions, bug reports, bug fixes, and other forms of support.
 
 +++
 
-[RSantina]: Resolution Independent NURBS Curve Rendering using Programmable Graphics Pipeline
+*RSantina:* [Resolution Independent NURBS Curve Rendering using Programmable Graphics Pipeline](https://jausoft.com/blog/2011/10/05/jogljogamp-red-square-moscow-nurbs-graphicon2011/)
 
