@@ -168,7 +168,9 @@ public class GLArrayDataWrapper implements GLArrayData {
         }
         return false;
     }
-    return glp.isValidArrayDataType(getIndex(), getCompsPerElem(), getCompType(), isVertexAttribute(), throwException);
+    // Skip GLProfile based index, comps, type validation, might not be future proof.
+    // glp.isValidArrayDataType(getIndex(), getCompsPerElem(), getCompType(), isVertexAttribute(), throwException);
+    return true;
   }
 
   @Override
