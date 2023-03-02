@@ -541,24 +541,6 @@ public abstract class NativeWindowFactory {
     }
 
     /**
-     * Provides the default {@link ToolkitLock} for <code>type</code> and <code>deviceHandle</code>.
-     * <ul>
-     *   <li> JAWT {@link ToolkitLock} if required and <code>type</code> is of {@link #TYPE_AWT} and AWT available,</li>
-     *   <li> {@link jogamp.nativewindow.ResourceToolkitLock} if required, otherwise</li>
-     *   <li> {@link jogamp.nativewindow.NullToolkitLock} </li>
-     * </ul>
-     */
-    public static ToolkitLock getDefaultToolkitLock(final String type, final long deviceHandle) {
-        if( requiresToolkitLock ) {
-            if( TYPE_AWT == type && isAWTAvailable() ) { // uses .intern()!
-                return getAWTToolkitLock();
-            }
-            return ResourceToolkitLock.create();
-        }
-        return NativeWindowFactoryImpl.getNullToolkitLock();
-    }
-
-    /**
      * @param device
      * @param screen -1 is default screen of the given device, e.g. maybe 0 or determined by native API. >= 0 is specific screen
      * @return newly created AbstractGraphicsScreen matching device's native type
@@ -717,6 +699,7 @@ public abstract class NativeWindowFactory {
     public static AbstractGraphicsDevice createDevice(final String displayConnection, final boolean own) {
         return createDevice(NativeWindowFactory.getNativeWindowType(true), displayConnection, own);
     }
+
     /**
      * Creates a native device type, following the given {@link #getNativeWindowType(boolean) native-window-type}.
      * <p>

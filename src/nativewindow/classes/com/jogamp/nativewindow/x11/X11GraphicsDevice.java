@@ -61,11 +61,11 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     }
 
     /** Constructs a new X11GraphicsDevice corresponding to the given native display handle and default
-     *  {@link com.jogamp.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
+     *  {@link com.jogamp.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.
      *  @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long)
      */
     public X11GraphicsDevice(final long display, final int unitID, final boolean owner) {
-        this(display, unitID, NativeWindowFactory.getDefaultToolkitLock(NativeWindowFactory.TYPE_X11, display), owner);
+        this(display, unitID, NativeWindowFactory.getDefaultToolkitLock(NativeWindowFactory.TYPE_X11), owner);
     }
 
     /**

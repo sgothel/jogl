@@ -416,7 +416,7 @@ public class EGLDisplayUtil {
      * and {@link #eglTerminate(long)} for {@link EGLGraphicsDevice#close()}.
      * </p>
      * <p>
-     * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
+     * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.
      * </p>
      * @param nativeDisplayID
      * @param connection
@@ -434,7 +434,7 @@ public class EGLDisplayUtil {
      * and {@link #eglTerminate(long)} for {@link EGLGraphicsDevice#close()}.
      * </p>
      * <p>
-     * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
+     * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.
      * </p>
      * @param adevice
      * @return an uninitialized {@link EGLGraphicsDevice}
@@ -450,7 +450,7 @@ public class EGLDisplayUtil {
      * and {@link #eglTerminate(long)} for {@link EGLGraphicsDevice#close()}.
      * </p>
      * <p>
-     * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
+     * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.
      * </p>
      * @param surface
      * @return an uninitialized EGLGraphicsDevice

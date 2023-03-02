@@ -72,12 +72,12 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
 
     /**
      * Create an instance with the system default {@link ToolkitLock}.
-     * gathered via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
+     * gathered via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.
      * @param type
      * @param handle
      */
     public DefaultGraphicsDevice(final String type, final String connection, final int unitID, final long handle) {
-        this(type, connection, unitID, handle, NativeWindowFactory.getDefaultToolkitLock(type, handle));
+        this(type, connection, unitID, handle, NativeWindowFactory.getDefaultToolkitLock(type));
     }
 
     /**
