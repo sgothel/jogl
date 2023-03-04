@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -40,7 +40,6 @@ package com.jogamp.opengl;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
-import jogamp.opengl.DesktopGLDynamicLookupHelper;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.GlueGenVersion;
@@ -55,8 +54,6 @@ import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveThreadGroupLock;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 import com.jogamp.nativewindow.NativeWindowVersion;
-import com.jogamp.opengl.GLRendererQuirks;
-import com.jogamp.opengl.JoglVersion;
 
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.NativeWindowFactory;
@@ -1980,11 +1977,19 @@ public class GLProfile {
             // Triggers eager initialization of share context in GLDrawableFactory for the device,
             // hence querying all available GLProfiles
             final Thread sharedResourceThread = desktopFactory.getSharedResourceThread();
+            final boolean initLockOwnerAdded;
             if(null != sharedResourceThread) {
-                initLock.addOwner(sharedResourceThread);
+                if( !initLock.isOriginalOwner(sharedResourceThread) ) {
+                    initLock.addOwner(sharedResourceThread);
+                    initLockOwnerAdded = true;
+                } else {
+                    initLockOwnerAdded = false;
+                }
+            } else {
+                initLockOwnerAdded = false;
             }
             final boolean desktopSharedCtxAvail = desktopFactory.createSharedResource(device);
-            if(null != sharedResourceThread) {
+            if( initLockOwnerAdded ) {
                 initLock.removeOwner(sharedResourceThread);
             }
             if( desktopSharedCtxAvail ) {
@@ -2010,11 +2015,19 @@ public class GLProfile {
             // Triggers eager initialization of share context in GLDrawableFactory for the device,
             // hence querying all available GLProfiles
             final Thread sharedResourceThread = mobileFactory.getSharedResourceThread();
+            final boolean initLockOwnerAdded;
             if(null != sharedResourceThread) {
-                initLock.addOwner(sharedResourceThread);
+                if( !initLock.isOriginalOwner(sharedResourceThread) ) {
+                    initLock.addOwner(sharedResourceThread);
+                    initLockOwnerAdded = true;
+                } else {
+                    initLockOwnerAdded = false;
+                }
+            } else {
+                initLockOwnerAdded = false;
             }
             final boolean eglSharedCtxAvail = mobileFactory.createSharedResource(device);
-            if(null != sharedResourceThread) {
+            if( initLockOwnerAdded ) {
                 initLock.removeOwner(sharedResourceThread);
             }
             if( eglSharedCtxAvail ) {
