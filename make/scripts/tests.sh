@@ -132,6 +132,8 @@ function jrun() {
     #D_ARGS="-Djogamp.debug=all"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug=all"
+    #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all -Djogl.debug.DebugGL"
     #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all -Dnewt.disable.LinuxKeyEventTracker -Dnewt.disable.LinuxMouseTracker"
@@ -208,6 +210,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch -Djogl.debug.GLDrawable"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.GLContext"
+    #D_ARGS="-Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.X11Util.XSync"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration"
@@ -358,6 +361,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLDrawable -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser"
     #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.JNILibLoader=true -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLContext"
     #D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.AudioSink -Djoal.openal.lib=system"
     #D_ARGS="-Djogl.debug.AudioSink -Djogl.debug.AudioSink.trace"
@@ -947,53 +951,35 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo $*
 
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT $*
 
-#
-# 2.4.0 Regressions
-#
-# OSX OpenJDK11U
-# Always
-#testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
-#testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
-#
-# OSX Bug 1398 
-#testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestBug1398Deadlock02AWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 $*
 
-# OSX OpenJDK17 x86_64
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT5 $*
-#testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextWithJTabbedPaneAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
-#testawt com.jogamp.opengl.test.junit.newt.event.TestParentingFocus02SwingAWTRobot $*
+# GLDrawableFactory.createDummyDrawable(..)
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT $*
 
-# On MacOS 12+ and SWT 4.26 while not using AWT (-Djava.awt.headless=true, -XstartOnFirstThread),
-# we recently get the following Exception from SWT (suppressed):
-#   java.lang.NullPointerException: Cannot invoke "org.eclipse.swt.internal.cocoa.NSGraphicsContext.saveGraphicsState()" because "context" is null
+# GLDrawableFactory.createDummyAutoDrawable(..)
 #
-# This is not observed if running using AWT (-Djava.awt.headless=false).
-#
-#testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
-#testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
-#testswt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 
+# GLDrawableFactory.createOffscreenDrawable(..)
 #
-# to re-test:
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch10NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch11NewtAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT
+#testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering1GL2NEWT
+#testnoawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001RawInit00NEWT
+
+# GLDrawableFactory.createOffscreenAutoDrawable(..)
+#
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch02NEWT
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryGLProfileDeviceNEWT
 
 # Linux DRM/GBM
 #
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfileXXNEWTPost $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
@@ -1002,6 +988,10 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent02NEWT $*
+
+#
+# 2.5.0 Regressions
+#
 
 # NEW
 
