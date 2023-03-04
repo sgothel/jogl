@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -744,7 +744,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 // Includes mapping DRM_GBM EGL device to EGL default shared resources (default behavior), surfaceless.
                 hasKHRSurfacelessTried = true;
                 final AbstractGraphicsDevice zdevice = useDefaultDevice ? defaultDevice : adevice; // reuse
-                final EGLSurface zeroSurface = createSurfacelessImpl(zdevice, false, reqCapsAny, reqCapsAny, null, 64, 64);
+                final EGLSurface zeroSurface = createSurfacelessImpl(adevice, zdevice, false, reqCapsAny, reqCapsAny, null, 64, 64);
                 resEGLDevice[0] = (EGLGraphicsDevice) zeroSurface.getGraphicsConfiguration().getScreen().getDevice();
                 if ( DEBUG_SHAREDCTX ) {
                     System.err.println("EGLDrawableFactory.MapGLVersions.0: "+resEGLDevice[0]);
@@ -826,7 +826,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                         System.err.println("EGLDrawableFactory.MapGLVersions.1: "+resEGLDevice[0]);
                         System.err.println("EGLDrawableFactory.MapGLVersions.1: "+eglFeatures);
                     }
-                    downstreamSurface = createDummySurfaceImpl(resEGLDevice[0], false, reqCapsAny, reqCapsAny, null, 64, 64);
+                    downstreamSurface = createDummySurfaceImpl(resEGLDevice[0], resEGLDevice[0], false, reqCapsAny, reqCapsAny, null, 64, 64);
                     if( null != downstreamSurface ) {
                         downstreamSurface.createNotify();
                         surface = downstreamSurface;
@@ -840,7 +840,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                         System.err.println("EGLDrawableFactory.MapGLVersions.2: "+eglFeatures);
                     }
 
-                    downstreamSurface = createDummySurfaceImpl(resEGLDevice[0], false, reqCapsPBuffer, reqCapsPBuffer, null, 64, 64);
+                    downstreamSurface = createDummySurfaceImpl(resEGLDevice[0], resEGLDevice[0], false, reqCapsPBuffer, reqCapsPBuffer, null, 64, 64);
                     if( null != downstreamSurface ) {
                         downstreamSurface.createNotify();
                         surface = downstreamSurface;
@@ -1137,8 +1137,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    public final EGLSurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
-                                                   GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
+    public final EGLSurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice device,
+                                                   final boolean createNewDevice, GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
+        final AbstractGraphicsDevice device0 = null != deviceOrig ? deviceOrig : device; // prefer orig for native display ID
         final UpstreamSurfaceHook ush;
         final int nativeVisualID;
         if( isDRM_GBM ) {
@@ -1149,15 +1150,16 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             chosenCaps = GLGraphicsConfigurationUtil.fixGLPBufferGLCapabilities(chosenCaps); // complete validation in EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(..) above
             nativeVisualID = VisualIDHolder.VID_UNDEFINED;
         }
-        return createMutableSurfaceImpl2(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, nativeVisualID, ush);
+        return createMutableSurfaceImpl2(device0, createNewDevice, chosenCaps, requestedCaps, chooser, nativeVisualID, ush);
     }
 
     @Override
-    public final EGLSurface createSurfacelessImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
-                                                  GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
+    public final EGLSurface createSurfacelessImpl(final AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice device,
+                                                  final boolean createNewDevice, GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
+        final AbstractGraphicsDevice device0 = null != deviceOrig ? deviceOrig : device; // prefer orig for native display ID
         chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
         final boolean[] ownDevice = { false };
-        final EGLGraphicsConfiguration config = evalConfig(ownDevice, deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, VisualIDHolder.VID_UNDEFINED);
+        final EGLGraphicsConfiguration config = evalConfig(ownDevice, device0, createNewDevice, chosenCaps, requestedCaps, chooser, VisualIDHolder.VID_UNDEFINED);
         return EGLSurface.createSurfaceless(config, new GenericUpstreamSurfacelessHook(width, height), ownDevice[0]);
     }
 

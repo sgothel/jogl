@@ -402,32 +402,35 @@ public class IOSEAGLDrawableFactory extends GLDrawableFactoryImpl {
                                                   final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
                                                   final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
     final IOSGraphicsDevice device;
+    final boolean owning;
     if( createNewDevice || !(deviceReq instanceof IOSGraphicsDevice) ) {
         device = new IOSGraphicsDevice(deviceReq.getUnitID());
+        owning = true;
     } else {
         device = (IOSGraphicsDevice)deviceReq;
+        owning = false;
     }
     final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
     final IOSEAGLGraphicsConfiguration config = IOSEAGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen, true);
     if(null == config) {
         throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen);
     }
-    return new WrappedSurface(config, 0, upstreamHook, createNewDevice);
+    return new WrappedSurface(config, 0, upstreamHook, owning);
   }
 
   @Override
-  public final ProxySurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
-                                                   GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
+  public final ProxySurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice device,
+                                                   final boolean createNewDevice, GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
     chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
-    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser,
+    return createMutableSurfaceImpl(device, createNewDevice, chosenCaps, requestedCaps, chooser,
                                     new IOSDummyUpstreamSurfaceHook(width, height));
   }
 
   @Override
-  public final ProxySurface createSurfacelessImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
-          GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
+  public final ProxySurface createSurfacelessImpl(AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice device,
+          final boolean createNewDevice, GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
     chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
-    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new GenericUpstreamSurfacelessHook(width, height));
+    return createMutableSurfaceImpl(device, createNewDevice, chosenCaps, requestedCaps, chooser, new GenericUpstreamSurfacelessHook(width, height));
   }
 
   @Override

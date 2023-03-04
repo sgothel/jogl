@@ -260,7 +260,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 }
 
                 final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
-                final GLDrawableImpl drawable = createOnscreenDrawableImpl(createDummySurfaceImpl(device, false, caps, caps, null, 64, 64));
+                final GLDrawableImpl drawable = createOnscreenDrawableImpl(createDummySurfaceImpl(device, device, false, caps, caps, null, 64, 64));
                 drawable.setRealized(true);
                 final X11GLCapabilities chosenCaps =  (X11GLCapabilities) drawable.getChosenGLCapabilities();
                 final boolean glxForcedOneOne = !chosenCaps.hasFBConfig();
@@ -522,31 +522,34 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                                                         final GLCapabilitiesImmutable capsRequested,
                                                         final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
     final X11GraphicsDevice device;
+    final boolean owning;
     if( createNewDevice || !(deviceReq instanceof X11GraphicsDevice) ) {
         device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), true /* owner */);
+        owning = true;
     } else {
         device = (X11GraphicsDevice) deviceReq;
+        owning = false;
     }
     final X11GraphicsScreen screen = new X11GraphicsScreen(device, device.getDefaultScreen());
     final X11GLXGraphicsConfiguration config = X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED);
     if(null == config) {
         throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen);
     }
-    return new WrappedSurface(config, 0, upstreamHook, createNewDevice);
+    return new WrappedSurface(config, 0, upstreamHook, owning);
   }
 
   @Override
-  public final ProxySurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
-                                                   GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
+  public final ProxySurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice device,
+                                                   final boolean createNewDevice, GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
     chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
-    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new X11DummyUpstreamSurfaceHook(width, height));
+    return createMutableSurfaceImpl(device, createNewDevice, chosenCaps, requestedCaps, chooser, new X11DummyUpstreamSurfaceHook(width, height));
   }
 
   @Override
-  public final ProxySurface createSurfacelessImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
-                                                  GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
+  public final ProxySurface createSurfacelessImpl(AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice device,
+                                                  final boolean createNewDevice, GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
     chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
-    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new GenericUpstreamSurfacelessHook(width, height));
+    return createMutableSurfaceImpl(device, createNewDevice, chosenCaps, requestedCaps, chooser, new GenericUpstreamSurfacelessHook(width, height));
   }
 
   @Override

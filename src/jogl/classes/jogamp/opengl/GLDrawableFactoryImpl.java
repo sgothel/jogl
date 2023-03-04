@@ -119,7 +119,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
           GLDrawable zeroDrawable = null;
           try {
               final GLCapabilitiesImmutable caps = origDrawable.getRequestedGLCapabilities();
-              final ProxySurface zeroSurface = createSurfacelessImpl(device, true, caps, caps, null, 64, 64);
+              final ProxySurface zeroSurface = createSurfacelessImpl(device, device, true, caps, caps, null, 64, 64);
               zeroDrawable = createOnscreenDrawableImpl(zeroSurface);
               zeroDrawable.setRealized(true);
 
@@ -381,7 +381,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
             }
             if( chosenCaps.isFBO() && isFBOAvailable ) {
                 // need to hook-up a native dummy surface since source may not have & use minimum GLCapabilities for it w/ same profile
-                final ProxySurface dummySurface = createDummySurfaceImpl(adevice, false, new GLCapabilities(chosenCaps.getGLProfile()), (GLCapabilitiesImmutable)config.getRequestedCapabilities(), null, 64, 64);
+                final ProxySurface dummySurface = createDummySurfaceImpl(adevice, adevice, false, new GLCapabilities(chosenCaps.getGLProfile()), (GLCapabilitiesImmutable)config.getRequestedCapabilities(), null, 64, 64);
                 dummySurface.setUpstreamSurfaceHook(new DelegatedUpstreamSurfaceHookWithSurfaceSize(dummySurface.getUpstreamSurfaceHook(), target));
                 result = createFBODrawableImpl(dummySurface, chosenCaps, 0);
             } else {
@@ -483,9 +483,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         final GLRendererQuirks glrq = sr.getRendererQuirks(glp);
         final ProxySurface surface;
         if( null != glrq && !glrq.exist(GLRendererQuirks.NoSurfacelessCtx) ) {
-            surface = createSurfacelessImpl(device, true, glCapsMin, capsRequested, null, width, height);
+            surface = createSurfacelessImpl(deviceReq, device, true, glCapsMin, capsRequested, null, width, height);
         } else {
-            surface = createDummySurfaceImpl(device, true, glCapsMin, capsRequested, null, width, height);
+            surface = createDummySurfaceImpl(deviceReq, device, true, glCapsMin, capsRequested, null, width, height);
         }
         final GLDrawableImpl drawable = createOnscreenDrawableImpl(surface);
         return new GLFBODrawableImpl.ResizeableImpl(this, drawable, surface, capsChosen, 0);
@@ -550,19 +550,22 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   @Override
   public final GLDrawable createDummyDrawable(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser) {
-    final AbstractGraphicsDevice device = createNewDevice ? getOrCreateSharedDevice(deviceReq) : deviceReq;
-    if(null == device) {
-        throw new GLException("No shared device for requested: "+deviceReq+", createNewDevice "+createNewDevice);
-    }
-    if( !createNewDevice ) {
-        device.lock();
+    final AbstractGraphicsDevice device;
+    if( createNewDevice ) {
+        device = getOrCreateSharedDevice(deviceReq);
+        if(null == device) {
+            throw new GLException("No shared device for requested: "+deviceReq+", createNewDevice "+createNewDevice);
+        }
+    } else {
+        device = deviceReq;
+        deviceReq.lock();
     }
     try {
-        final ProxySurface dummySurface = createDummySurfaceImpl(device, createNewDevice, capsRequested, capsRequested, chooser, 64, 64);
+        final ProxySurface dummySurface = createDummySurfaceImpl(deviceReq, device, createNewDevice, capsRequested, capsRequested, chooser, 64, 64);
         return createOnscreenDrawableImpl(dummySurface);
     } finally {
         if( !createNewDevice ) {
-            device.unlock();
+            deviceReq.unlock();
         }
     }
   }
@@ -629,7 +632,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
-    return createDummySurfaceImpl(device, true, requestedCaps, requestedCaps, chooser, width, height);
+    return createDummySurfaceImpl(deviceReq, device, true, requestedCaps, requestedCaps, chooser, width, height);
   }
 
   /**
@@ -638,9 +641,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} to query information.
    * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
    * </p>
-   * @param device a valid platform dependent target device.
-   * @param createNewDevice if <code>true</code> a new device instance is created using <code>device</code> details,
-   *                        otherwise <code>device</code> instance is used as-is.
+   * @param deviceOrig originally requested device, a valid platform dependent target device or {@code null} denoting default device.
+   * @param device compatible or same device as {@code reqDevice}. If {@code reqDevice} is {@code null}, the default device is referenced.
+   * @param createNewDevice if {@code true}, a new device instance is created using {@code device} or {@code deviceOrig} details,
+   *                        otherwise {@code device} instance shall be used as-is.
    * @param chosenCaps
    * @param requestedCaps
    * @param chooser the custom chooser, may be null for default
@@ -650,8 +654,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    *        The latter is platform specific and small
    * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
    */
-  public abstract ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice device, boolean createNewDevice,
-                                                      GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height);
+  public abstract ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceOrig, AbstractGraphicsDevice device,
+                                                      boolean createNewDevice, GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height);
 
   /**
    * A surfaceless {@link ProxySurface} is a non-existing surface and will not be used as a render target.
@@ -659,9 +663,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} w/o default framebuffer to query information.
    * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
    * </p>
+   * @param deviceOrig originally requested device, a valid platform dependent target device or {@code null} denoting default device.
    * @param device a valid platform dependent target device.
-   * @param createNewDevice if <code>true</code> a new device instance is created using <code>device</code> details,
-   *                        otherwise <code>device</code> instance is used as-is.
+   * @param createNewDevice if {@code true}, a new device instance is created using {@code device} or {@code deviceOrig} details,
+   *                        otherwise {@code device} instance shall be used as-is.
    * @param chosenCaps
    * @param requestedCaps
    * @param chooser the custom chooser, may be null for default
@@ -671,8 +676,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    *        The latter is platform specific and small
    * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
    */
-  public abstract ProxySurface createSurfacelessImpl(AbstractGraphicsDevice device, boolean createNewDevice,
-                                                     GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height);
+  public abstract ProxySurface createSurfacelessImpl(AbstractGraphicsDevice deviceOrig, AbstractGraphicsDevice device,
+                                                     boolean createNewDevice, GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height);
 
   //---------------------------------------------------------------------------
   //
