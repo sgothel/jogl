@@ -490,8 +490,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         final GLDrawableImpl drawable = createOnscreenDrawableImpl(surface);
         return new GLFBODrawableImpl.ResizeableImpl(this, drawable, surface, capsChosen, 0);
     }
-    return createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser,
-                                                                 new UpstreamSurfaceHookMutableSize(width, height) ) );
+    return createOffscreenDrawableImpl( createMutableSurfaceImpl(deviceReq, device, true, capsChosen, capsRequested,
+                                                                 chooser, new UpstreamSurfaceHookMutableSize(width, height) ) );
   }
 
   /**
@@ -520,7 +520,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
     // final ProxySurface surface = createSurfacelessImpl(device2Use, false, glCapsMin, capsRequested, null, width, height);
     final GLCapabilitiesImmutable surfaceCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(capsRequested);
-    final ProxySurface surface = createMutableSurfaceImpl(device2Use, false /* createNewDevice */, surfaceCaps, capsRequested, null, new GenericUpstreamSurfacelessHook(width, height));
+    final ProxySurface surface = createMutableSurfaceImpl(device2Use, device2Use, false /* createNewDevice */, surfaceCaps, capsRequested, null, new GenericUpstreamSurfacelessHook(width, height));
 
     final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(surface);
     return new GLFBODrawableImpl.ResizeableImpl(this, dummyDrawable, surface, capsChosen, 0);
@@ -544,7 +544,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
     // final ProxySurface surface = createSurfacelessImpl(device2Use, false, glCapsMin, capsRequested, null, width, height);
     final GLCapabilitiesImmutable surfaceCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(capsRequested);
-    final ProxySurface surface = createMutableSurfaceImpl(device2Use, false /* createNewDevice */, surfaceCaps, capsRequested, null, new GenericUpstreamSurfacelessHook(width, height));
+    final ProxySurface surface = createMutableSurfaceImpl(device2Use, device2Use, false /* createNewDevice */, surfaceCaps, capsRequested, null, new GenericUpstreamSurfacelessHook(width, height));
     return createOnscreenDrawableImpl(surface);
   }
 
@@ -593,19 +593,20 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * <p>
    * Lifecycle (destruction) of the TBD surface handle shall be handled by the caller.
    * </p>
-   * @param device a valid platform dependent target device.
-   * @param createNewDevice if <code>true</code> a new independent device instance is created using <code>device</code> details,
-   *                        otherwise <code>device</code> instance is used as-is.
+   * @param deviceOrig originally requested device, a valid platform dependent target device or {@code null} denoting default device.
+   * @param device compatible or same device as {@code reqDevice}. If {@code reqDevice} is {@code null}, the default device is referenced.
+   * @param createNewDevice if {@code true}, a new device instance is created using {@code device} or {@code deviceOrig} details,
+   *                        otherwise {@code device} instance shall be used as-is.
    * @param capsChosen
    * @param capsRequested
    * @param chooser the custom chooser, may be null for default
    * @param upstreamHook surface size information and optional control of the surface's lifecycle
    * @return the created {@link MutableSurface} instance w/o defined surface handle
    */
-  protected abstract ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice device, boolean createNewDevice,
+  protected abstract ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceOrig, AbstractGraphicsDevice device,
+                                                           boolean createNewDevice,
                                                            GLCapabilitiesImmutable capsChosen,
-                                                           GLCapabilitiesImmutable capsRequested,
-                                                           GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook);
+                                                           GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook);
 
   /**
    * A dummy surface is not visible on screen, it may be on- or offscreen.
@@ -664,7 +665,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
    * </p>
    * @param deviceOrig originally requested device, a valid platform dependent target device or {@code null} denoting default device.
-   * @param device a valid platform dependent target device.
+   * @param device compatible or same device as {@code reqDevice}. If {@code reqDevice} is {@code null}, the default device is referenced.
    * @param createNewDevice if {@code true}, a new device instance is created using {@code device} or {@code deviceOrig} details,
    *                        otherwise {@code device} instance shall be used as-is.
    * @param chosenCaps

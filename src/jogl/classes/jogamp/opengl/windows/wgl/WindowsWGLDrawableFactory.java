@@ -545,9 +545,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final ProxySurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
-                                                        final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
-                                                        final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
+  protected final ProxySurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice deviceReq,
+                                                        final boolean createNewDevice, final GLCapabilitiesImmutable capsChosen,
+                                                        final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
     final WindowsGraphicsDevice device;
     final boolean owning;
     if(createNewDevice || !(deviceReq instanceof WindowsGraphicsDevice)) {
@@ -590,7 +590,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   public final ProxySurface createSurfacelessImpl(final AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice device,
           final boolean createNewDevice, GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
     chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
-    return createMutableSurfaceImpl(device, createNewDevice, chosenCaps, requestedCaps, chooser, new GenericUpstreamSurfacelessHook(width, height));
+    return createMutableSurfaceImpl(deviceOrig, device, createNewDevice, chosenCaps, requestedCaps, chooser, new GenericUpstreamSurfacelessHook(width, height));
   }
 
   @Override

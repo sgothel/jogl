@@ -517,10 +517,10 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final ProxySurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
+  protected final ProxySurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice deviceReq,
+                                                        final boolean createNewDevice,
                                                         final GLCapabilitiesImmutable capsChosen,
-                                                        final GLCapabilitiesImmutable capsRequested,
-                                                        final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
+                                                        final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
     final X11GraphicsDevice device;
     final boolean owning;
     if( createNewDevice || !(deviceReq instanceof X11GraphicsDevice) ) {
@@ -542,14 +542,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   public final ProxySurface createDummySurfaceImpl(final AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice device,
                                                    final boolean createNewDevice, GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
     chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
-    return createMutableSurfaceImpl(device, createNewDevice, chosenCaps, requestedCaps, chooser, new X11DummyUpstreamSurfaceHook(width, height));
+    return createMutableSurfaceImpl(deviceOrig, device, createNewDevice, chosenCaps, requestedCaps, chooser, new X11DummyUpstreamSurfaceHook(width, height));
   }
 
   @Override
-  public final ProxySurface createSurfacelessImpl(AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice device,
+  public final ProxySurface createSurfacelessImpl(final AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice device,
                                                   final boolean createNewDevice, GLCapabilitiesImmutable chosenCaps, final GLCapabilitiesImmutable requestedCaps, final GLCapabilitiesChooser chooser, final int width, final int height) {
     chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
-    return createMutableSurfaceImpl(device, createNewDevice, chosenCaps, requestedCaps, chooser, new GenericUpstreamSurfacelessHook(width, height));
+    return createMutableSurfaceImpl(deviceOrig, device, createNewDevice, chosenCaps, requestedCaps, chooser, new GenericUpstreamSurfacelessHook(width, height));
   }
 
   @Override

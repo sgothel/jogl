@@ -1121,11 +1121,12 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    protected final EGLSurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
-                                                        final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
-                                                        final GLCapabilitiesChooser chooser,
-                                                        final UpstreamSurfaceHook upstreamHook) {
-        return createMutableSurfaceImpl2(deviceReq, createNewDevice, capsChosen, capsRequested, chooser, VisualIDHolder.VID_UNDEFINED, upstreamHook);
+    protected final EGLSurface createMutableSurfaceImpl(final AbstractGraphicsDevice deviceOrig, final AbstractGraphicsDevice deviceReq,
+                                                        final boolean createNewDevice, final GLCapabilitiesImmutable capsChosen,
+                                                        final GLCapabilitiesImmutable capsRequested,
+                                                        final GLCapabilitiesChooser chooser, final UpstreamSurfaceHook upstreamHook) {
+        final AbstractGraphicsDevice device0 = null != deviceOrig ? deviceOrig : deviceReq; // prefer orig for native display ID
+        return createMutableSurfaceImpl2(device0, createNewDevice, capsChosen, capsRequested, chooser, VisualIDHolder.VID_UNDEFINED, upstreamHook);
     }
     private final EGLSurface createMutableSurfaceImpl2(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice,
                                                        final GLCapabilitiesImmutable capsChosen, final GLCapabilitiesImmutable capsRequested,
