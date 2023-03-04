@@ -389,12 +389,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public final State destroy(final GL gl) {
-        return destroyImpl(gl, 0);
+        return destroyImpl(gl, 0, true);
     }
-    private final State destroyImpl(final GL gl, final int event_mask) {
+    private final State destroyImpl(final GL gl, final int event_mask, final boolean wait) {
         synchronized( stateLock ) {
             if( null != streamWorker ) {
-                streamWorker.doStop();
+                streamWorker.doStopImpl(wait);
                 streamWorker = null;
             }
             destroyImpl(gl);
@@ -660,7 +660,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 }
                 changeState(0, State.Paused);
             } catch (final Throwable t) {
-                destroyImpl(gl, GLMediaEventListener.EVENT_CHANGE_ERR); // -> GLMediaPlayer.State.Uninitialized
+                destroyImpl(gl, GLMediaEventListener.EVENT_CHANGE_ERR, false /* wait */); // -> GLMediaPlayer.State.Uninitialized
                 throw new GLException("Error initializing GL resources", t);
             }
         }
@@ -1183,6 +1183,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             }
         }
         public final synchronized void doStop() {
+            doStopImpl(true);
+        }
+        private final synchronized void doStopImpl(final boolean wait) {
             if( isRunning ) {
                 shallStop = true;
                 if( java.lang.Thread.currentThread() != this ) {
@@ -1191,7 +1194,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     }
                     try {
                         this.notifyAll();  // wake-up pause-block (opt)
-                        while( isRunning ) {
+                        while( isRunning && wait ) {
                             this.wait();  // wait until stopped
                         }
                     } catch (final InterruptedException e) {
