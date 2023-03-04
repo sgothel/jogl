@@ -587,7 +587,7 @@ public abstract class GLDrawableFactory {
 
   /**
    * Creates a {@link GLDrawable#isRealized() realized} {@link GLOffscreenAutoDrawable}
-   * incl it's offscreen {@link NativeSurface} with the given capabilites and dimensions.
+   * incl it's offscreen {@link NativeSurface} with the given capabilities and dimensions.
    * <p>
    * The {@link GLOffscreenAutoDrawable}'s {@link GLDrawable} is {@link GLDrawable#isRealized() realized}
    * <i>without</i> an assigned {@link GLContext}, hence not initialized completely.<br>
@@ -666,7 +666,7 @@ public abstract class GLDrawableFactory {
 
   /**
    * Creates an {@link GLDrawable#isRealized() unrealized} offscreen {@link GLDrawable}
-   * incl it's offscreen {@link NativeSurface} with the given capabilites and dimensions.
+   * incl it's offscreen {@link NativeSurface} with the given capabilities and dimensions.
    * <p>
    * In case the passed {@link GLCapabilitiesImmutable} contains default values, i.e.
    * {@link GLCapabilitiesImmutable#isOnscreen() caps.isOnscreen()} <code> == true</code>,
@@ -708,7 +708,7 @@ public abstract class GLDrawableFactory {
 
   /**
    * Creates an {@link GLDrawable#isRealized() unrealized} dummy {@link GLDrawable}.
-   * A dummy drawable is not visible on screen and will not be used to render directly to, it maybe on- or offscreen.
+   * A dummy drawable is not visible on screen and will not be used to render directly to, it maybe on- or offscreen and implementation prefers creating a surfaceless drawable.
    * <p>
    * It is used to allow the creation of a {@link GLContext} to query information.
    * It also allows creation of framebuffer objects which are used for rendering or creating a shared GLContext w/o actually rendering to this dummy drawable's framebuffer.
