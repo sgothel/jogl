@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2014-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,13 +26,6 @@
  * or implied, of JogAmp Community.
  */
 package com.jogamp.nativewindow;
-
-import com.jogamp.nativewindow.AbstractGraphicsDevice;
-import com.jogamp.nativewindow.NativeSurface;
-import com.jogamp.nativewindow.ProxySurface;
-import com.jogamp.nativewindow.UpstreamSurfaceHook;
-
-import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
 
 public class GenericUpstreamSurfacelessHook extends UpstreamSurfaceHookMutableSize {
     /**

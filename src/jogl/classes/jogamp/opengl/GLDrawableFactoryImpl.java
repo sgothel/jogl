@@ -537,8 +537,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @param height
    */
   protected final GLDrawableImpl createSurfacelessDrawable(final AbstractGraphicsDevice device2Use,
-                                                              final GLCapabilitiesImmutable capsRequested,
-                                                              final int width, final int height) {
+                                                           final GLCapabilitiesImmutable capsRequested,
+                                                           final int width, final int height) {
     if(width<=0 || height<=0) {
         throw new GLException("initial size must be positive (were (" + width + " x " + height + "))");
     }
@@ -551,8 +551,12 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   @Override
   public final GLDrawable createDummyDrawable(final AbstractGraphicsDevice deviceReq, final boolean createNewDevice, final GLCapabilitiesImmutable capsRequested, final GLCapabilitiesChooser chooser) {
     final AbstractGraphicsDevice device;
+    final SharedResourceRunner.Resource sr = getOrCreateSharedResource( deviceReq );
+    if( null == sr ) {
+        throw new GLException("No shared resource for requested: "+deviceReq);
+    }
     if( createNewDevice ) {
-        device = getOrCreateSharedDevice(deviceReq);
+        device = sr.getDevice();
         if(null == device) {
             throw new GLException("No shared device for requested: "+deviceReq+", createNewDevice "+createNewDevice);
         }
@@ -561,8 +565,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         deviceReq.lock();
     }
     try {
-        final ProxySurface dummySurface = createDummySurfaceImpl(deviceReq, device, createNewDevice, capsRequested, capsRequested, chooser, 64, 64);
-        return createOnscreenDrawableImpl(dummySurface);
+        final GLRendererQuirks glrq = sr.getRendererQuirks(capsRequested.getGLProfile());
+        final ProxySurface surface;
+        if( null != glrq && !glrq.exist(GLRendererQuirks.NoSurfacelessCtx) ) {
+            surface = createSurfacelessImpl(deviceReq, device, createNewDevice, capsRequested, capsRequested, chooser, 64, 64);
+        } else {
+            surface = createDummySurfaceImpl(deviceReq, device, createNewDevice, capsRequested, capsRequested, chooser, 64, 64);
+        }
+        return createOnscreenDrawableImpl(surface);
     } finally {
         if( !createNewDevice ) {
             deviceReq.unlock();
