@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -418,13 +418,13 @@ public class EGLDisplayUtil {
      * <p>
      * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.
      * </p>
-     * @param nativeDisplayID
-     * @param connection
-     * @param unitID
+     * @param nativeDisplayID the existing native display ID
+     * @param connection the existing underlying native connection name
+     * @param unitID the unit ID
      * @return an uninitialized {@link EGLGraphicsDevice}
      */
     public static EGLGraphicsDevice eglCreateEGLGraphicsDevice(final long nativeDisplayID, final String connection, final int unitID)  {
-        return new EGLGraphicsDevice(nativeDisplayID, EGL.EGL_NO_DISPLAY, connection, unitID, eglLifecycleCallback);
+        return new EGLGraphicsDevice(nativeDisplayID, connection, unitID, eglLifecycleCallback);
     }
 
     /**
@@ -436,11 +436,11 @@ public class EGLDisplayUtil {
      * <p>
      * Using the default {@link ToolkitLock}, via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.
      * </p>
-     * @param adevice
+     * @param aDevice valid {@link AbstractGraphicsDevice}'s native display ID, connection and unitID
      * @return an uninitialized {@link EGLGraphicsDevice}
      */
     public static EGLGraphicsDevice eglCreateEGLGraphicsDevice(final AbstractGraphicsDevice aDevice)  {
-        return new EGLGraphicsDevice(aDevice, EGL.EGL_NO_DISPLAY, eglLifecycleCallback);
+        return new EGLGraphicsDevice(aDevice, eglLifecycleCallback);
     }
 
     /**
@@ -463,6 +463,6 @@ public class EGLDisplayUtil {
             nativeDisplayID = surface.getDisplayHandle(); // 0 == EGL.EGL_DEFAULT_DISPLAY
         }
         final AbstractGraphicsDevice adevice = surface.getGraphicsConfiguration().getScreen().getDevice();
-        return new EGLGraphicsDevice(nativeDisplayID, EGL.EGL_NO_DISPLAY, adevice.getConnection(), adevice.getUnitID(), eglLifecycleCallback);
+        return new EGLGraphicsDevice(nativeDisplayID, adevice.getConnection(), adevice.getUnitID(), eglLifecycleCallback);
     }
 }

@@ -63,10 +63,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
     @Override
     protected void createNativeImpl() {
         final long handle = CreateDisplay(ScreenDriver.fixedWidth, ScreenDriver.fixedHeight);
-        if (handle == EGL.EGL_NO_DISPLAY) {
-            throw new NativeWindowException("BC EGL CreateDisplay failed");
-        }
-        aDevice = new EGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT, null);
+        aDevice = new EGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
     @Override

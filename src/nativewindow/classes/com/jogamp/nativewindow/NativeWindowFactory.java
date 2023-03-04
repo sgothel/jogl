@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2008-2009 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.jogamp.nativewindow.util.Point;
+
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.nativewindow.BcmVCArtifacts;
 import jogamp.nativewindow.Debug;
@@ -742,7 +743,7 @@ public abstract class NativeWindowFactory {
                     throw new NativeWindowException("EGLDisplayUtil.eglCreateEGLGraphicsDevice failed");
                 }
             } else {
-                device = new com.jogamp.nativewindow.egl.EGLGraphicsDevice(0, 0 /* EGL.EGL_NO_DISPLAY */, displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT, null);
+                device = new com.jogamp.nativewindow.egl.EGLGraphicsDevice(0 /* EGL.EGL_DEFAULT_DISPLAY */, displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT);
             }
             return device;
         } else if( NativeWindowFactory.TYPE_AWT == nwt ) {

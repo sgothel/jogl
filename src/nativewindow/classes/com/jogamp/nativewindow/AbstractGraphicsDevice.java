@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -68,13 +68,15 @@ public interface AbstractGraphicsDevice extends Cloneable {
     /**
      * Returns the semantic GraphicsDevice connection.<br>
      * On platforms supporting remote devices, eg via tcp/ip network,
-     * the implementation shall return a unique name for each remote address.<br>
-     * On X11 for example, the connection string should be as the following example.<br>
+     * the implementation shall return a unique name for each remote address.
+     * <p>
+     * For {@link com.jogamp.nativewindow.x11.X11GraphicsDevice X11GraphicsDevice},
+     * the connection string should be as the follows
      * <ul>
      *   <li><code>:0.0</code> for a local connection</li>
      *   <li><code>remote.host.net:0.0</code> for a remote connection</li>
      * </ul>
-     *
+     * </p>
      * To support multiple local device, see {@link #getUnitID()}.
      */
     public String getConnection();

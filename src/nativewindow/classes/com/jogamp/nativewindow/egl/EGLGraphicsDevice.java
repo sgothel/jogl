@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +39,15 @@ import com.jogamp.nativewindow.DefaultGraphicsDevice;
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.NativeWindowFactory;
 
-/** Encapsulates a graphics device on EGL platforms.
+/**
+ * Encapsulates a graphics device on EGL platforms.
  */
 public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
+    /** EGL default native display ID */
+    public static final int EGL_DEFAULT_DISPLAY = 0;
+    /** EGL no display handle */
+    public static final int EGL_NO_DISPLAY = 0;
+
     private final long[] nativeDisplayID = new long[1];
     private /* final */ EGLDisplayLifecycleCallback eglLifecycleCallback;
     private VersionNumber eglVersion = VersionNumber.zeroVersion;
@@ -71,37 +78,133 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     }
 
     /**
-     * Note that this is not an open connection, ie no native display handle exist.
-     * This constructor exist to setup a default device connection/unit.<br>
+     * Returns the native display ID of the given abstract device,
+     * i.e. either {@link EGLGraphicsDevice#getNativeDisplayID()} or {@link AbstractGraphicsDevice#getHandle()}.
+     */
+    public static long getNativeDisplayID(final AbstractGraphicsDevice aDevice) {
+        if( aDevice instanceof EGLGraphicsDevice ) {
+            return ((EGLGraphicsDevice)aDevice).getNativeDisplayID();
+        } else {
+            return aDevice.getHandle();
+        }
+    }
+
+    /**
+     * Generic EGLGraphicsDevice constructor.
+     * @param nativeDisplayID the existing native display ID
+     * @param connection the existing underlying native connection name
+     * @param unitID the unit ID
+     * @param handle the handle, maybe 0
+     * @param eglLifecycleCallback
+     */
+    private EGLGraphicsDevice(final long nativeDisplayID, final String connection, final int unitID, final long handle,
+                              final EGLDisplayLifecycleCallback eglLifecycleCallback)
+    {
+        super(NativeWindowFactory.TYPE_EGL, connection, unitID, handle);
+        this.nativeDisplayID[0] = nativeDisplayID;
+        this.eglLifecycleCallback = eglLifecycleCallback;
+    }
+
+    /**
+     * Constructs a dummy {@link EGLGraphicsDevice} with default connection settings.
+     * <p>
+     * The constructed instance will never create a valid EGL display handle.
+     * </p>
      */
     public EGLGraphicsDevice() {
-        super(NativeWindowFactory.TYPE_EGL, DefaultGraphicsDevice.getDefaultDisplayConnection(), AbstractGraphicsDevice.DEFAULT_UNIT);
-        this.nativeDisplayID[0] = 0 ; // EGL.EGL_DEFAULT_DISPLAY
-        this.eglLifecycleCallback = null;
+        this(EGL_DEFAULT_DISPLAY, DefaultGraphicsDevice.getDefaultDisplayConnection(), AbstractGraphicsDevice.DEFAULT_UNIT, EGL_NO_DISPLAY, null);
     }
 
-    public EGLGraphicsDevice(final AbstractGraphicsDevice aDevice, final long eglDisplay, final EGLDisplayLifecycleCallback eglLifecycleCallback) {
-        super(NativeWindowFactory.TYPE_EGL, aDevice.getConnection(), aDevice.getUnitID(), eglDisplay);
-        final long nativeDisplayID;
-        if( aDevice instanceof EGLGraphicsDevice ) {
-            nativeDisplayID = ((EGLGraphicsDevice)aDevice).getNativeDisplayID();
-        } else {
-            nativeDisplayID = aDevice.getHandle();
+    /**
+     * Constructs a new dummy {@link EGLGraphicsDevice} reusing the given native display connection
+     * with a {@link EGL#EGL_NO_DISPLAY} EGL display handle.
+     * <p>
+     * The constructed instance will never create a valid EGL display handle.
+     * </p>
+     * @param nativeDisplayID the existing native display ID
+     * @param eglDisplay the existing EGL handle to this nativeDisplayID
+     * @param connection the existing underlying native connection name
+     * @param unitID the unit ID
+     */
+    public EGLGraphicsDevice(final long nativeDisplayID, final String connection, final int unitID) {
+        this(nativeDisplayID, connection, unitID, EGL_NO_DISPLAY, null);
+    }
+
+    /**
+     * Constructs a new {@link EGLGraphicsDevice} reusing the given native display connection and handle
+     * <p>
+     * The constructed instance will not take ownership of given EGL display handle.
+     * </p>
+     * @param nativeDisplayID the existing native display ID
+     * @param eglDisplay the existing EGL handle to this nativeDisplayID
+     * @param connection the existing underlying native connection name
+     * @param unitID the unit ID
+     */
+    public EGLGraphicsDevice(final long nativeDisplayID, final long eglDisplay, final String connection, final int unitID) {
+        this(nativeDisplayID, connection, unitID, eglDisplay, null);
+        if (EGL_NO_DISPLAY == this.nativeDisplayID[0]) {
+            throw new NativeWindowException("Invalid EGL_NO_DISPLAY display handle");
         }
-        this.nativeDisplayID[0] = nativeDisplayID;
-        this.eglLifecycleCallback = eglLifecycleCallback;
     }
 
-    public EGLGraphicsDevice(final long nativeDisplayID, final long eglDisplay, final String connection, final int unitID, final EGLDisplayLifecycleCallback eglLifecycleCallback) {
-        super(NativeWindowFactory.TYPE_EGL, connection, unitID, eglDisplay);
-        this.nativeDisplayID[0] = nativeDisplayID;
-        this.eglLifecycleCallback = eglLifecycleCallback;
+    /**
+     * Constructs a new {@link EGLGraphicsDevice} using {@link AbstractGraphicsDevice}'s native display ID and connection,
+     * using the {@link EGLDisplayLifecycleCallback} to handle this instance's native EGL lifecycle.
+     * <p>
+     * The constructed instance will take ownership of the created EGL display handle.
+     * </p>
+     * @param aDevice valid {@link AbstractGraphicsDevice}'s native display ID, connection and unitID
+     * @param eglLifecycleCallback valid {@link EGLDisplayLifecycleCallback} to handle this instance's native EGL lifecycle.
+     */
+    public EGLGraphicsDevice(final AbstractGraphicsDevice aDevice, final EGLDisplayLifecycleCallback eglLifecycleCallback) {
+        this(getNativeDisplayID(aDevice), aDevice.getConnection(), aDevice.getUnitID(), EGL_NO_DISPLAY, eglLifecycleCallback);
+        if (null == eglLifecycleCallback) {
+            throw new NativeWindowException("Null EGLDisplayLifecycleCallback");
+        }
+    }
+
+    /**
+     * Constructs a new {@link EGLGraphicsDevice} using {@link AbstractGraphicsDevice}'s native display ID and connection,
+     * using the {@link EGLDisplayLifecycleCallback} to handle this instance's native EGL lifecycle.
+     * <p>
+     * The constructed instance will take ownership of the created EGL display handle.
+     * </p>
+     * @param nativeDisplayID the existing native display ID
+     * @param connection the existing underlying native connection name
+     * @param unitID the unit ID
+     * @param eglLifecycleCallback valid {@link EGLDisplayLifecycleCallback} to handle this instance's native EGL lifecycle.
+     */
+    public EGLGraphicsDevice(final long nativeDisplayID, final String connection, final int unitID, final EGLDisplayLifecycleCallback eglLifecycleCallback) {
+        this(nativeDisplayID, connection, unitID, EGL_NO_DISPLAY, eglLifecycleCallback);
+        if (null == eglLifecycleCallback) {
+            throw new NativeWindowException("Null EGLDisplayLifecycleCallback");
+        }
     }
 
     /** EGL server version as returned by {@code eglInitialize(..)}. Only valid after {@link #open()}. */
     public VersionNumber getEGLVersion() { return eglVersion; }
 
+    /**
+     * Return the native display ID of this instance.
+     * <p>
+     * Since EGL 1.4, sharing resources requires e.g. a GLContext to use the same native display ID
+     * for the so called shared context list and the to be created context.
+     * </p>
+     * @see #getNativeDisplayID(AbstractGraphicsDevice)
+     */
     public long getNativeDisplayID() { return nativeDisplayID[0]; }
+
+    /**
+     * Returns true if given {@link AbstractGraphicsDevice} uses the same {@link #getNativeDisplayID()} of this instance.
+     * <p>
+     * In case given {@link AbstractGraphicsDevice} is not a {@link EGLGraphicsDevice}, its {@link AbstractGraphicsDevice#getHandle()}
+     * is being used as the native display id for a matching {@link EGLGraphicsDevice} instance.
+     * </p>
+     * @see #getNativeDisplayID(AbstractGraphicsDevice)
+     */
+    public boolean sameNativeDisplayID(final AbstractGraphicsDevice aDevice) {
+        return getNativeDisplayID(aDevice) == getNativeDisplayID();
+    }
 
     @Override
     public Object clone() {
@@ -172,7 +275,7 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"[type "+getType()+", v"+eglVersion+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", owner "+isHandleOwner()+", "+toolkitLock+"]";
+        return getClass().getSimpleName()+"[type "+getType()+", v"+eglVersion+", nativeDisplayID 0x"+Long.toHexString(nativeDisplayID[0])+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", owner "+isHandleOwner()+", "+toolkitLock+"]";
     }
 }
 
