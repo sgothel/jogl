@@ -102,10 +102,10 @@ import jogamp.opengl.util.av.VideoPixelFormat;
  * <p>
  * Currently we are binary compatible with the following major versions:
  * <table border="1">
- * <tr><th>ffmpeg</th><th>lavcodec</th><th>lavformat</th><th>lavdevice</th><th>lavutil</th><th>swresample</th>  <th>FFMPEG* class</th></tr>
- * <tr><td>4</td>     <td>58</td>      <td>58</td>       <td>58</td>        <td>56</td>    <td>03</td>          <td>FFMPEGv0400</td></tr>
- * <tr><td>5</td>     <td>59</td>      <td>59</td>       <td>59</td>        <td>57</td>    <td>04</td>          <td>FFMPEGv0500</td></tr>
- * <tr><td>6</td>     <td>60</td>      <td>60</td>       <td>60</td>        <td>58</td>    <td>04</td>          <td>FFMPEGv0600</td></tr>
+ * <tr><th>ffmpeg</th><th>avcodec</th><th>avformat</th><th>avdevice</th><th>avutil</th><th>swresample</th>  <th>FFMPEG* class</th></tr>
+ * <tr><td>4</td>     <td>58</td>     <td>58</td>      <td>58</td>      <td>56</td>    <td>03</td>          <td>FFMPEGv0400</td></tr>
+ * <tr><td>5</td>     <td>59</td>     <td>59</td>      <td>59</td>      <td>57</td>    <td>04</td>          <td>FFMPEGv0500</td></tr>
+ * <tr><td>6</td>     <td>60</td>     <td>60</td>      <td>60</td>      <td>58</td>    <td>04</td>          <td>FFMPEGv0600</td></tr>
  * </table>
  * </p>
  * <p>
