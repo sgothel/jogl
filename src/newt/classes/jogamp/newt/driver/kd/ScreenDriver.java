@@ -85,8 +85,13 @@ public class ScreenDriver extends ScreenImpl {
         props[i++] = crt_id;
         props[i++] = 0; // is-clone
         props[i++] = 1; // is-primary
-        props[i++] = ScreenImpl.default_sm_widthmm; // FIXME
-        props[i++] = ScreenImpl.default_sm_heightmm; // FIXME
+        if( null != usrMonitorMMSize ) {
+            props[i++] = usrMonitorMMSize.getWidth();
+            props[i++] = usrMonitorMMSize.getHeight();
+        } else {
+            props[i++] = ScreenImpl.default_sm_widthmm; // FIXME
+            props[i++] = ScreenImpl.default_sm_heightmm; // FIXME
+        }
         props[i++] = 0; // rotated viewport x pixel-units
         props[i++] = 0; // rotated viewport y pixel-units
         props[i++] = cachedWidth; // rotated viewport width pixel-units

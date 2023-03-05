@@ -107,7 +107,12 @@ public class ScreenDriver extends jogamp.newt.ScreenImpl {
         props[i++] = crt_id;
         props[i++] = 0; // is-clone
         props[i++] = 1; // is-primary
-        i = getScreenSizeMM(outMetrics, props, i); // sizeMM
+        if( null != usrMonitorMMSize ) {
+            props[i++] = usrMonitorMMSize.getWidth();
+            props[i++] = usrMonitorMMSize.getHeight();
+        } else {
+            i = getScreenSizeMM(outMetrics, props, i); // sizeMM
+        }
         props[i++] = 0; // rotated viewport x pixel-units
         props[i++] = 0; // rotated viewport y pixel-units
         props[i++] = outMetrics.widthPixels; // rotated viewport width pixel-units

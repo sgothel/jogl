@@ -113,6 +113,7 @@ function jrun() {
     #X_ARGS="-Xrs"
     #X_ARGS="-Dsun.awt.disableMixing=true"
 
+    #D_ARGS="-Dnewt.ws.mmwidth=150 -Dnewt.ws.mmheight=90"
     #D_ARGS="-Djogl.debug.GLProfile -Djogl.debug.GLContext"
     #D_ARGS="-Dnativewindow.debug.OSXUtil.MainThreadChecker -Djogamp.common.utils.locks.Lock.timeout=600000"
     #D_ARGS="-Djogl.debug.GLProfile"
@@ -978,8 +979,11 @@ function testawtswt() {
 
 # Linux DRM/GBM
 #
+testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfileXXNEWTPost $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*

@@ -41,6 +41,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.geom.SVertex;
+import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowAdapter;
@@ -158,6 +159,8 @@ public class GPUTextNewtDemo {
             System.err.println("GPU Text Newt Demo: "+font2.fullString());
             System.err.println("GPU Text Newt Demo: screen-dpi: "+sDPI[0]+"x"+sDPI[1]+", font "+font_ptpi+" pt, "+font_ppi+" pixel");
             System.err.println("GPU Text Newt Demo: textX2: "+fontNameBox+" em, "+fontNameBox.scale(font_ppi, new float[3])+" px");
+            final MonitorDevice monitor = window.getMainMonitor();
+            System.err.println("GPU Text Newt Demo: "+monitor);
             // window.setSurfaceSize((int)(fontNameBox.getWidth()*1.1f), (int)(fontNameBox.getHeight()*2f));
         }
 
