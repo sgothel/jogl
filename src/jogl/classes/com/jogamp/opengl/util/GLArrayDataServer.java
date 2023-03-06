@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -225,7 +225,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    *
    * @param compsPerElement component count per element
    * @param dataType The component's OpenGL data type
-   * @param initialElementCount
+   * @param mappedElementCount
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
    * @param vboTarget {@link GL#GL_ELEMENT_ARRAY_BUFFER}, ..
    */
