@@ -137,10 +137,27 @@ public interface GLArrayDataEditable extends GLArrayData {
     public void rewind();
     public void padding(int doneInByteSize);
     public void put(Buffer v);
+
     public void putb(byte v);
+    public void put3b(byte v1, byte v2, byte v3);
+    public void put4b(byte v1, byte v2, byte v3, byte v4);
+    public void putb(byte[] src, int offset, int length);
+
     public void puts(short v);
+    public void put3s(short v1, short v2, short v3);
+    public void put4s(short v1, short v2, short v3, short v4);
+    public void puts(short[] src, int offset, int length);
+
     public void puti(int v);
+    public void put3i(int v1, int v2, int v3);
+    public void put4i(int v1, int v2, int v3, int v4);
+    public void puti(int[] src, int offset, int length);
+
     public void putx(int v);
+
     public void putf(float v);
+    public void put3f(float v1, float v2, float v3);
+    public void put4f(float v1, float v2, float v3, float v4);
+    public void putf(float[] src, int offset, int length);
 }
 

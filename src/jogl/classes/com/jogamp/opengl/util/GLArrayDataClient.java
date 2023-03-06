@@ -293,6 +293,27 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   }
 
   @Override
+  public void put3b(final byte v1, final byte v2, final byte v3) {
+    if ( sealed ) return;
+    growIfNeeded(3);
+    Buffers.put3b(buffer, v1, v2, v3);
+  }
+
+  @Override
+  public void put4b(final byte v1, final byte v2, final byte v3, final byte v4) {
+    if ( sealed ) return;
+    growIfNeeded(4);
+    Buffers.put4b(buffer, v1, v2, v3, v4);
+  }
+
+  @Override
+  public void putb(final byte[] src, final int offset, final int length) {
+    if ( sealed ) return;
+    growIfNeeded(length);
+    Buffers.putb(buffer, src, offset, length);
+  }
+
+  @Override
   public void puts(final short v) {
     if ( sealed ) return;
     growIfNeeded(1);
@@ -300,10 +321,52 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   }
 
   @Override
+  public void put3s(final short v1, final short v2, final short v3) {
+    if ( sealed ) return;
+    growIfNeeded(3);
+    Buffers.put3s(buffer, v1, v2, v3);
+  }
+
+  @Override
+  public void put4s(final short v1, final short v2, final short v3, final short v4) {
+    if ( sealed ) return;
+    growIfNeeded(4);
+    Buffers.put4s(buffer, v1, v2, v3, v4);
+  }
+
+  @Override
+  public void puts(final short[] src, final int offset, final int length) {
+    if ( sealed ) return;
+    growIfNeeded(length);
+    Buffers.puts(buffer, src, offset, length);
+  }
+
+  @Override
   public void puti(final int v) {
     if ( sealed ) return;
     growIfNeeded(1);
     Buffers.puti(buffer, v);
+  }
+
+  @Override
+  public void put3i(final int v1, final int v2, final int v3) {
+    if ( sealed ) return;
+    growIfNeeded(3);
+    Buffers.put3i(buffer, v1, v2, v3);
+  }
+
+  @Override
+  public void put4i(final int v1, final int v2, final int v3, final int v4) {
+    if ( sealed ) return;
+    growIfNeeded(4);
+    Buffers.put4i(buffer, v1, v2, v3, v4);
+  }
+
+  @Override
+  public void puti(final int[] src, final int offset, final int length) {
+    if ( sealed ) return;
+    growIfNeeded(length);
+    Buffers.puti(buffer, src, offset, length);
   }
 
   @Override
@@ -316,6 +379,27 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     if ( sealed ) return;
     growIfNeeded(1);
     Buffers.putf(buffer, v);
+  }
+
+  @Override
+  public void put3f(final float v1, final float v2, final float v3) {
+    if ( sealed ) return;
+    growIfNeeded(3);
+    Buffers.put3f(buffer, v1, v2, v3);
+  }
+
+  @Override
+  public void put4f(final float v1, final float v2, final float v3, final float v4) {
+    if ( sealed ) return;
+    growIfNeeded(4);
+    Buffers.put4f(buffer, v1, v2, v3, v4);
+  }
+
+  @Override
+  public void putf(final float[] src, final int offset, final int length) {
+    if ( sealed ) return;
+    growIfNeeded(length);
+    Buffers.putf(buffer, src, offset, length);
   }
 
   @Override
