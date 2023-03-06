@@ -107,7 +107,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    protected void createNativeImpl(boolean[] positionModified) {
+    protected void createNativeImpl(final boolean[] positionModified) {
         if (0 != getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
@@ -205,7 +205,7 @@ public class WindowDriver extends WindowImpl {
         final GLContext ctx = GLContext.getCurrent();
         final int swapInterval = ctx.getSwapInterval();
 
-        ctx.getGL().glFinish(); // Poor man's SYNC: glFenceSync () with glWaitSync() (remove later!)
+        // ctx.getGL().glFinish(); // Poor man's SYNC: glFenceSync () with glWaitSync() (remove later!)
         if(!EGL.eglSwapBuffers(display.getHandle(), eglSurface)) {
             throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
         }
