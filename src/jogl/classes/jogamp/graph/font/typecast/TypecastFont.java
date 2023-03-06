@@ -43,9 +43,13 @@ import jogamp.graph.font.typecast.ot.table.KerningPair;
 import jogamp.graph.font.typecast.ot.table.PostTable;
 
 import java.io.PrintStream;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.common.util.PerfCounterCtrl;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -364,53 +368,66 @@ class TypecastFont implements Font {
     }
 
     static class Perf {
-        long t0;
-        long tac_ns_visitor = 0;
-        long tac_ns_total = 0;
-        long tac_count = 0;
+        Instant t0 = null;
+        // all td_ values are in [ns]
+        long td_visitor = 0;
+        long td_total = 0;
+        long count = 0;
 
         public void print(final PrintStream out) {
-            out.printf("TypecastFont.process(): count %3d, total %5d [ms], per-add %4.2f [ns]%n", tac_count, TimeUnit.NANOSECONDS.toMillis(tac_ns_total),
-                    ((double)tac_ns_total/(double)tac_count));
-            out.printf("                   visitor %5d [ms], per-add %4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_visitor),
-                    ((double)tac_ns_visitor/(double)tac_count));
+            out.printf("TypecastFont.process(): count %,3d, total %,5d [ms], per-add %,4.2f [ns]%n", count, TimeUnit.NANOSECONDS.toMillis(td_total),
+                    ((double)td_total/(double)count));
+            out.printf("                   visitor %,5d [ms], per-add %,4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(td_visitor),
+                    ((double)td_visitor/(double)count));
         }
 
         public void clear() {
-            t0 = 0;
-            tac_ns_visitor = 0;
-            tac_ns_total = 0;
-            tac_count = 0;
+            t0 = null;
+            td_visitor = 0;
+            td_total = 0;
+            count = 0;
         }
     }
-    Perf perf = null;
+    private Perf perf = null;
 
-    @Override
-    public void enablePerf(final boolean enable) {
-        if( enable ) {
+    private final PerfCounterCtrl perfCounterCtrl = new PerfCounterCtrl() {
+        @Override
+        public void enable(final boolean enable) {
+            if( enable ) {
+                if( null != perf ) {
+                    perf.clear();
+                } else {
+                    perf = new Perf();
+                }
+            } else {
+                perf = null;
+            }
+        }
+
+        @Override
+        public void clear() {
             if( null != perf ) {
                 perf.clear();
-            } else {
-                perf = new Perf();
             }
-        } else {
-            perf = null;
         }
-    }
 
-    @Override
-    public void clearPerf() {
-        if( null != perf ) {
-            perf.clear();
+        @Override
+        public Duration getTotalDuration() {
+            if( null != perf ) {
+                return Duration.ofNanos(perf.td_total);
+            } else {
+                return Duration.ZERO;
+            }
         }
-    }
 
+        @Override
+        public void print(final PrintStream out) {
+            if( null != perf ) {
+                perf.print(out);
+            }
+        } };
     @Override
-    public void printPerf(final PrintStream out) {
-        if( null != perf ) {
-            perf.print(out);
-        }
-    }
+    public PerfCounterCtrl perfCounter() { return perfCounterCtrl; }
 
     @Override
     public AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
@@ -420,8 +437,8 @@ class TypecastFont implements Font {
             return new AABBox();
         }
         if( null != perf ) {
-            ++perf.tac_count;
-            perf.t0 = System.nanoTime();
+            ++perf.count;
+            perf.t0 = Clock.getMonotonicTime();
         }
         final AABBox res = new AABBox();
         final int charCount = string.length();
@@ -463,10 +480,10 @@ class TypecastFont implements Font {
                 temp1.translate(advanceTotal, y, temp2);
                 res.resize(temp1.transform(glyphShape.getBounds(), temp_box));
                 if( null != perf ) {
-                    final long t1 = System.nanoTime();
+                    final Instant t1 = Clock.getMonotonicTime();
                     visitor.visit(glyphShape, temp1);
-                    final long t2 = System.nanoTime();
-                    perf.tac_ns_visitor += t2-t1;
+                    final Instant t2 = Clock.getMonotonicTime();
+                    perf.td_visitor += Duration.between(t1, t2).toNanos();
                 } else {
                     visitor.visit(glyphShape, temp1);
                 }
@@ -475,8 +492,8 @@ class TypecastFont implements Font {
             }
         }
         if( null != perf ) {
-            final long tX = System.nanoTime();
-            perf.tac_ns_total += tX-perf.t0;
+            final Instant tX = Clock.getMonotonicTime();
+            perf.td_total += Duration.between(perf.t0, tX).toNanos();
         }
         return res;
     }

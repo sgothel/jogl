@@ -28,6 +28,8 @@
 package com.jogamp.graph.curve;
 
 import java.io.PrintStream;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +40,8 @@ import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.Clock;
+import com.jogamp.common.util.PerfCounterCtrl;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -334,60 +338,79 @@ public abstract class Region {
     protected static final int GL_INT32_MAX = 0x7fffffff; // 2,147,483,647
 
     static class Perf {
-        long t0, t1;
-        long tac_ns_vertices = 0;
-        long tac_ns_push_idx = 0;
-        long tac_ns_push_vertidx = 0;
-        long tac_ns_triangles = 0;
-        long tac_ns_total = 0;
-        long tac_count = 0;
+        Instant t0 = null, t1 = null, t2 = null;
+        // all td_ values are in [ns]
+        long td_vertices = 0;
+        long td_tri_push_idx = 0;
+        long td_tri_push_vertidx = 0;
+        long td_tri_misc = 0;
+        long td_tri_total = 0; // incl tac_ns_tri_push_vertidx + tac_ns_tri_push_idx + tac_ns_tri_misc
+        long td_total = 0;     // incl tac_ns_triangles + tac_ns_vertices
+        long count = 0;
 
         public void print(final PrintStream out) {
-            out.printf("Region.add(): count %3d, total %5d [ms], per-add %4.2f [ns]%n", tac_count, TimeUnit.NANOSECONDS.toMillis(tac_ns_total), ((double)tac_ns_total/(double)tac_count));
-            out.printf("                  vertices %5d [ms], per-add %4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_vertices), ((double)tac_ns_vertices/(double)tac_count));
-            out.printf("                  push_idx %5d [ms], per-add %4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_push_idx), ((double)tac_ns_push_idx/(double)tac_count));
-            out.printf("              push_vertidx %5d [ms], per-add %4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_push_vertidx), ((double)tac_ns_push_vertidx/(double)tac_count));
-            out.printf("                 triangles %5d [ms], per-add %4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_triangles), ((double)tac_ns_triangles/(double)tac_count));
+            final long tac_ns_triangles_self = td_tri_total - td_tri_push_vertidx - td_tri_push_idx - td_tri_misc;
+            final long tac_ns_total_self = td_total - td_tri_total - td_vertices;
+            out.printf("Region.add(): count %,3d, total %,5d [ms], per-add %,4.2f [ns]%n", count, TimeUnit.NANOSECONDS.toMillis(td_total), ((double)td_total/count));
+            out.printf("                total self %,5d [ms], per-add %,4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_total_self), ((double)tac_ns_total_self/count));
+            out.printf("                  vertices %,5d [ms], per-add %,4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(td_vertices), ((double)td_vertices/count));
+            out.printf("           triangles total %,5d [ms], per-add %,4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(td_tri_total), ((double)td_tri_total/count));
+            out.printf("            triangles self %,5d [ms], per-add %,4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_triangles_self), ((double)tac_ns_triangles_self/count));
+            out.printf("                  tri misc %,5d [ms], per-add %,4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(td_tri_misc), ((double)td_tri_misc/count));
+            out.printf("                 tri p-idx %,5d [ms], per-add %,4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(td_tri_push_idx), ((double)td_tri_push_idx/count));
+            out.printf("             tri p-vertidx %,5d [ms], per-add %,4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(td_tri_push_vertidx), ((double)td_tri_push_vertidx/count));
         }
 
         public void clear() {
-            t0 = 0; t1 = 0;
-            tac_ns_vertices = 0;
-            tac_ns_push_idx = 0;
-            tac_ns_push_vertidx = 0;
-            tac_ns_triangles = 0;
-            tac_ns_total = 0;
-            tac_count = 0;
+            t0 = null; t1 = null; t2 = null;
+            td_vertices = 0;
+            td_tri_push_idx = 0;
+            td_tri_push_vertidx = 0;
+            td_tri_misc = 0;
+            td_tri_total = 0;
+            td_total = 0;
+            count = 0;
         }
     }
-    Perf perf = null;
+    private Perf perf = null;
 
-    /** Enable or disable performance counter for {@link #addOutlineShape(OutlineShape, AffineTransform, float[])}. */
-    public void enablePerf(final boolean enable) {
-        if( enable ) {
+    private final PerfCounterCtrl perfCounterCtrl = new PerfCounterCtrl() {
+        @Override
+        public void enable(final boolean enable) {
+            if( enable ) {
+                if( null != perf ) {
+                    perf.clear();
+                } else {
+                    perf = new Perf();
+                }
+            } else {
+                perf = null;
+            }
+        }
+
+        @Override
+        public void clear() {
             if( null != perf ) {
                 perf.clear();
-            } else {
-                perf = new Perf();
             }
-        } else {
-            perf = null;
         }
-    }
 
-    /** Clear performance counter for {@link #addOutlineShape(OutlineShape, AffineTransform, float[])}. */
-    public void clearPerf() {
-        if( null != perf ) {
-            perf.clear();
+        @Override
+        public Duration getTotalDuration() {
+            if( null != perf ) {
+                return Duration.ofNanos(perf.td_total);
+            } else {
+                return Duration.ZERO;
+            }
         }
-    }
 
-    /** Print performance counter for {@link #addOutlineShape(OutlineShape, AffineTransform, float[])}. */
-    public void printPerf(final PrintStream out) {
-        if( null != perf ) {
-            perf.print(out);
-        }
-    }
+        @Override
+        public void print(final PrintStream out) {
+            if( null != perf ) {
+                perf.print(out);
+            }
+        } };
+    public PerfCounterCtrl perfCounter() { return perfCounterCtrl; }
 
     /**
      * Add the given {@link OutlineShape} to this region with the given optional {@link AffineTransform}.
@@ -400,8 +423,8 @@ public abstract class Region {
      */
     public final void addOutlineShape(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
         if( null != perf ) {
-            ++perf.tac_count;
-            perf.t0 = System.nanoTime();
+            ++perf.count;
+            perf.t0 = Clock.getMonotonicTime();
         }
         if( null != frustum ) {
             final AABBox shapeBox = shape.getBounds();
@@ -445,32 +468,38 @@ public abstract class Region {
                 vertsVNewIdxCount++;
             }
             if( null != perf ) {
-                perf.t1 = System.nanoTime();
-                perf.tac_ns_vertices += perf.t1-perf.t0;
+                perf.t1 = Clock.getMonotonicTime();
+                perf.td_vertices += Duration.between(perf.t0, perf.t1).toNanos();
             }
             if(DEBUG_INSTANCE) {
                 System.err.println("Region.addOutlineShape(): Processing Triangles");
             }
-            for(int i=0; i<trisIn.size(); i++) {
-                final Triangle triIn = trisIn.get(i);
-                if(Region.DEBUG_INSTANCE) {
-                    System.err.println("T["+i+"]: "+triIn);
+            for(final Triangle triIn : trisIn) {
+                if( null != perf ) {
+                    perf.t2 = Clock.getMonotonicTime();
                 }
+                // if(Region.DEBUG_INSTANCE) {
+                //     System.err.println("T["+i+"]: "+triIn);
+                // }
                 // triEx.addVertexIndicesOffset(idxOffset);
                 // triangles.add( triEx );
                 final Vertex[] triInVertices = triIn.getVertices();
                 final int tv0Idx = triInVertices[0].getId();
+
+                if( null != perf ) {
+                    perf.td_tri_misc += Duration.between(perf.t2, Clock.getMonotonicTime()).toNanos();
+                }
                 if ( max_indices - idxOffset > tv0Idx ) {
                     // valid 'known' idx - move by offset
-                    if(Region.DEBUG_INSTANCE) {
-                        System.err.println("T["+i+"]: Moved "+tv0Idx+" + "+idxOffset+" -> "+(tv0Idx+idxOffset));
-                    }
+                    // if(Region.DEBUG_INSTANCE) {
+                    //     System.err.println("T["+i+"]: Moved "+tv0Idx+" + "+idxOffset+" -> "+(tv0Idx+idxOffset));
+                    // }
                     if( null != perf ) {
-                        final long tpi = System.nanoTime();
+                        final Instant tpi = Clock.getMonotonicTime();
                         pushIndices(tv0Idx+idxOffset,
                                     triInVertices[1].getId()+idxOffset,
                                     triInVertices[2].getId()+idxOffset);
-                        perf.tac_ns_push_idx += System.nanoTime() - tpi;
+                        perf.td_tri_push_idx += Duration.between(tpi, Clock.getMonotonicTime()).toNanos();
                     } else {
                         pushIndices(tv0Idx+idxOffset,
                                     triInVertices[1].getId()+idxOffset,
@@ -479,13 +508,13 @@ public abstract class Region {
                     vertsTMovIdxCount+=3;
                 } else {
                     // FIXME: Invalid idx - generate new one
-                    if( Region.DEBUG_INSTANCE) {
-                        System.err.println("T["+i+"]: New Idx "+numVertices);
-                    }
+                    // if( Region.DEBUG_INSTANCE) {
+                    //    System.err.println("T["+i+"]: New Idx "+numVertices);
+                    // }
                     if( null != perf ) {
-                        final long tpvi = System.nanoTime();
+                        final Instant tpvi = Clock.getMonotonicTime();
                         pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
-                        perf.tac_ns_push_vertidx += System.nanoTime() - tpvi;
+                        perf.td_tri_push_vertidx += Duration.between(tpvi, Clock.getMonotonicTime()).toNanos();
                     } else {
                         pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
                     }
@@ -494,9 +523,9 @@ public abstract class Region {
                 tris++;
             }
             if( null != perf ) {
-                final long t2 = System.nanoTime();
-                perf.tac_ns_triangles += t2-perf.t1;
-                perf.tac_ns_total += t2-perf.t0;
+                final Instant ttriX = Clock.getMonotonicTime();
+                perf.td_tri_total += Duration.between(perf.t1, ttriX).toNanos();
+                perf.td_total += Duration.between(perf.t0, ttriX).toNanos();
             }
         }
         if(DEBUG_INSTANCE) {

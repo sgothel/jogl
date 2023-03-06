@@ -29,6 +29,7 @@ package com.jogamp.graph.font;
 
 import java.io.PrintStream;
 
+import com.jogamp.common.util.PerfCounterCtrl;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -419,14 +420,7 @@ public interface Font {
                          final CharSequence string,
                          final AffineTransform temp1, final AffineTransform temp2);
 
-    /** Enable or disable performance counter for {@link #processString(com.jogamp.graph.curve.OutlineShape.Visitor, AffineTransform, CharSequence, AffineTransform, AffineTransform)}. */
-    void enablePerf(final boolean enable);
-
-    /** Clear performance counter for {@link #processString(com.jogamp.graph.curve.OutlineShape.Visitor, AffineTransform, CharSequence, AffineTransform, AffineTransform)}. */
-    void clearPerf();
-
-    /** Print performance counter for {@link #processString(com.jogamp.graph.curve.OutlineShape.Visitor, AffineTransform, CharSequence, AffineTransform, AffineTransform)}. */
-    void printPerf(final PrintStream out);
+    PerfCounterCtrl perfCounter();
 
     /** Returns {@link #getFullFamilyName()} */
     @Override
