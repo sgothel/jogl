@@ -94,9 +94,9 @@ public class TestShutdownCompleteNEWT extends UITestCase {
         if(waitForEach) {
             JunitTracer.waitForKey("Start One Life");
         }
-        final long t0 = Platform.currentTimeMicros();
+        final long t0 = Platform.currentTimeMillis();
         GLProfile.initSingleton();
-        final long t1 = Platform.currentTimeMicros();
+        final long t1 = Platform.currentTimeMillis();
 
         // Test minimum requirement, having a default device with profile
         {
@@ -113,18 +113,18 @@ public class TestShutdownCompleteNEWT extends UITestCase {
         if(!initOnly) {
             runTestGL(true);
         }
-        final long t2 = Platform.currentTimeMicros();
+        final long t2 = Platform.currentTimeMillis();
         if(glInfo) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, false).toString());
         }
-        final long t3 = Platform.currentTimeMicros();
+        final long t3 = Platform.currentTimeMillis();
         GLProfile.shutdown();
-        final long t4 = Platform.currentTimeMicros();
-        System.err.println("Total:                          "+ (t4-t0)/1e3 +"ms");
-        System.err.println("  GLProfile.initSingleton():    "+ (t1-t0)/1e3 +"ms");
-        System.err.println("  Demo Code:                    "+ (t2-t1)/1e3 +"ms");
-        System.err.println("  GLInfo:                       "+ (t3-t2)/1e3 +"ms");
-        System.err.println("  GLProfile.shutdown():         "+ (t4-t3)/1e3 +"ms");
+        final long t4 = Platform.currentTimeMillis();
+        System.err.println("Total:                          "+ (t4-t0) +"ms");
+        System.err.println("  GLProfile.initSingleton():    "+ (t1-t0) +"ms");
+        System.err.println("  Demo Code:                    "+ (t2-t1) +"ms");
+        System.err.println("  GLInfo:                       "+ (t3-t2) +"ms");
+        System.err.println("  GLProfile.shutdown():         "+ (t4-t3) +"ms");
     }
 
     @Test

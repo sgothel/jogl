@@ -43,6 +43,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -66,6 +67,7 @@ public class TestShutdownCompleteAWT extends UITestCase {
         final Animator animator = new Animator(glCanvas);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 frame.setSize(256, 256);
                 frame.setVisible(true);
@@ -85,11 +87,13 @@ public class TestShutdownCompleteAWT extends UITestCase {
         animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 frame.setVisible(false);
             }});
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 frame.remove(glCanvas);
                 frame.dispose();
@@ -99,29 +103,29 @@ public class TestShutdownCompleteAWT extends UITestCase {
     @AfterClass
     public static void afterAll() {
         if(waitForKey) {
-            UITestCase.waitForKey("Exit");
+            JunitTracer.waitForKey("Exit");
         }
     }
 
     protected void oneLife(final boolean glInfo) throws InterruptedException, InvocationTargetException {
-        final long t0 = Platform.currentTimeMicros();
+        final long t0 = Platform.currentTimeMillis();
         GLProfile.initSingleton();
-        final long t1 = Platform.currentTimeMicros();
+        final long t1 = Platform.currentTimeMillis();
         if(!initOnly) {
             runTestGL();
         }
-        final long t2 = Platform.currentTimeMicros();
+        final long t2 = Platform.currentTimeMillis();
         if(glInfo) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, false).toString());
         }
-        final long t3 = Platform.currentTimeMicros();
+        final long t3 = Platform.currentTimeMillis();
         GLProfile.shutdown();
-        final long t4 = Platform.currentTimeMicros();
-        System.err.println("Total:                          "+ (t4-t0)/1e3 +"ms");
-        System.err.println("  GLProfile.initSingleton():    "+ (t1-t0)/1e3 +"ms");
-        System.err.println("  Demo Code:                    "+ (t2-t1)/1e3 +"ms");
-        System.err.println("  GLInfo:                       "+ (t3-t2)/1e3 +"ms");
-        System.err.println("  GLProfile.shutdown():         "+ (t4-t3)/1e3 +"ms");
+        final long t4 = Platform.currentTimeMillis();
+        System.err.println("Total:                          "+ (t4-t0) +"ms");
+        System.err.println("  GLProfile.initSingleton():    "+ (t1-t0) +"ms");
+        System.err.println("  Demo Code:                    "+ (t2-t1) +"ms");
+        System.err.println("  GLInfo:                       "+ (t3-t2) +"ms");
+        System.err.println("  GLProfile.shutdown():         "+ (t4-t3) +"ms");
     }
 
     @Test
@@ -158,7 +162,7 @@ public class TestShutdownCompleteAWT extends UITestCase {
         }
 
         if(waitForKey) {
-            UITestCase.waitForKey("Start");
+            JunitTracer.waitForKey("Start");
         }
         final String tstname = TestShutdownCompleteAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
