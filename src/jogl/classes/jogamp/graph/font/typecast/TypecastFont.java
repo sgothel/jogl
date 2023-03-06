@@ -42,6 +42,9 @@ import jogamp.graph.font.typecast.ot.table.KernTable;
 import jogamp.graph.font.typecast.ot.table.KerningPair;
 import jogamp.graph.font.typecast.ot.table.PostTable;
 
+import java.io.PrintStream;
+import java.util.concurrent.TimeUnit;
+
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
@@ -360,12 +363,65 @@ class TypecastFont implements Font {
         return processString(visitor, transform, string, new AffineTransform(), new AffineTransform());
     }
 
+    static class Perf {
+        long t0;
+        long tac_ns_visitor = 0;
+        long tac_ns_total = 0;
+        long tac_count = 0;
+
+        public void print(final PrintStream out) {
+            out.printf("TypecastFont.process(): count %3d, total %5d [ms], per-add %4.2f [ns]%n", tac_count, TimeUnit.NANOSECONDS.toMillis(tac_ns_total),
+                    ((double)tac_ns_total/(double)tac_count));
+            out.printf("                   visitor %5d [ms], per-add %4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_visitor),
+                    ((double)tac_ns_visitor/(double)tac_count));
+        }
+
+        public void clear() {
+            t0 = 0;
+            tac_ns_visitor = 0;
+            tac_ns_total = 0;
+            tac_count = 0;
+        }
+    }
+    Perf perf = null;
+
+    @Override
+    public void enablePerf(final boolean enable) {
+        if( enable ) {
+            if( null != perf ) {
+                perf.clear();
+            } else {
+                perf = new Perf();
+            }
+        } else {
+            perf = null;
+        }
+    }
+
+    @Override
+    public void clearPerf() {
+        if( null != perf ) {
+            perf.clear();
+        }
+    }
+
+    @Override
+    public void printPerf(final PrintStream out) {
+        if( null != perf ) {
+            perf.print(out);
+        }
+    }
+
     @Override
     public AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
                                 final CharSequence string,
                                 final AffineTransform temp1, final AffineTransform temp2) {
         if (null == string || 0 == string.length() ) {
             return new AABBox();
+        }
+        if( null != perf ) {
+            ++perf.tac_count;
+            perf.t0 = System.nanoTime();
         }
         final AABBox res = new AABBox();
         final int charCount = string.length();
@@ -392,8 +448,10 @@ class TypecastFont implements Font {
                     temp1.setToIdentity();
                 }
                 final int glyph_id = getGlyphID(character);
+
                 final Font.Glyph glyph = getGlyph(glyph_id);
                 final OutlineShape glyphShape = glyph.getShape();
+
                 if( null == glyphShape ) { // also covers 'space' and all non-contour symbols
                     advanceTotal += glyph.getAdvance();
                     left_glyph = null; // break kerning
@@ -404,11 +462,21 @@ class TypecastFont implements Font {
                 }
                 temp1.translate(advanceTotal, y, temp2);
                 res.resize(temp1.transform(glyphShape.getBounds(), temp_box));
-
-                visitor.visit(glyphShape, temp1);
+                if( null != perf ) {
+                    final long t1 = System.nanoTime();
+                    visitor.visit(glyphShape, temp1);
+                    final long t2 = System.nanoTime();
+                    perf.tac_ns_visitor += t2-t1;
+                } else {
+                    visitor.visit(glyphShape, temp1);
+                }
                 advanceTotal += glyph.getAdvance();
                 left_glyph = glyph;
             }
+        }
+        if( null != perf ) {
+            final long tX = System.nanoTime();
+            perf.tac_ns_total += tX-perf.t0;
         }
         return res;
     }
