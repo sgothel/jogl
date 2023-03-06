@@ -100,6 +100,8 @@ function jrun() {
     shift
     swton=$1
     shift
+    mobileon=$1
+    shift
 
     # MODULE_ARGS="--illegal-access=warn"
     # MODULE_ARGS="--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED"
@@ -392,13 +394,19 @@ function jrun() {
         fi
     elif [ $awton -eq -1 ] ; then
         export USE_CLASSPATH=$JOGAMP_ATOMICS_NOAWT_CLASSPATH
+    elif [ $mobileon -eq 1 ] ; then
+        export USE_CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
+        X_ARGS="-Djava.awt.headless=true $X_ARGS"
+        D_ARGS="-Dnewt.ws.mmwidth=150 -Dnewt.ws.mmheight=90 $D_ARGS"
     else
         #export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
         export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
-        #export USE_CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
         #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILDDIR/jar/atomic/jogl.jar:$JOGL_BUILDDIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILDDIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/jogl-util.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt.jar:$JOGL_BUILDDIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt-ogl.jar:$JOGL_BUILDDIR/jar/jogl-test.jar:$JUNIT_JAR:$ANT_JARS
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
     fi
+    # StartFlightRecording: delay=10s, 
+    # FlightRecorderOptions: stackdepth=2048
+    # X_ARGS="-XX:StartFlightRecording=dumponexit=true,filename=java-run.jfr -XX:FlightRecorderOptions=stackdepth=2048,threadbuffersize=16k $X_ARGS"
 
     if [ $USE_BUILDDIR -eq 1 ] ; then
         export USE_CLASSPATH=.:$GLUEGEN_BUILDDIR/classes:$GLUEGEN_BUILDDIR/test/build/classes:$JOAL_BUILDDIR/classes:$JOGL_BUILDDIR/nativewindow/classes:$JOGL_BUILDDIR/jogl/classes:$JOGL_BUILDDIR/newt/classes:$JOGL_BUILDDIR/oculusvr/classes:$JOGL_BUILDDIR/test/build/classes:$JUNIT_JAR:$ANT_JARS
@@ -431,27 +439,31 @@ function jrun() {
 }
 
 function testnoawtatomics() {
-    jrun -1 0 $* 2>&1 | tee -a java-run.log
+    jrun -1 0 0 $* 2>&1 | tee -a java-run.log
 }
 
 function testnoawt() {
-    jrun  0 0 $* 2>&1 | tee -a java-run.log
+    jrun  0 0 0 $* 2>&1 | tee -a java-run.log
+}
+
+function testmobile() {
+    jrun  0 0 1 $* 2>&1 | tee -a java-run.log
 }
 
 function testjfx() {
-    jrun  1 0 $* 2>&1 | tee -a java-run.log
+    jrun  1 0 0 $* 2>&1 | tee -a java-run.log
 }
 
 function testawt() {
-    jrun  1 0 $* 2>&1 | tee -a java-run.log
+    jrun  1 0 0 $* 2>&1 | tee -a java-run.log
 }
 
 function testswt() {
-    jrun  0 1 $* 2>&1 | tee -a java-run.log
+    jrun  0 1 0 $* 2>&1 | tee -a java-run.log
 }
 
 function testawtswt() {
-    jrun  1 1 $* 2>&1 | tee -a java-run.log
+    jrun  1 1 0 $* 2>&1 | tee -a java-run.log
 }
 
 #
@@ -979,19 +991,21 @@ function testawtswt() {
 
 # Linux DRM/GBM
 #
-testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfileXXNEWTPost $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextSurfaceLockNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestCPUSourcingAPINEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent02NEWT $*
+#testmobile com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
+testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
+#testmobile com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
+#testmobile com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+#testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
+#testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+#testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testmobile com.jogamp.opengl.test.junit.jogl.acore.TestGLProfileXXNEWTPost $*
+#testmobile com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
+#testmobile com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
+#testmobile com.jogamp.opengl.test.junit.jogl.acore.TestGLContextSurfaceLockNEWT $*
+#testmobile com.jogamp.opengl.test.junit.jogl.acore.TestCPUSourcingAPINEWT $*
+#testmobile com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
+#testmobile com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
+#testmobile com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent02NEWT $*
 
 #
 # 2.5.0 Regressions
