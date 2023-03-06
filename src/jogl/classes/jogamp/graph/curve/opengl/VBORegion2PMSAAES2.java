@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -31,7 +31,6 @@ import java.io.PrintStream;
 import java.nio.FloatBuffer;
 
 import com.jogamp.opengl.GL2ES2;
-import com.jogamp.opengl.GLArrayData;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLUniformData;
@@ -46,7 +45,6 @@ import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.util.GLArrayDataClient;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.Texture;
@@ -138,26 +136,27 @@ public class VBORegion2PMSAAES2  extends GLRegion {
         }
     }
 
-    public VBORegion2PMSAAES2(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq, final int pass2TexUnit) {
+    public VBORegion2PMSAAES2(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq, final int pass2TexUnit,
+                              final int initialVerticesCount, final int initialIndicesCount)
+    {
         super(glp, renderModes, colorTexSeq);
 
         rsLocal = new RenderState.ProgramLocal();
 
-        final int initialElementCount = 256;
         // We leave GLArrayDataClient.DEFAULT_GROWTH_FACTOR intact for avg +19% size, but 15% less CPU overhead compared to 1.2 (19% total)
 
         // Pass 1:
-        indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), initialIndicesCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
 
         gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
-                                                      false, initialElementCount, GL.GL_STATIC_DRAW);
+                                                      false, initialVerticesCount, GL.GL_STATIC_DRAW);
 
         gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
-                                                       false, initialElementCount, GL.GL_STATIC_DRAW);
+                                                       false, initialVerticesCount, GL.GL_STATIC_DRAW);
 
         if( hasColorChannel() ) {
             gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
-                                                          false, initialElementCount, GL.GL_STATIC_DRAW);
+                                                          false, initialVerticesCount, GL.GL_STATIC_DRAW);
         } else {
             gca_ColorsAttr = null;
         }
@@ -196,8 +195,8 @@ public class VBORegion2PMSAAES2  extends GLRegion {
     }
 
     @Override
-    protected void growBufferSize(final int verticeCount, final int indexCount) {
-        indicesBuffer.growIfNeeded(indexCount);
+    public void growBufferSize(final int verticeCount, final int indexCount) {
+        indicesBuffer.growIfNeeded(indexCount * indicesBuffer.getCompsPerElem());
         gca_VerticesAttr.growIfNeeded(verticeCount * gca_VerticesAttr.getCompsPerElem());
         gca_CurveParamsAttr.growIfNeeded(verticeCount * gca_CurveParamsAttr.getCompsPerElem());
         if( null != gca_ColorsAttr ) {
@@ -225,7 +224,7 @@ public class VBORegion2PMSAAES2  extends GLRegion {
     @Override
     public void printBufferStats(final PrintStream out) {
         final int[] size= { 0 }, capacity= { 0 };
-        out.println("VBORegion2PMSAAES2:");
+        out.println("VBORegion2PMSAAES2: idx32 "+usesI32Idx());
         printAndCount(out, "  indices ", indicesBuffer, size, capacity);
         out.println();
         printAndCount(out, "  vertices ", gca_VerticesAttr, size, capacity);
@@ -241,20 +240,36 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
     @Override
     protected final void pushVertex(final float[] coords, final float[] texParams, final float[] rgba) {
-        gca_VerticesAttr.putf(coords[0]);
-        gca_VerticesAttr.putf(coords[1]);
-        gca_VerticesAttr.putf(coords[2]);
-
-        gca_CurveParamsAttr.putf(texParams[0]);
-        gca_CurveParamsAttr.putf(texParams[1]);
-        gca_CurveParamsAttr.putf(texParams[2]);
-
+        // NIO array[3] is much slows than group/single
+        // gca_VerticesAttr.putf(coords, 0, 3);
+        // gca_CurveParamsAttr.putf(texParams, 0, 3);
+        gca_VerticesAttr.put3f(coords[0], coords[1], coords[2]);
+        gca_CurveParamsAttr.put3f(texParams[0], texParams[1], texParams[2]);
         if( null != gca_ColorsAttr ) {
             if( null != rgba ) {
-                gca_ColorsAttr.putf(rgba[0]);
-                gca_ColorsAttr.putf(rgba[1]);
-                gca_ColorsAttr.putf(rgba[2]);
-                gca_ColorsAttr.putf(rgba[3]);
+                // gca_ColorsAttr.putf(rgba, 0, 4);
+                gca_ColorsAttr.put4f(rgba[0], rgba[1], rgba[2], rgba[3]);
+            } else {
+                throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
+            }
+        }
+    }
+
+    @Override
+    protected final void pushVertices(final float[] coords1, final float[] coords2, final float[] coords3,
+                                      final float[] texParams1, final float[] texParams2, final float[] texParams3, final float[] rgba) {
+        gca_VerticesAttr.put3f(coords1[0], coords1[1], coords1[2]);
+        gca_VerticesAttr.put3f(coords2[0], coords2[1], coords2[2]);
+        gca_VerticesAttr.put3f(coords3[0], coords3[1], coords3[2]);
+        gca_CurveParamsAttr.put3f(texParams1[0], texParams1[1], texParams1[2]);
+        gca_CurveParamsAttr.put3f(texParams2[0], texParams2[1], texParams2[2]);
+        gca_CurveParamsAttr.put3f(texParams3[0], texParams3[1], texParams3[2]);
+        if( null != gca_ColorsAttr ) {
+            if( null != rgba ) {
+                final float r=rgba[0], g=rgba[1], b=rgba[2], a=rgba[3];
+                gca_ColorsAttr.put4f(r, g, b, a);
+                gca_ColorsAttr.put4f(r, g, b, a);
+                gca_ColorsAttr.put4f(r, g, b, a);
             } else {
                 throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
             }
@@ -267,6 +282,15 @@ public class VBORegion2PMSAAES2  extends GLRegion {
             indicesBuffer.puti(idx);
         } else {
             indicesBuffer.puts((short)idx);
+        }
+    }
+
+    @Override
+    protected final void pushIndices(final int idx1, final int idx2, final int idx3) {
+        if( usesI32Idx() ) {
+            indicesBuffer.put3i(idx1, idx2, idx3);
+        } else {
+            indicesBuffer.put3s((short)idx1, (short)idx2, (short)idx3);
         }
     }
 

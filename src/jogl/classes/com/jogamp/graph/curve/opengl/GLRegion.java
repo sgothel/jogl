@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -30,6 +30,7 @@ package com.jogamp.graph.curve.opengl;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLArrayData;
+import com.jogamp.opengl.util.GLArrayDataEditable;
 import com.jogamp.opengl.GLProfile;
 
 import jogamp.graph.curve.opengl.VBORegion2PMSAAES2;
@@ -42,7 +43,6 @@ import com.jogamp.graph.curve.Region;
 
 import java.io.PrintStream;
 
-import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.OutlineShape;
 
 /** A GLRegion is the OGL binding of one or more OutlineShapes
@@ -59,6 +59,51 @@ import com.jogamp.graph.curve.OutlineShape;
 public abstract class GLRegion extends Region {
 
     /**
+     * Heuristics with TestTextRendererNEWT00 text_1 + text_2 = 1334 chars
+     * - FreeSans     ~ vertices  64/char, indices 33/char
+     * - Ubuntu Light ~ vertices 100/char, indices 50/char
+     * - FreeSerif    ~ vertices 115/char, indices 61/char
+     *
+     * Now let's assume a minimum of 10 chars will be rendered
+     */
+
+    /**
+     * Default initial vertices count based on 10 chars w/ FreeSans @ 64 vertices/char avg.
+     */
+    public static final int defaultVerticesCount = 10*64;
+
+    /**
+     * Default initial indices count based on 10 chars w/ FreeSans @ 33 indices/char avg.
+     */
+    public static final int defaultIndicesCount = 10*33;
+
+    /**
+     * Create a GLRegion using the passed render mode
+     *
+     * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
+     * {@link Region#DEFAULT_TWO_PASS_TEXTURE_UNIT} is being used.</p>
+     * @param glp intended GLProfile to use. Instance may use higher OpenGL features if indicated by GLProfile.
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
+     * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
+     * @param initialVerticesCount initial number of vertices in the render-buffer
+     * @param initialIndicesCount initial number of indices in the render-buffer
+     */
+    public static GLRegion create(final GLProfile glp, int renderModes, final TextureSequence colorTexSeq, final int initialVerticesCount, final int initialIndicesCount) {
+        if( null != colorTexSeq ) {
+            renderModes |= Region.COLORTEXTURE_RENDERING_BIT;
+        } else if( Region.hasColorTexture(renderModes) ) {
+            throw new IllegalArgumentException("COLORTEXTURE_RENDERING_BIT set but null TextureSequence");
+        }
+        if( isVBAA(renderModes) ) {
+            return new VBORegion2PVBAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT, initialVerticesCount, initialIndicesCount);
+        } else if( isMSAA(renderModes) ) {
+            return new VBORegion2PMSAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT, initialVerticesCount, initialIndicesCount);
+        } else {
+            return new VBORegionSPES2(glp, renderModes, colorTexSeq, initialVerticesCount, initialIndicesCount);
+        }
+    }
+
+    /**
      * Create a GLRegion using the passed render mode
      *
      * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
@@ -67,19 +112,8 @@ public abstract class GLRegion extends Region {
      * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
      * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
      */
-    public static GLRegion create(final GLProfile glp, int renderModes, final TextureSequence colorTexSeq) {
-        if( null != colorTexSeq ) {
-            renderModes |= Region.COLORTEXTURE_RENDERING_BIT;
-        } else if( Region.hasColorTexture(renderModes) ) {
-            throw new IllegalArgumentException("COLORTEXTURE_RENDERING_BIT set but null TextureSequence");
-        }
-        if( isVBAA(renderModes) ) {
-            return new VBORegion2PVBAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT);
-        } else if( isMSAA(renderModes) ) {
-            return new VBORegion2PMSAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT);
-        } else {
-            return new VBORegionSPES2(glp, renderModes, colorTexSeq);
-        }
+    public static GLRegion create(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq) {
+        return GLRegion.create(glp, renderModes, colorTexSeq, defaultVerticesCount, defaultIndicesCount);
     }
 
     private final int gl_idx_type;
@@ -118,10 +152,14 @@ public abstract class GLRegion extends Region {
     }
 
     /**
-     * Clears all data, i.e. triangles, vertices etc.
+     * Clears all buffers, i.e. triangles, vertices etc and and resets states accordingly, see {@link GLArrayDataEditable#clear(GL)}.
+     * <p>
+     * This method does not actually erase the data in the buffer and will most often be used when erasing the underlying memory is suitable.
+     * </p>
      *
      * @param gl the current {@link GL2ES2} object
      * @return this {@link GLRegion} for chaining.
+     * @see GLArrayDataEditable#clear(GL)
      */
     public GLRegion clear(final GL2ES2 gl) {
         clearImpl(gl);

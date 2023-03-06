@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -30,6 +30,7 @@ package com.jogamp.graph.curve;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import jogamp.opengl.Debug;
 
@@ -193,10 +194,18 @@ public abstract class Region {
      */
     public final boolean usesI32Idx() { return this.use_int32_idx; }
 
-    protected abstract void growBufferSize(int verticeCount, int indexCount);
+    /**
+     * Allow the renderer buffers to pre-emptively grow for given vertices- and index counts.
+     * @param verticeCount number of vertices to hold
+     * @param indexCount number of indices to hold
+     */
+    public abstract void growBufferSize(int verticeCount, int indexCount);
 
     protected abstract void pushVertex(final float[] coords, final float[] texParams, float[] rgba);
+    protected abstract void pushVertices(final float[] coords1, final float[] coords2, final float[] coords3,
+                                         final float[] texParams1, final float[] texParams2, final float[] texParams3, float[] rgba);
     protected abstract void pushIndex(int idx);
+    protected abstract void pushIndices(int idx1, int idx2, int idx3);
 
     /**
      * Return bit-field of render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence)}.
@@ -265,31 +274,120 @@ public abstract class Region {
         this.frustum = frustum;
     }
 
-    final float[] coordsEx = new float[3];
-
     private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform, final float[] rgba) {
         if( null != transform ) {
+            final float[] coordsEx1 = new float[3];
             final float[] coordsIn = vertIn.getCoord();
-            transform.transform(coordsIn, coordsEx);
-            coordsEx[2] = coordsIn[2];
-            box.resize(coordsEx[0], coordsEx[1], coordsEx[2]);
-            pushVertex(coordsEx, vertIn.getTexCoord(), rgba);
+            transform.transform(coordsIn, coordsEx1);
+            coordsEx1[2] = coordsIn[2];
+            box.resize(coordsEx1);
+            pushVertex(coordsEx1, vertIn.getTexCoord(), rgba);
         } else {
-            box.resize(vertIn.getX(), vertIn.getY(), vertIn.getZ());
+            box.resize(vertIn.getCoord());
             pushVertex(vertIn.getCoord(), vertIn.getTexCoord(), rgba);
         }
         numVertices++;
     }
 
+    private void pushNewVerticesImpl(final Vertex vertIn1, final Vertex vertIn2, final Vertex vertIn3, final AffineTransform transform, final float[] rgba) {
+        if( null != transform ) {
+            final float[] coordsEx1 = new float[3];
+            final float[] coordsEx2 = new float[3];
+            final float[] coordsEx3 = new float[3];
+            final float[] coordsIn1 = vertIn1.getCoord();
+            final float[] coordsIn2 = vertIn2.getCoord();
+            final float[] coordsIn3 = vertIn3.getCoord();
+            transform.transform(coordsIn1, coordsEx1);
+            transform.transform(coordsIn2, coordsEx2);
+            transform.transform(coordsIn3, coordsEx3);
+            coordsEx1[2] = coordsIn1[2];
+            coordsEx2[2] = coordsIn2[2];
+            coordsEx3[2] = coordsIn3[2];
+            box.resize(coordsEx1);
+            box.resize(coordsEx2);
+            box.resize(coordsEx3);
+            pushVertices(coordsEx1,             coordsEx2,             coordsEx3,
+                         vertIn1.getTexCoord(), vertIn2.getTexCoord(), vertIn3.getTexCoord(), rgba);
+        } else {
+            box.resize(vertIn1.getCoord());
+            box.resize(vertIn2.getCoord());
+            box.resize(vertIn3.getCoord());
+            pushVertices(vertIn1.getCoord(),    vertIn2.getCoord(),    vertIn3.getCoord(),
+                         vertIn1.getTexCoord(), vertIn2.getTexCoord(), vertIn3.getTexCoord(), rgba);
+        }
+        numVertices+=3;
+    }
+
+    @SuppressWarnings("unused")
     private void pushNewVertexIdxImpl(final Vertex vertIn, final AffineTransform transform, final float[] rgba) {
         pushIndex(numVertices);
         pushNewVertexImpl(vertIn, transform, rgba);
+    }
+    private void pushNewVerticesIdxImpl(final Vertex vertIn1, final Vertex vertIn2, final Vertex vertIn3, final AffineTransform transform, final float[] rgba) {
+        pushIndices(numVertices, numVertices+1, numVertices+2);
+        pushNewVerticesImpl(vertIn1, vertIn2, vertIn3, transform, rgba);
     }
 
     private final AABBox tmpBox = new AABBox();
 
     protected static final int GL_UINT16_MAX = 0xffff; // 65,535
     protected static final int GL_INT32_MAX = 0x7fffffff; // 2,147,483,647
+
+    static class Perf {
+        long t0, t1;
+        long tac_ns_vertices = 0;
+        long tac_ns_push_idx = 0;
+        long tac_ns_push_vertidx = 0;
+        long tac_ns_triangles = 0;
+        long tac_ns_total = 0;
+        long tac_count = 0;
+
+        public void print(final PrintStream out) {
+            out.printf("Region.add(): count %3d, total %5d [ms], per-add %4.2f [ns]%n", tac_count, TimeUnit.NANOSECONDS.toMillis(tac_ns_total), ((double)tac_ns_total/(double)tac_count));
+            out.printf("                  vertices %5d [ms], per-add %4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_vertices), ((double)tac_ns_vertices/(double)tac_count));
+            out.printf("                  push_idx %5d [ms], per-add %4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_push_idx), ((double)tac_ns_push_idx/(double)tac_count));
+            out.printf("              push_vertidx %5d [ms], per-add %4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_push_vertidx), ((double)tac_ns_push_vertidx/(double)tac_count));
+            out.printf("                 triangles %5d [ms], per-add %4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(tac_ns_triangles), ((double)tac_ns_triangles/(double)tac_count));
+        }
+
+        public void clear() {
+            t0 = 0; t1 = 0;
+            tac_ns_vertices = 0;
+            tac_ns_push_idx = 0;
+            tac_ns_push_vertidx = 0;
+            tac_ns_triangles = 0;
+            tac_ns_total = 0;
+            tac_count = 0;
+        }
+    }
+    Perf perf = null;
+
+    /** Enable or disable performance counter for {@link #addOutlineShape(OutlineShape, AffineTransform, float[])}. */
+    public void enablePerf(final boolean enable) {
+        if( enable ) {
+            if( null != perf ) {
+                perf.clear();
+            } else {
+                perf = new Perf();
+            }
+        } else {
+            perf = null;
+        }
+    }
+
+    /** Clear performance counter for {@link #addOutlineShape(OutlineShape, AffineTransform, float[])}. */
+    public void clearPerf() {
+        if( null != perf ) {
+            perf.clear();
+        }
+    }
+
+    /** Print performance counter for {@link #addOutlineShape(OutlineShape, AffineTransform, float[])}. */
+    public void printPerf(final PrintStream out) {
+        if( null != perf ) {
+            perf.print(out);
+        }
+    }
 
     /**
      * Add the given {@link OutlineShape} to this region with the given optional {@link AffineTransform}.
@@ -301,6 +399,10 @@ public abstract class Region {
      * @param rgbaColor TODO
      */
     public final void addOutlineShape(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
+        if( null != perf ) {
+            ++perf.tac_count;
+            perf.t0 = System.nanoTime();
+        }
         if( null != frustum ) {
             final AABBox shapeBox = shape.getBounds();
             final AABBox shapeBoxT;
@@ -342,6 +444,10 @@ public abstract class Region {
                 pushNewVertexImpl(vertsIn.get(i), t, rgbaColor);
                 vertsVNewIdxCount++;
             }
+            if( null != perf ) {
+                perf.t1 = System.nanoTime();
+                perf.tac_ns_vertices += perf.t1-perf.t0;
+            }
             if(DEBUG_INSTANCE) {
                 System.err.println("Region.addOutlineShape(): Processing Triangles");
             }
@@ -359,21 +465,38 @@ public abstract class Region {
                     if(Region.DEBUG_INSTANCE) {
                         System.err.println("T["+i+"]: Moved "+tv0Idx+" + "+idxOffset+" -> "+(tv0Idx+idxOffset));
                     }
-                    pushIndex(tv0Idx+idxOffset);
-                    pushIndex(triInVertices[1].getId()+idxOffset);
-                    pushIndex(triInVertices[2].getId()+idxOffset);
+                    if( null != perf ) {
+                        final long tpi = System.nanoTime();
+                        pushIndices(tv0Idx+idxOffset,
+                                    triInVertices[1].getId()+idxOffset,
+                                    triInVertices[2].getId()+idxOffset);
+                        perf.tac_ns_push_idx += System.nanoTime() - tpi;
+                    } else {
+                        pushIndices(tv0Idx+idxOffset,
+                                    triInVertices[1].getId()+idxOffset,
+                                    triInVertices[2].getId()+idxOffset);
+                    }
                     vertsTMovIdxCount+=3;
                 } else {
                     // FIXME: Invalid idx - generate new one
-                    if(Region.DEBUG_INSTANCE) {
+                    if( Region.DEBUG_INSTANCE) {
                         System.err.println("T["+i+"]: New Idx "+numVertices);
                     }
-                    pushNewVertexIdxImpl(triInVertices[0], t, rgbaColor);
-                    pushNewVertexIdxImpl(triInVertices[1], t, rgbaColor);
-                    pushNewVertexIdxImpl(triInVertices[2], t, rgbaColor);
+                    if( null != perf ) {
+                        final long tpvi = System.nanoTime();
+                        pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
+                        perf.tac_ns_push_vertidx += System.nanoTime() - tpvi;
+                    } else {
+                        pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
+                    }
                     vertsTNewIdxCount+=3;
                 }
                 tris++;
+            }
+            if( null != perf ) {
+                final long t2 = System.nanoTime();
+                perf.tac_ns_triangles += t2-perf.t1;
+                perf.tac_ns_total += t2-perf.t0;
             }
         }
         if(DEBUG_INSTANCE) {
