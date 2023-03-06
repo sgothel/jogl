@@ -662,8 +662,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             _lock.unlock();
         }
     }  };
+
   private final boolean setSurfaceScaleImpl(final ScalableSurface ns) {
-      if( ns.setSurfaceScale(reqPixelScale) ) {
+      if(DEBUG) {
+          System.err.printf("GLCanvas.setSurfaceScaleImpl reqPixelScale %.2f %.2f, hasPixelScale %.2f %.2f\n", 
+                            reqPixelScale[0], reqPixelScale[1], hasPixelScale[0], hasPixelScale[1]);
+      }
+
+      if( ns.setSurfaceScale(hasPixelScale) ) {
           ns.getCurrentSurfaceScale(hasPixelScale);
           return true;
       } else {
