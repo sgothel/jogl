@@ -28,8 +28,6 @@
 package com.jogamp.graph.curve;
 
 import java.io.PrintStream;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -338,7 +336,7 @@ public abstract class Region {
     protected static final int GL_INT32_MAX = 0x7fffffff; // 2,147,483,647
 
     static class Perf {
-        Instant t0 = null, t1 = null, t2 = null;
+        long t0 = 0, t1 = 0, t2 = 0;
         // all td_ values are in [ns]
         long td_vertices = 0;
         long td_tri_push_idx = 0;
@@ -362,7 +360,7 @@ public abstract class Region {
         }
 
         public void clear() {
-            t0 = null; t1 = null; t2 = null;
+            t0 = 0; t1 = 0; t2 = 0;
             td_vertices = 0;
             td_tri_push_idx = 0;
             td_tri_push_vertidx = 0;
@@ -396,11 +394,11 @@ public abstract class Region {
         }
 
         @Override
-        public Duration getTotalDuration() {
+        public long getTotalDuration() {
             if( null != perf ) {
-                return Duration.ofNanos(perf.td_total);
+                return perf.td_total;
             } else {
-                return Duration.ZERO;
+                return 0;
             }
         }
 
@@ -424,7 +422,7 @@ public abstract class Region {
     public final void addOutlineShape(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
         if( null != perf ) {
             ++perf.count;
-            perf.t0 = Clock.getMonotonicTime();
+            perf.t0 = Clock.currentNanos();
         }
         if( null != frustum ) {
             final AABBox shapeBox = shape.getBounds();
@@ -468,15 +466,15 @@ public abstract class Region {
                 vertsVNewIdxCount++;
             }
             if( null != perf ) {
-                perf.t1 = Clock.getMonotonicTime();
-                perf.td_vertices += Duration.between(perf.t0, perf.t1).toNanos();
+                perf.t1 = Clock.currentNanos();
+                perf.td_vertices += perf.t1 - perf.t0;
             }
             if(DEBUG_INSTANCE) {
                 System.err.println("Region.addOutlineShape(): Processing Triangles");
             }
             for(final Triangle triIn : trisIn) {
                 if( null != perf ) {
-                    perf.t2 = Clock.getMonotonicTime();
+                    perf.t2 = Clock.currentNanos();
                 }
                 // if(Region.DEBUG_INSTANCE) {
                 //     System.err.println("T["+i+"]: "+triIn);
@@ -487,7 +485,7 @@ public abstract class Region {
                 final int tv0Idx = triInVertices[0].getId();
 
                 if( null != perf ) {
-                    perf.td_tri_misc += Duration.between(perf.t2, Clock.getMonotonicTime()).toNanos();
+                    perf.td_tri_misc += Clock.currentNanos() - perf.t2;
                 }
                 if ( max_indices - idxOffset > tv0Idx ) {
                     // valid 'known' idx - move by offset
@@ -495,11 +493,11 @@ public abstract class Region {
                     //     System.err.println("T["+i+"]: Moved "+tv0Idx+" + "+idxOffset+" -> "+(tv0Idx+idxOffset));
                     // }
                     if( null != perf ) {
-                        final Instant tpi = Clock.getMonotonicTime();
+                        final long tpi = Clock.currentNanos();
                         pushIndices(tv0Idx+idxOffset,
                                     triInVertices[1].getId()+idxOffset,
                                     triInVertices[2].getId()+idxOffset);
-                        perf.td_tri_push_idx += Duration.between(tpi, Clock.getMonotonicTime()).toNanos();
+                        perf.td_tri_push_idx += Clock.currentNanos() - tpi;
                     } else {
                         pushIndices(tv0Idx+idxOffset,
                                     triInVertices[1].getId()+idxOffset,
@@ -512,9 +510,9 @@ public abstract class Region {
                     //    System.err.println("T["+i+"]: New Idx "+numVertices);
                     // }
                     if( null != perf ) {
-                        final Instant tpvi = Clock.getMonotonicTime();
+                        final long tpvi = Clock.currentNanos();
                         pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
-                        perf.td_tri_push_vertidx += Duration.between(tpvi, Clock.getMonotonicTime()).toNanos();
+                        perf.td_tri_push_vertidx += Clock.currentNanos() - tpvi;
                     } else {
                         pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
                     }
@@ -523,9 +521,9 @@ public abstract class Region {
                 tris++;
             }
             if( null != perf ) {
-                final Instant ttriX = Clock.getMonotonicTime();
-                perf.td_tri_total += Duration.between(perf.t1, ttriX).toNanos();
-                perf.td_total += Duration.between(perf.t0, ttriX).toNanos();
+                final long ttriX = Clock.currentNanos();
+                perf.td_tri_total += ttriX - perf.t1;
+                perf.td_total += ttriX - perf.t0;
             }
         }
         if(DEBUG_INSTANCE) {

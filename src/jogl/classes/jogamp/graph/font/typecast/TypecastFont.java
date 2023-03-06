@@ -43,8 +43,6 @@ import jogamp.graph.font.typecast.ot.table.KerningPair;
 import jogamp.graph.font.typecast.ot.table.PostTable;
 
 import java.io.PrintStream;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
 import com.jogamp.common.os.Clock;
@@ -368,7 +366,7 @@ class TypecastFont implements Font {
     }
 
     static class Perf {
-        Instant t0 = null;
+        long t0 = 0;
         // all td_ values are in [ns]
         long td_visitor = 0;
         long td_total = 0;
@@ -382,7 +380,7 @@ class TypecastFont implements Font {
         }
 
         public void clear() {
-            t0 = null;
+            t0 = 0;
             td_visitor = 0;
             td_total = 0;
             count = 0;
@@ -412,11 +410,11 @@ class TypecastFont implements Font {
         }
 
         @Override
-        public Duration getTotalDuration() {
+        public long getTotalDuration() {
             if( null != perf ) {
-                return Duration.ofNanos(perf.td_total);
+                return perf.td_total;
             } else {
-                return Duration.ZERO;
+                return 0;
             }
         }
 
@@ -438,7 +436,7 @@ class TypecastFont implements Font {
         }
         if( null != perf ) {
             ++perf.count;
-            perf.t0 = Clock.getMonotonicTime();
+            perf.t0 = Clock.currentNanos();
         }
         final AABBox res = new AABBox();
         final int charCount = string.length();
@@ -480,10 +478,9 @@ class TypecastFont implements Font {
                 temp1.translate(advanceTotal, y, temp2);
                 res.resize(temp1.transform(glyphShape.getBounds(), temp_box));
                 if( null != perf ) {
-                    final Instant t1 = Clock.getMonotonicTime();
+                    final long  t1 = Clock.currentNanos();
                     visitor.visit(glyphShape, temp1);
-                    final Instant t2 = Clock.getMonotonicTime();
-                    perf.td_visitor += Duration.between(t1, t2).toNanos();
+                    perf.td_visitor += Clock.currentNanos() - t1;
                 } else {
                     visitor.visit(glyphShape, temp1);
                 }
@@ -492,8 +489,7 @@ class TypecastFont implements Font {
             }
         }
         if( null != perf ) {
-            final Instant tX = Clock.getMonotonicTime();
-            perf.td_total += Duration.between(perf.t0, tX).toNanos();
+            perf.td_total += Clock.currentNanos() - perf.t0;
         }
         return res;
     }

@@ -80,14 +80,14 @@ import com.jogamp.opengl.util.PMVMatrix;
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTextRendererNEWT00 extends UITestCase {
-    final Instant t0 = Clock.getMonotonicTime();
+    static final Instant t0i = Clock.getMonotonicTime();
+    static final long t0 = Clock.currentNanos();
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
     static long duration = 100; // ms
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
     static boolean mainRun = false;
-    static boolean useMSAA = true;
     static int win_width = 1280;
     static int win_height = 720;
     static int loop_count = 1;
@@ -125,8 +125,6 @@ public class TestTextRendererNEWT00 extends UITestCase {
             } else if(args[i].equals("-height")) {
                 i++;
                 win_height = atoi(args[i]);
-            } else if(args[i].equals("-noMSAA")) {
-                useMSAA = false;
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
             } else if(args[i].equals("-gl3")) {
@@ -167,17 +165,28 @@ public class TestTextRendererNEWT00 extends UITestCase {
     static class Perf {
         // all td_ values are in [ns]
         public long td_graph = 0;
-        public long td_txt1 = 0;
-        public long td_txt2 = 0;
         public long td_txt = 0;
         public long td_draw = 0;
         public long td_txt_draw = 0;
         public long count = 0;
 
+        public Perf() {
+            final Instant startupMTime = Clock.getMonotonicStartupTime();
+            final Instant currentMTime = Clock.getMonotonicTime();
+            final Instant wallTime = Clock.getWallClockTime();
+            final Duration elapsedSinceStartup = Duration.between(startupMTime, currentMTime);
+            System.err.printf("Perf: Elapsed since startup: %,d [ms], %,d [ns]%n", elapsedSinceStartup.toMillis(), elapsedSinceStartup.toNanos());
+            System.err.printf("- monotonic startup %s, %,d [ms]%n", startupMTime, startupMTime.toEpochMilli());
+            System.err.printf("- monotonic current %s, %,d [ms]%n", currentMTime, currentMTime.toEpochMilli());
+            System.err.printf("-      wall current %s%n", wallTime);
+            final long td = Clock.currentNanos();
+            System.err.printf("- currentNanos: Elapsed %,d [ns]%n", (td-t0));
+            System.err.printf("  - test-startup %,13d [ns]%n", t0);
+            System.err.printf("  - test-current %,13d [ns]%n", td);
+        }
+
         public void clear() {
             td_graph = 0;
-            td_txt1 = 0;
-            td_txt2 = 0;
             td_txt = 0;
             td_draw = 0;
             td_txt_draw = 0;
@@ -185,17 +194,18 @@ public class TestTextRendererNEWT00 extends UITestCase {
         }
 
         public void print(final PrintStream out, final long frame, final String msg) {
-            out.printf("%3d / %3d: Perf %s:   Total: graph %,2d, txt[1 %,2d, 2 %,2d, all %,2d], draw %,2d, txt+draw %,2d [ms]%n",
+            out.printf("%3d / %3d: Perf %s:   Total: graph %,2d, txt %,2d, draw %,2d, txt+draw %,2d [ms]%n",
                     count, frame, msg,
-                    TimeUnit.NANOSECONDS.toMillis(td_graph), TimeUnit.NANOSECONDS.toMillis(td_txt1),
-                    TimeUnit.NANOSECONDS.toMillis(td_txt2), TimeUnit.NANOSECONDS.toMillis(td_txt),
+                    TimeUnit.NANOSECONDS.toMillis(td_graph),
+                    TimeUnit.NANOSECONDS.toMillis(td_txt),
                     TimeUnit.NANOSECONDS.toMillis(td_draw), TimeUnit.NANOSECONDS.toMillis(td_txt_draw));
-            out.printf("%3d / %3d: Perf %s: PerLoop: graph %,4d, txt[1 %,4d, 2 %,4d, all %,4d], draw %,4d, txt+draw %,4d [ns]%n",
+            out.printf("%3d / %3d: Perf %s: PerLoop: graph %,4d, txt %,4d, draw %,4d, txt+draw %,4d [ns]%n",
                     count, frame, msg,
-                    td_graph/count, td_txt1/count, td_txt2/count, td_txt/count, td_draw/count, td_txt_draw/count );
+                    td_graph/count, td_txt/count, td_draw/count, td_txt_draw/count );
         }
     }
 
+    @SuppressWarnings("unused")
     @Test
     public void test02TextRendererVBAA04() throws InterruptedException, GLException, IOException {
         final int renderModes = Region.VBAA_RENDERING_BIT /* | Region.COLORCHANNEL_RENDERING_BIT */;
@@ -209,7 +219,8 @@ public class TestTextRendererNEWT00 extends UITestCase {
             glp = GLProfile.getGL2ES2();
         }
 
-        final Instant t1 = Clock.getMonotonicTime();
+        final Instant t1i = Clock.getMonotonicTime();
+        final long t1 = Clock.currentNanos();
 
         final GLCapabilities caps = new GLCapabilities( glp );
         caps.setAlphaBits(4);
@@ -242,25 +253,22 @@ public class TestTextRendererNEWT00 extends UITestCase {
         final int indices_per_char = 33; // 50;
         final GLRegion region;
         if( do_perf ) {
-            final int char_count = text_1.length()+text_2.length(); // 664 + 670 = 1334
+            final int char_count = text_1.length(); // 1296
             region = GLRegion.create(gl.getGLProfile(), renderModes, null, char_count*vertices_per_char, char_count*indices_per_char);
         } else {
-            // final int char_count = text_1.length()+text_2.length(); // 664 + 670 = 1334
+            // final int char_count = text_1.length(); // 1296
             region = GLRegion.create(gl.getGLProfile(), renderModes, null);
             // region.growBufferSize(char_count*vertices_per_char, char_count*indices_per_char);
         }
 
-        final Perf perf;
+        final Perf perf = new Perf();
         if( do_perf ) {
-            perf = new Perf();
             region.perfCounter().enable(true);
             font.perfCounter().enable(true);
-        } else {
-            perf = null;
         }
 
         for(int loop_i=0; loop_i < loop_count; ++loop_i) {
-            final Instant t2 = Clock.getMonotonicTime(); // all initialized but graph
+            final long t2 = Clock.currentNanos(); // all initialized but graph
             if( null != perf ) {
                 ++perf.count;
             }
@@ -284,11 +292,11 @@ public class TestTextRendererNEWT00 extends UITestCase {
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             region.clear(gl);
 
-            final Instant t3 = Clock.getMonotonicTime(); // all initialized w/ graph
+            final long t3 = Clock.currentNanos(); // all initialized w/ graph
 
             final float dx = 0;
             final float dy = drawable.getSurfaceHeight() - 3 * fontSize * font.getLineHeight();
-            final Instant t4, t5;
+            final long t4;
             {
                 // all sizes in em
                 final float x_width = font.getAdvanceWidth( font.getGlyphID('X') );
@@ -297,23 +305,10 @@ public class TestTextRendererNEWT00 extends UITestCase {
                 t.setToTranslation(3*x_width, 0f);
                 final AABBox tbox_1 = font.getGlyphBounds(text_1);
                 final AABBox rbox_1 = TextRegionUtil.addStringToRegion(region, font, t, text_1, fg_color);
-                t4 = Clock.getMonotonicTime(); // text_1 added to region
+                t4 = Clock.currentNanos(); // text_1 added to region
                 if( 0 == loop_i && !do_perf ) {
                     System.err.println("Text_1: tbox "+tbox_1);
                     System.err.println("Text_1: rbox "+rbox_1);
-                }
-
-                if( true || !do_perf ) {
-                    t.setToTranslation(3*x_width, -1f*(rbox_1.getHeight()+font.getLineHeight()));
-                    final AABBox tbox_2 = font.getGlyphBounds(text_2);
-                    final AABBox rbox_2 = TextRegionUtil.addStringToRegion(region, font, t, text_2, fg_color);
-                    t5 = Clock.getMonotonicTime(); // text_2 added to region
-                    if( 0 == loop_i && !do_perf ) {
-                        System.err.println("Text_1: tbox "+tbox_2);
-                        System.err.println("Text_1: rbox "+rbox_2);
-                    }
-                } else {
-                    t5 = t4;
                 }
             }
 
@@ -323,34 +318,42 @@ public class TestTextRendererNEWT00 extends UITestCase {
             pmv.glTranslatef(dx, dy, z0);
             pmv.glScalef(fontSize, fontSize, 1f);
             region.draw(gl, renderer, sampleCountIO);
-            final Instant t6 = Clock.getMonotonicTime(); // text_1 added to region
+            final long t5 = Clock.currentNanos(); // text_1 added to region
             if( null != perf ) {
-                final long td_graph = Duration.between(t2, t3).toNanos();
-                final long td_txt1 = Duration.between(t3, t4).toNanos();
-                final long td_txt2 = Duration.between(t4, t5).toNanos();
-                final long td_txt = Duration.between(t3, t5).toNanos();
-                final long td_draw = Duration.between(t5, t6).toNanos();
-                final long td_txt_draw = Duration.between(t3, t6).toNanos();
+                final long td_graph = t3 - t2;
+                final long td_txt = t4 - t3;
+                final long td_draw = t5 - t4;
+                final long td_txt_draw = t5 - t3;
                 perf.td_graph += td_graph;
-                perf.td_txt1 += td_txt1;
-                perf.td_txt2 += td_txt2;
                 perf.td_txt += td_txt;
                 perf.td_draw += td_draw;
                 perf.td_txt_draw += td_txt_draw;
                 if( 0 == loop_i ) {
-                    final long td_launch0 = Duration.between(t0, t1).toMillis(); // raw
-                    final long td_launch1 = Duration.between(t0, t2).toMillis(); // gl
-                    final long td_launch2 = Duration.between(t0, t3).toMillis(); // w/ graph
-                    final long td_launch_txt = Duration.between(t0, t5).toMillis();
-                    final long td_launch_draw = Duration.between(t0, t6).toMillis();
-                    System.err.printf("%3d: Perf Launch: raw %,4d, gl %,4d, graph %,4d, txt %,4d, draw %,4d [ms]%n",
-                            loop_i+1, td_launch0, td_launch1, td_launch2, td_launch_txt, td_launch_draw);
-                    perf.print(System.err, loop_i+1, "Launch");
-                } else {
-                    System.err.printf("%3d: Perf: graph %2d, txt[1 %2d, 2 %2d, all %2d], draw %2d, txt+draw %2d [ms]%n",
+                    final Duration td_launch0a = Duration.between(Clock.getMonotonicStartupTime(), t0i); // loading Gluegen - load test
+                    final Duration td_launch0b = Duration.between(Clock.getMonotonicStartupTime(), t1i); // loading Gluegen - start test
+                    final long td_launch1 = t1 - t0; // since loading this test
+                    final long td_launch2 = t2 - t0; // gl
+                    final long td_launch3 = t3 - t0; // w/ graph
+                    final long td_launch_txt = t4 - t0;
+                    final long td_launch_draw = t5 - t0;
+                    System.err.printf("%n%n%3d: Perf Launch:%n"+
+                                      "- loading GlueGen - loading test %,6d [ms]%n"+
+                                      "- loading GlueGen - start test   %,6d [ms]%n"+
+                                      "- loading test    - start test   %,6d [ms]%n"+
+                                      "- loading test    - gl           %,6d [ms]%n"+
+                                      "- loading test    - graph        %,6d [ms]%n"+
+                                      "- loading test    - txt          %,6d [ms]%n"+
+                                      "- loading test    - draw         %,6d [ms]%n",
                             loop_i+1,
-                            TimeUnit.NANOSECONDS.toMillis(td_graph), TimeUnit.NANOSECONDS.toMillis(td_txt1),
-                            TimeUnit.NANOSECONDS.toMillis(td_txt2), TimeUnit.NANOSECONDS.toMillis(td_txt),
+                            td_launch0a.toMillis(), td_launch0b.toMillis(),
+                            TimeUnit.NANOSECONDS.toMillis(td_launch1), TimeUnit.NANOSECONDS.toMillis(td_launch2),
+                            TimeUnit.NANOSECONDS.toMillis(td_launch3), TimeUnit.NANOSECONDS.toMillis(td_launch_txt),
+                            TimeUnit.NANOSECONDS.toMillis(td_launch_draw));
+                    perf.print(System.err, loop_i+1, "Launch");
+                } else if( false && do_perf ) {
+                    System.err.printf("%3d: Perf: graph %2d, txt %2d, draw %2d, txt+draw %2d [ms]%n",
+                            loop_i+1,
+                            TimeUnit.NANOSECONDS.toMillis(td_graph),TimeUnit.NANOSECONDS.toMillis(td_txt),
                             TimeUnit.NANOSECONDS.toMillis(td_draw), TimeUnit.NANOSECONDS.toMillis(td_txt_draw) );
                 }
             }
@@ -360,28 +363,32 @@ public class TestTextRendererNEWT00 extends UITestCase {
                 printScreen(screenshot, renderModes, drawable, gl, false, sampleCount);
             }
             drawable.swapBuffers();
-            if( null != perf && loop_count/3-1 == loop_i ) {
+            if( null != perf && loop_count/2-1 == loop_i ) {
                 // print + reset counter @ 1/3 loops
-                region.perfCounter().print(System.err);
-                font.perfCounter().print(System.err);
-                perf.print(System.err, loop_i+1, "Frame"+(loop_count/3));
+                if( do_perf ) {
+                    region.perfCounter().print(System.err);
+                    font.perfCounter().print(System.err);
+                }
+                perf.print(System.err, loop_i+1, "Frame"+(loop_i+1));
                 perf.clear();
-                region.perfCounter().clear();
-                font.perfCounter().clear();
+                if( do_perf ) {
+                    region.perfCounter().clear();
+                    font.perfCounter().clear();
+                }
             }
             if( 0 == loop_i || loop_count - 1 == loop_i) {
                 // print counter @ start and end
                 System.err.println("GLRegion: for "+gl.getGLProfile()+" using int32_t indiced: "+region.usesI32Idx());
                 System.err.println("GLRegion: "+region);
-                System.err.println("Text length: text_1 "+text_1.length()+", text_2 "+text_2.length()+", total "+(text_1.length()+text_2.length()));
+                System.err.println("Text length: "+text_1.length());
                 region.printBufferStats(System.err);
-                region.perfCounter().print(System.err);
-                font.perfCounter().print(System.err);
+                if( do_perf ) {
+                    region.perfCounter().print(System.err);
+                    font.perfCounter().print(System.err);
+                }
+                perf.print(System.err, loop_i+1, "Frame"+(loop_i+1));
             }
             // region.destroy(gl);
-        }
-        if( null != perf ) {
-            perf.print(System.err, loop_count, "FrameXX");
         }
 
         region.destroy(gl);
@@ -426,7 +433,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
         //       ^
         //       |
 
-    public static final String text_1s = "Hello World. Gustav got news.";
+    public static final String text_1s = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus.";
     public static final String text_1 =
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus. \n"+
         "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+

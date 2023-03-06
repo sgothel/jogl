@@ -406,7 +406,7 @@ function jrun() {
     fi
     # StartFlightRecording: delay=10s, 
     # FlightRecorderOptions: stackdepth=2048
-    # X_ARGS="-XX:StartFlightRecording=dumponexit=true,filename=java-run.jfr -XX:FlightRecorderOptions=stackdepth=2048,threadbuffersize=16k $X_ARGS"
+    # X_ARGS="-XX:StartFlightRecording=delay=10s,dumponexit=true,filename=java-run.jfr -XX:FlightRecorderOptions=stackdepth=2048,threadbuffersize=16k $X_ARGS"
 
     if [ $USE_BUILDDIR -eq 1 ] ; then
         export USE_CLASSPATH=.:$GLUEGEN_BUILDDIR/classes:$GLUEGEN_BUILDDIR/test/build/classes:$JOAL_BUILDDIR/classes:$JOGL_BUILDDIR/nativewindow/classes:$JOGL_BUILDDIR/jogl/classes:$JOGL_BUILDDIR/newt/classes:$JOGL_BUILDDIR/oculusvr/classes:$JOGL_BUILDDIR/test/build/classes:$JUNIT_JAR:$ANT_JARS
