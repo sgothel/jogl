@@ -413,7 +413,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
                        ", dataType 0x"+Integer.toHexString(componentType)+
                        ", bufferClazz "+componentClazz+
                        ", elements "+getElemCount()+
-                       ", components "+componentsPerElement+
+                       ", compsPerElem "+componentsPerElement+
                        ", stride "+strideB+"b "+strideL+"c"+
                        ", mappedElementCount "+mappedElementCount+
                        ", initialElementCount "+initialElementCount+
@@ -455,8 +455,8 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
             final int required_elems = compsToElemCount(has_comps + spareComponents);
             final int new_elems = compsToElemCount( (int)( has_comps * growthFactor + 0.5f ) );
             final int elementCount = Math.max( new_elems, required_elems );
-            if(DEBUG) {
-                System.err.println("*** Size: Grow: "+compsToElemCount(has_comps)+" -> "+elementCount);
+            if( DEBUG ) {
+                System.err.println("*** Size: Grow: elems "+compsToElemCount(has_comps)+" -> max("+new_elems+", "+required_elems+") -> "+elementCount);
             }
             return reserve( elementCount );
         }
