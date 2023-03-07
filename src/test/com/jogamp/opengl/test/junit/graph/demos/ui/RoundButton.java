@@ -41,8 +41,6 @@ public abstract class RoundButton extends UIShape {
     protected float width;
     protected float height;
     protected float corner = DEFAULT_CORNER;
-    protected final AffineTransform tempT1 = new AffineTransform();
-    protected final AffineTransform tempT2 = new AffineTransform();
 
     protected RoundButton(final Factory<? extends Vertex> factory, final int renderModes, final float width, final float height) {
         super(factory, renderModes);

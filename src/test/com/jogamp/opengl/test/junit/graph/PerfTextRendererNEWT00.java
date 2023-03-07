@@ -259,6 +259,10 @@ public class PerfTextRendererNEWT00 {
             font.perfCounter().enable(true);
         }
 
+        final AffineTransform translation = new AffineTransform();
+        final AffineTransform tmp1 = new AffineTransform();
+        final AffineTransform tmp2 = new AffineTransform();
+
         for(int loop_i=0; loop_i < loop_count; ++loop_i) {
             final long t2 = Clock.currentNanos(); // all initialized but graph
             if( null != perf ) {
@@ -292,11 +296,10 @@ public class PerfTextRendererNEWT00 {
             {
                 // all sizes in em
                 final float x_width = font.getAdvanceWidth( font.getGlyphID('X') );
-                final AffineTransform t = new AffineTransform();
 
-                t.setToTranslation(3*x_width, 0f);
-                final AABBox tbox_1 = font.getGlyphBounds(text);
-                final AABBox rbox_1 = TextRegionUtil.addStringToRegion(region, font, t, text, fg_color);
+                translation.setToTranslation(3*x_width, 0f);
+                final AABBox tbox_1 = font.getGlyphBounds(text, tmp1, tmp2);
+                final AABBox rbox_1 = TextRegionUtil.addStringToRegion(region, font, translation, text, fg_color, tmp1, tmp2);
                 t4 = Clock.currentNanos(); // text added to region
                 if( 0 == loop_i && !do_perf ) {
                     System.err.println("Text_1: tbox "+tbox_1);

@@ -43,6 +43,7 @@ import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -58,6 +59,9 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     private RegionRenderer.GLCallback enableCallback=null, disableCallback=null;
     protected RegionRenderer renderer = null;
     protected TextRegionUtil textRenderUtil = null;
+
+    protected final AffineTransform tempT1 = new AffineTransform();
+    protected final AffineTransform tempT2 = new AffineTransform();
 
     /** scale pixel, default is 1f */
     protected float pixelScale = 1.0f;
@@ -272,9 +276,9 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             if( cacheRegion ) {
                 textRenderUtil.drawString3D(gl, renderer, font, text, null, vbaaSampleCount);
             } else if( null != region ) {
-                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, vbaaSampleCount);
+                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, vbaaSampleCount, tempT1, tempT1);
             } else {
-                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, vbaaSampleCount);
+                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, vbaaSampleCount, tempT1, tempT1);
             }
             renderer.enable(gl, false);
 

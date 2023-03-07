@@ -95,7 +95,7 @@ public class LabelButton extends RoundButton {
         // Precompute text-box size .. guessing pixelSize
         final float lw = width * ( 1f - spacingX ) ;
         final float lh = height * ( 1f - spacingY ) ;
-        final AABBox lbox0_em = label.font.getGlyphBounds(label.text);
+        final AABBox lbox0_em = label.font.getGlyphBounds(label.text, tempT1, tempT2);
         final float lsx = lw / lbox0_em.getWidth();
         final float lsy = lh / lbox0_em.getHeight();
         final float lScale = lsx < lsy ? lsx : lsy;
@@ -117,7 +117,7 @@ public class LabelButton extends RoundButton {
             System.err.printf ("RIButton: tleft %f / %f, %f / %f%n", ltx[0], ltx[1], ltx[0] * lScale, ltx[1] * lScale);
         }
 
-        final AABBox lbox2 = label.addShapeToRegion(lScale, region, tempT1.setToTranslation(ltx[0], ltx[1]));
+        final AABBox lbox2 = label.addShapeToRegion(lScale, region, tempT1.setToTranslation(ltx[0], ltx[1]), tempT2, tempT3, tempT4);
         if( DRAW_DEBUG_BOX ) {
             System.err.printf("RIButton.X: lbox2 %s%n", lbox2);
         }

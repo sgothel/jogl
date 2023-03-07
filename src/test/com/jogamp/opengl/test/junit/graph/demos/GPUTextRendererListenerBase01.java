@@ -46,6 +46,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.font.FontSet;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
@@ -89,6 +90,9 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     AABBox fontNameBox;
     String headtext;
     AABBox headbox;
+
+    protected final AffineTransform tempT1 = new AffineTransform();
+    protected final AffineTransform tempT2 = new AffineTransform();
 
     static final String text2 = "The quick brown fox jumps over the lazy dog";
     public static final String text_help =
@@ -234,15 +238,15 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         } else {
             System.err.println("Using vertical default DPI of "+dpiV+", "+ppmmV+" pixel/mm");
         }
-        fontNameBox = font.getGlyphBounds(fontName);
+        fontNameBox = font.getGlyphBounds(fontName, tempT1, tempT2);
         setHeadBox(headType, true);
         {
             final float pixelSizeFName = FontScale.toPixels(fontSizeFName, dpiV);
             System.err.println("XXX: fontName size "+fontSizeFName+"pt, dpiV "+dpiV+" -> "+pixelSizeFName+"px");
             System.err.println("XXX: fontName boxM fu "+font.getMetricBoundsFU(fontName));
-            System.err.println("XXX: fontName boxG fu "+font.getGlyphBoundsFU(fontName));
+            System.err.println("XXX: fontName boxG fu "+font.getGlyphBoundsFU(fontName, tempT1, tempT2));
             System.err.println("XXX: fontName boxM em "+font.getMetricBounds(fontName));
-            System.err.println("XXX: fontName boxG em "+font.getGlyphBounds(fontName));
+            System.err.println("XXX: fontName boxG em "+font.getGlyphBounds(fontName, tempT1, tempT2));
             System.err.println("XXX: fontName box height px "+(fontNameBox.getHeight() * pixelSizeFName));
         }
     }
@@ -339,7 +343,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 pmv.glScalef(sxy, sxy, 1.0f);
             }
             // No cache, keep region alive!
-            TextRegionUtil.drawString3D(gl, regionFPS.clear(gl), renderer, font, text, null, sampleCountFPS);
+            TextRegionUtil.drawString3D(gl, regionFPS.clear(gl), renderer, font, text, null, sampleCountFPS, tempT1, tempT2);
             pmv.glPopMatrix();
         }
 
@@ -393,13 +397,13 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             }
             if(!userInput) {
                 if( bottomTextUseFrustum ) {
-                    TextRegionUtil.drawString3D(gl, regionBottom.clear(gl), renderer, font, text2, null, getSampleCount());
+                    TextRegionUtil.drawString3D(gl, regionBottom.clear(gl), renderer, font, text2, null, getSampleCount(), tempT1, tempT2);
                 } else {
                     textRegionUtil.drawString3D(gl, renderer, font, text2, null, getSampleCount());
                 }
             } else {
                 if( bottomTextUseFrustum ) {
-                    TextRegionUtil.drawString3D(gl, regionBottom.clear(gl), renderer, font, userString.toString(), null, getSampleCount());
+                    TextRegionUtil.drawString3D(gl, regionBottom.clear(gl), renderer, font, userString.toString(), null, getSampleCount(), tempT1, tempT2);
                 } else {
                     textRegionUtil.drawString3D(gl, renderer, font, userString.toString(), null, getSampleCount());
                 }

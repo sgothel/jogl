@@ -39,6 +39,7 @@ import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.newt.event.GestureHandler.GestureListener;
 import com.jogamp.newt.event.MouseAdapter;
@@ -60,6 +61,11 @@ public abstract class UIShape {
     private final Factory<? extends Vertex> vertexFactory;
     private final int renderModes;
     protected final AABBox box;
+
+    protected final AffineTransform tempT1 = new AffineTransform();
+    protected final AffineTransform tempT2 = new AffineTransform();
+    protected final AffineTransform tempT3 = new AffineTransform();
+    protected final AffineTransform tempT4 = new AffineTransform();
 
     protected final float[] translate = new float[] { 0f, 0f, 0f };
     protected final Quaternion rotation = new Quaternion();

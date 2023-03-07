@@ -56,6 +56,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -167,6 +168,9 @@ public class UIShapeDemo01 implements GLEventListener {
 
     boolean ignoreInput = false;
 
+    protected final AffineTransform tempT1 = new AffineTransform();
+    protected final AffineTransform tempT2 = new AffineTransform();
+
     public UIShapeDemo01(final Font font, final int renderModes, final RenderState rs, final boolean debug, final boolean trace) {
         this.font = font;
         this.renderModes = renderModes;
@@ -275,13 +279,13 @@ public class UIShapeDemo01 implements GLEventListener {
                 }
                 full_width_o = objCoord1[0] - objCoord0[0];
             }
-            final AABBox txt_box_em = font.getGlyphBounds(text);
+            final AABBox txt_box_em = font.getGlyphBounds(text, tempT1, tempT2);
             final float full_width_s = full_width_o / txt_box_em.getWidth();
             final float txt_scale = full_width_s/2f;
             pmv.glPushMatrix();
             pmv.glScalef(txt_scale, txt_scale, 1f);
             pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
-            final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, new float[] { 0, 0, 0, 1 }, sampleCount);
+            final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, new float[] { 0, 0, 0, 1 }, sampleCount, tempT1, tempT2);
             if( once ) {
                 final AABBox txt_box_em2 = font.getGlyphShapeBounds(null, text);
                 System.err.println("XXX: full_width: "+full_width_o+" / "+txt_box_em.getWidth()+" -> "+full_width_s);

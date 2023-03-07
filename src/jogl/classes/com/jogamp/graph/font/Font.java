@@ -329,17 +329,29 @@ public interface Font {
     AABBox getMetricBounds(final CharSequence string);
 
     /**
+     * Try using {@link #getGlyphBounds(CharSequence, AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
+     */
+    AABBox getGlyphBounds(final CharSequence string);
+
+    /**
      * Returns accurate bounding box by taking each glyph's font em-sized bounding box into account.
      * <p>
      * Glyph bounds is based on each glyph's bounding box and `hhea' composed line height.
      * </p>
      * @param string string text
+     * @param tmp1 temp {@link AffineTransform} to be reused
+     * @param tmp2 temp {@link AffineTransform} to be reused
      * @return the bounding box of the given string in font em-size [0..1]
      * @see #getGlyphBoundsFU(CharSequence)
      * @see #getGlyphShapeBounds(CharSequence)
      * @see #getMetricBounds(CharSequence)
      */
-    AABBox getGlyphBounds(final CharSequence string);
+    AABBox getGlyphBounds(final CharSequence string, final AffineTransform tmp1, final AffineTransform tmp2);
+
+    /**
+     * Try using {@link #getGlyphBoundsFU(CharSequence, AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
+     */
+    AABBox getGlyphBoundsFU(final CharSequence string);
 
     /**
      * Returns accurate bounding box by taking each glyph's font-units sized bounding box into account.
@@ -347,10 +359,12 @@ public interface Font {
      * Glyph bounds is based on each glyph's bounding box and `hhea' composed line height.
      * </p>
      * @param string string text
+     * @param tmp1 temp {@link AffineTransform} to be reused
+     * @param tmp2 temp {@link AffineTransform} to be reused
      * @return the bounding box of the given string in font-units [0..1]
      * @see #getGlyphBounds(CharSequence)
      */
-    AABBox getGlyphBoundsFU(final CharSequence string);
+    AABBox getGlyphBoundsFU(final CharSequence string, final AffineTransform tmp1, final AffineTransform tmp2);
 
     /**
      * Returns accurate bounding box by taking each glyph's font em-sized {@link OutlineShape} into account.
@@ -388,16 +402,8 @@ public interface Font {
     boolean isPrintableChar(final char c);
 
     /**
-     * Visit each {@link Glyph}'s {@link OutlineShape} of the string with the {@link OutlineShape.Visitor}
-     * while passing the progressed {@link AffineTransform}.
-     * <p>
-     * The produced shapes are in font em-size [0..1], but can be adjusted with the given transform, progressed and passed to the visitor.
-     * </p>
-     * @param visitor handling each glyph's outline shape in font em-size [0..1] and the given {@link AffineTransform}
-     * @param transform optional given transform
-     * @param font the target {@link Font}
-     * @param string string text
-     * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] {@link OutlineShape} into account.
+     * Try using {@link #processString(com.jogamp.graph.curve.OutlineShape.Visitor, AffineTransform, CharSequence, AffineTransform, AffineTransform)}
+     * to reuse {@link AffineTransform} instances.
      */
     AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
                          final CharSequence string);

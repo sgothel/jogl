@@ -156,6 +156,15 @@ public class TextRegionUtil {
     }
 
     /**
+     * Try using {@link #drawString3D(GL2ES2, int, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
+     */
+    public static AABBox drawString3D(final GL2ES2 gl, final int renderModes,
+                                      final RegionRenderer renderer, final Font font, final CharSequence str,
+                                      final float[] rgbaColor, final int[/*1*/] sampleCount) {
+        return drawString3D(gl, renderModes, renderer, font, str, rgbaColor, sampleCount, new AffineTransform(), new AffineTransform());
+    }
+
+    /**
      * Render the string in 3D space w.r.t. the font in font em-size [0..1] at the end of an internally temporary {@link GLRegion}.
      * <p>
      * The shapes added to the GLRegion are in font em-size [0..1].
@@ -166,7 +175,7 @@ public class TextRegionUtil {
      * <p>
      * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
      * is a huge performance impact.
-     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[])}
+     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)}
      * instead.
      * </p>
      * @param gl the current GL state
@@ -176,20 +185,30 @@ public class TextRegionUtil {
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
+     * @param tmp1 temp {@link AffineTransform} to be reused
+     * @param tmp2 temp {@link AffineTransform} to be reused
      * @throws Exception if TextRenderer not initialized
      * @return the bounding box of the given string from the produced and rendered GLRegion
      */
     public static AABBox drawString3D(final GL2ES2 gl, final int renderModes,
                                       final RegionRenderer renderer, final Font font, final CharSequence str,
-                                      final float[] rgbaColor, final int[/*1*/] sampleCount) {
+                                      final float[] rgbaColor, final int[/*1*/] sampleCount, final AffineTransform tmp1, final AffineTransform tmp2) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null);
-        final AABBox res = addStringToRegion(region, font, null, str, rgbaColor);
+        final AABBox res = addStringToRegion(region, font, null, str, rgbaColor, tmp1, tmp2);
         region.draw(gl, renderer, sampleCount);
         region.destroy(gl);
         return res;
+    }
+
+    /**
+     * Try using {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
+     */
+    public static AABBox drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
+                                      final Font font, final CharSequence str, final float[] rgbaColor, final int[/*1*/] sampleCount) {
+        return drawString3D(gl, region, renderer, font, str, rgbaColor, sampleCount, new AffineTransform(), new AffineTransform());
     }
 
     /**
@@ -211,16 +230,18 @@ public class TextRegionUtil {
      * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
+     * @param tmp1 temp {@link AffineTransform} to be reused
+     * @param tmp2 temp {@link AffineTransform} to be reused
      * @return the bounding box of the given string from the produced and rendered GLRegion
      * @throws Exception if TextRenderer not initialized
      */
     public static AABBox drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
                                       final Font font, final CharSequence str, final float[] rgbaColor,
-                                      final int[/*1*/] sampleCount) {
+                                      final int[/*1*/] sampleCount, final AffineTransform tmp1, final AffineTransform tmp2) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        final AABBox res = addStringToRegion(region, font, null, str, rgbaColor);
+        final AABBox res = addStringToRegion(region, font, null, str, rgbaColor, tmp1, tmp2);
         region.draw(gl, renderer, sampleCount);
         return res;
     }

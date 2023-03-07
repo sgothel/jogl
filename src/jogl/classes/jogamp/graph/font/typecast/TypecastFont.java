@@ -291,17 +291,22 @@ class TypecastFont implements Font {
 
     @Override
     public AABBox getGlyphBounds(final CharSequence string) {
-        return getGlyphBoundsFU(string).scale2(1.0f/metrics.getUnitsPerEM(), new float[3]);
+        return getGlyphBounds(string, new AffineTransform(), new AffineTransform());
+    }
+    @Override
+    public AABBox getGlyphBounds(final CharSequence string, final AffineTransform tmp1, final AffineTransform tmp2) {
+        return getGlyphBoundsFU(string, tmp1, tmp2).scale2(1.0f/metrics.getUnitsPerEM(), new float[3]);
     }
 
     @Override
     public AABBox getGlyphBoundsFU(final CharSequence string) {
+        return getGlyphBoundsFU(string, new AffineTransform(), new AffineTransform());
+    }
+    @Override
+    public AABBox getGlyphBoundsFU(final CharSequence string, final AffineTransform temp1, final AffineTransform temp2) {
         if (null == string || 0 == string.length() ) {
             return new AABBox();
         }
-        final AffineTransform temp1 = new AffineTransform();
-        final AffineTransform temp2 = new AffineTransform();
-
         final AABBox res = new AABBox();
         final int charCount = string.length();
 

@@ -62,6 +62,7 @@ import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.SVertex;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -184,6 +185,9 @@ public class UITypeDemo01 implements GLEventListener {
     private static final float zFar = 7000.0f;
 
     boolean ignoreInput = false;
+
+    protected final AffineTransform tempT1 = new AffineTransform();
+    protected final AffineTransform tempT2 = new AffineTransform();
 
     @SuppressWarnings("unused")
     public UITypeDemo01(final Font font, final int glyph_id, final String text, final int renderModes, final RenderState rs, final boolean debug, final boolean trace) {
@@ -341,13 +345,13 @@ public class UITypeDemo01 implements GLEventListener {
                     System.err.println("XXX: txt_box_e2 "+txt_box_em2);
                 }
             } else if( Glyph.ID_UNKNOWN == glyph_id ) {
-                final AABBox txt_box_em = font.getGlyphBounds(text);
+                final AABBox txt_box_em = font.getGlyphBounds(text, tempT1, tempT2);
                 final float full_width_s = full_width_o / txt_box_em.getWidth();
                 final float full_height_s = full_height_o / txt_box_em.getHeight();
                 final float txt_scale = full_width_s < full_height_s ? full_width_s/2f : full_height_s/2f;
                 pmv.glScalef(txt_scale, txt_scale, 1f);
                 pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
-                final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, fg_color, sampleCount);
+                final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, fg_color, sampleCount, tempT1, tempT2);
                 if( once ) {
                     final AABBox txt_box_em2 = font.getGlyphShapeBounds(null, text);
                     System.err.println("XXX: full_width: "+full_width_o+" / "+txt_box_em.getWidth()+" -> "+full_width_s);
