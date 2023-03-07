@@ -968,20 +968,20 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * </p>
      */
     public final ArrayList<Vertex> getVertices() {
-        final boolean updated;
+        // final boolean updated;
         if( 0 != ( DIRTY_VERTICES & dirtyBits ) ) {
             vertices.clear();
             for(int i=0; i<outlines.size(); i++) {
                 vertices.addAll(outlines.get(i).getVertices());
             }
             dirtyBits &= ~DIRTY_VERTICES;
-            updated = true;
-        } else {
-            updated = false;
+            // updated = true;
+        // } else {
+        //    updated = false;
         }
-        if(Region.DEBUG_INSTANCE) {
-            System.err.println("OutlineShape.getVertices(): o "+outlines.size()+", v "+vertices.size()+", updated "+updated);
-        }
+        // if(Region.DEBUG_INSTANCE) {
+        //    System.err.println("OutlineShape.getVertices(): o "+outlines.size()+", v "+vertices.size()+", updated "+updated);
+        // }
         return vertices;
     }
 
