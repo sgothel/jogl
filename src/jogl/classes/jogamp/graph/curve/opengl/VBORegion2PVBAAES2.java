@@ -225,7 +225,6 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     }
 
     @Override
-    public void growBufferSize(final int verticeCount, final int indexCount) {
         if(null == indicesBuffer ) {
             indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), indexCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
             indicesBuffer.setGrowthFactor(growthFactor);
@@ -238,6 +237,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
             gca_VerticesAttr.setGrowthFactor(growthFactor);
         } else {
             gca_VerticesAttr.growIfNeeded(verticeCount * gca_VerticesAttr.getCompsPerElem());
+    public void growBuffer(final int verticesCount, final int indicesCount) {
         }
         if( null == gca_CurveParamsAttr ) {
             gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,

@@ -28,6 +28,9 @@
 package com.jogamp.graph.curve;
 
 import java.io.PrintStream;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -198,10 +201,12 @@ public abstract class Region {
 
     /**
      * Allow the renderer buffers to pre-emptively grow for given vertices- and index counts.
-     * @param verticeCount number of vertices to hold
-     * @param indexCount number of indices to hold
+     * @param verticesCount number of vertices to hold
+     * @param indicesCount number of indices to hold
+     * @see #countOutlineShape(OutlineShape, int[])
+     * @see #countOutlineShapes(List, int[])
      */
-    public abstract void growBufferSize(int verticeCount, int indexCount);
+    public abstract void growBuffer(int verticesCount, int indicesCount);
 
     protected abstract void pushVertex(final float[] coords, final float[] texParams, float[] rgba);
     protected abstract void pushVertices(final float[] coords1, final float[] coords2, final float[] coords3,
@@ -349,7 +354,6 @@ public abstract class Region {
     protected static final int GL_INT32_MAX = 0x7fffffff; // 2,147,483,647
 
     static class Perf {
-        long t0 = 0, t1 = 0, t2 = 0;
         // all td_ values are in [ns]
         long td_vertices = 0;
         long td_tri_push_idx = 0;
@@ -373,7 +377,6 @@ public abstract class Region {
         }
 
         public void clear() {
-            t0 = 0; t1 = 0; t2 = 0;
             td_vertices = 0;
             td_tri_push_idx = 0;
             td_tri_push_vertidx = 0;
@@ -433,10 +436,6 @@ public abstract class Region {
      * @param rgbaColor TODO
      */
     public final void addOutlineShape(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
-        if( null != perf ) {
-            ++perf.count;
-            perf.t0 = Clock.currentNanos();
-        }
         if( null != frustum ) {
             final AABBox shapeBox = shape.getBounds();
             final AABBox shapeBoxT;
@@ -447,12 +446,56 @@ public abstract class Region {
                 shapeBoxT = shapeBox;
             }
             if( frustum.isAABBoxOutside(shapeBoxT) ) {
-                if(DEBUG_INSTANCE) {
-                    System.err.println("Region.addOutlineShape(): Dropping outside shapeBoxT: "+shapeBoxT);
-                }
                 return;
             }
         }
+        if( null == perf && !DEBUG_INSTANCE ) {
+            addOutlineShape0(shape, t, rgbaColor);
+        } else {
+            addOutlineShape1(shape, t, rgbaColor);
+        }
+        markShapeDirty();
+    }
+    private final void addOutlineShape0(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
+        final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
+        final ArrayList<Vertex> vertsIn = shape.getVertices();
+        {
+            final int verticeCount = vertsIn.size() + shape.getAddedVerticeCount();
+            final int indexCount = trisIn.size() * 3;
+            growBuffer(verticeCount, indexCount);
+        }
+
+        final int idxOffset = numVertices;
+        if( vertsIn.size() >= 3 ) {
+            //
+            // Processing Vertices
+            //
+            for(int i=0; i<vertsIn.size(); i++) {
+                pushNewVertexImpl(vertsIn.get(i), t, rgbaColor);
+            }
+            final int trisIn_sz = trisIn.size();
+            for(int i=0; i < trisIn_sz; ++i) {
+                final Triangle triIn = trisIn.get(i);
+                // triEx.addVertexIndicesOffset(idxOffset);
+                // triangles.add( triEx );
+                final Vertex[] triInVertices = triIn.getVertices();
+                final int tv0Idx = triInVertices[0].getId();
+
+                if ( max_indices - idxOffset > tv0Idx ) {
+                    // valid 'known' idx - move by offset
+                    pushIndices(tv0Idx+idxOffset,
+                                triInVertices[1].getId()+idxOffset,
+                                triInVertices[2].getId()+idxOffset);
+                } else {
+                    // FIXME: Invalid idx - generate new one
+                    pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
+                }
+            }
+        }
+    }
+    private final void addOutlineShape1(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
+        ++perf.count;
+        final long t0 = Clock.currentNanos();
         final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
         final ArrayList<Vertex> vertsIn = shape.getVertices();
         {
@@ -464,31 +507,29 @@ public abstract class Region {
                 System.err.println("Region.addOutlineShape().0: VerticeCount "+vertsIn.size()+" + "+addedVerticeCount+" = "+verticeCount);
                 System.err.println("Region.addOutlineShape().0: IndexCount "+indexCount);
             }
-            growBufferSize(verticeCount, indexCount);
+            growBuffer(verticeCount, indexCount);
         }
 
         final int idxOffset = numVertices;
         int vertsVNewIdxCount = 0, vertsTMovIdxCount = 0, vertsTNewIdxCount = 0, tris = 0;
         final int vertsDupCountV = 0, vertsDupCountT = 0, vertsKnownMovedT = 0;
         if( vertsIn.size() >= 3 ) {
-            if(DEBUG_INSTANCE) {
-                System.err.println("Region.addOutlineShape(): Processing Vertices");
-            }
+            // if(DEBUG_INSTANCE) {
+            //    System.err.println("Region.addOutlineShape(): Processing Vertices");
+            // }
             for(int i=0; i<vertsIn.size(); i++) {
                 pushNewVertexImpl(vertsIn.get(i), t, rgbaColor);
                 vertsVNewIdxCount++;
             }
-            if( null != perf ) {
-                perf.t1 = Clock.currentNanos();
-                perf.td_vertices += perf.t1 - perf.t0;
-            }
-            if(DEBUG_INSTANCE) {
-                System.err.println("Region.addOutlineShape(): Processing Triangles");
-            }
-            for(final Triangle triIn : trisIn) {
-                if( null != perf ) {
-                    perf.t2 = Clock.currentNanos();
-                }
+            final long t1 = Clock.currentNanos();
+            perf.td_vertices += t1 - t0;
+            // if(DEBUG_INSTANCE) {
+            //    System.err.println("Region.addOutlineShape(): Processing Triangles");
+            // }
+            final int trisIn_sz = trisIn.size();
+            for(int i=0; i < trisIn_sz; ++i) {
+                final Triangle triIn = trisIn.get(i);
+                final long t2 = Clock.currentNanos();
                 // if(Region.DEBUG_INSTANCE) {
                 //     System.err.println("T["+i+"]: "+triIn);
                 // }
@@ -497,47 +538,33 @@ public abstract class Region {
                 final Vertex[] triInVertices = triIn.getVertices();
                 final int tv0Idx = triInVertices[0].getId();
 
-                if( null != perf ) {
-                    perf.td_tri_misc += Clock.currentNanos() - perf.t2;
-                }
+                perf.td_tri_misc += Clock.currentNanos() - t2;
                 if ( max_indices - idxOffset > tv0Idx ) {
                     // valid 'known' idx - move by offset
                     // if(Region.DEBUG_INSTANCE) {
                     //     System.err.println("T["+i+"]: Moved "+tv0Idx+" + "+idxOffset+" -> "+(tv0Idx+idxOffset));
                     // }
-                    if( null != perf ) {
-                        final long tpi = Clock.currentNanos();
-                        pushIndices(tv0Idx+idxOffset,
-                                    triInVertices[1].getId()+idxOffset,
-                                    triInVertices[2].getId()+idxOffset);
-                        perf.td_tri_push_idx += Clock.currentNanos() - tpi;
-                    } else {
-                        pushIndices(tv0Idx+idxOffset,
-                                    triInVertices[1].getId()+idxOffset,
-                                    triInVertices[2].getId()+idxOffset);
-                    }
+                    final long tpi = Clock.currentNanos();
+                    pushIndices(tv0Idx+idxOffset,
+                                triInVertices[1].getId()+idxOffset,
+                                triInVertices[2].getId()+idxOffset);
+                    perf.td_tri_push_idx += Clock.currentNanos() - tpi;
                     vertsTMovIdxCount+=3;
                 } else {
                     // FIXME: Invalid idx - generate new one
                     // if( Region.DEBUG_INSTANCE) {
                     //    System.err.println("T["+i+"]: New Idx "+numVertices);
                     // }
-                    if( null != perf ) {
-                        final long tpvi = Clock.currentNanos();
-                        pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
-                        perf.td_tri_push_vertidx += Clock.currentNanos() - tpvi;
-                    } else {
-                        pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
-                    }
+                    final long tpvi = Clock.currentNanos();
+                    pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
+                    perf.td_tri_push_vertidx += Clock.currentNanos() - tpvi;
                     vertsTNewIdxCount+=3;
                 }
                 tris++;
             }
-            if( null != perf ) {
-                final long ttriX = Clock.currentNanos();
-                perf.td_tri_total += ttriX - perf.t1;
-                perf.td_total += ttriX - perf.t0;
-            }
+            final long ttriX = Clock.currentNanos();
+            perf.td_tri_total += ttriX - t1;
+            perf.td_total += ttriX - t0;
         }
         if(DEBUG_INSTANCE) {
             System.err.println("Region.addOutlineShape().X: idx[ui32 "+usesI32Idx()+", offset "+idxOffset+"], tris: "+tris+", verts [idx "+vertsTNewIdxCount+", add "+vertsTNewIdxCount+" = "+(vertsVNewIdxCount+vertsTNewIdxCount)+"]");
@@ -548,7 +575,7 @@ public abstract class Region {
             System.err.println("Region.addOutlineShape().X: box "+box);
             printBufferStats(System.err);
         }
-        markShapeDirty();
+    }
     }
 
     public final void addOutlineShapes(final List<OutlineShape> shapes, final AffineTransform transform, final float[] rgbaColor) {

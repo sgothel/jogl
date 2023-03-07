@@ -97,12 +97,12 @@ public class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    public void growBufferSize(final int verticeCount, final int indexCount) {
         indicesBuffer.growIfNeeded(indexCount * indicesBuffer.getCompsPerElem());
         gca_VerticesAttr.growIfNeeded(verticeCount * gca_VerticesAttr.getCompsPerElem());
         gca_CurveParamsAttr.growIfNeeded(verticeCount * gca_CurveParamsAttr.getCompsPerElem());
         if( null != gca_ColorsAttr ) {
             gca_ColorsAttr.growIfNeeded(verticeCount * gca_ColorsAttr.getCompsPerElem());
+    public void growBuffer(final int verticesCount, final int indicesCount) {
         }
     }
 
