@@ -93,7 +93,7 @@ public class GLSLArrayHandler extends GLVBOArrayHandler {
             if(!ad.isVBOWritten()) {
                 glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
                 if(null!=buffer) {
-                    glsl.glBufferData(ad.getVBOTarget(), ad.getSizeInBytes(), buffer, ad.getVBOUsage());
+                    glsl.glBufferData(ad.getVBOTarget(), ad.getByteCount(), buffer, ad.getVBOUsage());
                 }
                 ad.setVBOWritten(true);
                 st.vertexAttribPointer(glsl, ad);
@@ -144,7 +144,7 @@ public class GLSLArrayHandler extends GLVBOArrayHandler {
             if(!ad.isVBOWritten()) {
                 glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
                 if(null!=buffer) {
-                    glsl.glBufferData(ad.getVBOTarget(), ad.getSizeInBytes(), buffer, ad.getVBOUsage());
+                    glsl.glBufferData(ad.getVBOTarget(), ad.getByteCount(), buffer, ad.getVBOUsage());
                 }
                 ad.setVBOWritten(true);
                 glsl.glVertexAttribPointer(ad);

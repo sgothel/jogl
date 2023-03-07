@@ -28,7 +28,6 @@
 
 package com.jogamp.opengl.util;
 
-import java.io.PrintStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -51,7 +50,9 @@ public class GLArrayDataWrapper implements GLArrayData {
 
   /**
    * Create a VBO, using a predefined fixed function array index, wrapping the given data.
-   *
+   * <p>
+   * This buffer is always {@link #sealed()}.
+   * </p>
    * @param index The GL array index
    * @param comps The array component number
    * @param dataType The array index GL data type
@@ -76,7 +77,9 @@ public class GLArrayDataWrapper implements GLArrayData {
 
   /**
    * Create a VBO, using a predefined fixed function array index, wrapping the mapped data characteristics.
-   *
+   * <p>
+   * This buffer is always {@link #sealed()}.
+   * </p>
    * @param index The GL array index
    * @param comps The array component number
    * @param dataType The array index GL data type
@@ -101,7 +104,9 @@ public class GLArrayDataWrapper implements GLArrayData {
 
   /**
    * Create a VBO, using a custom GLSL array attribute name, wrapping the given data.
-   *
+   * <p>
+   * This buffer is always {@link #sealed()}.
+   * </p>
    * @param name  The custom name for the GL attribute, maybe null if gpuBufferTarget is {@link GL#GL_ELEMENT_ARRAY_BUFFER}
    * @param comps The array component number
    * @param dataType The array index GL data type
@@ -125,7 +130,9 @@ public class GLArrayDataWrapper implements GLArrayData {
 
   /**
    * Create a VBO, using a custom GLSL array attribute name, wrapping the mapped data characteristics.
-   *
+   * <p>
+   * This buffer is always {@link #sealed()}.
+   * </p>
    * @param name  The custom name for the GL attribute, maybe null if gpuBufferTarget is {@link GL#GL_ELEMENT_ARRAY_BUFFER}
    * @param comps The array component number
    * @param dataType The array index GL data type
@@ -183,7 +190,7 @@ public class GLArrayDataWrapper implements GLArrayData {
   //
 
   @Override
-  public final boolean isVertexAttribute() { return isVertexAttribute; }
+  public final boolean isVertexAttribute() { return isVertexAttr; }
 
   @Override
   public final int getIndex() { return index; }
@@ -229,53 +236,119 @@ public class GLArrayDataWrapper implements GLArrayData {
   public Buffer getBuffer() { return buffer; }
 
   @Override
-  public final int getCompsPerElem() { return componentsPerElement; }
+  public final int getCompsPerElem() { return compsPerElement; }
 
   @Override
-  public final int getCompType() { return componentType; }
+  public final int getCompType() { return compType; }
 
   @Override
-  public final int getBytesPerComp() { return bytesPerComponent; }
+  public final int getBytesPerComp() { return bytesPerComp; }
+
+  @Override
+  public final boolean sealed() { return sealed; }
 
   @Override
   public final int getElemCount() {
-    if( 0 != mappedElementCount ) {
-        return mappedElementCount;
+    if( 0 != mappedElemCount ) {
+        return mappedElemCount;
     } else if( null != buffer ) {
-        final int remainingComponents = ( 0 == buffer.position() ) ? buffer.limit() : buffer.position();
-        return ( remainingComponents * bytesPerComponent ) / strideB ;
+        if( sealed ) {
+            return ( buffer.limit() * bytesPerComp ) / strideB ;
+        } else {
+            return ( buffer.position() * bytesPerComp ) / strideB ;
+        }
     } else {
         return 0;
     }
   }
 
   @Override
-  public final int getSizeInBytes() {
-    if( 0 != mappedElementCount ) {
-        return mappedElementCount * componentsPerElement * bytesPerComponent ;
+  public final int elemPosition() {
+    if( 0 != mappedElemCount ) {
+        return mappedElemCount;
     } else if( null != buffer ) {
-        return ( buffer.position()==0 ) ? ( buffer.limit() * bytesPerComponent ) : ( buffer.position() * bytesPerComponent ) ;
+        return ( buffer.position() * bytesPerComp ) / strideB ;
     } else {
         return 0;
     }
   }
 
   @Override
-  public int getCapacityInBytes() {
+  public int remainingElems() {
+      if( null != buffer ) {
+          return ( buffer.remaining() * bytesPerComp ) / strideB ;
+      } else {
+          return 0;
+      }
+  }
+
+  @Override
+  public int getElemCapacity() {
     if( null != buffer ) {
-        return buffer.capacity() * bytesPerComponent;
+        return ( buffer.capacity() * bytesPerComp ) / strideB ;
     } else {
         return 0;
     }
   }
 
   @Override
-  public void printStats(final PrintStream out) {
-      final int sz_bytes = getSizeInBytes();
-      final int cap_bytes = getCapacityInBytes();
-      final float filled = (float)sz_bytes/(float)cap_bytes;
-      out.printf("elements %,d / %,d, bytes %,d / %,d, filled %.1f%%, left %.1f%%",
-              getElemCount(), cap_bytes / (componentsPerElement * bytesPerComponent), sz_bytes, cap_bytes, filled*100f, (1f-filled)*100f);
+  public final int getByteCount() {
+    if( 0 != mappedElemCount ) {
+        return mappedElemCount * compsPerElement * bytesPerComp ;
+    } else if( null != buffer ) {
+        if( sealed ) {
+            return buffer.limit() * bytesPerComp ;
+        } else {
+            return buffer.position() * bytesPerComp ;
+        }
+    } else {
+        return 0;
+    }
+  }
+
+  @Override
+  public final int bytePosition() {
+    if( 0 != mappedElemCount ) {
+        return mappedElemCount * compsPerElement * bytesPerComp ;
+    } else if( null != buffer ) {
+        return buffer.position() * bytesPerComp;
+    } else {
+        return 0;
+    }
+  }
+
+  @Override
+  public int remainingBytes() {
+      if( null != buffer ) {
+          return buffer.remaining() * bytesPerComp;
+      } else {
+          return 0;
+      }
+  }
+
+  @Override
+  public int getByteCapacity() {
+    if( null != buffer ) {
+        return buffer.capacity() * bytesPerComp;
+    } else {
+        return 0;
+    }
+  }
+
+  @Override
+  public String fillStatsToString() {
+      final int cnt_bytes = getByteCount();
+      final int cap_bytes = getByteCapacity();
+      final float filled = (float)cnt_bytes/(float)cap_bytes;
+      return String.format("elements %,d cnt / %,d cap, bytes %,d cnt / %,d cap, filled %.1f%%, left %.1f%%",
+              getElemCount(), getElemCapacity(), cnt_bytes, cap_bytes, filled*100f, (1f-filled)*100f);
+  }
+
+  @Override
+  public String elemStatsToString() {
+      final int elem_limit = null != buffer ? ( buffer.limit() * bytesPerComp ) / strideB : 0;
+      return String.format("sealed %b, elements %,d cnt, [%,d pos .. %,d rem .. %,d lim .. %,d cap]",
+              sealed(), getElemCount(), elemPosition(), remainingElems(), elem_limit, getElemCapacity());
   }
 
   @Override
@@ -284,7 +357,7 @@ public class GLArrayDataWrapper implements GLArrayData {
   @Override
   public final int getStride() { return strideB; }
 
-  public final Class<?> getBufferClass() { return componentClazz; }
+  public final Class<?> getBufferClass() { return compClazz; }
 
   @Override
   public void destroy(final GL gl) {
@@ -300,13 +373,13 @@ public class GLArrayDataWrapper implements GLArrayData {
     return "GLArrayDataWrapper["+name+
                        ", index "+index+
                        ", location "+location+
-                       ", isVertexAttribute "+isVertexAttribute+
-                       ", dataType 0x"+Integer.toHexString(componentType)+
-                       ", bufferClazz "+componentClazz+
-                       ", elements "+getElemCount()+
-                       ", components "+componentsPerElement+
+                       ", isVertexAttribute "+isVertexAttr+
+                       ", dataType 0x"+Integer.toHexString(compType)+
+                       ", bufferClazz "+compClazz+
+                       ", compsPerElem "+compsPerElement+
                        ", stride "+strideB+"b "+strideL+"c"+
-                       ", mappedElementCount "+mappedElementCount+
+                       ", mappedElemCount "+mappedElemCount+
+                       ", "+elemStatsToString()+
                        ", buffer "+buffer+
                        ", vboEnabled "+vboEnabled+
                        ", vboName "+vboName+
@@ -399,33 +472,33 @@ public class GLArrayDataWrapper implements GLArrayData {
     }
 
     // immutable types
-    this.componentType = componentType;
-    componentClazz = getBufferClass(componentType);
-    bytesPerComponent = GLBuffers.sizeOfGLType(componentType);
-    if(0 > bytesPerComponent) {
+    this.compType = componentType;
+    compClazz = getBufferClass(componentType);
+    bytesPerComp = GLBuffers.sizeOfGLType(componentType);
+    if(0 > bytesPerComp) {
         throw new GLException("Given componentType not supported: "+componentType+":\n\t"+this);
     }
     if(0 >= componentsPerElement) {
         throw new GLException("Invalid number of components: " + componentsPerElement);
     }
-    this.componentsPerElement = componentsPerElement;
+    this.compsPerElement = componentsPerElement;
 
-    if(0<stride && stride<componentsPerElement*bytesPerComponent) {
-        throw new GLException("stride ("+stride+") lower than component bytes, "+componentsPerElement+" * "+bytesPerComponent);
+    if(0<stride && stride<componentsPerElement*bytesPerComp) {
+        throw new GLException("stride ("+stride+") lower than component bytes, "+componentsPerElement+" * "+bytesPerComp);
     }
-    if(0<stride && stride%bytesPerComponent!=0) {
-        throw new GLException("stride ("+stride+") not a multiple of bpc "+bytesPerComponent);
+    if(0<stride && stride%bytesPerComp!=0) {
+        throw new GLException("stride ("+stride+") not a multiple of bpc "+bytesPerComp);
     }
-    this.strideB=(0==stride)?componentsPerElement*bytesPerComponent:stride;
-    this.strideL=strideB/bytesPerComponent;
+    this.strideB=(0==stride)?componentsPerElement*bytesPerComp:stride;
+    this.strideL=strideB/bytesPerComp;
 
     if( GLBuffers.isGLTypeFixedPoint(componentType) ) {
         this.normalized = normalized;
     } else {
         this.normalized = false;
     }
-    this.mappedElementCount = mappedElementCount;
-    this.isVertexAttribute = isVertexAttribute;
+    this.mappedElemCount = mappedElementCount;
+    this.isVertexAttr = isVertexAttribute;
 
     // mutable types
     this.index = index;
@@ -455,6 +528,7 @@ public class GLArrayDataWrapper implements GLArrayData {
     this.vboUsage=vboUsage;
     this.vboTarget=vboTarget;
     this.alive=true;
+    this.sealed = true;
   }
 
   /**
@@ -468,15 +542,15 @@ public class GLArrayDataWrapper implements GLArrayData {
    */
   public GLArrayDataWrapper(final GLArrayDataWrapper src) {
     // immutable types
-    this.componentType = src.componentType;
-    this.componentClazz = src.componentClazz;
-    this.bytesPerComponent = src.bytesPerComponent;
-    this.componentsPerElement = src.componentsPerElement;
+    this.compType = src.compType;
+    this.compClazz = src.compClazz;
+    this.bytesPerComp = src.bytesPerComp;
+    this.compsPerElement = src.compsPerElement;
     this.strideB = src.strideB;
     this.strideL = src.strideL;
     this.normalized = src.normalized;
-    this.mappedElementCount = src.mappedElementCount;
-    this.isVertexAttribute = src.isVertexAttribute;
+    this.mappedElemCount = src.mappedElemCount;
+    this.isVertexAttr = src.isVertexAttr;
 
     // mutable types
     this.alive = src.alive;
@@ -497,20 +571,22 @@ public class GLArrayDataWrapper implements GLArrayData {
     this.vboEnabled = src.vboEnabled;
     this.vboUsage = src.vboUsage;
     this.vboTarget = src.vboTarget;
+    this.sealed = src.sealed;
   }
 
-  protected final int componentType;
-  protected final Class<?> componentClazz;
-  protected final int bytesPerComponent;
-  protected final int componentsPerElement;
-  /** stride in bytes; strideB >= componentsPerElement * componentByteSize */
+  protected final int compType;
+  protected final Class<?> compClazz;
+  protected final int bytesPerComp;
+  protected final int compsPerElement;
+  /** stride in bytes; strideB >= compsPerElement * bytesPerComp */
   protected final int strideB;
   /** stride in logical components */
   protected final int strideL;
   protected final boolean normalized;
-  protected final int mappedElementCount;
-  protected final boolean isVertexAttribute;
+  protected final int mappedElemCount;
+  protected final boolean isVertexAttr;
 
+  // mutable types
   protected boolean alive;
   protected int index;
   protected int location;
@@ -521,5 +597,6 @@ public class GLArrayDataWrapper implements GLArrayData {
   protected boolean vboEnabled;
   protected int vboUsage;
   protected int vboTarget;
+  protected boolean sealed;
 }
 

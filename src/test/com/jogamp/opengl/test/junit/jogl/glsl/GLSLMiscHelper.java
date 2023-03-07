@@ -57,7 +57,7 @@ public class GLSLMiscHelper {
         gl.glGetVertexAttribiv(data.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
         Assert.assertEquals(data.getVBOName(), qi[0]);
         final GLBufferStorage glStore = gl.getBufferStorage(data.getVBOName());
-        Assert.assertEquals("GLBufferStorage size mismatch, storage "+glStore, data.getSizeInBytes(), null != glStore ? glStore.getSize() : -1);
+        Assert.assertEquals("GLBufferStorage size mismatch, storage "+glStore, data.getByteCount(), null != glStore ? glStore.getSize() : -1);
     }
 
     public static void pause(final long ms) throws InterruptedException {

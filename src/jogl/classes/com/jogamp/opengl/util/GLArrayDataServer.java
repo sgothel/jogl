@@ -321,10 +321,10 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
       }
       final int subStrideB = ( 0 == getStride() ) ? getCompsPerElem() * getBytesPerComp() : getStride();
       final GLArrayDataWrapper ad;
-      if( 0 < mappedElementCount ) {
+      if( 0 < mappedElemCount ) {
           ad = GLArrayDataWrapper.createFixed(
                   index, comps, getCompType(),
-                  getNormalized(), subStrideB, mappedElementCount,
+                  getNormalized(), subStrideB, mappedElemCount,
                   getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);
       } else {
           ad = GLArrayDataWrapper.createFixed(
@@ -422,10 +422,10 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
       }
       final int subStrideB = ( 0 == getStride() ) ? getCompsPerElem() * getBytesPerComp() : getStride();
       final GLArrayDataWrapper ad;
-      if( 0 < mappedElementCount ) {
+      if( 0 < mappedElemCount ) {
           ad = GLArrayDataWrapper.createGLSL(
                   name, comps, getCompType(),
-                  getNormalized(), subStrideB, mappedElementCount,
+                  getNormalized(), subStrideB, mappedElemCount,
                   getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);
       } else {
           ad = GLArrayDataWrapper.createGLSL(
@@ -495,7 +495,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
       }
       checkSeal(true);
       bindBuffer(gl, true);
-      gl.glBufferData(getVBOTarget(), getSizeInBytes(), null, getVBOUsage());
+      gl.glBufferData(getVBOTarget(), getByteCount(), null, getVBOUsage());
       final GLBufferStorage storage = gl.mapBuffer(getVBOTarget(), access);
       setMappedBuffer(storage);
       bindBuffer(gl, false);
@@ -512,7 +512,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
       }
       checkSeal(true);
       bindBuffer(gl, true);
-      gl.glBufferData(getVBOTarget(), getSizeInBytes(), null, getVBOUsage());
+      gl.glBufferData(getVBOTarget(), getByteCount(), null, getVBOUsage());
       final GLBufferStorage storage = gl.mapBufferRange(getVBOTarget(), offset, length, access);
       setMappedBuffer(storage);
       bindBuffer(gl, false);
@@ -523,16 +523,16 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   private final void setMappedBuffer(final GLBufferStorage storage) {
       mappedStorage = storage;
       final ByteBuffer bb = storage.getMappedBuffer();
-      if(componentClazz==ByteBuffer.class) {
+      if(compClazz==ByteBuffer.class) {
           buffer = bb;
-      } else if(componentClazz==ShortBuffer.class) {
+      } else if(compClazz==ShortBuffer.class) {
           buffer = bb.asShortBuffer();
-      } else if(componentClazz==IntBuffer.class) {
+      } else if(compClazz==IntBuffer.class) {
           buffer = bb.asIntBuffer();
-      } else if(componentClazz==FloatBuffer.class) {
+      } else if(compClazz==FloatBuffer.class) {
           buffer = bb.asFloatBuffer();
       } else {
-          throw new GLException("Given Buffer Class not supported: "+componentClazz+":\n\t"+this);
+          throw new GLException("Given Buffer Class not supported: "+compClazz+":\n\t"+this);
       }
   }
 
@@ -553,23 +553,22 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
     return "GLArrayDataServer["+name+
                        ", index "+index+
                        ", location "+location+
-                       ", isVertexAttribute "+isVertexAttribute+
+                       ", isVertexAttribute "+isVertexAttr+
                        ", usesGLSL "+usesGLSL+
                        ", usesShaderState "+(null!=shaderState)+
-                       ", dataType 0x"+Integer.toHexString(componentType)+
-                       ", bufferClazz "+componentClazz+
-                       ", elements "+getElemCount()+
-                       ", components "+componentsPerElement+
+                       ", dataType 0x"+Integer.toHexString(compType)+
+                       ", bufferClazz "+compClazz+
+                       ", compsPerElem "+compsPerElement+
                        ", stride "+strideB+"b "+strideL+"c"+
-                       ", initialElementCount "+initialElementCount+
-                       ", mappedElementCount "+mappedElementCount+
+                       ", initElemCount "+initElemCount+
+                       ", mappedElemCount "+mappedElemCount+
+                       ", "+elemStatsToString()+
                        ", mappedStorage "+mappedStorage+
                        ", vboEnabled "+vboEnabled+
                        ", vboName "+vboName+
                        ", vboUsage 0x"+Integer.toHexString(vboUsage)+
                        ", vboTarget 0x"+Integer.toHexString(vboTarget)+
                        ", vboOffset "+vboOffset+
-                       ", sealed "+sealed+
                        ", bufferEnabled "+bufferEnabled+
                        ", bufferWritten "+bufferWritten+
                        ", buffer "+buffer+

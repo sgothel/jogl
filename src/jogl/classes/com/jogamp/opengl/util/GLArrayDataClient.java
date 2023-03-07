@@ -161,9 +161,6 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   public final boolean isVBOWritten() { return bufferWritten; }
 
   @Override
-  public final boolean sealed() { return sealed; }
-
-  @Override
   public final boolean enabled() { return bufferEnabled; }
 
   //
@@ -172,7 +169,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
 
   @Override
   public final void setVBOWritten(final boolean written) {
-      bufferWritten = ( 0 == mappedElementCount ) ? written : true;
+      bufferWritten = ( 0 == mappedElemCount ) ? written : true;
   }
 
   @Override
@@ -232,7 +229,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     }
     sealed = false;
     bufferEnabled = false;
-    bufferWritten = ( 0 == mappedElementCount ) ? false : true;
+    bufferWritten = ( 0 == mappedElemCount ) ? false : true;
   }
 
   @Override
@@ -240,7 +237,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   {
     if( sealed == seal ) return;
     sealed = seal;
-    bufferWritten = ( 0 == mappedElementCount ) ? false : true;
+    bufferWritten = ( 0 == mappedElemCount ) ? false : true;
     if( seal ) {
         if ( null != buffer ) {
             buffer.flip();
@@ -407,17 +404,16 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     return "GLArrayDataClient["+name+
                        ", index "+index+
                        ", location "+location+
-                       ", isVertexAttribute "+isVertexAttribute+
+                       ", isVertexAttribute "+isVertexAttr+
                        ", usesGLSL "+usesGLSL+
                        ", usesShaderState "+(null!=shaderState)+
-                       ", dataType 0x"+Integer.toHexString(componentType)+
-                       ", bufferClazz "+componentClazz+
-                       ", elements "+getElemCount()+
-                       ", compsPerElem "+componentsPerElement+
+                       ", dataType 0x"+Integer.toHexString(compType)+
+                       ", bufferClazz "+compClazz+
+                       ", compsPerElem "+compsPerElement+
                        ", stride "+strideB+"b "+strideL+"c"+
-                       ", mappedElementCount "+mappedElementCount+
-                       ", initialElementCount "+initialElementCount+
-                       ", sealed "+sealed+
+                       ", initElemCount "+initElemCount+
+                       ", mappedElemCount "+mappedElemCount+
+                       ", "+elemStatsToString()+
                        ", bufferEnabled "+bufferEnabled+
                        ", bufferWritten "+bufferWritten+
                        ", buffer "+buffer+
@@ -429,7 +425,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * Returning element-count from given componentCount, rounding up to componentsPerElement.
    */
   public int compsToElemCount(final int componentCount) {
-      return ( componentCount + componentsPerElement - 1 ) / componentsPerElement;
+      return ( componentCount + compsPerElement - 1 ) / compsPerElement;
   }
 
   /**
@@ -441,15 +437,31 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * @return true if buffer size has changed, i.e. grown. Otherwise false.
    */
   public final boolean growIfNeeded(final int spareComponents) {
-    if( buffer==null || buffer.remaining()<spareComponents ) {
-        if( 0 != mappedElementCount ) {
+    if( buffer.remaining() < spareComponents ) {
+        if( 0 != mappedElemCount ) {
             throw new GLException("Mapped buffer can't grow. Insufficient storage size: Needed "+spareComponents+" components, "+
-                                  "mappedElementCount "+mappedElementCount+
+                                  "mappedElementCount "+mappedElemCount+
+                                  ", has mapped buffer "+buffer+"; "+this);
+        }
+        final int has_comps = buffer.capacity();
+        final int required_elems = compsToElemCount(has_comps + spareComponents);
+        final int new_elems = compsToElemCount( (int)( has_comps * growthFactor + 0.5f ) );
+        final int elementCount = Math.max( new_elems, required_elems );
+        return reserve( elementCount );
+    }
+    return false;
+  }
+
+  public final boolean growIfNeeded0(final int spareComponents) {
+    if( buffer==null || buffer.remaining()<spareComponents ) {
+        if( 0 != mappedElemCount ) {
+            throw new GLException("Mapped buffer can't grow. Insufficient storage size: Needed "+spareComponents+" components, "+
+                                  "mappedElementCount "+mappedElemCount+
                                   ", has mapped buffer "+buffer+"; "+this);
         }
         if( null == buffer ) {
             final int required_elems = compsToElemCount(spareComponents);
-            return reserve( Math.max( initialElementCount, required_elems ) );
+            return reserve( Math.max( initElemCount, required_elems ) );
         } else {
             final int has_comps = buffer.capacity();
             final int required_elems = compsToElemCount(has_comps + spareComponents);
@@ -479,37 +491,37 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     }
 
     // add the stride delta
-    elementCount += (elementCount/componentsPerElement)*(strideL-componentsPerElement);
+    elementCount += (elementCount/compsPerElement)*(strideL-compsPerElement);
 
     final int osize = (buffer!=null) ? buffer.capacity() : 0;
-    final int nsize = elementCount * componentsPerElement;
+    final int nsize = elementCount * compsPerElement;
     if( nsize <= osize ) {
         return false;
     }
     final Buffer oldBuffer = buffer;
 
-    if(componentClazz==ByteBuffer.class) {
+    if(compClazz==ByteBuffer.class) {
         final ByteBuffer newBBuffer = Buffers.newDirectByteBuffer( nsize );
         if(oldBuffer!=null) {
             oldBuffer.flip();
             newBBuffer.put((ByteBuffer)oldBuffer);
         }
         buffer = newBBuffer;
-    } else if(componentClazz==ShortBuffer.class) {
+    } else if(compClazz==ShortBuffer.class) {
         final ShortBuffer newSBuffer = Buffers.newDirectShortBuffer( nsize );
         if(oldBuffer!=null) {
             oldBuffer.flip();
             newSBuffer.put((ShortBuffer)oldBuffer);
         }
         buffer = newSBuffer;
-    } else if(componentClazz==IntBuffer.class) {
+    } else if(compClazz==IntBuffer.class) {
         final IntBuffer newIBuffer = Buffers.newDirectIntBuffer( nsize );
         if(oldBuffer!=null) {
             oldBuffer.flip();
             newIBuffer.put((IntBuffer)oldBuffer);
         }
         buffer = newIBuffer;
-    } else if(componentClazz==FloatBuffer.class) {
+    } else if(compClazz==FloatBuffer.class) {
         final FloatBuffer newFBuffer = Buffers.newDirectFloatBuffer( nsize );
         if(oldBuffer!=null) {
             oldBuffer.flip();
@@ -517,10 +529,10 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
         }
         buffer = newFBuffer;
     } else {
-        throw new GLException("Given Buffer Class not supported: "+componentClazz+":\n\t"+this);
+        throw new GLException("Given Buffer Class not supported: "+compClazz+":\n\t"+this);
     }
     if(DEBUG) {
-        System.err.println("*** Size: Reserve: comps: "+componentsPerElement+", "+(osize/componentsPerElement)+"/"+osize+" -> "+(nsize/componentsPerElement)+"/"+nsize+
+        System.err.println("*** Size: Reserve: comps: "+compsPerElement+", "+(osize/compsPerElement)+"/"+osize+" -> "+(nsize/compsPerElement)+"/"+nsize+
                            "; "+oldBuffer+" -> "+buffer+"; "+this);
     }
     return true;
@@ -556,7 +568,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     }
 
     // immutable types
-    this.initialElementCount = initialElementCount;
+    this.initElemCount = initialElementCount;
     this.growthFactor = growthFactor;
     try {
         final Constructor<? extends GLArrayHandler> ctor = handlerClass.getConstructor(GLArrayDataEditable.class);
@@ -597,7 +609,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     super(src);
 
     // immutable types
-    this.initialElementCount = src.initialElementCount;
+    this.initElemCount = src.initElemCount;
     if( null != src.glArrayHandler ) {
         final Class<? extends GLArrayHandler> clazz = src.glArrayHandler.getClass();
         try {
@@ -614,7 +626,6 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     // mutable types
     this.growthFactor = src.growthFactor;
     this.isValidated = src.isValidated;
-    this.sealed = src.sealed;
     this.bufferEnabled = src.bufferEnabled;
     this.bufferWritten = src.bufferWritten;
     this.enableBufferAlways = src.enableBufferAlways;
@@ -644,13 +655,12 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
       growthFactor = Math.max(1f, v);
   }
 
-  protected final int initialElementCount;
+  protected final int initElemCount;
   protected final GLArrayHandler glArrayHandler;
   protected final boolean usesGLSL;
 
   protected float growthFactor;
   private boolean isValidated = false;
-  protected boolean sealed;
   protected boolean bufferEnabled;
   protected boolean bufferWritten;
   protected boolean enableBufferAlways;

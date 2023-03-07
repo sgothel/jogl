@@ -40,8 +40,6 @@ import java.nio.*;
  */
 public interface GLArrayDataEditable extends GLArrayData {
 
-    public boolean sealed();
-
     public boolean enabled();
 
     /**
@@ -176,6 +174,7 @@ public interface GLArrayDataEditable extends GLArrayData {
      * ie position:=limit and limit:=capacity.</p>
      *
      * @see #seal(boolean)
+     * @see #sealed()
      */
     public void seal(boolean seal);
 
