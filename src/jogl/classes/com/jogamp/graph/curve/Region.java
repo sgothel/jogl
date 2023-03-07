@@ -92,13 +92,16 @@ public abstract class Region {
     public static final int VARWEIGHT_RENDERING_BIT    = 1 <<  8;
 
     /**
-     * Rendering-Mode bit for {@link #getRenderModes() Region}
+     * Rendering-Mode bit for {@link #getRenderModes() Region} to optionally enable a color-channel per vertex.
      * <p>
-     * If set, a color channel attribute per vertex is added to the stream,
-     * otherwise only the
-     * {@link com.jogamp.graph.curve.opengl.RegionRenderer#setColorStatic(com.jogamp.opengl.GL2ES2, float, float, float, float) static color}
-     * is being used.
+     * If set, a color channel attribute per vertex is added to the stream via {@link #addOutlineShape(OutlineShape, AffineTransform, float[])},
+     * otherwise {@link com.jogamp.graph.curve.opengl.RegionRenderer#setColorStatic(com.jogamp.opengl.GL2ES2, float, float, float, float) static color}
+     * can being used for a monotonic color.
      * </p>
+     * @see #getRenderModes()
+     * @see #hasColorChannel()
+     * @see #addOutlineShape(OutlineShape, AffineTransform, float[])
+     * @see com.jogamp.graph.curve.opengl.RegionRenderer#setColorStatic(com.jogamp.opengl.GL2ES2, float, float, float, float)
      */
     public static final int COLORCHANNEL_RENDERING_BIT = 1 <<  9;
 
@@ -247,6 +250,7 @@ public abstract class Region {
 
     /**
      * Returns true if capable of two pass rendering - VBAA, otherwise false.
+     * @see #getRenderModes()
      */
     public final boolean isVBAA() {
         return Region.isVBAA(renderModes);
@@ -254,6 +258,7 @@ public abstract class Region {
 
     /**
      * Returns true if capable of two pass rendering - MSAA, otherwise false.
+     * @see #getRenderModes()
      */
     public final boolean isMSAA() {
         return Region.isMSAA(renderModes);
@@ -261,15 +266,19 @@ public abstract class Region {
 
     /**
      * Returns true if capable of variable weights, otherwise false.
+     * @see #getRenderModes()
      */
     public final boolean hasVariableWeight() {
         return Region.hasVariableWeight(renderModes);
     }
 
     /**
-     * Returns true if render mode has a color channel,
-     * i.e. the bit {@link #COLORCHANNEL_RENDERING_BIT} is set,
-     * otherwise false.
+     * Returns true if {@link #getRenderModes()} has a color channel, i.e. {@link #COLORCHANNEL_RENDERING_BIT} is set.
+     * Otherwise returns false.
+     * @see #COLORCHANNEL_RENDERING_BIT
+     * @see #getRenderModes()
+     * @see #addOutlineShape(OutlineShape, AffineTransform, float[])
+     * @see com.jogamp.graph.curve.opengl.RegionRenderer#setColorStatic(com.jogamp.opengl.GL2ES2, float, float, float, float)
      */
     public boolean hasColorChannel() {
         return Region.hasColorChannel(renderModes);
@@ -279,6 +288,7 @@ public abstract class Region {
      * Returns true if render mode has a color texture,
      * i.e. the bit {@link #COLORTEXTURE_RENDERING_BIT} is set,
      * otherwise false.
+     * @see #getRenderModes()
      */
     public boolean hasColorTexture() {
         return Region.hasColorTexture(renderModes);
@@ -484,7 +494,9 @@ public abstract class Region {
      * is dropped if it's {@link OutlineShape#getBounds() bounding-box} is fully outside of the frustum.
      * The optional {@link AffineTransform} is applied to the bounding-box beforehand.
      * </p>
-     * @param rgbaColor TODO
+     * @param shape the {@link OutlineShape} to add
+     * @param t the optional {@link AffineTransform} to be applied on each vertex
+     * @param rgbaColor if {@link #hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      */
     public final void addOutlineShape(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
         if( null != frustum ) {
@@ -538,7 +550,7 @@ public abstract class Region {
                                 triInVertices[1].getId()+idxOffset,
                                 triInVertices[2].getId()+idxOffset);
                 } else {
-                    // FIXME: Invalid idx - generate new one
+                    // FIXME: If exceeding max_indices, we would need to generate a new buffer w/ indices
                     pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
                 }
             }
@@ -602,7 +614,7 @@ public abstract class Region {
                     perf.td_tri_push_idx += Clock.currentNanos() - tpi;
                     vertsTMovIdxCount+=3;
                 } else {
-                    // FIXME: Invalid idx - generate new one
+                    // FIXME: If exceeding max_indices, we would need to generate a new buffer w/ indices
                     // if( Region.DEBUG_INSTANCE) {
                     //    System.err.println("T["+i+"]: New Idx "+numVertices);
                     // }
@@ -627,8 +639,18 @@ public abstract class Region {
             printBufferStats(System.err);
         }
     }
-    }
 
+    /**
+     * Add the given list of {@link OutlineShape}s to this region with the given optional {@link AffineTransform}.
+     * <p>
+     * In case {@link #setFrustum(Frustum) frustum culling is set}, the {@link OutlineShape}s
+     * are dropped if it's {@link OutlineShape#getBounds() bounding-box} is fully outside of the frustum.
+     * The optional {@link AffineTransform} is applied to the bounding-box beforehand.
+     * </p>
+     * @param shapes list of {@link OutlineShape} to add
+     * @param t the optional {@link AffineTransform} to be applied on each vertex
+     * @param rgbaColor if {@link #hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
+     */
     public final void addOutlineShapes(final List<OutlineShape> shapes, final AffineTransform transform, final float[] rgbaColor) {
         for (int i = 0; i < shapes.size(); i++) {
             addOutlineShape(shapes.get(i), transform, rgbaColor);
