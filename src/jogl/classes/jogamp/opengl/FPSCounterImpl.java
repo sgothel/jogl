@@ -30,16 +30,26 @@ package jogamp.opengl;
 import java.io.PrintStream;
 import java.util.concurrent.TimeUnit;
 
+import com.jogamp.common.os.Clock;
 import com.jogamp.opengl.FPSCounter;
 
 /**
  * Default implementation of FPSCounter to be used for FPSCounter implementing renderer.
  */
 public class FPSCounterImpl implements FPSCounter {
-    private int fpsUpdateFramesInterval;
     private PrintStream fpsOutputStream ;
-    private long fpsStartTime, fpsLastUpdateTime, fpsLastPeriod, fpsTotalDuration;
+
+    // counter in [ns]
+    private long fpsStartTimeNS, fpsLastUpdateTimeNS;
+
+    // counter in [ms]
+    private long fpsLastPeriodMS, fpsTotalDurationMS;
+
+    // counter in events
+    private int fpsUpdateFramesInterval;
     private int  fpsTotalFrames;
+
+    // counter in fps
     private float fpsLast, fpsTotal;
 
     /** Creates a disabled instance */
@@ -52,25 +62,24 @@ public class FPSCounterImpl implements FPSCounter {
      * update interval is reached.<br>
      *
      * Shall be called by actual FPSCounter implementing renderer, after display a new frame.
-     *
      */
     public final synchronized void tickFPS() {
         fpsTotalFrames++;
         if(fpsUpdateFramesInterval>0 && fpsTotalFrames%fpsUpdateFramesInterval == 0) {
-            final long now = TimeUnit.NANOSECONDS.toMillis(System.nanoTime());
-            fpsLastPeriod = now - fpsLastUpdateTime;
-            fpsLastPeriod = Math.max(fpsLastPeriod, 1); // div 0
-            fpsLast = ( fpsUpdateFramesInterval * 1000f ) / ( fpsLastPeriod ) ;
+            final long now = Clock.currentNanos();
+            fpsLastPeriodMS = TimeUnit.NANOSECONDS.toMillis(now - fpsLastUpdateTimeNS);
+            fpsLastPeriodMS = Math.max(fpsLastPeriodMS, 1); // div 0
+            fpsLast = ( fpsUpdateFramesInterval * 1000f ) / ( fpsLastPeriodMS ) ;
 
-            fpsTotalDuration = now - fpsStartTime;
-            fpsTotalDuration = Math.max(fpsTotalDuration, 1); // div 0
-            fpsTotal= ( fpsTotalFrames * 1000f ) / ( fpsTotalDuration ) ;
+            fpsTotalDurationMS = TimeUnit.NANOSECONDS.toMillis(now - fpsStartTimeNS);
+            fpsTotalDurationMS = Math.max(fpsTotalDurationMS, 1); // div 0
+            fpsTotal= ( fpsTotalFrames * 1000f ) / ( fpsTotalDurationMS ) ;
 
             if(null != fpsOutputStream) {
                 fpsOutputStream.println(toString());
             }
 
-            fpsLastUpdateTime = now;
+            fpsLastUpdateTimeNS = now;
         }
     }
 
@@ -82,8 +91,8 @@ public class FPSCounterImpl implements FPSCounter {
         fpsLastS = fpsLastS.substring(0, fpsLastS.indexOf('.') + 2);
         String fpsTotalS = String.valueOf(fpsTotal);
         fpsTotalS = fpsTotalS.substring(0, fpsTotalS.indexOf('.') + 2);
-        sb.append(fpsTotalDuration/1000 +" s: "+ fpsUpdateFramesInterval+" f / "+ fpsLastPeriod+" ms, " + fpsLastS+" fps, "+ fpsLastPeriod/fpsUpdateFramesInterval+" ms/f; "+
-                  "total: "+ fpsTotalFrames+" f, "+ fpsTotalS+ " fps, "+ fpsTotalDuration/fpsTotalFrames+" ms/f");
+        sb.append(fpsTotalDurationMS/1000 +" s: "+ fpsUpdateFramesInterval+" f / "+ fpsLastPeriodMS+" ms, " + fpsLastS+" fps, "+ fpsLastPeriodMS/fpsUpdateFramesInterval+" ms/f; "+
+                  "total: "+ fpsTotalFrames+" f, "+ fpsTotalS+ " fps, "+ fpsTotalDurationMS/fpsTotalFrames+" ms/f");
         return sb;
     }
 
@@ -101,12 +110,12 @@ public class FPSCounterImpl implements FPSCounter {
 
     @Override
     public final synchronized void resetFPSCounter() {
-        fpsStartTime = TimeUnit.NANOSECONDS.toMillis(System.nanoTime()); // overwrite startTime to real init one
-        fpsLastUpdateTime   = fpsStartTime;
-        fpsLastPeriod = 0;
+        fpsStartTimeNS = Clock.currentNanos();
+        fpsLastUpdateTimeNS = fpsStartTimeNS;
+        fpsLastPeriodMS = 0;
         fpsTotalFrames = 0;
         fpsLast = 0f; fpsTotal = 0f;
-        fpsLastPeriod = 0; fpsTotalDuration=0;
+        fpsLastPeriodMS = 0; fpsTotalDurationMS=0;
     }
 
     @Override
@@ -116,17 +125,17 @@ public class FPSCounterImpl implements FPSCounter {
 
     @Override
     public final synchronized long getFPSStartTime()   {
-        return fpsStartTime;
+        return TimeUnit.NANOSECONDS.toMillis(fpsStartTimeNS);
     }
 
     @Override
     public final synchronized long getLastFPSUpdateTime() {
-        return fpsLastUpdateTime;
+        return TimeUnit.NANOSECONDS.toMillis(fpsLastUpdateTimeNS);
     }
 
     @Override
     public final synchronized long getLastFPSPeriod() {
-        return fpsLastPeriod;
+        return fpsLastPeriodMS;
     }
 
     @Override
@@ -141,7 +150,7 @@ public class FPSCounterImpl implements FPSCounter {
 
     @Override
     public final synchronized long getTotalFPSDuration() {
-        return fpsTotalDuration;
+        return fpsTotalDurationMS;
     }
 
     @Override

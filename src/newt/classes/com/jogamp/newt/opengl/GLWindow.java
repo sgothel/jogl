@@ -73,6 +73,7 @@ import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 
 import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.locks.RecursiveLock;
@@ -679,7 +680,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         public synchronized void setVisibleActionPost(final boolean visible, final boolean nativeWindowCreated) {
             long t0;
             if(Window.DEBUG_IMPLEMENTATION) {
-                t0 = System.nanoTime();
+                t0 = Clock.currentNanos();
                 System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+WindowImpl.getThreadName()+", start");
             } else {
                 t0 = 0;
@@ -710,7 +711,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 }
             }
             if(Window.DEBUG_IMPLEMENTATION) {
-                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+WindowImpl.getThreadName()+", fin: dt "+ (System.nanoTime()-t0)/1e6 +"ms");
+                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+WindowImpl.getThreadName()+", fin: dt "+ (Clock.currentNanos()-t0)/1e6 +"ms");
             }
         }
 

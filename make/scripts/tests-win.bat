@@ -21,7 +21,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLa
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT %*
 
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.TexCubeES2 %*
 
@@ -218,6 +218,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscre
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01
+scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT

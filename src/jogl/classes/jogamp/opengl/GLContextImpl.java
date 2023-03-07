@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.Bitfield;
@@ -1200,7 +1201,7 @@ public abstract class GLContextImpl extends GLContext {
         if (DEBUG) {
             System.err.println(getThreadName() + ": createContextARB-MapGLVersions START (GLDesktop "+hasOpenGLDesktopSupport+", GLES "+hasOpenGLESSupport+", minorVersion "+hasMinorVersionSupport+") on "+device);
         }
-        final long t0 = ( DEBUG ) ? System.nanoTime() : 0;
+        final long t0 = ( DEBUG ) ? Clock.currentNanos() : 0;
         boolean success = false;
         // Following GLProfile.GL_PROFILE_LIST_ALL order of profile detection { GL4bc, GL3bc, GL2, GL4, GL3, GL2GL3, GLES2, GL2ES2, GLES1, GL2ES1 }
         boolean hasGL4bc = false;
@@ -1350,7 +1351,7 @@ public abstract class GLContextImpl extends GLContext {
             GLContext.setAvailableGLVersionsSet(device, true);
         }
         if(DEBUG) {
-            final long t1 = System.nanoTime();
+            final long t1 = Clock.currentNanos();
             System.err.println(getThreadName() + ": createContextARB-MapGLVersions END (success "+success+") on "+device+", profileAliasing: "+PROFILE_ALIASING+", total "+(t1-t0)/1e6 +"ms");
             if( success ) {
                 System.err.println(GLContext.dumpAvailableGLVersions(null).toString());

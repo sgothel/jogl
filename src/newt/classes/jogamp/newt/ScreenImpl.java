@@ -43,7 +43,7 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
-
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.newt.Display;
@@ -184,7 +184,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     {
         if(null == aScreen) {
             if(DEBUG) {
-                tCreated = System.nanoTime();
+                tCreated = Clock.currentNanos();
                 System.err.println("Screen.createNative() START ("+Display.getThreadName()+", "+this+")");
             } else {
                 tCreated = 0;
@@ -200,7 +200,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             synchronized(screenList) {
                 screensActive++;
                 if(DEBUG) {
-                    System.err.println("Screen.createNative() END ("+Display.getThreadName()+", "+this+"), active "+screensActive+", total "+ (System.nanoTime()-tCreated)/1e6 +"ms");
+                    System.err.println("Screen.createNative() END ("+Display.getThreadName()+", "+this+"), active "+screensActive+", total "+ (Clock.currentNanos()-tCreated)/1e6 +"ms");
                 }
             }
             ScreenMonitorState.getScreenMonitorState(this.getFQName()).addListener(this);
@@ -554,7 +554,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     private final ScreenMonitorState initMonitorState() {
         long t0;
         if(DEBUG) {
-            t0 = System.nanoTime();
+            t0 = Clock.currentNanos();
             System.err.println("Screen.initMonitorState() START ("+Display.getThreadName()+", "+this+")");
         } else {
             t0 = 0;
@@ -614,7 +614,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             ScreenMonitorState.unlockScreenMonitorState();
         }
         if(DEBUG) {
-            System.err.println("Screen.initMonitorState() END dt "+ (System.nanoTime()-t0)/1e6 +"ms");
+            System.err.println("Screen.initMonitorState() END dt "+ (Clock.currentNanos()-t0)/1e6 +"ms");
         }
         if( !vScrnSizeUpdated ) {
             updateVirtualScreenOriginAndSize();

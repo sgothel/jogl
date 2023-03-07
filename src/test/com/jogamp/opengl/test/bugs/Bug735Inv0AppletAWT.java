@@ -27,6 +27,7 @@ import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.awt.GLCanvas;
 import com.jogamp.opengl.glu.GLU;
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
@@ -90,26 +91,29 @@ public class Bug735Inv0AppletAWT extends Applet implements Runnable {
   private int fcount = 0, lastm = 0;
   private final int fint = 1;
 
-  public void init() {
+  @Override
+public void init() {
     setSize(APPLET_WIDTH, APPLET_HEIGHT);
     setPreferredSize(new Dimension(APPLET_WIDTH, APPLET_HEIGHT));
     width = APPLET_WIDTH;
     height = APPLET_HEIGHT;
   }
 
-  public void start() {
+  @Override
+public void start() {
     thread = new InterruptSource.Thread(null, this, "Animation Thread");
     thread.start();
   }
 
-  public void run() {
+  @Override
+public void run() {
     int noDelays = 0;
     // Number of frames with a delay of 0 ms before the
     // animation thread yields to other running threads.
     final int NO_DELAYS_PER_YIELD = 15;
     final int TIMEOUT_SECONDS = 2;
 
-    long beforeTime = System.nanoTime();
+    long beforeTime = Clock.currentNanos();
     long overSleepTime = 0L;
 
     millisOffset = System.currentTimeMillis();
@@ -125,13 +129,14 @@ public class Bug735Inv0AppletAWT extends Applet implements Runnable {
 
       if (frameCount == 1) {
         EventQueue.invokeLater(new Runnable() {
-          public void run() {
+          @Override
+        public void run() {
             requestFocusInWindow();
           }
         });
       }
 
-      final long afterTime = System.nanoTime();
+      final long afterTime = Clock.currentNanos();
       final long timeDiff = afterTime - beforeTime;
       final long sleepTime = (frameRatePeriod - timeDiff) - overSleepTime;
       if (sleepTime > 0) {  // some time left in this cycle
@@ -139,7 +144,7 @@ public class Bug735Inv0AppletAWT extends Applet implements Runnable {
           Thread.sleep(sleepTime / 1000000L, (int) (sleepTime % 1000000L));
           noDelays = 0;  // Got some sleep, not delaying anymore
         } catch (final InterruptedException ex) { }
-        overSleepTime = (System.nanoTime() - afterTime) - sleepTime;
+        overSleepTime = (Clock.currentNanos() - afterTime) - sleepTime;
       } else {    // sleepTime <= 0; the frame took longer than the period
         overSleepTime = 0L;
         noDelays++;
@@ -148,7 +153,7 @@ public class Bug735Inv0AppletAWT extends Applet implements Runnable {
           noDelays = 0;
         }
       }
-      beforeTime = System.nanoTime();
+      beforeTime = Clock.currentNanos();
     }
   }
 
@@ -418,7 +423,8 @@ public class Bug735Inv0AppletAWT extends Applet implements Runnable {
 
     // This allows to close the frame.
     frame.addWindowListener(new WindowAdapter() {
-      public void windowClosing(final WindowEvent e) {
+      @Override
+    public void windowClosing(final WindowEvent e) {
         System.exit(0);
       }
     });

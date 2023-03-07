@@ -55,6 +55,7 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
@@ -216,12 +217,14 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         }
         // All AWT Mods on AWT-EDT, especially due to the follow-up complicated code!
         AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+            @Override
             public void run() {
                 frame.setTitle("MiniPApplet");
             } } );
         if (fullScreen) {
             try {
                 javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
                     public void run() {
                         frame.setUndecorated(true);
                         frame.setBackground(Color.GRAY);
@@ -235,6 +238,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         }
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     frame.setLayout(null);
                     frame.add(applet);
@@ -273,7 +277,8 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
 
         frame.add(this);
         frame.addWindowListener(new WindowAdapter() {
-          public void windowClosing(final WindowEvent e) {
+          @Override
+        public void windowClosing(final WindowEvent e) {
               try {
                   dispose();
               } catch (final Exception ex) {
@@ -283,6 +288,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         });
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 frame.setVisible(true);
             } } );
@@ -301,6 +307,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         canvas.setBounds(0, 0, width, height);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 MiniPApplet.this.setLayout(new BorderLayout());
                 MiniPApplet.this.add(canvas, BorderLayout.CENTER);
@@ -339,6 +346,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
 
         // Setting up animation again
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 MiniPApplet.this.setLayout(new BorderLayout());
                 MiniPApplet.this.add(canvas, BorderLayout.CENTER);
@@ -378,6 +386,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
             frame = null;
         } else {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     MiniPApplet.this.remove(canvas);
                     frame.remove(MiniPApplet.this);
@@ -391,6 +400,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
       void draw(final GL2 gl) {
         if( !osxCALayerAWTModBug || !justInitialized ) {
             AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                @Override
                 public void run() {
                     frame.setTitle("frame " + frameCount);
                 } } );
@@ -409,7 +419,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
           System.out.println(OPENGL_EXTENSIONS);
 
           final int[] temp = { 0 };
-          gl.glGetIntegerv(GL2ES3.GL_MAX_SAMPLES, temp, 0);
+          gl.glGetIntegerv(GL.GL_MAX_SAMPLES, temp, 0);
           System.out.println("Maximum number of samples supported by the hardware: " + temp[0]);
           System.out.println("Frame: "+frame);
           System.out.println("Applet: "+MiniPApplet.this);
@@ -475,7 +485,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
       }
 
       void clock() {
-        final long afterTime = System.nanoTime();
+        final long afterTime = Clock.currentNanos();
         final long timeDiff = afterTime - beforeTime;
         final long sleepTime = (frameRatePeriod - timeDiff) - overSleepTime;
 
@@ -484,13 +494,13 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
             Thread.sleep(sleepTime / 1000000L, (int) (sleepTime % 1000000L));
           } catch (final InterruptedException ex) { }
 
-          overSleepTime = (System.nanoTime() - afterTime) - sleepTime;
+          overSleepTime = (Clock.currentNanos() - afterTime) - sleepTime;
 
         } else {    // sleepTime <= 0; the frame took longer than the period
           overSleepTime = 0L;
         }
 
-        beforeTime = System.nanoTime();
+        beforeTime = Clock.currentNanos();
       }
 
       class SimpleListener implements GLEventListener {
@@ -512,31 +522,36 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int w, final int h) { }
       }
 
-      public void mouseDragged(final MouseEvent ev) {
+      @Override
+    public void mouseDragged(final MouseEvent ev) {
         if (printEventInfo) {
           System.err.println("Mouse dragged event: " + ev);
         }
       }
 
-      public void mouseMoved(final MouseEvent ev) {
+      @Override
+    public void mouseMoved(final MouseEvent ev) {
         if (printEventInfo) {
           System.err.println("Mouse moved event: " + ev);
         }
       }
 
-      public void keyPressed(final KeyEvent ev) {
+      @Override
+    public void keyPressed(final KeyEvent ev) {
         if (printEventInfo) {
           System.err.println("Key pressed event: " + ev);
         }
       }
 
-      public void keyReleased(final KeyEvent ev) {
+      @Override
+    public void keyReleased(final KeyEvent ev) {
         if (printEventInfo) {
           System.err.println("Key released event: " + ev);
         }
       }
 
-      public void keyTyped(final KeyEvent ev) {
+      @Override
+    public void keyTyped(final KeyEvent ev) {
         if (printEventInfo) {
           System.err.println("Key typed event: " + ev);
         }
@@ -550,7 +565,8 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
           private TimerTask task = null;
           private volatile boolean shouldRun;
 
-          protected String getBaseName(final String prefix) {
+          @Override
+        protected String getBaseName(final String prefix) {
               return "Custom" + prefix + "Animator" ;
           }
 
@@ -566,11 +582,13 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
               shouldRun = true;
           }
 
-          public final synchronized boolean isStarted() {
+          @Override
+        public final synchronized boolean isStarted() {
               return (timer != null);
           }
 
-          public final synchronized boolean isAnimating() {
+          @Override
+        public final synchronized boolean isAnimating() {
               return (timer != null) && (task != null);
           }
 
@@ -581,7 +599,8 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
 
               task = new TimerTask() {
                   private boolean firstRun = true;
-                  public void run() {
+                  @Override
+                public void run() {
                       if (firstRun) {
                         Thread.currentThread().setName("OPENGL");
                         firstRun = false;
@@ -604,7 +623,8 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
               timer.schedule(task, 0, 1);
           }
 
-          public synchronized boolean  start() {
+          @Override
+        public synchronized boolean  start() {
               if (timer != null) {
                   return false;
               }
@@ -614,7 +634,8 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
           }
 
           /** Stops this CustomAnimator. */
-          public synchronized boolean stop() {
+          @Override
+        public synchronized boolean stop() {
               if (timer == null) {
                   return false;
               }
@@ -634,9 +655,12 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
               return true;
           }
 
-          public final synchronized boolean isPaused() { return false; }
-          public synchronized boolean resume() { return false; }
-          public synchronized boolean pause() { return false; }
+          @Override
+        public final synchronized boolean isPaused() { return false; }
+          @Override
+        public synchronized boolean resume() { return false; }
+          @Override
+        public synchronized boolean pause() { return false; }
       }
   }
 

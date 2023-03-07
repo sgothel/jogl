@@ -43,6 +43,7 @@ import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.Clock;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -158,6 +159,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
     public boolean  usesFullScreenMode()            { return mUsesFullScreenMode; }
 
     class TimeShiftKeys extends KeyAdapter {
+        @Override
         public void keyPressed(final KeyEvent e) {
             if(KeyEvent.VK_RIGHT == e.getKeyCode()) {
                 skipFrames(120);
@@ -223,6 +225,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
         return mCaps;
     }
 
+    @Override
     public void init(final GLAutoDrawable drawable) {
         if(drawable instanceof GLWindow) {
             final GLWindow glw = (GLWindow) drawable;
@@ -308,16 +311,17 @@ public class ElektronenMultiplizierer implements GLEventListener {
 
         // if NO music is used sync to mainloop start ...
         // (add up current time due to possible turned back start time by skip frames)
-        mFrameSkipAverageFramerateTimeStart += System.nanoTime();
+        mFrameSkipAverageFramerateTimeStart += Clock.currentNanos();
 
 //        mBaseMusic = new BaseMusic(BaseGlobalEnvironment.getInstance().getMusicFileName());
 //        mBaseMusic.init();
 //        mBaseMusic.play();
     }
 
+    @Override
     public void display(final GLAutoDrawable drawable) {
         if (wantsFrameSkip()) {
-            mFrameSkipAverageFramerateTimeEnd = System.nanoTime();
+            mFrameSkipAverageFramerateTimeEnd = Clock.currentNanos();
             final double tDesiredFrameRate = getDesiredFramerate();
             final double tSingleFrameTime = 1000000000.0f/tDesiredFrameRate;
             final double tElapsedTime = mFrameSkipAverageFramerateTimeEnd - mFrameSkipAverageFramerateTimeStart;
@@ -342,7 +346,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
 //            //if music IS used sync to first second of music ...
 //            if (BaseRoutineRuntime.getInstance().getBaseMusic().getPositionInMilliseconds()>0 && !mMusicSyncStartTimeInitialized) {
 //                BaseLogging.getInstance().info("Synching to BaseMusic ...");
-//                mFrameSkipAverageFramerateTimeStart = (long)(System.nanoTime()-((double)BaseRoutineRuntime.getInstance().getBaseMusic().getPositionInMilliseconds()*1000000.0d));
+//                mFrameSkipAverageFramerateTimeStart = (long)(Clock.currentNanos()-((double)BaseRoutineRuntime.getInstance().getBaseMusic().getPositionInMilliseconds()*1000000.0d));
 //                mMusicSyncStartTimeInitialized = true;
 //            }
 //        }
@@ -470,6 +474,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
         mFrameCounter++;
     }
 
+    @Override
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -493,6 +498,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
         gl.glViewport(0, 0, width, height);
     }
 
+    @Override
     public void dispose(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         gl.glDeleteFramebuffers(1, new int[] { mFrameBufferObjectID }, 0);

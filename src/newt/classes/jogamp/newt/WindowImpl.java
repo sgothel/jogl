@@ -66,6 +66,7 @@ import jogamp.nativewindow.SurfaceScaleUtils;
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.Bitfield;
 import com.jogamp.common.util.InterruptSource;
@@ -738,7 +739,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private boolean createNative() {
         long tStart;
         if(DEBUG_IMPLEMENTATION) {
-            tStart = System.nanoTime();
+            tStart = Clock.currentNanos();
             System.err.println("Window.createNative() START ("+getThreadName()+", "+this+")");
         } else {
             tStart = 0;
@@ -839,7 +840,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             ((DisplayImpl) screen.getDisplay()).dispatchMessagesNative(); // status up2date
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.createNative() END ("+getThreadName()+", "+this+") total "+ (System.nanoTime()-tStart)/1e6 +"ms");
+            System.err.println("Window.createNative() END ("+getThreadName()+", "+this+") total "+ (Clock.currentNanos()-tStart)/1e6 +"ms");
         }
         return isNativeValid() ;
     }
