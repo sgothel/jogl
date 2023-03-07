@@ -256,7 +256,6 @@ public class PerfTextRendererNEWT00 {
         final Perf perf = new Perf();
         if( do_perf ) {
             region.perfCounter().enable(true);
-            font.perfCounter().enable(true);
         }
 
         final AffineTransform translation = new AffineTransform();
@@ -357,13 +356,11 @@ public class PerfTextRendererNEWT00 {
                 // print + reset counter @ 1/3 loops
                 if( do_perf ) {
                     region.perfCounter().print(System.err);
-                    font.perfCounter().print(System.err);
                 }
                 perf.print(System.err, loop_i+1, "Frame"+(loop_i+1));
                 perf.clear();
                 if( do_perf ) {
                     region.perfCounter().clear();
-                    font.perfCounter().clear();
                 }
             }
             if( 0 == loop_i || loop_count - 1 == loop_i) {
@@ -374,7 +371,6 @@ public class PerfTextRendererNEWT00 {
                 region.printBufferStats(System.err);
                 if( do_perf ) {
                     region.perfCounter().print(System.err);
-                    font.perfCounter().print(System.err);
                 }
                 perf.print(System.err, loop_i+1, "Frame"+(loop_i+1));
             }

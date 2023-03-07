@@ -426,7 +426,6 @@ public interface Font {
                          final CharSequence string,
                          final AffineTransform temp1, final AffineTransform temp2);
 
-    PerfCounterCtrl perfCounter();
 
     /** Returns {@link #getFullFamilyName()} */
     @Override

@@ -370,78 +370,12 @@ class TypecastFont implements Font {
         return processString(visitor, transform, string, new AffineTransform(), new AffineTransform());
     }
 
-    static class Perf {
-        long t0 = 0;
-        // all td_ values are in [ns]
-        long td_visitor = 0;
-        long td_total = 0;
-        long count = 0;
-
-        public void print(final PrintStream out) {
-            out.printf("TypecastFont.process(): count %,3d, total %,5d [ms], per-add %,4.2f [ns]%n", count, TimeUnit.NANOSECONDS.toMillis(td_total),
-                    ((double)td_total/(double)count));
-            out.printf("                   visitor %,5d [ms], per-add %,4.2f [ns]%n", TimeUnit.NANOSECONDS.toMillis(td_visitor),
-                    ((double)td_visitor/(double)count));
-        }
-
-        public void clear() {
-            t0 = 0;
-            td_visitor = 0;
-            td_total = 0;
-            count = 0;
-        }
-    }
-    private Perf perf = null;
-
-    private final PerfCounterCtrl perfCounterCtrl = new PerfCounterCtrl() {
-        @Override
-        public void enable(final boolean enable) {
-            if( enable ) {
-                if( null != perf ) {
-                    perf.clear();
-                } else {
-                    perf = new Perf();
-                }
-            } else {
-                perf = null;
-            }
-        }
-
-        @Override
-        public void clear() {
-            if( null != perf ) {
-                perf.clear();
-            }
-        }
-
-        @Override
-        public long getTotalDuration() {
-            if( null != perf ) {
-                return perf.td_total;
-            } else {
-                return 0;
-            }
-        }
-
-        @Override
-        public void print(final PrintStream out) {
-            if( null != perf ) {
-                perf.print(out);
-            }
-        } };
-    @Override
-    public PerfCounterCtrl perfCounter() { return perfCounterCtrl; }
-
     @Override
     public AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
                                 final CharSequence string,
                                 final AffineTransform temp1, final AffineTransform temp2) {
         if (null == string || 0 == string.length() ) {
             return new AABBox();
-        }
-        if( null != perf ) {
-            ++perf.count;
-            perf.t0 = Clock.currentNanos();
         }
         final AABBox res = new AABBox();
         final int charCount = string.length();
@@ -482,19 +416,10 @@ class TypecastFont implements Font {
                 }
                 temp1.translate(advanceTotal, y, temp2);
                 res.resize(temp1.transform(glyphShape.getBounds(), temp_box));
-                if( null != perf ) {
-                    final long  t1 = Clock.currentNanos();
-                    visitor.visit(glyphShape, temp1);
-                    perf.td_visitor += Clock.currentNanos() - t1;
-                } else {
-                    visitor.visit(glyphShape, temp1);
-                }
+                visitor.visit(glyphShape, temp1);
                 advanceTotal += glyph.getAdvance();
                 left_glyph = glyph;
             }
-        }
-        if( null != perf ) {
-            perf.td_total += Clock.currentNanos() - perf.t0;
         }
         return res;
     }
