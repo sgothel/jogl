@@ -88,7 +88,6 @@ public class PerfTextRendererNEWT00 {
     static boolean do_vsync = false;
 
     static Font font;
-    static float fontSize = 20; // in pixel
     private final float[] fg_color = new float[] { 0, 0, 0, 1 };
 
     static {
@@ -121,9 +120,6 @@ public class PerfTextRendererNEWT00 {
             } else if(args[i].equals("-font")) {
                 i++;
                 font = FontFactory.get(IOUtil.getResource(args[i], PerfTextRendererNEWT00.class.getClassLoader(), PerfTextRendererNEWT00.class).getInputStream(), true);
-            } else if(args[i].equals("-fontSize")) {
-                i++;
-                fontSize = MiscUtils.atof(args[i], fontSize);
             } else if(args[i].equals("-wait")) {
                 wait = true;
             } else if(args[i].equals("-loop")) {
@@ -304,28 +300,32 @@ public class PerfTextRendererNEWT00 {
 
             final long t3 = Clock.currentNanos(); // all initialized w/ graph
 
-            final float dx = 0;
-            final float dy = drawable.getSurfaceHeight() - 2 * fontSize * font.getLineHeight();
             final long t4;
+            final float fontScale;
             {
                 // all sizes in em
                 final float x_width = font.getAdvanceWidth( font.getGlyphID('X') );
 
-                translation.setToTranslation(1*x_width, 0f);
+                translation.setToTranslation(2*x_width, 0f);
                 final AABBox tbox_1 = font.getGlyphBounds(text, tmp1, tmp2);
                 final AABBox rbox_1 = TextRegionUtil.addStringToRegion(region, font, translation, text, fg_color, tmp1, tmp2);
                 t4 = Clock.currentNanos(); // text added to region
+                // int dw = drawable.getSurfaceWidth() -
+                fontScale = drawable.getSurfaceWidth() / ( rbox_1.getWidth() + 4*x_width ); // 2l + 2r
                 if( 0 == loop_i && !do_perf ) {
                     System.err.println("Text_1: tbox "+tbox_1);
                     System.err.println("Text_1: rbox "+rbox_1);
+                    System.err.println("Font scale: "+fontScale);
                 }
             }
+            final float dx = 0;
+            final float dy = drawable.getSurfaceHeight() - 2 * fontScale * font.getLineHeight();
 
             final PMVMatrix pmv = renderer.getMatrix();
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             pmv.glLoadIdentity();
             pmv.glTranslatef(dx, dy, z0);
-            pmv.glScalef(fontSize, fontSize, 1f);
+            pmv.glScalef(fontScale, fontScale, 1f);
             region.draw(gl, renderer, sampleCountIO);
             final long t5 = Clock.currentNanos(); // text added to region
             if( null != perf ) {
@@ -454,9 +454,9 @@ public class PerfTextRendererNEWT00 {
         final String objName = "TestTextRendererNEWT00-snap"+screenshot_num;
         // screenshot_num++;
         final String modeS = Region.getRenderModeString(renderModes);
-        final String bname = String.format((Locale)null, "%s-msaa%02d-fontsz%02.1f-%03dx%03d-%s%04d", objName,
+        final String bname = String.format((Locale)null, "%s-msaa%02d-%03dx%03d-%s%04d", objName,
                 drawable.getChosenGLCapabilities().getNumSamples(),
-                fontSize, drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), modeS, sampleCount);
+                drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), modeS, sampleCount);
         final String filename = dir + bname +".png";
         if(screenshot.readPixels(gl, false)) {
             screenshot.write(new File(filename));
