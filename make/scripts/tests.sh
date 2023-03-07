@@ -406,7 +406,10 @@ function jrun() {
     fi
     # StartFlightRecording: delay=10s, 
     # FlightRecorderOptions: stackdepth=2048
-    # X_ARGS="-XX:StartFlightRecording=delay=10s,dumponexit=true,filename=java-run.jfr -XX:FlightRecorderOptions=stackdepth=2048,threadbuffersize=16k $X_ARGS"
+    # Enable remote connection to jmc: jcmd <PID> ManagementAgent.start jmxremote.authenticate=false jmxremote.ssl=false jmxremote.port=7091
+    # X_ARGS="-XX:+UnlockDiagnosticVMOptions -XX:+DebugNonSafepoints $X_ARGS"
+    # X_ARGS="-XX:FlightRecorderOptions=stackdepth=2048,threadbuffersize=16k $X_ARGS"
+    # X_ARGS="-XX:StartFlightRecording=delay=10s,dumponexit=true,filename=java-run.jfr $X_ARGS"
 
     if [ $USE_BUILDDIR -eq 1 ] ; then
         export USE_CLASSPATH=.:$GLUEGEN_BUILDDIR/classes:$GLUEGEN_BUILDDIR/test/build/classes:$JOAL_BUILDDIR/classes:$JOGL_BUILDDIR/nativewindow/classes:$JOGL_BUILDDIR/jogl/classes:$JOGL_BUILDDIR/newt/classes:$JOGL_BUILDDIR/oculusvr/classes:$JOGL_BUILDDIR/test/build/classes:$JUNIT_JAR:$ANT_JARS
@@ -995,6 +998,7 @@ function testawtswt() {
 testnoawt com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
 #testmobile com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testmobile com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
