@@ -88,7 +88,7 @@ public class PerfTextRendererNEWT00 {
     static boolean do_vsync = false;
 
     static Font font;
-    static float fontSize = 24; // in pixel
+    static float fontSize = 20; // in pixel
     private final float[] fg_color = new float[] { 0, 0, 0, 1 };
 
     static {
@@ -235,6 +235,7 @@ public class PerfTextRendererNEWT00 {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(JoglVersion.getInstance().toString(gl));
         System.err.println("VSync Swap Interval: "+gl.getSwapInterval());
+        System.err.println("GLDrawable surface size: "+winctx.context.getGLDrawable().getSurfaceWidth()+" x "+winctx.context.getGLDrawable().getSurfaceHeight());
 
         System.err.println("Requested Caps: "+caps);
         System.err.println("Requested Region-RenderModes: "+Region.getRenderModeString(renderModes));
@@ -304,13 +305,13 @@ public class PerfTextRendererNEWT00 {
             final long t3 = Clock.currentNanos(); // all initialized w/ graph
 
             final float dx = 0;
-            final float dy = drawable.getSurfaceHeight() - 3 * fontSize * font.getLineHeight();
+            final float dy = drawable.getSurfaceHeight() - 2 * fontSize * font.getLineHeight();
             final long t4;
             {
                 // all sizes in em
                 final float x_width = font.getAdvanceWidth( font.getGlyphID('X') );
 
-                translation.setToTranslation(3*x_width, 0f);
+                translation.setToTranslation(1*x_width, 0f);
                 final AABBox tbox_1 = font.getGlyphBounds(text, tmp1, tmp2);
                 final AABBox rbox_1 = TextRegionUtil.addStringToRegion(region, font, translation, text, fg_color, tmp1, tmp2);
                 t4 = Clock.currentNanos(); // text added to region
@@ -402,19 +403,21 @@ public class PerfTextRendererNEWT00 {
         NEWTGLContext.destroyWindow(winctx);
     }
     public static final String text_long =
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus. \n"+
+        "JOGL: Java™ Binding for OpenGL®, providing hardware-accelerated 3D graphics.\n\n"+
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus.\n"+
+        "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies\n"+
+        "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices ultricies nec a elit.\n"+
+        "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia pharetra at venenatis est.\n"+
+        "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat nec, volutpat nec nisi.\n"+
+        "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum id tempus quis, semper\n"+
+        "Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem,\n" +
+        "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*.\n"+
+        "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven.\n"+
+        "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte is in Yale.\n"+
+        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway…\n"+
+        "Von-Vincke-Straße in Münster, Vdovino in Russia, Ytterbium in the periodic table.\n"+
+        "Miłosz and Wū Wŭ all in the library? 1510–1620, 11:00 pm, and the 1980s are over.\n"+
         "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
-        "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices ultricies nec a elit. \n"+
-        "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia pharetra at venenatis est. \n"+
-        "Morbi quis bibendum nibh. Donec lectus orci, sagittis in consequat nec, volutpat nec nisi. \n"+
-        "Donec ut dolor et nulla tristique varius. In nulla magna, fermentum id tempus quis, semper \n"+
-        "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem, \n" +
-        "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*. X\n"+
-        "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail. X\n"+
-        "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale. X\n"+
-        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway, Kyulu in Kenya, not in Rwanda.… X\n"+
-        "Von-Vincke-Straße in Münster, Vdovino in Russia, Ytterbium in the periodic table. Are Toussaint L’Ouverture, Wölfflin, Wolfe, X\n"+
-        "Miłosz and Wū Wŭ all in the library? 1510–1620, 11:00 pm, and the 1980s are over. X\n"+
         "-------Press H to change text---------";
 
     public static final String text_1b =

@@ -96,6 +96,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     static final String text2 = "The quick brown fox jumps over the lazy dog";
     public static final String text_help =
+        "JOGL: Java™ Binding for OpenGL®, providing hardware-accelerated 3D graphics.\n\n"+
         "JOGAMP graph demo using Resolution Independent NURBS\n"+
         "JOGAMP JOGL - OpenGL ES2 profile\n"+
         "Press 1/2 to zoom in/out the below text\n"+
@@ -108,6 +109,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         "Press f to toggle fps. H for different text, space for font type\n";
 
     public static final String textX1 =
+        "JOGL: Java™ Binding for OpenGL®, providing hardware-accelerated 3D graphics.\n\n"+
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec nec sapien tellus. \n"+
         "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel urna. Mauris ultricies \n"+
         "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices ultricies nec a elit. \n"+
@@ -118,11 +120,11 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         "-------Press H to change text---------";
 
     public static final String textX2 =
-        "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*. X\n"+
-        "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail. X\n"+
-        "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale. X\n"+
-        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway, Kyulu in Kenya, not in Rwanda.… X\n"+
-        "Von-Vincke-Straße in Münster, Vdovino in Russia, Ytterbium in the periodic table. Are Toussaint L’Ouverture, Wölfflin, Wolfe, X\n"+
+        "I “Ask Jeff” or ‘Ask Jeff’. Take the chef d’œuvre! Two of [of] (of) ‘of’ “of” of? of! of*.\n"+
+        "Les Woëvres, the Fôret de Wœvres, the Voire and Vauvise. Yves is in heaven; D’Amboise is in jail.\n"+
+        "Lyford’s in Texas & L’Anse-aux-Griffons in Québec; the Łyna in Poland. Yriarte, Yciar and Ysaÿe are at Yale.\n"+
+        "Kyoto and Ryotsu are both in Japan, Kwikpak on the Yukon delta, Kvæven in Norway, Kyulu in Kenya, not in Rwanda.…\n"+
+        "Von-Vincke-Straße in Münster, Vdovino in Russia, Ytterbium in the periodic table. Are Toussaint L’Ouverture, Wölfflin, Wolfe,\n"+
         "Miłosz and Wū Wŭ all in the library? 1510–1620, 11:00 pm, and the 1980s are over. X\n"+
         "-------Press H to change text---------";
 

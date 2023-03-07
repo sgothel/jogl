@@ -114,7 +114,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private final String jogamp = "JogAmp - Jogl Graph Module Demo";
     private final String truePtSize = fontSizePt+" pt font size label - true scale!";
 
-    private final String longText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec \n"+
+    private final String longText = "JOGL: Java™ Binding for the OpenGL® API.\n\n"+
+                                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec \n"+
                                     "Ut purus odio, rhoncus sit amet commodo eget, ullamcorper vel\n"+
                                     "quam iaculis urna cursus ornare. Nullam ut felis a ante ultrices\n"+
                                     "In hac habitasse platea dictumst. Vivamus et mi a quam lacinia\n"+
