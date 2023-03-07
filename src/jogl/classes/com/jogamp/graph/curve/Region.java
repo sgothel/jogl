@@ -330,6 +330,19 @@ public abstract class Region {
         pushNewVerticesImpl(vertIn1, vertIn2, vertIn3, transform, rgba);
     }
 
+    protected static void put3i(final IntBuffer b, final int v1, final int v2, final int v3) {
+        b.put(v1); b.put(v2); b.put(v3);
+    }
+    protected static void put3s(final ShortBuffer b, final short v1, final short v2, final short v3) {
+        b.put(v1); b.put(v2); b.put(v3);
+    }
+    protected static void put3f(final FloatBuffer b, final float v1, final float v2, final float v3) {
+        b.put(v1); b.put(v2); b.put(v3);
+    }
+    protected static void put4f(final FloatBuffer b, final float v1, final float v2, final float v3, final float v4) {
+        b.put(v1); b.put(v2); b.put(v3); b.put(v4);
+    }
+
     private final AABBox tmpBox = new AABBox();
 
     protected static final int GL_UINT16_MAX = 0xffff; // 65,535
