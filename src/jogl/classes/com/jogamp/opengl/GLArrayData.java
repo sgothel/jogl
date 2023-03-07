@@ -172,7 +172,7 @@ public interface GLArrayData {
     public int getBytesPerComp();
 
     /**
-     * Returns true if data has been {@link {@link com.jogamp.opengl.util.GLArrayDataEditable#seal(boolean) sealed} (flipped to read), otherwise false (writing mode).
+     * Returns true if data has been {@link com.jogamp.opengl.util.GLArrayDataEditable#seal(boolean) sealed} (flipped to read), otherwise false (writing mode).
      *
      * @see com.jogamp.opengl.util.GLArrayDataEditable#seal(boolean)
      * @see com.jogamp.opengl.util.GLArrayDataEditable#seal(GL, boolean)
