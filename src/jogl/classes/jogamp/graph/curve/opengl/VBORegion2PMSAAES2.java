@@ -53,13 +53,15 @@ import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
-public class VBORegion2PMSAAES2  extends GLRegion {
+public final class VBORegion2PMSAAES2  extends GLRegion {
     private static final boolean DEBUG_FBO_1 = false;
     private static final boolean DEBUG_FBO_2 = false;
 
     private final RenderState.ProgramLocal rsLocal;
 
     // Pass-1:
+    private int curVerticesCap = 0;
+    private int curIndicesCap = 0;
     private GLArrayDataServer gca_VerticesAttr;
     private GLArrayDataServer gca_CurveParamsAttr;
     private GLArrayDataServer gca_ColorsAttr;
@@ -86,58 +88,6 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
     final int[] maxTexSize = new int[] { -1 } ;
 
-    /**
-     * <p>
-     * Since multiple {@link Region}s may share one
-     * {@link ShaderProgram}, the uniform data must always be updated.
-     * </p>
-     *
-     * @param gl
-     * @param renderer
-     * @param renderModes
-     * @param pass1
-     * @param quality
-     * @param sampleCount
-     */
-    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int renderModes, final boolean pass1, final int quality, final int sampleCount) {
-        final RenderState rs = renderer.getRenderState();
-        final boolean updateLocGlobal = renderer.useShaderProgram(gl, renderModes, pass1, quality, sampleCount, colorTexSeq);
-        final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
-        final boolean updateLocLocal;
-        if( pass1 ) {
-            updateLocLocal = !sp.equals(spPass1);
-            spPass1 = sp;
-            if( DEBUG ) {
-                System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
-            }
-            if( updateLocLocal ) {
-                rs.updateAttributeLoc(gl, true, gca_VerticesAttr, true);
-                rs.updateAttributeLoc(gl, true, gca_CurveParamsAttr, true);
-                if( null != gca_ColorsAttr ) {
-                    rs.updateAttributeLoc(gl, true, gca_ColorsAttr, true);
-                }
-            }
-            rsLocal.update(gl, rs, updateLocLocal, renderModes, true, true);
-            rs.updateUniformLoc(gl, updateLocLocal, gcu_PMVMatrix02, true);
-            if( null != gcu_ColorTexUnit ) {
-                rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexUnit, true);
-                rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexBBox, true);
-            }
-        } else {
-            updateLocLocal = !sp.equals(spPass2);
-            spPass2 = sp;
-            if( DEBUG ) {
-                System.err.println("XXX changedSP.p2 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
-            }
-            if( updateLocLocal ) {
-                rs.updateAttributeLoc(gl, true, gca_FboVerticesAttr, true);
-                rs.updateAttributeLoc(gl, true, gca_FboTexCoordsAttr, true);
-            }
-            rsLocal.update(gl, rs, updateLocLocal, renderModes, false, true);
-            rs.updateUniformDataLoc(gl, updateLocLocal, false /* updateData */, gcu_FboTexUnit, true); // FIXME always update if changing tex-unit
-        }
-    }
-
     public VBORegion2PMSAAES2(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq, final int pass2TexUnit,
                               final int initialVerticesCount, final int initialIndicesCount)
     {
@@ -148,20 +98,8 @@ public class VBORegion2PMSAAES2  extends GLRegion {
         // We leave GLArrayDataClient.DEFAULT_GROWTH_FACTOR intact for avg +19% size, but 15% less CPU overhead compared to 1.2 (19% total)
 
         // Pass 1:
-        indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), initialIndicesCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        initBuffer(initialVerticesCount, initialIndicesCount);
 
-        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
-                                                      false, initialVerticesCount, GL.GL_STATIC_DRAW);
-
-        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
-                                                       false, initialVerticesCount, GL.GL_STATIC_DRAW);
-
-        if( hasColorChannel() ) {
-            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
-                                                          false, initialVerticesCount, GL.GL_STATIC_DRAW);
-        } else {
-            gca_ColorsAttr = null;
-        }
         if( hasColorTexture() ) {
             gcu_ColorTexUnit = new GLUniformData(UniformNames.gcu_ColorTexUnit, colorTexSeq.getTextureUnit());
             colorTexBBox = new float[4];
@@ -196,13 +134,54 @@ public class VBORegion2PMSAAES2  extends GLRegion {
                                                            false, 4, GL.GL_STATIC_DRAW);
     }
 
+    private void initBuffer(final int verticeCount, final int indexCount) {
+        indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), indexCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesBuffer.setGrowthFactor(growthFactor);
+        curIndicesCap = indicesBuffer.getElemCapacity();
+
+        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
+                false, verticeCount, GL.GL_STATIC_DRAW);
+        gca_VerticesAttr.setGrowthFactor(growthFactor);
+        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
+                false, verticeCount, GL.GL_STATIC_DRAW);
+        gca_CurveParamsAttr.setGrowthFactor(growthFactor);
+        if( hasColorChannel() ) {
+            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
+                    false, verticeCount, GL.GL_STATIC_DRAW);
+            gca_ColorsAttr.setGrowthFactor(growthFactor);
+        }
+        curVerticesCap = gca_VerticesAttr.getElemCapacity();
+    }
+
     @Override
-        indicesBuffer.growIfNeeded(indexCount * indicesBuffer.getCompsPerElem());
-        gca_VerticesAttr.growIfNeeded(verticeCount * gca_VerticesAttr.getCompsPerElem());
-        gca_CurveParamsAttr.growIfNeeded(verticeCount * gca_CurveParamsAttr.getCompsPerElem());
-        if( null != gca_ColorsAttr ) {
-            gca_ColorsAttr.growIfNeeded(verticeCount * gca_ColorsAttr.getCompsPerElem());
     public void growBuffer(final int verticesCount, final int indicesCount) {
+        if( curIndicesCap < indicesBuffer.elemPosition() + indicesCount ) {
+            indicesBuffer.growIfNeeded(indicesCount * indicesBuffer.getCompsPerElem());
+            curIndicesCap = indicesBuffer.getElemCapacity();
+        }
+        if( curVerticesCap < gca_VerticesAttr.elemPosition() + verticesCount ) {
+            gca_VerticesAttr.growIfNeeded(verticesCount * gca_VerticesAttr.getCompsPerElem());
+            gca_CurveParamsAttr.growIfNeeded(verticesCount * gca_CurveParamsAttr.getCompsPerElem());
+            if( null != gca_ColorsAttr ) {
+                gca_ColorsAttr.growIfNeeded(verticesCount * gca_ColorsAttr.getCompsPerElem());
+            }
+            curVerticesCap = gca_VerticesAttr.getElemCapacity();
+        }
+    }
+
+    @Override
+    public void setBufferCapacity(final int verticesCount, final int indicesCount) {
+        if( curIndicesCap < indicesCount ) {
+            indicesBuffer.reserve(indicesCount);
+            curIndicesCap = indicesBuffer.getElemCapacity();
+        }
+        if( curVerticesCap < verticesCount ) {
+            gca_VerticesAttr.reserve(verticesCount);
+            gca_CurveParamsAttr.reserve(verticesCount);
+            if( null != gca_ColorsAttr ) {
+                gca_ColorsAttr.reserve(verticesCount);
+            }
+            curVerticesCap = gca_VerticesAttr.getElemCapacity();
         }
     }
 
@@ -338,6 +317,58 @@ public class VBORegion2PMSAAES2  extends GLRegion {
 
         fboDirty = true;
         // the buffers were disabled, since due to real/fbo switching and other vbo usage
+    }
+
+    /**
+     * <p>
+     * Since multiple {@link Region}s may share one
+     * {@link ShaderProgram}, the uniform data must always be updated.
+     * </p>
+     *
+     * @param gl
+     * @param renderer
+     * @param renderModes
+     * @param pass1
+     * @param quality
+     * @param sampleCount
+     */
+    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int renderModes, final boolean pass1, final int quality, final int sampleCount) {
+        final RenderState rs = renderer.getRenderState();
+        final boolean updateLocGlobal = renderer.useShaderProgram(gl, renderModes, pass1, quality, sampleCount, colorTexSeq);
+        final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
+        final boolean updateLocLocal;
+        if( pass1 ) {
+            updateLocLocal = !sp.equals(spPass1);
+            spPass1 = sp;
+            if( DEBUG ) {
+                System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+            }
+            if( updateLocLocal ) {
+                rs.updateAttributeLoc(gl, true, gca_VerticesAttr, true);
+                rs.updateAttributeLoc(gl, true, gca_CurveParamsAttr, true);
+                if( null != gca_ColorsAttr ) {
+                    rs.updateAttributeLoc(gl, true, gca_ColorsAttr, true);
+                }
+            }
+            rsLocal.update(gl, rs, updateLocLocal, renderModes, true, true);
+            rs.updateUniformLoc(gl, updateLocLocal, gcu_PMVMatrix02, true);
+            if( null != gcu_ColorTexUnit ) {
+                rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexUnit, true);
+                rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexBBox, true);
+            }
+        } else {
+            updateLocLocal = !sp.equals(spPass2);
+            spPass2 = sp;
+            if( DEBUG ) {
+                System.err.println("XXX changedSP.p2 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+            }
+            if( updateLocLocal ) {
+                rs.updateAttributeLoc(gl, true, gca_FboVerticesAttr, true);
+                rs.updateAttributeLoc(gl, true, gca_FboTexCoordsAttr, true);
+            }
+            rsLocal.update(gl, rs, updateLocLocal, renderModes, false, true);
+            rs.updateUniformDataLoc(gl, updateLocLocal, false /* updateData */, gcu_FboTexUnit, true); // FIXME always update if changing tex-unit
+        }
     }
 
     private final AABBox drawWinBox = new AABBox();

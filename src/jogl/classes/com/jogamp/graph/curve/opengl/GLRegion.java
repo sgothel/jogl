@@ -30,6 +30,7 @@ package com.jogamp.graph.curve.opengl;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLArrayData;
+import com.jogamp.opengl.util.GLArrayDataClient;
 import com.jogamp.opengl.util.GLArrayDataEditable;
 import com.jogamp.opengl.GLProfile;
 
@@ -76,6 +77,9 @@ public abstract class GLRegion extends Region {
      * Default initial indices count based on 10 chars w/ FreeSans @ 33 indices/char avg.
      */
     public static final int defaultIndicesCount = 10*33;
+
+    // private static final float growthFactor = 1.2f; // avg +5% size but 15% more overhead (34% total)
+    protected static final float growthFactor = GLArrayDataClient.DEFAULT_GROWTH_FACTOR; // avg +20% size, but 15% less CPU overhead compared to 1.2 (19% total)
 
     /**
      * Create a GLRegion using the passed render mode
@@ -142,9 +146,9 @@ public abstract class GLRegion extends Region {
     protected static void printAndCount(final PrintStream out, final String name, final GLArrayData data, final int[] size, final int[] capacity) {
         out.print(name+"[");
         if( null != data ) {
-            data.printStats(out);
-            size[0] += data.getSizeInBytes();
-            capacity[0] += data.getCapacityInBytes();
+            out.print(data.fillStatsToString());
+            size[0] += data.getByteCount();
+            capacity[0] += data.getByteCapacity();
             out.print("]");
         } else {
             out.print("null]");

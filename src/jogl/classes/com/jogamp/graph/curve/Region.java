@@ -203,10 +203,24 @@ public abstract class Region {
      * Allow the renderer buffers to pre-emptively grow for given vertices- and index counts.
      * @param verticesCount number of vertices to hold
      * @param indicesCount number of indices to hold
+     * @see #setBufferCapacity(int, int)
      * @see #countOutlineShape(OutlineShape, int[])
      * @see #countOutlineShapes(List, int[])
      */
     public abstract void growBuffer(int verticesCount, int indicesCount);
+
+    /**
+     * Set the renderer buffers pre-emptively for given vertices- and index counts.
+     * <p>
+     * If the buffers already exceeds given numbers, the buffers are unchanged.
+     * </p>
+     * @param verticesCount number of vertices to hold
+     * @param indicesCount number of indices to hold
+     * @see #growBuffer(int, int)
+     * @see #countOutlineShape(OutlineShape, int[])
+     * @see #countOutlineShapes(List, int[])
+     */
+    public abstract void setBufferCapacity(int verticesCount, int indicesCount);
 
     protected abstract void pushVertex(final float[] coords, final float[] texParams, float[] rgba);
     protected abstract void pushVertices(final float[] coords1, final float[] coords2, final float[] coords3,

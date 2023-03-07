@@ -58,7 +58,7 @@ import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
-public class VBORegion2PVBAAES2  extends GLRegion {
+public final class VBORegion2PVBAAES2  extends GLRegion {
     private static final boolean DEBUG_FBO_1 = false;
     private static final boolean DEBUG_FBO_2 = false;
 
@@ -95,6 +95,8 @@ public class VBORegion2PVBAAES2  extends GLRegion {
     private final RenderState.ProgramLocal rsLocal;
 
     // Pass-1:
+    private int curVerticesCap = 0;
+    private int curIndicesCap = 0;
     private GLArrayDataServer gca_VerticesAttr;
     private GLArrayDataServer gca_CurveParamsAttr;
     private GLArrayDataServer gca_ColorsAttr;
@@ -176,9 +178,6 @@ public class VBORegion2PVBAAES2  extends GLRegion {
         }
     }
 
-    // private static final float growthFactor = 1.2f; // avg +5% size but 15% more overhead (34% total)
-    private static final float growthFactor = GLArrayDataClient.DEFAULT_GROWTH_FACTOR; // avg +20% size, but 15% less CPU overhead compared to 1.2 (19% total)
-
     public VBORegion2PVBAAES2(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq, final int pass2TexUnit,
                               final int initialVerticesCount, final int initialIndicesCount)
     {
@@ -187,7 +186,7 @@ public class VBORegion2PVBAAES2  extends GLRegion {
         rsLocal = new RenderState.ProgramLocal();
 
         // Pass 1:
-        growBufferSize(initialVerticesCount, initialIndicesCount);
+        initBuffer(initialVerticesCount, initialIndicesCount);
 
         if( hasColorTexture() ) {
             gcu_ColorTexUnit = new GLUniformData(UniformNames.gcu_ColorTexUnit, colorTexSeq.getTextureUnit());
@@ -224,37 +223,58 @@ public class VBORegion2PVBAAES2  extends GLRegion {
                                                            false, 4, GL.GL_STATIC_DRAW);
     }
 
-    @Override
-        if(null == indicesBuffer ) {
-            indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), indexCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
-            indicesBuffer.setGrowthFactor(growthFactor);
-        } else {
-            indicesBuffer.growIfNeeded(indexCount * indicesBuffer.getCompsPerElem());
-        }
-        if( null == gca_VerticesAttr ) {
-            gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
-                                                            false, verticeCount, GL.GL_STATIC_DRAW);
-            gca_VerticesAttr.setGrowthFactor(growthFactor);
-        } else {
-            gca_VerticesAttr.growIfNeeded(verticeCount * gca_VerticesAttr.getCompsPerElem());
-    public void growBuffer(final int verticesCount, final int indicesCount) {
-        }
-        if( null == gca_CurveParamsAttr ) {
-            gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
-                                                               false, verticeCount, GL.GL_STATIC_DRAW);
-            gca_CurveParamsAttr.setGrowthFactor(growthFactor);
-        } else {
-            gca_CurveParamsAttr.growIfNeeded(verticeCount * gca_CurveParamsAttr.getCompsPerElem());
-        }
+    private void initBuffer(final int verticeCount, final int indexCount) {
+        indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), indexCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesBuffer.setGrowthFactor(growthFactor);
+        curIndicesCap = indicesBuffer.getElemCapacity();
 
-        if( null == gca_ColorsAttr ) {
-            if( hasColorChannel() ) {
-                gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
-                                                              false, verticeCount, GL.GL_STATIC_DRAW);
-                gca_ColorsAttr.setGrowthFactor(growthFactor);
+        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
+                false, verticeCount, GL.GL_STATIC_DRAW);
+        gca_VerticesAttr.setGrowthFactor(growthFactor);
+        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
+                false, verticeCount, GL.GL_STATIC_DRAW);
+        gca_CurveParamsAttr.setGrowthFactor(growthFactor);
+        if( hasColorChannel() ) {
+            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
+                    false, verticeCount, GL.GL_STATIC_DRAW);
+            gca_ColorsAttr.setGrowthFactor(growthFactor);
+        }
+        curVerticesCap = gca_VerticesAttr.getElemCapacity();
+    }
+
+    @Override
+    public void growBuffer(final int verticesCount, final int indicesCount) {
+        if( curIndicesCap < indicesBuffer.elemPosition() + indicesCount ) {
+            // System.err.printf("XXX Buffer grow - Indices: %d < ( %d = %d + %d ); Status: %s%n",
+            //        curIndicesCap, indicesBuffer.elemPosition() + indicesCount, indicesBuffer.elemPosition(), indicesCount, indicesBuffer.elemStatsToString());
+            indicesBuffer.growIfNeeded(indicesCount * indicesBuffer.getCompsPerElem());
+            curIndicesCap = indicesBuffer.getElemCapacity();
+        }
+        if( curVerticesCap < gca_VerticesAttr.elemPosition() + verticesCount ) {
+            // System.err.printf("XXX Buffer grow - Verices: %d < ( %d = %d + %d ); Status: %s%n",
+            //        curVerticesCap, gca_VerticesAttr.elemPosition() + verticesCount, gca_VerticesAttr.elemPosition(), verticesCount, gca_VerticesAttr.elemStatsToString());
+            gca_VerticesAttr.growIfNeeded(verticesCount * gca_VerticesAttr.getCompsPerElem());
+            gca_CurveParamsAttr.growIfNeeded(verticesCount * gca_CurveParamsAttr.getCompsPerElem());
+            if( null != gca_ColorsAttr ) {
+                gca_ColorsAttr.growIfNeeded(verticesCount * gca_ColorsAttr.getCompsPerElem());
             }
-        } else {
-            gca_ColorsAttr.growIfNeeded(verticeCount * gca_ColorsAttr.getCompsPerElem());
+            curVerticesCap = gca_VerticesAttr.getElemCapacity();
+        }
+    }
+
+    @Override
+    public void setBufferCapacity(final int verticesCount, final int indicesCount) {
+        if( curIndicesCap < indicesCount ) {
+            indicesBuffer.reserve(indicesCount);
+            curIndicesCap = indicesBuffer.getElemCapacity();
+        }
+        if( curVerticesCap < verticesCount ) {
+            gca_VerticesAttr.reserve(verticesCount);
+            gca_CurveParamsAttr.reserve(verticesCount);
+            if( null != gca_ColorsAttr ) {
+                gca_ColorsAttr.reserve(verticesCount);
+            }
+            curVerticesCap = gca_VerticesAttr.getElemCapacity();
         }
     }
 

@@ -50,9 +50,11 @@ import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
-public class VBORegionSPES2 extends GLRegion {
+public final class VBORegionSPES2 extends GLRegion {
     private final RenderState.ProgramLocal rsLocal;
 
+    private int curVerticesCap = 0;
+    private int curIndicesCap = 0;
     private GLArrayDataServer gca_VerticesAttr = null;
     private GLArrayDataServer gca_CurveParamsAttr = null;
     private GLArrayDataServer gca_ColorsAttr;
@@ -69,22 +71,8 @@ public class VBORegionSPES2 extends GLRegion {
 
         rsLocal = new RenderState.ProgramLocal();
 
-        // We leave GLArrayDataClient.DEFAULT_GROWTH_FACTOR intact for avg +19% size, but 15% less CPU overhead compared to 1.2 (19% total)
+        initBuffer(initialVerticesCount, initialIndicesCount);
 
-        indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), initialIndicesCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
-
-        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
-                                                        false, initialVerticesCount, GL.GL_STATIC_DRAW);
-
-        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
-                                                           false, initialVerticesCount, GL.GL_STATIC_DRAW);
-
-        if( hasColorChannel() ) {
-            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
-                                                          false, initialVerticesCount, GL.GL_STATIC_DRAW);
-        } else {
-            gca_ColorsAttr = null;
-        }
         if( hasColorTexture() ) {
             gcu_ColorTexUnit = new GLUniformData(UniformNames.gcu_ColorTexUnit, colorTexSeq.getTextureUnit());
             colorTexBBox = new float[4];
@@ -96,13 +84,54 @@ public class VBORegionSPES2 extends GLRegion {
         }
     }
 
+    private void initBuffer(final int verticeCount, final int indexCount) {
+        indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), indexCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesBuffer.setGrowthFactor(growthFactor);
+        curIndicesCap = indicesBuffer.getElemCapacity();
+
+        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
+                false, verticeCount, GL.GL_STATIC_DRAW);
+        gca_VerticesAttr.setGrowthFactor(growthFactor);
+        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
+                false, verticeCount, GL.GL_STATIC_DRAW);
+        gca_CurveParamsAttr.setGrowthFactor(growthFactor);
+        if( hasColorChannel() ) {
+            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
+                    false, verticeCount, GL.GL_STATIC_DRAW);
+            gca_ColorsAttr.setGrowthFactor(growthFactor);
+        }
+        curVerticesCap = gca_VerticesAttr.getElemCapacity();
+    }
+
     @Override
-        indicesBuffer.growIfNeeded(indexCount * indicesBuffer.getCompsPerElem());
-        gca_VerticesAttr.growIfNeeded(verticeCount * gca_VerticesAttr.getCompsPerElem());
-        gca_CurveParamsAttr.growIfNeeded(verticeCount * gca_CurveParamsAttr.getCompsPerElem());
-        if( null != gca_ColorsAttr ) {
-            gca_ColorsAttr.growIfNeeded(verticeCount * gca_ColorsAttr.getCompsPerElem());
     public void growBuffer(final int verticesCount, final int indicesCount) {
+        if( curIndicesCap < indicesBuffer.elemPosition() + indicesCount ) {
+            indicesBuffer.growIfNeeded(indicesCount * indicesBuffer.getCompsPerElem());
+            curIndicesCap = indicesBuffer.getElemCapacity();
+        }
+        if( curVerticesCap < gca_VerticesAttr.elemPosition() + verticesCount ) {
+            gca_VerticesAttr.growIfNeeded(verticesCount * gca_VerticesAttr.getCompsPerElem());
+            gca_CurveParamsAttr.growIfNeeded(verticesCount * gca_CurveParamsAttr.getCompsPerElem());
+            if( null != gca_ColorsAttr ) {
+                gca_ColorsAttr.growIfNeeded(verticesCount * gca_ColorsAttr.getCompsPerElem());
+            }
+            curVerticesCap = gca_VerticesAttr.getElemCapacity();
+        }
+    }
+
+    @Override
+    public void setBufferCapacity(final int verticesCount, final int indicesCount) {
+        if( curIndicesCap < indicesCount ) {
+            indicesBuffer.reserve(indicesCount);
+            curIndicesCap = indicesBuffer.getElemCapacity();
+        }
+        if( curVerticesCap < verticesCount ) {
+            gca_VerticesAttr.reserve(verticesCount);
+            gca_CurveParamsAttr.reserve(verticesCount);
+            if( null != gca_ColorsAttr ) {
+                gca_ColorsAttr.reserve(verticesCount);
+            }
+            curVerticesCap = gca_VerticesAttr.getElemCapacity();
         }
     }
 
