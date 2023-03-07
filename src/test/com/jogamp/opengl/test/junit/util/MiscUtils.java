@@ -97,6 +97,14 @@ public class MiscUtils {
         return "0x" + Long.toHexString( hex );
     }
 
+    public static void waitForKey(final String preMessage) {
+        final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+        System.err.println(preMessage+"> Press enter to continue");
+        try {
+            System.err.println(stdin.readLine());
+        } catch (final IOException e) { e.printStackTrace(); }
+    }
+
     public static void assertFloatBufferEquals(final String errmsg, final FloatBuffer expected, final FloatBuffer actual, final float delta) {
         if(null == expected && null == actual) {
             return;

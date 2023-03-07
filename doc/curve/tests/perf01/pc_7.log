@@ -1,0 +1,184 @@
+./scripts/tests-x64.sh
+FOUND_JAVA 1
+J2RE_HOME /usr/lib/jvm/java-17-openjdk-amd64
+JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
+PATH /usr/lib/jvm/java-17-openjdk-amd64/bin:/opt-share/apache-ant/bin:/home/sven/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
+/usr/lib/jvm/java-17-openjdk-amd64/bin/java
+openjdk version "17.0.6" 2023-01-17
+OpenJDK Runtime Environment (build 17.0.6+10-Debian-1deb11u1)
+OpenJDK 64-Bit Server VM (build 17.0.6+10-Debian-1deb11u1, mixed mode, sharing)
+GLUEGEN BUILDDIR: ../../gluegen/make/../build-x86_64
+JOAL BUILDDIR: ../../joal/build-x86_64
+JOGL DIR: ../build-x86_64/..
+JOGL BUILDDIR: ../build-x86_64
+JOGL BUILDDIR BASE: build-x86_64
+JOGL PROFILE: JOGL_ALL
+Linux risa 5.10.0-21-amd64 #1 SMP Debian 5.10.162-1 (2023-01-21) x86_64 GNU/Linux
+JOGAMP_ALL_AWT_CLASSPATH: .:../../gluegen/make/../build-x86_64/gluegen-rt.jar:../../joal/build-x86_64/jar/joal.jar:../build-x86_64/jar/jogl-all.jar:../build-x86_64/jar/atomic/oculusvr.jar:../build-x86_64/jar/jogl-test.jar:/usr/local/projects/JogAmp/jogl/make/lib/swt/gtk-linux-x86_64/swt.jar:../../gluegen/make/../make/lib/junit.jar:/opt-share/apache-ant/lib/ant.jar:/opt-share/apache-ant/lib/ant-junit.jar:../../gluegen/make/../make/lib/semantic-versioning/semver.jar:../../gluegen/make/../build-x86_64/gluegen-test-util.jar
+JOGAMP_ALL_NOAWT_CLASSPATH: .:../../gluegen/make/../build-x86_64/gluegen-rt.jar:../../joal/build-x86_64/jar/joal.jar:../build-x86_64/jar/jogl-all-noawt.jar:../build-x86_64/jar/atomic/oculusvr.jar:../build-x86_64/jar/jogl-test.jar:/usr/local/projects/JogAmp/jogl/make/lib/swt/gtk-linux-x86_64/swt.jar:../../gluegen/make/../make/lib/junit.jar:/opt-share/apache-ant/lib/ant.jar:/opt-share/apache-ant/lib/ant-junit.jar:../../gluegen/make/../make/lib/semantic-versioning/semver.jar:../../gluegen/make/../build-x86_64/gluegen-test-util.jar
+JOGAMP_MOBILE_CLASSPATH: .:../../gluegen/make/../build-x86_64/gluegen-rt.jar:../../joal/build-x86_64/jar/joal.jar:../build-x86_64/jar/jogl-all-mobile.jar:../build-x86_64/jar/atomic/oculusvr.jar:../build-x86_64/jar/jogl-test.jar:/usr/local/projects/JogAmp/jogl/make/lib/swt/gtk-linux-x86_64/swt.jar:../../gluegen/make/../make/lib/junit.jar:/opt-share/apache-ant/lib/ant.jar:/opt-share/apache-ant/lib/ant-junit.jar:../../gluegen/make/../make/lib/semantic-versioning/semver.jar:../../gluegen/make/../build-x86_64/gluegen-test-util.jar
+JOGAMP_CLASSPATH: .:../../gluegen/make/../build-x86_64/gluegen-rt.jar:../../joal/build-x86_64/jar/joal.jar:../build-x86_64/jar/jogl-all.jar:../build-x86_64/jar/atomic/oculusvr.jar:../build-x86_64/jar/jogl-test.jar:/usr/local/projects/JogAmp/jogl/make/lib/swt/gtk-linux-x86_64/swt.jar:../../gluegen/make/../make/lib/junit.jar:/opt-share/apache-ant/lib/ant.jar:/opt-share/apache-ant/lib/ant-junit.jar:../../gluegen/make/../make/lib/semantic-versioning/semver.jar:../../gluegen/make/../build-x86_64/gluegen-test-util.jar
+JOGAMP_LD_LIBRARY_PATH: :../../gluegen/make/../build-x86_64/obj:../build-x86_64/lib
+JOGAMP_DYLD_LIBRARY_PATH: :../../gluegen/make/../build-x86_64/obj:../build-x86_64/lib
+
+MacOSX REMEMBER to add the JVM arguments -XstartOnFirstThread -Djava.awt.headless=true for running demos without AWT, e.g. NEWT
+MacOSX REMEMBER to add the JVM arguments -XstartOnFirstThread -Djava.awt.headless=true com.jogamp.newt.util.MainThread for running demos with NEWT
+/usr/lib/jvm/java-17-openjdk-amd64/bin/java
+openjdk version "17.0.6" 2023-01-17
+OpenJDK Runtime Environment (build 17.0.6+10-Debian-1deb11u1)
+OpenJDK 64-Bit Server VM (build 17.0.6+10-Debian-1deb11u1, mixed mode, sharing)
+LD_LIBRARY_PATH
+LIBXCB_ALLOW_SLOPPY_LOCK:
+LIBGL_DRIVERS_PATH:
+LIBGL_DEBUG:
+LIBGL_ALWAYS_INDIRECT:
+LIBGL_ALWAYS_SOFTWARE:
+SWT_CLASSPATH: /usr/local/projects/JogAmp/jogl/make/lib/swt/gtk-linux-x86_64/swt.jar
+MacOsX 0
+DISPLAY :0
+WAYLAND_DISPLAY
+USE_BUILDDIR 0
+USE_CLASSPATH .:../../gluegen/make/../build-x86_64/gluegen-rt.jar:../../joal/build-x86_64/jar/joal.jar:../build-x86_64/jar/jogl-all-noawt.jar:../build-x86_64/jar/atomic/oculusvr.jar:../build-x86_64/jar/jogl-test.jar:/usr/local/projects/JogAmp/jogl/make/lib/swt/gtk-linux-x86_64/swt.jar:../../gluegen/make/../make/lib/junit.jar:/opt-share/apache-ant/lib/ant.jar:/opt-share/apache-ant/lib/ant-junit.jar:../../gluegen/make/../make/lib/semantic-versioning/semver.jar:../../gluegen/make/../build-x86_64/gluegen-test-util.jar
+
+Test Start: com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 -es2 -Nperf -long_text -loop 40
+
+__GL_THREADED_OPTIMIZATIONS
+
+/usr/lib/jvm/java-17-openjdk-amd64/bin/java -DummyArg --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED -Djava.awt.headless=true -cp .:../../gluegen/make/../build-x86_64/gluegen-rt.jar:../../joal/build-x86_64/jar/joal.jar:../build-x86_64/jar/jogl-all-noawt.jar:../build-x86_64/jar/atomic/oculusvr.jar:../build-x86_64/jar/jogl-test.jar:/usr/local/projects/JogAmp/jogl/make/lib/swt/gtk-linux-x86_64/swt.jar:../../gluegen/make/../make/lib/junit.jar:/opt-share/apache-ant/lib/ant.jar:/opt-share/apache-ant/lib/ant-junit.jar:../../gluegen/make/../make/lib/semantic-versioning/semver.jar:../../gluegen/make/../build-x86_64/gluegen-test-util.jar com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 -es2 -Nperf -long_text -loop 40
+Performance test enabled: false
+-----------------------------------------------------------------------------------------------------
+Platform: LINUX / Linux 5.10.0-21-amd64 (5.10.0), amd64 (X86_64, GENERIC_ABI), 32 cores, littleEndian true
+MachineDataInfo: runtimeValidated true, 32Bit false, primitive size / alignment:
+  int8    1 / 1, int16   2 / 2
+  int     4 / 4, long    8 / 8
+  int32   4 / 4, int64   8 / 8
+  float   4 / 4, double  8 / 8, ldouble 16 / 16
+  pointer 8 / 8, page    4096
+Platform: Java Version: 17.0.6 (17.0.6u0), VM: OpenJDK 64-Bit Server VM, Runtime: OpenJDK Runtime Environment
+Platform: Java Vendor: Debian, https://tracker.debian.org/openjdk-17, Java17, dynamicLib: true, AWT enabled: false
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+Package: com.jogamp.opengl
+Extension Name: com.jogamp.opengl
+Specification Title: Java Bindings for OpenGL API Specification
+Specification Vendor: JogAmp Community
+Specification Version: 2.5
+Implementation Title: Java Bindings for OpenGL Runtime Environment
+Implementation Vendor: JogAmp Community
+Implementation Vendor ID: com.jogamp
+Implementation URL: http://jogamp.org/
+Implementation Version: 2.5.0-rc-20230307
+Implementation Build: 2.5-bmanual-20230307
+Implementation Branch: master
+Implementation Commit: fb03e913c0c55a9a96e93a00ef6590b9bea9a62a
+Implementation SHA Sources: null
+Implementation SHA Classes: null
+Implementation SHA Classes-this: null
+Implementation SHA Natives: null
+Implementation SHA Natives-this: null
+-----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
+EGLGraphicsDevice[type .egl, v1.5.0, nativeDisplayID 0x7f7b3401dc60, connection :0, unitID 0, handle 0x7f7b3401f6a0, owner true, ResourceToolkitLock[obj 0x32a068d1, isOwner true, <33cb5951, 365c30cc>[count 1, qsz 0, owner <main>]]]:
+	Natives
+		GL4bc 	true [4.6 (Compat profile, arb, compat[ES2, ES3, ES31], FBO, hardware)]
+		GL4 	true [4.6 (Core profile, arb, compat[ES2, ES3, ES31, ES32], FBO, hardware)]
+		GLES3 	true [3.2 (ES profile, arb, compat[ES2, ES3, ES31, ES32], FBO, hardware)]
+		GL3bc 	true [4.6 (Compat profile, arb, compat[ES2, ES3, ES31], FBO, hardware)]
+		GL3 	true [4.6 (Core profile, arb, compat[ES2, ES3, ES31, ES32], FBO, hardware)]
+		GL2 	true [4.6 (Compat profile, arb, compat[ES2, ES3, ES31], FBO, hardware)]
+		GLES2 	true [3.2 (ES profile, arb, compat[ES2, ES3, ES31, ES32], FBO, hardware)]
+		GLES1 	true [1.1 (ES profile, arb, compat[FP32], hardware)]
+		Count	8 / 8
+	Common
+		GL4ES3 	true
+		GL2GL3 	true
+		GL2ES2 	true
+		GL2ES1 	true
+	Mappings
+		GL3bc 	GLProfile[GL3bc/GL4bc.hw]
+		GL2 	GLProfile[GL2/GL4bc.hw]
+		GLES3 	GLProfile[GLES3/GLES3.hw]
+		GL4 	GLProfile[GL4/GL4.hw]
+		GL3 	GLProfile[GL3/GL4.hw]
+		GL2GL3 	GLProfile[GL2GL3/GL4bc.hw]
+		GLES1 	GLProfile[GLES1/GLES1.hw]
+		GLES2 	GLProfile[GLES2/GLES3.hw]
+		GL2ES1 	GLProfile[GL2ES1/GL4bc.hw]
+		GL4ES3 	GLProfile[GL4ES3/GL4.hw]
+		GL2ES2 	GLProfile[GL2ES2/GL4.hw]
+		GL4bc 	GLProfile[GL4bc/GL4bc.hw]
+		default GLProfile[GL4bc/GL4bc.hw]
+		Count	12 / 12
+
+Swap Interval  1
+GL Profile     GLProfile[GLES3/GLES3.hw]
+GL Version     3.2 (ES profile, arb, compat[ES2, ES3, ES31, ES32], FBO, hardware) - OpenGL ES 3.2 Mesa 20.3.5 [GL 3.2.0, vendor 20.3.5 (Mesa 20.3.5)]
+Quirks         [No10BitColorCompOffscreen]
+Impl. class    jogamp.opengl.es3.GLES3Impl
+GL_VENDOR      AMD
+GL_RENDERER    AMD Radeon RX 5700 XT (NAVI10, DRM 3.40.0, 5.10.0-21-amd64, LLVM 11.0.1)
+GL_VERSION     OpenGL ES 3.2 Mesa 20.3.5
+GLSL           true, has-compiler-func: true, version: OpenGL ES GLSL ES 3.20 / 3.0.0
+GL FBO: basic true, full true
+GL_EXTENSIONS  140
+GLX_EXTENSIONS 49
+-----------------------------------------------------------------------------------------------------
+Requested Caps: GLCaps[rgba 8/8/8/4, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GLES2/GLES3.hw], on-scr[.]]
+Requested Region-RenderModes: vbaa
+Chosen Caps: GLCaps[egl cfg 0x2, vid 0x21: rgba 8/8/8/8, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GLES2/GLES3.hw], on-scr[.], [0x4d: GL, GLES1, GLES2, GLES3, VG]]
+Chosen Font: FreeSans-Regular
+Perf: Elapsed since startup: 437 [ms], 437,881,796 [ns]
+- monotonic startup 1970-01-18T10:59:19.972981364Z, 1,508,359,972 [ms]
+- monotonic current 1970-01-18T10:59:20.410863160Z, 1,508,360,410 [ms]
+-      wall current 2023-03-07T02:46:46.183817149Z
+- currentNanos: Elapsed 440,229,208 [ns]
+  - test-startup        76,732 [ns]
+  - test-current   440,305,940 [ns]
+Text_1: tbox [ dim 54.787003 x 16.547 x 0.0, box 0.015000001 / -15.818001 / 0.0 .. 54.802002 / 0.72900003 / 0.0, ctr 27.4085 / -7.5445004 / 0.0 ]
+Text_1: rbox [ dim 54.787006 x 16.546999 x 0.0, box 1.986 / -15.817999 / 0.0 .. 56.773006 / 0.729 / 0.0, ctr 29.379503 / -7.5444994 / 0.0 ]
+
+
+  1: Perf Launch:
+- loading GlueGen - loading test      0 [ms]
+- loading GlueGen - start test      285 [ms]
+- loading test    - start test      284 [ms]
+- loading test    - gl              440 [ms]
+- loading test    - graph           441 [ms]
+- loading test    - txt             486 [ms]
+- loading test    - draw            506 [ms]
+  1 /   1: Perf Launch:   Total: graph  0, txt 44, draw 20, txt+draw 65 [ms]
+  1 /   1: Perf Launch: PerLoop: graph 889,100, txt 44,841,214, draw 20,479,677, txt+draw 65,320,891 [ns]
+GLRegion: for GLProfile[GLES3/GLES3.hw] using int32_t indiced: true
+GLRegion: Region[vbaa, q 1, dirty 0, vertices 81092, box [ dim 54.787006 x 16.546999 x 0.0, box 1.986 / -15.817999 / 0.0 .. 56.773006 / 0.729 / 0.0, ctr 29.379503 / -7.5444994 / 0.0 ]]
+Text length: 1296
+VBORegion2PVBAAES2: idx32 true
+  indices [elements 42,409 / 46,656, bytes 508,908 / 559,872, filled 90.9%, left 9.1%]
+  vertices [elements 81,092 / 88,128, bytes 973,104 / 1,057,536, filled 92.0%, left 8.0%]
+  params [elements 81,092 / 88,128, bytes 973,104 / 1,057,536, filled 92.0%, left 8.0%]
+  color [null]
+  total [bytes 2,455,116 / 2,674,944], filled 91.8%, left 8.2%]
+  1 /   1: Perf Frame1:   Total: graph  0, txt 44, draw 20, txt+draw 65 [ms]
+  1 /   1: Perf Frame1: PerLoop: graph 889,100, txt 44,841,214, draw 20,479,677, txt+draw 65,320,891 [ns]
+ 20 /  20: Perf Frame20:   Total: graph 209, txt 104, draw 27, txt+draw 132 [ms]
+ 20 /  20: Perf Frame20: PerLoop: graph 10,489,120, txt 5,233,011, draw 1,397,265, txt+draw 6,630,277 [ns]
+GLRegion: for GLProfile[GLES3/GLES3.hw] using int32_t indiced: true
+GLRegion: Region[vbaa, q 1, dirty 0, vertices 81092, box [ dim 54.787006 x 16.546999 x 0.0, box 1.986 / -15.817999 / 0.0 .. 56.773006 / 0.729 / 0.0, ctr 29.379503 / -7.5444994 / 0.0 ]]
+Text length: 1296
+VBORegion2PVBAAES2: idx32 true
+  indices [elements 42,409 / 46,656, bytes 508,908 / 559,872, filled 90.9%, left 9.1%]
+  vertices [elements 81,092 / 88,128, bytes 973,104 / 1,057,536, filled 92.0%, left 8.0%]
+  params [elements 81,092 / 88,128, bytes 973,104 / 1,057,536, filled 92.0%, left 8.0%]
+  color [null]
+  total [bytes 2,455,116 / 2,674,944], filled 91.8%, left 8.2%]
+ 20 /  40: Perf Frame40:   Total: graph 256, txt 67, draw  6, txt+draw 74 [ms]
+ 20 /  40: Perf Frame40: PerLoop: graph 12,843,025, txt 3,353,278, draw 348,358, txt+draw 3,701,637 [ns]
+** new frame ** (sleep: 100ms)
+
+Test End: com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 -es2 -Nperf -long_text -loop 40
+
+EDT START
+      0       0       0
+EDT END
+      0       0       0
+EDT EXIT
+      0       0       0

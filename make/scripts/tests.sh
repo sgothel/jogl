@@ -953,7 +953,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.graph.TestFontsNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWTBugXXXX $*
 
-#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT20 $*
@@ -991,8 +991,8 @@ function testawtswt() {
 
 # Linux DRM/GBM
 #
-#testmobile com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
-testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
+#testmobile com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
+testnoawt com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
 #testmobile com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testmobile com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*

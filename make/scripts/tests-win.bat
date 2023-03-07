@@ -218,7 +218,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscre
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01
-scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00
+scripts\java-win.bat com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT

@@ -1,8 +1,11 @@
 #! /bin/bash
 
-spath=`dirname $0`
+SDIR=`dirname $0` 
 
-. $spath/tests.sh  `which java` -DummyArg ../build-linux-aarch64 $*
-#. $spath/tests.sh  /usr/lib/jvm/java-11-openjdk-arm64/bin/java -DummyArg ../build-linux-aarch64 $*
+#JAVA_CMD=/opt-linux-arm64/zulu19.32.13-ca-jdk19.0.2-linux_aarch64/bin/java
+#JAVA_CMD=/usr/lib/jvm/java-11-openjdk-arm64/bin/java
+JAVA_CMD=`which java`
+
+. $SDIR/tests.sh  $JAVA_CMD -DummyArg ../build-linux-aarch64 $*
 
 
