@@ -45,7 +45,8 @@ Test Start: com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 -es2 -Nper
 __GL_THREADED_OPTIMIZATIONS
 
 /usr/lib/jvm/java-17-openjdk-amd64/bin/java -DummyArg --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED -Djava.awt.headless=true -cp .:../../gluegen/make/../build-x86_64/gluegen-rt.jar:../../joal/build-x86_64/jar/joal.jar:../build-x86_64/jar/jogl-all-noawt.jar:../build-x86_64/jar/atomic/oculusvr.jar:../build-x86_64/jar/jogl-test.jar:/usr/local/projects/JogAmp/jogl/make/lib/swt/gtk-linux-x86_64/swt.jar:../../gluegen/make/../make/lib/junit.jar:/opt-share/apache-ant/lib/ant.jar:/opt-share/apache-ant/lib/ant-junit.jar:../../gluegen/make/../make/lib/semantic-versioning/semver.jar:../../gluegen/make/../build-x86_64/gluegen-test-util.jar com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 -es2 -Nperf -long_text -loop 40
-Performance test enabled: false
+Excessuive performance test enabled: false
+VSync requested: false
 -----------------------------------------------------------------------------------------------------
 Platform: LINUX / Linux 5.10.0-21-amd64 (5.10.0), amd64 (X86_64, GENERIC_ABI), 32 cores, littleEndian true
 MachineDataInfo: runtimeValidated true, 32Bit false, primitive size / alignment:
@@ -70,7 +71,7 @@ Implementation URL: http://jogamp.org/
 Implementation Version: 2.5.0-rc-20230307
 Implementation Build: 2.5-bmanual-20230307
 Implementation Branch: master
-Implementation Commit: 8476bc8420eafaf741f37ddf3c2f2d4660b31109
+Implementation Commit: 9a14dd8d40be4f4d88ba8424e908129ff628e259
 Implementation SHA Sources: null
 Implementation SHA Classes: null
 Implementation SHA Classes-this: null
@@ -78,7 +79,7 @@ Implementation SHA Natives: null
 Implementation SHA Natives-this: null
 -----------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------
-EGLGraphicsDevice[type .egl, v1.5.0, nativeDisplayID 0x7f1a1c01dd80, connection :0, unitID 0, handle 0x7f1a1c01f7c0, owner true, ResourceToolkitLock[obj 0x69a10787, isOwner true, <2d127a61, 2bbaf4f0>[count 1, qsz 0, owner <main>]]]:
+EGLGraphicsDevice[type .egl, v1.5.0, nativeDisplayID 0x7fadc801de30, connection :0, unitID 0, handle 0x7fadc801f870, owner true, ResourceToolkitLock[obj 0x69a10787, isOwner true, <2d127a61, 2bbaf4f0>[count 1, qsz 0, owner <main>]]]:
 	Natives
 		GL4bc 	true [4.6 (Compat profile, arb, compat[ES2, ES3, ES31], FBO, hardware)]
 		GL4 	true [4.6 (Core profile, arb, compat[ES2, ES3, ES31, ES32], FBO, hardware)]
@@ -110,7 +111,7 @@ EGLGraphicsDevice[type .egl, v1.5.0, nativeDisplayID 0x7f1a1c01dd80, connection 
 		default GLProfile[GL4bc/GL4bc.hw]
 		Count	12 / 12
 
-Swap Interval  1
+Swap Interval  0
 GL Profile     GLProfile[GLES3/GLES3.hw]
 GL Version     3.2 (ES profile, arb, compat[ES2, ES3, ES31, ES32], FBO, hardware) - OpenGL ES 3.2 Mesa 20.3.5 [GL 3.2.0, vendor 20.3.5 (Mesa 20.3.5)]
 Quirks         [No10BitColorCompOffscreen]
@@ -123,6 +124,7 @@ GL FBO: basic true, full true
 GL_EXTENSIONS  140
 GLX_EXTENSIONS 49
 -----------------------------------------------------------------------------------------------------
+VSync Swap Interval: 0
 Requested Caps: GLCaps[rgba 8/8/8/4, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GLES2/GLES3.hw], on-scr[.]]
 Requested Region-RenderModes: vbaa
 Chosen Caps: GLCaps[egl cfg 0x2, vid 0x21: rgba 8/8/8/8, opaque, accum-rgba 0/0/0/0, dp/st/ms 16/0/0, dbl, mono  , hw, GLProfile[GLES2/GLES3.hw], on-scr[.], [0x4d: GL, GLES1, GLES2, GLES3, VG]]
@@ -142,27 +144,27 @@ VBORegion2PVBAAES2: idx32 true
   params [elements 0 cnt / 96,088 cap, bytes 0 cnt / 1,153,056 cap, filled 0.0%, left 100.0%]
   color [null]
   total [bytes 0 / 3,003,288], filled 0.0%, left 100.0%]
-Perf: Elapsed since startup: 475 [ms], 475,710,592 [ns]
-- monotonic startup 1970-01-19T02:49:36.632535495Z, 1,565,376,632 [ms]
-- monotonic current 1970-01-19T02:49:37.108246087Z, 1,565,377,108 [ms]
--      wall current 2023-03-07T18:37:02.881197937Z
-- currentNanos: Elapsed 478,175,600 [ns]
-  - test-startup        74,962 [ns]
-  - test-current   478,250,562 [ns]
+Perf: Elapsed since startup: 496 [ms], 496,933,522 [ns]
+- monotonic startup 1970-01-19T05:00:30.983589115Z, 1,573,230,983 [ms]
+- monotonic current 1970-01-19T05:00:31.480522637Z, 1,573,231,480 [ms]
+-      wall current 2023-03-07T20:47:57.253483767Z
+- currentNanos: Elapsed 499,866,648 [ns]
+  - test-startup        77,612 [ns]
+  - test-current   499,944,260 [ns]
 Text_1: tbox [ dim 54.787003 x 16.547 x 0.0, box 0.015000001 / -15.818001 / 0.0 .. 54.802002 / 0.72900003 / 0.0, ctr 27.4085 / -7.5445004 / 0.0 ]
 Text_1: rbox [ dim 54.787006 x 16.546999 x 0.0, box 1.986 / -15.817999 / 0.0 .. 56.773006 / 0.729 / 0.0, ctr 29.379503 / -7.5444994 / 0.0 ]
 
 
   1: Perf Launch:
 - loading GlueGen - loading test      0 [ms]
-- loading GlueGen - start test      286 [ms]
-- loading test    - start test      286 [ms]
-- loading test    - gl              478 [ms]
-- loading test    - graph           479 [ms]
-- loading test    - txt             494 [ms]
-- loading test    - draw            514 [ms]
-  1 /   1: Perf Launch:   Total: graph  0, txt 14, draw 19, txt+draw 34 [ms]
-  1 /   1: Perf Launch: PerLoop: graph 947,423, txt 14,506,905, draw 19,682,459, txt+draw 34,189,364 [ns]
+- loading GlueGen - start test      288 [ms]
+- loading test    - start test      288 [ms]
+- loading test    - gl              501 [ms]
+- loading test    - graph           502 [ms]
+- loading test    - txt             517 [ms]
+- loading test    - draw            540 [ms]
+  1 /   1: Perf Launch:   Total: graph  1, txt 14, draw 23, txt+draw 38 [ms]
+  1 /   1: Perf Launch: PerLoop: graph 1,074,964, txt 14,974,803, draw 23,747,589, txt+draw 38,722,392 [ns]
 GLRegion: for GLProfile[GLES3/GLES3.hw] using int32_t indiced: true
 GLRegion: Region[vbaa, q 1, dirty 0, vertices 81092, box [ dim 54.787006 x 16.546999 x 0.0, box 1.986 / -15.817999 / 0.0 .. 56.773006 / 0.729 / 0.0, ctr 29.379503 / -7.5444994 / 0.0 ]]
 Text length: 1296
@@ -172,10 +174,10 @@ VBORegion2PVBAAES2: idx32 true
   params [elements 81,092 cnt / 96,088 cap, bytes 973,104 cnt / 1,153,056 cap, filled 84.4%, left 15.6%]
   color [null]
   total [bytes 2,455,116 / 3,003,288], filled 81.7%, left 18.3%]
-  1 /   1: Perf Frame1:   Total: graph  0, txt 14, draw 19, txt+draw 34 [ms]
-  1 /   1: Perf Frame1: PerLoop: graph 947,423, txt 14,506,905, draw 19,682,459, txt+draw 34,189,364 [ns]
- 20 /  20: Perf Frame20:   Total: graph 221, txt 75, draw 28, txt+draw 103 [ms]
- 20 /  20: Perf Frame20: PerLoop: graph 11,080,666, txt 3,765,968, draw 1,405,741, txt+draw 5,171,709 [ns]
+  1 /   1: Perf Frame1:   Total: graph  1, txt 14, draw 23, txt+draw 38 [ms]
+  1 /   1: Perf Frame1: PerLoop: graph 1,074,964, txt 14,974,803, draw 23,747,589, txt+draw 38,722,392 [ns]
+ 20 /  20: Perf Frame20:   Total: graph  1, txt 61, draw 30, txt+draw 91 [ms]
+ 20 /  20: Perf Frame20: PerLoop: graph 80,686, txt 3,059,319, draw 1,538,075, txt+draw 4,597,395 [ns]
 GLRegion: for GLProfile[GLES3/GLES3.hw] using int32_t indiced: true
 GLRegion: Region[vbaa, q 1, dirty 0, vertices 81092, box [ dim 54.787006 x 16.546999 x 0.0, box 1.986 / -15.817999 / 0.0 .. 56.773006 / 0.729 / 0.0, ctr 29.379503 / -7.5444994 / 0.0 ]]
 Text length: 1296
@@ -185,8 +187,8 @@ VBORegion2PVBAAES2: idx32 true
   params [elements 81,092 cnt / 96,088 cap, bytes 973,104 cnt / 1,153,056 cap, filled 84.4%, left 15.6%]
   color [null]
   total [bytes 2,455,116 / 3,003,288], filled 81.7%, left 18.3%]
- 20 /  40: Perf Frame40:   Total: graph 262, txt 59, draw  7, txt+draw 66 [ms]
- 20 /  40: Perf Frame40: PerLoop: graph 13,110,330, txt 2,973,558, draw 361,034, txt+draw 3,334,593 [ns]
+ 20 /  40: Perf Frame40:   Total: graph  0, txt 38, draw  5, txt+draw 44 [ms]
+ 20 /  40: Perf Frame40: PerLoop: graph 18,151, txt 1,929,427, draw 288,431, txt+draw 2,217,859 [ns]
 ** new frame ** (sleep: 100ms)
 
 Test End: com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 -es2 -Nperf -long_text -loop 40

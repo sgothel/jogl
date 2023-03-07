@@ -85,6 +85,7 @@ public class PerfTextRendererNEWT00 {
     static int loop_count = 1;
     static boolean do_perf = false;
     static boolean do_snap = false;
+    static boolean do_vsync = false;
 
     static Font font;
     static float fontSize = 24; // in pixel
@@ -133,13 +134,16 @@ public class PerfTextRendererNEWT00 {
                 }
             } else if(args[i].equals("-long_text")) {
                 text = PerfTextRendererNEWT00.text_long;
+            } else if(args[i].equals("-vsync")) {
+                do_vsync = true;
             } else if(args[i].equals("-perf")) {
                 do_perf = true;
             } else if(args[i].equals("-snap")) {
                 do_snap = true;
             }
         }
-        System.err.println("Performance test enabled: "+do_perf);
+        System.err.println("Excessuive performance test enabled: "+do_perf);
+        System.err.println("VSync requested: "+do_vsync);
         if( wait ) {
             MiscUtils.waitForKey("Start");
         }
@@ -219,7 +223,7 @@ public class PerfTextRendererNEWT00 {
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createWindow(caps, win_width, win_height, false); // true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
-        if( do_perf ) {
+        if( !do_vsync ) {
             gl.setSwapInterval(0);
         }
         {
@@ -229,7 +233,8 @@ public class PerfTextRendererNEWT00 {
             }
         }
         System.err.println(VersionUtil.getPlatformInfo());
-        System.err.println(JoglVersion.getInstance().toString(winctx.context.getGL()));
+        System.err.println(JoglVersion.getInstance().toString(gl));
+        System.err.println("VSync Swap Interval: "+gl.getSwapInterval());
 
         System.err.println("Requested Caps: "+caps);
         System.err.println("Requested Region-RenderModes: "+Region.getRenderModeString(renderModes));
