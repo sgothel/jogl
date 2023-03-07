@@ -115,6 +115,27 @@ public class TextRegionUtil {
     }
 
     /**
+     * Count required number of vertices and indices adding to given int[2] `vertIndexCount` array.
+     * <p>
+     * The region's buffer can be either set using {@link Region#setBufferCapacity(int, int)} or grown using {@link Region#growBuffer(int, int)}.
+     * </p>
+     * @param region the {@link GLRegion} sink
+     * @param font the target {@link Font}
+     * @param str string text
+     * @param vertIndexCount the int[2] storage where the counted vertices and indices are added, vertices at [0] and indices at [1]
+     * @see Region#setBufferCapacity(int, int)
+     * @see Region#growBuffer(int, int)
+     */
+    public static void countStringRegion(final Region region, final Font font, final CharSequence str, final int[/*2*/] vertIndexCount) {
+        final OutlineShape.Visitor2 visitor = new OutlineShape.Visitor2() {
+            @Override
+            public final void visit(final OutlineShape shape) {
+                region.countOutlineShape(shape, vertIndexCount);
+            } };
+        font.processString(visitor, str);
+    }
+
+    /**
      * Render the string in 3D space w.r.t. the font int font em-size [0..1] at the end of an internally cached {@link GLRegion}.
      * <p>
      * The shapes added to the GLRegion are in font em-size [0..1].

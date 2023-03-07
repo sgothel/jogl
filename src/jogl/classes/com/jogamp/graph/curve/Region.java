@@ -441,6 +441,43 @@ public abstract class Region {
     public PerfCounterCtrl perfCounter() { return perfCounterCtrl; }
 
     /**
+     * Count required number of vertices and indices adding to given int[2] `vertIndexCount` array.
+     * <p>
+     * The region's buffer can be either set using {@link Region#setBufferCapacity(int, int)} or grown using {@link Region#growBuffer(int, int)}.
+     * </p>
+     * @param shape the {@link OutlineShape} to count
+     * @param vertIndexCount the int[2] storage where the counted vertices and indices are added, vertices at [0] and indices at [1]
+     * @see #setBufferCapacity(int, int)
+     * @see #growBuffer(int, int)
+     */
+    public final void countOutlineShape(final OutlineShape shape, final int[/*2*/] vertIndexCount) {
+        final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
+        final ArrayList<Vertex> vertsIn = shape.getVertices();
+        {
+            final int verticeCount = vertsIn.size() + shape.getAddedVerticeCount();
+            final int indexCount = trisIn.size() * 3;
+            vertIndexCount[0] += verticeCount;
+            vertIndexCount[1] += Math.min( Math.ceil(verticeCount * 0.6), indexCount );
+        }
+    }
+
+    /**
+     * Count required number of vertices and indices adding to given int[2] `vertIndexCount` array.
+     * <p>
+     * The region's buffer can be either set using {@link Region#setBufferCapacity(int, int)} or grown using {@link Region#growBuffer(int, int)}.
+     * </p>
+     * @param shapes list of {@link OutlineShape} to count
+     * @param vertIndexCount the int[2] storage where the counted vertices and indices are added, vertices at [0] and indices at [1]
+     * @see #setBufferCapacity(int, int)
+     * @see #growBuffer(int, int)
+     */
+    public final void countOutlineShapes(final List<OutlineShape> shapes, final int[/*2*/] vertIndexCount) {
+        for (int i = 0; i < shapes.size(); i++) {
+            countOutlineShape(shapes.get(i), vertIndexCount);
+        }
+    }
+
+    /**
      * Add the given {@link OutlineShape} to this region with the given optional {@link AffineTransform}.
      * <p>
      * In case {@link #setFrustum(Frustum) frustum culling is set}, the {@link OutlineShape}

@@ -42,12 +42,7 @@ import jogamp.graph.font.typecast.ot.table.KernTable;
 import jogamp.graph.font.typecast.ot.table.KerningPair;
 import jogamp.graph.font.typecast.ot.table.PostTable;
 
-import java.io.PrintStream;
-import java.util.concurrent.TimeUnit;
-
-import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IntObjectHashMap;
-import com.jogamp.common.util.PerfCounterCtrl;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -422,6 +417,24 @@ class TypecastFont implements Font {
             }
         }
         return res;
+    }
+
+    @Override
+    public void processString(final OutlineShape.Visitor2 visitor, final CharSequence string) {
+        if (null == string || 0 == string.length() ) {
+            return;
+        }
+        final int charCount = string.length();
+
+        for(int i=0; i< charCount; i++) {
+            final char character = string.charAt(i);
+            if( '\n' != character ) {
+                final OutlineShape glyphShape = getGlyph(getGlyphID(character)).getShape();
+                if( null != glyphShape ) { // also covers 'space' and all non-contour symbols
+                    visitor.visit(glyphShape);
+                }
+            }
+        }
     }
 
     @Override

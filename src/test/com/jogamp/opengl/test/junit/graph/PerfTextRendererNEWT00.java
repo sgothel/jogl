@@ -45,7 +45,6 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.common.os.Clock;
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.curve.Region;
@@ -249,9 +248,19 @@ public class PerfTextRendererNEWT00 {
         // FreeSans     ~ vertices  68/char, indices 36/char
         // Ubuntu Light ~ vertices 100/char, indices 50/char
         // FreeSerif    ~ vertices 115/char, indices 61/char
-        final int vertices_per_char = 68; // 100;
-        final int indices_per_char = 36; // 50;
-        final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, text.length()*vertices_per_char, text.length()*indices_per_char);
+        // final int vertices_per_char = 68; // 100;
+        // final int indices_per_char = 36; // 50;
+        // final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, text.length()*vertices_per_char, text.length()*indices_per_char);
+        final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null);
+        System.err.println("Region post ctor w/ default initial buffer size");
+        region.printBufferStats(System.err);
+
+        final int[] verticesIndicesCount = new int[] { 0, 0 };
+        TextRegionUtil.countStringRegion(region, font, text, verticesIndicesCount);
+        System.err.println("Region count: text "+text.length()+" chars -> vertices "+verticesIndicesCount[0]+", indices "+verticesIndicesCount[1]);
+        region.setBufferCapacity(verticesIndicesCount[0], verticesIndicesCount[1]);
+        System.err.println("Region post set-buffer-size w/ matching vertices "+verticesIndicesCount[0]+", indices "+verticesIndicesCount[1]);
+        region.printBufferStats(System.err);
 
         final Perf perf = new Perf();
         if( do_perf ) {

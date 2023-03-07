@@ -27,9 +27,6 @@
  */
 package com.jogamp.graph.font;
 
-import java.io.PrintStream;
-
-import com.jogamp.common.util.PerfCounterCtrl;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -412,7 +409,7 @@ public interface Font {
      * Visit each {@link Glyph}'s {@link OutlineShape} of the string with the {@link OutlineShape.Visitor}
      * while passing the progressed {@link AffineTransform}.
      * <p>
-     * The produced shapes are in font em-size [0..1], but can be adjusted with the given transform, progressed and passed to the visitor.
+     * The processed shapes are in font em-size [0..1], but can be adjusted with the given transform, progressed and passed to the visitor.
      * </p>
      * @param visitor handling each glyph's outline shape in font em-size [0..1] and the given {@link AffineTransform}
      * @param transform optional given transform
@@ -426,6 +423,15 @@ public interface Font {
                          final CharSequence string,
                          final AffineTransform temp1, final AffineTransform temp2);
 
+    /**
+     * Visit each {@link Glyph}'s {@link OutlineShape} of the string with the constrained {@link OutlineShape.Visitor2}.
+     * <p>
+     * The processed shapes are in font em-size [0..1].
+     * </p>
+     * @param visitor handling each glyph's outline shape in font em-size [0..1]
+     * @param string string text
+     */
+    void processString(final OutlineShape.Visitor2 visitor, final CharSequence string);
 
     /** Returns {@link #getFullFamilyName()} */
     @Override
