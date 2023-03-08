@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -121,6 +121,22 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     return hash;
   }
 
+  private static boolean checkSameSuppSameValue(final VIDType type, final VisualIDHolder a, final VisualIDHolder b) {
+        final boolean has_a = a.isVisualIDSupported(type);
+        if( has_a != b.isVisualIDSupported(type) ) {
+            // both should either support or not support the extra X11_FBCONFIG
+            return false;
+        }
+        return !has_a || a.getVisualID(type) == b.getVisualID(type);
+  }
+  private static boolean checkSameValueIfBothSupp(final VIDType type, final VisualIDHolder a, final VisualIDHolder b) {
+        final boolean has_a = a.isVisualIDSupported(type);
+        if( has_a && has_a == b.isVisualIDSupported(type) ) {
+            return a.getVisualID(type) == b.getVisualID(type);
+        }
+        return true;
+  }
+
   @Override
   public boolean equals(final Object obj) {
     if(this == obj)  { return true; }
@@ -128,6 +144,20 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
         return false;
     }
     final CapabilitiesImmutable other = (CapabilitiesImmutable)obj;
+    {
+        // first check whether the VID is compatible
+        final int id_t = this.getVisualID(VIDType.NATIVE);
+        final int id_o = other.getVisualID(VIDType.NATIVE);
+        if( id_t != id_o ) {
+            return false;
+        }
+        if( !checkSameSuppSameValue(VIDType.X11_FBCONFIG, this, other) ) {
+            return false;
+        }
+        if( !checkSameValueIfBothSupp(VIDType.EGL_CONFIG, this, other) ) {
+            return false;
+        }
+    }
     boolean res = other.getRedBits()==redBits &&
                   other.getGreenBits()==greenBits &&
                   other.getBlueBits()==blueBits &&
@@ -178,6 +208,17 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
               return VisualIDHolder.VID_UNDEFINED;
           default:
               throw new NativeWindowException("Invalid type <"+type+">");
+      }
+  }
+
+  @Override
+  public boolean isVisualIDSupported(final VIDType type) {
+      switch(type) {
+          case INTRINSIC:
+          case NATIVE:
+              return true;
+          default:
+              return false;
       }
   }
 

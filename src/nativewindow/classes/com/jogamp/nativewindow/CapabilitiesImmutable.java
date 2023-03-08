@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -122,11 +122,11 @@ public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable, C
      */
     int getTransparentAlphaValue();
 
-    /** Equality over the immutable attributes of both objects */
+    /** Equality over the immutable attributes of both objects. */
     @Override
     boolean equals(Object obj);
 
-    /** hash code over the immutable attributes of both objects */
+    /** Hash code over the immutable attributes. */
     @Override
     int hashCode();
 

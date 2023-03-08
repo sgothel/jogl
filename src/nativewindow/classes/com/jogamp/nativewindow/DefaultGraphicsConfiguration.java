@@ -32,6 +32,8 @@
 
 package com.jogamp.nativewindow;
 
+import com.jogamp.nativewindow.VisualIDHolder.VIDType;
+
 import jogamp.nativewindow.Debug;
 
 public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphicsConfiguration {
@@ -89,6 +91,11 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
     @Override
     final public int getVisualID(final VIDType type) throws NativeWindowException {
         return capabilitiesChosen.getVisualID(type);
+    }
+
+    @Override
+    final public boolean isVisualIDSupported(final VIDType type) {
+        return capabilitiesChosen.isVisualIDSupported(type);
     }
 
     /**

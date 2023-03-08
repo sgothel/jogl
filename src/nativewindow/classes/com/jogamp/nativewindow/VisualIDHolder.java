@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -90,6 +90,10 @@ public interface VisualIDHolder {
      *     </ul></li>
      * </ul>
      * </p>
+     * <p>
+     * One may use {@link #isVisualIDSupported(VIDType)} to test upfront whether a {@link VIDType} is supported,
+     * e.g. to avoid an exception or query or compare all available.
+     * </p>
      * Note: <code>INTRINSIC</code> and <code>NATIVE</code> are always handled,
      *       but may result in {@link #VID_UNDEFINED}. The latter is true if
      *       the native value are actually undefined or the corresponding object is not
@@ -98,8 +102,22 @@ public interface VisualIDHolder {
      * @throws NativeWindowException if <code>type</code> is neither
      *         <code>INTRINSIC</code> nor <code>NATIVE</code>
      *         and does not match the native implementation.
+     *
+     * @see #isVisualIDSupported(VIDType)
      */
     int getVisualID(VIDType type) throws NativeWindowException ;
+
+    /**
+     * Returns true if the given {@link VIDType} is supported, otherwise false.
+     * <p>
+     * Note: <code>INTRINSIC</code> and <code>NATIVE</code> are always handled,
+     *       but may result in {@link #VID_UNDEFINED}. The latter is true if
+     *       the native value are actually undefined or the corresponding object is not
+     *       mapped to a native visual object.
+     * </p>
+     * @see #getVisualID(VIDType)
+     */
+    boolean isVisualIDSupported(VIDType type);
 
     /**
      * {@link #getVisualID(VIDType)} result indicating an undefined value,

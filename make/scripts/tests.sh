@@ -846,6 +846,7 @@ function testawtswt() {
 
 
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
+#testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestIdentOfCapabilitiesNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1AWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
@@ -995,10 +996,11 @@ function testawtswt() {
 # Linux DRM/GBM
 #
 #testmobile com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
-testnoawt com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
 #testmobile com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testmobile com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestIdentOfCapabilitiesNEWT $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*

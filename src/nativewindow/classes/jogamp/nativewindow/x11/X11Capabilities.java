@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -70,6 +70,19 @@ public class X11Capabilities extends Capabilities {
               return VisualIDHolder.VID_UNDEFINED;
           default:
               throw new NativeWindowException("Invalid type <"+type+">");
+      }
+  }
+
+  @Override
+  final public boolean isVisualIDSupported(final VIDType type) {
+      switch(type) {
+          case INTRINSIC:
+          case NATIVE:
+          case X11_XVISUAL:
+          case X11_FBCONFIG:
+              return true;
+          default:
+              return false;
       }
   }
 

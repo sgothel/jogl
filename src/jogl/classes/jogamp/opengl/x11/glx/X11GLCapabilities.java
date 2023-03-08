@@ -32,6 +32,7 @@ import jogamp.nativewindow.x11.XVisualInfo;
 
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.nativewindow.VisualIDHolder;
+import com.jogamp.nativewindow.VisualIDHolder.VIDType;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
@@ -88,6 +89,19 @@ public class X11GLCapabilities extends GLCapabilities {
               return getFBConfigID();
           default:
               throw new NativeWindowException("Invalid type <"+type+">");
+      }
+  }
+
+  @Override
+  final public boolean isVisualIDSupported(final VIDType type) {
+      switch(type) {
+          case INTRINSIC:
+          case NATIVE:
+          case X11_XVISUAL:
+          case X11_FBCONFIG:
+              return true;
+          default:
+              return false;
       }
   }
 
