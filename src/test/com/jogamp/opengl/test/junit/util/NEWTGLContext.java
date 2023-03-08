@@ -36,6 +36,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLDrawable;
 import com.jogamp.opengl.GLDrawableFactory;
+import com.jogamp.opengl.util.caps.NonFSAAGLCapabilitiesChooser;
 
 import org.junit.Assert;
 
@@ -66,6 +67,12 @@ public class NEWTGLContext {
         final Window window = NewtFactory.createWindow(screen, caps);
         Assert.assertNotNull(window);
         window.setSize(width, height);
+        if( !caps.getSampleBuffers() ) {
+            // Make sure to not have FSAA if not requested
+            // TODO: Implement in default chooser?
+            window.setCapabilitiesChooser(new NonFSAAGLCapabilitiesChooser(true));
+        }
+
         window.setVisible(true);
         Assert.assertTrue(NewtTestUtil.waitForVisible(window, true, null));
         Assert.assertTrue(NewtTestUtil.waitForRealized(window, true, null));

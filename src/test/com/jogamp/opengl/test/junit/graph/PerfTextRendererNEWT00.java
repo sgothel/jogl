@@ -229,7 +229,8 @@ public class PerfTextRendererNEWT00 {
             }
         }
         System.err.println(VersionUtil.getPlatformInfo());
-        System.err.println(JoglVersion.getInstance().toString(gl));
+        System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(winctx.window.getScreen().getDisplay().getGraphicsDevice(), null).toString());
+        System.err.println(JoglVersion.getGLInfo(gl, null, false /* withCapsAndExts */).toString());
         System.err.println("VSync Swap Interval: "+gl.getSwapInterval());
         System.err.println("GLDrawable surface size: "+winctx.context.getGLDrawable().getSurfaceWidth()+" x "+winctx.context.getGLDrawable().getSurfaceHeight());
 

@@ -40,6 +40,14 @@ import com.jogamp.opengl.GLCapabilitiesChooser;
  * i.e. all matching {@link GLCapabilitiesImmutable} with {@link GLCapabilitiesImmutable#getSampleBuffers()}.
  */
 public class NonFSAAGLCapabilitiesChooser extends DefaultGLCapabilitiesChooser {
+    private final boolean verbose;
+    public NonFSAAGLCapabilitiesChooser(final boolean verbose) {
+        this.verbose = verbose;
+    }
+    public NonFSAAGLCapabilitiesChooser() {
+        this.verbose = false;
+    }
+
     @Override
     public int chooseCapabilities(final CapabilitiesImmutable desired,
                                   final List<? extends CapabilitiesImmutable> available,
@@ -58,10 +66,13 @@ public class NonFSAAGLCapabilitiesChooser extends DefaultGLCapabilitiesChooser {
                 /** if( caps.equals(recommended) ) { // the matching index is enough!
                     System.err.println("Dropping["+i+"] "+caps+", matched recommended["+recommendedIdx+"] = "+recommended);
                     recommendedIdx = -1;
-                } else */ if( recommendedIdx == i ) {
-                    System.err.println("Dropping["+i+"] "+caps+", sameidx recommended["+recommendedIdx+"] = "+recommended);
+                } else */
+                if( recommendedIdx == i ) {
+                    if( verbose ) {
+                        System.err.println("Dropping["+i+"] "+caps+", sameidx recommended["+recommendedIdx+"] = "+recommended);
+                    }
                     recommendedIdx = -1;
-                } else {
+                } else if( verbose ) {
                     System.err.println("Dropping "+caps+" != recommended["+recommendedIdx+"]");
                 }
             } else {

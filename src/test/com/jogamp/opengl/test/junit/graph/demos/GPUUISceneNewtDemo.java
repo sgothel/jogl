@@ -144,7 +144,7 @@ public class GPUUISceneNewtDemo {
 
         final GLWindow window = GLWindow.create(screen, caps);
         if( 0 == SceneMSAASamples ) {
-            window.setCapabilitiesChooser(new NonFSAAGLCapabilitiesChooser());
+            window.setCapabilitiesChooser(new NonFSAAGLCapabilitiesChooser(true));
         }
         window.setPosition(x, y);
         window.setSize(width, height);
