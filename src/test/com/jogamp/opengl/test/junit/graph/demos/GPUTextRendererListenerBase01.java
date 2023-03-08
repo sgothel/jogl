@@ -521,7 +521,9 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     @Override
     public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
         final String fn = font.getFullFamilyName().replace(' ', '_').replace('-', '_');
-        super.printScreen(drawable, dir, tech+"-"+fn, "text"+getHeadBoxType()+"-"+objName, exportAlpha);
+        final String modes = Region.getRenderModeString(getRenderModes());
+        final String fsaa = "fsaa"+drawable.getChosenGLCapabilities().getNumSamples();
+        super.printScreen(drawable, dir, tech+"-"+modes, fsaa+"-"+fn+"-text"+getHeadBoxType()+"-"+objName, exportAlpha);
     }
 
     float fontHeadScale = 1f;

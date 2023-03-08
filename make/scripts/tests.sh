@@ -960,7 +960,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT20 $*
+testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT20 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.UIShapeDemo01 $*
@@ -1000,7 +1000,6 @@ function testawtswt() {
 #testmobile com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testmobile com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
-testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestIdentOfCapabilitiesNEWT $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*

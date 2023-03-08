@@ -242,7 +242,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     }
 
     public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
-        final String sw = String.format("-%s-S%02d-Z%04d-snap%02d-%03dx%03d", objName, sampleCount[0], (int)Math.abs(zTran), screenshot_num++, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+        final String sw = String.format("_s%02d-%s-Z%04d-snap%02d-%03dx%03d", sampleCount[0], objName, (int)Math.abs(zTran), screenshot_num++, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         final String filename = dir + tech + sw +".png";
         if(screenshot.readPixels(drawable.getGL(), false)) {
             screenshot.write(new File(filename));
