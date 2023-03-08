@@ -3,17 +3,28 @@ package com.jogamp.opengl.test.junit.graph.demos;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
-
+import com.jogamp.opengl.JoglVersion;
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.caps.NonFSAAGLCapabilitiesChooser;
 
 public class GPUUISceneNewtDemo {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
+
+    static void sleep(final long ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (final InterruptedException ie) {}
+    }
 
     public static void main(final String[] args) {
         int SceneMSAASamples = 0;
@@ -96,6 +107,11 @@ public class GPUUISceneNewtDemo {
         System.err.println("Graph VBAA Mode "+GraphVBAAMode);
         System.err.println("Graph Auto Mode "+GraphAutoMode+" no-AA dpi threshold");
 
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, 0);
+        System.err.println(VersionUtil.getPlatformInfo());
+        System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(dpy.getGraphicsDevice(), null).toString());
+
         final GLProfile glp;
         if(forceGLDef) {
             glp = GLProfile.getDefault();
@@ -126,21 +142,24 @@ public class GPUUISceneNewtDemo {
             rmode = 0;
         }
 
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(screen, caps);
+        if( 0 == SceneMSAASamples ) {
+            window.setCapabilitiesChooser(new NonFSAAGLCapabilitiesChooser());
+        }
         window.setPosition(x, y);
         window.setSize(width, height);
         window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
         window.setSurfaceScale(reqSurfacePixelScale);
-        final float[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new float[2]);
+        // final float[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new float[2]);
 
-        final GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(fontfilename, GraphAutoMode, DEBUG, TRACE) :
-                                                                           new GPUUISceneGLListener0A(fontfilename, rmode, DEBUG, TRACE);
+        final GPUUISceneGLListener0A scene = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(fontfilename, GraphAutoMode, DEBUG, TRACE) :
+                                                                 new GPUUISceneGLListener0A(fontfilename, rmode, DEBUG, TRACE);
 
-        window.addGLEventListener(sceneGLListener);
-        sceneGLListener.attachInputListenerTo(window);
+        window.addGLEventListener(scene);
+        scene.attachInputListenerTo(window);
 
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(60, null);
+        animator.setUpdateFPSFrames(5*60, null);
         animator.add(window);
 
         window.addWindowListener(new WindowAdapter() {
@@ -152,5 +171,9 @@ public class GPUUISceneNewtDemo {
 
         window.setVisible(true);
         animator.start();
+
+        // sleep(3000);
+        // final UIShape movie = scene.getWidget(GPUUISceneGLListener0A.BUTTON_MOVIE);
     }
+
 }

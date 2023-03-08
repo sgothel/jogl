@@ -15,7 +15,7 @@ import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLRunnable;
-
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.InterruptSource;
@@ -785,7 +785,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         } else {
             System.err.println("GPUUISceneGLListener0A: init (0)");
         }
-        System.err.println("Chosen: "+drawable.getChosenGLCapabilities());
         cDrawable = drawable;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         if(debug) {
@@ -794,6 +793,10 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if(trace) {
             gl = gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", null, gl, new Object[] { System.err } ) ).getGL2ES2();
         }
+        System.err.println(JoglVersion.getGLInfo(gl, null, false /* withCapsAndExts */).toString());
+        System.err.println("VSync Swap Interval: "+gl.getSwapInterval());
+        System.err.println("Chosen: "+drawable.getChosenGLCapabilities());
+        MSAATool.dump(drawable);
 
         renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);

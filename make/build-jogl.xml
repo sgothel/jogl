@@ -158,7 +158,7 @@
                   value="com/jogamp/opengl/**/swt/**"/>
 
         <property name="java.part.util"
-                  value="com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/av/* com/jogamp/opengl/util/packrect/** com/jogamp/opengl/util/PNG* com/jogamp/opengl/util/stereo/** jogamp/opengl/util/av/** jogamp/opengl/util/jpeg/** jogamp/opengl/util/pngj/** jogamp/opengl/util/stereo/**"/>
+                  value="com/jogamp/opengl/util/caps/** com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/av/* com/jogamp/opengl/util/packrect/** com/jogamp/opengl/util/PNG* com/jogamp/opengl/util/stereo/** jogamp/opengl/util/av/** jogamp/opengl/util/jpeg/** jogamp/opengl/util/pngj/** jogamp/opengl/util/stereo/**"/>
 
         <property name="java.part.util.awt"
                   value="com/jogamp/opengl/util/**/awt/**"/>
