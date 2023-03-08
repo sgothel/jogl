@@ -56,7 +56,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.graph.demos.GPUTextRendererListenerBase01;
 import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import com.jogamp.opengl.util.caps.NonFSAAGLCapabilitiesChooser;
+import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 
 
 /**
@@ -116,7 +116,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         if( !caps.getSampleBuffers() ) {
             // Make sure to not have FSAA if not requested
             // TODO: Implement in default chooser?
-            window.setCapabilitiesChooser(new NonFSAAGLCapabilitiesChooser(true));
+            window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(true));
         }
         window.setSize(width, height);
         window.setPosition(10, 10);

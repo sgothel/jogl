@@ -14,7 +14,7 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.caps.NonFSAAGLCapabilitiesChooser;
+import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 
 public class GPUUISceneNewtDemo {
     static final boolean DEBUG = false;
@@ -144,7 +144,7 @@ public class GPUUISceneNewtDemo {
 
         final GLWindow window = GLWindow.create(screen, caps);
         if( 0 == SceneMSAASamples ) {
-            window.setCapabilitiesChooser(new NonFSAAGLCapabilitiesChooser(true));
+            window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(true));
         }
         window.setPosition(x, y);
         window.setSize(width, height);

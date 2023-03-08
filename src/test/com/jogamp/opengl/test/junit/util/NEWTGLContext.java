@@ -36,7 +36,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLDrawable;
 import com.jogamp.opengl.GLDrawableFactory;
-import com.jogamp.opengl.util.caps.NonFSAAGLCapabilitiesChooser;
+import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 
 import org.junit.Assert;
 
@@ -70,7 +70,7 @@ public class NEWTGLContext {
         if( !caps.getSampleBuffers() ) {
             // Make sure to not have FSAA if not requested
             // TODO: Implement in default chooser?
-            window.setCapabilitiesChooser(new NonFSAAGLCapabilitiesChooser(true));
+            window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(true));
         }
 
         window.setVisible(true);

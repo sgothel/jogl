@@ -39,12 +39,12 @@ import com.jogamp.opengl.GLCapabilitiesChooser;
  * Custom {@link GLCapabilitiesChooser}, filtering out all full screen anti-aliasing (FSAA, multisample) capabilities,
  * i.e. all matching {@link GLCapabilitiesImmutable} with {@link GLCapabilitiesImmutable#getSampleBuffers()}.
  */
-public class NonFSAAGLCapabilitiesChooser extends DefaultGLCapabilitiesChooser {
+public class NonFSAAGLCapsChooser extends DefaultGLCapabilitiesChooser {
     private final boolean verbose;
-    public NonFSAAGLCapabilitiesChooser(final boolean verbose) {
+    public NonFSAAGLCapsChooser(final boolean verbose) {
         this.verbose = verbose;
     }
-    public NonFSAAGLCapabilitiesChooser() {
+    public NonFSAAGLCapsChooser() {
         this.verbose = false;
     }
 
