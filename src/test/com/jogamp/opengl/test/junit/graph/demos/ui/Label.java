@@ -52,18 +52,36 @@ public class Label extends UIShape {
         return text;
     }
 
-    public void setText(final String text) {
-        this.text = text;
-        markShapeDirty();
+    /**
+     * Returns true if text has been updated, false if unchanged.
+     * @param text the text to be set.
+     */
+    public boolean setText(final String text) {
+        if( !this.text.equals(text) ) {
+            this.text = text;
+            markShapeDirty();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public Font getFont() {
         return font;
     }
 
-    public void setFont(final Font font) {
-        this.font = font;
-        markShapeDirty();
+    /**
+     * Returns true if font has been updated, false if unchanged.
+     * @param font the font to be set.
+     */
+    public boolean setFont(final Font font) {
+        if( !this.font.equals(font) ) {
+            this.font = font;
+            markShapeDirty();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public float getPixelSize() {

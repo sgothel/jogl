@@ -165,9 +165,11 @@ public class LabelButton extends RoundButton {
     }
 
     public final void setLabelText(final Font labelFont, final String labelText) {
-        label.setFont(labelFont);
-        label.setText(labelText);
-        markShapeDirty();
+        if( !label.getText().equals(labelText) || !label.getFont().equals(labelFont) ) {
+            label.setFont(labelFont);
+            label.setText(labelText);
+            markShapeDirty();
+        }
     }
 
     @Override

@@ -179,6 +179,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             throw new RuntimeException(ioe);
         }
         sceneUIController = new SceneUIController(sceneDist, zNear, zFar);
+        // sceneUIController.setSampleCount(3); // easy on embedded devices w/ just 3 samples (default is 4)?
         screenshot = new GLReadBufferUtil(false, false);
     }
 
@@ -929,7 +930,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             if( null != animator ) {
                 lfps = animator.getLastFPS();
                 tfps = animator.getTotalFPS();
-                td = animator.getTotalFPSDuration()/1000f;
+                td = (float)animator.getLastFPSPeriod() / (float)animator.getUpdateFPSFrames();
             } else {
                 lfps = 0f;
                 tfps = 0f;
@@ -938,16 +939,18 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final String modeS = Region.getRenderModeString(renderModes);
             final String text;
             if( null == actionText ) {
-                text = String.format("%03.1f/%03.1f fps, v-sync %d, dpi %.1f, %s-samples %d, q %d, td %.0f, blend %b, alpha %d, msaa %d",
-                        lfps, tfps, gl.getSwapInterval(), dpiH, modeS, sceneUIController.getSampleCount(), fpsLabel.getQuality(), td,
+                text = String.format("%03.1f/%03.1f fps, %.1f ms/f, v-sync %d, dpi %.1f, %s-samples %d, q %d, msaa %d, blend %b, alpha %d",
+                        lfps, tfps, td, gl.getSwapInterval(), dpiH, modeS, sceneUIController.getSampleCount(), fpsLabel.getQuality(),
+                        drawable.getChosenGLCapabilities().getNumSamples(),
                         renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
-                        drawable.getChosenGLCapabilities().getAlphaBits(),
-                        drawable.getChosenGLCapabilities().getNumSamples());
+                        drawable.getChosenGLCapabilities().getAlphaBits());
             } else {
                 text = String.format("%03.1f/%03.1f fps, v-sync %d, %s",
                         lfps, tfps, gl.getSwapInterval(), actionText);
             }
-            fpsLabel.setText(text);
+            if( fpsLabel.setText(text) ) { // marks dirty only if text differs.
+                System.err.println(text);
+            }
         }
         sceneUIController.display(drawable);
     }

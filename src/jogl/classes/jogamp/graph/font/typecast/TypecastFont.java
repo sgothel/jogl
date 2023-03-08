@@ -456,8 +456,7 @@ class TypecastFont implements Font {
     public final boolean equals(final Object o) {
         if( this == o ) { return true; }
         if( o instanceof TypecastFont ) {
-            final TypecastFont of = (TypecastFont)o;
-            return of.font.getName(Font.NAME_UNIQUNAME).equals(font.getName(Font.NAME_UNIQUNAME));
+            return ((TypecastFont)o).font.getName(Font.NAME_UNIQUNAME).equals(font.getName(Font.NAME_UNIQUNAME));
         }
         return false;
     }

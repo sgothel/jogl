@@ -256,6 +256,24 @@ public interface Font {
     StringBuilder getAllNames(final StringBuilder string, final String separator);
 
     /**
+     * Returns the hash code based on {@link #NAME_UNIQUNAME}.
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     */
+    @Override
+    int hashCode();
+
+    /**
+     * Returns true if other instance is of same type and {@link #NAME_UNIQUNAME} is equal.
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     */
+    @Override
+    boolean equals(final Object o);
+
+    /**
      * Return advance-width of given glyphID in font-units, sourced from `hmtx` table.
      * @param glyphID
      */
