@@ -230,10 +230,12 @@ public abstract class MonitorDevice {
      * Returns the <i>pixels per millimeter</i> value according to the <i>current</i> {@link MonitorMode mode}'s
      * {@link SurfaceSize#getResolution() surface resolution}.
      * <p>
-     * To convert the result to <i>dpi</i>, i.e. dots-per-inch, multiply both components with <code>25.4f</code>.
+     * To convert the result to <i>dpi</i>, i.e. dots-per-inch, multiply both components with <code>25.4f</code>,
+     * see {@link #perMMToPerInch(float[])}.
      * </p>
      * @param ppmmStore float[2] storage for the ppmm result
      * @return the passed storage containing the ppmm for chaining
+     * @see #perMMToPerInch(float[])
      */
     public final float[] getPixelsPerMM(final float[] ppmmStore) {
         return getPixelsPerMM(getCurrentMode(), ppmmStore);
@@ -255,6 +257,17 @@ public abstract class MonitorDevice {
         ppmmStore[0] = (float)spix.getWidth() / (float)sdim.getWidth();
         ppmmStore[1] = (float)spix.getHeight() / (float)sdim.getHeight();
         return ppmmStore;
+    }
+
+    /**
+     * Converts [1/mm] to [1/inch] in place
+     * @param ppmm float[2] [1/mm] value
+     * @return return [1/inch] value
+     */
+    public static float[/*2*/] perMMToPerInch(final float[/*2*/] ppmm) {
+        ppmm[0] *= 25.4f;
+        ppmm[1] *= 25.4f;
+        return ppmm;
     }
 
     /**

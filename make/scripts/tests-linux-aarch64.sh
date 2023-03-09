@@ -6,7 +6,7 @@ SDIR=`dirname $0`
 #JAVA_CMD=/usr/lib/jvm/java-11-openjdk-arm64/bin/java
 JAVA_CMD=`which java`
 
-# D_ARGS="-Dnewt.ws.mmwidth=150 -Dnewt.ws.mmheight=90"
+# D2_ARGS="-Dnewt.ws.mmwidth=150 -Dnewt.ws.mmheight=90"
 
 . $SDIR/tests.sh  $JAVA_CMD -DummyArg ../build-linux-aarch64 $*
 

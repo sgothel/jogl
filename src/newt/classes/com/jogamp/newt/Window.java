@@ -47,7 +47,6 @@ import com.jogamp.nativewindow.CapabilitiesImmutable;
 import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.nativewindow.WindowClosingProtocol;
-import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.nativewindow.util.SurfaceSize;
 

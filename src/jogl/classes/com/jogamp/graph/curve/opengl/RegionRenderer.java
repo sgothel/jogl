@@ -136,7 +136,7 @@ public class RegionRenderer {
      * </p>
      * @param rs the used {@link RenderState}
      * @param enableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
-     *                       {@link #init(GL2ES2, int) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
+     *                       {@link #init(GL2ES2) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
      * @param disableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
      *                        {@link #enable(GL2ES2, boolean) enable(gl, false)}.
      * @return an instance of Region Renderer
@@ -194,10 +194,9 @@ public class RegionRenderer {
      * <p>Shall be called by a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, int)}</p>
      *
      * @param gl referencing the current GLContext to which the ShaderState is bound to
-     * @param renderModes
      * @throws GLException if initialization failed
      */
-    public final void init(final GL2ES2 gl, final int renderModes) throws GLException {
+    public final void init(final GL2ES2 gl) throws GLException {
         if(initialized){
             return;
         }

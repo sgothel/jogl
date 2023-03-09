@@ -432,10 +432,10 @@ function jrun() {
     # export __GL_THREADED_OPTIMIZATIONS=1
     echo __GL_THREADED_OPTIMIZATIONS $__GL_THREADED_OPTIMIZATIONS
     echo
-    echo "$javaexe" $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
-    #gdb --args "$javaexe" $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
-    "$javaexe" $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
-    #strace $javaexe $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D_ARGS $C_ARG $*
+    echo "$javaexe" $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D2_ARGS $D_ARGS $C_ARG $*
+    #gdb --args "$javaexe" $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D2_ARGS $D_ARGS $C_ARG $*
+    "$javaexe" $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D2_ARGS $D_ARGS $C_ARG $*
+    #strace $javaexe $javaxargs $MODULE_ARGS $X_ARGS -cp $USE_CLASSPATH $D2_ARGS $D_ARGS $C_ARG $*
     echo
     echo "Test End: $*"
     echo
@@ -960,7 +960,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
-testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT20 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT20 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.UIShapeDemo01 $*
@@ -999,7 +999,7 @@ testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT20 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
 #testmobile com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
 #testmobile com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
+testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
