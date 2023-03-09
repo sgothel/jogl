@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -54,6 +54,7 @@ import com.jogamp.opengl.util.PMVMatrix;
 
 public abstract class UIShape {
     public static final boolean DRAW_DEBUG_BOX = false;
+    private static final boolean DEBUG = false;
 
     protected static final int DIRTY_SHAPE    = 1 << 0 ;
     protected static final int DIRTY_STATE    = 1 << 1 ;
@@ -92,6 +93,7 @@ public abstract class UIShape {
     private boolean down = false;
     private boolean toggle = false;
     private boolean toggleable = false;
+    private boolean draggable = true;
     private boolean enabled = true;
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
 
@@ -101,12 +103,16 @@ public abstract class UIShape {
         this.box = new AABBox();
     }
 
+    /** Set a symbolic name for this shape for identification. Default is -1 for noname. */
     public void setName(final int name) { this.name = name; }
+    /** Return the optional symbolic name for this shape. */
     public int getName() { return this.name; }
 
     public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
 
+    /** Returns true if this shape is enabled and hence visible, otherwise false. */
     public boolean isEnabled() { return enabled; }
+    /** Enable or disable this shape, i.e. its visibility. */
     public void setEnabled(final boolean v) { enabled = v; }
 
     /**
@@ -444,24 +450,51 @@ public abstract class UIShape {
         return shapesSharpness;
     }
 
+    /**
+     * Set base color.
+     * <p>
+     * Default base-color w/o color channel, will be modulated w/ pressed- and toggle color
+     * </p>
+     */
     public final void setColor(final float r, final float g, final float b, final float a) {
         this.rgbaColor[0] = r;
         this.rgbaColor[1] = g;
         this.rgbaColor[2] = b;
         this.rgbaColor[3] = a;
     }
+
+    /**
+     * Set pressed color.
+     * <p>
+     * Default pressed color-factor w/o color channel, modulated base-color. 0.75 * 1.2 = 0.9
+     * </p>
+     */
     public final void setPressedColorMod(final float r, final float g, final float b, final float a) {
         this.pressedRGBAModulate[0] = r;
         this.pressedRGBAModulate[1] = g;
         this.pressedRGBAModulate[2] = b;
         this.pressedRGBAModulate[3] = a;
     }
+
+    /**
+     * Set toggle-on color.
+     * <p>
+     * Default toggle-on color-factor w/o color channel, modulated base-color.  0.75 * 1.13 ~ 0.85
+     * </p>
+     */
     public final void setToggleOnColorMod(final float r, final float g, final float b, final float a) {
         this.toggleOnRGBAModulate[0] = r;
         this.toggleOnRGBAModulate[1] = g;
         this.toggleOnRGBAModulate[2] = b;
         this.toggleOnRGBAModulate[3] = a;
     }
+
+    /**
+     * Set toggle-off color.
+     * <p>
+     * Default toggle-off color-factor w/o color channel, modulated base-color.  0.75 * 0.86 ~ 0.65
+     * </p>
+     */
     public final void setToggleOffColorMod(final float r, final float g, final float b, final float a) {
         this.toggleOffRGBAModulate[0] = r;
         this.toggleOffRGBAModulate[1] = g;
@@ -493,6 +526,10 @@ public abstract class UIShape {
     public void setToggleable(final boolean toggleable) {
         this.toggleable = toggleable;
     }
+    /**
+     * Returns true if this shape is toggable,
+     * i.e. rendered w/ {@link #setToggleOnColorMod(float, float, float, float)} or {@link #setToggleOffColorMod(float, float, float, float)}.
+     */
     public boolean isToggleable() {
         return toggleable;
     }
@@ -507,6 +544,20 @@ public abstract class UIShape {
         markStateDirty();
     }
     public boolean isToggleOn() { return toggle; }
+
+    /**
+     * Set whether this shape is draggable,
+     * i.e. translated by 1-pointer-click and drag.
+     * <p>
+     * Default is draggable on.
+     * </p>
+     */
+    public void setDraggable(final boolean draggable) {
+        this.draggable = draggable;
+    }
+    public boolean isDraggable() {
+        return draggable;
+    }
 
     public final void addMouseListener(final MouseGestureListener l) {
         if(l == null) {
@@ -546,18 +597,20 @@ public abstract class UIShape {
     /**
      * {@link UIShape} event details for propagated {@link NEWTEvent}s
      * containing reference of {@link #shape the intended shape} as well as
-     * the {@link #objPos rotated relative position} and {@link #rotBounds bounding box}.
-     * The latter fields are also normalized to lower-left zero origin, allowing easier usage.
+     * the {@link #objPos rotated relative position}.
+     * The latter is normalized to lower-left zero origin, allowing easier usage.
      */
-    public static class PointerEventInfo {
+    public static class UIShapeEvent {
         /** The associated {@link UIShape} for this event */
         public final UIShape shape;
         /** The relative object coordinate of glWinX/glWinY to the associated {@link UIShape}. */
         public final float[] objPos;
-        /** X-coordinate in GL window coordinates, origin bottom-left */
-        public final int glWinX;
-        /** Y-coordinate in GL window coordinates, origin bottom-left */
-        public final int glWinY;
+        /** The GL window coordinates, origin bottom-left */
+        public final int[] winPos;
+        /** The drag delta of the relative object coordinate of glWinX/glWinY to the associated {@link UIShape}. */
+        public final float[] objDrag = { 0f, 0f };
+        /** The drag delta of GL window coordinates, origin bottom-left */
+        public final int[] winDrag = { 0, 0 };
 
         /**
          * Ctor
@@ -566,16 +619,15 @@ public abstract class UIShape {
          * @param shape associated shape
          * @param objPos relative object coordinate of glWinX/glWinY to the associated shape.
          */
-        PointerEventInfo(final int glWinX, final int glWinY, final UIShape shape, final float[] objPos) {
-            this.glWinX = glWinX;
-            this.glWinY = glWinY;
+        UIShapeEvent(final int glWinX, final int glWinY, final UIShape shape, final float[] objPos) {
+            this.winPos = new int[] { glWinX, glWinY };
             this.shape = shape;
             this.objPos = objPos;
         }
 
         @Override
         public String toString() {
-            return "EventDetails[winPos ["+glWinX+", "+glWinY+"], objPos ["+objPos[0]+", "+objPos[1]+", "+objPos[2]+"], "+shape+"]";
+            return "EventDetails[winPos ["+winPos[0]+", "+winPos[1]+"], objPos ["+objPos[0]+", "+objPos[1]+", "+objPos[2]+"], "+shape+"]";
         }
     }
 
@@ -585,11 +637,15 @@ public abstract class UIShape {
      * @param glWinY y-position in OpenGL model space
      */
     public final void dispatchGestureEvent(final GestureEvent e, final int glWinX, final int glWinY, final float[] objPos) {
-        e.setAttachment(new PointerEventInfo(glWinX, glWinY, this, objPos));
+        e.setAttachment(new UIShapeEvent(glWinX, glWinY, this, objPos));
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
             mouseListeners.get(i).gestureDetected(e);
         }
     }
+
+    boolean dragFirst = false;
+    float[] objDraggedFirst = { 0f, 0f }; // b/c its relative to UIShape and we stick to it
+    int[] winDraggedLast = { 0, 0 }; // b/c its absolute window pos
 
     /**
      * Dispatch given NEWT mouse event to this shape
@@ -599,7 +655,8 @@ public abstract class UIShape {
      * @param objPos object position of mouse event within this shape
      */
     public final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY, final float[] objPos) {
-        e.setAttachment(new PointerEventInfo(glWinX, glWinY, this, objPos));
+        final UIShape.UIShapeEvent shapeEvent = new UIShapeEvent(glWinX, glWinY, this, objPos);
+        e.setAttachment(shapeEvent);
 
         final short eventType = e.getEventType();
         if( 1 == e.getPointerCount() ) {
@@ -614,6 +671,42 @@ public abstract class UIShape {
                     setPressed(false);
                     break;
             }
+        }
+        switch( eventType ) {
+            case MouseEvent.EVENT_MOUSE_PRESSED:
+                dragFirst = true;
+                break;
+            case MouseEvent.EVENT_MOUSE_RELEASED:
+                dragFirst = false;
+                break;
+            case MouseEvent.EVENT_MOUSE_DRAGGED: {
+                // 1 pointer drag
+                if(dragFirst) {
+                    objDraggedFirst[0] = objPos[0];
+                    objDraggedFirst[1] = objPos[1];
+                    winDraggedLast[0] = glWinX;
+                    winDraggedLast[1] = glWinY;
+                    dragFirst=false;
+                    return;
+                }
+                shapeEvent.objDrag[0] = objPos[0] - objDraggedFirst[0];
+                shapeEvent.objDrag[1] = objPos[1] - objDraggedFirst[1];
+                shapeEvent.winDrag[0] = glWinX - winDraggedLast[0];
+                shapeEvent.winDrag[1] = glWinY - winDraggedLast[1];
+                winDraggedLast[0] = glWinX;
+                winDraggedLast[1] = glWinY;
+                if( draggable && e.getPointerCount() == 1 ) {
+                    translate(shapeEvent.objDrag[0], shapeEvent.objDrag[1], 0f);
+                }
+                if( DEBUG ) {
+                    System.err.printf("Dragged: win %4d/%4d + %2d/%2d; obj %.3f/%.3f + %.3f/%.3f%n",
+                            shapeEvent.winPos[0], shapeEvent.winPos[1],
+                            shapeEvent.winDrag[0], shapeEvent.winDrag[1],
+                            shapeEvent.objPos[0], shapeEvent.objPos[1],
+                            shapeEvent.objDrag[0], shapeEvent.objDrag[1]);
+                }
+            }
+            break;
         }
 
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {

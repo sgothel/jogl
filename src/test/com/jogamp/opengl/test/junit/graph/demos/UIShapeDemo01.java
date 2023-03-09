@@ -207,7 +207,7 @@ public class UIShapeDemo01 implements GLEventListener {
             gl = gl.getContext().setGL( GLPipelineFactory.create("com.jogamp.opengl.Trace", null, gl, new Object[] { System.err } ) ).getGL2ES2();
         }
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        getRegionRenderer().init(gl, renderModes);
+        getRegionRenderer().init(gl);
 
         gl.setSwapInterval(1);
         gl.glEnable(GL.GL_DEPTH_TEST);

@@ -1,17 +1,48 @@
+/**
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import com.jogamp.opengl.FPSCounter;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.geom.Vertex;
 import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.MouseEvent;
@@ -60,8 +91,24 @@ public class SceneUIController implements GLEventListener{
         this.sampleCount[0] = 4;
     }
 
+    /** Returns the associated RegionRenderer */
+    public RegionRenderer getRenderer() { return renderer; }
+    /** Sets the associated RegionRenderer, may set to null to avoid its destruction when {@link #dispose(GLAutoDrawable)} this instance. */
     public void setRenderer(final RegionRenderer renderer) {
         this.renderer = renderer;
+    }
+    /** Returns the associated RegionRenderer's RenderState, may be null. */
+    public RenderState getRenderState() {
+        if( null != renderer ) {
+            return renderer.getRenderState();
+        }
+        return null;
+    }
+    public final Vertex.Factory<? extends Vertex> getVertexFactory() {
+        if( null != renderer ) {
+            return renderer.getRenderState().getVertexFactory();
+        }
+        return null;
     }
 
     public void attachInputListenerTo(final GLWindow window) {
@@ -95,6 +142,20 @@ public class SceneUIController implements GLEventListener{
     public void removeShape(final UIShape b) {
         shapes.remove(b);
     }
+    public final UIShape getShapeByIdx(final int id) {
+        if( 0 > id ) {
+            return null;
+        }
+        return shapes.get(id);
+    }
+    public UIShape getShapeByName(final int name) {
+        for(final UIShape b : shapes) {
+            if(b.getName() == name ) {
+                return b;
+            }
+        }
+        return null;
+    }
 
     public int getSampleCount() { return sampleCount[0]; }
     public int setSampleCount(final int v) {
@@ -126,6 +187,9 @@ public class SceneUIController implements GLEventListener{
     public void init(final GLAutoDrawable drawable) {
         System.err.println("SceneUIController: init");
         cDrawable = drawable;
+        if( null != renderer ) {
+            renderer.init(drawable.getGL().getGL2ES2());
+        }
     }
 
     private static Comparator<UIShape> shapeZAscComparator = new Comparator<UIShape>() {
@@ -265,15 +329,32 @@ public class SceneUIController implements GLEventListener{
             } } );
     }
 
+    /**
+     * Disposes all {@link #addShape(UIShape) added} {@link UIShape}s.
+     * <p>
+     * Implementation also issues {@link RegionRenderer#destroy(GL2ES2)} if set
+     * and {@link #detachInputListenerFrom(GLWindow)} in case the drawable is of type {@link GLWindow}.
+     * </p>
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     */
     @Override
     public void dispose(final GLAutoDrawable drawable) {
         System.err.println("SceneUIController: dispose");
+        if( drawable instanceof GLWindow ) {
+            final GLWindow glw = (GLWindow) drawable;
+            detachInputListenerFrom(glw);
+        }
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         for(int i=0; i<shapes.size(); i++) {
             shapes.get(i).destroy(gl, renderer);
         }
         shapes.clear();
         cDrawable = null;
+        if( null != renderer ) {
+            renderer.destroy(gl);
+        }
     }
 
     public static void mapWin2ObjectCoords(final PMVMatrix pmv, final int[] view,
@@ -334,12 +415,6 @@ public class SceneUIController implements GLEventListener{
         pmv.glScalef(sceneScale[0], sceneScale[1], sceneScale[2]);
     }
 
-    public final UIShape getShape(final int id) {
-        if( 0 > id ) {
-            return null;
-        }
-        return shapes.get(id);
-    }
     public final UIShape getActiveShape() {
         return activeShape;
     }
@@ -506,4 +581,46 @@ public class SceneUIController implements GLEventListener{
             clear();
         }
     }
+
+    /**
+     * Return a formatted status string containing avg fps and avg frame duration.
+     * @param glad GLAutoDrawable instance for FPSCounter, its chosen GLCapabilities and its GL's swap-interval
+     * @param renderModes render modes for {@link Region#getRenderModeString(int)}
+     * @param quality the Graph-Curve quality setting
+     * @param dpi the monitor's DPI (vertical preferred)
+     * @return formatted status string
+     */
+    public String getStatusText(final GLAutoDrawable glad, final int renderModes, final int quality, final float dpi) {
+            final FPSCounter fpsCounter = glad.getAnimator();
+            final float lfps, tfps, td;
+            if( null != fpsCounter ) {
+                lfps = fpsCounter.getLastFPS();
+                tfps = fpsCounter.getTotalFPS();
+                td = (float)fpsCounter.getLastFPSPeriod() / (float)fpsCounter.getUpdateFPSFrames();
+            } else {
+                lfps = 0f;
+                tfps = 0f;
+                td = 0f;
+            }
+            final String modeS = Region.getRenderModeString(renderModes);
+            final GLCapabilitiesImmutable caps = glad.getChosenGLCapabilities();
+            return String.format("%03.1f/%03.1f fps, %.1f ms/f, v-sync %d, dpi %.1f, %s-samples %d, q %d, msaa %d, blend %b, alpha %d",
+                        lfps, tfps, td, glad.getGL().getSwapInterval(), dpi, modeS, getSampleCount(), quality,
+                        caps.getNumSamples(),
+                        getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
+                        caps.getAlphaBits());
+    }
+
+    /**
+     * Return a formatted status string containing avg fps and avg frame duration.
+     * @param fpsCounter the counter, must not be null
+     * @return formatted status string
+     */
+    public static String getStatusText(final FPSCounter fpsCounter) {
+            final float lfps = fpsCounter.getLastFPS();
+            final float tfps = fpsCounter.getTotalFPS();
+            final float td = (float)fpsCounter.getLastFPSPeriod() / (float)fpsCounter.getUpdateFPSFrames();
+            return String.format("%03.1f/%03.1f fps, %.1f ms/f", lfps, tfps, td);
+    }
+
 }

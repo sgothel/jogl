@@ -1,3 +1,30 @@
+/**
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
 package com.jogamp.opengl.test.junit.graph.demos;
 
 import com.jogamp.nativewindow.ScalableSurface;
@@ -37,7 +64,6 @@ public class GPUUISceneNewtDemo {
         String fontfilename = null;
 
         int width = 1280, height = 720;
-        int x = 10, y = 10;
 
         boolean forceES2 = false;
         boolean forceES3 = false;
@@ -74,12 +100,6 @@ public class GPUUISceneNewtDemo {
                 } else if(args[i].equals("-height")) {
                     i++;
                     height = MiscUtils.atoi(args[i], height);
-                } else if(args[i].equals("-x")) {
-                    i++;
-                    x = MiscUtils.atoi(args[i], x);
-                } else if(args[i].equals("-y")) {
-                    i++;
-                    y = MiscUtils.atoi(args[i], y);
                 } else if(args[i].equals("-pixelScale")) {
                     i++;
                     final float pS = MiscUtils.atof(args[i], reqSurfacePixelScale[0]);
@@ -101,7 +121,6 @@ public class GPUUISceneNewtDemo {
         System.err.println("forceGL3   "+forceGL3);
         System.err.println("forceGLDef "+forceGLDef);
         System.err.println("Desired win size "+width+"x"+height);
-        System.err.println("Desired win pos  "+x+"/"+y);
         System.err.println("Scene MSAA Samples "+SceneMSAASamples);
         System.err.println("Graph MSAA Mode "+GraphMSAAMode);
         System.err.println("Graph VBAA Mode "+GraphVBAAMode);
@@ -146,7 +165,6 @@ public class GPUUISceneNewtDemo {
         if( 0 == SceneMSAASamples ) {
             window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(true));
         }
-        window.setPosition(x, y);
         window.setSize(width, height);
         window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
         window.setSurfaceScale(reqSurfacePixelScale);
