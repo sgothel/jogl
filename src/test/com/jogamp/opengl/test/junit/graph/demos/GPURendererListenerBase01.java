@@ -143,7 +143,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         System.err.println("*** GLDebugMessage "+gl.getContext().isGLDebugMessageEnabled());
         MSAATool.dump(drawable);
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        getRenderer().init(gl, renderModes);
+        getRenderer().init(gl);
     }
 
     public static void mapWin2ObjectCoords(final PMVMatrix pmv, final int[] view,

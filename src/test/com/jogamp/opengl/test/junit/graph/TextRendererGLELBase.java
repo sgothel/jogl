@@ -144,7 +144,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
         rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRenderUtil = new TextRegionUtil(renderModes);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        renderer.init(gl, renderModes);
+        renderer.init(gl);
         rs.setColorStatic(staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2], staticRGBAColor[3]);
         renderer.enable(gl, false);
 

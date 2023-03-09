@@ -284,7 +284,7 @@ public class PerfTextRendererNEWT00 {
             // final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null);
             // region.growBufferSize(123000, 62000); // hack-me
             gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-            renderer.init(gl, 0);
+            renderer.init(gl);
             rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
 
             // reshape
