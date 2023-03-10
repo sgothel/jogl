@@ -268,6 +268,10 @@
         </condition>
         <echo message="oculusvr.sdk.available: ${oculusvr.sdk.available}" />
 
+        <property name="graphui.make"               value="." />
+        <property name="graphui.build.xml"          value="${graphui.make}/build-graphui.xml" />
+        <property name="build.graphui"              value="${build}/graphui" />
+
         <property name="results.test"               value="${build}/test/results" />
         <property name="build.test"                 value="${build}/test/build" />
         <property name="obj.test"                   value="${build.test}/obj"/>
@@ -485,6 +489,13 @@
             <pathelement location="${oculusvr.jar}" />
         </path>
 
+        <property name="graphui.jar"                    value="${build.graphui}/graphui.jar" />
+
+        <path id="graphui_atoms.classpath">
+            <pathelement location="${graphui.jar}" />
+        </path>
+
+
         <!-- JavaSE combinations -->
         <property name="gluegen-rt.jar"                 value="${build.gluegen}/gluegen-rt.jar" />
         <property name="gluegen-rt-android.jar"         value="${build.gluegen}/gluegen-rt-android.jar" />
@@ -567,6 +578,22 @@
             <path refid="jogl_all_atoms.classpath" />
         </path>
 
+        <!-- GraphUI Compilation .. -->
+        <path id="newt_jogl_nativewindow_gluegen.compile.classpath">
+            <pathelement location="${gluegen-rt.jar}" />
+            <path refid="nativewindow_all_atoms.classpath" />
+            <path refid="jogl_all_atoms.classpath" />
+            <path refid="newt_all_atoms.classpath" />
+        </path>
+        <path id="newt_jogl_nativewindow_gluegen_android.compile.classpath">
+            <pathelement location="${android.jar}" />
+            <pathelement location="${gluegen-rt-android.jar}" />
+            <path refid="nativewindow_all_atoms.classpath" />
+            <path refid="jogl_all_atoms.classpath" />
+            <path refid="newt_all_atoms.classpath" />
+        </path>
+
+
         <!-- Test Compilation .. -->
         <path id="junit_jogl_newt.compile.classpath">
             <pathelement location="${junit.jar}" />
@@ -582,6 +609,7 @@
             <path refid="nativewindow_all_atoms.classpath" />
             <path refid="jogl_all_atoms.classpath" />
             <path refid="newt_all_atoms.classpath" />
+            <pathelement location="${graphui.jar}" />
         </path>
 
         <path id="junit_jogl_newt_oculusvr.compile.classpath">
@@ -599,6 +627,7 @@
             <path refid="jogl_all_atoms.classpath" />
             <path refid="newt_all_atoms.classpath" />
             <path refid="oculusvr_all_atoms.classpath"/>
+            <pathelement location="${graphui.jar}" />
         </path>
 
         <path id="junit_jogl_newt_android.compile.classpath">
@@ -617,6 +646,7 @@
             <path refid="jogl_all_atoms.classpath" />
             <path refid="newt_all_atoms.classpath" />
             <pathelement location="${newt-driver-android.jar}" />
+            <pathelement location="${graphui.jar}" />
         </path>
 
         <!-- Postbuild: javadoc .. -->
@@ -628,6 +658,7 @@
             <pathelement location="${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar" />
             <pathelement location="${jogl-all.jar}" />
             <pathelement location="${oculusvr.jar}" />
+            <pathelement location="${graphui.jar}" />
         </path>
 
         <!-- Test Run w/ AWT .. -->
@@ -641,11 +672,12 @@
             <pathelement location="${gluegen-test-util.jar}" />
             <pathelement location="${jogl-all.jar}" />
             <pathelement location="${oculusvr.jar}" />
+            <pathelement location="${graphui.jar}" />
             <pathelement location="${jogl-test.jar}" />
         </path>
         <property name="junit_jogl_awt.run.jars"
-                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${ant-junit4.jar}${path.separator}${semver.jar}${path.separator}${gluegen-rt.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${jogl-all.jar}${path.separator}${oculusvr.jar}${path.separator}${jogl-test.jar}"/>
-        <property name="junit_jogl_awt.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit4.jar${path.separator}${semver.jar}${path.separator}${gluegen-rt.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${jogl-all.jar}${path.separator}${oculusvr.jar}${path.separator}${jogl-test.jar}"/>
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${ant-junit4.jar}${path.separator}${semver.jar}${path.separator}${gluegen-rt.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${jogl-all.jar}${path.separator}${oculusvr.jar}${path.separator}${graphui.jar}${path.separator}${jogl-test.jar}"/>
+        <property name="junit_jogl_awt.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit4.jar${path.separator}${semver.jar}${path.separator}${gluegen-rt.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${jogl-all.jar}${path.separator}${oculusvr.jar}${path.separator}${graphui.jar}${path.separator}${jogl-test.jar}"/>
 
         <!-- Test Run w/o AWT .. -->
         <path id="junit_jogl_noawt.run.classpath">
@@ -658,11 +690,12 @@
             <pathelement location="${gluegen-test-util.jar}" />
             <pathelement location="${jogl-all-noawt.jar}" />
             <pathelement location="${oculusvr.jar}" />
+            <pathelement location="${graphui.jar}" />
             <pathelement location="${jogl-test.jar}" />
         </path>
         <property name="junit_jogl_noawt.run.jars"
-                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${ant-junit4.jar}${path.separator}${semver.jar}${path.separator}${gluegen-rt.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${jogl-all-noawt.jar}${path.separator}${oculusvr.jar}${path.separator}${jogl-test.jar}"/>
-        <property name="junit_jogl_noawt.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit4.jar${path.separator}${semver.jar}${path.separator}${gluegen-rt.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${jogl-all-noawt.jar}${path.separator}${oculusvr.jar}${path.separator}${jogl-test.jar}"/>
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${ant-junit4.jar}${path.separator}${semver.jar}${path.separator}${gluegen-rt.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${jogl-all-noawt.jar}${path.separator}${oculusvr.jar}${path.separator}${graphui.jar}${path.separator}${jogl-test.jar}"/>
+        <property name="junit_jogl_noawt.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit4.jar${path.separator}${semver.jar}${path.separator}${gluegen-rt.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${jogl-all-noawt.jar}${path.separator}${oculusvr.jar}${path.separator}${graphui.jar}${path.separator}${jogl-test.jar}"/>
 
         <!-- Test Run w/ SWT .. -->
         <path id="junit_jogl_swt.run.classpath">
@@ -676,10 +709,11 @@
           <pathelement location="${swt.jar}" />
           <pathelement location="${jogl-all.jar}" />
           <pathelement location="${oculusvr.jar}" />
+          <pathelement location="${graphui.jar}" />
           <pathelement location="${jogl-test.jar}" />
         </path>
         <property name="junit_jogl_swt.run.jars"
-                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${ant-junit4.jar}${path.separator}${semver.jar}${path.separator}${gluegen-rt.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${swt.jar}${path.separator}${jogl-all.jar}${path.separator}${oculusvr.jar}${path.separator}${jogl-test.jar}"/>
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${ant-junit4.jar}${path.separator}${semver.jar}${path.separator}${gluegen-rt.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${swt.jar}${path.separator}${jogl-all.jar}${path.separator}${oculusvr.jar}${path.separator}${graphui.jar}${path.separator}${jogl-test.jar}"/>
 
         <!-- Test Run w/ Android [w/o AWT] .. -->
         <path id="junit_jogl_android.run.classpath">
@@ -693,12 +727,13 @@
             <pathelement location="${gluegen-test-util.jar}" />
             <pathelement location="${jogl-all-android.jar}" />
             <pathelement location="${oculusvr.jar}" />
+            <pathelement location="${graphui.jar}" />
             <pathelement location="${jogl-test.jar}" />
         </path>
         <property name="junit_jogl_android.run.jars"
-                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${ant-junit4.jar}${path.separator}${semver.jar}${path.separator}${gluegen-rt-android.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${jogl-all-android.jar}${path.separator}${oculusvr.jar}${path.separator}${jogl-test.jar}"/>
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${ant-junit4.jar}${path.separator}${semver.jar}${path.separator}${gluegen-rt-android.jar}${path.separator}${gluegen-test-util.jar}${path.separator}${jogl-all-android.jar}${path.separator}${oculusvr.jar}${path.separator}${graphui.jar}${path.separator}${jogl-test.jar}"/>
         <property name="junit.run.remote.apks" 
-                  value="${gluegen.root}/${rootrel.build}/jogamp.android-launcher.apk${path.separator}${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt-android-${android.abi}.apk${path.separator}${jogl-all-android.apk}${path.separator}${oculusvr.jar}${path.separator}${jogl-test.apk}"/>
+                  value="${gluegen.root}/${rootrel.build}/jogamp.android-launcher.apk${path.separator}${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt-android-${android.abi}.apk${path.separator}${jogl-all-android.apk}${path.separator}${oculusvr.jar}${path.separator}${graphui.jar}${path.separator}${jogl-test.apk}"/>
 
         <!-- Dummy extra CLASSPATH value, maybe overwritten -->  
         <property name="junit_extra_classpath" value=""/>

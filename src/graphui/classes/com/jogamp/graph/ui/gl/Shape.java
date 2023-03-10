@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos.ui;
+package com.jogamp.graph.ui.gl;
 
 import java.util.ArrayList;
 
@@ -52,7 +52,17 @@ import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 
-public abstract class UIShape {
+/**
+ * GraphUI Shape
+ * <p>
+ * GraphUI is GPU based and resolution independent.
+ * </p>
+ * <p>
+ * GraphUI is intended to become an immediate- and retained-mode API.
+ * </p>
+ * @see Scene
+ */
+public abstract class Shape {
     public static final boolean DRAW_DEBUG_BOX = false;
     private static final boolean DEBUG = false;
 
@@ -97,7 +107,7 @@ public abstract class UIShape {
     private boolean enabled = true;
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
 
-    public UIShape(final Factory<? extends Vertex> factory, final int renderModes) {
+    public Shape(final Factory<? extends Vertex> factory, final int renderModes) {
         this.vertexFactory = factory;
         this.renderModes = renderModes;
         this.box = new AABBox();
@@ -595,19 +605,19 @@ public abstract class UIShape {
     }
 
     /**
-     * {@link UIShape} event details for propagated {@link NEWTEvent}s
+     * {@link Shape} event details for propagated {@link NEWTEvent}s
      * containing reference of {@link #shape the intended shape} as well as
      * the {@link #objPos rotated relative position}.
      * The latter is normalized to lower-left zero origin, allowing easier usage.
      */
     public static class UIShapeEvent {
-        /** The associated {@link UIShape} for this event */
-        public final UIShape shape;
-        /** The relative object coordinate of glWinX/glWinY to the associated {@link UIShape}. */
+        /** The associated {@link Shape} for this event */
+        public final Shape shape;
+        /** The relative object coordinate of glWinX/glWinY to the associated {@link Shape}. */
         public final float[] objPos;
         /** The GL window coordinates, origin bottom-left */
         public final int[] winPos;
-        /** The drag delta of the relative object coordinate of glWinX/glWinY to the associated {@link UIShape}. */
+        /** The drag delta of the relative object coordinate of glWinX/glWinY to the associated {@link Shape}. */
         public final float[] objDrag = { 0f, 0f };
         /** The drag delta of GL window coordinates, origin bottom-left */
         public final int[] winDrag = { 0, 0 };
@@ -619,7 +629,7 @@ public abstract class UIShape {
          * @param shape associated shape
          * @param objPos relative object coordinate of glWinX/glWinY to the associated shape.
          */
-        UIShapeEvent(final int glWinX, final int glWinY, final UIShape shape, final float[] objPos) {
+        UIShapeEvent(final int glWinX, final int glWinY, final Shape shape, final float[] objPos) {
             this.winPos = new int[] { glWinX, glWinY };
             this.shape = shape;
             this.objPos = objPos;
@@ -655,7 +665,7 @@ public abstract class UIShape {
      * @param objPos object position of mouse event within this shape
      */
     public final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY, final float[] objPos) {
-        final UIShape.UIShapeEvent shapeEvent = new UIShapeEvent(glWinX, glWinY, this, objPos);
+        final Shape.UIShapeEvent shapeEvent = new UIShapeEvent(glWinX, glWinY, this, objPos);
         e.setAttachment(shapeEvent);
 
         final short eventType = e.getEventType();

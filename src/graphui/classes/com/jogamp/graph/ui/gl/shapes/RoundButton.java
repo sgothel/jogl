@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,16 +25,26 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos.ui;
+package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
-import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.graph.ui.gl.Shape;
 
-public abstract class RoundButton extends UIShape {
+/**
+ * An abstract GraphUI round Button {@link Shape}
+ * <p>
+ * GraphUI is GPU based and resolution independent.
+ * </p>
+ * <p>
+ * This button is rendered with a round oval shape.
+ * To render it rectangular, {@link #setCorner(float)} to zero.
+ * </p>
+ */
+public abstract class RoundButton extends Shape {
 
     /** {@value} */
     public static final float DEFAULT_CORNER = 1f;

@@ -8,13 +8,13 @@
        - Main build target.
       -->
 
-    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,tag.build,test.compile,developer-zip-archive" />
+    <target name="all" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,build.graphui,build.oculusvr,one.dir,tag.build,test.compile,developer-zip-archive" />
 
-    <target name="all.debug" description="Debug build nativewindow, jogl and newt projects, incl. all junit tests " depends="init.debug,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,tag.build,test.compile,developer-zip-archive" />
+    <target name="all.debug" description="Debug build nativewindow, jogl and newt projects, incl. all junit tests " depends="init.debug,build.nativewindow,build.jogl,build.newt,build.graphui,build.oculusvr,one.dir,tag.build,test.compile,developer-zip-archive" />
 
-    <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,tag.build,test.compile" />
+    <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,build.graphui,build.oculusvr,one.dir,tag.build,test.compile" />
 
-    <target name="all.ide" description="Debug IDE build nativewindow, jogl and newt projects, including all junit tests, but don't tag the build or create archives" depends="init.debug,build.nativewindow,build.jogl,build.newt,build.oculusvr,one.dir,test.compile" />
+    <target name="all.ide" description="Debug IDE build nativewindow, jogl and newt projects, including all junit tests, but don't tag the build or create archives" depends="init.debug,build.nativewindow,build.jogl,build.newt,build.graphui,build.oculusvr,one.dir,test.compile" />
 
     <target name="test.compile">
       <ant antfile="build-test.xml" target="test.compile" inheritRefs="true" inheritAll="true"/>
@@ -84,6 +84,10 @@
         <ant antfile="${newt.build.xml}" dir="${newt.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
+    <target name="build.graphui" depends="init">
+        <ant antfile="${graphui.build.xml}" dir="${graphui.make}" target="all" inheritRefs="true" inheritAll="true"/>
+    </target>
+
     <target name="build.oculusvr" depends="init" if="oculusvr.sdk.available">
         <ant antfile="${oculusvr.build.xml}" dir="${oculusvr.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
@@ -105,6 +109,7 @@
             <fileset dir="${build.jogl}" includes="*.jar" />
             <fileset dir="${build.nativewindow}" includes="*.jar" />
             <fileset dir="${build.newt}" includes="*.jar" />
+            <fileset dir="${build.graphui}" includes="*.jar" />
             <fileset dir="${build.oculusvr}" includes="*.jar" erroronmissingdir="false"/> <!-- optional -->
         </copy>
 
@@ -141,6 +146,7 @@
                     <path refid="nativewindow_android_atoms.classpath"/>
                     <path refid="jogl_all-android_atoms.classpath"/>
                     <path refid="newt_all-android_atoms.classpath"/>
+                    <path refid="graphui_atoms.classpath"/>
                 </zips>
             </archives>
         </jar>
@@ -153,6 +159,7 @@
                     <path refid="nativewindow_all_atoms.classpath"/>
                     <path refid="jogl_all_atoms.classpath"/>
                     <path refid="newt_all_atoms.classpath"/>
+                    <path refid="graphui_atoms.classpath"/>
                     <!-- path refid="oculusvr_all_atoms.classpath"/-->
                 </zips>
             </archives>
@@ -166,6 +173,7 @@
                     <path refid="nativewindow_all-noawt_atoms.classpath"/>
                     <path refid="jogl_all-noawt_atoms.classpath"/>
                     <path refid="newt_all-noawt_atoms.classpath"/>
+                    <path refid="graphui_atoms.classpath"/>
                     <!-- path refid="oculusvr_all_atoms.classpath"/-->
                 </zips>
             </archives>
@@ -176,6 +184,7 @@
                     <path refid="nativewindow_all-noawt_atoms.classpath"/>
                     <path refid="jogl_all-mobile_atoms.classpath"/>
                     <path refid="newt_all-mobile_atoms.classpath"/>
+                    <path refid="graphui_atoms.classpath"/>
                     <!-- path refid="oculusvr_all_atoms.classpath"/-->
                 </zips>
             </archives>
@@ -231,11 +240,13 @@
         <srcfiles dir="${build.nativewindow}" includes="*.jar"/>
         <srcfiles dir="${build.jogl}" includes="*.jar"/>
         <srcfiles dir="${build.newt}" includes="*.jar"/>
+        <srcfiles dir="${build.graphui}" includes="*.jar"/>
       </uptodate>
       <uptodate property="one.dir.skip.android" targetfile="${jogl-all-android.jar}">
         <srcfiles dir="${build.nativewindow}" includes="*.jar"/>
         <srcfiles dir="${build.jogl}" includes="*.jar"/>
         <srcfiles dir="${build.newt}" includes="*.jar"/>
+        <srcfiles dir="${build.graphui}" includes="*.jar"/>
       </uptodate>
       <uptodate property="one.dir.skip.oculusvr" targetfile="${oculusvr.jar}">
         <srcfiles dir="${build.oculusvr}" includes="*.jar"/>
@@ -286,6 +297,7 @@
             <fileset dir="${src}/jogl/classes"/>
             <fileset dir="${build}/jogl/gensrc/classes"/>
             <fileset dir="${src}/newt/classes"/>
+            <fileset dir="${src}/graphui/classes"/>
             <fileset dir="${src}/oculusvr/classes"/>
             <fileset dir="${build}/oculusvr/gensrc/classes"/>
         </zip>

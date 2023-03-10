@@ -25,52 +25,35 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos;
-
-import java.awt.Component;
-import java.awt.Frame;
-import java.lang.reflect.InvocationTargetException;
+package com.jogamp.opengl.test.junit.graph.ui.demos;
 
 import com.jogamp.nativewindow.ScalableSurface;
-import com.jogamp.nativewindow.util.Dimension;
-import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
-import javax.swing.SwingUtilities;
-
-import org.junit.Assume;
-
+import com.jogamp.opengl.JoglVersion;
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.newt.awt.NewtCanvasAWT;
+import com.jogamp.newt.Display;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 
-public class GPUUISceneNewtCanvasAWTDemo {
+public class GPUUISceneNewtDemo {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
-    static void setComponentSize(final Component comp, final DimensionImmutable new_sz) {
+    static void sleep(final long ms) {
         try {
-            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                @Override
-                public void run() {
-                    final java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
-                    comp.setMinimumSize(d);
-                    comp.setPreferredSize(d);
-                    comp.setSize(d);
-                } } );
-        } catch( final Throwable throwable ) {
-            throwable.printStackTrace();
-            Assume.assumeNoException( throwable );
-        }
+            Thread.sleep(ms);
+        } catch (final InterruptedException ie) {}
     }
 
-    public static void main(final String[] args) throws InterruptedException, InvocationTargetException {
-        String fontfilename = null;
-
+    public static void main(final String[] args) {
         int SceneMSAASamples = 0;
         boolean GraphVBAAMode = false;
         boolean GraphMSAAMode = false;
@@ -78,8 +61,9 @@ public class GPUUISceneNewtCanvasAWTDemo {
 
         final float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
-        int width = 800, height = 400;
-        int x = 10, y = 10;
+        String fontfilename = null;
+
+        int width = 1280, height = 720;
 
         boolean forceES2 = false;
         boolean forceES3 = false;
@@ -116,12 +100,6 @@ public class GPUUISceneNewtCanvasAWTDemo {
                 } else if(args[i].equals("-height")) {
                     i++;
                     height = MiscUtils.atoi(args[i], height);
-                } else if(args[i].equals("-x")) {
-                    i++;
-                    x = MiscUtils.atoi(args[i], x);
-                } else if(args[i].equals("-y")) {
-                    i++;
-                    y = MiscUtils.atoi(args[i], y);
                 } else if(args[i].equals("-pixelScale")) {
                     i++;
                     final float pS = MiscUtils.atof(args[i], reqSurfacePixelScale[0]);
@@ -143,11 +121,15 @@ public class GPUUISceneNewtCanvasAWTDemo {
         System.err.println("forceGL3   "+forceGL3);
         System.err.println("forceGLDef "+forceGLDef);
         System.err.println("Desired win size "+width+"x"+height);
-        System.err.println("Desired win pos  "+x+"/"+y);
         System.err.println("Scene MSAA Samples "+SceneMSAASamples);
         System.err.println("Graph MSAA Mode "+GraphMSAAMode);
         System.err.println("Graph VBAA Mode "+GraphVBAAMode);
         System.err.println("Graph Auto Mode "+GraphAutoMode+" no-AA dpi threshold");
+
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, 0);
+        System.err.println(VersionUtil.getPlatformInfo());
+        System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(dpy.getGraphicsDevice(), null).toString());
 
         final GLProfile glp;
         if(forceGLDef) {
@@ -179,21 +161,23 @@ public class GPUUISceneNewtCanvasAWTDemo {
             rmode = 0;
         }
 
-        final GLWindow window = GLWindow.create(caps);
-        window.setPosition(x, y);
+        final GLWindow window = GLWindow.create(screen, caps);
+        if( 0 == SceneMSAASamples ) {
+            window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(true));
+        }
         window.setSize(width, height);
-        window.setTitle("GraphUI Newt/AWT Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
+        window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
         window.setSurfaceScale(reqSurfacePixelScale);
-        final float[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new float[2]);
+        // final float[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new float[2]);
 
-        final GPUUISceneGLListener0A sceneGLListener = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(fontfilename, GraphAutoMode, DEBUG, TRACE) :
-                                                                           new GPUUISceneGLListener0A(fontfilename, rmode, DEBUG, TRACE);
+        final GPUUISceneGLListener0A scene = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(fontfilename, GraphAutoMode, DEBUG, TRACE) :
+                                                                 new GPUUISceneGLListener0A(fontfilename, rmode, DEBUG, TRACE);
 
-        window.addGLEventListener(sceneGLListener);
-        sceneGLListener.attachInputListenerTo(window);
+        window.addGLEventListener(scene);
+        scene.attachInputListenerTo(window);
 
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(60, System.err);
+        animator.setUpdateFPSFrames(5*60, null);
         animator.add(window);
 
         window.addWindowListener(new WindowAdapter() {
@@ -203,18 +187,11 @@ public class GPUUISceneNewtCanvasAWTDemo {
             }
         });
 
-        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(window);
-        final Frame frame = new Frame("GraphUI Newt/AWT Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
-
-        setComponentSize(newtCanvasAWT, new Dimension(width, height));
-        frame.add(newtCanvasAWT);
-        SwingUtilities.invokeAndWait(new Runnable() {
-           @Override
-        public void run() {
-               frame.pack();
-               frame.setVisible(true);
-           }
-        });
+        window.setVisible(true);
         animator.start();
+
+        // sleep(3000);
+        // final UIShape movie = scene.getWidget(GPUUISceneGLListener0A.BUTTON_MOVIE);
     }
+
 }

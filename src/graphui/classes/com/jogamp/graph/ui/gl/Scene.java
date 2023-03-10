@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos.ui;
+package com.jogamp.graph.ui.gl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,8 +55,18 @@ import com.jogamp.opengl.math.Ray;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 
-public class SceneUIController implements GLEventListener{
-    private final ArrayList<UIShape> shapes = new ArrayList<UIShape>();
+/**
+ * GraphUI Scene
+ * <p>
+ * GraphUI is GPU based and resolution independent.
+ * </p>
+ * <p>
+ * GraphUI is intended to become an immediate- and retained-mode API.
+ * </p>
+ * @see Shape
+ */
+public class Scene implements GLEventListener{
+    private final ArrayList<Shape> shapes = new ArrayList<Shape>();
 
     private final float sceneDist, zNear, zFar;
 
@@ -71,7 +81,7 @@ public class SceneUIController implements GLEventListener{
     private final float[] scenePlaneOrigin = new float[3];
 
 
-    private volatile UIShape activeShape = null;
+    private volatile Shape activeShape = null;
 
     private SBCMouseListener sbcMouseListener = null;
     private SBCGestureListener sbcGestureListener = null;
@@ -79,11 +89,11 @@ public class SceneUIController implements GLEventListener{
 
     private GLAutoDrawable cDrawable = null;
 
-    public SceneUIController(final float sceneDist, final float zNear, final float zFar) {
+    public Scene(final float sceneDist, final float zNear, final float zFar) {
         this(null, sceneDist, zNear, zFar);
     }
 
-    public SceneUIController(final RegionRenderer renderer, final float sceneDist, final float zNear, final float zFar) {
+    public Scene(final RegionRenderer renderer, final float sceneDist, final float zNear, final float zFar) {
         this.renderer = renderer;
         this.sceneDist = sceneDist;
         this.zFar = zFar;
@@ -133,23 +143,23 @@ public class SceneUIController implements GLEventListener{
         }
     }
 
-    public ArrayList<UIShape> getShapes() {
+    public ArrayList<Shape> getShapes() {
         return shapes;
     }
-    public void addShape(final UIShape b) {
+    public void addShape(final Shape b) {
         shapes.add(b);
     }
-    public void removeShape(final UIShape b) {
+    public void removeShape(final Shape b) {
         shapes.remove(b);
     }
-    public final UIShape getShapeByIdx(final int id) {
+    public final Shape getShapeByIdx(final int id) {
         if( 0 > id ) {
             return null;
         }
         return shapes.get(id);
     }
-    public UIShape getShapeByName(final int name) {
-        for(final UIShape b : shapes) {
+    public Shape getShapeByName(final int name) {
+        for(final Shape b : shapes) {
             if(b.getName() == name ) {
                 return b;
             }
@@ -192,9 +202,9 @@ public class SceneUIController implements GLEventListener{
         }
     }
 
-    private static Comparator<UIShape> shapeZAscComparator = new Comparator<UIShape>() {
+    private static Comparator<Shape> shapeZAscComparator = new Comparator<Shape>() {
         @Override
-        public int compare(final UIShape s1, final UIShape s2) {
+        public int compare(final Shape s1, final Shape s2) {
             final float s1Z = s1.getBounds().getMinZ()+s1.getTranslate()[2];
             final float s2Z = s2.getBounds().getMinZ()+s2.getTranslate()[2];
             if( FloatUtil.isEqual(s1Z, s2Z, FloatUtil.EPSILON) ) {
@@ -226,7 +236,7 @@ public class SceneUIController implements GLEventListener{
         final int shapeCount = shapesS.length;
         for(int i=0; i<shapeCount; i++) {
             // final UIShape uiShape = shapes.get(i);
-            final UIShape uiShape = (UIShape)shapesS[i];
+            final Shape uiShape = (Shape)shapesS[i];
             // System.err.println("Id "+i+": "+uiShape);
             if( uiShape.isEnabled() ) {
                 uiShape.validate(gl, renderer);
@@ -240,7 +250,7 @@ public class SceneUIController implements GLEventListener{
         renderer.enable(gl, false);
     }
 
-    public void pickShape(final int glWinX, final int glWinY, final float[] objPos, final UIShape[] shape, final Runnable runnable) {
+    public void pickShape(final int glWinX, final int glWinY, final float[] objPos, final Shape[] shape, final Runnable runnable) {
         if( null == cDrawable ) {
             return;
         }
@@ -255,7 +265,7 @@ public class SceneUIController implements GLEventListener{
             } } );
     }
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private UIShape pickShapeImpl(final int glWinX, final int glWinY, final float[] objPos) {
+    private Shape pickShapeImpl(final int glWinX, final int glWinY, final float[] objPos) {
         final float winZ0 = 0f;
         final float winZ1 = 0.3f;
         /**
@@ -272,7 +282,7 @@ public class SceneUIController implements GLEventListener{
         Arrays.sort(shapesS, (Comparator)shapeZAscComparator);
 
         for(int i=shapesS.length-1; i>=0; i--) {
-            final UIShape uiShape = (UIShape)shapesS[i];
+            final Shape uiShape = (Shape)shapesS[i];
 
             if( uiShape.isEnabled() ) {
                 pmv.glPushMatrix();
@@ -299,14 +309,14 @@ public class SceneUIController implements GLEventListener{
     private final float[] dpyTmp3V3 = new float[3];
 
     /**
-     * Calling {@link UIShape#winToObjCoord(RegionRenderer, int, int, float[])}, retrieving its object position.
+     * Calling {@link Shape#winToObjCoord(RegionRenderer, int, int, float[])}, retrieving its object position.
      * @param activeShape
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      * @param objPos resulting object position
      * @param runnable action
      */
-    public void windowToShapeCoords(final UIShape activeShape, final int glWinX, final int glWinY, final float[] objPos, final Runnable runnable) {
+    public void windowToShapeCoords(final Shape activeShape, final int glWinX, final int glWinY, final float[] objPos, final Runnable runnable) {
         if( null == cDrawable || null == activeShape ) {
             return;
         }
@@ -330,7 +340,7 @@ public class SceneUIController implements GLEventListener{
     }
 
     /**
-     * Disposes all {@link #addShape(UIShape) added} {@link UIShape}s.
+     * Disposes all {@link #addShape(Shape) added} {@link Shape}s.
      * <p>
      * Implementation also issues {@link RegionRenderer#destroy(GL2ES2)} if set
      * and {@link #detachInputListenerFrom(GLWindow)} in case the drawable is of type {@link GLWindow}.
@@ -415,14 +425,14 @@ public class SceneUIController implements GLEventListener{
         pmv.glScalef(sceneScale[0], sceneScale[1], sceneScale[2]);
     }
 
-    public final UIShape getActiveShape() {
+    public final Shape getActiveShape() {
         return activeShape;
     }
 
     public void release() {
         setActiveShape(null);
     }
-    private void setActiveShape(final UIShape shape) {
+    private void setActiveShape(final Shape shape) {
         activeShape = shape;
     }
 
@@ -438,7 +448,7 @@ public class SceneUIController implements GLEventListener{
                     final int glWinX = e.getX();
                     final int glWinY = viewport[3] - e.getY() - 1;
                     final float[] objPos = new float[3];
-                    final UIShape shape = activeShape;
+                    final Shape shape = activeShape;
                     windowToShapeCoords(shape, glWinX, glWinY, objPos, new Runnable() {
                         @Override
                         public void run() {
@@ -471,7 +481,7 @@ public class SceneUIController implements GLEventListener{
      */
     final void dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY, final boolean setActive) {
         final float[] objPos = new float[3];
-        final UIShape[] shape = { null };
+        final Shape[] shape = { null };
         pickShape(glWinX, glWinY, objPos, shape, new Runnable() {
            @Override
         public void run() {
@@ -488,7 +498,7 @@ public class SceneUIController implements GLEventListener{
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      */
-    final void dispatchMouseEventForShape(final UIShape shape, final MouseEvent e, final int glWinX, final int glWinY) {
+    final void dispatchMouseEventForShape(final Shape shape, final MouseEvent e, final int glWinX, final int glWinY) {
         final float[] objPos = new float[3];
         windowToShapeCoords(shape, glWinX, glWinY, objPos, new Runnable() {
             @Override

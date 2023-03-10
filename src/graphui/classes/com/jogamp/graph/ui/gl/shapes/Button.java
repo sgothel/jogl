@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos.ui;
+package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
@@ -38,10 +38,19 @@ import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.geom.AABBox;
 
+import jogamp.graph.ui.shapes.Label0;
+
 /**
- * GPU based resolution independent Button impl
+ * A GraphUI text labeled {@link RoundButton} {@link Shape}
+ * <p>
+ * GraphUI is GPU based and resolution independent.
+ * </p>
+ * <p>
+ * This button is rendered with a round oval shape.
+ * To render it rectangular, {@link #setCorner(float)} to zero.
+ * </p>
  */
-public class LabelButton extends RoundButton {
+public class Button extends RoundButton {
     /** {@value} */
     public static final float DEFAULT_SPACING_X = 0.12f;
     /** {@value} */
@@ -53,7 +62,7 @@ public class LabelButton extends RoundButton {
     private float spacingX = DEFAULT_SPACING_X;
     private float spacingY = DEFAULT_SPACING_Y;
 
-    public LabelButton(final Factory<? extends Vertex> factory, final int renderModes,
+    public Button(final Factory<? extends Vertex> factory, final int renderModes,
                        final Font labelFont, final String labelText,
                        final float width, final float height) {
         super(factory, renderModes | Region.COLORCHANNEL_RENDERING_BIT, width, height);
@@ -64,7 +73,8 @@ public class LabelButton extends RoundButton {
         setToggleOnColorMod(0.85f, 0.85f, 0.85f, 1.0f);
     }
 
-    public Font getFont() { return label.font; }
+    public Font getFont() { return label.getFont(); }
+    public String getLaben() { return label.getText(); }
 
     @Override
     public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
@@ -95,7 +105,7 @@ public class LabelButton extends RoundButton {
         // Precompute text-box size .. guessing pixelSize
         final float lw = width * ( 1f - spacingX ) ;
         final float lh = height * ( 1f - spacingY ) ;
-        final AABBox lbox0_em = label.font.getGlyphBounds(label.text, tempT1, tempT2);
+        final AABBox lbox0_em = label.getFont().getGlyphBounds(label.getText(), tempT1, tempT2);
         final float lsx = lw / lbox0_em.getWidth();
         final float lsy = lh / lbox0_em.getHeight();
         final float lScale = lsx < lsy ? lsx : lsy;
@@ -111,7 +121,7 @@ public class LabelButton extends RoundButton {
             System.err.println("RIButton: dim "+width+" x "+height+", spacing "+spacingX+", "+spacingY);
             System.err.println("RIButton: net-text "+lw+" x "+lh);
             System.err.println("RIButton: shape "+box);
-            System.err.println("RIButton: text_em "+lbox0_em+" em, "+label.text);
+            System.err.println("RIButton: text_em "+lbox0_em+" em, "+label.getText());
             System.err.println("RIButton: lscale "+lsx+" x "+lsy+" -> "+lScale);
             System.err.printf ("RIButton: text_s  %s%n", lbox1_s);
             System.err.printf ("RIButton: tleft %f / %f, %f / %f%n", ltx[0], ltx[1], ltx[0] * lScale, ltx[1] * lScale);
@@ -164,7 +174,19 @@ public class LabelButton extends RoundButton {
         markShapeDirty();
     }
 
-    public final void setLabelText(final Font labelFont, final String labelText) {
+    public final void setFont(final Font labelFont) {
+        if( !label.getFont().equals(labelFont) ) {
+            label.setFont(labelFont);
+            markShapeDirty();
+        }
+    }
+    public final void setLabel(final String labelText) {
+        if( !label.getText().equals(labelText) ) {
+            label.setText(labelText);
+            markShapeDirty();
+        }
+    }
+    public final void setLabel(final Font labelFont, final String labelText) {
         if( !label.getText().equals(labelText) || !label.getFont().equals(labelFont) ) {
             label.setFont(labelFont);
             label.setText(labelText);

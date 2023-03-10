@@ -25,21 +25,21 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.testshapes;
+package com.jogamp.opengl.test.junit.graph.ui.testshapes;
 
 import com.jogamp.opengl.GL2ES2;
-import com.jogamp.opengl.test.junit.graph.demos.ui.UIShape;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.graph.ui.gl.Shape;
 
 /**
  * GPU based resolution independent test object
  * - FreeSans, '0'
  * - TTF Shape for Glyph 19
  */
-public class Glyph04FreeSans_0 extends UIShape {
+public class Glyph04FreeSans_0 extends Shape {
 
     public Glyph04FreeSans_0(final Factory<? extends Vertex> factory, final int renderModes) {
         super(factory, renderModes);

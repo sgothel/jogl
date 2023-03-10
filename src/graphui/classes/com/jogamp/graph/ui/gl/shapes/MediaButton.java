@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2014-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos.ui;
+package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.common.util.InterruptSource;
@@ -38,9 +38,16 @@ import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /**
- * GPU based resolution independent {@link GLMediaPlayer} Button impl
+ * A GraphUI {@link GLMediaPlayer} based {@link TexSeqButton} {@link Shape}.
+ * <p>
+ * GraphUI is GPU based and resolution independent.
+ * </p>
+ * <p>
+ * This button is rendered with a round oval shape.
+ * To render it rectangular, {@link #setCorner(float)} to zero.
+ * </p>
  */
-public class MediaPlayerButton extends TextureSeqButton {
+public class MediaButton extends TexSeqButton {
     private boolean verbose = false;
 
     /**
@@ -51,7 +58,7 @@ public class MediaPlayerButton extends TextureSeqButton {
      * @param mPlayer
      * @param mPlayerListener
      */
-    public MediaPlayerButton(final Factory<? extends Vertex> factory, final int renderModes,
+    public MediaButton(final Factory<? extends Vertex> factory, final int renderModes,
                              final float width, final float height,
                              final GLMediaPlayer mPlayer) {
         super(factory, renderModes, width, height, mPlayer);
@@ -87,13 +94,14 @@ public class MediaPlayerButton extends TextureSeqButton {
                     System.err.println("MovieCube State: "+mp);
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
-                    MediaPlayerButton.this.setEnabled(true); // data and shader is available ..
+                    MediaButton.this.setEnabled(true); // data and shader is available ..
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
                     // FIXME: mPlayer.resetGLState();
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
                     new InterruptSource.Thread() {
+                        @Override
                         public void run() {
                             // loop for-ever ..
                             mPlayer.seek(0);

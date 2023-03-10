@@ -29,14 +29,13 @@ package com.jogamp.opengl.test.android;
 
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.test.junit.graph.ui.demos.GPUUISceneGLListener0A;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 
 import com.jogamp.newt.event.MonitorEvent;
 import com.jogamp.newt.event.MonitorModeListener;
 import com.jogamp.newt.opengl.GLWindow;
-
-import com.jogamp.opengl.test.junit.graph.demos.GPUUISceneGLListener0A;
 import com.jogamp.opengl.util.Animator;
 
 import android.os.Bundle;

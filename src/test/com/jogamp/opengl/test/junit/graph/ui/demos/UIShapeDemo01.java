@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos;
+package com.jogamp.opengl.test.junit.graph.ui.demos;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,25 +44,20 @@ import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.test.junit.graph.demos.ui.CrossHair;
-import com.jogamp.opengl.test.junit.graph.demos.ui.Rectangle;
-import com.jogamp.opengl.test.junit.graph.demos.ui.UIShape;
-import com.jogamp.opengl.test.junit.graph.testshapes.Glyph03FreeMonoRegular_M;
-import com.jogamp.opengl.test.junit.graph.testshapes.Glyph04FreeSans_0;
-import com.jogamp.opengl.test.junit.graph.testshapes.Glyph05FreeSerifBoldItalic_ae;
-import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.graph.ui.gl.Shape;
+import com.jogamp.graph.ui.gl.shapes.Button;
+import com.jogamp.graph.ui.gl.shapes.CrossHair;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -87,25 +82,17 @@ import com.jogamp.opengl.util.PMVMatrix;
  * - v: toggle v-sync
  * - s: screenshot
  */
-public class UITypeDemo01 implements GLEventListener {
+public class UIShapeDemo01 implements GLEventListener {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
     public static void main(final String[] args) throws IOException {
         Font font = null;
-        String text = "Hello Origin.";
-        int glyph_id = Glyph.ID_UNKNOWN;
         if( 0 != args.length ) {
             for(int i=0; i<args.length; i++) {
                 if(args[i].equals("-font")) {
                     i++;
                     font = FontFactory.get(new File(args[i]));
-                } else if(args[i].equals("-text")) {
-                    i++;
-                    text = args[i];
-                } else if(args[i].equals("-glyph")) {
-                    i++;
-                    glyph_id = MiscUtils.atoi(args[i], 0);
                 }
             }
         }
@@ -113,7 +100,6 @@ public class UITypeDemo01 implements GLEventListener {
             font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         }
         System.err.println("Font: "+font.getFullFamilyName());
-        System.err.println("Text: "+text);
 
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
@@ -125,9 +111,9 @@ public class UITypeDemo01 implements GLEventListener {
         final GLWindow window = GLWindow.create(caps);
         // window.setPosition(10, 10);
         window.setSize(800, 400);
-        window.setTitle(UITypeDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+        window.setTitle(UIShapeDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final UITypeDemo01 uiGLListener = new UITypeDemo01(font, glyph_id, text, Region.COLORCHANNEL_RENDERING_BIT, rs, DEBUG, TRACE);
+        final UIShapeDemo01 uiGLListener = new UIShapeDemo01(font, Region.COLORCHANNEL_RENDERING_BIT, rs, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
         window.setVisible(true);
@@ -158,18 +144,15 @@ public class UITypeDemo01 implements GLEventListener {
         animator.start();
     }
 
-    private final float[] fg_color = new float[] { 0, 0, 0, 1 };
     private final Font font;
-    private final String text;
-    private final int glyph_id;
     private final GLReadBufferUtil screenshot;
     private final int renderModes;
     private final RegionRenderer rRenderer;
     private final boolean debug;
     private final boolean trace;
 
+    private final Button button;
     private final CrossHair crossHair;
-    private final UIShape testObj;
 
     private KeyAction keyAction;
     private MouseAction mouseAction;
@@ -189,35 +172,26 @@ public class UITypeDemo01 implements GLEventListener {
     protected final AffineTransform tempT1 = new AffineTransform();
     protected final AffineTransform tempT2 = new AffineTransform();
 
-    @SuppressWarnings("unused")
-    public UITypeDemo01(final Font font, final int glyph_id, final String text, final int renderModes, final RenderState rs, final boolean debug, final boolean trace) {
+    public UIShapeDemo01(final Font font, final int renderModes, final RenderState rs, final boolean debug, final boolean trace) {
         this.font = font;
-        this.text = text;
-        this.glyph_id = glyph_id;
         this.renderModes = renderModes;
         this.rRenderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         this.debug = debug;
         this.trace = trace;
         this.screenshot = new GLReadBufferUtil(false, false);
 
+        button = new Button(SVertex.factory(), renderModes, font, "Click me!", 1/8f, 1/16f);
+        button.setLabelColor(0.0f,0.0f,0.0f);
+        /** Button defaults !
+                button.setLabelColor(1.0f,1.0f,1.0f);
+                button.setButtonColor(0.6f,0.6f,0.6f);
+                button.setCorner(1.0f);
+                button.setSpacing(2.0f);
+         */
+        System.err.println(button);
         crossHair = new CrossHair(SVertex.factory(), renderModes, 1/20f, 1/20f, 1/1000f);
         crossHair.setColor(0f,0f,1f,1f);
         crossHair.setEnabled(true);
-
-        if (false ) {
-            final Rectangle o = new Rectangle(SVertex.factory(), renderModes, 1/10f, 1/20f, 1/1000f);
-            o.translate(o.getWidth(), -o.getHeight(), 0f);
-            testObj = o;
-        } else {
-            final float scale = 0.15312886f;
-            final float size_xz = 0.541f;
-            final UIShape o = new Glyph03FreeMonoRegular_M(SVertex.factory(), renderModes);
-            o.scale(scale, scale, 1f);
-            // o.translate(size_xz, -size_xz, 0f);
-            testObj = o;
-        }
-        testObj.setColor(0f,  0f,  0f,  1f);
-        testObj.setEnabled(true);
     }
 
     public final RegionRenderer getRegionRenderer() { return rRenderer; }
@@ -253,14 +227,14 @@ public class UITypeDemo01 implements GLEventListener {
         lastWidth = width;
         lastHeight = height;
         if( drawable instanceof Window ) {
-            ((Window)drawable).setTitle(UITypeDemo01.class.getSimpleName()+": "+drawable.getSurfaceWidth()+" x "+drawable.getSurfaceHeight());
+            ((Window)drawable).setTitle(UIShapeDemo01.class.getSimpleName()+": "+drawable.getSurfaceWidth()+" x "+drawable.getSurfaceHeight());
         }
     }
     float lastWidth = 0f, lastHeight = 0f;
 
     final int[] sampleCount = { 4 };
 
-    private void drawShape(final GL2ES2 gl, final PMVMatrix pmv, final RegionRenderer renderer, final UIShape shape) {
+    private void drawShape(final GL2ES2 gl, final PMVMatrix pmv, final RegionRenderer renderer, final Shape shape) {
         pmv.glPushMatrix();
         shape.setTransform(pmv);
         shape.drawShape(gl, renderer, sampleCount);
@@ -280,16 +254,11 @@ public class UITypeDemo01 implements GLEventListener {
         pmv.glLoadIdentity();
         pmv.glTranslatef(xTran, yTran, zTran);
         renderer.enable(gl, true);
+        drawShape(gl, pmv, renderer, button);
+        drawShape(gl, pmv, renderer, crossHair);
         {
-            pmv.glPushMatrix();
-            pmv.glScalef(0.8f, 0.8f, 1f);
-            drawShape(gl, pmv, renderer, testObj);
-            pmv.glPopMatrix();
-        }
-        // drawShape(gl, pmv, renderer, crossHair);
-        {
+            final String text = "Hello Origin.";
             final float full_width_o;
-            final float full_height_o;
             {
                 final float orthoDist = -zTran; // assume orthogonal plane at -zTran
                 float glWinX = 0;
@@ -310,77 +279,33 @@ public class UITypeDemo01 implements GLEventListener {
                     }
                 }
                 full_width_o = objCoord1[0] - objCoord0[0];
-                full_height_o = objCoord1[1] - objCoord0[1];
             }
+            final AABBox txt_box_em = font.getGlyphBounds(text, tempT1, tempT2);
+            final float full_width_s = full_width_o / txt_box_em.getWidth();
+            final float txt_scale = full_width_s/2f;
             pmv.glPushMatrix();
-
-            final Font.Glyph glyph;
-            if( Glyph.ID_UNKNOWN < glyph_id ) {
-                glyph = font.getGlyph(glyph_id);
-                if( once ) {
-                    System.err.println("glyph_id "+glyph_id+": "+glyph);
-                }
-            } else {
-                glyph = null;
-            }
-            if( null != glyph && glyph.getID() != Glyph.ID_UNKNOWN ) {
-                final AABBox txt_box_em = glyph.getBBox();
-                final float full_width_s = full_width_o / txt_box_em.getWidth();
-                final float full_height_s = full_height_o / txt_box_em.getHeight();
-                final float txt_scale = full_width_s < full_height_s ? full_width_s/2f : full_height_s/2f;
-                pmv.glScalef(txt_scale, txt_scale, 1f);
-                pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
-                if( null != glyph.getShape() ) {
-                    final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null);
-                    region.addOutlineShape(glyph.getShape(), null, region.hasColorChannel() ? fg_color : null);
-                    region.draw(gl, renderer, sampleCount);
-                    region.destroy(gl);
-                }
-                if( once ) {
-                    final AABBox txt_box_em2 = font.getGlyphShapeBounds(null, text);
-                    System.err.println("XXX: full_width: "+full_width_o+" / "+txt_box_em.getWidth()+" -> "+full_width_s);
-                    System.err.println("XXX: full_height: "+full_height_o+" / "+txt_box_em.getHeight()+" -> "+full_height_s);
-                    System.err.println("XXX: txt_scale: "+txt_scale);
-                    System.err.println("XXX: txt_box_em "+txt_box_em);
-                    System.err.println("XXX: txt_box_e2 "+txt_box_em2);
-                }
-            } else if( Glyph.ID_UNKNOWN == glyph_id ) {
-                final AABBox txt_box_em = font.getGlyphBounds(text, tempT1, tempT2);
-                final float full_width_s = full_width_o / txt_box_em.getWidth();
-                final float full_height_s = full_height_o / txt_box_em.getHeight();
-                final float txt_scale = full_width_s < full_height_s ? full_width_s/2f : full_height_s/2f;
-                pmv.glScalef(txt_scale, txt_scale, 1f);
-                pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
-                final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, fg_color, sampleCount, tempT1, tempT2);
-                if( once ) {
-                    final AABBox txt_box_em2 = font.getGlyphShapeBounds(null, text);
-                    System.err.println("XXX: full_width: "+full_width_o+" / "+txt_box_em.getWidth()+" -> "+full_width_s);
-                    System.err.println("XXX: full_height: "+full_height_o+" / "+txt_box_em.getHeight()+" -> "+full_height_s);
-                    System.err.println("XXX: txt_scale: "+txt_scale);
-                    System.err.println("XXX: txt_box_em "+txt_box_em);
-                    System.err.println("XXX: txt_box_e2 "+txt_box_em2);
-                    System.err.println("XXX: txt_box_rg "+txt_box_r);
-                }
+            pmv.glScalef(txt_scale, txt_scale, 1f);
+            pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
+            final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, new float[] { 0, 0, 0, 1 }, sampleCount, tempT1, tempT2);
+            if( once ) {
+                final AABBox txt_box_em2 = font.getGlyphShapeBounds(null, text);
+                System.err.println("XXX: full_width: "+full_width_o+" / "+txt_box_em.getWidth()+" -> "+full_width_s);
+                System.err.println("XXX: txt_box_em "+txt_box_em);
+                System.err.println("XXX: txt_box_e2 "+txt_box_em2);
+                System.err.println("XXX: txt_box_rg "+txt_box_r);
+                once = false;
             }
             pmv.glPopMatrix();
-            if( once ) {
-                try {
-                    printScreen(drawable);
-                } catch (GLException | IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            once = false;
         }
         renderer.enable(gl, false);
     }
-    private boolean once = true;
+    static boolean once = true;
 
     @Override
     public void dispose(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        button.destroy(gl, getRegionRenderer());
         crossHair.destroy(gl, getRegionRenderer());
-        testObj.destroy(gl, getRegionRenderer());
 
         autoDrawable = null;
         screenshot.dispose(gl);
@@ -411,20 +336,15 @@ public class UITypeDemo01 implements GLEventListener {
         window.removeMouseListener(mouseAction);
     }
 
-    public void printScreen(final GLAutoDrawable drawable) throws GLException, IOException {
-        final String dir = "./";
-        final String tech="demo-"+Region.getRenderModeString(renderModes);
-        final String objName = "snap"+screenshot_num;
-        {
-            final String sw = String.format("-%03dx%03d-Z%04d-T%04d-%s", drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), (int)Math.abs(zTran), 0, objName);
+    public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
+        final String sw = String.format("-%03dx%03d-Z%04d-T%04d-%s", drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), (int)Math.abs(zTran), 0, objName);
 
-            final String filename = dir + tech + sw +".png";
-            if(screenshot.readPixels(drawable.getGL(), false)) {
-                screenshot.write(new File(filename));
-            }
+        final String filename = dir + tech + sw +".png";
+        if(screenshot.readPixels(drawable.getGL(), false)) {
+            screenshot.write(new File(filename));
         }
-        screenshot_num++;
     }
+
     int screenshot_num = 0;
 
     public void setIgnoreInput(final boolean v) {
@@ -467,6 +387,21 @@ public class UITypeDemo01 implements GLEventListener {
                     final int glWinX = e.getX();
                     final int glWinY = viewport[3] - e.getY() - 1;
 
+                    {
+                        pmv.glPushMatrix();
+                        button.setTransform(pmv);
+
+                        final float[] objPos = new float[3];
+                        System.err.println("\n\nButton: "+button);
+                        button.winToObjCoord(renderer, glWinX, glWinY, objPos);
+                        System.err.println("Button: Click: Win "+glWinX+"/"+glWinY+" -> Obj "+objPos[0]+"/"+objPos[1]+"/"+objPos[1]);
+
+                        final int[] surfaceSize = new int[2];
+                        button.getSurfaceSize(renderer, surfaceSize);
+                        System.err.println("Button: Size: Pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
+
+                        pmv.glPopMatrix();
+                    }
                     {
                         pmv.glPushMatrix();
                         crossHair.setTransform(pmv);
@@ -540,22 +475,38 @@ public class UITypeDemo01 implements GLEventListener {
             }
 
             if(arg0.getKeyCode() == KeyEvent.VK_1){
-                crossHair.translate(0f, 0f, -zTran/10f);
+                button.translate(0f, 0f, -zTran/10f);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_2){
-                crossHair.translate(0f, 0f, zTran/10f);
+                button.translate(0f, 0f, zTran/10f);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_UP){
-                crossHair.translate(0f, crossHair.getHeight()/10f, 0f);
+                button.translate(0f, button.getHeight()/10f, 0f);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_DOWN){
-                crossHair.translate(0f, -crossHair.getHeight()/10f, 0f);
+                button.translate(0f, -button.getHeight()/10f, 0f);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_LEFT){
-                crossHair.translate(-crossHair.getWidth()/10f, 0f, 0f);
+                button.translate(-button.getWidth()/10f, 0f, 0f);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_RIGHT){
-                crossHair.translate(crossHair.getWidth()/10f, 0f, 0f);
+                button.translate(button.getWidth()/10f, 0f, 0f);
+            }
+            else if(arg0.getKeyCode() == KeyEvent.VK_4){
+                button.setSpacing(button.getSpacingX()-0.01f, button.getSpacingY()-0.005f);
+                System.err.println("Button Spacing: " + button.getSpacingX());
+            }
+            else if(arg0.getKeyCode() == KeyEvent.VK_5){
+                button.setSpacing(button.getSpacingX()+0.01f, button.getSpacingY()+0.005f);
+                System.err.println("Button Spacing: " + button.getSpacingX());
+            }
+            else if(arg0.getKeyCode() == KeyEvent.VK_6){
+                button.setCorner(button.getCorner()-0.01f);
+                System.err.println("Button Corner: " + button.getCorner());
+            }
+            else if(arg0.getKeyCode() == KeyEvent.VK_7){
+                button.setCorner(button.getCorner()+0.01f);
+                System.err.println("Button Corner: " + button.getCorner());
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_0){
                 // rotate(1);
@@ -598,7 +549,9 @@ public class UITypeDemo01 implements GLEventListener {
                         @Override
                         public boolean run(final GLAutoDrawable drawable) {
                             try {
-                                printScreen(drawable);
+                                final String type = Region.getRenderModeString(renderModes);
+                                printScreen(drawable, "./", "demo-"+type, "snap"+screenshot_num, false);
+                                screenshot_num++;
                             } catch (final GLException e) {
                                 e.printStackTrace();
                             } catch (final IOException e) {

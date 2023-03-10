@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos;
+package com.jogamp.opengl.test.junit.graph.ui.demos;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +40,9 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.geom.SVertex;
+import com.jogamp.graph.ui.gl.Scene;
+import com.jogamp.graph.ui.gl.Shape;
+import com.jogamp.graph.ui.gl.shapes.Label;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
@@ -58,9 +61,7 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.test.junit.graph.FontSet01;
-import com.jogamp.opengl.test.junit.graph.demos.ui.Label;
-import com.jogamp.opengl.test.junit.graph.demos.ui.SceneUIController;
-import com.jogamp.opengl.test.junit.graph.demos.ui.UIShape;
+import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 
 public class GPUUISceneTextAnim01 implements GLEventListener {
@@ -69,7 +70,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
     private boolean trace = false;
 
     private final float noAADPIThreshold;
-    private final SceneUIController sceneUICntrl;
+    private final Scene sceneUICntrl;
 
     /** -1 == AUTO, TBD @ init(..) */
     private int renderModes;
@@ -140,7 +141,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
             rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
             // renderer = RegionRenderer.create(rs, null, null);
 
-            sceneUICntrl = new SceneUIController(renderer, sceneDist, zNear, zFar);
+            sceneUICntrl = new Scene(renderer, sceneDist, zNear, zFar);
             // sceneUIController.setSampleCount(3); // easy on embedded devices w/ just 3 samples (default is 4)?
         }
         screenshot = new GLReadBufferUtil(false, false);
@@ -279,7 +280,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
             if( null == actionText ) {
                 text = sceneUICntrl.getStatusText(drawable, renderModes, fpsLabel.getQuality(), dpiV);
             } else if( null != drawable.getAnimator() ) {
-                text = SceneUIController.getStatusText(drawable.getAnimator())+", "+actionText;
+                text = Scene.getStatusText(drawable.getAnimator())+", "+actionText;
             } else {
                 text = actionText;
             }
@@ -302,7 +303,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
      * We can share this instance w/ all UI elements,
      * since only mouse action / gesture is complete for a single one (press, drag, released and click).
      */
-    private final UIShape.MouseGestureAdapter dragZoomRotateListener = new UIShape.MouseGestureAdapter() {
+    private final Shape.MouseGestureAdapter dragZoomRotateListener = new Shape.MouseGestureAdapter() {
         @Override
         public void mouseReleased(final MouseEvent e) {
             actionText = null;
@@ -310,7 +311,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
 
         @Override
         public void mouseDragged(final MouseEvent e) {
-            final UIShape.UIShapeEvent shapeEvent = (UIShape.UIShapeEvent) e.getAttachment();
+            final Shape.UIShapeEvent shapeEvent = (Shape.UIShapeEvent) e.getAttachment();
             if( e.getPointerCount() == 1 ) {
                 final float[] tx = shapeEvent.shape.getTranslate();
                 actionText = String.format((Locale)null, "Pos %6.2f / %6.2f / %6.2f", tx[0], tx[1], tx[2]);
@@ -319,7 +320,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
 
         @Override
         public void mouseWheelMoved(final MouseEvent e) {
-            final UIShape.UIShapeEvent shapeEvent = (UIShape.UIShapeEvent) e.getAttachment();
+            final Shape.UIShapeEvent shapeEvent = (Shape.UIShapeEvent) e.getAttachment();
             final boolean isOnscreen = PointerClass.Onscreen == e.getPointerType(0).getPointerClass();
             if( 0 == ( ~InputEvent.BUTTONALL_MASK & e.getModifiers() ) && !isOnscreen ) {
                 // offscreen vertical mouse wheel zoom
@@ -339,7 +340,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
         }
         @Override
         public void gestureDetected(final GestureEvent e) {
-            final UIShape.UIShapeEvent shapeEvent = (UIShape.UIShapeEvent) e.getAttachment();
+            final Shape.UIShapeEvent shapeEvent = (Shape.UIShapeEvent) e.getAttachment();
             if( e instanceof PinchToZoomGesture.ZoomEvent ) {
                 final PinchToZoomGesture.ZoomEvent ze = (PinchToZoomGesture.ZoomEvent) e;
                 final float tz = ze.getDelta() * ze.getScale();

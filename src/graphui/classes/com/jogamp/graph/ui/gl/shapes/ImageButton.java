@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2014-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,21 +25,27 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos.ui;
+package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.opengl.GL2ES2;
-
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.util.texture.ImageSequence;
 
 /**
- * GPU based resolution independent {@link ImageSequence} Button impl
+ * A GraphUI {@link ImageSequence} based {@link TexSeqButton} {@link Shape}.
+ * <p>
+ * GraphUI is GPU based and resolution independent.
+ * </p>
+ * <p>
+ * This button is rendered with a round oval shape.
+ * To render it rectangular, {@link #setCorner(float)} to zero.
+ * </p>
  */
-public class ImageSeqButton extends TextureSeqButton {
+public class ImageButton extends TexSeqButton {
 
-    public ImageSeqButton(final Factory<? extends Vertex> factory, final int renderModes,
+    public ImageButton(final Factory<? extends Vertex> factory, final int renderModes,
                          final float width, final float height, final ImageSequence texSeq) {
         super(factory, renderModes, width, height, texSeq);
         setColor(0.95f, 0.95f, 0.95f, 1.0f);

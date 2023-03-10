@@ -25,22 +25,22 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.testshapes;
+package com.jogamp.opengl.test.junit.graph.ui.testshapes;
 
 import com.jogamp.opengl.GL2ES2;
-import com.jogamp.opengl.test.junit.graph.demos.ui.UIShape;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.geom.plane.Winding;
+import com.jogamp.graph.ui.gl.Shape;
 
 /**
  * GPU based resolution independent test object
  * - Ubuntu-Light, lower case 'o'
  * - TTF Shape for Glyph 82
  */
-public class Glyph01UbuntuLight_o extends UIShape {
+public class Glyph01UbuntuLight_o extends Shape {
 
     public Glyph01UbuntuLight_o(final Factory<? extends Vertex> factory, final int renderModes) {
         super(factory, renderModes);

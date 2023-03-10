@@ -1205,7 +1205,7 @@
         </javac>
     </target>
 
-        <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
+    <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
     <target name="java.compile.secondpass" depends="java.generate.composable.pipeline, java.compile.secondpass.openal, java.compile.secondpass.javase, java.compile.secondpass.android" />
 
     <target name="java.compile.thirdpass.javase">

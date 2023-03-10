@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   - Ant build for GraphUI.  This build has been tested with ANT 1.7.0.  The
+   - optional.jar that contains the optional ANT tasks must be in the ANT
+   - classpath (typically the ant/lib directory).
+   -
+   - Public targets:
+   -   all: (default)
+   -   clean:        clean all built
+   -->
+<project name="GraphUI" basedir="." default="all">
+
+    <import file="build-common.xml"/>
+
+    <!-- needed for outofdate task -->
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath> <pathelement location="${ant-contrib.jar}"/> </classpath>
+    </taskdef>
+
+    <!-- ================================================================== -->
+    <!-- 
+       - Base initialization and detection of operating system.
+      -->
+    <target name="partitioning.setup" depends="common.init">
+        <property name="java.part.graph.ui"
+                  value="com/jogamp/graph/ui/** jogamp/graph/ui/**"/>
+
+        <property name="java.part.graph.ui.shadercode"
+                  value="jogamp/graph/ui/opengl/shader/* jogamp/graph/ui/opengl/shader/bin/**"/>
+
+        <property name="java.part.nonjava" 
+                  value="${java.part.graph.ui.shadercode}"/>
+    </target>
+
+    <!-- ================================================================== -->
+    <!-- 
+       - Declare all paths and user defined variables.
+      -->
+    <target name="declare.common" description="Declare properties" depends="partitioning.setup">
+        <property name="rootrel.src.java"         value="src/graphui/classes" />
+
+        <!-- The source directories. -->
+        <property name="src.java"                 value="${project.root}/${rootrel.src.java}" />
+        
+        <!-- The compiler output directories. -->
+        <property name="classes"                  value="${build.graphui}/classes" />
+    </target>
+    
+    <!-- ================================================================== -->
+    <!-- 
+       - Initialize all parameters required for the build and create any
+       - required directories.
+      -->
+    <target name="init" depends="declare.common">
+        <!-- Create the required output directories. -->
+        <mkdir dir="${classes}" />
+    </target>
+
+    <target name="java.compile">
+        <javac destdir="${classes}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="newt_jogl_nativewindow_gluegen.compile.classpath"/>
+            <src path="${src.java}" />
+        </javac>
+        <!-- make shadercode and fonts available in classpath -->
+        <copy todir="${classes}">
+            <fileset dir="${src.java}"
+                     includes="${java.part.nonjava}"
+                     excludes="**/*.java"/>
+        </copy>
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Build the jar files.
+      -->
+    <target name="setup-manifestfile" depends="common.init">
+        <property name="manifestfile" value="graphuiversion"/>
+        <copy file="${manifestfile}"
+            tofile="${build.graphui}/manifest.mf"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+                <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+            </filterset>
+        </copy>
+    </target>
+
+    <target name="build-jars" depends="setup-manifestfile">
+        <jar manifest="${build.graphui}/manifest.mf" destfile="${graphui.jar}" filesonly="true">
+            <fileset dir="${classes}" includes="${java.part.graph.ui}"/>
+        </jar>
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Clean up all that is built.
+      -->
+    <target name="clean" description="Remove all build products" depends="declare.common">
+        <delete includeEmptyDirs="true" quiet="true">
+            <fileset dir="${build.graphui}" />
+        </delete>
+    </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Build everything.
+      -->
+    <target name="all" description="Build GraphUI JAR file." depends="init,java.compile,build-jars,generate.version.txt" />
+
+    <target name="generate.version.txt" depends="init">
+        <!-- Create a version.txt file indicating which version we just built -->
+        <echo message="${jogl.version}" file="${build.graphui}/version.txt" />
+    </target>
+
+</project>

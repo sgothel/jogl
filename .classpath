@@ -34,6 +34,7 @@
 	<classpathentry kind="src" path="src/oculusvr/classes"/>
 	<classpathentry kind="src" path="oculusvr-sdk/jogl/src/classes"/>
 	<classpathentry kind="src" path="src/demos"/>
+	<classpathentry kind="src" path="src/graphui/classes"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
 		<attributes>
 			<attribute name="module" value="true"/>

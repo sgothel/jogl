@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2014-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.graph.demos.ui;
+package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
@@ -36,7 +36,6 @@ import com.jogamp.opengl.GLDrawable;
 import com.jogamp.opengl.GLDrawableFactory;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLOffscreenAutoDrawable;
-
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
@@ -45,10 +44,19 @@ import com.jogamp.opengl.util.texture.ImageSequence;
 import com.jogamp.opengl.util.texture.Texture;
 
 /**
- * GPU based resolution independent Button impl,
- * rendering {@link GLEventListener} content via FBO as an {@link ImageSequence}.
+ * A GraphUI {@link GLEventListener} based {@link TexSeqButton} {@link Shape}.
+ * <p>
+ * GraphUI is GPU based and resolution independent.
+ * </p>
+ * <p>
+ * The {@link GLEventListener} is rendered via an {@link GLOffscreenAutoDrawable.FBO} into an {@link ImageSequence}.
+ * </p>
+ * <p>
+ * This button is rendered with a round oval shape.
+ * To render it rectangular, {@link #setCorner(float)} to zero.
+ * </p>
  */
-public class GLEventListenerButton extends TextureSeqButton {
+public class GLButton extends TexSeqButton {
     private final GLEventListener glel;
     private final boolean useAlpha;
     private volatile int fboWidth = 200;
@@ -56,7 +64,7 @@ public class GLEventListenerButton extends TextureSeqButton {
     private volatile GLOffscreenAutoDrawable.FBO fboGLAD = null;
     private boolean animateGLEL = false;
 
-    public GLEventListenerButton(final Factory<? extends Vertex> factory, final int renderModes,
+    public GLButton(final Factory<? extends Vertex> factory, final int renderModes,
                                  final float width, final float height, final int textureUnit,
                                  final GLEventListener glel, final boolean useAlpha, final int fboWidth, final int fboHeight) {
         super(factory, renderModes, width, height, new ImageSequence(textureUnit, true));
