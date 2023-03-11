@@ -45,8 +45,8 @@ if [ $MOSX -eq 1 ] ; then
 fi
 
 # We use TempJarCache and JAR files per default now!
-#export USE_BUILDDIR=0
-export USE_BUILDDIR=1
+export USE_BUILDDIR=0
+#export USE_BUILDDIR=1
 
 if [ $USE_BUILDDIR -eq 1 ] ; then
     export LD_LIBRARY_PATH=$JOGAMP_LD_LIBRARY_PATH

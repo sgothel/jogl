@@ -55,6 +55,11 @@ import com.jogamp.opengl.util.PMVMatrix;
 /**
  * GraphUI Shape
  * <p>
+ * A shape includes the following build-in user-interactions
+ * - drag shape w/ 1-pointer click, see {@link #setDraggable(boolean)}
+ * - resize shape w/ 1-pointer click and drag in 1/4th bottom-left and bottom-right corner, see {@link #setResizable(boolean)}.
+ * </p>
+ * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
  * <p>
@@ -78,7 +83,7 @@ public abstract class Shape {
     protected final AffineTransform tempT3 = new AffineTransform();
     protected final AffineTransform tempT4 = new AffineTransform();
 
-    protected final float[] translate = new float[] { 0f, 0f, 0f };
+    protected final float[] position = new float[] { 0f, 0f, 0f };
     protected final Quaternion rotation = new Quaternion();
     protected final float[] rotOrigin = new float[] { 0f, 0f, 0f };
     protected final float[] scale = new float[] { 1f, 1f, 1f };
@@ -104,6 +109,7 @@ public abstract class Shape {
     private boolean toggle = false;
     private boolean toggleable = false;
     private boolean draggable = true;
+    private boolean resizable = true;
     private boolean enabled = true;
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
 
@@ -128,13 +134,13 @@ public abstract class Shape {
     /**
      * Clears all data and reset all states as if this instance was newly created
      * @param gl TODO
-     * @param renderer TODO\
+     * @param renderer TODO
      */
     public void clear(final GL2ES2 gl, final RegionRenderer renderer) {
         clearImpl(gl, renderer);
-        translate[0] = 0f;
-        translate[1] = 0f;
-        translate[2] = 0f;
+        position[0] = 0f;
+        position[1] = 0f;
+        position[2] = 0f;
         rotation.setIdentity();
         rotOrigin[0] = 0f;
         rotOrigin[1] = 0f;
@@ -153,9 +159,9 @@ public abstract class Shape {
      */
     public void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
         destroyImpl(gl, renderer);
-        translate[0] = 0f;
-        translate[1] = 0f;
-        translate[2] = 0f;
+        position[0] = 0f;
+        position[1] = 0f;
+        position[2] = 0f;
         rotation.setIdentity();
         rotOrigin[0] = 0f;
         rotOrigin[1] = 0f;
@@ -167,19 +173,19 @@ public abstract class Shape {
         markShapeDirty();
     }
 
-    public void setTranslate(final float tx, final float ty, final float tz) {
-        translate[0] = tx;
-        translate[1] = ty;
-        translate[2] = tz;
+    public void setPosition(final float tx, final float ty, final float tz) {
+        position[0] = tx;
+        position[1] = ty;
+        position[2] = tz;
         // System.err.println("UIShape.setTranslate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
-    public void translate(final float tx, final float ty, final float tz) {
-        translate[0] += tx;
-        translate[1] += ty;
-        translate[2] += tz;
+    public void move(final float tx, final float ty, final float tz) {
+        position[0] += tx;
+        position[1] += ty;
+        position[2] += tz;
         // System.err.println("UIShape.translate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
-    public final float[] getTranslate() { return translate; }
+    public final float[] getPosition() { return position; }
     public final Quaternion getRotation() { return rotation; }
     public final float[] getRotationOrigin() { return rotOrigin; }
     public void setRotationOrigin(final float rx, final float ry, final float rz) {
@@ -326,7 +332,7 @@ public abstract class Shape {
      * @param pmv the matrix
      */
     public void setTransform(final PMVMatrix pmv) {
-        final float[] uiTranslate = getTranslate();
+        final float[] uiTranslate = getPosition();
         pmv.glTranslatef(uiTranslate[0], uiTranslate[1], uiTranslate[2]);
 
         final Quaternion quat = getRotation();
@@ -518,7 +524,7 @@ public abstract class Shape {
     }
 
     public String getSubString() {
-        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+"], "+translate[0]+" / "+translate[1]+", box "+box;
+        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+"], "+position[0]+" / "+position[1]+", box "+box;
     }
 
     //
@@ -559,7 +565,7 @@ public abstract class Shape {
      * Set whether this shape is draggable,
      * i.e. translated by 1-pointer-click and drag.
      * <p>
-     * Default is draggable on.
+     * Default draggable is true.
      * </p>
      */
     public void setDraggable(final boolean draggable) {
@@ -567,6 +573,20 @@ public abstract class Shape {
     }
     public boolean isDraggable() {
         return draggable;
+    }
+
+    /**
+     * Set whether this shape is resizable,
+     * i.e. zoomed by 1-pointer-click and drag in 1/4th bottom-left and bottom-right corner.
+     * <p>
+     * Default resizable is true.
+     * </p>
+     */
+    public void setResizable(final boolean resizable) {
+        this.resizable = resizable;
+    }
+    public boolean isResizable() {
+        return resizable;
     }
 
     public final void addMouseListener(final MouseGestureListener l) {
@@ -605,12 +625,12 @@ public abstract class Shape {
     }
 
     /**
-     * {@link Shape} event details for propagated {@link NEWTEvent}s
+     * {@link Shape} event info for propagated {@link NEWTEvent}s
      * containing reference of {@link #shape the intended shape} as well as
-     * the {@link #objPos rotated relative position}.
+     * the {@link #objPos rotated relative position} to this shape.
      * The latter is normalized to lower-left zero origin, allowing easier usage.
      */
-    public static class UIShapeEvent {
+    public static class EventInfo {
         /** The associated {@link Shape} for this event */
         public final Shape shape;
         /** The relative object coordinate of glWinX/glWinY to the associated {@link Shape}. */
@@ -629,7 +649,7 @@ public abstract class Shape {
          * @param shape associated shape
          * @param objPos relative object coordinate of glWinX/glWinY to the associated shape.
          */
-        UIShapeEvent(final int glWinX, final int glWinY, final Shape shape, final float[] objPos) {
+        EventInfo(final int glWinX, final int glWinY, final Shape shape, final float[] objPos) {
             this.winPos = new int[] { glWinX, glWinY };
             this.shape = shape;
             this.objPos = objPos;
@@ -646,26 +666,31 @@ public abstract class Shape {
      * @param glWinX x-position in OpenGL model space
      * @param glWinY y-position in OpenGL model space
      */
-    public final void dispatchGestureEvent(final GestureEvent e, final int glWinX, final int glWinY, final float[] objPos) {
-        e.setAttachment(new UIShapeEvent(glWinX, glWinY, this, objPos));
+    /* pp */ final void dispatchGestureEvent(final GestureEvent e, final int glWinX, final int glWinY, final float[] objPos) {
+        e.setAttachment(new EventInfo(glWinX, glWinY, this, objPos));
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
             mouseListeners.get(i).gestureDetected(e);
         }
     }
 
-    boolean dragFirst = false;
-    float[] objDraggedFirst = { 0f, 0f }; // b/c its relative to UIShape and we stick to it
-    int[] winDraggedLast = { 0, 0 }; // b/c its absolute window pos
+    private boolean dragFirst = false;
+    private final float[] objDraggedFirst = { 0f, 0f }; // b/c its relative to Shape and we stick to it
+    private final int[] winDraggedLast = { 0, 0 }; // b/c its absolute window pos
+    private boolean inDrag = false;
+    private int inResize = 0; // 1 br, 2 bl
+    private static final float resize_sxy_min = 0.33f;
+    private static final float resize_sxy_max = 20f;
+    private static final float resize_section = 1f/5f; // resize action in a corner
 
     /**
      * Dispatch given NEWT mouse event to this shape
      * @param e original Newt {@link MouseEvent}
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
-     * @param objPos object position of mouse event within this shape
+     * @param objPos object position of mouse event relative to this shape
      */
-    public final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY, final float[] objPos) {
-        final Shape.UIShapeEvent shapeEvent = new UIShapeEvent(glWinX, glWinY, this, objPos);
+    /* pp */ final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY, final float[] objPos) {
+        final Shape.EventInfo shapeEvent = new EventInfo(glWinX, glWinY, this, objPos);
         e.setAttachment(shapeEvent);
 
         final short eventType = e.getEventType();
@@ -688,33 +713,84 @@ public abstract class Shape {
                 break;
             case MouseEvent.EVENT_MOUSE_RELEASED:
                 dragFirst = false;
+                inDrag = false;
+                inResize = 0;
                 break;
             case MouseEvent.EVENT_MOUSE_DRAGGED: {
-                // 1 pointer drag
+                // 1 pointer drag and potential drag-resize
                 if(dragFirst) {
                     objDraggedFirst[0] = objPos[0];
                     objDraggedFirst[1] = objPos[1];
                     winDraggedLast[0] = glWinX;
                     winDraggedLast[1] = glWinY;
                     dragFirst=false;
+
+                    final float ix = objPos[0]; // - position[0];
+                    final float iy = objPos[1]; // - position[1];
+                    final float minx_br = box.getMaxX() - box.getWidth() * resize_section;
+                    final float miny_br = box.getMinY();
+                    final float maxx_br = box.getMaxX();
+                    final float maxy_br = box.getMinY() + box.getHeight() * resize_section;
+                    if( minx_br <= ix && ix <= maxx_br &&
+                        miny_br <= iy && iy <= maxy_br ) {
+                        inResize = 1; // bottom-right
+                    } else {
+                        final float minx_bl = box.getMinX();
+                        final float miny_bl = box.getMinY();
+                        final float maxx_bl = box.getMinX() + box.getWidth() * resize_section;
+                        final float maxy_bl = box.getMinY() + box.getHeight() * resize_section;
+                        if( minx_bl <= ix && ix <= maxx_bl &&
+                            miny_bl <= iy && iy <= maxy_bl ) {
+                            inResize = 2; // bottom-left
+                        } else {
+                            inDrag = true;
+                        }
+                    }
+                    System.err.printf("Drag: drag %b, resize %b, obj %.3f/%.3f, %.3f/%.3f + %.3f/%.3f, %s%n",
+                            inDrag, inResize,
+                            ix, iy,
+                            objPos[0], objPos[1],
+                            shapeEvent.objDrag[0], shapeEvent.objDrag[1], box.toString());
                     return;
                 }
                 shapeEvent.objDrag[0] = objPos[0] - objDraggedFirst[0];
                 shapeEvent.objDrag[1] = objPos[1] - objDraggedFirst[1];
                 shapeEvent.winDrag[0] = glWinX - winDraggedLast[0];
                 shapeEvent.winDrag[1] = glWinY - winDraggedLast[1];
+                if( 1 == e.getPointerCount() ) {
+                    if( 0 != inResize && resizable ) {
+                        final float dx = shapeEvent.objDrag[0]/2f;
+                        final float dy = shapeEvent.objDrag[1]/2f;
+                        final float sx;
+                        if( 1 == inResize ) {
+                            sx = scale[0] + (  2f*dx/box.getWidth() ); // bottom-right
+                        } else {
+                            sx = scale[0] + ( -2f*dx/box.getWidth() ); // bottom-left
+                        }
+                        final float sy = scale[1] + ( -2f*dy/box.getHeight() );
+                        if( resize_sxy_min <= sx && sx <= resize_sxy_max && resize_sxy_min <= sy && sy <= resize_sxy_max ) {
+                            move(dx, dy, 0f);
+                            setScale(sx, sy, scale[2]);
+                        } else {
+                            System.err.println("XXX: out");
+                            // inResize = false;
+                        }
+                        System.err.printf("DragZoom: resize %b, obj %4d/%4d, %.3f/%.3f/%.3f %.3f/%.3f/%.3f + %.3f/%.3f -> %.3f/%.3f%n",
+                                inResize,
+                                glWinX, glWinY,
+                                objPos[0], objPos[1], objPos[2],
+                                position[0], position[1], position[2],
+                                dx, dy,
+                                sx, sy);
+                    } else if( inDrag && draggable ) {
+                        System.err.printf("Drag: obj %.3f/%.3f + %.3f/%.3f%n",
+                                objPos[0], objPos[1],
+                                shapeEvent.objDrag[0], shapeEvent.objDrag[1]);
+                        move(shapeEvent.objDrag[0], shapeEvent.objDrag[1], 0f);
+                    }
+                }
                 winDraggedLast[0] = glWinX;
                 winDraggedLast[1] = glWinY;
-                if( draggable && e.getPointerCount() == 1 ) {
-                    translate(shapeEvent.objDrag[0], shapeEvent.objDrag[1], 0f);
-                }
-                if( DEBUG ) {
-                    System.err.printf("Dragged: win %4d/%4d + %2d/%2d; obj %.3f/%.3f + %.3f/%.3f%n",
-                            shapeEvent.winPos[0], shapeEvent.winPos[1],
-                            shapeEvent.winDrag[0], shapeEvent.winDrag[1],
-                            shapeEvent.objPos[0], shapeEvent.objPos[1],
-                            shapeEvent.objDrag[0], shapeEvent.objDrag[1]);
-                }
             }
             break;
         }

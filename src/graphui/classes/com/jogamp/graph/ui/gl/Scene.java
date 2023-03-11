@@ -205,8 +205,8 @@ public class Scene implements GLEventListener{
     private static Comparator<Shape> shapeZAscComparator = new Comparator<Shape>() {
         @Override
         public int compare(final Shape s1, final Shape s2) {
-            final float s1Z = s1.getBounds().getMinZ()+s1.getTranslate()[2];
-            final float s2Z = s2.getBounds().getMinZ()+s2.getTranslate()[2];
+            final float s1Z = s1.getBounds().getMinZ()+s1.getPosition()[2];
+            final float s2Z = s2.getBounds().getMinZ()+s2.getPosition()[2];
             if( FloatUtil.isEqual(s1Z, s2Z, FloatUtil.EPSILON) ) {
                 return 0;
             } else if( s1Z < s2Z ){
