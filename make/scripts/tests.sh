@@ -45,8 +45,8 @@ if [ $MOSX -eq 1 ] ; then
 fi
 
 # We use TempJarCache and JAR files per default now!
-export USE_BUILDDIR=0
-#export USE_BUILDDIR=1
+#export USE_BUILDDIR=0
+export USE_BUILDDIR=1
 
 if [ $USE_BUILDDIR -eq 1 ] ; then
     export LD_LIBRARY_PATH=$JOGAMP_LD_LIBRARY_PATH
@@ -401,7 +401,7 @@ function jrun() {
     else
         #export USE_CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
         export USE_CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
-        #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILDDIR/jar/atomic/jogl.jar:$JOGL_BUILDDIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILDDIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/jogl-util.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt.jar:$JOGL_BUILDDIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt-ogl.jar:$JOGL_BUILDDIR/jar/jogl-test.jar:$JUNIT_JAR:$ANT_JARS
+        #export USE_CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILDDIR/jar/atomic/jogl.jar:$JOGL_BUILDDIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILDDIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/jogl-util.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow.jar:$JOGL_BUILDDIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt.jar:$JOGL_BUILDDIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILDDIR/jar/atomic/newt-ogl.jar:$JOGL_BUILDDIR/jar/jogl-test.jar:$JOGL_BUILDDIR/jar/jogl-demos.jar:$JUNIT_JAR:$ANT_JARS
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
     fi
     # StartFlightRecording: delay=10s, 
@@ -412,7 +412,7 @@ function jrun() {
     # X_ARGS="-XX:StartFlightRecording=delay=10s,dumponexit=true,filename=java-run.jfr $X_ARGS"
 
     if [ $USE_BUILDDIR -eq 1 ] ; then
-        export USE_CLASSPATH=.:$GLUEGEN_BUILDDIR/classes:$GLUEGEN_BUILDDIR/test/build/classes:$JOAL_BUILDDIR/classes:$JOGL_BUILDDIR/nativewindow/classes:$JOGL_BUILDDIR/jogl/classes:$JOGL_BUILDDIR/newt/classes:$JOGL_BUILDDIR/oculusvr/classes:$JOGL_BUILDDIR/test/build/classes:$JUNIT_JAR:$ANT_JARS
+        export USE_CLASSPATH=.:$GLUEGEN_BUILDDIR/classes:$GLUEGEN_BUILDDIR/test/build/classes:$JOAL_BUILDDIR/classes:$JOGL_BUILDDIR/nativewindow/classes:$JOGL_BUILDDIR/jogl/classes:$JOGL_BUILDDIR/newt/classes:$JOGL_BUILDDIR/graphui/classes:$JOGL_BUILDDIR/oculusvr/classes:$JOGL_BUILDDIR/test/build/classes:$JOGL_BUILDDIR/demos/build/classes:$JUNIT_JAR:$ANT_JARS
     fi
 
     if [ $swton -eq 1 ] ; then
@@ -508,8 +508,8 @@ function testawtswt() {
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.ui.demos.GPUUISceneNewtDemo $*
-#testawt com.jogamp.opengl.test.junit.graph.ui.demos.GPUUISceneNewtCanvasAWTDemo $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.GPUUISceneNewtDemo $*
+#testawt com.jogamp.opengl.demos.graph.ui.GPUUISceneNewtCanvasAWTDemo $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT $*
 
 #
@@ -544,9 +544,9 @@ function testawtswt() {
 # av demos
 #
 #testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.CrossFadePlayer $*
+#testnoawt com.jogamp.opengl.demos.av.MovieCube $*
+#testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
+#testnoawt com.jogamp.opengl.demos.av.CrossFadePlayer $*
 
 #
 # performance tests
@@ -961,15 +961,16 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT20 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo $*
-#testnoawt com.jogamp.opengl.test.junit.graph.ui.demos.UIShapeDemo01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.ui.demos.UITypeDemo01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.ui.demos.GPUUISceneNewtDemo $*
-#testawt com.jogamp.opengl.test.junit.graph.ui.demos.GPUUISceneNewtCanvasAWTDemo $*
 
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+#testnoawt com.jogamp.opengl.demos.graph.GPUTextNewtDemo $*
+#testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UITypeDemo01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.GPUUISceneNewtDemo $*
+
+#testnoawt com.jogamp.opengl.demos.av.MovieCube $*
+#testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
+
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 $*
@@ -980,7 +981,6 @@ function testawtswt() {
 # GLDrawableFactory.createDummyAutoDrawable(..)
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT1 $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 
 # GLDrawableFactory.createOffscreenDrawable(..)
 #
@@ -997,11 +997,16 @@ function testawtswt() {
 #
 #testmobile com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
-#testmobile com.jogamp.opengl.test.junit.graph.ui.demos.GPUTextNewtDemo $*
-#testmobile com.jogamp.opengl.test.junit.graph.ui.demos.GPUUISceneNewtDemo $*
-testnoawt com.jogamp.opengl.test.junit.graph.ui.demos.GPUUISceneNewtDemo $*
-#testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-#testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+
+#testnoawt com.jogamp.opengl.demos.graph.GPUTextNewtDemo $*
+#testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UITypeDemo01 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.GPUUISceneNewtDemo $*
+
+#testnoawt com.jogamp.opengl.demos.av.MovieCube $*
+#testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
+
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testmobile com.jogamp.opengl.test.junit.jogl.acore.TestGLProfileXXNEWTPost $*
 #testmobile com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*

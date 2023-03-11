@@ -28,9 +28,9 @@
         <property name="classes.path"         location="${classes}"/> <!-- absolute path -->
         <property name="classes.demos"        value="${build.demos}/classes" />
 
-        <property name="java.part.demo.mobile" value="com/jogamp/opengl/demos/**"/>
-        <property name="java.part.test.all" value="com/jogamp/opengl/test/** jogamp/**"/>
-        <property name="java.part.test.android" value="com/jogamp/opengl/test/android/**"/>
+        <property name="java.part.demo"       value="com/jogamp/opengl/demos/**"/>
+        <property name="java.part.demo.android" value="com/jogamp/opengl/demos/android/**"/>
+        <property name="java.part.test.all"   value="com/jogamp/opengl/test/** jogamp/**"/>
         <property name="java.part.test.oculusvr" value="com/jogamp/opengl/test/junit/jogl/stereo/ovr/**"/>
         <property name="java.dir.test"        value="com/jogamp/opengl/test"/>
         <property name="java.dir.junit"       value="${java.dir.test}/junit"/>
@@ -83,7 +83,7 @@
             <fileset dir="." includes="*.tga" />
             <fileset dir="." includes="hs_err_pid*.log" />
             <fileset file="${jogl-test.jar}" />
-            <fileset file="${jogl-demos-mobile.jar}" />
+            <fileset file="${jogl-demos.jar}" />
         </delete>
     </target>
 
@@ -92,8 +92,9 @@
        - Build/run tests/junit.
       -->
 
-    <target name="make.demos.mobile">
+    <target name="make.demos">
         <javac destdir="${classes.demos}"
+               excludes="${java.part.demo.android} ${java.part.demo.oculusvr}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -106,7 +107,7 @@
             <src path="${src.demos}" />
         </javac>
         <copy file="joglversion-test"
-            tofile="${build.test}/manifest-demo-mobile.mf"
+            tofile="${build.test}/manifest-demo.mf"
             overwrite="true">
             <filterset>
                 <filter token="VERSION" value="${jogamp.version}"/>
@@ -123,15 +124,82 @@
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
-        <jar manifest="${build.test}/manifest-demo-mobile.mf" destfile="${jogl-demos-mobile.jar}" filesonly="true">
+        <jar manifest="${build.test}/manifest-demo.mf" destfile="${jogl-demos.jar}" filesonly="true">
             <fileset dir="${classes.demos}" 
+                     excludes="${java.part.demo.android}"
                      includes="**"/>
             <fileset dir="resources/assets-test" includes="**" />
         </jar>
     </target>
+
+    <target name="demo.compile.android" if="android-jars.available">
+        <!-- Perform the junit pass Java Android compile -->
+        <javac destdir="${classes.demos}"
+               excludes="${java.part.demo.oculusvr}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="junit_jogl_newt_android.compile.classpath"/>
+            <src path="${src.demos}" />
+        </javac>
+        <copy file="joglversion-demo-android"
+            tofile="${build.test}/manifest-demo-android.mf"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+            </filterset>
+        </copy>
+
+        <jar manifest="${build.test}/manifest-demo-android.mf" destfile="${jogl-demo-android.jar}" filesonly="true">
+            <!-- get all class files, but skip any resource files that external tools
+                 might have copied into the class directory (otherwise, it's possible
+                 to get the same resource file twice in the jar) -->
+            <fileset dir="${classes.demos}"/>
+            <fileset dir="resources/assets-test" includes="**" />
+        </jar>
+    </target>
+
+    <target name="demo.package.android" depends="demo.compile.android" if="isAndroid">
+        <aapt.signed 
+            assetsdir="resources/assets-test"
+            jarsrcdir="${src}/demos"
+            jarbuilddir="${jar}"
+            jarbasename="jogl-demo-android"
+            nativebuilddir="${lib}"
+            nativebasename="non-existing"
+            androidmanifest.path="resources/android/AndroidManifest-demo.xml"
+            androidresources.path="resources/android/res-demo"
+            jarmanifest.path="${build.test}/manifest-demo-android.mf"
+            version.code="${jogamp.version.int}"
+            version.name="${jogamp.version}">
+          <d8-classpaths>
+              <arg line="--classpath ${gluegen-rt-android.jar}"/> 
+              <arg line="--classpath ${joal.jar}"/> 
+              <arg line="--classpath ${jogl-all-android.jar}"/> 
+              <arg line="--classpath ${gluegen-test-util.jar}"/> 
+              <arg line="--classpath ${junit.jar}"/> 
+              <arg line="--classpath ${ant.jar}"/> 
+              <arg line="--classpath ${ant-junit.jar}"/> 
+              <arg line="--classpath ${ant-junit4.jar}"/> 
+              <arg line="--classpath ${semver.jar}"/> 
+              <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-base-11.jar"/>
+              <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar"/>
+          </d8-classpaths>
+        </aapt.signed>
+    </target>
+
     <target name="test.compile.javase.generic" unless="setup.noAWT">
         <javac destdir="${classes}"
-               excludes="${java.part.test.android} ${java.part.test.oculusvr}"
+               excludes="${java.part.test.oculusvr}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -147,7 +215,6 @@
     <target name="test.compile.javase.oculusvr" if="oculusvr.sdk.available">
         <javac destdir="${classes}"
                includes="${java.part.test.oculusvr}"
-               excludes="${java.part.test.android}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -179,76 +246,9 @@
                  might have copied into the class directory (otherwise, it's possible
                  to get the same resource file twice in the jar) -->
             <fileset dir="${classes}" 
-                     includes="${java.part.test.all}"
-                     excludes="${java.part.test.android}"/>
-            <fileset dir="resources/assets-test" includes="**" />
-        </jar>
-    </target>
-
-    <target name="test.compile.android" if="android-jars.available" unless="setup.noAWT">
-        <!-- Perform the junit pass Java Android compile -->
-        <javac destdir="${classes}"
-               excludes="${java.part.test.oculusvr}"
-               fork="yes"
-               includeAntRuntime="false"
-               memoryMaximumSize="${javac.memorymax}"
-               encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}"
-               bootclasspath="${target.rt.jar}"
-               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="junit_jogl_newt_android.compile.classpath"/>
-            <src path="${src.test}" />
-        </javac>
-        <copy file="joglversion-test-android"
-            tofile="${build.test}/manifest-test-android.mf"
-            overwrite="true">
-            <filterset>
-                <filter token="VERSION" value="${jogamp.version}"/>
-                <filter token="BUILD_VERSION" value="${jogl.version}"/>
-                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
-                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
-                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
-            </filterset>
-        </copy>
-
-        <jar manifest="${build.test}/manifest-test-android.mf" destfile="${jogl-test-android.jar}" filesonly="true">
-            <!-- get all class files, but skip any resource files that external tools
-                 might have copied into the class directory (otherwise, it's possible
-                 to get the same resource file twice in the jar) -->
-            <fileset dir="${classes}" 
                      includes="${java.part.test.all}"/>
             <fileset dir="resources/assets-test" includes="**" />
         </jar>
-    </target>
-
-    <target name="test.package.android" depends="test.compile.android" if="isAndroid" unless="setup.noAWT">
-        <aapt.signed 
-            assetsdir="resources/assets-test"
-            jarsrcdir="${src}/test"
-            jarbuilddir="${jar}"
-            jarbasename="jogl-test-android"
-            nativebuilddir="${lib}"
-            nativebasename="non-existing"
-            androidmanifest.path="resources/android/AndroidManifest-test.xml"
-            androidresources.path="resources/android/res-test"
-            jarmanifest.path="${build.test}/manifest-test-android.mf"
-            version.code="${jogamp.version.int}"
-            version.name="${jogamp.version}">
-          <d8-classpaths>
-              <arg line="--classpath ${gluegen-rt-android.jar}"/> 
-              <arg line="--classpath ${joal.jar}"/> 
-              <arg line="--classpath ${jogl-all-android.jar}"/> 
-              <arg line="--classpath ${gluegen-test-util.jar}"/> 
-              <arg line="--classpath ${junit.jar}"/> 
-              <arg line="--classpath ${ant.jar}"/> 
-              <arg line="--classpath ${ant-junit.jar}"/> 
-              <arg line="--classpath ${ant-junit4.jar}"/> 
-              <arg line="--classpath ${semver.jar}"/> 
-              <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-base-11.jar"/>
-              <arg line="--classpath ${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar"/>
-          </d8-classpaths>
-        </aapt.signed>
     </target>
 
     <target name="test.compile.check" depends="declare.common">
@@ -278,9 +278,9 @@
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
-        <antcall target="make.demos.mobile" inheritRefs="true" inheritAll="true"/>
+        <antcall target="make.demos" inheritRefs="true" inheritAll="true"/>
+        <antcall target="demo.package.android" inheritRefs="true" inheritAll="true"/>
         <antcall target="test.compile.javase" inheritRefs="true" inheritAll="true"/>
-        <antcall target="test.package.android" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="test.manual.run" depends="test.compile, junit.run.settings">

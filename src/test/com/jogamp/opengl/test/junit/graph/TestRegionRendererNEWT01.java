@@ -48,9 +48,6 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener01;
-import com.jogamp.opengl.test.junit.graph.demos.GPURegionGLListener10;
-import com.jogamp.opengl.test.junit.graph.demos.GPURendererListenerBase01;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 

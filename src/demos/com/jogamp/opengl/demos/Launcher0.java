@@ -56,6 +56,7 @@ import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.es2.RedSquareES2;
+import com.jogamp.opengl.demos.util.MiscUtils;
 
 /**
  * <p>

@@ -32,6 +32,7 @@ import com.jogamp.newt.event.PinchToZoomGesture;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.demos.GearsObject;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.VectorUtil;
@@ -54,8 +55,6 @@ import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-
-import com.jogamp.opengl.demos.GearsObject;
 
 /**
  * GearsES2.java <BR>

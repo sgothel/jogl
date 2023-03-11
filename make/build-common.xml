@@ -501,9 +501,9 @@
         <property name="gluegen-rt-android.jar"         value="${build.gluegen}/gluegen-rt-android.jar" />
         <property name="gluegen-test-util.jar"          value="${build.gluegen}/gluegen-test-util.jar" />
         <property name="jogl-test.jar"                  value="${jar}/jogl-test.jar"/>
-        <property name="jogl-test-android.jar"          value="${jar}/jogl-test-android.jar"/>
-        <property name="jogl-test-android.apk"          value="${jar}/jogl-test-android.apk"/>
-        <property name="jogl-demos-mobile.jar"          value="${jar}/jogl-demos-mobile.jar"/>
+        <property name="jogl-demos.jar"                 value="${jar}/jogl-demos.jar"/>
+        <property name="jogl-demo-android.jar"          value="${jar}/jogl-demo-android.jar"/>
+        <property name="jogl-demo-android.apk"          value="${jar}/jogl-demo-android.apk"/>
 
         <!-- JavaSE combinations . AWT -->
         <property name="jogl-all.jar"                   value="${jar}/jogl-all.jar" />

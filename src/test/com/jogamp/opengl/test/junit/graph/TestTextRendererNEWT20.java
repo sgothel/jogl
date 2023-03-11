@@ -53,8 +53,6 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.graph.demos.GPUTextRendererListenerBase01;
-import com.jogamp.opengl.test.junit.graph.demos.MSAATool;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 

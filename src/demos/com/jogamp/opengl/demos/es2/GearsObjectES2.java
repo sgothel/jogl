@@ -27,12 +27,10 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLBufferStorage;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLUniformData;
-
+import com.jogamp.opengl.demos.GearsObject;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
-
-import com.jogamp.opengl.demos.GearsObject;
 
 /**
  * GearsObjectES2.java <BR>
