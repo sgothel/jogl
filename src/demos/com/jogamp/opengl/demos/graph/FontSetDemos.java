@@ -18,17 +18,7 @@ public class FontSetDemos {
                 FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
         fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMonoBold.ttf",
                 FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSans.ttf",
-                FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSansBold.ttf",
-                FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
         fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerif.ttf",
-                FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerifBold.ttf",
-                FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerifBoldItalic.ttf",
-                FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        fonts[i++] = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerifItalic.ttf",
                 FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
         return fonts;
     }
