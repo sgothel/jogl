@@ -223,11 +223,9 @@ public class RegionRenderer {
         initialized = true;
     }
 
-    public final void destroy(final GL2ES2 gl) {
+    /** Deletes all {@link ShaderProgram}s and nullifies its references. */
+    public final void clearShader(final GL2ES2 gl) {
         if(!initialized){
-            if(DEBUG_INSTANCE) {
-                System.err.println("TextRenderer: Not initialized!");
-            }
             return;
         }
         for(final Iterator<IntObjectHashMap.Entry> i = shaderPrograms.iterator(); i.hasNext(); ) {
@@ -236,6 +234,16 @@ public class RegionRenderer {
         }
         shaderPrograms.clear();
         rs.destroy(gl);
+    }
+
+    public final void destroy(final GL2ES2 gl) {
+        if(!initialized){
+            if(DEBUG_INSTANCE) {
+                System.err.println("TextRenderer: Not initialized!");
+            }
+            return;
+        }
+        clearShader(gl);
         initialized = false;
     }
 
@@ -445,7 +453,7 @@ public class RegionRenderer {
         ShaderProgram sp = (ShaderProgram) shaderPrograms.get( shaderKey );
         if( null != sp ) {
             final boolean spChanged = getRenderState().setShaderProgram(gl, sp);
-            if(DEBUG) {
+            if( DEBUG ) {
                 if( spChanged ) {
                     System.err.printf("RegionRendererImpl01.useShaderProgram.X1: GOT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (changed)%n", Region.getRenderModeString(renderModes), sel1, shaderKey, sp.program(), sp.id());
                 } else {
@@ -570,9 +578,10 @@ public class RegionRenderer {
         getRenderState().setShaderProgram(gl, sp);
 
         shaderPrograms.put(shaderKey, sp);
-        if(DEBUG) {
-            System.err.printf("RegionRendererImpl01.useShaderProgram.X1: PUT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (changed)%n",
+        if( DEBUG ) {
+            System.err.printf("RegionRendererImpl01.useShaderProgram.X1: PUT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (changed, new)%n",
                     Region.getRenderModeString(renderModes), sel1, shaderKey, sp.program(), sp.id());
+            // rsFp.dumpShaderSource(System.err);
         }
         return true;
     }

@@ -39,6 +39,7 @@ import jogamp.graph.curve.opengl.VBORegion2PVBAAES2;
 import jogamp.graph.curve.opengl.VBORegionSPES2;
 
 import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
@@ -178,6 +179,7 @@ public abstract class GLRegion extends Region {
      */
     protected abstract void updateImpl(final GL2ES2 gl);
 
+    protected abstract void clearShaderImpl(final GL2ES2 gl);
     protected abstract void destroyImpl(final GL2ES2 gl);
 
     protected abstract void clearImpl(final GL2ES2 gl);
@@ -210,10 +212,16 @@ public abstract class GLRegion extends Region {
         return this;
     }
 
+    /** Deletes all {@link ShaderProgram}s and nullifies its references. */
+    public final void clearShader(final GL2ES2 gl) {
+        clearShaderImpl(gl);
+    }
+
     /**
      * Delete and clear the associated OGL objects.
      */
     public final void destroy(final GL2ES2 gl) {
+        clearShaderImpl(gl);
         clear(gl);
         destroyImpl(gl);
     }

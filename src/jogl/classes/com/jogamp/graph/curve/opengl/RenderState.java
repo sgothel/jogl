@@ -325,6 +325,9 @@ public class RenderState {
         hintBitfield &= ~mask;
     }
 
+    /**
+     * Issues {@link ShaderProgram#destroy(GL2ES2)} and nullifies reference.
+     */
     public void destroy(final GL2ES2 gl) {
         if( null != sp ) {
             sp.destroy(gl);

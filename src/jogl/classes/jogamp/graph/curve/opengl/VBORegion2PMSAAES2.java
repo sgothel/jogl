@@ -629,6 +629,18 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
     }
 
     @Override
+    protected void clearShaderImpl(final GL2ES2 gl) {
+        if( null != spPass1 ) {
+            spPass1.destroy(gl);
+            spPass1 = null;
+        }
+        if( null != spPass2 ) {
+            spPass2.destroy(gl);
+            spPass2 = null;
+        }
+    }
+
+    @Override
     protected void destroyImpl(final GL2ES2 gl) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegion2PES2 Destroy: " + this);
@@ -665,7 +677,5 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
             indicesFbo.destroy(gl);
             indicesFbo = null;
         }
-        spPass1 = null;
-        spPass2 = null;
     }
 }
