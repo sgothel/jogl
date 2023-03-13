@@ -28,8 +28,10 @@
 package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
@@ -102,6 +104,11 @@ public class Label extends Shape {
     public void setPixelSize(final float pixelSize) {
         this.pixelSize = pixelSize;
         markShapeDirty();
+    }
+
+    @Override
+    protected GLRegion createGLRegion(final GLProfile glp) {
+        return GLRegion.create(glp, getRenderModes(), null, font, text);
     }
 
     @Override
