@@ -41,6 +41,7 @@ import jogamp.graph.curve.opengl.VBORegionSPES2;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.font.Font;
 
 import java.io.PrintStream;
 
@@ -118,6 +119,44 @@ public abstract class GLRegion extends Region {
      */
     public static GLRegion create(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq) {
         return GLRegion.create(glp, renderModes, colorTexSeq, defaultVerticesCount, defaultIndicesCount);
+    }
+
+    /**
+     * Create a GLRegion using the passed render mode and pre-calculating its buffer sizes
+     * using given font's {@link Font#processString(com.jogamp.graph.curve.OutlineShape.Visitor2, CharSequence)}
+     * to {@link #countOutlineShape(OutlineShape, int[])}.
+     *
+     * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
+     * {@link Region#DEFAULT_TWO_PASS_TEXTURE_UNIT} is being used.</p>
+     * @param glp intended GLProfile to use. Instance may use higher OpenGL features if indicated by GLProfile.
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
+     * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
+     * @param font Font used to {@link Font#processString(com.jogamp.graph.curve.OutlineShape.Visitor2, CharSequence)} to {@link #countOutlineShape(OutlineShape, int[]) to count initial number of vertices and indices}
+     * @param str the string used to to {@link #countOutlineShape(OutlineShape, int[]) to count initial number of vertices and indices}
+     */
+    public static GLRegion create(final GLProfile glp, int renderModes, final TextureSequence colorTexSeq, final Font font, final CharSequence str) {
+        if( null != colorTexSeq ) {
+            renderModes |= Region.COLORTEXTURE_RENDERING_BIT;
+        } else if( Region.hasColorTexture(renderModes) ) {
+            throw new IllegalArgumentException("COLORTEXTURE_RENDERING_BIT set but null TextureSequence");
+        }
+        GLRegion region;
+        if( isVBAA(renderModes) ) {
+            region = new VBORegion2PVBAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT, 0, 0);
+        } else if( isMSAA(renderModes) ) {
+            region = new VBORegion2PMSAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT, 0, 0);
+        } else {
+            region = new VBORegionSPES2(glp, renderModes, colorTexSeq, 0, 0);
+        }
+        final int[] vertIndexCount = { 0, 0 };
+        final OutlineShape.Visitor2 visitor = new OutlineShape.Visitor2() {
+            @Override
+            public final void visit(final OutlineShape shape) {
+                region.countOutlineShape(shape, vertIndexCount);
+            } };
+        font.processString(visitor, str);
+        region.setBufferCapacity(vertIndexCount[0], vertIndexCount[1]);
+        return region;
     }
 
     private final int gl_idx_type;

@@ -125,6 +125,7 @@ public class TextRegionUtil {
      * @param vertIndexCount the int[2] storage where the counted vertices and indices are added, vertices at [0] and indices at [1]
      * @see Region#setBufferCapacity(int, int)
      * @see Region#growBuffer(int, int)
+     * @see #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)
      */
     public static void countStringRegion(final Region region, final Font font, final CharSequence str, final int[/*2*/] vertIndexCount) {
         final OutlineShape.Visitor2 visitor = new OutlineShape.Visitor2() {
@@ -146,6 +147,9 @@ public class TextRegionUtil {
      * <p>
      * Cached {@link GLRegion}s will be destroyed w/ {@link #clear(GL2ES2)} or to free memory.
      * </p>
+     * <p>
+     * The region's buffer size is pre-calculated via {@link GLRegion#create(com.jogamp.opengl.GLProfile, int, com.jogamp.opengl.util.texture.TextureSequence, Font, CharSequence)}
+     * </p>
      * @param gl the current GL state
      * @param renderer TODO
      * @param font {@link Font} to be used
@@ -165,7 +169,7 @@ public class TextRegionUtil {
         GLRegion region = getCachedRegion(font, str);
         AABBox res;
         if(null == region) {
-            region = GLRegion.create(gl.getGLProfile(), renderModes, null);
+            region = GLRegion.create(gl.getGLProfile(), renderModes, null, font, str);
             res = addStringToRegion(region, font, null, str, rgbaColor, tempT1, tempT2);
             addCachedRegion(gl, font, str, region);
         } else {
@@ -178,6 +182,9 @@ public class TextRegionUtil {
 
     /**
      * Try using {@link #drawString3D(GL2ES2, int, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
+     * <p>
+     * The region's buffer size is pre-calculated via {@link GLRegion#create(com.jogamp.opengl.GLProfile, int, com.jogamp.opengl.util.texture.TextureSequence, Font, CharSequence)}
+     * </p>
      */
     public static AABBox drawString3D(final GL2ES2 gl, final int renderModes,
                                       final RegionRenderer renderer, final Font font, final CharSequence str,
@@ -192,6 +199,9 @@ public class TextRegionUtil {
      * </p>
      * <p>
      * Origin of rendered text is 0/0 at bottom left.
+     * </p>
+     * <p>
+     * The region's buffer size is pre-calculated via {@link GLRegion#create(com.jogamp.opengl.GLProfile, int, com.jogamp.opengl.util.texture.TextureSequence, Font, CharSequence)}
      * </p>
      * <p>
      * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
@@ -217,7 +227,7 @@ public class TextRegionUtil {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null);
+        final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, font, str);
         final AABBox res = addStringToRegion(region, font, null, str, rgbaColor, tmp1, tmp2);
         region.draw(gl, renderer, sampleCount);
         region.destroy(gl);
@@ -226,6 +236,9 @@ public class TextRegionUtil {
 
     /**
      * Try using {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
+     * <p>
+     * The region's buffer size is pre-calculated via {@link #countStringRegion(Region, Font, CharSequence, int[])}.
+     * </p>
      */
     public static AABBox drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
                                       final Font font, final CharSequence str, final float[] rgbaColor, final int[/*1*/] sampleCount) {
@@ -242,6 +255,9 @@ public class TextRegionUtil {
      * </p>
      * <p>
      * Origin of rendered text is 0/0 at bottom left.
+     * </p>
+     * <p>
+     * The region's buffer size is pre-calculated via {@link #countStringRegion(Region, Font, CharSequence, int[])}.
      * </p>
      * @param gl the current GL state
      * @param region
@@ -262,6 +278,9 @@ public class TextRegionUtil {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
+        final int[] vertIndCount = { 0, 0 };
+        TextRegionUtil.countStringRegion(region, font, str, vertIndCount);
+        region.growBuffer(vertIndCount[0], vertIndCount[1]);
         final AABBox res = addStringToRegion(region, font, null, str, rgbaColor, tmp1, tmp2);
         region.draw(gl, renderer, sampleCount);
         return res;

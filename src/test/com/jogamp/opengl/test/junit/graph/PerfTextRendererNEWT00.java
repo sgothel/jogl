@@ -245,24 +245,8 @@ public class PerfTextRendererNEWT00 {
         final RegionRenderer renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
 
-        // Since we know about the size ...
-        // final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null);
-        // region.growBufferSize(123000, 62000); // hack-me
-        // FreeSans     ~ vertices  68/char, indices 36/char
-        // Ubuntu Light ~ vertices 100/char, indices 50/char
-        // FreeSerif    ~ vertices 115/char, indices 61/char
-        // final int vertices_per_char = 68; // 100;
-        // final int indices_per_char = 36; // 50;
-        // final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, text.length()*vertices_per_char, text.length()*indices_per_char);
-        final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null);
-        System.err.println("Region post ctor w/ default initial buffer size");
-        region.printBufferStats(System.err);
-
-        final int[] verticesIndicesCount = new int[] { 0, 0 };
-        TextRegionUtil.countStringRegion(region, font, text, verticesIndicesCount);
-        System.err.println("Region count: text "+text.length()+" chars -> vertices "+verticesIndicesCount[0]+", indices "+verticesIndicesCount[1]);
-        region.setBufferCapacity(verticesIndicesCount[0], verticesIndicesCount[1]);
-        System.err.println("Region post set-buffer-size w/ matching vertices "+verticesIndicesCount[0]+", indices "+verticesIndicesCount[1]);
+        final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, font, text);
+        System.err.println("Region post ctor w/ pre-calculated buffer size");
         region.printBufferStats(System.err);
 
         final Perf perf = new Perf();
