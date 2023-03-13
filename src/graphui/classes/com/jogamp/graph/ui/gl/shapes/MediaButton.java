@@ -66,7 +66,6 @@ public class MediaButton extends TexSeqButton {
         setPressedColorMod(1.1f, 1.1f, 1.1f, 0.7f);
         setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);
         setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);
-        setEnabled(false); // data and shader n/a yet
     }
 
     public void setVerbose(final boolean v) { verbose = v; }
@@ -88,13 +87,12 @@ public class MediaButton extends TexSeqButton {
 
             @Override
             public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
-                final GLMediaPlayer mPlayer = (GLMediaPlayer)texSeq;
                 if( verbose ) {
                     System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
                     System.err.println("MovieCube State: "+mp);
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
-                    MediaButton.this.setEnabled(true); // data and shader is available ..
+                    resetGL = true;
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
                     // FIXME: mPlayer.resetGLState();
@@ -104,11 +102,11 @@ public class MediaButton extends TexSeqButton {
                         @Override
                         public void run() {
                             // loop for-ever ..
-                            mPlayer.seek(0);
-                            mPlayer.resume();
+                            mp.seek(0);
+                            mp.resume();
                         } }.start();
                 } else if( 0 != ( GLMediaEventListener.EVENT_CHANGE_ERR & event_mask ) ) {
-                    final StreamException se = mPlayer.getStreamException();
+                    final StreamException se = mp.getStreamException();
                     if( null != se ) {
                         se.printStackTrace();
                     }
@@ -121,15 +119,20 @@ public class MediaButton extends TexSeqButton {
         ((GLMediaPlayer)texSeq).destroy(gl);
     }
 
+    volatile boolean resetGL = true;
+
     @Override
     public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         final GLMediaPlayer mPlayer = (GLMediaPlayer)texSeq;
-        if( GLMediaPlayer.State.Initialized == mPlayer.getState() ) {
+        if( resetGL ) {
+            resetGL = false;
             try {
                 mPlayer.initGL(gl);
                 mPlayer.setAudioVolume( 0f );
-                mPlayer.resume();
-                markStateDirty();
+                region.destroy(gl);
+                region = null;
+                validate(gl, renderer);
+                markStateDirty(); // keep on going
             } catch (final Exception e) {
                 e.printStackTrace();
             }
