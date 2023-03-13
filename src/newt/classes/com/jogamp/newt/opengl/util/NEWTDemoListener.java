@@ -493,7 +493,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             disp.createNative();
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "newt/data/cross-grey-alpha-16x16.png" }, disp.getClass().getClassLoader(), null);
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "jogamp/newt/assets/cross-grey-alpha-16x16.png" }, disp.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 8, 8);
                     pointerIcons.add(_pointerIcon);
@@ -504,7 +504,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
             }
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "newt/data/pointer-grey-alpha-16x24.png" }, disp.getClass().getClassLoader(), null);
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "jogamp/newt/assets/pointer-grey-alpha-16x24.png" }, disp.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
                     pointerIcons.add(_pointerIcon);

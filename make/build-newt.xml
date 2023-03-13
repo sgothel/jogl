@@ -105,6 +105,9 @@
         <property name="java.part.core"
                   value="com/jogamp/newt/* com/jogamp/newt/event/* com/jogamp/newt/util/* com/jogamp/newt/util/applet/* jogamp/newt/* jogamp/newt/event/* jogamp/newt/driver/*"/>
 
+        <property name="java.part.core.assets"
+                  value="jogamp/newt/assets/**"/>
+
         <property name="java.part.opengl"
                   value="com/jogamp/newt/opengl/** jogamp/newt/driver/opengl/**"/>
 
@@ -155,6 +158,9 @@
 
         <property name="java.part.driver.android"
                   value="jogamp/newt/driver/android/**"/>
+
+        <property name="java.part.nonjava" 
+                  value="${java.part.core.assets}"/>
 
         <!-- condition excludes -->
 
@@ -441,6 +447,13 @@
             <src path="${src.java}" />
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
         </javac>
+
+        <!-- make shadercode, fonts etc available in classpath -->
+        <copy todir="${classes}">
+            <fileset dir="${src.java}"
+                     includes="${java.part.nonjava}"
+                     excludes="**/*.java"/>
+        </copy>
     </target>
 
     <target name="java.compile.android" if="android-jars.available">
@@ -1134,8 +1147,7 @@
     <target name="build-jars-javase" depends="setup-manifestfile,build-jars-opengl,build-jars-awt,build-jars-swt,build-jars-javafx,build-jars-driver">
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.core}"/>
-            <fileset dir="resources/assets" includes="newt/data/**" />
+                     includes="${java.part.core} ${java.part.nonjava}"/>
         </jar>
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-event.jar}" filesonly="true">
             <fileset dir="${classes}">

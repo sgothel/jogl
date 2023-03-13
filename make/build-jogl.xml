@@ -90,11 +90,18 @@
         <property name="java.part.gluegen-gl-rt" 
                   value="com/jogamp/gluegen/runtime/opengl/*"/>
 
+        <property name="java.part.core.shadercode"
+                  value="jogamp/opengl/shader/* jogamp/opengl/shader/bin/**"/>
+
+        <property name="java.part.core.assets"
+                  value="jogamp/opengl/assets/**"/>
+
         <property name="java.part.core.util"
-                  value="com/jogamp/opengl/util/* jogamp/opengl/util/* com/jogamp/opengl/util/glsl/* jogamp/opengl/util/glsl/* jogamp/opengl/shader/**"/>
+                  value="com/jogamp/opengl/util/* jogamp/opengl/util/* com/jogamp/opengl/util/glsl/* jogamp/opengl/util/glsl/* ${java.part.core.shadercode} ${java.part.core.assets}"/>
 
         <property name="java.part.core" 
                   value="${java.part.gluegen-gl-rt} com/jogamp/opengl/* com/jogamp/opengl/fixedfunc/* com/jogamp/opengl/math/** jogamp/opengl/* ${java.part.core.util}"/>
+
         <property name="java.part.core.exclude" value="com/jogamp/opengl/Debug* com/jogamp/opengl/Trace* com/jogamp/opengl/util/AWTAnimatorImpl* com/jogamp/opengl/util/PNG*"/>
 
         <property name="java.part.nv-cg"
@@ -175,9 +182,6 @@
         <property name="java.part.util.graph.fonts"
                   value="jogamp/graph/font/fonts/**"/>
 
-        <property name="java.part.core.shadercode"
-                  value="jogamp/opengl/shader/* jogamp/opengl/shader/bin/**"/>
-
         <property name="java.part.util.shadercode"
                   value="jogamp/opengl/util/stereo/shader/*"/>
 
@@ -191,7 +195,7 @@
                   value="jogamp/opengl/util/glsl/fixedfunc/shaders/* jogamp/opengl/util/glsl/fixedfunc/shaders/bin/**"/>
 
         <property name="java.part.nonjava" 
-                  value="${java.part.core.shadercode} ${java.part.util.shadercode} ${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
+                  value="${java.part.core.assets} ${java.part.core.shadercode} ${java.part.util.shadercode} ${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
 
         <!-- condition excludes -->
 
@@ -1229,7 +1233,7 @@
     <target name="java.compile.thirdpass" depends="java.generate.composable.pipeline.custom, java.compile.thirdpass.javase" />
 
     <target name="java.compile" depends="java.compile.firstpass,java.compile.secondpass,java.compile.thirdpass">
-        <!-- make shadercode and fonts available in classpath -->
+        <!-- make shadercode, fonts etc available in classpath -->
         <copy todir="${classes}">
             <fileset dir="${src.java}"
                      includes="${java.part.nonjava}"
@@ -1950,7 +1954,6 @@
             <fileset dir="${classes}"
                      includes="${java.part.util} ${java.part.util.glsl} ${java.part.openal}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu} ${java.part.util.graph}"/>
-            <fileset dir="resources/assets" includes="jogl/util/data/**" />
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-graph.jar}" filesonly="true">
             <fileset dir="${classes}"

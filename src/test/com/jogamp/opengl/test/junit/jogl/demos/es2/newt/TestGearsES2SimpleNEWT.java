@@ -109,10 +109,12 @@ public class TestGearsES2SimpleNEWT extends UITestCase {
         glWindow.addWindowListener(quitAdapter);
 
         glWindow.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowResized(final WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
                 setTitle(glWindow, caps);
             }
+            @Override
             public void windowMoved(final WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
                 setTitle(glWindow, caps);
@@ -126,7 +128,7 @@ public class TestGearsES2SimpleNEWT extends UITestCase {
             int idx = 0;
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "newt/data/cross-grey-alpha-16x16.png" }, glWindow.getClass().getClassLoader(), null);
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "jogamp/newt/assets/cross-grey-alpha-16x16.png" }, glWindow.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 8, 8);
                     System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());
@@ -138,7 +140,7 @@ public class TestGearsES2SimpleNEWT extends UITestCase {
             idx++;
             {
                 PointerIcon _pointerIcon = null;
-                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "newt/data/pointer-grey-alpha-16x24.png" }, glWindow.getClass().getClassLoader(), null);
+                final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "jogamp/newt/assets/pointer-grey-alpha-16x24.png" }, glWindow.getClass().getClassLoader(), null);
                 try {
                     _pointerIcon = disp.createPointerIcon(res, 0, 0);
                     System.err.printf("Create PointerIcon #%02d: %s%n", idx, _pointerIcon.toString());

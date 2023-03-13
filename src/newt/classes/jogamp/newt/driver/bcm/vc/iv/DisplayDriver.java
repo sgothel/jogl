@@ -67,7 +67,7 @@ public class DisplayDriver extends DisplayImpl {
 
         PNGPixelRect image = null;
         if( DisplayImpl.isPNGUtilAvailable() ) {
-            final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { "newt/data/pointer-grey-alpha-16x24.png" }, DisplayDriver.class.getClassLoader(), null);
+            final IOUtil.ClassResources res = new IOUtil.ClassResources(new String[] { defaultPointerIconPath }, DisplayDriver.class.getClassLoader(), null);
             try {
                 final URLConnection urlConn = res.resolve(0);
                 if( null != urlConn ) {

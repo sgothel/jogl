@@ -66,6 +66,7 @@ import com.jogamp.nativewindow.util.PointImmutable;
 
 public abstract class DisplayImpl extends Display {
     protected static final boolean DISABLE_POINTER_ICON = PropertyAccess.isPropertyDefined("newt.disable.PointerIcon", true);
+    protected static final String defaultPointerIconPath = "jogamp/newt/assets/pointer-grey-alpha-16x24.png";
     private static int serialno = 1;
     private static final boolean pngUtilAvail;
 
@@ -123,6 +124,7 @@ public abstract class DisplayImpl extends Display {
         final Exception[] ex = { null };
         final String exStr = "Could not resolve "+pngResource.resourcePaths[0];
         runOnEDTIfAvail(true, new Runnable() {
+            @Override
             public void run() {
                 try {
                     if( !DisplayImpl.this.isNativeValidAsync() ) {
@@ -198,6 +200,7 @@ public abstract class DisplayImpl extends Display {
         }
         final PointerIconImpl[] res = { null };
         runOnEDTIfAvail(true, new Runnable() {
+            @Override
             public void run() {
                 try {
                     if( !DisplayImpl.this.isNativeValidAsync() ) {

@@ -60,7 +60,7 @@ public class NewtFactory {
     public static final String DRIVER_DEFAULT_ROOT_PACKAGE = "jogamp.newt.driver";
 
     private static IOUtil.ClassResources defaultWindowIcons;
-    private static String sysPaths = "newt/data/jogamp-16x16.png newt/data/jogamp-32x32.png";
+    private static String sysPaths = "jogamp/newt/assets/jogamp-16x16.png jogamp/newt/assets/jogamp-32x32.png";
 
     static {
         SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
