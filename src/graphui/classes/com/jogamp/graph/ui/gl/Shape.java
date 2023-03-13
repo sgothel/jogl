@@ -37,6 +37,7 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.geom.plane.AffineTransform;
@@ -44,7 +45,9 @@ import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.newt.event.GestureHandler.GestureListener;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.NEWTEvent;
+import com.jogamp.newt.event.PinchToZoomGesture;
 import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.newt.event.MouseEvent.PointerClass;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
@@ -661,18 +664,6 @@ public abstract class Shape {
         }
     }
 
-    /**
-     * @param e original Newt {@link GestureEvent}
-     * @param glWinX x-position in OpenGL model space
-     * @param glWinY y-position in OpenGL model space
-     */
-    /* pp */ final void dispatchGestureEvent(final GestureEvent e, final int glWinX, final int glWinY, final float[] objPos) {
-        e.setAttachment(new EventInfo(glWinX, glWinY, this, objPos));
-        for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
-            mouseListeners.get(i).gestureDetected(e);
-        }
-    }
-
     private boolean dragFirst = false;
     private final float[] objDraggedFirst = { 0f, 0f }; // b/c its relative to Shape and we stick to it
     private final int[] winDraggedLast = { 0, 0 }; // b/c its absolute window pos
@@ -691,7 +682,6 @@ public abstract class Shape {
      */
     /* pp */ final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY, final float[] objPos) {
         final Shape.EventInfo shapeEvent = new EventInfo(glWinX, glWinY, this, objPos);
-        e.setAttachment(shapeEvent);
 
         final short eventType = e.getEventType();
         if( 1 == e.getPointerCount() ) {
@@ -709,7 +699,7 @@ public abstract class Shape {
         }
         switch( eventType ) {
             case MouseEvent.EVENT_MOUSE_PRESSED:
-                dragFirst = true;
+                dragFirst = 1 == e.getPointerCount();
                 break;
             case MouseEvent.EVENT_MOUSE_RELEASED:
                 dragFirst = false;
@@ -746,17 +736,21 @@ public abstract class Shape {
                             inDrag = true;
                         }
                     }
-                    System.err.printf("Drag: drag %b, resize %b, obj %.3f/%.3f, %.3f/%.3f + %.3f/%.3f, %s%n",
-                            inDrag, inResize,
-                            ix, iy,
-                            objPos[0], objPos[1],
-                            shapeEvent.objDrag[0], shapeEvent.objDrag[1], box.toString());
+                    if( DEBUG ) {
+                        System.err.printf("Drag: drag %b, resize %b, obj %.3f/%.3f, %.3f/%.3f + %.3f/%.3f, %s%n",
+                                inDrag, inResize,
+                                ix, iy,
+                                objPos[0], objPos[1],
+                                shapeEvent.objDrag[0], shapeEvent.objDrag[1], box.toString());
+                    }
                     return;
                 }
                 shapeEvent.objDrag[0] = objPos[0] - objDraggedFirst[0];
                 shapeEvent.objDrag[1] = objPos[1] - objDraggedFirst[1];
                 shapeEvent.winDrag[0] = glWinX - winDraggedLast[0];
                 shapeEvent.winDrag[1] = glWinY - winDraggedLast[1];
+                winDraggedLast[0] = glWinX;
+                winDraggedLast[1] = glWinY;
                 if( 1 == e.getPointerCount() ) {
                     if( 0 != inResize && resizable ) {
                         final float dx = shapeEvent.objDrag[0]/2f;
@@ -769,31 +763,28 @@ public abstract class Shape {
                         }
                         final float sy = scale[1] + ( -2f*dy/box.getHeight() );
                         if( resize_sxy_min <= sx && sx <= resize_sxy_max && resize_sxy_min <= sy && sy <= resize_sxy_max ) {
+                            if( DEBUG ) {
+                                System.err.printf("DragZoom: resize %b, obj %4d/%4d, %.3f/%.3f/%.3f %.3f/%.3f/%.3f + %.3f/%.3f -> %.3f/%.3f%n",
+                                        inResize, glWinX, glWinY, objPos[0], objPos[1], objPos[2], position[0], position[1], position[2],
+                                        dx, dy, sx, sy);
+                            }
                             move(dx, dy, 0f);
                             setScale(sx, sy, scale[2]);
-                        } else {
-                            System.err.println("XXX: out");
-                            // inResize = false;
                         }
-                        System.err.printf("DragZoom: resize %b, obj %4d/%4d, %.3f/%.3f/%.3f %.3f/%.3f/%.3f + %.3f/%.3f -> %.3f/%.3f%n",
-                                inResize,
-                                glWinX, glWinY,
-                                objPos[0], objPos[1], objPos[2],
-                                position[0], position[1], position[2],
-                                dx, dy,
-                                sx, sy);
+                        return; // FIXME: pass through event? Issue zoom event?
                     } else if( inDrag && draggable ) {
-                        System.err.printf("Drag: obj %.3f/%.3f + %.3f/%.3f%n",
-                                objPos[0], objPos[1],
-                                shapeEvent.objDrag[0], shapeEvent.objDrag[1]);
+                        if( DEBUG ) {
+                            System.err.printf("Drag: obj %.3f/%.3f + %.3f/%.3f%n",
+                                    objPos[0], objPos[1], shapeEvent.objDrag[0], shapeEvent.objDrag[1]);
+                        }
                         move(shapeEvent.objDrag[0], shapeEvent.objDrag[1], 0f);
+                        // FIXME: Pass through event? Issue move event?
                     }
                 }
-                winDraggedLast[0] = glWinX;
-                winDraggedLast[1] = glWinY;
             }
             break;
         }
+        e.setAttachment(shapeEvent);
 
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
             final MouseGestureListener l = mouseListeners.get(i);
@@ -825,6 +816,55 @@ public abstract class Shape {
                 default:
                     throw new NativeWindowException("Unexpected mouse event type " + e.getEventType());
             }
+        }
+    }
+
+    /**
+     * @param renderer TODO
+     * @param e original Newt {@link GestureEvent}
+     * @param glWinX x-position in OpenGL model space
+     * @param glWinY y-position in OpenGL model space
+     */
+    /* pp */ final void dispatchGestureEvent(final RegionRenderer renderer, final GestureEvent e, final int glWinX, final int glWinY, final float[] objPos) {
+        if( resizable && e instanceof PinchToZoomGesture.ZoomEvent ) {
+            final PinchToZoomGesture.ZoomEvent ze = (PinchToZoomGesture.ZoomEvent) e;
+            final float pixels = ze.getDelta() * ze.getScale(); //
+            final float[] objPos2 = { 0f, 0f, 0f };
+            final int winX2 = glWinX + Math.round(pixels);
+            final boolean ok;
+            {
+                final PMVMatrix pmv = renderer.getMatrix();
+                pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+                pmv.glPushMatrix();
+                setTransform(pmv);
+                ok = winToObjCoord(null, winX2, glWinY, objPos2);
+                pmv.glPopMatrix();
+            }
+            final float dx = objPos2[0];
+            final float dy = objPos2[1];
+            final float sx = scale[0] + ( dx/box.getWidth() ); // bottom-right
+            final float sy = scale[1] + ( dy/box.getHeight() );
+            if( DEBUG ) {
+                System.err.printf("DragZoom: resize %b, obj %4d/%4d, %.3f/%.3f/%.3f %.3f/%.3f/%.3f + %.3f/%.3f -> %.3f/%.3f%n",
+                        inResize, glWinX, glWinY, objPos[0], objPos[1], objPos[2], position[0], position[1], position[2],
+                        dx, dy, sx, sy);
+            }
+            if( resize_sxy_min <= sx && sx <= resize_sxy_max && resize_sxy_min <= sy && sy <= resize_sxy_max ) {
+                if( DEBUG ) {
+                    System.err.printf("PinchZoom: pixels %f, obj %4d/%4d, %.3f/%.3f/%.3f %.3f/%.3f/%.3f + %.3f/%.3f -> %.3f/%.3f%n",
+                            pixels, glWinX, glWinY, objPos[0], objPos[1], objPos[2], position[0], position[1], position[2],
+                            dx, dy, sx, sy);
+                }
+                // move(dx, dy, 0f);
+                setScale(sx, sy, scale[2]);
+            }
+            return; // FIXME: pass through event? Issue zoom event?
+        }
+        final Shape.EventInfo shapeEvent = new EventInfo(glWinX, glWinY, this, objPos);
+        e.setAttachment(shapeEvent);
+
+        for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
+            mouseListeners.get(i).gestureDetected(e);
         }
     }
 

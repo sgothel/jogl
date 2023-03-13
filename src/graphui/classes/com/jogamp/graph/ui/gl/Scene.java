@@ -310,14 +310,14 @@ public class Scene implements GLEventListener{
 
     /**
      * Calling {@link Shape#winToObjCoord(RegionRenderer, int, int, float[])}, retrieving its object position.
-     * @param activeShape
+     * @param shape
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      * @param objPos resulting object position
      * @param runnable action
      */
-    public void windowToShapeCoords(final Shape activeShape, final int glWinX, final int glWinY, final float[] objPos, final Runnable runnable) {
-        if( null == cDrawable || null == activeShape ) {
+    public void winToObjCoord(final Shape shape, final int glWinX, final int glWinY, final float[] objPos, final Runnable runnable) {
+        if( null == cDrawable || null == shape ) {
             return;
         }
         cDrawable.invoke(false, new GLRunnable() {
@@ -328,8 +328,8 @@ public class Scene implements GLEventListener{
                     final PMVMatrix pmv = renderer.getMatrix();
                     pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
                     pmv.glPushMatrix();
-                    activeShape.setTransform(pmv);
-                    ok = activeShape.winToObjCoord(renderer, glWinX, glWinY, objPos);
+                    shape.setTransform(pmv);
+                    ok = shape.winToObjCoord(renderer, glWinX, glWinY, objPos);
                     pmv.glPopMatrix();
                 }
                 if( ok ) {
@@ -367,10 +367,10 @@ public class Scene implements GLEventListener{
         }
     }
 
-    public static void mapWin2ObjectCoords(final PMVMatrix pmv, final int[] view,
-                                           final float zNear, final float zFar,
-                                           final float orthoX, final float orthoY, final float orthoDist,
-                                           final float[] winZ, final float[] objPos) {
+    public static void mapWin2ObjCoord(final PMVMatrix pmv, final int[] view,
+                                       final float zNear, final float zFar,
+                                       final float orthoX, final float orthoY, final float orthoDist,
+                                       final float[] winZ, final float[] objPos) {
         winZ[0] = FloatUtil.getOrthoWinZ(orthoDist, zNear, zFar);
         pmv.gluUnProject(orthoX, orthoY, winZ[0], view, 0, objPos, 0);
     }
@@ -395,10 +395,10 @@ public class Scene implements GLEventListener{
             final float[] obj11Coord = new float[3];
             final float[] winZ = new float[1];
 
-            mapWin2ObjectCoords(pmv, viewport, zNear, zFar, 0f, 0f, orthoDist, winZ, obj00Coord);
+            mapWin2ObjCoord(pmv, viewport, zNear, zFar, 0f, 0f, orthoDist, winZ, obj00Coord);
             System.err.printf("Reshape: mapped.00: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", 0f, 0f, orthoDist, winZ[0], obj00Coord[0], obj00Coord[1], obj00Coord[2]);
 
-            mapWin2ObjectCoords(pmv, viewport, zNear, zFar, width, height, orthoDist, winZ, obj11Coord);
+            mapWin2ObjCoord(pmv, viewport, zNear, zFar, width, height, orthoDist, winZ, obj11Coord);
             System.err.printf("Reshape: mapped.11: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", (float)width, (float)height, orthoDist, winZ[0], obj11Coord[0], obj11Coord[1], obj11Coord[2]);
 
             nearPlane1Box.setSize( obj00Coord[0],  // lx
@@ -449,10 +449,10 @@ public class Scene implements GLEventListener{
                     final int glWinY = viewport[3] - e.getY() - 1;
                     final float[] objPos = new float[3];
                     final Shape shape = activeShape;
-                    windowToShapeCoords(shape, glWinX, glWinY, objPos, new Runnable() {
+                    winToObjCoord(shape, glWinX, glWinY, objPos, new Runnable() {
                         @Override
                         public void run() {
-                            shape.dispatchGestureEvent(gh, glWinX, glWinY, objPos);
+                            shape.dispatchGestureEvent(renderer, gh, glWinX, glWinY, objPos);
                         } } );
                 }
             }
@@ -500,7 +500,7 @@ public class Scene implements GLEventListener{
      */
     final void dispatchMouseEventForShape(final Shape shape, final MouseEvent e, final int glWinX, final int glWinY) {
         final float[] objPos = new float[3];
-        windowToShapeCoords(shape, glWinX, glWinY, objPos, new Runnable() {
+        winToObjCoord(shape, glWinX, glWinY, objPos, new Runnable() {
             @Override
             public void run() {
                 shape.dispatchMouseEvent(e, glWinX, glWinY, objPos);
