@@ -262,6 +262,7 @@
       <uptodate property="test.compile.skip">
         <srcfiles dir= "."                 includes="*.xml"/>
         <srcfiles dir= "${src.test}"       includes="**"/>
+        <srcfiles dir= "${src.demos}"      includes="**"/>
         <srcfiles dir= "resources/android" includes="**/*.xml"/>
         <srcfiles                          file="${gluegen-rt.jar}" />
         <srcfiles                          dir="${src}/nativewindow" />
