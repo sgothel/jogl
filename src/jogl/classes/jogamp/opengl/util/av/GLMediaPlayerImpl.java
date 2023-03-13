@@ -293,7 +293,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public final int getTextureFragmentShaderHashCode() {
-        if( !isTextureAvailable() ) {
+        if( !isPausedOrPlaying() ) {
             textureFragmentShaderHashCode = 0;
             return 0;
         } else if( 0 == textureFragmentShaderHashCode ) {
@@ -858,6 +858,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public final boolean isTextureAvailable() {
+        return null != lastFrame; // Note: lastFrame is test-texture if using initGL() pre stream ready
+    }
+
+    private final boolean isPausedOrPlaying() {
         return State.Paused == state || State.Playing == state;
     }
 
@@ -1477,7 +1481,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         event_mask = addStateEventMask(event_mask, newState);
         if( 0 != event_mask ) {
             setState( newState );
-            if( !isTextureAvailable() ) {
+            if( !isPausedOrPlaying() ) {
                 textureFragmentShaderHashCode = 0;
             }
             attributesUpdated( event_mask );
