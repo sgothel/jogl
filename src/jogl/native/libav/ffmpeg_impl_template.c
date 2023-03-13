@@ -363,6 +363,7 @@ static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
     int i;
     if(NULL != pAV) {
         MY_MUTEX_LOCK(env, mutex_avcodec_openclose);
+        pAV->ready = 0;
         {
             // Close the V codec
             if(NULL != pAV->pVCodecCtx) {
@@ -509,6 +510,7 @@ JNIEXPORT jlong JNICALL FF_FUNC(createInstance0)
         JoglCommon_throwNewRuntimeException(env, "Couldn't alloc instance");
         return 0;
     }
+    pAV->ready = 0;
     pAV->avcodecVersion = sp_avcodec_version();
     pAV->avformatVersion = sp_avformat_version(); 
     pAV->avutilVersion = sp_avutil_version();
@@ -1173,6 +1175,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
     initPTSStats(&pAV->vPTSStats);
     initPTSStats(&pAV->aPTSStats);
     _updateJavaAttributes(env, pAV);
+    pAV->ready = 1;
 }
 
 JNIEXPORT void JNICALL FF_FUNC(setGLFuncs0)
@@ -1197,6 +1200,9 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
   (JNIEnv *env, jobject instance, jlong ptr, jint texTarget, jint texFmt, jint texType)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    if( 0 == pAV->ready ) {
+        return 0;
+    }
 
     jint resPTS = INVALID_PTS;
     uint8_t * pkt_odata;
@@ -1556,12 +1562,18 @@ JNIEXPORT jint JNICALL FF_FUNC(play0)
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    if( 0 == pAV->ready ) {
+        return 0;
+    }
     return sp_av_read_play(pAV->pFormatCtx);
 }
 JNIEXPORT jint JNICALL FF_FUNC(pause0)
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    if( 0 == pAV->ready ) {
+        return 0;
+    }
     return sp_av_read_pause(pAV->pFormatCtx);
 }
 
@@ -1569,6 +1581,9 @@ JNIEXPORT jint JNICALL FF_FUNC(seek0)
   (JNIEnv *env, jobject instance, jlong ptr, jint pos1)
 {
     const FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    if( 0 == pAV->ready ) {
+        return 0;
+    }
     int64_t pos0, pts0;
     int streamID;
     AVRational time_base;
@@ -1627,6 +1642,9 @@ JNIEXPORT jint JNICALL FF_FUNC(getVideoPTS0)
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    if( 0 == pAV->ready ) {
+        return 0;
+    }
     return pAV->vPTS;
 }
 
@@ -1634,6 +1652,9 @@ JNIEXPORT jint JNICALL FF_FUNC(getAudioPTS0)
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    if( 0 == pAV->ready ) {
+        return 0;
+    }
     return pAV->aPTS;
 }
 

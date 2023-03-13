@@ -105,7 +105,7 @@ public class MediaButton extends TexSeqButton {
                         public void run() {
                             // loop for-ever ..
                             mPlayer.seek(0);
-                            mPlayer.play();
+                            mPlayer.resume();
                         } }.start();
                 } else if( 0 != ( GLMediaEventListener.EVENT_CHANGE_ERR & event_mask ) ) {
                     final StreamException se = mPlayer.getStreamException();
@@ -128,7 +128,7 @@ public class MediaButton extends TexSeqButton {
             try {
                 mPlayer.initGL(gl);
                 mPlayer.setAudioVolume( 0f );
-                mPlayer.play();
+                mPlayer.resume();
                 markStateDirty();
             } catch (final Exception e) {
                 e.printStackTrace();

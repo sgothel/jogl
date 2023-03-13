@@ -585,7 +585,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                     mPlayer.setAudioVolume( mPlayerButton.isToggleOn() ? 1f : 0f );
                 } } );
             buttons.add(mPlayerButton);
-            mPlayer.initStream(filmURL, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
+            mPlayer.playStream(filmURL, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
         }
         if( true ) {
             final ImageSequence imgSeq = new ImageSequence(texUnitImageButton, true);
@@ -943,6 +943,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         @Override
         public void mouseWheelMoved(final MouseEvent e) {
             final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
+            /**
             final boolean isOnscreen = PointerClass.Onscreen == e.getPointerType(0).getPointerClass();
             if( 0 == ( ~InputEvent.BUTTONALL_MASK & e.getModifiers() ) && !isOnscreen ) {
                 // offscreen vertical mouse wheel zoom
@@ -958,8 +959,14 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                     VectorUtil.scaleVec3(rot, rot, 2f);
                 }
                 shapeEvent.shape.getRotation().rotateByEuler( rot );
-            }
+            } */
+            final float[] rot = VectorUtil.scaleVec3(e.getRotation(), e.getRotation(), FloatUtil.PI / 180.0f);
+            // swap axis for onscreen rotation matching natural feel
+            final float tmp = rot[0]; rot[0] = rot[1]; rot[1] = tmp;
+            VectorUtil.scaleVec3(rot, rot, 2f);
+            shapeEvent.shape.getRotation().rotateByEuler( rot );
         }
+        /**
         @Override
         public void gestureDetected(final GestureEvent e) {
             final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
@@ -969,5 +976,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                 System.err.println("Rotate.Zoom.G: "+tz);
                 shapeEvent.shape.move(0f, 0f, tz);
             }
-        } };
+        } */
+    };
 }

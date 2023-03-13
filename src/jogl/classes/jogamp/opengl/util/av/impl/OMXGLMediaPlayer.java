@@ -86,7 +86,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected void destroyImpl(final GL gl) {
+    protected void destroyImpl() {
         if (moviePtr != 0) {
             _stop(moviePtr);
             _detachVideoRenderer(moviePtr);
@@ -137,7 +137,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    public synchronized boolean playImpl() {
+    public synchronized boolean resumeImpl() {
         if(0==moviePtr) {
             return false;
         }
@@ -153,6 +153,12 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         }
         _pause(moviePtr);
         return true;
+    }
+
+    @Override
+    protected final void stopImpl() {
+        destroyImpl();
+        initOMX();
     }
 
     /** @return time position after issuing the command */

@@ -297,16 +297,19 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(!available) {
             throw new RuntimeException("FFMPEGMediaPlayer not available");
         }
+        psm = new GLPixelStorageModes();
+        initSelf();
+    }
+    private void initSelf() {
         moviePtr = natives.createInstance0(this, DEBUG_NATIVE);
         if(0==moviePtr) {
             throw new GLException("Couldn't create FFMPEGInstance");
         }
-        psm = new GLPixelStorageModes();
         audioSink = null;
     }
 
     @Override
-    protected final void destroyImpl(final GL gl) {
+    protected final void destroyImpl() {
         if (moviePtr != 0) {
             natives.destroyInstance0(moviePtr);
             moviePtr = 0;
@@ -319,6 +322,12 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             audioSink = null;
             _audioSink.destroy();
         }
+    }
+
+    @Override
+    protected void stopImpl() {
+        destroyImpl();
+        initSelf();
     }
 
     public static final String dev_video_linux = "/dev/video";
@@ -394,9 +403,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
-        if(null == audioSink) {
-            throw new GLException("AudioSink null");
-        }
         final int audioQueueLimit;
         if( null != gl && STREAM_ID_NONE != getVID() ) {
             final GLContextImpl ctx = (GLContextImpl)gl.getContext();
@@ -419,8 +425,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initGL: p3 avChosen "+avChosenAudioFormat);
         }
 
-        if( STREAM_ID_NONE == getAID() ) {
-            audioSink.destroy();
+        if( STREAM_ID_NONE == getAID() || null == audioSink ) {
+            if(null != audioSink) {
+                audioSink.destroy();
+            }
             audioSink = AudioSinkFactory.createNull();
             audioSink.init(AudioSink.DefaultFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
         } else {
@@ -475,6 +483,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             }
             setTextureFormat(tif, tf);
             setTextureType(tt);
+            setIsGLOriented(false);
             if(DEBUG) {
                 System.err.println("initGL: p5: video "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane+
                                    ", tex "+texWidth+"x"+texHeight+", usesTexLookupShader "+usesTexLookupShader);
@@ -694,10 +703,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * Otherwise the call is delegated to it's super class.
      */
     @Override
-    public final String getTextureLookupFunctionName(final String desiredFuncName) throws IllegalStateException {
-        if( State.Uninitialized == getState() ) {
-            throw new IllegalStateException("Instance not initialized: "+this);
-        }
+    public final String getTextureLookupFunctionName(final String desiredFuncName) {
         if( usesTexLookupShader ) {
             if(null != desiredFuncName && desiredFuncName.length()>0) {
                 texLookupFuncName = desiredFuncName;
@@ -714,10 +720,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * e.g. YUV420P to RGB. Otherwise the call is delegated to it's super class.
      */
     @Override
-    public final String getTextureLookupFragmentShaderImpl() throws IllegalStateException {
-      if( State.Uninitialized == getState() ) {
-          throw new IllegalStateException("Instance not initialized: "+this);
-      }
+    public final String getTextureLookupFragmentShaderImpl() {
       if( !usesTexLookupShader ) {
           return super.getTextureLookupFragmentShaderImpl();
       }
@@ -825,7 +828,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    public final boolean playImpl() {
+    public final boolean resumeImpl() {
         if(0==moviePtr) {
             return false;
         }

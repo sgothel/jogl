@@ -127,7 +127,7 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
                     }
                 }
             });
-           demoMain.initStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
+           demoMain.playStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
        } catch (final IOException e) {
            e.printStackTrace();
        }

@@ -317,35 +317,5 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
                 actionText = String.format((Locale)null, "Pos %6.2f / %6.2f / %6.2f", tx[0], tx[1], tx[2]);
             }
         }
-
-        @Override
-        public void mouseWheelMoved(final MouseEvent e) {
-            final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
-            final boolean isOnscreen = PointerClass.Onscreen == e.getPointerType(0).getPointerClass();
-            if( 0 == ( ~InputEvent.BUTTONALL_MASK & e.getModifiers() ) && !isOnscreen ) {
-                // offscreen vertical mouse wheel zoom
-                final float tz = 100f*e.getRotation()[1]; // vertical: wheel
-                System.err.println("Rotate.Zoom.W: "+tz);
-                shapeEvent.shape.move(0f, 0f, tz);
-            } else if( isOnscreen || e.isControlDown() ) {
-                final float[] rot =  VectorUtil.scaleVec3(e.getRotation(), e.getRotation(), FloatUtil.PI / 180.0f);
-                if( isOnscreen ) {
-                    System.err.println("XXX: "+e);
-                    // swap axis for onscreen rotation matching natural feel
-                    final float tmp = rot[0]; rot[0] = rot[1]; rot[1] = tmp;
-                    VectorUtil.scaleVec3(rot, rot, 2f);
-                }
-                shapeEvent.shape.getRotation().rotateByEuler( rot );
-            }
-        }
-        @Override
-        public void gestureDetected(final GestureEvent e) {
-            final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
-            if( e instanceof PinchToZoomGesture.ZoomEvent ) {
-                final PinchToZoomGesture.ZoomEvent ze = (PinchToZoomGesture.ZoomEvent) e;
-                final float tz = ze.getDelta() * ze.getScale();
-                System.err.println("Rotate.Zoom.G: "+tz);
-                shapeEvent.shape.move(0f, 0f, tz);
-            }
-        } };
+    };
 }

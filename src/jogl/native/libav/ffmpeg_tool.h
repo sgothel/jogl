@@ -202,6 +202,8 @@ typedef struct {
     char             acodec[64];
     char             vcodec[64];
 
+    int32_t          ready;
+
 } FFMPEGToolBasicAV_t ;
 
 #endif /* _FFMPEG_TOOL_H */

@@ -158,7 +158,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                }
            }
        });
-       demoMain.initStream(streamLoc0, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
+       demoMain.playStream(streamLoc0, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
 
        if(mPlayerHUD) {
             final GLMediaPlayer mPlayerShared = mPlayerSharedHUD ? mPlayerMain : null;
@@ -205,7 +205,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                            }
                        }
                     });
-                    demoHUD.initStream(streamLoc1, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
+                    demoHUD.playStream(streamLoc1, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
 
                     glWindowHUD.setPosition(windowBounds.getX(), windowBounds.getY());
                     glWindowHUD.setSize(windowBounds.getWidth(), windowBounds.getHeight());

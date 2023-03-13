@@ -89,6 +89,7 @@ public class ALAudioSink implements AudioSink {
         /** Get this frame's OpenAL buffer name */
         public final int getALBuffer() { return alBuffer; }
 
+        @Override
         public String toString() {
             return "ALAudioFrame[pts " + pts + " ms, l " + duration + " ms, " + byteSize + " bytes, buffer "+alBuffer+"]";
         }

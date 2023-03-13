@@ -79,7 +79,7 @@ public class CrossFadePlayer
                             try {
                                 mp.initGL(null);
                                 if ( GLMediaPlayer.State.Paused == mp.getState() ) { // init OK
-                                    mp.play();
+                                    mp.resume();
                                 }
                             } catch (final Exception e) {
                                 e.printStackTrace();
@@ -103,7 +103,7 @@ public class CrossFadePlayer
                             public void run() {
                                 System.out.println("mp.setPlaySpeed(1f) returned: " + mp.setPlaySpeed(1f));
                                 mp.seek(0);
-                                mp.play();
+                                mp.resume();
                             }
                         }.start();
                     }
@@ -145,7 +145,7 @@ public class CrossFadePlayer
                             final Uri uri = Uri.valueOf(file);
                             System.out.println("State of player "+ i +": " + player[i].getState().toString());
                             System.out.println("...initializing stream "+ i +"...");
-                            player[i].initStream(uri, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
+                            player[i].playStream(uri, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
 
                         }
                     }

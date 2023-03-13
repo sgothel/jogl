@@ -121,7 +121,7 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
                }
            }
        });
-       demoMain.initStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
+       demoMain.playStream(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, 0);
 
        scrn.removeReference();
 

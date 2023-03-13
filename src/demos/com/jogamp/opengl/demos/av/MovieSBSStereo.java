@@ -218,7 +218,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                 if(GLMediaPlayer.State.Playing == mPlayer.getState()) {
                     mPlayer.pause(false);
                 } else {
-                    mPlayer.play();
+                    mPlayer.resume();
                 }
             }
         }
@@ -245,7 +245,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                 final int pts0 = GLMediaPlayer.STREAM_ID_NONE != mPlayer.getVID() ? mPlayer.getVideoPTS() : mPlayer.getAudioPTS();
                 mPlayer.seek(pts0 + (int) (mPlayer.getDuration() * dp));
             } else {
-                mPlayer.play();
+                mPlayer.resume();
                 rotate = 1;
                 zoom = zoom1;
             }
@@ -286,7 +286,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                 }
                 case KeyEvent.VK_SPACE: {
                     if(GLMediaPlayer.State.Paused == mPlayer.getState()) {
-                        mPlayer.play();
+                        mPlayer.resume();
                     } else {
                         mPlayer.pause(false);
                     }
@@ -329,7 +329,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
             }
         } };
 
-    /** user needs to issue {@link #initStream(URI, int, int, int)} afterwards. */
+    /** user needs to issue {@link #playStream(URI, int, int, int)} afterwards. */
     public MovieSBSStereo() throws IllegalStateException {
         mPlayerScaleOrig = false;
         mPlayer = GLMediaPlayerFactory.createDefault();
@@ -338,7 +338,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
     }
 
     public void initStream(final Uri streamLoc, final int vid, final int aid, final int textureCount) {
-        mPlayer.initStream(streamLoc, vid, aid, textureCount);
+        mPlayer.playStream(streamLoc, vid, aid, textureCount);
         System.out.println("pC.1b "+mPlayer);
     }
 
@@ -531,7 +531,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
             System.out.println(st);
         }
 
-        mPlayer.play();
+        mPlayer.resume();
         System.out.println("play.0 "+mPlayer);
         startTime = System.currentTimeMillis();
 
@@ -861,7 +861,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                             public void run() {
                                 mp.setPlaySpeed(1f);
                                 mp.seek(0);
-                                mp.play();
+                                mp.resume();
                             }
                         }.start();
                     }

@@ -133,6 +133,10 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     public void setFlipVerticalInGLOrientation(final boolean v) { flipVerticalInGLOrientation=v; }
     public final RegionRenderer getRenderer() { return renderer; }
     public final TextRegionUtil getTextRenderUtil() { return textRenderUtil; }
+    public int[] getVBAASampleCount() { return this.vbaaSampleCount; }
+
+    public PMVMatrix getMatrix() { return rs.getMatrix(); };
+    public boolean isMatrixShared() { return !exclusivePMVMatrix; };
 
     @Override
     public void init(final GLAutoDrawable drawable) {
@@ -276,9 +280,9 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             if( cacheRegion ) {
                 textRenderUtil.drawString3D(gl, renderer, font, text, null, vbaaSampleCount);
             } else if( null != region ) {
-                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, vbaaSampleCount, tempT1, tempT1);
+                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, vbaaSampleCount, tempT1, tempT2);
             } else {
-                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, vbaaSampleCount, tempT1, tempT1);
+                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, vbaaSampleCount, tempT1, tempT2);
             }
             renderer.enable(gl, false);
 
@@ -286,6 +290,49 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 pmvMatrix.glPopMatrix();
             }
             lastRow = row + newLineCount;
+        }
+    }
+    public void renderRegion(final GLAutoDrawable drawable,
+                                  final Font font, final float pixelSize,
+                                  final int column, final int row,
+                                  final float tx, final float ty, final float tz, final GLRegion region) {
+        if( null != renderer ) {
+            final GL2ES2 gl = drawable.getGL().getGL2ES2();
+
+            float dx = tx;
+            float dy;
+
+            if( !exclusivePMVMatrix )  {
+                dy = 1f-ty;
+            } else {
+                final int height = drawable.getSurfaceHeight();
+                dy = height-ty;
+            }
+            final float sxy = pixelScale * pixelSize;
+            final float lineHeight = font.getLineHeight();
+            dx += sxy * font.getAdvanceWidth('X') * column;
+            dy -= sxy * lineHeight * ( row + 1 );
+
+            final PMVMatrix pmvMatrix = rs.getMatrix();
+            pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            if( !exclusivePMVMatrix )  {
+                pmvMatrix.glPushMatrix();
+            } else {
+                pmvMatrix.glLoadIdentity();
+            }
+            pmvMatrix.glTranslatef(dx, dy, tz);
+            if( flipVerticalInGLOrientation && drawable.isGLOriented() ) {
+                pmvMatrix.glScalef(sxy, -1f*sxy, 1.0f);
+            } else {
+                pmvMatrix.glScalef(sxy, sxy, 1.0f);
+            }
+            renderer.enable(gl, true);
+            region.draw(gl, renderer, vbaaSampleCount);
+            renderer.enable(gl, false);
+
+            if( !exclusivePMVMatrix )  {
+                pmvMatrix.glPopMatrix();
+            }
         }
     }
 }

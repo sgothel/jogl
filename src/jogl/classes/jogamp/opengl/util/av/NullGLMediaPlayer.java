@@ -66,7 +66,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final boolean playImpl() {
+    protected final boolean resumeImpl() {
         pos_start = Platform.currentTimeMillis();
         return true;
     }
@@ -74,6 +74,10 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     @Override
     protected final boolean pauseImpl() {
         return true;
+    }
+
+    @Override
+    protected final void stopImpl() {
     }
 
     @Override
@@ -98,7 +102,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final void destroyImpl(final GL gl) {
+    protected final void destroyImpl() {
         if(null != texData) {
             texData.destroy();
             texData = null;

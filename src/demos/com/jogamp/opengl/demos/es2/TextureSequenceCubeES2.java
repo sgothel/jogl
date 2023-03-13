@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -45,7 +45,6 @@ import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.opengl.GLExtensions;
-import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -84,12 +83,15 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         int ly = 0;
         boolean first = false;
 
+        @Override
         public void mousePressed(final MouseEvent e) {
             first = true;
         }
+        @Override
         public void mouseMoved(final MouseEvent e) {
             first = false;
         }
+        @Override
         public void mouseDragged(final MouseEvent e) {
             int width, height;
             final Object source = e.getSource();
@@ -143,6 +145,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
                 ly = ny;
             }
         }
+        @Override
         public void mouseWheelMoved(final MouseEvent e) {
             // System.err.println("XXX "+e);
             if( !e.isShiftDown() ) {
@@ -206,9 +209,9 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
     GLArrayDataServer interleavedVBO, cubeIndicesVBO;
 
+    @Override
     public void init(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        System.err.println(JoglVersion.getGLInfo(gl, null));
         final TextureFrame frame = texSeq.getLastTexture();
         if( null == frame ) {
             return;
@@ -304,6 +307,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         System.out.println(st);
     }
 
+    @Override
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 

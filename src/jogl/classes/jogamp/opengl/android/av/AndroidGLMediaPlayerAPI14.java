@@ -136,7 +136,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final boolean playImpl() {
+    protected final boolean resumeImpl() {
         playStart = Platform.currentTimeMillis();
         if(null != mp) {
             try {
@@ -212,7 +212,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     protected final int getAudioPTSImpl() { return null != mp ? mp.getCurrentPosition() : 0; }
 
     @Override
-    protected final void destroyImpl(final GL gl) {
+    protected final void destroyImpl() {
         if(null != mp) {
             wakeUp(false);
             try {
@@ -239,12 +239,18 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         }
     }
 
+    @Override
+    protected void stopImpl() {
+        destroyImpl();
+    }
+
     public static class SurfaceTextureFrame extends TextureSequence.TextureFrame {
         public SurfaceTextureFrame(final Texture t, final SurfaceTexture stex) {
             super(t);
             this.surfaceTex = stex;
         }
 
+        @Override
         public String toString() {
             return "SurfaceTextureFrame[pts " + pts + " ms, l " + duration + " ms, texID "+ texture.getTextureObject() + ", " + surfaceTex + "]";
         }

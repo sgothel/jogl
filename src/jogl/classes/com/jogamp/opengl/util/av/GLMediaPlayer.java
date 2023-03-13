@@ -37,6 +37,7 @@ import com.jogamp.common.net.Uri;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.opengl.util.TimeFrameI;
+import com.jogamp.opengl.util.av.GLMediaPlayer.State;
 
 /**
  * GLMediaPlayer interface specifies a {@link TextureSequence} state machine
@@ -45,7 +46,7 @@ import com.jogamp.opengl.util.TimeFrameI;
  * Audio maybe supported and played back internally or via an {@link AudioSink} implementation.
  * </p>
  * <p>
- * Audio and video streams can be selected or muted via {@link #initStream(Uri, int, int, int)}
+ * Audio and video streams can be selected or muted via {@link #playStream(Uri, int, int, int)}
  * using the appropriate <a href="#streamIDs">stream id</a>'s.
  * </p>
  * <p>
@@ -56,7 +57,7 @@ import com.jogamp.opengl.util.TimeFrameI;
  * <p>
  * Most of the stream processing is performed on the decoding thread, a.k.a. <i>StreamWorker</i>:
  * <ul>
- *   <li>Stream initialization triggered by {@link #initStream(Uri, int, int, int) initStream(..)} - User gets notified whether the stream has been initialized or not via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long) attributesChanges(..)}.</li>
+ *   <li>Stream initialization triggered by {@link #playStream(Uri, int, int, int) playStream(..)} - User gets notified whether the stream has been initialized or not via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long) attributesChanges(..)}.</li>
  *   <li>Stream decoding - User gets notified of a new frame via {@link GLMediaEventListener#newFrameAvailable(GLMediaPlayer, com.jogamp.opengl.util.texture.TextureSequence.TextureFrame, long) newFrameAvailable(...)}.</li>
  *   <li>Caught <a href="#streamerror">exceptions on the decoding thread</a> are delivered as {@link StreamException}s.</li>
  * </ul>
@@ -82,16 +83,17 @@ import com.jogamp.opengl.util.TimeFrameI;
  * <p>
  * <table border="1">
  *   <tr><th>Action</th>                                               <th>{@link State} Before</th>                                        <th>{@link State} After</th>                                                                                                       <th>{@link GLMediaEventListener Event}</th></tr>
- *   <tr><td>{@link #initStream(Uri, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td>  <td>{@link GLMediaEventListener#EVENT_CHANGE_INIT EVENT_CHANGE_INIT} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
- *   <tr><td>{@link #initGL(GL)}</td>                                  <td>{@link State#Initialized Initialized}</td>                       <td>{@link State#Paused Paused}, , {@link State#Uninitialized Uninitialized}</td>                                                  <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
- *   <tr><td>{@link #play()}</td>                                      <td>{@link State#Paused Paused}</td>                                 <td>{@link State#Playing Playing}</td>                                                                                             <td>{@link GLMediaEventListener#EVENT_CHANGE_PLAY EVENT_CHANGE_PLAY}</td></tr>
+ *   <tr><td>{@link #playStream(Uri, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td>  <td>{@link GLMediaEventListener#EVENT_CHANGE_INIT EVENT_CHANGE_INIT} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
+ *   <tr><td>{@link #initGL(GL)}</td>                                  <td>{@link State#Initialized Initialized}, {@link State#Uninitialized Uninitialized} </td>    <td>{@link State#Playing Playing}, {@link State#Uninitialized Uninitialized}</td>                         <td>{@link GLMediaEventListener#EVENT_CHANGE_PLAY EVENT_CHANGE_PLAY} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
  *   <tr><td>{@link #pause(boolean)}</td>                              <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
+ *   <tr><td>{@link #resume()}</td>                                    <td>{@link State#Paused Paused}</td>                                 <td>{@link State#Playing Playing}</td>                                                                                             <td>{@link GLMediaEventListener#EVENT_CHANGE_PLAY EVENT_CHANGE_PLAY}</td></tr>
+ *   <tr><td>{@link #stop()}</td>                                      <td>{@link State#Playing Playing}, {@link State#Paused Paused}</td>  <td>{@link State#Uninitialized Uninitialized}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
  *   <tr><td>{@link #seek(int)}</td>                                   <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>  <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>                                                                <td>none</td></tr>
- *   <tr><td>{@link #getNextTexture(GL)}</td>                          <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>  <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>                                                                <td>none</td></tr>
- *   <tr><td>{@link #getLastTexture()}</td>                            <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>  <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>                                                                <td>none</td></tr>
+ *   <tr><td>{@link #getNextTexture(GL)}</td>                          <td><i>any</i></td>                                                  <td><i>same</i></td>        <td>none</td></tr>
+ *   <tr><td>{@link #getLastTexture()}</td>                            <td><i>any</i></td>                                                  <td><i>same</i></td>        <td>none</td></tr>
  *   <tr><td>{@link TextureFrame#END_OF_STREAM_PTS END_OF_STREAM}</td> <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_EOS EVENT_CHANGE_EOS} + {@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
- *   <tr><td>{@link StreamException}</td>                              <td>ANY</td>                                                         <td>{@link State#Paused Paused}, {@link State#Uninitialized Uninitialized}</td>                                                    <td>{@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + ( {@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE} or {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
- *   <tr><td>{@link #destroy(GL)}</td>                                 <td>ANY</td>                                                         <td>{@link State#Uninitialized Uninitialized}</td>                                                                                 <td>{@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT}</td></tr>
+ *   <tr><td>{@link StreamException}</td>                              <td><i>any</i></td>                                                  <td>{@link State#Paused Paused}, {@link State#Uninitialized Uninitialized}</td>                                                    <td>{@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + ( {@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE} or {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
+ *   <tr><td>{@link #destroy(GL)}</td>                                 <td><i>any</i></td>                                                  <td>{@link State#Uninitialized Uninitialized}</td>                                                                                 <td>{@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT}</td></tr>
  * </table>
  * </p>
  *
@@ -188,6 +190,7 @@ import com.jogamp.opengl.util.TimeFrameI;
  */
 public interface GLMediaPlayer extends TextureSequence {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
+    public static final boolean DEBUG_AVSYNC = Debug.debug("GLMediaPlayer.AVSync");
     public static final boolean DEBUG_NATIVE = Debug.debug("GLMediaPlayer.Native");
 
     /** Default texture count, value {@value}. */
@@ -372,7 +375,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * @throws IllegalArgumentException if arguments are invalid
      * @since 2.3.0
      */
-    public void initStream(Uri streamLoc, int vid, int aid, int textureCount) throws IllegalStateException, IllegalArgumentException;
+    public void playStream(Uri streamLoc, int vid, int aid, int textureCount) throws IllegalStateException, IllegalArgumentException;
 
     /**
      * Returns the {@link StreamException} caught in the decoder thread, or <code>null</code> if none occured.
@@ -389,7 +392,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * <p>
      * <a href="#lifecycle">Lifecycle</a>: {@link State#Initialized} -> {@link State#Paused} or {@link State#Initialized}
      * </p>
-     * Argument <code>gl</code> is ignored if video is muted, see {@link #initStream(Uri, int, int, int)}.
+     * Argument <code>gl</code> is ignored if video is muted, see {@link #playStream(Uri, int, int, int)}.
      *
      * @param gl current GL object. Maybe <code>null</code>, for audio only.
      * @throws IllegalStateException if not invoked in {@link State#Initialized}.
@@ -401,7 +404,7 @@ public interface GLMediaPlayer extends TextureSequence {
     /**
      * If implementation uses a {@link AudioSink}, it's instance will be returned.
      * <p>
-     * The {@link AudioSink} instance is available after {@link #initStream(Uri, int, int, int)},
+     * The {@link AudioSink} instance is available after {@link #playStream(Uri, int, int, int)},
      * if used by implementation.
      * </p>
      */
@@ -414,6 +417,14 @@ public interface GLMediaPlayer extends TextureSequence {
      * </p>
      */
     public State destroy(GL gl);
+
+    /**
+     * Stops streaming and releases the GL, stream and other resources, but keeps {@link #attachObject(String, Object) attached user objects}.
+     * <p>
+     * <a href="#lifecycle">Lifecycle</a>: <code>ANY</code> -> {@link State#Uninitialized}
+     * </p>
+     */
+    public State stop();
 
     /**
      * Sets the playback speed.
@@ -452,7 +463,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * <a href="#lifecycle">Lifecycle</a>: {@link State#Paused} -> {@link State#Playing}
      * </p>
      */
-    public State play();
+    public State resume();
 
     /**
      * Pauses the <i>StreamWorker</i> decoding thread.
@@ -460,7 +471,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * <a href="#lifecycle">Lifecycle</a>: {@link State#Playing} -> {@link State#Paused}
      * </p>
      * <p>
-     * If a <i>new</i> frame is desired after the next {@link #play()} call,
+     * If a <i>new</i> frame is desired after the next {@link #resume()} call,
      * e.g. to make a snapshot of a camera input stream,
      * <code>flush</code> shall be set to <code>true</code>.
      * </p>
@@ -498,13 +509,13 @@ public interface GLMediaPlayer extends TextureSequence {
     public int getAID();
 
     /**
-     * @return the current decoded frame count since {@link #play()} and {@link #seek(int)}
+     * @return the current decoded frame count since {@link #resume()} and {@link #seek(int)}
      *         as increased by {@link #getNextTexture(GL)} or the decoding thread.
      */
     public int getDecodedFrameCount();
 
     /**
-     * @return the current presented frame count since {@link #play()} and {@link #seek(int)}
+     * @return the current presented frame count since {@link #resume()} and {@link #seek(int)}
      *         as increased by {@link #getNextTexture(GL)} for new frames.
      */
     public int getPresentedFrameCount();
@@ -547,7 +558,7 @@ public interface GLMediaPlayer extends TextureSequence {
     public TextureSequence.TextureFrame getNextTexture(GL gl) throws IllegalStateException;
 
     /**
-     * Return the stream location, as set by {@link #initStream(Uri, int, int, int)}.
+     * Return the stream location, as set by {@link #playStream(Uri, int, int, int)}.
      * @since 2.3.0
      */
     public Uri getUri();
