@@ -47,13 +47,13 @@ import com.jogamp.graph.ui.gl.Shape;
  */
 public class Label extends Shape {
     protected Font font;
-    protected float pixelSize;
+    protected float pixelScale;
     protected String text;
 
-    public Label(final Factory<? extends Vertex> factory, final int renderModes, final Font font, final float pixelSize, final String text) {
+    public Label(final Factory<? extends Vertex> factory, final int renderModes, final Font font, final float pixelScale, final String text) {
         super(factory, renderModes);
         this.font = font;
-        this.pixelSize = pixelSize;
+        this.pixelScale = pixelScale;
         this.text = text;
     }
 
@@ -93,16 +93,17 @@ public class Label extends Shape {
         }
     }
 
-    public float getPixelSize() {
-        return pixelSize;
+    public float getPixelScale() {
+        return pixelScale;
     }
 
+    /** Returns {@link Font#getLineHeight()} * {@link #getPixelScale()}. */
     public float getLineHeight() {
-        return pixelSize * font.getLineHeight();
+        return pixelScale * font.getLineHeight();
     }
 
     public void setPixelSize(final float pixelSize) {
-        this.pixelSize = pixelSize;
+        this.pixelScale = pixelSize;
         markShapeDirty();
     }
 
@@ -129,7 +130,7 @@ public class Label extends Shape {
 
     @Override
     protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
-        tempT1.setToScale(pixelSize, pixelSize);
+        tempT1.setToScale(pixelScale, pixelScale);
         final AABBox fbox = font.processString(shapeVisitor, tempT1, text, tempT2, tempT3);
         final float[] ctr = box.getCenter();
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
@@ -139,6 +140,6 @@ public class Label extends Shape {
     @Override
     public String getSubString() {
         final int m = Math.min(text.length(), 8);
-        return super.getSubString()+", psize " + pixelSize + ", '" + text.substring(0, m)+"'";
+        return super.getSubString()+", pscale " + pixelScale + ", '" + text.substring(0, m)+"'";
     }
 }
