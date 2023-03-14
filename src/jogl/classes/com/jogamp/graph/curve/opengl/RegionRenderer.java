@@ -431,16 +431,19 @@ public class RegionRenderer {
      */
     public final boolean useShaderProgram(final GL2ES2 gl, final int renderModes,
                                           final boolean pass1, final int quality, final int sampleCount, final TextureSequence colorTexSeq) {
-        final int colorTexSeqHash;
-        if( null != colorTexSeq ) {
-            colorTexSeqHash = colorTexSeq.getTextureFragmentShaderHashCode();
-        } else {
-            colorTexSeqHash = 0;
-        }
         final ShaderModeSelector1 sel1 = pass1 ? ShaderModeSelector1.selectPass1(renderModes) :
                                                  ShaderModeSelector1.selectPass2(renderModes, quality, sampleCount);
         final boolean isTwoPass = Region.isTwoPass( renderModes );
         final boolean isPass1ColorTexSeq = pass1 && null != colorTexSeq;
+        final int colorTexSeqHash;
+        final String texLookupFuncName;
+        if( isPass1ColorTexSeq ) {
+            texLookupFuncName = colorTexSeq.setTextureLookupFunctionName(gcuTexture2D);
+            colorTexSeqHash = colorTexSeq.getTextureFragmentShaderHashCode();
+        } else {
+            texLookupFuncName = null;
+            colorTexSeqHash = 0;
+        }
         final int shaderKey = ( (colorTexSeqHash << 5) - colorTexSeqHash ) +
                               ( sel1.ordinal() | ( HIGH_MASK & renderModes ) | ( isTwoPass ? TWO_PASS_BIT : 0 ) );
 
@@ -534,13 +537,9 @@ public class RegionRenderer {
             throw new RuntimeException("Failed to read: includes");
         }
 
-        final String texLookupFuncName;
         if( isPass1ColorTexSeq ) {
             posFp = rsFp.insertShaderSource(0, posFp, "uniform "+colorTexSeq.getTextureSampler2DType()+" "+UniformNames.gcu_ColorTexUnit+";\n");
-            texLookupFuncName = colorTexSeq.getTextureLookupFunctionName(gcuTexture2D);
             posFp = rsFp.insertShaderSource(0, posFp, colorTexSeq.getTextureLookupFragmentShaderImpl());
-        } else {
-            texLookupFuncName = null;
         }
 
         posFp = rsFp.insertShaderSource(0, posFp, GLSL_MAIN_BEGIN);
