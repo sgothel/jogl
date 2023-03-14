@@ -69,6 +69,8 @@ import com.jogamp.opengl.util.PMVMatrix;
 public class Scene implements GLEventListener {
     /** Default scene distance on z-axis to projection is -1/5f. */
     public static final float DEFAULT_SCENE_DIST = -1/5f;
+    /** Default projection angle in degrees value is 45.0. */
+    public static final float DEFAULT_ANGLE = 45.0f;
     /** Default projection z-near value is 0.1. */
     public static final float DEFAULT_ZNEAR = 0.1f;
     /** Default projection z-far value is 7000. */
@@ -79,14 +81,15 @@ public class Scene implements GLEventListener {
     private final ArrayList<Shape> shapes = new ArrayList<Shape>();
 
     private final float sceneDist, zNear, zFar;
-
+    private final float projAngle = DEFAULT_ANGLE;
     private final RegionRenderer renderer;
 
     private final int[] sampleCount = new int[1];
 
-    /** Describing the bounding box in shape's object model-coordinates of the near-plane parallel at its scene-distance. */
-    private final AABBox scenePlane = new AABBox(0f, 0f, 0f, 0f, 0f, 0f);
-    private final int[] viewport = new int[] { 0, 0, 0, 0 };
+    /** Describing the bounding box in shape's object model-coordinates of the near-plane parallel at its scene-distance, pre {@link #translate(PMVMatrix)} to origin. */
+    private final AABBox planeBoxCtr = new AABBox(0f, 0f, 0f, 0f, 0f, 0f);
+    /** Describing the bounding box in shape's object model-coordinates of the near-plane parallel at its scene-distance, post {@link #translate(PMVMatrix)} */
+    private final AABBox planBoxBL = new AABBox(0f, 0f, 0f, 0f, 0f, 0f);
 
     private volatile Shape activeShape = null;
 
@@ -147,6 +150,9 @@ public class Scene implements GLEventListener {
 
     /** Return z-axis distance of scene to projection, see {@link #DEFAULT_SCENE_DIST}. */
     public float getProjSceneDist() { return sceneDist; }
+
+    /** Return projection angle in degrees, see {@link #DEFAULT_ANGLE}. */
+    public float getProjAngle() { return projAngle; }
 
     /** Return projection z-near value, see {@link #DEFAULT_ZNEAR}. */
     public float getProjZNear() { return zNear; }
@@ -334,7 +340,7 @@ public class Scene implements GLEventListener {
             if( uiShape.isEnabled() ) {
                 pmv.glPushMatrix();
                 uiShape.setTransform(pmv);
-                final boolean ok = pmv.gluUnProjectRay(glWinX, glWinY, winZ0, winZ1, viewport, 0, ray);
+                final boolean ok = pmv.gluUnProjectRay(glWinX, glWinY, winZ0, winZ1, getViewport(), 0, ray);
                 pmv.glPopMatrix();
                 if( ok ) {
                     final AABBox sbox = uiShape.getBounds();
@@ -448,7 +454,7 @@ public class Scene implements GLEventListener {
             final float ratio = (float)width/(float)height;
             pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmv.glLoadIdentity();
-            pmv.gluPerspective(45.0f, ratio, zNear, zFar);
+            pmv.gluPerspective(projAngle, ratio, zNear, zFar);
         }
         {
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
@@ -469,97 +475,157 @@ public class Scene implements GLEventListener {
     }
 
     /**
-     * Reshape scene using perspective 45 degrees w/ given zNear and zFar.
+     * Reshape scene {@link #setupMatrix(PMVMatrix, int, int)}.
+     * <p>
+     * Projection will be setup using perspective {@link #getProjAngle()} with {@link #getProjZNear()} and {@link #getProjZFar()}.
+     * </p>
      * <p>
      * Modelview is translated to given {@link #getProjSceneDist()}
-     * and and origin 0/0 becomes the lower-left corner.
+     * and and origin 0/0 becomes the bottom-left corner.
      * </p>
-     * @see #getScenePlane()
+     * @see #setupMatrix(PMVMatrix, int, int)
+     * @see #getBounds()
+     * @see #getBoundsCenter()
      */
     @SuppressWarnings("unused")
     @Override
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-        viewport[0] = x;
-        viewport[1] = y;
-        viewport[2] = width;
-        viewport[3] = height;
+        renderer.reshapeNotify(x, y, width, height);
 
         final PMVMatrix pmv = renderer.getMatrix();
-        renderer.reshapePerspective(45.0f, width, height, zNear, zFar);
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmv.glLoadIdentity();
-        pmv.glTranslatef(0f, 0f, sceneDist);
+        setupMatrix(pmv, width, height);
         {
             final float orthoDist = -sceneDist;
             final float[] obj00Coord = new float[3];
             final float[] obj11Coord = new float[3];
             final float[] winZ = new float[1];
 
-            winToObjCoord(pmv, viewport, zNear, zFar, 0f, 0f, orthoDist, winZ, obj00Coord);
-            winToObjCoord(pmv, viewport, zNear, zFar, width, height, orthoDist, winZ, obj11Coord);
+            winToObjCoord(pmv, getViewport(), zNear, zFar, 0f, 0f, orthoDist, winZ, obj00Coord);
+            winToObjCoord(pmv, getViewport(), zNear, zFar, width, height, orthoDist, winZ, obj11Coord);
 
-            pmv.glTranslatef(obj00Coord[0], obj00Coord[1], 0f); // lower-left corder origin 0/0
+            pmv.glTranslatef(obj00Coord[0], obj00Coord[1], 0f); // bottom-left corder origin 0/0
 
-            if( true ) {
-                scenePlane.setSize( obj00Coord[0],  // lx
-                                    obj00Coord[1],  // ly
-                                    obj00Coord[2],  // lz
-                                    obj11Coord[0],  // hx
-                                    obj11Coord[1],  // hy
-                                    obj11Coord[2] );// hz
-            } else {
-                scenePlane.setSize( 0f,  // lx
-                                    0f,  // ly
-                                    0f,  // lz
-                                    obj11Coord[0] - obj00Coord[0],  // hx
-                                    obj11Coord[1] - obj00Coord[1],  // hy
-                                    obj11Coord[2] - obj00Coord[2]); // hz
-            }
+            planeBoxCtr.setSize( obj00Coord[0],  // lx
+                                 obj00Coord[1],  // ly
+                                 obj00Coord[2],  // lz
+                                 obj11Coord[0],  // hx
+                                 obj11Coord[1],  // hy
+                                 obj11Coord[2] );// hz
+
+            planBoxBL.setSize(   0,                      // lx
+                                 0,                      // ly
+                                 0,                      // lz
+                                 planeBoxCtr.getWidth(), // hx
+                                 planeBoxCtr.getHeight(),// hy
+                                 planeBoxCtr.getDepth());// hz
 
             if( true || DEBUG ) {
                 System.err.printf("Reshape: zNear %f,  zFar %f, sceneDist %f%n", zNear, zFar, sceneDist);
                 System.err.printf("Reshape: Frustum: %s%n", pmv.glGetFrustum());
                 System.err.printf("Reshape: mapped.00: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", 0f, 0f, orthoDist, winZ[0], obj00Coord[0], obj00Coord[1], obj00Coord[2]);
                 System.err.printf("Reshape: mapped.11: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", (float)width, (float)height, orthoDist, winZ[0], obj11Coord[0], obj11Coord[1], obj11Coord[2]);
-                System.err.printf("Reshape: scenePlaneBox: %s%n", scenePlane);
+                System.err.printf("Reshape: scenePlaneBox: %s%n", planeBoxCtr);
             }
         }
 
         if( false ) {
             final float[] sceneScale = new float[3];
             final float[] scenePlaneOrigin = new float[3];
-            scenePlaneOrigin[0] = scenePlane.getMinX() * sceneDist;
-            scenePlaneOrigin[1] = scenePlane.getMinY() * sceneDist;
-            scenePlaneOrigin[2] = scenePlane.getMinZ() * sceneDist;
-            sceneScale[0] = ( scenePlane.getWidth() * sceneDist ) / width;
-            sceneScale[1] = ( scenePlane.getHeight() * sceneDist  ) / height;
+            scenePlaneOrigin[0] = planeBoxCtr.getMinX() * sceneDist;
+            scenePlaneOrigin[1] = planeBoxCtr.getMinY() * sceneDist;
+            scenePlaneOrigin[2] = planeBoxCtr.getMinZ() * sceneDist;
+            sceneScale[0] = ( planeBoxCtr.getWidth() * sceneDist ) / width;
+            sceneScale[1] = ( planeBoxCtr.getHeight() * sceneDist  ) / height;
             sceneScale[2] = 1f;
             System.err.printf("Scene Origin [%f, %f, %f]%n", scenePlaneOrigin[0], scenePlaneOrigin[1], scenePlaneOrigin[2]);
             System.err.printf("Scene Scale  %f * [%f x %f] / [%d x %d] = [%f, %f, %f]%n",
-                    sceneDist, scenePlane.getWidth(), scenePlane.getHeight(),
+                    sceneDist, planeBoxCtr.getWidth(), planeBoxCtr.getHeight(),
                     width, height,
                     sceneScale[0], sceneScale[1], sceneScale[2]);
         }
     }
 
-    /** Translate modelview to the {@link #getProjSceneDist()}, a convenience method. */
+    /** Copies the current int[4] viewport in given target and returns it for chaining. It is set after initial {@link #reshape(GLAutoDrawable, int, int, int, int)}. */
+    public final int[/*4*/] getViewport(final int[/*4*/] target) { return renderer.getViewport(target); }
+
+    /** Borrows the current int[4] viewport w/o copying. It is set after initial {@link #reshape(GLAutoDrawable, int, int, int, int)}. */
+    public final int[/*4*/] getViewport() { return renderer.getViewport(); }
+
+    /** Returns the {@link #getViewport()}'s width, set after initial {@link #reshape(GLAutoDrawable, int, int, int, int)}. */
+    public int getWidth() { return renderer.getWidth(); }
+    /** Returns the {@link #getViewport()}'s height, set after initial {@link #reshape(GLAutoDrawable, int, int, int, int)}. */
+    public int getHeight() { return renderer.getHeight(); }
+
+    /** Translate current matrix to {@link #getBounds()}'s origin (minx/miny) and {@link #getProjSceneDist()}, a convenience method. */
     public void translate(final PMVMatrix pmv) {
-        // pmv.glTranslatef(0f, 0f, sceneDist);
-        pmv.glTranslatef(scenePlane.getMinX(), scenePlane.getMinY(), 0f);
+        pmv.glTranslatef(planeBoxCtr.getMinX(), planeBoxCtr.getMinY(), sceneDist);
+    }
+
+    /**
+     * Setup {@link PMVMatrix} projection and modelview using explicit surface width and height before {@link #reshape(GLAutoDrawable, int, int, int, int)} happened, a convenience method.
+     * <p>
+     * Projection will be setup using perspective {@link #getProjAngle()} with {@link #getProjZNear()} and {@link #getProjZFar()}.
+     * </p>
+     * <p>
+     * Modelview is translated to given {@link #getProjSceneDist()}
+     * and and origin 0/0 becomes the bottom-left corner.
+     * </p>
+     * @param pmv the {@link PMVMatrix} to setup
+     * @param surface_width explicit surface width
+     * @param surface_height explicit surface height
+     */
+    public void setupMatrix(final PMVMatrix pmv, final int surface_width, final int surface_height) {
+        final float ratio = (float)surface_width/(float)surface_height;
+        pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+        pmv.glLoadIdentity();
+        pmv.gluPerspective(projAngle, ratio, zNear, zFar);
+
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
+        translate(pmv);
+    }
+
+    /**
+     * Setup {@link PMVMatrix} projection and modelview using implicit {@link #getViewport()} surface dimension after {@link #reshape(GLAutoDrawable, int, int, int, int)} happened, a convenience method.
+     * <p>
+     * Projection will be setup using perspective {@link #getProjAngle()} with {@link #getProjZNear()} and {@link #getProjZFar()}.
+     * </p>
+     * <p>
+     * Modelview is translated to given {@link #getProjSceneDist()}
+     * and and origin 0/0 becomes the bottom-left corner.
+     * </p>
+     * @param pmv the {@link PMVMatrix} to setup
+     * @param surface_width explicit surface width
+     * @param surface_height explicit surface height
+     */
+    public void setup(final PMVMatrix pmv) {
+        setupMatrix(pmv, getWidth(), getHeight());
     }
 
     /**
      * Describing the scene's object model-dimensions of the near-plane parallel at its scene-distance {@link #getProjSceneDist()}
-     * having the origin 0/0 on the lower-left corner.
+     * having the origin 0/0 on the bottom-left corner.
      * <p>
-     * The value is evaluated at {@link #reshape(GLAutoDrawable, int, int, int, int)} before translating to the lower-left origin 0/0,
+     * The value is evaluated at {@link #reshape(GLAutoDrawable, int, int, int, int)}.
+     * </p>
+     * <p>
+     * {@link AABBox#getWidth()} and {@link AABBox#getHeight()} define scene's dimension covered by surface size.
+     * </p>
+     */
+    public AABBox getBounds() { return planBoxBL; }
+
+    /**
+     * Describing the scene's object model-dimensions of the near-plane parallel at its scene-distance {@link #getProjSceneDist()}
+     * having the origin 0/0 in the center of the screen.
+     * <p>
+     * The value is evaluated at {@link #reshape(GLAutoDrawable, int, int, int, int)} before translating to the bottom-left origin 0/0,
      * i.e. its minimum values are negative of half dimension.
      * </p>
      * <p>
      * {@link AABBox#getWidth()} and {@link AABBox#getHeight()} define scene's dimension covered by surface size.
      * </p>
      */
-    public AABBox getScenePlane() { return scenePlane; }
+    public AABBox getBoundsCenter() { return planeBoxCtr; }
 
     public final Shape getActiveShape() {
         return activeShape;
@@ -582,7 +648,7 @@ public class Scene implements GLEventListener {
                     final MouseEvent e = (MouseEvent) orig;
                     // flip to GL window coordinates
                     final int glWinX = e.getX();
-                    final int glWinY = viewport[3] - e.getY() - 1;
+                    final int glWinY = getHeight() - e.getY() - 1;
                     final float[] objPos = new float[3];
                     final Shape shape = activeShape;
                     winToObjCoord(shape, glWinX, glWinY, objPos, new Runnable() {
@@ -659,7 +725,7 @@ public class Scene implements GLEventListener {
             }
             // flip to GL window coordinates, origin bottom-left
             final int glWinX = e.getX();
-            final int glWinY = viewport[3] - e.getY() - 1;
+            final int glWinY = getHeight() - e.getY() - 1;
             dispatchMouseEvent(e, glWinX, glWinY);
         }
 
@@ -667,7 +733,7 @@ public class Scene implements GLEventListener {
         public void mouseReleased(final MouseEvent e) {
             // flip to GL window coordinates, origin bottom-left
             final int glWinX = e.getX();
-            final int glWinY = viewport[3] - e.getY() - 1;
+            final int glWinY = getHeight() - e.getY() - 1;
             dispatchMouseEvent(e, glWinX, glWinY);
             if( 1 == e.getPointerCount() ) {
                 // Release active shape: last pointer has been lifted!
@@ -680,7 +746,7 @@ public class Scene implements GLEventListener {
         public void mouseClicked(final MouseEvent e) {
             // flip to GL window coordinates
             final int glWinX = e.getX();
-            final int glWinY = viewport[3] - e.getY() - 1;
+            final int glWinY = getHeight() - e.getY() - 1;
             // activeId should have been released by mouseRelease() already!
             dispatchMouseEventPickShape(e, glWinX, glWinY, false);
             // Release active shape: last pointer has been lifted!
@@ -698,7 +764,7 @@ public class Scene implements GLEventListener {
                 // dragged .. delegate to active shape!
                 // flip to GL window coordinates, origin bottom-left
                 final int glWinX = lx;
-                final int glWinY = viewport[3] - ly - 1;
+                final int glWinY = getHeight() - ly - 1;
                 dispatchMouseEventForShape(activeShape, e, glWinX, glWinY);
             }
         }
@@ -707,7 +773,7 @@ public class Scene implements GLEventListener {
         public void mouseWheelMoved(final MouseEvent e) {
             // flip to GL window coordinates
             final int glWinX = lx;
-            final int glWinY = viewport[3] - ly - 1;
+            final int glWinY = getHeight() - ly - 1;
             dispatchMouseEventPickShape(e, glWinX, glWinY, true);
         }
 

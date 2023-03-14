@@ -632,8 +632,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         strings[i++] = "- Mouse Scroll Over Object\n"+
                        "   - General\n"+
-                       "     - Z Translation\n"+
-                       "     - Ctrl: Y-Rotation (Shift: X-Rotation)\n"+
+                       "     - X-Rotation\n"+
+                       "     - Shift: Y-Rotation\n"+
                        "   - Tilt, Space and Corner\n"+
                        "     - Their respective action via wheel\n"+
                        "       (shift = other value)\n"+
@@ -641,6 +641,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                        "- Mouse Drag On Object\n"+
                        "   - Click on Object and drag mouse\n"+
                        "   - Current postion in status line at bottom\n"+
+                       "   - Resize when click on 1/4 bottom-left or bottom-right corner.\n"+
                        "\n"+
                        "- Tilt Button Rotate Whole Button Group";
 
@@ -766,16 +767,16 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         //
         // Layout all shapes: Relational move regarding object coordinates
         //
-        System.err.println("Reshape: Scene Plane.0 "+scene.getScenePlane());
-        final float lastWidth = scene.getScenePlane().getWidth();
-        final float lastHeight = scene.getScenePlane().getHeight();
+        System.err.println("Reshape: Scene Plane.0 "+scene.getBounds());
+        final float lastWidth = scene.getBounds().getWidth();
+        final float lastHeight = scene.getBounds().getHeight();
         System.err.println("Reshape: Scene Plane.0 "+lastWidth+" x "+lastHeight);
 
         scene.reshape(drawable, x, y, width, height);
-        System.err.println("Reshape: Scene Plane.1 "+scene.getScenePlane());
+        System.err.println("Reshape: Scene Plane.1 "+scene.getBounds());
 
-        final float dw = scene.getScenePlane().getWidth() - lastWidth;
-        final float dh = scene.getScenePlane().getHeight() - lastHeight;
+        final float dw = scene.getBounds().getWidth() - lastWidth;
+        final float dh = scene.getBounds().getHeight() - lastHeight;
 
         final float dz = 0f;
         final float dyTop = dh * relTop;
@@ -795,8 +796,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             // System.err.println("Button["+i+"].RM: "+buttons.get(i));
         }
 
-        final float dxMiddleAbs = scene.getScenePlane().getWidth() * relMiddle;
-        final float dyTopLabelAbs = scene.getScenePlane().getHeight() - 2f*jogampLabel.getLineHeight();
+        final float dxMiddleAbs = scene.getBounds().getWidth() * relMiddle;
+        final float dyTopLabelAbs = scene.getBounds().getHeight() - 2f*jogampLabel.getLineHeight();
         jogampLabel.setPosition(dxMiddleAbs, dyTopLabelAbs, dz);
         truePtSizeLabel.setPosition(dxMiddleAbs, dyTopLabelAbs, dz);
         truePtSizeLabel.setPosition(dxMiddleAbs, dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight(), 0f);
@@ -839,9 +840,9 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         // System.err.println("GPUUISceneGLListener0A: display");
 
         if(null == labels[currentText]) {
-            final float pixelSizeFixed = fontSizeFixedPVV * scene.getScenePlane().getHeight();
-            final float dyTop = scene.getScenePlane().getHeight() - 2f*jogampLabel.getLineHeight();
-            final float dxMiddle = scene.getScenePlane().getWidth() * relMiddle;
+            final float pixelSizeFixed = fontSizeFixedPVV * scene.getBounds().getHeight();
+            final float dyTop = scene.getBounds().getHeight() - 2f*jogampLabel.getLineHeight();
+            final float dxMiddle = scene.getBounds().getWidth() * relMiddle;
             labels[currentText] = new Label(scene.getVertexFactory(), renderModes, font, pixelSizeFixed, strings[currentText]);
             labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
             labels[currentText].setEnabled(enableOthers);

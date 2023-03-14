@@ -250,9 +250,7 @@ public class UISceneDemo00 implements GLEventListener {
 
             final RegionRenderer renderer = scene.getRenderer();
             final PMVMatrix pmv = new PMVMatrix();
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
-            scene.translate(pmv); // pmv.glTranslatef(0f, 0f, sceneDist);
+            scene.setupMatrix(pmv, 0, 0);
 
             // flip to GL window coordinates, origin bottom-left
             final int[] viewport = renderer.getViewport(new int[4]);
@@ -308,11 +306,11 @@ public class UISceneDemo00 implements GLEventListener {
         // shape.move(0f, 0f, 0f);
         System.err.println("Reshape: Shape "+shape);
 
-        System.err.println("Reshape: Scene Plane.R "+scene.getScenePlane());
+        System.err.println("Reshape: Scene Plane.R "+scene.getBounds());
 
         scene.reshape(drawable, xstart, ystart, width, height);
 
-        System.err.println("Reshape: Scene Plane.R "+scene.getScenePlane());
+        System.err.println("Reshape: Scene Plane.R "+scene.getBounds());
 
         if( drawable instanceof Window ) {
             ((Window)drawable).setTitle(UISceneDemo00.class.getSimpleName()+": "+drawable.getSurfaceWidth()+" x "+drawable.getSurfaceHeight());

@@ -632,7 +632,7 @@ public abstract class Shape {
      * {@link Shape} event info for propagated {@link NEWTEvent}s
      * containing reference of {@link #shape the intended shape} as well as
      * the {@link #objPos rotated relative position} to this shape.
-     * The latter is normalized to lower-left zero origin, allowing easier usage.
+     * The latter is normalized to bottom-left zero origin, allowing easier usage.
      */
     public static class EventInfo {
         /** The associated {@link Shape} for this event */

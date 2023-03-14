@@ -109,22 +109,25 @@ public class CDTriangulator2D implements Triangulator {
             int size = loop.computeLoopSize();
             while(!loop.isSimplex()){
                 final Triangle tri;
+                final boolean delauny;
                 if(numTries > size){
                     tri = loop.cut(false);
+                    delauny = false;
                 }
                 else{
                     tri = loop.cut(true);
+                    delauny = true;
                 }
                 numTries++;
 
                 if(tri != null) {
-                    numTries = 0;
-                    size--;
                     tri.setId(maxTriID++);
                     sink.add(tri);
                     if(DEBUG){
-                        System.err.println("CDTri.gen["+i+"].0: "+tri);
+                        System.err.println("CDTri.gen["+i+"].0: delauny "+delauny+", tries "+numTries+", size "+size+", "+tri);
                     }
+                    numTries = 0;
+                    size--;
                 }
                 if(numTries > size*2){
                     if(DEBUG){

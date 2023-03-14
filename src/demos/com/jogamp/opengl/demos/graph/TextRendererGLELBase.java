@@ -169,7 +169,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 renderer.reshapeOrtho(width, height, 0.1f, 1000.0f);
                 pixelScale = 1.0f;
             } else {
-                renderer.reshapeNotify(width, height);
+                renderer.reshapeNotify(x, y, width, height);
             }
             renderer.enable(gl, false);
         }

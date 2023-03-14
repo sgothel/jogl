@@ -158,12 +158,12 @@ public class RegionRenderer {
 
     public final boolean isInitialized() { return initialized; }
 
-    /** Copies the current viewport in given target and returns it for chaining. */
+    /** Copies the current int[4] viewport in given target and returns it for chaining. */
     public final int[/*4*/] getViewport(final int[/*4*/] target) {
         System.arraycopy(viewport, 0, target, 0, 4);
         return target;
     }
-    /** Borrows the current viewport w/o copying. */
+    /** Borrows the current int[4] viewport w/o copying. */
     public final int[/*4*/] getViewport() {
         return viewport;
     }
@@ -279,13 +279,15 @@ public class RegionRenderer {
     /**
      * No PMVMatrix operation is performed here.
      */
-    public final void reshapeNotify(final int width, final int height) {
+    public final void reshapeNotify(final int x, final int y, final int width, final int height) {
+        viewport[0] = x;
+        viewport[1] = y;
         viewport[2] = width;
         viewport[3] = height;
     }
 
     public final void reshapePerspective(final float angle, final int width, final int height, final float near, final float far) {
-        reshapeNotify(width, height);
+        reshapeNotify(0, 0, width, height);
         final float ratio = (float)width/(float)height;
         final PMVMatrix p = rs.getMatrix();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
@@ -297,7 +299,7 @@ public class RegionRenderer {
      * Perspective orthogonal, method calls {@link #reshapeNotify(int, int, int, int)}.
      */
     public final void reshapeOrtho(final int width, final int height, final float near, final float far) {
-        reshapeNotify(width, height);
+        reshapeNotify(0, 0, width, height);
         final PMVMatrix p = rs.getMatrix();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         p.glLoadIdentity();
