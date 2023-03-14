@@ -220,7 +220,6 @@ public class UIShapeDemo01 implements GLEventListener {
     public void reshape(final GLAutoDrawable drawable, final int xstart, final int ystart, final int width, final int height) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        gl.glViewport(xstart, ystart, width, height);
         rRenderer.reshapePerspective(45.0f, width, height, zNear, zFar);
         // rRenderer.reshapeOrtho(width, height, zNear, zFar);
 
