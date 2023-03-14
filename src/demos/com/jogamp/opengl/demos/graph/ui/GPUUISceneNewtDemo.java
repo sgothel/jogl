@@ -176,9 +176,7 @@ public class GPUUISceneNewtDemo {
 
         final GPUUISceneGLListener0A scene = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(fontfilename, filmURL, GraphAutoMode, DEBUG, TRACE) :
                                                                  new GPUUISceneGLListener0A(fontfilename, filmURL, rmode, DEBUG, TRACE);
-
         window.addGLEventListener(scene);
-        scene.attachInputListenerTo(window);
 
         final Animator animator = new Animator();
         animator.setUpdateFPSFrames(5*60, null);
