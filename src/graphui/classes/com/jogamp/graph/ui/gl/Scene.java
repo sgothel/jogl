@@ -42,6 +42,7 @@ import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.InputEvent;
@@ -65,21 +66,27 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  * @see Shape
  */
-public class Scene implements GLEventListener{
+public class Scene implements GLEventListener {
+    /** Default scene distance on z-axis to projection is -1/5f. */
+    public static final float DEFAULT_SCENE_DIST = -1/5f;
+    /** Default projection z-near value is 0.1. */
+    public static final float DEFAULT_ZNEAR = 0.1f;
+    /** Default projection z-far value is 7000. */
+    public static final float DEFAULT_ZFAR = 7000.0f;
+
+    private static final boolean DEBUG = false;
+
     private final ArrayList<Shape> shapes = new ArrayList<Shape>();
 
     private final float sceneDist, zNear, zFar;
 
-    private RegionRenderer renderer;
+    private final RegionRenderer renderer;
 
     private final int[] sampleCount = new int[1];
 
-    /** Describing the bounding box in model-coordinates of the near-plane parallel at distance one. */
-    private final AABBox nearPlane1Box = new AABBox();
+    /** Describing the bounding box in shape's object model-coordinates of the near-plane parallel at its scene-distance. */
+    private final AABBox scenePlane = new AABBox(0f, 0f, 0f, 0f, 0f, 0f);
     private final int[] viewport = new int[] { 0, 0, 0, 0 };
-    private final float[] sceneScale = new float[3];
-    private final float[] scenePlaneOrigin = new float[3];
-
 
     private volatile Shape activeShape = null;
 
@@ -89,11 +96,48 @@ public class Scene implements GLEventListener{
 
     private GLAutoDrawable cDrawable = null;
 
-    public Scene(final float sceneDist, final float zNear, final float zFar) {
-        this(null, sceneDist, zNear, zFar);
+    private static RegionRenderer createRenderer() {
+        final RenderState rs = RenderState.createRenderState(SVertex.factory());
+        return RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
     }
 
+    /**
+     * Create a new scene with an internally created RegionRenderer
+     * and using default values {@link #DEFAULT_SCENE_DIST}, {@link #DEFAULT_ZNEAR} and {@link #DEFAULT_ZFAR}.
+     */
+    public Scene() {
+        this(createRenderer(), DEFAULT_SCENE_DIST, DEFAULT_ZNEAR, DEFAULT_ZFAR);
+    }
+
+    /**
+     * Create a new scene with given projection values and an internally created RegionRenderer.
+     * @param sceneDist scene distance on z-axis to projection, consider using {@link #DEFAULT_SCENE_DIST}.
+     * @param zNear projection z-near value, consider using {@link #DEFAULT_ZNEAR}
+     * @param zFar projection z-far value, consider using {@link #DEFAULT_ZFAR}
+     */
+    public Scene(final float sceneDist, final float zNear, final float zFar) {
+        this(createRenderer(), sceneDist, zNear, zFar);
+    }
+
+    /**
+     * Create a new scene taking ownership of the given RegionRenderer
+     * and using default values {@link #DEFAULT_SCENE_DIST}, {@link #DEFAULT_ZNEAR} and {@link #DEFAULT_ZFAR}.
+     */
+    public Scene(final RegionRenderer renderer) {
+        this(renderer, DEFAULT_SCENE_DIST, DEFAULT_ZNEAR, DEFAULT_ZFAR);
+    }
+
+    /**
+     * Create a new scene with given projection values and taking ownership of the given RegionRenderer.
+     * @param renderer RegionRenderer to use and own
+     * @param sceneDist scene distance on z-axis to projection, consider using {@link #DEFAULT_SCENE_DIST}.
+     * @param zNear projection z-near value, consider using {@link #DEFAULT_ZNEAR}
+     * @param zFar projection z-far value, consider using {@link #DEFAULT_ZFAR}
+     */
     public Scene(final RegionRenderer renderer, final float sceneDist, final float zNear, final float zFar) {
+        if( null == renderer ) {
+            throw new IllegalArgumentException("Null RegionRenderer");
+        }
         this.renderer = renderer;
         this.sceneDist = sceneDist;
         this.zFar = zFar;
@@ -101,12 +145,18 @@ public class Scene implements GLEventListener{
         this.sampleCount[0] = 4;
     }
 
+    /** Return z-axis distance of scene to projection, see {@link #DEFAULT_SCENE_DIST}. */
+    public float getProjSceneDist() { return sceneDist; }
+
+    /** Return projection z-near value, see {@link #DEFAULT_ZNEAR}. */
+    public float getProjZNear() { return zNear; }
+
+    /** Return projection z-far value, see {@link #DEFAULT_ZFAR}. */
+    public float getProjZFar() { return zFar; }
+
     /** Returns the associated RegionRenderer */
     public RegionRenderer getRenderer() { return renderer; }
-    /** Sets the associated RegionRenderer, may set to null to avoid its destruction when {@link #dispose(GLAutoDrawable)} this instance. */
-    public void setRenderer(final RegionRenderer renderer) {
-        this.renderer = renderer;
-    }
+
     /** Returns the associated RegionRenderer's RenderState, may be null. */
     public RenderState getRenderState() {
         if( null != renderer ) {
@@ -189,9 +239,6 @@ public class Scene implements GLEventListener{
             shapes.get(i).markShapeDirty();
         }
     }
-
-    public final float[] getSceneScale() { return sceneScale; }
-    public final float[] getScenePlaneOrigin() { return scenePlaneOrigin; }
 
     @Override
     public void init(final GLAutoDrawable drawable) {
@@ -367,7 +414,19 @@ public class Scene implements GLEventListener{
         }
     }
 
-    public static void mapWin2ObjCoord(final PMVMatrix pmv, final int[] view,
+    /**
+     *
+     * @param pmv
+     * @param view
+     * @param zNear
+     * @param zFar
+     * @param orthoX
+     * @param orthoY
+     * @param orthoDist
+     * @param winZ
+     * @param objPos float[3] storage for object coord result
+     */
+    public static void winToObjCoord(final PMVMatrix pmv, final int[] view,
                                        final float zNear, final float zFar,
                                        final float orthoX, final float orthoY, final float orthoDist,
                                        final float[] winZ, final float[] objPos) {
@@ -375,7 +434,50 @@ public class Scene implements GLEventListener{
         pmv.gluUnProject(orthoX, orthoY, winZ[0], view, 0, objPos, 0);
     }
 
-   @Override
+    /**
+     * Map given window surface-size to object coordinates relative to this scene and {@link #getProjSceneDist() and projection settings.
+     * @param width surface width in pixel
+     * @param height surface height in pixel
+     * @param objSceneSize float[2] storage for object surface size result
+     */
+    public void surfaceToObjSize(final int width, final int height, final float[/*2*/] objSceneSize) {
+        final int[] viewport = { 0, 0, width, height };
+
+        final PMVMatrix pmv = new PMVMatrix();
+        {
+            final float ratio = (float)width/(float)height;
+            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+            pmv.glLoadIdentity();
+            pmv.gluPerspective(45.0f, ratio, zNear, zFar);
+        }
+        {
+            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmv.glLoadIdentity();
+            pmv.glTranslatef(0f, 0f, sceneDist);
+        }
+        {
+            final float orthoDist = -sceneDist;
+            final float[] obj00Coord = new float[3];
+            final float[] obj11Coord = new float[3];
+            final float[] winZ = new float[1];
+
+            winToObjCoord(pmv, viewport, zNear, zFar, 0f, 0f, orthoDist, winZ, obj00Coord);
+            winToObjCoord(pmv, viewport, zNear, zFar, width, height, orthoDist, winZ, obj11Coord);
+            objSceneSize[0] = obj11Coord[0] - obj00Coord[0];
+            objSceneSize[1] = obj11Coord[1] - obj00Coord[1];
+        }
+    }
+
+    /**
+     * Reshape scene using perspective 45 degrees w/ given zNear and zFar.
+     * <p>
+     * Modelview is translated to given {@link #getProjSceneDist()}
+     * and and origin 0/0 becomes the lower-left corner.
+     * </p>
+     * @see #getScenePlane()
+     */
+    @SuppressWarnings("unused")
+    @Override
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         viewport[0] = x;
         viewport[1] = y;
@@ -386,44 +488,78 @@ public class Scene implements GLEventListener{
         renderer.reshapePerspective(45.0f, width, height, zNear, zFar);
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
-
-        System.err.printf("Reshape: zNear %f,  zFar %f%n", zNear, zFar);
-        System.err.printf("Reshape: Frustum: %s%n", pmv.glGetFrustum());
+        pmv.glTranslatef(0f, 0f, sceneDist);
         {
-            final float orthoDist = 1f;
+            final float orthoDist = -sceneDist;
             final float[] obj00Coord = new float[3];
             final float[] obj11Coord = new float[3];
             final float[] winZ = new float[1];
 
-            mapWin2ObjCoord(pmv, viewport, zNear, zFar, 0f, 0f, orthoDist, winZ, obj00Coord);
-            System.err.printf("Reshape: mapped.00: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", 0f, 0f, orthoDist, winZ[0], obj00Coord[0], obj00Coord[1], obj00Coord[2]);
+            winToObjCoord(pmv, viewport, zNear, zFar, 0f, 0f, orthoDist, winZ, obj00Coord);
+            winToObjCoord(pmv, viewport, zNear, zFar, width, height, orthoDist, winZ, obj11Coord);
 
-            mapWin2ObjCoord(pmv, viewport, zNear, zFar, width, height, orthoDist, winZ, obj11Coord);
-            System.err.printf("Reshape: mapped.11: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", (float)width, (float)height, orthoDist, winZ[0], obj11Coord[0], obj11Coord[1], obj11Coord[2]);
+            pmv.glTranslatef(obj00Coord[0], obj00Coord[1], 0f); // lower-left corder origin 0/0
 
-            nearPlane1Box.setSize( obj00Coord[0],  // lx
-                                   obj00Coord[1],  // ly
-                                   obj00Coord[2],  // lz
-                                   obj11Coord[0],  // hx
-                                   obj11Coord[1],  // hy
-                                   obj11Coord[2] );// hz
-            System.err.printf("Reshape: dist1Box: %s%n", nearPlane1Box);
+            if( true ) {
+                scenePlane.setSize( obj00Coord[0],  // lx
+                                    obj00Coord[1],  // ly
+                                    obj00Coord[2],  // lz
+                                    obj11Coord[0],  // hx
+                                    obj11Coord[1],  // hy
+                                    obj11Coord[2] );// hz
+            } else {
+                scenePlane.setSize( 0f,  // lx
+                                    0f,  // ly
+                                    0f,  // lz
+                                    obj11Coord[0] - obj00Coord[0],  // hx
+                                    obj11Coord[1] - obj00Coord[1],  // hy
+                                    obj11Coord[2] - obj00Coord[2]); // hz
+            }
+
+            if( true || DEBUG ) {
+                System.err.printf("Reshape: zNear %f,  zFar %f, sceneDist %f%n", zNear, zFar, sceneDist);
+                System.err.printf("Reshape: Frustum: %s%n", pmv.glGetFrustum());
+                System.err.printf("Reshape: mapped.00: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", 0f, 0f, orthoDist, winZ[0], obj00Coord[0], obj00Coord[1], obj00Coord[2]);
+                System.err.printf("Reshape: mapped.11: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", (float)width, (float)height, orthoDist, winZ[0], obj11Coord[0], obj11Coord[1], obj11Coord[2]);
+                System.err.printf("Reshape: scenePlaneBox: %s%n", scenePlane);
+            }
         }
-        scenePlaneOrigin[0] = nearPlane1Box.getMinX() * sceneDist;
-        scenePlaneOrigin[1] = nearPlane1Box.getMinY() * sceneDist;
-        scenePlaneOrigin[2] = nearPlane1Box.getMinZ() * sceneDist;
-        sceneScale[0] = ( nearPlane1Box.getWidth() * sceneDist ) / width;
-        sceneScale[1] = ( nearPlane1Box.getHeight() * sceneDist  ) / height;
-        sceneScale[2] = 1f;
-        System.err.printf("Scene Origin [%f, %f, %f]%n", scenePlaneOrigin[0], scenePlaneOrigin[1], scenePlaneOrigin[2]);
-        System.err.printf("Scene Scale  %f * [%f x %f] / [%d x %d] = [%f, %f, %f]%n",
-                sceneDist, nearPlane1Box.getWidth(), nearPlane1Box.getHeight(),
-                width, height,
-                sceneScale[0], sceneScale[1], sceneScale[2]);
 
-        pmv.glTranslatef(scenePlaneOrigin[0], scenePlaneOrigin[1], scenePlaneOrigin[2]);
-        pmv.glScalef(sceneScale[0], sceneScale[1], sceneScale[2]);
+        if( false ) {
+            final float[] sceneScale = new float[3];
+            final float[] scenePlaneOrigin = new float[3];
+            scenePlaneOrigin[0] = scenePlane.getMinX() * sceneDist;
+            scenePlaneOrigin[1] = scenePlane.getMinY() * sceneDist;
+            scenePlaneOrigin[2] = scenePlane.getMinZ() * sceneDist;
+            sceneScale[0] = ( scenePlane.getWidth() * sceneDist ) / width;
+            sceneScale[1] = ( scenePlane.getHeight() * sceneDist  ) / height;
+            sceneScale[2] = 1f;
+            System.err.printf("Scene Origin [%f, %f, %f]%n", scenePlaneOrigin[0], scenePlaneOrigin[1], scenePlaneOrigin[2]);
+            System.err.printf("Scene Scale  %f * [%f x %f] / [%d x %d] = [%f, %f, %f]%n",
+                    sceneDist, scenePlane.getWidth(), scenePlane.getHeight(),
+                    width, height,
+                    sceneScale[0], sceneScale[1], sceneScale[2]);
+        }
     }
+
+    /** Translate modelview to the {@link #getProjSceneDist()}, a convenience method. */
+    public void translate(final PMVMatrix pmv) {
+        // pmv.glTranslatef(0f, 0f, sceneDist);
+        pmv.glTranslatef(scenePlane.getMinX(), scenePlane.getMinY(), 0f);
+    }
+
+    /**
+     * Describing the scene's object model-dimensions of the near-plane parallel at its scene-distance {@link #getProjSceneDist()}
+     * having the origin 0/0 on the lower-left corner.
+     * <p>
+     * The value is evaluated at {@link #reshape(GLAutoDrawable, int, int, int, int)} before translating to the lower-left origin 0/0,
+     * i.e. its minimum values are negative of half dimension.
+     * </p>
+     * <p>
+     * {@link AABBox#getWidth()} and {@link AABBox#getHeight()} define scene's dimension covered by surface size.
+     * </p>
+     */
+    public AABBox getScenePlane() { return scenePlane; }
 
     public final Shape getActiveShape() {
         return activeShape;

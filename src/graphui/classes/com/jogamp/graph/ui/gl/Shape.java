@@ -367,7 +367,7 @@ public abstract class Shape {
      * i.e. reshape for {@link GLMatrixFunc#GL_PROJECTION} and {@link #setTransform(PMVMatrix)} for {@link GLMatrixFunc#GL_MODELVIEW}.
      * </p>
      * @param renderer source of viewport and {@link PMVMatrix}
-     * @param surfaceSize target surface size
+     * @param surfaceSize int[2] target surface size
      * @return true for successful gluProject(..) operation, otherwise false
      */
     public boolean getSurfaceSize(final RegionRenderer renderer, final int[/*2*/] surfaceSize) {
@@ -400,8 +400,8 @@ public abstract class Shape {
      * i.e. reshape for {@link GLMatrixFunc#GL_PROJECTION} and {@link #setTransform(PMVMatrix)} for {@link GLMatrixFunc#GL_MODELVIEW}.
      * </p>
      * @param renderer source of viewport and {@link PMVMatrix}
-     * @param objPos object position relative to this shape's center
-     * @param glWinPos target window position of objPos relative to this shape
+     * @param objPos float[3] object position relative to this shape's center
+     * @param glWinPos int[2] target window position of objPos relative to this shape
      * @return true for successful gluProject(..) operation, otherwise false
      */
     public boolean objToWinCoord(final RegionRenderer renderer, final float[/*3*/] objPos, final int[/*2*/] glWinPos) {
@@ -430,7 +430,7 @@ public abstract class Shape {
      * @param renderer source of viewport and {@link PMVMatrix}
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
-     * @param objPos target object position of glWinX/glWinY relative to this shape
+     * @param objPos float[3] target object position of glWinX/glWinY relative to this shape
      * @return @return true for successful gluProject(..) and gluUnProject(..) operations, otherwise false
      */
     public boolean winToObjCoord(final RegionRenderer renderer, final int glWinX, final int glWinY, final float[/*3*/] objPos) {
@@ -527,7 +527,7 @@ public abstract class Shape {
     }
 
     public String getSubString() {
-        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+"], "+position[0]+" / "+position[1]+", box "+box;
+        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+"], pos "+position[0]+" / "+position[1]+", box "+box;
     }
 
     //
@@ -545,6 +545,7 @@ public abstract class Shape {
     public void setToggleable(final boolean toggleable) {
         this.toggleable = toggleable;
     }
+
     /**
      * Returns true if this shape is toggable,
      * i.e. rendered w/ {@link #setToggleOnColorMod(float, float, float, float)} or {@link #setToggleOffColorMod(float, float, float, float)}.
