@@ -226,15 +226,28 @@ public interface TextureSequence {
     public String getTextureSampler2DType() throws IllegalStateException ;
 
     /**
-     * @param desiredFuncName desired lookup function name. If <code>null</code> or ignored by the implementation,
-     *                        a build-in name is returned.
-     * @return the final lookup function name
+     * Set the desired shader code's texture lookup function name.
      *
-     * @see {@link #getTextureLookupFragmentShaderImpl()}
+     * @param texLookupFuncName desired lookup function name. If <code>null</code> or ignored by the implementation,
+     *                          a build-in name is returned.
+     * @return the chosen lookup function name
      *
      * @throws IllegalStateException if instance is not initialized
+     * @see #getTextureLookupFunctionName()
+     * @see #getTextureFragmentShaderHashCode()
+     * @see #getTextureLookupFragmentShaderImpl()
      */
-    public String getTextureLookupFunctionName(String desiredFuncName) throws IllegalStateException ;
+    public String setTextureLookupFunctionName(String texLookupFuncName) throws IllegalStateException ;
+
+    /**
+     * Returns the chosen lookup function name, which can be set via {@link #setTextureLookupFunctionName(String)}.
+     *
+     * @throws IllegalStateException if instance is not initialized
+     * @see #setTextureLookupFunctionName(String)
+     * @see #getTextureFragmentShaderHashCode()
+     * @see #getTextureLookupFragmentShaderImpl()
+     */
+    public String getTextureLookupFunctionName() throws IllegalStateException ;
 
     /**
      * Returns the complete texture2D lookup function code of type
@@ -245,26 +258,36 @@ public interface TextureSequence {
      *   }
      * </pre>
      * <p>
-     * <i>funcName</i> can be negotiated and queried via {@link #getTextureLookupFunctionName(String)}.
+     * <i>funcName</i> is set via {@link #setTextureLookupFunctionName(String)}
+     * and queried via {@link #getTextureLookupFunctionName()}.
      * </p>
+     * <p>
+     * User shall call {@link #setTextureLookupFunctionName(String)} first if intended.
+     * </p>
+     * <p>
      * Note: This function may return an empty string in case a build-in lookup
      * function is being chosen. If the implementation desires so,
-     * {@link #getTextureLookupFunctionName(String)} will ignore the desired function name
+     * {@link #getTextureLookupFunctionName()} will ignore the desired function name
      * and returns the build-in lookup function name.
      * </p>
-     * @see #getTextureLookupFunctionName(String)
-     * @see #getTextureSampler2DType()
-     *
      * @throws IllegalStateException if instance is not initialized
+     * @see #getTextureLookupFunctionName()
+     * @see #setTextureLookupFunctionName(String)
+     * @see #getTextureFragmentShaderHashCode()
+     * @see #getTextureSampler2DType()
      */
     public String getTextureLookupFragmentShaderImpl() throws IllegalStateException;
 
     /**
      * Returns the hash code of the strings:
      * <ul>
+     *   <li>{@link #getTextureLookupFunctionName()}</li>
      *   <li>{@link #getTextureLookupFragmentShaderImpl()}</li>
      *   <li>{@link #getTextureSampler2DType()}</li>
      * </ul>
+     * <p>
+     * User shall call {@link #setTextureLookupFunctionName(String)} first if intended.
+     * </p>
      * <p>
      * Returns zero if {@link #isTextureAvailable() texture is not available}.
      * </p>
@@ -272,9 +295,12 @@ public interface TextureSequence {
      * <p>
      * </p>
      * <p>
-     * Implementation shall cache the resulting hash code,
+     * Implementation caches the resulting hash code,
      * which must be reset to zero if {@link #isTextureAvailable() texture is not available}.
      * </p>
+     * @see #setTextureLookupFunctionName(String)
+     * @see #getTextureLookupFunctionName()
+     * @see #getTextureLookupFragmentShaderImpl()
      */
     public int getTextureFragmentShaderHashCode();
 }

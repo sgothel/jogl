@@ -276,7 +276,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     // Video
     //
 
-    private String texLookupFuncName = "ffmpegTexture2D";
     private boolean usesTexLookupShader = false;
     private VideoPixelFormat vPixelFmt = null;
     private int vPlanes = 0;
@@ -703,14 +702,16 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      * Otherwise the call is delegated to it's super class.
      */
     @Override
-    public final String getTextureLookupFunctionName(final String desiredFuncName) {
+    public String setTextureLookupFunctionName(final String texLookupFuncName) throws IllegalStateException {
         if( usesTexLookupShader ) {
-            if(null != desiredFuncName && desiredFuncName.length()>0) {
-                texLookupFuncName = desiredFuncName;
+            if(null != texLookupFuncName && texLookupFuncName.length()>0) {
+                textureLookupFunctionName = texLookupFuncName;
+            } else {
+                textureLookupFunctionName = "ffmpegTexture2D";
             }
-            return texLookupFuncName;
+            return textureLookupFunctionName;
         }
-        return super.getTextureLookupFunctionName(desiredFuncName);
+        return super.getTextureLookupFunctionName();
     }
 
     /**
@@ -729,7 +730,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case YUVJ420P:
         case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
           return
-              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  const vec2 u_off = vec2("+tc_w_1+", 0.0);\n"+
               "  const vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
               "  vec2 tc_half = texCoord*0.5;\n"+
@@ -750,7 +751,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case YUVJ422P:
         case YUV422P: ///< planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)
           return
-              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  const vec2 u_off = vec2("+tc_w_1+"      , 0.0);\n"+
               "  const vec2 v_off = vec2("+tc_w_1+" * 1.5, 0.0);\n"+
               "  vec2 tc_halfw = vec2(texCoord.x*0.5, texCoord.y);\n"+
@@ -771,7 +772,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case YUYV422: // < packed YUV 4:2:2, 2 x 16bpp, [Y0 Cb] [Y1 Cr]
                       // Stuffed into RGBA half width texture
           return
-              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  "+
               "  float y1,u,y2,v,y,r,g,b;\n"+
               "  vec2 tc_halfw = vec2(texCoord.x*0.5, texCoord.y);\n"+
@@ -793,7 +794,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case UYVY422: // < packed YUV 4:2:2, 2 x 16bpp, Cb Y0 Cr Y1
                       // Stuffed into RGBA half width texture
           return
-              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  "+
               "  float y1,u,y2,v,y,r,g,b;\n"+
               "  vec2 tc_halfw = vec2(texCoord.x*0.5, texCoord.y);\n"+
@@ -815,7 +816,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
         case BGR24:
           return
-              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  "+
               "  vec3 bgr = texture2D(image, texCoord).rgb;\n"+
               "  return vec4(bgr.b, bgr.g, bgr.r, 1);\n"+ /* just swizzle */

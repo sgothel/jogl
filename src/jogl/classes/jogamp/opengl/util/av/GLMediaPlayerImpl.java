@@ -268,15 +268,29 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
     }
 
+    protected String textureLookupFunctionName = "texture2D";
+
+    /**
+     * {@inheritDoc}
+     *
+     * This implementation simply sets and returns the build-in function name of <code>texture2D</code>,
+     * if not overridden by specialization, e.g. using the ffmpeg implementation.
+     */
+    @Override
+    public String setTextureLookupFunctionName(final String texLookupFuncName) throws IllegalStateException {
+        textureLookupFunctionName = "texture2D";
+        return textureLookupFunctionName;
+    }
+
     /**
      * {@inheritDoc}
      *
      * This implementation simply returns the build-in function name of <code>texture2D</code>,
-     * if not overridden by specialization.
+     * if not overridden by specialization, e.g. using the ffmpeg implementation.
      */
     @Override
-    public String getTextureLookupFunctionName(final String desiredFuncName) {
-        return "texture2D";
+    public final String getTextureLookupFunctionName() {
+        return textureLookupFunctionName;
     }
 
     /**
@@ -297,7 +311,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             textureFragmentShaderHashCode = 0;
             return 0;
         } else if( 0 == textureFragmentShaderHashCode ) {
-            int hash = 31 + getTextureLookupFragmentShaderImpl().hashCode();
+            int hash = 31 + getTextureLookupFunctionName().hashCode();
+            hash = ((hash << 5) - hash) + getTextureLookupFragmentShaderImpl().hashCode();
             hash = ((hash << 5) - hash) + getTextureSampler2DType().hashCode();
             textureFragmentShaderHashCode = hash;
         }

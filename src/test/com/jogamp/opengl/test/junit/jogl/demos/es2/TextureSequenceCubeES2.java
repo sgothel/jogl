@@ -84,12 +84,15 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         int ly = 0;
         boolean first = false;
 
+        @Override
         public void mousePressed(final MouseEvent e) {
             first = true;
         }
+        @Override
         public void mouseMoved(final MouseEvent e) {
             first = false;
         }
+        @Override
         public void mouseDragged(final MouseEvent e) {
             int width, height;
             final Object source = e.getSource();
@@ -143,6 +146,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
                 ly = ny;
             }
         }
+        @Override
         public void mouseWheelMoved(final MouseEvent e) {
             // System.err.println("XXX "+e);
             if( !e.isShiftDown() ) {
@@ -182,7 +186,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         rsFpPos = rsFp.insertShaderSource(0, rsFpPos, texSeq.getRequiredExtensionsShaderStub());
         rsFp.addDefaultShaderPrecision(gl, rsFpPos);
 
-        final String texLookupFuncName = texSeq.getTextureLookupFunctionName(myTextureLookupName);
+        final String texLookupFuncName = texSeq.setTextureLookupFunctionName(myTextureLookupName);
         rsFp.replaceInShaderSource(myTextureLookupName, texLookupFuncName);
 
         // Inject TextureSequence shader details
@@ -206,6 +210,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
     GLArrayDataServer interleavedVBO, cubeIndicesVBO;
 
+    @Override
     public void init(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
@@ -304,6 +309,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         System.out.println(st);
     }
 
+    @Override
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 

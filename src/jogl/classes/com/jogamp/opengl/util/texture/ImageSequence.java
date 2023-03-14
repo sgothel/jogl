@@ -153,13 +153,17 @@ public class ImageSequence implements TextureSequence {
     private String textureLookupFunctionName = "myTexture2D";
 
     @Override
-    public String getTextureLookupFunctionName(final String desiredFuncName) throws IllegalStateException {
+    public String setTextureLookupFunctionName(final String texLookupFuncName) throws IllegalStateException {
         if(useBuildInTexLookup) {
-            return "texture2D";
+            textureLookupFunctionName = "texture2D";
+        } else if(null != texLookupFuncName && texLookupFuncName.length()>0) {
+            textureLookupFunctionName = texLookupFuncName;
         }
-        if(null != desiredFuncName && desiredFuncName.length()>0) {
-            textureLookupFunctionName = desiredFuncName;
-        }
+        return textureLookupFunctionName;
+    }
+
+    @Override
+    public String getTextureLookupFunctionName() throws IllegalStateException {
         return textureLookupFunctionName;
     }
 
