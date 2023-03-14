@@ -56,8 +56,12 @@ public class AABBox {
     private final float[] center = new float[3];
 
     /**
-     * Create an Axis Aligned bounding box (AABBox)
-     * where the low and and high MAX float Values.
+     * Create an Axis Aligned bounding box (AABBox) with the
+     * inverse low/high, allowing the next {@link #resize(float, float, float)} command to hit.
+     * <p>
+     * The dimension, i.e. {@link #getWidth()} abd {@link #getHeight()} is {@link Float#isInfinite()} thereafter.
+     * </p>
+     * @see #reset()
      */
     public AABBox() {
         reset();
@@ -96,7 +100,10 @@ public class AABBox {
     }
 
     /**
-     * resets this box to the inverse low/high, allowing the next {@link #resize(float, float, float)} command to hit.
+     * Resets this box to the inverse low/high, allowing the next {@link #resize(float, float, float)} command to hit.
+     * <p>
+     * The dimension, i.e. {@link #getWidth()} abd {@link #getHeight()} is {@link Float#isInfinite()} thereafter.
+     * </p>
      * @return this AABBox for chaining
      */
     public final AABBox reset() {
