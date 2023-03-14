@@ -232,7 +232,7 @@ public abstract class Region {
     protected abstract void pushIndices(int idx1, int idx2, int idx3);
 
     /**
-     * Return bit-field of render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence)}.
+     * Return bit-field of render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      */
     public final int getRenderModes() { return renderModes; }
 
@@ -663,8 +663,14 @@ public abstract class Region {
     }
 
     /**
-     * Mark this region's shape dirty, i.e. it's
-     * Vertices, Triangles, and or Lines changed.
+     * Mark this region's shape dirty,
+     * i.e. its vertices, triangles, lines and/or color-texture coordinates changed.
+     * <p>
+     * The data will be re-uploaded to the GPU at next {@link GLRegion#draw(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer, int[]) draw(..)}.
+     * </p>
+     * <p>
+     * In 2-pass mode, this implies updating the FBO itself as well.
+     * </p>
      */
     public final void markShapeDirty() {
         dirty |= DIRTY_SHAPE;
@@ -674,8 +680,10 @@ public abstract class Region {
         return 0 != ( dirty & DIRTY_SHAPE ) ;
     }
     /**
-     * Mark this region's state dirty, i.e.
-     * it's render attributes or parameters changed.
+     * Mark this region's render-state dirty, i.e. enforce rendering the region into the FBO in 2-pass mode.
+     * <p>
+     * In 1-pass mode, this state has no effect since the region is always rendered to the current write-drawable.
+     * </p>
      */
     public final void markStateDirty() {
         dirty |= DIRTY_STATE;
