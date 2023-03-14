@@ -349,7 +349,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         final AudioFormat preferredAudioFormat = audioSink.getPreferredFormat();
         if(DEBUG) {
-            System.err.println("initStream: p2 preferred "+preferredAudioFormat+", "+this);
+            System.err.println("initStream: p2 aid "+aid+", preferred "+preferredAudioFormat+" on "+audioSink+", "+this);
         }
 
         final boolean isCameraInput = null != cameraPath;
@@ -421,7 +421,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             audioQueueLimit = AudioSink.DefaultQueueLimitAudioOnly;
         }
         if(DEBUG) {
-            System.err.println("initGL: p3 avChosen "+avChosenAudioFormat);
+            System.err.println("initGL: p3 aid "+getAID()+", avChosen "+avChosenAudioFormat+" on "+audioSink);
         }
 
         if( STREAM_ID_NONE == getAID() || null == audioSink ) {
@@ -447,7 +447,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         if(DEBUG) {
             System.err.println("initGL: p4 chosen "+avChosenAudioFormat);
-            System.err.println("initGL: p4 chosen "+audioSink);
+            System.err.println("initGL: p4 chosen aid "+getAID()+", "+audioSink);
         }
 
         if( null != gl && STREAM_ID_NONE != getVID() ) {
