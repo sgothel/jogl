@@ -128,11 +128,7 @@ public class MediaButton extends TexSeqButton {
             resetGL = false;
             try {
                 mPlayer.initGL(gl);
-                mPlayer.setAudioVolume( 0f );
-                region.destroy(gl);
-                region = null;
-                validate(gl, renderer);
-                markStateDirty(); // keep on going
+                region.markShapeDirty(); // reset texture data
             } catch (final Exception e) {
                 e.printStackTrace();
             }
