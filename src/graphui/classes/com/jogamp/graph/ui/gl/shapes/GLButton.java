@@ -66,7 +66,7 @@ public class GLButton extends TexSeqButton {
 
     public GLButton(final Factory<? extends Vertex> factory, final int renderModes,
                                  final float width, final float height, final int textureUnit,
-                                 final GLEventListener glel, final boolean useAlpha, final int fboWidth, final int fboHeight) {
+                                 final GLEventListener glel, final boolean useAlpha) {
         super(factory, renderModes, width, height, new ImageSequence(textureUnit, true));
         this.glel = glel;
         this.useAlpha = useAlpha;
@@ -76,8 +76,9 @@ public class GLButton extends TexSeqButton {
         setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);
         setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);
 
-        this.fboWidth = fboWidth;
-        this.fboHeight = fboHeight;
+        // fake surface-size, will be overriden in initial FBO setup @ display
+        this.fboWidth = 320;
+        this.fboHeight = Math.round( 640 * height / width );
     }
 
     public final void setAnimate(final boolean v) { animateGLEL = v; }
@@ -93,7 +94,7 @@ public class GLButton extends TexSeqButton {
     @Override
     public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         final int[/*2*/] surfaceSize = new int[2];
-        final boolean got_sz = getSurfaceSize(renderer, surfaceSize);
+        final boolean got_sz = getSurfaceSize(renderer, surfaceSize) && 0 < surfaceSize[0] && 0 < surfaceSize[1];
 
         if( null == fboGLAD ) {
             final ImageSequence imgSeq = (ImageSequence)texSeq;
@@ -109,6 +110,12 @@ public class GLButton extends TexSeqButton {
             }
             final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
 
+            // System.err.println("XXX FBO initSurfaceSize got_sz "+got_sz+", "+fboWidth+" x "+fboHeight+" -> "+surfaceSize[0]+" x "+surfaceSize[1]);
+            if( got_sz ) {
+                // override with real surface-size
+                fboWidth = surfaceSize[0];
+                fboHeight = surfaceSize[1];
+            }
             fboGLAD = (GLOffscreenAutoDrawable.FBO) factory.createOffscreenAutoDrawable(
                             drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice(),
                             caps, null, fboWidth, fboHeight);

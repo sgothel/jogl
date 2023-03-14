@@ -624,8 +624,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             }
             final GLButton glelButton = new GLButton(sceneUICntrl.getVertexFactory(), renderModes,
                     button2XSize, button2YSize,
-                    texUnitGLELButton, glel, false /* useAlpha */,
-                    (int)(button2XSize), (int)(button2YSize));
+                    texUnitGLELButton, glel, false /* useAlpha */);
             glelButton.setName(BUTTON_GLEL);
             glelButton.setToggleable(true);
             glelButton.setToggle(false); // toggle == true -> animation
