@@ -57,6 +57,7 @@ public class Button extends RoundButton {
     public static final float DEFAULT_SPACING_Y = 0.42f;
 
     private static final float DEFAULT_2PASS_LABEL_ZOFFSET = -0.005f; // -0.05f;
+    private float twoPassLabelZOffset = DEFAULT_2PASS_LABEL_ZOFFSET;
 
     private final Label0 label;
     private float spacingX = DEFAULT_SPACING_X;
@@ -93,9 +94,9 @@ public class Button extends RoundButton {
     protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
         final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
         if(corner == 0.0f) {
-            createSharpOutline(shape, DEFAULT_2PASS_LABEL_ZOFFSET);
+            createSharpOutline(shape, twoPassLabelZOffset);
         } else {
-            createCurvedOutline(shape, DEFAULT_2PASS_LABEL_ZOFFSET);
+            createCurvedOutline(shape, twoPassLabelZOffset);
         }
         shape.setIsQuadraticNurbs();
         shape.setSharpness(shapesSharpness);
@@ -137,6 +138,13 @@ public class Button extends RoundButton {
         if( DRAW_DEBUG_BOX ) {
             System.err.println("XXX.UIShape.RIButton: Added Shape: "+shape+", "+box);
         }
+    }
+
+    public float get2PassLabelZOffset() { return twoPassLabelZOffset; }
+
+    public void set2PassLabelZOffset(final float v) {
+        twoPassLabelZOffset = v;
+        markShapeDirty();
     }
 
     public final float getSpacingX() { return spacingX; }
