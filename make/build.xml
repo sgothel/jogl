@@ -88,7 +88,7 @@
         <ant antfile="${graphui.build.xml}" dir="${graphui.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="build.oculusvr" depends="init" if="oculusvr.sdk.available">
+    <target name="build.oculusvr" depends="init" if="setup.do_oculusvr">
         <ant antfile="${oculusvr.build.xml}" dir="${oculusvr.make}" target="all" inheritRefs="true" inheritAll="true"/>
     </target>
 

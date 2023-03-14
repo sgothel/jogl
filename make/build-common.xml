@@ -266,7 +266,15 @@
         <condition property="oculusvr.sdk.available">
             <available file="${rel.oculusvr.sdk}/LibOVR/Include/OVR_CAPI.h"/>
         </condition>
+        <condition property="setup.do_oculusvr">
+            <and>
+                <istrue value="${oculusvr.sdk.available}" />
+                <istrue value="${oculusvr.enabled}" />
+            </and>
+        </condition>
         <echo message="oculusvr.sdk.available: ${oculusvr.sdk.available}" />
+        <echo message="oculusvr.enabled: ${oculusvr.enabled}" />
+        <echo message="setup.do_oculusvr: ${setup.do_oculusvr}" />
 
         <property name="graphui.make"               value="." />
         <property name="graphui.build.xml"          value="${graphui.make}/build-graphui.xml" />
