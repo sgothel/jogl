@@ -1579,11 +1579,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             return;
         }
         if( wasUninitialized ) {
-            if( null == streamWorker ) {
-                if( TEXTURE_COUNT_MIN < textureCount || STREAM_ID_NONE == vid ) { // Enable StreamWorker for 'audio only' as well (Bug 918).
-                    streamWorker = new StreamWorker();
-                }
-            }
             if( DEBUG ) {
                 System.err.println("XXX Initialize @ updateAttributes: "+this);
             }
