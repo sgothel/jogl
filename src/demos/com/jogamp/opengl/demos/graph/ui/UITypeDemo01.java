@@ -475,16 +475,16 @@ public class UITypeDemo01 implements GLEventListener {
                         final float[] objPosC = crossHair.getBounds().getCenter();
                         final int[] objWinPos = new int[2];
                         System.err.println("\n\nCrossHair: "+crossHair);
-                        if( crossHair.objToWinCoord(renderer, objPosC, objWinPos) ) {
+                        if( crossHair.objToWinCoord(pmv, viewport, objPosC, objWinPos) ) {
                             System.err.println("CrossHair: Obj: Obj "+objPosC[0]+"/"+objPosC[1]+"/"+objPosC[1]+" -> Win "+objWinPos[0]+"/"+objWinPos[1]);
                         }
 
                         final float[] objPos2 = new float[3];
-                        crossHair.winToObjCoord(renderer, objWinPos[0], objWinPos[1], objPos2);
+                        crossHair.winToObjCoord(pmv, viewport, objWinPos[0], objWinPos[1], objPos2);
                         System.err.println("CrossHair: Obj: Win "+objWinPos[0]+"/"+objWinPos[1]+" -> Obj "+objPos2[0]+"/"+objPos2[1]+"/"+objPos2[1]);
 
                         final float[] winObjPos = new float[3];
-                        if( crossHair.winToObjCoord(renderer, glWinX, glWinY, winObjPos) ) {
+                        if( crossHair.winToObjCoord(pmv, viewport, glWinX, glWinY, winObjPos) ) {
                             // final float[] translate = crossHair.getTranslate();
                             // final float[] objPosT = new float[] { objPosC[0]+translate[0], objPosC[1]+translate[1], objPosC[2]+translate[2] };
                             final float dx = winObjPos[0] - objPosC[0];
@@ -499,7 +499,7 @@ public class UITypeDemo01 implements GLEventListener {
                         }
 
                         final int[] surfaceSize = new int[2];
-                        crossHair.getSurfaceSize(renderer, surfaceSize);
+                        crossHair.getSurfaceSize(pmv, viewport, surfaceSize);
                         System.err.println("CrossHair: Size: Pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
 
                         pmv.glPopMatrix();

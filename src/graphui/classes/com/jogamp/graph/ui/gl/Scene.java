@@ -66,7 +66,7 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  * @see Shape
  */
-public class Scene implements GLEventListener {
+public final class Scene implements GLEventListener {
     /** Default scene distance on z-axis to projection is -1/5f. */
     public static final float DEFAULT_SCENE_DIST = -1/5f;
     /** Default projection angle in degrees value is 45.0. */
@@ -208,7 +208,7 @@ public class Scene implements GLEventListener {
     public void removeShape(final Shape b) {
         shapes.remove(b);
     }
-    public final Shape getShapeByIdx(final int id) {
+    public Shape getShapeByIdx(final int id) {
         if( 0 > id ) {
             return null;
         }
@@ -303,19 +303,26 @@ public class Scene implements GLEventListener {
         renderer.enable(gl, false);
     }
 
+    /**
+     * Attempt to pick a {@link Shape} using the window coordinates and contained {@ling Shape}'s {@link AABBox} {@link Shape#getBounds() bounds}
+     * using a ray-intersection algorithm.
+     * <p>
+     * If {@link Shape} was found the given action is performed.
+     * </p>
+     * <p>
+     * Method performs on current thread and returns after probing every {@link Shape}.
+     * </p>
+     * @param glWinX window X coordinate, bottom-left origin
+     * @param glWinY window Y coordinate, bottom-left origin
+     * @param objPos storage for found object position in model-space of found {@link Shape}
+     * @param shape storage for found {@link Shape} or null
+     * @param runnable the action to perform if {@link Shape} was found
+     */
     public void pickShape(final int glWinX, final int glWinY, final float[] objPos, final Shape[] shape, final Runnable runnable) {
-        if( null == cDrawable ) {
-            return;
+        shape[0] = pickShapeImpl(glWinX, glWinY, objPos);
+        if( null != shape[0] ) {
+            runnable.run();
         }
-        cDrawable.invoke(false, new GLRunnable() {
-            @Override
-            public boolean run(final GLAutoDrawable drawable) {
-                shape[0] = pickShapeImpl(glWinX, glWinY, objPos);
-                if( null != shape[0] ) {
-                    runnable.run();
-                }
-                return true;
-            } } );
     }
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private Shape pickShapeImpl(final int glWinX, final int glWinY, final float[] objPos) {
@@ -326,8 +333,8 @@ public class Scene implements GLEventListener {
             gl.glReadPixels( x, y, 1, 1, GL2ES2.GL_DEPTH_COMPONENT, GL.GL_FLOAT, winZRB);
             winZ1 = winZRB.get(0); // dir
         */
-        final PMVMatrix pmv = renderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        final PMVMatrix pmv = new PMVMatrix();
+        setupMatrix(pmv);
 
         final Ray ray = new Ray();
 
@@ -370,26 +377,9 @@ public class Scene implements GLEventListener {
      * @param runnable action
      */
     public void winToObjCoord(final Shape shape, final int glWinX, final int glWinY, final float[] objPos, final Runnable runnable) {
-        if( null == cDrawable || null == shape ) {
-            return;
+        if( null != shape && shape.winToObjCoord(this, glWinX, glWinY, objPos) ) {
+            runnable.run();
         }
-        cDrawable.invoke(false, new GLRunnable() {
-            @Override
-            public boolean run(final GLAutoDrawable drawable) {
-                final boolean ok;
-                {
-                    final PMVMatrix pmv = renderer.getMatrix();
-                    pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-                    pmv.glPushMatrix();
-                    shape.setTransform(pmv);
-                    ok = shape.winToObjCoord(renderer, glWinX, glWinY, objPos);
-                    pmv.glPopMatrix();
-                }
-                if( ok ) {
-                    runnable.run();
-                }
-                return true;
-            } } );
     }
 
     /**
@@ -450,17 +440,7 @@ public class Scene implements GLEventListener {
         final int[] viewport = { 0, 0, width, height };
 
         final PMVMatrix pmv = new PMVMatrix();
-        {
-            final float ratio = (float)width/(float)height;
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glLoadIdentity();
-            pmv.gluPerspective(projAngle, ratio, zNear, zFar);
-        }
-        {
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
-            pmv.glTranslatef(0f, 0f, sceneDist);
-        }
+        setupMatrix(pmv, width, height);
         {
             final float orthoDist = -sceneDist;
             final float[] obj00Coord = new float[3];
@@ -477,10 +457,10 @@ public class Scene implements GLEventListener {
     /**
      * Reshape scene {@link #setupMatrix(PMVMatrix, int, int)}.
      * <p>
-     * Projection will be setup using perspective {@link #getProjAngle()} with {@link #getProjZNear()} and {@link #getProjZFar()}.
+     * {@link GLMatrixFunc#GL_PROJECTION} is setup using perspective {@link #getProjAngle()} with {@link #getProjZNear()} and {@link #getProjZFar()}.
      * </p>
      * <p>
-     * Modelview is translated to given {@link #getProjSceneDist()}
+     * {@link GLMatrixFunc#GL_MODELVIEW} is translated to given {@link #getProjSceneDist()}
      * and and origin 0/0 becomes the bottom-left corner.
      * </p>
      * @see #setupMatrix(PMVMatrix, int, int)
@@ -493,7 +473,8 @@ public class Scene implements GLEventListener {
         renderer.reshapeNotify(x, y, width, height);
 
         final PMVMatrix pmv = renderer.getMatrix();
-        setupMatrix(pmv, width, height);
+        setupMatrix0(pmv, width, height);
+        pmv.glTranslatef(0f, 0f, sceneDist);
         {
             final float orthoDist = -sceneDist;
             final float[] obj00Coord = new float[3];
@@ -549,32 +530,43 @@ public class Scene implements GLEventListener {
     public final int[/*4*/] getViewport(final int[/*4*/] target) { return renderer.getViewport(target); }
 
     /** Borrows the current int[4] viewport w/o copying. It is set after initial {@link #reshape(GLAutoDrawable, int, int, int, int)}. */
-    public final int[/*4*/] getViewport() { return renderer.getViewport(); }
+    public int[/*4*/] getViewport() { return renderer.getViewport(); }
 
     /** Returns the {@link #getViewport()}'s width, set after initial {@link #reshape(GLAutoDrawable, int, int, int, int)}. */
     public int getWidth() { return renderer.getWidth(); }
     /** Returns the {@link #getViewport()}'s height, set after initial {@link #reshape(GLAutoDrawable, int, int, int, int)}. */
     public int getHeight() { return renderer.getHeight(); }
 
+    /** Borrow the current {@link PMVMatrix}. */
+    public PMVMatrix getMatrix() { return renderer.getMatrix(); }
+
     /** Translate current matrix to {@link #getBounds()}'s origin (minx/miny) and {@link #getProjSceneDist()}, a convenience method. */
-    public void translate(final PMVMatrix pmv) {
+    private void translate(final PMVMatrix pmv) {
         pmv.glTranslatef(planeBoxCtr.getMinX(), planeBoxCtr.getMinY(), sceneDist);
     }
 
     /**
-     * Setup {@link PMVMatrix} projection and modelview using explicit surface width and height before {@link #reshape(GLAutoDrawable, int, int, int, int)} happened, a convenience method.
+     * Setup {@link PMVMatrix} {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}
+     * using explicit surface width and height before {@link #reshape(GLAutoDrawable, int, int, int, int)} happened, a convenience method.
      * <p>
-     * Projection will be setup using perspective {@link #getProjAngle()} with {@link #getProjZNear()} and {@link #getProjZFar()}.
+     * {@link GLMatrixFunc#GL_PROJECTION} is setup using perspective {@link #getProjAngle()} with {@link #getProjZNear()} and {@link #getProjZFar()}.
      * </p>
      * <p>
-     * Modelview is translated to given {@link #getProjSceneDist()}
+     * {@link GLMatrixFunc#GL_MODELVIEW} is translated to given {@link #getProjSceneDist()}
      * and and origin 0/0 becomes the bottom-left corner.
+     * </p>
+     * <p>
+     * At the end of operations, the {@link GLMatrixFunc#GL_MODELVIEW} matrix is selected.
      * </p>
      * @param pmv the {@link PMVMatrix} to setup
      * @param surface_width explicit surface width
      * @param surface_height explicit surface height
      */
     public void setupMatrix(final PMVMatrix pmv, final int surface_width, final int surface_height) {
+        setupMatrix0(pmv, surface_width, surface_height);
+        translate(pmv);
+    }
+    private void setupMatrix0(final PMVMatrix pmv, final int surface_width, final int surface_height) {
         final float ratio = (float)surface_width/(float)surface_height;
         pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmv.glLoadIdentity();
@@ -582,23 +574,26 @@ public class Scene implements GLEventListener {
 
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
-        translate(pmv);
     }
 
     /**
-     * Setup {@link PMVMatrix} projection and modelview using implicit {@link #getViewport()} surface dimension after {@link #reshape(GLAutoDrawable, int, int, int, int)} happened, a convenience method.
+     * Setup {@link PMVMatrix} {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}
+     * using implicit {@link #getViewport()} surface dimension after {@link #reshape(GLAutoDrawable, int, int, int, int)} happened, a convenience method.
      * <p>
-     * Projection will be setup using perspective {@link #getProjAngle()} with {@link #getProjZNear()} and {@link #getProjZFar()}.
+     * {@link GLMatrixFunc#GL_PROJECTION} is setup using perspective {@link #getProjAngle()} with {@link #getProjZNear()} and {@link #getProjZFar()}.
      * </p>
      * <p>
-     * Modelview is translated to given {@link #getProjSceneDist()}
+     * {@link GLMatrixFunc#GL_MODELVIEW} is translated to given {@link #getProjSceneDist()}
      * and and origin 0/0 becomes the bottom-left corner.
+     * </p>
+     * <p>
+     * At the end of operations, the {@link GLMatrixFunc#GL_MODELVIEW} matrix is selected.
      * </p>
      * @param pmv the {@link PMVMatrix} to setup
      * @param surface_width explicit surface width
      * @param surface_height explicit surface height
      */
-    public void setup(final PMVMatrix pmv) {
+    public void setupMatrix(final PMVMatrix pmv) {
         setupMatrix(pmv, getWidth(), getHeight());
     }
 
@@ -651,11 +646,9 @@ public class Scene implements GLEventListener {
                     final int glWinY = getHeight() - e.getY() - 1;
                     final float[] objPos = new float[3];
                     final Shape shape = activeShape;
-                    winToObjCoord(shape, glWinX, glWinY, objPos, new Runnable() {
-                        @Override
-                        public void run() {
-                            shape.dispatchGestureEvent(renderer, gh, glWinX, glWinY, objPos);
-                        } } );
+                    winToObjCoord(shape, glWinX, glWinY, objPos, () -> {
+                        shape.dispatchGestureEvent(Scene.this, gh, glWinX, glWinY, objPos);
+                    });
                 }
             }
         }
@@ -684,14 +677,12 @@ public class Scene implements GLEventListener {
     final void dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY, final boolean setActive) {
         final float[] objPos = new float[3];
         final Shape[] shape = { null };
-        pickShape(glWinX, glWinY, objPos, shape, new Runnable() {
-           @Override
-        public void run() {
+        pickShape(glWinX, glWinY, objPos, shape, () -> {
                if( setActive ) {
                    setActiveShape(shape[0]);
                }
                shape[0].dispatchMouseEvent(e, glWinX, glWinY, objPos);
-           } } );
+           } );
     }
     /**
      * Dispatch event to shape
@@ -702,11 +693,7 @@ public class Scene implements GLEventListener {
      */
     final void dispatchMouseEventForShape(final Shape shape, final MouseEvent e, final int glWinX, final int glWinY) {
         final float[] objPos = new float[3];
-        winToObjCoord(shape, glWinX, glWinY, objPos, new Runnable() {
-            @Override
-            public void run() {
-                shape.dispatchMouseEvent(e, glWinX, glWinY, objPos);
-            } } );
+        winToObjCoord(shape, glWinX, glWinY, objPos, () -> { shape.dispatchMouseEvent(e, glWinX, glWinY, objPos); });
     }
 
     private class SBCMouseListener implements MouseListener {

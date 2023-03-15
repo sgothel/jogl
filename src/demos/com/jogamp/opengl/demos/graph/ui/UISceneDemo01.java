@@ -36,7 +36,6 @@ import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
@@ -44,7 +43,6 @@ import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.gl.Scene;
 import com.jogamp.graph.ui.gl.Shape;
-import com.jogamp.graph.ui.gl.Shape.EventInfo;
 import com.jogamp.graph.ui.gl.shapes.Button;
 import com.jogamp.graph.ui.gl.shapes.GLButton;
 import com.jogamp.graph.ui.gl.shapes.MediaButton;
@@ -62,10 +60,8 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.demos.es2.GearsES2;
 import com.jogamp.opengl.demos.graph.MSAATool;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -155,9 +151,6 @@ public class UISceneDemo01 implements GLEventListener {
     private final Shape shape;
 
     private final float[] position = new float[] {0,0,0};
-
-    private final float sceneDist = -1/5f;
-    private final float zNear = 0.1f, zFar = 7000f;
 
     boolean ignoreInput = false;
 
@@ -253,11 +246,11 @@ public class UISceneDemo01 implements GLEventListener {
                 s.setTransform(pmv);
 
                 final float[] objPos = new float[3];
-                s.winToObjCoord(renderer, glWinX, glWinY, objPos);
+                s.winToObjCoord(pmv, viewport, glWinX, glWinY, objPos);
                 System.err.println("Button: Click: Win "+glWinX+"/"+glWinY+" -> Obj "+objPos[0]+"/"+objPos[1]+"/"+objPos[1]);
 
                 final int[] surfaceSize = new int[2];
-                s.getSurfaceSize(renderer, surfaceSize);
+                s.getSurfaceSize(pmv, viewport, surfaceSize);
                 System.err.println("Button: Size: Pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
 
                 pmv.glPopMatrix();
@@ -314,6 +307,22 @@ public class UISceneDemo01 implements GLEventListener {
     @Override
     public void display(final GLAutoDrawable drawable) {
         scene.display(drawable);
+        if( once ) {
+            once = false;
+            final RegionRenderer renderer = scene.getRenderer();
+            final PMVMatrix pmv = renderer.getMatrix();
+            pmv.glPushMatrix();
+            shape.setTransform(pmv);
+
+            final int[] winPosSize = { 0, 0 };
+            System.err.println("draw.0: "+shape);
+            boolean ok = shape.getSurfaceSize(pmv, renderer.getViewport(), winPosSize);
+            System.err.println("draw.1: ok "+ok+", surfaceSize "+winPosSize[0]+" x "+winPosSize[1]);
+            ok = shape.objToWinCoord(pmv, renderer.getViewport(), shape.getPosition(), winPosSize);
+            System.err.println("draw.2: ok "+ok+",    winCoord "+winPosSize[0]+" x "+winPosSize[1]);
+
+            pmv.glPopMatrix();
+        }
     }
     static boolean once = true;
 

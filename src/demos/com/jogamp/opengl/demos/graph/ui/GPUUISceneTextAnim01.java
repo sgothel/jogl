@@ -35,21 +35,15 @@ import java.util.Locale;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.ui.gl.Scene;
 import com.jogamp.graph.ui.gl.Shape;
 import com.jogamp.graph.ui.gl.shapes.Label;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.event.GestureHandler.GestureEvent;
-import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.MouseEvent;
-import com.jogamp.newt.event.MouseEvent.PointerClass;
-import com.jogamp.newt.event.PinchToZoomGesture;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
@@ -61,7 +55,6 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.opengl.demos.graph.MSAATool;
 import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 
 public class GPUUISceneTextAnim01 implements GLEventListener {
@@ -70,16 +63,13 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
     private boolean trace = false;
 
     private final float noAADPIThreshold;
-    private final Scene sceneUICntrl;
+    private final Scene scene;
 
     /** -1 == AUTO, TBD @ init(..) */
     private int renderModes;
 
     private final Font font;
     private final Font fontFPS;
-
-    private final float sceneDist = 3000f;
-    private final float zNear = 0.1f, zFar = 7000f;
 
     // private final float relTop = 80f/100f;
     private final float relMiddle = 22f/100f;
@@ -135,23 +125,15 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
             throw new RuntimeException(ioe);
         }
 
-        {
-            final RenderState rs = RenderState.createRenderState(SVertex.factory());
-            final RegionRenderer renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-            rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
-            // renderer = RegionRenderer.create(rs, null, null);
-
-            sceneUICntrl = new Scene(renderer, sceneDist, zNear, zFar);
-            // sceneUIController.setSampleCount(3); // easy on embedded devices w/ just 3 samples (default is 4)?
-        }
+        scene = new Scene();
         screenshot = new GLReadBufferUtil(false, false);
     }
 
     private void setupUI(final GLAutoDrawable drawable) {
         final float pixelSizeFixed = fontSizeFixedPVP * drawable.getSurfaceHeight();
-        jogampLabel = new Label(sceneUICntrl.getVertexFactory(), renderModes, font, pixelSizeFixed, jogamp);
+        jogampLabel = new Label(scene.getVertexFactory(), renderModes, font, pixelSizeFixed, jogamp);
         jogampLabel.addMouseListener(dragZoomRotateListener);
-        sceneUICntrl.addShape(jogampLabel);
+        scene.addShape(jogampLabel);
         jogampLabel.setEnabled(true);
 
         final float pixelSize10Pt = FontScale.toPixels(fontSizePt, dpiV);
@@ -163,9 +145,9 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
          * [FPS] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 15.679012
          */
         final float pixelSizeFPS = fontSizeFpsPVP * drawable.getSurfaceHeight();
-        fpsLabel = new Label(sceneUICntrl.getVertexFactory(), renderModes, fontFPS, pixelSizeFPS, "Nothing there yet");
+        fpsLabel = new Label(scene.getVertexFactory(), renderModes, fontFPS, pixelSizeFPS, "Nothing there yet");
         fpsLabel.addMouseListener(dragZoomRotateListener);
-        sceneUICntrl.addShape(fpsLabel);
+        scene.addShape(fpsLabel);
         fpsLabel.setEnabled(true);
         fpsLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
         fpsLabel.move(0f, pixelSizeFPS * (fontFPS.getMetrics().getLineGap() - fontFPS.getMetrics().getDescent()), 0f);
@@ -196,7 +178,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
         if(drawable instanceof GLWindow) {
             System.err.println("GPUUISceneGLListener0A: init (1)");
             final GLWindow glw = (GLWindow) drawable;
-            sceneUICntrl.attachInputListenerTo(glw);
+            scene.attachInputListenerTo(glw);
         } else {
             System.err.println("GPUUISceneGLListener0A: init (0)");
         }
@@ -217,7 +199,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
         gl.glEnable(GL.GL_DEPTH_TEST);
         gl.glEnable(GL.GL_BLEND);
 
-        sceneUICntrl.init(drawable);
+        scene.init(drawable);
 
         final GLAnimatorControl a = drawable.getAnimator();
         if( null != a ) {
@@ -241,7 +223,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
         jogampLabel.setPosition(dxMiddleAbs, dyTopLabelAbs, dz);
         fpsLabel.move(0f, 0f, 0f);
 
-        sceneUICntrl.reshape(drawable, x, y, width, height);
+        scene.reshape(drawable, x, y, width, height);
 
         lastWidth = width;
         lastHeight = height;
@@ -252,7 +234,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
     public void dispose(final GLAutoDrawable drawable) {
         System.err.println("GPUUISceneGLListener0A: dispose");
 
-        sceneUICntrl.dispose(drawable); // disposes all registered UIShapes
+        scene.dispose(drawable); // disposes all registered UIShapes
 
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         screenshot.dispose(gl);
@@ -261,11 +243,11 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
     private int shotCount = 0;
 
     public void printScreen(final GL gl)  {
-        final RegionRenderer renderer = sceneUICntrl.getRenderer();
+        final RegionRenderer renderer = scene.getRenderer();
         final String modeS = Region.getRenderModeString(jogampLabel.getRenderModes());
         final String filename = String.format((Locale)null, "GraphUIDemo-shot%03d-%03dx%03d-S_%s_%02d.png",
                 shotCount++, renderer.getWidth(), renderer.getHeight(),
-                modeS, sceneUICntrl.getSampleCount());
+                modeS, scene.getSampleCount());
         gl.glFinish(); // just make sure rendering finished ..
         if(screenshot.readPixels(gl, false)) {
             screenshot.write(new File(filename));
@@ -278,7 +260,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
         if( fpsLabel.isEnabled() ) {
             final String text;
             if( null == actionText ) {
-                text = sceneUICntrl.getStatusText(drawable, renderModes, fpsLabel.getQuality(), dpiV);
+                text = scene.getStatusText(drawable, renderModes, fpsLabel.getQuality(), dpiV);
             } else if( null != drawable.getAnimator() ) {
                 text = Scene.getStatusText(drawable.getAnimator())+", "+actionText;
             } else {
@@ -288,15 +270,15 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
                 System.err.println(text);
             }
         }
-        sceneUICntrl.display(drawable);
+        scene.display(drawable);
     }
 
     public void attachInputListenerTo(final GLWindow window) {
-        sceneUICntrl.attachInputListenerTo(window);
+        scene.attachInputListenerTo(window);
     }
 
     public void detachInputListenerFrom(final GLWindow window) {
-        sceneUICntrl.detachInputListenerFrom(window);
+        scene.detachInputListenerFrom(window);
     }
 
     /**

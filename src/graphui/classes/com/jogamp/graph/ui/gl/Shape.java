@@ -235,9 +235,9 @@ public abstract class Shape {
      * <p>
      * No matrix operations (translate, scale, ..) are performed.
      * </p>
-     * @param gl
-     * @param renderer
-     * @param sampleCount
+     * @param gl the current GL object
+     * @param renderer the used {@link RegionRenderer}, also source of {@link RegionRenderer#getMatrix()} and {@link RegionRenderer#getViewport()}.
+     * @param sampleCount sample count if used by Graph renderModes
      */
     public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         final float r, g, b, a;
@@ -361,24 +361,25 @@ public abstract class Shape {
     }
 
     /**
-     * Retrieve window surface size of this shape
+     * Retrieve window surface size of this shape reusing a given setup {@link PMVMatrix}.
      * <p>
-     * The {@link RegionRenderer#getMatrix()} has to be setup properly for this object,
-     * i.e. reshape for {@link GLMatrixFunc#GL_PROJECTION} and {@link #setTransform(PMVMatrix)} for {@link GLMatrixFunc#GL_MODELVIEW}.
+     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
+     * including this shape's {@link #setTransform(PMVMatrix)}.
      * </p>
-     * @param renderer source of viewport and {@link PMVMatrix}
+     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)} and {@link #setTransform(PMVMatrix)}.
+     * @param viewport the int[4] viewport
      * @param surfaceSize int[2] target surface size
      * @return true for successful gluProject(..) operation, otherwise false
+     * @see #getSurfaceSize(Scene, int[])
      */
-    public boolean getSurfaceSize(final RegionRenderer renderer, final int[/*2*/] surfaceSize) {
+    public boolean getSurfaceSize(final PMVMatrix pmv, final int[/*4*/] viewport, final int[/*2*/] surfaceSize) {
         boolean res = false;
-        final int[/*4*/] viewport = renderer.getViewport(new int[4]);
         // System.err.println("UIShape::getSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
         final float[] winCoordHigh = new float[3];
         final float[] winCoordLow = new float[3];
         final float[] high = getBounds().getHigh();
         final float[] low = getBounds().getLow();
-        final PMVMatrix pmv = renderer.getMatrix();
 
         if( pmv.gluProject(high[0], high[1], high[2], viewport, 0, winCoordHigh, 0) ) {
             // System.err.printf("UIShape::surfaceSize.H: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), high[0], high[1], high[2], winCoordHigh[0], winCoordHigh[1], winCoordHigh[2]);
@@ -394,22 +395,40 @@ public abstract class Shape {
     }
 
     /**
-     * Map given object coordinate relative to this shape to window coordinates
+     * Retrieve window surface size of this shape using a local {@link PMVMatrix}.
      * <p>
-     * The {@link RegionRenderer#getMatrix()} has to be setup properly for this object,
-     * i.e. reshape for {@link GLMatrixFunc#GL_PROJECTION} and {@link #setTransform(PMVMatrix)} for {@link GLMatrixFunc#GL_MODELVIEW}.
+     * The {@link Scene} has be {@link Scene#reshape(com.jogamp.opengl.GLAutoDrawable, int, int, int, int) reshape(..)}ed once.
      * </p>
-     * @param renderer source of viewport and {@link PMVMatrix}
+     * @param scene {@link Scene} source of viewport and local {@link PMVMatrix} {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)}.
+     * @param surfaceSize int[2] target surface size
+     * @return true for successful gluProject(..) operation, otherwise false
+     * @see #getSurfaceSize(PMVMatrix, int[], int[])
+     */
+    public boolean getSurfaceSize(final Scene scene, final int[/*2*/] surfaceSize) {
+        final PMVMatrix pmv = new PMVMatrix();
+        scene.setupMatrix(pmv);
+        setTransform(pmv);
+        return getSurfaceSize(pmv, scene.getViewport(), surfaceSize);
+    }
+
+    /**
+     * Map given object coordinate relative to this shape to window coordinates reusing a given setup {@link PMVMatrix}.
+     * <p>
+     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
+     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * </p>
+     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)} and {@link #setTransform(PMVMatrix)}.
+     * @param viewport the int[4] viewport
      * @param objPos float[3] object position relative to this shape's center
      * @param glWinPos int[2] target window position of objPos relative to this shape
      * @return true for successful gluProject(..) operation, otherwise false
+     * @see #objToWinCoord(Scene, float[], int[])
      */
-    public boolean objToWinCoord(final RegionRenderer renderer, final float[/*3*/] objPos, final int[/*2*/] glWinPos) {
+    public boolean objToWinCoord(final PMVMatrix pmv, final int[/*4*/] viewport, final float[/*3*/] objPos, final int[/*2*/] glWinPos) {
         boolean res = false;
-        final int[/*4*/] viewport = renderer.getViewport(new int[4]);
         // System.err.println("UIShape::objToWinCoordgetSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
         final float[] winCoord = new float[3];
-        final PMVMatrix pmv = renderer.getMatrix();
 
         if( pmv.gluProject(objPos[0], objPos[1], objPos[2], viewport, 0, winCoord, 0) ) {
             // System.err.printf("UIShape::objToWinCoord.0: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), objPos[0], objPos[1], objPos[2], winCoord[0], winCoord[1], winCoord[2]);
@@ -422,23 +441,43 @@ public abstract class Shape {
     }
 
     /**
-     * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate.
+     * Map given object coordinate relative to this shape to window coordinates using a local {@link PMVMatrix}.
      * <p>
-     * The {@link RegionRenderer#getMatrix()} has to be setup properly for this object,
-     * i.e. reshape for {@link GLMatrixFunc#GL_PROJECTION} and {@link #setTransform(PMVMatrix)} for {@link GLMatrixFunc#GL_MODELVIEW}.
+     * The {@link Scene} has be {@link Scene#reshape(com.jogamp.opengl.GLAutoDrawable, int, int, int, int) reshape(..)}ed once.
      * </p>
-     * @param renderer source of viewport and {@link PMVMatrix}
+     * @param scene {@link Scene} source of viewport and local {@link PMVMatrix} {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)}.
+     * @param objPos float[3] object position relative to this shape's center
+     * @param glWinPos int[2] target window position of objPos relative to this shape
+     * @return true for successful gluProject(..) operation, otherwise false
+     * @see #objToWinCoord(PMVMatrix, int[], float[], int[])
+     */
+    public boolean objToWinCoord(final Scene scene, final float[/*3*/] objPos, final int[/*2*/] glWinPos) {
+        final PMVMatrix pmv = new PMVMatrix();
+        scene.setupMatrix(pmv);
+        setTransform(pmv);
+        return this.objToWinCoord(pmv, scene.getViewport(), objPos, glWinPos);
+    }
+
+    /**
+     * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate
+     * reusing a given setup {@link PMVMatrix}.
+     * <p>
+     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
+     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * </p>
+     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)} and {@link #setTransform(PMVMatrix)}.
+     * @param viewport the int[4] viewport
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      * @param objPos float[3] target object position of glWinX/glWinY relative to this shape
-     * @return @return true for successful gluProject(..) and gluUnProject(..) operations, otherwise false
+     * @return true for successful gluProject(..) and gluUnProject(..) operations, otherwise false
+     * @see #winToObjCoord(Scene, int, int, float[])
      */
-    public boolean winToObjCoord(final RegionRenderer renderer, final int glWinX, final int glWinY, final float[/*3*/] objPos) {
+    public boolean winToObjCoord(final PMVMatrix pmv, final int[/*4*/] viewport, final int glWinX, final int glWinY, final float[/*3*/] objPos) {
         boolean res = false;
         final float[] ctr = getBounds().getCenter();
-        final int[] viewport = renderer.getViewport(new int[4]);
         final float[] tmp = new float[3];
-        final PMVMatrix pmv = renderer.getMatrix();
 
         if( pmv.gluProject(ctr[0], ctr[1], ctr[2], viewport, 0, tmp, 0) ) {
             // System.err.printf("UIShape::winToObjCoord.0: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), ctr[0], ctr[1], ctr[2], tmp[0], tmp[1], tmp[2]);
@@ -448,6 +487,26 @@ public abstract class Shape {
             }
         }
         return res;
+    }
+
+    /**
+     * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate
+     * using a local {@link PMVMatrix}.
+     * <p>
+     * The {@link Scene} has be {@link Scene#reshape(com.jogamp.opengl.GLAutoDrawable, int, int, int, int) reshape(..)}ed once.
+     * </p>
+     * @param scene {@link Scene} source of viewport and local {@link PMVMatrix} {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)}.
+     * @param glWinX in GL window coordinates, origin bottom-left
+     * @param glWinY in GL window coordinates, origin bottom-left
+     * @param objPos float[3] target object position of glWinX/glWinY relative to this shape
+     * @return @return true for successful gluProject(..) and gluUnProject(..) operations, otherwise false
+     * @see #winToObjCoord(PMVMatrix, int[], int, int, float[])
+     */
+    public boolean winToObjCoord(final Scene scene, final int glWinX, final int glWinY, final float[/*3*/] objPos) {
+        final PMVMatrix pmv = new PMVMatrix();
+        scene.setupMatrix(pmv);
+        setTransform(pmv);
+        return this.winToObjCoord(pmv, scene.getViewport(), glWinX, glWinY, objPos);
     }
 
     public float[] getColor() {
@@ -826,31 +885,23 @@ public abstract class Shape {
      * @param glWinX x-position in OpenGL model space
      * @param glWinY y-position in OpenGL model space
      */
-    /* pp */ final void dispatchGestureEvent(final RegionRenderer renderer, final GestureEvent e, final int glWinX, final int glWinY, final float[] objPos) {
+    /* pp */ final void dispatchGestureEvent(final Scene scene, final GestureEvent e, final int glWinX, final int glWinY, final float[] objPos) {
         if( resizable && e instanceof PinchToZoomGesture.ZoomEvent ) {
             final PinchToZoomGesture.ZoomEvent ze = (PinchToZoomGesture.ZoomEvent) e;
             final float pixels = ze.getDelta() * ze.getScale(); //
             final float[] objPos2 = { 0f, 0f, 0f };
             final int winX2 = glWinX + Math.round(pixels);
-            final boolean ok;
-            {
-                final PMVMatrix pmv = renderer.getMatrix();
-                pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-                pmv.glPushMatrix();
-                setTransform(pmv);
-                ok = winToObjCoord(null, winX2, glWinY, objPos2);
-                pmv.glPopMatrix();
-            }
+            final boolean ok = winToObjCoord(scene, winX2, glWinY, objPos2);
             final float dx = objPos2[0];
             final float dy = objPos2[1];
             final float sx = scale[0] + ( dx/box.getWidth() ); // bottom-right
             final float sy = scale[1] + ( dy/box.getHeight() );
             if( DEBUG ) {
-                System.err.printf("DragZoom: resize %b, obj %4d/%4d, %.3f/%.3f/%.3f %.3f/%.3f/%.3f + %.3f/%.3f -> %.3f/%.3f%n",
-                        inResize, glWinX, glWinY, objPos[0], objPos[1], objPos[2], position[0], position[1], position[2],
+                System.err.printf("DragZoom: resize %b, ok %b, obj %4d/%4d, %.3f/%.3f/%.3f %.3f/%.3f/%.3f + %.3f/%.3f -> %.3f/%.3f%n",
+                        inResize, ok, glWinX, glWinY, objPos[0], objPos[1], objPos[2], position[0], position[1], position[2],
                         dx, dy, sx, sy);
             }
-            if( resize_sxy_min <= sx && sx <= resize_sxy_max && resize_sxy_min <= sy && sy <= resize_sxy_max ) {
+            if( ok && resize_sxy_min <= sx && sx <= resize_sxy_max && resize_sxy_min <= sy && sy <= resize_sxy_max ) {
                 if( DEBUG ) {
                     System.err.printf("PinchZoom: pixels %f, obj %4d/%4d, %.3f/%.3f/%.3f %.3f/%.3f/%.3f + %.3f/%.3f -> %.3f/%.3f%n",
                             pixels, glWinX, glWinY, objPos[0], objPos[1], objPos[2], position[0], position[1], position[2],

@@ -104,8 +104,10 @@ public class UIShapeDemo01 implements GLEventListener {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
-        caps.setSampleBuffers(true);
-        caps.setNumSamples(4);
+        if( false ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(4);
+        }
         System.out.println("Requested: " + caps);
 
         final GLWindow window = GLWindow.create(caps);
@@ -180,7 +182,9 @@ public class UIShapeDemo01 implements GLEventListener {
         this.trace = trace;
         this.screenshot = new GLReadBufferUtil(false, false);
 
-        button = new Button(SVertex.factory(), renderModes, font, "Click me!", 1/8f, 1/16f);
+        final float sz1_w = 1/8f;
+        final float sz2 = 1/20f;
+        button = new Button(SVertex.factory(), renderModes, font, "Click me!", sz1_w, sz1_w/2f);
         button.setLabelColor(0.0f,0.0f,0.0f);
         /** Button defaults !
                 button.setLabelColor(1.0f,1.0f,1.0f);
@@ -189,7 +193,7 @@ public class UIShapeDemo01 implements GLEventListener {
                 button.setSpacing(2.0f);
          */
         System.err.println(button);
-        crossHair = new CrossHair(SVertex.factory(), renderModes, 1/20f, 1/20f, 1/1000f);
+        crossHair = new CrossHair(SVertex.factory(), renderModes, sz2, sz2, 1/1000f);
         crossHair.setColor(0f,0f,1f,1f);
         crossHair.setEnabled(true);
     }
@@ -218,25 +222,37 @@ public class UIShapeDemo01 implements GLEventListener {
 
     @Override
     public void reshape(final GLAutoDrawable drawable, final int xstart, final int ystart, final int width, final int height) {
-        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        // final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        // gl.glViewport(xstart, ystart, width, height);
 
         rRenderer.reshapePerspective(45.0f, width, height, zNear, zFar);
         // rRenderer.reshapeOrtho(width, height, zNear, zFar);
 
-        lastWidth = width;
-        lastHeight = height;
+        final PMVMatrix pmv = rRenderer.getMatrix();
+        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        pmv.glLoadIdentity();
+        pmv.glTranslatef(xTran, yTran, zTran);
+
         if( drawable instanceof Window ) {
             ((Window)drawable).setTitle(UIShapeDemo01.class.getSimpleName()+": "+drawable.getSurfaceWidth()+" x "+drawable.getSurfaceHeight());
         }
     }
-    float lastWidth = 0f, lastHeight = 0f;
 
     final int[] sampleCount = { 4 };
 
-    private void drawShape(final GL2ES2 gl, final PMVMatrix pmv, final RegionRenderer renderer, final Shape shape) {
+    private void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape shape) {
+        final PMVMatrix pmv = renderer.getMatrix();
         pmv.glPushMatrix();
         shape.setTransform(pmv);
         shape.drawShape(gl, renderer, sampleCount);
+        if( once ) {
+            final int[] winPosSize = { 0, 0 };
+            System.err.println("draw.0: "+shape);
+            boolean ok = shape.getSurfaceSize(pmv, renderer.getViewport(), winPosSize);
+            System.err.println("draw.1: ok "+ok+", surfaceSize "+winPosSize[0]+" x "+winPosSize[1]);
+            ok = shape.objToWinCoord(pmv, renderer.getViewport(), shape.getPosition(), winPosSize);
+            System.err.println("draw.2: ok "+ok+",    winCoord "+winPosSize[0]+" x "+winPosSize[1]);
+        }
         pmv.glPopMatrix();
     }
 
@@ -249,12 +265,9 @@ public class UIShapeDemo01 implements GLEventListener {
 
         final RegionRenderer renderer = getRegionRenderer();
         final PMVMatrix pmv = renderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmv.glLoadIdentity();
-        pmv.glTranslatef(xTran, yTran, zTran);
         renderer.enable(gl, true);
-        drawShape(gl, pmv, renderer, button);
-        drawShape(gl, pmv, renderer, crossHair);
+        drawShape(gl, renderer, button);
+        drawShape(gl, renderer, crossHair);
         {
             final String text = "Hello Origin.";
             final float full_width_o;
@@ -392,11 +405,11 @@ public class UIShapeDemo01 implements GLEventListener {
 
                         final float[] objPos = new float[3];
                         System.err.println("\n\nButton: "+button);
-                        button.winToObjCoord(renderer, glWinX, glWinY, objPos);
+                        button.winToObjCoord(pmv, viewport, glWinX, glWinY, objPos);
                         System.err.println("Button: Click: Win "+glWinX+"/"+glWinY+" -> Obj "+objPos[0]+"/"+objPos[1]+"/"+objPos[1]);
 
                         final int[] surfaceSize = new int[2];
-                        button.getSurfaceSize(renderer, surfaceSize);
+                        button.getSurfaceSize(pmv, viewport, surfaceSize);
                         System.err.println("Button: Size: Pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
 
                         pmv.glPopMatrix();
@@ -408,16 +421,16 @@ public class UIShapeDemo01 implements GLEventListener {
                         final float[] objPosC = crossHair.getBounds().getCenter();
                         final int[] objWinPos = new int[2];
                         System.err.println("\n\nCrossHair: "+crossHair);
-                        if( crossHair.objToWinCoord(renderer, objPosC, objWinPos) ) {
+                        if( crossHair.objToWinCoord(pmv, viewport, objPosC, objWinPos) ) {
                             System.err.println("CrossHair: Obj: Obj "+objPosC[0]+"/"+objPosC[1]+"/"+objPosC[1]+" -> Win "+objWinPos[0]+"/"+objWinPos[1]);
                         }
 
                         final float[] objPos2 = new float[3];
-                        crossHair.winToObjCoord(renderer, objWinPos[0], objWinPos[1], objPos2);
+                        crossHair.winToObjCoord(pmv, viewport, objWinPos[0], objWinPos[1], objPos2);
                         System.err.println("CrossHair: Obj: Win "+objWinPos[0]+"/"+objWinPos[1]+" -> Obj "+objPos2[0]+"/"+objPos2[1]+"/"+objPos2[1]);
 
                         final float[] winObjPos = new float[3];
-                        if( crossHair.winToObjCoord(renderer, glWinX, glWinY, winObjPos) ) {
+                        if( crossHair.winToObjCoord(pmv, viewport, glWinX, glWinY, winObjPos) ) {
                             // final float[] translate = crossHair.getTranslate();
                             // final float[] objPosT = new float[] { objPosC[0]+translate[0], objPosC[1]+translate[1], objPosC[2]+translate[2] };
                             final float dx = winObjPos[0] - objPosC[0];
@@ -432,7 +445,7 @@ public class UIShapeDemo01 implements GLEventListener {
                         }
 
                         final int[] surfaceSize = new int[2];
-                        crossHair.getSurfaceSize(renderer, surfaceSize);
+                        crossHair.getSurfaceSize(pmv, viewport, surfaceSize);
                         System.err.println("CrossHair: Size: Pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
 
                         pmv.glPopMatrix();
@@ -448,20 +461,14 @@ public class UIShapeDemo01 implements GLEventListener {
 
         @Override
         public void mouseMoved(final MouseEvent e) {
-            // TODO Auto-generated method stub
-
         }
 
         @Override
         public void mouseDragged(final MouseEvent e) {
-            // TODO Auto-generated method stub
-
         }
 
         @Override
         public void mouseWheelMoved(final MouseEvent e) {
-            // TODO Auto-generated method stub
-
         }
 
     }
