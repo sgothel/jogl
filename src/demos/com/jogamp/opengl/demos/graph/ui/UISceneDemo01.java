@@ -74,16 +74,8 @@ import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 
 /**
  * Basic UIScene demo using a single UIShape.
- *
- * Action Keys:
- * - 1/2: zoom in/out
- * - 4/5: increase/decrease shape/text spacing
- * - 6/7: increase/decrease corner size
- * - 0/9: rotate
- * - v: toggle v-sync
- * - s: screenshot
  */
-public class UISceneDemo00 implements GLEventListener {
+public class UISceneDemo01 implements GLEventListener {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
@@ -118,11 +110,11 @@ public class UISceneDemo00 implements GLEventListener {
         final GLWindow window = GLWindow.create(caps);
         // window.setPosition(10, 10);
         window.setSize(800, 400);
-        window.setTitle(UISceneDemo00.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+        window.setTitle(UISceneDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         // final int renderModes = Region.COLORCHANNEL_RENDERING_BIT | Region.VBAA_RENDERING_BIT;
         final int renderModes = Region.COLORCHANNEL_RENDERING_BIT;
         window.setVisible(true);
-        final UISceneDemo00 uiGLListener = new UISceneDemo00(font, renderModes, window.getSurfaceWidth(), window.getSurfaceHeight(), DEBUG, TRACE);
+        final UISceneDemo01 uiGLListener = new UISceneDemo01(font, renderModes, window.getSurfaceWidth(), window.getSurfaceHeight(), DEBUG, TRACE);
         window.addGLEventListener(uiGLListener);
 
         final Animator animator = new Animator();
@@ -173,7 +165,7 @@ public class UISceneDemo00 implements GLEventListener {
     protected final AffineTransform tempT2 = new AffineTransform();
 
     @SuppressWarnings("unused")
-    public UISceneDemo00(final Font font, final int renderModes, final int width, final int height, final boolean debug, final boolean trace) {
+    public UISceneDemo01(final Font font, final int renderModes, final int width, final int height, final boolean debug, final boolean trace) {
         this.font = font;
         this.renderModes = renderModes;
         this.debug = debug;
@@ -313,7 +305,7 @@ public class UISceneDemo00 implements GLEventListener {
         System.err.println("Reshape: Scene Plane.R "+scene.getBounds());
 
         if( drawable instanceof Window ) {
-            ((Window)drawable).setTitle(UISceneDemo00.class.getSimpleName()+": "+drawable.getSurfaceWidth()+" x "+drawable.getSurfaceHeight());
+            ((Window)drawable).setTitle(UISceneDemo01.class.getSimpleName()+": "+drawable.getSurfaceWidth()+" x "+drawable.getSurfaceHeight());
         }
     }
 
@@ -336,7 +328,7 @@ public class UISceneDemo00 implements GLEventListener {
     public void printScreen(final GL gl)  {
         final RegionRenderer renderer = scene.getRenderer();
         final String modeS = Region.getRenderModeString(renderModes);
-        final String filename = String.format((Locale)null, "UISceneDemo00-shot%03d-%03dx%03d-S_%s_%02d.png",
+        final String filename = String.format((Locale)null, "UISceneDemo01-shot%03d-%03dx%03d-S_%s_%02d.png",
                 shotCount++, renderer.getWidth(), renderer.getHeight(),
                 modeS, scene.getSampleCount());
         gl.glFinish(); // just make sure rendering finished ..
