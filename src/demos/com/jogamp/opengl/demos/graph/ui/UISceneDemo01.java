@@ -198,7 +198,7 @@ public class UISceneDemo00 implements GLEventListener {
             final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
             // mPlayer.setTextureUnit(texUnitMediaPlayer);
             final MediaButton b = new MediaButton(SVertex.factory(), renderModes, sw, sh, mPlayer);
-            b.setVerbose(true);
+            b.setVerbose(false);
             b.addDefaultEventListener();
             b.setToggleable(true);
             b.setToggle(true);

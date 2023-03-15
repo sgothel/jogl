@@ -385,8 +385,8 @@ public class MovieSimple implements GLEventListener {
 
             @Override
             public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
-                System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
-                System.err.println("MovieCube State: "+mp);
+                System.err.println("MovieSimple AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                System.err.println("MovieSimple State: "+mp);
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
                     new InterruptSource.Thread() {
                         @Override

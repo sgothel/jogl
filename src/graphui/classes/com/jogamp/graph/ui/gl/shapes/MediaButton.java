@@ -88,8 +88,8 @@ public class MediaButton extends TexSeqButton {
             @Override
             public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
                 if( verbose ) {
-                    System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
-                    System.err.println("MovieCube State: "+mp);
+                    System.err.println("MediaButton AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                    System.err.println("MediaButton State: "+mp);
                 }
                 if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
                     resetGL = true;

@@ -558,7 +558,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final MediaButton mPlayerButton = new MediaButton(scene.getVertexFactory(), renderModes,
                     button2XSize, button2YSize, mPlayer);
             mPlayerButton.setName(BUTTON_MOVIE);
-            mPlayerButton.setVerbose(true);
+            mPlayerButton.setVerbose(false);
             mPlayerButton.addDefaultEventListener();
             mPlayerButton.move(xStartRight, yStartTop - diffY*1, 0f);
             mPlayerButton.setToggleable(true);
