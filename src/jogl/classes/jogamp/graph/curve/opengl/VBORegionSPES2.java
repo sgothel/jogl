@@ -265,7 +265,7 @@ public final class VBORegionSPES2 extends GLRegion {
     /**
      * <p>
      * Since multiple {@link Region}s may share one
-     * {@link ShaderProgram}, the uniform data must always be updated.
+     * {@link ShaderProgram} managed and owned by {@link RegionRendered}, the uniform data must always be updated.
      * </p>
      *
      * @param gl
@@ -345,14 +345,6 @@ public final class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    protected void clearShaderImpl(final GL2ES2 gl) {
-        if( null != spPass1 ) {
-            spPass1.destroy(gl);
-            spPass1 = null;
-        }
-    }
-
-    @Override
     protected void destroyImpl(final GL2ES2 gl) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Destroy: " + this);
@@ -373,5 +365,6 @@ public final class VBORegionSPES2 extends GLRegion {
             indicesBuffer.destroy(gl);
             indicesBuffer = null;
         }
+        spPass1 = null; // owned by RegionRenderer
     }
 }

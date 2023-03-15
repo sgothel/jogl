@@ -199,14 +199,20 @@ public class RenderState {
     }
 
     public final int id() { return id; }
+
+    /** Return the current {@link ShaderProgram} */
     public final ShaderProgram getShaderProgram() { return sp; }
+
+    /** Return whether the current {@link ShaderProgram} is {@link ShaderProgram#inUse() in use}. */
     public final boolean isShaderProgramInUse() { return null != sp ? sp.inUse() : false; }
 
     /**
-     * Set a {@link ShaderProgram} and enable it. If the given {@link ShaderProgram} is new,
-     * method returns true, otherwise false.
+     * Sets the current {@link ShaderProgram} and enables it.
+     *
+     * If the given {@link ShaderProgram} is not {@link #getShaderProgram() the current}, method returns true, otherwise false.
+     *
      * @param gl
-     * @param spNext
+     * @param spNext the next current {@link ShaderProgram} to be set and enabled
      * @return true if a new shader program is being used and hence external uniform-data and -location,
      *         as well as the attribute-location must be updated, otherwise false.
      */
@@ -263,7 +269,8 @@ public class RenderState {
         if( updateLocation || 0 > data.getLocation() ) {
             final boolean ok = 0 <= data.setLocation(gl, sp.program());
             if( throwOnError && !ok ) {
-                throw new GLException("Could not locate "+data);
+                sp.dumpSource(System.err);
+                throw new GLException("Could not locate "+data.getName()+" in "+sp+", "+data);
             }
             return ok;
         } else {
@@ -285,7 +292,8 @@ public class RenderState {
         if( updateLocation ) {
             updateData = 0 <= data.setLocation(gl, sp.program());
             if( throwOnError && !updateData ) {
-                throw new GLException("Could not locate "+data);
+                sp.dumpSource(System.err);
+                throw new GLException("Could not locate "+data.getName()+" in "+sp+", "+data);
             }
         }
         if( updateData ){
@@ -306,7 +314,8 @@ public class RenderState {
         if( updateLocation || 0 > data.getLocation() ) {
             final boolean ok = 0 <= data.setLocation(gl, sp.program());
             if( throwOnError && !ok ) {
-                throw new GLException("Could not locate "+data);
+                sp.dumpSource(System.err);
+                throw new GLException("Could not locate "+data.getName()+" in "+sp+", "+data);
             }
             return ok;
         } else {
@@ -326,13 +335,10 @@ public class RenderState {
     }
 
     /**
-     * Issues {@link ShaderProgram#destroy(GL2ES2)} and nullifies reference.
+     * Only nullifies {@link ShaderProgram} reference owned by {@link RegionRenderer}.
      */
     public void destroy(final GL2ES2 gl) {
-        if( null != sp ) {
-            sp.destroy(gl);
-            sp = null;
-        }
+        sp = null; // owned by RegionRenderer
     }
 
     public final RenderState attachTo(final GL2ES2 gl) {

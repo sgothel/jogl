@@ -50,10 +50,15 @@ import com.jogamp.graph.curve.Region;
 
 /**
  * OpenGL {@link Region} renderer
- * <p>
- * All OpenGL related operations regarding {@link Region}s
- * are passed through an instance of this class.
- * </p>
+ *
+ * All {@link Region} rendering operations utilize a RegionRenderer.
+ *
+ * The RegionRenderer owns its {@link RenderState}, a composition.
+ *
+ * The RegionRenderer manages and own all used {@link ShaderProgram}s, a composition.
+ *
+ * At its {@link #destroy(GL2ES2) destruction}, all {@link ShaderProgram}s and its {@link RenderState}
+ * will be destroyed and released.
  */
 public class RegionRenderer {
     protected static final boolean DEBUG = Region.DEBUG;
@@ -223,19 +228,7 @@ public class RegionRenderer {
         initialized = true;
     }
 
-    /** Deletes all {@link ShaderProgram}s and nullifies its references. */
-    public final void clearShader(final GL2ES2 gl) {
-        if(!initialized){
-            return;
-        }
-        for(final Iterator<IntObjectHashMap.Entry> i = shaderPrograms.iterator(); i.hasNext(); ) {
-            final ShaderProgram sp = (ShaderProgram) i.next().getValue();
-            sp.destroy(gl);
-        }
-        shaderPrograms.clear();
-        rs.destroy(gl);
-    }
-
+    /** Deletes all {@link ShaderProgram}s and nullifies its references including {@link RenderState#destroy(GL2ES2)}. */
     public final void destroy(final GL2ES2 gl) {
         if(!initialized){
             if(DEBUG_INSTANCE) {
@@ -243,7 +236,12 @@ public class RegionRenderer {
             }
             return;
         }
-        clearShader(gl);
+        for(final Iterator<IntObjectHashMap.Entry> i = shaderPrograms.iterator(); i.hasNext(); ) {
+            final ShaderProgram sp = (ShaderProgram) i.next().getValue();
+            sp.destroy(gl);
+        }
+        shaderPrograms.clear();
+        rs.destroy();
         initialized = false;
     }
 
