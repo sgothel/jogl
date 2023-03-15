@@ -103,6 +103,7 @@ public final class ShaderProgram {
             gl.glDeleteProgram(shaderProgram);
             shaderProgram=0;
         }
+        programLinked=false;
     }
 
     //
@@ -308,7 +309,10 @@ public final class ShaderProgram {
     }
 
     public synchronized void useProgram(final GL2ES2 gl, boolean on) {
-        if(!programLinked) { throw new GLException("Program is not linked"); }
+        if(on && !programLinked) {
+            System.err.println("Error: ShaderProgram.useProgram(on "+on+") not linked: "+this);
+            throw new GLException("Program is not linked");
+        }
         if(programInUse==on) { return; }
         if( 0 == shaderProgram ) {
             on = false;
