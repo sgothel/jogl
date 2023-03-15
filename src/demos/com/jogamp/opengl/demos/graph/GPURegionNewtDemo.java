@@ -131,8 +131,7 @@ public class GPURegionNewtDemo {
         window.setSize(width, height);
         window.setTitle("GPU Curve Region Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (shape_ctor_mode, rs, rmode, sampleCount, DEBUG, TRACE);
+        final GPURegionGLListener01 regionGLListener = new GPURegionGLListener01 (shape_ctor_mode, rmode, sampleCount, DEBUG, TRACE);
         regionGLListener.attachInputListenerTo(window);
         window.addGLEventListener(regionGLListener);
         window.setVisible(true);

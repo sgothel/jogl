@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -149,12 +149,11 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     Window upstream_window = null;
     StringBuilder userString = new StringBuilder(textX1);
     boolean userInput = false;
-    public GPUTextRendererListenerBase01(final GLProfile glp, final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
+    public GPUTextRendererListenerBase01(final GLProfile glp, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
         // NOTE_ALPHA_BLENDING: We use alpha-blending
-        super(RegionRenderer.create(rs, blending ? RegionRenderer.defaultBlendEnable : null,
-                                    blending ? RegionRenderer.defaultBlendDisable : null),
+        super(RegionRenderer.create(blending ? RegionRenderer.defaultBlendEnable : null, blending ? RegionRenderer.defaultBlendDisable : null),
                                     renderModes, debug, trace);
-        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        this.getRenderer().getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRegionUtil = new TextRegionUtil(renderModes);
         this.regionFPS = GLRegion.create(glp, renderModes, null);
         this.regionHead = GLRegion.create(glp, renderModes, null);

@@ -52,14 +52,14 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
     final int shape_ctor_mode;
     OutlineShape outlineShape = null;
 
-    public GPURegionGLListener01 (final RenderState rs, final int renderModes, final int sampleCount, final boolean debug, final boolean trace) {
-        this(1, rs, renderModes, sampleCount, debug, trace);
+    public GPURegionGLListener01 (final int renderModes, final int sampleCount, final boolean debug, final boolean trace) {
+        this(1, renderModes, sampleCount, debug, trace);
     }
 
-    public GPURegionGLListener01 (final int shape_ctor_mode, final RenderState rs, final int renderModes, final int sampleCount, final boolean debug, final boolean trace) {
-        super(RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
+    public GPURegionGLListener01 (final int shape_ctor_mode, final int renderModes, final int sampleCount, final boolean debug, final boolean trace) {
+        super(RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
         this.shape_ctor_mode = shape_ctor_mode;
-        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        this.getRenderer().getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         setMatrix(-20, 00, -50, 0f, sampleCount);
     }
 

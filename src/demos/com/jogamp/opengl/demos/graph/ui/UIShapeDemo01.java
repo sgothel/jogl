@@ -48,7 +48,6 @@ import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -114,8 +113,9 @@ public class UIShapeDemo01 implements GLEventListener {
         // window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle(UIShapeDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final UIShapeDemo01 uiGLListener = new UIShapeDemo01(font, Region.COLORCHANNEL_RENDERING_BIT, rs, DEBUG, TRACE);
+        final int renderModes = Region.COLORCHANNEL_RENDERING_BIT | Region.VBAA_RENDERING_BIT;
+        // final int renderModes = Region.COLORCHANNEL_RENDERING_BIT;
+        final UIShapeDemo01 uiGLListener = new UIShapeDemo01(font, renderModes, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
         window.setVisible(true);
@@ -174,10 +174,10 @@ public class UIShapeDemo01 implements GLEventListener {
     protected final AffineTransform tempT1 = new AffineTransform();
     protected final AffineTransform tempT2 = new AffineTransform();
 
-    public UIShapeDemo01(final Font font, final int renderModes, final RenderState rs, final boolean debug, final boolean trace) {
+    public UIShapeDemo01(final Font font, final int renderModes, final boolean debug, final boolean trace) {
         this.font = font;
         this.renderModes = renderModes;
-        this.rRenderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        this.rRenderer = RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         this.debug = debug;
         this.trace = trace;
         this.screenshot = new GLReadBufferUtil(false, false);

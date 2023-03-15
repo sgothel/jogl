@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2014-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -42,7 +42,6 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -55,7 +54,6 @@ public abstract class TextRendererGLELBase implements GLEventListener {
 
     private boolean exclusivePMVMatrix = true;
     private PMVMatrix sharedPMVMatrix = null;
-    private RenderState rs = null;
     private RegionRenderer.GLCallback enableCallback=null, disableCallback=null;
     protected RegionRenderer renderer = null;
     protected TextRegionUtil textRenderUtil = null;
@@ -97,14 +95,6 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     }
 
     /**
-     * <p>
-     * Must be called before {@link #init(GLAutoDrawable)}.
-     * </p>
-     * @param rs
-     */
-    public void setRenderState(final RenderState rs) { this.rs = rs; }
-
-    /**
      * In exclusive mode, impl. uses a pixelScale of 1f and orthogonal PMV on window dimensions
      * and renderString uses 'height' for '1'.
      * <p>
@@ -120,7 +110,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     }
 
     /**
-     * See {@link RegionRenderer#create(RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback)}.
+     * See {@link RegionRenderer#create(Vertex.Factory<? extends Vertex>, RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback)}.
      * <p>
      * Must be called before {@link #init(GLAutoDrawable)}.
      * </p>
@@ -135,21 +125,18 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     public final TextRegionUtil getTextRenderUtil() { return textRenderUtil; }
     public int[] getVBAASampleCount() { return this.vbaaSampleCount; }
 
-    public PMVMatrix getMatrix() { return rs.getMatrix(); };
+    public PMVMatrix getMatrix() { return renderer.getMatrix(); };
     public boolean isMatrixShared() { return !exclusivePMVMatrix; };
 
     @Override
     public void init(final GLAutoDrawable drawable) {
-        if( null == this.rs ) {
-            exclusivePMVMatrix = null == sharedPMVMatrix;
-            this.rs = RenderState.createRenderState(SVertex.factory(), sharedPMVMatrix);
-        }
-        this.renderer = RegionRenderer.create(rs, enableCallback, disableCallback);
-        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        exclusivePMVMatrix = null == sharedPMVMatrix;
+        this.renderer = RegionRenderer.create(null, sharedPMVMatrix, enableCallback, disableCallback);
+        this.getRenderer().getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRenderUtil = new TextRegionUtil(renderModes);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         renderer.init(gl);
-        rs.setColorStatic(staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2], staticRGBAColor[3]);
+        this.getRenderer().getRenderState().setColorStatic(staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2], staticRGBAColor[3]);
         renderer.enable(gl, false);
 
         final Object upObj = drawable.getUpstreamWidget();
@@ -263,7 +250,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             dx += sxy * font.getAdvanceWidth('X') * column;
             dy -= sxy * lineHeight * ( row + 1 );
 
-            final PMVMatrix pmvMatrix = rs.getMatrix();
+            final PMVMatrix pmvMatrix = getMatrix();
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             if( !exclusivePMVMatrix )  {
                 pmvMatrix.glPushMatrix();
@@ -313,7 +300,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             dx += sxy * font.getAdvanceWidth('X') * column;
             dy -= sxy * lineHeight * ( row + 1 );
 
-            final PMVMatrix pmvMatrix = rs.getMatrix();
+            final PMVMatrix pmvMatrix = getMatrix();
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             if( !exclusivePMVMatrix )  {
                 pmvMatrix.glPushMatrix();

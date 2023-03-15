@@ -243,7 +243,7 @@ public abstract class GLRegion extends Region {
      * The <i>alpha</i> component shall be set to zero.
      * Note: If {@link GL#GL_BLEND blending} is enabled, the
      * {@link RegionRenderer} might need to be
-     * {@link RegionRenderer#create(RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback) created}
+     * {@link RegionRenderer#create(Vertex.Factory<? extends Vertex>, RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback) created}
      * with the appropriate {@link RegionRenderer.GLCallback callbacks}.
      * </p>
      * @param matrix current {@link PMVMatrix}.

@@ -51,7 +51,6 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
@@ -144,8 +143,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         // System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(window.getScreen().getDisplay().getGraphicsDevice(), null).toString());
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final TextGLListener textGLListener = new TextGLListener(glp, rs, Region.VBAA_RENDERING_BIT, 4 /* sampleCount */, DEBUG, TRACE);
+        final TextGLListener textGLListener = new TextGLListener(glp, Region.VBAA_RENDERING_BIT, 4 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         textGLListener.setHeadBox(2, true);
@@ -198,8 +196,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final TextGLListener textGLListener = new TextGLListener(glp, rs, Region.MSAA_RENDERING_BIT, 4 /* sampleCount */, DEBUG, TRACE);
+        final TextGLListener textGLListener = new TextGLListener(glp, Region.MSAA_RENDERING_BIT, 4 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         textGLListener.setHeadBox(2, true);
@@ -248,8 +245,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final TextGLListener textGLListener = new TextGLListener(glp, rs, 0, 0 /* sampleCount */, DEBUG, TRACE);
+        final TextGLListener textGLListener = new TextGLListener(glp, 0, 0 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         textGLListener.setHeadBox(2, true);
@@ -295,8 +291,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final TextGLListener textGLListener = new TextGLListener(glp, rs, 0, 0 /* sampleCount */, DEBUG, TRACE);
+        final TextGLListener textGLListener = new TextGLListener(glp, 0, 0 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         textGLListener.setHeadBox(2, true);
@@ -332,8 +327,8 @@ public class TestTextRendererNEWT20 extends UITestCase {
     }
 
     private static class TextGLListener extends GPUTextRendererListenerBase01 {
-        public TextGLListener(final GLProfile glp, final RenderState rs, final int type, final int sampleCount, final boolean debug, final boolean trace) {
-            super(glp, rs, type, sampleCount, true, debug, trace);
+        public TextGLListener(final GLProfile glp, final int type, final int sampleCount, final boolean debug, final boolean trace) {
+            super(glp, type, sampleCount, true, debug, trace);
         }
 
         @Override

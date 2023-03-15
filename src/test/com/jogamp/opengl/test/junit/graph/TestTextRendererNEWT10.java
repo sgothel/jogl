@@ -51,11 +51,9 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
@@ -233,7 +231,6 @@ public class TestTextRendererNEWT10 extends UITestCase {
             JunitTracer.waitForKey("Start");
         }
 
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
         final int renderModes, sampleCount;
         if( graphVBAASamples > 0 ) {
             renderModes = Region.VBAA_RENDERING_BIT;
@@ -245,7 +242,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
             renderModes = 0;
             sampleCount = 0;
         }
-        final TextRendererGLEL textGLListener = new TextRendererGLEL(glp, rs, renderModes, sampleCount);
+        final TextRendererGLEL textGLListener = new TextRendererGLEL(glp, renderModes, sampleCount);
         System.err.println(textGLListener.getFontInfo());
 
         window.addGLEventListener(textGLListener);
@@ -294,10 +291,9 @@ public class TestTextRendererNEWT10 extends UITestCase {
         float fontSizeAnim, fontSizeDelta;
         float dpiV, ppmmV;
 
-        TextRendererGLEL(final GLProfile glp, final RenderState rs, final int renderModes, final int sampleCount) {
+        TextRendererGLEL(final GLProfile glp, final int renderModes, final int sampleCount) {
             super(renderModes, new int[] { sampleCount });
             setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-            setRenderState(rs);
 
             regionFPS = GLRegion.create(glp, renderModes, null);
             regionFPSAnim = GLRegion.create(glp, renderModes, null);

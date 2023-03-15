@@ -45,8 +45,6 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -86,9 +84,8 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);
 
         final GLWindow window = createWindow("t00-shape-vbaa0-msaa0", caps, 800, 400);
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
 
-        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, 0, 0, false, false);
+        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (0, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 
@@ -120,9 +117,8 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);
 
         final GLWindow window = createWindow("t01-shape-vbaa0-msaa0", caps, 800, 400);
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
 
-        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.VARWEIGHT_RENDERING_BIT, 0, false, false);
+        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (Region.VARWEIGHT_RENDERING_BIT, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 
@@ -151,9 +147,8 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setNumSamples(4);
 
         final GLWindow window = createWindow("t10-shape-vbaa0-msaa1", caps, 800, 400);
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
 
-        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, 0, 0, false, false);
+        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (0, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 
@@ -187,9 +182,8 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setNumSamples(4);
 
         final GLWindow window = createWindow("t11-shape-vbaa0-msaa1", caps, 800, 400);
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
 
-        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (rs, Region.VARWEIGHT_RENDERING_BIT, 0, false, false);
+        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (Region.VARWEIGHT_RENDERING_BIT, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 
@@ -222,8 +216,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);
 
         final GLWindow window = createWindow("t20-shape-vbaa1-msaa0", caps, 800,400);
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final GPURegionGLListener10  demo02Listener = new GPURegionGLListener10 (rs, Region.VBAA_RENDERING_BIT, 4, false, false);
+        final GPURegionGLListener10  demo02Listener = new GPURegionGLListener10 (Region.VBAA_RENDERING_BIT, 4, false, false);
         demo02Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo02Listener);
 
@@ -244,9 +237,8 @@ public class TestRegionRendererNEWT01 extends UITestCase {
 
     private void test30RegionRendererShapesImpl(final GLCapabilities caps, final int shape_ctor_mode) throws InterruptedException {
         final GLWindow window = createWindow("t30-shape0"+shape_ctor_mode+"-vbaa0-msaa1", caps, 800, 400);
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
 
-        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (shape_ctor_mode, rs, 0, 0, false, false);
+        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (shape_ctor_mode, 0, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 

@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -49,7 +49,6 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -137,15 +136,14 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
 
         System.err.println("Chosen: "+winctx.window.getChosenCapabilities());
 
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final RegionRenderer renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        final RegionRenderer renderer = RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        renderer.getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         final TextRegionUtil textRenderUtil = new TextRegionUtil(renderModes);
 
         // init
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         renderer.init(gl);
-        rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
+        renderer.getRenderState().setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
         screenshot = new GLReadBufferUtil(false, false);
 
         // reshape

@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 JogAmp Community. All rights reserved.
+ * Copyright 2011-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -37,8 +37,8 @@ import com.jogamp.opengl.GLUniformData;
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.graph.curve.opengl.shader.UniformNames;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -81,14 +81,6 @@ public class RenderState {
      * </p>
      */
     public static final int BITHINT_GLOBAL_DEPTH_TEST_ENABLED = 1 << 1 ;
-
-    public static RenderState createRenderState(final Vertex.Factory<? extends Vertex> pointFactory) {
-        return new RenderState(pointFactory, null);
-    }
-
-    public static RenderState createRenderState(final Vertex.Factory<? extends Vertex> pointFactory, final PMVMatrix pmvMatrix) {
-        return new RenderState(pointFactory, pmvMatrix);
-    }
 
     public static final RenderState getRenderState(final GL2ES2 gl) {
         return (RenderState) gl.getContext().getAttachedObject(thisKey);
@@ -186,11 +178,16 @@ public class RenderState {
         }
     }
 
-    protected RenderState(final Vertex.Factory<? extends Vertex> vertexFactory, final PMVMatrix pmvMatrix) {
+    /**
+     * Create a RenderState, a composition of RegionRenderer
+     * @param vertexFactory used Vertex.Factory, if null SVertex.factory() will be used.
+     * @param sharedPMVMatrix optional shared PMVMatrix, if null using a local instance
+     */
+    /* pp */ RenderState(final Vertex.Factory<? extends Vertex> vertexFactory, final PMVMatrix sharedPMVMatrix) {
         this.id = getNextID();
         this.sp = null;
-        this.vertexFactory = vertexFactory;
-        this.pmvMatrix = null != pmvMatrix ? pmvMatrix : new PMVMatrix();
+        this.vertexFactory = null != vertexFactory ? vertexFactory : SVertex.factory();
+        this.pmvMatrix = null != sharedPMVMatrix ? sharedPMVMatrix : new PMVMatrix();
         this.weight = new float[1];
         this.weightBuffer = FloatBuffer.wrap(weight);
         this.colorStatic = new float[4];
@@ -337,7 +334,7 @@ public class RenderState {
     /**
      * Only nullifies {@link ShaderProgram} reference owned by {@link RegionRenderer}.
      */
-    public void destroy(final GL2ES2 gl) {
+    /* pp */ void destroy() {
         sp = null; // owned by RegionRenderer
     }
 

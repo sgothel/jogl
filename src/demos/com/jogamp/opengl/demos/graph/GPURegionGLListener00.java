@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -50,9 +50,9 @@ import com.jogamp.opengl.util.PMVMatrix;
 public class GPURegionGLListener00 extends GPURendererListenerBase01 {
     OutlineShape outlineShape = null;
 
-    public GPURegionGLListener00 (final RenderState rs, final int renderModes, final int sampleCount, final boolean debug, final boolean trace) {
-        super(RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
-        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+    public GPURegionGLListener00 (final int renderModes, final int sampleCount, final boolean debug, final boolean trace) {
+        super(RegionRenderer.create(null, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
+        this.getRenderer().getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         setMatrix(-20, 00, -50, 0f, sampleCount);
     }
 

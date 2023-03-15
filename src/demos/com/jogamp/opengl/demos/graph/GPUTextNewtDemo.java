@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -37,11 +37,9 @@ import java.io.IOException;
 
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -142,8 +140,7 @@ public class GPUTextNewtDemo {
         window.setSize(width, height);
         window.setTitle("GPU Text Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(glp, rs, rmode, sampleCount, true, DEBUG, TRACE);
+        final GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(glp, rmode, sampleCount, true, DEBUG, TRACE);
         textGLListener.setFont(opt_font);
         textGLListener.setFontHeadSize(opt_fontSizeHead);
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);

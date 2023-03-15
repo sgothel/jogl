@@ -54,7 +54,6 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
@@ -241,9 +240,8 @@ public class PerfTextRendererNEWT00 {
 
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
 
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final RegionRenderer renderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-        rs.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        final RegionRenderer renderer = RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        renderer.getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
 
         final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, font, text);
         System.err.println("Region post ctor w/ pre-calculated buffer size");
@@ -269,7 +267,7 @@ public class PerfTextRendererNEWT00 {
             // region.growBufferSize(123000, 62000); // hack-me
             gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             renderer.init(gl);
-            rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
+            renderer.getRenderState().setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
 
             // reshape
             gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -32,15 +32,13 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.newt.opengl.GLWindow;
 
 public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
 
-    public GPUTextGLListener0A(final GLProfile glp, final RenderState rs, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
-        super(glp, rs, renderModes, sampleCount, blending, debug, trace);
+    public GPUTextGLListener0A(final GLProfile glp, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
+        super(glp, renderModes, sampleCount, blending, debug, trace);
     }
 
     @Override

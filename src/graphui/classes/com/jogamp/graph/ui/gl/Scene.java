@@ -100,8 +100,7 @@ public final class Scene implements GLEventListener {
     private GLAutoDrawable cDrawable = null;
 
     private static RegionRenderer createRenderer() {
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        return RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        return RegionRenderer.create(SVertex.factory(), RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
     }
 
     /**

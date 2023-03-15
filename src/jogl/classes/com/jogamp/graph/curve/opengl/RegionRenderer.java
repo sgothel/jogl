@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -47,6 +47,8 @@ import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.geom.SVertex;
+import com.jogamp.graph.geom.Vertex;
 
 /**
  * OpenGL {@link Region} renderer
@@ -60,13 +62,13 @@ import com.jogamp.graph.curve.Region;
  * At its {@link #destroy(GL2ES2) destruction}, all {@link ShaderProgram}s and its {@link RenderState}
  * will be destroyed and released.
  */
-public class RegionRenderer {
+public final class RegionRenderer {
     protected static final boolean DEBUG = Region.DEBUG;
     protected static final boolean DEBUG_INSTANCE = Region.DEBUG_INSTANCE;
 
     /**
      * May be passed to
-     * {@link RegionRenderer#create(RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback) RegionRenderer ctor},
+     * {@link RegionRenderer#create(Vertex.Factory<? extends Vertex>, RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback) RegionRenderer ctor},
      * e.g.
      * <ul>
      *   <li>{@link RegionRenderer#defaultBlendEnable}</li>
@@ -91,7 +93,7 @@ public class RegionRenderer {
      * to set the proper {@link GL#glBlendFuncSeparate(int, int, int, int) blend-function}
      * and the clear-color to <i>transparent-black</i> in case of {@link Region#isTwoPass(int) multipass} FBO rendering.
      * </p>
-     * @see #create(RenderState, GLCallback, GLCallback)
+     * @see #create(Vertex.Factory<? extends Vertex>, RenderState, GLCallback, GLCallback)
      * @see #enable(GL2ES2, boolean)
      */
     public static final GLCallback defaultBlendEnable = new GLCallback() {
@@ -115,7 +117,7 @@ public class RegionRenderer {
      * <p>
      * Implementation also clears {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint}.
      * </p>
-     * @see #create(RenderState, GLCallback, GLCallback)
+     * @see #create(Vertex.Factory<? extends Vertex>, RenderState, GLCallback, GLCallback)
      * @see #enable(GL2ES2, boolean)
      */
     public static final GLCallback defaultBlendDisable = new GLCallback() {
@@ -131,15 +133,34 @@ public class RegionRenderer {
         }
     };
 
+    public static RegionRenderer create(final Vertex.Factory<? extends Vertex> pointFactory, final RenderState rs,
+                                        final GLCallback enableCallback, final GLCallback disableCallback) {
+        return null;
+    }
+
     /**
-     * Create a Hardware accelerated Region Renderer.
+     * Create a hardware accelerated RegionRenderer including its {@link RenderState} composition.
      * <p>
      * The optional {@link GLCallback}s <code>enableCallback</code> and <code>disableCallback</code>
      * maybe used to issue certain tasks at {@link #enable(GL2ES2, boolean)}.<br/>
      * For example, instances {@link #defaultBlendEnable} and {@link #defaultBlendDisable}
      * can be utilized to enable and disable {@link GL#GL_BLEND}.
      * </p>
-     * @param rs the used {@link RenderState}
+     * @return an instance of Region Renderer
+     * @see #enable(GL2ES2, boolean)
+     */
+    public static RegionRenderer create() {
+        return new RegionRenderer(null, null, null);
+    }
+
+    /**
+     * Create a hardware accelerated RegionRenderer including its {@link RenderState} composition.
+     * <p>
+     * The optional {@link GLCallback}s <code>enableCallback</code> and <code>disableCallback</code>
+     * maybe used to issue certain tasks at {@link #enable(GL2ES2, boolean)}.<br/>
+     * For example, instances {@link #defaultBlendEnable} and {@link #defaultBlendDisable}
+     * can be utilized to enable and disable {@link GL#GL_BLEND}.
+     * </p>
      * @param enableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
      *                       {@link #init(GL2ES2) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
      * @param disableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
@@ -147,9 +168,53 @@ public class RegionRenderer {
      * @return an instance of Region Renderer
      * @see #enable(GL2ES2, boolean)
      */
-    public static RegionRenderer create(final RenderState rs, final GLCallback enableCallback,
-                                        final GLCallback disableCallback) {
-        return new RegionRenderer(rs, enableCallback, disableCallback);
+    public static RegionRenderer create(final GLCallback enableCallback, final GLCallback disableCallback) {
+        return new RegionRenderer(null, enableCallback, disableCallback);
+    }
+
+    /**
+     * Create a hardware accelerated RegionRenderer including its {@link RenderState} composition.
+     * <p>
+     * The optional {@link GLCallback}s <code>enableCallback</code> and <code>disableCallback</code>
+     * maybe used to issue certain tasks at {@link #enable(GL2ES2, boolean)}.<br/>
+     * For example, instances {@link #defaultBlendEnable} and {@link #defaultBlendDisable}
+     * can be utilized to enable and disable {@link GL#GL_BLEND}.
+     * </p>
+     * @param pointFactory optional {@link Vertex.Factory} to be used for the {@link RenderState} composition,
+     *                     If null, SVertex.factory() will be used.
+     * @param enableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
+     *                       {@link #init(GL2ES2) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
+     * @param disableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
+     *                        {@link #enable(GL2ES2, boolean) enable(gl, false)}.
+     * @return an instance of Region Renderer
+     * @see #enable(GL2ES2, boolean)
+     */
+    public static RegionRenderer create(final Vertex.Factory<? extends Vertex> pointFactory,
+                                        final GLCallback enableCallback, final GLCallback disableCallback) {
+        return new RegionRenderer(pointFactory, enableCallback, disableCallback);
+    }
+
+    /**
+     * Create a hardware accelerated RegionRenderer including its {@link RenderState} composition.
+     * <p>
+     * The optional {@link GLCallback}s <code>enableCallback</code> and <code>disableCallback</code>
+     * maybe used to issue certain tasks at {@link #enable(GL2ES2, boolean)}.<br/>
+     * For example, instances {@link #defaultBlendEnable} and {@link #defaultBlendDisable}
+     * can be utilized to enable and disable {@link GL#GL_BLEND}.
+     * </p>
+     * @param pointFactory optional {@link Vertex.Factory} to be used for the {@link RenderState} composition.
+     *                     If null, SVertex.factory() will be used.
+     * @param sharedPMVMatrix optional shared {@link PMVMatrix} to be used for the {@link RenderState} composition.
+     * @param enableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
+     *                       {@link #init(GL2ES2) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
+     * @param disableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
+     *                        {@link #enable(GL2ES2, boolean) enable(gl, false)}.
+     * @return an instance of Region Renderer
+     * @see #enable(GL2ES2, boolean)
+     */
+    public static RegionRenderer create(final Vertex.Factory<? extends Vertex> pointFactory, final PMVMatrix sharedPMVMatrix,
+                                        final GLCallback enableCallback, final GLCallback disableCallback) {
+        return new RegionRenderer(pointFactory, sharedPMVMatrix, enableCallback, disableCallback);
     }
 
     private final RenderState rs;
@@ -177,15 +242,23 @@ public class RegionRenderer {
     /** Return height of current viewport */
     public final int getHeight() { return viewport[3]; }
 
+    /** Borrow the current {@link PMVMatrix}. */
     public final PMVMatrix getMatrix() { return rs.getMatrix(); }
 
     //////////////////////////////////////
 
-    /**
-     * @param rs the used {@link RenderState}
-     */
-    protected RegionRenderer(final RenderState rs, final GLCallback enableCallback, final GLCallback disableCallback) {
-        this.rs = rs;
+    protected RegionRenderer(final Vertex.Factory<? extends Vertex> pointFactory,
+                             final GLCallback enableCallback, final GLCallback disableCallback)
+    {
+        this.rs = new RenderState(pointFactory, null);
+        this.enableCallback = enableCallback;
+        this.disableCallback = disableCallback;
+    }
+
+    protected RegionRenderer(final Vertex.Factory<? extends Vertex> pointFactory, final PMVMatrix sharedPMVMatrix,
+                             final GLCallback enableCallback, final GLCallback disableCallback)
+    {
+        this.rs = new RenderState(pointFactory, sharedPMVMatrix);
         this.enableCallback = enableCallback;
         this.disableCallback = disableCallback;
     }
@@ -245,16 +318,25 @@ public class RegionRenderer {
         initialized = false;
     }
 
+    /** Return the {@link RenderState} composition. */
     public final RenderState getRenderState() { return rs; }
 
     /**
      * Enabling or disabling the {@link #getRenderState() RenderState}'s
-     * {@link RenderState#getShaderProgram() shader program}.
+     * current {@link RenderState#getShaderProgram() shader program}.
      * <p>
-     * In case enable and disable {@link GLCallback}s are setup via {@link #create(RenderState, GLCallback, GLCallback)},
+     * {@link #useShaderProgram(GL2ES2, int, boolean, int, int, TextureSequence)}
+     * generates, selects and caches the desired Curve-Graph {@link ShaderProgram}
+     * and {@link RenderState#setShaderProgram(GL2ES2, ShaderProgram) sets it current} in the {@link RenderState} composition.
+     * </p>
+     * <p>
+     * In case enable and disable {@link GLCallback}s are setup via {@link #create(Vertex.Factory<? extends Vertex>, RenderState, GLCallback, GLCallback)},
      * they will be called before toggling the shader program.
      * </p>
-     * @see #create(RenderState, GLCallback, GLCallback)
+     * @see #create(Vertex.Factory<? extends Vertex>, RenderState, GLCallback, GLCallback)
+     * @see #useShaderProgram(GL2ES2, int, boolean, int, int, TextureSequence)
+     * @see RenderState#setShaderProgram(GL2ES2, ShaderProgram)
+     * @see RenderState#getShaderProgram()
      */
     public final void enable(final GL2ES2 gl, final boolean enable) {
         if( enable ) {
@@ -420,6 +502,11 @@ public class RegionRenderer {
     private static final int TWO_PASS_BIT = 1 <<  31;
 
     /**
+     * Generate, selects and caches the desired Curve-Graph {@link ShaderProgram} according to the given parameters.
+     *
+     * The newly generated or cached {@link ShaderProgram} is {@link RenderState#setShaderProgram(GL2ES2, ShaderProgram) set current} in the {@link RenderState} composition
+     * and can be retrieved via {@link RenderState#getShaderProgram()}.
+     *
      * @param gl
      * @param renderModes
      * @param pass1
@@ -428,6 +515,9 @@ public class RegionRenderer {
      * @param colorTexSeq
      * @return true if a new shader program is being used and hence external uniform-data and -location,
      *         as well as the attribute-location must be updated, otherwise false.
+     * @see #enable(GL2ES2, boolean)
+     * @see RenderState#setShaderProgram(GL2ES2, ShaderProgram)
+     * @see RenderState#getShaderProgram()
      */
     public final boolean useShaderProgram(final GL2ES2 gl, final int renderModes,
                                           final boolean pass1, final int quality, final int sampleCount, final TextureSequence colorTexSeq) {

@@ -53,7 +53,6 @@ import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -127,8 +126,7 @@ public class UITypeDemo01 implements GLEventListener {
         // window.setPosition(10, 10);
         window.setSize(800, 400);
         window.setTitle(UITypeDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
-        final RenderState rs = RenderState.createRenderState(SVertex.factory());
-        final UITypeDemo01 uiGLListener = new UITypeDemo01(font, glyph_id, text, Region.COLORCHANNEL_RENDERING_BIT, rs, DEBUG, TRACE);
+        final UITypeDemo01 uiGLListener = new UITypeDemo01(font, glyph_id, text, Region.COLORCHANNEL_RENDERING_BIT, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
         window.setVisible(true);
@@ -191,12 +189,12 @@ public class UITypeDemo01 implements GLEventListener {
     protected final AffineTransform tempT2 = new AffineTransform();
 
     @SuppressWarnings("unused")
-    public UITypeDemo01(final Font font, final int glyph_id, final String text, final int renderModes, final RenderState rs, final boolean debug, final boolean trace) {
+    public UITypeDemo01(final Font font, final int glyph_id, final String text, final int renderModes, final boolean debug, final boolean trace) {
         this.font = font;
         this.text = text;
         this.glyph_id = glyph_id;
         this.renderModes = renderModes;
-        this.rRenderer = RegionRenderer.create(rs, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        this.rRenderer = RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         this.debug = debug;
         this.trace = trace;
         this.screenshot = new GLReadBufferUtil(false, false);
