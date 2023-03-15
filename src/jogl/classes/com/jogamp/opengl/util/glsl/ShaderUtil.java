@@ -42,7 +42,7 @@ import com.jogamp.opengl.*;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.GLExtensions;
 
-public class ShaderUtil {
+public final class ShaderUtil {
     public static String getShaderInfoLog(final GL _gl, final int shaderObj) {
         final GL2ES2 gl = _gl.getGL2ES2();
         final int[] infoLogLength=new int[1];

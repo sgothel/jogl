@@ -72,7 +72,7 @@ import com.jogamp.common.util.VersionNumber;
  * was added since 2.2.1.
  * </p>
  */
-public class ShaderCode {
+public final class ShaderCode {
     public static final boolean DEBUG_CODE = Debug.isPropertyDefined("jogl.debug.GLSLCode", true);
 
     /** Unique resource suffix for {@link GL2ES2#GL_VERTEX_SHADER} in source code: <code>{@value}</code> */
@@ -815,7 +815,7 @@ public class ShaderCode {
         if(null!=shaderSource) {
             if(DEBUG_CODE) {
                 System.err.println("ShaderCode.compile:");
-                dumpShaderSource(System.err);
+                dumpSource(System.err);
             }
             valid=ShaderUtil.createAndCompileShader(gl, shader, shaderType,
                                                     shaderSource, verboseOut);
@@ -859,7 +859,7 @@ public class ShaderCode {
     }
     @Override
     public String toString() {
-        final StringBuilder buf = new StringBuilder("ShaderCode[id="+id+", type="+shaderTypeStr()+", valid="+valid+", shader: ");
+        final StringBuilder buf = new StringBuilder("ShaderCode[id="+id()+", type="+shaderTypeStr()+", valid="+valid+", "+shader.remaining()+"/"+shader.capacity()+" shader: ");
         for(int i=0; i<shader.remaining(); i++) {
             buf.append(" "+shader.get(i));
         }
@@ -871,15 +871,20 @@ public class ShaderCode {
         return buf.toString();
     }
 
-    public void dumpShaderSource(final PrintStream out) {
+    public void dumpSource(final PrintStream out) {
         if(null==shaderSource) {
             out.println("<no shader source>");
             return;
         }
         final int sourceCount = shaderSource.length;
-        final int shaderCount = (null!=shader)?shader.capacity():0;
+        final int shaderCount = shader.capacity();
+        out.println();
+        out.print("ShaderCode[id="+id()+", type="+shaderTypeStr()+", valid="+valid+", "+shader.remaining()+"/"+shaderCount+" shader: ");
+        if( 0 == shaderCount ) {
+            out.println("none]");
+        }
         for(int i=0; i<shaderCount; i++) {
-            out.println("");
+            out.println();
             out.println("Shader #"+i+"/"+shaderCount+" name "+shader.get(i));
             out.println("--------------------------------------------------------------");
             if(i>=sourceCount) {
@@ -902,6 +907,7 @@ public class ShaderCode {
             }
             out.println("--------------------------------------------------------------");
         }
+        out.println("]");
     }
 
     /**
@@ -922,7 +928,7 @@ public class ShaderCode {
         if(null==shaderSource) {
             throw new IllegalStateException("no shader source");
         }
-        final int shaderCount = (null!=shader)?shader.capacity():0;
+        final int shaderCount = shader.capacity();
         if(0>shaderIdx || shaderIdx>=shaderCount) {
             throw new IndexOutOfBoundsException("shaderIdx not within shader bounds [0.."+(shaderCount-1)+"]: "+shaderIdx);
         }
@@ -1027,7 +1033,7 @@ public class ShaderCode {
         if(null==shaderSource) {
             throw new IllegalStateException("no shader source");
         }
-        final int shaderCount = (null!=shader)?shader.capacity():0;
+        final int shaderCount = shader.capacity();
         if(0>shaderIdx || shaderIdx>=shaderCount) {
             throw new IndexOutOfBoundsException("shaderIdx not within shader bounds [0.."+(shaderCount-1)+"]: "+shaderIdx);
         }
@@ -1437,18 +1443,18 @@ public class ShaderCode {
     // Internals only below this point
     //
 
-    protected CharSequence[][] shaderSource = null;
-    protected Buffer     shaderBinary = null;
-    protected int        shaderBinaryFormat = -1;
-    protected IntBuffer  shader = null;
-    protected int        shaderType = -1;
-    protected int        id = -1;
+    private CharSequence[][] shaderSource;
+    private Buffer     shaderBinary;
+    private int        shaderBinaryFormat = -1;
+    private final IntBuffer  shader;
+    private int        shaderType = -1;
+    private int        id = -1;
 
-    protected boolean valid=false;
+    private boolean valid=false;
 
     private static synchronized int getNextID() {
         return nextID++;
     }
-    protected static int nextID = 1;
+    private static int nextID = 1;
 }
 
