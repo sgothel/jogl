@@ -318,16 +318,14 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         if( drawFPS ) {
             pmv.glPushMatrix();
             final float pixelSizeFPS = FontScale.toPixels(fontSizeFPS, dpiV);
-            final float lfps, tfps, td;
+            final float lfps, tfps;
             final GLAnimatorControl animator = drawable.getAnimator();
             if( null != animator ) {
                 lfps = animator.getLastFPS();
                 tfps = animator.getTotalFPS();
-                td = animator.getTotalFPSDuration()/1000f;
             } else {
                 lfps = 0f;
                 tfps = 0f;
-                td = 0f;
             }
             final String modeS = Region.getRenderModeString(regionFPS.getRenderModes());
             final String text = String.format("%03.1f/%03.1f fps, v-sync %d, dpiV %.2f %.2f px/mm, font[head %.1fpt %.2fpx %.2fmm, center %.1fpt %.2fpx %.2fmm], %s-samples[%d, this %d], blend %b, alpha %d",

@@ -64,11 +64,9 @@ import com.jogamp.opengl.demos.es2.TextureSequenceES2;
 import com.jogamp.opengl.demos.graph.TextRendererGLELBase;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
-import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
@@ -86,12 +84,10 @@ public class MovieSimple implements GLEventListener {
     private static boolean waitForKey = false;
     private int surfWidth, surfHeight;
     private int prevMouseX; // , prevMouseY;
-    private final int rotate = 0;
     private boolean  orthoProjection = true;
     private float zoom0;
     private float zoom1;
     private float zoom;
-    private long startTime;
     private int effects = EFFECT_NORMAL;
     private float alpha = 1.0f;
     private int swapInterval = 1;
@@ -100,9 +96,6 @@ public class MovieSimple implements GLEventListener {
     private TextureSequenceES2 screen=null;
     private GLMediaPlayer mPlayer;
     private final boolean mPlayerShared;
-    private boolean mPlayerScaleOrig;
-    private final float[] verts = null;
-    private GLArrayDataServer interleavedVBO;
     private volatile boolean resetGLState = false;
 
     private volatile GLAutoDrawable autoDrawable = null;
@@ -405,7 +398,6 @@ public class MovieSimple implements GLEventListener {
     public MovieSimple(final GLMediaPlayer sharedMediaPlayer) throws IllegalStateException {
         screenshot = new GLReadBufferUtil(false, false);
         mPlayer = sharedMediaPlayer;
-        mPlayerScaleOrig = false;
         mPlayerShared = null != mPlayer;
         if( !mPlayerShared ) {
             mPlayer = GLMediaPlayerFactory.createDefault();
@@ -422,10 +414,6 @@ public class MovieSimple implements GLEventListener {
     public void setSwapInterval(final int v) { this.swapInterval = v; }
 
     public GLMediaPlayer getGLMediaPlayer() { return mPlayer; }
-
-    public void setScaleOrig(final boolean v) {
-        mPlayerScaleOrig = v;
-    }
 
     /** defaults to true */
     public void setOrthoProjection(final boolean v) { orthoProjection=v; }
@@ -476,8 +464,6 @@ public class MovieSimple implements GLEventListener {
             throw new GLException(e);
         }
         screen.init(drawable);
-
-        startTime = System.currentTimeMillis();
 
         final Object upstreamWidget = drawable.getUpstreamWidget();
         if (upstreamWidget instanceof Window) {
@@ -681,7 +667,6 @@ public class MovieSimple implements GLEventListener {
         int height = 600;
         int textureCount = 3; // default - threaded
         boolean ortho = true;
-        boolean zoom = false;
 
         boolean forceES2 = false;
         boolean forceES3 = false;
@@ -736,8 +721,6 @@ public class MovieSimple implements GLEventListener {
                     swapInterval = MiscUtils.atoi(args[i], swapInterval);
                 } else if(args[i].equals("-projection")) {
                     ortho=false;
-                } else if(args[i].equals("-zoom")) {
-                    zoom=true;
                 } else if(args[i].equals("-loop")) {
                     loopEOS=true;
                 } else if(args[i].equals("-urlN")) {
@@ -812,7 +795,6 @@ public class MovieSimple implements GLEventListener {
             });
             mss[i] = new MovieSimple(null);
             mss[i].setSwapInterval(swapInterval);
-            mss[i].setScaleOrig(!zoom);
             mss[i].setOrthoProjection(ortho);
             mss[i].mPlayer.attachObject(WINDOW_KEY, windows[i]);
             mss[i].mPlayer.addEventListener(myGLMediaEventListener);

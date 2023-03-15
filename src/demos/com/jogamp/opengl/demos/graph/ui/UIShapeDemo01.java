@@ -121,7 +121,7 @@ public class UIShapeDemo01 implements GLEventListener {
         window.setVisible(true);
 
         final Animator animator = new Animator();
-        // animator.setUpdateFPSFrames(60, System.err);
+        animator.setUpdateFPSFrames(5*60, null);
         animator.add(window);
 
         window.addKeyListener(new KeyAdapter() {
