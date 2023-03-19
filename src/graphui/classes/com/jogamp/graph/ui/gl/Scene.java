@@ -54,6 +54,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Ray;
 import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.PMVMatrix;
 
 /**
@@ -63,6 +64,16 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  * <p>
  * GraphUI is intended to become an immediate- and retained-mode API.
+ * </p>
+ * <p>
+ * To utilize a Scene instance directly as a {@link GLEventListener},
+ * user needs to {@link #setClearParams(float[], int)}.
+ *
+ * Otherwise user may just call provided {@link GLEventListener} from within their own workflow
+ * - {@link GLEventListener#init(GLAutoDrawable)}
+ * - {@link GLEventListener#reshape(GLAutoDrawable, int, int, int, int)}
+ * - {@link GLEventListener#display(GLAutoDrawable)}
+ * - {@link GLEventListener#dispose(GLAutoDrawable)}
  * </p>
  * @see Shape
  */
@@ -82,6 +93,9 @@ public final class Scene implements GLEventListener {
 
     private final float sceneDist, zNear, zFar;
     private final float projAngle = DEFAULT_ANGLE;
+    private float[] clearColor = null;
+    private int clearMask;
+
     private final RegionRenderer renderer;
 
     private final int[] sampleCount = new int[1];
@@ -175,6 +189,24 @@ public final class Scene implements GLEventListener {
         }
         return null;
     }
+    /**
+     * Sets the clear parameter for {@link GL#glClearColor(float, float, float, float) glClearColor(..)} and {@link GL#glClear(int) glClear(..)}
+     * to be issued at {@link #display(GLAutoDrawable)}.
+     *
+     * Without setting these parameter, user has to issue
+     * {@link GL#glClearColor(float, float, float, float) glClearColor(..)} and {@link GL#glClear(int) glClear(..)}
+     * before calling {@link #display(GLAutoDrawable)}.
+     *
+     * @param clearColor {@link GL#glClearColor(float, float, float, float) glClearColor(..)} arguments
+     * @param clearMask {@link GL#glClear(int) glClear(..)} mask, default is {@link GL#GL_COLOR_BUFFER_BIT} | {@link GL#GL_DEPTH_BUFFER_BIT}
+     */
+    public final void setClearParams(final float[] clearColor, final int clearMask) { this.clearColor = clearColor; this.clearMask = clearMask; }
+
+    /** Returns the {@link GL#glClearColor(float, float, float, float) glClearColor(..)} arguments, see {@link #setClearParams(float[], int)}. */
+    public final float[] getClearColor() { return clearColor; }
+
+    /** Returns the {@link GL#glClear(int) glClear(..)} mask, see {@link #setClearParams(float[], int)}. */
+    public final int getClearMask() { return clearMask; }
 
     public void attachInputListenerTo(final GLWindow window) {
         if(null == sbcMouseListener) {
@@ -274,7 +306,7 @@ public final class Scene implements GLEventListener {
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)shapeZAscComparator);
 
-        display(drawable, shapesS, false); // false);
+        display(drawable, shapesS, false);
     }
 
     private static final int[] sampleCountGLSelect = { -1 };
@@ -289,8 +321,8 @@ public final class Scene implements GLEventListener {
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         } else {
             if( null != clearColor ) {
-                gl.glClearColor(1f, 1f, 1f, 1f);
-                gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+                gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+                gl.glClear(clearMask);
             }
             sampleCount0 = sampleCount;
         }
