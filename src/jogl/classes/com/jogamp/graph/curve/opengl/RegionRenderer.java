@@ -336,13 +336,24 @@ public final class RegionRenderer {
      * @see RenderState#getShaderProgram()
      */
     public final void enable(final GL2ES2 gl, final boolean enable) {
+        enable(gl, enable, enableCallback, disableCallback);
+    }
+
+    /**
+     * Same as {@link #enable(GL2ES2, boolean)} but allowing to force {@link GLCallback}s off.
+     * @param gl current GL object
+     * @param enable if true enable the current {@link ShaderProgram}, otherwise disable.
+     * @param doCallbacks if true (default) perform {@link GLCallback}s, otherwise don't.
+     * @see #enable(GL2ES2, boolean)
+     */
+    public final void enable(final GL2ES2 gl, final boolean enable, final GLCallback enableCB, final GLCallback disableCB) {
         if( enable ) {
-            if( null != enableCallback ) {
-                enableCallback.run(gl, this);
+            if( null != enableCB ) {
+                enableCB.run(gl, this);
             }
         } else {
-            if( null != disableCallback ) {
-                disableCallback.run(gl, this);
+            if( null != disableCB ) {
+                disableCB.run(gl, this);
             }
         }
         if( !enable ) {
