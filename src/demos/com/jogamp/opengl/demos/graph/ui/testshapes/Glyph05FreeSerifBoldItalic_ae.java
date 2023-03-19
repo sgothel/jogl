@@ -54,8 +54,8 @@ public class Glyph05FreeSerifBoldItalic_ae extends Shape {
     }
 
     @Override
-    protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
-        final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
+    protected void addShapeToRegion() {
+        final OutlineShape shape = new OutlineShape(vertexFactory);
 
         // Start TTF Shape for Glyph 168
         // 000: B0a: move-to p0

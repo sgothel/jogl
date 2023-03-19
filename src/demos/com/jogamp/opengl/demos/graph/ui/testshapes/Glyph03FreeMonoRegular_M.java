@@ -55,8 +55,8 @@ public class Glyph03FreeMonoRegular_M extends Shape {
 
     @SuppressWarnings("unused")
     @Override
-    protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
-        final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
+    protected void addShapeToRegion() {
+        final OutlineShape shape = new OutlineShape(vertexFactory);
 
         if( false ) {
             // Start TTF Shape for Glyph 48

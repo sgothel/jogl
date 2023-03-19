@@ -129,7 +129,7 @@ public class Label extends Shape {
     };
 
     @Override
-    protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void addShapeToRegion() {
         tempT1.setToScale(pixelScale, pixelScale);
         final AABBox fbox = font.processString(shapeVisitor, tempT1, text, tempT2, tempT3);
         final float[] ctr = box.getCenter();

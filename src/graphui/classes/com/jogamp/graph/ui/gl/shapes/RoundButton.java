@@ -102,10 +102,10 @@ public abstract class RoundButton extends Shape {
         final float minY = 0;
         final float minZ = zOffset;
 
-        shape.addVertex(minX, minY + dC, minZ, true);
-        shape.addVertex(minX, minY,  minZ, false);
+        shape.addVertex(minX,           minY + dC,      minZ, true);
+        shape.addVertex(minX,           minY,           minZ, false);
 
-        shape.addVertex(minX + dC, minY, minZ,  true);
+        shape.addVertex(minX + dC,      minY,           minZ, true);
 
         shape.addVertex(minX + tw - dC, minY,           minZ, true);
         shape.addVertex(minX + tw,      minY,           minZ, false);
@@ -136,6 +136,6 @@ public abstract class RoundButton extends Shape {
 
     @Override
     public String getSubString() {
-        return super.getSubString()+", dim "+getWidth() + "x" + getHeight() + ", corner " + corner;
+        return super.getSubString()+", dim "+getWidth() + " x " + getHeight() + ", corner " + corner;
     }
 }

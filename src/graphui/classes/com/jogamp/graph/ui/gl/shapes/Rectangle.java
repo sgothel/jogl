@@ -70,8 +70,8 @@ public class Rectangle extends Shape {
     }
 
     @Override
-    protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
-        final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
+    protected void addShapeToRegion() {
+        final OutlineShape shape = new OutlineShape(vertexFactory);
 
         final float lwh = lineWidth/2f;
 
@@ -111,6 +111,6 @@ public class Rectangle extends Shape {
 
     @Override
     public String getSubString() {
-        return super.getSubString()+", dim "+getWidth() + "x" + getHeight();
+        return super.getSubString()+", dim "+getWidth() + " x " + getHeight();
     }
 }

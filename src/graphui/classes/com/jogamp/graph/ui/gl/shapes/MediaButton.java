@@ -122,7 +122,7 @@ public class MediaButton extends TexSeqButton {
     volatile boolean resetGL = true;
 
     @Override
-    public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+    public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         final GLMediaPlayer mPlayer = (GLMediaPlayer)texSeq;
         if( resetGL ) {
             resetGL = false;
@@ -133,7 +133,7 @@ public class MediaButton extends TexSeqButton {
                 e.printStackTrace();
             }
         }
-        super.drawShape(gl, renderer, sampleCount);
+        super.draw(gl, renderer, sampleCount);
         markStateDirty(); // keep on going
     };
 

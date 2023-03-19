@@ -78,21 +78,17 @@ public class Button extends RoundButton {
     public String getLaben() { return label.getText(); }
 
     @Override
-    public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
-        if( false ) {
-            // Setup poly offset for z-fighting
-            gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
-            gl.glPolygonOffset(0f, 1f);
-            super.drawShape(gl, renderer, sampleCount);
-            gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
-        } else {
-            super.drawShape(gl, renderer, sampleCount);
-        }
+    public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+        // Setup poly offset for z-fighting
+        // gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+        // gl.glPolygonOffset(0f, 1f);
+        super.draw(gl, renderer, sampleCount);
+        // gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
     }
 
     @Override
-    protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
-        final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
+    protected void addShapeToRegion() {
+        final OutlineShape shape = new OutlineShape(vertexFactory);
         if(corner == 0.0f) {
             createSharpOutline(shape, twoPassLabelZOffset);
         } else {
@@ -204,6 +200,6 @@ public class Button extends RoundButton {
 
     @Override
     public String getSubString() {
-        return super.getSubString()+", "+ label + ", " + "spacing: " + spacingX+"/"+spacingY;
+        return super.getSubString()+", "+ label + ", " + "spacing["+spacingX+", "+spacingY+"]";
     }
 }

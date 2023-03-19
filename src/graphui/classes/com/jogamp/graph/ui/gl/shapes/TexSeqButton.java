@@ -27,12 +27,10 @@
  */
 package com.jogamp.graph.ui.gl.shapes;
 
-import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.ui.gl.Shape;
@@ -65,8 +63,8 @@ public abstract class TexSeqButton extends RoundButton {
     public final TextureSequence getTextureSequence() { return this.texSeq; }
 
     @Override
-    protected void addShapeToRegion(final GL2ES2 gl, final RegionRenderer renderer) {
-        final OutlineShape shape = new OutlineShape(renderer.getRenderState().getVertexFactory());
+    protected void addShapeToRegion() {
+        final OutlineShape shape = new OutlineShape(vertexFactory);
         if(corner == 0.0f) {
             createSharpOutline(shape, 0f);
         } else {

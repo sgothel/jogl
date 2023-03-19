@@ -60,8 +60,8 @@ public class ImageButton extends TexSeqButton {
     }
 
     @Override
-    public void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
-        super.drawShape(gl, renderer, sampleCount);
+    public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+        super.draw(gl, renderer, sampleCount);
         if( !((ImageSequence)texSeq).getManualStepping() ) {
             markStateDirty(); // keep on going
         }
