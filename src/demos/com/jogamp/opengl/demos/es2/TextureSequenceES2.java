@@ -72,7 +72,7 @@ public class TextureSequenceES2 implements GLEventListener {
     private int effects = EFFECT_NORMAL;
     private float alpha = 1.0f;
 
-    private boolean mPlayerScaleOrig;
+    private boolean useOriginalScale = false;
     private float[] verts = null;
     private GLArrayDataServer interleavedVBO;
 
@@ -91,6 +91,9 @@ public class TextureSequenceES2 implements GLEventListener {
     public void setTransparency(final float alpha) {
         this.effects |= EFFECT_TRANSPARENT;
         this.alpha = alpha;
+    }
+    public void setUseOriginalScale(final boolean v) {
+        useOriginalScale = v;
     }
 
     private static final String shaderBasename = "texsequence_xxx";
@@ -179,13 +182,13 @@ public class TextureSequenceES2 implements GLEventListener {
         System.err.println("XXX0: mov aspect: "+mAspect);
         float xs, ys;
         if(orthoProjection) {
-            if(mPlayerScaleOrig && mWidth < dWidth && mHeight < dHeight) {
+            if(useOriginalScale && mWidth < dWidth && mHeight < dHeight) {
                 xs   = mWidth/2f;                ys   = xs / mAspect;
             } else {
                 xs   = dWidth/2f;                ys   = xs / mAspect; // w>h
             }
         } else {
-            if(mPlayerScaleOrig && mWidth < dWidth && mHeight < dHeight) {
+            if(useOriginalScale && mWidth < dWidth && mHeight < dHeight) {
                 xs   = mAspect * ( mWidth / dWidth ) ; ys   =  xs / mAspect ;
             } else {
                 xs   = mAspect; ys   = 1f; // b>h

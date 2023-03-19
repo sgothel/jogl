@@ -96,6 +96,7 @@ public class MovieSimple implements GLEventListener {
     private TextureSequenceES2 screen=null;
     private GLMediaPlayer mPlayer;
     private final boolean mPlayerShared;
+    private boolean useOriginalScale;
     private volatile boolean resetGLState = false;
 
     private volatile GLAutoDrawable autoDrawable = null;
@@ -399,6 +400,7 @@ public class MovieSimple implements GLEventListener {
         screenshot = new GLReadBufferUtil(false, false);
         mPlayer = sharedMediaPlayer;
         mPlayerShared = null != mPlayer;
+        useOriginalScale = false;
         if( !mPlayerShared ) {
             mPlayer = GLMediaPlayerFactory.createDefault();
             mPlayer.attachObject(PLAYER, this);
@@ -412,6 +414,10 @@ public class MovieSimple implements GLEventListener {
     }
 
     public void setSwapInterval(final int v) { this.swapInterval = v; }
+
+    public void setUseOriginalScale(final boolean v) {
+        useOriginalScale = v;
+    }
 
     public GLMediaPlayer getGLMediaPlayer() { return mPlayer; }
 
@@ -448,6 +454,7 @@ public class MovieSimple implements GLEventListener {
         screen = new TextureSequenceES2(mPlayer, mPlayerShared, orthoProjection, zoom);
         screen.setEffects(effects);
         screen.setTransparency(alpha);
+        screen.setUseOriginalScale(useOriginalScale);
 
         if(waitForKey) {
             JunitTracer.waitForKey("Init>");
@@ -667,6 +674,7 @@ public class MovieSimple implements GLEventListener {
         int height = 600;
         int textureCount = 3; // default - threaded
         boolean ortho = true;
+        boolean zoom = false;
 
         boolean forceES2 = false;
         boolean forceES3 = false;
@@ -721,6 +729,8 @@ public class MovieSimple implements GLEventListener {
                     swapInterval = MiscUtils.atoi(args[i], swapInterval);
                 } else if(args[i].equals("-projection")) {
                     ortho=false;
+                } else if(args[i].equals("-zoom")) {
+                    zoom=true;
                 } else if(args[i].equals("-loop")) {
                     loopEOS=true;
                 } else if(args[i].equals("-urlN")) {
@@ -795,6 +805,7 @@ public class MovieSimple implements GLEventListener {
             });
             mss[i] = new MovieSimple(null);
             mss[i].setSwapInterval(swapInterval);
+            mss[i].setUseOriginalScale(!zoom);
             mss[i].setOrthoProjection(ortho);
             mss[i].mPlayer.attachObject(WINDOW_KEY, windows[i]);
             mss[i].mPlayer.addEventListener(myGLMediaEventListener);

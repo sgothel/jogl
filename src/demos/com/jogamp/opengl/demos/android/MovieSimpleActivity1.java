@@ -135,7 +135,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
            demoMain.setEffects(MovieSimple.EFFECT_GRADIENT_BOTTOM2TOP);
            demoMain.setTransparency(0.9f);
        }
-       demoMain.setScaleOrig(mPlayerNoZoom);
+       demoMain.setUseOriginalScale(mPlayerNoZoom);
        mPlayerMain.addEventListener( new GLMediaPlayer.GLMediaEventListener() {
            @Override
            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }

@@ -97,7 +97,7 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
        glWindowMain.setVisible(true);
 
        final MovieSimple demoMain = new MovieSimple(null);
-       demoMain.setScaleOrig(true);
+       demoMain.setUseOriginalScale(true);
        final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
        mPlayer.addEventListener( new GLMediaPlayer.GLMediaEventListener() {
            @Override
