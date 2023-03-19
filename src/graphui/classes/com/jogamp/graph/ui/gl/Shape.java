@@ -826,7 +826,6 @@ public abstract class Shape {
                     setPressed(false);
                     inDrag = false;
                     inResize = 0;
-                    System.err.println("Shape: RELEASED");
                     break;
             }
         }
