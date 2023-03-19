@@ -674,7 +674,7 @@ public class MovieSimple implements GLEventListener {
         int height = 600;
         int textureCount = 3; // default - threaded
         boolean ortho = true;
-        boolean zoom = false;
+        boolean useOrigScale = false;
 
         boolean forceES2 = false;
         boolean forceES3 = false;
@@ -729,8 +729,8 @@ public class MovieSimple implements GLEventListener {
                     swapInterval = MiscUtils.atoi(args[i], swapInterval);
                 } else if(args[i].equals("-projection")) {
                     ortho=false;
-                } else if(args[i].equals("-zoom")) {
-                    zoom=true;
+                } else if(args[i].equals("-orig_scale")) {
+                    useOrigScale=true;
                 } else if(args[i].equals("-loop")) {
                     loopEOS=true;
                 } else if(args[i].equals("-urlN")) {
@@ -805,7 +805,7 @@ public class MovieSimple implements GLEventListener {
             });
             mss[i] = new MovieSimple(null);
             mss[i].setSwapInterval(swapInterval);
-            mss[i].setUseOriginalScale(!zoom);
+            mss[i].setUseOriginalScale(useOrigScale);
             mss[i].setOrthoProjection(ortho);
             mss[i].mPlayer.attachObject(WINDOW_KEY, windows[i]);
             mss[i].mPlayer.addEventListener(myGLMediaEventListener);
