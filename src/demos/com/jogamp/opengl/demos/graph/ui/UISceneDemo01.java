@@ -63,7 +63,7 @@ import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 
 /**
- * Basic UIScene demo using a single UIShape.
+ * Res independent Shape, in Scene attached to GLWindow showing simple linear Shape movement w/ listener attached.
  */
 public class UISceneDemo01 {
     static final boolean DEBUG = false;
@@ -233,7 +233,6 @@ public class UISceneDemo01 {
         }
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
         System.err.println("The End ..");
-        animator.stop();
         window.destroy();
     }
 
