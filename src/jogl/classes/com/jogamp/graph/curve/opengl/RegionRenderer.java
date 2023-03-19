@@ -133,11 +133,6 @@ public final class RegionRenderer {
         }
     };
 
-    public static RegionRenderer create(final Vertex.Factory<? extends Vertex> pointFactory, final RenderState rs,
-                                        final GLCallback enableCallback, final GLCallback disableCallback) {
-        return null;
-    }
-
     /**
      * Create a hardware accelerated RegionRenderer including its {@link RenderState} composition.
      * <p>

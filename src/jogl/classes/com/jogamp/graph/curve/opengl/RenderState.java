@@ -44,6 +44,12 @@ import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 
+/**
+ * The RenderState is owned by {@link RegionRenderer}.
+ *
+ * It holds rendering state data like {@link PMVMatrix}, viewport,
+ * but also the current {@link #getColorStatic(float[]) static color}.
+ */
 public class RenderState {
     private static final String thisKey = "jogamp.graph.curve.RenderState" ;
 
@@ -102,7 +108,7 @@ public class RenderState {
     private static int nextID = 1;
 
     /**
-     * Representation of {@link RenderState} data for one {@link ShaderProgram}
+     * Representation of {@link RenderState} data per {@link ShaderProgram}
      * as {@link GLUniformData}.
      * <p>
      * FIXME: Utilize 'ARB_Uniform_Buffer_Object' where available!
@@ -135,6 +141,7 @@ public class RenderState {
          */
         public final boolean update(final GL2ES2 gl, final RenderState rs, final boolean updateLocation, final int renderModes, final boolean pass1, final boolean throwOnError) {
             if( rs.id() != rsId ) {
+                // Assignment of Renderstate buffers to uniforms (no copy, direct reference)
                 gcu_PMVMatrix01.setData(rs.pmvMatrix.glGetPMvMatrixf());
                 gcu_Weight.setData(rs.weightBuffer);
                 gcu_ColorStatic.setData(rs.colorStaticBuffer);
