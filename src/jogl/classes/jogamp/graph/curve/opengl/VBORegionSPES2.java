@@ -224,17 +224,20 @@ public final class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    protected void updateImpl(final GL2ES2 gl) {
+    protected void updateImpl(final GL2ES2 gl, final int curRenderModes) {
+        final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
+        final boolean hasColorTexture = Region.hasColorTexture( curRenderModes );
+
         // seal buffers
         gca_VerticesAttr.seal(gl, true);
         gca_VerticesAttr.enableBuffer(gl, false);
         gca_CurveParamsAttr.seal(gl, true);
         gca_CurveParamsAttr.enableBuffer(gl, false);
-        if( null != gca_ColorsAttr ) {
+        if( hasColorChannel && null != gca_ColorsAttr ) {
             gca_ColorsAttr.seal(gl, true);
             gca_ColorsAttr.enableBuffer(gl, false);
         }
-        if( null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
+        if( hasColorTexture && null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
             final TextureSequence.TextureFrame frame = colorTexSeq.getLastTexture();
             final Texture tex = frame.getTexture();
             final TextureCoords tc = tex.getImageTexCoords();
@@ -270,12 +273,15 @@ public final class VBORegionSPES2 extends GLRegion {
      *
      * @param gl
      * @param renderer
-     * @param renderModes
+     * @param curRenderModes
      * @param quality
      */
-    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int renderModes, final int quality) {
+    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int quality) {
+        final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
+        final boolean hasColorTexture = Region.hasColorTexture( curRenderModes ) && null != colorTexSeq;
+
         final RenderState rs = renderer.getRenderState();
-        final boolean updateLocGlobal = renderer.useShaderProgram(gl, renderModes, true, quality, 0, colorTexSeq);
+        final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, true, quality, 0, colorTexSeq);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
         final boolean updateLocLocal = !sp.equals(spPass1);
         spPass1 = sp;
@@ -285,12 +291,12 @@ public final class VBORegionSPES2 extends GLRegion {
         if( updateLocLocal ) {
             rs.updateAttributeLoc(gl, true, gca_VerticesAttr, throwOnError);
             rs.updateAttributeLoc(gl, true, gca_CurveParamsAttr, throwOnError);
-            if( null != gca_ColorsAttr ) {
+            if( hasColorChannel && null != gca_ColorsAttr ) {
                 rs.updateAttributeLoc(gl, true, gca_ColorsAttr, throwOnError);
             }
         }
-        rsLocal.update(gl, rs, updateLocLocal, renderModes, true, throwOnError);
-        if( null != gcu_ColorTexUnit ) {
+        rsLocal.update(gl, rs, updateLocLocal, curRenderModes, true, throwOnError);
+        if( hasColorTexture && null != gcu_ColorTexUnit ) {
             rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexUnit, throwOnError);
             rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexBBox, throwOnError);
         }
@@ -298,9 +304,11 @@ public final class VBORegionSPES2 extends GLRegion {
 
 
     @Override
-    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
-        final int renderModes = getRenderModes();
-        useShaderProgram(gl, renderer, renderModes, getQuality());
+    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int[/*1*/] sampleCount) {
+        final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
+        final boolean hasColorTexture = Region.hasColorTexture( curRenderModes );
+
+        useShaderProgram(gl, renderer, curRenderModes, getQuality());
 
         if( 0 >= indicesBuffer.getElemCount() ) {
             if(DEBUG_INSTANCE) {
@@ -310,7 +318,7 @@ public final class VBORegionSPES2 extends GLRegion {
         }
         gca_VerticesAttr.enableBuffer(gl, true);
         gca_CurveParamsAttr.enableBuffer(gl, true);
-        if( null != gca_ColorsAttr ) {
+        if( hasColorChannel && null != gca_ColorsAttr ) {
             gca_ColorsAttr.enableBuffer(gl, true);
         }
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
@@ -319,7 +327,7 @@ public final class VBORegionSPES2 extends GLRegion {
             gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
         }
 
-        if( null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
+        if( hasColorTexture && null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
             final TextureSequence.TextureFrame frame = colorTexSeq.getNextTexture(gl);
             gl.glActiveTexture(GL.GL_TEXTURE0 + colorTexSeq.getTextureUnit());
             final Texture tex = frame.getTexture();
@@ -337,7 +345,7 @@ public final class VBORegionSPES2 extends GLRegion {
         }
 
         indicesBuffer.bindBuffer(gl, false);
-        if( null != gca_ColorsAttr ) {
+        if( hasColorChannel && null != gca_ColorsAttr ) {
             gca_ColorsAttr.enableBuffer(gl, false);
         }
         gca_CurveParamsAttr.enableBuffer(gl, false);

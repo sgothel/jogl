@@ -521,7 +521,9 @@ public final class RegionRenderer {
         final ShaderModeSelector1 sel1 = pass1 ? ShaderModeSelector1.selectPass1(renderModes) :
                                                  ShaderModeSelector1.selectPass2(renderModes, quality, sampleCount);
         final boolean isTwoPass = Region.isTwoPass( renderModes );
-        final boolean isPass1ColorTexSeq = pass1 && null != colorTexSeq;
+        final boolean hasColorChannel = Region.hasColorChannel( renderModes );
+        final boolean hasColorTexture = Region.hasColorTexture( renderModes ) && null != colorTexSeq;
+        final boolean isPass1ColorTexSeq = pass1 && hasColorTexture;
         final int colorTexSeqHash;
         final String texLookupFuncName;
         if( isPass1ColorTexSeq ) {
@@ -601,11 +603,11 @@ public final class RegionRenderer {
         // GLSL append from here on
         posFp = -1;
 
-        if( Region.hasColorChannel( renderModes ) ) {
+        if( hasColorChannel ) {
             posVp = rsVp.insertShaderSource(0, posVp, GLSL_USE_COLOR_CHANNEL);
             posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_COLOR_CHANNEL);
         }
-        if( Region.hasColorTexture( renderModes ) ) {
+        if( isPass1ColorTexSeq ) {
                     rsVp.insertShaderSource(0, posVp, GLSL_USE_COLOR_TEXTURE);
             posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_COLOR_TEXTURE);
         }

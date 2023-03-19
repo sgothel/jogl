@@ -176,8 +176,9 @@ public abstract class GLRegion extends Region {
      * objects for use in rendering if {@link #isShapeDirty()}.
      * <p>Allocates the ogl related data and initializes it the 1st time.<p>
      * <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
+     * @param curRenderModes TODO
      */
-    protected abstract void updateImpl(final GL2ES2 gl);
+    protected abstract void updateImpl(final GL2ES2 gl, int curRenderModes);
 
     protected abstract void destroyImpl(final GL2ES2 gl);
 
@@ -248,17 +249,18 @@ public abstract class GLRegion extends Region {
      * </p>
      * @param matrix current {@link PMVMatrix}.
      * @param renderer the {@link RegionRenderer} to be used
-     * @param sampleCount desired multisampling sample count for msaa-rendering.
+     * @param sampleCount desired multisampling sample count for vbaa- or msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @see RegionRenderer#enable(GL2ES2, boolean)
      */
     public final void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
+        final int curRenderModes = getRenderModes();
         if( isShapeDirty() ) {
-            updateImpl(gl);
+            updateImpl(gl, curRenderModes);
         }
-        drawImpl(gl, renderer, sampleCount);
+        drawImpl(gl, renderer, curRenderModes, sampleCount);
         clearDirtyBits(DIRTY_SHAPE|DIRTY_STATE);
     }
 
-    protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount);
+    protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, int curRenderModes, final int[/*1*/] sampleCount);
 }
