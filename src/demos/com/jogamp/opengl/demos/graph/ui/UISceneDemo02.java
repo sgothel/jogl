@@ -190,9 +190,8 @@ public class UISceneDemo02 implements GLEventListener {
         for(float x=0; x < max; x+=step) {
             demo.shape.move(-step, 0f, 0f);
             // System.err.println(demo.shape);
-            final int[] glWinPos = new int[2];
-            final boolean ok = demo.shape.objToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), demo.shape.getBounds().getCenter(), new PMVMatrix(), glWinPos);
-            System.err.printf("m3: objToWinCoord: ok "+ok+", winCoords %d / %d%n", glWinPos[0], glWinPos[1]);
+            final int[] glWinPos = demo.shape.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), demo.shape.getBounds().getCenter(), new PMVMatrix(), new int[2]);
+            System.err.printf("m3: objToWinCoord: winCoords %d / %d%n", glWinPos[0], glWinPos[1]);
             // demo.testProject(glWinPos[0], glWinPos[1]);
             window.warpPointer(glWinPos[0], window.getHeight() - glWinPos[1] - 1);
             System.err.println("mm x "+x+", [0 .. "+max+"], step "+step+", "+box);
@@ -200,26 +199,23 @@ public class UISceneDemo02 implements GLEventListener {
         }
     }
     void testProject() {
-        final int[] glWinPos = new int[2];
-        final boolean ok = shape.objToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), shape.getBounds().getCenter(), new PMVMatrix(), glWinPos);
-        System.err.printf("m4: objToWinCoord: ok "+ok+", winCoords %d / %d%n", glWinPos[0], glWinPos[1]);
+        final int[] glWinPos = shape.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), shape.getBounds().getCenter(), new PMVMatrix(), new int[2]);
+        System.err.printf("m4: objToWinCoord: winCoords %d / %d%n", glWinPos[0], glWinPos[1]);
         testProject(glWinPos[0], glWinPos[1]);
     }
     void testProject(final int glWinX, final int glWinY) {
-        final float[] objPos = new float[3];
-        final int[] glWinPos = new int[2];
         final PMVMatrix pmv = new PMVMatrix();
-        boolean ok = shape.winToObjCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, objPos);
-        System.err.printf("m5: winToObjCoord: ok "+ok+", obj [%25.20ff, %25.20ff, %25.20ff]%n", objPos[0], objPos[1], objPos[2]);
-        ok = shape.objToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), objPos, pmv, glWinPos);
+        final float[] objPos = shape.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, new float[3]);
+        System.err.printf("m5: winToObjCoord: obj [%25.20ff, %25.20ff, %25.20ff]%n", objPos[0], objPos[1], objPos[2]);
+        final int[] glWinPos = shape.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), objPos, pmv, new int[2]);
         final int windx = glWinPos[0]-glWinX;
         final int windy = glWinPos[1]-glWinY;
         if( windx > 10 || windy > 10 ) {
-            System.err.printf("XX: objToWinCoord: ok "+ok+", winCoords %d / %d, diff %d x %d%n", glWinPos[0], glWinPos[1], windx, windy);
+            System.err.printf("XX: objToWinCoord: winCoords %d / %d, diff %d x %d%n", glWinPos[0], glWinPos[1], windx, windy);
             // Thread.dumpStack();
             // System.exit(-1);
         } else {
-            System.err.printf("m6: objToWinCoord: ok "+ok+", winCoords %d / %d, diff %d x %d%n", glWinPos[0], glWinPos[1], windx, windy);
+            System.err.printf("m6: objToWinCoord: winCoords %d / %d, diff %d x %d%n", glWinPos[0], glWinPos[1], windx, windy);
         }
     }
 
@@ -350,13 +346,11 @@ public class UISceneDemo02 implements GLEventListener {
                 pmv.glPushMatrix();
                 s.setTransform(pmv);
 
-                final float[] objPos = new float[3];
-                boolean ok = s.winToObjCoord(pmv, viewport, glWinX, glWinY, objPos);
-                System.err.println("Button: Click: win["+glWinX+", "+glWinY+"] -> ok "+ok+", obj["+objPos[0]+", "+objPos[1]+", "+objPos[1]+"]");
+                final float[] objPos = s.winToShapeCoord(pmv, viewport, glWinX, glWinY, new float[3]);
+                System.err.println("Button: Click: win["+glWinX+", "+glWinY+"] -> obj["+objPos[0]+", "+objPos[1]+", "+objPos[1]+"]");
 
-                final int[] surfaceSize = new int[2];
-                ok = s.getSurfaceSize(pmv, viewport, surfaceSize);
-                System.err.println("Button: Size: ok "+ok+", pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
+                final int[] surfaceSize = s.getSurfaceSize(pmv, viewport, new int[2]);
+                System.err.println("Button: Size: pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
 
                 pmv.glPopMatrix();
             }
@@ -420,12 +414,11 @@ public class UISceneDemo02 implements GLEventListener {
             pmv.glPushMatrix();
             shape.setTransform(pmv);
 
-            final int[] winPosSize = { 0, 0 };
             System.err.println("draw.0: "+shape);
-            boolean ok = shape.getSurfaceSize(pmv, renderer.getViewport(), winPosSize);
-            System.err.println("draw.1: ok "+ok+", surfaceSize "+winPosSize[0]+" x "+winPosSize[1]);
-            ok = shape.objToWinCoord(pmv, renderer.getViewport(), shape.getPosition(), winPosSize);
-            System.err.println("draw.2: ok "+ok+",    winCoord "+winPosSize[0]+" x "+winPosSize[1]);
+            final int[] winSize = shape.getSurfaceSize(pmv, renderer.getViewport(), new int[2]);
+            System.err.println("draw.1: surfaceSize "+winSize[0]+" x "+winSize[1]);
+            final int[] winPos = shape.shapeToWinCoord(pmv, renderer.getViewport(), shape.getPosition(), new int[2]);
+            System.err.println("draw.2: winCoord "+winPos[0]+" x "+winPos[1]);
 
             pmv.glPopMatrix();
         }

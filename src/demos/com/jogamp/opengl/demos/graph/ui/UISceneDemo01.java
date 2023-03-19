@@ -204,10 +204,6 @@ public class UISceneDemo01 {
         scene.waitUntilDisplayed();
 
         final AABBox sceneBox = scene.getBounds();
-        final float[] surfaceSize = { 0f, 0f };
-        scene.surfaceToPlaneSize(scene.getViewport(), surfaceSize);
-
-        System.err.println("m1 scene "+surfaceSize[0]+" x "+surfaceSize[1]);
         System.err.println("m1 scene "+sceneBox);
         System.err.println("m1.0 "+shape);
         shape.scale(sceneBox.getWidth(), sceneBox.getWidth(), 1f); // scale shape to sceneBox
@@ -224,8 +220,8 @@ public class UISceneDemo01 {
         System.err.println("m2 ["+min+" .. "+max+"], step "+step);
         for(float x=min; x < max; x+=step) {
             shape.move(step, 0f, 0f);
-            final int[] glWinPos = new int[2];
-            if( shape.objToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), shape.getBounds().getCenter(), new PMVMatrix(), glWinPos) ) {
+            final int[] glWinPos = shape.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), shape.getBounds().getCenter(), new PMVMatrix(), new int[2]);
+            if( null != glWinPos ) {
                 window.warpPointer(glWinPos[0], window.getHeight() - glWinPos[1] - 1);
             }
             System.err.println("mm x "+x+", ["+min+" .. "+max+"], step "+step);
@@ -237,15 +233,13 @@ public class UISceneDemo01 {
     }
 
     static void testProject(final Scene scene, final Shape shape, final int glWinX, final int glWinY) {
-        final float[] objPos = new float[3];
-        final int[] glWinPos = new int[2];
         final PMVMatrix pmv = new PMVMatrix();
-        boolean ok = shape.winToObjCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, objPos);
-        System.err.printf("MM1: winToObjCoord: ok "+ok+", obj [%25.20ff, %25.20ff, %25.20ff]%n", objPos[0], objPos[1], objPos[2]);
-        ok = shape.objToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), objPos, pmv, glWinPos);
+        final float[] objPos = shape.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, new float[3]);
+        System.err.printf("MM1: winToObjCoord: obj [%25.20ff, %25.20ff, %25.20ff]%n", objPos[0], objPos[1], objPos[2]);
+        final int[] glWinPos = shape.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), objPos, pmv, new int[2]);
         final int windx = glWinPos[0]-glWinX;
         final int windy = glWinPos[1]-glWinY;
-        System.err.printf("MM2: objToWinCoord: ok "+ok+", winCoords %d / %d, diff %d x %d%n", glWinPos[0], glWinPos[1], windx, windy);
+        System.err.printf("MM2: objToWinCoord: winCoords %d / %d, diff %d x %d%n", glWinPos[0], glWinPos[1], windx, windy);
     }
 
     @SuppressWarnings("unused")

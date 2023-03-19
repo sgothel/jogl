@@ -93,8 +93,8 @@ public class GLButton extends TexSeqButton {
 
     @Override
     public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
-        final int[/*2*/] surfaceSize = new int[2];
-        final boolean got_sz = getSurfaceSize(renderer.getMatrix(), renderer.getViewport(), surfaceSize) && 0 < surfaceSize[0] && 0 < surfaceSize[1];
+        final int[/*2*/] surfaceSize = getSurfaceSize(renderer.getMatrix(), renderer.getViewport(), new int[2]);
+        final boolean got_sz = null != surfaceSize && 0 < surfaceSize[0] && 0 < surfaceSize[1];
 
         if( null == fboGLAD ) {
             final ImageSequence imgSeq = (ImageSequence)texSeq;

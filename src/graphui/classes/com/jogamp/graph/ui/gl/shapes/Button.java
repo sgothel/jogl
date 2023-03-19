@@ -27,7 +27,6 @@
  */
 package com.jogamp.graph.ui.gl.shapes;
 
-import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 
 import com.jogamp.graph.curve.OutlineShape;
@@ -114,7 +113,7 @@ public class Button extends RoundButton {
         final float[] ctr = box.getCenter();
         final float[] ltx = new float[] { ctr[0] - lctr[0], ctr[1] - lctr[1], 0f };
 
-        if( true || DRAW_DEBUG_BOX ) {
+        if( DRAW_DEBUG_BOX ) {
             System.err.println("RIButton: dim "+width+" x "+height+", spacing "+spacingX+", "+spacingY);
             System.err.println("RIButton: net-text "+lw+" x "+lh);
             System.err.println("RIButton: shape "+box);

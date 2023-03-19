@@ -433,10 +433,11 @@ public final class Scene implements GLEventListener {
                     final PMVMatrix pmv = renderer.getMatrix();
                     pmv.glPushMatrix();
                     s.setTransform(pmv);
-                    shape[0].winToObjCoord(getMatrix(), getViewport(), glWinX, glWinY, objPos);
+                    final boolean ok = null != shape[0].winToShapeCoord(getMatrix(), getViewport(), glWinX, glWinY, objPos);
                     pmv.glPopMatrix();
-
-                    runnable.run();
+                    if( ok ) {
+                        runnable.run();
+                    }
                 }
                 return false; // needs to re-render to wash away our false-color glSelect
             } } );
@@ -482,7 +483,7 @@ public final class Scene implements GLEventListener {
     }
 
     /**
-     * Calling {@link Shape#winToObjCoord(Scene, int, int, float[])}, retrieving its object position.
+     * Calling {@link Shape#winToObjCoord(Scene, int, int, float[])}, retrieving its Shape object position.
      * @param shape
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
@@ -491,8 +492,8 @@ public final class Scene implements GLEventListener {
      * @param objPos resulting object position
      * @param runnable action
      */
-    public void winToObjCoord(final Shape shape, final int glWinX, final int glWinY, final PMVMatrix pmv, final float[] objPos, final Runnable runnable) {
-        if( null != shape && shape.winToObjCoord(pmvMatrixSetup, renderer.getViewport(), glWinX, glWinY, pmv, objPos) ) {
+    public void winToShapeCoord(final Shape shape, final int glWinX, final int glWinY, final PMVMatrix pmv, final float[] objPos, final Runnable runnable) {
+        if( null != shape && null != shape.winToShapeCoord(pmvMatrixSetup, renderer.getViewport(), glWinX, glWinY, pmv, objPos) ) {
             runnable.run();
         }
     }
@@ -732,7 +733,7 @@ public final class Scene implements GLEventListener {
                     final PMVMatrix pmv = new PMVMatrix();
                     final float[] objPos = new float[3];
                     final Shape shape = activeShape;
-                    winToObjCoord(shape, glWinX, glWinY, pmv, objPos, () -> {
+                    winToShapeCoord(shape, glWinX, glWinY, pmv, objPos, () -> {
                         shape.dispatchGestureEvent(gh, glWinX, glWinY, pmv, renderer.getViewport(), objPos);
                     });
                 }
@@ -781,7 +782,7 @@ public final class Scene implements GLEventListener {
     final void dispatchMouseEventForShape(final Shape shape, final MouseEvent e, final int glWinX, final int glWinY) {
         final PMVMatrix pmv = new PMVMatrix();
         final float[] objPos = new float[3];
-        winToObjCoord(shape, glWinX, glWinY, pmv, objPos, () -> { shape.dispatchMouseEvent(e, glWinX, glWinY, objPos); });
+        winToShapeCoord(shape, glWinX, glWinY, pmv, objPos, () -> { shape.dispatchMouseEvent(e, glWinX, glWinY, objPos); });
     }
 
     private class SBCMouseListener implements MouseListener {

@@ -119,10 +119,6 @@ public class UITypeDemo01 implements GLEventListener {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
-        if( false ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(4);
-        }
         System.out.println("Requested: " + caps);
 
         final int renderModes = Region.COLORCHANNEL_RENDERING_BIT | Region.VBAA_RENDERING_BIT;
@@ -477,18 +473,15 @@ public class UITypeDemo01 implements GLEventListener {
                         crossHair.setTransform(pmv);
 
                         final float[] objPosC = crossHair.getBounds().getCenter();
-                        final int[] objWinPos = new int[2];
                         System.err.println("\n\nCrossHair: "+crossHair);
-                        if( crossHair.objToWinCoord(pmv, viewport, objPosC, objWinPos) ) {
-                            System.err.println("CrossHair: Obj: Obj "+objPosC[0]+"/"+objPosC[1]+"/"+objPosC[1]+" -> Win "+objWinPos[0]+"/"+objWinPos[1]);
-                        }
+                        final int[] objWinPos = crossHair.shapeToWinCoord(pmv, viewport, objPosC, new int[2]);
+                        System.err.println("CrossHair: Obj: Obj "+objPosC[0]+"/"+objPosC[1]+"/"+objPosC[1]+" -> Win "+objWinPos[0]+"/"+objWinPos[1]);
 
-                        final float[] objPos2 = new float[3];
-                        crossHair.winToObjCoord(pmv, viewport, objWinPos[0], objWinPos[1], objPos2);
+                        final float[] objPos2 = crossHair.winToShapeCoord(pmv, viewport, objWinPos[0], objWinPos[1], new float[3]);
                         System.err.println("CrossHair: Obj: Win "+objWinPos[0]+"/"+objWinPos[1]+" -> Obj "+objPos2[0]+"/"+objPos2[1]+"/"+objPos2[1]);
 
-                        final float[] winObjPos = new float[3];
-                        if( crossHair.winToObjCoord(pmv, viewport, glWinX, glWinY, winObjPos) ) {
+                        final float[] winObjPos = crossHair.winToShapeCoord(pmv, viewport, glWinX, glWinY, new float[3]);
+                        if( null != winObjPos ) {
                             // final float[] translate = crossHair.getTranslate();
                             // final float[] objPosT = new float[] { objPosC[0]+translate[0], objPosC[1]+translate[1], objPosC[2]+translate[2] };
                             final float dx = winObjPos[0] - objPosC[0];
@@ -502,8 +495,7 @@ public class UITypeDemo01 implements GLEventListener {
                             }
                         }
 
-                        final int[] surfaceSize = new int[2];
-                        crossHair.getSurfaceSize(pmv, viewport, surfaceSize);
+                        final int[] surfaceSize = crossHair.getSurfaceSize(pmv, viewport, new int[2]);
                         System.err.println("CrossHair: Size: Pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
 
                         pmv.glPopMatrix();
