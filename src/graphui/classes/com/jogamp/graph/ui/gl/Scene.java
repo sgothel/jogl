@@ -224,7 +224,7 @@ public final class Scene implements GLEventListener {
 
     public int getSampleCount() { return sampleCount[0]; }
     public int setSampleCount(final int v) {
-        sampleCount[0] = Math.min(8, Math.max(v, 1)); // clip
+        sampleCount[0] = Math.min(8, Math.max(v, 0)); // clip
         markAllShapesDirty();
         return sampleCount[0];
     }
@@ -271,18 +271,38 @@ public final class Scene implements GLEventListener {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public void display(final GLAutoDrawable drawable) {
+        final Object[] shapesS = shapes.toArray();
+        Arrays.sort(shapesS, (Comparator)shapeZAscComparator);
+
+        display(drawable, shapesS, false); // false);
+    }
+
+    private static final int[] sampleCountGLSelect = { -1 };
+
+    private void display(final GLAutoDrawable drawable, final Object[] shapesS, final boolean glSelect) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        final int[] sampleCount0;
+        if( glSelect ) {
+            gl.glClearColor(0f, 0f, 0f, 1f);
+            sampleCount0 = sampleCountGLSelect;
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        } else {
+            if( null != clearColor ) {
+                gl.glClearColor(1f, 1f, 1f, 1f);
+                gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+            }
+            sampleCount0 = sampleCount;
+        }
 
         final PMVMatrix pmv = renderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
 
-        final Object[] shapesS = shapes.toArray();
-        Arrays.sort(shapesS, (Comparator)shapeZAscComparator);
-
-        renderer.enable(gl, true);
+        if( glSelect ) {
+            renderer.enable(gl, true, RegionRenderer.defaultBlendDisable, RegionRenderer.defaultBlendDisable);
+        } else {
+            renderer.enable(gl, true);
+        }
 
         //final int shapeCount = shapes.size();
         final int shapeCount = shapesS.length;
@@ -291,12 +311,24 @@ public final class Scene implements GLEventListener {
             final Shape uiShape = (Shape)shapesS[i];
             // System.err.println("Id "+i+": "+uiShape);
             if( uiShape.isEnabled() ) {
-                uiShape.validate(gl, renderer);
                 pmv.glPushMatrix();
                 uiShape.setTransform(pmv);
-                uiShape.drawShape(gl, renderer, sampleCount);
+                if( glSelect ) {
+                    final float color = ( i + 1f ) / ( shapeCount + 2f );
+                    // FIXME
+                    // System.err.printf("drawGL: color %f, index %d of [0..%d[%n", color, i, shapeCount);
+                    renderer.getRenderState().setColorStatic(color, color, color, 1f);
+                    uiShape.drawGLSelect(gl, renderer, sampleCount0);
+                } else {
+                    uiShape.draw(gl, renderer, sampleCount0);
+                }
                 pmv.glPopMatrix();
             }
+        }
+        if( glSelect ) {
+            renderer.enable(gl, false, RegionRenderer.defaultBlendDisable, RegionRenderer.defaultBlendDisable);
+        } else {
+            renderer.enable(gl, false);
         }
 
         renderer.enable(gl, false);
@@ -368,7 +400,82 @@ public final class Scene implements GLEventListener {
     private final float[] dpyTmp3V3 = new float[3];
 
     /**
-     * Calling {@link Shape#winToObjCoord(RegionRenderer, int, int, float[])}, retrieving its object position.
+     * Attempt to pick a {@link Shape} using the OpenGL false color rendering.
+     * <p>
+     * If {@link Shape} was found the given action is performed on the rendering thread.
+     * </p>
+     * <p>
+     * Method is non blocking and performs on rendering-thread, it returns immediately.
+     * </p>
+     * @param glWinX window X coordinate, bottom-left origin
+     * @param glWinY window Y coordinate, bottom-left origin
+     * @param objPos storage for found object position in model-space of found {@link Shape}
+     * @param shape storage for found {@link Shape} or null
+     * @param runnable the action to perform if {@link Shape} was found
+     */
+    public void pickShapeGL(final int glWinX, final int glWinY, final float[] objPos, final Shape[] shape, final Runnable runnable) {
+        if( null == cDrawable ) {
+            return;
+        }
+        cDrawable.invoke(false, new GLRunnable() {
+            @Override
+            public boolean run(final GLAutoDrawable drawable) {
+                final Shape s = pickShapeGLImpl(drawable, glWinX, glWinY);
+                shape[0] = s;
+                if( null != s ) {
+                    final PMVMatrix pmv = renderer.getMatrix();
+                    pmv.glPushMatrix();
+                    s.setTransform(pmv);
+                    shape[0].winToObjCoord(getMatrix(), getViewport(), glWinX, glWinY, objPos);
+                    pmv.glPopMatrix();
+
+                    runnable.run();
+                }
+                return false; // needs to re-render to wash away our false-color glSelect
+            } } );
+    }
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private Shape pickShapeGLImpl(final GLAutoDrawable drawable, final int glWinX, final int glWinY) {
+        final Object[] shapesS = shapes.toArray();
+        Arrays.sort(shapesS, (Comparator)shapeZAscComparator);
+
+        final GLPixelStorageModes psm = new GLPixelStorageModes();
+        final ByteBuffer pixel = Buffers.newDirectByteBuffer(4);
+
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+
+        display(drawable, shapesS, true);
+
+        psm.setPackAlignment(gl, 4);
+        // psm.setUnpackAlignment(gl, 4);
+        try {
+            // gl.glReadPixels(glWinX, getHeight() - glWinY, 1, 1, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pixel);
+            gl.glReadPixels(glWinX, glWinY, 1, 1, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pixel);
+        } catch(final GLException gle) {
+            gle.printStackTrace();
+            return null;
+        }
+        psm.restore(gl);
+
+        // final float color = ( i + 1f ) / ( shapeCount + 2f );
+        final int shapeCount = shapes.size();
+        final int qp = pixel.get(0) & 0xFF;
+        final float color = qp / 255.0f;
+        final int index = Math.round( ( color * ( shapeCount + 2f) ) - 1f );
+
+        // FIXME drawGL: color 0.333333, index 0 of [0..1[
+        System.err.printf("pickGL: glWin %d / %d, byte %d, color %f, index %d of [0..%d[%n",
+                glWinX, glWinY, qp, color, index, shapeCount);
+
+        if( 0 <= index && index < shapeCount ) {
+            return (Shape)shapesS[index];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Calling {@link Shape#winToObjCoord(Scene, int, int, float[])}, retrieving its object position.
      * @param shape
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
