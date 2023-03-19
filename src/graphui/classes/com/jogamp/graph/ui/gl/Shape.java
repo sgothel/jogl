@@ -123,23 +123,23 @@ public abstract class Shape {
     }
 
     /** Set a symbolic name for this shape for identification. Default is -1 for noname. */
-    public void setName(final int name) { this.name = name; }
+    public final void setName(final int name) { this.name = name; }
     /** Return the optional symbolic name for this shape. */
-    public int getName() { return this.name; }
+    public final int getName() { return this.name; }
 
     public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
 
     /** Returns true if this shape is enabled and hence visible, otherwise false. */
-    public boolean isEnabled() { return enabled; }
+    public final boolean isEnabled() { return enabled; }
     /** Enable or disable this shape, i.e. its visibility. */
-    public void setEnabled(final boolean v) { enabled = v; }
+    public final void setEnabled(final boolean v) { enabled = v; }
 
     /**
      * Clears all data and reset all states as if this instance was newly created
      * @param gl TODO
      * @param renderer TODO
      */
-    public void clear(final GL2ES2 gl, final RegionRenderer renderer) {
+    public final void clear(final GL2ES2 gl, final RegionRenderer renderer) {
         clearImpl(gl, renderer);
         position[0] = 0f;
         position[1] = 0f;
@@ -160,7 +160,7 @@ public abstract class Shape {
      * @param gl
      * @param renderer
      */
-    public void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
+    public final void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
         destroyImpl(gl, renderer);
         position[0] = 0f;
         position[1] = 0f;
@@ -188,39 +188,65 @@ public abstract class Shape {
         position[2] += tz;
         // System.err.println("UIShape.translate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
+
+    /** Returns float[3] position, i.e. translation. */
     public final float[] getPosition() { return position; }
+    /** Returns float[3] rotation in degrees. */
     public final Quaternion getRotation() { return rotation; }
     public final float[] getRotationOrigin() { return rotOrigin; }
-    public void setRotationOrigin(final float rx, final float ry, final float rz) {
+    public final void setRotationOrigin(final float rx, final float ry, final float rz) {
         rotOrigin[0] = rx;
         rotOrigin[1] = ry;
         rotOrigin[2] = rz;
     }
-    public void setScale(final float sx, final float sy, final float sz) {
+    public final void setScale(final float sx, final float sy, final float sz) {
         scale[0] = sx;
         scale[1] = sy;
         scale[2] = sz;
     }
-    public void scale(final float sx, final float sy, final float sz) {
+    public final void scale(final float sx, final float sy, final float sz) {
         scale[0] *= sx;
         scale[1] *= sy;
         scale[2] *= sz;
     }
+    /** Returns float[3] scale factors */
     public final float[] getScale() { return scale; }
+    public final float getScaleX() { return scale[0]; }
+    public final float getScaleY() { return scale[1]; }
+    public final float getScaleZ() { return scale[2]; }
 
+    /**
+     * Marks the shape dirty, causing next {@link #draw(GL2ES2, RegionRenderer, int[]) draw()}
+     * to recreate the Graph shape and reset the region.
+     */
     public final void markShapeDirty() {
         dirty |= DIRTY_SHAPE;
     }
-    public final boolean isShapeDirty() {
-        return 0 != ( dirty & DIRTY_SHAPE ) ;
-    }
+
+    /**
+     * Marks the rendering state dirty, causing next {@link #draw(GL2ES2, RegionRenderer, int[]) draw()}
+     * to notify the Graph region to reselect shader and repaint potentially used FBOs.
+     */
     public final void markStateDirty() {
         dirty |= DIRTY_STATE;
     }
-    public final boolean isStateDirty() {
+
+    private final boolean isShapeDirty() {
+        return 0 != ( dirty & DIRTY_SHAPE ) ;
+    }
+    private final boolean isStateDirty() {
         return 0 != ( dirty & DIRTY_STATE ) ;
     }
 
+    /**
+     * Returns the unscaled bounding {@link AABBox} for this shape.
+     *
+     * The returned {@link AABBox} will only cover this unscaled shape
+     * after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
+     * or {@link #validate(GL2ES2)}.
+     *
+     * @see #getBounds(GLProfile)
+     */
     public final AABBox getBounds() { return box; }
 
     public final int getRenderModes() { return renderModes; }
@@ -361,7 +387,7 @@ public abstract class Shape {
     }
 
     /**
-     * Retrieve window surface size of this shape reusing a given setup {@link PMVMatrix}.
+     * Retrieve surface (view) size of this shape.
      * <p>
      * The given {@link PMVMatrix} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
@@ -375,19 +401,19 @@ public abstract class Shape {
      */
     public boolean getSurfaceSize(final PMVMatrix pmv, final int[/*4*/] viewport, final int[/*2*/] surfaceSize) {
         boolean res = false;
-        // System.err.println("UIShape::getSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
+        // System.err.println("Shape::getSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
         final float[] winCoordHigh = new float[3];
         final float[] winCoordLow = new float[3];
         final float[] high = getBounds().getHigh();
         final float[] low = getBounds().getLow();
 
         if( pmv.gluProject(high[0], high[1], high[2], viewport, 0, winCoordHigh, 0) ) {
-            // System.err.printf("UIShape::surfaceSize.H: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), high[0], high[1], high[2], winCoordHigh[0], winCoordHigh[1], winCoordHigh[2]);
+            // System.err.printf("Shape::surfaceSize.H: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), high[0], high[1], high[2], winCoordHigh[0], winCoordHigh[1], winCoordHigh[2]);
             if( pmv.gluProject(low[0], low[1], low[2], viewport, 0, winCoordLow, 0) ) {
-                // System.err.printf("UIShape::surfaceSize.L: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), low[0], low[1], low[2], winCoordLow[0], winCoordLow[1], winCoordLow[2]);
+                // System.err.printf("Shape::surfaceSize.L: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), low[0], low[1], low[2], winCoordLow[0], winCoordLow[1], winCoordLow[2]);
                 surfaceSize[0] = (int)(winCoordHigh[0] - winCoordLow[0]);
                 surfaceSize[1] = (int)(winCoordHigh[1] - winCoordLow[1]);
-                // System.err.printf("UIShape::surfaceSize.S: shape %d: %f x %f -> %d x %d%n", getName(), winCoordHigh[0] - winCoordLow[0], winCoordHigh[1] - winCoordLow[1], surfaceSize[0], surfaceSize[1]);
+                // System.err.printf("Shape::surfaceSize.S: shape %d: %f x %f -> %d x %d%n", getName(), winCoordHigh[0] - winCoordLow[0], winCoordHigh[1] - winCoordLow[1], surfaceSize[0], surfaceSize[1]);
                 res = true;
             }
         }
@@ -412,7 +438,7 @@ public abstract class Shape {
     }
 
     /**
-     * Map given object coordinate relative to this shape to window coordinates reusing a given setup {@link PMVMatrix}.
+     * Map given object coordinate relative to this shape to window coordinates.
      * <p>
      * The given {@link PMVMatrix} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
@@ -427,21 +453,21 @@ public abstract class Shape {
      */
     public boolean objToWinCoord(final PMVMatrix pmv, final int[/*4*/] viewport, final float[/*3*/] objPos, final int[/*2*/] glWinPos) {
         boolean res = false;
-        // System.err.println("UIShape::objToWinCoordgetSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
+        // System.err.println("Shape::objToWinCoordgetSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
         final float[] winCoord = new float[3];
 
         if( pmv.gluProject(objPos[0], objPos[1], objPos[2], viewport, 0, winCoord, 0) ) {
-            // System.err.printf("UIShape::objToWinCoord.0: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), objPos[0], objPos[1], objPos[2], winCoord[0], winCoord[1], winCoord[2]);
+            // System.err.printf("Shape::objToWinCoord.0: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), objPos[0], objPos[1], objPos[2], winCoord[0], winCoord[1], winCoord[2]);
             glWinPos[0] = (int)(winCoord[0]);
             glWinPos[1] = (int)(winCoord[1]);
-            // System.err.printf("UIShape::objToWinCoord.X: shape %d: %f / %f -> %d / %d%n", getName(), winCoord[0], winCoord[1], glWinPos[0], glWinPos[1]);
+            // System.err.printf("Shape::objToWinCoord.X: shape %d: %f / %f -> %d / %d%n", getName(), winCoord[0], winCoord[1], glWinPos[0], glWinPos[1]);
             res = true;
         }
         return res;
     }
 
     /**
-     * Map given object coordinate relative to this shape to window coordinates using a local {@link PMVMatrix}.
+     * Map given object coordinate relative to this shape to window coordinates.
      * <p>
      * The {@link Scene} has be {@link Scene#reshape(com.jogamp.opengl.GLAutoDrawable, int, int, int, int) reshape(..)}ed once.
      * </p>
@@ -459,8 +485,7 @@ public abstract class Shape {
     }
 
     /**
-     * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate
-     * reusing a given setup {@link PMVMatrix}.
+     * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate.
      * <p>
      * The given {@link PMVMatrix} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
@@ -480,9 +505,9 @@ public abstract class Shape {
         final float[] tmp = new float[3];
 
         if( pmv.gluProject(ctr[0], ctr[1], ctr[2], viewport, 0, tmp, 0) ) {
-            // System.err.printf("UIShape::winToObjCoord.0: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), ctr[0], ctr[1], ctr[2], tmp[0], tmp[1], tmp[2]);
+            // System.err.printf("Shape::winToObjCoord.0: shape %d: obj [%15.10ff, %15.10ff, %15.10ff] -> win [%d / %d -> %7.2ff, %7.2ff, %7.2ff, diff %7.2ff x %7.2ff]%n", getName(), ctr[0], ctr[1], ctr[2], glWinX, glWinY, tmp[0], tmp[1], tmp[2], glWinX-tmp[0], glWinY-tmp[1]);
             if( pmv.gluUnProject(glWinX, glWinY, tmp[2], viewport, 0, objPos, 0) ) {
-                // System.err.printf("UIShape::winToObjCoord.1: shape %d: win [%d, %d, %f] -> obj [%f, %f, %f]%n", getName(), glWinX, glWinY, tmp[2], objPos[0], objPos[1], objPos[2]);
+                // System.err.printf("Shape::winToObjCoord.X: shape %d: win [%d, %d, %7.2ff] -> obj [%15.10ff, %15.10ff, %15.10ff]%n", getName(), glWinX, glWinY, tmp[2], objPos[0], objPos[1], objPos[2]);
                 res = true;
             }
         }
@@ -586,7 +611,9 @@ public abstract class Shape {
     }
 
     public String getSubString() {
-        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+"], pos "+position[0]+" / "+position[1]+", box "+box;
+        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+"], pos["+position[0]+", "+position[1]+", "+position[2]+
+                "], scale["+scale[0]+", "+scale[1]+", "+scale[2]+
+                "], box "+box;
     }
 
     //
