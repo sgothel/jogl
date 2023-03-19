@@ -542,14 +542,14 @@ public class MouseEvent extends InputEvent
 
     public static String getEventTypeString(final short type) {
         switch(type) {
-            case EVENT_MOUSE_CLICKED: return "EVENT_MOUSE_CLICKED";
-            case EVENT_MOUSE_ENTERED: return "EVENT_MOUSE_ENTERED";
-            case EVENT_MOUSE_EXITED: return "EVENT_MOUSE_EXITED";
-            case EVENT_MOUSE_PRESSED: return "EVENT_MOUSE_PRESSED";
-            case EVENT_MOUSE_RELEASED: return "EVENT_MOUSE_RELEASED";
-            case EVENT_MOUSE_MOVED: return "EVENT_MOUSE_MOVED";
-            case EVENT_MOUSE_DRAGGED: return "EVENT_MOUSE_DRAGGED";
-            case EVENT_MOUSE_WHEEL_MOVED: return "EVENT_MOUSE_WHEEL_MOVED";
+            case EVENT_MOUSE_CLICKED: return "CLICKED";
+            case EVENT_MOUSE_ENTERED: return "ENTERED";
+            case EVENT_MOUSE_EXITED: return "EXITED";
+            case EVENT_MOUSE_PRESSED: return "PRESSED";
+            case EVENT_MOUSE_RELEASED: return "RELEASED";
+            case EVENT_MOUSE_MOVED: return "MOVED";
+            case EVENT_MOUSE_DRAGGED: return "DRAGGED";
+            case EVENT_MOUSE_WHEEL_MOVED: return "WHEEL_MOVED";
             default: return "unknown (" + type + ")";
         }
     }
