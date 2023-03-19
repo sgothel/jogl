@@ -220,7 +220,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
 
         final float dxMiddleAbs = width * relMiddle;
         final float dyTopLabelAbs = drawable.getSurfaceHeight() - 2f*jogampLabel.getLineHeight();
-        jogampLabel.setPosition(dxMiddleAbs, dyTopLabelAbs, dz);
+        jogampLabel.moveTo(dxMiddleAbs, dyTopLabelAbs, dz);
         fpsLabel.move(0f, 0f, 0f);
 
         scene.reshape(drawable, x, y, width, height);

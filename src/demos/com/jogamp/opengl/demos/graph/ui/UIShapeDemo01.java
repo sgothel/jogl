@@ -87,6 +87,7 @@ public class UIShapeDemo01 implements GLEventListener {
 
     public static void main(final String[] args) throws IOException {
         Font font = null;
+        final int width = 1280, height = 720;
         if( 0 != args.length ) {
             for(int i=0; i<args.length; i++) {
                 if(args[i].equals("-font")) {
@@ -109,12 +110,13 @@ public class UIShapeDemo01 implements GLEventListener {
         }
         System.out.println("Requested: " + caps);
 
-        final GLWindow window = GLWindow.create(caps);
-        // window.setPosition(10, 10);
-        window.setSize(800, 400);
-        window.setTitle(UIShapeDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         final int renderModes = Region.COLORCHANNEL_RENDERING_BIT | Region.VBAA_RENDERING_BIT;
         // final int renderModes = Region.COLORCHANNEL_RENDERING_BIT;
+
+        final GLWindow window = GLWindow.create(caps);
+        // window.setPosition(10, 10);
+        window.setSize(width, height);
+        window.setTitle(UIShapeDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         final UIShapeDemo01 uiGLListener = new UIShapeDemo01(font, renderModes, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
@@ -216,7 +218,7 @@ public class UIShapeDemo01 implements GLEventListener {
 
         gl.setSwapInterval(1);
         gl.glEnable(GL.GL_DEPTH_TEST);
-        gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+        // gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
         MSAATool.dump(drawable);
     }
 
@@ -244,7 +246,7 @@ public class UIShapeDemo01 implements GLEventListener {
         final PMVMatrix pmv = renderer.getMatrix();
         pmv.glPushMatrix();
         shape.setTransform(pmv);
-        shape.drawShape(gl, renderer, sampleCount);
+        shape.draw(gl, renderer, sampleCount);
         if( once ) {
             final int[] winPosSize = { 0, 0 };
             System.err.println("draw.0: "+shape);

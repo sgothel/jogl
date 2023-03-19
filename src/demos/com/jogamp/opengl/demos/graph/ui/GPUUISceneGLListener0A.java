@@ -447,30 +447,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new Button(SVertex.factory(), renderModes, font, "+", buttonXSize, buttonYSize);
-            button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
-            button.addMouseListener(new Shape.MouseGestureAdapter() {
-                @Override
-                public void mouseClicked(final MouseEvent e) {
-                    final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
-                    // rel position to center
-                    final float dx = shapeEvent.objPos[0] - shapeEvent.shape.getBounds().getCenter()[0] ;
-                    final float dy = shapeEvent.objPos[1] - shapeEvent.shape.getBounds().getCenter()[1] ;
-                    // per-cent position to center (remove dependency on dimension)
-                    final float awdx = Math.abs(dx)/shapeEvent.shape.getBounds().getWidth();
-                    final float awdy = Math.abs(dy)/shapeEvent.shape.getBounds().getHeight();
-                    float tx = 0, ty = 0;
-                    if ( awdx > awdy  ) {
-                        tx = dx < 0 ? -5 : 5;
-                    } else {
-                        ty = dy < 0 ? -5 : 5;
-                    }
-                    translateButtons(tx, ty, 0f);
-                } } );
-            button.addMouseListener(dragZoomRotateListener);
-            buttons.add(button);
-            k++;
-
             button = new Button(SVertex.factory(), renderModes, font, "< Space >", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -665,7 +641,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
     private void setupUI(final GLAutoDrawable drawable) {
         final float[/*2*/] sceneSize = { 0f, 0f };
-        scene.surfaceToObjSize(drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), sceneSize);
+        scene.surfaceToPlaneSize(new int[] { 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight()}, sceneSize);
 
         final float modelSizeFixed = fontSizeFixedPVV * sceneSize[1];
         jogampLabel = new Label(scene.getVertexFactory(), renderModes, font, modelSizeFixed, jogamp);
@@ -798,12 +774,12 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         final float dxMiddleAbs = scene.getBounds().getWidth() * relMiddle;
         final float dyTopLabelAbs = scene.getBounds().getHeight() - 2f*jogampLabel.getLineHeight();
-        jogampLabel.setPosition(dxMiddleAbs, dyTopLabelAbs, dz);
-        truePtSizeLabel.setPosition(dxMiddleAbs, dyTopLabelAbs, dz);
-        truePtSizeLabel.setPosition(dxMiddleAbs, dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight(), 0f);
+        jogampLabel.moveTo(dxMiddleAbs, dyTopLabelAbs, dz);
+        truePtSizeLabel.moveTo(dxMiddleAbs, dyTopLabelAbs, dz);
+        truePtSizeLabel.moveTo(dxMiddleAbs, dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight(), 0f);
         fpsLabel.move(0f, 0f, 0f);
         if( null != labels[currentText] ) {
-            labels[currentText].setPosition(dxMiddleAbs,
+            labels[currentText].moveTo(dxMiddleAbs,
                     dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight()
                     - 1.5f * truePtSizeLabel.getLineHeight(), 0f);
             System.err.println("Label["+currentText+"] MOVE: "+labels[currentText]);

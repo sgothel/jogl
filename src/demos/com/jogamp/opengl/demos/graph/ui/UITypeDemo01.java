@@ -93,6 +93,7 @@ public class UITypeDemo01 implements GLEventListener {
 
     public static void main(final String[] args) throws IOException {
         Font font = null;
+        final int width = 1280, height = 720;
         String text = "Hello Origin.";
         int glyph_id = Glyph.ID_UNKNOWN;
         if( 0 != args.length ) {
@@ -118,15 +119,20 @@ public class UITypeDemo01 implements GLEventListener {
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
-        caps.setSampleBuffers(true);
-        caps.setNumSamples(4);
+        if( false ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(4);
+        }
         System.out.println("Requested: " + caps);
+
+        final int renderModes = Region.COLORCHANNEL_RENDERING_BIT | Region.VBAA_RENDERING_BIT;
+        // final int renderModes = Region.COLORCHANNEL_RENDERING_BIT;
 
         final GLWindow window = GLWindow.create(caps);
         // window.setPosition(10, 10);
-        window.setSize(800, 400);
+        window.setSize(width, height);
         window.setTitle(UITypeDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
-        final UITypeDemo01 uiGLListener = new UITypeDemo01(font, glyph_id, text, Region.COLORCHANNEL_RENDERING_BIT, DEBUG, TRACE);
+        final UITypeDemo01 uiGLListener = new UITypeDemo01(font, glyph_id, text, renderModes, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
         window.setVisible(true);
@@ -237,7 +243,7 @@ public class UITypeDemo01 implements GLEventListener {
 
         gl.setSwapInterval(1);
         gl.glEnable(GL.GL_DEPTH_TEST);
-        gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+        // gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
         MSAATool.dump(drawable);
     }
 
@@ -262,7 +268,7 @@ public class UITypeDemo01 implements GLEventListener {
     private void drawShape(final GL2ES2 gl, final PMVMatrix pmv, final RegionRenderer renderer, final Shape shape) {
         pmv.glPushMatrix();
         shape.setTransform(pmv);
-        shape.drawShape(gl, renderer, sampleCount);
+        shape.draw(gl, renderer, sampleCount);
         pmv.glPopMatrix();
     }
 

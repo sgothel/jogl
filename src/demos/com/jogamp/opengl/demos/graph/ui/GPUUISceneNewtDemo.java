@@ -54,10 +54,10 @@ public class GPUUISceneNewtDemo {
     }
 
     public static void main(final String[] args) {
-        int SceneMSAASamples = 0;
-        boolean GraphVBAAMode = false;
-        boolean GraphMSAAMode = false;
-        float GraphAutoMode = GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
+        int sceneMSAASamples = 0;
+        boolean graphVBAAMode = true;
+        boolean graphMSAAMode = false;
+        float graphAutoMode = 0; // GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
 
         final float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
@@ -73,25 +73,30 @@ public class GPUUISceneNewtDemo {
 
         if( 0 != args.length ) {
             for(int i=0; i<args.length; i++) {
-                if(args[i].equals("-smsaa")) {
+                if(args[i].equals("-gnone")) {
+                    sceneMSAASamples = 0;
+                    graphMSAAMode = false;
+                    graphVBAAMode = false;
+                    graphAutoMode = 0f;
+                } else if(args[i].equals("-smsaa")) {
                     i++;
-                    SceneMSAASamples = MiscUtils.atoi(args[i], SceneMSAASamples);
-                    GraphMSAAMode = false;
-                    GraphVBAAMode = false;
-                    GraphAutoMode = 0f;
+                    sceneMSAASamples = MiscUtils.atoi(args[i], sceneMSAASamples);
+                    graphMSAAMode = false;
+                    graphVBAAMode = false;
+                    graphAutoMode = 0f;
                 } else if(args[i].equals("-gmsaa")) {
-                    GraphMSAAMode = true;
-                    GraphVBAAMode = false;
-                    GraphAutoMode = 0f;
+                    graphMSAAMode = true;
+                    graphVBAAMode = false;
+                    graphAutoMode = 0f;
                 } else if(args[i].equals("-gvbaa")) {
-                    GraphMSAAMode = false;
-                    GraphVBAAMode = true;
-                    GraphAutoMode = 0f;
+                    graphMSAAMode = false;
+                    graphVBAAMode = true;
+                    graphAutoMode = 0f;
                 } else if(args[i].equals("-gauto")) {
-                    GraphMSAAMode = false;
-                    GraphVBAAMode = true;
+                    graphMSAAMode = false;
+                    graphVBAAMode = true;
                     i++;
-                    GraphAutoMode = MiscUtils.atof(args[i], GraphAutoMode);
+                    graphAutoMode = MiscUtils.atof(args[i], graphAutoMode);
                 } else if(args[i].equals("-font")) {
                     i++;
                     fontfilename = args[i];
@@ -125,10 +130,10 @@ public class GPUUISceneNewtDemo {
         System.err.println("forceGL3   "+forceGL3);
         System.err.println("forceGLDef "+forceGLDef);
         System.err.println("Desired win size "+width+"x"+height);
-        System.err.println("Scene MSAA Samples "+SceneMSAASamples);
-        System.err.println("Graph MSAA Mode "+GraphMSAAMode);
-        System.err.println("Graph VBAA Mode "+GraphVBAAMode);
-        System.err.println("Graph Auto Mode "+GraphAutoMode+" no-AA dpi threshold");
+        System.err.println("Scene MSAA Samples "+sceneMSAASamples);
+        System.err.println("Graph MSAA Mode "+graphMSAAMode);
+        System.err.println("Graph VBAA Mode "+graphVBAAMode);
+        System.err.println("Graph Auto Mode "+graphAutoMode+" no-AA dpi threshold");
 
         final Display dpy = NewtFactory.createDisplay(null);
         final Screen screen = NewtFactory.createScreen(dpy, 0);
@@ -150,32 +155,32 @@ public class GPUUISceneNewtDemo {
         System.err.println("GLProfile: "+glp);
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
-        if( SceneMSAASamples > 0 ) {
+        if( sceneMSAASamples > 0 ) {
             caps.setSampleBuffers(true);
-            caps.setNumSamples(SceneMSAASamples);
+            caps.setNumSamples(sceneMSAASamples);
         }
         System.out.println("Requested: " + caps);
 
-        final int rmode;
-        if( GraphVBAAMode ) {
-            rmode = Region.VBAA_RENDERING_BIT;
-        } else if( GraphMSAAMode ) {
-            rmode = Region.MSAA_RENDERING_BIT;
+        final int renderModes;
+        if( graphVBAAMode ) {
+            renderModes = Region.VBAA_RENDERING_BIT;
+        } else if( graphMSAAMode ) {
+            renderModes = Region.MSAA_RENDERING_BIT;
         } else {
-            rmode = 0;
+            renderModes = 0;
         }
 
         final GLWindow window = GLWindow.create(screen, caps);
-        if( 0 == SceneMSAASamples ) {
+        if( 0 == sceneMSAASamples ) {
             window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(true));
         }
         window.setSize(width, height);
-        window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(rmode)+"], msaa "+SceneMSAASamples);
+        window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(renderModes)+"], msaa "+sceneMSAASamples);
         window.setSurfaceScale(reqSurfacePixelScale);
         // final float[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new float[2]);
 
-        final GPUUISceneGLListener0A scene = 0 < GraphAutoMode ? new GPUUISceneGLListener0A(fontfilename, filmURL, GraphAutoMode, DEBUG, TRACE) :
-                                                                 new GPUUISceneGLListener0A(fontfilename, filmURL, rmode, DEBUG, TRACE);
+        final GPUUISceneGLListener0A scene = 0 < graphAutoMode ? new GPUUISceneGLListener0A(fontfilename, filmURL, graphAutoMode, DEBUG, TRACE) :
+                                                                 new GPUUISceneGLListener0A(fontfilename, filmURL, renderModes, DEBUG, TRACE);
         window.addGLEventListener(scene);
 
         final Animator animator = new Animator();
