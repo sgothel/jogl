@@ -798,8 +798,7 @@ public abstract class Shape {
     private final int[] winDraggedLast = { 0, 0 }; // b/c its absolute window pos
     private boolean inDrag = false;
     private int inResize = 0; // 1 br, 2 bl
-    private static final float resize_sxy_min = 0.33f;
-    private static final float resize_sxy_max = 20f;
+    private static final float resize_sxy_min = 0.03f; // TODO: Maybe customizable?
     private static final float resize_section = 1f/5f; // resize action in a corner
 
     /**
@@ -819,22 +818,19 @@ public abstract class Shape {
                     toggle();
                     break;
                 case MouseEvent.EVENT_MOUSE_PRESSED:
+                    dragFirst = true;
                     setPressed(true);
                     break;
                 case MouseEvent.EVENT_MOUSE_RELEASED:
+                    // Release active shape: last pointer has been lifted!
                     setPressed(false);
+                    inDrag = false;
+                    inResize = 0;
+                    System.err.println("Shape: RELEASED");
                     break;
             }
         }
         switch( eventType ) {
-            case MouseEvent.EVENT_MOUSE_PRESSED:
-                dragFirst = 1 == e.getPointerCount();
-                break;
-            case MouseEvent.EVENT_MOUSE_RELEASED:
-                dragFirst = false;
-                inDrag = false;
-                inResize = 0;
-                break;
             case MouseEvent.EVENT_MOUSE_DRAGGED: {
                 // 1 pointer drag and potential drag-resize
                 if(dragFirst) {
@@ -844,8 +840,8 @@ public abstract class Shape {
                     winDraggedLast[1] = glWinY;
                     dragFirst=false;
 
-                    final float ix = objPos[0]; // - position[0];
-                    final float iy = objPos[1]; // - position[1];
+                    final float ix = objPos[0];
+                    final float iy = objPos[1];
                     final float minx_br = box.getMaxX() - box.getWidth() * resize_section;
                     final float miny_br = box.getMinY();
                     final float maxx_br = box.getMaxX();
@@ -866,11 +862,8 @@ public abstract class Shape {
                         }
                     }
                     if( DEBUG ) {
-                        System.err.printf("Drag: drag %b, resize %b, obj %.3f/%.3f, %.3f/%.3f + %.3f/%.3f, %s%n",
-                                inDrag, inResize,
-                                ix, iy,
-                                objPos[0], objPos[1],
-                                shapeEvent.objDrag[0], shapeEvent.objDrag[1], box.toString());
+                        System.err.printf("DragFirst: drag %b, resize %d, obj[%.4f, %.4f, %.4f], drag +[%.4f, %.4f]%n",
+                                inDrag, inResize, objPos[0], objPos[1], objPos[2], shapeEvent.objDrag[0], shapeEvent.objDrag[1]);
                     }
                     return;
                 }
@@ -881,32 +874,40 @@ public abstract class Shape {
                 winDraggedLast[0] = glWinX;
                 winDraggedLast[1] = glWinY;
                 if( 1 == e.getPointerCount() ) {
+                    final float sdx = shapeEvent.objDrag[0] * scale[0]; // apply scale, since operation
+                    final float sdy = shapeEvent.objDrag[1] * scale[1]; // is from a scaled-model-viewpoint
                     if( 0 != inResize && resizable ) {
-                        final float dx = shapeEvent.objDrag[0]/2f;
-                        final float dy = shapeEvent.objDrag[1]/2f;
-                        final float sx;
+                        final float bw = box.getWidth();
+                        final float bh = box.getHeight();
+                        final float dsx;
                         if( 1 == inResize ) {
-                            sx = scale[0] + (  2f*dx/box.getWidth() ); // bottom-right
+                            dsx = scale[0] + sdx/bw; // bottom-right
                         } else {
-                            sx = scale[0] + ( -2f*dx/box.getWidth() ); // bottom-left
+                            dsx = scale[0] - sdx/bw; // bottom-left
                         }
-                        final float sy = scale[1] + ( -2f*dy/box.getHeight() );
-                        if( resize_sxy_min <= sx && sx <= resize_sxy_max && resize_sxy_min <= sy && sy <= resize_sxy_max ) {
+                        final float dsy = scale[1] - sdy/bh;
+                        if( resize_sxy_min <= dsx && resize_sxy_min <= dsy ) { // avoid scale flip
                             if( DEBUG ) {
-                                System.err.printf("DragZoom: resize %b, obj %4d/%4d, %.3f/%.3f/%.3f %.3f/%.3f/%.3f + %.3f/%.3f -> %.3f/%.3f%n",
-                                        inResize, glWinX, glWinY, objPos[0], objPos[1], objPos[2], position[0], position[1], position[2],
-                                        dx, dy, sx, sy);
+                                System.err.printf("DragZoom: resize %d, win[%4d, %4d], obj[%.4f, %.4f, %.4f], dxy +[%.4f, %.4f], sdxy +[%.4f, %.4f], scale [%.4f, %.4f] -> [%.4f, %.4f]%n",
+                                        inResize, glWinX, glWinY, objPos[0], objPos[1], objPos[2],
+                                        shapeEvent.objDrag[0], shapeEvent.objDrag[1], sdx, sdy,
+                                        scale[0], scale[1], dsx, dsy);
                             }
-                            move(dx, dy, 0f);
-                            setScale(sx, sy, scale[2]);
+                            if( 1 == inResize ) {
+                                move(   0, sdy, 0f); // bottom-right, sticky left- and top-edge
+                            } else {
+                                move( sdx, sdy, 0f); // bottom-left, sticky right- and top-edge
+                            }
+                            setScale(dsx, dsy, scale[2]);
                         }
                         return; // FIXME: pass through event? Issue zoom event?
                     } else if( inDrag && draggable ) {
                         if( DEBUG ) {
-                            System.err.printf("Drag: obj %.3f/%.3f + %.3f/%.3f%n",
-                                    objPos[0], objPos[1], shapeEvent.objDrag[0], shapeEvent.objDrag[1]);
+                            System.err.printf("DragMove: win[%4d, %4d] +[%2d, %2d], obj[%.4f, %.4f, %.4f] +[%.4f, %.4f]%n",
+                                    glWinX, glWinY, shapeEvent.winDrag[0], shapeEvent.winDrag[1],
+                                    objPos[0], objPos[1], objPos[2], shapeEvent.objDrag[0], shapeEvent.objDrag[1]);
                         }
-                        move(shapeEvent.objDrag[0], shapeEvent.objDrag[1], 0f);
+                        move( sdx, sdy, 0f);
                         // FIXME: Pass through event? Issue move event?
                     }
                 }
