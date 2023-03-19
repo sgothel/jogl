@@ -136,7 +136,6 @@ public class UISceneDemo01 {
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         final Shape shape = makeShape(font, renderModes);
-        if( false ) {
         shape.onMove(new Shape.Listener() {
             @Override
             public void run(final Shape shape) {
@@ -162,7 +161,6 @@ public class UISceneDemo01 {
                 testProject(scene, shape, glWinX, glWinY);
             }
         } );
-        }
         scene.addShape(shape);
 
         final AABBox shapeBox = shape.getBounds(glp);
@@ -212,34 +210,31 @@ public class UISceneDemo01 {
         System.err.println("m1 scene "+surfaceSize[0]+" x "+surfaceSize[1]);
         System.err.println("m1 scene "+sceneBox);
         System.err.println("m1.0 "+shape);
-        // shape.moveTo(-shapeBox.getWidth()/2f, -shapeBox.getHeight()/2f, 0f);
-        shape.scale(sceneBox.getWidth(), sceneBox.getWidth(), 1f);
+        shape.scale(sceneBox.getWidth(), sceneBox.getWidth(), 1f); // scale shape to sceneBox
         System.err.println("m1.1 "+shape);
-        shape.scale(0.4f,  0.4f, 1f);
+        shape.scale(0.4f,  0.4f, 1f); // scale shape even smaller
         System.err.println("m1.2 "+shape);
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
 
         final float min = sceneBox.getMinX();
-        final float max = sceneBox.getMaxX(); // - shapeBox.getWidth(); //  * shape.getScaleX();
-        // shape.moveTo(min, -shapeBox.getHeight()/2f, 0f);
-        shape.moveTo(min, 0f, 0f);
-        if( false ) {
-        try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
-        final float step = (max-min)/200f;
+        final float max = sceneBox.getMaxX() - shapeBox.getWidth()*shape.getScaleX();
+        shape.moveTo(min, 0f, 0f); // move shape to min start position
+
+        final float step = (max-min)/1000f;
         System.err.println("m2 ["+min+" .. "+max+"], step "+step);
         for(float x=min; x < max; x+=step) {
             shape.move(step, 0f, 0f);
-            // System.err.println(shape);
             final int[] glWinPos = new int[2];
-            final boolean ok = shape.objToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), shape.getBounds().getCenter(), new PMVMatrix(), glWinPos);
-            // System.err.printf("m3: objToWinCoord: ok "+ok+", winCoords %d / %d%n", glWinPos[0], glWinPos[1]);
-            // demo.testProject(glWinPos[0], glWinPos[1]);
-            // window.warpPointer(glWinPos[0], window.getHeight() - glWinPos[1] - 1);
+            if( shape.objToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), shape.getBounds().getCenter(), new PMVMatrix(), glWinPos) ) {
+                window.warpPointer(glWinPos[0], window.getHeight() - glWinPos[1] - 1);
+            }
             System.err.println("mm x "+x+", ["+min+" .. "+max+"], step "+step);
-            try { Thread.sleep(10); } catch (final InterruptedException e1) { }
+            try { Thread.sleep(5); } catch (final InterruptedException e1) { }
         }
-        }
-        System.err.println("X");
+        try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
+        System.err.println("The End ..");
+        animator.stop();
+        window.destroy();
     }
 
     static void testProject(final Scene scene, final Shape shape, final int glWinX, final int glWinY) {
