@@ -680,9 +680,10 @@ public abstract class Region {
         return 0 != ( dirty & DIRTY_SHAPE ) ;
     }
     /**
-     * Mark this region's render-state dirty, i.e. enforce rendering the region into the FBO in 2-pass mode.
+     * Mark this region's render-state dirty, i.e. re-selecting a shader program regarding color-texture and -channel,
+     * and rendering the region into the FBO in 2-pass mode.
      * <p>
-     * In 1-pass mode, this state has no effect since the region is always rendered to the current write-drawable.
+     * In 1-pass mode, re-selection of the shader-program is based on color-texture and -channel only.
      * </p>
      */
     public final void markStateDirty() {

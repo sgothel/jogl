@@ -328,6 +328,8 @@ public final class RegionRenderer {
      * In case enable and disable {@link GLCallback}s are setup via {@link #create(Vertex.Factory<? extends Vertex>, RenderState, GLCallback, GLCallback)},
      * they will be called before toggling the shader program.
      * </p>
+     * @param gl current GL object
+     * @param enable if true enable the current {@link ShaderProgram}, otherwise disable.
      * @see #create(Vertex.Factory<? extends Vertex>, RenderState, GLCallback, GLCallback)
      * @see #useShaderProgram(GL2ES2, int, boolean, int, int, TextureSequence)
      * @see RenderState#setShaderProgram(GL2ES2, ShaderProgram)
