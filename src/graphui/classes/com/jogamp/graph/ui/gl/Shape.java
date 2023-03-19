@@ -256,6 +256,11 @@ public abstract class Shape {
         return region;
     }
 
+    /** Experimental OpenGL selection draw command used by {@link Scene}. */
+    public void drawGLSelect(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+        getRegion(gl).draw(gl, renderer, sampleCount);
+    }
+
     /**
      * Renders {@link OutlineShape} using local {@link GLRegion} which might be cached or updated.
      * <p>
