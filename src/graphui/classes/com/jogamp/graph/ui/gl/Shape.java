@@ -69,6 +69,9 @@ import com.jogamp.opengl.util.PMVMatrix;
  * @see Scene
  */
 public abstract class Shape {
+    public static interface Listener {
+        void run(final Shape shape);
+    }
     public static final boolean DRAW_DEBUG_BOX = false;
     private static final boolean DEBUG = false;
 
@@ -113,6 +116,8 @@ public abstract class Shape {
     private boolean resizable = true;
     private boolean enabled = true;
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
+
+    private Listener onMoveListener = null;
 
     public Shape(final Factory<? extends Vertex> factory, final int renderModes) {
         this.vertexFactory = factory;
@@ -174,17 +179,25 @@ public abstract class Shape {
         markShapeDirty();
     }
 
+    public final void onMove(final Listener l) { onMoveListener = l; }
+
     public final void moveTo(final float tx, final float ty, final float tz) {
         position[0] = tx;
         position[1] = ty;
         position[2] = tz;
-        // System.err.println("UIShape.setTranslate: "+tx+"/"+ty+"/"+tz+": "+toString());
+        if( null != onMoveListener ) {
+            onMoveListener.run(this);
+        }
+        // System.err.println("Shape.setTranslate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
     public final void move(final float tx, final float ty, final float tz) {
         position[0] += tx;
         position[1] += ty;
         position[2] += tz;
-        // System.err.println("UIShape.translate: "+tx+"/"+ty+"/"+tz+": "+toString());
+        if( null != onMoveListener ) {
+            onMoveListener.run(this);
+        }
+        // System.err.println("Shape.translate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
 
     /** Returns float[3] position, i.e. translation. */
