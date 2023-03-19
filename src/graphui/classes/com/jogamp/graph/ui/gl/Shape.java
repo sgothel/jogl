@@ -392,8 +392,8 @@ public abstract class Shape {
      */
     public void setTransform(final PMVMatrix pmv) {
         final float[] uiTranslate = getPosition();
-        pmv.glTranslatef(uiTranslate[0], uiTranslate[1], uiTranslate[2]);
-
+        final float[] ctr = box.getCenter();
+        pmv.glTranslatef(uiTranslate[0]-ctr[0], uiTranslate[1]-ctr[1], uiTranslate[2]-ctr[2]); // translate less unscaled-center
         final Quaternion quat = getRotation();
         final boolean rotate = !quat.isIdentity();
         final float[] uiScale = getScale();
@@ -414,6 +414,8 @@ public abstract class Shape {
                 pmv.glTranslatef(-rotOrigin[0], -rotOrigin[1], -rotOrigin[2]);
             }
         }
+        // TODO: Add alignment features
+        pmv.glTranslatef(ctr[0], ctr[1], ctr[2]); // add-back center, scaled
     }
 
     /**
