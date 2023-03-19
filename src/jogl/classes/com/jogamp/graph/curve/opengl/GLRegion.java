@@ -207,6 +207,7 @@ public abstract class GLRegion extends Region {
      * @see GLArrayDataEditable#clear(GL)
      */
     public GLRegion clear(final GL2ES2 gl) {
+        lastRenderModes = 0;
         clearImpl(gl);
         clearImpl();
         return this;
@@ -250,17 +251,34 @@ public abstract class GLRegion extends Region {
      * @param matrix current {@link PMVMatrix}.
      * @param renderer the {@link RegionRenderer} to be used
      * @param sampleCount desired multisampling sample count for vbaa- or msaa-rendering.
+     *        Use -1 for glSelect mode, pass1 w/o any color texture nor channel, use static select color only.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @see RegionRenderer#enable(GL2ES2, boolean)
      */
     public final void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
-        final int curRenderModes = getRenderModes();
+        final int curRenderModes;
+        if( null == sampleCount || 0 == sampleCount[0] ) {
+            // no sampling, reduce to pass1
+            curRenderModes = getRenderModes() & ~( VBAA_RENDERING_BIT | MSAA_RENDERING_BIT );
+        } else if( 0 > sampleCount[0] ) {
+            // negative sampling, hint we perform glSelect: pass1 w/o any color texture nor channel, use static select color only
+            curRenderModes = getRenderModes() & ~( VBAA_RENDERING_BIT | MSAA_RENDERING_BIT | COLORCHANNEL_RENDERING_BIT | COLORTEXTURE_RENDERING_BIT );
+        } else {
+            // normal 2-pass sampling
+            curRenderModes = getRenderModes();
+        }
+        if( lastRenderModes != curRenderModes ) {
+            markShapeDirty();
+            markStateDirty();
+        }
         if( isShapeDirty() ) {
             updateImpl(gl, curRenderModes);
         }
         drawImpl(gl, renderer, curRenderModes, sampleCount);
         clearDirtyBits(DIRTY_SHAPE|DIRTY_STATE);
+        lastRenderModes = curRenderModes;
     }
+    private int lastRenderModes = 0;
 
     protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, int curRenderModes, final int[/*1*/] sampleCount);
 }
