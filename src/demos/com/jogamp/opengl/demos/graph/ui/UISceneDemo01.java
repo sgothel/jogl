@@ -63,7 +63,9 @@ import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 
 /**
- * Res independent Shape, in Scene attached to GLWindow showing simple linear Shape movement w/ listener attached.
+ * Res independent Shape, in Scene attached to GLWindow w/ listener attached.
+ *
+ * User can test Shape drag-move and drag-resize w/ 1-pointer
  */
 public class UISceneDemo01 {
     static final boolean DEBUG = false;
@@ -109,20 +111,6 @@ public class UISceneDemo01 {
                 }
             }
         }
-        if( null == font ) {
-            font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
-        }
-        System.err.println("Font: "+font.getFullFamilyName());
-
-        final GLProfile glp = GLProfile.getGL2ES2();
-        final GLCapabilities caps = new GLCapabilities(glp);
-        caps.setAlphaBits(4);
-        if( sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(sceneMSAASamples);
-        }
-        System.out.println("Requested: " + caps);
-
         final int renderModes;
         if( graphVBAAMode ) {
             renderModes = Region.VBAA_RENDERING_BIT;
@@ -131,11 +119,23 @@ public class UISceneDemo01 {
         } else {
             renderModes = 0;
         }
+        final GLProfile glp = GLProfile.getGL2ES2();
 
+        //
+        // Resolution independent, no screen size
+        //
+        if( null == font ) {
+            font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
+        }
+        System.err.println("Font: "+font.getFullFamilyName());
+        final Shape shape = makeShape(font, renderModes);
+        System.err.println("m0 shape bounds "+shape.getBounds(glp));
+        System.err.println("m0 "+shape);
+
+        // Scene for Shape ...
         final Scene scene = new Scene();
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        final Shape shape = makeShape(font, renderModes);
         shape.onMove(new Shape.Listener() {
             @Override
             public void run(final Shape shape) {
@@ -163,11 +163,13 @@ public class UISceneDemo01 {
         } );
         scene.addShape(shape);
 
-        final AABBox shapeBox = shape.getBounds(glp);
-        System.err.println("m0 "+shape);
-
-
-        // scene.surfaceToPlaneSize(width, height, null);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(4);
+        if( sceneMSAASamples > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(sceneMSAASamples);
+        }
+        System.out.println("Requested: " + caps);
 
         final GLWindow window = GLWindow.create(caps);
         window.setSize(width, height);
@@ -201,35 +203,20 @@ public class UISceneDemo01 {
 
         animator.start();
 
+        //
+        // After initial display we can use screen resolution post initial Scene.reshape(..)
+        // However, in this example we merely use the resolution to
+        // - Scale the shape to the sceneBox, i.e. normalizing to screen-size 1x1
         scene.waitUntilDisplayed();
 
         final AABBox sceneBox = scene.getBounds();
-        System.err.println("m1 scene "+sceneBox);
-        System.err.println("m1.0 "+shape);
         shape.scale(sceneBox.getWidth(), sceneBox.getWidth(), 1f); // scale shape to sceneBox
         System.err.println("m1.1 "+shape);
-        shape.scale(0.4f,  0.4f, 1f); // scale shape even smaller
-        System.err.println("m1.2 "+shape);
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
 
-        final float min = sceneBox.getMinX();
-        final float max = sceneBox.getMaxX() - shapeBox.getWidth()*shape.getScaleX();
-        shape.moveTo(min, 0f, 0f); // move shape to min start position
-
-        final float step = (max-min)/1000f;
-        System.err.println("m2 ["+min+" .. "+max+"], step "+step);
-        for(float x=min; x < max; x+=step) {
-            shape.move(step, 0f, 0f);
-            final int[] glWinPos = shape.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), shape.getBounds().getCenter(), new PMVMatrix(), new int[2]);
-            if( null != glWinPos ) {
-                window.warpPointer(glWinPos[0], window.getHeight() - glWinPos[1] - 1);
-            }
-            System.err.println("mm x "+x+", ["+min+" .. "+max+"], step "+step);
-            try { Thread.sleep(5); } catch (final InterruptedException e1) { }
-        }
-        try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
-        System.err.println("The End ..");
-        window.destroy();
+        System.err.println("You may test moving the Shape by dragging the shape with 1-pointer.");
+        System.err.println("You may test resizing the Shape by dragging the shape on 1/5th of the bottom-left or bottom-right corner with 1-pointer.");
+        System.err.println("Press F4 or 'window close' to exit ..");
     }
 
     static void testProject(final Scene scene, final Shape shape, final int glWinX, final int glWinY) {
@@ -244,9 +231,8 @@ public class UISceneDemo01 {
 
     @SuppressWarnings("unused")
     static Shape makeShape(final Font font, final int renderModes) {
-        final float sw = 0.2f;
+        final float sw = 0.10f;
         final float sh = sw / 2.5f;
-        System.err.println("Shape "+sw+" x "+sh);
 
         if( false ) {
             Uri filmUri;
@@ -292,7 +278,6 @@ public class UISceneDemo01 {
             return b;
         } else if( true ){
             final Button b = new Button(SVertex.factory(), renderModes, font, "+", sw, sh);
-            // b.setLabelColor(0.0f,0.0f,0.0f);
             b.setCorner(0.0f);
             return b;
         } else {

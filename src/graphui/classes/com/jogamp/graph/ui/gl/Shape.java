@@ -261,6 +261,32 @@ public abstract class Shape {
     public final AABBox getBounds() { return box; }
 
     /**
+     * Returns the scaled width of the bounding {@link AABBox} for this shape.
+     *
+     * The returned width will only cover the scaled shape
+     * after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
+     * or {@link #validate(GL2ES2)}.
+     *
+     * @see #getBounds()
+     */
+    public final float getScaledWidth() {
+        return box.getWidth() * getScaleX();
+    }
+
+    /**
+     * Returns the scaled height of the bounding {@link AABBox} for this shape.
+     *
+     * The returned height will only cover the scaled shape
+     * after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
+     * or {@link #validate(GL2ES2)}.
+     *
+     * @see #getBounds()
+     */
+    public final float getScaledHeight() {
+        return box.getHeight() * getScaleY();
+    }
+
+    /**
      * Returns the unscaled bounding {@link AABBox} for this shape.
      *
      * This variant differs from {@link #getBounds()} as it
@@ -489,6 +515,47 @@ public abstract class Shape {
      */
     public int[/*2*/] getSurfaceSize(final Scene scene, final PMVMatrix pmv, final int[/*2*/] surfaceSize) {
         return getSurfaceSize(scene.getPMVMatrixSetup(), scene.getViewport(), pmv, surfaceSize);
+    }
+
+    /**
+     * Retrieve pixel per shape-coordinate unit, i.e. [px]/[obj].
+     * <p>
+     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} properly for this shape
+     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * </p>
+     * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
+     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
+     * @param pixPerShape float[2] pixel per shape-coordinate unit
+     * @return given float[2] {@code pixPerShape} for successful gluProject(..) operation, otherwise {@code null}
+     * @see #getPixelPerShapeUnit(int[], float[])
+     * @see #getSurfaceSize(Scene, PMVMatrix, int[])
+     * @see #getScaledWidth()
+     * @see #getScaledHeight()
+     */
+    public float[] getPixelPerShapeUnit(final Scene scene, final PMVMatrix pmv, final float[] pixPerShape) {
+        final int[] shapeSizePx = new int[2];
+        if( null != getSurfaceSize(scene, new PMVMatrix(), shapeSizePx) ) {
+            return getPixelPerShapeUnit(shapeSizePx, pixPerShape);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Retrieve pixel per shape-coordinate unit, i.e. [px]/[obj].
+     * @param shapeSizePx int[2] shape size in pixel as retrieved via e.g. {@link #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])}
+     * @param pixPerShape float[2] pixel per shape-coordinate unit
+     * @return given float[2] {@code pixPerShape}
+     * @see #getPixelPerShapeUnit(Scene, PMVMatrix, float[])
+     * @see #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])
+     * @see #getScaledWidth()
+     * @see #getScaledHeight()
+     */
+    public float[] getPixelPerShapeUnit(final int[] shapeSizePx, final float[] pixPerShape) {
+        pixPerShape[0] = shapeSizePx[0] / getScaledWidth();
+        pixPerShape[0] = shapeSizePx[1] / getScaledHeight();
+        return pixPerShape;
     }
 
     /**
