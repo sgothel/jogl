@@ -177,18 +177,10 @@ public final class Scene implements GLEventListener {
     public RegionRenderer getRenderer() { return renderer; }
 
     /** Returns the associated RegionRenderer's RenderState, may be null. */
-    public RenderState getRenderState() {
-        if( null != renderer ) {
-            return renderer.getRenderState();
-        }
-        return null;
-    }
-    public final Vertex.Factory<? extends Vertex> getVertexFactory() {
-        if( null != renderer ) {
-            return renderer.getRenderState().getVertexFactory();
-        }
-        return null;
-    }
+    public RenderState getRenderState() { return renderer.getRenderState(); }
+
+    public final Vertex.Factory<? extends Vertex> getVertexFactory() { return renderer.getRenderState().getVertexFactory(); }
+
     /**
      * Sets the clear parameter for {@link GL#glClearColor(float, float, float, float) glClearColor(..)} and {@link GL#glClear(int) glClear(..)}
      * to be issued at {@link #display(GLAutoDrawable)}.
@@ -281,9 +273,7 @@ public final class Scene implements GLEventListener {
     public void init(final GLAutoDrawable drawable) {
         System.err.println("SceneUIController: init");
         cDrawable = drawable;
-        if( null != renderer ) {
-            renderer.init(drawable.getGL().getGL2ES2());
-        }
+        renderer.init(drawable.getGL().getGL2ES2());
     }
 
     private static Comparator<Shape> shapeZAscComparator = new Comparator<Shape>() {
@@ -543,9 +533,7 @@ public final class Scene implements GLEventListener {
         }
         shapes.clear();
         cDrawable = null;
-        if( null != renderer ) {
-            renderer.destroy(gl);
-        }
+        renderer.destroy(gl);
     }
 
     /**
