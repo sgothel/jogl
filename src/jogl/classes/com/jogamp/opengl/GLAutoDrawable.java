@@ -175,7 +175,7 @@ public interface GLAutoDrawable extends GLDrawable {
    *   <li>If the old context was current on this thread, it is being released after disassociating this auto-drawable.</li>
    *   <li>If the new context was current on this thread, it is being released before associating this auto-drawable
    *       and made current afterwards.</li>
-   *   <li>Implementation may issue {@link #makeCurrent()} and {@link #release()} while drawable reassociation.</li>
+   *   <li>Implementation may issue {@link GLContext#makeCurrent()} and {@link GLContext#release()} while drawable reassociation.</li>
    *   <li>The user shall take extra care of thread synchronization,
    *       i.e. lock the involved {@link GLAutoDrawable auto-drawable's}
    *       {@link GLAutoDrawable#getUpstreamLock() upstream-locks} and {@link GLAutoDrawable#getNativeSurface() surfaces}

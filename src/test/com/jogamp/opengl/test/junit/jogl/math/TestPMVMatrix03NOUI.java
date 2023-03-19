@@ -2,6 +2,7 @@ package com.jogamp.opengl.test.junit.jogl.math;
 
 import java.util.Arrays;
 
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.opengl.ProjectFloat;
@@ -15,7 +16,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestPMVMatrix03NOUI {
+public class TestPMVMatrix03NOUI extends JunitTracer {
 
     static final float epsilon = 0.00001f;
 

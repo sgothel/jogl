@@ -34,10 +34,11 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.opengl.math.FloatUtil;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestFloatUtil03InversionNOUI {
+public class TestFloatUtil03InversionNOUI extends JunitTracer {
 
     @Test
     public void test01Ident(){

@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.math;
 
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.opengl.glu.GLU;
 
 import org.junit.Assert;
@@ -39,7 +40,7 @@ import org.junit.runners.MethodSorters;
  * @author Julien Gouesse
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGluUnprojectDoubleNOUI {
+public class TestGluUnprojectDoubleNOUI extends JunitTracer {
 
     @Test
     public void test(){

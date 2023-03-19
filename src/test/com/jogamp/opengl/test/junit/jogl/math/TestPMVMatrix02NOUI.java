@@ -34,7 +34,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.opengl.util.PMVMatrix;
-
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import java.nio.FloatBuffer;
 
@@ -44,7 +44,7 @@ import static org.junit.Assert.assertArrayEquals;
  * @author Thomas De Bodt
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestPMVMatrix02NOUI {
+public class TestPMVMatrix02NOUI extends JunitTracer {
 
   private PMVMatrix fMat;
 

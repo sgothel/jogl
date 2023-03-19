@@ -31,9 +31,10 @@ package com.jogamp.opengl.test.junit.jogl.math;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.opengl.math.Binary64;
 
-public class TestBinary64NOUI
+public class TestBinary64NOUI extends JunitTracer
 {
   @SuppressWarnings("static-method") @Test public void testInfinityExponent()
   {

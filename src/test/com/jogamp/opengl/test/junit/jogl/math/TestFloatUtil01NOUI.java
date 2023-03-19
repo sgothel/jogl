@@ -36,10 +36,11 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.opengl.math.FloatUtil;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestFloatUtil01NOUI {
+public class TestFloatUtil01NOUI extends JunitTracer {
     static final float MACH_EPSILON = FloatUtil.getMachineEpsilon();
 
     static boolean deltaMachEpsLEQEpsilon;

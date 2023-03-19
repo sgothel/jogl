@@ -578,6 +578,9 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix02NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix03NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVTransform01NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtilProject01NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtilProject02NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestGluUnprojectFloatNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestGluUnprojectDoubleNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestBinary16NOUI $*

@@ -35,12 +35,13 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.VectorUtil;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestQuaternion01NOUI {
+public class TestQuaternion01NOUI extends JunitTracer {
     static final boolean DEBUG = false;
 
     static final Quaternion QUAT_IDENT = new Quaternion(0f, 0f, 0f, 1f);

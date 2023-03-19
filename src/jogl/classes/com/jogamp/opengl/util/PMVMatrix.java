@@ -373,7 +373,7 @@ public final class PMVMatrix implements GLMatrixFunc {
         return frustum;
     }
 
-    /*
+    /**
      * @return the matrix of the current matrix-mode
      */
     public final FloatBuffer glGetMatrixf() {

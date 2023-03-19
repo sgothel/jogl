@@ -93,10 +93,10 @@ public interface GLEventListener extends EventListener {
    * </p>
    *
    * @param drawable the triggering {@link GLAutoDrawable}
-   * @param x viewport x-coord in pixel units
-   * @param y viewport y-coord in pixel units
-   * @param width viewport width in pixel units
-   * @param height viewport height in pixel units
+   * @param x lower left corner of the viewport rectangle in pixel units
+   * @param y lower left corner of the viewport rectangle in pixel units
+   * @param width width of the viewport rectangle in pixel units
+   * @param height height of the viewport rectangle in pixel units
    */
   public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height);
 }

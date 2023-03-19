@@ -41,6 +41,13 @@ package com.jogamp.opengl;
  * The OpenGL context is current while executing the GLRunnable.
  * </p>
  * <p>
+ * {@link GLRunnable#run(GLAutoDrawable)} shall return true to indicate
+ * that the GL [back] framebuffer remains intact by this runnable. <br/>
+ * If returning false {@link GLAutoDrawable} will call
+ * {@link GLEventListener#display(GLAutoDrawable) display(GLAutoDrawable)}
+ * of all registered {@link GLEventListener}s once more to reinstate the framebuffer.
+ * </p>
+ * <p>
  * This might be useful to inject OpenGL commands from an I/O event listener.
  * </p>
  */

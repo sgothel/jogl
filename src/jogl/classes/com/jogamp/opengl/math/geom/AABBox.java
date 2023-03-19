@@ -596,6 +596,7 @@ public class AABBox {
      * @param size a constant float value
      * @param tmpV3 caller provided temporary 3-component vector
      * @return this AABBox for chaining
+     * @see #scale2(float, float[])
      */
     public final AABBox scale(final float size, final float[] tmpV3) {
         tmpV3[0] = high[0] - center[0];
@@ -622,6 +623,7 @@ public class AABBox {
      * @param size a constant float value
      * @param tmpV3 caller provided temporary 3-component vector
      * @return this AABBox for chaining
+     * @see #scale(float, float[])
      */
     public final AABBox scale2(final float size, final float[] tmpV3) {
         VectorUtil.scaleVec3(high, high, size); // in-place scale
