@@ -2265,6 +2265,14 @@ public final class FloatUtil {
       return Math.abs(a) < epsilon;
   }
 
+  /**
+   * Return true if value is zero, i.e. it's absolute value < <code>epsilon</code>.
+   * @see #EPSILON
+   */
+  public static boolean isZero(final float a) {
+      return Math.abs(a) < FloatUtil.EPSILON;
+  }
+
   public static float abs(final float a) { return java.lang.Math.abs(a);  }
 
   public static float pow(final float a, final float b) { return (float) java.lang.Math.pow(a, b);  }
