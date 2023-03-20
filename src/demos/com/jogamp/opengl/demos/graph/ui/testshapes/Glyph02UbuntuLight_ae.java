@@ -45,14 +45,6 @@ public class Glyph02UbuntuLight_ae extends Shape {
         super(factory, renderModes);
     }
 
-    @Override
-    protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-    }
-
-    @Override
-    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-    }
-
     @SuppressWarnings("unused")
     @Override
     protected void addShapeToRegion() {

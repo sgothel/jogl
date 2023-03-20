@@ -132,14 +132,6 @@ public class Label extends Shape {
         return GLRegion.create(glp, getRenderModes(), null, font, text);
     }
 
-    @Override
-    protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-    }
-
-    @Override
-    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-    }
-
     private final OutlineShape.Visitor shapeVisitor = new OutlineShape.Visitor() {
         @Override
         public void visit(final OutlineShape shape, final AffineTransform t) {

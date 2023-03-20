@@ -46,14 +46,6 @@ public class Glyph04FreeSans_0 extends Shape {
     }
 
     @Override
-    protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-    }
-
-    @Override
-    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-    }
-
-    @Override
     protected void addShapeToRegion() {
         final OutlineShape shape = new OutlineShape(vertexFactory);
 

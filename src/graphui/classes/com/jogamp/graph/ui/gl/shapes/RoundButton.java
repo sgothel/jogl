@@ -58,14 +58,6 @@ public abstract class RoundButton extends Shape {
         this.height = height;
     }
 
-    @Override
-    protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-    }
-
-    @Override
-    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
-    }
-
     public final float getWidth() { return width; }
 
     public final float getHeight() { return height; }

@@ -1137,8 +1137,10 @@ public abstract class Shape {
     //
     //
 
-    protected abstract void clearImpl(GL2ES2 gl, RegionRenderer renderer);
-    protected abstract void destroyImpl(GL2ES2 gl, RegionRenderer renderer);
+    protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) { }
+
+    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) { }
+
     protected abstract void addShapeToRegion();
 
     //
