@@ -216,34 +216,33 @@ public class UISceneDemo01 {
         final float sw = 25;
         final float sh = sw / 2.5f;
 
-        final GLEventListener glel;
-        {
-            final GearsES2 gears = new GearsES2(0);
-            gears.setVerbose(false);
-            gears.setClearColor(new float[] { 0.9f, 0.9f, 0.9f, 1f } );
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    System.err.println("Gears Anim: Waiting");
-                    try {
-                        gears.waitForInit(true);
-                    } catch (final InterruptedException e) { }
-                    System.err.println("Gears Anim: Started");
-                    while( gears.isInit() ) {
+        final GearsES2 gears = new GearsES2(0);
+        gears.setVerbose(false);
+        gears.setClearColor(new float[] { 0.9f, 0.9f, 0.9f, 1f } );
+        final boolean[] animate = { true };
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                System.err.println("Gears Anim: Waiting");
+                try {
+                    gears.waitForInit(true);
+                } catch (final InterruptedException e) { }
+                System.err.println("Gears Anim: Started");
+                while( gears.isInit() ) {
+                    if( animate[0] ) {
                         final float ry = ( gears.getRotY() + 1 ) % 360;
                         gears.setRotY(ry);
-                        try {
-                            Thread.sleep(15);
-                        } catch (final InterruptedException e) { }
                     }
-                    System.err.println("Gears Anim: End");
+                    try {
+                        Thread.sleep(15);
+                    } catch (final InterruptedException e) { }
                 }
-            }).start();
-            glel = gears;
-        }
+                System.err.println("Gears Anim: End");
+            }
+        }).start();
         final int texUnit = 1;
         final GLButton b = new GLButton(SVertex.factory(), renderModes,
-                                        sw, sh, texUnit, glel, false /* useAlpha */);
+                                        sw, sh, texUnit, gears, false /* useAlpha */);
         b.setToggleable(true);
         b.setToggle(true); // toggle == true -> animation
         b.setAnimate(true);
@@ -251,6 +250,7 @@ public class UISceneDemo01 {
             @Override
             public void mouseClicked(final MouseEvent e) {
                 b.setAnimate( b.isToggleOn() );
+                animate[0] = b.getAnimate();
             } } );
         return b;
     }
