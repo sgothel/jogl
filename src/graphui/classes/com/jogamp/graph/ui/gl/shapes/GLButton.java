@@ -92,6 +92,12 @@ public class GLButton extends TexSeqButton {
     public final GLOffscreenAutoDrawable.FBO getFBOAutoDrawable() { return fboGLAD; }
 
     @Override
+    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
+        ((ImageSequence)texSeq).destroy(gl);
+        fboGLAD.destroy();
+    }
+
+    @Override
     public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         final int[/*2*/] surfaceSize = getSurfaceSize(renderer.getMatrix(), renderer.getViewport(), new int[2]);
         final boolean got_sz = null != surfaceSize && 0 < surfaceSize[0] && 0 < surfaceSize[1];
