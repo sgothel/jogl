@@ -47,23 +47,33 @@ import com.jogamp.graph.ui.gl.Shape;
  */
 public class Label extends Shape {
     protected Font font;
-    protected float pixelScale;
+    protected float fontScale;
     protected String text;
 
-    public Label(final Factory<? extends Vertex> factory, final int renderModes, final Font font, final float pixelScale, final String text) {
+    /**
+     * Label ctor
+     * @param factory Vertex factory
+     * @param renderModes region renderModes
+     * @param font the font
+     * @param fontScale font-scale factor, by which the em-sized type glyphs shall be scaled
+     * @param text the text to render
+     */
+    public Label(final Factory<? extends Vertex> factory, final int renderModes, final Font font, final float fontScale, final String text) {
         super(factory, renderModes);
         this.font = font;
-        this.pixelScale = pixelScale;
+        this.fontScale = fontScale;
         this.text = text;
     }
 
+    /** Return the text to be rendered. */
     public String getText() {
         return text;
     }
 
     /**
-     * Returns true if text has been updated, false if unchanged.
+     * Set the text to be rendered
      * @param text the text to be set.
+     * @return true if text has been updated, false if unchanged.
      */
     public boolean setText(final String text) {
         if( !this.text.equals(text) ) {
@@ -75,13 +85,17 @@ public class Label extends Shape {
         }
     }
 
+    /**
+     * Return the {@link Font} used to render the text
+     */
     public Font getFont() {
         return font;
     }
 
     /**
-     * Returns true if font has been updated, false if unchanged.
+     * Set the {@link Font} used to render the text
      * @param font the font to be set.
+     * @return true if font has been updated, false if unchanged.
      */
     public boolean setFont(final Font font) {
         if( !this.font.equals(font) ) {
@@ -93,17 +107,23 @@ public class Label extends Shape {
         }
     }
 
-    public float getPixelScale() {
-        return pixelScale;
+    /**
+     * Gets the font-scale factor, by which the em-sized type glyphs shall be scaled.
+     */
+    public float getFontScale() {
+        return fontScale;
     }
 
-    /** Returns {@link Font#getLineHeight()} * {@link #getPixelScale()}. */
+    /** Returns {@link Font#getLineHeight()} * {@link #getFontScale()}. */
     public float getLineHeight() {
-        return pixelScale * font.getLineHeight();
+        return fontScale * font.getLineHeight();
     }
 
-    public void setPixelSize(final float pixelSize) {
-        this.pixelScale = pixelSize;
+    /**
+     * Sets the font-scale factor, by which the em-sized type glyphs shall be scaled.
+     */
+    public void setFontScale(final float fontScale) {
+        this.fontScale = fontScale;
         markShapeDirty();
     }
 
@@ -130,7 +150,7 @@ public class Label extends Shape {
 
     @Override
     protected void addShapeToRegion() {
-        tempT1.setToScale(pixelScale, pixelScale);
+        tempT1.setToScale(fontScale, fontScale);
         final AABBox fbox = font.processString(shapeVisitor, tempT1, text, tempT2, tempT3);
         final float[] ctr = box.getCenter();
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
@@ -140,6 +160,6 @@ public class Label extends Shape {
     @Override
     public String getSubString() {
         final int m = Math.min(text.length(), 8);
-        return super.getSubString()+", pscale " + pixelScale + ", '" + text.substring(0, m)+"'";
+        return super.getSubString()+", pscale " + fontScale + ", '" + text.substring(0, m)+"'";
     }
 }
