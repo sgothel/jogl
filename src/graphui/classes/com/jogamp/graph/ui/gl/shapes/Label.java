@@ -71,7 +71,7 @@ public class Label extends Shape {
     }
 
     /**
-     * Set the text to be rendered
+     * Set the text to be rendered. Shape update is pending until next {@link #draw(GL2ES2, RegionRenderer, int[])} or {@link #validate(GL2ES2)}.
      * @param text the text to be set.
      * @return true if text has been updated, false if unchanged.
      */
@@ -79,6 +79,36 @@ public class Label extends Shape {
         if( !this.text.equals(text) ) {
             this.text = text;
             markShapeDirty();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Set the text to be rendered and immediately updates the shape if necessary.
+     * @param gl {@link GL2ES2} to issue {@link #validate(GL2ES2)} in case text changed to immediately update shape and {@link #getBounds()}
+     * @param text the text to be set.
+     * @return true if text has been updated, false if unchanged.
+     */
+    public boolean setText(final GL2ES2  gl, final String text) {
+        if( setText(text) ) {
+            validate(gl);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Set the text to be rendered and immediately updates the shape if necessary.
+     * @param glp {@link GLProfile} to issue {@link #validate(GLProfile)} in case text changed to immediately update shape and {@link #getBounds()}
+     * @param text the text to be set.
+     * @return true if text has been updated, false if unchanged.
+     */
+    public boolean setText(final GLProfile glp, final String text) {
+        if( setText(text) ) {
+            validate(glp);
             return true;
         } else {
             return false;
@@ -144,9 +174,9 @@ public class Label extends Shape {
     protected void addShapeToRegion() {
         tempT1.setToScale(fontScale, fontScale);
         final AABBox fbox = font.processString(shapeVisitor, tempT1, text, tempT2, tempT3);
-        final float[] ctr = box.getCenter();
+        final float[] ctr = fbox.getCenter();
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
-        box.resize(fbox);
+        box.copy(fbox);
     }
 
     @Override

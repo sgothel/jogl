@@ -28,6 +28,7 @@
 package com.jogamp.graph.ui.gl;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.opengl.GL2ES2;
@@ -94,6 +95,7 @@ public abstract class Shape {
 
     protected GLRegion region = null;
     protected int regionQuality = Region.MAX_QUALITY;
+    protected List<GLRegion> dirtyRegions = new ArrayList<GLRegion>();
 
     protected int dirty = DIRTY_SHAPE | DIRTY_STATE;
     protected float shapesSharpness = OutlineShape.DEFAULT_SHARPNESS;
@@ -137,6 +139,13 @@ public abstract class Shape {
     /** Enable or disable this shape, i.e. its visibility. */
     public final void setEnabled(final boolean v) { enabled = v; }
 
+    private final void clearDirtyRegions(final GL2ES2 gl) {
+        for(final GLRegion r : dirtyRegions) {
+            r.destroy(gl);
+        }
+        dirtyRegions.clear();
+    }
+
     /**
      * Clears all data and reset all states as if this instance was newly created
      * @param gl TODO
@@ -144,6 +153,10 @@ public abstract class Shape {
      */
     public final void clear(final GL2ES2 gl, final RegionRenderer renderer) {
         clearImpl(gl, renderer);
+        clearDirtyRegions(gl);
+        if( null != region ) {
+            region.clear(gl);
+        }
         position[0] = 0f;
         position[1] = 0f;
         position[2] = 0f;
@@ -165,6 +178,11 @@ public abstract class Shape {
      */
     public final void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
         destroyImpl(gl, renderer);
+        clearDirtyRegions(gl);
+        if( null != region ) {
+            region.destroy(gl);
+            region = null;
+        }
         position[0] = 0f;
         position[1] = 0f;
         position[2] = 0f;
@@ -296,10 +314,7 @@ public abstract class Shape {
      * @see #getBounds()
      */
     public final AABBox getBounds(final GLProfile glp) {
-        if( null == region ) {
-            // initial creation of region, producing a valid box
-            validateImpl(glp, null);
-        }
+        validate(glp);
         return box;
     }
 
@@ -387,21 +402,39 @@ public abstract class Shape {
 
     /**
      * Validates the shape's underlying {@link GLRegion}.
-     *
-     * @param gl
+     * <p>
+     * If the region is dirty, it gets {@link GLRegion#clear(GL2ES2) cleared} and is reused.
+     * </p>
+     * @param gl current {@link GL2ES2} object
+     * @see #validate(GLProfile)
      */
     public final void validate(final GL2ES2 gl) {
         validateImpl(gl.getGLProfile(), gl);
     }
-    private final void validateImpl(final GLProfile glp, final GL2ES2 gl) {
+    /**
+     * Validates the shape's underlying {@link GLRegion} w/o a current {@link GL2ES2} object
+     * <p>
+     * If the region is dirty a new region is created
+     * and the old one gets pushed to a dirty-list to get disposed when a GL context is available.
+     * </p>
+     * @see #validate(GL2ES2)
+     */
+    public final void validate(final GLProfile glp) {
+        validateImpl(glp, null);
+    }
+    private final synchronized void validateImpl(final GLProfile glp, final GL2ES2 gl) {
+        if( null != gl ) {
+            clearDirtyRegions(gl);
+        }
         if( isShapeDirty() || null == region ) {
             box.reset();
             if( null == region ) {
                 region = createGLRegion(glp);
-            } else if( null != gl ) {
-                region.clear(gl);
+            } else if( null == gl ) {
+                dirtyRegions.add(region);
+                region = createGLRegion(glp);
             } else {
-                throw new IllegalArgumentException("GL is null on non-initial validation");
+                region.clear(gl);
             }
             addShapeToRegion();
             region.setQuality(regionQuality);
