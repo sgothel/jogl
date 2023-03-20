@@ -117,8 +117,11 @@ public final class Scene implements GLEventListener {
 
     private GLAutoDrawable cDrawable = null;
 
+    /** Returns the default Vertex.Factory. */
+    public static Vertex.Factory<? extends Vertex> getDefaultVertexFactory() { return SVertex.factory(); }
+
     private static RegionRenderer createRenderer() {
-        return RegionRenderer.create(SVertex.factory(), RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        return RegionRenderer.create(getDefaultVertexFactory(), RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
     }
 
     /**
@@ -144,9 +147,10 @@ public final class Scene implements GLEventListener {
     /** Returns the associated RegionRenderer */
     public RegionRenderer getRenderer() { return renderer; }
 
-    /** Returns the associated RegionRenderer's RenderState, may be null. */
+    /** Returns the associated RegionRenderer's RenderState. */
     public RenderState getRenderState() { return renderer.getRenderState(); }
 
+    /** Returns the used Vertex.Factory, as used by Region and RegionRenderer. */
     public final Vertex.Factory<? extends Vertex> getVertexFactory() { return renderer.getRenderState().getVertexFactory(); }
 
     /**
