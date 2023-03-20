@@ -437,23 +437,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * @return true if buffer size has changed, i.e. grown. Otherwise false.
    */
   public final boolean growIfNeeded(final int spareComponents) {
-    if( buffer.remaining() < spareComponents ) {
-        if( 0 != mappedElemCount ) {
-            throw new GLException("Mapped buffer can't grow. Insufficient storage size: Needed "+spareComponents+" components, "+
-                                  "mappedElementCount "+mappedElemCount+
-                                  ", has mapped buffer "+buffer+"; "+this);
-        }
-        final int has_comps = buffer.capacity();
-        final int required_elems = compsToElemCount(has_comps + spareComponents);
-        final int new_elems = compsToElemCount( (int)( has_comps * growthFactor + 0.5f ) );
-        final int elementCount = Math.max( new_elems, required_elems );
-        return reserve( elementCount );
-    }
-    return false;
-  }
-
-  public final boolean growIfNeeded0(final int spareComponents) {
-    if( buffer==null || buffer.remaining()<spareComponents ) {
+    if( null == buffer || buffer.remaining() < spareComponents ) {
         if( 0 != mappedElemCount ) {
             throw new GLException("Mapped buffer can't grow. Insufficient storage size: Needed "+spareComponents+" components, "+
                                   "mappedElementCount "+mappedElemCount+
@@ -467,9 +451,6 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
             final int required_elems = compsToElemCount(has_comps + spareComponents);
             final int new_elems = compsToElemCount( (int)( has_comps * growthFactor + 0.5f ) );
             final int elementCount = Math.max( new_elems, required_elems );
-            if( DEBUG ) {
-                System.err.println("*** Size: Grow: elems "+compsToElemCount(has_comps)+" -> max("+new_elems+", "+required_elems+") -> "+elementCount);
-            }
             return reserve( elementCount );
         }
     }
