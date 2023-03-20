@@ -27,173 +27,87 @@
  */
 package com.jogamp.opengl.demos.graph.ui;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 
-import com.jogamp.common.net.Uri;
-import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.os.Clock;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.ui.gl.Scene;
+import com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup;
 import com.jogamp.graph.ui.gl.Shape;
-import com.jogamp.graph.ui.gl.shapes.Button;
-import com.jogamp.graph.ui.gl.shapes.CrossHair;
 import com.jogamp.graph.ui.gl.shapes.GLButton;
-import com.jogamp.graph.ui.gl.shapes.MediaButton;
-import com.jogamp.newt.event.KeyAdapter;
-import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.demos.es2.GearsES2;
-import com.jogamp.opengl.demos.util.MiscUtils;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
-import com.jogamp.opengl.util.av.GLMediaPlayer;
-import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 
 /**
- * Res independent Shape, in Scene attached to GLWindow w/ listener attached.
- *
- * User can test Shape drag-move and drag-resize w/ 1-pointer
+ * Res independent Shape, in Scene attached to GLWindow showing simple linear Shape movement.
+ * <p>
+ * This variation of {@link UISceneDemo00} uses a {@link GLButton} shape with animating and rotating gears
+ * and sets up an own {@link Scene.PMVMatrixSetup} with a plane dimension of 100.
+ * </p>
+ * <p>
+ * Pass '-keep' to main-function to keep running after animation,
+ * then user can test Shape drag-move and drag-resize w/ 1-pointer.
+ * </p>
  */
 public class UISceneDemo01 {
-    static final boolean DEBUG = false;
-    static final boolean TRACE = false;
-
-    static private final String defaultMediaPath = "http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4";
-    static private String filmPath = defaultMediaPath;
-
     public static void main(final String[] args) throws IOException {
-        int sceneMSAASamples = 0;
-        boolean graphVBAAMode = true;
-        boolean graphMSAAMode = false;
+        final int surface_width = 1280, surface_height = 720;
+        final int renderModes = Region.VBAA_RENDERING_BIT;
+        final GLProfile glp = GLProfile.getGL2ES2();
 
-        Font font = null;
-
-        final int width = 1280, height = 720;
-
+        boolean keepRunning = false;
         if( 0 != args.length ) {
             for(int i=0; i<args.length; i++) {
-                if(args[i].equals("-gnone")) {
-                    sceneMSAASamples = 0;
-                    graphMSAAMode = false;
-                    graphVBAAMode = false;
-                } else if(args[i].equals("-smsaa")) {
-                    i++;
-                    sceneMSAASamples = MiscUtils.atoi(args[i], sceneMSAASamples);
-                    graphMSAAMode = false;
-                    graphVBAAMode = false;
-                } else if(args[i].equals("-gmsaa")) {
-                    sceneMSAASamples = 0;
-                    graphMSAAMode = true;
-                    graphVBAAMode = false;
-                } else if(args[i].equals("-gvbaa")) {
-                    sceneMSAASamples = 0;
-                    graphMSAAMode = false;
-                    graphVBAAMode = true;
-                } else if(args[i].equals("-font")) {
-                    i++;
-                    font = FontFactory.get(new File(args[i]));
-                } else if(args[i].equals("-film")) {
-                    i++;
-                    filmPath = args[i];
+                if(args[i].equals("-keep")) {
+                    keepRunning = true;
                 }
             }
         }
-        final int renderModes;
-        if( graphVBAAMode ) {
-            renderModes = Region.VBAA_RENDERING_BIT;
-        } else if( graphMSAAMode ) {
-            renderModes = Region.MSAA_RENDERING_BIT;
-        } else {
-            renderModes = 0;
-        }
-        final GLProfile glp = GLProfile.getGL2ES2();
 
         //
         // Resolution independent, no screen size
         //
-        if( null == font ) {
-            font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
-        }
+        final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
-        final Shape shape = makeShape(font, renderModes);
-        System.err.println("m0 shape bounds "+shape.getBounds(glp));
-        System.err.println("m0 "+shape);
 
-        // Scene for Shape ...
+        final Shape shape = makeShape(font, renderModes);
+        System.err.println("Shape bounds "+shape.getBounds(glp));
+        System.err.println("Shape "+shape);
+
         final Scene scene = new Scene();
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-
-        shape.onMove(new Shape.Listener() {
-            @Override
-            public void run(final Shape shape) {
-                final float[] p = shape.getPosition();
-                System.err.println("Shape moved: "+p[0]+", "+p[1]+", "+p[2]);
-            }
-        });
-        shape.addMouseListener(new Shape.MouseGestureAdapter() {
-            @Override
-            public void mouseMoved(final MouseEvent e) {
-                final int[] viewport = scene.getViewport(new int[4]);
-                // flip to GL window coordinates, origin bottom-left
-                final int glWinX = e.getX();
-                final int glWinY = viewport[3] - e.getY() - 1;
-                testProject(scene, shape, glWinX, glWinY);
-            }
-            @Override
-            public void mouseDragged(final MouseEvent e) {
-                final int[] viewport = scene.getViewport(new int[4]);
-                // flip to GL window coordinates, origin bottom-left
-                final int glWinX = e.getX();
-                final int glWinY = viewport[3] - e.getY() - 1;
-                testProject(scene, shape, glWinX, glWinY);
-            }
-        } );
+        scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.addShape(shape);
+
+        final Animator animator = new Animator();
+        animator.setUpdateFPSFrames(1*60, null); // System.err);
 
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
-        if( sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(sceneMSAASamples);
-        }
         System.out.println("Requested: " + caps);
 
         final GLWindow window = GLWindow.create(caps);
-        window.setSize(width, height);
+        window.setSize(surface_width, surface_height);
         window.setTitle(UISceneDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
         window.addGLEventListener(scene);
-        scene.attachInputListenerTo(window);
-
-        final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(5*60, null);
-        animator.add(window);
-
-        window.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(final KeyEvent arg0) {
-                if(arg0.getKeyCode() == KeyEvent.VK_F4) {
-                    new InterruptSource.Thread() {
-                        @Override
-                        public void run() {
-                            window.destroy();
-                        } }.start();
-                }
-            }
-        });
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowDestroyed(final WindowEvent e) {
@@ -201,88 +115,144 @@ public class UISceneDemo01 {
             }
         });
 
+        scene.attachInputListenerTo(window);
+
+        animator.add(window);
         animator.start();
 
         //
         // After initial display we can use screen resolution post initial Scene.reshape(..)
         // However, in this example we merely use the resolution to
-        // - Scale the shape to the sceneBox, i.e. normalizing to screen-size 1x1
+        // - Compute the animation values with DPI
         scene.waitUntilDisplayed();
 
         final AABBox sceneBox = scene.getBounds();
-        shape.scale(sceneBox.getWidth(), sceneBox.getWidth(), 1f); // scale shape to sceneBox
-        System.err.println("m1.1 "+shape);
+        System.err.println("SceneBox "+sceneBox);
+        System.err.println("Shape "+shape);
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
 
-        System.err.println("You may test moving the Shape by dragging the shape with 1-pointer.");
-        System.err.println("You may test resizing the Shape by dragging the shape on 1/5th of the bottom-left or bottom-right corner with 1-pointer.");
-        System.err.println("Press F4 or 'window close' to exit ..");
-    }
+        //
+        // Compute the metric animation values -> shape obj-velocity
+        //
+        final float min_obj = sceneBox.getMinX();
+        final float max_obj = sceneBox.getMaxX() - shape.getScaledWidth();
 
-    static void testProject(final Scene scene, final Shape shape, final int glWinX, final int glWinY) {
-        final PMVMatrix pmv = new PMVMatrix();
-        final float[] objPos = shape.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, new float[3]);
-        System.err.printf("MM1: winToObjCoord: obj [%25.20ff, %25.20ff, %25.20ff]%n", objPos[0], objPos[1], objPos[2]);
-        final int[] glWinPos = shape.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), objPos, pmv, new int[2]);
-        final int windx = glWinPos[0]-glWinX;
-        final int windy = glWinPos[1]-glWinY;
-        System.err.printf("MM2: objToWinCoord: winCoords %d / %d, diff %d x %d%n", glWinPos[0], glWinPos[1], windx, windy);
-    }
+        final int[] shapeSizePx = shape.getSurfaceSize(scene, new PMVMatrix(), new int[2]); // [px]
+        final float[] pixPerShapeUnit = shape.getPixelPerShapeUnit(shapeSizePx, new float[2]); // [px]/[shapeUnit]
 
-    @SuppressWarnings("unused")
-    static Shape makeShape(final Font font, final int renderModes) {
-        final float sw = 0.10f;
-        final float sh = sw / 2.5f;
+        final float pixPerMM = window.getPixelsPerMM(new float[2])[0]; // [px]/[mm]
+        final float dist_px = scene.getWidth() - shapeSizePx[0]; // [px]
+        final float dist_m = dist_px/pixPerMM/1e3f; // [m]
+        final float velocity = 50/1e3f; // [m]/[s]
+        final float velocity_px = velocity * 1e3f * pixPerMM; // [px]/[s]
+        final float velovity_obj = velocity_px / pixPerShapeUnit[0]; // [shapeUnit]/[s]
+        final float exp_dur_s = dist_m / velocity; // [s]
 
-        if( false ) {
-            Uri filmUri;
-            try {
-                filmUri = Uri.cast( filmPath );
-            } catch (final URISyntaxException e1) {
-                throw new RuntimeException(e1);
-            }
-            final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
-            // mPlayer.setTextureUnit(texUnitMediaPlayer);
-            final MediaButton b = new MediaButton(SVertex.factory(), renderModes, sw, sh, mPlayer);
-            b.setVerbose(false);
-            b.addDefaultEventListener();
-            b.setToggleable(true);
-            b.setToggle(true);
-            b.setToggleOffColorMod(0f, 1f, 0f, 1.0f);
-            b.addMouseListener(new Shape.MouseGestureAdapter() {
+        System.err.println();
+        System.err.printf("Shape: %d x %d [pixel], %.4f px/shape_unit%n", shapeSizePx[0], shapeSizePx[1], pixPerShapeUnit[0]);
+        System.err.printf("Shape: %s%n", shape);
+        System.err.println();
+        System.err.printf("Distance: %.0f pixel @ %.3f px/mm, %.3f mm%n", dist_px, pixPerMM, dist_m*1e3f);
+        System.err.printf("Velocity: %.3f mm/s, %.3f px/s, %.6f obj/s, expected travel-duration %.3f s%n",
+                velocity*1e3f, velocity_px, velovity_obj, exp_dur_s);
+
+        final long t0_us = Clock.currentNanos() / 1000; // [us]
+        long t1_us = t0_us;
+        shape.moveTo(min_obj, 0f, 0f); // move shape to min start position
+        while( shape.getPosition()[0] < max_obj ) {
+            final long t2_us = Clock.currentNanos() / 1000;
+            final float dt_s = ( t2_us - t1_us ) / 1e6f;
+            t1_us = t2_us;
+
+            final float dx = velovity_obj * dt_s; // [shapeUnit]
+            // System.err.println("move ")
+
+            // Move on GL thread to have vsync for free
+            // Otherwise we would need to employ a sleep(..) w/ manual vsync
+            window.invoke(true, new GLRunnable() {
                 @Override
-                public void mouseClicked(final MouseEvent e) {
-                    mPlayer.setAudioVolume( b.isToggleOn() ? 1f : 0f );
-                } } );
-            mPlayer.playStream(filmUri, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
-            return b;
-        } else if( false ) {
-            final GLEventListener glel;
-            {
-                final GearsES2 gears = new GearsES2(0);
-                gears.setVerbose(false);
-                gears.setClearColor(new float[] { 0.9f, 0.9f, 0.9f, 1f } );
-                glel = gears;
-            }
-            final int texUnit = 1;
-            final GLButton b = new GLButton(SVertex.factory(), renderModes,
-                                            sw, sh, texUnit, glel, false /* useAlpha */);
-            b.setToggleable(true);
-            b.setToggle(true); // toggle == true -> animation
-            b.setAnimate(true);
-            b.addMouseListener(new Shape.MouseGestureAdapter() {
-                @Override
-                public void mouseClicked(final MouseEvent e) {
-                    b.setAnimate( b.isToggleOn() );
-                } } );
-            return b;
-        } else if( true ){
-            final Button b = new Button(SVertex.factory(), renderModes, font, "+", sw, sh);
-            b.setCorner(0.0f);
-            return b;
-        } else {
-            final CrossHair b = new CrossHair(SVertex.factory(), renderModes, sw, sw, 1f/100f);
-            return b;
+                public boolean run(final GLAutoDrawable drawable) {
+                    shape.move(dx, 0f, 0f);
+                    return true;
+                }
+            });
+        }
+        final float has_dur_s = ( ( Clock.currentNanos() / 1000 ) - t0_us ) / 1e6f; // [us]
+        System.err.printf("Actual travel-duration %.3f s, delay %.3f s%n", has_dur_s, has_dur_s-exp_dur_s);
+        try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
+        if( !keepRunning ) {
+            window.destroy();
         }
     }
+
+    static class MyPMVMatrixSetup implements PMVMatrixSetup {
+        @Override
+        public void set(final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
+            final float ratio = (float)width/(float)height;
+            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+            pmv.glLoadIdentity();
+            pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
+            pmv.glTranslatef(0f, 0f, Scene.DEFAULT_SCENE_DIST);
+
+            // Scale (back) to have normalized plane dimensions, 100 for the greater of width and height.
+            final AABBox planeBox0 = new AABBox();
+            setPlaneBox(planeBox0, pmv, x, y, width, height);
+            final float sx = planeBox0.getWidth();
+            final float sy = planeBox0.getHeight();
+            final float sxy = sx > sy ? sx : sy;
+            pmv.glScalef(sxy / 100f, sxy / 100f, 1f);
+
+            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmv.glLoadIdentity();
+        }
+
+        @Override
+        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
+            Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, x, y, width, height);
+        }
+    };
+
+    static Shape makeShape(final Font font, final int renderModes) {
+        final float sw = 25;
+        final float sh = sw / 2.5f;
+
+        final GLEventListener glel;
+        {
+            final GearsES2 gears = new GearsES2(0);
+            gears.setVerbose(false);
+            gears.setClearColor(new float[] { 0.9f, 0.9f, 0.9f, 1f } );
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    System.err.println("Gears Anim: Waiting");
+                    try {
+                        gears.waitForInit(true);
+                    } catch (final InterruptedException e) { }
+                    System.err.println("Gears Anim: Started");
+                    while( gears.isInit() ) {
+                        final float ry = ( gears.getRotY() + 1 ) % 360;
+                        gears.setRotY(ry);
+                        try {
+                            Thread.sleep(15);
+                        } catch (final InterruptedException e) { }
+                    }
+                    System.err.println("Gears Anim: End");
+                }
+            }).start();
+            glel = gears;
+        }
+        final int texUnit = 1;
+        final GLButton b = new GLButton(SVertex.factory(), renderModes,
+                                        sw, sh, texUnit, glel, false /* useAlpha */);
+        b.setToggleable(true);
+        b.setToggle(true); // toggle == true -> animation
+        b.setAnimate(true);
+        b.addMouseListener(new Shape.MouseGestureAdapter() {
+            @Override
+            public void mouseClicked(final MouseEvent e) {
+                b.setAnimate( b.isToggleOn() );
+            } } );
+        return b;
+    }
+
 }
