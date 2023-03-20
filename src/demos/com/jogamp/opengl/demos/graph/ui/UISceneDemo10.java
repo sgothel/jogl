@@ -69,7 +69,7 @@ import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
  * User can test Shape drag-move and drag-resize w/ 1-pointer
  * </p>
  */
-public class UISceneDemo02 {
+public class UISceneDemo10 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
@@ -175,7 +175,7 @@ public class UISceneDemo02 {
         scene.addShape(shape);
 
         window.setSize(width, height);
-        window.setTitle(UISceneDemo02.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+        window.setTitle(UISceneDemo10.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
         window.addGLEventListener(scene);
         scene.attachInputListenerTo(window);
