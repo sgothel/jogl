@@ -46,6 +46,7 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.es2.GearsES2;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.opengl.demos.graph.MSAATool;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.InterruptSource;
@@ -58,6 +59,7 @@ import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.ui.gl.Scene;
 import com.jogamp.graph.ui.gl.Shape;
+import com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup;
 import com.jogamp.graph.ui.gl.shapes.Button;
 import com.jogamp.graph.ui.gl.shapes.GLButton;
 import com.jogamp.graph.ui.gl.shapes.ImageButton;
@@ -70,7 +72,9 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.texture.ImageSequence;
@@ -96,13 +100,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private final float relMiddle = 22f/100f;
     private final float relLeft = 11f/100f;
 
-    /** Relative Button Size to Window Height, per-vertical-view [PVV] */
-    private static final float buttonXSizePVV = 0.084f; // 1/8f; // 0.105f;
+    /** Relative Button Size to Window Height, normalized to 1. */
+    private static final float buttonXSizeNorm = 0.084f;
     private static final float fontSizePt = 10f;
-    /** Relative Font Size to Window Height  for Main Text, per-vertical-view [PVV] */
-    private static final float fontSizeFixedPVV = 0.04f; // 1/16f;
-    /** Relative Font Size to Window Height for FPS Status Line, per-vertical-view [PVV] */
-    private static final float fontSizeFpsPVV = 0.03f; // 1/18f;
+    /** Relative Font Size to Window Height  for Main Text, normalized to 1. */
+    private static final float fontSizeFixedNorm = 0.04f;
+    /** Relative Font Size to Window Height for FPS Status Line, normalized to 1. */
+    private static final float fontSizeFpsNorm = 0.03f; // 1/18f;
     private float dpiV = 96;
 
     /**
@@ -201,8 +205,9 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             throw new RuntimeException(e1);
         }
         scene = new Scene();
+        scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
-        // sceneUIController.setSampleCount(3); // easy on embedded devices w/ just 3 samples (default is 4)?
+        // scene.setSampleCount(3); // easy on embedded devices w/ just 3 samples (default is 4)?
 
         screenshot = new GLReadBufferUtil(false, false);
     }
@@ -261,15 +266,15 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         return scene.getShapeByName(name);
     }
 
-    private void initButtons(final GL2ES2 gl, final float width, final float height) {
+    private void initButtons(final GL2ES2 gl, final float scale) {
         final boolean pass2Mode = Region.isTwoPass( renderModes ) ;
         buttons.clear();
 
-        final float buttonXSize = buttonXSizePVV * width;
+        final float buttonXSize = buttonXSizeNorm * scale;
         final float buttonYSize = buttonXSize / 2.5f;
         final float button2XSize = 2f*buttonXSize;
         final float button2YSize = 2f*buttonYSize;
-        System.err.println("Button Size: "+buttonXSizePVV+" x height * "+width+" x "+height+" -> "+buttonXSize+" x "+buttonYSize);
+        System.err.println("Button Size: scale "+scale+", "+buttonXSize+" x "+buttonYSize);
         final float xStartLeft = 0f; // aligned to left edge w/ space via reshape
         final float xStartRight = -button2XSize - button2XSize/8f; // aligned to right edge via reshape
         final float yStartTop =   0f; // aligned to top edge w/ space via reshape
@@ -278,7 +283,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
 
         Button button = new Button(SVertex.factory(), renderModes, font, "Next Text", buttonXSize, buttonYSize);
         button.setName(BUTTON_NEXTTEXT);
-        button.move(xStartLeft,yStartTop-diffY*buttons.size(), 0f);
+        button.move(xStartLeft, yStartTop-diffY*buttons.size(), 0f);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
@@ -577,28 +582,46 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if( true ) {
             // Issues w/ OSX and NewtCanvasAWT when rendering / animating
             // Probably related to CALayer - FBO - FBO* (of this button)
-            final GLEventListener glel;
-            {
-                final GearsES2 gears = new GearsES2(0);
-                gears.setVerbose(false);
-                gears.setClearColor(new float[] { 0.9f, 0.9f, 0.9f, 1f } );
-                glel = gears;
-            }
-            final GLButton glelButton = new GLButton(scene.getVertexFactory(), renderModes,
+            final GearsES2 gears = new GearsES2(0);
+            gears.setVerbose(false);
+            gears.setClearColor(new float[] { 0.9f, 0.9f, 0.9f, 1f } );
+            final boolean[] animate = { true };
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    System.err.println("Gears Anim: Waiting");
+                    try {
+                        gears.waitForInit(true);
+                    } catch (final InterruptedException e) { }
+                    System.err.println("Gears Anim: Started");
+                    while( gears.isInit() ) {
+                        if( animate[0] ) {
+                            final float ry = ( gears.getRotY() + 1 ) % 360;
+                            gears.setRotY(ry);
+                        }
+                        try {
+                            Thread.sleep(15);
+                        } catch (final InterruptedException e) { }
+                    }
+                    System.err.println("Gears Anim: End");
+                }
+            }).start();
+            final GLButton b = new GLButton(scene.getVertexFactory(), renderModes,
                     button2XSize, button2YSize,
-                    texUnitGLELButton, glel, false /* useAlpha */);
-            glelButton.setName(BUTTON_GLEL);
-            glelButton.setToggleable(true);
-            glelButton.setToggle(false); // toggle == true -> animation
-            glelButton.setAnimate(false);
-            glelButton.move(xStartRight, yStartTop - diffY*4f, 0f);
-            glelButton.addMouseListener(dragZoomRotateListener);
-            glelButton.addMouseListener(new Shape.MouseGestureAdapter() {
+                    texUnitGLELButton, gears, false /* useAlpha */);
+            b.setName(BUTTON_GLEL);
+            b.setToggleable(true);
+            b.setToggle(false); // toggle == true -> animation
+            b.setAnimate(false);
+            b.move(xStartRight, yStartTop - diffY*4f, 0f);
+            b.addMouseListener(dragZoomRotateListener);
+            b.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
-                    glelButton.setAnimate( glelButton.isToggleOn() );
+                    b.setAnimate( b.isToggleOn() );
+                    animate[0] = b.getAnimate();
                 } } );
-            buttons.add(glelButton);
+            buttons.add(b);
         }
     }
 
@@ -639,11 +662,11 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private static final boolean enableOthers = true;
 
 
-    private void setupUI(final GLAutoDrawable drawable) {
+    private void setupUI(final GLAutoDrawable drawable, final AABBox sceneBox) {
         final float[/*2*/] sceneSize = { 0f, 0f };
         scene.surfaceToPlaneSize(new int[] { 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight()}, sceneSize);
 
-        final float modelSizeFixed = fontSizeFixedPVV * sceneSize[1];
+        final float modelSizeFixed = fontSizeFixedNorm * sceneSize[1];
         jogampLabel = new Label(scene.getVertexFactory(), renderModes, font, modelSizeFixed, jogamp);
         jogampLabel.addMouseListener(dragZoomRotateListener);
         scene.addShape(jogampLabel);
@@ -663,7 +686,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
          * [Label] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 18.814816
          * [FPS] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 15.679012
          */
-        final float pixelSizeFPS = fontSizeFpsPVV * drawable.getSurfaceHeight();
+        final float pixelSizeFPS = fontSizeFpsNorm * drawable.getSurfaceHeight();
         final float modelSizeFPS = pixelSizeFPS / drawable.getSurfaceHeight() * sceneSize[1];
         fpsLabel = new Label(scene.getVertexFactory(), renderModes, fontFPS, modelSizeFPS, "Nothing there yet");
         fpsLabel.addMouseListener(dragZoomRotateListener);
@@ -672,10 +695,11 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         fpsLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
         fpsLabel.move(0f, modelSizeFPS * (fontFPS.getMetrics().getLineGap() - fontFPS.getMetrics().getDescent()), 0f);
 
-        initButtons(drawable.getGL().getGL2ES2(), sceneSize[0], sceneSize[1]);
-        for(int i=0; i<buttons.size(); i++) {
-            scene.addShape(buttons.get(i));
-        }
+        final float sx = sceneBox.getWidth();
+        final float sy = sceneBox.getHeight();
+        final float sxy = sx > sy ? sx : sy;
+        initButtons(drawable.getGL().getGL2ES2(), sxy);
+        scene.addShapes(buttons);
     }
 
     @Override
@@ -732,8 +756,6 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if( null != a ) {
             a.resetFPSCounter();
         }
-
-        setupUI(drawable);
     }
 
     @Override
@@ -749,10 +771,15 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         System.err.println("Reshape: Scene Plane.0 "+lastWidth+" x "+lastHeight);
 
         scene.reshape(drawable, x, y, width, height);
-        System.err.println("Reshape: Scene Plane.1 "+scene.getBounds());
+        final AABBox sceneBox = scene.getBounds();
+        System.err.println("Reshape: Scene Plane.1 "+sceneBox);
 
-        final float dw = scene.getBounds().getWidth() - lastWidth;
-        final float dh = scene.getBounds().getHeight() - lastHeight;
+        if( scene.getShapes().isEmpty() ) {
+            setupUI(drawable, sceneBox);
+        }
+
+        final float dw = sceneBox.getWidth() - lastWidth;
+        final float dh = sceneBox.getHeight() - lastHeight;
 
         final float dz = 0f;
         final float dyTop = dh * relTop;
@@ -772,8 +799,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             // System.err.println("Button["+i+"].RM: "+buttons.get(i));
         }
 
-        final float dxMiddleAbs = scene.getBounds().getWidth() * relMiddle;
-        final float dyTopLabelAbs = scene.getBounds().getHeight() - 2f*jogampLabel.getLineHeight();
+        final float dxMiddleAbs = sceneBox.getWidth() * relMiddle;
+        final float dyTopLabelAbs = sceneBox.getHeight() - 2f*jogampLabel.getLineHeight();
         jogampLabel.moveTo(dxMiddleAbs, dyTopLabelAbs, dz);
         truePtSizeLabel.moveTo(dxMiddleAbs, dyTopLabelAbs, dz);
         truePtSizeLabel.moveTo(dxMiddleAbs, dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight(), 0f);
@@ -814,9 +841,12 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     @Override
     public void display(final GLAutoDrawable drawable) {
         // System.err.println("GPUUISceneGLListener0A: display");
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        gl.glClearColor(1f, 1f, 1f, 1f);
+        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         if(null == labels[currentText]) {
-            final float pixelSizeFixed = fontSizeFixedPVV * scene.getBounds().getHeight();
+            final float pixelSizeFixed = fontSizeFixedNorm * scene.getBounds().getHeight();
             final float dyTop = scene.getBounds().getHeight() - 2f*jogampLabel.getLineHeight();
             final float dxMiddle = scene.getBounds().getWidth() * relMiddle;
             labels[currentText] = new Label(scene.getVertexFactory(), renderModes, font, pixelSizeFixed, strings[currentText]);
@@ -868,39 +898,42 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         @Override
         public void mouseWheelMoved(final MouseEvent e) {
             final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
-            /**
-            final boolean isOnscreen = PointerClass.Onscreen == e.getPointerType(0).getPointerClass();
-            if( 0 == ( ~InputEvent.BUTTONALL_MASK & e.getModifiers() ) && !isOnscreen ) {
-                // offscreen vertical mouse wheel zoom
-                final float tz = 100f*e.getRotation()[1]; // vertical: wheel
-                System.err.println("Rotate.Zoom.W: "+tz);
-                shapeEvent.shape.move(0f, 0f, tz);
-            } else if( isOnscreen || e.isControlDown() ) {
-                final float[] rot =  VectorUtil.scaleVec3(e.getRotation(), e.getRotation(), FloatUtil.PI / 180.0f);
-                if( isOnscreen ) {
-                    System.err.println("XXX: "+e);
-                    // swap axis for onscreen rotation matching natural feel
-                    final float tmp = rot[0]; rot[0] = rot[1]; rot[1] = tmp;
-                    VectorUtil.scaleVec3(rot, rot, 2f);
-                }
-                shapeEvent.shape.getRotation().rotateByEuler( rot );
-            } */
             final float[] rot = VectorUtil.scaleVec3(e.getRotation(), e.getRotation(), FloatUtil.PI / 180.0f);
             // swap axis for onscreen rotation matching natural feel
             final float tmp = rot[0]; rot[0] = rot[1]; rot[1] = tmp;
             VectorUtil.scaleVec3(rot, rot, 2f);
             shapeEvent.shape.getRotation().rotateByEuler( rot );
         }
-        /**
-        @Override
-        public void gestureDetected(final GestureEvent e) {
-            final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
-            if( e instanceof PinchToZoomGesture.ZoomEvent ) {
-                final PinchToZoomGesture.ZoomEvent ze = (PinchToZoomGesture.ZoomEvent) e;
-                final float tz = ze.getDelta() * ze.getScale();
-                System.err.println("Rotate.Zoom.G: "+tz);
-                shapeEvent.shape.move(0f, 0f, tz);
-            }
-        } */
     };
+
+    /**
+     * Our PMVMatrixSetup:
+     * - gluPerspective like Scene's default
+     * - no normal scale to 1, keep distance to near plane for rotation effects. We scale Shapes
+     * - translate origin to bottom-left
+     */
+    static class MyPMVMatrixSetup implements PMVMatrixSetup {
+        @Override
+        public void set(final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
+            final float ratio = (float)width/(float)height;
+            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+            pmv.glLoadIdentity();
+            pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
+            pmv.glTranslatef(0f, 0f, Scene.DEFAULT_SCENE_DIST);
+
+            // Translate origin to bottom-left
+            final AABBox planeBox0 = new AABBox();
+            setPlaneBox(planeBox0, pmv, x, y, width, height);
+            pmv.glTranslatef(planeBox0.getMinX(), planeBox0.getMinY(), 0f);
+
+            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmv.glLoadIdentity();
+        }
+
+        @Override
+        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
+            Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, x, y, width, height);
+        }
+    };
+
 }
