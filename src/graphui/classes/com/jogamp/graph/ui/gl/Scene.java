@@ -265,6 +265,25 @@ public final class Scene implements GLEventListener {
         display(drawable, shapesS, false);
     }
 
+    /**
+     * Reshape scene using {@link #setupMatrix(PMVMatrix, int, int, int, int)} using {@link PMVMatrixSetup}.
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     * @see PMVMatrixSetup
+     * @see #setPMVMatrixSetup(PMVMatrixSetup)
+     * @see #setupMatrix(PMVMatrix, int, int, int, int)
+     * @see #getBounds()
+     * @see #getBoundsCenter()
+     */
+    @Override
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+        renderer.reshapeNotify(x, y, width, height);
+
+        setupMatrix(renderer.getMatrix(), x, y, width, height);
+        pmvMatrixSetup.setPlaneBox(planeBox, renderer.getMatrix(), x, y, width, height);
+    }
+
     private static final int[] sampleCountGLSelect = { -1 };
 
     private void display(final GLAutoDrawable drawable, final Object[] shapesS, final boolean glSelect) {
@@ -336,6 +355,35 @@ public final class Scene implements GLEventListener {
                 } catch (final InterruptedException e) { }
             }
         }
+    }
+
+    /**
+     * Disposes all {@link #addShape(Shape) added} {@link Shape}s.
+     * <p>
+     * Implementation also issues {@link RegionRenderer#destroy(GL2ES2)} if set
+     * and {@link #detachInputListenerFrom(GLWindow)} in case the drawable is of type {@link GLWindow}.
+     * </p>
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     */
+    @Override
+    public void dispose(final GLAutoDrawable drawable) {
+        synchronized ( syncDisplayedOnce ) {
+            displayedOnce = false;
+            syncDisplayedOnce.notifyAll();
+        }
+        if( drawable instanceof GLWindow ) {
+            final GLWindow glw = (GLWindow) drawable;
+            detachInputListenerFrom(glw);
+        }
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        for(int i=0; i<shapes.size(); i++) {
+            shapes.get(i).destroy(gl, renderer);
+        }
+        shapes.clear();
+        cDrawable = null;
+        renderer.destroy(gl);
     }
 
     /**
@@ -498,35 +546,6 @@ public final class Scene implements GLEventListener {
     }
 
     /**
-     * Disposes all {@link #addShape(Shape) added} {@link Shape}s.
-     * <p>
-     * Implementation also issues {@link RegionRenderer#destroy(GL2ES2)} if set
-     * and {@link #detachInputListenerFrom(GLWindow)} in case the drawable is of type {@link GLWindow}.
-     * </p>
-     * <p>
-     * {@inheritDoc}
-     * </p>
-     */
-    @Override
-    public void dispose(final GLAutoDrawable drawable) {
-        synchronized ( syncDisplayedOnce ) {
-            displayedOnce = false;
-            syncDisplayedOnce.notifyAll();
-        }
-        if( drawable instanceof GLWindow ) {
-            final GLWindow glw = (GLWindow) drawable;
-            detachInputListenerFrom(glw);
-        }
-        final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        for(int i=0; i<shapes.size(); i++) {
-            shapes.get(i).destroy(gl, renderer);
-        }
-        shapes.clear();
-        cDrawable = null;
-        renderer.destroy(gl);
-    }
-
-    /**
      * Interface providing {@link #set(PMVMatrix, int, int, int, int) a method} to
      * setup {@link PMVMatrix}'s {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}.
      * <p>
@@ -596,25 +615,6 @@ public final class Scene implements GLEventListener {
 
     /** Return the default {@link PMVMatrixSetup}. */
     public static PMVMatrixSetup getDefaultPMVMatrixSetup() { return defaultPMVMatrixSetup; }
-
-    /**
-     * Reshape scene using {@link #setupMatrix(PMVMatrix, int, int, int, int)} using {@link PMVMatrixSetup}.
-     * <p>
-     * {@inheritDoc}
-     * </p>
-     * @see PMVMatrixSetup
-     * @see #setPMVMatrixSetup(PMVMatrixSetup)
-     * @see #setupMatrix(PMVMatrix, int, int, int, int)
-     * @see #getBounds()
-     * @see #getBoundsCenter()
-     */
-    @Override
-    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-        renderer.reshapeNotify(x, y, width, height);
-
-        setupMatrix(renderer.getMatrix(), x, y, width, height);
-        pmvMatrixSetup.setPlaneBox(planeBox, renderer.getMatrix(), x, y, width, height);
-    }
 
     /**
      * Setup {@link PMVMatrix} {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}
