@@ -52,6 +52,13 @@ import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  * Res independent Shape, in Scene attached to GLWindow showing simple linear Shape movement within one main function.
+ * <p>
+ * The shape is created using the normalized scene's default bounding box, normalized to 1 for the greater of width and height.
+ * </p>
+ * <p>
+ * Pass '-keep' to main-function to keep running after animation,
+ * then user can test Shape drag-move and drag-resize w/ 1-pointer.
+ * </p>
  */
 public class UISceneDemo00 {
     public static void main(final String[] args) throws IOException {
@@ -59,13 +66,22 @@ public class UISceneDemo00 {
         final int renderModes = Region.VBAA_RENDERING_BIT;
         final GLProfile glp = GLProfile.getGL2ES2();
 
+        boolean keepRunning = false;
+        if( 0 != args.length ) {
+            for(int i=0; i<args.length; i++) {
+                if(args[i].equals("-keep")) {
+                    keepRunning = true;
+                }
+            }
+        }
+
         //
         // Resolution independent, no screen size
         //
         final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final Shape shape = new Button(SVertex.factory(), renderModes, font, "+", 0.10f, 0.10f/2.5f);
+        final Shape shape = new Button(SVertex.factory(), renderModes, font, "+", 0.10f, 0.10f/2.5f); // normalized: 1 is 100% surface size (width and/or height)
         System.err.println("Shape bounds "+shape.getBounds(glp));
 
         final Scene scene = new Scene();
@@ -99,12 +115,11 @@ public class UISceneDemo00 {
         //
         // After initial display we can use screen resolution post initial Scene.reshape(..)
         // However, in this example we merely use the resolution to
-        // - Scale the shape to the sceneBox, i.e. normalizing to screen-size 1x1
         // - Compute the animation values with DPI
         scene.waitUntilDisplayed();
 
         final AABBox sceneBox = scene.getBounds();
-        shape.scale(sceneBox.getWidth(), sceneBox.getWidth(), 1f); // scale shape to sceneBox, normalizing to screen-size 1x1
+        System.err.println("SceneBox "+sceneBox);
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
 
         //
@@ -156,6 +171,8 @@ public class UISceneDemo00 {
         final float has_dur_s = ( ( Clock.currentNanos() / 1000 ) - t0_us ) / 1e6f; // [us]
         System.err.printf("Actual travel-duration %.3f s, delay %.3f s%n", has_dur_s, has_dur_s-exp_dur_s);
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
-        window.destroy();
+        if( !keepRunning ) {
+            window.destroy();
+        }
     }
 }

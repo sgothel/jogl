@@ -540,13 +540,20 @@ public final class Scene implements GLEventListener {
      * Custom implementations can be set via {@link Scene#setPMVMatrixSetup(PMVMatrixSetup)}.
      * </p>
      * <p>
-     * The default implementation is described below
-     * </p>
-     * <p>
-     * {@link GLMatrixFunc#GL_PROJECTION} is setup using perspective {@link Scene#DEFAULT_ANGLE} with {@link Scene#DEFAULT_ZNEAR} and {@link Scene#DEFAULT_ZFAR}.
-     * </p>
-     * <p>
-     * Further {@link GLMatrixFunc#GL_MODELVIEW} is translated to given {@link Scene#DEFAULT_SCENE_DIST}.
+     * The default implementation is described below:
+     * <ul>
+     *   <li>{@link GLMatrixFunc#GL_PROJECTION} Matrix
+     *   <ul>
+     *     <li>Identity</li>
+     *     <li>Perspective {@link Scene#DEFAULT_ANGLE} with {@link Scene#DEFAULT_ZNEAR} and {@link Scene#DEFAULT_ZFAR}</li>
+     *     <li>Translated to given {@link Scene#DEFAULT_SCENE_DIST}</li>
+     *     <li>Scale (back) to have normalized {@link Scene#getBounds() plane dimensions}, 1 for the greater of width and height.</li>
+     *   </ul></li>
+     *   <li>{@link GLMatrixFunc#GL_MODELVIEW} Matrix
+     *   <ul>
+     *     <li>identity</li>
+     *   </ul></li>
+     * </ul>
      * </p>
      */
     public static interface PMVMatrixSetup {
@@ -571,8 +578,12 @@ public final class Scene implements GLEventListener {
          * <p>
          * Will be called by {@link Scene#reshape(GLAutoDrawable, int, int, int, int)} after {@link #set(PMVMatrix, int, int, int, int)}.
          * </p>
-         * @param x TODO
-         * @param y TODO
+         * @param planeBox the {@link AABBox} to define
+         * @param pmv the {@link PMVMatrix}, already setup via {@link #set(PMVMatrix, int, int, int, int)}.
+         * @param x lower left corner of the viewport rectangle
+         * @param y lower left corner of the viewport rectangle
+         * @param width width of the viewport rectangle
+         * @param height height of the viewport rectangle
          */
         void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, int x, int y, final int width, final int height);
     }
@@ -582,6 +593,9 @@ public final class Scene implements GLEventListener {
 
     /** Set a custom {@link PMVMatrixSetup}. */
     public final void setPMVMatrixSetup(final PMVMatrixSetup setup) { pmvMatrixSetup = setup; }
+
+    /** Return the default {@link PMVMatrixSetup}. */
+    public static PMVMatrixSetup getDefaultPMVMatrixSetup() { return defaultPMVMatrixSetup; }
 
     /**
      * Reshape scene using {@link #setupMatrix(PMVMatrix, int, int, int, int)} using {@link PMVMatrixSetup}.
@@ -649,6 +663,9 @@ public final class Scene implements GLEventListener {
      * </p>
      * <p>
      * {@link AABBox} is setup via {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#setPlaneBox(AABBox, PMVMatrix, int, int, int, int)}.
+     * </p>
+     * <p>
+     * The default {@link PMVMatrixSetup} implementation scales to normalized plane dimensions, 1 for the greater of width and height.
      * </p>
      */
     public AABBox getBounds() { return planeBox; }
@@ -913,7 +930,7 @@ public final class Scene implements GLEventListener {
             return String.format("%03.1f/%03.1f fps, %.1f ms/f", lfps, tfps, td);
     }
 
-    private final PMVMatrixSetup defaultPMVMatrixSetup = new PMVMatrixSetup() {
+    private static final PMVMatrixSetup defaultPMVMatrixSetup = new PMVMatrixSetup() {
         @Override
         public void set(final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
             final float ratio = (float)width/(float)height;
@@ -921,6 +938,14 @@ public final class Scene implements GLEventListener {
             pmv.glLoadIdentity();
             pmv.gluPerspective(DEFAULT_ANGLE, ratio, DEFAULT_ZNEAR, DEFAULT_ZFAR);
             pmv.glTranslatef(0f, 0f, DEFAULT_SCENE_DIST);
+
+            // Scale (back) to have normalized plane dimensions, 1 for the greater of width and height.
+            final AABBox planeBox0 = new AABBox();
+            setPlaneBox(planeBox0, pmv, x, y, width, height);
+            final float sx = planeBox0.getWidth();
+            final float sy = planeBox0.getHeight();
+            final float sxy = sx > sy ? sx : sy;
+            pmv.glScalef(sxy, sxy, 1f);
 
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             pmv.glLoadIdentity();
@@ -931,9 +956,10 @@ public final class Scene implements GLEventListener {
                 final float orthoDist = -DEFAULT_SCENE_DIST;
                 final float[] obj00Coord = new float[3];
                 final float[] obj11Coord = new float[3];
+                final int[] viewport = { x, y, width, height };
 
-                winToPlaneCoord(pmv, getViewport(), DEFAULT_ZNEAR, DEFAULT_ZFAR, x, y, orthoDist, obj00Coord);
-                winToPlaneCoord(pmv, getViewport(), DEFAULT_ZNEAR, DEFAULT_ZFAR, width, height, orthoDist, obj11Coord);
+                winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, x, y, orthoDist, obj00Coord);
+                winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, width, height, orthoDist, obj11Coord);
 
                 planeBox.setSize( obj00Coord[0],  // lx
                                   obj00Coord[1],  // ly
