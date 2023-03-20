@@ -419,7 +419,19 @@ public abstract class Shape {
     public void setTransform(final PMVMatrix pmv) {
         final float[] uiTranslate = getPosition();
         final float[] ctr = box.getCenter();
-        pmv.glTranslatef(uiTranslate[0]-ctr[0], uiTranslate[1]-ctr[1], uiTranslate[2]-ctr[2]); // translate less unscaled-center
+        final float[] low = box.getLow();
+        final float hw = ctr[0] - low[0]; // our center is half size
+        final float hh = ctr[1] - low[1];
+        final float hd = ctr[2] - low[2];
+
+        // 1) text top moving; Button Good
+        // pmv.glTranslatef(uiTranslate[0]-hw, uiTranslate[1]-hh, uiTranslate[2]-hd); // translate less unscaled-center
+        // 2) text sticky moving ; Button sticky moving
+        // pmv.glTranslatef(uiTranslate[0]+low[0], uiTranslate[1]+low[1], uiTranslate[2]+low[2]); // translate from origin
+        // 3) text OK'sh, but sticky moving ; Button Good
+        pmv.glTranslatef(uiTranslate[0]+low[0]-hw, uiTranslate[1]+low[1]-hh, uiTranslate[2]+low[2]-hd); // translate from origin less unscaled-center
+
+        // pmv.glTranslatef(uiTranslate[0], uiTranslate[1], uiTranslate[2]);
         final Quaternion quat = getRotation();
         final boolean rotate = !quat.isIdentity();
         final float[] uiScale = getScale();
@@ -440,8 +452,10 @@ public abstract class Shape {
                 pmv.glTranslatef(-rotOrigin[0], -rotOrigin[1], -rotOrigin[2]);
             }
         }
-        // TODO: Add alignment features
-        pmv.glTranslatef(ctr[0], ctr[1], ctr[2]); // add-back center, scaled
+        // TODO: Add alignment features. This also shall resolve scaling of multi-line text, i.e. sticky-edges to stay sticky!
+        // pmv.glTranslatef(hw, hh, hd); // add-back center, scaled
+        // pmv.glTranslatef(-low[0], -low[1], -low[2]); // add-back origin-distance, scaled
+        pmv.glTranslatef(hw-low[0], hh-low[1], hd-low[2]); // add back origin-distance and center, scaled
     }
 
     /**
@@ -988,6 +1002,7 @@ public abstract class Shape {
                     if( DEBUG ) {
                         System.err.printf("DragFirst: drag %b, resize %d, obj[%.4f, %.4f, %.4f], drag +[%.4f, %.4f]%n",
                                 inDrag, inResize, objPos[0], objPos[1], objPos[2], shapeEvent.objDrag[0], shapeEvent.objDrag[1]);
+                        System.err.printf("DragFirst: %s%n", this);
                     }
                     return;
                 }
