@@ -30,6 +30,7 @@ package com.jogamp.graph.ui.gl;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 
 import com.jogamp.opengl.FPSCounter;
@@ -197,6 +198,12 @@ public final class Scene implements GLEventListener {
     }
     public void removeShape(final Shape b) {
         shapes.remove(b);
+    }
+    public void addShapes(final Collection<? extends Shape> shapes) {
+        this.shapes.addAll(shapes);
+    }
+    public void removeShapes(final Collection<? extends Shape> shapes) {
+        this.shapes.removeAll(shapes);
     }
     public Shape getShapeByIdx(final int id) {
         if( 0 > id ) {
