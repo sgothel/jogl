@@ -238,7 +238,6 @@ public final class Scene implements GLEventListener {
 
     @Override
     public void init(final GLAutoDrawable drawable) {
-        System.err.println("SceneUIController: init");
         cDrawable = drawable;
         renderer.init(drawable.getGL().getGL2ES2());
     }
@@ -510,7 +509,6 @@ public final class Scene implements GLEventListener {
      */
     @Override
     public void dispose(final GLAutoDrawable drawable) {
-        System.err.println("SceneUIController: dispose");
         synchronized ( syncDisplayedOnce ) {
             displayedOnce = false;
             syncDisplayedOnce.notifyAll();
