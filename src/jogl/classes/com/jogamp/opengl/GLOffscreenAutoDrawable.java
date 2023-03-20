@@ -30,8 +30,6 @@ package com.jogamp.opengl;
 
 import com.jogamp.nativewindow.NativeWindowException;
 
-import com.jogamp.opengl.FBObject;
-
 /**
  * Platform-independent {@link GLAutoDrawable} specialization,
  * exposing offscreen functionality.
