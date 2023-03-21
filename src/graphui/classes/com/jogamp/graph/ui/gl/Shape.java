@@ -455,14 +455,8 @@ public abstract class Shape {
         final float hh = ctr[1] - low[1];
         final float hd = ctr[2] - low[2];
 
-        // 1) text top moving; Button Good
-        // pmv.glTranslatef(uiTranslate[0]-hw, uiTranslate[1]-hh, uiTranslate[2]-hd); // translate less unscaled-center
-        // 2) text sticky moving ; Button sticky moving
-        // pmv.glTranslatef(uiTranslate[0]+low[0], uiTranslate[1]+low[1], uiTranslate[2]+low[2]); // translate from origin
-        // 3) text OK'sh, but sticky moving ; Button Good
-        pmv.glTranslatef(uiTranslate[0]+low[0]-hw, uiTranslate[1]+low[1]-hh, uiTranslate[2]+low[2]-hd); // translate from origin less unscaled-center
+        pmv.glTranslatef(uiTranslate[0]-hw, uiTranslate[1]-hh, uiTranslate[2]-hd); // translate less unscaled-center
 
-        // pmv.glTranslatef(uiTranslate[0], uiTranslate[1], uiTranslate[2]);
         final Quaternion quat = getRotation();
         final boolean rotate = !quat.isIdentity();
         final float[] uiScale = getScale();
@@ -483,10 +477,8 @@ public abstract class Shape {
                 pmv.glTranslatef(-rotOrigin[0], -rotOrigin[1], -rotOrigin[2]);
             }
         }
-        // TODO: Add alignment features. This also shall resolve scaling of multi-line text, i.e. sticky-edges to stay sticky!
-        // pmv.glTranslatef(hw, hh, hd); // add-back center, scaled
-        // pmv.glTranslatef(-low[0], -low[1], -low[2]); // add-back origin-distance, scaled
-        pmv.glTranslatef(hw-low[0], hh-low[1], hd-low[2]); // add back origin-distance and center, scaled
+        // TODO: Add alignment features.
+        pmv.glTranslatef(hw, hh, hd); // add-back center, scaled
     }
 
     /**
