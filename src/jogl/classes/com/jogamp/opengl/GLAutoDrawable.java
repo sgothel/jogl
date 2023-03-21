@@ -417,6 +417,13 @@ public interface GLAutoDrawable extends GLDrawable {
    * {@link GLEventListener#display(GLAutoDrawable) display(GLAutoDrawable)}
    * methods have been called.
    * <p>
+   * The given {@link GLRunnable#run(GLAutoDrawable)} shall return true to indicate
+   * that the GL [back] framebuffer remains intact by this runnable. <br/>
+   * If returning false {@link GLAutoDrawable} will call
+   * {@link GLEventListener#display(GLAutoDrawable) display(GLAutoDrawable)}
+   * of all registered {@link GLEventListener}s once more to reinstate the framebuffer.
+   * </p>
+   * <p>
    * If no {@link GLAnimatorControl} is animating (default),<br>
    * or if the current thread is the animator thread,<br>
    * a {@link #display()} call is issued after enqueue the <code>GLRunnable</code>,

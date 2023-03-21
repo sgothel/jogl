@@ -168,12 +168,9 @@ public class UISceneDemo01 {
 
             // Move on GL thread to have vsync for free
             // Otherwise we would need to employ a sleep(..) w/ manual vsync
-            window.invoke(true, new GLRunnable() {
-                @Override
-                public boolean run(final GLAutoDrawable drawable) {
-                    shape.move(dx, 0f, 0f);
-                    return true;
-                }
+            window.invoke(true, (drawable) -> {
+                shape.move(dx, 0f, 0f);
+                return true;
             });
         }
         final float has_dur_s = ( ( Clock.currentNanos() / 1000 ) - t0_us ) / 1e6f; // [us]
