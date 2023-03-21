@@ -245,6 +245,25 @@ public final class Scene implements GLEventListener {
         renderer.init(drawable.getGL().getGL2ES2());
     }
 
+    /**
+     * Reshape scene using {@link #setupMatrix(PMVMatrix, int, int, int, int)} using {@link PMVMatrixSetup}.
+     * <p>
+     * {@inheritDoc}
+     * </p>
+     * @see PMVMatrixSetup
+     * @see #setPMVMatrixSetup(PMVMatrixSetup)
+     * @see #setupMatrix(PMVMatrix, int, int, int, int)
+     * @see #getBounds()
+     * @see #getBoundsCenter()
+     */
+    @Override
+    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
+        renderer.reshapeNotify(x, y, width, height);
+
+        setupMatrix(renderer.getMatrix(), x, y, width, height);
+        pmvMatrixSetup.setPlaneBox(planeBox, renderer.getMatrix(), x, y, width, height);
+    }
+
     private static Comparator<Shape> shapeZAscComparator = new Comparator<Shape>() {
         @Override
         public int compare(final Shape s1, final Shape s2) {
@@ -266,25 +285,6 @@ public final class Scene implements GLEventListener {
         Arrays.sort(shapesS, (Comparator)shapeZAscComparator);
 
         display(drawable, shapesS, false);
-    }
-
-    /**
-     * Reshape scene using {@link #setupMatrix(PMVMatrix, int, int, int, int)} using {@link PMVMatrixSetup}.
-     * <p>
-     * {@inheritDoc}
-     * </p>
-     * @see PMVMatrixSetup
-     * @see #setPMVMatrixSetup(PMVMatrixSetup)
-     * @see #setupMatrix(PMVMatrix, int, int, int, int)
-     * @see #getBounds()
-     * @see #getBoundsCenter()
-     */
-    @Override
-    public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-        renderer.reshapeNotify(x, y, width, height);
-
-        setupMatrix(renderer.getMatrix(), x, y, width, height);
-        pmvMatrixSetup.setPlaneBox(planeBox, renderer.getMatrix(), x, y, width, height);
     }
 
     private static final int[] sampleCountGLSelect = { -1 };
