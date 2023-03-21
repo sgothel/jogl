@@ -508,8 +508,7 @@ function testawtswt() {
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.GPUUISceneNewtDemo $*
-#testawt com.jogamp.opengl.demos.graph.ui.GPUUISceneNewtCanvasAWTDemo $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT $*
 
 #
@@ -969,8 +968,11 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UITypeDemo01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.GPUUISceneNewtDemo $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo02 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
@@ -1010,8 +1012,8 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo02 $*
-
-testnoawt com.jogamp.opengl.demos.graph.ui.GPUUISceneNewtDemo $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*

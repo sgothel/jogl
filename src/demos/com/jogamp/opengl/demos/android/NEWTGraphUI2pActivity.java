@@ -29,7 +29,7 @@ package com.jogamp.opengl.demos.android;
 
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.demos.graph.ui.GPUUISceneGLListener0A;
+import com.jogamp.opengl.demos.graph.ui.UISceneDemo20;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 
@@ -58,7 +58,7 @@ public class NEWTGraphUI2pActivity extends NewtBaseActivity {
        glWindow.setFullscreen(true);
        setContentView(getWindow(), glWindow);
 
-       glWindow.addGLEventListener(new GPUUISceneGLListener0A(Region.VBAA_RENDERING_BIT));
+       glWindow.addGLEventListener(new UISceneDemo20(Region.VBAA_RENDERING_BIT));
        glWindow.getScreen().addMonitorModeListener(new MonitorModeListener() {
            @Override
            public void monitorModeChangeNotify(final MonitorEvent me) { }

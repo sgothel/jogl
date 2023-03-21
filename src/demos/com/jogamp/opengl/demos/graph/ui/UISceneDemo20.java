@@ -35,21 +35,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import com.jogamp.opengl.GL;
-import com.jogamp.opengl.GL2ES2;
-import com.jogamp.opengl.GLAnimatorControl;
-import com.jogamp.opengl.GLAutoDrawable;
-import com.jogamp.opengl.GLEventListener;
-import com.jogamp.opengl.GLPipelineFactory;
-import com.jogamp.opengl.GLRunnable;
-import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.demos.es2.GearsES2;
-import com.jogamp.opengl.demos.graph.FontSetDemos;
-import com.jogamp.opengl.demos.graph.MSAATool;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
@@ -57,29 +46,212 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.gl.Scene;
-import com.jogamp.graph.ui.gl.Shape;
 import com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup;
+import com.jogamp.graph.ui.gl.Shape;
 import com.jogamp.graph.ui.gl.shapes.Button;
 import com.jogamp.graph.ui.gl.shapes.GLButton;
 import com.jogamp.graph.ui.gl.shapes.ImageButton;
 import com.jogamp.graph.ui.gl.shapes.Label;
 import com.jogamp.graph.ui.gl.shapes.MediaButton;
 import com.jogamp.graph.ui.gl.shapes.RoundButton;
+import com.jogamp.nativewindow.ScalableSurface;
+import com.jogamp.newt.Display;
 import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.newt.event.WindowAdapter;
+import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLPipelineFactory;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLRunnable;
+import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.demos.es2.GearsES2;
+import com.jogamp.opengl.demos.graph.FontSetDemos;
+import com.jogamp.opengl.demos.graph.MSAATool;
+import com.jogamp.opengl.demos.util.MiscUtils;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
+import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 import com.jogamp.opengl.util.texture.ImageSequence;
 import com.jogamp.opengl.util.texture.TextureIO;
 
-public class GPUUISceneGLListener0A implements GLEventListener {
+/**
+ * Complex interactive GraphUI Scene demo with different Button and Label Shapes layout on the screen.
+ * <p>
+ * This demo uses sets up an own {@link Scene.PMVMatrixSetup}, {@link MyPMVMatrixSetup},
+ * with a plane origin bottom-left and keeping the perspective non-normalized object screen dimension of < 1.
+ * </p>
+ * <p>
+ * Unlike {@link UISceneDemo00}, the {@link Scene}'s {@link GLEventListener} method are called directly
+ * from this {@link GLEventListener} implementation, i.e. the {@link Scene} is not attached
+ * to {@link GLAutoDrawable#addGLEventListener(GLEventListener)} itself.
+ * </p>
+ */
+public class UISceneDemo20 implements GLEventListener {
+    static final boolean DEBUG = false;
+    static final boolean TRACE = false;
+
+    public static void main(final String[] args) {
+        int sceneMSAASamples = 0;
+        boolean graphVBAAMode = true;
+        boolean graphMSAAMode = false;
+        float graphAutoMode = 0; // GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
+
+        final float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+
+        String fontfilename = null;
+        String filmURL = null;
+
+        int width = 1280, height = 720;
+
+        boolean forceES2 = false;
+        boolean forceES3 = false;
+        boolean forceGL3 = false;
+        boolean forceGLDef = false;
+
+        if( 0 != args.length ) {
+            for(int i=0; i<args.length; i++) {
+                if(args[i].equals("-gnone")) {
+                    sceneMSAASamples = 0;
+                    graphMSAAMode = false;
+                    graphVBAAMode = false;
+                    graphAutoMode = 0f;
+                } else if(args[i].equals("-smsaa")) {
+                    i++;
+                    sceneMSAASamples = MiscUtils.atoi(args[i], sceneMSAASamples);
+                    graphMSAAMode = false;
+                    graphVBAAMode = false;
+                    graphAutoMode = 0f;
+                } else if(args[i].equals("-gmsaa")) {
+                    graphMSAAMode = true;
+                    graphVBAAMode = false;
+                    graphAutoMode = 0f;
+                } else if(args[i].equals("-gvbaa")) {
+                    graphMSAAMode = false;
+                    graphVBAAMode = true;
+                    graphAutoMode = 0f;
+                } else if(args[i].equals("-gauto")) {
+                    graphMSAAMode = false;
+                    graphVBAAMode = true;
+                    i++;
+                    graphAutoMode = MiscUtils.atof(args[i], graphAutoMode);
+                } else if(args[i].equals("-font")) {
+                    i++;
+                    fontfilename = args[i];
+                } else if(args[i].equals("-width")) {
+                    i++;
+                    width = MiscUtils.atoi(args[i], width);
+                } else if(args[i].equals("-height")) {
+                    i++;
+                    height = MiscUtils.atoi(args[i], height);
+                } else if(args[i].equals("-pixelScale")) {
+                    i++;
+                    final float pS = MiscUtils.atof(args[i], reqSurfacePixelScale[0]);
+                    reqSurfacePixelScale[0] = pS;
+                    reqSurfacePixelScale[1] = pS;
+                } else if(args[i].equals("-es2")) {
+                    forceES2 = true;
+                } else if(args[i].equals("-es3")) {
+                    forceES3 = true;
+                } else if(args[i].equals("-gl3")) {
+                    forceGL3 = true;
+                } else if(args[i].equals("-gldef")) {
+                    forceGLDef = true;
+                } else if(args[i].equals("-film")) {
+                    i++;
+                    filmURL = args[i];
+                }
+            }
+        }
+        System.err.println("forceES2   "+forceES2);
+        System.err.println("forceES3   "+forceES3);
+        System.err.println("forceGL3   "+forceGL3);
+        System.err.println("forceGLDef "+forceGLDef);
+        System.err.println("Desired win size "+width+"x"+height);
+        System.err.println("Scene MSAA Samples "+sceneMSAASamples);
+        System.err.println("Graph MSAA Mode "+graphMSAAMode);
+        System.err.println("Graph VBAA Mode "+graphVBAAMode);
+        System.err.println("Graph Auto Mode "+graphAutoMode+" no-AA dpi threshold");
+
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, 0);
+        System.err.println(VersionUtil.getPlatformInfo());
+        System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(dpy.getGraphicsDevice(), null).toString());
+
+        final GLProfile glp;
+        if(forceGLDef) {
+            glp = GLProfile.getDefault();
+        } else if(forceGL3) {
+            glp = GLProfile.get(GLProfile.GL3);
+        } else if(forceES3) {
+            glp = GLProfile.get(GLProfile.GLES3);
+        } else if(forceES2) {
+            glp = GLProfile.get(GLProfile.GLES2);
+        } else {
+            glp = GLProfile.getGL2ES2();
+        }
+        System.err.println("GLProfile: "+glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(4);
+        if( sceneMSAASamples > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(sceneMSAASamples);
+        }
+        System.out.println("Requested: " + caps);
+
+        final int renderModes;
+        if( graphVBAAMode ) {
+            renderModes = Region.VBAA_RENDERING_BIT;
+        } else if( graphMSAAMode ) {
+            renderModes = Region.MSAA_RENDERING_BIT;
+        } else {
+            renderModes = 0;
+        }
+
+        final GLWindow window = GLWindow.create(screen, caps);
+        if( 0 == sceneMSAASamples ) {
+            window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(true));
+        }
+        window.setSize(width, height);
+        window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(renderModes)+"], msaa "+sceneMSAASamples);
+        window.setSurfaceScale(reqSurfacePixelScale);
+        // final float[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new float[2]);
+
+        final UISceneDemo20 scene = 0 < graphAutoMode ? new UISceneDemo20(fontfilename, filmURL, graphAutoMode, DEBUG, TRACE) :
+                                                                 new UISceneDemo20(fontfilename, filmURL, renderModes, DEBUG, TRACE);
+        window.addGLEventListener(scene);
+
+        final Animator animator = new Animator();
+        animator.setUpdateFPSFrames(5*60, null);
+        animator.add(window);
+
+        window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowDestroyed(final WindowEvent e) {
+                animator.stop();
+            }
+        });
+
+        window.setVisible(true);
+        animator.start();
+    }
+
     static private final String defaultMediaURL = "http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4";
 
     private boolean debug = false;
@@ -151,7 +323,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     /**
      * @param renderModes
      */
-    public GPUUISceneGLListener0A(final int renderModes) {
+    public UISceneDemo20(final int renderModes) {
         this(null, null, renderModes, false, false);
     }
 
@@ -161,7 +333,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
      * @param debug
      * @param trace
      */
-    public GPUUISceneGLListener0A(final String fontfilename, final String filmURL, final int renderModes, final boolean debug, final boolean trace) {
+    public UISceneDemo20(final String fontfilename, final String filmURL, final int renderModes, final boolean debug, final boolean trace) {
         this(fontfilename, filmURL, 0f, renderModes, debug, trace);
     }
 
@@ -171,11 +343,11 @@ public class GPUUISceneGLListener0A implements GLEventListener {
      * @param debug
      * @param trace
      */
-    public GPUUISceneGLListener0A(final String fontfilename, final String filmURL, final float noAADPIThreshold, final boolean debug, final boolean trace) {
+    public UISceneDemo20(final String fontfilename, final String filmURL, final float noAADPIThreshold, final boolean debug, final boolean trace) {
         this(fontfilename, filmURL, noAADPIThreshold, 0, debug, trace);
     }
 
-    private GPUUISceneGLListener0A(final String fontfilename, final String filmURL, final float noAADPIThreshold, final int renderModes, final boolean debug, final boolean trace) {
+    private UISceneDemo20(final String fontfilename, final String filmURL, final float noAADPIThreshold, final int renderModes, final boolean debug, final boolean trace) {
         this.noAADPIThreshold = noAADPIThreshold;
         this.debug = debug;
         this.trace = trace;
@@ -558,8 +730,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final ImageButton imgButton = new ImageButton(renderModes, button2XSize,
                     button2YSize, imgSeq);
             try {
-                imgSeq.addFrame(gl, GPUUISceneGLListener0A.class, "button-released-145x53.png", TextureIO.PNG);
-                imgSeq.addFrame(gl, GPUUISceneGLListener0A.class, "button-pressed-145x53.png", TextureIO.PNG);
+                imgSeq.addFrame(gl, UISceneDemo20.class, "button-released-145x53.png", TextureIO.PNG);
+                imgSeq.addFrame(gl, UISceneDemo20.class, "button-pressed-145x53.png", TextureIO.PNG);
             } catch (final IOException e2) {
                 e2.printStackTrace();
             }
@@ -911,7 +1083,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
      * - no normal scale to 1, keep distance to near plane for rotation effects. We scale Shapes
      * - translate origin to bottom-left
      */
-    static class MyPMVMatrixSetup implements PMVMatrixSetup {
+    public static class MyPMVMatrixSetup implements PMVMatrixSetup {
         @Override
         public void set(final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
             final float ratio = (float)width/(float)height;
