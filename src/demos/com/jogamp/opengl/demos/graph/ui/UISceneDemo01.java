@@ -110,7 +110,7 @@ public class UISceneDemo01 {
                 window.setTitle(UISceneDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
             }
             @Override
-            public void windowDestroyed(final WindowEvent e) {
+            public void windowDestroyNotify(final WindowEvent e) {
                 animator.stop();
             }
         });
@@ -159,7 +159,7 @@ public class UISceneDemo01 {
         final long t0_us = Clock.currentNanos() / 1000; // [us]
         long t1_us = t0_us;
         shape.moveTo(min_obj, 0f, 0f); // move shape to min start position
-        while( shape.getPosition()[0] < max_obj ) {
+        while( shape.getPosition()[0] < max_obj && window.isNativeValid() ) {
             final long t2_us = Clock.currentNanos() / 1000;
             final float dt_s = ( t2_us - t1_us ) / 1e6f;
             t1_us = t2_us;
