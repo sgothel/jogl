@@ -50,8 +50,8 @@ public class MonitorEvent extends OutputEvent {
 
     public static String getEventTypeString(final short type) {
         switch(type) {
-        case EVENT_MONITOR_MODE_CHANGE_NOTIFY: return "EVENT_MONITOR_MODE_CHANGE_NOTIFY";
-        case EVENT_MONITOR_MODE_CHANGED: return "EVENT_MONITOR_MODE_CHANGED";
+        case EVENT_MONITOR_MODE_CHANGE_NOTIFY: return "MODE_CHANGE_NOTIFY";
+        case EVENT_MONITOR_MODE_CHANGED: return "MODE_CHANGED";
         default: return "unknown (" + type + ")";
         }
     }

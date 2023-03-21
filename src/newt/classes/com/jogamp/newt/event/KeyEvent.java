@@ -213,8 +213,8 @@ public class KeyEvent extends InputEvent
 
     public static String getEventTypeString(final short type) {
         switch(type) {
-        case EVENT_KEY_PRESSED: return "EVENT_KEY_PRESSED";
-        case EVENT_KEY_RELEASED: return "EVENT_KEY_RELEASED";
+        case EVENT_KEY_PRESSED: return "PRESSED";
+        case EVENT_KEY_RELEASED: return "RELEASED";
         default: return "unknown (" + type + ")";
         }
     }

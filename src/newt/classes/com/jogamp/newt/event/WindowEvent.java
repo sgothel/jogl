@@ -55,13 +55,13 @@ public class WindowEvent extends NEWTEvent {
 
     public static String getEventTypeString(final short type) {
         switch(type) {
-            case EVENT_WINDOW_RESIZED: return "WINDOW_RESIZED";
-            case EVENT_WINDOW_MOVED: return "WINDOW_MOVED";
-            case EVENT_WINDOW_DESTROY_NOTIFY: return "EVENT_WINDOW_DESTROY_NOTIFY";
-            case EVENT_WINDOW_GAINED_FOCUS: return "EVENT_WINDOW_GAINED_FOCUS";
-            case EVENT_WINDOW_LOST_FOCUS: return "EVENT_WINDOW_LOST_FOCUS";
-            case EVENT_WINDOW_REPAINT: return "EVENT_WINDOW_REPAINT";
-            case EVENT_WINDOW_DESTROYED: return "EVENT_WINDOW_DESTROYED";
+            case EVENT_WINDOW_RESIZED: return "RESIZED";
+            case EVENT_WINDOW_MOVED: return "MOVED";
+            case EVENT_WINDOW_DESTROY_NOTIFY: return "DESTROY_NOTIFY";
+            case EVENT_WINDOW_GAINED_FOCUS: return "GAINED_FOCUS";
+            case EVENT_WINDOW_LOST_FOCUS: return "LOST_FOCUS";
+            case EVENT_WINDOW_REPAINT: return "REPAINT";
+            case EVENT_WINDOW_DESTROYED: return "DESTROYED";
             default: return "unknown (" + type + ")";
         }
     }
