@@ -197,6 +197,10 @@ public class UISceneDemo10 {
         });
         window.addWindowListener(new WindowAdapter() {
             @Override
+            public void windowResized(final WindowEvent e) {
+                window.setTitle(UISceneDemo10.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+            }
+            @Override
             public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
             }

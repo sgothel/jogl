@@ -43,11 +43,8 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
-import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
-import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.demos.es2.GearsES2;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -108,6 +105,10 @@ public class UISceneDemo01 {
         window.setVisible(true);
         window.addGLEventListener(scene);
         window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowResized(final WindowEvent e) {
+                window.setTitle(UISceneDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+            }
             @Override
             public void windowDestroyed(final WindowEvent e) {
                 animator.stop();
