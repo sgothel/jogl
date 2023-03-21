@@ -31,8 +31,6 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.ui.gl.Shape;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -49,9 +47,9 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 public abstract class TexSeqButton extends RoundButton {
     protected final TextureSequence texSeq;
 
-    public TexSeqButton(final Factory<? extends Vertex> factory, final int renderModes,
-                         final float width, final float height, final TextureSequence texSeq) {
-        super(factory, renderModes | Region.COLORTEXTURE_RENDERING_BIT, width, height);
+    public TexSeqButton(final int renderModes, final float width,
+                        final float height, final TextureSequence texSeq) {
+        super(renderModes | Region.COLORTEXTURE_RENDERING_BIT, width, height);
         this.texSeq = texSeq;
     }
 

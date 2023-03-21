@@ -27,11 +27,7 @@
  */
 package com.jogamp.graph.ui.gl.shapes;
 
-import com.jogamp.opengl.GL2ES2;
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.ui.gl.Shape;
 
 /**
@@ -43,8 +39,8 @@ import com.jogamp.graph.ui.gl.Shape;
 public class Rectangle extends Shape {
     private float width, height, lineWidth;
 
-    public Rectangle(final Factory<? extends Vertex> factory, final int renderModes, final float width, final float height, final float linewidth) {
-        super(factory, renderModes);
+    public Rectangle(final int renderModes, final float width, final float height, final float linewidth) {
+        super(renderModes);
         this.width = width;
         this.height = height;
         this.lineWidth = linewidth;

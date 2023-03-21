@@ -27,11 +27,7 @@
  */
 package com.jogamp.opengl.demos.graph.ui.testshapes;
 
-import com.jogamp.opengl.GL2ES2;
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.geom.plane.Winding;
 import com.jogamp.graph.ui.gl.Shape;
 
@@ -42,8 +38,8 @@ import com.jogamp.graph.ui.gl.Shape;
  */
 public class Glyph01UbuntuLight_o extends Shape {
 
-    public Glyph01UbuntuLight_o(final Factory<? extends Vertex> factory, final int renderModes) {
-        super(factory, renderModes);
+    public Glyph01UbuntuLight_o(final int renderModes) {
+        super(renderModes);
     }
 
     @SuppressWarnings("unused")

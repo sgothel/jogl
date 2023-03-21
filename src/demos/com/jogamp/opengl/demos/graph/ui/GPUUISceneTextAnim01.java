@@ -131,7 +131,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
 
     private void setupUI(final GLAutoDrawable drawable) {
         final float pixelSizeFixed = fontSizeFixedPVP * drawable.getSurfaceHeight();
-        jogampLabel = new Label(scene.getVertexFactory(), renderModes, font, pixelSizeFixed, jogamp);
+        jogampLabel = new Label(renderModes, font, pixelSizeFixed, jogamp);
         jogampLabel.addMouseListener(dragZoomRotateListener);
         scene.addShape(jogampLabel);
         jogampLabel.setEnabled(true);
@@ -145,7 +145,7 @@ public class GPUUISceneTextAnim01 implements GLEventListener {
          * [FPS] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 15.679012
          */
         final float pixelSizeFPS = fontSizeFpsPVP * drawable.getSurfaceHeight();
-        fpsLabel = new Label(scene.getVertexFactory(), renderModes, fontFPS, pixelSizeFPS, "Nothing there yet");
+        fpsLabel = new Label(renderModes, fontFPS, pixelSizeFPS, "Nothing there yet");
         fpsLabel.addMouseListener(dragZoomRotateListener);
         scene.addShape(fpsLabel);
         fpsLabel.setEnabled(true);

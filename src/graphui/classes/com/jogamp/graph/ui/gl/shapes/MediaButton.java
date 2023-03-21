@@ -30,8 +30,6 @@ package com.jogamp.graph.ui.gl.shapes;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
@@ -51,17 +49,15 @@ public class MediaButton extends TexSeqButton {
     private boolean verbose = false;
 
     /**
-     * @param factory
      * @param renderModes
      * @param width
      * @param height
      * @param mPlayer
      * @param mPlayerListener
      */
-    public MediaButton(final Factory<? extends Vertex> factory, final int renderModes,
-                             final float width, final float height,
-                             final GLMediaPlayer mPlayer) {
-        super(factory, renderModes, width, height, mPlayer);
+    public MediaButton(final int renderModes, final float width,
+                       final float height, final GLMediaPlayer mPlayer) {
+        super(renderModes, width, height, mPlayer);
         setColor(0.8f, 0.8f, 0.8f, 1.0f);
         setPressedColorMod(1.1f, 1.1f, 1.1f, 0.7f);
         setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);

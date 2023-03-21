@@ -34,6 +34,7 @@ import java.util.Comparator;
 import com.jogamp.graph.curve.tess.Triangulation;
 import com.jogamp.graph.curve.tess.Triangulator;
 import com.jogamp.graph.geom.Outline;
+import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.plane.AffineTransform;
@@ -187,7 +188,18 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     private final float[] tmpV2 = new float[3];
     private final float[] tmpV3 = new float[3];
 
-    /** Create a new Outline based Shape
+    /** Returns the default Vertex.Factory. */
+    public static Vertex.Factory<? extends Vertex> getDefaultVertexFactory() { return SVertex.factory(); }
+
+    /**
+     * Create a new Outline based Shape using {@link #getDefaultVertexFactory()}
+     */
+    public OutlineShape() {
+        this(getDefaultVertexFactory());
+    }
+
+    /**
+     * Create a new Outline based Shape
      */
     public OutlineShape(final Vertex.Factory<? extends Vertex> factory) {
         this.vertexFactory = factory;

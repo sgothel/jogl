@@ -47,8 +47,6 @@ import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.geom.SVertex;
-import com.jogamp.graph.geom.Vertex;
 
 /**
  * OpenGL {@link Region} renderer
@@ -164,7 +162,7 @@ public final class RegionRenderer {
      * @see #enable(GL2ES2, boolean)
      */
     public static RegionRenderer create(final GLCallback enableCallback, final GLCallback disableCallback) {
-        return new RegionRenderer(null, enableCallback, disableCallback);
+        return new RegionRenderer(enableCallback, disableCallback);
     }
 
     /**
@@ -175,30 +173,6 @@ public final class RegionRenderer {
      * For example, instances {@link #defaultBlendEnable} and {@link #defaultBlendDisable}
      * can be utilized to enable and disable {@link GL#GL_BLEND}.
      * </p>
-     * @param pointFactory optional {@link Vertex.Factory} to be used for the {@link RenderState} composition,
-     *                     If null, SVertex.factory() will be used.
-     * @param enableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
-     *                       {@link #init(GL2ES2) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
-     * @param disableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
-     *                        {@link #enable(GL2ES2, boolean) enable(gl, false)}.
-     * @return an instance of Region Renderer
-     * @see #enable(GL2ES2, boolean)
-     */
-    public static RegionRenderer create(final Vertex.Factory<? extends Vertex> pointFactory,
-                                        final GLCallback enableCallback, final GLCallback disableCallback) {
-        return new RegionRenderer(pointFactory, enableCallback, disableCallback);
-    }
-
-    /**
-     * Create a hardware accelerated RegionRenderer including its {@link RenderState} composition.
-     * <p>
-     * The optional {@link GLCallback}s <code>enableCallback</code> and <code>disableCallback</code>
-     * maybe used to issue certain tasks at {@link #enable(GL2ES2, boolean)}.<br/>
-     * For example, instances {@link #defaultBlendEnable} and {@link #defaultBlendDisable}
-     * can be utilized to enable and disable {@link GL#GL_BLEND}.
-     * </p>
-     * @param pointFactory optional {@link Vertex.Factory} to be used for the {@link RenderState} composition.
-     *                     If null, SVertex.factory() will be used.
      * @param sharedPMVMatrix optional shared {@link PMVMatrix} to be used for the {@link RenderState} composition.
      * @param enableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
      *                       {@link #init(GL2ES2) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
@@ -207,9 +181,9 @@ public final class RegionRenderer {
      * @return an instance of Region Renderer
      * @see #enable(GL2ES2, boolean)
      */
-    public static RegionRenderer create(final Vertex.Factory<? extends Vertex> pointFactory, final PMVMatrix sharedPMVMatrix,
+    public static RegionRenderer create(final PMVMatrix sharedPMVMatrix,
                                         final GLCallback enableCallback, final GLCallback disableCallback) {
-        return new RegionRenderer(pointFactory, sharedPMVMatrix, enableCallback, disableCallback);
+        return new RegionRenderer(sharedPMVMatrix, enableCallback, disableCallback);
     }
 
     private final RenderState rs;
@@ -242,18 +216,17 @@ public final class RegionRenderer {
 
     //////////////////////////////////////
 
-    protected RegionRenderer(final Vertex.Factory<? extends Vertex> pointFactory,
-                             final GLCallback enableCallback, final GLCallback disableCallback)
+    protected RegionRenderer(final GLCallback enableCallback, final GLCallback disableCallback)
     {
-        this.rs = new RenderState(pointFactory, null);
+        this.rs = new RenderState(null);
         this.enableCallback = enableCallback;
         this.disableCallback = disableCallback;
     }
 
-    protected RegionRenderer(final Vertex.Factory<? extends Vertex> pointFactory, final PMVMatrix sharedPMVMatrix,
+    protected RegionRenderer(final PMVMatrix sharedPMVMatrix,
                              final GLCallback enableCallback, final GLCallback disableCallback)
     {
-        this.rs = new RenderState(pointFactory, sharedPMVMatrix);
+        this.rs = new RenderState(sharedPMVMatrix);
         this.enableCallback = enableCallback;
         this.disableCallback = disableCallback;
     }

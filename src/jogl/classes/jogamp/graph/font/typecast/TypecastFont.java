@@ -27,6 +27,13 @@
  */
 package jogamp.graph.font.typecast;
 
+import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.opengl.math.geom.AABBox;
+
 import jogamp.graph.font.typecast.ot.OTFontCollection;
 import jogamp.graph.font.typecast.ot.TTFont;
 import jogamp.graph.font.typecast.ot.table.CmapFormat;
@@ -42,18 +49,8 @@ import jogamp.graph.font.typecast.ot.table.KernTable;
 import jogamp.graph.font.typecast.ot.table.KerningPair;
 import jogamp.graph.font.typecast.ot.table.PostTable;
 
-import com.jogamp.common.util.IntObjectHashMap;
-import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.SVertex;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.opengl.math.geom.AABBox;
-
 class TypecastFont implements Font {
     static final boolean DEBUG = false;
-    private static final Vertex.Factory<SVertex> vertexFactory = SVertex.factory();
 
     // private final OTFontCollection fontset;
     /* pp */ final TTFont font;
@@ -207,7 +204,7 @@ class TypecastFont implements Font {
                 glyph_advance = glyph.getAdvanceWidth();
                 glyph_leftsidebearings = glyph.getLeftSideBearing();
                 glyph_bbox = glyph.getBBox();
-                shape = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph, vertexFactory);
+                shape = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph, OutlineShape.getDefaultVertexFactory());
             } else {
                 final int glyph_height = metrics.getAscentFU() - metrics.getDescentFU();
                 glyph_advance = getAdvanceWidthFU(glyph_id);

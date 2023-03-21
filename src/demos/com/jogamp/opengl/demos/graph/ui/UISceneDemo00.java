@@ -34,7 +34,6 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.ui.gl.Scene;
 import com.jogamp.graph.ui.gl.Shape;
 import com.jogamp.graph.ui.gl.shapes.Button;
@@ -81,7 +80,7 @@ public class UISceneDemo00 {
         final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final Shape shape = new Button(SVertex.factory(), renderModes, font, "+", 0.10f, 0.10f/2.5f); // normalized: 1 is 100% surface size (width and/or height)
+        final Shape shape = new Button(renderModes, font, "+", 0.10f, 0.10f/2.5f); // normalized: 1 is 100% surface size (width and/or height)
         System.err.println("Shape bounds "+shape.getBounds(glp));
 
         final Scene scene = new Scene();

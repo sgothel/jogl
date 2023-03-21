@@ -37,7 +37,6 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.ui.gl.Scene;
 import com.jogamp.graph.ui.gl.Shape;
 import com.jogamp.graph.ui.gl.shapes.Button;
@@ -245,7 +244,7 @@ public class UISceneDemo10 {
             }
             final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
             // mPlayer.setTextureUnit(texUnitMediaPlayer);
-            final MediaButton b = new MediaButton(SVertex.factory(), renderModes, sw, sh, mPlayer);
+            final MediaButton b = new MediaButton(renderModes, sw, sh, mPlayer);
             b.setVerbose(false);
             b.addDefaultEventListener();
             b.setToggleable(true);
@@ -268,8 +267,8 @@ public class UISceneDemo10 {
                 glel = gears;
             }
             final int texUnit = 1;
-            final GLButton b = new GLButton(SVertex.factory(), renderModes,
-                                            sw, sh, texUnit, glel, false /* useAlpha */);
+            final GLButton b = new GLButton(renderModes, sw,
+                                            sh, texUnit, glel, false /* useAlpha */);
             b.setToggleable(true);
             b.setToggle(true); // toggle == true -> animation
             b.setAnimate(true);
@@ -280,11 +279,11 @@ public class UISceneDemo10 {
                 } } );
             return b;
         } else if( true ){
-            final Button b = new Button(SVertex.factory(), renderModes, font, "+", sw, sh);
+            final Button b = new Button(renderModes, font, "+", sw, sh);
             b.setCorner(0.0f);
             return b;
         } else {
-            final CrossHair b = new CrossHair(SVertex.factory(), renderModes, sw, sw, 1f/100f);
+            final CrossHair b = new CrossHair(renderModes, sw, sw, 1f/100f);
             return b;
         }
     }

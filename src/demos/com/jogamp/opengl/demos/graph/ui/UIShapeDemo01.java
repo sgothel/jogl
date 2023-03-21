@@ -52,7 +52,6 @@ import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.gl.Shape;
 import com.jogamp.graph.ui.gl.shapes.Button;
@@ -182,7 +181,7 @@ public class UIShapeDemo01 implements GLEventListener {
 
         final float sz1_w = 1/8f;
         final float sz2 = 1/20f;
-        button = new Button(SVertex.factory(), renderModes, font, "Click me!", sz1_w, sz1_w/2f);
+        button = new Button(renderModes, font, "Click me!", sz1_w, sz1_w/2f);
         button.setLabelColor(0.0f,0.0f,0.0f);
         /** Button defaults !
                 button.setLabelColor(1.0f,1.0f,1.0f);
@@ -191,7 +190,7 @@ public class UIShapeDemo01 implements GLEventListener {
                 button.setSpacing(2.0f);
          */
         System.err.println(button);
-        crossHair = new CrossHair(SVertex.factory(), renderModes, sz2, sz2, 1/1000f);
+        crossHair = new CrossHair(renderModes, sz2, sz2, 1/1000f);
         crossHair.setColor(0f,0f,1f,1f);
         crossHair.setEnabled(true);
     }

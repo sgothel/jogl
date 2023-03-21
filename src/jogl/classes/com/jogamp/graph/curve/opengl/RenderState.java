@@ -38,8 +38,6 @@ import jogamp.common.os.PlatformPropsImpl;
 import jogamp.graph.curve.opengl.shader.UniformNames;
 
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.geom.SVertex;
-import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
@@ -92,7 +90,6 @@ public class RenderState {
         return (RenderState) gl.getContext().getAttachedObject(thisKey);
     }
 
-    private final Vertex.Factory<? extends Vertex> vertexFactory;
     private final PMVMatrix pmvMatrix;
     private final float[] weight;
     private final FloatBuffer weightBuffer;
@@ -187,13 +184,11 @@ public class RenderState {
 
     /**
      * Create a RenderState, a composition of RegionRenderer
-     * @param vertexFactory used Vertex.Factory, if null SVertex.factory() will be used.
      * @param sharedPMVMatrix optional shared PMVMatrix, if null using a local instance
      */
-    /* pp */ RenderState(final Vertex.Factory<? extends Vertex> vertexFactory, final PMVMatrix sharedPMVMatrix) {
+    /* pp */ RenderState(final PMVMatrix sharedPMVMatrix) {
         this.id = getNextID();
         this.sp = null;
-        this.vertexFactory = null != vertexFactory ? vertexFactory : SVertex.factory();
         this.pmvMatrix = null != sharedPMVMatrix ? sharedPMVMatrix : new PMVMatrix();
         this.weight = new float[1];
         this.weightBuffer = FloatBuffer.wrap(weight);
@@ -232,8 +227,6 @@ public class RenderState {
         spNext.useProgram(gl, true);
         return true;
     }
-
-    public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
 
     public final PMVMatrix getMatrix() { return pmvMatrix; }
 

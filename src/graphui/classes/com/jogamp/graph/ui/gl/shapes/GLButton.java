@@ -37,8 +37,6 @@ import com.jogamp.opengl.GLDrawableFactory;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLOffscreenAutoDrawable;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.util.texture.ImageSequence;
 import com.jogamp.opengl.util.texture.Texture;
@@ -64,10 +62,9 @@ public class GLButton extends TexSeqButton {
     private volatile GLOffscreenAutoDrawable.FBO fboGLAD = null;
     private boolean animateGLEL = false;
 
-    public GLButton(final Factory<? extends Vertex> factory, final int renderModes,
-                                 final float width, final float height, final int textureUnit,
-                                 final GLEventListener glel, final boolean useAlpha) {
-        super(factory, renderModes, width, height, new ImageSequence(textureUnit, true));
+    public GLButton(final int renderModes, final float width, final float height,
+                    final int textureUnit, final GLEventListener glel, final boolean useAlpha) {
+        super(renderModes, width, height, new ImageSequence(textureUnit, true));
         this.glel = glel;
         this.useAlpha = useAlpha;
 

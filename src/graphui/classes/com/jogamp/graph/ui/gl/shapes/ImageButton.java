@@ -29,8 +29,6 @@ package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.util.texture.ImageSequence;
 
 /**
@@ -45,9 +43,9 @@ import com.jogamp.opengl.util.texture.ImageSequence;
  */
 public class ImageButton extends TexSeqButton {
 
-    public ImageButton(final Factory<? extends Vertex> factory, final int renderModes,
-                         final float width, final float height, final ImageSequence texSeq) {
-        super(factory, renderModes, width, height, texSeq);
+    public ImageButton(final int renderModes, final float width,
+                       final float height, final ImageSequence texSeq) {
+        super(renderModes, width, height, texSeq);
         setColor(0.95f, 0.95f, 0.95f, 1.0f);
         setPressedColorMod(1f, 1f, 1f, 0.9f);
         setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);

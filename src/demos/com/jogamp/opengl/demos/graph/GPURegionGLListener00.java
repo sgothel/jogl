@@ -51,13 +51,13 @@ public class GPURegionGLListener00 extends GPURendererListenerBase01 {
     OutlineShape outlineShape = null;
 
     public GPURegionGLListener00 (final int renderModes, final int sampleCount, final boolean debug, final boolean trace) {
-        super(RegionRenderer.create(null, RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
+        super(RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
         this.getRenderer().getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         setMatrix(-20, 00, -50, 0f, sampleCount);
     }
 
     private void createTestOutline(final GLProfile glp){
-        outlineShape = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
+        outlineShape = new OutlineShape();
         outlineShape.addVertex(0.0f,-10.0f, true);
         outlineShape.addVertex(15.0f,-10.0f, true);
         outlineShape.addVertex(10.0f,5.0f, false);

@@ -33,8 +33,6 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.geom.AABBox;
 
 import jogamp.graph.ui.shapes.Label0;
@@ -62,10 +60,10 @@ public class Button extends RoundButton {
     private float spacingX = DEFAULT_SPACING_X;
     private float spacingY = DEFAULT_SPACING_Y;
 
-    public Button(final Factory<? extends Vertex> factory, final int renderModes,
-                       final Font labelFont, final String labelText,
-                       final float width, final float height) {
-        super(factory, renderModes | Region.COLORCHANNEL_RENDERING_BIT, width, height);
+    public Button(final int renderModes, final Font labelFont,
+                  final String labelText, final float width,
+                  final float height) {
+        super(renderModes | Region.COLORCHANNEL_RENDERING_BIT, width, height);
         this.label = new Label0(labelFont, labelText, new float[] { 1.33f, 1.33f, 1.33f, 1.0f }); // 0.75 * 1.33 = 1.0
         setColor(0.75f, 0.75f, 0.75f, 1.0f);
         setPressedColorMod(0.9f, 0.9f, 0.9f, 0.7f);

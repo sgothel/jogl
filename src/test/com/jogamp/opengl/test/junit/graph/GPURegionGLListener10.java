@@ -57,7 +57,7 @@ public class GPURegionGLListener10 extends GPURendererListenerBase01 {
     }
 
     private void createTestOutline(final GLProfile glp){
-        OutlineShape shape = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
+        OutlineShape shape = new OutlineShape();
         outlineShapes.add(shape);
         shape.addVertex(0.0f,-10.0f,true);
         shape.addVertex(15.0f,-10.0f, true);
@@ -75,7 +75,7 @@ public class GPURegionGLListener10 extends GPURendererListenerBase01 {
         shape.closeLastOutline(true);
 
         /** Same shape as above but without any off-curve vertices */
-        shape = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
+        shape = new OutlineShape();
         outlineShapes.add(shape);
         final float offset = 30;
         shape.addVertex(offset+0.0f,-10.0f, true);

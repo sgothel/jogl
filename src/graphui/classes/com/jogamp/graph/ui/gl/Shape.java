@@ -121,8 +121,8 @@ public abstract class Shape {
 
     private Listener onMoveListener = null;
 
-    public Shape(final Factory<? extends Vertex> factory, final int renderModes) {
-        this.vertexFactory = factory;
+    public Shape(final int renderModes) {
+        this.vertexFactory = OutlineShape.getDefaultVertexFactory();
         this.renderModes = renderModes;
         this.box = new AABBox();
     }
@@ -131,8 +131,6 @@ public abstract class Shape {
     public final void setName(final int name) { this.name = name; }
     /** Return the optional symbolic name for this shape. */
     public final int getName() { return this.name; }
-
-    public final Vertex.Factory<? extends Vertex> getVertexFactory() { return vertexFactory; }
 
     /** Returns true if this shape is enabled and hence visible, otherwise false. */
     public final boolean isEnabled() { return enabled; }

@@ -34,8 +34,6 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.gl.Shape;
 
@@ -52,14 +50,13 @@ public class Label extends Shape {
 
     /**
      * Label ctor
-     * @param factory Vertex factory
      * @param renderModes region renderModes
      * @param font the font
      * @param fontScale font-scale factor, by which the em-sized type glyphs shall be scaled
      * @param text the text to render
      */
-    public Label(final Factory<? extends Vertex> factory, final int renderModes, final Font font, final float fontScale, final String text) {
-        super(factory, renderModes);
+    public Label(final int renderModes, final Font font, final float fontScale, final String text) {
+        super(renderModes);
         this.font = font;
         this.fontScale = fontScale;
         this.text = text;
@@ -166,7 +163,15 @@ public class Label extends Shape {
         @Override
         public void visit(final OutlineShape shape, final AffineTransform t) {
             shape.setSharpness(shapesSharpness);
-            region.addOutlineShape(shape, t, rgbaColor);
+            try {
+                region.addOutlineShape(shape, t, rgbaColor);
+            } catch ( final Exception ex ) {
+                ex.printStackTrace();
+                System.err.println("Ex from "+Label.this);
+                System.err.println("Ex from "+region.toString());
+                region.printBufferStats(System.err);
+                System.exit(-1);
+            }
         }
     };
 

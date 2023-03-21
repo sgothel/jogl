@@ -27,11 +27,7 @@
  */
 package com.jogamp.opengl.demos.graph.ui.testshapes;
 
-import com.jogamp.opengl.GL2ES2;
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.ui.gl.Shape;
 
 /**
@@ -41,8 +37,8 @@ import com.jogamp.graph.ui.gl.Shape;
  */
 public class Glyph05FreeSerifBoldItalic_ae extends Shape {
 
-    public Glyph05FreeSerifBoldItalic_ae(final Factory<? extends Vertex> factory, final int renderModes) {
-        super(factory, renderModes);
+    public Glyph05FreeSerifBoldItalic_ae(final int renderModes) {
+        super(renderModes);
     }
 
     @Override

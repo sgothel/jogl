@@ -254,7 +254,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
         gl.glEnable(GL.GL_BLEND);
         rs.setColorStatic(0.0f, 0.0f, 0.0f, 1.0f);
 
-        outlineShape = new OutlineShape(getRenderer().getRenderState().getVertexFactory());
+        outlineShape = new OutlineShape();
         switch( shape_ctor_mode ) {
             case 0:
                 createTestOutline00();

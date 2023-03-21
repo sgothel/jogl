@@ -46,8 +46,6 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.geom.SVertex;
-import com.jogamp.graph.geom.Vertex;
 import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.MouseEvent;
@@ -117,11 +115,8 @@ public final class Scene implements GLEventListener {
 
     private GLAutoDrawable cDrawable = null;
 
-    /** Returns the default Vertex.Factory. */
-    public static Vertex.Factory<? extends Vertex> getDefaultVertexFactory() { return SVertex.factory(); }
-
     private static RegionRenderer createRenderer() {
-        return RegionRenderer.create(getDefaultVertexFactory(), RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        return RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
     }
 
     /**
@@ -149,9 +144,6 @@ public final class Scene implements GLEventListener {
 
     /** Returns the associated RegionRenderer's RenderState. */
     public RenderState getRenderState() { return renderer.getRenderState(); }
-
-    /** Returns the used Vertex.Factory, as used by Region and RegionRenderer. */
-    public final Vertex.Factory<? extends Vertex> getVertexFactory() { return renderer.getRenderState().getVertexFactory(); }
 
     /**
      * Sets the clear parameter for {@link GL#glClearColor(float, float, float, float) glClearColor(..)} and {@link GL#glClear(int) glClear(..)}

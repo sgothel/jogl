@@ -56,7 +56,6 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.ui.gl.Scene;
 import com.jogamp.graph.ui.gl.Shape;
 import com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup;
@@ -281,7 +280,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         final float diffX = 1.2f * buttonXSize;
         final float diffY = 1.5f * buttonYSize;
 
-        Button button = new Button(SVertex.factory(), renderModes, font, "Next Text", buttonXSize, buttonYSize);
+        Button button = new Button(renderModes, font, "Next Text", buttonXSize, buttonYSize);
         button.setName(BUTTON_NEXTTEXT);
         button.move(xStartLeft, yStartTop-diffY*buttons.size(), 0f);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -298,7 +297,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new Button(SVertex.factory(), renderModes, font, "Show FPS", buttonXSize, buttonYSize);
+        button = new Button(renderModes, font, "Show FPS", buttonXSize, buttonYSize);
         button.setName(BUTTON_FPS);
         button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.setToggleable(true);
@@ -315,7 +314,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new Button(SVertex.factory(), renderModes, font, "V-Sync", buttonXSize, buttonYSize);
+        button = new Button(renderModes, font, "V-Sync", buttonXSize, buttonYSize);
         button.setName(BUTTON_VSYNC);
         button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.setToggleable(true);
@@ -339,7 +338,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new Button(SVertex.factory(), renderModes, font, "< Tilt >", buttonXSize, buttonYSize);
+        button = new Button(renderModes, font, "< Tilt >", buttonXSize, buttonYSize);
         button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
@@ -358,7 +357,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         buttons.add(button);
 
         if( pass2Mode ) { // second column to the left
-            button = new Button(SVertex.factory(), renderModes, font, "< Samples >", buttonXSize, buttonYSize);
+            button = new Button(renderModes, font, "< Samples >", buttonXSize, buttonYSize);
             button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -377,7 +376,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
             buttons.add(button);
 
-            button = new Button(SVertex.factory(), renderModes, font, "< Quality >", buttonXSize, buttonYSize);
+            button = new Button(renderModes, font, "< Quality >", buttonXSize, buttonYSize);
             button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -402,7 +401,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
         }
 
-        button = new Button(SVertex.factory(), renderModes, font, "Quit", buttonXSize, buttonYSize);
+        button = new Button(renderModes, font, "Quit", buttonXSize, buttonYSize);
         button.setName(BUTTON_QUIT);
         button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.setColor(0.7f, 0.0f, 0.0f, 1.0f);
@@ -430,7 +429,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         {
             final int j = 1; // column
             int k = 0; // row
-            button = new Button(SVertex.factory(), renderModes, font, "Y Flip", buttonXSize, buttonYSize);
+            button = new Button(renderModes, font, "Y Flip", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -441,7 +440,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
 
             k++;
-            button = new Button(SVertex.factory(), renderModes, font, "X Flip", buttonXSize, buttonYSize);
+            button = new Button(renderModes, font, "X Flip", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -452,7 +451,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new Button(SVertex.factory(), renderModes, font, "< Space >", buttonXSize, buttonYSize);
+            button = new Button(renderModes, font, "< Space >", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -473,7 +472,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new Button(SVertex.factory(), renderModes, font, "< Corner >", buttonXSize, buttonYSize);
+            button = new Button(renderModes, font, "< Corner >", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -494,7 +493,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new Button(SVertex.factory(), renderModes, font, "Reset", buttonXSize, buttonYSize);
+            button = new Button(renderModes, font, "Reset", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -505,7 +504,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new Button(SVertex.factory(), renderModes, font, "Snapshot", buttonXSize, buttonYSize);
+            button = new Button(renderModes, font, "Snapshot", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -536,8 +535,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if( true ) {
             final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
             mPlayer.setTextureUnit(texUnitMediaPlayer);
-            final MediaButton mPlayerButton = new MediaButton(scene.getVertexFactory(), renderModes,
-                    button2XSize, button2YSize, mPlayer);
+            final MediaButton mPlayerButton = new MediaButton(renderModes, button2XSize,
+                    button2YSize, mPlayer);
             mPlayerButton.setName(BUTTON_MOVIE);
             mPlayerButton.setVerbose(false);
             mPlayerButton.addDefaultEventListener();
@@ -556,8 +555,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         }
         if( true ) {
             final ImageSequence imgSeq = new ImageSequence(texUnitImageButton, true);
-            final ImageButton imgButton = new ImageButton(scene.getVertexFactory(), renderModes,
-                    button2XSize, button2YSize, imgSeq);
+            final ImageButton imgButton = new ImageButton(renderModes, button2XSize,
+                    button2YSize, imgSeq);
             try {
                 imgSeq.addFrame(gl, GPUUISceneGLListener0A.class, "button-released-145x53.png", TextureIO.PNG);
                 imgSeq.addFrame(gl, GPUUISceneGLListener0A.class, "button-pressed-145x53.png", TextureIO.PNG);
@@ -606,9 +605,9 @@ public class GPUUISceneGLListener0A implements GLEventListener {
                     System.err.println("Gears Anim: End");
                 }
             }).start();
-            final GLButton b = new GLButton(scene.getVertexFactory(), renderModes,
-                    button2XSize, button2YSize,
-                    texUnitGLELButton, gears, false /* useAlpha */);
+            final GLButton b = new GLButton(renderModes, button2XSize,
+                    button2YSize, texUnitGLELButton,
+                    gears, false /* useAlpha */);
             b.setName(BUTTON_GLEL);
             b.setToggleable(true);
             b.setToggle(false); // toggle == true -> animation
@@ -667,7 +666,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         scene.surfaceToPlaneSize(new int[] { 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight()}, sceneSize);
 
         final float modelSizeFixed = fontSizeFixedNorm * sceneSize[1];
-        jogampLabel = new Label(scene.getVertexFactory(), renderModes, font, modelSizeFixed, jogamp);
+        jogampLabel = new Label(renderModes, font, modelSizeFixed, jogamp);
         jogampLabel.addMouseListener(dragZoomRotateListener);
         scene.addShape(jogampLabel);
         jogampLabel.setEnabled(enableOthers);
@@ -675,7 +674,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         final float pixelSize10Pt = FontScale.toPixels(fontSizePt, dpiV);
         final float modelSize10Pt = pixelSize10Pt / drawable.getSurfaceHeight() * sceneSize[1];
         System.err.println("10Pt PixelSize: Display "+dpiV+" dpi, fontSize "+fontSizePt+" ppi -> "+pixelSize10Pt+" pixe-size, "+modelSize10Pt+" model-size");
-        truePtSizeLabel = new Label(scene.getVertexFactory(), renderModes, font, modelSize10Pt, truePtSize);
+        truePtSizeLabel = new Label(renderModes, font, modelSize10Pt, truePtSize);
         scene.addShape(truePtSizeLabel);
         truePtSizeLabel.setEnabled(enableOthers);
         truePtSizeLabel.move(0, - 1.5f * jogampLabel.getLineHeight(), 0f);
@@ -688,7 +687,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
          */
         final float pixelSizeFPS = fontSizeFpsNorm * drawable.getSurfaceHeight();
         final float modelSizeFPS = pixelSizeFPS / drawable.getSurfaceHeight() * sceneSize[1];
-        fpsLabel = new Label(scene.getVertexFactory(), renderModes, fontFPS, modelSizeFPS, "Nothing there yet");
+        fpsLabel = new Label(renderModes, fontFPS, modelSizeFPS, "Nothing there yet");
         fpsLabel.addMouseListener(dragZoomRotateListener);
         scene.addShape(fpsLabel);
         fpsLabel.setEnabled(enableOthers);
@@ -849,7 +848,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             final float pixelSizeFixed = fontSizeFixedNorm * scene.getBounds().getHeight();
             final float dyTop = scene.getBounds().getHeight() - 2f*jogampLabel.getLineHeight();
             final float dxMiddle = scene.getBounds().getWidth() * relMiddle;
-            labels[currentText] = new Label(scene.getVertexFactory(), renderModes, font, pixelSizeFixed, strings[currentText]);
+            labels[currentText] = new Label(renderModes, font, pixelSizeFixed, strings[currentText]);
             labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
             labels[currentText].setEnabled(enableOthers);
             labels[currentText].move(dxMiddle,

@@ -27,11 +27,7 @@
  */
 package com.jogamp.graph.ui.gl.shapes;
 
-import com.jogamp.opengl.GL2ES2;
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.ui.gl.Shape;
 
 /**
@@ -52,8 +48,8 @@ public abstract class RoundButton extends Shape {
     protected float height;
     protected float corner = DEFAULT_CORNER;
 
-    protected RoundButton(final Factory<? extends Vertex> factory, final int renderModes, final float width, final float height) {
-        super(factory, renderModes);
+    protected RoundButton(final int renderModes, final float width, final float height) {
+        super(renderModes);
         this.width = width;
         this.height = height;
     }

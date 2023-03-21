@@ -34,7 +34,6 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.ui.gl.Scene;
 import com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup;
 import com.jogamp.graph.ui.gl.Shape;
@@ -241,8 +240,8 @@ public class UISceneDemo01 {
             }
         }).start();
         final int texUnit = 1;
-        final GLButton b = new GLButton(SVertex.factory(), renderModes,
-                                        sw, sh, texUnit, gears, false /* useAlpha */);
+        final GLButton b = new GLButton(renderModes, sw,
+                                        sh, texUnit, gears, false /* useAlpha */);
         b.setToggleable(true);
         b.setToggle(true); // toggle == true -> animation
         b.setAnimate(true);
