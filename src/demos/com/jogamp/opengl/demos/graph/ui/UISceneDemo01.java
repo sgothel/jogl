@@ -191,16 +191,18 @@ public class UISceneDemo01 {
             pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
             pmv.glTranslatef(0f, 0f, Scene.DEFAULT_SCENE_DIST);
 
+            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmv.glLoadIdentity();
+
             // Scale (back) to have normalized plane dimensions, 100 for the greater of width and height.
             final AABBox planeBox0 = new AABBox();
             setPlaneBox(planeBox0, pmv, x, y, width, height);
             final float sx = planeBox0.getWidth();
             final float sy = planeBox0.getHeight();
             final float sxy = sx > sy ? sx : sy;
+            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmv.glScalef(sxy / 100f, sxy / 100f, 1f);
-
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
         }
 
         @Override

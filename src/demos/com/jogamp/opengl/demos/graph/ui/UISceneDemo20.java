@@ -1092,13 +1092,15 @@ public class UISceneDemo20 implements GLEventListener {
             pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
             pmv.glTranslatef(0f, 0f, Scene.DEFAULT_SCENE_DIST);
 
+            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmv.glLoadIdentity();
+
             // Translate origin to bottom-left
             final AABBox planeBox0 = new AABBox();
             setPlaneBox(planeBox0, pmv, x, y, width, height);
+            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmv.glTranslatef(planeBox0.getMinX(), planeBox0.getMinY(), 0f);
-
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
         }
 
         @Override

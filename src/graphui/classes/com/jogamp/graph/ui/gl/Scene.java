@@ -942,16 +942,18 @@ public final class Scene implements GLEventListener {
             pmv.gluPerspective(DEFAULT_ANGLE, ratio, DEFAULT_ZNEAR, DEFAULT_ZFAR);
             pmv.glTranslatef(0f, 0f, DEFAULT_SCENE_DIST);
 
+            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmv.glLoadIdentity();
+
             // Scale (back) to have normalized plane dimensions, 1 for the greater of width and height.
             final AABBox planeBox0 = new AABBox();
             setPlaneBox(planeBox0, pmv, x, y, width, height);
             final float sx = planeBox0.getWidth();
             final float sy = planeBox0.getHeight();
             final float sxy = sx > sy ? sx : sy;
+            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmv.glScalef(sxy, sxy, 1f);
-
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
         }
 
         @Override
