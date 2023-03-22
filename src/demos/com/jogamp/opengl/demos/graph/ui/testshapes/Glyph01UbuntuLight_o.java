@@ -291,7 +291,7 @@ public class Glyph01UbuntuLight_o extends Shape {
         // End Shape for Glyph 82
 
         shape.setIsQuadraticNurbs();
-        shape.setSharpness(shapesSharpness);
+        shape.setSharpness(oshapeSharpness);
         region.addOutlineShape(shape, null, rgbaColor);
 
         box.resize(shape.getBounds());

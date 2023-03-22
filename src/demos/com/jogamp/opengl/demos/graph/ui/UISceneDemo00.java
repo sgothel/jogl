@@ -48,7 +48,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
 
 /**
- * Res independent Shape, in Scene attached to GLWindow showing simple linear Shape movement within one main function.
+ * Res independent Shape, Scene attached to GLWindow showing simple linear Shape movement within one main function.
  * <p>
  * The shape is created using the normalized scene's default bounding box, normalized to 1 for the greater of width and height.
  * </p>

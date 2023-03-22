@@ -52,7 +52,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
 
 /**
- * Res independent Shape, in Scene attached to GLWindow showing simple linear Shape movement.
+ * Res independent Shape, Scene attached to GLWindow showing simple linear Shape movement.
  * <p>
  * This variation of {@link UISceneDemo00} uses a {@link GLButton} shape with animating and rotating gears
  * and sets up an own {@link Scene.PMVMatrixSetup} with a plane dimension of 100.

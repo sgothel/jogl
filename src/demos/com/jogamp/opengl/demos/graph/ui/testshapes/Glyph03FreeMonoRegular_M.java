@@ -779,7 +779,7 @@ public class Glyph03FreeMonoRegular_M extends Shape {
         }
 
         shape.setIsQuadraticNurbs();
-        shape.setSharpness(shapesSharpness);
+        shape.setSharpness(oshapeSharpness);
         region.addOutlineShape(shape, null, rgbaColor);
 
         box.resize(shape.getBounds());

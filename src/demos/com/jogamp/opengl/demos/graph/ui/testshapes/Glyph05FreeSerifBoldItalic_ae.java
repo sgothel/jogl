@@ -262,7 +262,7 @@ public class Glyph05FreeSerifBoldItalic_ae extends Shape {
         // End Shape for Glyph 168
 
         shape.setIsQuadraticNurbs();
-        shape.setSharpness(shapesSharpness);
+        shape.setSharpness(oshapeSharpness);
         region.addOutlineShape(shape, null, rgbaColor);
 
         box.resize(shape.getBounds());

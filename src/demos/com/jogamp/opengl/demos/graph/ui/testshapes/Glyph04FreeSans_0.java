@@ -125,7 +125,7 @@ public class Glyph04FreeSans_0 extends Shape {
         // End Shape for Glyph 19
 
         shape.setIsQuadraticNurbs();
-        shape.setSharpness(shapesSharpness);
+        shape.setSharpness(oshapeSharpness);
         region.addOutlineShape(shape, null, rgbaColor);
 
         box.resize(shape.getBounds());
