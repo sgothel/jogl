@@ -35,14 +35,24 @@ import jogamp.opengl.Debug;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.opengl.math.geom.AABBox;
 
 /**
  * Factory to build an {@link OutlineShape} from
  * {@link jogamp.graph.font.typecast.ot.OTGlyph Glyph}s.
  *
+ * <p>
  * TTF Glyph's have Winding.CW, hence we add the OutlineShape in reverse order,
  * i.e. each new vertex at position 0.
- *
+ * </p>
+ * <p>
+ * Outer TTF glyph winding is expected Winding.CW,
+ * moved into OutlineShape in reverse as Winding.CCW.
+ * </p>
+ * <p>
+ * Inner TTF glyph winding is expected Winding.CCW
+ * moved into OutlineShape in reverse as Winding.CW.
+ * </p>
  * http://www.freetype.org/freetype2/docs/glyphs/glyphs-3.html
  * http://walon.org/pub/ttf/ttf_glyphs.htm
  */
@@ -72,12 +82,30 @@ public class TypecastRenderer {
         shape.addEmptyOutline();
         shape.addVertex(0, p1x/unitsPerEM,  p1y/unitsPerEM, true);
     }
+    private static void addShapeMoveTo(final OutlineShape shape, final float p1x, final float p1y) {
+        if( PRINT_CODE ) {
+            System.err.println("// Shape.MoveTo:");
+            System.err.printf("shape.closeLastOutline(false);%n");
+            System.err.printf("shape.addEmptyOutline();%n");
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p1x, p1y, true);
+        }
+        shape.closeLastOutline(false);
+        shape.addEmptyOutline();
+        shape.addVertex(0, p1x,  p1y, true);
+    }
     private static void addShapeLineTo(final float unitsPerEM, final OutlineShape shape, final Point p1) {
         if( PRINT_CODE ) {
             System.err.println("// Shape.LineTo:");
             System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p1.x/unitsPerEM, p1.y/unitsPerEM, true);
         }
         shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, true);
+    }
+    private static void addShapeLineTo(final OutlineShape shape, final float p1x, final float p1y) {
+        if( PRINT_CODE ) {
+            System.err.println("// Shape.LineTo:");
+            System.err.printf("shape.addVertex(%d, %ff, %ff, %b);%n", 0, p1x, p1y, true);
+        }
+        shape.addVertex(0, p1x,  p1y, true);
     }
     private static void addShapeQuadTo(final float unitsPerEM, final OutlineShape shape, final Point p1, final Point p2) {
         if( PRINT_CODE ) {
@@ -107,6 +135,38 @@ public class TypecastRenderer {
         shape.addVertex(0, p1.x/unitsPerEM,  p1.y/unitsPerEM, false);
         shape.addVertex(0, p2.x/unitsPerEM,  p2.y/unitsPerEM, false);
         shape.addVertex(0, p3.x/unitsPerEM,  p3.y/unitsPerEM, true);
+    }
+
+    public static OutlineShape buildEmptyShape(final int unitsPerEM, final AABBox box, final Factory<? extends Vertex> vertexFactory) {
+        final OutlineShape shape = new OutlineShape(vertexFactory);
+        if( PRINT_CODE ) { System.err.printf("%n// Start Empty Shape%n"); }
+        final float x1 = box.getMinX() / unitsPerEM;
+        final float x2 = box.getMaxX() / unitsPerEM;
+        final float y1 = box.getMinY() / unitsPerEM;
+        final float y2 = box.getMaxY() / unitsPerEM;
+        {
+            // Outer TTF glyph winding is expected Winding.CW, moved into OutlineShape in reverse as Winding.CCW.
+            addShapeMoveTo(shape, x1, y1);
+            addShapeLineTo(shape, x1, y2);
+            addShapeLineTo(shape, x2, y2);
+            addShapeLineTo(shape, x2, y1);
+            addShapeLineTo(shape, x1, y1);
+            shape.closeLastOutline(false);
+        }
+        {
+            // Inner TTF glyph winding is expected Winding.CCW, moved into OutlineShape in reverse as Winding.CW.
+            final float dxy_FU = box.getWidth() < box.getHeight() ? box.getWidth() : box.getHeight();
+            final float dxy = dxy_FU / unitsPerEM / 20f;
+            addShapeMoveTo(shape, x1+dxy, y1+dxy);
+            addShapeLineTo(shape, x2-dxy, y1+dxy);
+            addShapeLineTo(shape, x2-dxy, y2-dxy);
+            addShapeLineTo(shape, x1+dxy, y2-dxy);
+            addShapeLineTo(shape, x1+dxy, y1+dxy);
+            shape.closeLastOutline(false);
+        }
+        shape.setIsQuadraticNurbs();
+        if( PRINT_CODE ) { System.err.printf("// End Empty Shape%n%n"); }
+        return shape;
     }
 
     public static OutlineShape buildShape(final int unitsPerEM, final Glyph glyph, final Factory<? extends Vertex> vertexFactory) {

@@ -31,6 +31,8 @@ import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.geom.Vertex;
+import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
 
@@ -200,17 +202,20 @@ class TypecastFont implements Font {
             final int glyph_leftsidebearings;
             final AABBox glyph_bbox;
             final OutlineShape shape;
+            final boolean isWhiteSpace;
             if( null != glyph ) {
                 glyph_advance = glyph.getAdvanceWidth();
                 glyph_leftsidebearings = glyph.getLeftSideBearing();
                 glyph_bbox = glyph.getBBox();
                 shape = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph, OutlineShape.getDefaultVertexFactory());
+                isWhiteSpace = false;
             } else {
                 final int glyph_height = metrics.getAscentFU() - metrics.getDescentFU();
                 glyph_advance = getAdvanceWidthFU(glyph_id);
                 glyph_leftsidebearings = 0;
                 glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
-                shape = null;
+                shape = TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox, OutlineShape.getDefaultVertexFactory());
+                isWhiteSpace = true;
             }
             KernSubtable kernSub = null;
             {
@@ -219,7 +224,7 @@ class TypecastFont implements Font {
                     kernSub = kern.getSubtable0();
                 }
             }
-            result = new TypecastGlyph(this, glyph_id, glyph_name, glyph_bbox, glyph_advance, glyph_leftsidebearings, kernSub, shape);
+            result = new TypecastGlyph(this, glyph_id, glyph_name, glyph_bbox, glyph_advance, glyph_leftsidebearings, kernSub, shape, isWhiteSpace);
             if(DEBUG) {
                 System.err.println("New glyph: " + glyph_id + "/'"+glyph_name+"', shape " + (null != shape));
                 System.err.println("  tc_glyph "+glyph);

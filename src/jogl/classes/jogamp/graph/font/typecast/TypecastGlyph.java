@@ -66,6 +66,7 @@ public final class TypecastGlyph implements Font.Glyph {
 
     private final int id;
     private final String name;
+    private final boolean isWhiteSpace;
 
     private final TypecastFont font;
     private final AABBox bbox; // in font-units
@@ -89,9 +90,10 @@ public final class TypecastGlyph implements Font.Glyph {
      */
     protected TypecastGlyph(final TypecastFont font, final int id, final String name,
                             final AABBox bbox, final int advance, final int leftSideBearings,
-                            final KernSubtable kernSub, final OutlineShape shape) {
+                            final KernSubtable kernSub, final OutlineShape shape, final boolean isWhiteSpace) {
         this.id = id;
         this.name = name;
+        this.isWhiteSpace = isWhiteSpace;
         this.font = font;
         this.bbox = bbox;
         this.advance = advance;
@@ -130,6 +132,9 @@ public final class TypecastGlyph implements Font.Glyph {
 
     @Override
     public final String getName() { return name; }
+
+    @Override
+    public final boolean isWhiteSpace() { return this.isWhiteSpace; }
 
     @Override
     public final AABBox getBBoxFU() { return bbox; }
@@ -219,7 +224,8 @@ public final class TypecastGlyph implements Font.Glyph {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("Glyph[id ").append(id).append(" '").append(name).append("'")
+        final String ws_s = isWhiteSpace() ? ", ws" : "";
+        sb.append("Glyph[id ").append(id).append(" '").append(name).append("'").append(ws_s)
           .append(", advance ").append(getAdvanceFU())
           .append(", leftSideBearings ").append(getLeftSideBearingsFU())
           .append(", kerning[size ").append(kerning.length).append(", horiz ").append(this.isKerningHorizontal()).append(", cross ").append(this.isKerningCrossstream()).append("]")
