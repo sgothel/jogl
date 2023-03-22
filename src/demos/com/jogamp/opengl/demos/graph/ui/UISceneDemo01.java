@@ -93,7 +93,6 @@ public class UISceneDemo01 {
         scene.addShape(shape);
 
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(1*60, null); // System.err);
 
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
@@ -117,6 +116,7 @@ public class UISceneDemo01 {
 
         scene.attachInputListenerTo(window);
 
+        animator.setUpdateFPSFrames(1*60, null); // System.err);
         animator.add(window);
         animator.start();
 

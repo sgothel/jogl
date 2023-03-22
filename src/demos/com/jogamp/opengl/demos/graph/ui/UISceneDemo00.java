@@ -86,7 +86,6 @@ public class UISceneDemo00 {
         scene.addShape(shape);
 
         final Animator animator = new Animator();
-        animator.setUpdateFPSFrames(1*60, System.err);
 
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
