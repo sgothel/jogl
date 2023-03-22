@@ -172,6 +172,9 @@ public interface Font {
         /** Return the glyph's name, source from `post` table */
         String getName();
 
+        /** Return true if the underlying {@link #getShape()} is a whitespace, otherwise false. */
+        boolean isWhiteSpace();
+
         /**
          * Return the AABBox in font-units, borrowing internal instance.
          */
@@ -245,6 +248,30 @@ public interface Font {
         /** Return all glyph details as string. */
         String fullString();
     }
+
+    /**
+     * General purpose {@link Font.Glyph} visitor.
+     */
+    public static interface GlyphVisitor {
+        /**
+         * Visiting the given {@link Font.Glyph} having an {@link OutlineShape} with it's corresponding {@link AffineTransform}.
+         * @param glyph {@link Font.Glyph} which contains an {@link OutlineShape} via {@link Font.Glyph#getShape()}.
+         * @param t may be used immediately as is, otherwise a copy shall be made if stored.
+         */
+        public void visit(final Glyph glyph, final AffineTransform t);
+    }
+
+    /**
+     * Constrained {@link Font.Glyph} visitor w/o {@link AffineTransform}.
+     */
+    public static interface GlyphVisitor2 {
+        /**
+         * Visiting the given {@link Font.Glyph} having an {@link OutlineShape}.
+         * @param glyph {@link Font.Glyph} which contains an {@link OutlineShape} via {@link Font.Glyph#getShape()}.
+         */
+        public void visit(final Glyph glyph);
+    }
+
 
     String getName(final int nameIndex);
 
@@ -417,39 +444,41 @@ public interface Font {
     boolean isPrintableChar(final char c);
 
     /**
-     * Try using {@link #processString(com.jogamp.graph.curve.OutlineShape.Visitor, AffineTransform, CharSequence, AffineTransform, AffineTransform)}
+     * Try using {@link #processString(GlyphVisitor, AffineTransform, CharSequence, AffineTransform, AffineTransform)}
      * to reuse {@link AffineTransform} instances.
+     * @see #processString(GlyphVisitor, AffineTransform, CharSequence, AffineTransform, AffineTransform)
      */
-    AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
+    AABBox processString(final Font.GlyphVisitor visitor, final AffineTransform transform,
                          final CharSequence string);
 
     /**
-     * Visit each {@link Glyph}'s {@link OutlineShape} of the string with the {@link OutlineShape.Visitor}
+     * Visit each {@link Glyph} and perhaps its {@link OutlineShape} of the string with the {@link Font.GlyphVisitor}
      * while passing the progressed {@link AffineTransform}.
      * <p>
      * The processed shapes are in font em-size [0..1], but can be adjusted with the given transform, progressed and passed to the visitor.
      * </p>
-     * @param visitor handling each glyph's outline shape in font em-size [0..1] and the given {@link AffineTransform}
-     * @param transform optional given transform
+     * @param visitor handling each {@link Font.Glyph} and perhaps its {@link OutlineShape} in font em-size [0..1] and the given {@link AffineTransform}
+     * @param transform optional given transform for size and position
      * @param font the target {@link Font}
      * @param string string text
      * @param temp1 temporary AffineTransform storage, mandatory
      * @param temp2 temporary AffineTransform storage, mandatory
      * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] {@link OutlineShape} into account.
+     * @see #processString(GlyphVisitor, AffineTransform, CharSequence)
      */
-    AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
+    AABBox processString(final Font.GlyphVisitor visitor, final AffineTransform transform,
                          final CharSequence string,
                          final AffineTransform temp1, final AffineTransform temp2);
 
     /**
-     * Visit each {@link Glyph}'s {@link OutlineShape} of the string with the constrained {@link OutlineShape.Visitor2}.
+     * Visit each {@link Glyph} and perhaps its {@link OutlineShape} of the string with the constrained {@link Font.GlyphVisitor2}.
      * <p>
      * The processed shapes are in font em-size [0..1].
      * </p>
-     * @param visitor handling each glyph's outline shape in font em-size [0..1]
+     * @param visitor handling each {@link Font.Glyph} and perhaps its {@link OutlineShape} in font em-size [0..1]
      * @param string string text
      */
-    void processString(final OutlineShape.Visitor2 visitor, final CharSequence string);
+    void processString(final Font.GlyphVisitor2 visitor, final CharSequence string);
 
     /** Returns {@link #getFullFamilyName()} */
     @Override

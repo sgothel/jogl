@@ -37,6 +37,7 @@ import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.plane.AffineTransform;
 
 /**
@@ -106,11 +107,15 @@ public class TextRegionUtil {
     public static AABBox addStringToRegion(final Region region, final Font font, final AffineTransform transform,
                                            final CharSequence str, final float[] rgbaColor,
                                            final AffineTransform temp1, final AffineTransform temp2) {
-        final OutlineShape.Visitor visitor = new OutlineShape.Visitor() {
+        final Font.GlyphVisitor visitor = new Font.GlyphVisitor() {
             @Override
-            public final void visit(final OutlineShape shape, final AffineTransform t) {
-                region.addOutlineShape(shape, t, region.hasColorChannel() ? rgbaColor : null);
-            } };
+            public void visit(final Glyph glyph, final AffineTransform t) {
+                if( glyph.isWhiteSpace() ) {
+                    return;
+                }
+                region.addOutlineShape(glyph.getShape(), t, region.hasColorChannel() ? rgbaColor : null);
+            }
+        };
         return font.processString(visitor, transform, str, temp1, temp2);
     }
 
@@ -128,10 +133,10 @@ public class TextRegionUtil {
      * @see #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)
      */
     public static void countStringRegion(final Region region, final Font font, final CharSequence str, final int[/*2*/] vertIndexCount) {
-        final OutlineShape.Visitor2 visitor = new OutlineShape.Visitor2() {
+        final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
             @Override
-            public final void visit(final OutlineShape shape) {
-                region.countOutlineShape(shape, vertIndexCount);
+            public final void visit(final Font.Glyph glyph) {
+                region.countOutlineShape(glyph.getShape(), vertIndexCount);
             } };
         font.processString(visitor, str);
     }

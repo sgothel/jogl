@@ -72,20 +72,20 @@ public class GPUTextNewtDemo {
         int width = 800, height = 400;
         int x = 10, y = 10;
         if( 0 != args.length ) {
-            SceneMSAASamples = 0;
-            GraphMSAASamples = 0;
-            GraphVBAASamples = 0;
-
             for(int i=0; i<args.length; i++) {
                 if(args[i].equals("-smsaa")) {
                     i++;
                     SceneMSAASamples = MiscUtils.atoi(args[i], SceneMSAASamples);
+                    GraphMSAASamples = 0;
+                    GraphVBAASamples = 0;
                 } else  if(args[i].equals("-gmsaa")) {
                     i++;
+                    SceneMSAASamples = 0;
                     GraphMSAASamples = MiscUtils.atoi(args[i], GraphMSAASamples);
                     GraphVBAASamples = 0;
                 } else if(args[i].equals("-gvbaa")) {
                     i++;
+                    SceneMSAASamples = 0;
                     GraphMSAASamples = 0;
                     GraphVBAASamples = MiscUtils.atoi(args[i], GraphVBAASamples);
                 } else if(args[i].equals("-width")) {

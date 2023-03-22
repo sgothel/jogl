@@ -34,6 +34,7 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.gl.Shape;
 
@@ -159,9 +160,13 @@ public class Label extends Shape {
         return GLRegion.create(glp, getRenderModes(), null, font, text);
     }
 
-    private final OutlineShape.Visitor shapeVisitor = new OutlineShape.Visitor() {
+    private final Font.GlyphVisitor glyphVisitor = new Font.GlyphVisitor() {
         @Override
-        public void visit(final OutlineShape shape, final AffineTransform t) {
+        public void visit(final Glyph glyph, final AffineTransform t) {
+            if( glyph.isWhiteSpace() ) {
+                return;
+            }
+            final OutlineShape shape = glyph.getShape();
             shape.setSharpness(oshapeSharpness);
             try {
                 region.addOutlineShape(shape, t, rgbaColor);
@@ -178,7 +183,7 @@ public class Label extends Shape {
     @Override
     protected void addShapeToRegion() {
         tempT1.setToScale(fontScale, fontScale);
-        final AABBox fbox = font.processString(shapeVisitor, tempT1, text, tempT2, tempT3);
+        final AABBox fbox = font.processString(glyphVisitor, tempT1, text, tempT2, tempT3);
         final float[] ctr = fbox.getCenter();
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
         box.copy(fbox);

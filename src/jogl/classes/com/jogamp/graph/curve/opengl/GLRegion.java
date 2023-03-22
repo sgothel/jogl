@@ -150,10 +150,10 @@ public abstract class GLRegion extends Region {
             region = new VBORegionSPES2(glp, renderModes, colorTexSeq, 0, 0);
         }
         final int[] vertIndexCount = { 0, 0 };
-        final OutlineShape.Visitor2 visitor = new OutlineShape.Visitor2() {
+        final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
             @Override
-            public final void visit(final OutlineShape shape) {
-                region.countOutlineShape(shape, vertIndexCount);
+            public final void visit(final Font.Glyph glyph) {
+                region.countOutlineShape(glyph.getShape(), vertIndexCount);
             } };
         font.processString(visitor, str);
         region.setBufferCapacity(vertIndexCount[0], vertIndexCount[1]);

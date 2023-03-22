@@ -2129,6 +2129,16 @@ public final class FloatUtil {
   /** The value PI^2. */
   public final static float SQUARED_PI = PI * PI;
 
+  /** Converts arc-degree to radians */
+  public static float adegToRad(final float arc_degree) {
+      return arc_degree * PI / 180.0f;
+  }
+
+  /** Converts radians to arc-degree */
+  public static float radToADeg(final float rad) {
+      return rad * 180.0f / PI;
+  }
+
   /**
    * Epsilon for floating point {@value}, as once computed via {@link #getMachineEpsilon()} on an AMD-64 CPU.
    * <p>

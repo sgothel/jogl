@@ -330,6 +330,10 @@ class TypecastFont implements Font {
                     advanceTotal += glyph.getAdvanceFU();
                     left_glyph = null; // break kerning
                     continue;
+                } else if( glyph.isWhiteSpace() ) { // covers 'space' and all non-contour symbols
+                    advanceTotal += glyph.getAdvance();
+                    left_glyph = null; // break kerning
+                    continue;
                 }
                 if( null != left_glyph ) {
                     advanceTotal += left_glyph.getKerningFU(glyph_id);
@@ -353,22 +357,22 @@ class TypecastFont implements Font {
         if (null == string || 0 == string.length() ) {
             return new AABBox();
         }
-        final OutlineShape.Visitor visitor = new OutlineShape.Visitor() {
+        final Font.GlyphVisitor visitor = new Font.GlyphVisitor() {
             @Override
-            public final void visit(final OutlineShape shape, final AffineTransform t) {
+            public final void visit(final Font.Glyph shape, final AffineTransform t) {
                 // nop
             } };
         return processString(visitor, transform, string);
     }
 
     @Override
-    public AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
+    public AABBox processString(final Font.GlyphVisitor visitor, final AffineTransform transform,
                                 final CharSequence string) {
         return processString(visitor, transform, string, new AffineTransform(), new AffineTransform());
     }
 
     @Override
-    public AABBox processString(final OutlineShape.Visitor visitor, final AffineTransform transform,
+    public AABBox processString(final Font.GlyphVisitor visitor, final AffineTransform transform,
                                 final CharSequence string,
                                 final AffineTransform temp1, final AffineTransform temp2) {
         if (null == string || 0 == string.length() ) {
@@ -407,13 +411,15 @@ class TypecastFont implements Font {
                     advanceTotal += glyph.getAdvance();
                     left_glyph = null; // break kerning
                     continue;
+                } else if( glyph.isWhiteSpace() ) { // covers 'space' and all non-contour symbols
+                    left_glyph = null; // break kerning
                 }
                 if( null != left_glyph ) {
                     advanceTotal += left_glyph.getKerning(glyph_id);
                 }
                 temp1.translate(advanceTotal, y, temp2);
                 res.resize(temp1.transform(glyphShape.getBounds(), temp_box));
-                visitor.visit(glyphShape, temp1);
+                visitor.visit(glyph, temp1);
                 advanceTotal += glyph.getAdvance();
                 left_glyph = glyph;
             }
@@ -422,7 +428,7 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public void processString(final OutlineShape.Visitor2 visitor, final CharSequence string) {
+    public void processString(final Font.GlyphVisitor2 visitor, final CharSequence string) {
         if (null == string || 0 == string.length() ) {
             return;
         }
@@ -431,9 +437,9 @@ class TypecastFont implements Font {
         for(int i=0; i< charCount; i++) {
             final char character = string.charAt(i);
             if( '\n' != character ) {
-                final OutlineShape glyphShape = getGlyph(getGlyphID(character)).getShape();
-                if( null != glyphShape ) { // also covers 'space' and all non-contour symbols
-                    visitor.visit(glyphShape);
+                final Glyph glyph = getGlyph(getGlyphID(character));
+                if( null != glyph.getShape() ) { // also covers 'space' and all non-contour symbols
+                    visitor.visit(glyph);
                 }
             }
         }
