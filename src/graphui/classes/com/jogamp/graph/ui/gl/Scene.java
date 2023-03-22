@@ -96,6 +96,7 @@ public final class Scene implements GLEventListener {
     private static final boolean DEBUG = false;
 
     private final ArrayList<Shape> shapes = new ArrayList<Shape>();
+    private boolean doFrustumCulling = false;
 
     private float[] clearColor = null;
     private int clearMask;
@@ -163,6 +164,12 @@ public final class Scene implements GLEventListener {
 
     /** Returns the {@link GL#glClear(int) glClear(..)} mask, see {@link #setClearParams(float[], int)}. */
     public final int getClearMask() { return clearMask; }
+
+    /** Enable or disable {@link PMVMatrix#glGetFrustum()} culling per {@link Shape}. Default is disabled. */
+    public final void setFrustumCullingEnabled(final boolean v) { doFrustumCulling = v; }
+
+    /** Return whether {@link #setFrustumCullingEnabled(boolean) frustum culling} is enabled. */
+    public final boolean isFrustumCullingEnabled() { return doFrustumCulling; }
 
     public void attachInputListenerTo(final GLWindow window) {
         if(null == sbcMouseListener) {
@@ -289,7 +296,7 @@ public final class Scene implements GLEventListener {
 
     private static final int[] sampleCountGLSelect = { -1 };
 
-    private void display(final GLAutoDrawable drawable, final Object[] shapesS, final boolean glSelect) {
+    private void display(final GLAutoDrawable drawable, final Object[] shapes, final boolean glSelect) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         final int[] sampleCount0;
@@ -315,22 +322,25 @@ public final class Scene implements GLEventListener {
         }
 
         //final int shapeCount = shapes.size();
-        final int shapeCount = shapesS.length;
+        final int shapeCount = shapes.length;
         for(int i=0; i<shapeCount; i++) {
             // final UIShape uiShape = shapes.get(i);
-            final Shape uiShape = (Shape)shapesS[i];
+            final Shape shape = (Shape)shapes[i];
             // System.err.println("Id "+i+": "+uiShape);
-            if( uiShape.isEnabled() ) {
+            if( shape.isEnabled() ) {
                 pmv.glPushMatrix();
-                uiShape.setTransform(pmv);
-                if( glSelect ) {
-                    final float color = ( i + 1f ) / ( shapeCount + 2f );
-                    // FIXME
-                    // System.err.printf("drawGL: color %f, index %d of [0..%d[%n", color, i, shapeCount);
-                    renderer.getRenderState().setColorStatic(color, color, color, 1f);
-                    uiShape.drawGLSelect(gl, renderer, sampleCount0);
-                } else {
-                    uiShape.draw(gl, renderer, sampleCount0);
+                shape.setTransform(pmv);
+
+                if( !doFrustumCulling || !pmv.glGetFrustum().isAABBoxOutside( shape.getBounds() ) ) {
+                    if( glSelect ) {
+                        final float color = ( i + 1f ) / ( shapeCount + 2f );
+                        // FIXME
+                        // System.err.printf("drawGL: color %f, index %d of [0..%d[%n", color, i, shapeCount);
+                        renderer.getRenderState().setColorStatic(color, color, color, 1f);
+                        shape.drawGLSelect(gl, renderer, sampleCount0);
+                    } else {
+                        shape.draw(gl, renderer, sampleCount0);
+                    }
                 }
                 pmv.glPopMatrix();
             }
