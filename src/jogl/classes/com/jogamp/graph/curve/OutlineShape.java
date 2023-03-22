@@ -129,29 +129,6 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         }
     }
 
-    /**
-     * General purpose {@link OutlineShape} visitor.
-     */
-    public static interface Visitor {
-        /**
-         * Visiting the given {@link OutlineShape} with it's corresponding {@link AffineTransform}.
-         * @param shape may be used as is, otherwise a copy shall be made if intended to be modified.
-         * @param t may be used immediately as is, otherwise a copy shall be made if stored.
-         */
-        public void visit(final OutlineShape shape, final AffineTransform t);
-    }
-
-    /**
-     * Constrained {@link OutlineShape} visitor w/o {@link AffineTransform}.
-     */
-    public static interface Visitor2 {
-        /**
-         * Visiting the given {@link OutlineShape}.
-         * @param shape may be used as is, otherwise a copy shall be made if intended to be modified.
-         */
-        public void visit(final OutlineShape shape);
-    }
-
     /** Initial {@link #getSharpness()} value, which can be modified via {@link #setSharpness(float)}. */
     public static final float DEFAULT_SHARPNESS = 0.5f;
 

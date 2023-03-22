@@ -124,7 +124,7 @@ public abstract class GLRegion extends Region {
 
     /**
      * Create a GLRegion using the passed render mode and pre-calculating its buffer sizes
-     * using given font's {@link Font#processString(com.jogamp.graph.curve.OutlineShape.Visitor2, CharSequence)}
+     * using given font's {@link Font#processString(com.jogamp.graph.font.Font.GlyphVisitor2, CharSequence)}
      * to {@link #countOutlineShape(OutlineShape, int[])}.
      *
      * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
