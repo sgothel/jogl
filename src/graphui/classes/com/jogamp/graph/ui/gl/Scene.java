@@ -938,11 +938,25 @@ public final class Scene implements GLEventListener {
             }
             final String modeS = Region.getRenderModeString(renderModes);
             final GLCapabilitiesImmutable caps = glad.getChosenGLCapabilities();
-            return String.format("%03.1f/%03.1f fps, %.1f ms/f, v-sync %d, dpi %.1f, %s-samples %d, q %d, msaa %d, blend %b, alpha %d",
-                        lfps, tfps, td, glad.getGL().getSwapInterval(), dpi, modeS, getSampleCount(), quality,
-                        caps.getNumSamples(),
-                        getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
-                        caps.getAlphaBits());
+            final String sampleCountStr1, sampleCountStr2, blendStr;
+            if( Region.isVBAA(renderModes) || Region.isMSAA(renderModes) ) {
+                sampleCountStr1 = "-samples "+getSampleCount();
+            } else {
+                sampleCountStr1 = "";
+            }
+            if( caps.getNumSamples() > 0 ) {
+                sampleCountStr2 = ", smsaa "+caps.getNumSamples();
+            } else {
+                sampleCountStr2 = "";
+            }
+            if( getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+                blendStr = ", blend";
+            } else {
+                blendStr = "";
+            }
+            return String.format("%03.1f/%03.1f fps, %.1f ms/f, vsync %d, dpi %.1f, %s%s%s, q %d%s, a %d",
+                        lfps, tfps, td, glad.getGL().getSwapInterval(), dpi, modeS, sampleCountStr1, sampleCountStr2,
+                        quality, blendStr, caps.getAlphaBits());
     }
 
     /**
