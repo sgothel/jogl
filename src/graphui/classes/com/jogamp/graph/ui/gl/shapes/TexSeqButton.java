@@ -69,7 +69,7 @@ public abstract class TexSeqButton extends RoundButton {
             createCurvedOutline(shape, 0f);
         }
         shape.setIsQuadraticNurbs();
-        shape.setSharpness(shapesSharpness);
+        shape.setSharpness(oshapeSharpness);
         region.addOutlineShape(shape, null, rgbaColor);
         box.resize(shape.getBounds());
 

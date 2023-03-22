@@ -88,7 +88,7 @@ public class Label extends Shape {
      * @param text the text to be set.
      * @return true if text has been updated, false if unchanged.
      */
-    public boolean setText(final GL2ES2  gl, final String text) {
+    public boolean setText(final GL2ES2 gl, final String text) {
         if( setText(text) ) {
             validate(gl);
             return true;
@@ -162,7 +162,7 @@ public class Label extends Shape {
     private final OutlineShape.Visitor shapeVisitor = new OutlineShape.Visitor() {
         @Override
         public void visit(final OutlineShape shape, final AffineTransform t) {
-            shape.setSharpness(shapesSharpness);
+            shape.setSharpness(oshapeSharpness);
             try {
                 region.addOutlineShape(shape, t, rgbaColor);
             } catch ( final Exception ex ) {

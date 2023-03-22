@@ -92,7 +92,7 @@ public class Button extends RoundButton {
             createCurvedOutline(shape, twoPassLabelZOffset);
         }
         shape.setIsQuadraticNurbs();
-        shape.setSharpness(shapesSharpness);
+        shape.setSharpness(oshapeSharpness);
         region.addOutlineShape(shape, null, rgbaColor);
         box.resize(shape.getBounds());
 

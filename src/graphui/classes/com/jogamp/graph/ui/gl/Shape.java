@@ -73,11 +73,11 @@ public abstract class Shape {
     public static interface Listener {
         void run(final Shape shape);
     }
-    public static final boolean DRAW_DEBUG_BOX = false;
+    protected static final boolean DRAW_DEBUG_BOX = false;
     private static final boolean DEBUG = false;
 
-    protected static final int DIRTY_SHAPE    = 1 << 0 ;
-    protected static final int DIRTY_STATE    = 1 << 1 ;
+    private static final int DIRTY_SHAPE    = 1 << 0 ;
+    private static final int DIRTY_STATE    = 1 << 1 ;
 
     protected final Factory<? extends Vertex> vertexFactory;
     private final int renderModes;
@@ -88,17 +88,18 @@ public abstract class Shape {
     protected final AffineTransform tempT3 = new AffineTransform();
     protected final AffineTransform tempT4 = new AffineTransform();
 
-    protected final float[] position = new float[] { 0f, 0f, 0f };
-    protected final Quaternion rotation = new Quaternion();
-    protected final float[] rotOrigin = new float[] { 0f, 0f, 0f };
-    protected final float[] scale = new float[] { 1f, 1f, 1f };
+    private final float[] position = new float[] { 0f, 0f, 0f };
+    private final Quaternion rotation = new Quaternion();
+    private final float[] rotOrigin = new float[] { 0f, 0f, 0f };
+    private final float[] scale = new float[] { 1f, 1f, 1f };
 
     protected GLRegion region = null;
-    protected int regionQuality = Region.MAX_QUALITY;
-    protected List<GLRegion> dirtyRegions = new ArrayList<GLRegion>();
+    protected float oshapeSharpness = OutlineShape.DEFAULT_SHARPNESS;
+    private int regionQuality = Region.MAX_QUALITY;
+    private final List<GLRegion> dirtyRegions = new ArrayList<GLRegion>();
 
-    protected int dirty = DIRTY_SHAPE | DIRTY_STATE;
-    protected float shapesSharpness = OutlineShape.DEFAULT_SHARPNESS;
+    private volatile int dirty = DIRTY_SHAPE | DIRTY_STATE;
+    private final Object dirtySync = new Object();
 
     /** Default base-color w/o color channel, will be modulated w/ pressed- and toggle color */
     protected final float[] rgbaColor         = {0.75f, 0.75f, 0.75f, 1.0f};
@@ -247,7 +248,9 @@ public abstract class Shape {
      * to recreate the Graph shape and reset the region.
      */
     public final void markShapeDirty() {
-        dirty |= DIRTY_SHAPE;
+        synchronized ( dirtySync ) {
+            dirty |= DIRTY_SHAPE;
+        }
     }
 
     /**
@@ -255,7 +258,9 @@ public abstract class Shape {
      * to notify the Graph region to reselect shader and repaint potentially used FBOs.
      */
     public final void markStateDirty() {
-        dirty |= DIRTY_STATE;
+        synchronized ( dirtySync ) {
+            dirty |= DIRTY_STATE;
+        }
     }
 
     private final boolean isShapeDirty() {
@@ -325,7 +330,10 @@ public abstract class Shape {
 
     /** Experimental OpenGL selection draw command used by {@link Scene}. */
     public void drawGLSelect(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
-        getRegion(gl).draw(gl, renderer, sampleCount);
+        synchronized ( dirtySync ) {
+            validate(gl);
+            region.draw(gl, renderer, sampleCount);
+        }
     }
 
     /**
@@ -391,7 +399,10 @@ public abstract class Shape {
             }
         }
         renderer.getRenderState().setColorStatic(r, g, b, a);
-        getRegion(gl).draw(gl, renderer, sampleCount);
+        synchronized ( dirtySync ) {
+            validate(gl);
+            region.draw(gl, renderer, sampleCount);
+        }
     }
 
     protected GLRegion createGLRegion(final GLProfile glp) {
@@ -420,26 +431,28 @@ public abstract class Shape {
     public final void validate(final GLProfile glp) {
         validateImpl(glp, null);
     }
-    private final synchronized void validateImpl(final GLProfile glp, final GL2ES2 gl) {
-        if( null != gl ) {
-            clearDirtyRegions(gl);
-        }
-        if( isShapeDirty() || null == region ) {
-            box.reset();
-            if( null == region ) {
-                region = createGLRegion(glp);
-            } else if( null == gl ) {
-                dirtyRegions.add(region);
-                region = createGLRegion(glp);
-            } else {
-                region.clear(gl);
+    private final void validateImpl(final GLProfile glp, final GL2ES2 gl) {
+        synchronized ( dirtySync ) {
+            if( null != gl ) {
+                clearDirtyRegions(gl);
             }
-            addShapeToRegion();
-            region.setQuality(regionQuality);
-            dirty &= ~(DIRTY_SHAPE|DIRTY_STATE);
-        } else if( isStateDirty() ) {
-            region.markStateDirty();
-            dirty &= ~DIRTY_STATE;
+            if( isShapeDirty() || null == region ) {
+                box.reset();
+                if( null == region ) {
+                    region = createGLRegion(glp);
+                } else if( null == gl ) {
+                    dirtyRegions.add(region);
+                    region = createGLRegion(glp);
+                } else {
+                    region.clear(gl);
+                }
+                addShapeToRegion();
+                region.setQuality(regionQuality);
+                dirty &= ~(DIRTY_SHAPE|DIRTY_STATE);
+            } else if( isStateDirty() ) {
+                region.markStateDirty();
+                dirty &= ~DIRTY_STATE;
+            }
         }
     }
 
@@ -750,11 +763,11 @@ public abstract class Shape {
         }
     }
     public final void setSharpness(final float sharpness) {
-        this.shapesSharpness = sharpness;
+        this.oshapeSharpness = sharpness;
         markShapeDirty();
     }
     public final float getSharpness() {
-        return shapesSharpness;
+        return oshapeSharpness;
     }
 
     /**
