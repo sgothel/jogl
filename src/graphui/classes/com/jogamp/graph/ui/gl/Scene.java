@@ -196,17 +196,31 @@ public final class Scene implements GLEventListener {
     public ArrayList<Shape> getShapes() {
         return shapes;
     }
-    public void addShape(final Shape b) {
-        shapes.add(b);
+    public void addShape(final Shape s) {
+        shapes.add(s);
     }
-    public void removeShape(final Shape b) {
-        shapes.remove(b);
+    /** Removes given shape, keeps it alive. */
+    public void removeShape(final Shape s) {
+        shapes.remove(s);
+    }
+    /** Removes all given shapes and destroys them. */
+    public void removeShape(final GL2ES2 gl, final Shape s) {
+        shapes.remove(s);
+        s.destroy(gl, renderer);
     }
     public void addShapes(final Collection<? extends Shape> shapes) {
         this.shapes.addAll(shapes);
     }
+    /** Removes all given shapes, keeps them alive. */
     public void removeShapes(final Collection<? extends Shape> shapes) {
         this.shapes.removeAll(shapes);
+    }
+    /** Removes all given shapes and destroys them. */
+    public void removeShapes(final GL2ES2 gl, final Collection<? extends Shape> shapes) {
+        this.shapes.removeAll(shapes);
+        for(final Shape s : shapes) {
+            s.destroy(gl, renderer);
+        }
     }
     public Shape getShapeByIdx(final int id) {
         if( 0 > id ) {
