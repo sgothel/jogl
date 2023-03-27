@@ -1203,7 +1203,8 @@ public class Quaternion {
         throw new InternalError("hashCode not designed");
     }
 
+    @Override
     public String toString() {
-        return "Quaternion[x "+x+", y "+y+", z "+z+", w "+w+"]";
+        return "Quat[x "+x+", y "+y+", z "+z+", w "+w+"]";
     }
 }
