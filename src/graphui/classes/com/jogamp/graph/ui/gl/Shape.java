@@ -1054,26 +1054,26 @@ public abstract class Shape {
                     if( 0 != inResize && resizable ) {
                         final float bw = box.getWidth();
                         final float bh = box.getHeight();
-                        final float dsx;
+                        final float sx;
                         if( 1 == inResize ) {
-                            dsx = scale[0] + sdx/bw; // bottom-right
+                            sx = scale[0] + sdx/bw; // bottom-right
                         } else {
-                            dsx = scale[0] - sdx/bw; // bottom-left
+                            sx = scale[0] - sdx/bw; // bottom-left
                         }
-                        final float dsy = scale[1] - sdy/bh;
-                        if( resize_sxy_min <= dsx && resize_sxy_min <= dsy ) { // avoid scale flip
+                        final float sy = scale[1] - sdy/bh;
+                        if( resize_sxy_min <= sx && resize_sxy_min <= sy ) { // avoid scale flip
                             if( DEBUG ) {
                                 System.err.printf("DragZoom: resize %d, win[%4d, %4d], obj[%.4f, %.4f, %.4f], dxy +[%.4f, %.4f], sdxy +[%.4f, %.4f], scale [%.4f, %.4f] -> [%.4f, %.4f]%n",
                                         inResize, glWinX, glWinY, objPos[0], objPos[1], objPos[2],
                                         shapeEvent.objDrag[0], shapeEvent.objDrag[1], sdx, sdy,
-                                        scale[0], scale[1], dsx, dsy);
+                                        scale[0], scale[1], sx, sy);
                             }
                             if( 1 == inResize ) {
                                 move(   0, sdy, 0f); // bottom-right, sticky left- and top-edge
                             } else {
                                 move( sdx, sdy, 0f); // bottom-left, sticky right- and top-edge
                             }
-                            setScale(dsx, dsy, scale[2]);
+                            setScale(sx, sy, scale[2]);
                         }
                         return; // FIXME: pass through event? Issue zoom event?
                     } else if( inDrag && draggable ) {
