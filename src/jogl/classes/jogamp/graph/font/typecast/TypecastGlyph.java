@@ -137,18 +137,18 @@ public final class TypecastGlyph implements Font.Glyph {
     public final boolean isWhiteSpace() { return this.isWhiteSpace; }
 
     @Override
-    public final AABBox getBBoxFU() { return bbox; }
+    public final AABBox getBoundsFU() { return bbox; }
 
     @Override
-    public final AABBox getBBoxFU(final AABBox dest) { return dest.copy(bbox); }
+    public final AABBox getBoundsFU(final AABBox dest) { return dest.copy(bbox); }
 
     @Override
-    public final AABBox getBBox(final AABBox dest, final float[] tmpV3) {
+    public final AABBox getBounds(final AABBox dest, final float[] tmpV3) {
         return dest.copy(bbox).scale2(1.0f/font.getMetrics().getUnitsPerEM(), tmpV3);
     }
 
     @Override
-    public final AABBox getBBox() {
+    public final AABBox getBounds() {
         final AABBox dest = new AABBox();
         return dest.copy(bbox).scale2(1.0f/font.getMetrics().getUnitsPerEM(), new float[2]);
     }
@@ -241,7 +241,7 @@ public final class TypecastGlyph implements Font.Glyph {
         sb.append("Glyph id ").append(id).append(" '").append(glyph_name).append("'")
           .append(", advance ").append(getAdvanceFU())
           .append(", leftSideBearings ").append(getLeftSideBearingsFU())
-          .append(", ").append(getBBoxFU());
+          .append(", ").append(getBoundsFU());
 
         sb.append("\n    Kerning: size ").append(kerning.length).append(", horiz ").append(this.isKerningHorizontal()).append(", cross ").append(this.isKerningCrossstream());
         final int left = getID();

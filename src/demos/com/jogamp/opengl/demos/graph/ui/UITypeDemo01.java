@@ -322,7 +322,7 @@ public class UITypeDemo01 implements GLEventListener {
                 glyph = null;
             }
             if( null != glyph && glyph.getID() != Glyph.ID_UNKNOWN ) {
-                final AABBox txt_box_em = glyph.getBBox();
+                final AABBox txt_box_em = glyph.getBounds();
                 final float full_width_s = full_width_o / txt_box_em.getWidth();
                 final float full_height_s = full_height_o / txt_box_em.getHeight();
                 final float txt_scale = full_width_s < full_height_s ? full_width_s/2f : full_height_s/2f;

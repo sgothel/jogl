@@ -339,7 +339,7 @@ class TypecastFont implements Font {
                     advanceTotal += left_glyph.getKerningFU(glyph_id);
                 }
                 temp1.translate(advanceTotal, y, temp2);
-                res.resize(temp1.transform(glyph.getBBoxFU(), temp_box));
+                res.resize(temp1.transform(glyph.getBoundsFU(), temp_box));
 
                 advanceTotal += glyph.getAdvanceFU();
                 left_glyph = glyph;

@@ -145,13 +145,13 @@ public interface Font {
          * @param dest AABBox instance set to this metrics boundary in font-units
          * @return the given and set AABBox 'dest' in font units
          */
-        AABBox getBBoxFU(final AABBox dest);
+        AABBox getBoundsFU(final AABBox dest);
 
         /**
          * @param dest AABBox instance set to this metrics boundary in font em-size [0..1]
          * @return the given and set AABBox 'dest' in font units
          */
-        AABBox getBBox(final AABBox dest, final float[] tmpV3);
+        AABBox getBounds(final AABBox dest, final float[] tmpV3);
     }
 
     /**
@@ -178,14 +178,14 @@ public interface Font {
         /**
          * Return the AABBox in font-units, borrowing internal instance.
          */
-        AABBox getBBoxFU();
+        AABBox getBoundsFU();
 
         /**
          * Return the AABBox in font-units, copying into given dest.
          * @param dest AABBox instance set to this metrics boundary in font-units
          * @return the given and set AABBox 'dest' in font-units
          */
-        AABBox getBBoxFU(final AABBox dest);
+        AABBox getBoundsFU(final AABBox dest);
 
         /**
          * Return the AABBox in font em-size [0..1], copying into given dest.
@@ -193,12 +193,12 @@ public interface Font {
          * @param tmpV3 caller provided temporary 3-component vector
          * @return the given and set AABBox 'dest' in font em-size [0..1]
          */
-        AABBox getBBox(final AABBox dest, float[] tmpV3);
+        AABBox getBounds(final AABBox dest, float[] tmpV3);
 
         /**
          * Return the AABBox in font em-size [0..1], creating a new copy.
          */
-        AABBox getBBox();
+        AABBox getBounds();
 
         /** Return advance in font units, sourced from `hmtx` table. */
         int getAdvanceFU();
