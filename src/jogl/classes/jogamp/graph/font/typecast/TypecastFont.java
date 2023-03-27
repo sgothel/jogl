@@ -331,7 +331,7 @@ class TypecastFont implements Font {
                     left_glyph = null; // break kerning
                     continue;
                 } else if( glyph.isWhiteSpace() ) { // covers 'space' and all non-contour symbols
-                    advanceTotal += glyph.getAdvance();
+                    advanceTotal += glyph.getAdvanceFU();
                     left_glyph = null; // break kerning
                     continue;
                 }
