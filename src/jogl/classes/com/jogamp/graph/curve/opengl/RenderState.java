@@ -246,6 +246,9 @@ public class RenderState {
         System.arraycopy(colorStatic, 0, rgbaColor, 0, 4);
         return rgbaColor;
     }
+    public final void setColorStatic(final float[] rgbaColor){
+        System.arraycopy(rgbaColor, 0, colorStatic, 0, 4);
+    }
     public final void setColorStatic(final float r, final float g, final float b, final float a){
         colorStatic[0] = r;
         colorStatic[1] = g;
