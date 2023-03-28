@@ -97,8 +97,8 @@ public class Button extends RoundButton {
         box.resize(shape.getBounds());
 
         // Precompute text-box size .. guessing pixelSize
-        final float lw = width * ( 1f - spacingX ) ;
-        final float lh = height * ( 1f - spacingY ) ;
+        final float lw = box.getWidth() * ( 1f - spacingX ) ;
+        final float lh = box.getHeight() * ( 1f - spacingY ) ;
         final AABBox lbox0_em = label.getFont().getGlyphBounds(label.getText(), tempT1, tempT2);
         final float lsx = lw / lbox0_em.getWidth();
         final float lsy = lh / lbox0_em.getHeight();
@@ -109,27 +109,27 @@ public class Button extends RoundButton {
         // Center text .. (share same center w/ button)
         final float[] lctr = lbox1_s.getCenter();
         final float[] ctr = box.getCenter();
-        final float[] ltx = new float[] { ctr[0] - lctr[0], ctr[1] - lctr[1], 0f };
+        final float[] ltxy = new float[] { ctr[0] - lctr[0], ctr[1] - lctr[1] };
 
         if( DRAW_DEBUG_BOX ) {
-            System.err.println("RIButton: dim "+width+" x "+height+", spacing "+spacingX+", "+spacingY);
-            System.err.println("RIButton: net-text "+lw+" x "+lh);
-            System.err.println("RIButton: shape "+box);
-            System.err.println("RIButton: text_em "+lbox0_em+" em, "+label.getText());
-            System.err.println("RIButton: lscale "+lsx+" x "+lsy+" -> "+lScale);
-            System.err.printf ("RIButton: text_s  %s%n", lbox1_s);
-            System.err.printf ("RIButton: tleft %f / %f, %f / %f%n", ltx[0], ltx[1], ltx[0] * lScale, ltx[1] * lScale);
+            System.err.println("Button: dim "+width+" x "+height+", spacing "+spacingX+", "+spacingY);
+            System.err.println("Button: net-text "+lw+" x "+lh);
+            System.err.println("Button: shape "+box);
+            System.err.println("Button: text_em "+lbox0_em+" em, "+label.getText());
+            System.err.println("Button: lscale "+lsx+" x "+lsy+" -> "+lScale);
+            System.err.printf ("Button: text_s  %s%n", lbox1_s);
+            System.err.printf ("Button: ltxy %f / %f, %f / %f%n", ltxy[0], ltxy[1], ltxy[0] * lScale, ltxy[1] * lScale);
         }
 
-        final AABBox lbox2 = label.addShapeToRegion(lScale, region, tempT1.setToTranslation(ltx[0], ltx[1]), tempT2, tempT3, tempT4);
+        final AABBox lbox2 = label.addShapeToRegion(lScale, region, ltxy, tempT1, tempT2, tempT3);
         if( DRAW_DEBUG_BOX ) {
-            System.err.printf("RIButton.X: lbox2 %s%n", lbox2);
+            System.err.printf("Button.X: lbox2 %s%n", lbox2);
         }
 
         setRotationOrigin( ctr[0], ctr[1], ctr[2]);
 
         if( DRAW_DEBUG_BOX ) {
-            System.err.println("XXX.UIShape.RIButton: Added Shape: "+shape+", "+box);
+            System.err.println("XXX.Button: Added Shape: "+shape+", "+box);
         }
     }
 

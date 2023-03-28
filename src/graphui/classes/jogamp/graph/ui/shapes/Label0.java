@@ -65,10 +65,10 @@ public class Label0 {
         this.font = font;
     }
 
-    public final AABBox addShapeToRegion(final float scale, final Region region, final AffineTransform tLeft,
+    public final AABBox addShapeToRegion(final float scale, final Region region, final float[] txy,
                                          final AffineTransform tmp1, final AffineTransform tmp2, final AffineTransform tmp3)
     {
-        tmp1.setTransform(tLeft);
+        tmp1.setToTranslation(txy[0], txy[1]);
         tmp1.scale(scale, scale, tmp2);
         return TextRegionUtil.addStringToRegion(region, font, tmp1, text, rgbaColor, tmp2, tmp3);
     }
