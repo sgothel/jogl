@@ -20,7 +20,7 @@ JOGL is part of [the JogAmp project](https://jogamp.org).
 and [current blog entries](https://jausoft.com/blog/tag/jogamp/).
 
 **The JogAmp project needs funding and we offer [commercial support](https://jogamp.org/wiki/index.php?title=Maintainer_and_Contacts#Commercial_Support)!**<br/>
-Please contact [Göthel Software (Jausoft)](https://jausoft.com/) or perhaps use [github sponsorship](https://github.com/sponsors/sgothel/).
+Please contact [Göthel Software (Jausoft)](https://jausoft.com/) or use [github sponsorship](https://github.com/sponsors/sgothel/).
 
 ## Organization of the JOGL source tree
 ```
