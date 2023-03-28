@@ -79,7 +79,7 @@ public abstract class Shape {
 
     private final float[] position = new float[] { 0f, 0f, 0f };
     private final Quaternion rotation = new Quaternion();
-    private final float[] rotOrigin = new float[] { 0f, 0f, 0f };
+    private final float[] rotPivot = new float[] { 0f, 0f, 0f };
     private final float[] scale = new float[] { 1f, 1f, 1f };
 
     private volatile int dirty = DIRTY_SHAPE | DIRTY_STATE;
@@ -132,9 +132,9 @@ public abstract class Shape {
             position[1] = 0f;
             position[2] = 0f;
             rotation.setIdentity();
-            rotOrigin[0] = 0f;
-            rotOrigin[1] = 0f;
-            rotOrigin[2] = 0f;
+            rotPivot[0] = 0f;
+            rotPivot[1] = 0f;
+            rotPivot[2] = 0f;
             scale[0] = 1f;
             scale[1] = 1f;
             scale[2] = 1f;
@@ -154,9 +154,9 @@ public abstract class Shape {
         position[1] = 0f;
         position[2] = 0f;
         rotation.setIdentity();
-        rotOrigin[0] = 0f;
-        rotOrigin[1] = 0f;
-        rotOrigin[2] = 0f;
+        rotPivot[0] = 0f;
+        rotPivot[1] = 0f;
+        rotPivot[2] = 0f;
         scale[0] = 1f;
         scale[1] = 1f;
         scale[2] = 1f;
@@ -194,19 +194,19 @@ public abstract class Shape {
     /** Returns {@link Quaternion} for rotation. */
     public final Quaternion getRotation() { return rotation; }
     /** Return float[3] unscaled rotation origin, aka pivot. */
-    public final float[] getRotationPivot() { return rotOrigin; }
+    public final float[] getRotationPivot() { return rotPivot; }
     /** Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}. */
     public final void setRotationPivot(final float rx, final float ry, final float rz) {
-        rotOrigin[0] = rx;
-        rotOrigin[1] = ry;
-        rotOrigin[2] = rz;
+        rotPivot[0] = rx;
+        rotPivot[1] = ry;
+        rotPivot[2] = rz;
     }
     /**
      * Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}.
      * @param pivot float[3] rotation origin
      */
     public final void setRotationPivot(final float[/*3*/] pivot) {
-        System.arraycopy(pivot, 0, rotOrigin, 0, 3);
+        System.arraycopy(pivot, 0, rotPivot, 0, 3);
     }
 
     /** Set scale factor to given scale. */
@@ -426,9 +426,9 @@ public abstract class Shape {
     public void setTransform(final PMVMatrix pmv) {
         final boolean hasScale = !VectorUtil.isVec3Equal(scale, 0, VectorUtil.VEC3_ONE, 0, FloatUtil.EPSILON);
         final boolean hasRotate = !rotation.isIdentity();
-        final boolean hasRotPivot = !VectorUtil.isVec3Zero(rotOrigin, 0, FloatUtil.EPSILON);
+        final boolean hasRotPivot = !VectorUtil.isVec3Zero(rotPivot, 0, FloatUtil.EPSILON);
         final float[] ctr = box.getCenter();
-        final boolean sameScaleRotatePivot = hasScale && hasRotate && ( !hasRotPivot || VectorUtil.isVec3Equal(rotOrigin, 0, ctr, 0, FloatUtil.EPSILON) );
+        final boolean sameScaleRotatePivot = hasScale && hasRotate && ( !hasRotPivot || VectorUtil.isVec3Equal(rotPivot, 0, ctr, 0, FloatUtil.EPSILON) );
 
         pmv.glTranslatef(position[0], position[1], position[2]); // translate, scaled
 
@@ -448,9 +448,9 @@ public abstract class Shape {
             if( hasRotate ) {
                 if( hasRotPivot ) {
                     // Rotate shape around its pivot
-                    pmv.glTranslatef(rotOrigin[0], rotOrigin[1], rotOrigin[2]); // pivot back from rot-pivot
+                    pmv.glTranslatef(rotPivot[0], rotPivot[1], rotPivot[2]); // pivot back from rot-pivot
                     pmv.glRotate(rotation);
-                    pmv.glTranslatef(-rotOrigin[0], -rotOrigin[1], -rotOrigin[2]); // pivot to rot-pivot
+                    pmv.glTranslatef(-rotPivot[0], -rotPivot[1], -rotPivot[2]); // pivot to rot-pivot
                 } else {
                     // Rotate shape around its center
                     pmv.glTranslatef(ctr[0], ctr[1], ctr[2]); // pivot back from center-pivot
@@ -782,8 +782,8 @@ public abstract class Shape {
 
     public String getSubString() {
         final String pivotS;
-        if( !VectorUtil.isVec3Zero(rotOrigin, 0, FloatUtil.EPSILON) ) {
-            pivotS = "pivot["+rotOrigin[0]+", "+rotOrigin[1]+", "+rotOrigin[2]+"], ";
+        if( !VectorUtil.isVec3Zero(rotPivot, 0, FloatUtil.EPSILON) ) {
+            pivotS = "pivot["+rotPivot[0]+", "+rotPivot[1]+", "+rotPivot[2]+"], ";
         } else {
             pivotS = "";
         }
