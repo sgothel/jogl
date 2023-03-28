@@ -109,7 +109,7 @@ public class TextRegionUtil {
                                            final AffineTransform temp1, final AffineTransform temp2) {
         final Font.GlyphVisitor visitor = new Font.GlyphVisitor() {
             @Override
-            public void visit(final Glyph glyph, final AffineTransform t) {
+            public void visit(final char symbol, final Glyph glyph, final AffineTransform t) {
                 if( glyph.isWhiteSpace() ) {
                     return;
                 }
@@ -135,7 +135,7 @@ public class TextRegionUtil {
     public static void countStringRegion(final Region region, final Font font, final CharSequence str, final int[/*2*/] vertIndexCount) {
         final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
             @Override
-            public final void visit(final Font.Glyph glyph) {
+            public final void visit(final char symbol, final Font.Glyph glyph) {
                 region.countOutlineShape(glyph.getShape(), vertIndexCount);
             } };
         font.processString(visitor, str);

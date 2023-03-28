@@ -43,6 +43,7 @@ import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.Font.Glyph;
 
 import java.io.PrintStream;
 
@@ -152,7 +153,7 @@ public abstract class GLRegion extends Region {
         final int[] vertIndexCount = { 0, 0 };
         final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
             @Override
-            public final void visit(final Font.Glyph glyph) {
+            public final void visit(final char symbol, final Font.Glyph glyph) {
                 region.countOutlineShape(glyph.getShape(), vertIndexCount);
             } };
         font.processString(visitor, str);

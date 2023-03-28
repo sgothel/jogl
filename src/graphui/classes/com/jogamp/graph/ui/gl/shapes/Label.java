@@ -162,7 +162,7 @@ public class Label extends Shape {
 
     private final Font.GlyphVisitor glyphVisitor = new Font.GlyphVisitor() {
         @Override
-        public void visit(final Glyph glyph, final AffineTransform t) {
+        public void visit(final char symbol, final Glyph glyph, final AffineTransform t) {
             if( glyph.isWhiteSpace() ) {
                 return;
             }

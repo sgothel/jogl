@@ -258,10 +258,11 @@ public interface Font {
     public static interface GlyphVisitor {
         /**
          * Visiting the given {@link Font.Glyph} having an {@link OutlineShape} with it's corresponding {@link AffineTransform}.
+         * @param symbol the character symbol matching the given glyph
          * @param glyph {@link Font.Glyph} which contains an {@link OutlineShape} via {@link Font.Glyph#getShape()}.
          * @param t may be used immediately as is, otherwise a copy shall be made if stored.
          */
-        public void visit(final Glyph glyph, final AffineTransform t);
+        public void visit(final char symbol, final Glyph glyph, final AffineTransform t);
     }
 
     /**
@@ -270,9 +271,10 @@ public interface Font {
     public static interface GlyphVisitor2 {
         /**
          * Visiting the given {@link Font.Glyph} having an {@link OutlineShape}.
+         * @param symbol the character symbol matching the given glyph
          * @param glyph {@link Font.Glyph} which contains an {@link OutlineShape} via {@link Font.Glyph#getShape()}.
          */
-        public void visit(final Glyph glyph);
+        public void visit(final char symbol, final Glyph glyph);
     }
 
 

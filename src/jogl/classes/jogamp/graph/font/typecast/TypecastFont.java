@@ -31,8 +31,6 @@ import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.geom.AABBox;
 
@@ -359,7 +357,7 @@ class TypecastFont implements Font {
         }
         final Font.GlyphVisitor visitor = new Font.GlyphVisitor() {
             @Override
-            public final void visit(final Font.Glyph shape, final AffineTransform t) {
+            public final void visit(final char symbol, final Font.Glyph shape, final AffineTransform t) {
                 // nop
             } };
         return processString(visitor, transform, string);
@@ -419,7 +417,7 @@ class TypecastFont implements Font {
                 }
                 temp1.translate(advanceTotal, y, temp2);
                 res.resize(temp1.transform(glyphShape.getBounds(), temp_box));
-                visitor.visit(glyph, temp1);
+                visitor.visit(character, glyph, temp1);
                 advanceTotal += glyph.getAdvance();
                 left_glyph = glyph;
             }
@@ -439,7 +437,7 @@ class TypecastFont implements Font {
             if( '\n' != character ) {
                 final Glyph glyph = getGlyph(getGlyphID(character));
                 if( null != glyph.getShape() ) { // also covers 'space' and all non-contour symbols
-                    visitor.visit(glyph);
+                    visitor.visit(character, glyph);
                 }
             }
         }
