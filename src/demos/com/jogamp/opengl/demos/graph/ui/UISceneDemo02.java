@@ -35,7 +35,6 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.ui.gl.Scene;
-import com.jogamp.graph.ui.gl.shapes.GLButton;
 import com.jogamp.graph.ui.gl.shapes.Label;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.event.WindowAdapter;
@@ -94,11 +93,11 @@ public class UISceneDemo02 {
         final Font font = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerif.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
         // final Font font = FontFactory.get(IOUtil.getResource("jogamp/graph/font/fonts/ubuntu/Ubuntu-R.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
         System.err.println("Font: "+font.getFullFamilyName());
-        final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMonoBold.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
+        final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
 
-        final Label destText = new Label(renderModes, font, 1f, "");
+        final Label destText = new Label(renderModes, font, "");
         destText.setColor(0.1f, 0.1f, 0.1f, 1);
-        final Label movingGlyph = new Label(renderModes, font, 1f, "");
+        final Label movingGlyph = new Label(renderModes, font, "");
         movingGlyph.setColor(0.1f, 0.1f, 0.1f, 1);
 
         final Scene scene = new Scene();
@@ -153,9 +152,10 @@ public class UISceneDemo02 {
             final AABBox fbox = fontStatus.getGlyphBounds("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
             // final float statusLabelScale = (sceneBox.getHeight() / 30f) * fbox.getHeight();
             final float statusLabelScale = sceneBox.getWidth() / fbox.getWidth();
-            System.err.println("StatusLabelScale: " + statusLabelScale + " = " + sceneBox.getHeight() + " / " + fbox.getHeight() + ", " + fbox);
+            System.err.println("StatusLabel Scale: " + statusLabelScale + " = " + sceneBox.getWidth() + " / " + fbox.getWidth() + ", " + fbox);
 
-            statusLabel = new Label(renderModes, fontStatus, statusLabelScale, "Nothing there yet");
+            statusLabel = new Label(renderModes, fontStatus, "Nothing there yet");
+            statusLabel.setScale(statusLabelScale, statusLabelScale, 1f);
             statusLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
             statusLabel.moveTo(sceneBox.getMinX(), sceneBox.getMinY() + statusLabelScale * (fontStatus.getMetrics().getLineGap() - fontStatus.getMetrics().getDescent()), 0f);
             scene.addShape(statusLabel);
@@ -183,8 +183,8 @@ public class UISceneDemo02 {
             final AABBox fbox = font.getGlyphBounds(originalText);
             final float fontScale = sceneBox.getWidth() / fbox.getWidth();
             System.err.println("FontScale: "+fontScale+" = "+sceneBox.getWidth()+" / "+fbox.getWidth());
-            destText.setFontScale(fontScale);
-            movingGlyph.setFontScale(fontScale);
+            destText.setScale(fontScale, fontScale, 1f);
+            movingGlyph.setScale(fontScale, fontScale, 1f);
 
             destText.moveTo(sceneBox.getMinX(), 0f, 0f);
 
