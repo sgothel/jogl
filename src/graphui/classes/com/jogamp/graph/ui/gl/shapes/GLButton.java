@@ -37,12 +37,13 @@ import com.jogamp.opengl.GLDrawableFactory;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLOffscreenAutoDrawable;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.ui.gl.GraphShape;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.util.texture.ImageSequence;
 import com.jogamp.opengl.util.texture.Texture;
 
 /**
- * A GraphUI {@link GLEventListener} based {@link TexSeqButton} {@link Shape}.
+ * A GraphUI {@link GLEventListener} based {@link TexSeqButton} {@link GraphShape}.
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>

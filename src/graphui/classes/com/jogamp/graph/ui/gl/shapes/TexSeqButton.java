@@ -31,11 +31,11 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
-import com.jogamp.graph.ui.gl.Shape;
+import com.jogamp.graph.ui.gl.GraphShape;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
- * An abstract GraphUI {@link TextureSequence} {@link RoundButton} {@link Shape}.
+ * An abstract GraphUI {@link TextureSequence} {@link RoundButton} {@link GraphShape}.
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
@@ -73,8 +73,7 @@ public abstract class TexSeqButton extends RoundButton {
         region.addOutlineShape(shape, null, rgbaColor);
         box.resize(shape.getBounds());
 
-        final float[] ctr = box.getCenter();
-        setRotationOrigin( ctr[0], ctr[1], ctr[2]);
+        setRotationPivot( box.getCenter() );
 
         if( DRAW_DEBUG_BOX ) {
             System.err.println("XXX.UIShape.TextureSeqButton: Added Shape: "+shape+", "+box);

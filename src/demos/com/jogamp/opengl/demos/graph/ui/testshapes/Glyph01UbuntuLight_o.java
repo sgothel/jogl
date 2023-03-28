@@ -29,14 +29,14 @@ package com.jogamp.opengl.demos.graph.ui.testshapes;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.geom.plane.Winding;
-import com.jogamp.graph.ui.gl.Shape;
+import com.jogamp.graph.ui.gl.GraphShape;
 
 /**
  * GPU based resolution independent test object
  * - Ubuntu-Light, lower case 'o'
  * - TTF Shape for Glyph 82
  */
-public class Glyph01UbuntuLight_o extends Shape {
+public class Glyph01UbuntuLight_o extends GraphShape {
 
     public Glyph01UbuntuLight_o(final int renderModes) {
         super(renderModes);

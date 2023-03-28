@@ -28,14 +28,14 @@
 package com.jogamp.opengl.demos.graph.ui.testshapes;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.ui.gl.Shape;
+import com.jogamp.graph.ui.gl.GraphShape;
 
 /**
  * GPU based resolution independent test object
  * - FreeSans, '0'
  * - TTF Shape for Glyph 19
  */
-public class Glyph04FreeSans_0 extends Shape {
+public class Glyph04FreeSans_0 extends GraphShape {
 
     public Glyph04FreeSans_0(final int renderModes) {
         super(renderModes);

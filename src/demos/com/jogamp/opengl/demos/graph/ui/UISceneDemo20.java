@@ -45,6 +45,7 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
+import com.jogamp.graph.ui.gl.GraphShape;
 import com.jogamp.graph.ui.gl.Scene;
 import com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup;
 import com.jogamp.graph.ui.gl.Shape;
@@ -264,6 +265,7 @@ public class UISceneDemo20 implements GLEventListener {
     private int renderModes;
 
     private final Font font;
+    private final Font fontButtons;
     private final Font fontFPS;
     private final Uri filmURL;
 
@@ -363,7 +365,9 @@ public class UISceneDemo20 implements GLEventListener {
             }
             System.err.println("Font "+font.getFullFamilyName());
 
-            fontFPS = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMonoBold.ttf",
+            fontButtons = FontFactory.get(FontFactory.UBUNTU).getDefault();
+
+            fontFPS = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf",
                                       FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
             System.err.println("Font FPS "+fontFPS.getFullFamilyName());
 
@@ -387,11 +391,6 @@ public class UISceneDemo20 implements GLEventListener {
         angdeg = VectorUtil.scaleVec3(angdeg, angdeg, FloatUtil.PI / 180.0f);
         for(int i=0; i<buttons.size(); i++) {
             buttons.get(i).getRotation().rotateByEuler( angdeg );
-        }
-    }
-    private void translateButtons(final float tx, final float ty, final float tz) {
-        for(int i=0; i<buttons.size(); i++) {
-            buttons.get(i).move(tx, ty, tz);
         }
     }
 
@@ -445,14 +444,14 @@ public class UISceneDemo20 implements GLEventListener {
         final float buttonYSize = buttonXSize / 2.5f;
         final float button2XSize = 2f*buttonXSize;
         final float button2YSize = 2f*buttonYSize;
-        System.err.println("Button Size: scale "+scale+", "+buttonXSize+" x "+buttonYSize);
+        System.err.println("Button Size: "+buttonXSize+" x "+buttonYSize+", scale "+scale);
         final float xStartLeft = 0f; // aligned to left edge w/ space via reshape
         final float xStartRight = -button2XSize - button2XSize/8f; // aligned to right edge via reshape
         final float yStartTop =   0f; // aligned to top edge w/ space via reshape
         final float diffX = 1.2f * buttonXSize;
         final float diffY = 1.5f * buttonYSize;
 
-        Button button = new Button(renderModes, font, "Next Text", buttonXSize, buttonYSize);
+        Button button = new Button(renderModes, fontButtons, " Next Text ", buttonXSize, buttonYSize);
         button.setName(BUTTON_NEXTTEXT);
         button.move(xStartLeft, yStartTop-diffY*buttons.size(), 0f);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -469,7 +468,7 @@ public class UISceneDemo20 implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new Button(renderModes, font, "Show FPS", buttonXSize, buttonYSize);
+        button = new Button(renderModes, fontButtons, "Show fps", buttonXSize, buttonYSize);
         button.setName(BUTTON_FPS);
         button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.setToggleable(true);
@@ -486,7 +485,7 @@ public class UISceneDemo20 implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new Button(renderModes, font, "V-Sync", buttonXSize, buttonYSize);
+        button = new Button(renderModes, fontButtons, " V-Sync ", buttonXSize, buttonYSize);
         button.setName(BUTTON_VSYNC);
         button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.setToggleable(true);
@@ -510,7 +509,7 @@ public class UISceneDemo20 implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttons.add(button);
 
-        button = new Button(renderModes, font, "< Tilt >", buttonXSize, buttonYSize);
+        button = new Button(renderModes, fontButtons, "< Tilt >", buttonXSize, buttonYSize);
         button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
@@ -529,7 +528,7 @@ public class UISceneDemo20 implements GLEventListener {
         buttons.add(button);
 
         if( pass2Mode ) { // second column to the left
-            button = new Button(renderModes, font, "< Samples >", buttonXSize, buttonYSize);
+            button = new Button(renderModes, fontButtons, "< Samples >", buttonXSize, buttonYSize);
             button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -548,32 +547,34 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
             buttons.add(button);
 
-            button = new Button(renderModes, font, "< Quality >", buttonXSize, buttonYSize);
+            button = new Button(renderModes, fontButtons, "< Quality >", buttonXSize, buttonYSize);
             button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
                     final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
-                    int quality = shapeEvent.shape.getQuality();
+                    if( shapeEvent.shape instanceof GraphShape ) {
+                        int quality = ((GraphShape)shapeEvent.shape).getQuality();
 
-                    if( shapeEvent.objPos[0] < shapeEvent.shape.getBounds().getCenter()[0] ) {
-                        // left-half pressed
-                        if( quality > 0 ) {
-                            quality--;
+                        if( shapeEvent.objPos[0] < shapeEvent.shape.getBounds().getCenter()[0] ) {
+                            // left-half pressed
+                            if( quality > 0 ) {
+                                quality--;
+                            }
+                        } else {
+                            // right-half pressed
+                            if( quality < Region.MAX_QUALITY ) {
+                                quality++;
+                            }
                         }
-                    } else {
-                        // right-half pressed
-                        if( quality < Region.MAX_QUALITY ) {
-                            quality++;
-                        }
+                        scene.setAllShapesQuality(quality);
                     }
-                    scene.setAllShapesQuality(quality);
                 } } );
             button.addMouseListener(dragZoomRotateListener);
             buttons.add(button);
         }
 
-        button = new Button(renderModes, font, "Quit", buttonXSize, buttonYSize);
+        button = new Button(renderModes, fontButtons, "Quit", buttonXSize, buttonYSize);
         button.setName(BUTTON_QUIT);
         button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.setColor(0.7f, 0.0f, 0.0f, 1.0f);
@@ -601,7 +602,7 @@ public class UISceneDemo20 implements GLEventListener {
         {
             final int j = 1; // column
             int k = 0; // row
-            button = new Button(renderModes, font, "Y Flip", buttonXSize, buttonYSize);
+            button = new Button(renderModes, fontButtons, "Y Flip", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -612,7 +613,7 @@ public class UISceneDemo20 implements GLEventListener {
             buttons.add(button);
 
             k++;
-            button = new Button(renderModes, font, "X Flip", buttonXSize, buttonYSize);
+            button = new Button(renderModes, fontButtons, "X Flip", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -623,7 +624,7 @@ public class UISceneDemo20 implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new Button(renderModes, font, "< Space >", buttonXSize, buttonYSize);
+            button = new Button(renderModes, fontButtons, "< Space >", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -644,7 +645,7 @@ public class UISceneDemo20 implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new Button(renderModes, font, "< Corner >", buttonXSize, buttonYSize);
+            button = new Button(renderModes, fontButtons, "< Corner >", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -665,7 +666,7 @@ public class UISceneDemo20 implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new Button(renderModes, font, "Reset", buttonXSize, buttonYSize);
+            button = new Button(renderModes, fontButtons, " Reset ", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -676,7 +677,7 @@ public class UISceneDemo20 implements GLEventListener {
             buttons.add(button);
             k++;
 
-            button = new Button(renderModes, font, "Snapshot", buttonXSize, buttonYSize);
+            button = new Button(renderModes, fontButtons, " Snapshot ", buttonXSize, buttonYSize);
             button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -727,8 +728,7 @@ public class UISceneDemo20 implements GLEventListener {
         }
         if( true ) {
             final ImageSequence imgSeq = new ImageSequence(texUnitImageButton, true);
-            final ImageButton imgButton = new ImageButton(renderModes, button2XSize,
-                    button2YSize, imgSeq);
+            final ImageButton imgButton = new ImageButton(renderModes, button2XSize, button2YSize, imgSeq);
             try {
                 imgSeq.addFrame(gl, UISceneDemo20.class, "button-released-145x53.png", TextureIO.PNG);
                 imgSeq.addFrame(gl, UISceneDemo20.class, "button-pressed-145x53.png", TextureIO.PNG);
@@ -777,9 +777,8 @@ public class UISceneDemo20 implements GLEventListener {
                     System.err.println("Gears Anim: End");
                 }
             }).start();
-            final GLButton b = new GLButton(renderModes, button2XSize,
-                    button2YSize, texUnitGLELButton,
-                    gears, false /* useAlpha */);
+            final GLButton b = new GLButton(renderModes, button2XSize, button2YSize,
+                                            texUnitGLELButton, gears, false /* useAlpha */);
             b.setName(BUTTON_GLEL);
             b.setToggleable(true);
             b.setToggle(false); // toggle == true -> animation
@@ -833,44 +832,27 @@ public class UISceneDemo20 implements GLEventListener {
     private static final boolean enableOthers = true;
 
 
-    private void setupUI(final GLAutoDrawable drawable, final AABBox sceneBox) {
-        final float[/*2*/] sceneSize = { 0f, 0f };
-        scene.surfaceToPlaneSize(new int[] { 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight()}, sceneSize);
-
-        final float modelSizeFixed = fontSizeFixedNorm * sceneSize[1];
-        jogampLabel = new Label(renderModes, font, modelSizeFixed, jogamp);
+    private void initLabels(final GL2ES2 gl) {
+        jogampLabel = new Label(renderModes, font, fontSizeFixedNorm, jogamp);
         jogampLabel.addMouseListener(dragZoomRotateListener);
-        scene.addShape(jogampLabel);
         jogampLabel.setEnabled(enableOthers);
+        scene.addShape(jogampLabel);
 
-        final float pixelSize10Pt = FontScale.toPixels(fontSizePt, dpiV);
-        final float modelSize10Pt = pixelSize10Pt / drawable.getSurfaceHeight() * sceneSize[1];
-        System.err.println("10Pt PixelSize: Display "+dpiV+" dpi, fontSize "+fontSizePt+" ppi -> "+pixelSize10Pt+" pixe-size, "+modelSize10Pt+" model-size");
-        truePtSizeLabel = new Label(renderModes, font, modelSize10Pt, truePtSize);
-        scene.addShape(truePtSizeLabel);
+        truePtSizeLabel = new Label(renderModes, font, truePtSize);
         truePtSizeLabel.setEnabled(enableOthers);
-        truePtSizeLabel.move(0, - 1.5f * jogampLabel.getLineHeight(), 0f);
         truePtSizeLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
+        scene.addShape(truePtSizeLabel);
 
         /**
          *
          * [Label] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 18.814816
          * [FPS] Display 112.88889 dpi, fontSize 12.0 ppi -> pixelSize 15.679012
          */
-        final float pixelSizeFPS = fontSizeFpsNorm * drawable.getSurfaceHeight();
-        final float modelSizeFPS = pixelSizeFPS / drawable.getSurfaceHeight() * sceneSize[1];
-        fpsLabel = new Label(renderModes, fontFPS, modelSizeFPS, "Nothing there yet");
+        fpsLabel = new Label(renderModes, fontFPS, "Nothing there yet");
         fpsLabel.addMouseListener(dragZoomRotateListener);
-        scene.addShape(fpsLabel);
         fpsLabel.setEnabled(enableOthers);
         fpsLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
-        fpsLabel.move(0f, modelSizeFPS * (fontFPS.getMetrics().getLineGap() - fontFPS.getMetrics().getDescent()), 0f);
-
-        final float sx = sceneBox.getWidth();
-        final float sy = sceneBox.getHeight();
-        final float sxy = sx > sy ? sx : sy;
-        initButtons(drawable.getGL().getGL2ES2(), sxy);
-        scene.addShapes(buttons);
+        scene.addShape(fpsLabel);
     }
 
     @Override
@@ -920,6 +902,7 @@ public class UISceneDemo20 implements GLEventListener {
         gl.glEnable(GL.GL_BLEND);
 
         initTexts();
+        initLabels(gl);
 
         scene.init(drawable);
 
@@ -937,20 +920,24 @@ public class UISceneDemo20 implements GLEventListener {
         // Layout all shapes: Relational move regarding object coordinates
         //
         System.err.println("Reshape: Scene Plane.0 "+scene.getBounds());
-        final float lastWidth = scene.getBounds().getWidth();
-        final float lastHeight = scene.getBounds().getHeight();
-        System.err.println("Reshape: Scene Plane.0 "+lastWidth+" x "+lastHeight);
+        final float lastSceneWidth = scene.getBounds().getWidth();
+        final float lastSceneHeight = scene.getBounds().getHeight();
+        System.err.println("Reshape: Scene Plane.0 "+lastSceneWidth+" x "+lastSceneHeight);
 
         scene.reshape(drawable, x, y, width, height);
         final AABBox sceneBox = scene.getBounds();
         System.err.println("Reshape: Scene Plane.1 "+sceneBox);
 
-        if( scene.getShapes().isEmpty() ) {
-            setupUI(drawable, sceneBox);
+        final float sceneWidth = sceneBox.getWidth();
+        final float sceneHeight = sceneBox.getHeight();
+        final float button_sxy = sceneWidth > sceneHeight ? sceneWidth : sceneHeight;
+        if( buttons.isEmpty() ) {
+            initButtons(drawable.getGL().getGL2ES2(), button_sxy);
+            scene.addShapes(buttons);
         }
 
-        final float dw = sceneBox.getWidth() - lastWidth;
-        final float dh = sceneBox.getHeight() - lastHeight;
+        final float dw = sceneWidth - lastSceneWidth;
+        final float dh = sceneHeight - lastSceneHeight;
 
         final float dz = 0f;
         final float dyTop = dh * relTop;
@@ -970,16 +957,33 @@ public class UISceneDemo20 implements GLEventListener {
             // System.err.println("Button["+i+"].RM: "+buttons.get(i));
         }
 
-        final float dxMiddleAbs = sceneBox.getWidth() * relMiddle;
-        final float dyTopLabelAbs = sceneBox.getHeight() - 2f*jogampLabel.getLineHeight();
-        jogampLabel.moveTo(dxMiddleAbs, dyTopLabelAbs, dz);
-        truePtSizeLabel.moveTo(dxMiddleAbs, dyTopLabelAbs, dz);
-        truePtSizeLabel.moveTo(dxMiddleAbs, dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight(), 0f);
-        fpsLabel.move(0f, 0f, 0f);
+        jogampLabel.setScale(sceneHeight, sceneHeight, 1f);
+
+        final float dxMiddleAbs = sceneWidth * relMiddle;
+        final float dyTopLabelAbs = sceneHeight - jogampLabel.getScaledLineHeight();
+        jogampLabel.moveTo(dxMiddleAbs, dyTopLabelAbs - jogampLabel.getScaledLineHeight(), dz);
+        {
+            final float pixelSize10Pt = FontScale.toPixels(fontSizePt, dpiV);
+            final float scale = pixelSize10Pt / height * sceneHeight; // normalize with dpi / surfaceHeight
+            System.err.println("10Pt PixelSize: Display "+dpiV+" dpi, fontSize "+fontSizePt+" pt, "+FontScale.ptToMM(fontSizePt)+" mm -> "+pixelSize10Pt+" pixels, "+scale+" scene-size");
+            truePtSizeLabel.setScale(scale, scale, 1f);
+            truePtSizeLabel.moveTo(dxMiddleAbs, dyTopLabelAbs - jogampLabel.getScaledLineHeight() - truePtSizeLabel.getScaledLineHeight(), dz);
+        }
+        {
+            final AABBox fbox = fontFPS.getGlyphBounds(scene.getStatusText(drawable, renderModes, fpsLabel.getQuality(), dpiV));
+            final float scale = sceneWidth / ( 1.4f * fbox.getWidth() ); // add 40% width
+            fpsLabel.setScale(scale, scale, 1f);
+            fpsLabel.moveTo(sceneBox.getMinX(), sceneBox.getMinY() + scale * ( fontFPS.getMetrics().getLineGap() - fontFPS.getMetrics().getDescent() ), 0f);
+            fpsLabel.validate(drawable.getGL().getGL2ES2());
+            System.err.println("StatusLabel Scale: " + scale + " = " + sceneWidth + " / " + fbox.getWidth() + ", " + fbox);
+            System.err.println("StatusLabel: " + fpsLabel);
+        }
         if( null != labels[currentText] ) {
+            labels[currentText].setScale(sceneHeight, sceneHeight, 1f);
             labels[currentText].moveTo(dxMiddleAbs,
-                    dyTopLabelAbs - 1.5f * jogampLabel.getLineHeight()
-                    - 1.5f * truePtSizeLabel.getLineHeight(), 0f);
+                    dyTopLabelAbs - jogampLabel.getScaledLineHeight()
+                                  - 1.5f * truePtSizeLabel.getScaledLineHeight()
+                                  - labels[currentText].getScaledHeight(), 0f);
             System.err.println("Label["+currentText+"] MOVE: "+labels[currentText]);
             System.err.println("Label["+currentText+"] MOVE: "+Arrays.toString(labels[currentText].getPosition()));
         }
@@ -1017,15 +1021,19 @@ public class UISceneDemo20 implements GLEventListener {
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         if(null == labels[currentText]) {
-            final float pixelSizeFixed = fontSizeFixedNorm * scene.getBounds().getHeight();
-            final float dyTop = scene.getBounds().getHeight() - 2f*jogampLabel.getLineHeight();
-            final float dxMiddle = scene.getBounds().getWidth() * relMiddle;
-            labels[currentText] = new Label(renderModes, font, pixelSizeFixed, strings[currentText]);
+            final AABBox sbox = scene.getBounds();
+            final float sceneHeight = sbox.getHeight();
+            final float dyTop = sbox.getHeight() - jogampLabel.getScaledLineHeight();
+            final float dxMiddle = sbox.getWidth() * relMiddle;
+            labels[currentText] = new Label(renderModes, font, fontSizeFixedNorm, strings[currentText]);
+            labels[currentText].setScale(sceneHeight, sceneHeight, 1f);
             labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
             labels[currentText].setEnabled(enableOthers);
+            labels[currentText].validate(gl);
             labels[currentText].move(dxMiddle,
-                    dyTop - 1.5f * jogampLabel.getLineHeight()
-                    - 1.5f * truePtSizeLabel.getLineHeight(), 0f);
+                    dyTop - jogampLabel.getScaledLineHeight()
+                          - 1.5f * truePtSizeLabel.getScaledLineHeight()
+                          - labels[currentText].getScaledHeight(), 0f);
             labels[currentText].addMouseListener(dragZoomRotateListener);
             scene.addShape(labels[currentText]);
             System.err.println("Label["+currentText+"] CTOR: "+labels[currentText]);

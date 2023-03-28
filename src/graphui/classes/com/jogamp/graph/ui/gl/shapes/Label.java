@@ -29,6 +29,7 @@ package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.GLRegion;
@@ -36,21 +37,25 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.graph.ui.gl.Shape;
+import com.jogamp.graph.ui.gl.GraphShape;
 
 /**
- * A GraphUI text label {@link Shape}
+ * A GraphUI text label {@link GraphShape}
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
  */
-public class Label extends Shape {
-    protected Font font;
-    protected float fontScale;
-    protected String text;
+public class Label extends GraphShape {
+    private Font font;
+    private float fontScale;
+    private String text;
+
+    private final AffineTransform tempT1 = new AffineTransform();
+    private final AffineTransform tempT2 = new AffineTransform();
+    private final AffineTransform tempT3 = new AffineTransform();
 
     /**
-     * Label ctor
+     * Label ctor using a separate {@code fontScale} to scale the em-sized type glyphs
      * @param renderModes region renderModes
      * @param font the font
      * @param fontScale font-scale factor, by which the em-sized type glyphs shall be scaled
@@ -60,6 +65,19 @@ public class Label extends Shape {
         super(renderModes);
         this.font = font;
         this.fontScale = fontScale;
+        this.text = text;
+    }
+
+    /**
+     * Label ctor using em-size type glyphs
+     * @param renderModes region renderModes
+     * @param font the font
+     * @param text the text to render
+     */
+    public Label(final int renderModes, final Font font, final String text) {
+        super(renderModes);
+        this.font = font;
+        this.fontScale = 1f;
         this.text = text;
     }
 

@@ -33,12 +33,14 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.graph.ui.gl.GraphShape;
 import com.jogamp.opengl.math.geom.AABBox;
 
 import jogamp.graph.ui.shapes.Label0;
 
 /**
- * A GraphUI text labeled {@link RoundButton} {@link Shape}
+ * A GraphUI text labeled {@link RoundButton} {@link GraphShape}
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
@@ -59,6 +61,10 @@ public class Button extends RoundButton {
     private final Label0 label;
     private float spacingX = DEFAULT_SPACING_X;
     private float spacingY = DEFAULT_SPACING_Y;
+
+    private final AffineTransform tempT1 = new AffineTransform();
+    private final AffineTransform tempT2 = new AffineTransform();
+    private final AffineTransform tempT3 = new AffineTransform();
 
     public Button(final int renderModes, final Font labelFont,
                   final String labelText, final float width,
@@ -126,7 +132,7 @@ public class Button extends RoundButton {
             System.err.printf("Button.X: lbox2 %s%n", lbox2);
         }
 
-        setRotationOrigin( ctr[0], ctr[1], ctr[2]);
+        setRotationPivot( ctr );
 
         if( DRAW_DEBUG_BOX ) {
             System.err.println("XXX.Button: Added Shape: "+shape+", "+box);

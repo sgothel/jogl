@@ -28,19 +28,12 @@
 package com.jogamp.graph.ui.gl;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
-import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.newt.event.GestureHandler.GestureListener;
 import com.jogamp.newt.event.MouseAdapter;
@@ -55,11 +48,14 @@ import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 
 /**
- * GraphUI Shape
+ * Generic UI Shape, potentially using a Graph via {@link GraphShape} or other means of representing content.
  * <p>
  * A shape includes the following build-in user-interactions
  * - drag shape w/ 1-pointer click, see {@link #setDraggable(boolean)}
  * - resize shape w/ 1-pointer click and drag in 1/4th bottom-left and bottom-right corner, see {@link #setResizable(boolean)}.
+ * </p>
+ * <p>
+ * A shape is expected to have its 0/0 origin in its bottom-left corner, otherwise the drag-zoom sticky-edge will not work as expected.
  * </p>
  * <p>
  * GraphUI is GPU based and resolution independent.
@@ -79,24 +75,12 @@ public abstract class Shape {
     private static final int DIRTY_SHAPE    = 1 << 0 ;
     private static final int DIRTY_STATE    = 1 << 1 ;
 
-    protected final Factory<? extends Vertex> vertexFactory;
-    private final int renderModes;
     protected final AABBox box;
-
-    protected final AffineTransform tempT1 = new AffineTransform();
-    protected final AffineTransform tempT2 = new AffineTransform();
-    protected final AffineTransform tempT3 = new AffineTransform();
-    protected final AffineTransform tempT4 = new AffineTransform();
 
     private final float[] position = new float[] { 0f, 0f, 0f };
     private final Quaternion rotation = new Quaternion();
     private final float[] rotOrigin = new float[] { 0f, 0f, 0f };
     private final float[] scale = new float[] { 1f, 1f, 1f };
-
-    protected GLRegion region = null;
-    protected float oshapeSharpness = OutlineShape.DEFAULT_SHARPNESS;
-    private int regionQuality = Region.MAX_QUALITY;
-    private final List<GLRegion> dirtyRegions = new ArrayList<GLRegion>();
 
     private volatile int dirty = DIRTY_SHAPE | DIRTY_STATE;
     private final Object dirtySync = new Object();
@@ -122,9 +106,7 @@ public abstract class Shape {
 
     private Listener onMoveListener = null;
 
-    public Shape(final int renderModes) {
-        this.vertexFactory = OutlineShape.getDefaultVertexFactory();
-        this.renderModes = renderModes;
+    public Shape() {
         this.box = new AABBox();
     }
 
@@ -138,36 +120,27 @@ public abstract class Shape {
     /** Enable or disable this shape, i.e. its visibility. */
     public final void setEnabled(final boolean v) { enabled = v; }
 
-    private final void clearDirtyRegions(final GL2ES2 gl) {
-        for(final GLRegion r : dirtyRegions) {
-            r.destroy(gl);
-        }
-        dirtyRegions.clear();
-    }
-
     /**
      * Clears all data and reset all states as if this instance was newly created
      * @param gl TODO
      * @param renderer TODO
      */
     public final void clear(final GL2ES2 gl, final RegionRenderer renderer) {
-        clearImpl(gl, renderer);
-        clearDirtyRegions(gl);
-        if( null != region ) {
-            region.clear(gl);
+        synchronized ( dirtySync ) {
+            clearImpl0(gl, renderer);
+            position[0] = 0f;
+            position[1] = 0f;
+            position[2] = 0f;
+            rotation.setIdentity();
+            rotOrigin[0] = 0f;
+            rotOrigin[1] = 0f;
+            rotOrigin[2] = 0f;
+            scale[0] = 1f;
+            scale[1] = 1f;
+            scale[2] = 1f;
+            box.reset();
+            markShapeDirty();
         }
-        position[0] = 0f;
-        position[1] = 0f;
-        position[2] = 0f;
-        rotation.setIdentity();
-        rotOrigin[0] = 0f;
-        rotOrigin[1] = 0f;
-        rotOrigin[2] = 0f;
-        scale[0] = 1f;
-        scale[1] = 1f;
-        scale[2] = 1f;
-        box.reset();
-        markShapeDirty();
     }
 
     /**
@@ -176,12 +149,7 @@ public abstract class Shape {
      * @param renderer
      */
     public final void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
-        destroyImpl(gl, renderer);
-        clearDirtyRegions(gl);
-        if( null != region ) {
-            region.destroy(gl);
-            region = null;
-        }
+        destroyImpl0(gl, renderer);
         position[0] = 0f;
         position[1] = 0f;
         position[2] = 0f;
@@ -198,6 +166,7 @@ public abstract class Shape {
 
     public final void onMove(final Listener l) { onMoveListener = l; }
 
+    /** Move to scaled position. Position ends up in PMVMatrix w/o scaling. */
     public final void moveTo(final float tx, final float ty, final float tz) {
         position[0] = tx;
         position[1] = ty;
@@ -207,40 +176,58 @@ public abstract class Shape {
         }
         // System.err.println("Shape.setTranslate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
-    public final void move(final float tx, final float ty, final float tz) {
-        position[0] += tx;
-        position[1] += ty;
-        position[2] += tz;
+
+    /** Move about scaled distance. Position ends up in PMVMatrix w/o scaling. */
+    public final void move(final float dtx, final float dty, final float dtz) {
+        position[0] += dtx;
+        position[1] += dty;
+        position[2] += dtz;
         if( null != onMoveListener ) {
             onMoveListener.run(this);
         }
         // System.err.println("Shape.translate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
 
-    /** Returns float[3] position, i.e. translation. */
+    /** Returns float[3] position, i.e. unscaled translation. */
     public final float[] getPosition() { return position; }
-    /** Returns float[3] rotation in degrees. */
+
+    /** Returns {@link Quaternion} for rotation. */
     public final Quaternion getRotation() { return rotation; }
-    public final float[] getRotationOrigin() { return rotOrigin; }
-    public final void setRotationOrigin(final float rx, final float ry, final float rz) {
+    /** Return float[3] unscaled rotation origin, aka pivot. */
+    public final float[] getRotationPivot() { return rotOrigin; }
+    /** Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}. */
+    public final void setRotationPivot(final float rx, final float ry, final float rz) {
         rotOrigin[0] = rx;
         rotOrigin[1] = ry;
         rotOrigin[2] = rz;
     }
+    /**
+     * Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}.
+     * @param pivot float[3] rotation origin
+     */
+    public final void setRotationPivot(final float[/*3*/] pivot) {
+        System.arraycopy(pivot, 0, rotOrigin, 0, 3);
+    }
+
+    /** Set scale factor to given scale. */
     public final void setScale(final float sx, final float sy, final float sz) {
         scale[0] = sx;
         scale[1] = sy;
         scale[2] = sz;
     }
+    /** Multiply current scale factor by given scale. */
     public final void scale(final float sx, final float sy, final float sz) {
         scale[0] *= sx;
         scale[1] *= sy;
         scale[2] *= sz;
     }
-    /** Returns float[3] scale factors */
+    /** Returns float[3] scale factors. */
     public final float[] getScale() { return scale; }
+    /** Returns X-axis scale factor. */
     public final float getScaleX() { return scale[0]; }
+    /** Returns Y-axis scale factor. */
     public final float getScaleY() { return scale[1]; }
+    /** Returns Z-axis scale factor. */
     public final float getScaleZ() { return scale[2]; }
 
     /**
@@ -263,10 +250,10 @@ public abstract class Shape {
         }
     }
 
-    private final boolean isShapeDirty() {
+    protected final boolean isShapeDirty() {
         return 0 != ( dirty & DIRTY_SHAPE ) ;
     }
-    private final boolean isStateDirty() {
+    protected final boolean isStateDirty() {
         return 0 != ( dirty & DIRTY_STATE ) ;
     }
 
@@ -321,92 +308,70 @@ public abstract class Shape {
         return box;
     }
 
-    public final int getRenderModes() { return renderModes; }
-
-    public GLRegion getRegion(final GL2ES2 gl) {
-        validate(gl);
-        return region;
-    }
-
-    /** Experimental OpenGL selection draw command used by {@link Scene}. */
-    public void drawGLSelect(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+    /** Experimental selection draw command used by {@link Scene}. */
+    public void drawToSelect(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         synchronized ( dirtySync ) {
             validate(gl);
-            region.draw(gl, renderer, sampleCount);
+            drawImpl0(gl, renderer, sampleCount, null);
         }
     }
 
+    private final float[] rgba_tmp = { 0, 0, 0, 1 };
+
     /**
-     * Renders {@link OutlineShape} using local {@link GLRegion} which might be cached or updated.
+     * Renders the shape.
      * <p>
-     * No matrix operations (translate, scale, ..) are performed.
+     * {@link #setTransform(PMVMatrix)} is expected to be completed beforehand.
      * </p>
      * @param gl the current GL object
-     * @param renderer the used {@link RegionRenderer}, also source of {@link RegionRenderer#getMatrix()} and {@link RegionRenderer#getViewport()}.
+     * @param renderer {@link RegionRenderer} which might be used for Graph Curve Rendering, also source of {@link RegionRenderer#getMatrix()} and {@link RegionRenderer#getViewport()}.
      * @param sampleCount sample count if used by Graph renderModes
      */
     public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
-        final float r, g, b, a;
         final boolean isPressed = isPressed(), isToggleOn = isToggleOn();
-        final boolean modBaseColor = !Region.hasColorChannel( renderModes ) && !Region.hasColorTexture( renderModes );
-        if( modBaseColor ) {
+        final float[] rgba;
+        if( hasColorChannel() ) {
             if( isPressed ) {
-                r = rgbaColor[0]*pressedRGBAModulate[0];
-                g = rgbaColor[1]*pressedRGBAModulate[1];
-                b = rgbaColor[2]*pressedRGBAModulate[2];
-                a = rgbaColor[3]*pressedRGBAModulate[3];
+                rgba = pressedRGBAModulate;
             } else if( isToggleable() ) {
                 if( isToggleOn ) {
-                    r = rgbaColor[0]*toggleOnRGBAModulate[0];
-                    g = rgbaColor[1]*toggleOnRGBAModulate[1];
-                    b = rgbaColor[2]*toggleOnRGBAModulate[2];
-                    a = rgbaColor[3]*toggleOnRGBAModulate[3];
+                    rgba = toggleOnRGBAModulate;
                 } else {
-                    r = rgbaColor[0]*toggleOffRGBAModulate[0];
-                    g = rgbaColor[1]*toggleOffRGBAModulate[1];
-                    b = rgbaColor[2]*toggleOffRGBAModulate[2];
-                    a = rgbaColor[3]*toggleOffRGBAModulate[3];
+                    rgba = toggleOffRGBAModulate;
                 }
             } else {
-                r = rgbaColor[0];
-                g = rgbaColor[1];
-                b = rgbaColor[2];
-                a = rgbaColor[3];
+                rgba = rgbaColor;
             }
         } else {
+            rgba = rgba_tmp;
             if( isPressed ) {
-                r = pressedRGBAModulate[0];
-                g = pressedRGBAModulate[1];
-                b = pressedRGBAModulate[2];
-                a = pressedRGBAModulate[3];
+                rgba[0] = rgbaColor[0]*pressedRGBAModulate[0];
+                rgba[1] = rgbaColor[1]*pressedRGBAModulate[1];
+                rgba[2] = rgbaColor[2]*pressedRGBAModulate[2];
+                rgba[3] = rgbaColor[3]*pressedRGBAModulate[3];
             } else if( isToggleable() ) {
                 if( isToggleOn ) {
-                    r = toggleOnRGBAModulate[0];
-                    g = toggleOnRGBAModulate[1];
-                    b = toggleOnRGBAModulate[2];
-                    a = toggleOnRGBAModulate[3];
+                    rgba[0] = rgbaColor[0]*toggleOnRGBAModulate[0];
+                    rgba[1] = rgbaColor[1]*toggleOnRGBAModulate[1];
+                    rgba[2] = rgbaColor[2]*toggleOnRGBAModulate[2];
+                    rgba[3] = rgbaColor[3]*toggleOnRGBAModulate[3];
                 } else {
-                    r = toggleOffRGBAModulate[0];
-                    g = toggleOffRGBAModulate[1];
-                    b = toggleOffRGBAModulate[2];
-                    a = toggleOffRGBAModulate[3];
+                    rgba[0] = rgbaColor[0]*toggleOffRGBAModulate[0];
+                    rgba[1] = rgbaColor[1]*toggleOffRGBAModulate[1];
+                    rgba[2] = rgbaColor[2]*toggleOffRGBAModulate[2];
+                    rgba[3] = rgbaColor[3]*toggleOffRGBAModulate[3];
                 }
             } else {
-                r = rgbaColor[0];
-                g = rgbaColor[1];
-                b = rgbaColor[2];
-                a = rgbaColor[3];
+                rgba[0] = rgbaColor[0];
+                rgba[1] = rgbaColor[1];
+                rgba[2] = rgbaColor[2];
+                rgba[3] = rgbaColor[3];
             }
         }
-        renderer.getRenderState().setColorStatic(r, g, b, a);
         synchronized ( dirtySync ) {
             validate(gl);
-            region.draw(gl, renderer, sampleCount);
+            drawImpl0(gl, renderer, sampleCount, rgba);
         }
-    }
-
-    protected GLRegion createGLRegion(final GLProfile glp) {
-        return GLRegion.create(glp, renderModes, null);
     }
 
     /**
@@ -418,8 +383,15 @@ public abstract class Shape {
      * @see #validate(GLProfile)
      */
     public final void validate(final GL2ES2 gl) {
-        validateImpl(gl.getGLProfile(), gl);
+        synchronized ( dirtySync ) {
+            if( isShapeDirty() ) {
+                box.reset();
+            }
+            validateImpl(gl.getGLProfile(), gl);
+            dirty = 0;
+        }
     }
+
     /**
      * Validates the shape's underlying {@link GLRegion} w/o a current {@link GL2ES2} object
      * <p>
@@ -429,30 +401,12 @@ public abstract class Shape {
      * @see #validate(GL2ES2)
      */
     public final void validate(final GLProfile glp) {
-        validateImpl(glp, null);
-    }
-    private final void validateImpl(final GLProfile glp, final GL2ES2 gl) {
         synchronized ( dirtySync ) {
-            if( null != gl ) {
-                clearDirtyRegions(gl);
-            }
-            if( isShapeDirty() || null == region ) {
+            if( isShapeDirty() ) {
                 box.reset();
-                if( null == region ) {
-                    region = createGLRegion(glp);
-                } else if( null == gl ) {
-                    dirtyRegions.add(region);
-                    region = createGLRegion(glp);
-                } else {
-                    region.clear(gl);
-                }
-                addShapeToRegion();
-                region.setQuality(regionQuality);
-                dirty &= ~(DIRTY_SHAPE|DIRTY_STATE);
-            } else if( isStateDirty() ) {
-                region.markStateDirty();
-                dirty &= ~DIRTY_STATE;
             }
+            validateImpl(glp, null);
+            dirty = 0;
         }
     }
 
@@ -769,21 +723,6 @@ public abstract class Shape {
         return rgbaColor;
     }
 
-    public final int getQuality() { return regionQuality; }
-    public final void setQuality(final int q) {
-        this.regionQuality = q;
-        if( null != region ) {
-            region.setQuality(q);
-        }
-    }
-    public final void setSharpness(final float sharpness) {
-        this.oshapeSharpness = sharpness;
-        markShapeDirty();
-    }
-    public final float getSharpness() {
-        return oshapeSharpness;
-    }
-
     /**
      * Set base color.
      * <p>
@@ -842,9 +781,27 @@ public abstract class Shape {
     }
 
     public String getSubString() {
+        final String pivotS;
+        if( !VectorUtil.isVec3Zero(rotOrigin, 0, FloatUtil.EPSILON) ) {
+            pivotS = "pivot["+rotOrigin[0]+", "+rotOrigin[1]+", "+rotOrigin[2]+"], ";
+        } else {
+            pivotS = "";
+        }
+        final String scaleS;
+        if( !VectorUtil.isVec3Equal(scale, 0, VectorUtil.VEC3_ONE, 0, FloatUtil.EPSILON) ) {
+            scaleS = "scale["+scale[0]+", "+scale[1]+", "+scale[2]+"], ";
+        } else {
+            scaleS = "scale 1, ";
+        }
+        final String rotateS;
+        if( !rotation.isIdentity() ) {
+            rotateS = "rot "+rotation+", ";
+        } else {
+            rotateS = "";
+        }
         return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+"], pos["+position[0]+", "+position[1]+", "+position[2]+
-                "], scale["+scale[0]+", "+scale[1]+", "+scale[2]+
-                "], box "+box;
+                "], "+pivotS+scaleS+rotateS+
+                "box "+box;
     }
 
     //
@@ -1187,39 +1144,25 @@ public abstract class Shape {
     //
     //
 
-    protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) { }
+    protected abstract void validateImpl(final GLProfile glp, final GL2ES2 gl);
 
-    protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) { }
+    protected abstract void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, float[] rgba);
+
+    protected abstract void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer);
+
+    protected abstract void destroyImpl0(final GL2ES2 gl, final RegionRenderer renderer);
 
     protected abstract void addShapeToRegion();
 
+    /**
+     * Returns true if implementation uses an extra color channel or texture
+     * which will be modulated with the passed rgba color {@link #drawImpl0(GL2ES2, RegionRenderer, int[], float[])}.
+     *
+     * Otherwise the base color will be modulated and passed to {@link #drawImpl0(GL2ES2, RegionRenderer, int[], float[])}.
+     */
+    public abstract boolean hasColorChannel();
+
     //
     //
     //
-
-    protected OutlineShape createDebugOutline(final OutlineShape shape, final AABBox box) {
-        final float d = 0.025f;
-        final float tw = box.getWidth() + d*2f;
-        final float th = box.getHeight() + d*2f;
-
-        final float minX = box.getMinX() - d;
-        final float minY = box.getMinY() - d;
-        final float z = 0; // box.getMinZ() + 0.025f;
-
-        // CCW!
-        shape.moveTo(minX, minY, z);
-        shape.lineTo(minX+tw, minY, z);
-        shape.lineTo(minX+tw, minY + th, z);
-        shape.lineTo(minX,    minY + th, z);
-        shape.closePath();
-
-        // shape.addVertex(minX,    minY,      z, true);
-        // shape.addVertex(minX+tw, minY,      z, true);
-        // shape.addVertex(minX+tw, minY + th, z, true);
-        // shape.addVertex(minX,    minY + th, z, true);
-        // shape.closeLastOutline(true);
-
-        return shape;
-    }
-
 }

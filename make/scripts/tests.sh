@@ -955,6 +955,7 @@ function testawtswt() {
 #
 # Graph
 #
+#testnoawt com.jogamp.opengl.test.junit.graph.TestFontScale01NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestFontsNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWTBugXXXX $*
@@ -1011,10 +1012,11 @@ function testawtswt() {
 
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo02 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*

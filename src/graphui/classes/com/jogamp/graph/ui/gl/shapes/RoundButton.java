@@ -28,10 +28,10 @@
 package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.ui.gl.Shape;
+import com.jogamp.graph.ui.gl.GraphShape;
 
 /**
- * An abstract GraphUI round Button {@link Shape}
+ * An abstract GraphUI round Button {@link GraphShape}
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
@@ -40,7 +40,7 @@ import com.jogamp.graph.ui.gl.Shape;
  * To render it rectangular, {@link #setCorner(float)} to zero.
  * </p>
  */
-public abstract class RoundButton extends Shape {
+public abstract class RoundButton extends GraphShape {
 
     /** {@value} */
     public static final float DEFAULT_CORNER = 1f;

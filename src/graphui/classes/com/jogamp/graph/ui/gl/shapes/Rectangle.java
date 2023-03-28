@@ -28,15 +28,15 @@
 package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.ui.gl.Shape;
+import com.jogamp.graph.ui.gl.GraphShape;
 
 /**
- * A GraphUI Rectangle {@link Shape}
+ * A GraphUI Rectangle {@link GraphShape}
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
  */
-public class Rectangle extends Shape {
+public class Rectangle extends GraphShape {
     private float width, height, lineWidth;
 
     public Rectangle(final int renderModes, final float width, final float height, final float linewidth) {

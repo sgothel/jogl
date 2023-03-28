@@ -246,12 +246,18 @@ public final class Scene implements GLEventListener {
 
     public void setAllShapesQuality(final int q) {
         for(int i=0; i<shapes.size(); i++) {
-            shapes.get(i).setQuality(q);
+            final Shape shape = shapes.get(i);
+            if( shape instanceof GraphShape ) {
+                ((GraphShape)shape).setQuality(q);
+            }
         }
     }
     public void setAllShapesSharpness(final float sharpness) {
         for(int i=0; i<shapes.size(); i++) {
-            shapes.get(i).setSharpness(sharpness);
+            final Shape shape = shapes.get(i);
+            if( shape instanceof GraphShape ) {
+                ((GraphShape)shape).setSharpness(sharpness);
+            }
         }
     }
     public void markAllShapesDirty() {
@@ -351,7 +357,7 @@ public final class Scene implements GLEventListener {
                         // FIXME
                         // System.err.printf("drawGL: color %f, index %d of [0..%d[%n", color, i, shapeCount);
                         renderer.getRenderState().setColorStatic(color, color, color, 1f);
-                        shape.drawGLSelect(gl, renderer, sampleCount0);
+                        shape.drawToSelect(gl, renderer, sampleCount0);
                     } else {
                         shape.draw(gl, renderer, sampleCount0);
                     }

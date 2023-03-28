@@ -28,15 +28,15 @@
 package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.ui.gl.Shape;
+import com.jogamp.graph.ui.gl.GraphShape;
 
 /**
- * A GraphUI Crosshair {@link Shape}
+ * A GraphUI Crosshair {@link GraphShape}
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
  */
-public class CrossHair extends Shape {
+public class CrossHair extends GraphShape {
     private float width, height, lineWidth;
 
     public CrossHair(final int renderModes, final float width, final float height, final float linewidth) {

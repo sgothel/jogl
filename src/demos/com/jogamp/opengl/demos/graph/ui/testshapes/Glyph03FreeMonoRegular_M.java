@@ -28,14 +28,14 @@
 package com.jogamp.opengl.demos.graph.ui.testshapes;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.ui.gl.Shape;
+import com.jogamp.graph.ui.gl.GraphShape;
 
 /**
  * GPU based resolution independent test object
  * - FreeMono-Regular, capital case 'M'
  * - TTF Shape for Glyph 48
  */
-public class Glyph03FreeMonoRegular_M extends Shape {
+public class Glyph03FreeMonoRegular_M extends GraphShape {
 
     public Glyph03FreeMonoRegular_M(final int renderModes) {
         super(renderModes);

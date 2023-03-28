@@ -29,10 +29,11 @@ package com.jogamp.graph.ui.gl.shapes;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.ui.gl.GraphShape;
 import com.jogamp.opengl.util.texture.ImageSequence;
 
 /**
- * A GraphUI {@link ImageSequence} based {@link TexSeqButton} {@link Shape}.
+ * A GraphUI {@link ImageSequence} based {@link TexSeqButton} {@link GraphShape}.
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>

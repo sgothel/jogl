@@ -30,13 +30,14 @@ package com.jogamp.graph.ui.gl.shapes;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.ui.gl.GraphShape;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /**
- * A GraphUI {@link GLMediaPlayer} based {@link TexSeqButton} {@link Shape}.
+ * A GraphUI {@link GLMediaPlayer} based {@link TexSeqButton} {@link GraphShape}.
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
