@@ -329,9 +329,7 @@ class TypecastFont implements Font {
                     left_glyph = null; // break kerning
                     continue;
                 } else if( glyph.isWhiteSpace() ) { // covers 'space' and all non-contour symbols
-                    advanceTotal += glyph.getAdvanceFU();
                     left_glyph = null; // break kerning
-                    continue;
                 }
                 if( null != left_glyph ) {
                     advanceTotal += left_glyph.getKerningFU(glyph_id);
@@ -340,7 +338,9 @@ class TypecastFont implements Font {
                 res.resize(temp1.transform(glyph.getBoundsFU(), temp_box));
 
                 advanceTotal += glyph.getAdvanceFU();
-                left_glyph = glyph;
+                if( !glyph.isWhiteSpace() ) {
+                    left_glyph = glyph;
+                }
             }
         }
         return res;
@@ -419,7 +419,9 @@ class TypecastFont implements Font {
                 res.resize(temp1.transform(glyphShape.getBounds(), temp_box));
                 visitor.visit(character, glyph, temp1);
                 advanceTotal += glyph.getAdvance();
-                left_glyph = glyph;
+                if( !glyph.isWhiteSpace() ) {
+                    left_glyph = glyph;
+                }
             }
         }
         return res;
