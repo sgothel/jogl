@@ -232,7 +232,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         if( upObj instanceof Window ) {
             upstream_window = (Window) upObj;
             final float[] sPpMM = upstream_window.getPixelsPerMM(new float[2]);
-            final float[] sDPI = FontScale.perMMToPerInch( new float[] { sPpMM[0], sPpMM[1] } );
+            final float[] sDPI = FontScale.ppmmToPPI( new float[] { sPpMM[0], sPpMM[1] } );
             dpiV = sDPI[1];
             ppmmV = sPpMM[1];
             System.err.println("Using vertical screen DPI of "+dpiV+", "+ppmmV+" pixel/mm");

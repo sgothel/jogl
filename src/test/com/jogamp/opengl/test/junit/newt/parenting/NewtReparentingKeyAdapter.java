@@ -105,7 +105,7 @@ public class NewtReparentingKeyAdapter extends NEWTDemoListener {
         final CapabilitiesImmutable reqCaps = win.getRequestedCapabilities();
         final CapabilitiesImmutable caps = null != chosenCaps ? chosenCaps : reqCaps;
         final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
-        final float[] sDPI = FontScale.perMMToPerInch( win.getPixelsPerMM(new float[2]) );
+        final float[] sDPI = FontScale.ppmmToPPI( win.getPixelsPerMM(new float[2]) );
         win.setTitle("GLWindow["+capsA+"], win: "+win.getBounds()+", pix: "+win.getSurfaceWidth()+"x"+win.getSurfaceHeight()+", sDPI "+sDPI[0]+" x "+sDPI[1]);
     }
 }

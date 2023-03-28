@@ -125,7 +125,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         if( upObj instanceof Window ) {
             final Window window = (Window) upObj;
             final float[] sPpMM = window.getPixelsPerMM(new float[2]);
-            final float[] sDPI = FontScale.perMMToPerInch( new float[] { sPpMM[0], sPpMM[1] } );
+            final float[] sDPI = FontScale.ppmmToPPI( new float[] { sPpMM[0], sPpMM[1] } );
             System.err.println("DPI "+sDPI[0]+" x "+sDPI[1]+", "+sPpMM[0]+" x "+sPpMM[1]+" pixel/mm");
 
             final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);

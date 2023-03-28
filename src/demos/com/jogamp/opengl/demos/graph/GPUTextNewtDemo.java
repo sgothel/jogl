@@ -149,7 +149,7 @@ public class GPUTextNewtDemo {
 
         {
             final Font font2 = textGLListener.getFont();
-            final float[] sDPI = FontScale.perMMToPerInch( window.getPixelsPerMM(new float[2]) );
+            final float[] sDPI = FontScale.ppmmToPPI( window.getPixelsPerMM(new float[2]) );
             final float font_ptpi = 12f;
             final float font_ppi = FontScale.toPixels(font_ptpi, sDPI[1]);
             final AABBox fontNameBox = font2.getMetricBounds(GPUTextRendererListenerBase01.textX1);

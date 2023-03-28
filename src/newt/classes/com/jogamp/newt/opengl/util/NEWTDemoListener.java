@@ -475,7 +475,7 @@ public class NEWTDemoListener extends WindowAdapter implements KeyListener, Mous
         final CapabilitiesImmutable reqCaps = win.getRequestedCapabilities();
         final CapabilitiesImmutable caps = null != chosenCaps ? chosenCaps : reqCaps;
         final String capsA = caps.isBackgroundOpaque() ? "opaque" : "transl";
-        final float[] sDPI = FontScale.perMMToPerInch( win.getPixelsPerMM(new float[2]) );
+        final float[] sDPI = FontScale.ppmmToPPI( win.getPixelsPerMM(new float[2]) );
         final float[] minSurfacePixelScale = win.getMinimumSurfaceScale(new float[2]);
         final float[] maxSurfacePixelScale = win.getMaximumSurfaceScale(new float[2]);
         final float[] reqSurfacePixelScale = win.getRequestedSurfaceScale(new float[2]);

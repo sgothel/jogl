@@ -137,7 +137,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
 
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {
-            final float[] dpi = FontScale.perMMToPerInch( ((Window)upObj).getPixelsPerMM(new float[2]) );
+            final float[] dpi = FontScale.ppmmToPPI( ((Window)upObj).getPixelsPerMM(new float[2]) );
             dpiH = dpi[1];
         }
     }
