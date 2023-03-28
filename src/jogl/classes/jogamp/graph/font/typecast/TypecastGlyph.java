@@ -128,6 +128,11 @@ public final class TypecastGlyph implements Font.Glyph {
     }
 
     @Override
+    public Font getFont() {
+        return font;
+    }
+
+    @Override
     public final int getID() { return id; }
 
     @Override

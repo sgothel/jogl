@@ -166,6 +166,9 @@ public interface Font {
         // http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08#ba57949e
         public static final int ID_UNKNOWN = 0;
 
+        /** Return the {@link Font} owning this {@link Glyph}. */
+        Font getFont();
+
         /** Return this glyph's ID */
         int getID();
 
