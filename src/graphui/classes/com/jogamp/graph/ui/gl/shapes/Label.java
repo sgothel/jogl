@@ -182,10 +182,11 @@ public class Label extends Shape {
 
     @Override
     protected void addShapeToRegion() {
+        AABBox fbox = font.getGlyphBounds(text, tempT2, tempT3);
         tempT1.setToScale(fontScale, fontScale);
-        final AABBox fbox = font.processString(glyphVisitor, tempT1, text, tempT2, tempT3);
-        final float[] ctr = fbox.getCenter();
-        setRotationOrigin( ctr[0], ctr[1], ctr[2]);
+        tempT1.translate(-fbox.getMinX(), -fbox.getMinY(), tempT2); // enforce bottom-left origin @ 0/0 for good drag-zoom experience
+        fbox = font.processString(glyphVisitor, tempT1, text, tempT2, tempT3);
+        setRotationPivot( fbox.getCenter() );
         box.copy(fbox);
     }
 
