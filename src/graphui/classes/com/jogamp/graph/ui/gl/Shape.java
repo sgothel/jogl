@@ -453,9 +453,9 @@ public abstract class Shape {
                     pmv.glTranslatef(-rotOrigin[0], -rotOrigin[1], -rotOrigin[2]); // pivot to rot-pivot
                 } else {
                     // Rotate shape around its center
-                    pmv.glTranslatef(ctr[0]*scale[0], ctr[1]*scale[1], ctr[2]*scale[2]); // add-back center, scaled
+                    pmv.glTranslatef(ctr[0], ctr[1], ctr[2]); // pivot back from center-pivot
                     pmv.glRotate(rotation);
-                    pmv.glTranslatef(-ctr[0], -ctr[1], -ctr[2]); // move to center
+                    pmv.glTranslatef(-ctr[0], -ctr[1], -ctr[2]); // pivot to center-pivot
                 }
             }
         }
