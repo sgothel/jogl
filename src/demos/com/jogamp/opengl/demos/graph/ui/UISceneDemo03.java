@@ -76,7 +76,7 @@ public class UISceneDemo03 {
             "JogAmp, Java™ libraries for 3D & Media"
     };
 
-    static int renderModes = Region.VBAA_RENDERING_BIT;
+    static int renderModes = Region.MSAA_RENDERING_BIT; // Region.VBAA_RENDERING_BIT;
     static int sceneMSAASamples = 0;
     static float velocity = 30 / 1e3f; // [m]/[s]
     static float rot_step = velocity * 1;
@@ -122,6 +122,7 @@ public class UISceneDemo03 {
                 }
             }
         }
+        // renderModes |= Region.COLORCHANNEL_RENDERING_BIT;
 
         //
         // Resolution independent, no screen size
@@ -129,7 +130,7 @@ public class UISceneDemo03 {
         final Font font = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerif.ttf",FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
         // final Font font = FontFactory.get(IOUtil.getResource("jogamp/graph/font/fonts/ubuntu/Ubuntu-R.ttf",FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
         System.err.println("Font: " + font.getFullFamilyName());
-        final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMonoBold.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
+        final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
 
         final Scene scene = new Scene();
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f }, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -199,7 +200,8 @@ public class UISceneDemo03 {
 
         scene.setFrustumCullingEnabled(true);
         window.invoke(true, (drawable) -> {
-            drawable.getGL().glEnable(GL.GL_DEPTH_TEST);
+            final GL gl = drawable.getGL();
+            gl.glEnable(GL.GL_DEPTH_TEST);
             return true;
         });
 
@@ -225,11 +227,11 @@ public class UISceneDemo03 {
         final Label statusLabel;
         {
             final AABBox fbox = fontStatus.getGlyphBounds("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-            // final float statusLabelScale = (sceneBox.getHeight() / 30f) * fbox.getHeight();
             final float statusLabelScale = sceneBox.getWidth() / fbox.getWidth();
-            System.err.println("StatusLabelScale: " + statusLabelScale + " = " + sceneBox.getHeight() + " / " + fbox.getHeight() + ", " + fbox);
+            System.err.println("StatusLabelScale: " + statusLabelScale + " = " + sceneBox.getWidth() + " / " + fbox.getWidth() + ", " + fbox);
 
-            statusLabel = new Label(renderModes, fontStatus, statusLabelScale, "Nothing there yet");
+            statusLabel = new Label(renderModes, fontStatus, "Nothing there yet");
+            statusLabel.setScale(statusLabelScale, statusLabelScale, 1f);
             statusLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
             statusLabel.moveTo(sceneBox.getMinX(), sceneBox.getMinY() + statusLabelScale * (fontStatus.getMetrics().getLineGap() - fontStatus.getMetrics().getDescent()), 0f);
             scene.addShape(statusLabel);
@@ -268,6 +270,7 @@ public class UISceneDemo03 {
                 final Random random = new Random();
 
                 final Label destText = new Label(renderModes, font, fontScale, "");
+                // destText.setScale(fontScale, fontScale, 1f);
                 destText.setColor(0.1f, 0.1f, 0.1f, 1);
 
                 destText.setText(hasGLP, "X");
@@ -276,14 +279,25 @@ public class UISceneDemo03 {
                 movingGlyphPixPerShapeUnit = destText.getPixelPerShapeUnit(movingGlyphSizePx, new float[2]); // [px]/[shapeUnit]
                 destText.setText("");
 
+                Font.Glyph left_glyph = null;
                 for (int idx = 0; idx < originalTexts[txt_idx].length(); ++idx) {
                     final String movingChar = originalTexts[txt_idx].substring(idx, idx + 1);
                     destText.validate(hasGLP);
                     final Label movingGlyph = new Label(renderModes, font, fontScale, movingChar);
+                    // movingGlyph.setScale(fontScale, fontScale, 1f);
                     movingGlyph.setColor(0.1f, 0.1f, 0.1f, 1);
                     movingGlyph.validate(hasGLP);
-                    final float end_pos_x = sceneBox.getMinX() + (destText.getText().isEmpty() ? 0 : destText.getBounds().getWidth());
-                    final float end_pos_y = 0f; // movingGlyph.getBounds().getCenter()[1];
+                    final Font.Glyph glyph = font.getGlyph( font.getGlyphID(movingChar.charAt(0)) );
+                    float end_pos_x = sceneBox.getMinX() + (destText.getText().isEmpty() ? 0 : destText.getScaledWidth());
+                    if( !glyph.isWhiteSpace() ) {
+                        if( null != left_glyph ) {
+                            end_pos_x += left_glyph.getKerning(glyph.getID()) * fontScale;
+                        }
+                        left_glyph = glyph;
+                    } else {
+                        left_glyph = null;
+                    }
+                    final float end_pos_y = glyph.getBounds().getMinY() * fontScale;
                     final float end_pos_z = 0f;
                     final float start_pos_x = z_only ? end_pos_x :
                                                        sceneBox.getMinX() + random.nextFloat() * sceneBox.getWidth();
