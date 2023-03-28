@@ -168,15 +168,7 @@ public class Label extends Shape {
             }
             final OutlineShape shape = glyph.getShape();
             shape.setSharpness(oshapeSharpness);
-            try {
-                region.addOutlineShape(shape, t, rgbaColor);
-            } catch ( final Exception ex ) {
-                ex.printStackTrace();
-                System.err.println("Ex from "+Label.this);
-                System.err.println("Ex from "+region.toString());
-                region.printBufferStats(System.err);
-                System.exit(-1);
-            }
+            region.addOutlineShape(shape, t, rgbaColor);
         }
     };
 
@@ -193,6 +185,6 @@ public class Label extends Shape {
     @Override
     public String getSubString() {
         final int m = Math.min(text.length(), 8);
-        return super.getSubString()+", pscale " + fontScale + ", '" + text.substring(0, m)+"'";
+        return super.getSubString()+", fscale " + fontScale + ", '" + text.substring(0, m)+"'";
     }
 }
