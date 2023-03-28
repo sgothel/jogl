@@ -726,10 +726,10 @@ public final class Scene implements GLEventListener {
     /**
      * Map given window surface-size to object coordinates relative to this scene using
      * the give projection parameters.
-     * @param viewport
-     * @param zNear
-     * @param zFar
-     * @param objOrthoDist
+     * @param viewport viewport rectangle
+     * @param zNear custom {@link #DEFAULT_ZNEAR}
+     * @param zFar custom {@link #DEFAULT_ZFAR}
+     * @param objOrthoDist custom {@link #DEFAULT_SCENE_DIST}
      * @param objSceneSize float[2] storage for object surface size result
      */
     public void surfaceToPlaneSize(final int[] viewport, final float zNear, final float zFar, final float objOrthoDist, final float[/*2*/] objSceneSize) {
@@ -748,8 +748,8 @@ public final class Scene implements GLEventListener {
 
     /**
      * Map given window surface-size to object coordinates relative to this scene using
-     * the default {@link PMVMatrixSetup}.
-     * @param viewport
+     * the default {@link PMVMatrixSetup}, i.e. {@link #DEFAULT_ZNEAR}, {@link #DEFAULT_ZFAR} and {@link #DEFAULT_SCENE_DIST}
+     * @param viewport viewport rectangle
      * @param objSceneSize float[2] storage for object surface size result
      */
     public void surfaceToPlaneSize(final int[] viewport, final float[/*2*/] objSceneSize) {
