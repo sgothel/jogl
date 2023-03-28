@@ -458,40 +458,54 @@ public abstract class Shape {
 
     /**
      * Setup the pre-selected {@link GLMatrixFunc#GL_MODELVIEW} {@link PMVMatrix} for this object.
+     * - Scale shape from its center position
+     * - Rotate shape around optional pivot, see {@link #setRotationPivot(float[])}), otherwise rotate around its center (default)
+     * <p>
+     * Shape's origin should be bottom-left @ 0/0 to have build-in drag-zoom work properly.
+     * </p>
      * @param pmv the matrix
+     * @see #setRotationPivot(float[])
+     * @see #getRotation()
+     * @see #moveTo(float, float, float)
+     * @see #setScale(float, float, float)
      */
     public void setTransform(final PMVMatrix pmv) {
-        final float[] uiTranslate = getPosition();
+        final boolean hasScale = !VectorUtil.isVec3Equal(scale, 0, VectorUtil.VEC3_ONE, 0, FloatUtil.EPSILON);
+        final boolean hasRotate = !rotation.isIdentity();
+        final boolean hasRotPivot = !VectorUtil.isVec3Zero(rotOrigin, 0, FloatUtil.EPSILON);
         final float[] ctr = box.getCenter();
-        final float[] low = box.getLow();
-        final float hw = ctr[0] - low[0]; // our center is half size
-        final float hh = ctr[1] - low[1];
-        final float hd = ctr[2] - low[2];
+        final boolean sameScaleRotatePivot = hasScale && hasRotate && ( !hasRotPivot || VectorUtil.isVec3Equal(rotOrigin, 0, ctr, 0, FloatUtil.EPSILON) );
 
-        pmv.glTranslatef(uiTranslate[0]-hw, uiTranslate[1]-hh, uiTranslate[2]-hd); // translate less unscaled-center
+        pmv.glTranslatef(position[0], position[1], position[2]); // translate, scaled
 
-        final Quaternion quat = getRotation();
-        final boolean rotate = !quat.isIdentity();
-        final float[] uiScale = getScale();
-        final boolean scale = !VectorUtil.isVec3Equal(uiScale, 0, VectorUtil.VEC3_ONE, 0, FloatUtil.EPSILON);
-        if( rotate || scale ) {
-            final float[] rotOrigin = getRotationOrigin();
-            final boolean pivot = !VectorUtil.isVec3Zero(rotOrigin, 0, FloatUtil.EPSILON);
-            if( pivot ) {
-                pmv.glTranslatef(rotOrigin[0], rotOrigin[1], rotOrigin[2]);
+        if( sameScaleRotatePivot ) {
+            // Scale shape from its center position and rotate around its center
+            pmv.glTranslatef(ctr[0]*scale[0], ctr[1]*scale[1], ctr[2]*scale[2]); // add-back center, scaled
+            pmv.glScalef(scale[0], scale[1], scale[2]);
+            pmv.glRotate(rotation);
+            pmv.glTranslatef(-ctr[0], -ctr[1], -ctr[2]); // move to center
+        } else if( hasRotate || hasScale ) {
+            if( hasScale ) {
+                // Scale shape from its center position
+                pmv.glTranslatef(ctr[0]*scale[0], ctr[1]*scale[1], ctr[2]*scale[2]); // add-back center, scaled
+                pmv.glScalef(scale[0], scale[1], scale[2]);
+                pmv.glTranslatef(-ctr[0], -ctr[1], -ctr[2]); // move to center
             }
-            if( scale ) {
-                pmv.glScalef(uiScale[0], uiScale[1], uiScale[2]);
-            }
-            if( rotate ) {
-                pmv.glRotate(quat);
-            }
-            if( pivot ) {
-                pmv.glTranslatef(-rotOrigin[0], -rotOrigin[1], -rotOrigin[2]);
+            if( hasRotate ) {
+                if( hasRotPivot ) {
+                    // Rotate shape around its pivot
+                    pmv.glTranslatef(rotOrigin[0], rotOrigin[1], rotOrigin[2]); // pivot back from rot-pivot
+                    pmv.glRotate(rotation);
+                    pmv.glTranslatef(-rotOrigin[0], -rotOrigin[1], -rotOrigin[2]); // pivot to rot-pivot
+                } else {
+                    // Rotate shape around its center
+                    pmv.glTranslatef(ctr[0]*scale[0], ctr[1]*scale[1], ctr[2]*scale[2]); // add-back center, scaled
+                    pmv.glRotate(rotation);
+                    pmv.glTranslatef(-ctr[0], -ctr[1], -ctr[2]); // move to center
+                }
             }
         }
         // TODO: Add alignment features.
-        pmv.glTranslatef(hw, hh, hd); // add-back center, scaled
     }
 
     /**
