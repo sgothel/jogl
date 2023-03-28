@@ -147,12 +147,30 @@ public class Label extends Shape {
         return fontScale * font.getLineHeight();
     }
 
+    /** Returns {@link Font#getLineHeight()} * {@link #getFontScale()} * {@link #getScaleY()}. */
+    public float getScaledLineHeight() {
+        return getScaleY() * fontScale * font.getLineHeight();
+    }
+
     /**
      * Sets the font-scale factor, by which the em-sized type glyphs shall be scaled.
+     * <p>
+     * This will lead to a recreate the shape's region in case fontScale differs.
+     * </p>
+     * <p>
+     * Use {@link #scale(float, float, float)} for non-expensive shape scaling.
+     * </p>
+     * @param fontScale font-scale factor, by which the em-sized type glyphs shall be scaled
+     * @return true if font-scale has been updated, false if unchanged.
      */
-    public void setFontScale(final float fontScale) {
-        this.fontScale = fontScale;
-        markShapeDirty();
+    public boolean setFontScale(final float fontScale) {
+        if( this.fontScale != fontScale ) {
+            this.fontScale = fontScale;
+            markShapeDirty();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
