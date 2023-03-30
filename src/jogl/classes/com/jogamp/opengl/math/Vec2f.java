@@ -32,7 +32,7 @@ package com.jogamp.opengl.math;
  * 2D Vector based upon two float components.
  *
  * Implementation borrowed from [gfxbox2](https://jausoft.com/cgit/cs_class/gfxbox2.git/tree/include/pixel/pixel2f.hpp#n29)
- * and its layout from OpenAL's Vec3f.
+ * and its data layout from JOAL's Vec3f.
  */
 public final class Vec2f {
     private float x;
@@ -45,27 +45,38 @@ public final class Vec2f {
     public Vec2f() {}
 
     public Vec2f(final Vec2f o) {
-        this.x = o.x;
-        this.y = o.y;
+        set(o);
     }
 
     public Vec2f copy() {
         return new Vec2f(this);
     }
 
-    public Vec2f(final float x, final float y) {
-        this.x = x;
-        this.y = y;
+    public Vec2f(final float[/*2*/] xy) {
+        set(xy);
     }
 
+    public Vec2f(final float x, final float y) {
+        set(x, y);
+    }
+
+    /** this = o, returns this. */
     public void set(final Vec2f o) {
         this.x = o.x;
         this.y = o.y;
     }
 
+    /** this = { x, y }, returns this. */
     public void set(final float x, final float y) {
         this.x = x;
         this.y = y;
+    }
+
+    /** this = xy, returns this. */
+    public Vec2f set(final float[/*2*/] xy) {
+        this.x = xy[0];
+        this.y = xy[1];
+        return this;
     }
 
     /** Sets the ith component, 0 <= i < 2 */
@@ -97,7 +108,7 @@ public final class Vec2f {
         return new Vec2f(this).scale(val);
     }
 
-    /** this = this * val */
+    /** this = this * val, returns this. */
     public Vec2f scale(final float val) {
         x *= val;
         y *= val;
@@ -109,7 +120,14 @@ public final class Vec2f {
         return new Vec2f(this).add(arg);
     }
 
-    /** this = this + b */
+    /** this = this + { dx, dy }, returns this. */
+    public Vec2f add(final float dx, final float dy) {
+        x += dx;
+        y += dy;
+        return this;
+    }
+
+    /** this = this + b, returns this. */
     public Vec2f add(final Vec2f b) {
         x += b.x;
         y += b.y;
@@ -121,7 +139,7 @@ public final class Vec2f {
         return new Vec2f(this).addScaled(s, arg);
     }
 
-    /** this = this + s * b */
+    /** this = this + s * b, returns this. */
     public Vec2f addScaled(final float s, final Vec2f b) {
         x += s * b.x;
         y += s * b.y;
@@ -133,7 +151,7 @@ public final class Vec2f {
         return new Vec2f(this).sub(arg);
     }
 
-    /** this = this - b */
+    /** this = this - b, returns this. */
     public Vec2f sub(final Vec2f b) {
         x -= b.x;
         y -= b.y;

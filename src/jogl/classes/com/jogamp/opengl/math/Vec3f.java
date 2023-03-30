@@ -32,7 +32,7 @@ package com.jogamp.opengl.math;
  * 3D Vector based upon three float components.
  *
  * Implementation borrowed from [gfxbox2](https://jausoft.com/cgit/cs_class/gfxbox2.git/tree/include/pixel/pixel3f.hpp#n29)
- * and its layout from OpenAL's Vec3f.
+ * and its data layout from JOAL's Vec3f.
  */
 public final class Vec3f {
     private float x;
@@ -42,31 +42,43 @@ public final class Vec3f {
     public Vec3f() {}
 
     public Vec3f(final Vec3f o) {
-        this.x = o.x;
-        this.y = o.y;
-        this.z = o.z;
+        set(o);
     }
 
     public Vec3f copy() {
         return new Vec3f(this);
     }
 
-    public Vec3f(final float x, final float y, final float z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+    public Vec3f(final float[/*3*/] xyz) {
+        set(xyz);
     }
 
-    public void set(final Vec3f o) {
+    public Vec3f(final float x, final float y, final float z) {
+        set(x, y, z);
+    }
+
+    /** this = o, returns this. */
+    public Vec3f set(final Vec3f o) {
         this.x = o.x;
         this.y = o.y;
         this.z = o.z;
+        return this;
     }
 
-    public void set(final float x, final float y, final float z) {
+    /** this = { x, y, z }, returns this. */
+    public Vec3f set(final float x, final float y, final float z) {
         this.x = x;
         this.y = y;
         this.z = z;
+        return this;
+    }
+
+    /** this = xyz, returns this. */
+    public Vec3f set(final float[/*3*/] xyz) {
+        this.x = xyz[0];
+        this.y = xyz[1];
+        this.z = xyz[2];
+        return this;
     }
 
     /** Sets the ith component, 0 <= i < 3 */
@@ -102,7 +114,7 @@ public final class Vec3f {
         return new Vec3f(this).scale(val);
     }
 
-    /** this = this * val */
+    /** this = this * val, returns this. */
     public Vec3f scale(final float val) {
         x *= val;
         y *= val;
@@ -115,7 +127,15 @@ public final class Vec3f {
         return new Vec3f(this).add(arg);
     }
 
-    /** this = this + b */
+    /** this = this + { dx, dy, dz }, returns this. */
+    public Vec3f add(final float dx, final float dy, final float dz) {
+        x += dx;
+        y += dy;
+        z += dz;
+        return this;
+    }
+
+    /** this = this + b, returns this. */
     public Vec3f add(final Vec3f b) {
         x += b.x;
         y += b.y;
@@ -128,7 +148,7 @@ public final class Vec3f {
         return new Vec3f(this).addScaled(s, arg);
     }
 
-    /** this = this + s * b */
+    /** this = this + s * b, returns this. */
     public Vec3f addScaled(final float s, final Vec3f b) {
         x += s * b.x;
         y += s * b.y;
@@ -141,7 +161,7 @@ public final class Vec3f {
         return new Vec3f(this).sub(arg);
     }
 
-    /** this = this - b */
+    /** this = this - b, returns this. */
     public Vec3f sub(final Vec3f b) {
         x -= b.x;
         y -= b.y;
