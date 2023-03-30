@@ -413,7 +413,7 @@ public abstract class Shape {
     /**
      * Setup the pre-selected {@link GLMatrixFunc#GL_MODELVIEW} {@link PMVMatrix} for this object.
      * - Scale shape from its center position
-     * - Rotate shape around optional pivot, see {@link #setRotationPivot(float[])}), otherwise rotate around its center (default)
+     * - Rotate shape around optional scaled pivot, see {@link #setRotationPivot(float[])}), otherwise rotate around its scaled center (default)
      * <p>
      * Shape's origin should be bottom-left @ 0/0 to have build-in drag-zoom work properly.
      * </p>
@@ -435,28 +435,28 @@ public abstract class Shape {
         if( sameScaleRotatePivot ) {
             // Scale shape from its center position and rotate around its center
             pmv.glTranslatef(ctr[0]*scale[0], ctr[1]*scale[1], ctr[2]*scale[2]); // add-back center, scaled
-            pmv.glScalef(scale[0], scale[1], scale[2]);
             pmv.glRotate(rotation);
+            pmv.glScalef(scale[0], scale[1], scale[2]);
             pmv.glTranslatef(-ctr[0], -ctr[1], -ctr[2]); // move to center
         } else if( hasRotate || hasScale ) {
+            if( hasRotate ) {
+                if( hasRotPivot ) {
+                    // Rotate shape around its scaled pivot
+                    pmv.glTranslatef(rotPivot[0]*scale[0], rotPivot[1]*scale[1], rotPivot[2]*scale[2]); // pivot back from rot-pivot, scaled
+                    pmv.glRotate(rotation);
+                    pmv.glTranslatef(-rotPivot[0]*scale[0], -rotPivot[1]*scale[1], -rotPivot[2]*scale[2]); // pivot to rot-pivot, scaled
+                } else {
+                    // Rotate shape around its scaled center
+                    pmv.glTranslatef(ctr[0]*scale[0], ctr[1]*scale[1], ctr[2]*scale[2]); // pivot back from center-pivot, scaled
+                    pmv.glRotate(rotation);
+                    pmv.glTranslatef(-ctr[0]*scale[0], -ctr[1]*scale[1], -ctr[2]*scale[2]); // pivot to center-pivot, scaled
+                }
+            }
             if( hasScale ) {
                 // Scale shape from its center position
                 pmv.glTranslatef(ctr[0]*scale[0], ctr[1]*scale[1], ctr[2]*scale[2]); // add-back center, scaled
                 pmv.glScalef(scale[0], scale[1], scale[2]);
                 pmv.glTranslatef(-ctr[0], -ctr[1], -ctr[2]); // move to center
-            }
-            if( hasRotate ) {
-                if( hasRotPivot ) {
-                    // Rotate shape around its pivot
-                    pmv.glTranslatef(rotPivot[0], rotPivot[1], rotPivot[2]); // pivot back from rot-pivot
-                    pmv.glRotate(rotation);
-                    pmv.glTranslatef(-rotPivot[0], -rotPivot[1], -rotPivot[2]); // pivot to rot-pivot
-                } else {
-                    // Rotate shape around its center
-                    pmv.glTranslatef(ctr[0], ctr[1], ctr[2]); // pivot back from center-pivot
-                    pmv.glRotate(rotation);
-                    pmv.glTranslatef(-ctr[0], -ctr[1], -ctr[2]); // pivot to center-pivot
-                }
             }
         }
         // TODO: Add alignment features.
