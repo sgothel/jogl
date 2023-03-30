@@ -969,7 +969,7 @@ public abstract class Shape {
     private final int[] winDraggedLast = { 0, 0 }; // b/c its absolute window pos
     private boolean inDrag = false;
     private int inResize = 0; // 1 br, 2 bl
-    private static final float resize_sxy_min = 0.03f; // TODO: Maybe customizable?
+    private static final float resize_sxy_min = 1f/200f; // 1/2% - TODO: Maybe customizable?
     private static final float resize_section = 1f/5f; // resize action in a corner
 
     /**
