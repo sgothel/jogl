@@ -166,7 +166,7 @@ public abstract class Shape {
 
     public final void onMove(final Listener l) { onMoveListener = l; }
 
-    /** Move to scaled position. Position ends up in PMVMatrix w/o scaling. */
+    /** Move to scaled position. Position ends up in PMVMatrix unmodified. */
     public final void moveTo(final float tx, final float ty, final float tz) {
         position[0] = tx;
         position[1] = ty;
@@ -177,7 +177,7 @@ public abstract class Shape {
         // System.err.println("Shape.setTranslate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
 
-    /** Move about scaled distance. Position ends up in PMVMatrix w/o scaling. */
+    /** Move about scaled distance. Position ends up in PMVMatrix unmodified. */
     public final void move(final float dtx, final float dty, final float dtz) {
         position[0] += dtx;
         position[1] += dty;
@@ -188,7 +188,7 @@ public abstract class Shape {
         // System.err.println("Shape.translate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
 
-    /** Returns float[3] position, i.e. unscaled translation. */
+    /** Returns float[3] position, i.e. scaled translation as set via {@link #moveTo(float, float, float) or {@link #move(float, float, float)}}. */
     public final float[] getPosition() { return position; }
 
     /** Returns {@link Quaternion} for rotation. */
@@ -258,7 +258,7 @@ public abstract class Shape {
     }
 
     /**
-     * Returns the unscaled bounding {@link AABBox} for this shape.
+     * Returns the unscaled bounding {@link AABBox} for this shape, borrowing internal instance.
      *
      * The returned {@link AABBox} will only cover this unscaled shape
      * after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
@@ -536,7 +536,7 @@ public abstract class Shape {
     }
 
     /**
-     * Retrieve pixel per shape-coordinate unit, i.e. [px]/[obj].
+     * Retrieve pixel per scaled shape-coordinate unit, i.e. [px]/[obj].
      * <p>
      * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} properly for this shape
      * including this shape's {@link #setTransform(PMVMatrix)}.
@@ -544,7 +544,7 @@ public abstract class Shape {
      * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
      * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
      *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
-     * @param pixPerShape float[2] pixel per shape-coordinate unit
+     * @param pixPerShape float[2] pixel per scaled shape-coordinate unit result storage
      * @return given float[2] {@code pixPerShape} for successful gluProject(..) operation, otherwise {@code null}
      * @see #getPixelPerShapeUnit(int[], float[])
      * @see #getSurfaceSize(Scene, PMVMatrix, int[])
@@ -561,9 +561,9 @@ public abstract class Shape {
     }
 
     /**
-     * Retrieve pixel per shape-coordinate unit, i.e. [px]/[obj].
+     * Retrieve pixel per scaled shape-coordinate unit, i.e. [px]/[obj].
      * @param shapeSizePx int[2] shape size in pixel as retrieved via e.g. {@link #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])}
-     * @param pixPerShape float[2] pixel per shape-coordinate unit
+     * @param pixPerShape float[2] pixel scaled per shape-coordinate unit result storage
      * @return given float[2] {@code pixPerShape}
      * @see #getPixelPerShapeUnit(Scene, PMVMatrix, float[])
      * @see #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])
