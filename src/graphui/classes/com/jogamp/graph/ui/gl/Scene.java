@@ -27,11 +27,13 @@
  */
 package com.jogamp.graph.ui.gl;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Locale;
 
 import com.jogamp.opengl.FPSCounter;
 import com.jogamp.opengl.GL;
@@ -57,6 +59,7 @@ import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Ray;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLPixelStorageModes;
+import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.PMVMatrix;
 
 /**
@@ -114,6 +117,8 @@ public final class Scene implements GLEventListener {
     private SBCGestureListener sbcGestureListener = null;
     private PinchToZoomGesture pinchToZoomGesture = null;
 
+    final GLReadBufferUtil screenshot;
+
     private GLAutoDrawable cDrawable = null;
 
     private static RegionRenderer createRenderer() {
@@ -138,6 +143,7 @@ public final class Scene implements GLEventListener {
         }
         this.renderer = renderer;
         this.sampleCount[0] = 4;
+        this.screenshot = new GLReadBufferUtil(false, false);
     }
 
     /** Returns the associated RegionRenderer */
@@ -417,6 +423,7 @@ public final class Scene implements GLEventListener {
         shapes.clear();
         cDrawable = null;
         renderer.destroy(gl);
+        screenshot.dispose(gl);
     }
 
     /**
@@ -926,7 +933,7 @@ public final class Scene implements GLEventListener {
      * Return a formatted status string containing avg fps and avg frame duration.
      * @param glad GLAutoDrawable instance for FPSCounter, its chosen GLCapabilities and its GL's swap-interval
      * @param renderModes render modes for {@link Region#getRenderModeString(int)}
-     * @param quality the Graph-Curve quality setting
+     * @param quality the Graph-Curve quality setting or -1 to be ignored
      * @param dpi the monitor's DPI (vertical preferred)
      * @return formatted status string
      */
@@ -944,7 +951,7 @@ public final class Scene implements GLEventListener {
             }
             final String modeS = Region.getRenderModeString(renderModes);
             final GLCapabilitiesImmutable caps = glad.getChosenGLCapabilities();
-            final String sampleCountStr1, sampleCountStr2, blendStr;
+            final String sampleCountStr1, sampleCountStr2, qualityStr, blendStr;
             if( Region.isVBAA(renderModes) || Region.isMSAA(renderModes) ) {
                 sampleCountStr1 = "-samples "+getSampleCount();
             } else {
@@ -955,14 +962,19 @@ public final class Scene implements GLEventListener {
             } else {
                 sampleCountStr2 = "";
             }
+            if( 0 <= quality ) {
+                qualityStr = ", q "+quality;
+            } else {
+                qualityStr = "";
+            }
             if( getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
                 blendStr = ", blend";
             } else {
                 blendStr = "";
             }
-            return String.format("%03.1f/%03.1f fps, %.1f ms/f, vsync %d, dpi %.1f, %s%s%s, q %d%s, a %d",
+            return String.format("%03.1f/%03.1f fps, %.1f ms/f, vsync %d, dpi %.1f, %s%s%s%s%s, a %d",
                         lfps, tfps, td, glad.getGL().getSwapInterval(), dpi, modeS, sampleCountStr1, sampleCountStr2,
-                        quality, blendStr, caps.getAlphaBits());
+                        qualityStr, blendStr, caps.getAlphaBits());
     }
 
     /**
@@ -976,6 +988,27 @@ public final class Scene implements GLEventListener {
             final float td = (float)fpsCounter.getLastFPSPeriod() / (float)fpsCounter.getUpdateFPSFrames();
             return String.format("%03.1f/%03.1f fps, %.1f ms/f", lfps, tfps, td);
     }
+
+    /**
+     * Write current read drawable (screen) to a PNG file.
+     * @see #getScreenshotCount()
+     */
+    public void screenshot(final GL gl, final int renderModes, final String prefix)  {
+        final RegionRenderer renderer = getRenderer();
+        final String modeS = Region.getRenderModeString(renderModes);
+        final String filename = String.format((Locale)null, "%s-shot%03d-%03dx%03d-S_%s_%02d.png",
+                prefix, shotCount++, renderer.getWidth(), renderer.getHeight(),
+                modeS, getSampleCount());
+        gl.glFinish(); // just make sure rendering finished ..
+        if(screenshot.readPixels(gl, false)) {
+            screenshot.write(new File(filename));
+            System.err.println("Wrote: "+filename);
+        }
+    }
+    private int shotCount = 0;
+
+    /** Return the number of {@link #screenshot(GL, int, String)}s being taken. */
+    public int getScreenshotCount() { return shotCount; }
 
     private static final PMVMatrixSetup defaultPMVMatrixSetup = new PMVMatrixSetup() {
         @Override
