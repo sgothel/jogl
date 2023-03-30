@@ -232,7 +232,7 @@ public abstract class Region {
     protected abstract void pushIndices(int idx1, int idx2, int idx3);
 
     /**
-     * Return bit-field of render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     * Returns bit-field of render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      */
     public final int getRenderModes() { return renderModes; }
 

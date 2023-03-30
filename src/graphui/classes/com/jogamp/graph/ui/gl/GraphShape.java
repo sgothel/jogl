@@ -39,6 +39,7 @@ import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
  * Graph based {@link GLRegion} UI {@link Shape}
@@ -59,12 +60,18 @@ public abstract class GraphShape extends Shape {
     private int regionQuality = Region.MAX_QUALITY;
     private final List<GLRegion> dirtyRegions = new ArrayList<GLRegion>();
 
+    /**
+     * Create a Graph based {@link GLRegion} UI {@link Shape}.
+     *
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     */
     public GraphShape(final int renderModes) {
         super();
         this.vertexFactory = OutlineShape.getDefaultVertexFactory();
         this.renderModes = renderModes;
     }
 
+    /** Return Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}. */
     public final int getRenderModes() { return renderModes; }
 
     public final int getQuality() { return regionQuality; }
