@@ -48,6 +48,7 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
@@ -76,9 +77,9 @@ public class UISceneDemo03 {
     static final boolean DEBUG = false;
 
     static final String[] originalTexts = {
-            "JOGL, Java™ Binding for the OpenGL® API",
-            "GraphUI, Resolution Independent Curves",
-            "JogAmp, Java™ libraries for 3D & Media"
+            " JOGL, Java™ Binding for the OpenGL® API ",
+            " GraphUI, Resolution Independent Curves ",
+            " JogAmp, Java™ libraries for 3D & Media "
     };
 
     static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, 0);
@@ -198,13 +199,6 @@ public class UISceneDemo03 {
         System.err.println("SceneBox " + sceneBox);
         System.err.println("Frustum " + scene.getMatrix().glGetFrustum());
 
-        if( options.wait_to_start ) {
-            MiscUtils.waitForKey("Start");
-        }
-
-        //
-        //
-        //
         final Label statusLabel;
         {
             final AABBox fbox = fontStatus.getGlyphBounds("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
@@ -216,6 +210,32 @@ public class UISceneDemo03 {
             statusLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
             statusLabel.moveTo(sceneBox.getMinX(), sceneBox.getMinY() + statusLabelScale * (fontStatus.getMetrics().getLineGap() - fontStatus.getMetrics().getDescent()), 0f);
             scene.addShape(statusLabel);
+        }
+
+        {
+            final StringBuilder sb = new StringBuilder();
+            for(final String s : originalTexts) {
+                sb.append(s).append("\n");
+            }
+            final Label l = new Label(options.renderModes, font, sb.toString()); // originalTexts[0]);
+            l.validate(hasGLP);
+            final float scale = sceneBox.getWidth() / l.getBounds().getWidth();
+            l.setScale(scale, scale, 1f);
+            l.setColor(0.1f, 0.1f, 0.1f, 1.0f);
+            l.moveTo(sceneBox.getMinX(), 0f, 0f);
+            scene.addShape(l);
+
+            if( options.wait_to_start ) {
+                statusLabel.setText("Press enter to continue");
+                MiscUtils.waitForKey("Start");
+            }
+
+            window.invoke(true, (drawable) -> {
+                final GL2ES2 gl = drawable.getGL().getGL2ES2();
+                scene.screenshot(gl, options.renderModes, UISceneDemo03.class.getSimpleName());
+                scene.removeShape(gl, l);
+                return true;
+            });
         }
 
         //
@@ -357,6 +377,12 @@ public class UISceneDemo03 {
             }
             final float has_dur_s = ((Clock.currentNanos() / 1000) - t0_us) / 1e6f; // [us]
             System.err.printf("Text travel-duration %.3f s, %d chars%n", has_dur_s, originalTexts[txt_idx].length());
+            if( scene.getScreenshotCount() < 1 + originalTexts.length ) {
+                window.invoke(true, (drawable) -> {
+                    scene.screenshot(drawable.getGL(), options.renderModes, UISceneDemo03.class.getSimpleName());
+                    return true;
+                });
+            }
             try { Thread.sleep(2000); } catch (final InterruptedException e1) { }
             if( autoSpeed > 0 ) {
                 if( velocity < 60/1000f ) {
