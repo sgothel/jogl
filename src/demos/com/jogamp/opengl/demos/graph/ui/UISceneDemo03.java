@@ -39,6 +39,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.ui.gl.Scene;
 import com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup;
+import com.jogamp.graph.ui.gl.shapes.GlyphShape;
 import com.jogamp.graph.ui.gl.shapes.Label;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.event.KeyAdapter;
@@ -52,8 +53,10 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -65,19 +68,20 @@ import com.jogamp.opengl.util.PMVMatrix;
  * each glyph coming from from a random 3D point moving to its destination all at once.
  * </p>
  * <p>
- * Pass '-keep' to main-function to keep running.
+ * - Pass '-keep' to main-function to keep running.
+ * - Pass '-aspeed' to vary velocity
  * </p>
  */
 public class UISceneDemo03 {
-    // final String originalText = "JOGL, Java™ Binding for the OpenGL® API";
+    static final boolean DEBUG = false;
+
     static final String[] originalTexts = {
             "JOGL, Java™ Binding for the OpenGL® API",
             "GraphUI, Resolution Independent Curves",
             "JogAmp, Java™ libraries for 3D & Media"
     };
 
-    static int renderModes = Region.MSAA_RENDERING_BIT; // Region.VBAA_RENDERING_BIT;
-    static int sceneMSAASamples = 0;
+    static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, 0);
     static float velocity = 30 / 1e3f; // [m]/[s]
     static float rot_step = velocity * 1;
 
@@ -87,42 +91,26 @@ public class UISceneDemo03 {
     }
 
     public static void main(final String[] args) throws IOException {
-        final int surface_width = 1280, surface_height = 720;
         final GLProfile reqGLP = GLProfile.getGL2ES2();
         int autoSpeed = 0;
-        boolean wait_to_start = false;
 
-        boolean keepRunning = false;
         if (0 != args.length) {
-            for (int i = 0; i < args.length; i++) {
-                if (args[i].equals("-keep")) {
-                    keepRunning = true;
-                } else if (args[i].equals("-v")) {
-                    ++i;
-                    setVelocity(MiscUtils.atoi(args[i], (int) velocity * 1000) / 1000f);
-                } else if(args[i].equals("-aspeed")) {
+            final int[] idx = { 0 };
+            for (idx[0] = 0; idx[0] < args.length; ++idx[0]) {
+                if( options.parse(args, idx) ) {
+                    continue;
+                } else if (args[idx[0]].equals("-v")) {
+                    ++idx[0];
+                    setVelocity(MiscUtils.atoi(args[idx[0]], (int) velocity * 1000) / 1000f);
+                } else if(args[idx[0]].equals("-aspeed")) {
                     autoSpeed = -1;
                     setVelocity(80/1000f);
-                    keepRunning = true;
-                } else if(args[i].equals("-wait")) {
-                    wait_to_start = true;
-                } else if(args[i].equals("-gnone")) {
-                    sceneMSAASamples = 0;
-                    renderModes = 0;
-                } else if(args[i].equals("-smsaa")) {
-                    i++;
-                    sceneMSAASamples = MiscUtils.atoi(args[i], sceneMSAASamples);
-                    renderModes = 0;
-                } else if(args[i].equals("-gmsaa")) {
-                    sceneMSAASamples = 0;
-                    renderModes = Region.MSAA_RENDERING_BIT;
-                } else if(args[i].equals("-gvbaa")) {
-                    sceneMSAASamples = 0;
-                    renderModes = Region.VBAA_RENDERING_BIT;
+                    options.keepRunning = true;
                 }
             }
         }
         // renderModes |= Region.COLORCHANNEL_RENDERING_BIT;
+        System.err.println("RenderModes: "+Region.getRenderModeString(options.renderModes));
 
         //
         // Resolution independent, no screen size
@@ -141,14 +129,14 @@ public class UISceneDemo03 {
 
         final GLCapabilities caps = new GLCapabilities(reqGLP);
         caps.setAlphaBits(4);
-        if( sceneMSAASamples > 0 ) {
+        if( options.sceneMSAASamples > 0 ) {
             caps.setSampleBuffers(true);
-            caps.setNumSamples(sceneMSAASamples);
+            caps.setNumSamples(options.sceneMSAASamples);
         }
         System.out.println("Requested: " + caps);
 
         final GLWindow window = GLWindow.create(caps);
-        window.setSize(surface_width, surface_height);
+        window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UISceneDemo03.class.getSimpleName() + ": " + window.getSurfaceWidth() + " x " + window.getSurfaceHeight());
         window.setVisible(true);
         window.addGLEventListener(scene);
@@ -210,27 +198,20 @@ public class UISceneDemo03 {
         System.err.println("SceneBox " + sceneBox);
         System.err.println("Frustum " + scene.getMatrix().glGetFrustum());
 
-        if( wait_to_start ) {
+        if( options.wait_to_start ) {
             MiscUtils.waitForKey("Start");
         }
 
         //
         //
         //
-        final float fontScale;
-        {
-            final AABBox fbox = font.getGlyphBounds(originalTexts[0]);
-            fontScale = sceneBox.getWidth() / fbox.getWidth();
-            // final float fontScale = sceneBox.getWidth() / 20;
-            System.err.println("FontScale: " + fontScale + " = " + sceneBox.getWidth() + " / " + fbox.getWidth());
-        }
         final Label statusLabel;
         {
             final AABBox fbox = fontStatus.getGlyphBounds("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
             final float statusLabelScale = sceneBox.getWidth() / fbox.getWidth();
             System.err.println("StatusLabelScale: " + statusLabelScale + " = " + sceneBox.getWidth() + " / " + fbox.getWidth() + ", " + fbox);
 
-            statusLabel = new Label(renderModes, fontStatus, "Nothing there yet");
+            statusLabel = new Label(options.renderModes, fontStatus, "Nothing there yet");
             statusLabel.setScale(statusLabelScale, statusLabelScale, 1f);
             statusLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
             statusLabel.moveTo(sceneBox.getMinX(), sceneBox.getMinY() + statusLabelScale * (fontStatus.getMetrics().getLineGap() - fontStatus.getMetrics().getDescent()), 0f);
@@ -241,10 +222,8 @@ public class UISceneDemo03 {
         // Setup the moving glyphs
         //
 
-        final List<Label> glyphs = new ArrayList<Label>();
-        final List<Label> addedGlyphs = new ArrayList<Label>();
-        final List<Vec3f> glyphsTarget = new ArrayList<Vec3f>();
-        final List<Vec3f> glyphsPos = new ArrayList<Vec3f>();
+        final List<GlyphShape> glyphShapes = new ArrayList<GlyphShape>();
+        final List<GlyphShape> addedGlyphShapes = new ArrayList<GlyphShape>();
 
         final float pixPerMM, dpiV;
         {
@@ -258,10 +237,16 @@ public class UISceneDemo03 {
         int txt_idx = 0;
 
         do {
+            final float fontScale;
+            {
+                final AABBox fbox = font.getGlyphBounds(originalTexts[txt_idx]);
+                fontScale = sceneBox.getWidth() / fbox.getWidth();
+                System.err.println("FontScale: " + fontScale + " = " + sceneBox.getWidth() + " / " + fbox.getWidth());
+            }
             z_only = !z_only;
             window.invoke(true, (drawable) -> {
-                scene.removeShapes(drawable.getGL().getGL2ES2(), addedGlyphs);
-                addedGlyphs.clear();
+                scene.removeShapes(drawable.getGL().getGL2ES2(), addedGlyphShapes);
+                addedGlyphShapes.clear();
                 return true;
             });
 
@@ -269,58 +254,40 @@ public class UISceneDemo03 {
             {
                 final Random random = new Random();
 
-                final Label destText = new Label(renderModes, font, fontScale, "");
-                // destText.setScale(fontScale, fontScale, 1f);
-                destText.setColor(0.1f, 0.1f, 0.1f, 1);
-
-                destText.setText(hasGLP, "X");
+                final GlyphShape testGlyph = new GlyphShape(options.renderModes, font, 'X', 0, 0);
+                testGlyph.setScale(fontScale, fontScale, 1f);
+                testGlyph.validate(hasGLP);
                 final PMVMatrix pmv = new PMVMatrix();
-                final int[] movingGlyphSizePx = destText.getSurfaceSize(scene, pmv, new int[2]); // [px]
-                movingGlyphPixPerShapeUnit = destText.getPixelPerShapeUnit(movingGlyphSizePx, new float[2]); // [px]/[shapeUnit]
-                destText.setText("");
+                final int[] movingGlyphSizePx = testGlyph.getSurfaceSize(scene, pmv, new int[2]); // [px]
+                movingGlyphPixPerShapeUnit = testGlyph.getPixelPerShapeUnit(movingGlyphSizePx, new float[2]); // [px]/[shapeUnit]
 
-                Font.Glyph left_glyph = null;
-                for (int idx = 0; idx < originalTexts[txt_idx].length(); ++idx) {
-                    final String movingChar = originalTexts[txt_idx].substring(idx, idx + 1);
-                    destText.validate(hasGLP);
-                    final Label movingGlyph = new Label(renderModes, font, fontScale, movingChar);
-                    // movingGlyph.setScale(fontScale, fontScale, 1f);
-                    movingGlyph.setColor(0.1f, 0.1f, 0.1f, 1);
-                    movingGlyph.validate(hasGLP);
-                    final Font.Glyph glyph = font.getGlyph( font.getGlyphID(movingChar.charAt(0)) );
-                    float end_pos_x = sceneBox.getMinX() + (destText.getText().isEmpty() ? 0 : destText.getScaledWidth());
-                    if( !glyph.isWhiteSpace() ) {
-                        if( null != left_glyph ) {
-                            end_pos_x += left_glyph.getKerning(glyph.getID()) * fontScale;
-                        }
-                        left_glyph = glyph;
-                    } else {
-                        left_glyph = null;
-                    }
-                    final float end_pos_y = glyph.getBounds().getMinY() * fontScale;
-                    final float end_pos_z = 0f;
-                    final float start_pos_x = z_only ? end_pos_x :
+                final AABBox box = GlyphShape.processString(glyphShapes, options.renderModes, font, originalTexts[txt_idx]);
+                System.err.println("Shapes: "+box);
+                for(final GlyphShape gs : glyphShapes) {
+                    gs.setScale(fontScale, fontScale, 1f);
+                    gs.setColor(0.1f, 0.1f, 0.1f, 1);
+                    final Vec3f target = gs.getOrigPos(fontScale).add(sceneBox.getMinX(), 0f, 0f);
+
+                    final float start_pos_x = z_only ? target.x() :
                                                        sceneBox.getMinX() + random.nextFloat() * sceneBox.getWidth();
-                    final float start_pos_y = z_only ? end_pos_y :
+                    final float start_pos_y = z_only ? target.y() :
                                                        sceneBox.getMinY() + random.nextFloat() * sceneBox.getHeight();
                     final float start_pos_z = 0f + random.nextFloat() * sceneBox.getHeight() * 1f;
-                    glyphsTarget.add( new Vec3f(end_pos_x, end_pos_y, end_pos_z) );
-                    glyphsPos.add( new Vec3f(start_pos_x, start_pos_y, start_pos_z) );
-                    movingGlyph.moveTo(start_pos_x, start_pos_y, start_pos_z);
-                    glyphs.add(movingGlyph);
-
-                    destText.setText( destText.getText() + movingGlyph.getText() );
+                    gs.moveTo(start_pos_x, start_pos_y, start_pos_z);
                 }
                 // just add destText to scene to be cleaned up, invisible
-                destText.setEnabled(false);
-                scene.addShape(destText);
+                testGlyph.setEnabled(false);
+                scene.addShape(testGlyph);
             }
-            scene.addShapes(glyphs);
-            addedGlyphs.addAll(glyphs);
+            scene.addShapes(glyphShapes);
+            addedGlyphShapes.addAll(glyphShapes);
+
+            final float pos_eps = FloatUtil.EPSILON * 5000; // ~= 0.0005960
+            final float rot_eps = FloatUtil.adegToRad(1f); // 1 adeg ~= 0.01745 rad
 
             final long t0_us = Clock.currentNanos() / 1000; // [us]
             final long[] t2_us = { t0_us };
-            while (!glyphs.isEmpty()) {
+            while (!glyphShapes.isEmpty()) {
                 window.invoke(true, (drawable) -> {
                     final long t3_us = Clock.currentNanos() / 1000;
                     final float dt_s = (t3_us - t2_us[0]) / 1e6f;
@@ -330,36 +297,66 @@ public class UISceneDemo03 {
                     final float velovity_obj = velocity_px / movingGlyphPixPerShapeUnit[0]; // [shapeUnit]/[s]
                     final float dxy = velovity_obj * dt_s; // [shapeUnit]
 
-                    for (int idx = glyphs.size() - 1; 0 <= idx; --idx) {
-                        final Label glyph = glyphs.get(idx);
-                        final Vec3f pos = glyphsPos.get(idx);
-                        final Vec3f target = glyphsTarget.get(idx);
+                    for (int idx = glyphShapes.size() - 1; 0 <= idx; --idx) {
+                        final GlyphShape glyph = glyphShapes.get(idx);
+                        final Vec3f pos = new Vec3f(glyph.getPosition());
+                        final Vec3f target = glyph.getOrigPos(fontScale).add(sceneBox.getMinX(), 0f, 0f);
                         final Vec3f p_t = target.minus(pos);
-                        if ( p_t.length() <= glyph.getBounds().getSize() / 5f &&
-                             Math.abs( glyph.getRotation().getY() ) <= 0.4f )
-                        {
+                        final float p_t_diff = p_t.length();
+                        final Quaternion q = glyph.getRotation();
+                        final float radY = q.toAngleAxis(VectorUtil.VEC3_UNIT_Y);
+                        final float radYdiff = Math.min(radY, FloatUtil.TWO_PI - radY);
+                        final boolean pos_ok = p_t_diff <= pos_eps;
+                        final boolean pos_near = p_t_diff <= glyph.getBounds().getSize() * fontScale * 2f;
+                        final boolean rot_ok = pos_near && ( radYdiff <= rot_eps || radYdiff <= rot_step * 2f );
+                        if ( pos_ok && rot_ok ) {
                             // arrived
-                            glyph.moveTo(target.x(), target.y(), 0f);
-                            glyph.getRotation().setIdentity();
-                            glyphs.remove(idx);
-                            glyphsPos.remove(idx);
-                            glyphsTarget.remove(idx);
+                            glyph.moveTo(target.x(), target.y(), target.z());
+                            q.setIdentity();
+                            glyphShapes.remove(idx);
                             continue;
                         }
-                        p_t.normalize();
-                        pos.add(p_t.scale(dxy));
-                        glyph.moveTo(pos.x(), pos.y(), pos.z());
-                        final Quaternion rot = glyph.getRotation();
-                        rot.rotateByAngleY(rot_step);
+                        if( !pos_ok ) {
+                            if( DEBUG ) {
+                                if( 0 == idx ) {
+                                    System.err.println("p_t_diff: "+p_t_diff+", dxy "+dxy);
+                                }
+                            }
+                            if( p_t_diff <= dxy || p_t_diff <= pos_eps ) {
+                                glyph.moveTo(target.x(), target.y(), target.z());
+                            } else {
+                                p_t.normalize();
+                                pos.add( p_t.scale( dxy ) );
+                                glyph.moveTo(pos.x(), pos.y(), pos.z());
+                            }
+                            if( !rot_ok ) {
+                                if( pos_near ) {
+                                    q.rotateByAngleY( rot_step * 2f );
+                                } else {
+                                    q.rotateByAngleY( rot_step );
+                                }
+                            }
+                        } else {
+                            if( DEBUG ) {
+                                if( 0 == idx ) {
+                                    System.err.println("rot: "+radY+" ("+FloatUtil.radToADeg(radY)+"), diff "+radYdiff+" ("+FloatUtil.radToADeg(radYdiff)+"), step "+rot_step+" ("+FloatUtil.radToADeg(rot_step)+")");
+                                }
+                            }
+                            if( radYdiff <= rot_step * 3f || radYdiff <= rot_eps ) {
+                                q.setIdentity();
+                            } else {
+                                q.rotateByAngleY( rot_step * 3f );
+                            }
+                        }
                     }
                     final String text = String.format("%s, v %.1f mm/s, r %.3f",
-                            scene.getStatusText(drawable, renderModes, 0, dpiV), velocity * 1e3f, rot_step);
+                            scene.getStatusText(drawable, options.renderModes, 0, dpiV), velocity * 1e3f, rot_step);
                     statusLabel.setText(text);
                     return true;
                 });
             }
             final float has_dur_s = ((Clock.currentNanos() / 1000) - t0_us) / 1e6f; // [us]
-            System.err.printf("Text travel-duration %.3f s, %d chars, %.3f s/char%n", has_dur_s, originalTexts[txt_idx].length(), has_dur_s / originalTexts[txt_idx].length());
+            System.err.printf("Text travel-duration %.3f s, %d chars%n", has_dur_s, originalTexts[txt_idx].length());
             try { Thread.sleep(2000); } catch (final InterruptedException e1) { }
             if( autoSpeed > 0 ) {
                 if( velocity < 60/1000f ) {
@@ -377,8 +374,8 @@ public class UISceneDemo03 {
                 }
             }
             txt_idx = ( txt_idx + 1 ) % originalTexts.length;
-        } while (keepRunning && window.isNativeValid());
-        if (!keepRunning) {
+        } while (options.keepRunning && window.isNativeValid());
+        if (!options.keepRunning) {
             window.destroy();
         }
     }

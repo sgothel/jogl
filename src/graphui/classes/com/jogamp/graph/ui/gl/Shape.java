@@ -209,19 +209,31 @@ public abstract class Shape {
         System.arraycopy(pivot, 0, rotPivot, 0, 3);
     }
 
-    /** Set scale factor to given scale. */
+    /**
+     * Set scale factor to given scale.
+     * @see #scale(float, float, float)
+     * @see #getScale()
+     */
     public final void setScale(final float sx, final float sy, final float sz) {
         scale[0] = sx;
         scale[1] = sy;
         scale[2] = sz;
     }
-    /** Multiply current scale factor by given scale. */
+    /**
+     * Multiply current scale factor by given scale.
+     * @see #setScale(float, float, float)
+     * @see #getScale()
+     */
     public final void scale(final float sx, final float sy, final float sz) {
         scale[0] *= sx;
         scale[1] *= sy;
         scale[2] *= sz;
     }
-    /** Returns float[3] scale factors. */
+    /**
+     * Returns float[3] scale factors.
+     * @see #setScale(float, float, float)
+     * @see #scale(float, float, float)
+     */
     public final float[] getScale() { return scale; }
     /** Returns X-axis scale factor. */
     public final float getScaleX() { return scale[0]; }
