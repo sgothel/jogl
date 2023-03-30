@@ -40,6 +40,7 @@ import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;
 
 import com.jogamp.opengl.GLExtensions;
+import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -374,12 +375,13 @@ public final class RegionRenderer {
     private static final String SHADER_SRC_SUB = "";
     private static final String SHADER_BIN_SUB = "bin";
 
-    private static String GLSL_USE_COLOR_CHANNEL = "#define USE_COLOR_CHANNEL 1\n";
-    private static String GLSL_USE_COLOR_TEXTURE = "#define USE_COLOR_TEXTURE 1\n";
-    private static String GLSL_DEF_SAMPLE_COUNT = "#define SAMPLE_COUNT ";
-    private static String GLSL_CONST_SAMPLE_COUNT = "const float sample_count = ";
-    private static String GLSL_MAIN_BEGIN = "void main (void)\n{\n";
+    private static final String GLSL_USE_COLOR_CHANNEL = "#define USE_COLOR_CHANNEL 1\n";
+    private static final String GLSL_USE_COLOR_TEXTURE = "#define USE_COLOR_TEXTURE 1\n";
+    private static final String GLSL_DEF_SAMPLE_COUNT = "#define SAMPLE_COUNT ";
+    private static final String GLSL_CONST_SAMPLE_COUNT = "const float sample_count = ";
+    private static final String GLSL_MAIN_BEGIN = "void main (void)\n{\n";
     private static final String gcuTexture2D = "gcuTexture2D";
+    private static final String GLSL_USE_DISCARD = "#define USE_DISCARD 1\n";
 
     private String getVersionedShaderName() {
         return "curverenderer01";
@@ -586,6 +588,10 @@ public final class RegionRenderer {
         //
         // GLSL append from here on
         posFp = -1;
+
+        if( !gl.getContext().hasRendererQuirk(GLRendererQuirks.GLSLBuggyDiscard) ) {
+            posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_DISCARD);
+        }
 
         if( hasColorChannel ) {
             posVp = rsVp.insertShaderSource(0, posVp, GLSL_USE_COLOR_CHANNEL);

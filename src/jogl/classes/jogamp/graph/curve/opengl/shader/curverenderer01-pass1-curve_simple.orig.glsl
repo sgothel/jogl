@@ -17,8 +17,11 @@
         rtex.y -= 0.1;
 
         if(rtex.y < 0.0 && gcv_CurveParam.y < 0.0) {
-            // discard; // freezes NV tegra2 compiler
-            mgl_FragColor = vec4(0);
+            #if USE_DISCARD
+                discard; // freezes NV tegra2 compiler
+            #else
+                mgl_FragColor = vec4(0);
+            #endif
         } else {
             rtex.y = max(rtex.y, 0.0); // always >= 0 
 

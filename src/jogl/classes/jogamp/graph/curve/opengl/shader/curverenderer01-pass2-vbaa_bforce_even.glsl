@@ -87,10 +87,10 @@
                 #endif
             #endif
         #endif
-        #if 0
-        if(t.w == 0.0){
-            discard; // discard freezes NV tegra2 compiler
-        }
+        #if USE_DISCARD
+            if(t.w == 0.0){
+                discard; // discard freezes NV tegra2 compiler
+            }
         #endif
         
         mgl_FragColor = t;
