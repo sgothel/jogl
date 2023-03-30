@@ -92,7 +92,6 @@ public class UISceneDemo03 {
     }
 
     public static void main(final String[] args) throws IOException {
-        final GLProfile reqGLP = GLProfile.getGL2ES2();
         int autoSpeed = 0;
 
         if (0 != args.length) {
@@ -111,7 +110,10 @@ public class UISceneDemo03 {
             }
         }
         // renderModes |= Region.COLORCHANNEL_RENDERING_BIT;
-        System.err.println("RenderModes: "+Region.getRenderModeString(options.renderModes));
+        System.err.println(options);
+
+        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
+        System.err.println("GLProfile: "+reqGLP);
 
         //
         // Resolution independent, no screen size

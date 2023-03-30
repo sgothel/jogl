@@ -106,134 +106,60 @@ public class UISceneDemo20 implements GLEventListener {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
-    public static void main(final String[] args) {
-        int sceneMSAASamples = 0;
-        boolean graphVBAAMode = true;
-        boolean graphMSAAMode = false;
-        float graphAutoMode = 0; // GPUUISceneGLListener0A.DefaultNoAADPIThreshold;
+    static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
 
+    public static void main(final String[] args) {
         final float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
 
         String fontfilename = null;
         String filmURL = null;
 
-        int width = 1280, height = 720;
-
-        boolean forceES2 = false;
-        boolean forceES3 = false;
-        boolean forceGL3 = false;
-        boolean forceGLDef = false;
-
         if( 0 != args.length ) {
-            for(int i=0; i<args.length; i++) {
-                if(args[i].equals("-gnone")) {
-                    sceneMSAASamples = 0;
-                    graphMSAAMode = false;
-                    graphVBAAMode = false;
-                    graphAutoMode = 0f;
-                } else if(args[i].equals("-smsaa")) {
-                    i++;
-                    sceneMSAASamples = MiscUtils.atoi(args[i], sceneMSAASamples);
-                    graphMSAAMode = false;
-                    graphVBAAMode = false;
-                    graphAutoMode = 0f;
-                } else if(args[i].equals("-gmsaa")) {
-                    graphMSAAMode = true;
-                    graphVBAAMode = false;
-                    graphAutoMode = 0f;
-                } else if(args[i].equals("-gvbaa")) {
-                    graphMSAAMode = false;
-                    graphVBAAMode = true;
-                    graphAutoMode = 0f;
-                } else if(args[i].equals("-gauto")) {
-                    graphMSAAMode = false;
-                    graphVBAAMode = true;
-                    i++;
-                    graphAutoMode = MiscUtils.atof(args[i], graphAutoMode);
-                } else if(args[i].equals("-font")) {
-                    i++;
-                    fontfilename = args[i];
-                } else if(args[i].equals("-width")) {
-                    i++;
-                    width = MiscUtils.atoi(args[i], width);
-                } else if(args[i].equals("-height")) {
-                    i++;
-                    height = MiscUtils.atoi(args[i], height);
-                } else if(args[i].equals("-pixelScale")) {
-                    i++;
-                    final float pS = MiscUtils.atof(args[i], reqSurfacePixelScale[0]);
+            final int[] idx = { 0 };
+            for (idx[0] = 0; idx[0] < args.length; ++idx[0]) {
+                if( options.parse(args, idx) ) {
+                    continue;
+                } else if(args[idx[0]].equals("-font")) {
+                    idx[0]++;
+                    fontfilename = args[idx[0]];
+                } else if(args[idx[0]].equals("-pixelScale")) {
+                    idx[0]++;
+                    final float pS = MiscUtils.atof(args[idx[0]], reqSurfacePixelScale[0]);
                     reqSurfacePixelScale[0] = pS;
                     reqSurfacePixelScale[1] = pS;
-                } else if(args[i].equals("-es2")) {
-                    forceES2 = true;
-                } else if(args[i].equals("-es3")) {
-                    forceES3 = true;
-                } else if(args[i].equals("-gl3")) {
-                    forceGL3 = true;
-                } else if(args[i].equals("-gldef")) {
-                    forceGLDef = true;
-                } else if(args[i].equals("-film")) {
-                    i++;
-                    filmURL = args[i];
+                } else if(args[idx[0]].equals("-film")) {
+                    idx[0]++;
+                    filmURL = args[idx[0]];
                 }
             }
         }
-        System.err.println("forceES2   "+forceES2);
-        System.err.println("forceES3   "+forceES3);
-        System.err.println("forceGL3   "+forceGL3);
-        System.err.println("forceGLDef "+forceGLDef);
-        System.err.println("Desired win size "+width+"x"+height);
-        System.err.println("Scene MSAA Samples "+sceneMSAASamples);
-        System.err.println("Graph MSAA Mode "+graphMSAAMode);
-        System.err.println("Graph VBAA Mode "+graphVBAAMode);
-        System.err.println("Graph Auto Mode "+graphAutoMode+" no-AA dpi threshold");
+        System.err.println(options);
 
         final Display dpy = NewtFactory.createDisplay(null);
         final Screen screen = NewtFactory.createScreen(dpy, 0);
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(dpy.getGraphicsDevice(), null).toString());
 
-        final GLProfile glp;
-        if(forceGLDef) {
-            glp = GLProfile.getDefault();
-        } else if(forceGL3) {
-            glp = GLProfile.get(GLProfile.GL3);
-        } else if(forceES3) {
-            glp = GLProfile.get(GLProfile.GLES3);
-        } else if(forceES2) {
-            glp = GLProfile.get(GLProfile.GLES2);
-        } else {
-            glp = GLProfile.getGL2ES2();
-        }
+        final GLProfile glp = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+glp);
         final GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);
-        if( sceneMSAASamples > 0 ) {
+        if( options.sceneMSAASamples > 0 ) {
             caps.setSampleBuffers(true);
-            caps.setNumSamples(sceneMSAASamples);
+            caps.setNumSamples(options.sceneMSAASamples);
         }
         System.out.println("Requested: " + caps);
 
-        final int renderModes;
-        if( graphVBAAMode ) {
-            renderModes = Region.VBAA_RENDERING_BIT;
-        } else if( graphMSAAMode ) {
-            renderModes = Region.MSAA_RENDERING_BIT;
-        } else {
-            renderModes = 0;
-        }
-
         final GLWindow window = GLWindow.create(screen, caps);
-        if( 0 == sceneMSAASamples ) {
+        if( 0 == options.sceneMSAASamples ) {
             window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(true));
         }
-        window.setSize(width, height);
-        window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(renderModes)+"], msaa "+sceneMSAASamples);
+        window.setSize(options.surface_width, options.surface_height);
+        window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(options.renderModes)+"], msaa "+options.sceneMSAASamples);
         window.setSurfaceScale(reqSurfacePixelScale);
         // final float[] valReqSurfacePixelScale = window.getRequestedSurfaceScale(new float[2]);
 
-        final UISceneDemo20 scene = 0 < graphAutoMode ? new UISceneDemo20(fontfilename, filmURL, graphAutoMode, DEBUG, TRACE) :
-                                                                 new UISceneDemo20(fontfilename, filmURL, renderModes, DEBUG, TRACE);
+        final UISceneDemo20 scene = new UISceneDemo20(fontfilename, filmURL, options.renderModes, DEBUG, TRACE);
         window.addGLEventListener(scene);
 
         final Animator animator = new Animator();

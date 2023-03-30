@@ -28,14 +28,17 @@
 package com.jogamp.opengl.demos.graph.ui;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.MiscUtils;
 
 public class GraphUIDemoArgs {
     public int surface_width, surface_height;
+    public String glProfileName = GLProfile.GL2ES2;
     public boolean wait_to_start = false;
     public boolean keepRunning = false;
     public int renderModes;
-    public int sceneMSAASamples = 4;
+    public int sceneMSAASamples = 0;
+    public float debugBoxThickness = 0f;
 
     public GraphUIDemoArgs(final int width, final int height, final int renderModes) {
         this.surface_width = width;
@@ -53,9 +56,7 @@ public class GraphUIDemoArgs {
             return false;
         }
         boolean res = true;
-        if (args[idx[0]].equals("-keep")) {
-            keepRunning = true;
-        } else if (args[idx[0]].equals("-hhd")) {
+        if (args[idx[0]].equals("-hhd")) {
             surface_width = 1280;
             surface_height = 720;
         } else if (args[idx[0]].equals("-fhd")) {
@@ -67,14 +68,24 @@ public class GraphUIDemoArgs {
         } else if (args[idx[0]].equals("-h")) {
             ++idx[0];
             surface_height = MiscUtils.atoi(args[idx[0]], surface_height);
+        } else if(args[idx[0]].equals("-es2")) {
+            glProfileName = GLProfile.GLES2;
+        } else if(args[idx[0]].equals("-es3")) {
+            glProfileName = GLProfile.GLES3;
+        } else if(args[idx[0]].equals("-gl3")) {
+            glProfileName = GLProfile.GL3;
+        } else if(args[idx[0]].equals("-gldef")) {
+            glProfileName = null;
         } else if(args[idx[0]].equals("-wait")) {
             wait_to_start = true;
+        } else if (args[idx[0]].equals("-keep")) {
+            keepRunning = true;
         } else if(args[idx[0]].equals("-gnone")) {
             sceneMSAASamples = 0;
             renderModes = 0;
         } else if(args[idx[0]].equals("-smsaa")) {
             ++idx[0];
-            sceneMSAASamples = MiscUtils.atoi(args[idx[0]], sceneMSAASamples);
+            sceneMSAASamples = MiscUtils.atoi(args[idx[0]], 4);
             renderModes = 0;
         } else if(args[idx[0]].equals("-gmsaa")) {
             sceneMSAASamples = 0;
@@ -82,9 +93,19 @@ public class GraphUIDemoArgs {
         } else if(args[idx[0]].equals("-gvbaa")) {
             sceneMSAASamples = 0;
             renderModes = Region.VBAA_RENDERING_BIT;
+        } else if (args[idx[0]].equals("-dbgbox")) {
+            ++idx[0];
+            debugBoxThickness = MiscUtils.atof(args[idx[0]], debugBoxThickness);
         } else {
             res = false;
         }
         return res;
+    }
+    @Override
+    public String toString() {
+        return "Options{surface[width "+surface_width+" x "+surface_height+"], glp "+glProfileName+
+               ", wait "+wait_to_start+", keep "+keepRunning+
+               ", renderModes "+Region.getRenderModeString(renderModes)+
+               ", smsaa "+sceneMSAASamples+", dbgbox "+debugBoxThickness+"}";
     }
 }
