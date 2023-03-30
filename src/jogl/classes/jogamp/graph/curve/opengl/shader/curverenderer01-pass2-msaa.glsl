@@ -3,8 +3,10 @@
         #if USE_DISCARD
             if( 0.0 == t.a ) {
                 discard; // discard freezes NV tegra2 compiler
+            } else {
+                mgl_FragColor = t;
             }
+        #else
+            mgl_FragColor = t;
         #endif
-
-        mgl_FragColor = t;
 

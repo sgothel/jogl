@@ -19,10 +19,12 @@
         t += GetSample(gcu_FboTexUnit, texCoord, psize,  edgeH,  edgeH, 0.0, 0.0)*0.125; // w5
 
         #if USE_DISCARD
-            if(t.w == 0.0){
+            if( 0.0 == t.w ) {
                 discard; // discard freezes NV tegra2 compiler
+            } else {
+                mgl_FragColor = t;
             }
+        #else
+            mgl_FragColor = t;
         #endif
-        
-        mgl_FragColor = t;
 
