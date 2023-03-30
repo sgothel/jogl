@@ -117,7 +117,7 @@ public class Button extends RoundButton {
         final float[] ctr = box.getCenter();
         final float[] ltxy = new float[] { ctr[0] - lctr[0], ctr[1] - lctr[1] };
 
-        if( DRAW_DEBUG_BOX ) {
+        if( DEBUG_DRAW ) {
             System.err.println("Button: dim "+width+" x "+height+", spacing "+spacingX+", "+spacingY);
             System.err.println("Button: net-text "+lw+" x "+lh);
             System.err.println("Button: shape "+box);
@@ -128,13 +128,13 @@ public class Button extends RoundButton {
         }
 
         final AABBox lbox2 = label.addShapeToRegion(lScale, region, ltxy, tempT1, tempT2, tempT3);
-        if( DRAW_DEBUG_BOX ) {
+        if( DEBUG_DRAW ) {
             System.err.printf("Button.X: lbox2 %s%n", lbox2);
         }
 
         setRotationPivot( ctr );
 
-        if( DRAW_DEBUG_BOX ) {
+        if( DEBUG_DRAW ) {
             System.err.println("XXX.Button: Added Shape: "+shape+", "+box);
         }
     }

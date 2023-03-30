@@ -303,6 +303,7 @@ public class UISceneDemo20 implements GLEventListener {
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         // scene.setSampleCount(3); // easy on embedded devices w/ just 3 samples (default is 4)?
+        scene.setDebugBox(options.debugBoxThickness);
     }
 
     private void rotateButtons(float[] angdeg) {

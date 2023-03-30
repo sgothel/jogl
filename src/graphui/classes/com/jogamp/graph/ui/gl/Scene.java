@@ -99,6 +99,7 @@ public final class Scene implements GLEventListener {
     private static final boolean DEBUG = false;
 
     private final ArrayList<Shape> shapes = new ArrayList<Shape>();
+    private float dbgbox_thickness = 0f;
     private boolean doFrustumCulling = false;
 
     private float[] clearColor = null;
@@ -203,29 +204,35 @@ public final class Scene implements GLEventListener {
         return shapes;
     }
     public void addShape(final Shape s) {
+        s.setDebugBox(dbgbox_thickness);
         shapes.add(s);
     }
     /** Removes given shape, keeps it alive. */
     public void removeShape(final Shape s) {
+        s.setDebugBox(0f);
         shapes.remove(s);
     }
     /** Removes all given shapes and destroys them. */
     public void removeShape(final GL2ES2 gl, final Shape s) {
+        s.setDebugBox(0f);
         shapes.remove(s);
         s.destroy(gl, renderer);
     }
     public void addShapes(final Collection<? extends Shape> shapes) {
-        this.shapes.addAll(shapes);
+        for(final Shape s : shapes) {
+            addShape(s);
+        }
     }
     /** Removes all given shapes, keeps them alive. */
     public void removeShapes(final Collection<? extends Shape> shapes) {
-        this.shapes.removeAll(shapes);
+        for(final Shape s : shapes) {
+            removeShape(s);
+        }
     }
     /** Removes all given shapes and destroys them. */
     public void removeShapes(final GL2ES2 gl, final Collection<? extends Shape> shapes) {
-        this.shapes.removeAll(shapes);
         for(final Shape s : shapes) {
-            s.destroy(gl, renderer);
+            removeShape(gl, s);
         }
     }
     public Shape getShapeByIdx(final int id) {
@@ -269,6 +276,17 @@ public final class Scene implements GLEventListener {
     public void markAllShapesDirty() {
         for(int i=0; i<shapes.size(); i++) {
             shapes.get(i).markShapeDirty();
+        }
+    }
+
+    /**
+     * Sets the {@link #getBounds()} fractional thickness of the debug box ranging [0..1] for all shapes, zero for no debug box (default).
+     * @param v fractional thickness of {@link #getBounds()} ranging [0..1], zero for no debug box
+     */
+    public final void setDebugBox(final float v) {
+        dbgbox_thickness = v;
+        for(int i=0; i<shapes.size(); i++) {
+            shapes.get(i).setDebugBox(v);
         }
     }
 

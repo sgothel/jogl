@@ -69,7 +69,7 @@ public abstract class Shape {
     public static interface Listener {
         void run(final Shape shape);
     }
-    protected static final boolean DRAW_DEBUG_BOX = false;
+    protected static final boolean DEBUG_DRAW = false;
     private static final boolean DEBUG = false;
 
     private static final int DIRTY_SHAPE    = 1 << 0 ;
@@ -102,6 +102,7 @@ public abstract class Shape {
     private boolean draggable = true;
     private boolean resizable = true;
     private boolean enabled = true;
+    private float dbgbox_thickness = 0f; // fractional thickness of bounds, 0f for no debug box
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
 
     private Listener onMoveListener = null;
@@ -119,6 +120,18 @@ public abstract class Shape {
     public final boolean isEnabled() { return enabled; }
     /** Enable or disable this shape, i.e. its visibility. */
     public final void setEnabled(final boolean v) { enabled = v; }
+
+    /**
+     * Sets the {@link #getBounds()} fractional thickness of the debug box ranging [0..1], zero for no debug box (default).
+     * @param v fractional thickness of {@link #getBounds()} ranging [0..1], zero for no debug box
+     */
+    public final void setDebugBox(final float v) {
+        dbgbox_thickness = Math.min(1f, Math.max(0f, v));
+    }
+    /** Returns true if a debug box has been enabled via {@link #setDebugBox(float)}. */
+    public final boolean hasDebugBox() { return !FloatUtil.isZero(dbgbox_thickness); }
+    /** Returns the fractional thickness of the debug box ranging [0..1], see {@link #setDebugBox(float)}. */
+    public final float getDebugBox() { return dbgbox_thickness; }
 
     /**
      * Clears all data and reset all states as if this instance was newly created
@@ -1163,8 +1176,6 @@ public abstract class Shape {
     protected abstract void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer);
 
     protected abstract void destroyImpl0(final GL2ES2 gl, final RegionRenderer renderer);
-
-    protected abstract void addShapeToRegion();
 
     /**
      * Returns true if implementation uses an extra color channel or texture

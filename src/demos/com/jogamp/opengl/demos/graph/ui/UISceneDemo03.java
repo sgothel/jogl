@@ -126,6 +126,7 @@ public class UISceneDemo03 {
         final Scene scene = new Scene();
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f }, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
+        scene.setDebugBox(options.debugBoxThickness);
 
         final Animator animator = new Animator();
         animator.setUpdateFPSFrames(1 * 60, null); // System.err);

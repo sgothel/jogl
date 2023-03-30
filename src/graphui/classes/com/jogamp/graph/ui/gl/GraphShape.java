@@ -147,40 +147,54 @@ public abstract class GraphShape extends Shape {
                 region.clear(gl);
             }
             addShapeToRegion();
+            if( hasDebugBox() ) {
+                addDebugOutline();
+            }
             region.setQuality(regionQuality);
         } else if( isStateDirty() ) {
             region.markStateDirty();
         }
     }
 
-    protected OutlineShape createDebugOutline(final OutlineShape shape, final AABBox box) {
-        final float d = 0.025f;
-        final float tw = box.getWidth() + d*2f;
-        final float th = box.getHeight() + d*2f;
+    private final float[] dbgColor = {0.3f, 0.3f, 0.3f, 0.5f};
 
-        final float minX = box.getMinX() - d;
-        final float minY = box.getMinY() - d;
-        final float z = 0; // box.getMinZ() + 0.025f;
-
-        // CCW!
-        shape.moveTo(minX, minY, z);
-        shape.lineTo(minX+tw, minY, z);
-        shape.lineTo(minX+tw, minY + th, z);
-        shape.lineTo(minX,    minY + th, z);
-        shape.closePath();
-
-        // shape.addVertex(minX,    minY,      z, true);
-        // shape.addVertex(minX+tw, minY,      z, true);
-        // shape.addVertex(minX+tw, minY + th, z, true);
-        // shape.addVertex(minX,    minY + th, z, true);
-        // shape.closeLastOutline(true);
-
-        return shape;
+    protected void addDebugOutline() {
+        final OutlineShape shape = new OutlineShape(vertexFactory);
+        final float x1 = box.getMinX();
+        final float x2 = box.getMaxX();
+        final float y1 = box.getMinY();
+        final float y2 = box.getMaxY();
+        final float z = box.getCenter()[2]; // 0; // box.getMinZ() + 0.025f;
+        {
+            // Outer OutlineShape as Winding.CCW.
+            shape.moveTo(x1, y1, z);
+            shape.lineTo(x2, y1, z);
+            shape.lineTo(x2, y2, z);
+            shape.lineTo(x1, y2, z);
+            shape.lineTo(x1, y1, z);
+            shape.closeLastOutline(true);
+            shape.addEmptyOutline();
+        }
+        {
+            // Inner OutlineShape as Winding.CW.
+            final float dxy0 = box.getWidth() < box.getHeight() ? box.getWidth() : box.getHeight();
+            final float dxy = dxy0 * getDebugBox();
+            shape.moveTo(x1+dxy, y1+dxy, z);
+            shape.lineTo(x1+dxy, y2-dxy, z);
+            shape.lineTo(x2-dxy, y2-dxy, z);
+            shape.lineTo(x2-dxy, y1+dxy, z);
+            shape.lineTo(x1+dxy, y1+dxy, z);
+            shape.closeLastOutline(true);
+        }
+        shape.setIsQuadraticNurbs();
+        shape.setSharpness(oshapeSharpness);
+        region.addOutlineShape(shape, null, dbgColor);
     }
 
     protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) { }
 
     protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) { }
 
+    protected abstract void addShapeToRegion();
 
 }

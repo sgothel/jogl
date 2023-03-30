@@ -75,7 +75,7 @@ public abstract class TexSeqButton extends RoundButton {
 
         setRotationPivot( box.getCenter() );
 
-        if( DRAW_DEBUG_BOX ) {
+        if( DEBUG_DRAW ) {
             System.err.println("XXX.UIShape.TextureSeqButton: Added Shape: "+shape+", "+box);
         }
     }
