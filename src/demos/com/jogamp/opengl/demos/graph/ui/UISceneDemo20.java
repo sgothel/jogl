@@ -40,7 +40,6 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -84,7 +83,6 @@ import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
@@ -278,8 +276,6 @@ public class UISceneDemo20 implements GLEventListener {
     private static final float fontSizePt = 10f;
     /** Relative Font Size to Window Height  for Main Text, normalized to 1. */
     private static final float fontSizeFixedNorm = 0.04f;
-    /** Relative Font Size to Window Height for FPS Status Line, normalized to 1. */
-    private static final float fontSizeFpsNorm = 0.03f; // 1/18f;
     private float dpiV = 96;
 
     /**
@@ -301,8 +297,6 @@ public class UISceneDemo20 implements GLEventListener {
     private Label fpsLabel = null;
 
     private GLAutoDrawable cDrawable;
-
-    private final GLReadBufferUtil screenshot;
 
     private final String jogamp = "JogAmp - Jogl Graph Module Demo";
     private final String truePtSize = fontSizePt+" pt font size label - true scale!";
@@ -383,8 +377,6 @@ public class UISceneDemo20 implements GLEventListener {
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         // scene.setSampleCount(3); // easy on embedded devices w/ just 3 samples (default is 4)?
-
-        screenshot = new GLReadBufferUtil(false, false);
     }
 
     private void rotateButtons(float[] angdeg) {
@@ -682,12 +674,9 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
-                    cDrawable.invoke(false, new GLRunnable() {
-                        @Override
-                        public boolean run(final GLAutoDrawable drawable) {
-                            printScreen(drawable.getGL());
-                            return true;
-                        }
+                    cDrawable.invoke(true, (drawable) -> {
+                        scene.screenshot(drawable.getGL(), renderModes, UISceneDemo20.class.getSimpleName());
+                        return true;
                     });
                 } } );
             button.addMouseListener(dragZoomRotateListener);
@@ -994,24 +983,7 @@ public class UISceneDemo20 implements GLEventListener {
         System.err.println("GPUUISceneGLListener0A: dispose");
 
         scene.dispose(drawable); // disposes all registered UIShapes
-
-        final GL2ES2 gl = drawable.getGL().getGL2ES2();
-        screenshot.dispose(gl);
     }
-
-    public void printScreen(final GL gl)  {
-        final RegionRenderer renderer = scene.getRenderer();
-        final String modeS = Region.getRenderModeString(renderModes);
-        final String filename = String.format((Locale)null, "GraphUIDemo-shot%03d-%03dx%03d-S_%s_%02d.png",
-                shotCount++, renderer.getWidth(), renderer.getHeight(),
-                modeS, scene.getSampleCount());
-        gl.glFinish(); // just make sure rendering finished ..
-        if(screenshot.readPixels(gl, false)) {
-            screenshot.write(new File(filename));
-            System.err.println("Wrote: "+filename);
-        }
-    }
-    private int shotCount = 0;
 
     @Override
     public void display(final GLAutoDrawable drawable) {
