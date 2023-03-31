@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 import com.jogamp.opengl.FPSCounter;
@@ -98,7 +99,7 @@ public final class Scene implements GLEventListener {
     @SuppressWarnings("unused")
     private static final boolean DEBUG = false;
 
-    private final ArrayList<Shape> shapes = new ArrayList<Shape>();
+    private final List<Shape> shapes = new ArrayList<Shape>();
     private float dbgbox_thickness = 0f;
     private boolean doFrustumCulling = false;
 
@@ -200,7 +201,7 @@ public final class Scene implements GLEventListener {
         }
     }
 
-    public ArrayList<Shape> getShapes() {
+    public List<Shape> getShapes() {
         return shapes;
     }
     public void addShape(final Shape s) {
@@ -315,25 +316,11 @@ public final class Scene implements GLEventListener {
         pmvMatrixSetup.setPlaneBox(planeBox, renderer.getMatrix(), x, y, width, height);
     }
 
-    private static Comparator<Shape> shapeZAscComparator = new Comparator<Shape>() {
-        @Override
-        public int compare(final Shape s1, final Shape s2) {
-            final float s1Z = s1.getBounds().getMinZ()+s1.getPosition()[2];
-            final float s2Z = s2.getBounds().getMinZ()+s2.getPosition()[2];
-            if( FloatUtil.isEqual(s1Z, s2Z, FloatUtil.EPSILON) ) {
-                return 0;
-            } else if( s1Z < s2Z ){
-                return -1;
-            } else {
-                return 1;
-            }
-        } };
-
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public void display(final GLAutoDrawable drawable) {
         final Object[] shapesS = shapes.toArray();
-        Arrays.sort(shapesS, (Comparator)shapeZAscComparator);
+        Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
 
         display(drawable, shapesS, false);
     }
@@ -368,7 +355,7 @@ public final class Scene implements GLEventListener {
         //final int shapeCount = shapes.size();
         final int shapeCount = shapes.length;
         for(int i=0; i<shapeCount; i++) {
-            // final UIShape uiShape = shapes.get(i);
+            // final Shape shape = shapes.get(i);
             final Shape shape = (Shape)shapes[i];
             // System.err.println("Id "+i+": "+uiShape);
             if( shape.isEnabled() ) {
@@ -453,23 +440,26 @@ public final class Scene implements GLEventListener {
      * <p>
      * Method performs on current thread and returns after probing every {@link Shape}.
      * </p>
-     * @param glWinX window X coordinate, bottom-left origin
-     * @param glWinY window Y coordinate, bottom-left origin
      * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
      *            {@link Shape#setTransform(PMVMatrix) shape-transformed} and can be reused by the caller and runnable.
+     * @param glWinX window X coordinate, bottom-left origin
+     * @param glWinY window Y coordinate, bottom-left origin
      * @param objPos storage for found object position in model-space of found {@link Shape}
      * @param shape storage for found {@link Shape} or null
      * @param runnable the action to perform if {@link Shape} was found
+     * @return picked Shape if any or null as stored in {@code shape}
      */
-    public Shape pickShape(final int glWinX, final int glWinY, final PMVMatrix pmv, final float[] objPos, final Shape[] shape, final Runnable runnable) {
-        shape[0] = pickShapeImpl(glWinX, glWinY, pmv, objPos);
-        if( null != shape[0] ) {
+    public Shape pickShape(final PMVMatrix pmv, final int glWinX, final int glWinY, final float[] objPos, final Shape[] shape, final Runnable runnable) {
+        setupMatrix(pmv);
+        final Shape pick = pickShapeImpl(pmv, glWinX, glWinY, objPos);
+        shape[0] = pick;
+        if( null != pick ) {
             runnable.run();
         }
-        return shape[0];
+        return pick;
     }
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    private Shape pickShapeImpl(final int glWinX, final int glWinY, final PMVMatrix pmv, final float[] objPos) {
+    private Shape pickShapeImpl(final PMVMatrix pmv, final int glWinX, final int glWinY, final float[] objPos) {
         final float winZ0 = 0f;
         final float winZ1 = 0.3f;
         /**
@@ -477,12 +467,11 @@ public final class Scene implements GLEventListener {
             gl.glReadPixels( x, y, 1, 1, GL2ES2.GL_DEPTH_COMPONENT, GL.GL_FLOAT, winZRB);
             winZ1 = winZRB.get(0); // dir
         */
-        setupMatrix(pmv);
 
         final Ray ray = new Ray();
 
         final Object[] shapesS = shapes.toArray();
-        Arrays.sort(shapesS, (Comparator)shapeZAscComparator);
+        Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
 
         for(int i=shapesS.length-1; i>=0; i--) {
             final Shape uiShape = (Shape)shapesS[i];
@@ -550,7 +539,7 @@ public final class Scene implements GLEventListener {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private Shape pickShapeGLImpl(final GLAutoDrawable drawable, final int glWinX, final int glWinY) {
         final Object[] shapesS = shapes.toArray();
-        Arrays.sort(shapesS, (Comparator)shapeZAscComparator);
+        Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
 
         final GLPixelStorageModes psm = new GLPixelStorageModes();
         final ByteBuffer pixel = Buffers.newDirectByteBuffer(4);
@@ -837,7 +826,7 @@ public final class Scene implements GLEventListener {
         final PMVMatrix pmv = new PMVMatrix();
         final float[] objPos = new float[3];
         final Shape[] shape = { null };
-        if( null == pickShape(glWinX, glWinY, pmv, objPos, shape, () -> {
+        if( null == pickShape(pmv, glWinX, glWinY, objPos, shape, () -> {
                setActiveShape(shape[0]);
                shape[0].dispatchMouseEvent(e, glWinX, glWinY, objPos);
            } ) )

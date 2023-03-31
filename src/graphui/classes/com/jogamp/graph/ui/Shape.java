@@ -28,6 +28,7 @@
 package com.jogamp.graph.ui;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.opengl.GL2ES2;
@@ -1184,6 +1185,20 @@ public abstract class Shape {
      * Otherwise the base color will be modulated and passed to {@link #drawImpl0(GL2ES2, RegionRenderer, int[], float[])}.
      */
     public abstract boolean hasColorChannel();
+
+    public static Comparator<Shape> ZAscendingComparator = new Comparator<Shape>() {
+        @Override
+        public int compare(final Shape s1, final Shape s2) {
+            final float s1Z = s1.getBounds().getMinZ()+s1.getPosition()[2];
+            final float s2Z = s2.getBounds().getMinZ()+s2.getPosition()[2];
+            if( FloatUtil.isEqual(s1Z, s2Z, FloatUtil.EPSILON) ) {
+                return 0;
+            } else if( s1Z < s2Z ){
+                return -1;
+            } else {
+                return 1;
+            }
+        } };
 
     //
     //
