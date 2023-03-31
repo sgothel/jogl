@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2014-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,80 +25,58 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.ui.gl.shapes;
+package com.jogamp.graph.ui.shapes;
 
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.ui.gl.GraphShape;
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
+import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
- * A GraphUI Rectangle {@link GraphShape}
+ * An abstract GraphUI {@link TextureSequence} {@link RoundButton} {@link GraphShape}.
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
+ * <p>
+ * This button is rendered with a round oval shape.
+ * To render it rectangular, {@link #setCorner(float)} to zero.
+ * </p>
  */
-public class Rectangle extends GraphShape {
-    private float width, height, lineWidth;
+public abstract class TexSeqButton extends RoundButton {
+    protected final TextureSequence texSeq;
 
-    public Rectangle(final int renderModes, final float width, final float height, final float linewidth) {
-        super(renderModes);
-        this.width = width;
-        this.height = height;
-        this.lineWidth = linewidth;
+    public TexSeqButton(final int renderModes, final float width,
+                        final float height, final TextureSequence texSeq) {
+        super(renderModes | Region.COLORTEXTURE_RENDERING_BIT, width, height);
+        this.texSeq = texSeq;
     }
 
-    public final float getWidth() { return width; }
-    public final float getHeight() { return height; }
-    public final float getLineWidth() { return lineWidth; }
-
-    public void setDimension(final float width, final float height, final float lineWidth) {
-        this.width = width;
-        this.height = height;
-        this.lineWidth = lineWidth;
-        markShapeDirty();
+    @Override
+    protected GLRegion createGLRegion(final GLProfile glp) {
+        return GLRegion.create(glp, getRenderModes(), texSeq);
     }
+
+    public final TextureSequence getTextureSequence() { return this.texSeq; }
 
     @Override
     protected void addShapeToRegion() {
         final OutlineShape shape = new OutlineShape(vertexFactory);
-
-        final float lwh = lineWidth/2f;
-
-        final float tw = getWidth();
-        final float th = getHeight();
-
-        final float twh = tw/2f;
-        final float twh_o = twh+lwh;
-        final float twh_i = twh-lwh;
-        final float thh = th/2f;
-        final float thh_o = thh+lwh;
-        final float thh_i = thh-lwh;
-
-        final float ctrX = 0f, ctrY = 0f;
-        final float ctrZ = 0f;
-
-        // outer (CCW!)
-        shape.moveTo(ctrX-twh_o, ctrY-thh_o, ctrZ);
-        shape.lineTo(ctrX+twh_o, ctrY-thh_o, ctrZ);
-        shape.lineTo(ctrX+twh_o, ctrY+thh_o, ctrZ);
-        shape.lineTo(ctrX-twh_o, ctrY+thh_o, ctrZ);
-        shape.closePath();
-
-        // inner (CCW!)
-        shape.moveTo(ctrX-twh_i, ctrY-thh_i, ctrZ);
-        shape.lineTo(ctrX+twh_i, ctrY-thh_i, ctrZ);
-        shape.lineTo(ctrX+twh_i, ctrY+thh_i, ctrZ);
-        shape.lineTo(ctrX-twh_i, ctrY+thh_i, ctrZ);
-        shape.closePath();
-
+        if(corner == 0.0f) {
+            createSharpOutline(shape, 0f);
+        } else {
+            createCurvedOutline(shape, 0f);
+        }
         shape.setIsQuadraticNurbs();
         shape.setSharpness(oshapeSharpness);
         region.addOutlineShape(shape, null, rgbaColor);
-
         box.resize(shape.getBounds());
-    }
 
-    @Override
-    public String getSubString() {
-        return super.getSubString()+", dim "+getWidth() + " x " + getHeight();
+        setRotationPivot( box.getCenter() );
+
+        if( DEBUG_DRAW ) {
+            System.err.println("XXX.UIShape.TextureSeqButton: Added Shape: "+shape+", "+box);
+        }
     }
 }

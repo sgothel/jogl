@@ -29,7 +29,7 @@ package com.jogamp.opengl.demos.graph.ui.testshapes;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.geom.plane.Winding;
-import com.jogamp.graph.ui.gl.GraphShape;
+import com.jogamp.graph.ui.GraphShape;
 
 /**
  * GPU based resolution independent test object

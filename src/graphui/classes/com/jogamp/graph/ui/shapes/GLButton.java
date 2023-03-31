@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.ui.gl.shapes;
+package com.jogamp.graph.ui.shapes;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
@@ -37,7 +37,7 @@ import com.jogamp.opengl.GLDrawableFactory;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLOffscreenAutoDrawable;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.ui.gl.GraphShape;
+import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.util.texture.ImageSequence;
 import com.jogamp.opengl.util.texture.Texture;

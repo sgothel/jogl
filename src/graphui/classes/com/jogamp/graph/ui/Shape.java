@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.ui.gl;
+package com.jogamp.graph.ui;
 
 import java.util.ArrayList;
 
@@ -498,7 +498,7 @@ public abstract class Shape {
      * @param viewport the int[4] viewport
      * @param surfaceSize int[2] target surface size
      * @return given int[2] {@code surfaceSize} for successful gluProject(..) operation, otherwise {@code null}
-     * @see #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])
+     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])
      * @see #getSurfaceSize(Scene, PMVMatrix, int[])
      */
     public int[/*2*/] getSurfaceSize(final PMVMatrix pmv, final int[/*4*/] viewport, final int[/*2*/] surfaceSize) {
@@ -554,7 +554,7 @@ public abstract class Shape {
      * @param surfaceSize int[2] target surface size
      * @return given int[2] {@code surfaceSize} for successful gluProject(..) operation, otherwise {@code null}
      * @see #getSurfaceSize(PMVMatrix, int[], int[])
-     * @see #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])
+     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])
      */
     public int[/*2*/] getSurfaceSize(final Scene scene, final PMVMatrix pmv, final int[/*2*/] surfaceSize) {
         return getSurfaceSize(scene.getPMVMatrixSetup(), scene.getViewport(), pmv, surfaceSize);
@@ -587,11 +587,11 @@ public abstract class Shape {
 
     /**
      * Retrieve pixel per scaled shape-coordinate unit, i.e. [px]/[obj].
-     * @param shapeSizePx int[2] shape size in pixel as retrieved via e.g. {@link #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])}
+     * @param shapeSizePx int[2] shape size in pixel as retrieved via e.g. {@link #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])}
      * @param pixPerShape float[2] pixel scaled per shape-coordinate unit result storage
      * @return given float[2] {@code pixPerShape}
      * @see #getPixelPerShapeUnit(Scene, PMVMatrix, float[])
-     * @see #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])
+     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])
      * @see #getScaledWidth()
      * @see #getScaledHeight()
      */
@@ -613,7 +613,7 @@ public abstract class Shape {
      * @param objPos float[3] object position relative to this shape's center
      * @param glWinPos int[2] target window position of objPos relative to this shape
      * @return given int[2] {@code glWinPos} for successful gluProject(..) operation, otherwise {@code null}
-     * @see #shapeToWinCoord(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], float[], PMVMatrix, int[])
+     * @see #shapeToWinCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, int[], float[], PMVMatrix, int[])
      * @see #shapeToWinCoord(Scene, float[], PMVMatrix, int[])
      */
     public int[/*2*/] shapeToWinCoord(final PMVMatrix pmv, final int[/*4*/] viewport, final float[/*3*/] objPos, final int[/*2*/] glWinPos) {
@@ -665,7 +665,7 @@ public abstract class Shape {
      * @param glWinPos int[2] target window position of objPos relative to this shape
      * @return given int[2] {@code glWinPos} for successful gluProject(..) operation, otherwise {@code null}
      * @see #shapeToWinCoord(PMVMatrix, int[], float[], int[])
-     * @see #shapeToWinCoord(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], float[], PMVMatrix, int[])
+     * @see #shapeToWinCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, int[], float[], PMVMatrix, int[])
      */
     public int[/*2*/] shapeToWinCoord(final Scene scene, final float[/*3*/] objPos, final PMVMatrix pmv, final int[/*2*/] glWinPos) {
         return this.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), objPos, pmv, glWinPos);
@@ -684,7 +684,7 @@ public abstract class Shape {
      * @param glWinY in GL window coordinates, origin bottom-left
      * @param objPos float[3] target object position of glWinX/glWinY relative to this shape
      * @return given float[3] {@code objPos} for successful gluProject(..) and gluUnProject(..) operation, otherwise {@code null}
-     * @see #winToShapeCoord(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], int, int, PMVMatrix, float[])
+     * @see #winToShapeCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, int[], int, int, PMVMatrix, float[])
      * @see #winToShapeCoord(Scene, int, int, PMVMatrix, float[])
      */
     public float[/*3*/] winToShapeCoord(final PMVMatrix pmv, final int[/*4*/] viewport, final int glWinX, final int glWinY, final float[/*3*/] objPos) {
@@ -738,7 +738,7 @@ public abstract class Shape {
      * @param objPos float[3] target object position of glWinX/glWinY relative to this shape
      * @return given float[3] {@code objPos} for successful gluProject(..) and gluUnProject(..) operation, otherwise {@code null}
      * @see #winToShapeCoord(PMVMatrix, int[], int, int, float[])
-     * @see #winToShapeCoord(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], int, int, PMVMatrix, float[])
+     * @see #winToShapeCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, int[], int, int, PMVMatrix, float[])
      */
     public float[/*3*/] winToShapeCoord(final Scene scene, final int glWinX, final int glWinY, final PMVMatrix pmv, final float[/*3*/] objPos) {
         return this.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, objPos);

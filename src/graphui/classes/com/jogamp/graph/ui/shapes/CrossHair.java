@@ -25,10 +25,10 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.ui.gl.shapes;
+package com.jogamp.graph.ui.shapes;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.ui.gl.GraphShape;
+import com.jogamp.graph.ui.GraphShape;
 
 /**
  * A GraphUI Crosshair {@link GraphShape}
