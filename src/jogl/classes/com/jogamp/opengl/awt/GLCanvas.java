@@ -721,9 +721,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
          */
         jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
         jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
+        jawtWindow.setSurfaceScale(reqPixelScale);
         jawtWindow.lockSurface();
         try {
-            jawtWindow.setSurfaceScale(reqPixelScale);
             drawable = (GLDrawableImpl) GLDrawableFactory.getFactory(capsReqUser.getGLProfile()).createGLDrawable(jawtWindow);
             createContextImpl(drawable);
             jawtWindow.getCurrentSurfaceScale(hasPixelScale);
