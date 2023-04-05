@@ -408,13 +408,13 @@ public class AABBox {
     /**
      * Check if {@link Ray} intersects this bounding box.
      * <p>
-     * Versions uses the SAT.y(), testing 6 axes.
+     * Versions uses the SAT[1], testing 6 axes.
      * Original code for OBBs from MAGIC.
-     * Rewritten for AABBs and reorganized for early exits.z().
+     * Rewritten for AABBs and reorganized for early exits[2].
      * </p>
      * <pre>
-     * .y() SAT = Separating Axis Theorem
-     * .z() http://www.codercorner.com/RayAABB.cpp
+     * [1] SAT = Separating Axis Theorem
+     * [2] http://www.codercorner.com/RayAABB.cpp
      * </pre>
      * @param ray
      * @return
@@ -460,7 +460,7 @@ public class AABBox {
      * or null if none exist.
      * <p>
      * <ul>
-     *  <li>Original code by Andrew Woo, from "Graphics Gems", Academic Press, 1990 .z()</li>
+     *  <li>Original code by Andrew Woo, from "Graphics Gems", Academic Press, 1990 [2]</li>
      *  <li>Optimized code by Pierre Terdiman, 2000 (~20-30% faster on my Celeron 500)</li>
      *  <li>Epsilon value added by Klaus Hartmann.</li>
      * </ul>
@@ -476,8 +476,8 @@ public class AABBox {
      * Report bugs: p.terdiman@codercorner.com (original author)
      * </p>
      * <pre>
-     * .y() http://www.codercorner.com/RayAABB.cpp
-     * .z() http://tog.acm.org/resources/GraphicsGems/gems/RayBox.c
+     * [1] http://www.codercorner.com/RayAABB.cpp
+     * [2] http://tog.acm.org/resources/GraphicsGems/gems/RayBox.c
      * </pre>
      * @param result vec3
      * @param ray
