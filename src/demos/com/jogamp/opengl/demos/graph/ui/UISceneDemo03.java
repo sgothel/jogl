@@ -57,7 +57,6 @@ import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -82,7 +81,7 @@ public class UISceneDemo03 {
             " JogAmp, Java™ libraries for 3D & Media "
     };
 
-    static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, 0);
+    static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
     static float velocity = 30 / 1e3f; // [m]/[s]
     static float rot_step = velocity * 1;
 
@@ -306,7 +305,7 @@ public class UISceneDemo03 {
             addedGlyphShapes.addAll(glyphShapes);
 
             final float pos_eps = FloatUtil.EPSILON * 5000; // ~= 0.0005960
-            final float rot_eps = FloatUtil.adegToRad(1f); // 1 adeg ~= 0.01745 rad
+            final float rot_eps = FloatUtil.adegToRad(0.5f); // 1 adeg ~= 0.01745 rad
 
             final long t0_us = Clock.currentNanos() / 1000; // [us]
             final long[] t2_us = { t0_us };
@@ -327,13 +326,19 @@ public class UISceneDemo03 {
                         final Vec3f p_t = target.minus(pos);
                         final float p_t_diff = p_t.length();
                         final Quaternion q = glyph.getRotation();
-                        final float radY = q.toAngleAxis(VectorUtil.VEC3_UNIT_Y);
-                        final float radYdiff = Math.min(radY, FloatUtil.TWO_PI - radY);
+                        final Vec3f euler = q.toEuler(new Vec3f());
+                        final float radY = euler.y();
+                        final float radYdiff = Math.min(Math.abs(radY), FloatUtil.TWO_PI - Math.abs(radY));
                         final boolean pos_ok = p_t_diff <= pos_eps;
                         final boolean pos_near = p_t_diff <= glyph.getBounds().getSize() * fontScale * 2f;
                         final boolean rot_ok = pos_near && ( radYdiff <= rot_eps || radYdiff <= rot_step * 2f );
                         if ( pos_ok && rot_ok ) {
                             // arrived
+                            if( DEBUG ) {
+                                if( 0 == idx ) {
+                                    System.err.println("F: rot: "+radY+" ("+FloatUtil.radToADeg(radY)+"), diff "+radYdiff+" ("+FloatUtil.radToADeg(radYdiff)+"), step "+rot_step+" ("+FloatUtil.radToADeg(rot_step)+")");
+                                }
+                            }
                             glyph.moveTo(target.x(), target.y(), target.z());
                             q.setIdentity();
                             glyphShapes.remove(idx);
@@ -362,7 +367,7 @@ public class UISceneDemo03 {
                         } else {
                             if( DEBUG ) {
                                 if( 0 == idx ) {
-                                    System.err.println("rot: "+radY+" ("+FloatUtil.radToADeg(radY)+"), diff "+radYdiff+" ("+FloatUtil.radToADeg(radYdiff)+"), step "+rot_step+" ("+FloatUtil.radToADeg(rot_step)+")");
+                                    System.err.println("P: rot: "+radY+" ("+FloatUtil.radToADeg(radY)+"), diff "+radYdiff+" ("+FloatUtil.radToADeg(radYdiff)+"), step "+rot_step+" ("+FloatUtil.radToADeg(rot_step)+")");
                                 }
                             }
                             if( radYdiff <= rot_step * 3f || radYdiff <= rot_eps ) {

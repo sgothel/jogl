@@ -49,6 +49,8 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.graph.ui.Shape.Visitor2;
+import com.jogamp.graph.ui.Shape.Visitor1;
 import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.MouseEvent;
@@ -58,10 +60,13 @@ import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Ray;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.PMVMatrix;
+
+import jogamp.graph.ui.TreeTool;
 
 /**
  * GraphUI Scene
@@ -86,7 +91,7 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  * @see Shape
  */
-public final class Scene implements GLEventListener {
+public final class Scene implements Container, GLEventListener {
     /** Default scene distance on z-axis to projection is -1/5f. */
     public static final float DEFAULT_SCENE_DIST = -1/5f;
     /** Default projection angle in degrees value is 45.0. */
@@ -201,14 +206,16 @@ public final class Scene implements GLEventListener {
         }
     }
 
+    @Override
     public List<Shape> getShapes() {
         return shapes;
     }
+    @Override
     public void addShape(final Shape s) {
         s.setDebugBox(dbgbox_thickness);
         shapes.add(s);
     }
-    /** Removes given shape, keeps it alive. */
+    @Override
     public void removeShape(final Shape s) {
         s.setDebugBox(0f);
         shapes.remove(s);
@@ -219,12 +226,13 @@ public final class Scene implements GLEventListener {
         shapes.remove(s);
         s.destroy(gl, renderer);
     }
+    @Override
     public void addShapes(final Collection<? extends Shape> shapes) {
         for(final Shape s : shapes) {
             addShape(s);
         }
     }
-    /** Removes all given shapes, keeps them alive. */
+    @Override
     public void removeShapes(final Collection<? extends Shape> shapes) {
         for(final Shape s : shapes) {
             removeShape(s);
@@ -235,6 +243,10 @@ public final class Scene implements GLEventListener {
         for(final Shape s : shapes) {
             removeShape(gl, s);
         }
+    }
+    @Override
+    public boolean contains(final Shape s) {
+        return false;
     }
     public Shape getShapeByIdx(final int id) {
         if( 0 > id ) {
@@ -449,17 +461,9 @@ public final class Scene implements GLEventListener {
      * @param runnable the action to perform if {@link Shape} was found
      * @return picked Shape if any or null as stored in {@code shape}
      */
-    public Shape pickShape(final PMVMatrix pmv, final int glWinX, final int glWinY, final float[] objPos, final Shape[] shape, final Runnable runnable) {
+    public Shape pickShape(final PMVMatrix pmv, final int glWinX, final int glWinY, final Vec3f objPos, final Shape[] shape, final Runnable runnable) {
         setupMatrix(pmv);
-        final Shape pick = pickShapeImpl(pmv, glWinX, glWinY, objPos);
-        shape[0] = pick;
-        if( null != pick ) {
-            runnable.run();
-        }
-        return pick;
-    }
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private Shape pickShapeImpl(final PMVMatrix pmv, final int glWinX, final int glWinY, final float[] objPos) {
+
         final float winZ0 = 0f;
         final float winZ1 = 0.3f;
         /**
@@ -467,34 +471,28 @@ public final class Scene implements GLEventListener {
             gl.glReadPixels( x, y, 1, 1, GL2ES2.GL_DEPTH_COMPONENT, GL.GL_FLOAT, winZRB);
             winZ1 = winZRB.get(0); // dir
         */
-
+        final int[] viewport = getViewport();
         final Ray ray = new Ray();
+        shape[0] = null;
 
-        final Object[] shapesS = shapes.toArray();
-        Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
-
-        for(int i=shapesS.length-1; i>=0; i--) {
-            final Shape uiShape = (Shape)shapesS[i];
-
-            if( uiShape.isEnabled() ) {
-                pmv.glPushMatrix();
-                uiShape.setTransform(pmv);
-                final boolean ok = pmv.gluUnProjectRay(glWinX, glWinY, winZ0, winZ1, getViewport(), 0, ray);
-                if( ok ) {
-                    final AABBox sbox = uiShape.getBounds();
-                    if( sbox.intersectsRay(ray) ) {
-                        // System.err.printf("Pick.0: shape %d, [%d, %d, %f/%f] -> %s%n", i, glWinX, glWinY, winZ0, winZ1, ray);
-                        if( null == sbox.getRayIntersection(objPos, ray, FloatUtil.EPSILON, true, dpyTmp1V3, dpyTmp2V3, dpyTmp3V3) ) {
-                            throw new InternalError("Ray "+ray+", box "+sbox);
-                        }
-                        // System.err.printf("Pick.1: shape %d @ [%f, %f, %f], within %s%n", i, objPos[0], objPos[1], objPos[2], uiShape.getBounds());
-                        return uiShape;
+        forSortedAll(Shape.ZAscendingComparator, pmv, (final Shape s, final PMVMatrix pmv2) -> {
+            final boolean ok = pmv.gluUnProjectRay(glWinX, glWinY, winZ0, winZ1, viewport, ray);
+            if( ok ) {
+                final AABBox sbox = s.getBounds();
+                if( sbox.intersectsRay(ray) ) {
+                    // System.err.printf("Pick.0: shape %d, [%d, %d, %f/%f] -> %s%n", i, glWinX, glWinY, winZ0, winZ1, ray);
+                    if( null == sbox.getRayIntersection(objPos, ray, FloatUtil.EPSILON, true) ) {
+                        throw new InternalError("Ray "+ray+", box "+sbox);
                     }
+                    // System.err.printf("Pick.1: shape %d @ [%f, %f, %f], within %s%n", i, objPos[0], objPos[1], objPos[2], uiShape.getBounds());
+                    shape[0] = s;
+                    runnable.run();
+                    return true;
                 }
-                pmv.glPopMatrix(); // we leave the stack open if picked above, allowing the modelview shape transform to be reused
             }
-        }
-        return null;
+            return false;
+        });
+        return shape[0];
     }
     private final float[] dpyTmp1V3 = new float[3];
     private final float[] dpyTmp2V3 = new float[3];
@@ -514,7 +512,7 @@ public final class Scene implements GLEventListener {
      * @param shape storage for found {@link Shape} or null
      * @param runnable the action to perform if {@link Shape} was found
      */
-    public void pickShapeGL(final int glWinX, final int glWinY, final float[] objPos, final Shape[] shape, final Runnable runnable) {
+    public void pickShapeGL(final int glWinX, final int glWinY, final Vec3f objPos, final Shape[] shape, final Runnable runnable) {
         if( null == cDrawable ) {
             return;
         }
@@ -586,10 +584,79 @@ public final class Scene implements GLEventListener {
      * @param objPos resulting object position
      * @param runnable action
      */
-    public void winToShapeCoord(final Shape shape, final int glWinX, final int glWinY, final PMVMatrix pmv, final float[] objPos, final Runnable runnable) {
-        if( null != shape && null != shape.winToShapeCoord(pmvMatrixSetup, renderer.getViewport(), glWinX, glWinY, pmv, objPos) ) {
-            runnable.run();
+    public void winToShapeCoord(final Shape shape, final int glWinX, final int glWinY, final PMVMatrix pmv, final Vec3f objPos, final Runnable runnable) {
+        if( null == shape ) {
+            return;
         }
+        final int[] viewport = getViewport();
+        setupMatrix(pmv);
+        forOne(pmv, shape, () -> {
+            if( null != shape.winToShapeCoord(pmv, viewport, glWinX, glWinY, objPos) ) {
+                runnable.run();
+            }
+        });
+    }
+
+    @Override
+    public AABBox getBounds(final PMVMatrix pmv, final Shape shape) {
+        final AABBox res = new AABBox();
+        if( null == shape ) {
+            return res;
+        }
+        setupMatrix(pmv);
+        forOne(pmv, shape, () -> {
+            shape.getBounds().transformMv(res, pmv, new float[3], new float[3]);
+        });
+        return res;
+    }
+
+    /**
+     * Traverses through the graph up until {@code shape} and apply {@code action} on it.
+     * @param pmv
+     * @param shape
+     * @param action
+     * @return true to signal operation complete, i.e. {@code shape} found, otherwise false
+     */
+    @Override
+    public boolean forOne(final PMVMatrix pmv, final Shape shape, final Runnable action) {
+        setupMatrix(pmv);
+        return TreeTool.forOne(shapes, pmv, shape, action);
+    }
+
+    /**
+     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix)} for each, stop if it returns true.
+     * @param pmv
+     * @param v
+     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix)} returned true, otherwise false
+     */
+    @Override
+    public boolean forAll(final PMVMatrix pmv, final Visitor2 v) {
+        setupMatrix(pmv);
+        return TreeTool.forAll(shapes, pmv, v);
+    }
+
+    /**
+     * Traverses through the graph and apply {@link Visitor1#visit(Shape)} for each, stop if it returns true.
+     * @param v
+     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor1#visit(Shape)} returned true, otherwise false
+     */
+    @Override
+    public boolean forAll(final Visitor1 v) {
+        return TreeTool.forAll(shapes, v);
+    }
+
+    /**
+     * Traverses through the graph and apply {@link Visitor#visit(Shape, PMVMatrix)} for each, stop if it returns true.
+     *
+     * Each {@link Container} level is sorted using {@code sortComp}
+     * @param sortComp
+     * @param pmv
+     * @param v
+     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix)} returned true, otherwise false
+     */
+    @Override
+    public boolean forSortedAll(final Comparator<Shape> sortComp, final PMVMatrix pmv, final Visitor2 v) {
+        return TreeTool.forSortedAll(sortComp, shapes, pmv, v);
     }
 
     /**
@@ -788,16 +855,18 @@ public final class Scene implements GLEventListener {
                 // gesture .. delegate to active shape!
                 final InputEvent orig = gh.getTrigger();
                 if( orig instanceof MouseEvent ) {
-                    final MouseEvent e = (MouseEvent) orig;
-                    // flip to GL window coordinates
-                    final int glWinX = e.getX();
-                    final int glWinY = getHeight() - e.getY() - 1;
-                    final PMVMatrix pmv = new PMVMatrix();
-                    final float[] objPos = new float[3];
                     final Shape shape = activeShape;
-                    winToShapeCoord(shape, glWinX, glWinY, pmv, objPos, () -> {
-                        shape.dispatchGestureEvent(gh, glWinX, glWinY, pmv, renderer.getViewport(), objPos);
-                    });
+                    if( shape.isInteractive() ) {
+                        final MouseEvent e = (MouseEvent) orig;
+                        // flip to GL window coordinates
+                        final int glWinX = e.getX();
+                        final int glWinY = getHeight() - e.getY() - 1;
+                        final PMVMatrix pmv = new PMVMatrix();
+                        final Vec3f objPos = new Vec3f();
+                        winToShapeCoord(shape, glWinX, glWinY, pmv, objPos, () -> {
+                            shape.dispatchGestureEvent(gh, glWinX, glWinY, pmv, renderer.getViewport(), objPos);
+                        });
+                    }
                 }
             }
         }
@@ -812,7 +881,7 @@ public final class Scene implements GLEventListener {
     final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY) {
         if( null == activeShape ) {
             dispatchMouseEventPickShape(e, glWinX, glWinY);
-        } else {
+        } else if( activeShape.isInteractive() ) {
             dispatchMouseEventForShape(activeShape, e, glWinX, glWinY);
         }
     }
@@ -824,11 +893,13 @@ public final class Scene implements GLEventListener {
      */
     final void dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY) {
         final PMVMatrix pmv = new PMVMatrix();
-        final float[] objPos = new float[3];
+        final Vec3f objPos = new Vec3f();
         final Shape[] shape = { null };
         if( null == pickShape(pmv, glWinX, glWinY, objPos, shape, () -> {
                setActiveShape(shape[0]);
-               shape[0].dispatchMouseEvent(e, glWinX, glWinY, objPos);
+               if( shape[0].isInteractive() ) {
+                   shape[0].dispatchMouseEvent(e, glWinX, glWinY, objPos);
+               }
            } ) )
         {
            releaseActiveShape();
@@ -843,7 +914,7 @@ public final class Scene implements GLEventListener {
      */
     final void dispatchMouseEventForShape(final Shape shape, final MouseEvent e, final int glWinX, final int glWinY) {
         final PMVMatrix pmv = new PMVMatrix();
-        final float[] objPos = new float[3];
+        final Vec3f objPos = new Vec3f();
         winToShapeCoord(shape, glWinX, glWinY, pmv, objPos, () -> { shape.dispatchMouseEvent(e, glWinX, glWinY, objPos); });
     }
 
@@ -1059,4 +1130,5 @@ public final class Scene implements GLEventListener {
         }
     };
     private PMVMatrixSetup pmvMatrixSetup = defaultPMVMatrixSetup;
+
 }

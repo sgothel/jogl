@@ -35,6 +35,8 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.opengl.math.Vec2f;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 
 import jogamp.graph.ui.shapes.Label0;
@@ -111,11 +113,11 @@ public class Button extends RoundButton {
         final float lScale = lsx < lsy ? lsx : lsy;
 
         // Setting left-corner transform using text-box in font em-size [0..1]
-        final AABBox lbox1_s = new AABBox(lbox0_em).scale2(lScale, new float[3]);
+        final AABBox lbox1_s = new AABBox(lbox0_em).scale2(lScale);
         // Center text .. (share same center w/ button)
-        final float[] lctr = lbox1_s.getCenter();
-        final float[] ctr = box.getCenter();
-        final float[] ltxy = new float[] { ctr[0] - lctr[0], ctr[1] - lctr[1] };
+        final Vec3f lctr = lbox1_s.getCenter();
+        final Vec3f ctr = box.getCenter();
+        final Vec2f ltxy = new Vec2f(ctr.x() - lctr.x(), ctr.y() - lctr.y() );
 
         if( DEBUG_DRAW ) {
             System.err.println("Button: dim "+width+" x "+height+", spacing "+spacingX+", "+spacingY);
@@ -124,7 +126,7 @@ public class Button extends RoundButton {
             System.err.println("Button: text_em "+lbox0_em+" em, "+label.getText());
             System.err.println("Button: lscale "+lsx+" x "+lsy+" -> "+lScale);
             System.err.printf ("Button: text_s  %s%n", lbox1_s);
-            System.err.printf ("Button: ltxy %f / %f, %f / %f%n", ltxy[0], ltxy[1], ltxy[0] * lScale, ltxy[1] * lScale);
+            System.err.printf ("Button: ltxy %s, %f / %f%n", ltxy, ltxy.x() * lScale, ltxy.y() * lScale);
         }
 
         final AABBox lbox2 = label.addShapeToRegion(lScale, region, ltxy, tempT1, tempT2, tempT3);

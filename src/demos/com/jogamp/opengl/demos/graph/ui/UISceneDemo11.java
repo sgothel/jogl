@@ -34,9 +34,11 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
+import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
-import com.jogamp.graph.ui.Scene.PMVMatrixSetup;
+import com.jogamp.graph.ui.layout.GridLayout;
+import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.GLButton;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
@@ -46,23 +48,18 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.es2.GearsES2;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
 
 /**
- * Res independent Shape, Scene attached to GLWindow showing simple linear Shape movement.
- * <p>
- * This variation of {@link UISceneDemo00} uses a {@link GLButton} shape with animating and rotating gears
- * and sets up an own {@link Scene.PMVMatrixSetup} with a plane dimension of 100.
- * </p>
+ * Res independent {@link Shape}s in a {@link Group} using a {@link GridLayout}, contained within a Scene attached to GLWindow.
  * <p>
  * Pass '-keep' to main-function to keep running after animation,
  * then user can test Shape drag-move and drag-resize w/ 1-pointer.
  * </p>
  */
-public class UISceneDemo01 {
+public class UISceneDemo11 {
     public static void main(final String[] args) throws IOException {
         final int surface_width = 1280, surface_height = 720;
         final int renderModes = Region.VBAA_RENDERING_BIT;
@@ -83,14 +80,23 @@ public class UISceneDemo01 {
         final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final Shape shape = makeShape(font, renderModes);
-        System.err.println("Shape bounds "+shape.getBounds(glp));
-        System.err.println("Shape "+shape);
+        final float shapeWidth = 1/8f;
+        final float shapeHeight = shapeWidth/2.5f;
+        final Group groupA0 = new Group(new GridLayout(2, shapeWidth*1.1f, shapeHeight*1.1f));
+        {
+            groupA0.addShape( new Button(renderModes, font, "1", shapeWidth, shapeHeight) );
+            groupA0.addShape( new Button(renderModes, font, "2", shapeWidth, shapeHeight) );
+            groupA0.addShape( new Button(renderModes, font, "3", shapeWidth, shapeHeight) );
+            groupA0.addShape( new Button(renderModes, font, "4", shapeWidth, shapeHeight) );
+        }
+        groupA0.validate(glp);
+        System.err.println("Group-A0 "+groupA0);
+        groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
 
         final Scene scene = new Scene();
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
-        scene.addShape(shape);
+        scene.addShape(groupA0);
+        scene.setFrustumCullingEnabled(true);
 
         final Animator animator = new Animator();
 
@@ -100,13 +106,13 @@ public class UISceneDemo01 {
 
         final GLWindow window = GLWindow.create(caps);
         window.setSize(surface_width, surface_height);
-        window.setTitle(UISceneDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+        window.setTitle(UISceneDemo11.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
         window.addGLEventListener(scene);
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowResized(final WindowEvent e) {
-                window.setTitle(UISceneDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+                window.setTitle(UISceneDemo11.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
             }
             @Override
             public void windowDestroyNotify(final WindowEvent e) {
@@ -128,17 +134,21 @@ public class UISceneDemo01 {
 
         final AABBox sceneBox = scene.getBounds();
         System.err.println("SceneBox "+sceneBox);
-        System.err.println("Shape "+shape);
+        System.err.println("Group-A0 "+groupA0);
+        groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
 
+        final Shape mobileShape = groupA0;
+
+        if( true ) {
         //
         // Compute the metric animation values -> shape obj-velocity
         //
         final float min_obj = sceneBox.getMinX();
-        final float max_obj = sceneBox.getMaxX() - shape.getScaledWidth();
+        final float max_obj = sceneBox.getMaxX() - mobileShape.getScaledWidth();
 
-        final int[] shapeSizePx = shape.getSurfaceSize(scene, new PMVMatrix(), new int[2]); // [px]
-        final float[] pixPerShapeUnit = shape.getPixelPerShapeUnit(shapeSizePx, new float[2]); // [px]/[shapeUnit]
+        final int[] shapeSizePx = mobileShape.getSurfaceSize(scene, new PMVMatrix(), new int[2]); // [px]
+        final float[] pixPerShapeUnit = mobileShape.getPixelPerShapeUnit(shapeSizePx, new float[2]); // [px]/[shapeUnit]
 
         final float pixPerMM = window.getPixelsPerMM(new float[2])[0]; // [px]/[mm]
         final float dist_px = scene.getWidth() - shapeSizePx[0]; // [px]
@@ -150,7 +160,7 @@ public class UISceneDemo01 {
 
         System.err.println();
         System.err.printf("Shape: %d x %d [pixel], %.4f px/shape_unit%n", shapeSizePx[0], shapeSizePx[1], pixPerShapeUnit[0]);
-        System.err.printf("Shape: %s%n", shape);
+        System.err.printf("Shape: %s%n", mobileShape);
         System.err.println();
         System.err.printf("Distance: %.0f pixel @ %.3f px/mm, %.3f mm%n", dist_px, pixPerMM, dist_m*1e3f);
         System.err.printf("Velocity: %.3f mm/s, %.3f px/s, %.6f obj/s, expected travel-duration %.3f s%n",
@@ -158,8 +168,8 @@ public class UISceneDemo01 {
 
         final long t0_us = Clock.currentNanos() / 1000; // [us]
         long t1_us = t0_us;
-        shape.moveTo(min_obj, 0f, 0f); // move shape to min start position
-        while( shape.getPosition().x() < max_obj && window.isNativeValid() ) {
+        mobileShape.moveTo(min_obj, 0f, 0f); // move shape to min start position
+        while( mobileShape.getPosition().x() < max_obj && window.isNativeValid() ) {
             final long t2_us = Clock.currentNanos() / 1000;
             final float dt_s = ( t2_us - t1_us ) / 1e6f;
             t1_us = t2_us;
@@ -170,51 +180,22 @@ public class UISceneDemo01 {
             // Move on GL thread to have vsync for free
             // Otherwise we would need to employ a sleep(..) w/ manual vsync
             window.invoke(true, (drawable) -> {
-                shape.move(dx, 0f, 0f);
+                mobileShape.move(dx, 0f, 0f);
                 return true;
             });
         }
         final float has_dur_s = ( ( Clock.currentNanos() / 1000 ) - t0_us ) / 1e6f; // [us]
         System.err.printf("Actual travel-duration %.3f s, delay %.3f s%n", has_dur_s, has_dur_s-exp_dur_s);
+        System.err.println("Group-A0 bounds "+groupA0);
+        groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
+        }
         if( !keepRunning ) {
             window.destroy();
         }
     }
 
-    static class MyPMVMatrixSetup implements PMVMatrixSetup {
-        @Override
-        public void set(final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
-            final float ratio = (float)width/(float)height;
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glLoadIdentity();
-            pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
-            pmv.glTranslatef(0f, 0f, Scene.DEFAULT_SCENE_DIST);
-
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
-
-            // Scale (back) to have normalized plane dimensions, 100 for the greater of width and height.
-            final AABBox planeBox0 = new AABBox();
-            setPlaneBox(planeBox0, pmv, x, y, width, height);
-            final float sx = planeBox0.getWidth();
-            final float sy = planeBox0.getHeight();
-            final float sxy = sx > sy ? sx : sy;
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glScalef(sxy / 100f, sxy / 100f, 1f);
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        }
-
-        @Override
-        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
-            Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, x, y, width, height);
-        }
-    };
-
-    static Shape makeShape(final Font font, final int renderModes) {
-        final float sw = 25;
-        final float sh = sw / 2.5f;
-
+    static Shape makeGLButton(final float sw, final float sh, final Font font, final int renderModes) {
         final GearsES2 gears = new GearsES2(0);
         gears.setVerbose(false);
         gears.setClearColor(new float[] { 0.9f, 0.9f, 0.9f, 1f } );

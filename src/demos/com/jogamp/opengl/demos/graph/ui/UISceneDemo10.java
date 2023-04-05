@@ -56,6 +56,7 @@ import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.es2.GearsES2;
 import com.jogamp.opengl.demos.util.MiscUtils;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -149,8 +150,8 @@ public class UISceneDemo10 {
         shape.onMove(new Shape.Listener() {
             @Override
             public void run(final Shape shape) {
-                final float[] p = shape.getPosition();
-                System.err.println("Shape moved: "+p[0]+", "+p[1]+", "+p[2]);
+                final Vec3f p = shape.getPosition();
+                System.err.println("Shape moved: "+p);
             }
         });
         shape.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -226,8 +227,8 @@ public class UISceneDemo10 {
 
     static void testProject(final Scene scene, final Shape shape, final int glWinX, final int glWinY) {
         final PMVMatrix pmv = new PMVMatrix();
-        final float[] objPos = shape.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, new float[3]);
-        System.err.printf("MM1: winToObjCoord: obj [%25.20ff, %25.20ff, %25.20ff]%n", objPos[0], objPos[1], objPos[2]);
+        final Vec3f objPos = shape.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, new Vec3f());
+        System.err.printf("MM1: winToObjCoord: obj %s%n", objPos);
         final int[] glWinPos = shape.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), objPos, pmv, new int[2]);
         final int windx = glWinPos[0]-glWinX;
         final int windy = glWinPos[1]-glWinY;

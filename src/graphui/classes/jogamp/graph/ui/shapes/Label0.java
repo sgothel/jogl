@@ -31,6 +31,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.opengl.math.Vec2f;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public class Label0 {
@@ -65,10 +66,10 @@ public class Label0 {
         this.font = font;
     }
 
-    public final AABBox addShapeToRegion(final float scale, final Region region, final float[] txy,
+    public final AABBox addShapeToRegion(final float scale, final Region region, final Vec2f txy,
                                          final AffineTransform tmp1, final AffineTransform tmp2, final AffineTransform tmp3)
     {
-        tmp1.setToTranslation(txy[0], txy[1]);
+        tmp1.setToTranslation(txy.x(), txy.y());
         tmp1.scale(scale, scale, tmp2);
         return TextRegionUtil.addStringToRegion(region, font, tmp1, text, rgbaColor, tmp2, tmp3);
     }

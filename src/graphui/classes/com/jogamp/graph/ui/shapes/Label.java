@@ -166,7 +166,7 @@ public class Label extends GraphShape {
 
     /** Returns {@link Font#getLineHeight()} * {@link #getFontScale()} * {@link #getScaleY()}. */
     public float getScaledLineHeight() {
-        return getScaleY() * fontScale * font.getLineHeight();
+        return getScale().y() * fontScale * font.getLineHeight();
     }
 
     /**

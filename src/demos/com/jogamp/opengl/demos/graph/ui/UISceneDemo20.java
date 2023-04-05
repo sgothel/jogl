@@ -80,7 +80,7 @@ import com.jogamp.opengl.demos.graph.MSAATool;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -306,8 +306,8 @@ public class UISceneDemo20 implements GLEventListener {
         scene.setDebugBox(options.debugBoxThickness);
     }
 
-    private void rotateButtons(float[] angdeg) {
-        angdeg = VectorUtil.scaleVec3(angdeg, angdeg, FloatUtil.PI / 180.0f);
+    private void rotateButtons(final Vec3f angdeg) {
+        angdeg.scale(FloatUtil.PI / 180.0f); // -> radians
         for(int i=0; i<buttons.size(); i++) {
             buttons.get(i).getRotation().rotateByEuler( angdeg );
         }
@@ -434,15 +434,15 @@ public class UISceneDemo20 implements GLEventListener {
             @Override
             public void mouseClicked(final MouseEvent e) {
                 final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
-                if( shapeEvent.objPos[0] < shapeEvent.shape.getBounds().getCenter()[0] ) {
-                    rotateButtons(new float[] { 0f, -5f, 0f}); // left-half pressed
+                if( shapeEvent.objPos.x() < shapeEvent.shape.getBounds().getCenter().x() ) {
+                    rotateButtons(new Vec3f( 0f, -5f, 0f ) ); // left-half pressed
                 } else {
-                    rotateButtons(new float[] { 0f,  5f, 0f}); // right-half pressed
+                    rotateButtons(new Vec3f( 0f,  5f, 0f ) ); // right-half pressed
                 }
             }
             @Override
             public void mouseWheelMoved(final MouseEvent e) {
-                rotateButtons(new float[] { 0f,  e.getRotation()[1], 0f});
+                rotateButtons(new Vec3f( 0f,  e.getRotation()[1], 0f ) );
             } } );
         buttons.add(button);
 
@@ -454,7 +454,7 @@ public class UISceneDemo20 implements GLEventListener {
                 public void mouseClicked(final MouseEvent e) {
                     final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
                     int sampleCount = scene.getSampleCount();
-                    if( shapeEvent.objPos[0] < shapeEvent.shape.getBounds().getCenter()[0] ) {
+                    if( shapeEvent.objPos.x() < shapeEvent.shape.getBounds().getCenter().x() ) {
                         // left-half pressed
                         sampleCount--;
                     } else {
@@ -475,7 +475,7 @@ public class UISceneDemo20 implements GLEventListener {
                     if( shapeEvent.shape instanceof GraphShape ) {
                         int quality = ((GraphShape)shapeEvent.shape).getQuality();
 
-                        if( shapeEvent.objPos[0] < shapeEvent.shape.getBounds().getCenter()[0] ) {
+                        if( shapeEvent.objPos.x() < shapeEvent.shape.getBounds().getCenter().x() ) {
                             // left-half pressed
                             if( quality > 0 ) {
                                 quality--;
@@ -526,7 +526,7 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
-                    rotateButtons(new float[] { 0f, 180f, 0f});
+                    rotateButtons(new Vec3f ( 0f, 180f, 0f ));
                 } } );
             button.addMouseListener(dragZoomRotateListener);
             buttons.add(button);
@@ -537,7 +537,7 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
-                    rotateButtons(new float[] { 180f, 0f, 0f});
+                    rotateButtons(new Vec3f ( 180f, 0f, 0f ));
                 } } );
             button.addMouseListener(dragZoomRotateListener);
             buttons.add(button);
@@ -550,7 +550,7 @@ public class UISceneDemo20 implements GLEventListener {
                 public void mouseClicked(final MouseEvent e) {
                     final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
                     final float dx, dy;
-                    if( shapeEvent.objPos[0] < shapeEvent.shape.getBounds().getCenter()[0] ) {
+                    if( shapeEvent.objPos.x() < shapeEvent.shape.getBounds().getCenter().x() ) {
                         dx=-0.01f; dy=-0.005f;
                     } else {
                         dx=0.01f; dy=0.005f;
@@ -571,7 +571,7 @@ public class UISceneDemo20 implements GLEventListener {
                 public void mouseClicked(final MouseEvent e) {
                     final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
                     final float dc;
-                    if( shapeEvent.objPos[0] < shapeEvent.shape.getBounds().getCenter()[0] ) {
+                    if( shapeEvent.objPos.x() < shapeEvent.shape.getBounds().getCenter().x() ) {
                         dc=-0.1f;
                     } else {
                         dc=0.1f;
@@ -901,7 +901,7 @@ public class UISceneDemo20 implements GLEventListener {
                                   - 1.5f * truePtSizeLabel.getScaledLineHeight()
                                   - labels[currentText].getScaledHeight(), 0f);
             System.err.println("Label["+currentText+"] MOVE: "+labels[currentText]);
-            System.err.println("Label["+currentText+"] MOVE: "+Arrays.toString(labels[currentText].getPosition()));
+            System.err.println("Label["+currentText+"] MOVE: "+labels[currentText].getPosition());
         }
     }
 
@@ -936,7 +936,7 @@ public class UISceneDemo20 implements GLEventListener {
             labels[currentText].addMouseListener(dragZoomRotateListener);
             scene.addShape(labels[currentText]);
             System.err.println("Label["+currentText+"] CTOR: "+labels[currentText]);
-            System.err.println("Label["+currentText+"] CTOR: "+Arrays.toString(labels[currentText].getPosition()));
+            System.err.println("Label["+currentText+"] CTOR: "+labels[currentText].getPosition());
         }
         if( fpsLabel.isEnabled() ) {
             final String text;
@@ -968,19 +968,18 @@ public class UISceneDemo20 implements GLEventListener {
         public void mouseDragged(final MouseEvent e) {
             final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
             if( e.getPointerCount() == 1 ) {
-                final float[] tx = shapeEvent.shape.getPosition();
-                actionText = String.format((Locale)null, "Pos %6.2f / %6.2f / %6.2f", tx[0], tx[1], tx[2]);
+                final Vec3f tx = shapeEvent.shape.getPosition();
+                actionText = String.format((Locale)null, "Pos %s", tx);
             }
         }
 
         @Override
         public void mouseWheelMoved(final MouseEvent e) {
             final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
-            final float[] rot = VectorUtil.scaleVec3(e.getRotation(), e.getRotation(), FloatUtil.PI / 180.0f);
+            final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
             // swap axis for onscreen rotation matching natural feel
-            final float tmp = rot[0]; rot[0] = rot[1]; rot[1] = tmp;
-            VectorUtil.scaleVec3(rot, rot, 2f);
-            shapeEvent.shape.getRotation().rotateByEuler( rot );
+            final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
+            shapeEvent.shape.getRotation().rotateByEuler( rot.scale( 2f ) );
         }
     };
 
