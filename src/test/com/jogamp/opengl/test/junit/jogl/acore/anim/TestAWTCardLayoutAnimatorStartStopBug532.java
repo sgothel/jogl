@@ -31,6 +31,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.FPSAnimator;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
     static final String LABEL = "Label";
     static final String CANVAS = "GLCanvas";
@@ -120,7 +121,8 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
       final JFrame frame = new JFrame();
       frame.setTitle(getSimpleTestName(" - "));
       frame.addWindowListener(new WindowAdapter() {
-         public void windowClosing(final WindowEvent e) {
+         @Override
+        public void windowClosing(final WindowEvent e) {
             animatorCtrl.stop();
             shouldStop = true;
          }
@@ -134,6 +136,7 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
       final JComboBox comboBox = new JComboBox(new String[] { LABEL, CANVAS });
       comboBox.setEditable(false);
       comboBox.addItemListener(new ItemListener() {
+        @Override
         public void itemStateChanged(final ItemEvent evt) {
             final CardLayout cl = (CardLayout)(cards.getLayout());
             final String newSelection = (String)evt.getItem();
@@ -193,6 +196,7 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
       frame.add(cards, BorderLayout.CENTER);
 
       javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+        @Override
         public void run() {
             frame.pack();
             frame.setVisible(true);
@@ -204,24 +208,28 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
           }
       } else {
           javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 comboBox.setSelectedItem(LABEL);
             }});
           Thread.sleep(durationPerTest/4);
 
           javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 comboBox.setSelectedItem(CANVAS);
             }});
           Thread.sleep(durationPerTest/4);
 
           javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 comboBox.setSelectedItem(LABEL);
             }});
           Thread.sleep(durationPerTest/4);
 
           javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 comboBox.setSelectedItem(CANVAS);
             }});
@@ -229,6 +237,7 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
       }
 
       javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+        @Override
         public void run() {
             frame.setVisible(false);
             frame.dispose();
