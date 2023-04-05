@@ -53,9 +53,9 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
                                                0, 0, 0, 1 };
 
         FloatUtil.invertMatrix(identity, 0, res1, 0);
-        System.err.println(FloatUtil.matrixToString(null, "inv-1: ", "%10.7f", res1, 0, 4, 4, false /* rowMajorOrder */));
+        // System.err.println(FloatUtil.matrixToString(null, "inv-1: ", "%10.7f", res1, 0, 4, 4, false /* rowMajorOrder */));
         invertMatrix(identity, 0, res2, 0, temp);
-        System.err.println(FloatUtil.matrixToString(null, "inv-2: ", "%10.7f", res2, 0, 4, 4, false /* rowMajorOrder */));
+        // System.err.println(FloatUtil.matrixToString(null, "inv-2: ", "%10.7f", res2, 0, 4, 4, false /* rowMajorOrder */));
 
         Assert.assertArrayEquals("I1/I2 failure", res1, res2, FloatUtil.INV_DEVIANCE);
         Assert.assertArrayEquals("I2 failure", identity, res2, FloatUtil.INV_DEVIANCE);
@@ -63,13 +63,13 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
 
         final Matrix4f res3 = new Matrix4f(identity);
         Assert.assertTrue( res3.invert() );
-        System.err.println(res3.toString(null, "inv-4: ", "%10.7f"));
+        // System.err.println(res3.toString(null, "inv-4: ", "%10.7f"));
         Assert.assertEquals(new Matrix4f(res1), res3);
         Assert.assertEquals(new Matrix4f(), res3);
 
         final Matrix4fb res4 = new Matrix4fb(identity);
         Assert.assertTrue( res4.invert() );
-        System.err.println(res4.toString(null, "inv-5: ", "%10.7f"));
+        // System.err.println(res4.toString(null, "inv-5: ", "%10.7f"));
         Assert.assertEquals(new Matrix4fb(res1), res4);
         Assert.assertEquals(new Matrix4fb(), res4);
     }
@@ -83,19 +83,19 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
         final float[] inv2_2 = new float[16];
         final float[] temp = new float[16];
 
-        System.err.println(FloatUtil.matrixToString(null, "orig  : ", "%10.7f", matrix, 0, 4, 4, false /* rowMajorOrder */));
+        // System.err.println(FloatUtil.matrixToString(null, "orig  : ", "%10.7f", matrix, 0, 4, 4, false /* rowMajorOrder */));
         invertMatrix(matrix, 0, inv1_0, 0, temp);
         invertMatrix(inv1_0, 0, inv2_0, 0, temp);
-        System.err.println(FloatUtil.matrixToString(null, "inv1_0: ", "%10.7f", inv1_0, 0, 4, 4, false /* rowMajorOrder */));
-        System.err.println(FloatUtil.matrixToString(null, "inv2_0: ", "%10.7f", inv2_0, 0, 4, 4, false /* rowMajorOrder */));
+        // System.err.println(FloatUtil.matrixToString(null, "inv1_0: ", "%10.7f", inv1_0, 0, 4, 4, false /* rowMajorOrder */));
+        // System.err.println(FloatUtil.matrixToString(null, "inv2_0: ", "%10.7f", inv2_0, 0, 4, 4, false /* rowMajorOrder */));
         FloatUtil.invertMatrix(matrix, 0, inv1_1, 0);
         FloatUtil.invertMatrix(inv1_1, 0, inv2_1, 0);
-        System.err.println(FloatUtil.matrixToString(null, "inv1_1: ", "%10.7f", inv1_1, 0, 4, 4, false /* rowMajorOrder */));
-        System.err.println(FloatUtil.matrixToString(null, "inv2_1: ", "%10.7f", inv2_1, 0, 4, 4, false /* rowMajorOrder */));
+        // System.err.println(FloatUtil.matrixToString(null, "inv1_1: ", "%10.7f", inv1_1, 0, 4, 4, false /* rowMajorOrder */));
+        // System.err.println(FloatUtil.matrixToString(null, "inv2_1: ", "%10.7f", inv2_1, 0, 4, 4, false /* rowMajorOrder */));
         FloatUtil.invertMatrix(matrix, inv1_2);
         FloatUtil.invertMatrix(inv1_2, inv2_2);
-        System.err.println(FloatUtil.matrixToString(null, "inv1_2: ", "%10.7f", inv1_2, 0, 4, 4, false /* rowMajorOrder */));
-        System.err.println(FloatUtil.matrixToString(null, "inv2_2: ", "%10.7f", inv2_2, 0, 4, 4, false /* rowMajorOrder */));
+        // System.err.println(FloatUtil.matrixToString(null, "inv1_2: ", "%10.7f", inv1_2, 0, 4, 4, false /* rowMajorOrder */));
+        // System.err.println(FloatUtil.matrixToString(null, "inv2_2: ", "%10.7f", inv2_2, 0, 4, 4, false /* rowMajorOrder */));
 
         Assert.assertArrayEquals("I1_1/I1_2 failure", inv1_1, inv1_2, FloatUtil.INV_DEVIANCE);
         Assert.assertArrayEquals("I2_1/I2_2 failure", inv2_1, inv2_2, FloatUtil.INV_DEVIANCE);
@@ -107,30 +107,39 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
         Assert.assertArrayEquals("I2 failure", matrix, inv2_2, FloatUtil.INV_DEVIANCE);
         Assert.assertArrayEquals("I2 failure", matrix, inv2_1, FloatUtil.INV_DEVIANCE);
 
+        //
+        // Matrix4f
+        //
+
         final Matrix4f matrix_m = new Matrix4f(matrix);
         final Matrix4f inv1_4a = new Matrix4f(matrix_m);
         Assert.assertTrue( inv1_4a.invert() );
         final Matrix4f inv2_4a = new Matrix4f(inv1_4a);
         Assert.assertTrue( inv2_4a.invert() );
-        System.err.println(inv1_4a.toString(null, "inv1_4a: ", "%10.7f"));
-        System.err.println(inv2_4a.toString(null, "inv2_4a: ", "%10.7f"));
+        // System.err.println(inv1_4a.toString(null, "inv1_4a: ", "%10.7f"));
+        // System.err.println(inv2_4a.toString(null, "inv2_4a: ", "%10.7f"));
 
-        Assert.assertEquals(new Matrix4f(inv1_2), inv1_4a);
-        Assert.assertEquals(new Matrix4f(inv2_2), inv2_4a);
+        // Assert.assertEquals(new Matrix4f(inv1_2), inv1_4a);
+        // Assert.assertEquals(new Matrix4f(inv2_2), inv2_4a);
+        Assert.assertArrayEquals("I5 failure", inv1_2, inv1_4a.get(temp), FloatUtil.INV_DEVIANCE);
+        Assert.assertArrayEquals("I5 failure", inv2_2, inv2_4a.get(temp), FloatUtil.INV_DEVIANCE);
         Assert.assertTrue("I4 failure: "+matrix_m+" != "+inv2_4a, matrix_m.isEqual(inv2_4a, FloatUtil.INV_DEVIANCE));
 
         final Matrix4f inv1_4b = new Matrix4f();
         Assert.assertTrue( inv1_4b.invert(matrix_m) );
         final Matrix4f inv2_4b = new Matrix4f();
         Assert.assertTrue( inv2_4b.invert(inv1_4b) );
-        System.err.println(inv1_4b.toString(null, "inv1_4b: ", "%10.7f"));
-        System.err.println(inv2_4b.toString(null, "inv2_4b: ", "%10.7f"));
+        // System.err.println(inv1_4b.toString(null, "inv1_4b: ", "%10.7f"));
+        // System.err.println(inv2_4b.toString(null, "inv2_4b: ", "%10.7f"));
 
-        Assert.assertEquals(new Matrix4f(inv1_2), inv1_4b);
-        Assert.assertEquals(new Matrix4f(inv2_2), inv2_4b);
+        // Assert.assertEquals(new Matrix4f(inv1_2), inv1_4b);
+        // Assert.assertEquals(new Matrix4f(inv2_2), inv2_4b);
+        Assert.assertArrayEquals("I5 failure", inv1_2, inv1_4b.get(temp), FloatUtil.INV_DEVIANCE);
+        Assert.assertArrayEquals("I5 failure", inv2_2, inv2_4b.get(temp), FloatUtil.INV_DEVIANCE);
         Assert.assertTrue("I4 failure: "+matrix_m+" != "+inv2_4b, matrix_m.isEqual(inv2_4b, FloatUtil.INV_DEVIANCE));
 
         //
+        // Matrix4fb
         //
 
         final Matrix4fb matrix_n = new Matrix4fb(matrix);
@@ -138,22 +147,26 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
         Assert.assertTrue( inv1_5a.invert() );
         final Matrix4fb inv2_5a = new Matrix4fb(inv1_5a);
         Assert.assertTrue( inv2_5a.invert() );
-        System.err.println(inv1_5a.toString(null, "inv1_5a: ", "%10.7f"));
-        System.err.println(inv2_5a.toString(null, "inv2_5a: ", "%10.7f"));
+        // System.err.println(inv1_5a.toString(null, "inv1_5a: ", "%10.7f"));
+        // System.err.println(inv2_5a.toString(null, "inv2_5a: ", "%10.7f"));
 
-        Assert.assertEquals(new Matrix4fb(inv1_2), inv1_5a);
-        Assert.assertEquals(new Matrix4fb(inv2_2), inv2_5a);
+        // Assert.assertEquals(new Matrix4fb(inv1_2), inv1_5a);
+        // Assert.assertEquals(new Matrix4fb(inv2_2), inv2_5a);
+        Assert.assertArrayEquals("I5 failure", inv1_2, inv1_5a.get(temp), FloatUtil.INV_DEVIANCE);
+        Assert.assertArrayEquals("I5 failure", inv2_2, inv2_5a.get(temp), FloatUtil.INV_DEVIANCE);
         Assert.assertTrue("I5 failure: "+matrix_n+" != "+inv2_5a, matrix_n.isEqual(inv2_5a, FloatUtil.INV_DEVIANCE));
 
         final Matrix4fb inv1_5b = new Matrix4fb();
         Assert.assertTrue( inv1_5b.invert(matrix_n) );
         final Matrix4fb inv2_5b = new Matrix4fb();
         Assert.assertTrue( inv2_5b.invert(inv1_5b) );
-        System.err.println(inv1_5b.toString(null, "inv1_5b: ", "%10.7f"));
-        System.err.println(inv2_5b.toString(null, "inv2_5b: ", "%10.7f"));
+        // System.err.println(inv1_5b.toString(null, "inv1_5b: ", "%10.7f"));
+        // System.err.println(inv2_5b.toString(null, "inv2_5b: ", "%10.7f"));
 
-        Assert.assertEquals(new Matrix4fb(inv1_2), inv1_5b);
-        Assert.assertEquals(new Matrix4fb(inv2_2), inv2_5b);
+        // Assert.assertEquals(new Matrix4fb(inv1_2), inv1_5b);
+        // Assert.assertEquals(new Matrix4fb(inv2_2), inv2_5b);
+        Assert.assertArrayEquals("I5 failure", inv1_2, inv1_5b.get(temp), FloatUtil.INV_DEVIANCE);
+        Assert.assertArrayEquals("I5 failure", inv2_2, inv2_5b.get(temp), FloatUtil.INV_DEVIANCE);
         Assert.assertTrue("I5 failure: "+matrix_n+" != "+inv2_5b, matrix_n.isEqual(inv2_5b, FloatUtil.INV_DEVIANCE));
     }
 
@@ -271,27 +284,43 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
 
         // warm-up
         for(int i=0; i<warmups; i++) {
-            res_m.load(p1_m).invert();
-            res_m.load(p2_m).invert();
+            res_m.invert(p1_m);
+            res_m.invert(p2_m);
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
-            res_m.load(p1_m).invert();
-            res_m.load(p2_m).invert();
+            res_m.invert(p1_m);
+            res_m.invert(p2_m);
         }
         tI4a = Platform.currentTimeMillis() - t_0;
 
-        // warm-up
-        for(int i=0; i<warmups; i++) {
-            res_m.invert(p1_m);
-            res_m.invert(p2_m);
+        if( false ) {
+            // warm-up
+            for(int i=0; i<warmups; i++) {
+                res_m.load(p1_m).invert();
+                res_m.load(p2_m).invert();
+            }
+            t_0 = Platform.currentTimeMillis();
+            for(int i=0; i<loops; i++) {
+                res_m.load(p1_m).invert();
+                res_m.load(p2_m).invert();
+            }
+            tI4b = Platform.currentTimeMillis() - t_0;
+        } else {
+            res_m.load(p1_m);
+
+            // warm-up
+            for(int i=0; i<warmups; i++) {
+                res_m.invert();
+                res_m.invert();
+            }
+            t_0 = Platform.currentTimeMillis();
+            for(int i=0; i<loops; i++) {
+                res_m.invert();
+                res_m.invert();
+            }
+            tI4b = Platform.currentTimeMillis() - t_0;
         }
-        t_0 = Platform.currentTimeMillis();
-        for(int i=0; i<loops; i++) {
-            res_m.invert(p1_m);
-            res_m.invert(p2_m);
-        }
-        tI4b = Platform.currentTimeMillis() - t_0;
 
         //
         // Matrix4fb
@@ -299,27 +328,43 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
 
         // warm-up
         for(int i=0; i<warmups; i++) {
-            res_n.load(p1_n).invert();
-            res_n.load(p2_n).invert();
+            res_n.invert(p1_n);
+            res_n.invert(p2_n);
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
-            res_n.load(p1_n).invert();
-            res_n.load(p2_n).invert();
+            res_n.invert(p1_n);
+            res_n.invert(p2_n);
         }
         tI5a = Platform.currentTimeMillis() - t_0;
 
-        // warm-up
-        for(int i=0; i<warmups; i++) {
-            res_n.invert(p1_n);
-            res_n.invert(p2_n);
+        if( false ) {
+            // warm-up
+            for(int i=0; i<warmups; i++) {
+                res_n.load(p1_n).invert();
+                res_n.load(p2_n).invert();
+            }
+            t_0 = Platform.currentTimeMillis();
+            for(int i=0; i<loops; i++) {
+                res_n.load(p1_n).invert();
+                res_n.load(p2_n).invert();
+            }
+            tI5b = Platform.currentTimeMillis() - t_0;
+        } else {
+            res_n.load(p1_n);
+
+            // warm-up
+            for(int i=0; i<warmups; i++) {
+                res_n.invert();
+                res_n.invert();
+            }
+            t_0 = Platform.currentTimeMillis();
+            for(int i=0; i<loops; i++) {
+                res_n.invert();
+                res_n.invert();
+            }
+            tI5b = Platform.currentTimeMillis() - t_0;
         }
-        t_0 = Platform.currentTimeMillis();
-        for(int i=0; i<loops; i++) {
-            res_n.invert(p1_n);
-            res_n.invert(p2_n);
-        }
-        tI5b = Platform.currentTimeMillis() - t_0;
 
         System.err.printf("Summary loops %6d: I0  %6d ms total, %f us/inv%n", loops, tI0, tI0*1e3/loops);
         System.err.printf("Summary loops %6d: I1  %6d ms total, %f us/inv, I1  / I0 %f%%%n", loops, tI1, tI1*1e3/2.0/loops, (double)tI1/(double)tI0*100.0);

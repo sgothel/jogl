@@ -328,8 +328,9 @@ public class Matrix4f {
      *
      * @param dst float[16] array storage in column major order
      * @param dst_off offset
+     * @return {@code dst} for chaining
      */
-    public void get(final float[] dst, final int dst_off) {
+    public float[] get(final float[] dst, final int dst_off) {
         dst[dst_off+0+0*4] = m00;
         dst[dst_off+1+0*4] = m10;
         dst[dst_off+2+0*4] = m20;
@@ -346,14 +347,16 @@ public class Matrix4f {
         dst[dst_off+1+3*4] = m13;
         dst[dst_off+2+3*4] = m23;
         dst[dst_off+3+3*4] = m33;
+        return dst;
     }
 
     /**
      * Get this matrix into the given float[16] array in column major order.
      *
      * @param dst float[16] array storage in column major order
+     * @return {@code dst} for chaining
      */
-    public void get(final float[] dst) {
+    public float[] get(final float[] dst) {
         dst[0+0*4] = m00;
         dst[1+0*4] = m10;
         dst[2+0*4] = m20;
@@ -370,6 +373,7 @@ public class Matrix4f {
         dst[1+3*4] = m13;
         dst[2+3*4] = m23;
         dst[3+3*4] = m33;
+        return dst;
     }
 
     /**
@@ -380,8 +384,9 @@ public class Matrix4f {
      * </p>
      *
      * @param dst {@link FloatBuffer} array storage in column major order
+     * @return {@code dst} for chaining
      */
-    public void get(final FloatBuffer dst) {
+    public FloatBuffer get(final FloatBuffer dst) {
         dst.put( m00 );
         dst.put( m10 );
         dst.put( m20 );
@@ -398,6 +403,7 @@ public class Matrix4f {
         dst.put( m13 );
         dst.put( m23 );
         dst.put( m33 );
+        return dst;
     }
 
     //
@@ -490,35 +496,11 @@ public class Matrix4f {
      */
     public boolean invert() {
         final float scale;
-        {
-            float a = Math.abs(m00);
-            float max = a;
-
-            a = Math.abs(m01); if( a > max ) max = a;
-            a = Math.abs(m02); if( a > max ) max = a;
-            a = Math.abs(m03); if( a > max ) max = a;
-
-            a = Math.abs(m10); if( a > max ) max = a;
-            a = Math.abs(m11); if( a > max ) max = a;
-            a = Math.abs(m12); if( a > max ) max = a;
-            a = Math.abs(m13); if( a > max ) max = a;
-
-            a = Math.abs(m20); if( a > max ) max = a;
-            a = Math.abs(m21); if( a > max ) max = a;
-            a = Math.abs(m22); if( a > max ) max = a;
-            a = Math.abs(m23); if( a > max ) max = a;
-
-            a = Math.abs(m30); if( a > max ) max = a;
-            a = Math.abs(m31); if( a > max ) max = a;
-            a = Math.abs(m32); if( a > max ) max = a;
-            a = Math.abs(m33); if( a > max ) max = a;
-
-            if( 0 == max ) {
-                return false;
-            }
-            scale = 1.0f/max;
+        try {
+            scale = mulScale();
+        } catch(final ArithmeticException aex) {
+            return false; // max was 0
         }
-
         final float a00 = m00*scale;
         final float a10 = m10*scale;
         final float a20 = m20*scale;
@@ -560,30 +542,30 @@ public class Matrix4f {
         final float b33 = + a00*(a11*a22 - a12*a21) - a01*(a10*a22 - a12*a20) + a02*(a10*a21 - a11*a20);
 
         final float det = (a00*b00 + a01*b01 + a02*b02 + a03*b03) / scale;
-
         if( 0 == det ) {
             return false;
         }
+        final float invdet = 1.0f / det;
 
-        m00 = b00 / det;
-        m10 = b01 / det;
-        m20 = b02 / det;
-        m30 = b03 / det;
+        m00 = b00 * invdet;
+        m10 = b01 * invdet;
+        m20 = b02 * invdet;
+        m30 = b03 * invdet;
 
-        m01 = b10 / det;
-        m11 = b11 / det;
-        m21 = b12 / det;
-        m31 = b13 / det;
+        m01 = b10 * invdet;
+        m11 = b11 * invdet;
+        m21 = b12 * invdet;
+        m31 = b13 * invdet;
 
-        m02 = b20 / det;
-        m12 = b21 / det;
-        m22 = b22 / det;
-        m32 = b23 / det;
+        m02 = b20 * invdet;
+        m12 = b21 * invdet;
+        m22 = b22 * invdet;
+        m32 = b23 * invdet;
 
-        m03 = b30 / det;
-        m13 = b31 / det;
-        m23 = b32 / det;
-        m33 = b33 / det;
+        m03 = b30 * invdet;
+        m13 = b31 * invdet;
+        m23 = b32 * invdet;
+        m33 = b33 * invdet;
         return true;
     }
 
@@ -593,7 +575,113 @@ public class Matrix4f {
      * @return false if {@code src} matrix is singular and inversion not possible, otherwise true
      */
     public boolean invert(final Matrix4f src) {
-        return load(src).invert();
+        final float scale;
+        try {
+            scale = src.mulScale();
+        } catch(final ArithmeticException aex) {
+            return false; // max was 0
+        }
+        final float a00 = src.m00*scale;
+        final float a10 = src.m10*scale;
+        final float a20 = src.m20*scale;
+        final float a30 = src.m30*scale;
+
+        final float a01 = src.m01*scale;
+        final float a11 = src.m11*scale;
+        final float a21 = src.m21*scale;
+        final float a31 = src.m31*scale;
+
+        final float a02 = src.m02*scale;
+        final float a12 = src.m12*scale;
+        final float a22 = src.m22*scale;
+        final float a32 = src.m32*scale;
+
+        final float a03 = src.m03*scale;
+        final float a13 = src.m13*scale;
+        final float a23 = src.m23*scale;
+        final float a33 = src.m33*scale;
+
+        final float b00 = + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31);
+        final float b01 = -( + a10*(a22*a33 - a23*a32) - a12*(a20*a33 - a23*a30) + a13*(a20*a32 - a22*a30));
+        final float b02 = + a10*(a21*a33 - a23*a31) - a11*(a20*a33 - a23*a30) + a13*(a20*a31 - a21*a30);
+        final float b03 = -( + a10*(a21*a32 - a22*a31) - a11*(a20*a32 - a22*a30) + a12*(a20*a31 - a21*a30));
+
+        final float b10 = -( + a01*(a22*a33 - a23*a32) - a02*(a21*a33 - a23*a31) + a03*(a21*a32 - a22*a31));
+        final float b11 = + a00*(a22*a33 - a23*a32) - a02*(a20*a33 - a23*a30) + a03*(a20*a32 - a22*a30);
+        final float b12 = -( + a00*(a21*a33 - a23*a31) - a01*(a20*a33 - a23*a30) + a03*(a20*a31 - a21*a30));
+        final float b13 = + a00*(a21*a32 - a22*a31) - a01*(a20*a32 - a22*a30) + a02*(a20*a31 - a21*a30);
+
+        final float b20 = + a01*(a12*a33 - a13*a32) - a02*(a11*a33 - a13*a31) + a03*(a11*a32 - a12*a31);
+        final float b21 = -( + a00*(a12*a33 - a13*a32) - a02*(a10*a33 - a13*a30) + a03*(a10*a32 - a12*a30));
+        final float b22 = + a00*(a11*a33 - a13*a31) - a01*(a10*a33 - a13*a30) + a03*(a10*a31 - a11*a30);
+        final float b23 = -( + a00*(a11*a32 - a12*a31) - a01*(a10*a32 - a12*a30) + a02*(a10*a31 - a11*a30));
+
+        final float b30 = -( + a01*(a12*a23 - a13*a22) - a02*(a11*a23 - a13*a21) + a03*(a11*a22 - a12*a21));
+        final float b31 = + a00*(a12*a23 - a13*a22) - a02*(a10*a23 - a13*a20) + a03*(a10*a22 - a12*a20);
+        final float b32 = -( + a00*(a11*a23 - a13*a21) - a01*(a10*a23 - a13*a20) + a03*(a10*a21 - a11*a20));
+        final float b33 = + a00*(a11*a22 - a12*a21) - a01*(a10*a22 - a12*a20) + a02*(a10*a21 - a11*a20);
+
+        final float det = (a00*b00 + a01*b01 + a02*b02 + a03*b03) / scale;
+
+        if( 0 == det ) {
+            return false;
+        }
+        final float invdet = 1.0f / det;
+
+        m00 = b00 * invdet;
+        m10 = b01 * invdet;
+        m20 = b02 * invdet;
+        m30 = b03 * invdet;
+
+        m01 = b10 * invdet;
+        m11 = b11 * invdet;
+        m21 = b12 * invdet;
+        m31 = b13 * invdet;
+
+        m02 = b20 * invdet;
+        m12 = b21 * invdet;
+        m22 = b22 * invdet;
+        m32 = b23 * invdet;
+
+        m03 = b30 * invdet;
+        m13 = b31 * invdet;
+        m23 = b32 * invdet;
+        m33 = b33 * invdet;
+        return true;
+    }
+
+    private final float mulScale() {
+        /**
+        // No Hotspot intrinsic Math.* optimization for at least Math.max(),
+        // hence this chunk is slower.
+        float max = Math.abs(m00);
+
+        max = Math.max(max, Math.abs(m01));
+        max = Math.max(max, Math.abs(m02));
+        ... etc
+        */
+        float a = Math.abs(m00);
+        float max = a;
+        a = Math.abs(m01); if( a > max ) max = a;
+        a = Math.abs(m02); if( a > max ) max = a;
+        a = Math.abs(m03); if( a > max ) max = a;
+
+        a = Math.abs(m10); if( a > max ) max = a;
+        a = Math.abs(m11); if( a > max ) max = a;
+        a = Math.abs(m12); if( a > max ) max = a;
+        a = Math.abs(m13); if( a > max ) max = a;
+
+        a = Math.abs(m20); if( a > max ) max = a;
+        a = Math.abs(m21); if( a > max ) max = a;
+        a = Math.abs(m22); if( a > max ) max = a;
+        a = Math.abs(m23); if( a > max ) max = a;
+
+        a = Math.abs(m30); if( a > max ) max = a;
+        a = Math.abs(m31); if( a > max ) max = a;
+        a = Math.abs(m32); if( a > max ) max = a;
+        a = Math.abs(m33); if( a > max ) max = a;
+
+        return 1.0f/max;
     }
 
     /**

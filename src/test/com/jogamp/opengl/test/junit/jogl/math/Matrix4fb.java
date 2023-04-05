@@ -264,18 +264,22 @@ public class Matrix4fb {
      *
      * @param dst float[16] array storage in column major order
      * @param dst_off offset
+     * @return {@code dst} for chaining
      */
-    public void get(final float[] dst, final int dst_off) {
+    public float[] get(final float[] dst, final int dst_off) {
         System.arraycopy(m, 0, dst, dst_off, 16);
+        return dst;
     }
 
     /**
      * Get this matrix into the given float[16] array in column major order.
      *
      * @param dst float[16] array storage in column major order
+     * @return {@code dst} for chaining
      */
-    public void get(final float[] dst) {
+    public float[] get(final float[] dst) {
         System.arraycopy(m, 0, dst, 0, 16);
+        return dst;
     }
 
     /**
@@ -286,9 +290,11 @@ public class Matrix4fb {
      * </p>
      *
      * @param dst {@link FloatBuffer} array storage in column major order
+     * @return {@code dst} for chaining
      */
-    public void get(final FloatBuffer dst) {
+    public FloatBuffer get(final FloatBuffer dst) {
         dst.put(m, 0, 16);
+        return dst;
     }
 
     //
@@ -381,18 +387,18 @@ public class Matrix4fb {
      */
     public boolean invert() {
         final float scale;
-      {
-          float max = Math.abs(m[0]);
+        {
+            float max = Math.abs(m[0]);
 
-          for( int i = 1; i < 16; i++ ) {
-              final float a = Math.abs(m[i]);
-              if( a > max ) max = a;
-          }
-          if( 0 == max ) {
-              return false;
-          }
-          scale = 1.0f/max;
-      }
+            for( int i = 1; i < 16; i++ ) {
+                final float a = Math.abs(m[i]);
+                if( a > max ) max = a;
+            }
+            if( 0 == max ) {
+                return false;
+            }
+            scale = 1.0f/max;
+        }
 
         final float a00 = m[0+0*4]*scale;
         final float a10 = m[1+0*4]*scale;
@@ -435,30 +441,30 @@ public class Matrix4fb {
         final float b33 = + a00*(a11*a22 - a12*a21) - a01*(a10*a22 - a12*a20) + a02*(a10*a21 - a11*a20);
 
         final float det = (a00*b00 + a01*b01 + a02*b02 + a03*b03) / scale;
-
         if( 0 == det ) {
             return false;
         }
+        final float invdet = 1.0f / det;
 
-        m[0+0*4] = b00 / det;
-        m[1+0*4] = b01 / det;
-        m[2+0*4] = b02 / det;
-        m[3+0*4] = b03 / det;
+        m[0+0*4] = b00 * invdet;
+        m[1+0*4] = b01 * invdet;
+        m[2+0*4] = b02 * invdet;
+        m[3+0*4] = b03 * invdet;
 
-        m[0+1*4] = b10 / det;
-        m[1+1*4] = b11 / det;
-        m[2+1*4] = b12 / det;
-        m[3+1*4] = b13 / det;
+        m[0+1*4] = b10 * invdet;
+        m[1+1*4] = b11 * invdet;
+        m[2+1*4] = b12 * invdet;
+        m[3+1*4] = b13 * invdet;
 
-        m[0+2*4] = b20 / det;
-        m[1+2*4] = b21 / det;
-        m[2+2*4] = b22 / det;
-        m[3+2*4] = b23 / det;
+        m[0+2*4] = b20 * invdet;
+        m[1+2*4] = b21 * invdet;
+        m[2+2*4] = b22 * invdet;
+        m[3+2*4] = b23 * invdet;
 
-        m[0+3*4] = b30 / det;
-        m[1+3*4] = b31 / det;
-        m[2+3*4] = b32 / det;
-        m[3+3*4] = b33 / det;
+        m[0+3*4] = b30 * invdet;
+        m[1+3*4] = b31 * invdet;
+        m[2+3*4] = b32 * invdet;
+        m[3+3*4] = b33 * invdet;
         return true;
     }
 
@@ -468,7 +474,86 @@ public class Matrix4fb {
      * @return false if {@code src} matrix is singular and inversion not possible, otherwise true
      */
     public boolean invert(final Matrix4fb src) {
-        return load(src).invert();
+        final float scale;
+        {
+            float max = Math.abs(src.m[0]);
+
+            for( int i = 1; i < 16; i++ ) {
+                final float a = Math.abs(src.m[i]);
+                if( a > max ) max = a;
+            }
+            if( 0 == max ) {
+                return false;
+            }
+            scale = 1.0f/max;
+        }
+
+        final float a00 = src.m[0+0*4]*scale;
+        final float a10 = src.m[1+0*4]*scale;
+        final float a20 = src.m[2+0*4]*scale;
+        final float a30 = src.m[3+0*4]*scale;
+
+        final float a01 = src.m[0+1*4]*scale;
+        final float a11 = src.m[1+1*4]*scale;
+        final float a21 = src.m[2+1*4]*scale;
+        final float a31 = src.m[3+1*4]*scale;
+
+        final float a02 = src.m[0+2*4]*scale;
+        final float a12 = src.m[1+2*4]*scale;
+        final float a22 = src.m[2+2*4]*scale;
+        final float a32 = src.m[3+2*4]*scale;
+
+        final float a03 = src.m[0+3*4]*scale;
+        final float a13 = src.m[1+3*4]*scale;
+        final float a23 = src.m[2+3*4]*scale;
+        final float a33 = src.m[3+3*4]*scale;
+
+        final float b00 = + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31);
+        final float b01 = -( + a10*(a22*a33 - a23*a32) - a12*(a20*a33 - a23*a30) + a13*(a20*a32 - a22*a30));
+        final float b02 = + a10*(a21*a33 - a23*a31) - a11*(a20*a33 - a23*a30) + a13*(a20*a31 - a21*a30);
+        final float b03 = -( + a10*(a21*a32 - a22*a31) - a11*(a20*a32 - a22*a30) + a12*(a20*a31 - a21*a30));
+
+        final float b10 = -( + a01*(a22*a33 - a23*a32) - a02*(a21*a33 - a23*a31) + a03*(a21*a32 - a22*a31));
+        final float b11 = + a00*(a22*a33 - a23*a32) - a02*(a20*a33 - a23*a30) + a03*(a20*a32 - a22*a30);
+        final float b12 = -( + a00*(a21*a33 - a23*a31) - a01*(a20*a33 - a23*a30) + a03*(a20*a31 - a21*a30));
+        final float b13 = + a00*(a21*a32 - a22*a31) - a01*(a20*a32 - a22*a30) + a02*(a20*a31 - a21*a30);
+
+        final float b20 = + a01*(a12*a33 - a13*a32) - a02*(a11*a33 - a13*a31) + a03*(a11*a32 - a12*a31);
+        final float b21 = -( + a00*(a12*a33 - a13*a32) - a02*(a10*a33 - a13*a30) + a03*(a10*a32 - a12*a30));
+        final float b22 = + a00*(a11*a33 - a13*a31) - a01*(a10*a33 - a13*a30) + a03*(a10*a31 - a11*a30);
+        final float b23 = -( + a00*(a11*a32 - a12*a31) - a01*(a10*a32 - a12*a30) + a02*(a10*a31 - a11*a30));
+
+        final float b30 = -( + a01*(a12*a23 - a13*a22) - a02*(a11*a23 - a13*a21) + a03*(a11*a22 - a12*a21));
+        final float b31 = + a00*(a12*a23 - a13*a22) - a02*(a10*a23 - a13*a20) + a03*(a10*a22 - a12*a20);
+        final float b32 = -( + a00*(a11*a23 - a13*a21) - a01*(a10*a23 - a13*a20) + a03*(a10*a21 - a11*a20));
+        final float b33 = + a00*(a11*a22 - a12*a21) - a01*(a10*a22 - a12*a20) + a02*(a10*a21 - a11*a20);
+
+        final float det = (a00*b00 + a01*b01 + a02*b02 + a03*b03) / scale;
+        if( 0 == det ) {
+            return false;
+        }
+        final float invdet = 1.0f / det;
+
+        m[0+0*4] = b00 * invdet;
+        m[1+0*4] = b01 * invdet;
+        m[2+0*4] = b02 * invdet;
+        m[3+0*4] = b03 * invdet;
+
+        m[0+1*4] = b10 * invdet;
+        m[1+1*4] = b11 * invdet;
+        m[2+1*4] = b12 * invdet;
+        m[3+1*4] = b13 * invdet;
+
+        m[0+2*4] = b20 * invdet;
+        m[1+2*4] = b21 * invdet;
+        m[2+2*4] = b22 * invdet;
+        m[3+2*4] = b23 * invdet;
+
+        m[0+3*4] = b30 * invdet;
+        m[1+3*4] = b31 * invdet;
+        m[2+3*4] = b32 * invdet;
+        m[3+3*4] = b33 * invdet;
+        return true;
     }
 
     /**

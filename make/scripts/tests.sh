@@ -578,7 +578,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil03InversionNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4f01NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4f02MulNOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4f03InversionNOUI $*
+testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4f03InversionNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix02NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix03NOUI $*
@@ -979,7 +979,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo02 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*

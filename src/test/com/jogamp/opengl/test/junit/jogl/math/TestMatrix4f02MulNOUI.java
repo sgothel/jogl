@@ -154,15 +154,17 @@ public class TestMatrix4f02MulNOUI extends JunitTracer {
         }
         tI4a = Platform.currentTimeMillis() - t_0;
 
+        res_m.load(m1);
+
         // warm-up
         for(int i=0; i<warmups; i++) {
-            res_m.load(m1).mul(m2);
-            res_m.load(m2).mul(m1);
+            res_m.mul(m2);
+            res_m.mul(m1);
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
-            res_m.load(m1).mul(m2);
-            res_m.load(m2).mul(m1);
+            res_m.mul(m2);
+            res_m.mul(m1);
         }
         tI4b = Platform.currentTimeMillis() - t_0;
 
@@ -182,15 +184,17 @@ public class TestMatrix4f02MulNOUI extends JunitTracer {
         }
         tI5a = Platform.currentTimeMillis() - t_0;
 
+        res_n.load(n1);
+
         // warm-up
         for(int i=0; i<warmups; i++) {
-            res_n.load(n1).mul(n2);
-            res_n.load(n2).mul(n1);
+            res_n.mul(n2);
+            res_n.mul(n1);
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
-            res_n.load(n1).mul(n2);
-            res_n.load(n2).mul(n1);
+            res_n.mul(n2);
+            res_n.mul(n1);
         }
         tI5b = Platform.currentTimeMillis() - t_0;
 

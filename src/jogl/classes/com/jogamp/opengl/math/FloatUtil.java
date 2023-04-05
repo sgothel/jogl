@@ -919,27 +919,27 @@ public final class FloatUtil {
       final float m44 = + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31);
 
       final float det = (a11*m11 + a12*m12 + a13*m13 + a14*m14)/scale;
-
       if( 0 == det ) {
           return null;
       }
+      final float invdet = 1.0f / det;
 
-      mres[0+4*0+mres_offset] = m11 / det;
-      mres[1+4*0+mres_offset] = m12 / det;
-      mres[2+4*0+mres_offset] = m13 / det;
-      mres[3+4*0+mres_offset] = m14 / det;
-      mres[0+4*1+mres_offset] = m21 / det;
-      mres[1+4*1+mres_offset] = m22 / det;
-      mres[2+4*1+mres_offset] = m23 / det;
-      mres[3+4*1+mres_offset] = m24 / det;
-      mres[0+4*2+mres_offset] = m31 / det;
-      mres[1+4*2+mres_offset] = m32 / det;
-      mres[2+4*2+mres_offset] = m33 / det;
-      mres[3+4*2+mres_offset] = m34 / det;
-      mres[0+4*3+mres_offset] = m41 / det;
-      mres[1+4*3+mres_offset] = m42 / det;
-      mres[2+4*3+mres_offset] = m43 / det;
-      mres[3+4*3+mres_offset] = m44 / det;
+      mres[0+4*0+mres_offset] = m11 * invdet;
+      mres[1+4*0+mres_offset] = m12 * invdet;
+      mres[2+4*0+mres_offset] = m13 * invdet;
+      mres[3+4*0+mres_offset] = m14 * invdet;
+      mres[0+4*1+mres_offset] = m21 * invdet;
+      mres[1+4*1+mres_offset] = m22 * invdet;
+      mres[2+4*1+mres_offset] = m23 * invdet;
+      mres[3+4*1+mres_offset] = m24 * invdet;
+      mres[0+4*2+mres_offset] = m31 * invdet;
+      mres[1+4*2+mres_offset] = m32 * invdet;
+      mres[2+4*2+mres_offset] = m33 * invdet;
+      mres[3+4*2+mres_offset] = m34 * invdet;
+      mres[0+4*3+mres_offset] = m41 * invdet;
+      mres[1+4*3+mres_offset] = m42 * invdet;
+      mres[2+4*3+mres_offset] = m43 * invdet;
+      mres[3+4*3+mres_offset] = m44 * invdet;
       return mres;
   }
 
@@ -1004,27 +1004,27 @@ public final class FloatUtil {
       final float m44 = + a11*(a22*a33 - a23*a32) - a12*(a21*a33 - a23*a31) + a13*(a21*a32 - a22*a31);
 
       final float det = (a11*m11 + a12*m12 + a13*m13 + a14*m14)/scale;
-
       if( 0 == det ) {
           return null;
       }
+      final float invdet = 1.0f / det;
 
-      mres[0+4*0] = m11 / det;
-      mres[1+4*0] = m12 / det;
-      mres[2+4*0] = m13 / det;
-      mres[3+4*0] = m14 / det;
-      mres[0+4*1] = m21 / det;
-      mres[1+4*1] = m22 / det;
-      mres[2+4*1] = m23 / det;
-      mres[3+4*1] = m24 / det;
-      mres[0+4*2] = m31 / det;
-      mres[1+4*2] = m32 / det;
-      mres[2+4*2] = m33 / det;
-      mres[3+4*2] = m34 / det;
-      mres[0+4*3] = m41 / det;
-      mres[1+4*3] = m42 / det;
-      mres[2+4*3] = m43 / det;
-      mres[3+4*3] = m44 / det;
+      mres[0+4*0] = m11 * invdet;
+      mres[1+4*0] = m12 * invdet;
+      mres[2+4*0] = m13 * invdet;
+      mres[3+4*0] = m14 * invdet;
+      mres[0+4*1] = m21 * invdet;
+      mres[1+4*1] = m22 * invdet;
+      mres[2+4*1] = m23 * invdet;
+      mres[3+4*1] = m24 * invdet;
+      mres[0+4*2] = m31 * invdet;
+      mres[1+4*2] = m32 * invdet;
+      mres[2+4*2] = m33 * invdet;
+      mres[3+4*2] = m34 * invdet;
+      mres[0+4*3] = m41 * invdet;
+      mres[1+4*3] = m42 * invdet;
+      mres[2+4*3] = m43 * invdet;
+      mres[3+4*3] = m44 * invdet;
       return mres;
   }
 
