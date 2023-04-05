@@ -61,9 +61,9 @@ import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.graph.TextRendererGLELBase;
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.CustomGLEventListener;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -641,15 +641,15 @@ public class MovieSBSStereo implements StereoGLEventListener {
         pmvMatrix.glTranslatef(0, 0, zoom0);
     }
 
-    private final float[] mat4Tmp1 = new float[16];
-    private final float[] mat4Tmp2 = new float[16];
-    private final float[] vec3Tmp1 = new float[3];
-    private final float[] vec3Tmp2 = new float[3];
-    private final float[] vec3Tmp3 = new float[3];
+    private final Matrix4f mat4Tmp1 = new Matrix4f();
+    private final Matrix4f mat4Tmp2 = new Matrix4f();
+    private final Vec3f vec3Tmp1 = new Vec3f();
+    private final Vec3f vec3Tmp2 = new Vec3f();
+    private final Vec3f vec3Tmp3 = new Vec3f();
 
     GLArrayDataServer interleavedVBOCurrent = null;
 
-    private static final float[] vec3ScalePos = new float[] { 4f, 4f, 4f };
+    private static final float scalePos = 4f;
 
     @Override
     public void reshapeForEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
@@ -663,26 +663,38 @@ public class MovieSBSStereo implements StereoGLEventListener {
         if(null == mPlayer) { return; }
         if(null == st) { return; }
 
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        final float[] mat4Projection = FloatUtil.makePerspective(mat4Tmp1, 0, true, eyeParam.fovhv, zNear, zFar);
-        pmvMatrix.glLoadMatrixf(mat4Projection, 0);
+        {
+            //
+            // Projection
+            //
+            final Matrix4f mat4 = new Matrix4f();
+            pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+            mat4.setToPerspective(eyeParam.fovhv, zNear, zFar);
+            pmvMatrix.glLoadMatrixf(mat4);
 
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        final Quaternion rollPitchYaw = new Quaternion();
-        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, viewerPose.position, 0);
-        VectorUtil.scaleVec3(shiftedEyePos, shiftedEyePos, vec3ScalePos); // amplify viewerPose position
-        VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyeParam.positionOffset);
+            //
+            // Modelview
+            //
+            pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            final Quaternion rollPitchYaw = new Quaternion();
+            // private final float eyeYaw = FloatUtil.PI; // 180 degrees in radians
+            // rollPitchYaw.rotateByAngleY(eyeYaw);
+            final Vec3f shiftedEyePos = rollPitchYaw.rotateVector(viewerPose.position, vec3Tmp1);
+            shiftedEyePos.scale(scalePos); // amplify viewerPose position
+            shiftedEyePos.add(eyeParam.positionOffset);
 
-        rollPitchYaw.mult(viewerPose.orientation);
-        final float[] up = rollPitchYaw.rotateVector(vec3Tmp2, 0, VectorUtil.VEC3_UNIT_Y, 0);
-        final float[] forward = rollPitchYaw.rotateVector(vec3Tmp3, 0, VectorUtil.VEC3_UNIT_Z_NEG, 0);
-        final float[] center = VectorUtil.addVec3(forward, shiftedEyePos, forward);
+            rollPitchYaw.mult(viewerPose.orientation);
+            final Vec3f up = rollPitchYaw.rotateVector(Vec3f.UNIT_Y, vec3Tmp2);
+            final Vec3f forward = rollPitchYaw.rotateVector(Vec3f.UNIT_Z_NEG, vec3Tmp3); // -> center
+            final Vec3f center = forward.add(shiftedEyePos);
 
-        final float[] mLookAt = FloatUtil.makeLookAt(mat4Tmp1, 0, shiftedEyePos, 0, center, 0, up, 0, mat4Tmp2);
-        final float[] mViewAdjust = FloatUtil.makeTranslation(mat4Tmp2, true, eyeParam.distNoseToPupilX, eyeParam.distMiddleToPupilY, eyeParam.eyeReliefZ);
-        final float[] mat4Modelview = FloatUtil.multMatrix(mViewAdjust, mLookAt);
-        pmvMatrix.glLoadMatrixf(mat4Modelview, 0);
-        pmvMatrix.glTranslatef(0, 0, zoom0);
+            final Matrix4f mLookAt = mat4Tmp2.setToLookAt(shiftedEyePos, center, up, mat4Tmp1);
+            mat4.mul( mat4Tmp1.setToTranslation( eyeParam.distNoseToPupilX,
+                                                 eyeParam.distMiddleToPupilY,
+                                                 eyeParam.eyeReliefZ ), mLookAt);
+            mat4.translate(0, 0, zoom0, mat4Tmp1);
+            pmvMatrix.glLoadMatrixf(mat4);
+        }
         st.useProgram(gl, true);
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);

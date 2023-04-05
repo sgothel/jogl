@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2014-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,9 +27,9 @@
  */
 package com.jogamp.opengl.util.stereo;
 
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.CustomGLEventListener;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer.Eye;
 
@@ -137,24 +137,24 @@ public class StereoUtil {
      * @param eye
      * @param zNear frustum near value
      * @param zFar frustum far value
-     * @param mat4Projection float[16] projection matrix result
-     * @param mat4Modelview float[16] modelview matrix result
+     * @param mat4Projection projection matrix result
+     * @param mat4Modelview modelview matrix result
      */
     public static void getSBSUpstreamPMV(final ViewerPose viewerPose, final Eye eye,
                                          final float zNear, final float zFar,
-                                         final float[] mat4Projection, final float[] mat4Modelview) {
-        final float[] mat4Tmp1 = new float[16];
-        final float[] mat4Tmp2 = new float[16];
-        final float[] vec3Tmp1 = new float[3];
-        final float[] vec3Tmp2 = new float[3];
-        final float[] vec3Tmp3 = new float[3];
+                                         final Matrix4f mat4Projection, final Matrix4f mat4Modelview) {
+        final Matrix4f mat4Tmp1 = new Matrix4f();
+        final Matrix4f mat4Tmp2 = new Matrix4f();
+        final Vec3f vec3Tmp1 = new Vec3f();
+        final Vec3f vec3Tmp2 = new Vec3f();
+        final Vec3f vec3Tmp3 = new Vec3f();
 
         final EyeParameter eyeParam = eye.getEyeParameter();
 
         //
         // Projection
         //
-        FloatUtil.makePerspective(mat4Projection, 0, true, eyeParam.fovhv, zNear, zFar);
+        mat4Projection.setToPerspective(eyeParam.fovhv, zNear, zFar);
 
         //
         // Modelview
@@ -162,21 +162,17 @@ public class StereoUtil {
         final Quaternion rollPitchYaw = new Quaternion();
         // private final float eyeYaw = FloatUtil.PI; // 180 degrees in radians
         // rollPitchYaw.rotateByAngleY(eyeYaw);
-        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, viewerPose.position, 0);
-        VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyeParam.positionOffset);
+        final Vec3f shiftedEyePos = rollPitchYaw.rotateVector(viewerPose.position, vec3Tmp1).add(eyeParam.positionOffset);
 
         rollPitchYaw.mult(viewerPose.orientation);
-        final float[] up = rollPitchYaw.rotateVector(vec3Tmp2, 0, VectorUtil.VEC3_UNIT_Y, 0);
-        final float[] forward = rollPitchYaw.rotateVector(vec3Tmp3, 0, VectorUtil.VEC3_UNIT_Z_NEG, 0);
-        final float[] center = VectorUtil.addVec3(forward, shiftedEyePos, forward);
+        final Vec3f up = rollPitchYaw.rotateVector(Vec3f.UNIT_Y, vec3Tmp2);
+        final Vec3f forward = rollPitchYaw.rotateVector(Vec3f.UNIT_Z_NEG, vec3Tmp3); // -> center
+        final Vec3f center = forward.add(shiftedEyePos);
 
-        final float[] mLookAt = FloatUtil.makeLookAt(mat4Tmp2, 0, shiftedEyePos, 0, center, 0, up, 0, mat4Tmp1);
-        final float[] mViewAdjust = FloatUtil.makeTranslation(mat4Modelview, true,
-                                                              eyeParam.distNoseToPupilX,
-                                                              eyeParam.distMiddleToPupilY,
-                                                              eyeParam.eyeReliefZ);
-
-        /* mat4Modelview = */ FloatUtil.multMatrix(mViewAdjust, mLookAt);
+        final Matrix4f mLookAt = mat4Tmp2.setToLookAt(shiftedEyePos, center, up, mat4Tmp1);
+        mat4Modelview.mul( mat4Tmp1.setToTranslation( eyeParam.distNoseToPupilX,
+                                                      eyeParam.distMiddleToPupilY,
+                                                      eyeParam.eyeReliefZ ), mLookAt);
     }
 
 }

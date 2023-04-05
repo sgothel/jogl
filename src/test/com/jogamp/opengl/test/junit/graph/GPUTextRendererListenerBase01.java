@@ -491,7 +491,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         System.err.println("Matrix: " + getXTran() + "/" + getYTran() + " x"+getZTran() + " @"+getAngle() +" fontSize "+fontSizeCenter);
         if(bbox) {
             System.err.println("bbox em: "+font.getMetricBounds(text2));
-            System.err.println("bbox px: "+font.getMetricBounds(text2).scale(nearPlaneS * FontScale.toPixels(fontSizeCenter, dpiV), new float[3]));
+            System.err.println("bbox px: "+font.getMetricBounds(text2).scale(nearPlaneS * FontScale.toPixels(fontSizeCenter, dpiV)));
         }
     }
 

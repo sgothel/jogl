@@ -31,6 +31,9 @@ fi
 #
 #    -Dsetup.addNativeOpenMAX=true \
 #    -Dsetup.addNativeKD=true \
+#
+#    -Doculusvr.enabled=true \
+#
 
 
 #LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64

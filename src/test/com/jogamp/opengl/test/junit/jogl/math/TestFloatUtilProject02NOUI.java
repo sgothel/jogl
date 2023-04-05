@@ -74,7 +74,7 @@ public class TestFloatUtilProject02NOUI extends JunitTracer {
         System.err.println("pP");
         System.err.println(FloatUtil.matrixToString(null, "", "%25.20ff", mat4P,  0, 4, 4, true/* rowMajorOrder */));
 
-        FloatUtil.mapObjToWinCoords(objPos[0], objPos[1], objPos[2], mat4Mv, 0, mat4P, 0, viewport, 0, winHas, 0, vec4Tmp1, vec4Tmp2);
+        FloatUtil.mapObjToWin(objPos[0], objPos[1], objPos[2], mat4Mv, 0, mat4P, 0, viewport, 0, winHas, 0, vec4Tmp1, vec4Tmp2);
         System.err.println("B.0.0 - Project 1,0 -->" + Arrays.toString(winHas));
 
         Assert.assertEquals("A/B 0.0 Project 1,0 failure.x", winExp[0], Math.round(winHas[0]));
@@ -112,7 +112,7 @@ public class TestFloatUtilProject02NOUI extends JunitTracer {
         System.err.println("pP");
         System.err.println(FloatUtil.matrixToString(null, "", "%25.20ff", mat4P,  0, 4, 4, true/* rowMajorOrder */));
 
-        FloatUtil.mapObjToWinCoords(objPos[0], objPos[1], objPos[2], mat4Mv, 0, mat4P, 0, viewport, 0, winHas, 0, vec4Tmp1, vec4Tmp2);
+        FloatUtil.mapObjToWin(objPos[0], objPos[1], objPos[2], mat4Mv, 0, mat4P, 0, viewport, 0, winHas, 0, vec4Tmp1, vec4Tmp2);
         System.err.println("B.0.0 - Project 1,0 -->" + Arrays.toString(winHas));
 
         Assert.assertEquals("A/B 0.0 Project 1,0 failure.x", winExp[0], Math.round(winHas[0]));

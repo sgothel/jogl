@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -29,9 +29,11 @@ package com.jogamp.opengl.math.geom;
 
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Ray;
-import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.opengl.util.PMVMatrix;
 
 
 /**
@@ -51,9 +53,9 @@ import com.jogamp.opengl.math.VectorUtil;
  */
 public class AABBox {
     private static final boolean DEBUG = FloatUtil.DEBUG;
-    private final float[] low = new float[3];
-    private final float[] high = new float[3];
-    private final float[] center = new float[3];
+    private final Vec3f low = new Vec3f();
+    private final Vec3f high = new Vec3f();
+    private final Vec3f center = new Vec3f();
 
     /**
      * Create an Axis Aligned bounding box (AABBox) with the
@@ -109,42 +111,34 @@ public class AABBox {
     public final AABBox reset() {
         setLow(Float.MAX_VALUE,Float.MAX_VALUE,Float.MAX_VALUE);
         setHigh(-1*Float.MAX_VALUE,-1*Float.MAX_VALUE,-1*Float.MAX_VALUE);
-        center[0] = 0f;
-        center[1] = 0f;
-        center[2] = 0f;
+        center.set( 0f, 0f, 0f);
         return this;
     }
 
     /** Get the max xyz-coordinates
-     * @return a float array containing the max xyz coordinates
+     * @return max xyz coordinates
      */
-    public final float[] getHigh() {
+    public final Vec3f getHigh() {
         return high;
     }
 
     private final void setHigh(final float hx, final float hy, final float hz) {
-        this.high[0] = hx;
-        this.high[1] = hy;
-        this.high[2] = hz;
+        this.high.set(hx, hy, hz);
     }
 
     /** Get the min xyz-coordinates
-     * @return a float array containing the min xyz coordinates
+     * @return min xyz coordinates
      */
-    public final float[] getLow() {
+    public final Vec3f getLow() {
         return low;
     }
 
     private final void setLow(final float lx, final float ly, final float lz) {
-        this.low[0] = lx;
-        this.low[1] = ly;
-        this.low[2] = lz;
+        this.low.set(lx, ly, lz);
     }
 
     private final void computeCenter() {
-        center[0] = (high[0] + low[0])/2f;
-        center[1] = (high[1] + low[1])/2f;
-        center[2] = (high[2] + low[2])/2f;
+        center.set(high).add(low).scale(1f/2f);
     }
 
     /**
@@ -154,9 +148,9 @@ public class AABBox {
      * @return this AABBox for chaining
      */
     public final AABBox copy(final AABBox src) {
-        System.arraycopy(src.low, 0, low, 0, 3);
-        System.arraycopy(src.high, 0, high, 0, 3);
-        System.arraycopy(src.center, 0, center, 0, 3);
+        low.set(src.low);
+        high.set(src.high);
+        center.set(src.center);
         return this;
     }
 
@@ -186,12 +180,23 @@ public class AABBox {
      */
     public final AABBox setSize(final float lx, final float ly, final float lz,
                                 final float hx, final float hy, final float hz) {
-        this.low[0] = lx;
-        this.low[1] = ly;
-        this.low[2] = lz;
-        this.high[0] = hx;
-        this.high[1] = hy;
-        this.high[2] = hz;
+        this.low.set(lx, ly, lz);
+        this.high.set(hx, hy, hz);
+        computeCenter();
+        return this;
+    }
+
+    /**
+     * Set size of the AABBox specifying the coordinates
+     * of the low and high.
+     *
+     * @param low min xyz-coordinates
+     * @param high max xyz-coordinates
+     * @return this AABBox for chaining
+     */
+    public final AABBox setSize(final Vec3f low, final Vec3f high) {
+        this.low.set(low);
+        this.high.set(high);
         computeCenter();
         return this;
     }
@@ -202,25 +207,30 @@ public class AABBox {
      * @return this AABBox for chaining
      */
     public final AABBox resize(final AABBox newBox) {
-        final float[] newLow = newBox.getLow();
-        final float[] newHigh = newBox.getHigh();
+        final Vec3f newLow = newBox.getLow();
+        final Vec3f newHigh = newBox.getHigh();
 
         /** test low */
-        if (newLow[0] < low[0])
-            low[0] = newLow[0];
-        if (newLow[1] < low[1])
-            low[1] = newLow[1];
-        if (newLow[2] < low[2])
-            low[2] = newLow[2];
+        if (newLow.x() < low.x()) {
+            low.setX( newLow.x() );
+        }
+        if (newLow.y() < low.y()) {
+            low.setY( newLow.y() );
+        }
+        if (newLow.z() < low.z()) {
+            low.setZ( newLow.z() );
+        }
 
         /** test high */
-        if (newHigh[0] > high[0])
-            high[0] = newHigh[0];
-        if (newHigh[1] > high[1])
-            high[1] = newHigh[1];
-        if (newHigh[2] > high[2])
-            high[2] = newHigh[2];
-
+        if (newHigh.x() > high.x()) {
+            high.setX( newHigh.x() );
+        }
+        if (newHigh.y() > high.y()) {
+            high.setY( newHigh.y() );
+        }
+        if (newHigh.z() > high.z()) {
+            high.setZ( newHigh.z() );
+        }
         computeCenter();
         return this;
     }
@@ -229,34 +239,32 @@ public class AABBox {
      * Resize the AABBox to encapsulate another AABox, which will be <i>transformed</i> on the fly first.
      * @param newBox AABBox to be encapsulated in
      * @param t the {@link AffineTransform} applied on <i>newBox</i> on the fly
-     * @param tmpV3 temp float[3] storage
+     * @param tmpV3 temporary storage
      * @return this AABBox for chaining
      */
-    public final AABBox resize(final AABBox newBox, final AffineTransform t, final float[] tmpV3) {
+    public final AABBox resize(final AABBox newBox, final AffineTransform t, final Vec3f tmpV3) {
         /** test low */
         {
-            final float[] newBoxLow = newBox.getLow();
+            final Vec3f newBoxLow = newBox.getLow();
             t.transform(newBoxLow, tmpV3);
-            tmpV3[2] = newBoxLow[2];
-            if (tmpV3[0] < low[0])
-                low[0] = tmpV3[0];
-            if (tmpV3[1] < low[1])
-                low[1] = tmpV3[1];
-            if (tmpV3[2] < low[2])
-                low[2] = tmpV3[2];
+            if (tmpV3.x() < low.x())
+                low.setX( tmpV3.x() );
+            if (tmpV3.y() < low.y())
+                low.setY( tmpV3.y() );
+            if (tmpV3.z() < low.z())
+                low.setZ( tmpV3.z() );
         }
 
         /** test high */
         {
-            final float[] newBoxHigh = newBox.getHigh();
+            final Vec3f newBoxHigh = newBox.getHigh();
             t.transform(newBoxHigh, tmpV3);
-            tmpV3[2] = newBoxHigh[2];
-            if (tmpV3[0] > high[0])
-                high[0] = tmpV3[0];
-            if (tmpV3[1] > high[1])
-                high[1] = tmpV3[1];
-            if (tmpV3[2] > high[2])
-                high[2] = tmpV3[2];
+            if (tmpV3.x() > high.x())
+                high.setX( tmpV3.x() );
+            if (tmpV3.y() > high.y())
+                high.setY( tmpV3.y() );
+            if (tmpV3.z() > high.z())
+                high.setZ( tmpV3.z() );
         }
 
         computeCenter();
@@ -273,25 +281,25 @@ public class AABBox {
      */
     public final AABBox resize(final float x, final float y, final float z) {
         /** test low */
-        if (x < low[0]) {
-            low[0] = x;
+        if (x < low.x()) {
+            low.setX( x );
         }
-        if (y < low[1]) {
-            low[1] = y;
+        if (y < low.y()) {
+            low.setY( y );
         }
-        if (z < low[2]) {
-            low[2] = z;
+        if (z < low.z()) {
+            low.setZ( z );
         }
 
         /** test high */
-        if (x > high[0]) {
-            high[0] = x;
+        if (x > high.x()) {
+            high.setX( x );
         }
-        if (y > high[1]) {
-            high[1] = y;
+        if (y > high.y()) {
+            high.setY( y );
         }
-        if (z > high[2]) {
-            high[2] = z;
+        if (z > high.z()) {
+            high.setZ( z );
         }
 
         computeCenter();
@@ -320,6 +328,16 @@ public class AABBox {
     }
 
     /**
+     * Resize the AABBox to encapsulate the passed
+     * xyz-coordinates.
+     * @param xyz xyz-axis coordinate values
+     * @return this AABBox for chaining
+     */
+    public final AABBox resize(final Vec3f xyz) {
+        return resize(xyz.x(), xyz.y(), xyz.z());
+    }
+
+    /**
      * Check if the x & y coordinates are bounded/contained
      * by this AABBox
      * @param x  x-axis coordinate value
@@ -328,10 +346,10 @@ public class AABBox {
      * y belong to (low.y, high.y)
      */
     public final boolean contains(final float x, final float y) {
-        if(x<low[0] || x>high[0]){
+        if(x<low.x() || x>high.x()){
             return false;
         }
-        if(y<low[1]|| y>high[1]){
+        if(y<low.y()|| y>high.y()){
             return false;
         }
         return true;
@@ -347,13 +365,13 @@ public class AABBox {
      * y belong to (low.y, high.y) and  z belong to (low.z, high.z)
      */
     public final boolean contains(final float x, final float y, final float z) {
-        if(x<low[0] || x>high[0]){
+        if(x<low.x() || x>high.x()){
             return false;
         }
-        if(y<low[1]|| y>high[1]){
+        if(y<low.y()|| y>high.y()){
             return false;
         }
-        if(z<low[2] || z>high[2]){
+        if(z<low.z() || z>high.z()){
             return false;
         }
         return true;
@@ -390,13 +408,13 @@ public class AABBox {
     /**
      * Check if {@link Ray} intersects this bounding box.
      * <p>
-     * Versions uses the SAT[1], testing 6 axes.
+     * Versions uses the SAT.y(), testing 6 axes.
      * Original code for OBBs from MAGIC.
-     * Rewritten for AABBs and reorganized for early exits[2].
+     * Rewritten for AABBs and reorganized for early exits.z().
      * </p>
      * <pre>
-     * [1] SAT = Separating Axis Theorem
-     * [2] http://www.codercorner.com/RayAABB.cpp
+     * .y() SAT = Separating Axis Theorem
+     * .z() http://www.codercorner.com/RayAABB.cpp
      * </pre>
      * @param ray
      * @return
@@ -405,19 +423,19 @@ public class AABBox {
         // diff[XYZ] -> VectorUtil.subVec3(diff, ray.orig, center);
         //  ext[XYZ] -> extend VectorUtil.subVec3(ext, high, center);
 
-        final float dirX  = ray.dir[0];
-        final float diffX = ray.orig[0] - center[0];
-        final float extX  = high[0] - center[0];
+        final float dirX  = ray.dir.x();
+        final float diffX = ray.orig.x() - center.x();
+        final float extX  = high.x() - center.x();
         if( Math.abs(diffX) > extX && diffX*dirX >= 0f ) return false;
 
-        final float dirY  = ray.dir[1];
-        final float diffY = ray.orig[1] - center[1];
-        final float extY  = high[1] - center[1];
+        final float dirY  = ray.dir.y();
+        final float diffY = ray.orig.y() - center.y();
+        final float extY  = high.y() - center.y();
         if( Math.abs(diffY) > extY && diffY*dirY >= 0f ) return false;
 
-        final float dirZ  = ray.dir[2];
-        final float diffZ = ray.orig[2] - center[2];
-        final float extZ  = high[2] - center[2];
+        final float dirZ  = ray.dir.z();
+        final float diffZ = ray.orig.z() - center.z();
+        final float extZ  = high.z() - center.z();
         if( Math.abs(diffZ) > extZ && diffZ*dirZ >= 0f ) return false;
 
         final float absDirY = Math.abs(dirY);
@@ -442,7 +460,7 @@ public class AABBox {
      * or null if none exist.
      * <p>
      * <ul>
-     *  <li>Original code by Andrew Woo, from "Graphics Gems", Academic Press, 1990 [2]</li>
+     *  <li>Original code by Andrew Woo, from "Graphics Gems", Academic Press, 1990 .z()</li>
      *  <li>Optimized code by Pierre Terdiman, 2000 (~20-30% faster on my Celeron 500)</li>
      *  <li>Epsilon value added by Klaus Hartmann.</li>
      * </ul>
@@ -458,8 +476,8 @@ public class AABBox {
      * Report bugs: p.terdiman@codercorner.com (original author)
      * </p>
      * <pre>
-     * [1] http://www.codercorner.com/RayAABB.cpp
-     * [2] http://tog.acm.org/resources/GraphicsGems/gems/RayBox.c
+     * .y() http://www.codercorner.com/RayAABB.cpp
+     * .z() http://tog.acm.org/resources/GraphicsGems/gems/RayBox.c
      * </pre>
      * @param result vec3
      * @param ray
@@ -467,45 +485,45 @@ public class AABBox {
      * @param assumeIntersection if true, method assumes an intersection, i.e. by pre-checking via {@link #intersectsRay(Ray)}.
      *                           In this case method will not validate a possible non-intersection and just computes
      *                           coordinates.
-     * @param tmp1V3 temp vec3
-     * @param tmp2V3 temp vec3
-     * @param tmp3V3 temp vec3
      * @return float[3] result of intersection coordinates, or null if none exists
      */
-    public final float[] getRayIntersection(final float[] result, final Ray ray, final float epsilon,
-                                            final boolean assumeIntersection,
-                                            final float[] tmp1V3, final float[] tmp2V3, final float[] tmp3V3) {
+    public final Vec3f getRayIntersection(final Vec3f result, final Ray ray, final float epsilon,
+                                          final boolean assumeIntersection) {
         final float[] maxT = { -1f, -1f, -1f };
 
-        final float[] origin = ray.orig;
-        final float[] dir = ray.dir;
+        final Vec3f origin = ray.orig;
+        final Vec3f dir = ray.dir;
 
         boolean inside = true;
 
         // Find candidate planes.
         for(int i=0; i<3; i++) {
-            if(origin[i] < low[i]) {
-                result[i] = low[i];
+            final float origin_i = origin.get(i);
+            final float dir_i = dir.get(i);
+            final float low_i = low.get(i);
+            final float high_i = high.get(i);
+            if(origin_i < low_i) {
+                result.set(i, low_i);
                 inside    = false;
 
                 // Calculate T distances to candidate planes
-                if( 0 != Float.floatToIntBits(dir[i]) ) {
-                    maxT[i] = (low[i] - origin[i]) / dir[i];
+                if( 0 != Float.floatToIntBits(dir_i) ) {
+                    maxT[i] = (low_i - origin_i) / dir_i;
                 }
-            } else if(origin[i] > high[i]) {
-                result[i] = high[i];
+            } else if(origin_i > high_i) {
+                result.set(i, high_i);
                 inside    = false;
 
                 // Calculate T distances to candidate planes
-                if( 0 != Float.floatToIntBits(dir[i]) ) {
-                    maxT[i] = (high[i] - origin[i]) / dir[i];
+                if( 0 != Float.floatToIntBits(dir_i) ) {
+                    maxT[i] = (high_i - origin_i) / dir_i;
                 }
             }
         }
 
         // Ray origin inside bounding box
         if(inside) {
-            System.arraycopy(origin, 0, result, 0, 3);
+            result.set(origin);
             return result;
         }
 
@@ -530,22 +548,22 @@ public class AABBox {
             } */
             switch( whichPlane ) {
                 case 0:
-                    result[1] = origin[1] + maxT[whichPlane] * dir[1];
-                    if(result[1] < low[1] - epsilon || result[1] > high[1] + epsilon) { return null; }
-                    result[2] = origin[2] + maxT[whichPlane] * dir[2];
-                    if(result[2] < low[2] - epsilon || result[2] > high[2] + epsilon) { return null; }
+                    result.setY( origin.y() + maxT[whichPlane] * dir.y() );
+                    if(result.y() < low.y() - epsilon || result.y() > high.y() + epsilon) { return null; }
+                    result.setZ( origin.z() + maxT[whichPlane] * dir.z() );
+                    if(result.z() < low.z() - epsilon || result.z() > high.z() + epsilon) { return null; }
                     break;
                 case 1:
-                    result[0] = origin[0] + maxT[whichPlane] * dir[0];
-                    if(result[0] < low[0] - epsilon || result[0] > high[0] + epsilon) { return null; }
-                    result[2] = origin[2] + maxT[whichPlane] * dir[2];
-                    if(result[2] < low[2] - epsilon || result[2] > high[2] + epsilon) { return null; }
+                    result.setX( origin.x() + maxT[whichPlane] * dir.x() );
+                    if(result.x() < low.x() - epsilon || result.x() > high.x() + epsilon) { return null; }
+                    result.setZ( origin.z() + maxT[whichPlane] * dir.z() );
+                    if(result.z() < low.z() - epsilon || result.z() > high.z() + epsilon) { return null; }
                     break;
                 case 2:
-                    result[0] = origin[0] + maxT[whichPlane] * dir[0];
-                    if(result[0] < low[0] - epsilon || result[0] > high[0] + epsilon) { return null; }
-                    result[1] = origin[1] + maxT[whichPlane] * dir[1];
-                    if(result[1] < low[1] - epsilon || result[1] > high[1] + epsilon) { return null; }
+                    result.setX( origin.x() + maxT[whichPlane] * dir.x() );
+                    if(result.x() < low.x() - epsilon || result.x() > high.x() + epsilon) { return null; }
+                    result.setY( origin.y() + maxT[whichPlane] * dir.y() );
+                    if(result.y() < low.y() - epsilon || result.y() > high.y() + epsilon) { return null; }
                     break;
                 default:
                     throw new InternalError("XXX");
@@ -553,16 +571,16 @@ public class AABBox {
         } else {
             switch( whichPlane ) {
                 case 0:
-                    result[1] = origin[1] + maxT[whichPlane] * dir[1];
-                    result[2] = origin[2] + maxT[whichPlane] * dir[2];
+                    result.setY( origin.y() + maxT[whichPlane] * dir.y() );
+                    result.setZ( origin.z() + maxT[whichPlane] * dir.z() );
                     break;
                 case 1:
-                    result[0] = origin[0] + maxT[whichPlane] * dir[0];
-                    result[2] = origin[2] + maxT[whichPlane] * dir[2];
+                    result.setX( origin.x() + maxT[whichPlane] * dir.x() );
+                    result.setZ( origin.z() + maxT[whichPlane] * dir.z() );
                     break;
                 case 2:
-                    result[0] = origin[0] + maxT[whichPlane] * dir[0];
-                    result[1] = origin[1] + maxT[whichPlane] * dir[1];
+                    result.setX( origin.x() + maxT[whichPlane] * dir.x() );
+                    result.setY( origin.y() + maxT[whichPlane] * dir.y() );
                     break;
                 default:
                     throw new InternalError("XXX");
@@ -577,14 +595,14 @@ public class AABBox {
      * @return a float representing the size of the AABBox
      */
     public final float getSize() {
-        return VectorUtil.distVec3(low, high);
+        return low.dist(high);
     }
 
     /**
      * Get the Center of this AABBox
      * @return the xyz-coordinates of the center of the AABBox
      */
-    public final float[] getCenter() {
+    public final Vec3f getCenter() {
         return center;
     }
 
@@ -594,24 +612,17 @@ public class AABBox {
      * high and low is recomputed by scaling its distance to fixed center.
      * </p>
      * @param size a constant float value
-     * @param tmpV3 caller provided temporary 3-component vector
      * @return this AABBox for chaining
      * @see #scale2(float, float[])
      */
-    public final AABBox scale(final float size, final float[] tmpV3) {
-        tmpV3[0] = high[0] - center[0];
-        tmpV3[1] = high[1] - center[1];
-        tmpV3[2] = high[2] - center[2];
+    public final AABBox scale(final float size) {
+        final Vec3f tmp = new Vec3f();
+        tmp.set(high).sub(center).scale(size);
+        high.set(center).add(tmp);
 
-        VectorUtil.scaleVec3(tmpV3, tmpV3, size); // in-place scale
-        VectorUtil.addVec3(high, center, tmpV3);
+        tmp.set(low).sub(center).scale(size);
+        low.set(center).add(tmp);
 
-        tmpV3[0] = low[0] - center[0];
-        tmpV3[1] = low[1] - center[1];
-        tmpV3[2] = low[2] - center[2];
-
-        VectorUtil.scaleVec3(tmpV3, tmpV3, size); // in-place scale
-        VectorUtil.addVec3(low, center, tmpV3);
         return this;
     }
 
@@ -621,13 +632,12 @@ public class AABBox {
      * high and low is scaled and center recomputed.
      * </p>
      * @param size a constant float value
-     * @param tmpV3 caller provided temporary 3-component vector
      * @return this AABBox for chaining
      * @see #scale(float, float[])
      */
-    public final AABBox scale2(final float size, final float[] tmpV3) {
-        VectorUtil.scaleVec3(high, high, size); // in-place scale
-        VectorUtil.scaleVec3(low, low, size); // in-place scale
+    public final AABBox scale2(final float size) {
+        high.scale(size);
+        low.scale(size);
         computeCenter();
         return this;
     }
@@ -637,9 +647,9 @@ public class AABBox {
      * @param t the float[3] translation vector
      * @return this AABBox for chaining
      */
-    public final AABBox translate(final float[] t) {
-        VectorUtil.addVec3(low, low, t); // in-place translate
-        VectorUtil.addVec3(high, high, t); // in-place translate
+    public final AABBox translate(final Vec3f t) {
+        low.add(t);
+        high.add(t);
         computeCenter();
         return this;
     }
@@ -650,46 +660,46 @@ public class AABBox {
      * @return this AABBox for chaining
      */
     public final AABBox rotate(final Quaternion quat) {
-        quat.rotateVector(low, 0, low, 0);
-        quat.rotateVector(high, 0, high, 0);
+        quat.rotateVector(low, low);
+        quat.rotateVector(high, high);
         computeCenter();
         return this;
     }
 
     public final float getMinX() {
-        return low[0];
+        return low.x();
     }
 
     public final float getMinY() {
-        return low[1];
+        return low.y();
     }
 
     public final float getMinZ() {
-        return low[2];
+        return low.z();
     }
 
     public final float getMaxX() {
-        return high[0];
+        return high.x();
     }
 
     public final float getMaxY() {
-        return high[1];
+        return high.y();
     }
 
     public final float getMaxZ() {
-        return high[2];
+        return high.z();
     }
 
     public final float getWidth(){
-        return high[0] - low[0];
+        return high.x() - low.x();
     }
 
     public final float getHeight() {
-        return high[1] - low[1];
+        return high.y() - low.y();
     }
 
     public final float getDepth() {
-        return high[2] - low[2];
+        return high.z() - low.z();
     }
 
     @Override
@@ -701,12 +711,48 @@ public class AABBox {
             return false;
         }
         final AABBox other = (AABBox) obj;
-        return VectorUtil.isVec2Equal(low, 0, other.low, 0, FloatUtil.EPSILON) &&
-               VectorUtil.isVec3Equal(high, 0, other.high, 0, FloatUtil.EPSILON) ;
+        return low.isEqual(other.low) && high.isEqual(other.high);
     }
     @Override
     public final int hashCode() {
         throw new InternalError("hashCode not designed");
+    }
+
+    public AABBox transform(final AABBox result, final float[/*16*/] mat4, final int mat4_off,
+                            final float[] vec3Tmp0, final float[] vec3Tmp1) {
+        result.reset();
+        FloatUtil.multMatrixVec3(mat4, mat4_off, low.get(vec3Tmp0), vec3Tmp1);
+        result.resize(vec3Tmp1);
+
+        FloatUtil.multMatrixVec3(mat4, mat4_off, high.get(vec3Tmp0), vec3Tmp1);
+        result.resize(vec3Tmp1);
+
+        result.computeCenter();
+        return result;
+    }
+
+    public AABBox transformMv(final AABBox result, final PMVMatrix pmv,
+                              final float[] vec3Tmp0, final float[] vec3Tmp1) {
+        result.reset();
+        pmv.multMvMatVec3f(low.get(vec3Tmp0), vec3Tmp1);
+        result.resize(vec3Tmp1);
+
+        pmv.multMvMatVec3f(high.get(vec3Tmp0), vec3Tmp1);
+        result.resize(vec3Tmp1);
+
+        result.computeCenter();
+        return result;
+    }
+
+    public AABBox transform(final AABBox result, final Matrix4f mat,
+                            final Vec3f vec3Tmp) {
+        result.reset();
+        result.resize( mat.mulVec3f(low, vec3Tmp) );
+
+        result.resize( mat.mulVec3f(high, vec3Tmp) );
+
+        result.computeCenter();
+        return result;
     }
 
     /**
@@ -714,16 +760,16 @@ public class AABBox {
      * compute the window bounding box.
      * <p>
      * If <code>useCenterZ</code> is <code>true</code>,
-     * only 4 {@link FloatUtil#mapObjToWinCoords(float, float, float, float[], int[], int, float[], int, float[], float[]) mapObjToWinCoords}
+     * only 4 {@link FloatUtil#mapObjToWin(float, float, float, float[], int[], float[], float[], float[]) mapObjToWinCoords}
      * operations are made on points [1..4] using {@link #getCenter()}'s z-value.
-     * Otherwise 8 {@link FloatUtil#mapObjToWinCoords(float, float, float, float[], int[], int, float[], int, float[], float[]) mapObjToWinCoords}
+     * Otherwise 8 {@link FloatUtil#mapObjToWin(float, float, float, float[], int[], float[], float[], float[]) mapObjToWinCoords}
      * operation on all 8 points are performed.
      * </p>
      * <pre>
-     *  [2] ------ [4]
+     *  .z() ------ [4]
      *   |          |
      *   |          |
-     *  [1] ------ [3]
+     *  .y() ------ [3]
      * </pre>
      * @param mat4PMv P x Mv matrix
      * @param view
@@ -736,42 +782,42 @@ public class AABBox {
     public AABBox mapToWindow(final AABBox result, final float[/*16*/] mat4PMv, final int[] view, final boolean useCenterZ,
                               final float[] vec3Tmp0, final float[] vec4Tmp1, final float[] vec4Tmp2) {
         {
-            // System.err.printf("AABBox.mapToWindow.0: view[%d, %d, %d, %d], this %s%n", view[0], view[1], view[2], view[3], toString());
-            final float objZ = useCenterZ ? center[2] : getMinZ();
-            FloatUtil.mapObjToWinCoords(getMinX(), getMinY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
-            // System.err.printf("AABBox.mapToWindow.p1: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMinY(), objZ, vec3Tmp0[0], vec3Tmp0[1], vec3Tmp0[2]);
+            // System.err.printf("AABBox.mapToWindow.0: view[%d, %d, %d, %d], this %s%n", view.x(), view.y(), view.z(), view[3], toString());
+            final float objZ = useCenterZ ? center.z() : getMinZ();
+            FloatUtil.mapObjToWin(getMinX(), getMinY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
+            // System.err.printf("AABBox.mapToWindow.p1: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMinY(), objZ, vec3Tmp0.x(), vec3Tmp0.y(), vec3Tmp0.z());
             // System.err.println("AABBox.mapToWindow.p1:");
             // System.err.println(FloatUtil.matrixToString(null, "  mat4PMv", "%10.5f", mat4PMv, 0, 4, 4, false /* rowMajorOrder */));
 
             result.reset();
-            result.resize(vec3Tmp0, 0);
+            result.resize(vec3Tmp0);
 
-            FloatUtil.mapObjToWinCoords(getMinX(), getMaxY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
-            // System.err.printf("AABBox.mapToWindow.p2: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMaxY(), objZ, vec3Tmp0[0], vec3Tmp0[1], vec3Tmp0[2]);
-            result.resize(vec3Tmp0, 0);
+            FloatUtil.mapObjToWin(getMinX(), getMaxY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
+            // System.err.printf("AABBox.mapToWindow.p2: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMaxY(), objZ, vec3Tmp0.x(), vec3Tmp0.y(), vec3Tmp0.z());
+            result.resize(vec3Tmp0);
 
-            FloatUtil.mapObjToWinCoords(getMaxX(), getMinY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
-            // System.err.printf("AABBox.mapToWindow.p3: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMinY(), objZ, vec3Tmp0[0], vec3Tmp0[1], vec3Tmp0[2]);
-            result.resize(vec3Tmp0, 0);
+            FloatUtil.mapObjToWin(getMaxX(), getMinY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
+            // System.err.printf("AABBox.mapToWindow.p3: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMinY(), objZ, vec3Tmp0.x(), vec3Tmp0.y(), vec3Tmp0.z());
+            result.resize(vec3Tmp0);
 
-            FloatUtil.mapObjToWinCoords(getMaxX(), getMaxY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
-            // System.err.printf("AABBox.mapToWindow.p4: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMaxY(), objZ, vec3Tmp0[0], vec3Tmp0[1], vec3Tmp0[2]);
-            result.resize(vec3Tmp0, 0);
+            FloatUtil.mapObjToWin(getMaxX(), getMaxY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
+            // System.err.printf("AABBox.mapToWindow.p4: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMaxY(), objZ, vec3Tmp0.x(), vec3Tmp0.y(), vec3Tmp0.z());
+            result.resize(vec3Tmp0);
         }
 
         if( !useCenterZ ) {
             final float objZ = getMaxZ();
-            FloatUtil.mapObjToWinCoords(getMinX(), getMinY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
-            result.resize(vec3Tmp0, 0);
+            FloatUtil.mapObjToWin(getMinX(), getMinY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
+            result.resize(vec3Tmp0);
 
-            FloatUtil.mapObjToWinCoords(getMinX(), getMaxY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
-            result.resize(vec3Tmp0, 0);
+            FloatUtil.mapObjToWin(getMinX(), getMaxY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
+            result.resize(vec3Tmp0);
 
-            FloatUtil.mapObjToWinCoords(getMaxX(), getMinY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
-            result.resize(vec3Tmp0, 0);
+            FloatUtil.mapObjToWin(getMaxX(), getMinY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
+            result.resize(vec3Tmp0);
 
-            FloatUtil.mapObjToWinCoords(getMaxX(), getMaxY(), objZ, mat4PMv, view, 0, vec3Tmp0, 0, vec4Tmp1, vec4Tmp2);
-            result.resize(vec3Tmp0, 0);
+            FloatUtil.mapObjToWin(getMaxX(), getMaxY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
+            result.resize(vec3Tmp0);
         }
         if( DEBUG ) {
             System.err.printf("AABBox.mapToWindow: view[%d, %d], this %s -> %s%n", view[0], view[1], toString(), result.toString());
@@ -782,7 +828,6 @@ public class AABBox {
     @Override
     public final String toString() {
         return "[ dim "+getWidth()+" x "+getHeight()+" x "+getDepth()+
-               ", box "+low[0]+" / "+low[1]+" / "+low[2]+" .. "+high[0]+" / "+high[1]+" / "+high[2]+
-               ", ctr "+center[0]+" / "+center[1]+" / "+center[2]+" ]";
+               ", box "+low+" .. "+high+", ctr "+center+" ]";
     }
 }

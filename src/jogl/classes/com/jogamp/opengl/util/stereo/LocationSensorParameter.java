@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 JogAmp Community. All rights reserved.
+ * Copyright 2015-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.util.stereo;
 
+import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.geom.Frustum;
 
 /**
@@ -38,13 +39,15 @@ public final class LocationSensorParameter {
     /** The {@link Frustum}'s {@link Frustum.FovDesc} description of the location sensor. */
     public final Frustum.FovDesc frustumDesc;
     /** The {@link Frustum}'s float[16] projection matrix of the location sensor. */
-    public final float[] frustumProjMat;
+    public final Matrix4f frustumProjMat;
 
     public LocationSensorParameter(final Frustum.FovDesc fovDesc) {
         this.frustumDesc = fovDesc;
         this.frustum = new Frustum();
-        this.frustumProjMat = frustum.updateByFovDesc(new float[16], 0, true, fovDesc);
+        this.frustumProjMat = frustum.updateByFovDesc(new Matrix4f(), fovDesc);
     }
+
+    @Override
     public final String toString() {
         return "LocationSensor["+frustumDesc+"]";
     }

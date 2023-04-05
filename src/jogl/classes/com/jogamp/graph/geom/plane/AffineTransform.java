@@ -16,6 +16,7 @@
  */
 /**
  * @author Denis M. Kishenko
+ * @author Sven Gothel, (c) 2010-2023
  */
 package com.jogamp.graph.geom.plane;
 
@@ -23,6 +24,8 @@ package com.jogamp.graph.geom.plane;
 
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Vec2f;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public class AffineTransform implements Cloneable {
@@ -53,17 +56,17 @@ public class AffineTransform implements Cloneable {
     /**
      * The values of transformation matrix
      */
-    float m00;
-    float m10;
-    float m01;
-    float m11;
-    float m02;
-    float m12;
+    private float m00;
+    private float m10;
+    private float m01;
+    private float m11;
+    private float m02;
+    private float m12;
 
     /**
      * The transformation <code>type</code>
      */
-    transient int type;
+    private transient int type;
 
     public AffineTransform() {
         setToIdentity();
@@ -404,10 +407,10 @@ public class AffineTransform implements Cloneable {
      * @return dst for chaining
      */
     public final AABBox transform(final AABBox src, final AABBox dst) {
-        final float[] srcLo = src.getLow();
-        final float[] srcHi = src.getHigh();
-        dst.setSize(srcLo[0] * m00 + srcLo[1] * m01 + m02, srcLo[0] * m10 + srcLo[1] * m11 + m12, srcLo[2],
-                    srcHi[0] * m00 + srcHi[1] * m01 + m02, srcHi[0] * m10 + srcHi[1] * m11 + m12, srcHi[2]);
+        final Vec3f lo = src.getLow();
+        final Vec3f hi = src.getHigh();
+        dst.setSize(lo.x() * m00 + lo.y() * m01 + m02, lo.x() * m10 + lo.y() * m11 + m12, lo.z(),
+                    hi.x() * m00 + hi.y() * m01 + m02, hi.x() * m10 + hi.y() * m11 + m12, hi.z());
         return dst;
     }
 
@@ -472,6 +475,33 @@ public class AffineTransform implements Cloneable {
             srcOff += step;
             dstOff += step;
         }
+    }
+
+    /**
+     * @param src source of transformation
+     * @param dst destination of transformation, maybe be equal to <code>src</code>
+     * @return dst for chaining
+     */
+    public final Vec2f transform(final Vec2f src, final Vec2f dst) {
+        final float x = src.x();
+        final float y = src.y();
+        dst.setX( x * m00 + y * m01 + m02 );
+        dst.setY( x * m10 + y * m11 + m12 );
+        return dst;
+    }
+
+    /**
+     * @param src source of transformation
+     * @param dst destination of transformation, maybe be equal to <code>src</code>
+     * @return dst for chaining
+     */
+    public final Vec3f transform(final Vec3f src, final Vec3f dst) {
+        final float x = src.x();
+        final float y = src.y();
+        dst.setX( x * m00 + y * m01 + m02 );
+        dst.setY( x * m10 + y * m11 + m12 );
+        dst.setZ( src.z() ); // just copy z
+        return dst;
     }
 
     /**

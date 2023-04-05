@@ -495,7 +495,7 @@ function testawtswt() {
 #
 # Stereo
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 $*
+#testnoawt com.jogamp.opengl.demos.av.StereoDemo01 $*
 #
 #
 # HiDPI
@@ -538,6 +538,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestTeapotNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl4.newt.TestTessellationShader01GL4NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl4.newt.TestInstancedReneringGL4NEWT $*
 
 #
 # av demos
@@ -546,6 +547,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.demos.av.CrossFadePlayer $*
+#testnoawt com.jogamp.opengl.demos.av.StereoDemo01 $*
 
 #
 # performance tests
@@ -574,6 +576,9 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil01NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil02MatrixMatrixMultNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil03InversionNOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4f01NOUI $*
+testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4f02MulNOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4f03InversionNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix02NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix03NOUI $*
@@ -972,7 +977,9 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo02 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
@@ -1014,8 +1021,10 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo02 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*

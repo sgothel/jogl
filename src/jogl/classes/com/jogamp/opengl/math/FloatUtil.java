@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -44,20 +44,26 @@ import com.jogamp.opengl.math.geom.Frustum;
  * Implementation assumes linear matrix layout in column-major order
  * matching OpenGL's implementation, illustration:
  * <pre>
-    Row-Major                  Column-Major (OpenGL):
+    Row-Major                       Column-Major (OpenGL):
 
-        |  0   1   2   3 |         |  0   4   8  12 |
-        |                |         |                |
-        |  4   5   6   7 |         |  1   5   9  13 |
-    M = |                |     M = |                |
-        |  8   9  10  11 |         |  2   6  10  14 |
-        |                |         |                |
-        | 12  13  14  15 |         |  3   7  11  15 |
+        |  0   1   2  tx |
+        |                |
+        |  4   5   6  ty |
+    M = |                |
+        |  8   9  10  tz |
+        |                |
+        | 12  13  14  15 |
 
-           C   R                      C   R
+           R   C                      R   C
          m[0*4+3] = tx;             m[0+4*3] = tx;
          m[1*4+3] = ty;             m[1+4*3] = ty;
          m[2*4+3] = tz;             m[2+4*3] = tz;
+
+          RC (std subscript order)   RC (std subscript order)
+         m03 = tx;                  m03 = tx;
+         m13 = ty;                  m13 = ty;
+         m23 = tz;                  m23 = tz;
+
  * </pre>
  * </p>
  * <p>
@@ -71,7 +77,7 @@ import com.jogamp.opengl.math.geom.Frustum;
  * Implementation utilizes unrolling of small vertices and matrices wherever possible
  * while trying to access memory in a linear fashion for performance reasons, see:
  * <ul>
- *   <li><a href="https://code.google.com/p/java-matrix-benchmark/">java-matrix-benchmark</a></li>
+ *   <li><a href="https://lessthanoptimal.github.io/Java-Matrix-Benchmark/">java-matrix-benchmark</a></li>
  *   <li><a href="https://github.com/lessthanoptimal/ejml">EJML Efficient Java Matrix Library</a></li>
  * </ul>
  * </p>
@@ -580,35 +586,6 @@ public final class FloatUtil {
   }
 
   /**
-   * Make given matrix the perspective {@link #makeFrustum(float[], int, boolean, float, float, float, float, float, float) frustum}
-   * matrix based on given parameters.
-   * <p>
-   * All matrix fields are only set if <code>initM</code> is <code>true</code>.
-   * </p>
-   *
-   * @param m 4x4 matrix in column-major order (also result)
-   * @param m_offset offset in given array <i>m</i>, i.e. start of the 4x4 matrix
-   * @param initM if true, given matrix will be initialized w/ identity matrix,
-   *              otherwise only the frustum fields are set.
-   * @param fovhv {@link FovHVHalves} field of view in both directions, may not be centered, either in radians or tangent
-   * @param zNear
-   * @param zFar
-   * @return given matrix for chaining
-   * @throws GLException if {@code zNear <= 0} or {@code zFar <= zNear}
-   * @see #makeFrustum(float[], int, boolean, float, float, float, float, float, float)
-   * @see Frustum#updateByFovDesc(float[], int, boolean, Frustum.FovDesc)
-   */
-  public static float[] makePerspective(final float[] m, final int m_offset, final boolean initM,
-                                        final FovHVHalves fovhv, final float zNear, final float zFar) throws GLException {
-      final FovHVHalves fovhvTan = fovhv.toTangents();  // use tangent of half-fov !
-      final float top    =         fovhvTan.top    * zNear;
-      final float bottom = -1.0f * fovhvTan.bottom * zNear;
-      final float left   = -1.0f * fovhvTan.left   * zNear;
-      final float right  =         fovhvTan.right  * zNear;
-      return makeFrustum(m, m_offset, initM, left, right, bottom, top, zNear, zFar);
-  }
-
-  /**
    * Make given matrix the <i>look-at</i> matrix based on given parameters.
    * <p>
    * Consist out of two matrix multiplications:
@@ -1072,12 +1049,12 @@ public final class FloatUtil {
    * @param vec4Tmp2 4 component vector for temp storage
    * @return true if successful, otherwise false (z is 1)
    */
-  public static boolean mapObjToWinCoords(final float objx, final float objy, final float objz,
-                                          final float[] modelMatrix, final int modelMatrix_offset,
-                                          final float[] projMatrix, final int projMatrix_offset,
-                                          final int[] viewport, final int viewport_offset,
-                                          final float[] win_pos, final int win_pos_offset,
-                                          final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
+  public static boolean mapObjToWin(final float objx, final float objy, final float objz,
+                                    final float[] modelMatrix, final int modelMatrix_offset,
+                                    final float[] projMatrix, final int projMatrix_offset,
+                                    final int[] viewport, final int viewport_offset,
+                                    final float[] win_pos, final int win_pos_offset,
+                                    final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
       vec4Tmp1[0] = objx;
       vec4Tmp1[1] = objy;
       vec4Tmp1[2] = objz;
@@ -1120,18 +1097,15 @@ public final class FloatUtil {
    * @param objz
    * @param mat4PMv [projection] x [modelview] matrix, i.e. P x Mv
    * @param viewport 4 component viewport vector
-   * @param viewport_offset
    * @param win_pos 3 component window coordinate, the result
-   * @param win_pos_offset
    * @param vec4Tmp1 4 component vector for temp storage
    * @param vec4Tmp2 4 component vector for temp storage
    * @return true if successful, otherwise false (z is 1)
    */
-  public static boolean mapObjToWinCoords(final float objx, final float objy, final float objz,
-                                          final float[/*16*/] mat4PMv,
-                                          final int[] viewport, final int viewport_offset,
-                                          final float[] win_pos, final int win_pos_offset,
-                                          final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
+  public static boolean mapObjToWin(final float objx, final float objy, final float objz,
+                                    final float[/*16*/] mat4PMv,
+                                    final int[] viewport, final float[] win_pos,
+                                    final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
       vec4Tmp2[0] = objx;
       vec4Tmp2[1] = objy;
       vec4Tmp2[2] = objz;
@@ -1152,9 +1126,9 @@ public final class FloatUtil {
       vec4Tmp1[2] = vec4Tmp1[2] * vec4Tmp1[3] + 0.5f;
 
       // Map x,y to viewport
-      win_pos[0+win_pos_offset] = vec4Tmp1[0] * viewport[2+viewport_offset] + viewport[0+viewport_offset];
-      win_pos[1+win_pos_offset] = vec4Tmp1[1] * viewport[3+viewport_offset] + viewport[1+viewport_offset];
-      win_pos[2+win_pos_offset] = vec4Tmp1[2];
+      win_pos[0] = vec4Tmp1[0] * viewport[2] + viewport[0];
+      win_pos[1] = vec4Tmp1[1] * viewport[3] + viewport[1];
+      win_pos[2] = vec4Tmp1[2];
 
       return true;
   }
@@ -1180,12 +1154,12 @@ public final class FloatUtil {
    * @param mat4Tmp2 16 component matrix for temp storage
    * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
    */
-  public static boolean mapWinToObjCoords(final float winx, final float winy, final float winz,
-                                          final float[] modelMatrix, final int modelMatrix_offset,
-                                          final float[] projMatrix, final int projMatrix_offset,
-                                          final int[] viewport, final int viewport_offset,
-                                          final float[] obj_pos, final int obj_pos_offset,
-                                          final float[/*16*/] mat4Tmp1, final float[/*16*/] mat4Tmp2) {
+  public static boolean mapWinToObj(final float winx, final float winy, final float winz,
+                                    final float[] modelMatrix, final int modelMatrix_offset,
+                                    final float[] projMatrix, final int projMatrix_offset,
+                                    final int[] viewport, final int viewport_offset,
+                                    final float[] obj_pos, final int obj_pos_offset,
+                                    final float[/*16*/] mat4Tmp1, final float[/*16*/] mat4Tmp2) {
     // mat4Tmp1 = P x Mv
     multMatrix(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, mat4Tmp1, 0);
 
@@ -1242,11 +1216,11 @@ public final class FloatUtil {
    * @param vec4Tmp2 4 component vector for temp storage
    * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
    */
-  public static boolean mapWinToObjCoords(final float winx, final float winy, final float winz,
-                                          final float[/*16*/] mat4PMvI,
-                                          final int[] viewport, final int viewport_offset,
-                                          final float[] obj_pos, final int obj_pos_offset,
-                                          final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
+  public static boolean mapWinToObj(final float winx, final float winy, final float winz,
+                                    final float[/*16*/] mat4PMvI,
+                                    final int[] viewport, final int viewport_offset,
+                                    final float[] obj_pos, final int obj_pos_offset,
+                                    final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
     vec4Tmp1[0] = winx;
     vec4Tmp1[1] = winy;
     vec4Tmp1[2] = winz;
@@ -1296,19 +1270,17 @@ public final class FloatUtil {
    * @param vec4Tmp2 4 component vector for temp storage
    * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
    */
-  public static boolean mapWinToObjCoords(final float winx, final float winy, final float winz1, final float winz2,
-                                          final float[/*16*/] mat4PMvI,
-                                          final int[] viewport, final int viewport_offset,
-                                          final float[] obj1_pos, final int obj1_pos_offset,
-                                          final float[] obj2_pos, final int obj2_pos_offset,
-                                          final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
+  public static boolean mapWinToObj(final float winx, final float winy, final float winz1, final float winz2,
+                                    final float[/*16*/] mat4PMvI, final int[] viewport,
+                                    final Vec3f objPos1, final Vec3f objPos2,
+                                    final float[/*4*/] vec4Tmp1, final float[/*4*/] vec4Tmp2) {
     vec4Tmp1[0] = winx;
     vec4Tmp1[1] = winy;
     vec4Tmp1[3] = 1.0f;
 
     // Map x and y from window coordinates
-    vec4Tmp1[0] = (vec4Tmp1[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
-    vec4Tmp1[1] = (vec4Tmp1[1] - viewport[1+viewport_offset]) / viewport[3+viewport_offset];
+    vec4Tmp1[0] = (vec4Tmp1[0] - viewport[0]) / viewport[2];
+    vec4Tmp1[1] = (vec4Tmp1[1] - viewport[1]) / viewport[3];
 
     // Map to range -1 to 1
     vec4Tmp1[0] = vec4Tmp1[0] * 2 - 1;
@@ -1329,15 +1301,14 @@ public final class FloatUtil {
 
     vec4Tmp2[3] = 1.0f / vec4Tmp2[3];
 
-    obj1_pos[0+obj1_pos_offset] = vec4Tmp2[0] * vec4Tmp2[3];
-    obj1_pos[1+obj1_pos_offset] = vec4Tmp2[1] * vec4Tmp2[3];
-    obj1_pos[2+obj1_pos_offset] = vec4Tmp2[2] * vec4Tmp2[3];
+    objPos1.set( vec4Tmp2[0] * vec4Tmp2[3],
+                 vec4Tmp2[1] * vec4Tmp2[3],
+                 vec4Tmp2[2] * vec4Tmp2[3] );
 
     //
     // winz2
     //
-    vec4Tmp1[2] = winz2;
-    vec4Tmp1[2] = vec4Tmp1[2] * 2 - 1;
+    vec4Tmp1[2] = winz2 * 2 - 1;
 
     // object raw coords = Inv(P x Mv) *  winPos  -> mat4Tmp2
     multMatrixVec(mat4PMvI, vec4Tmp1, vec4Tmp2);
@@ -1348,9 +1319,9 @@ public final class FloatUtil {
 
     vec4Tmp2[3] = 1.0f / vec4Tmp2[3];
 
-    obj2_pos[0+obj2_pos_offset] = vec4Tmp2[0] * vec4Tmp2[3];
-    obj2_pos[1+obj2_pos_offset] = vec4Tmp2[1] * vec4Tmp2[3];
-    obj2_pos[2+obj2_pos_offset] = vec4Tmp2[2] * vec4Tmp2[3];
+    objPos2.set( vec4Tmp2[0] * vec4Tmp2[3],
+                 vec4Tmp2[1] * vec4Tmp2[3],
+                 vec4Tmp2[2] * vec4Tmp2[3] );
 
     return true;
   }
@@ -1379,13 +1350,13 @@ public final class FloatUtil {
    * @param mat4Tmp2 16 component matrix for temp storage
    * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
    */
-  public static boolean mapWinToObjCoords(final float winx, final float winy, final float winz, final float clipw,
-                                          final float[] modelMatrix, final int modelMatrix_offset,
-                                          final float[] projMatrix, final int projMatrix_offset,
-                                          final int[] viewport, final int viewport_offset,
-                                          final float near, final float far,
-                                          final float[] obj_pos, final int obj_pos_offset,
-                                          final float[/*16*/] mat4Tmp1, final float[/*16*/] mat4Tmp2) {
+  public static boolean mapWinToObj4(final float winx, final float winy, final float winz, final float clipw,
+                                     final float[] modelMatrix, final int modelMatrix_offset,
+                                     final float[] projMatrix, final int projMatrix_offset,
+                                     final int[] viewport, final int viewport_offset,
+                                     final float near, final float far,
+                                     final float[] obj_pos, final int obj_pos_offset,
+                                     final float[/*16*/] mat4Tmp1, final float[/*16*/] mat4Tmp2) {
     // mat4Tmp1 = P x Mv
     multMatrix(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, mat4Tmp1, 0);
 
@@ -1397,7 +1368,7 @@ public final class FloatUtil {
     mat4Tmp2[0] = winx;
     mat4Tmp2[1] = winy;
     mat4Tmp2[2] = winz;
-    mat4Tmp2[3] = 1.0f;
+    mat4Tmp2[3] = clipw;
 
     // Map x and y from window coordinates
     mat4Tmp2[0] = (mat4Tmp2[0] - viewport[0+viewport_offset]) / viewport[2+viewport_offset];
@@ -1416,8 +1387,6 @@ public final class FloatUtil {
     if (mat4Tmp2[3+raw_off] == 0.0) {
       return false;
     }
-
-    mat4Tmp2[3+raw_off] = 1.0f / mat4Tmp2[3+raw_off];
 
     obj_pos[0+obj_pos_offset] = mat4Tmp2[0+raw_off];
     obj_pos[1+obj_pos_offset] = mat4Tmp2[1+raw_off];
@@ -1459,7 +1428,7 @@ public final class FloatUtil {
   public static boolean mapWinToRay(final float winx, final float winy, final float winz0, final float winz1,
                                     final float[] modelMatrix, final int modelMatrix_offset,
                                     final float[] projMatrix, final int projMatrix_offset,
-                                    final int[] viewport, final int viewport_offset,
+                                    final int[] viewport,
                                     final Ray ray,
                                     final float[/*16*/] mat4Tmp1, final float[/*16*/] mat4Tmp2, final float[/*4*/] vec4Tmp2) {
       // mat4Tmp1 = P x Mv
@@ -1469,11 +1438,9 @@ public final class FloatUtil {
       if ( null == invertMatrix(mat4Tmp1, mat4Tmp1) ) {
           return false;
       }
-      if( mapWinToObjCoords(winx, winy, winz0, winz1, mat4Tmp1,
-                            viewport, viewport_offset,
-                            ray.orig, 0, ray.dir, 0,
-                            mat4Tmp2, vec4Tmp2) ) {
-          VectorUtil.normalizeVec3( VectorUtil.subVec3(ray.dir, ray.dir, ray.orig) );
+      if( mapWinToObj(winx, winy, winz0, winz1, mat4Tmp1, viewport,
+                      ray.orig, ray.dir, mat4Tmp2, vec4Tmp2) ) {
+          ray.dir.sub(ray.orig).normalize();
           return true;
       } else {
           return false;
@@ -1485,9 +1452,8 @@ public final class FloatUtil {
    * @param a 4x4 matrix in column-major order
    * @param b 4x4 matrix in column-major order
    * @param d result a*b in column-major order
-   * @return given result matrix <i>d</i> for chaining
    */
-  public static float[] multMatrix(final float[] a, final int a_off, final float[] b, final int b_off, final float[] d, final int d_off) {
+  public static void multMatrix(final float[] a, final int a_off, final float[] b, final int b_off, final float[] d, final int d_off) {
       final float b00 = b[b_off+0+0*4];
       final float b10 = b[b_off+1+0*4];
       final float b20 = b[b_off+2+0*4];
@@ -1540,8 +1506,6 @@ public final class FloatUtil {
       d[d_off+3+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
       d[d_off+3+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
       d[d_off+3+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
-
-      return d;
   }
 
   /**
@@ -1612,9 +1576,8 @@ public final class FloatUtil {
    * Multiply matrix: [a] = [a] x [b]
    * @param a 4x4 matrix in column-major order (also result)
    * @param b 4x4 matrix in column-major order
-   * @return given result matrix <i>a</i> for chaining
    */
-  public static float[] multMatrix(final float[] a, final int a_off, final float[] b, final int b_off) {
+  public static void multMatrix(final float[] a, final int a_off, final float[] b, final int b_off) {
       final float b00 = b[b_off+0+0*4];
       final float b10 = b[b_off+1+0*4];
       final float b20 = b[b_off+2+0*4];
@@ -1667,8 +1630,6 @@ public final class FloatUtil {
       a[a_off+3+1*4] = ai0 * b01  +  ai1 * b11  +  ai2 * b21  +  ai3 * b31 ;
       a[a_off+3+2*4] = ai0 * b02  +  ai1 * b12  +  ai2 * b22  +  ai3 * b32 ;
       a[a_off+3+3*4] = ai0 * b03  +  ai1 * b13  +  ai2 * b23  +  ai3 * b33 ;
-
-      return a;
   }
 
   /**
@@ -1778,11 +1739,10 @@ public final class FloatUtil {
    * @param m_in_off
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
-   * @return given result vector <i>v_out</i> for chaining
    */
-  public static float[] multMatrixVec(final float[] m_in, final int m_in_off,
-                                      final float[] v_in, final int v_in_off,
-                                      final float[] v_out, final int v_out_off) {
+  public static void multMatrixVec(final float[] m_in, final int m_in_off,
+                                   final float[] v_in, final int v_in_off,
+                                   final float[] v_out, final int v_out_off) {
       // (one matrix row in column-major order) X (column vector)
       v_out[0 + v_out_off] = v_in[0+v_in_off] * m_in[0*4+m_in_off  ]  +  v_in[1+v_in_off] * m_in[1*4+m_in_off  ] +
                              v_in[2+v_in_off] * m_in[2*4+m_in_off  ]  +  v_in[3+v_in_off] * m_in[3*4+m_in_off  ];
@@ -1798,8 +1758,31 @@ public final class FloatUtil {
       final int m_in_off_3 = 3+m_in_off;
       v_out[3 + v_out_off] = v_in[0+v_in_off] * m_in[0*4+m_in_off_3]  +  v_in[1+v_in_off] * m_in[1*4+m_in_off_3] +
                              v_in[2+v_in_off] * m_in[2*4+m_in_off_3]  +  v_in[3+v_in_off] * m_in[3*4+m_in_off_3];
+  }
 
-      return v_out;
+  /**
+   * @param m_in 4x4 matrix in column-major order
+   * @param m_in_off
+   * @param v_in 4-component column-vector
+   * @param v_out m_in * v_in
+   */
+  public static void multMatrixVec(final float[] m_in, final int m_in_off,
+                                   final float[] v_in, final float[] v_out) {
+      // (one matrix row in column-major order) X (column vector)
+      v_out[0] = v_in[0] * m_in[0*4+m_in_off  ]  +  v_in[1] * m_in[1*4+m_in_off  ] +
+                 v_in[2] * m_in[2*4+m_in_off  ]  +  v_in[3] * m_in[3*4+m_in_off  ];
+
+      final int m_in_off_1 = 1+m_in_off;
+      v_out[1] = v_in[0] * m_in[0*4+m_in_off_1]  +  v_in[1] * m_in[1*4+m_in_off_1] +
+                 v_in[2] * m_in[2*4+m_in_off_1]  +  v_in[3] * m_in[3*4+m_in_off_1];
+
+      final int m_in_off_2 = 2+m_in_off;
+      v_out[2] = v_in[0] * m_in[0*4+m_in_off_2]  +  v_in[1] * m_in[1*4+m_in_off_2] +
+                 v_in[2] * m_in[2*4+m_in_off_2]  +  v_in[3] * m_in[3*4+m_in_off_2];
+
+      final int m_in_off_3 = 3+m_in_off;
+      v_out[3] = v_in[0] * m_in[0*4+m_in_off_3]  +  v_in[1] * m_in[1*4+m_in_off_3] +
+                 v_in[2] * m_in[2*4+m_in_off_3]  +  v_in[3] * m_in[3*4+m_in_off_3];
   }
 
   /**
@@ -1845,46 +1828,59 @@ public final class FloatUtil {
   }
 
   /**
-   * Copy the named column of the given column-major matrix to v_out.
-   * <p>
-   * v_out may be 3 or 4 components long, hence the 4th row may not be stored.
-   * </p>
-   * @param m_in input column-major matrix
-   * @param m_in_off offset to input matrix
-   * @param column named column to copy
-   * @param v_out the column-vector storage, at least 3 components long
-   * @param v_out_off offset to storage
+   * Affine 3f-vector transformation by 4x4 matrix
+   *
+   * 4x4 matrix multiplication with 3-component vector,
+   * using {@code 1} for for {@code v_in[3]} and dropping {@code v_out[3]},
+   * which shall be {@code 1}.
+   *
+   * @param m_in 4x4 matrix in column-major order
+   * @param m_in_off
+   * @param v_in 3-component column-vector
+   * @param v_out m_in * v_in, 3-component column-vector
    * @return given result vector <i>v_out</i> for chaining
    */
-  public static float[] copyMatrixColumn(final float[] m_in, final int m_in_off, final int column, final float[] v_out, final int v_out_off) {
-      v_out[0+v_out_off]=m_in[0+column*4+m_in_off];
-      v_out[1+v_out_off]=m_in[1+column*4+m_in_off];
-      v_out[2+v_out_off]=m_in[2+column*4+m_in_off];
-      if( v_out.length > 3+v_out_off ) {
-          v_out[3+v_out_off]=m_in[3+column*4+m_in_off];
-      }
+  public static float[] multMatrixVec3(final float[] m_in, final int m_in_off,
+                                       final float[] v_in, final float[] v_out) {
+      // (one matrix row in column-major order) X (column vector)
+      v_out[0] = v_in[0] * m_in[0*4+m_in_off  ]  +  v_in[1] * m_in[1*4+m_in_off  ] +
+                 v_in[2] * m_in[2*4+m_in_off  ]  +       1f * m_in[3*4+m_in_off  ];
+
+      final int m_in_off_1 = 1+m_in_off;
+      v_out[1] = v_in[0] * m_in[0*4+m_in_off_1]  +  v_in[1] * m_in[1*4+m_in_off_1] +
+                 v_in[2] * m_in[2*4+m_in_off_1]  +       1f * m_in[3*4+m_in_off_1];
+
+      final int m_in_off_2 = 2+m_in_off;
+      v_out[2] = v_in[0] * m_in[0*4+m_in_off_2]  +  v_in[1] * m_in[1*4+m_in_off_2] +
+                 v_in[2] * m_in[2*4+m_in_off_2]  +       1f * m_in[3*4+m_in_off_2];
+
       return v_out;
   }
 
   /**
-   * Copy the named row of the given column-major matrix to v_out.
-   * <p>
-   * v_out may be 3 or 4 components long, hence the 4th column may not be stored.
-   * </p>
-   * @param m_in input column-major matrix
-   * @param m_in_off offset to input matrix
-   * @param row named row to copy
-   * @param v_out the row-vector storage, at least 3 components long
-   * @param v_out_off offset to storage
+   * Affine 3f-vector transformation by 4x4 matrix
+   *
+   * 4x4 matrix multiplication with 3-component vector,
+   * using {@code 1} for for {@code v_in[3]} and dropping {@code v_out[3]},
+   * which shall be {@code 1}.
+   *
+   * @param m_in 4x4 matrix in column-major order
+   * @param m_in_off
+   * @param v_in 3-component column-vector
+   * @param v_out m_in * v_in, 3-component column-vector
    * @return given result vector <i>v_out</i> for chaining
    */
-  public static float[] copyMatrixRow(final float[] m_in, final int m_in_off, final int row, final float[] v_out, final int v_out_off) {
-      v_out[0+v_out_off]=m_in[row+0*4+m_in_off];
-      v_out[1+v_out_off]=m_in[row+1*4+m_in_off];
-      v_out[2+v_out_off]=m_in[row+2*4+m_in_off];
-      if( v_out.length > 3+v_out_off ) {
-          v_out[3+v_out_off]=m_in[row+3*4+m_in_off];
-      }
+  public static float[] multMatrixVec3(final float[] m_in, final float[] v_in, final float[] v_out) {
+      // (one matrix row in column-major order) X (column vector)
+      v_out[0] = v_in[0] * m_in[0*4  ]  +  v_in[1] * m_in[1*4  ] +
+                 v_in[2] * m_in[2*4  ]  +       1f * m_in[3*4  ];
+
+      v_out[1] = v_in[0] * m_in[0*4+1]  +  v_in[1] * m_in[1*4+1] +
+                 v_in[2] * m_in[2*4+1]  +       1f * m_in[3*4+1];
+
+      v_out[2] = v_in[0] * m_in[0*4+2]  +  v_in[1] * m_in[1*4+2] +
+                 v_in[2] * m_in[2*4+2]  +       1f * m_in[3*4+2];
+
       return v_out;
   }
 
@@ -2276,7 +2272,7 @@ public final class FloatUtil {
   }
 
   /**
-   * Return true if value is zero, i.e. it's absolute value < <code>epsilon</code>.
+   * Return true if value is zero, i.e. it's absolute value < {@link #EPSILON}.
    * @see #EPSILON
    */
   public static boolean isZero(final float a) {

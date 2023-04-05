@@ -44,12 +44,12 @@ public class TestPMVMatrix03NOUI extends JunitTracer {
 
         m.gluProject(1f, 0f, 0f, viewport, 0, winA00, 0);
         System.err.println("A.0.0 - Project 1,0 -->" + Arrays.toString(winA00));
-        FloatUtil.mapObjToWinCoords(1f, 0f, 0f, mat4PMv, viewport, 0, winB00, 0, vec4Tmp1, vec4Tmp2);
+        FloatUtil.mapObjToWin(1f, 0f, 0f, mat4PMv, viewport, winB00, vec4Tmp1, vec4Tmp2);
         System.err.println("B.0.0 - Project 1,0 -->" + Arrays.toString(winB00));
 
         m.gluProject(0f, 0f, 0f, viewport, 0, winA01, 0);
         System.err.println("A.0.1 - Project 0,0 -->" + Arrays.toString(winA01));
-        FloatUtil.mapObjToWinCoords(0f, 0f, 0f, mat4PMv, viewport, 0, winB01, 0, vec4Tmp1, vec4Tmp2);
+        FloatUtil.mapObjToWin(0f, 0f, 0f, mat4PMv, viewport, winB01, vec4Tmp1, vec4Tmp2);
         System.err.println("B.0.1 - Project 0,0 -->" + Arrays.toString(winB01));
 
         m.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
@@ -61,12 +61,12 @@ public class TestPMVMatrix03NOUI extends JunitTracer {
 
         m.gluProject(1f, 0f, 0f, viewport, 0, winA10, 0);
         System.err.println("A.1.0 - Project 1,0 -->" +Arrays.toString(winA10));
-        FloatUtil.mapObjToWinCoords(1f, 0f, 0f, mat4PMv, viewport, 0, winB10, 0, vec4Tmp1, vec4Tmp2);
+        FloatUtil.mapObjToWin(1f, 0f, 0f, mat4PMv, viewport, winB10, vec4Tmp1, vec4Tmp2);
         System.err.println("B.1.0 - Project 1,0 -->" +Arrays.toString(winB10));
 
         m.gluProject(0f, 0f, 0f, viewport, 0, winA11, 0);
         System.err.println("A.1.1 - Project 0,0 -->" +Arrays.toString(winA11));
-        FloatUtil.mapObjToWinCoords(0f, 0f, 0f, mat4PMv, viewport, 0, winB11, 0, vec4Tmp1, vec4Tmp2);
+        FloatUtil.mapObjToWin(0f, 0f, 0f, mat4PMv, viewport, winB11, vec4Tmp1, vec4Tmp2);
         System.err.println("B.1.1 - Project 0,0 -->" +Arrays.toString(winB11));
 
         Assert.assertArrayEquals("A/B 0.0 Project 1,0 failure", winB00, winA00, epsilon);

@@ -250,7 +250,7 @@ class TypecastFont implements Font {
 
     @Override
     public AABBox getMetricBounds(final CharSequence string) {
-        return getMetricBoundsFU(string).scale2(1.0f/metrics.getUnitsPerEM(), new float[3]);
+        return getMetricBoundsFU(string).scale2(1.0f/metrics.getUnitsPerEM());
     }
 
     @Override
@@ -290,7 +290,7 @@ class TypecastFont implements Font {
     }
     @Override
     public AABBox getGlyphBounds(final CharSequence string, final AffineTransform tmp1, final AffineTransform tmp2) {
-        return getGlyphBoundsFU(string, tmp1, tmp2).scale2(1.0f/metrics.getUnitsPerEM(), new float[3]);
+        return getGlyphBoundsFU(string, tmp1, tmp2).scale2(1.0f/metrics.getUnitsPerEM());
     }
 
     @Override

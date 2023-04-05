@@ -46,6 +46,7 @@ import jogamp.common.os.PlatformPropsImpl;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.FloatStack;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Ray;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -208,9 +209,9 @@ public final class PMVMatrix implements GLMatrixFunc {
           // Mvit Modelview-Inverse-Transpose
           matrixArray = new float[5*16];
 
-          mP_offset   = 0*16;
-          mMv_offset  = 1*16;
-          mTex_offset = 4*16;
+          // mP_offset   = 0*16;
+          // mMv_offset  = 1*16;
+          // mTex_offset = 4*16;
 
           matrixPMvMvit = Buffers.slice2Float(matrixArray,  0*16, 4*16);  // P + Mv + Mvi + Mvit
           matrixPMvMvi  = Buffers.slice2Float(matrixArray,  0*16, 3*16);  // P + Mv + Mvi
@@ -241,6 +242,8 @@ public final class PMVMatrix implements GLMatrixFunc {
      * Issues {@link #glLoadIdentity()} on all matrices,
      * i.e. {@link GLMatrixFunc#GL_MODELVIEW GL_MODELVIEW}, {@link GLMatrixFunc#GL_PROJECTION GL_PROJECTION} or {@link GL#GL_TEXTURE GL_TEXTURE}
      * and resets all internal states.
+     *
+     * Leaves {@link GLMatrixFunc#GL_MODELVIEW GL_MODELVIEW} the active matrix mode.
      */
     public final void reset() {
         FloatUtil.makeIdentity(matrixArray, mMv_offset);
@@ -403,7 +406,6 @@ public final class PMVMatrix implements GLMatrixFunc {
         }
     }
 
-
     /**
      * Multiplies the {@link #glGetPMatrixf() P} and {@link #glGetMvMatrixf() Mv} matrix, i.e.
      * <pre>
@@ -430,6 +432,71 @@ public final class PMVMatrix implements GLMatrixFunc {
     public final float[] multMvPMatrixf(final float[/*16*/] mat4MvP, final int mat4MvP_offset) {
         FloatUtil.multMatrix(matrixArray, mMv_offset, matrixArray, mP_offset, mat4MvP, mat4MvP_offset);
         return mat4MvP;
+    }
+
+    /**
+     * v_out = Mv * v_in
+     * @param v_in float[4] input vector
+     * @param v_out float[4] output vector
+     */
+    public final void multMvMatVec4f(final float[/*4*/] v_in, final float[/*4*/] v_out) {
+        FloatUtil.multMatrixVec(matrixArray, mMv_offset, v_in, v_out);
+    }
+
+    /**
+     * v_out = Mv * v_in
+     *
+     * Affine 3f-vector transformation by 4x4 matrix, see {@link FloatUtil#multMatrixVec3(float[], int, float[], float[])}.
+     *
+     * @param v_in float[3] input vector
+     * @param v_out float[3] output vector
+     */
+    public final void multMvMatVec3f(final float[/*3*/] v_in, final float[/*3*/] v_out) {
+        FloatUtil.multMatrixVec3(matrixArray, mMv_offset, v_in, v_out);
+    }
+
+    /**
+     * v_out = P * v_in
+     * @param v_in float[4] input vector
+     * @param v_out float[4] output vector
+     */
+    public final void multPMatVec4f(final float[/*4*/] v_in, final float[/*4*/] v_out) {
+        FloatUtil.multMatrixVec(matrixArray, v_in, v_out); // mP_offset := 0
+    }
+
+    /**
+     * v_out = P * v_in
+     *
+     * Affine 3f-vector transformation by 4x4 matrix, see {@link FloatUtil#multMatrixVec3(float[], int, float[], float[])}.
+     *
+     * @param v_in float[3] input vector
+     * @param v_out float[3] output vector
+     */
+    public final void multPMatVec3f(final float[/*3*/] v_in, final float[/*3*/] v_out) {
+        FloatUtil.multMatrixVec3(matrixArray, v_in, v_out); // mP_offset := 0
+    }
+
+    /**
+     * v_out = P * Mv * v_in
+     * @param v_in float[4] input vector
+     * @param v_out float[4] output vector
+     */
+    public final void multPMvMatVec4f(final float[/*4*/] v_in, final float[/*4*/] v_out) {
+        FloatUtil.multMatrixVec(matrixArray, mMv_offset, v_in, mat4Tmp1);
+        FloatUtil.multMatrixVec(matrixArray, mat4Tmp1, v_out); // mP_offset := 0
+    }
+
+    /**
+     * v_out = P * Mv * v_in
+     *
+     * Affine 3f-vector transformation by 4x4 matrix, see {@link FloatUtil#multMatrixVec3(float[], int, float[], float[])}.
+     *
+     * @param v_in float[3] input vector
+     * @param v_out float[3] output vector
+     */
+    public final void multPMvMatVec3f(final float[/*3*/] v_in, final float[/*3*/] v_out) {
+        FloatUtil.multMatrixVec3(matrixArray, mMv_offset, v_in, mat4Tmp1);
+        FloatUtil.multMatrixVec3(matrixArray, mat4Tmp1, v_out); // mP_offset := 0
     }
 
     //
@@ -534,6 +601,24 @@ public final class PMVMatrix implements GLMatrixFunc {
     }
 
     /**
+     * Load the current matrix with the values of the given {@link Matrix4f}.
+     */
+    public final void glLoadMatrixf(final Matrix4f m) {
+        if(matrixMode==GL_MODELVIEW) {
+            m.get(matrixArray, mMv_offset);
+            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            modifiedBits |= MODIFIED_MODELVIEW;
+        } else if(matrixMode==GL_PROJECTION) {
+            m.get(matrixArray, mP_offset);
+            dirtyBits |= DIRTY_FRUSTUM ;
+            modifiedBits |= MODIFIED_PROJECTION;
+        } else if(matrixMode==GL.GL_TEXTURE) {
+            m.get(matrixArray, mTex_offset);
+            modifiedBits |= MODIFIED_TEXTURE;
+        }
+    }
+
+    /**
      * Load the current matrix with the values of the given {@link Quaternion}'s rotation {@link Quaternion#toMatrix(float[], int) matrix representation}.
      */
     public final void glLoadMatrix(final Quaternion quat) {
@@ -633,6 +718,21 @@ public final class PMVMatrix implements GLMatrixFunc {
         }
     }
 
+    public final void glMultMatrixf(final Matrix4f m) {
+        if(matrixMode==GL_MODELVIEW) {
+            new Matrix4f(matrixArray, mMv_offset).mul(m).get(matrixArray, mMv_offset);
+            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            modifiedBits |= MODIFIED_MODELVIEW;
+        } else if(matrixMode==GL_PROJECTION) {
+            new Matrix4f(matrixArray, mP_offset).mul(m).get(matrixArray, mP_offset);
+            dirtyBits |= DIRTY_FRUSTUM ;
+            modifiedBits |= MODIFIED_PROJECTION;
+        } else if(matrixMode==GL.GL_TEXTURE) {
+            new Matrix4f(matrixArray, mTex_offset).mul(m).get(matrixArray, mTex_offset);
+            modifiedBits |= MODIFIED_TEXTURE;
+        }
+    }
+
     @Override
     public final void glTranslatef(final float x, final float y, final float z) {
         glMultMatrixf(FloatUtil.makeTranslation(matrixTxSx, false, x, y, z), 0);
@@ -645,7 +745,7 @@ public final class PMVMatrix implements GLMatrixFunc {
 
     @Override
     public final void glRotatef(final float ang_deg, final float x, final float y, final float z) {
-        glMultMatrixf(FloatUtil.makeRotationAxis(mat4Tmp1, 0, ang_deg * FloatUtil.PI / 180.0f, x, y, z, mat4Tmp2), 0);
+        glMultMatrixf(FloatUtil.makeRotationAxis(mat4Tmp1, 0, FloatUtil.adegToRad(ang_deg), x, y, z, mat4Tmp2), 0);
     }
 
     /**
@@ -728,7 +828,7 @@ public final class PMVMatrix implements GLMatrixFunc {
     public final boolean gluProject(final float objx, final float objy, final float objz,
                                     final int[] viewport, final int viewport_offset,
                                     final float[] win_pos, final int win_pos_offset ) {
-        return FloatUtil.mapObjToWinCoords(objx, objy, objz,
+        return FloatUtil.mapObjToWin(objx, objy, objz,
                           matrixArray, mMv_offset,
                           matrixArray, mP_offset,
                           viewport, viewport_offset,
@@ -754,7 +854,7 @@ public final class PMVMatrix implements GLMatrixFunc {
     public final boolean gluUnProject(final float winx, final float winy, final float winz,
                                       final int[] viewport, final int viewport_offset,
                                       final float[] obj_pos, final int obj_pos_offset) {
-        return FloatUtil.mapWinToObjCoords(winx, winy, winz,
+        return FloatUtil.mapWinToObj(winx, winy, winz,
                                            matrixArray, mMv_offset,
                                            matrixArray, mP_offset,
                                            viewport, viewport_offset,
@@ -788,7 +888,7 @@ public final class PMVMatrix implements GLMatrixFunc {
                                  final int[] viewport, final int viewport_offset,
                                  final float near, final float far,
                                  final float[] obj_pos, final int obj_pos_offset ) {
-        return FloatUtil.mapWinToObjCoords(winx, winy, winz, clipw,
+        return FloatUtil.mapWinToObj4(winx, winy, winz, clipw,
                 matrixArray, mMv_offset,
                 matrixArray, mP_offset,
                 viewport, viewport_offset,
@@ -842,14 +942,12 @@ public final class PMVMatrix implements GLMatrixFunc {
      * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
      */
     public final boolean gluUnProjectRay(final float winx, final float winy, final float winz0, final float winz1,
-                                         final int[] viewport, final int viewport_offset,
+                                         final int[] viewport,
                                          final Ray ray) {
         return FloatUtil.mapWinToRay(winx, winy, winz0, winz1,
                 matrixArray, mMv_offset,
-                matrixArray, mP_offset,
-                viewport, viewport_offset,
-                ray,
-                mat4Tmp1, mat4Tmp2, mat4Tmp3);
+                matrixArray, mP_offset, viewport,
+                ray, mat4Tmp1, mat4Tmp2, mat4Tmp3);
     }
 
     public StringBuilder toString(StringBuilder sb, final String f) {
@@ -1066,8 +1164,10 @@ public final class PMVMatrix implements GLMatrixFunc {
         return res;
     }
 
+    private static final int mP_offset   = 0*16;
+    private static final int mMv_offset  = 1*16;
+    private static final int mTex_offset = 4*16;
     private final float[] matrixArray;
-    private final int mP_offset, mMv_offset, mTex_offset;
     private final FloatBuffer matrixPMvMvit, matrixPMvMvi, matrixPMv, matrixP, matrixTex, matrixMv, matrixMvi, matrixMvit;
     private final float[] matrixTxSx;
     private final float[] mat4Tmp1, mat4Tmp2, mat4Tmp3;

@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2014-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -33,6 +33,7 @@ import com.jogamp.nativewindow.util.PointImmutable;
 import jogamp.opengl.Debug;
 
 import com.jogamp.opengl.math.FovHVHalves;
+import com.jogamp.opengl.math.Vec3f;
 
 /**
  * Interface describing a native stereoscopic device
@@ -94,7 +95,7 @@ public interface StereoDevice {
     public int getRequiredRotation();
 
     /**
-     * Return the device default eye position offset for {@link #createRenderer(int, int, float[], FovHVHalves[], float)}.
+     * Return the device default eye position offset for {@link #createRenderer(int, int, Vec3f, FovHVHalves[], float)}.
      * <p>
      * Result is an array of float values for
      * <ul>
@@ -105,7 +106,7 @@ public interface StereoDevice {
      * </p>
      * @return
      */
-    public float[] getDefaultEyePositionOffset();
+    public Vec3f getDefaultEyePositionOffset();
 
     /**
      * Returns the device default {@link FovHVHalves} for all supported eyes
@@ -198,7 +199,7 @@ public interface StereoDevice {
      * Returns the supported distortion compensation of the {@link StereoDeviceRenderer},
      * e.g. {@link StereoDeviceRenderer#DISTORTION_BARREL}, {@link StereoDeviceRenderer#DISTORTION_CHROMATIC}, etc.
      * @see StereoDeviceRenderer#getDistortionBits()
-     * @see #createRenderer(int, int, float[], FovHVHalves[], float, int)
+     * @see #createRenderer(int, int, Vec3f, FovHVHalves[], float, int)
      * @see #getRecommendedDistortionBits()
      * @see #getMinimumDistortionBits()
      */
@@ -212,7 +213,7 @@ public interface StereoDevice {
      * User shall use the recommended distortion compensation to achieve a distortion free view.
      * </p>
      * @see StereoDeviceRenderer#getDistortionBits()
-     * @see #createRenderer(int, int, float[], FovHVHalves[], float, int)
+     * @see #createRenderer(int, int, Vec3f, FovHVHalves[], float, int)
      * @see #getSupportedDistortionBits()
      * @see #getMinimumDistortionBits()
      */
@@ -227,7 +228,7 @@ public interface StereoDevice {
      * @see #getSupportedDistortionBits()
      * @see #getRecommendedDistortionBits()
      * @see StereoDeviceRenderer#getDistortionBits()
-     * @see #createRenderer(int, int, float[], FovHVHalves[], float, int)
+     * @see #createRenderer(int, int, Vec3f, FovHVHalves[], float, int)
      */
     public int getMinimumDistortionBits();
 
@@ -245,6 +246,6 @@ public interface StereoDevice {
      * @return
      */
     public StereoDeviceRenderer createRenderer(final int distortionBits,
-                                               final int textureCount, final float[] eyePositionOffset,
+                                               final int textureCount, final Vec3f eyePositionOffset,
                                                final FovHVHalves[] eyeFov, final float pixelsPerDisplayPixel, final int textureUnit);
 }

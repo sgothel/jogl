@@ -29,177 +29,180 @@
 package com.jogamp.opengl.math;
 
 /**
- * 2D Vector based upon two float components.
+ * 4D Vector based upon four float components.
  *
- * Implementation borrowed from [gfxbox2](https://jausoft.com/cgit/cs_class/gfxbox2.git/tree/include/pixel/pixel2f.hpp#n29)
+ * Implementation borrowed from [gfxbox2](https://jausoft.com/cgit/cs_class/gfxbox2.git/tree/include/pixel/pixel3f.hpp#n29)
  * and its data layout from JOAL's Vec3f.
  */
-public final class Vec2f {
+public final class Vec4f {
     private float x;
     private float y;
+    private float z;
+    private float w;
 
-    public static Vec2f from_length_angle(final float magnitude, final float radians) {
-        return new Vec2f((float)(magnitude * Math.cos(radians)), (float)(magnitude * Math.sin(radians)));
-    }
+    public Vec4f() {}
 
-    public Vec2f() {}
-
-    public Vec2f(final Vec2f o) {
+    public Vec4f(final Vec4f o) {
         set(o);
     }
 
-    /** Creating new Vec2f using Vec3f, dropping z. */
-    public Vec2f(final Vec3f o) {
-        set(o);
+    /** Creating new Vec4f using { o, w }. */
+    public Vec4f(final Vec3f o, final float w) {
+        set(o, w);
     }
 
-    public Vec2f copy() {
-        return new Vec2f(this);
+    public Vec4f copy() {
+        return new Vec4f(this);
     }
 
-    public Vec2f(final float[/*2*/] xy) {
-        set(xy);
+    public Vec4f(final float[/*4*/] xyzw) {
+        set(xyzw);
     }
 
-    public Vec2f(final float x, final float y) {
-        set(x, y);
+    public Vec4f(final float x, final float y, final float z, final float w) {
+        set(x, y, z, w);
     }
 
     /** this = o, returns this. */
-    public void set(final Vec2f o) {
+    public Vec4f set(final Vec4f o) {
         this.x = o.x;
         this.y = o.y;
-    }
-
-    /** this = o while dropping z, returns this. */
-    public void set(final Vec3f o) {
-        this.x = o.x();
-        this.y = o.y();
-    }
-
-    /** this = { x, y }, returns this. */
-    public void set(final float x, final float y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    /** this = xy, returns this. */
-    public Vec2f set(final float[/*2*/] xy) {
-        this.x = xy[0];
-        this.y = xy[1];
+        this.z = o.z;
+        this.w = o.w;
         return this;
     }
 
-    /** Sets the ith component, 0 <= i < 2 */
+    /** this = { o, w }, returns this. */
+    public Vec4f set(final Vec3f o, final float w) {
+        this.x = o.x();
+        this.y = o.y();
+        this.z = o.z();
+        this.w = w;
+        return this;
+    }
+
+    /** this = { x, y, z, w }, returns this. */
+    public Vec4f set(final float x, final float y, final float z, final float w) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
+        return this;
+    }
+
+    /** this = xyzw, returns this. */
+    public Vec4f set(final float[/*4*/] xyzw) {
+        this.x = xyzw[0];
+        this.y = xyzw[1];
+        this.z = xyzw[2];
+        this.w = xyzw[3];
+        return this;
+    }
+
+    /** Sets the ith component, 0 <= i < 4 */
     public void set(final int i, final float val) {
         switch (i) {
             case 0: x = val; break;
             case 1: y = val; break;
+            case 2: z = val; break;
+            case 3: w = val; break;
             default: throw new IndexOutOfBoundsException();
         }
     }
 
-    /** xy = this, returns xy. */
-    public float[] get(final float[/*2*/] xy) {
-        xy[0] = this.x;
-        xy[1] = this.y;
-        return xy;
+    /** xyzw = this, returns xyzw. */
+    public float[] get(final float[/*4*/] xyzw) {
+        xyzw[0] = this.x;
+        xyzw[1] = this.y;
+        xyzw[2] = this.z;
+        xyzw[3] = this.w;
+        return xyzw;
     }
 
-    /** Gets the ith component, 0 <= i < 2 */
+    /** Gets the ith component, 0 <= i < 4 */
     public float get(final int i) {
         switch (i) {
             case 0: return x;
             case 1: return y;
+            case 2: return z;
+            case 3: return w;
             default: throw new IndexOutOfBoundsException();
         }
     }
 
     public float x() { return x; }
     public float y() { return y; }
+    public float z() { return z; }
+    public float w() { return w; }
 
     public void setX(final float x) { this.x = x; }
     public void setY(final float y) { this.y = y; }
+    public void setZ(final float z) { this.z = z; }
+    public void setW(final float w) { this.w = w; }
 
     /** Returns this * val; creates new vector */
-    public Vec2f mul(final float val) {
-        return new Vec2f(this).scale(val);
+    public Vec4f mul(final float val) {
+        return new Vec4f(this).scale(val);
     }
 
     /** this = this * s, returns this. */
-    public Vec2f scale(final float s) {
+    public Vec4f scale(final float s) {
         x *= s;
         y *= s;
+        z *= s;
+        w *= s;
         return this;
     }
 
-    /** this = this * { sx, sy }, returns this. */
-    public Vec2f scale(final float sx, final float sy) {
+    /** this = this * { sx, sy, sz, sw }, returns this. */
+    public Vec4f scale(final float sx, final float sy, final float sz, final float sw) {
         x *= sx;
         y *= sy;
+        z *= sz;
+        w *= sw;
         return this;
     }
 
     /** Returns this + arg; creates new vector */
-    public Vec2f plus(final Vec2f arg) {
-        return new Vec2f(this).add(arg);
+    public Vec4f plus(final Vec4f arg) {
+        return new Vec4f(this).add(arg);
     }
 
-    /** this = this + { dx, dy }, returns this. */
-    public Vec2f add(final float dx, final float dy) {
+    /** this = this + { dx, dy, dz, dw }, returns this. */
+    public Vec4f add(final float dx, final float dy, final float dz, final float dw) {
         x += dx;
         y += dy;
+        z += dz;
+        w += dw;
         return this;
     }
 
     /** this = this + b, returns this. */
-    public Vec2f add(final Vec2f b) {
+    public Vec4f add(final Vec4f b) {
         x += b.x;
         y += b.y;
-        return this;
-    }
-
-    /** Returns this + s * arg; creates new vector */
-    public Vec2f plusScaled(final float s, final Vec2f arg) {
-        return new Vec2f(this).addScaled(s, arg);
-    }
-
-    /** this = this + s * b, returns this. */
-    public Vec2f addScaled(final float s, final Vec2f b) {
-        x += s * b.x;
-        y += s * b.y;
+        z += b.z;
+        w += b.w;
         return this;
     }
 
     /** Returns this - arg; creates new vector */
-    public Vec2f minus(final Vec2f arg) {
-        return new Vec2f(this).sub(arg);
+    public Vec4f minus(final Vec4f arg) {
+        return new Vec4f(this).sub(arg);
     }
 
     /** this = this - b, returns this. */
-    public Vec2f sub(final Vec2f b) {
+    public Vec4f sub(final Vec4f b) {
         x -= b.x;
         y -= b.y;
+        z -= b.z;
+        w -= b.w;
         return this;
     }
 
     /** Return true if all components are zero, i.e. it's absolute value < {@link #EPSILON}. */
     public boolean isZero() {
-        return FloatUtil.isZero(x) && FloatUtil.isZero(y);
-    }
-
-    public void rotate(final float radians, final Vec2f ctr) {
-        final float cos = (float)Math.cos(radians);
-        final float sin = (float)Math.sin(radians);
-        rotate(sin, cos, ctr);
-    }
-
-    public void rotate(final float sin, final float cos, final Vec2f ctr) {
-        final float x0 = x - ctr.x;
-        final float y0 = y - ctr.y;
-        final float tmp = x0 * cos - y0 * sin + ctr.x;
-        y = x0 * sin + y0 * cos + ctr.y;
-        x = tmp;
+        return FloatUtil.isZero(x) && FloatUtil.isZero(y) && FloatUtil.isZero(z) && FloatUtil.isZero(w);
     }
 
     /**
@@ -213,29 +216,25 @@ public final class Vec2f {
      * Return the squared length of this vector, a.k.a the squared <i>norm</i> or squared <i>magnitude</i>
      */
     public float lengthSq() {
-        return x*x + y*y;
-    }
-
-    /**
-     * Return the direction angle of this vector in radians
-     */
-    public float angle() {
-        // Utilize atan2 taking y=sin(a) and x=cos(a), resulting in proper direction angle for all quadrants.
-        return (float) Math.atan2(y, x);
+        return x*x + y*y + z*z + w*w;
     }
 
     /**
      * Normalize this vector in place
      */
-    public Vec2f normalize() {
+    public Vec4f normalize() {
         final float lengthSq = lengthSq();
         if ( FloatUtil.isZero( lengthSq ) ) {
             x = 0.0f;
             y = 0.0f;
+            z = 0.0f;
+            w = 0.0f;
         } else {
             final float invSqr = 1.0f / (float)Math.sqrt(lengthSq);
             x *= invSqr;
             y *= invSqr;
+            z *= invSqr;
+            w *= invSqr;
         }
         return this;
     }
@@ -247,16 +246,18 @@ public final class Vec2f {
      * distances, thus avoiding an expensive square root operation.
      * </p>
      */
-    public float distSq(final Vec2f o) {
+    public float distSq(final Vec4f o) {
         final float dx = x - o.x;
         final float dy = y - o.y;
-        return dx*dx + dy*dy;
+        final float dz = z - o.z;
+        final float dw = w - o.w;
+        return dx*dx + dy*dy + dz*dz + dw*dw;
     }
 
     /**
      * Return the distance between this vector and the given one.
      */
-    public float dist(final Vec2f o) {
+    public float dist(final Vec4f o) {
         return (float)Math.sqrt(distSq(o));
     }
 
@@ -265,44 +266,27 @@ public final class Vec2f {
      * Return the dot product of this vector and the given one
      * @return the dot product as float
      */
-    public float dot(final Vec2f arg) {
-        return x * arg.x + y * arg.y;
-    }
-
-    /**
-     * Returns cross product of this vectors and the given one, i.e. *this x o.
-     *
-     * The 2D cross product is identical with the 2D perp dot product.
-     *
-     * @return the resulting scalar
-     */
-    public float cross(final Vec2f o) {
-        return x * o.y - y * o.x;
+    public float dot(final Vec4f o) {
+        return x*o.x + y*o.y + z*o.z + w*o.w;
     }
 
     /**
      * Return the cosines of the angle between two vectors
      */
-    public float cosAngle(final Vec2f o) {
+    public float cosAngle(final Vec4f o) {
         return dot(o) / ( length() * o.length() ) ;
     }
 
     /**
      * Return the angle between two vectors in radians
      */
-    public float angle(final Vec2f o) {
+    public float angle(final Vec4f o) {
         return (float) Math.acos( cosAngle(o) );
     }
 
-    /**
-     * Return the counter-clock-wise (CCW) normal of this vector, i.e. perp(endicular) vector
-     */
-    public Vec2f normal_ccw() {
-        return new Vec2f(-y, x);
-    }
-
-    public boolean intersects(final Vec2f o) {
-        if( Math.abs(x-o.x) >= FloatUtil.EPSILON || Math.abs(y-o.y) >= FloatUtil.EPSILON ) {
+    public boolean intersects(final Vec4f o) {
+        if( Math.abs(x-o.x) >= FloatUtil.EPSILON || Math.abs(y-o.y) >= FloatUtil.EPSILON || Math.abs(z-o.z) >= FloatUtil.EPSILON ||
+            Math.abs(w-o.w) >= FloatUtil.EPSILON) {
             return false;
         }
         return true;
@@ -321,12 +305,14 @@ public final class Vec2f {
      * @param epsilon consider using {@link FloatUtil#EPSILON}
      * @return true if all components differ less than {@code epsilon}, otherwise false.
      */
-    public boolean isEqual(final Vec2f o, final float epsilon) {
+    public boolean isEqual(final Vec4f o, final float epsilon) {
         if( this == o ) {
             return true;
         } else {
             return FloatUtil.isEqual(x, o.x, epsilon) &&
-                   FloatUtil.isEqual(y, o.y, epsilon);
+                   FloatUtil.isEqual(y, o.y, epsilon) &&
+                   FloatUtil.isEqual(z, o.z, epsilon) &&
+                   FloatUtil.isEqual(w, o.w, epsilon);
         }
     }
 
@@ -342,14 +328,14 @@ public final class Vec2f {
      * @param o comparison value
      * @return true if all components differ less than {@link FloatUtil#EPSILON}, otherwise false.
      */
-    public boolean isEqual(final Vec2f o) {
+    public boolean isEqual(final Vec4f o) {
         return isEqual(o, FloatUtil.EPSILON);
     }
 
     @Override
     public boolean equals(final Object o) {
-        if( o instanceof Vec2f ) {
-            return isEqual((Vec2f)o, FloatUtil.EPSILON);
+        if( o instanceof Vec4f ) {
+            return isEqual((Vec4f)o, FloatUtil.EPSILON);
         } else {
             return false;
         }
@@ -357,6 +343,6 @@ public final class Vec2f {
 
     @Override
     public String toString() {
-        return x + " / " + y;
+        return x + " / " + y + " / " + z + " / " + w;
     }
 }

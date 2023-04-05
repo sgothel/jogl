@@ -45,6 +45,7 @@ import jogamp.common.os.PlatformPropsImpl;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
@@ -90,7 +91,7 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
         public final EyeParameter getEyeParameter() { return eyeParameter; }
 
         /* pp */ GenericEye(final GenericStereoDevice device, final int distortionBits,
-                            final float[] eyePositionOffset, final EyeParameter eyeParam,
+                            final Vec3f eyePositionOffset, final EyeParameter eyeParam,
                             final DimensionImmutable textureSize, final RectangleImmutable eyeViewport) {
             this.eyeName = eyeParam.number;
             this.distortionBits = distortionBits;
@@ -387,7 +388,7 @@ public class GenericStereoDeviceRenderer implements StereoDeviceRenderer {
     private static final DimensionImmutable zeroSize = new Dimension(0, 0);
 
     /* pp */ GenericStereoDeviceRenderer(final GenericStereoDevice context, final int distortionBits,
-                                       final int textureCount, final float[] eyePositionOffset,
+                                       final int textureCount, final Vec3f eyePositionOffset,
                                        final EyeParameter[] eyeParam, final float pixelsPerDisplayPixel, final int textureUnit,
                                        final DimensionImmutable[] eyeTextureSizes, final DimensionImmutable totalTextureSize,
                                        final RectangleImmutable[] eyeViewports) {

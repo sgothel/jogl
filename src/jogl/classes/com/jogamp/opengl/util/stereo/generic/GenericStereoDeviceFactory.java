@@ -35,6 +35,7 @@ import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.FovHVHalves;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.stereo.EyeParameter;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceConfig;
@@ -53,7 +54,7 @@ public class GenericStereoDeviceFactory extends StereoDeviceFactory {
      */
     public static GenericStereoDeviceConfig createMono(final String name,
                              final DimensionImmutable surfaceSizeInPixel, final float[] screenSizeInMeters,
-                             final float[] defaultEyePositionOffset) {
+                             final Vec3f defaultEyePositionOffset) {
         final float pupilCenterFromScreenTopInMeters = screenSizeInMeters[1] / 2f;
         final float d2r = FloatUtil.PI / 180.0f;
         return new GenericStereoDeviceConfig(
@@ -90,7 +91,7 @@ public class GenericStereoDeviceFactory extends StereoDeviceFactory {
     public static GenericStereoDeviceConfig createStereoSBS(final String name,
                              final DimensionImmutable surfaceSizeInPixel, final float[] screenSizeInMeters,
                              final float interpupillaryDistanceInMeters, final float fovy,
-                             final float[] defaultEyePositionOffset) {
+                             final Vec3f defaultEyePositionOffset) {
         final float pupilCenterFromScreenTopInMeters = screenSizeInMeters[1] / 2f;
         final float d2r = FloatUtil.PI / 180.0f;
 
@@ -138,7 +139,7 @@ public class GenericStereoDeviceFactory extends StereoDeviceFactory {
                              final DimensionImmutable surfaceSizeInPixel, final float[] screenSizeInMeters,
                              final float interpupillaryDistanceInMeters, final float fovy,
                              final DimensionImmutable eyeTextureSize,
-                             final float[] defaultEyePositionOffset) {
+                             final Vec3f defaultEyePositionOffset) {
         DistortionMesh.Producer lenseDistMeshProduce = null;
         try {
             lenseDistMeshProduce =

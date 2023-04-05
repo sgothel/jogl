@@ -148,14 +148,14 @@ public final class TypecastGlyph implements Font.Glyph {
     public final AABBox getBoundsFU(final AABBox dest) { return dest.copy(bbox); }
 
     @Override
-    public final AABBox getBounds(final AABBox dest, final float[] tmpV3) {
-        return dest.copy(bbox).scale2(1.0f/font.getMetrics().getUnitsPerEM(), tmpV3);
+    public final AABBox getBounds(final AABBox dest) {
+        return dest.copy(bbox).scale2(1.0f/font.getMetrics().getUnitsPerEM());
     }
 
     @Override
     public final AABBox getBounds() {
-        final AABBox dest = new AABBox();
-        return dest.copy(bbox).scale2(1.0f/font.getMetrics().getUnitsPerEM(), new float[2]);
+        final AABBox dest = new AABBox(bbox);
+        return dest.scale2(1.0f/font.getMetrics().getUnitsPerEM());
     }
 
     @Override

@@ -29,6 +29,7 @@ package com.jogamp.graph.font;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 
 /**
@@ -151,7 +152,7 @@ public interface Font {
          * @param dest AABBox instance set to this metrics boundary in font em-size [0..1]
          * @return the given and set AABBox 'dest' in font units
          */
-        AABBox getBounds(final AABBox dest, final float[] tmpV3);
+        AABBox getBounds(final AABBox dest);
     }
 
     /**
@@ -193,10 +194,9 @@ public interface Font {
         /**
          * Return the AABBox in font em-size [0..1], copying into given dest.
          * @param dest AABBox instance set to this metrics boundary in font em-size [0..1]
-         * @param tmpV3 caller provided temporary 3-component vector
          * @return the given and set AABBox 'dest' in font em-size [0..1]
          */
-        AABBox getBounds(final AABBox dest, float[] tmpV3);
+        AABBox getBounds(final AABBox dest);
 
         /**
          * Return the AABBox in font em-size [0..1], creating a new copy.
