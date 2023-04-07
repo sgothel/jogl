@@ -81,7 +81,6 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
     private final GLUniformData gcu_FboTexUnit;
     private final Matrix4f matP = new Matrix4f();
     private final Matrix4f matMv = new Matrix4f();
-    private final SyncMatrices4f16 pmvMatrix02 = new SyncMatrices4f16( new Matrix4f[] { matP, matMv } );
     private final GLUniformData gcu_PMVMatrix02;
     private ShaderProgram spPass2 = null;
 
@@ -114,7 +113,7 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
             colorTexBBox = null;
             gcu_ColorTexBBox = null;
         }
-        gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, pmvMatrix02);
+        gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, new SyncMatrices4f16( new Matrix4f[] { matP, matMv } ));
 
         // Pass 2:
         gcu_FboTexUnit = new GLUniformData(UniformNames.gcu_FboTexUnit, pass2TexUnit);

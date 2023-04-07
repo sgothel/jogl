@@ -49,7 +49,6 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.FBObject.TextureAttachment;
-import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -116,7 +115,6 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
     private final GLUniformData gcu_FboTexSize;
     private final Matrix4f matP = new Matrix4f();
     private final Matrix4f matMv = new Matrix4f();
-    private final SyncMatrices4f16 pmvMatrix02 = new SyncMatrices4f16( new Matrix4f[] { matP, matMv } );
     private final GLUniformData gcu_PMVMatrix02;
     private ShaderProgram spPass2 = null;
 
@@ -207,7 +205,7 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
             colorTexBBox = null;
             gcu_ColorTexBBox = null;
         }
-        gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, pmvMatrix02);
+        gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, new SyncMatrices4f16( new Matrix4f[] { matP, matMv } ));
 
         // Pass 2:
         gcu_FboTexUnit = new GLUniformData(UniformNames.gcu_FboTexUnit, pass2TexUnit);
