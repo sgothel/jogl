@@ -618,7 +618,7 @@ public class ProjectFloat {
                             final float x, final float y,
                             final float deltaX, final float deltaY,
                             final int[] viewport, final int viewport_offset) {
-    if( null != FloatUtil.makePick(mat4Tmp1, 0, x, y, deltaX, deltaY, viewport, viewport_offset, mat4Tmp2) ) {
+    if( null != FloatUtil.makePick(mat4Tmp1, x, y, deltaX, deltaY, viewport, viewport_offset, mat4Tmp2) ) {
         gl.glMultMatrixf(mat4Tmp1, 0);
     }
   }

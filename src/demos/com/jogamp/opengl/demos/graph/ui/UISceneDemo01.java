@@ -47,6 +47,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.es2.GearsES2;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -184,8 +185,8 @@ public class UISceneDemo01 {
 
     static class MyPMVMatrixSetup implements PMVMatrixSetup {
         @Override
-        public void set(final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
-            final float ratio = (float)width/(float)height;
+        public void set(final PMVMatrix pmv, final Recti viewport) {
+            final float ratio = (float)viewport.width()/(float)viewport.height();
             pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmv.glLoadIdentity();
             pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
@@ -196,7 +197,7 @@ public class UISceneDemo01 {
 
             // Scale (back) to have normalized plane dimensions, 100 for the greater of width and height.
             final AABBox planeBox0 = new AABBox();
-            setPlaneBox(planeBox0, pmv, x, y, width, height);
+            setPlaneBox(planeBox0, pmv, viewport);
             final float sx = planeBox0.getWidth();
             final float sy = planeBox0.getHeight();
             final float sxy = sx > sy ? sx : sy;
@@ -206,8 +207,8 @@ public class UISceneDemo01 {
         }
 
         @Override
-        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
-            Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, x, y, width, height);
+        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final Recti viewport) {
+            Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, viewport);
         }
     };
 

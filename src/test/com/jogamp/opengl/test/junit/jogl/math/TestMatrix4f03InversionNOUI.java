@@ -52,9 +52,9 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
                                                0, 0, 1, 0,
                                                0, 0, 0, 1 };
 
-        FloatUtil.invertMatrix(identity, 0, res1, 0);
+        FloatUtil.invertMatrix(identity, res1);
         // System.err.println(FloatUtil.matrixToString(null, "inv-1: ", "%10.7f", res1, 0, 4, 4, false /* rowMajorOrder */));
-        invertMatrix(identity, 0, res2, 0, temp);
+        invertMatrix(identity, res2, temp);
         // System.err.println(FloatUtil.matrixToString(null, "inv-2: ", "%10.7f", res2, 0, 4, 4, false /* rowMajorOrder */));
 
         Assert.assertArrayEquals("I1/I2 failure", res1, res2, FloatUtil.INV_DEVIANCE);
@@ -84,12 +84,12 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
         final float[] temp = new float[16];
 
         // System.err.println(FloatUtil.matrixToString(null, "orig  : ", "%10.7f", matrix, 0, 4, 4, false /* rowMajorOrder */));
-        invertMatrix(matrix, 0, inv1_0, 0, temp);
-        invertMatrix(inv1_0, 0, inv2_0, 0, temp);
+        invertMatrix(matrix, inv1_0, temp);
+        invertMatrix(inv1_0, inv2_0, temp);
         // System.err.println(FloatUtil.matrixToString(null, "inv1_0: ", "%10.7f", inv1_0, 0, 4, 4, false /* rowMajorOrder */));
         // System.err.println(FloatUtil.matrixToString(null, "inv2_0: ", "%10.7f", inv2_0, 0, 4, 4, false /* rowMajorOrder */));
-        FloatUtil.invertMatrix(matrix, 0, inv1_1, 0);
-        FloatUtil.invertMatrix(inv1_1, 0, inv2_1, 0);
+        FloatUtil.invertMatrix(matrix, inv1_1);
+        FloatUtil.invertMatrix(inv1_1, inv2_1);
         // System.err.println(FloatUtil.matrixToString(null, "inv1_1: ", "%10.7f", inv1_1, 0, 4, 4, false /* rowMajorOrder */));
         // System.err.println(FloatUtil.matrixToString(null, "inv2_1: ", "%10.7f", inv2_1, 0, 4, 4, false /* rowMajorOrder */));
         FloatUtil.invertMatrix(matrix, inv1_2);
@@ -227,7 +227,6 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
         final int warmups = 1000;
         final int loops = 10*1000*1000;
         long tI0 = 0;
-        long tI1 = 0;
         long tI2 = 0;
         long tI4a = 0;
         long tI4b = 0;
@@ -236,32 +235,17 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
 
         // warm-up
         for(int i=0; i<warmups; i++) {
-            invertMatrix(p1, 0, res, 0, temp);
+            invertMatrix(p1, res, temp);
         }
         long t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
             // I0: p1 -> res
-            invertMatrix(p1, 0, res, 0, temp);
+            invertMatrix(p1, res, temp);
 
             // I0: p2 -> res
-            invertMatrix(p2, 0, res, 0, temp);
+            invertMatrix(p2, res, temp);
         }
         tI0 = Platform.currentTimeMillis() - t_0;
-
-        // warm-up
-        for(int i=0; i<warmups; i++) {
-            FloatUtil.invertMatrix(p1, 0, res, 0);
-            FloatUtil.invertMatrix(p2, 0, res, 0);
-        }
-        t_0 = Platform.currentTimeMillis();
-        for(int i=0; i<loops; i++) {
-            // I1: p1 -> res
-            FloatUtil.invertMatrix(p1, 0, res, 0);
-
-            // I1: p2 -> res
-            FloatUtil.invertMatrix(p2, 0, res, 0);
-        }
-        tI1 = Platform.currentTimeMillis() - t_0;
 
         // warm-up
         for(int i=0; i<warmups; i++) {
@@ -367,24 +351,23 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
         }
 
         System.err.printf("Summary loops %6d: I0  %6d ms total, %f us/inv%n", loops, tI0, tI0*1e3/loops);
-        System.err.printf("Summary loops %6d: I1  %6d ms total, %f us/inv, I1  / I0 %f%%%n", loops, tI1, tI1*1e3/2.0/loops, (double)tI1/(double)tI0*100.0);
-        System.err.printf("Summary loops %6d: I2  %6d ms total, %f us/inv, I2  / I1 %f%%%n", loops, tI2, tI2*1e3/2.0/loops, (double)tI2/(double)tI1*100.0);
+        System.err.printf("Summary loops %6d: I2  %6d ms total, %f us/inv, I2  / I0 %f%%%n", loops, tI2, tI2*1e3/2.0/loops, tI2/(double)tI0*100.0);
         System.err.printf("Summary loops %6d: I4a %6d ms total, %f us/inv, I4a / I2 %f%%%n", loops, tI4a, tI4a*1e3/2.0/loops, (double)tI4a/(double)tI2*100.0);
         System.err.printf("Summary loops %6d: I4b %6d ms total, %f us/inv, I4b / I2 %f%%%n", loops, tI4b, tI4b*1e3/2.0/loops, (double)tI4b/(double)tI2*100.0);
         System.err.printf("Summary loops %6d: I5a %6d ms total, %f us/inv, I5a / I2 %f%%%n", loops, tI5a, tI5a*1e3/2.0/loops, (double)tI5a/(double)tI2*100.0);
         System.err.printf("Summary loops %6d: I5b %6d ms total, %f us/inv, I5b / I2 %f%%%n", loops, tI5b, tI5b*1e3/2.0/loops, (double)tI5b/(double)tI2*100.0);
     }
 
-    public static float[] invertMatrix(final float[] msrc, final int msrc_offset, final float[] mres, final int mres_offset, final float[/*4*4*/] temp) {
+    public static float[] invertMatrix(final float[] msrc, final float[] mres, final float[/*4*4*/] temp) {
         int i, j, k, swap;
         float t;
         for (i = 0; i < 4; i++) {
             final int i4 = i*4;
             for (j = 0; j < 4; j++) {
-                temp[i4+j] = msrc[i4+j+msrc_offset];
+                temp[i4+j] = msrc[i4+j];
             }
         }
-        FloatUtil.makeIdentity(mres, mres_offset);
+        FloatUtil.makeIdentity(mres);
 
         for (i = 0; i < 4; i++) {
             final int i4 = i*4;
@@ -409,9 +392,9 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
                     temp[i4+k] = temp[swap4+k];
                     temp[swap4+k] = t;
 
-                    t = mres[i4+k+mres_offset];
-                    mres[i4+k+mres_offset] = mres[swap4+k+mres_offset];
-                    mres[swap4+k+mres_offset] = t;
+                    t = mres[i4+k];
+                    mres[i4+k] = mres[swap4+k];
+                    mres[swap4+k] = t;
                 }
             }
 
@@ -426,7 +409,7 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
             t = temp[i4+i];
             for (k = 0; k < 4; k++) {
                 temp[i4+k] /= t;
-                mres[i4+k+mres_offset] /= t;
+                mres[i4+k] /= t;
             }
             for (j = 0; j < 4; j++) {
                 if (j != i) {
@@ -434,7 +417,7 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
                     t = temp[j4+i];
                     for (k = 0; k < 4; k++) {
                         temp[j4+k] -= temp[i4+k] * t;
-                        mres[j4+k+mres_offset] -= mres[i4+k+mres_offset]*t;
+                        mres[j4+k] -= mres[i4+k]*t;
                     }
                 }
             }

@@ -38,6 +38,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GL2ES1;
 import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GL2ES3;
 import com.jogamp.opengl.GL2GL3;
 import com.jogamp.opengl.GLArrayData;
 import com.jogamp.opengl.GLES2;
@@ -54,6 +55,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.SyncBuffer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -714,7 +716,7 @@ public class FixedFuncPipeline {
                 return;
         }
         validate(gl, true);
-        if ( GL2GL3.GL_QUADS == mode && !gl.isGL2() ) {
+        if ( GL2ES3.GL_QUADS == mode && !gl.isGL2() ) {
             for (int j = first; j < count - 3; j += 4) {
                 gl.glDrawArrays(GL.GL_TRIANGLE_FAN, j, 4);
             }
@@ -724,7 +726,7 @@ public class FixedFuncPipeline {
     }
     public void glDrawElements(final GL2ES2 gl, final int mode, final int count, final int type, final java.nio.Buffer indices) {
         validate(gl, true);
-        if ( GL2GL3.GL_QUADS == mode && !gl.isGL2() ) {
+        if ( GL2ES3.GL_QUADS == mode && !gl.isGL2() ) {
             final int idx0 = indices.position();
 
             if( GL.GL_UNSIGNED_BYTE == type ) {
@@ -758,7 +760,7 @@ public class FixedFuncPipeline {
     }
     public void glDrawElements(final GL2ES2 gl, final int mode, final int count, final int type, final long indices_buffer_offset) {
         validate(gl, true);
-        if ( GL2GL3.GL_QUADS == mode && !gl.isGL2() ) {
+        if ( GL2ES3.GL_QUADS == mode && !gl.isGL2() ) {
             throw new GLException("Cannot handle indexed QUADS on !GL2 w/ VBO due to lack of CPU index access");
         } else /* if( GL.GL_POINTS != mode ) */ {
             gl.glDrawElements(mode, count, type, indices_buffer_offset);
@@ -814,12 +816,12 @@ public class FixedFuncPipeline {
         if( pmvMatrix.update() ) {
             ud = shaderState.getUniform(mgl_PMVMatrix);
             if(null!=ud) {
-                final FloatBuffer m;
+                final SyncBuffer m;
                 if(ShaderSelectionMode.COLOR_TEXTURE8_LIGHT_PER_VERTEX == currentShaderSelectionMode ||
                    ShaderSelectionMode.COLOR_LIGHT_PER_VERTEX== currentShaderSelectionMode ) {
-                    m = pmvMatrix.glGetPMvMvitMatrixf();
+                    m = pmvMatrix.getSyncPMvMvitMat();
                 } else {
-                    m = pmvMatrix.glGetPMvMatrixf();
+                    m = pmvMatrix.getSyncPMvMat();
                 }
                 if(m != ud.getBuffer()) {
                     ud.setData(m);
@@ -1111,7 +1113,7 @@ public class FixedFuncPipeline {
         shaderState.attachShaderProgram(gl, selectShaderProgram(gl, requestedShaderSelectionMode), true);
 
         // mandatory ..
-        if(!shaderState.uniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMvitMatrixf()))) {
+        if(!shaderState.uniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.getSyncPMvMvitMat()))) {
             throw new GLException("Error setting PMVMatrix in shader: "+this);
         }
 

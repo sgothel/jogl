@@ -301,13 +301,6 @@ public final class Vec2f {
         return new Vec2f(-y, x);
     }
 
-    public boolean intersects(final Vec2f o) {
-        if( Math.abs(x-o.x) >= FloatUtil.EPSILON || Math.abs(y-o.y) >= FloatUtil.EPSILON ) {
-            return false;
-        }
-        return true;
-    }
-
     /**
      * Equals check using a given {@link FloatUtil#EPSILON} value and {@link FloatUtil#isEqual(float, float, float)}.
      * <p>

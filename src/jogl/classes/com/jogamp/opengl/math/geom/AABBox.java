@@ -32,6 +32,7 @@ import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Ray;
+import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -718,41 +719,34 @@ public class AABBox {
         throw new InternalError("hashCode not designed");
     }
 
-    public AABBox transform(final AABBox result, final float[/*16*/] mat4, final int mat4_off,
-                            final float[] vec3Tmp0, final float[] vec3Tmp1) {
-        result.reset();
-        FloatUtil.multMatrixVec3(mat4, mat4_off, low.get(vec3Tmp0), vec3Tmp1);
-        result.resize(vec3Tmp1);
-
-        FloatUtil.multMatrixVec3(mat4, mat4_off, high.get(vec3Tmp0), vec3Tmp1);
-        result.resize(vec3Tmp1);
-
-        result.computeCenter();
-        return result;
+    /**
+     * Transform this box using the given {@link Matrix4f} into {@code out}
+     * @param mat transformation {@link Matrix4f}
+     * @param out the resulting {@link AABBox}
+     * @return the resulting {@link AABBox} for chaining
+     */
+    public AABBox transform(final Matrix4f mat, final AABBox out) {
+        final Vec3f tmp = new Vec3f();
+        out.reset();
+        out.resize( mat.mulVec3f(low, tmp) );
+        out.resize( mat.mulVec3f(high, tmp) );
+        out.computeCenter();
+        return out;
     }
 
-    public AABBox transformMv(final AABBox result, final PMVMatrix pmv,
-                              final float[] vec3Tmp0, final float[] vec3Tmp1) {
-        result.reset();
-        pmv.multMvMatVec3f(low.get(vec3Tmp0), vec3Tmp1);
-        result.resize(vec3Tmp1);
-
-        pmv.multMvMatVec3f(high.get(vec3Tmp0), vec3Tmp1);
-        result.resize(vec3Tmp1);
-
-        result.computeCenter();
-        return result;
-    }
-
-    public AABBox transform(final AABBox result, final Matrix4f mat,
-                            final Vec3f vec3Tmp) {
-        result.reset();
-        result.resize( mat.mulVec3f(low, vec3Tmp) );
-
-        result.resize( mat.mulVec3f(high, vec3Tmp) );
-
-        result.computeCenter();
-        return result;
+    /**
+     * Transform this box using the {@link PMVMatrix#getMvMat() modelview} of the given {@link PMVMatrix} into {@code out}
+     * @param pmv transformation {@link PMVMatrix}
+     * @param out the resulting {@link AABBox}
+     * @return the resulting {@link AABBox} for chaining
+     */
+    public AABBox transformMv(final PMVMatrix pmv, final AABBox out) {
+        final Vec3f tmp = new Vec3f();
+        out.reset();
+        out.resize( pmv.mulMvMatVec3f(low, tmp) );
+        out.resize( pmv.mulMvMatVec3f(high, tmp) );
+        out.computeCenter();
+        return out;
     }
 
     /**
@@ -771,56 +765,51 @@ public class AABBox {
      *   |          |
      *  .y() ------ [3]
      * </pre>
-     * @param mat4PMv P x Mv matrix
-     * @param view
+     * @param mat4PMv [projection] x [modelview] matrix, i.e. P x Mv
+     * @param viewport viewport rectangle
      * @param useCenterZ
      * @param vec3Tmp0 3 component vector for temp storage
      * @param vec4Tmp1 4 component vector for temp storage
      * @param vec4Tmp2 4 component vector for temp storage
      * @return
      */
-    public AABBox mapToWindow(final AABBox result, final float[/*16*/] mat4PMv, final int[] view, final boolean useCenterZ,
-                              final float[] vec3Tmp0, final float[] vec4Tmp1, final float[] vec4Tmp2) {
+    public AABBox mapToWindow(final AABBox result, final Matrix4f mat4PMv, final Recti viewport, final boolean useCenterZ) {
+        final Vec3f tmp = new Vec3f();
+        final Vec3f winPos = new Vec3f();
         {
-            // System.err.printf("AABBox.mapToWindow.0: view[%d, %d, %d, %d], this %s%n", view.x(), view.y(), view.z(), view[3], toString());
             final float objZ = useCenterZ ? center.z() : getMinZ();
-            FloatUtil.mapObjToWin(getMinX(), getMinY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
-            // System.err.printf("AABBox.mapToWindow.p1: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMinY(), objZ, vec3Tmp0.x(), vec3Tmp0.y(), vec3Tmp0.z());
-            // System.err.println("AABBox.mapToWindow.p1:");
-            // System.err.println(FloatUtil.matrixToString(null, "  mat4PMv", "%10.5f", mat4PMv, 0, 4, 4, false /* rowMajorOrder */));
-
             result.reset();
-            result.resize(vec3Tmp0);
 
-            FloatUtil.mapObjToWin(getMinX(), getMaxY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
-            // System.err.printf("AABBox.mapToWindow.p2: %f, %f, %f -> %f, %f, %f%n", getMinX(), getMaxY(), objZ, vec3Tmp0.x(), vec3Tmp0.y(), vec3Tmp0.z());
-            result.resize(vec3Tmp0);
+            Matrix4f.mapObjToWin(tmp.set(getMinX(), getMinY(), objZ), mat4PMv, viewport, winPos);
+            result.resize(winPos);
 
-            FloatUtil.mapObjToWin(getMaxX(), getMinY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
-            // System.err.printf("AABBox.mapToWindow.p3: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMinY(), objZ, vec3Tmp0.x(), vec3Tmp0.y(), vec3Tmp0.z());
-            result.resize(vec3Tmp0);
+            Matrix4f.mapObjToWin(tmp.set(getMinX(), getMaxY(), objZ), mat4PMv, viewport, winPos);
+            result.resize(winPos);
 
-            FloatUtil.mapObjToWin(getMaxX(), getMaxY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
-            // System.err.printf("AABBox.mapToWindow.p4: %f, %f, %f -> %f, %f, %f%n", getMaxX(), getMaxY(), objZ, vec3Tmp0.x(), vec3Tmp0.y(), vec3Tmp0.z());
-            result.resize(vec3Tmp0);
+            Matrix4f.mapObjToWin(tmp.set(getMaxX(), getMaxY(), objZ), mat4PMv, viewport, winPos);
+            result.resize(winPos);
+
+            Matrix4f.mapObjToWin(tmp.set(getMaxX(), getMinY(), objZ), mat4PMv, viewport, winPos);
+            result.resize(winPos);
         }
 
         if( !useCenterZ ) {
             final float objZ = getMaxZ();
-            FloatUtil.mapObjToWin(getMinX(), getMinY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
-            result.resize(vec3Tmp0);
 
-            FloatUtil.mapObjToWin(getMinX(), getMaxY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
-            result.resize(vec3Tmp0);
+            Matrix4f.mapObjToWin(tmp.set(getMinX(), getMinY(), objZ), mat4PMv, viewport, winPos);
+            result.resize(winPos);
 
-            FloatUtil.mapObjToWin(getMaxX(), getMinY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
-            result.resize(vec3Tmp0);
+            Matrix4f.mapObjToWin(tmp.set(getMinX(), getMaxY(), objZ), mat4PMv, viewport, winPos);
+            result.resize(winPos);
 
-            FloatUtil.mapObjToWin(getMaxX(), getMaxY(), objZ, mat4PMv, view, vec3Tmp0, vec4Tmp1, vec4Tmp2);
-            result.resize(vec3Tmp0);
+            Matrix4f.mapObjToWin(tmp.set(getMaxX(), getMaxY(), objZ), mat4PMv, viewport, winPos);
+            result.resize(winPos);
+
+            Matrix4f.mapObjToWin(tmp.set(getMaxX(), getMinY(), objZ), mat4PMv, viewport, winPos);
+            result.resize(winPos);
         }
         if( DEBUG ) {
-            System.err.printf("AABBox.mapToWindow: view[%d, %d], this %s -> %s%n", view[0], view[1], toString(), result.toString());
+            System.err.printf("AABBox.mapToWindow: view[%s], this %s -> %s%n", viewport, toString(), result.toString());
         }
         return result;
     }

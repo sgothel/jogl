@@ -72,6 +72,7 @@ public class LandscapeES2 implements GLEventListener {
 
     public void setVerbose(final boolean v) { verbose = v; }
 
+    @Override
     public void init(final GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" LandscapeES2.init ...");
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -123,6 +124,7 @@ public class LandscapeES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" LandscapeES2.init FIN");
     }
 
+    @Override
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         System.err.println(Thread.currentThread()+" LandscapeES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
 
@@ -139,6 +141,7 @@ public class LandscapeES2 implements GLEventListener {
         shaderState.useProgram(gl, false);
     }
 
+    @Override
     public void dispose(final GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" LandscapeES2.dispose ... ");
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -149,6 +152,7 @@ public class LandscapeES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" LandscapeES2.dispose FIN");
     }
 
+    @Override
     public void display(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         // Shader fills complete framebuffer regardless of DEPTH, no Clear required.

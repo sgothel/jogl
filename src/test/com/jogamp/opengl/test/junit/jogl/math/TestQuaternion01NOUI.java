@@ -28,8 +28,6 @@
 
 package com.jogamp.opengl.test.junit.jogl.math;
 
-import java.util.Arrays;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
@@ -288,13 +286,13 @@ public class TestQuaternion01NOUI extends JunitTracer {
             {
                 // quat.toMatrix(float[])
                 final float[] mat2_0 = new float[16];
-                quat.toMatrix(mat2_0, 0);
+                quat.toMatrix(mat2_0);
                 Assert.assertArrayEquals(mat1_0, mat2_0, FloatUtil.EPSILON);
             }
             {
                 // quat.toMatrix(float[]) and Matrix4f.load()
                 final float[] mat2_0 = new float[16];
-                quat.toMatrix(mat2_0, 0);
+                quat.toMatrix(mat2_0);
                 Assert.assertArrayEquals(mat1_0, mat2_0, FloatUtil.EPSILON);
                 mat2.load(mat2_0);
                 Assert.assertEquals(mat1, mat2);
@@ -327,7 +325,7 @@ public class TestQuaternion01NOUI extends JunitTracer {
             final float[] vecHas_0 = new float[3];
             vecHas.get(vecHas_0);
             final float[] mat2_0 = new float[16];
-            quat.toMatrix(mat2_0, 0);
+            quat.toMatrix(mat2_0);
             final float[] NEG_ONE_0 = new float[3];
             NEG_ONE.get(NEG_ONE_0);
             final float[] vecOut3_0 = new float[3];
@@ -350,7 +348,7 @@ public class TestQuaternion01NOUI extends JunitTracer {
             final float[] vecHas_0 = new float[4];
             vecHas.get(vecHas_0); // w is 0
             final float[] mat2_0 = new float[16];
-            quat.toMatrix(mat2_0, 0);
+            quat.toMatrix(mat2_0);
             final float[] NEG_ONE_v4_0 = new float[4];
             NEG_ONE_v4.get(NEG_ONE_v4_0);
             final float[] vecOut4_0 = new float[4];
@@ -509,13 +507,6 @@ public class TestQuaternion01NOUI extends JunitTracer {
         final Vec3f eulerExp = new Vec3f ( 0f, FloatUtil.HALF_PI, 0f ); // 45 degr on X, 90 degr on Y
         final Matrix4f matExp1 = new Matrix4f();
         matExp1.setToRotationEuler(eulerExp.x(), eulerExp.y(), eulerExp.z());
-        {
-            final float[] matExp0 = new float[4*4];
-            FloatUtil.makeRotationEuler(matExp0, 0, eulerExp.x(), eulerExp.y(), eulerExp.z());
-            final Matrix4f matExp0b = new Matrix4f();
-            matExp0b.load(matExp0);
-            Assert.assertEquals(matExp0b, matExp1);
-        }
 
         final Matrix4f matHas = new Matrix4f();;
         final Quaternion quat1 = new Quaternion();
@@ -545,17 +536,6 @@ public class TestQuaternion01NOUI extends JunitTracer {
         final Vec3f eulerExp = new Vec3f(FloatUtil.HALF_PI, 0f, 0f);
         final Matrix4f matExp = new Matrix4f();
         matExp.setToRotationEuler(eulerExp.x(), eulerExp.y(), eulerExp.z()); // 45 degr on X, 90 degr on Y (?)
-        {
-            final float[] matExp_b0 = new float[4*4];
-            FloatUtil.makeRotationEuler(matExp_b0, 0, eulerExp.x(), eulerExp.y(), eulerExp.z());
-            final Matrix4f matExp_b = new Matrix4f();
-            matExp_b.load(matExp_b0);
-            Assert.assertEquals(matExp_b, matExp);
-
-            final float[] matExp_b1 = new float[16];
-            matExp.get(matExp_b1);
-            Assert.assertArrayEquals(matExp_b0, matExp_b1, FloatUtil.EPSILON);
-        }
 
         final Matrix4f matHas = new Matrix4f();
         final Quaternion quat1 = new Quaternion();
@@ -588,25 +568,6 @@ public class TestQuaternion01NOUI extends JunitTracer {
 
         final Matrix4f matExp = new Matrix4f();
         matExp.setToRotationEuler(eulerExp1.x(), eulerExp1.y(), eulerExp1.z());
-        {
-            final float[] matExp_b0 = new float[4*4];
-            FloatUtil.makeRotationEuler(matExp_b0, 0, eulerExp1.x(), eulerExp1.y(), eulerExp1.z());
-            final Matrix4f matExp_b = new Matrix4f();
-            matExp_b.load(matExp_b0);
-            Assert.assertEquals(matExp_b, matExp);
-
-            final float[] matExp_b1 = new float[16];
-            matExp.get(matExp_b1);
-            Assert.assertArrayEquals(matExp_b0, matExp_b1, FloatUtil.EPSILON);
-
-            matExp.get(matExp_b0);
-            final Quaternion quat2 = new Quaternion();
-            quat2.setFromMatrix(matExp);
-            quat2.toMatrix(matExp_b1, 0);
-            Assert.assertArrayEquals(matExp_b0, matExp_b1, FloatUtil.EPSILON);
-            quat2.toMatrix(matExp_b);
-            Assert.assertEquals(matExp, matExp_b);
-        }
 
         final Matrix4f matHas = new Matrix4f();
         final Quaternion quat1 = new Quaternion();

@@ -87,7 +87,7 @@ public class GLSLTextureRaster  {
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat()); // P, Mv
         if( pmvMatrixUniform.setLocation(gl, sp.program()) < 0 ) {
             throw new GLException("Couldn't locate "+pmvMatrixUniform+" in shader: "+sp);
         }

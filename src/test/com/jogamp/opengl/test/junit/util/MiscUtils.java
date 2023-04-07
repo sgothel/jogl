@@ -40,7 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.jogamp.opengl.GLContext;
-
+import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.InterruptSource;
 
@@ -130,7 +130,6 @@ public class MiscUtils {
             }
         }
     }
-
     public static void assertFloatBufferNotEqual(final String errmsg, final FloatBuffer expected, final FloatBuffer actual, final float delta) {
         if(null == expected || null == actual) {
             return;
@@ -144,6 +143,45 @@ public class MiscUtils {
         for(int i=0; i<expected.remaining(); i++) {
             final float ai = expected.get(a0 + i);
             final float bi = actual.get(b0 + i);
+            final float daibi = Math.abs(ai - bi);
+            if( daibi > delta ) {
+                return;
+            }
+        }
+        throw new AssertionError(msg+"; Expected and actual are equal.");
+    }
+
+    public static void assertMatrix4fEquals(final Matrix4f expected, final Matrix4f actual, final float delta) {
+        assertMatrix4fEquals(null, expected, actual, delta);
+    }
+    public static void assertMatrix4fEquals(final String errmsg, final Matrix4f expected, final Matrix4f actual, final float delta) {
+        if(null == expected && null == actual) {
+            return;
+        }
+        final String msg = null != errmsg ? errmsg + " " : "";
+        if(null == expected) {
+            throw new AssertionError(msg+"; Expected is null, but actual not: "+actual);
+        }
+        if(null == actual) {
+            throw new AssertionError(msg+"; Actual is null, but expected not: "+expected);
+        }
+        for(int i=0; i<16; i++) {
+            final float ai = expected.get(i);
+            final float bi = actual.get(i);
+            final float daibi = Math.abs(ai - bi);
+            if( daibi > delta ) {
+                throw new AssertionError(msg+"; Expected @ ["+i+"] has "+ai+", but actual @ ["+i+"] has "+bi+", it's delta "+daibi+" > "+delta);
+            }
+        }
+    }
+    public static void assertMatrix4fNotEqual(final String errmsg, final Matrix4f expected, final Matrix4f actual, final float delta) {
+        if(null == expected || null == actual) {
+            return;
+        }
+        final String msg = null != errmsg ? errmsg + " " : "";
+        for(int i=0; i<16; i++) {
+            final float ai = expected.get(i);
+            final float bi = actual.get(i);
             final float daibi = Math.abs(ai - bi);
             if( daibi > delta ) {
                 return;

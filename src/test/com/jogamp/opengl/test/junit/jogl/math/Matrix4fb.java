@@ -971,7 +971,7 @@ public class Matrix4fb {
      * @param q the Quaternion representing the rotation
      * @return this matrix for chaining
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q54">Matrix-FAQ Q54</a>
-     * @see Quaternion#toMatrix(float[], int)
+     * @see Quaternion#toMatrix(float[])
      * @see #getRotation()
      */
     public final Matrix4fb setToRotation(final Quaternion q) {

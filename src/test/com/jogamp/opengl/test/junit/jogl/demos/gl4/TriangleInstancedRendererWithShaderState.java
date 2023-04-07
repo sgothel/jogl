@@ -18,6 +18,7 @@ import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.TraceGL4;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.Matrix4f;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.GLArrayDataClient;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -102,7 +103,7 @@ public class TriangleInstancedRendererWithShaderState implements GLEventListener
 
 		initShader(gl);
         projectionMatrix = new PMVMatrix();
-		projectionMatrixUniform = new GLUniformData("mgl_PMatrix", 4, 4, projectionMatrix.glGetPMatrixf());
+		projectionMatrixUniform = new GLUniformData("mgl_PMatrix", 4, 4, projectionMatrix.getSyncPMat());
 		st.ownUniform(projectionMatrixUniform);
         if(!st.uniform(gl, projectionMatrixUniform)) {
             throw new GLException("Error setting mgl_PMatrix in shader: " + st);
@@ -170,7 +171,7 @@ public class TriangleInstancedRendererWithShaderState implements GLEventListener
 		projectionMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 		projectionMatrix.glLoadIdentity();
 		projectionMatrix.gluPerspective(45, aspect, 0.001f, 20f);
-		projectionMatrix.gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
+		projectionMatrix.gluLookAt(new Vec3f(0, 0, -10), new Vec3f(0, 0, 0), new Vec3f(0, 1, 0));
 	}
 
 	@Override

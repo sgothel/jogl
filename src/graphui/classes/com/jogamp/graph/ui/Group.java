@@ -159,7 +159,7 @@ public class Group extends Shape implements Container {
                 pmv.glPushMatrix();
                 shape.setTransform(pmv);
 
-                if( !doFrustumCulling || !pmv.glGetFrustum().isAABBoxOutside( shape.getBounds() ) ) {
+                if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
                     if( null == rgba ) {
                         shape.drawToSelect(gl, renderer, sampleCount);
                     } else {
@@ -177,8 +177,6 @@ public class Group extends Shape implements Container {
             layout();
             final PMVMatrix pmv = new PMVMatrix();
             final AABBox tmpBox = new AABBox();
-            final float[] vec3Tmp0 = new float[3];
-            final float[] vec3Tmp1 = new float[3];
             for(final Shape s : shapes) {
                 // s.validateImpl(glp, gl);
                 if( null != gl ) {
@@ -188,7 +186,7 @@ public class Group extends Shape implements Container {
                 }
                 pmv.glPushMatrix();
                 s.setTransform(pmv);
-                s.getBounds().transformMv(tmpBox, pmv, vec3Tmp0, vec3Tmp0);
+                s.getBounds().transformMv(pmv, tmpBox);
                 pmv.glPopMatrix();
                 box.resize(tmpBox);
             }
@@ -218,10 +216,8 @@ public class Group extends Shape implements Container {
         if( null == shape ) {
             return res;
         }
-        final float[] vec3Tmp0 = new float[3];
-        final float[] vec3Tmp1 = new float[3];
         forOne(pmv, shape, () -> {
-            shape.getBounds().transformMv(res, pmv, vec3Tmp0, vec3Tmp1);
+            shape.getBounds().transformMv(pmv, res);
         });
         return res;
     }

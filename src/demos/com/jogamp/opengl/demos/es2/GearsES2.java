@@ -233,7 +233,7 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
 
         pmvMatrix = new PMVMatrix();
         st.attachObject("pmvMatrix", pmvMatrix);
-        pmvMatrixUniform = new GLUniformData("pmvMatrix", 4, 4, pmvMatrix.glGetPMvMvitMatrixf()); // P, Mv, Mvi and Mvit
+        pmvMatrixUniform = new GLUniformData("pmvMatrix", 4, 4, pmvMatrix.getSyncPMvMvitMat()); // P, Mv, Mvi and Mvit
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 

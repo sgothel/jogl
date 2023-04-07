@@ -62,6 +62,7 @@ public class DemoGL2ES2ImmModeSink implements GLEventListener {
         pmvMatrix = new PMVMatrix();
     }
 
+    @Override
     public void init(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
 
@@ -88,7 +89,7 @@ public class DemoGL2ES2ImmModeSink implements GLEventListener {
             sp.useProgram(gl, true);
         }
 
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat().getSyncFloats());
         if(null != st) {
             st.ownUniform(pmvMatrixUniform);
             st.uniform(gl, pmvMatrixUniform);
@@ -139,6 +140,7 @@ public class DemoGL2ES2ImmModeSink implements GLEventListener {
         }
     }
 
+    @Override
     public void dispose(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         ims.destroy(gl);
@@ -148,6 +150,7 @@ public class DemoGL2ES2ImmModeSink implements GLEventListener {
         }
     }
 
+    @Override
     public void display(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -165,6 +168,7 @@ public class DemoGL2ES2ImmModeSink implements GLEventListener {
     }
 
     // Unused routines
+    @Override
     public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
         System.err.println("reshape ..");
         final GL2ES2 gl = glad.getGL().getGL2ES2();

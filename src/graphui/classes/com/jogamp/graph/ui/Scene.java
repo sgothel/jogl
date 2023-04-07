@@ -60,6 +60,8 @@ import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Ray;
+import com.jogamp.opengl.math.Recti;
+import com.jogamp.opengl.math.Vec2f;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLPixelStorageModes;
@@ -178,7 +180,7 @@ public final class Scene implements Container, GLEventListener {
     /** Returns the {@link GL#glClear(int) glClear(..)} mask, see {@link #setClearParams(float[], int)}. */
     public final int getClearMask() { return clearMask; }
 
-    /** Enable or disable {@link PMVMatrix#glGetFrustum()} culling per {@link Shape}. Default is disabled. */
+    /** Enable or disable {@link PMVMatrix#getFrustum()} culling per {@link Shape}. Default is disabled. */
     public final void setFrustumCullingEnabled(final boolean v) { doFrustumCulling = v; }
 
     /** Return whether {@link #setFrustumCullingEnabled(boolean) frustum culling} is enabled. */
@@ -324,8 +326,8 @@ public final class Scene implements Container, GLEventListener {
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         renderer.reshapeNotify(x, y, width, height);
 
-        setupMatrix(renderer.getMatrix(), x, y, width, height);
-        pmvMatrixSetup.setPlaneBox(planeBox, renderer.getMatrix(), x, y, width, height);
+        setupMatrix(renderer.getMatrix(), renderer.getViewport());
+        pmvMatrixSetup.setPlaneBox(planeBox, renderer.getMatrix(), renderer.getViewport());
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -374,7 +376,7 @@ public final class Scene implements Container, GLEventListener {
                 pmv.glPushMatrix();
                 shape.setTransform(pmv);
 
-                if( !doFrustumCulling || !pmv.glGetFrustum().isAABBoxOutside( shape.getBounds() ) ) {
+                if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
                     if( glSelect ) {
                         final float color = ( i + 1f ) / ( shapeCount + 2f );
                         // FIXME
@@ -452,7 +454,7 @@ public final class Scene implements Container, GLEventListener {
      * <p>
      * Method performs on current thread and returns after probing every {@link Shape}.
      * </p>
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
      *            {@link Shape#setTransform(PMVMatrix) shape-transformed} and can be reused by the caller and runnable.
      * @param glWinX window X coordinate, bottom-left origin
      * @param glWinY window Y coordinate, bottom-left origin
@@ -471,7 +473,7 @@ public final class Scene implements Container, GLEventListener {
             gl.glReadPixels( x, y, 1, 1, GL2ES2.GL_DEPTH_COMPONENT, GL.GL_FLOAT, winZRB);
             winZ1 = winZRB.get(0); // dir
         */
-        final int[] viewport = getViewport();
+        final Recti viewport = getViewport();
         final Ray ray = new Ray();
         shape[0] = null;
 
@@ -494,9 +496,6 @@ public final class Scene implements Container, GLEventListener {
         });
         return shape[0];
     }
-    private final float[] dpyTmp1V3 = new float[3];
-    private final float[] dpyTmp2V3 = new float[3];
-    private final float[] dpyTmp3V3 = new float[3];
 
     /**
      * Attempt to pick a {@link Shape} using the OpenGL false color rendering.
@@ -579,7 +578,7 @@ public final class Scene implements Container, GLEventListener {
      * @param shape
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
      *            {@link Shape#setTransform(PMVMatrix) shape-transformed} and can be reused by the caller and runnable.
      * @param objPos resulting object position
      * @param runnable action
@@ -588,7 +587,7 @@ public final class Scene implements Container, GLEventListener {
         if( null == shape ) {
             return;
         }
-        final int[] viewport = getViewport();
+        final Recti viewport = getViewport();
         setupMatrix(pmv);
         forOne(pmv, shape, () -> {
             if( null != shape.winToShapeCoord(pmv, viewport, glWinX, glWinY, objPos) ) {
@@ -605,7 +604,7 @@ public final class Scene implements Container, GLEventListener {
         }
         setupMatrix(pmv);
         forOne(pmv, shape, () -> {
-            shape.getBounds().transformMv(res, pmv, new float[3], new float[3]);
+            shape.getBounds().transformMv(pmv, res);
         });
         return res;
     }
@@ -660,7 +659,7 @@ public final class Scene implements Container, GLEventListener {
     }
 
     /**
-     * Interface providing {@link #set(PMVMatrix, int, int, int, int) a method} to
+     * Interface providing {@link #set(PMVMatrix, Recti) a method} to
      * setup {@link PMVMatrix}'s {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}.
      * <p>
      * At the end of operations, the {@link GLMatrixFunc#GL_MODELVIEW} matrix has to be selected.
@@ -699,26 +698,20 @@ public final class Scene implements Container, GLEventListener {
          * At the end of operations, the {@link GLMatrixFunc#GL_MODELVIEW} matrix is selected.
          * </p>
          * @param pmv the {@link PMVMatrix} to setup
-         * @param x lower left corner of the viewport rectangle
-         * @param y lower left corner of the viewport rectangle
-         * @param width width of the viewport rectangle
-         * @param height height of the viewport rectangle
+         * @param viewport Rect4i viewport
          */
-        void set(PMVMatrix pmv, final int x, final int y, final int width, final int height);
+        void set(PMVMatrix pmv, Recti viewport);
 
         /**
          * Optional method to set the {@link Scene#getBounds()} {@link AABBox}, maybe a {@code nop} if not desired.
          * <p>
-         * Will be called by {@link Scene#reshape(GLAutoDrawable, int, int, int, int)} after {@link #set(PMVMatrix, int, int, int, int)}.
+         * Will be called by {@link Scene#reshape(GLAutoDrawable, int, int, int, int)} after {@link #set(PMVMatrix, Recti)}.
          * </p>
          * @param planeBox the {@link AABBox} to define
-         * @param pmv the {@link PMVMatrix}, already setup via {@link #set(PMVMatrix, int, int, int, int)}.
-         * @param x lower left corner of the viewport rectangle
-         * @param y lower left corner of the viewport rectangle
-         * @param width width of the viewport rectangle
-         * @param height height of the viewport rectangle
+         * @param pmv the {@link PMVMatrix}, already setup via {@link #set(PMVMatrix, Recti)}.
+         * @param viewport Rect4i viewport
          */
-        void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, int x, int y, final int width, final int height);
+        void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, Recti viewport);
     }
 
     /** Return the default or {@link #setPMVMatrixSetup(PMVMatrixSetup)} {@link PMVMatrixSetup}. */
@@ -732,32 +725,29 @@ public final class Scene implements Container, GLEventListener {
 
     /**
      * Setup {@link PMVMatrix} {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}
-     * by calling {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#set(PMVMatrix, int, int, int, int)}.
+     * by calling {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#set(PMVMatrix, Recti)}.
      * @param pmv the {@link PMVMatrix} to setup
-     * @param x lower left corner of the viewport rectangle
-     * @param y lower left corner of the viewport rectangle
-     * @param width width of the viewport rectangle
-     * @param height height of the viewport rectangle
+     * @param Recti viewport
      */
-    public void setupMatrix(final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
-        pmvMatrixSetup.set(pmv, x, y, width, height);
+    public void setupMatrix(final PMVMatrix pmv, final Recti viewport) {
+        pmvMatrixSetup.set(pmv, viewport);
     }
 
     /**
      * Setup {@link PMVMatrix} {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}
-     * using implicit {@link #getViewport()} surface dimension by calling {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#set(PMVMatrix, int, int, int, int)}.
+     * using implicit {@link #getViewport()} surface dimension by calling {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#set(PMVMatrix, Recti)}.
      * @param pmv the {@link PMVMatrix} to setup
      */
     public void setupMatrix(final PMVMatrix pmv) {
-        final int[] viewport = renderer.getViewport();
-        setupMatrix(pmv, viewport[0], viewport[1], viewport[2], viewport[3]);
+        final Recti viewport = renderer.getViewport();
+        setupMatrix(pmv, viewport);
     }
 
     /** Copies the current int[4] viewport in given target and returns it for chaining. It is set after initial {@link #reshape(GLAutoDrawable, int, int, int, int)}. */
-    public final int[/*4*/] getViewport(final int[/*4*/] target) { return renderer.getViewport(target); }
+    public final Recti getViewport(final Recti target) { return renderer.getViewport(target); }
 
     /** Borrows the current int[4] viewport w/o copying. It is set after initial {@link #reshape(GLAutoDrawable, int, int, int, int)}. */
-    public int[/*4*/] getViewport() { return renderer.getViewport(); }
+    public Recti getViewport() { return renderer.getViewport(); }
 
     /** Returns the {@link #getViewport()}'s width, set after initial {@link #reshape(GLAutoDrawable, int, int, int, int)}. */
     public int getWidth() { return renderer.getWidth(); }
@@ -776,7 +766,7 @@ public final class Scene implements Container, GLEventListener {
      * {@link AABBox#getWidth()} and {@link AABBox#getHeight()} define scene's dimension covered by surface size.
      * </p>
      * <p>
-     * {@link AABBox} is setup via {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#setPlaneBox(AABBox, PMVMatrix, int, int, int, int)}.
+     * {@link AABBox} is setup via {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#setPlaneBox(AABBox, PMVMatrix, Recti)}.
      * </p>
      * <p>
      * The default {@link PMVMatrixSetup} implementation scales to normalized plane dimensions, 1 for the greater of width and height.
@@ -796,12 +786,12 @@ public final class Scene implements Container, GLEventListener {
      * @param objPos float[3] storage for object coord result
      * @param winZ
      */
-    public static void winToPlaneCoord(final PMVMatrix pmv, final int[] viewport,
+    public static void winToPlaneCoord(final PMVMatrix pmv, final Recti viewport,
                                        final float zNear, final float zFar,
                                        final float winX, final float winY, final float objOrthoZ,
-                                       final float[] objPos) {
+                                       final Vec3f objPos) {
         final float winZ = FloatUtil.getOrthoWinZ(objOrthoZ, zNear, zFar);
-        pmv.gluUnProject(winX, winY, winZ, viewport, 0, objPos, 0);
+        pmv.gluUnProject(winX, winY, winZ, viewport, objPos);
     }
 
     /**
@@ -811,19 +801,19 @@ public final class Scene implements Container, GLEventListener {
      * @param zNear custom {@link #DEFAULT_ZNEAR}
      * @param zFar custom {@link #DEFAULT_ZFAR}
      * @param objOrthoDist custom {@link #DEFAULT_SCENE_DIST}
-     * @param objSceneSize float[2] storage for object surface size result
+     * @param objSceneSize Vec2f storage for object surface size result
      */
-    public void surfaceToPlaneSize(final int[] viewport, final float zNear, final float zFar, final float objOrthoDist, final float[/*2*/] objSceneSize) {
+    public void surfaceToPlaneSize(final Recti viewport, final float zNear, final float zFar, final float objOrthoDist, final Vec2f objSceneSize) {
         final PMVMatrix pmv = new PMVMatrix();
-        setupMatrix(pmv, viewport[0], viewport[1], viewport[2], viewport[3]);
+        setupMatrix(pmv, viewport);
         {
-            final float[] obj00Coord = new float[3];
-            final float[] obj11Coord = new float[3];
+            final Vec3f obj00Coord = new Vec3f();
+            final Vec3f obj11Coord = new Vec3f();
 
-            winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, viewport[0], viewport[1], objOrthoDist, obj00Coord);
-            winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, viewport[2], viewport[3], objOrthoDist, obj11Coord);
-            objSceneSize[0] = obj11Coord[0] - obj00Coord[0];
-            objSceneSize[1] = obj11Coord[1] - obj00Coord[1];
+            winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, viewport.x(), viewport.y(), objOrthoDist, obj00Coord);
+            winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, viewport.width(), viewport.height(), objOrthoDist, obj11Coord);
+            objSceneSize.set( obj11Coord.x() - obj00Coord.x(),
+                              obj11Coord.y() - obj00Coord.y() );
         }
     }
 
@@ -831,9 +821,9 @@ public final class Scene implements Container, GLEventListener {
      * Map given window surface-size to object coordinates relative to this scene using
      * the default {@link PMVMatrixSetup}, i.e. {@link #DEFAULT_ZNEAR}, {@link #DEFAULT_ZFAR} and {@link #DEFAULT_SCENE_DIST}
      * @param viewport viewport rectangle
-     * @param objSceneSize float[2] storage for object surface size result
+     * @param objSceneSize Vec2f storage for object surface size result
      */
-    public void surfaceToPlaneSize(final int[] viewport, final float[/*2*/] objSceneSize) {
+    public void surfaceToPlaneSize(final Recti viewport, final Vec2f objSceneSize) {
         surfaceToPlaneSize(viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, -DEFAULT_SCENE_DIST, objSceneSize);
     }
 
@@ -1090,8 +1080,8 @@ public final class Scene implements Container, GLEventListener {
 
     private static final PMVMatrixSetup defaultPMVMatrixSetup = new PMVMatrixSetup() {
         @Override
-        public void set(final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
-            final float ratio = (float)width/(float)height;
+        public void set(final PMVMatrix pmv, final Recti viewport) {
+            final float ratio = (float)viewport.width()/(float)viewport.height();
             pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmv.glLoadIdentity();
             pmv.gluPerspective(DEFAULT_ANGLE, ratio, DEFAULT_ZNEAR, DEFAULT_ZFAR);
@@ -1102,7 +1092,7 @@ public final class Scene implements Container, GLEventListener {
 
             // Scale (back) to have normalized plane dimensions, 1 for the greater of width and height.
             final AABBox planeBox0 = new AABBox();
-            setPlaneBox(planeBox0, pmv, x, y, width, height);
+            setPlaneBox(planeBox0, pmv, viewport);
             final float sx = planeBox0.getWidth();
             final float sy = planeBox0.getHeight();
             final float sxy = sx > sy ? sx : sy;
@@ -1112,21 +1102,15 @@ public final class Scene implements Container, GLEventListener {
         }
 
         @Override
-        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
+        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final Recti viewport) {
                 final float orthoDist = -DEFAULT_SCENE_DIST;
-                final float[] obj00Coord = new float[3];
-                final float[] obj11Coord = new float[3];
-                final int[] viewport = { x, y, width, height };
+                final Vec3f obj00Coord = new Vec3f();
+                final Vec3f obj11Coord = new Vec3f();
 
-                winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, x, y, orthoDist, obj00Coord);
-                winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, width, height, orthoDist, obj11Coord);
+                winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, viewport.x(), viewport.y(), orthoDist, obj00Coord);
+                winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, viewport.width(), viewport.height(), orthoDist, obj11Coord);
 
-                planeBox.setSize( obj00Coord[0],  // lx
-                                  obj00Coord[1],  // ly
-                                  obj00Coord[2],  // lz
-                                  obj11Coord[0],  // hx
-                                  obj11Coord[1],  // hy
-                                  obj11Coord[2] );// hz            }
+                planeBox.setSize( obj00Coord, obj11Coord );
         }
     };
     private PMVMatrixSetup pmvMatrixSetup = defaultPMVMatrixSetup;

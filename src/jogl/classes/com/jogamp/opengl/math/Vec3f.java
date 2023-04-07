@@ -312,14 +312,6 @@ public final class Vec3f {
         return (float) Math.acos( cosAngle(o) );
     }
 
-    public boolean intersects(final Vec3f o) {
-        if( Math.abs(x-o.x) >= FloatUtil.EPSILON || Math.abs(y-o.y) >= FloatUtil.EPSILON || Math.abs(z-o.z) >= FloatUtil.EPSILON ) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     /**
      * Equals check using a given {@link FloatUtil#EPSILON} value and {@link FloatUtil#isEqual(float, float, float)}.
      * <p>

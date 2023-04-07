@@ -121,9 +121,43 @@ public class Matrix4f {
         load(m, m_off);
     }
 
+    /**
+     * Creates a new matrix based on given {@link FloatBuffer} 4x4 column major order.
+     * @param m 4x4 matrix in column-major order
+     */
+    public Matrix4f(final FloatBuffer m) {
+        load(m);
+    }
+
     //
-    // Write to Matrix via load(..)
+    // Write to Matrix via set(..) or load(..)
     //
+
+    /** Sets the {@code i}th component with float {@code v} 0 <= i < 16 */
+    public void set(final int i, final float v) {
+        switch (i) {
+            case 0+4*0: m00 = v; break;
+            case 1+4*0: m10 = v; break;
+            case 2+4*0: m20 = v; break;
+            case 3+4*0: m30 = v; break;
+
+            case 0+4*1: m01 = v; break;
+            case 1+4*1: m11 = v; break;
+            case 2+4*1: m21 = v; break;
+            case 3+4*1: m31 = v; break;
+
+            case 0+4*2: m02 = v; break;
+            case 1+4*2: m12 = v; break;
+            case 2+4*2: m22 = v; break;
+            case 3+4*2: m32 = v; break;
+
+            case 0+4*3: m03 = v; break;
+            case 1+4*3: m13 = v; break;
+            case 2+4*3: m23 = v; break;
+            case 3+4*3: m33 = v; break;
+            default: throw new IndexOutOfBoundsException();
+        }
+    }
 
     /**
      * Set this matrix to identity.
@@ -242,7 +276,7 @@ public class Matrix4f {
     // Read out Matrix via get(..)
     //
 
-    /** Gets the ith component, 0 <= i < 16 */
+    /** Gets the {@code i}th component, 0 <= i < 16 */
     public float get(final int i) {
         switch (i) {
             case 0+4*0: return m00;
@@ -686,10 +720,6 @@ public class Matrix4f {
 
     /**
      * Multiply matrix: [this] = [this] x [b]
-     * <p>
-     * Roughly 15% slower than {@link #mul(Matrix4f, Matrix4f)}
-     * Roughly  3% slower than {@link FloatUtil#multMatrix(float[], float[])}
-     * </p>
      * @param b 4x4 matrix
      * @return this matrix for chaining
      * @see #mul(Matrix4f, Matrix4f)
@@ -736,10 +766,6 @@ public class Matrix4f {
 
     /**
      * Multiply matrix: [this] = [a] x [b]
-     * <p>
-     * Roughly 13% faster than {@link #mul(Matrix4f)}
-     * Roughly 11% faster than {@link FloatUtil#multMatrix(float[], float[])}
-     * </p>
      * @param a 4x4 matrix, can't be this matrix
      * @param b 4x4 matrix, can't be this matrix
      * @return this matrix for chaining
@@ -778,21 +804,6 @@ public class Matrix4f {
      * @param v_out this * v_in
      * @returns v_out for chaining
      */
-    public final float[] mulVec4f(final float[/*4*/] v_in, final float[/*4*/] v_out) {
-        // (one matrix row in column-major order) X (column vector)
-        final float x = v_in[0], y = v_in[1], z = v_in[2], w = v_in[3];
-        v_out[0] = x * m00 + y * m01 + z * m02 + w * m03;
-        v_out[1] = x * m10 + y * m11 + z * m12 + w * m13;
-        v_out[2] = x * m20 + y * m21 + z * m22 + w * m23;
-        v_out[3] = x * m30 + y * m31 + z * m32 + w * m33;
-        return v_out;
-    }
-
-    /**
-     * @param v_in 4-component column-vector
-     * @param v_out this * v_in
-     * @returns v_out for chaining
-     */
     public final Vec4f mulVec4f(final Vec4f v_in, final Vec4f v_out) {
         // (one matrix row in column-major order) X (column vector)
         final float x = v_in.x(), y = v_in.y(), z = v_in.z(), w = v_in.w();
@@ -800,26 +811,6 @@ public class Matrix4f {
                    x * m10 + y * m11 + z * m12 + w * m13,
                    x * m20 + y * m21 + z * m22 + w * m23,
                    x * m30 + y * m31 + z * m32 + w * m33 );
-        return v_out;
-    }
-
-    /**
-     * Affine 3f-vector transformation by 4x4 matrix
-     *
-     * 4x4 matrix multiplication with 3-component vector,
-     * using {@code 1} for for {@code v_in[3]} and dropping {@code v_out[3]},
-     * which shall be {@code 1}.
-     *
-     * @param v_in 3-component column-vector
-     * @param v_out m_in * v_in, 3-component column-vector
-     * @returns v_out for chaining
-     */
-    public final float[] mulVec3f(final float[/*3*/] v_in, final float[/*3*/] v_out) {
-        // (one matrix row in column-major order) X (column vector)
-        final float x = v_in[0], y = v_in[1], z = v_in[2];
-        v_out[0] = x * m00 + y * m01 + z * m02 + 1f * m03;
-        v_out[1] = x * m10 + y * m11 + z * m12 + 1f * m13;
-        v_out[2] = x * m20 + y * m21 + z * m22 + 1f * m23;
         return v_out;
     }
 
@@ -916,6 +907,22 @@ public class Matrix4f {
     }
 
     /**
+     * Set this matrix to scale.
+     * <pre>
+      Scale matrix (Any Order):
+      x 0 0 0
+      0 y 0 0
+      0 0 z 0
+      0 0 0 1
+     * </pre>
+     * @param s scale Vec3f
+     * @return this matrix for chaining
+     */
+    public final Matrix4f setToScale(final Vec3f s) {
+        return setToScale(s.x(), s.y(), s.z());
+    }
+
+    /**
      * Set this matrix to rotation from the given axis and angle in radians.
      * <pre>
         Rotation matrix (Column Order):
@@ -936,9 +943,8 @@ public class Matrix4f {
         final float ic= 1.0f - c;
         final float s = FloatUtil.sin(ang_rad);
 
-        final float[] tmpVec3f = { x, y, z };
-        VectorUtil.normalizeVec3(tmpVec3f);
-        x = tmpVec3f[0]; y = tmpVec3f[1]; z = tmpVec3f[2];
+        final Vec3f tmp = new Vec3f(x, y, z).normalize();
+        x = tmp.x(); y = tmp.y(); z = tmp.z();
 
         final float xy = x*y;
         final float xz = x*z;
@@ -1043,6 +1049,31 @@ public class Matrix4f {
     }
 
     /**
+     * Set this matrix to rotation from the given Euler rotation angles in radians.
+     * <p>
+     * The rotations are applied in the given order:
+     * <ul>
+     *  <li>y - heading</li>
+     *  <li>z - attitude</li>
+     *  <li>x - bank</li>
+     * </ul>
+     * </p>
+     * @param angradXYZ euler angle vector in radians holding x-bank, y-heading and z-attitude
+     * @return this quaternion for chaining.
+     * <p>
+     * Implementation does not use Quaternion and hence is exposed to
+     * <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q34">Gimbal-Lock</a>,
+     * consider using {@link #setToRotation(Quaternion)}.
+     * </p>
+     * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q36">Matrix-FAQ Q36</a>
+     * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToMatrix/index.htm">euclideanspace.com-eulerToMatrix</a>
+     * @see #setToRotation(Quaternion)
+     */
+    public Matrix4f setToRotationEuler(final Vec3f angradXYZ) {
+        return setToRotationEuler(angradXYZ.x(), angradXYZ.y(), angradXYZ.z());
+    }
+
+    /**
      * Set this matrix to rotation using the given Quaternion.
      * <p>
      * Implementation Details:
@@ -1055,7 +1086,7 @@ public class Matrix4f {
      * @param q the Quaternion representing the rotation
      * @return this matrix for chaining
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q54">Matrix-FAQ Q54</a>
-     * @see Quaternion#toMatrix(float[], int)
+     * @see Quaternion#toMatrix(float[])
      * @see #getRotation()
      */
     public final Matrix4f setToRotation(final Quaternion q) {
@@ -1255,7 +1286,7 @@ public class Matrix4f {
      * @return this matrix for chaining
      * @throws IllegalArgumentException if {@code zNear <= 0} or {@code zFar <= zNear}
      * @see #setToFrustum(float, float, float, float, float, float)
-     * @see Frustum#updateByFovDesc(float[], int, boolean, Frustum.FovDesc)
+     * @see Frustum#updateByFovDesc(Matrix4f, com.jogamp.opengl.math.geom.Frustum.FovDesc)
      */
     public Matrix4f setToPerspective(final FovHVHalves fovhv, final float zNear, final float zFar) throws IllegalArgumentException {
         final FovHVHalves fovhvTan = fovhv.toTangents();  // use tangent of half-fov !
@@ -1268,10 +1299,13 @@ public class Matrix4f {
 
     /**
      * Calculate the frustum planes in world coordinates
-     * using the passed float[16] as premultiplied P*MV (column major order).
+     * using this premultiplied P*MV (column major order) matrix.
      * <p>
      * Frustum plane's normals will point to the inside of the viewing frustum,
      * as required by this class.
+     * </p>
+     * <p>
+     * Usually called by {@link Frustum#updateFrustumPlanes(Matrix4f)}.
      * </p>
      */
     public void updateFrustumPlanes(final Frustum frustum) {
@@ -1352,7 +1386,7 @@ public class Matrix4f {
     }
 
     /**
-     * Make given matrix the <i>look-at</i> matrix based on given parameters.
+     * Set this matrix to the <i>look-at</i> matrix based on given parameters.
      * <p>
      * Consist out of two matrix multiplications:
      * <pre>
@@ -1404,6 +1438,50 @@ public class Matrix4f {
         m33 = 1;
 
         return mul( tmp.setToTranslation( -eye.x(), -eye.y(), -eye.z() ) );
+    }
+
+    /**
+     * Set this matrix to the <i>pick</i> matrix based on given parameters.
+     * <p>
+     * Traditional <code>gluPickMatrix</code> implementation.
+     * </p>
+     * <p>
+     * Consist out of two matrix multiplications:
+     * <pre>
+     *   <b>R</b> = <b>T</b> x <b>S</b>,
+     *   with <b>T</b> for viewport translation matrix and
+     *        <b>S</b> for viewport scale matrix.
+     *
+     *   Result <b>R</b> can be utilized for <i>projection</i> multiplication, i.e.
+     *          <b>P</b> = <b>P</b> x <b>R</b>,
+     *          with <b>P</b> being the <i>projection</i> matrix.
+     * </pre>
+     * </p>
+     * <p>
+     * To effectively use the generated pick matrix for picking,
+     * call {@link #setToPick(float, float, float, float, Recti, Matrix4f) setToPick(..)}
+     * and multiply a {@link #setToPerspective(float, float, float, float) custom perspective matrix}
+     * by this pick matrix. Then you may load the result onto the perspective matrix stack.
+     * </p>
+     * @param x the center x-component of a picking region in window coordinates
+     * @param y the center y-component of a picking region in window coordinates
+     * @param deltaX the width of the picking region in window coordinates.
+     * @param deltaY the height of the picking region in window coordinates.
+     * @param viewport Rect4i viewport
+     * @param mat4Tmp temp storage
+     * @return this matrix for chaining or {@code null} if either delta value is <= zero.
+     */
+    public Matrix4f setToPick(final float x, final float y, final float deltaX, final float deltaY,
+                              final Recti viewport, final Matrix4f mat4Tmp) {
+        if (deltaX <= 0 || deltaY <= 0) {
+            return null;
+        }
+        /* Translate and scale the picked region to the entire window */
+        setToTranslation( ( viewport.width()  - 2 * ( x - viewport.x() ) ) / deltaX,
+                          ( viewport.height() - 2 * ( y - viewport.y() ) ) / deltaY,
+                          0);
+        mat4Tmp.setToScale( viewport.width() / deltaX, viewport.height() / deltaY, 1.0f );
+        return mul(mat4Tmp);
     }
 
     //
@@ -1587,12 +1665,12 @@ public class Matrix4f {
      * @param obj object position, 3 component vector
      * @param mMv modelview matrix
      * @param mP projection matrix
-     * @param viewport 4 component viewport vector
+     * @param viewport Rect4i viewport
      * @param winPos 3 component window coordinate, the result
      * @return true if successful, otherwise false (z is 1)
      */
     public static boolean mapObjToWin(final Vec3f obj, final Matrix4f mMv, final Matrix4f mP,
-                                      final int[] viewport, final float[] winPos)
+                                      final Recti viewport, final Vec3f winPos)
     {
         final Vec4f vec4Tmp1 = new Vec4f(obj, 1f);
 
@@ -1613,9 +1691,9 @@ public class Matrix4f {
         rawWinPos.scale(s).add(0.5f, 0.5f, 0.5f, 0f);
 
         // Map x,y to viewport
-        winPos[0] = rawWinPos.x() * viewport[2] + viewport[0];
-        winPos[1] = rawWinPos.y() * viewport[3] + viewport[1];
-        winPos[2] = rawWinPos.z();
+        winPos.set( rawWinPos.x() * viewport.width() +  viewport.x(),
+                    rawWinPos.y() * viewport.height() + viewport.y(),
+                    rawWinPos.z() );
 
         return true;
     }
@@ -1628,12 +1706,12 @@ public class Matrix4f {
      *
      * @param obj object position, 3 component vector
      * @param mPMv [projection] x [modelview] matrix, i.e. P x Mv
-     * @param viewport 4 component viewport vector
+     * @param viewport Rect4i viewport
      * @param winPos 3 component window coordinate, the result
      * @return true if successful, otherwise false (z is 1)
      */
     public static boolean mapObjToWin(final Vec3f obj, final Matrix4f mPMv,
-                                      final int[] viewport, final float[] winPos)
+                                      final Recti viewport, final Vec3f winPos)
     {
         final Vec4f vec4Tmp2 = new Vec4f(obj, 1f);
 
@@ -1650,9 +1728,9 @@ public class Matrix4f {
         rawWinPos.scale(s).add(0.5f, 0.5f, 0.5f, 0f);
 
         // Map x,y to viewport
-        winPos[0] = rawWinPos.x() * viewport[2] + viewport[0];
-        winPos[1] = rawWinPos.y() * viewport[3] + viewport[1];
-        winPos[2] = rawWinPos.z();
+        winPos.set( rawWinPos.x() * viewport.width() +  viewport.x(),
+                    rawWinPos.y() * viewport.height() + viewport.y(),
+                    rawWinPos.z() );
 
         return true;
     }
@@ -1668,14 +1746,14 @@ public class Matrix4f {
      * @param winz
      * @param mMv 4x4 modelview matrix
      * @param mP 4x4 projection matrix
-     * @param viewport 4 component viewport vector
+     * @param viewport Rect4i viewport
      * @param objPos 3 component object coordinate, the result
      * @param mat4Tmp 16 component matrix for temp storage
      * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
      */
     public static boolean mapWinToObj(final float winx, final float winy, final float winz,
                                       final Matrix4f mMv, final Matrix4f mP,
-                                      final int[] viewport,
+                                      final Recti viewport,
                                       final Vec3f objPos,
                                       final Matrix4f mat4Tmp)
     {
@@ -1688,7 +1766,7 @@ public class Matrix4f {
         final Vec4f winPos = new Vec4f(winx, winy, winz, 1f);
 
         // Map x and y from window coordinates
-        winPos.add(-viewport[0], -viewport[1], 0f, 0f).scale(1f/viewport[2], 1f/viewport[3], 1f, 1f);
+        winPos.add(-viewport.x(), -viewport.y(), 0f, 0f).scale(1f/viewport.width(), 1f/viewport.height(), 1f, 1f);
 
         // Map to range -1 to 1
         winPos.scale(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
@@ -1714,21 +1792,21 @@ public class Matrix4f {
      * @param winy
      * @param winz
      * @param invPMv inverse [projection] x [modelview] matrix, i.e. Inv(P x Mv)
-     * @param viewport 4 component viewport vector
+     * @param viewport Rect4i viewport
      * @param objPos 3 component object coordinate, the result
      * @param mat4Tmp 16 component matrix for temp storage
      * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
      */
     public static boolean mapWinToObj(final float winx, final float winy, final float winz,
                                       final Matrix4f invPMv,
-                                      final int[] viewport,
+                                      final Recti viewport,
                                       final Vec3f objPos,
                                       final Matrix4f mat4Tmp)
     {
         final Vec4f winPos = new Vec4f(winx, winy, winz, 1f);
 
         // Map x and y from window coordinates
-        winPos.add(-viewport[0], -viewport[1], 0f, 0f).scale(1f/viewport[2], 1f/viewport[3], 1f, 1f);
+        winPos.add(-viewport.x(), -viewport.y(), 0f, 0f).scale(1f/viewport.width(), 1f/viewport.height(), 1f, 1f);
 
         // Map to range -1 to 1
         winPos.scale(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
@@ -1756,21 +1834,21 @@ public class Matrix4f {
      * @param winz1
      * @param winz2
      * @param invPMv inverse [projection] x [modelview] matrix, i.e. Inv(P x Mv)
-     * @param viewport 4 component viewport vector
+     * @param viewport Rect4i viewport vector
      * @param objPos1 3 component object coordinate, the result
      * @param mat4Tmp 16 component matrix for temp storage
      * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
      */
     public static boolean mapWinToObj(final float winx, final float winy, final float winz1, final float winz2,
                                       final Matrix4f invPMv,
-                                      final int[] viewport,
+                                      final Recti viewport,
                                       final Vec3f objPos1, final Vec3f objPos2,
                                       final Matrix4f mat4Tmp)
     {
         final Vec4f winPos = new Vec4f(winx, winy, winz1, 1f);
 
         // Map x and y from window coordinates
-        winPos.add(-viewport[0], -viewport[1], 0f, 0f).scale(1f/viewport[2], 1f/viewport[3], 1f, 1f);
+        winPos.add(-viewport.x(), -viewport.y(), 0f, 0f).scale(1f/viewport.width(), 1f/viewport.height(), 1f, 1f);
 
         // Map to range -1 to 1
         winPos.scale(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
@@ -1812,7 +1890,7 @@ public class Matrix4f {
      * @param clipw
      * @param mMv 4x4 modelview matrix
      * @param mP 4x4 projection matrix
-     * @param viewport 4 component viewport vector
+     * @param viewport Rect4i viewport vector
      * @param near
      * @param far
      * @param obj_pos 4 component object coordinate, the result
@@ -1821,7 +1899,7 @@ public class Matrix4f {
      */
     public static boolean mapWinToObj4(final float winx, final float winy, final float winz, final float clipw,
                                        final Matrix4f mMv, final Matrix4f mP,
-                                       final int[] viewport,
+                                       final Recti viewport,
                                        final float near, final float far,
                                        final Vec4f objPos,
                                        final Matrix4f mat4Tmp)
@@ -1835,7 +1913,7 @@ public class Matrix4f {
         final Vec4f winPos = new Vec4f(winx, winy, winz, clipw);
 
         // Map x and y from window coordinates
-        winPos.add(-viewport[0], -viewport[1], -near, 0f).scale(1f/viewport[2], 1f/viewport[3], 1f/(far-near), 1f);
+        winPos.add(-viewport.x(), -viewport.y(), -near, 0f).scale(1f/viewport.width(), 1f/viewport.height(), 1f/(far-near), 1f);
 
         // Map to range -1 to 1
         winPos.scale(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
@@ -1852,7 +1930,7 @@ public class Matrix4f {
     /**
      * Map two window coordinates w/ shared X/Y and distinctive Z
      * to a {@link Ray}. The resulting {@link Ray} maybe used for <i>picking</i>
-     * using a {@link AABBox#getRayIntersection(Ray, float[]) bounding box}.
+     * using a {@link AABBox#getRayIntersection(Vec3f, Ray, float, boolean)}.
      * <p>
      * Notes for picking <i>winz0</i> and <i>winz1</i>:
      * <ul>
@@ -1867,7 +1945,7 @@ public class Matrix4f {
      * @param winz1
      * @param mMv 4x4 modelview matrix
      * @param mP 4x4 projection matrix
-     * @param viewport 4 component viewport vector
+     * @param viewport Rect4i viewport
      * @param ray storage for the resulting {@link Ray}
      * @param mat4Tmp1 16 component matrix for temp storage
      * @param mat4Tmp2 16 component matrix for temp storage
@@ -1876,7 +1954,7 @@ public class Matrix4f {
     public static boolean mapWinToRay(final float winx, final float winy, final float winz0, final float winz1,
                                       final Matrix4f mMv,
                                       final Matrix4f mP,
-                                      final int[] viewport,
+                                      final Recti viewport,
                                       final Ray ray,
                                       final Matrix4f mat4Tmp1, final Matrix4f mat4Tmp2) {
         // invPMv = Inv(P x Mv)

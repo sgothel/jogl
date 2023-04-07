@@ -44,6 +44,7 @@ import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.demos.graph.MSAATool;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.common.util.InterruptSource;
@@ -273,21 +274,21 @@ public class UIShapeDemo01 implements GLEventListener {
                 float glWinX = 0;
                 float glWinY = 0;
                 final float winZ = FloatUtil.getOrthoWinZ(orthoDist, zNear, zFar);
-                final float[] objCoord0 = new float[3];
-                final float[] objCoord1 = new float[3];
-                if( pmv.gluUnProject(glWinX, glWinY, winZ, renderer.getViewport(), 0, objCoord0, 0) ) {
+                final Vec3f objCoord0 = new Vec3f();
+                final Vec3f objCoord1 = new Vec3f();
+                if( pmv.gluUnProject(glWinX, glWinY, winZ, renderer.getViewport(), objCoord0) ) {
                     if( once ) {
-                        System.err.printf("winToObjCoord: win [%f, %f, %f] -> obj [%f, %f, %f]%n", glWinX, glWinY, winZ, objCoord0[0], objCoord0[1], objCoord0[2]);
+                        System.err.printf("winToObjCoord: win [%f, %f, %f] -> obj [%s]%n", glWinX, glWinY, winZ, objCoord0);
                     }
                 }
                 glWinX = drawable.getSurfaceWidth();
                 glWinY = drawable.getSurfaceHeight();
-                if( pmv.gluUnProject(glWinX, glWinY, winZ, renderer.getViewport(), 0, objCoord1, 0) ) {
+                if( pmv.gluUnProject(glWinX, glWinY, winZ, renderer.getViewport(), objCoord1) ) {
                     if( once ) {
-                        System.err.printf("winToObjCoord: win [%f, %f, %f] -> obj [%f, %f, %f]%n", glWinX, glWinY, winZ, objCoord1[0], objCoord1[1], objCoord1[2]);
+                        System.err.printf("winToObjCoord: win [%f, %f, %f] -> obj [%s]%n", glWinX, glWinY, winZ, objCoord1);
                     }
                 }
-                full_width_o = objCoord1[0] - objCoord0[0];
+                full_width_o = objCoord1.x() - objCoord0.x();
             }
             final AABBox txt_box_em = font.getGlyphBounds(text, tempT1, tempT2);
             final float full_width_s = full_width_o / txt_box_em.getWidth();
@@ -392,9 +393,9 @@ public class UIShapeDemo01 implements GLEventListener {
                     pmv.glTranslatef(xTran, yTran, zTran);
 
                     // flip to GL window coordinates, origin bottom-left
-                    final int[] viewport = renderer.getViewport(new int[4]);
+                    final Recti viewport = renderer.getViewport(new Recti());
                     final int glWinX = e.getX();
-                    final int glWinY = viewport[3] - e.getY() - 1;
+                    final int glWinY = viewport.height() - e.getY() - 1;
 
                     {
                         pmv.glPushMatrix();

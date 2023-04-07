@@ -36,9 +36,10 @@ import org.junit.runners.MethodSorters;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import java.nio.FloatBuffer;
+import com.jogamp.opengl.math.Matrix4f;
+import com.jogamp.opengl.math.Vec3f;
 
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Thomas De Bodt
@@ -58,25 +59,22 @@ public class TestPMVMatrix02NOUI extends JunitTracer {
     fMat.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
     // Look towards -z
     fMat.gluLookAt(
-        0, 0, 0,
-        0, 0, -1,
-        0, 1, 0
+        new Vec3f(0, 0, 0),
+        new Vec3f(0, 0, -1),
+        new Vec3f(0, 1, 0)
     );
-    final FloatBuffer mvMatrix = fMat.glGetMvMatrixf();
-    final float[] mvMatrixArr = new float[16];
-    mvMatrix.asReadOnlyBuffer().get(mvMatrixArr);
-    assertArrayEquals(
+    final Matrix4f mvMatrix = fMat.getMvMat();
+    assertEquals(
         /**
          * The 3 rows of the matrix (= the 3 columns of the array/buffer) should be: side, up, -forward.
          */
-        new float[] {
+        new Matrix4f( new float[] {
             1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
-        },
-        mvMatrixArr,
-        1e-6f
+        }),
+        mvMatrix
     );
   }
   @Test
@@ -84,25 +82,22 @@ public class TestPMVMatrix02NOUI extends JunitTracer {
     fMat.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
     // Look towards +y
     fMat.gluLookAt(
-        0, 0, 0,
-        0, 1, 0,
-        0, 0, 1
+        new Vec3f(0, 0, 0),
+        new Vec3f(0, 1, 0),
+        new Vec3f(0, 0, 1)
     );
-    final FloatBuffer mvMatrix = fMat.glGetMvMatrixf();
-    final float[] mvMatrixArr = new float[16];
-    mvMatrix.asReadOnlyBuffer().get(mvMatrixArr);
-    assertArrayEquals(
+    final Matrix4f mvMatrix = fMat.getMvMat();
+    assertEquals(
         /**
          * The 3 rows of the matrix (= the 3 columns of the array/buffer) should be: side, up, -forward.
          */
-        new float[] {
+        new Matrix4f(new float[] {
             1, 0, 0, 0,
             0, 0, -1, 0,
             0, 1, 0, 0,
             0, 0, 0, 1
-        },
-        mvMatrixArr,
-        1e-6f
+        }),
+        mvMatrix
     );
   }
 

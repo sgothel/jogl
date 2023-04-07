@@ -56,6 +56,7 @@ import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
+import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
@@ -199,7 +200,7 @@ public class UISceneDemo03 {
         final GLProfile hasGLP = window.getChosenGLCapabilities().getGLProfile();
         final AABBox sceneBox = scene.getBounds();
         System.err.println("SceneBox " + sceneBox);
-        System.err.println("Frustum " + scene.getMatrix().glGetFrustum());
+        System.err.println("Frustum " + scene.getMatrix().getFrustum());
 
         final Label statusLabel;
         {
@@ -421,8 +422,8 @@ public class UISceneDemo03 {
      */
     public static class MyPMVMatrixSetup implements PMVMatrixSetup {
         @Override
-        public void set(final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
-            final float ratio = (float) width / (float) height;
+        public void set(final PMVMatrix pmv, final Recti viewport) {
+            final float ratio = (float) viewport.width() / (float) viewport.height();
             pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmv.glLoadIdentity();
             pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
@@ -433,8 +434,8 @@ public class UISceneDemo03 {
         }
 
         @Override
-        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final int x, final int y, final int width, final int height) {
-            Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, x, y, width, height);
+        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final Recti viewport) {
+            Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, viewport);
         }
     };
 }

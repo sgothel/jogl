@@ -1000,18 +1000,17 @@ public class Quaternion {
      * </p>
      *
      * @param matrix float[16] store for the resulting normalized column matrix 4x4
-     * @param mat_offset
      * @return the given matrix store
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q54">Matrix-FAQ Q54</a>
      * @see #setFromMatrix(Matrix4f)
      * @see #setFromMatrix(float, float, float, float, float, float, float, float, float)
      */
-    public final float[] toMatrix(final float[] matrix, final int mat_offset) {
+    public final float[] toMatrix(final float[] matrix) {
         // pre-multiply scaled-reciprocal-magnitude to reduce multiplications
         final float norm = magnitudeSquared();
         if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
             // identity matrix -> srecip = 0f
-            return FloatUtil.makeIdentity(matrix, mat_offset);
+            return FloatUtil.makeIdentity(matrix);
         }
         final float srecip;
         if ( FloatUtil.isEqual(1f, norm, FloatUtil.EPSILON) ) {
@@ -1034,25 +1033,25 @@ public class Quaternion {
         final float zz = z  * zs;
         final float zw = zs * w;
 
-        matrix[0+0*4+mat_offset]  = 1f - ( yy + zz );
-        matrix[0+1*4+mat_offset]  =      ( xy - zw );
-        matrix[0+2*4+mat_offset]  =      ( xz + yw );
-        matrix[0+3*4+mat_offset]  = 0f;
+        matrix[0+0*4]  = 1f - ( yy + zz );
+        matrix[0+1*4]  =      ( xy - zw );
+        matrix[0+2*4]  =      ( xz + yw );
+        matrix[0+3*4]  = 0f;
 
-        matrix[1+0*4+mat_offset]  =      ( xy + zw );
-        matrix[1+1*4+mat_offset]  = 1f - ( xx + zz );
-        matrix[1+2*4+mat_offset]  =      ( yz - xw );
-        matrix[1+3*4+mat_offset]  = 0f;
+        matrix[1+0*4]  =      ( xy + zw );
+        matrix[1+1*4]  = 1f - ( xx + zz );
+        matrix[1+2*4]  =      ( yz - xw );
+        matrix[1+3*4]  = 0f;
 
-        matrix[2+0*4+mat_offset]  =      ( xz - yw );
-        matrix[2+1*4+mat_offset]  =      ( yz + xw );
-        matrix[2+2*4+mat_offset]  = 1f - ( xx + yy );
-        matrix[2+3*4+mat_offset]  = 0f;
+        matrix[2+0*4]  =      ( xz - yw );
+        matrix[2+1*4]  =      ( yz + xw );
+        matrix[2+2*4]  = 1f - ( xx + yy );
+        matrix[2+3*4]  = 0f;
 
-        matrix[3+0*4+mat_offset]  = 0f;
-        matrix[3+1*4+mat_offset]  = 0f;
-        matrix[3+2*4+mat_offset]  = 0f;
-        matrix[3+3*4+mat_offset]  = 1f;
+        matrix[3+0*4]  = 0f;
+        matrix[3+1*4]  = 0f;
+        matrix[3+2*4]  = 0f;
+        matrix[3+3*4]  = 1f;
         return matrix;
     }
 

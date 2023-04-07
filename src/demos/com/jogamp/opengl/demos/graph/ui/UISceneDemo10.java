@@ -56,6 +56,7 @@ import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.es2.GearsES2;
 import com.jogamp.opengl.demos.util.MiscUtils;
+import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
@@ -157,18 +158,18 @@ public class UISceneDemo10 {
         shape.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
             public void mouseMoved(final MouseEvent e) {
-                final int[] viewport = scene.getViewport(new int[4]);
+                final Recti viewport = scene.getViewport(new Recti());
                 // flip to GL window coordinates, origin bottom-left
                 final int glWinX = e.getX();
-                final int glWinY = viewport[3] - e.getY() - 1;
+                final int glWinY = viewport.height() - e.getY() - 1;
                 testProject(scene, shape, glWinX, glWinY);
             }
             @Override
             public void mouseDragged(final MouseEvent e) {
-                final int[] viewport = scene.getViewport(new int[4]);
+                final Recti viewport = scene.getViewport(new Recti());
                 // flip to GL window coordinates, origin bottom-left
                 final int glWinX = e.getX();
-                final int glWinY = viewport[3] - e.getY() - 1;
+                final int glWinY = viewport.height() - e.getY() - 1;
                 testProject(scene, shape, glWinX, glWinY);
             }
         } );

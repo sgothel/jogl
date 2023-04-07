@@ -17,6 +17,7 @@ import com.jogamp.opengl.TraceGL4;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.math.Matrix4f;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.PMVMatrix;
 
 public class TrianglesInstancedRendererHardcoded implements GLEventListener {
@@ -99,7 +100,7 @@ public class TrianglesInstancedRendererHardcoded implements GLEventListener {
 		}
 		projectionMatrix.glScalef(winScale, winScale, winScale);
 		projectionMatrix.update();
-		gl.glUniformMatrix4fv(projectionMatrixLocation, 1, false, projectionMatrix.glGetPMatrixf());
+		gl.glUniformMatrix4fv(projectionMatrixLocation, 1, false, projectionMatrix.getSyncPMat().getSyncFloats());
 		projectionMatrix.glPopMatrix();
 		generateTriangleTransform();
 		gl.glUniformMatrix4fv(transformMatrixLocation, NO_OF_INSTANCE, false, triangleTransform);
@@ -121,7 +122,7 @@ public class TrianglesInstancedRendererHardcoded implements GLEventListener {
 		projectionMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 		projectionMatrix.glLoadIdentity();
 		projectionMatrix.gluPerspective(45, aspect, 0.001f, 20f);
-		projectionMatrix.gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
+		projectionMatrix.gluLookAt(new Vec3f(0, 0, -10), new Vec3f(0, 0, 0), new Vec3f(0, 1, 0));
 	}
 
 	@Override

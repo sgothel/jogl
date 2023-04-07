@@ -35,6 +35,7 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLES2;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.math.Recti;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;
@@ -192,25 +193,25 @@ public final class RegionRenderer {
     private final GLCallback enableCallback;
     private final GLCallback disableCallback;
 
-    private final int[] viewport = new int[] { 0, 0, 0, 0 };
+    private final Recti viewport = new Recti();
     private boolean initialized;
     private boolean vboSupported = false;
 
     public final boolean isInitialized() { return initialized; }
 
-    /** Copies the current int[4] viewport in given target and returns it for chaining. */
-    public final int[/*4*/] getViewport(final int[/*4*/] target) {
-        System.arraycopy(viewport, 0, target, 0, 4);
+    /** Copies the current Rect4i viewport in given target and returns it for chaining. */
+    public final Recti getViewport(final Recti target) {
+        target.set(viewport);
         return target;
     }
-    /** Borrows the current int[4] viewport w/o copying. */
-    public final int[/*4*/] getViewport() {
+    /** Borrows the current Rect4i viewport w/o copying. */
+    public final Recti getViewport() {
         return viewport;
     }
     /** Return width of current viewport */
-    public final int getWidth() { return viewport[2]; }
+    public final int getWidth() { return viewport.width(); }
     /** Return height of current viewport */
-    public final int getHeight() { return viewport[3]; }
+    public final int getHeight() { return viewport.height(); }
 
     /** Borrow the current {@link PMVMatrix}. */
     public final PMVMatrix getMatrix() { return rs.getMatrix(); }
@@ -342,10 +343,7 @@ public final class RegionRenderer {
      * No PMVMatrix operation is performed here.
      */
     public final void reshapeNotify(final int x, final int y, final int width, final int height) {
-        viewport[0] = x;
-        viewport[1] = y;
-        viewport[2] = width;
-        viewport[3] = height;
+        viewport.set(x, y, width, height);
     }
 
     public final void reshapePerspective(final float angle, final int width, final int height, final float near, final float far) {

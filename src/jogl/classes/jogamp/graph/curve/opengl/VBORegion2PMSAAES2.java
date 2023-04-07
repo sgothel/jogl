@@ -46,9 +46,11 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Matrix4f;
+import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLArrayDataServer;
+import com.jogamp.opengl.util.SyncMatrices4f16;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
@@ -77,7 +79,9 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
     private GLArrayDataServer gca_FboTexCoordsAttr;
     private GLArrayDataServer indicesFbo;
     private final GLUniformData gcu_FboTexUnit;
-    private final float[] pmvMatrix02 = new float[2*16]; // P + Mv
+    private final Matrix4f matP = new Matrix4f();
+    private final Matrix4f matMv = new Matrix4f();
+    private final SyncMatrices4f16 pmvMatrix02 = new SyncMatrices4f16( new Matrix4f[] { matP, matMv } );
     private final GLUniformData gcu_PMVMatrix02;
     private ShaderProgram spPass2 = null;
 
@@ -110,10 +114,7 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
             colorTexBBox = null;
             gcu_ColorTexBBox = null;
         }
-
-        FloatUtil.makeIdentity(pmvMatrix02, 0);
-        FloatUtil.makeIdentity(pmvMatrix02, 16);
-        gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, FloatBuffer.wrap(pmvMatrix02));
+        gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, pmvMatrix02);
 
         // Pass 2:
         gcu_FboTexUnit = new GLUniformData(UniformNames.gcu_FboTexUnit, pass2TexUnit);
@@ -382,11 +383,8 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
     }
 
     private final AABBox drawWinBox = new AABBox();
-    private final int[] drawView = new int[] { 0, 0, 0, 0 };
-    private final float[] drawVec4Tmp0 = new float[4];
-    private final float[] drawVec4Tmp1 = new float[4];
-    private final float[] drawVec4Tmp2 = new float[4];
-    private final float[] drawMat4PMv = new float[16];
+    private final Recti drawView = new Recti();
+    private final Matrix4f drawMat4PMv = new Matrix4f();
 
     private static final int border = 2; // surrounding border, i.e. width += 2*border, height +=2*border
 
@@ -426,12 +424,11 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
 
                 // Calculate perspective pixel width/height for FBO,
                 // considering the sampleCount.
-                drawView[2] = vpWidth;
-                drawView[3] = vpHeight;
+                drawView.setWidth(vpWidth);
+                drawView.setHeight(vpHeight);
 
-                renderer.getMatrix().multPMvMatrixf(drawMat4PMv, 0);
-                box.mapToWindow(drawWinBox, drawMat4PMv, drawView, true /* useCenterZ */,
-                                drawVec4Tmp0, drawVec4Tmp1, drawVec4Tmp2);
+                renderer.getMatrix().mulPMvMat(drawMat4PMv);
+                box.mapToWindow(drawWinBox, drawMat4PMv, drawView, true /* useCenterZ */);
 
                 winWidth = drawWinBox.getWidth();
                 winHeight = drawWinBox.getHeight();
@@ -459,8 +456,8 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
                     System.err.printf("XXX.MinMax obj d[%.3f, %.3f], r[%f, %f], b[%f, %f]%n",
                             diffObjWidth, diffObjHeight, ratioObjWinWidth, ratioObjWinWidth, diffObjBorderWidth, diffObjBorderHeight);
                     System.err.printf("XXX.MinMax win %s%n", drawWinBox.toString());
-                    System.err.printf("XXX.MinMax view[%d, %d] -> win[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], r[%f, %f]: FBO i[%d x %d], samples %d%n",
-                            drawView[2], drawView[3],
+                    System.err.printf("XXX.MinMax view[%s] -> win[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], r[%f, %f]: FBO i[%d x %d], samples %d%n",
+                            drawView, drawView,
                             winWidth, winHeight, targetWinWidth, targetWinHeight, diffWinWidth,
                             diffWinHeight, ratioWinWidth, ratioWinHeight,
                             targetFboWidth, targetFboHeight,
@@ -496,7 +493,7 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
                     fb.position(12);
                 }
                 gca_FboVerticesAttr.seal(true);
-                FloatUtil.makeOrtho(pmvMatrix02, 0, true, minX, maxX, minY, maxY, -1, 1);
+                matP.setToOrtho(minX, maxX, minY, maxY, -1, 1);
                 useShaderProgram(gl, renderer, curRenderModes, true, getQuality(), sampleCount[0]);
                 renderRegion2FBO(gl, rs, curRenderModes, targetFboWidth, targetFboHeight, vpWidth, vpHeight, sampleCount);
             } else if( isStateDirty() ) {

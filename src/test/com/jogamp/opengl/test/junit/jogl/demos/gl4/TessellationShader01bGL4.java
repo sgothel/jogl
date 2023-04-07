@@ -33,6 +33,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GL2ES3;
 import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GL3ES3;
 import com.jogamp.opengl.GL4;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
@@ -82,7 +83,7 @@ public class TessellationShader01bGL4 implements GLEventListener  {
 
         gl.glGenVertexArrays(vertexArray.length, vertexArray, 0);
         gl.glBindVertexArray(vertexArray[0]);
-        gl.glPatchParameteri(GL4.GL_PATCH_VERTICES, 3);
+        gl.glPatchParameteri(GL3ES3.GL_PATCH_VERTICES, 3);
         gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2GL3.GL_LINE);
     }
 
@@ -98,7 +99,7 @@ public class TessellationShader01bGL4 implements GLEventListener  {
         vertexOffset.put(0, (float)(Math.sin(value) * 0.5f));
         vertexOffset.put(1, (float)(Math.cos(value) * 0.6f));
         gl.glVertexAttrib4fv(0, vertexOffset);
-        gl.glDrawArrays(GL4.GL_PATCHES, 0, 3);
+        gl.glDrawArrays(GL3ES3.GL_PATCHES, 0, 3);
     }
 
     @Override
@@ -126,9 +127,9 @@ public class TessellationShader01bGL4 implements GLEventListener  {
             final ShaderCode vs, tcs, tes, fs;
             vs = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(),
                                    "shader", "shader/bin", shaderBasename, true);
-            tcs = ShaderCode.create(gl, GL4.GL_TESS_CONTROL_SHADER, this.getClass(),
+            tcs = ShaderCode.create(gl, GL3ES3.GL_TESS_CONTROL_SHADER, this.getClass(),
                                    "shader", "shader/bin", shaderBasename, true);
-            tes = ShaderCode.create(gl, GL4.GL_TESS_EVALUATION_SHADER, this.getClass(),
+            tes = ShaderCode.create(gl, GL3ES3.GL_TESS_EVALUATION_SHADER, this.getClass(),
                                    "shader", "shader/bin", shaderBasename, true);
             fs = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(),
                                    "shader", "shader/bin", shaderBasename, true);

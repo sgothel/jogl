@@ -37,7 +37,7 @@ import com.jogamp.opengl.math.geom.Frustum.FovDesc;
 
 /**
  * Providing frustum {@link #getPlanes() planes} derived by different inputs
- * ({@link #updateByPMV(float[], int) P*MV}, ..) used to classify objects
+ * ({@link #updateFrustumPlanes(float[], int) P*MV}, ..) used to classify objects
  * <ul>
  *   <li> {@link #classifyPoint(float[]) point} </li>
  *   <li> {@link #classifySphere(float[], float) sphere} </li>
@@ -120,7 +120,7 @@ public class Frustum {
 	 * Use one of the <code>update(..)</code> methods to set the {@link #getPlanes() planes}.
 	 * </p>
 	 * @see #updateByPlanes(Plane[])
-	 * @see #updateByPMV(float[], int)
+	 * @see #updateFrustumPlanes(float[], int)
 	 */
     public Frustum() {
         for (int i = 0; i < 6; ++i) {
@@ -159,11 +159,6 @@ public class Frustum {
          **/
         public final float distanceTo(final float x, final float y, final float z) {
             return n.x() * x + n.y() * y + n.z() * z + d;
-        }
-
-        /** Return distance of plane to given point, see {@link #distanceTo(float, float, float)}. */
-        public final float distanceTo(final float[] p) {
-            return n.x() * p[0] + n.y() * p[1] + n.z() * p[2] + d;
         }
 
         /** Return distance of plane to given point, see {@link #distanceTo(float, float, float)}. */
@@ -254,87 +249,14 @@ public class Frustum {
 
     /**
      * Calculate the frustum planes in world coordinates
-     * using the passed float[16] as premultiplied P*MV (column major order).
+     * using the passed premultiplied P*MV (column major order) matrix.
      * <p>
      * Frustum plane's normals will point to the inside of the viewing frustum,
      * as required by this class.
      * </p>
      */
-    public void updateByPMV(final float[] pmv, final int pmv_off) {
-        // Left:   a = m41 + m11, b = m42 + m12, c = m43 + m13, d = m44 + m14  - [1..4] column-major
-        // Left:   a = m30 + m00, b = m31 + m01, c = m32 + m02, d = m33 + m03  - [0..3] column-major
-        {
-            final Plane p = planes[LEFT];
-            final Vec3f p_n = p.n;
-            p_n.set( pmv[ pmv_off + 3 + 0 * 4 ] + pmv[ pmv_off + 0 + 0 * 4 ],
-                     pmv[ pmv_off + 3 + 1 * 4 ] + pmv[ pmv_off + 0 + 1 * 4 ],
-                     pmv[ pmv_off + 3 + 2 * 4 ] + pmv[ pmv_off + 0 + 2 * 4 ] );
-            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 0 + 3 * 4 ];
-        }
-
-        // Right:  a = m41 - m11, b = m42 - m12, c = m43 - m13, d = m44 - m14  - [1..4] column-major
-        // Right:  a = m30 - m00, b = m31 - m01, c = m32 - m02, d = m33 - m03  - [0..3] column-major
-        {
-            final Plane p = planes[RIGHT];
-            final Vec3f p_n = p.n;
-            p_n.set( pmv[ pmv_off + 3 + 0 * 4 ] - pmv[ pmv_off + 0 + 0 * 4 ],
-                     pmv[ pmv_off + 3 + 1 * 4 ] - pmv[ pmv_off + 0 + 1 * 4 ],
-                     pmv[ pmv_off + 3 + 2 * 4 ] - pmv[ pmv_off + 0 + 2 * 4 ] );
-            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] - pmv[ pmv_off + 0 + 3 * 4 ];
-        }
-
-        // Bottom: a = m41 + m21, b = m42 + m22, c = m43 + m23, d = m44 + m24  - [1..4] column-major
-        // Bottom: a = m30 + m10, b = m31 + m11, c = m32 + m12, d = m33 + m13  - [0..3] column-major
-        {
-            final Plane p = planes[BOTTOM];
-            final Vec3f p_n = p.n;
-            p_n.set( pmv[ pmv_off + 3 + 0 * 4 ] + pmv[ pmv_off + 1 + 0 * 4 ],
-                     pmv[ pmv_off + 3 + 1 * 4 ] + pmv[ pmv_off + 1 + 1 * 4 ],
-                     pmv[ pmv_off + 3 + 2 * 4 ] + pmv[ pmv_off + 1 + 2 * 4 ] );
-            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 1 + 3 * 4 ];
-        }
-
-        // Top:   a = m41 - m21, b = m42 - m22, c = m43 - m23, d = m44 - m24  - [1..4] column-major
-        // Top:   a = m30 - m10, b = m31 - m11, c = m32 - m12, d = m33 - m13  - [0..3] column-major
-        {
-            final Plane p = planes[TOP];
-            final Vec3f p_n = p.n;
-            p_n.set( pmv[ pmv_off + 3 + 0 * 4 ] - pmv[ pmv_off + 1 + 0 * 4 ],
-                     pmv[ pmv_off + 3 + 1 * 4 ] - pmv[ pmv_off + 1 + 1 * 4 ],
-                     pmv[ pmv_off + 3 + 2 * 4 ] - pmv[ pmv_off + 1 + 2 * 4 ] );
-            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] - pmv[ pmv_off + 1 + 3 * 4 ];
-        }
-
-        // Near:  a = m41 + m31, b = m42 + m32, c = m43 + m33, d = m44 + m34  - [1..4] column-major
-        // Near:  a = m30 + m20, b = m31 + m21, c = m32 + m22, d = m33 + m23  - [0..3] column-major
-        {
-            final Plane p = planes[NEAR];
-            final Vec3f p_n = p.n;
-            p_n.set( pmv[ pmv_off + 3 + 0 * 4 ] + pmv[ pmv_off + 2 + 0 * 4 ],
-                     pmv[ pmv_off + 3 + 1 * 4 ] + pmv[ pmv_off + 2 + 1 * 4 ],
-                     pmv[ pmv_off + 3 + 2 * 4 ] + pmv[ pmv_off + 2 + 2 * 4 ] );
-            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 2 + 3 * 4 ];
-        }
-
-        // Far:   a = m41 - m31, b = m42 - m32, c = m43 - m33, d = m44 - m34  - [1..4] column-major
-        // Far:   a = m30 - m20, b = m31 - m21, c = m32 + m22, d = m33 + m23  - [0..3] column-major
-        {
-            final Plane p = planes[FAR];
-            final Vec3f p_n = p.n;
-            p_n.set( pmv[ pmv_off + 3 + 0 * 4 ] - pmv[ pmv_off + 2 + 0 * 4 ],
-                     pmv[ pmv_off + 3 + 1 * 4 ] - pmv[ pmv_off + 2 + 1 * 4 ],
-                     pmv[ pmv_off + 3 + 2 * 4 ] - pmv[ pmv_off + 2 + 2 * 4 ] );
-            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] - pmv[ pmv_off + 2 + 3 * 4 ];
-        }
-
-        // Normalize all planes
-        for (int i = 0; i < 6; ++i) {
-            final Plane p = planes[i];
-            final Vec3f p_n = p.n;
-            final float invLen = 1f / p_n.length();
-            p_n.scale(invLen);
-            p.d *= invLen;
-        }
+    public void updateFrustumPlanes(final Matrix4f pmv) {
+        pmv.updateFrustumPlanes(this);
     }
 
 	private static final boolean isOutsideImpl(final Plane p, final AABBox box) {
@@ -380,7 +302,7 @@ public class Frustum {
      * @param p the point
      * @return {@link Location} of point related to frustum planes
      */
-    public final Location classifyPoint(final float[] p) {
+    public final Location classifyPoint(final Vec3f p) {
         Location res = Location.INSIDE;
 
         for (int i = 0; i < 6; ++i) {
@@ -400,7 +322,7 @@ public class Frustum {
      * @param p the point
      * @return true if outside of the frustum, otherwise inside or on a plane
      */
-    public final boolean isPointOutside(final float[] p) {
+    public final boolean isPointOutside(final Vec3f p) {
         return Location.OUTSIDE == classifyPoint(p);
     }
 
@@ -411,7 +333,7 @@ public class Frustum {
      * @param radius radius of the sphere
      * @return {@link Location} of point related to frustum planes
      */
-    public final Location classifySphere(final float[] p, final float radius) {
+    public final Location classifySphere(final Vec3f p, final float radius) {
         Location res = Location.INSIDE; // fully inside
 
         for (int i = 0; i < 6; ++i) {
@@ -434,7 +356,7 @@ public class Frustum {
      * @param radius radius of the sphere
      * @return true if outside of the frustum, otherwise inside or intersecting
      */
-    public final boolean isSphereOutside(final float[] p, final float radius) {
+    public final boolean isSphereOutside(final Vec3f p, final float radius) {
         return Location.OUTSIDE == classifySphere(p, radius);
     }
 

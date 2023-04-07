@@ -50,6 +50,8 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.math.Recti;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -146,12 +148,12 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         getRenderer().init(gl);
     }
 
-    public static void mapWin2ObjectCoords(final PMVMatrix pmv, final int[] view,
+    public static void mapWin2ObjectCoords(final PMVMatrix pmv, final Recti view,
                                            final float zNear, final float zFar,
                                            final float orthoX, final float orthoY, final float orthoDist,
-                                           final float[] winZ, final float[] objPos) {
+                                           final float[] winZ, final Vec3f objPos) {
         winZ[0] = (1f/zNear-1f/orthoDist)/(1f/zNear-1f/zFar);
-        pmv.gluUnProject(orthoX, orthoY, winZ[0], view, 0, objPos, 0);
+        pmv.gluUnProject(orthoX, orthoY, winZ[0], view, objPos);
     }
 
     @Override
@@ -161,26 +163,21 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         System.err.printf("Reshape: zNear %f,  zFar %f%n", zNear, zFar);
-        System.err.printf("Reshape: Frustum: %s%n", pmv.glGetFrustum());
+        System.err.printf("Reshape: Frustum: %s%n", pmv.getFrustum());
         {
             final float orthoDist = 1f;
-            final float[] obj00Coord = new float[3];
-            final float[] obj11Coord = new float[3];
+            final Vec3f obj00Coord = new Vec3f();
+            final Vec3f obj11Coord = new Vec3f();
             final float[] winZ = new float[1];
-            final int[] view = new int[] { 0, 0, width, height };
+            final Recti view = new Recti(0, 0, width, height);
 
             mapWin2ObjectCoords(pmv, view, zNear, zFar, 0f, 0f, orthoDist, winZ, obj00Coord);
-            System.err.printf("Reshape: mapped.00: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", 0f, 0f, orthoDist, winZ[0], obj00Coord[0], obj00Coord[1], obj00Coord[2]);
+            System.err.printf("Reshape: mapped.00: [%f, %f, %f], winZ %f -> [%s]%n", 0f, 0f, orthoDist, winZ[0], obj00Coord);
 
             mapWin2ObjectCoords(pmv, view, zNear, zFar, width, height, orthoDist, winZ, obj11Coord);
-            System.err.printf("Reshape: mapped.11: [%f, %f, %f], winZ %f -> [%f, %f, %f]%n", (float)width, (float)height, orthoDist, winZ[0], obj11Coord[0], obj11Coord[1], obj11Coord[2]);
+            System.err.printf("Reshape: mapped.11: [%f, %f, %f], winZ %f -> [%s]%n", (float)width, (float)height, orthoDist, winZ[0], obj11Coord);
 
-            nearPlane1Box.setSize( obj00Coord[0],  // lx
-                                   obj00Coord[1],  // ly
-                                   obj00Coord[2],  // lz
-                                   obj11Coord[0],  // hx
-                                   obj11Coord[1],  // hy
-                                   obj11Coord[2] );// hz
+            nearPlane1Box.setSize( obj00Coord, obj11Coord );
             System.err.printf("Reshape: dist1Box: %s%n", nearPlane1Box);
         }
 
