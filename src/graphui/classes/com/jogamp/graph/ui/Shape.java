@@ -43,6 +43,7 @@ import com.jogamp.newt.event.PinchToZoomGesture;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec2f;
@@ -526,8 +527,10 @@ public abstract class Shape {
         final Vec3f high = box.getHigh();
         final Vec3f low = box.getLow();
 
-        if( pmv.gluProject(high, viewport, winCoordHigh) ) {
-            if( pmv.gluProject(low, viewport, winCoordLow) ) {
+        // Efficiently reuse matPMv and temporary PMVMatrix storage
+        final Matrix4f matPMv = pmv.mulPMvMat(pmv.getTmp1Mat());
+        if( Matrix4f.mapObjToWin(high, matPMv, viewport, winCoordHigh) ) {
+            if( Matrix4f.mapObjToWin(low, matPMv, viewport, winCoordLow) ) {
                 surfaceSize[0] = (int)Math.abs(winCoordHigh.x() - winCoordLow.x());
                 surfaceSize[1] = (int)Math.abs(winCoordHigh.y() - winCoordLow.y());
                 return surfaceSize;
@@ -703,9 +706,14 @@ public abstract class Shape {
     public Vec3f winToShapeCoord(final PMVMatrix pmv, final Recti viewport, final int glWinX, final int glWinY, final Vec3f objPos) {
         final Vec3f ctr = box.getCenter();
 
-        if( pmv.gluProject(ctr, viewport, objPos) ) {
+        // Efficiently reuse matPMv and temporary PMVMatrix storage
+        final Matrix4f matPMv = pmv.mulPMvMat(pmv.getTmp1Mat());
+        if( Matrix4f.mapObjToWin(ctr, matPMv, viewport, objPos) ) {
             final float winZ = objPos.z();
-            if( pmv.gluUnProject(glWinX, glWinY, winZ, viewport, objPos) ) {
+            if( !matPMv.invert() ) {
+                return null;
+            }
+            if( Matrix4f.mapWinToObj(glWinX, glWinY, winZ, matPMv, viewport, objPos, pmv.getTmp2Mat()) ) {
                 return objPos;
             }
         }

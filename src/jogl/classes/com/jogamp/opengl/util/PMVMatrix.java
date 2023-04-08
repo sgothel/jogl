@@ -271,8 +271,49 @@ public final class PMVMatrix implements GLMatrixFunc {
     }
 
     //
-    // Matrix4f access as well as their SyncedBuffer counterpart SyncedMatrix and SyncedMatrices
+    // Temporary storage access for efficiency
     //
+
+    /**
+     * Return the first temporary Matrix4f exposed to be reused for efficiency.
+     * <p>
+     * Temporary storage is only used by this class within single method calls,
+     * hence has no side-effects.
+     * </p>
+     */
+    public final Matrix4f getTmp1Mat() { return mat4Tmp1; }
+
+    /**
+     * Return the second temporary Matrix4f exposed to be reused for efficiency.
+     * <p>
+     * Temporary storage is only used by this class within single method calls,
+     * hence has no side-effects.
+     * </p>
+     */
+    public final Matrix4f getTmp2Mat() { return mat4Tmp2; }
+
+    /**
+     * Return the first temporary Vec3f exposed to be reused for efficiency.
+     * <p>
+     * Temporary storage is only used by this class within single method calls,
+     * hence has no side-effects.
+     * </p>
+     */
+    public final Vec3f getTmp1Vec3f() { return vec3Tmp1; }
+
+    /**
+     * Return the first temporary Vec4f exposed to be reused for efficiency.
+     * <p>
+     * Temporary storage is only used by this class within single method calls,
+     * hence has no side-effects.
+     * </p>
+     */
+    public final Vec4f getTmp1Vec4f() { return vec4Tmp1; }
+
+    //
+    // Regular Matrix4f access as well as their SyncedBuffer counterpart SyncedMatrix and SyncedMatrices
+    //
+
     /**
      * Returns the {@link GLMatrixFunc#GL_TEXTURE_MATRIX texture matrix} (T).
      * <p>
