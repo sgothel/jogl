@@ -53,6 +53,7 @@ NativeWindow, NEWT and GraphUI might be build seperately.
 - Repository         [http://jogamp.org/git/](http://jogamp.org/git/)
 - Wiki               [https://jogamp.org/wiki/](https://jogamp.org/wiki/)
 - Maintainer         [https://jogamp.org/wiki/index.php/Maintainer_and_Contacts](https://jogamp.org/wiki/index.php/Maintainer_and_Contacts)
+- Sven's Blog        [https://jausoft.com/blog/tag/jogamp/](https://jausoft.com/blog/tag/jogamp/)
 - Email              sgothel _at_ jausoft _dot_ com
 
 
@@ -120,7 +121,9 @@ areas of the project (Alphabetical):
 - Athomas Goldberg
 - Julien Gouesse
 - Yuri Vladimir Gushchin
+- Martin Pernollet
 - Gregory Pierce
+- Emmanuel Puybaret
 - Dominik Ströhlein (DemoscenePassivist)
 - Wade Walker
 - Carsten Weisse
