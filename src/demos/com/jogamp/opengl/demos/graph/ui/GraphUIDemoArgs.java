@@ -36,6 +36,7 @@ public class GraphUIDemoArgs {
     public String glProfileName = GLProfile.GL2ES2;
     public boolean wait_to_start = false;
     public boolean keepRunning = false;
+    public boolean stayOpen = false;
     public int renderModes;
     public int sceneMSAASamples = 0;
     public float debugBoxThickness = 0f;
@@ -80,6 +81,9 @@ public class GraphUIDemoArgs {
             wait_to_start = true;
         } else if (args[idx[0]].equals("-keep")) {
             keepRunning = true;
+            stayOpen = true;
+        } else if (args[idx[0]].equals("-stay")) {
+            stayOpen = true;
         } else if(args[idx[0]].equals("-gnone")) {
             sceneMSAASamples = 0;
             renderModes = 0;
@@ -104,7 +108,7 @@ public class GraphUIDemoArgs {
     @Override
     public String toString() {
         return "Options{surface[width "+surface_width+" x "+surface_height+"], glp "+glProfileName+
-               ", wait "+wait_to_start+", keep "+keepRunning+
+               ", wait "+wait_to_start+", keep "+keepRunning+", stay "+stayOpen+
                ", renderModes "+Region.getRenderModeString(renderModes)+
                ", smsaa "+sceneMSAASamples+", dbgbox "+debugBoxThickness+"}";
     }

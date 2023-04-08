@@ -528,8 +528,8 @@ public abstract class Shape {
 
         if( pmv.gluProject(high, viewport, winCoordHigh) ) {
             if( pmv.gluProject(low, viewport, winCoordLow) ) {
-                surfaceSize[0] = (int)(winCoordHigh.x() - winCoordLow.x());
-                surfaceSize[1] = (int)(winCoordHigh.y() - winCoordLow.y());
+                surfaceSize[0] = (int)Math.abs(winCoordHigh.x() - winCoordLow.x());
+                surfaceSize[1] = (int)Math.abs(winCoordHigh.y() - winCoordLow.y());
                 return surfaceSize;
             }
         }
@@ -1003,7 +1003,7 @@ public abstract class Shape {
 
         @Override
         public String toString() {
-            return "EventDetails[winPos ["+winPos[0]+", "+winPos[1]+"], objPos ["+objPos+"], "+shape+"]";
+            return "EventInfo[winPos ["+winPos[0]+", "+winPos[1]+"], objPos ["+objPos+"], "+shape+"]";
         }
     }
 
@@ -1045,6 +1045,15 @@ public abstract class Shape {
         }
         switch( eventType ) {
             case MouseEvent.EVENT_MOUSE_DRAGGED: {
+                // adjust for rotation
+                final Vec3f euler = rotation.toEuler(new Vec3f());
+                final boolean x_flip, y_flip;
+                {
+                    final float x_rot = Math.abs(euler.x());
+                    final float y_rot = Math.abs(euler.y());
+                    x_flip = 1f*FloatUtil.HALF_PI <= y_rot && y_rot <= 3f*FloatUtil.HALF_PI;
+                    y_flip = 1f*FloatUtil.HALF_PI <= x_rot && x_rot <= 3f*FloatUtil.HALF_PI;
+                }
                 // 1 pointer drag and potential drag-resize
                 if(dragFirst) {
                     objDraggedFirst.set(objPos);
@@ -1052,8 +1061,8 @@ public abstract class Shape {
                     winDraggedLast[1] = glWinY;
                     dragFirst=false;
 
-                    final float ix = objPos.x();
-                    final float iy = objPos.y();
+                    final float ix = x_flip ? box.getWidth()  - objPos.x() : objPos.x();
+                    final float iy = y_flip ? box.getHeight() - objPos.y() : objPos.y();
                     final float minx_br = box.getMaxX() - box.getWidth() * resize_section;
                     final float miny_br = box.getMinY();
                     final float maxx_br = box.getMaxX();
@@ -1078,14 +1087,16 @@ public abstract class Shape {
                         }
                     }
                     if( DEBUG ) {
-                        System.err.printf("DragFirst: drag %b, resize %d, obj[%s], drag +[%s]%n",
-                                inMove, inResize, objPos, shapeEvent.objDrag);
+                        System.err.printf("DragFirst: drag %b, resize %d, obj[%s], flip[x %b, y %b]%n",
+                                inMove, inResize, objPos, x_flip, y_flip);
                         System.err.printf("DragFirst: %s%n", this);
                     }
                     return;
                 }
                 shapeEvent.objDrag.set( objPos.x() - objDraggedFirst.x(),
                                         objPos.y() - objDraggedFirst.y() );
+                shapeEvent.objDrag.scale(x_flip ? -1f : 1f, y_flip ? -1f : 1f);
+
                 shapeEvent.winDrag[0] = glWinX - winDraggedLast[0];
                 shapeEvent.winDrag[1] = glWinY - winDraggedLast[1];
                 winDraggedLast[0] = glWinX;
@@ -1105,8 +1116,8 @@ public abstract class Shape {
                         final float sy = scale.y() - sdy/bh;
                         if( resize_sxy_min <= sx && resize_sxy_min <= sy ) { // avoid scale flip
                             if( DEBUG ) {
-                                System.err.printf("DragZoom: resize %d, win[%4d, %4d], obj[%s], dxy +[%s], sdxy +[%.4f, %.4f], scale [%s] -> [%.4f, %.4f]%n",
-                                        inResize, glWinX, glWinY, objPos,
+                                System.err.printf("DragZoom: resize %d, win[%4d, %4d], , flip[x %b, y %b], obj[%s], dxy +[%s], sdxy +[%.4f, %.4f], scale [%s] -> [%.4f, %.4f]%n",
+                                        inResize, glWinX, glWinY, x_flip, y_flip, objPos,
                                         shapeEvent.objDrag, sdx, sdy,
                                         scale, sx, sy);
                             }
@@ -1120,9 +1131,9 @@ public abstract class Shape {
                         return; // FIXME: pass through event? Issue zoom event?
                     } else if( inMove ) {
                         if( DEBUG ) {
-                            System.err.printf("DragMove: win[%4d, %4d] +[%2d, %2d], obj[%s] +[%s]%n",
+                            System.err.printf("DragMove: win[%4d, %4d] +[%2d, %2d], , flip[x %b, y %b], obj[%s] +[%s], rot %s%n",
                                     glWinX, glWinY, shapeEvent.winDrag[0], shapeEvent.winDrag[1],
-                                    objPos, shapeEvent.objDrag);
+                                    x_flip, y_flip, objPos, shapeEvent.objDrag, euler);
                         }
                         move( sdx, sdy, 0f);
                         // FIXME: Pass through event? Issue move event?
