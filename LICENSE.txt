@@ -25,7 +25,7 @@ by the generated and deployed JOGL binaries.
 L.1) The JOGL source tree contains code from the JogAmp Community
      which is covered by the Simplified BSD 2-clause license:
 
-   Copyright 2010 JogAmp Community. All rights reserved.
+   Copyright 2009-2023 JogAmp Community. All rights reserved.
   
    Redistribution and use in source and binary forms, with or without modification, are
    permitted provided that the following conditions are met:
@@ -52,13 +52,11 @@ L.1) The JOGL source tree contains code from the JogAmp Community
    or implied, of JogAmp Community.
 
    You can address the JogAmp Community via:
-       Web                http://jogamp.org/
-       Forum/Mailinglist  http://forum.jogamp.org
-       Chatrooms
-         IRC              irc.freenode.net #jogamp 
-         Jabber           conference.jabber.org room: jogamp (deprecated!)
-       Repository         http://jogamp.org/git/
-       Email              mediastream _at_ jogamp _dot_ org
+       Web                https://jogamp.org/
+       Forum/Mailinglist  https://forum.jogamp.org
+       Repository         https://jogamp.org/git/
+       Wiki               https://jogamp.org/wiki/
+       Maintainer         https://jogamp.org/wiki/index.php/Maintainer_and_Contacts
 
 
 L.2) The JOGL source tree contains code from Sun Microsystems, Inc. 

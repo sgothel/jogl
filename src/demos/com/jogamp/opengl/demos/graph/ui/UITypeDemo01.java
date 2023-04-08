@@ -40,9 +40,9 @@ import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.graph.ui.gl.Shape;
-import com.jogamp.graph.ui.gl.shapes.CrossHair;
-import com.jogamp.graph.ui.gl.shapes.Rectangle;
+import com.jogamp.graph.ui.Shape;
+import com.jogamp.graph.ui.shapes.CrossHair;
+import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -68,6 +68,8 @@ import com.jogamp.opengl.demos.graph.ui.testshapes.Glyph03FreeMonoRegular_M;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Recti;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -293,22 +295,22 @@ public class UITypeDemo01 implements GLEventListener {
                 float glWinX = 0;
                 float glWinY = 0;
                 final float winZ = FloatUtil.getOrthoWinZ(orthoDist, zNear, zFar);
-                final float[] objCoord0 = new float[3];
-                final float[] objCoord1 = new float[3];
-                if( pmv.gluUnProject(glWinX, glWinY, winZ, renderer.getViewport(), 0, objCoord0, 0) ) {
+                final Vec3f objCoord0 = new Vec3f();
+                final Vec3f objCoord1 = new Vec3f();
+                if( pmv.gluUnProject(glWinX, glWinY, winZ, renderer.getViewport(), objCoord0) ) {
                     if( once ) {
-                        System.err.printf("winToObjCoord: win [%f, %f, %f] -> obj [%f, %f, %f]%n", glWinX, glWinY, winZ, objCoord0[0], objCoord0[1], objCoord0[2]);
+                        System.err.printf("winToObjCoord: win [%f, %f, %f] -> obj [%s]%n", glWinX, glWinY, winZ, objCoord0);
                     }
                 }
                 glWinX = drawable.getSurfaceWidth();
                 glWinY = drawable.getSurfaceHeight();
-                if( pmv.gluUnProject(glWinX, glWinY, winZ, renderer.getViewport(), 0, objCoord1, 0) ) {
+                if( pmv.gluUnProject(glWinX, glWinY, winZ, renderer.getViewport(), objCoord1) ) {
                     if( once ) {
-                        System.err.printf("winToObjCoord: win [%f, %f, %f] -> obj [%f, %f, %f]%n", glWinX, glWinY, winZ, objCoord1[0], objCoord1[1], objCoord1[2]);
+                        System.err.printf("winToObjCoord: win [%f, %f, %f] -> obj [%s]%n", glWinX, glWinY, winZ, objCoord1);
                     }
                 }
-                full_width_o = objCoord1[0] - objCoord0[0];
-                full_height_o = objCoord1[1] - objCoord0[1];
+                full_width_o = objCoord1.x() - objCoord0.x();
+                full_height_o = objCoord1.y() - objCoord0.y();
             }
             pmv.glPushMatrix();
 
@@ -461,34 +463,33 @@ public class UITypeDemo01 implements GLEventListener {
                     pmv.glTranslatef(xTran, yTran, zTran);
 
                     // flip to GL window coordinates, origin bottom-left
-                    final int[] viewport = renderer.getViewport(new int[4]);
+                    final Recti viewport = renderer.getViewport(new Recti());
                     final int glWinX = e.getX();
-                    final int glWinY = viewport[3] - e.getY() - 1;
+                    final int glWinY = viewport.height() - e.getY() - 1;
 
                     {
                         pmv.glPushMatrix();
                         crossHair.setTransform(pmv);
 
-                        final float[] objPosC = crossHair.getBounds().getCenter();
+                        final Vec3f objPosC = crossHair.getBounds().getCenter();
                         System.err.println("\n\nCrossHair: "+crossHair);
                         final int[] objWinPos = crossHair.shapeToWinCoord(pmv, viewport, objPosC, new int[2]);
-                        System.err.println("CrossHair: Obj: Obj "+objPosC[0]+"/"+objPosC[1]+"/"+objPosC[1]+" -> Win "+objWinPos[0]+"/"+objWinPos[1]);
+                        System.err.println("CrossHair: Obj: Obj "+objPosC+" -> Win "+objWinPos[0]+"/"+objWinPos[1]);
 
-                        final float[] objPos2 = crossHair.winToShapeCoord(pmv, viewport, objWinPos[0], objWinPos[1], new float[3]);
-                        System.err.println("CrossHair: Obj: Win "+objWinPos[0]+"/"+objWinPos[1]+" -> Obj "+objPos2[0]+"/"+objPos2[1]+"/"+objPos2[1]);
+                        final Vec3f objPos2 = crossHair.winToShapeCoord(pmv, viewport, objWinPos[0], objWinPos[1], new Vec3f());
+                        System.err.println("CrossHair: Obj: Win "+objWinPos[0]+"/"+objWinPos[1]+" -> Obj "+objPos2);
 
-                        final float[] winObjPos = crossHair.winToShapeCoord(pmv, viewport, glWinX, glWinY, new float[3]);
+                        final Vec3f winObjPos = crossHair.winToShapeCoord(pmv, viewport, glWinX, glWinY, new Vec3f());
                         if( null != winObjPos ) {
                             // final float[] translate = crossHair.getTranslate();
                             // final float[] objPosT = new float[] { objPosC[0]+translate[0], objPosC[1]+translate[1], objPosC[2]+translate[2] };
-                            final float dx = winObjPos[0] - objPosC[0];
-                            final float dy = winObjPos[1] - objPosC[1];
+                            final Vec3f diff = winObjPos.minus(objPosC);
                             // final float dz = winObjPos[2] - objPosT[2];
-                            if( !FloatUtil.isZero(dx, FloatUtil.EPSILON) || !FloatUtil.isZero(dy, FloatUtil.EPSILON) ) {
-                                System.err.println("CrossHair: Move.1: Win "+glWinX+"/"+glWinY+" -> Obj "+winObjPos[0]+"/"+winObjPos[1]+"/"+winObjPos[1]+" -> diff "+dx+" / "+dy);
-                                crossHair.move(dx, dy, 0f);
+                            if( !FloatUtil.isZero(diff.x(), FloatUtil.EPSILON) || !FloatUtil.isZero(diff.y(), FloatUtil.EPSILON) ) {
+                                System.err.println("CrossHair: Move.1: Win "+glWinX+"/"+glWinY+" -> Obj "+winObjPos+" -> diff "+diff);
+                                crossHair.move(diff.x(), diff.y(), 0f);
                             } else {
-                                System.err.println("CrossHair: Move.0: Win "+glWinX+"/"+glWinY+" -> Obj "+winObjPos[0]+"/"+winObjPos[1]+"/"+winObjPos[1]+" -> diff "+dx+" / "+dy);
+                                System.err.println("CrossHair: Move.0: Win "+glWinX+"/"+glWinY+" -> Obj "+winObjPos+" -> diff "+diff);
                             }
                         }
 

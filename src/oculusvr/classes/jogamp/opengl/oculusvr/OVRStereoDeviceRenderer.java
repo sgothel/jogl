@@ -59,6 +59,7 @@ import com.jogamp.oculusvr.ovrVector2f;
 import com.jogamp.oculusvr.ovrVector3f;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
@@ -107,7 +108,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         public final EyeParameter getEyeParameter() { return eyeParameter; }
 
         /* pp */ OVREye(final ovrHmdDesc hmdDesc, final int distortionBits,
-                        final float[] eyePositionOffset, final ovrEyeRenderDesc eyeDesc,
+                        final Vec3f eyePositionOffset, final ovrEyeRenderDesc eyeDesc,
                         final ovrSizei ovrTextureSize, final RectangleImmutable eyeViewport) {
             this.eyeName = eyeDesc.getEye();
             this.distortionBits = distortionBits;
@@ -398,7 +399,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
     }
 
     /* pp */ OVRStereoDeviceRenderer(final OVRStereoDevice context, final int distortionBits,
-                             final int textureCount, final float[] eyePositionOffset,
+                             final int textureCount, final Vec3f eyePositionOffset,
                              final ovrEyeRenderDesc[] eyeRenderDescs,
                              final DimensionImmutable[] eyeTextureSizes, final DimensionImmutable totalTextureSize,
                              final RectangleImmutable[] eyeViewports, final int textureUnit) {

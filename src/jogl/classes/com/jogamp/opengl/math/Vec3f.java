@@ -35,6 +35,12 @@ package com.jogamp.opengl.math;
  * and its data layout from JOAL's Vec3f.
  */
 public final class Vec3f {
+    public static final Vec3f ONE = new Vec3f(VectorUtil.VEC3_ONE);
+    public static final Vec3f UNIT_Y = new Vec3f(VectorUtil.VEC3_UNIT_Y);
+    public static final Vec3f UNIT_Y_NEG = new Vec3f(VectorUtil.VEC3_UNIT_Y_NEG);
+    public static final Vec3f UNIT_Z = new Vec3f(VectorUtil.VEC3_UNIT_Z);
+    public static final Vec3f UNIT_Z_NEG = new Vec3f(VectorUtil.VEC3_UNIT_Z_NEG);
+
     private float x;
     private float y;
     private float z;
@@ -43,6 +49,16 @@ public final class Vec3f {
 
     public Vec3f(final Vec3f o) {
         set(o);
+    }
+
+    /** Creating new Vec3f using Vec4f, dropping w. */
+    public Vec3f(final Vec4f o) {
+        set(o);
+    }
+
+    /** Creating new Vec3f using { Vec2f, z}. */
+    public Vec3f(final Vec2f o, final float z) {
+        set(o, z);
     }
 
     public Vec3f copy() {
@@ -62,6 +78,22 @@ public final class Vec3f {
         this.x = o.x;
         this.y = o.y;
         this.z = o.z;
+        return this;
+    }
+
+    /** this = { o, z }, returns this. */
+    public Vec3f set(final Vec2f o, final float z) {
+        this.x = o.x();
+        this.y = o.y();
+        this.z = z;
+        return this;
+    }
+
+    /** this = o while dropping w, returns this. */
+    public Vec3f set(final Vec4f o) {
+        this.x = o.x();
+        this.y = o.y();
+        this.z = o.z();
         return this;
     }
 
@@ -91,6 +123,14 @@ public final class Vec3f {
         }
     }
 
+    /** xyz = this, returns xyz. */
+    public float[] get(final float[/*3*/] xyz) {
+        xyz[0] = this.x;
+        xyz[1] = this.y;
+        xyz[2] = this.z;
+        return xyz;
+    }
+
     /** Gets the ith component, 0 <= i < 3 */
     public float get(final int i) {
         switch (i) {
@@ -114,11 +154,19 @@ public final class Vec3f {
         return new Vec3f(this).scale(val);
     }
 
-    /** this = this * val, returns this. */
-    public Vec3f scale(final float val) {
-        x *= val;
-        y *= val;
-        z *= val;
+    /** this = this * s, returns this. */
+    public Vec3f scale(final float s) {
+        x *= s;
+        y *= s;
+        z *= s;
+        return this;
+    }
+
+    /** this = this * { sx, sy, sz }, returns this. */
+    public Vec3f scale(final float sx, final float sy, final float sz) {
+        x *= sx;
+        y *= sy;
+        z *= sz;
         return this;
     }
 
@@ -169,7 +217,8 @@ public final class Vec3f {
         return this;
     }
 
-    public boolean is_zero() {
+    /** Return true if all components are zero, i.e. it's absolute value < {@link #EPSILON}. */
+    public boolean isZero() {
         return FloatUtil.isZero(x) && FloatUtil.isZero(y) && FloatUtil.isZero(z);
     }
 
@@ -263,11 +312,52 @@ public final class Vec3f {
         return (float) Math.acos( cosAngle(o) );
     }
 
-    public boolean intersects(final Vec3f o) {
-        if( Math.abs(x-o.x) >= FloatUtil.EPSILON || Math.abs(y-o.y) >= FloatUtil.EPSILON || Math.abs(z-o.z) >= FloatUtil.EPSILON ) {
+    /**
+     * Equals check using a given {@link FloatUtil#EPSILON} value and {@link FloatUtil#isEqual(float, float, float)}.
+     * <p>
+     * Implementation considers following corner cases:
+     * <ul>
+     *    <li>NaN == NaN</li>
+     *    <li>+Inf == +Inf</li>
+     *    <li>-Inf == -Inf</li>
+     * </ul>
+     * @param o comparison value
+     * @param epsilon consider using {@link FloatUtil#EPSILON}
+     * @return true if all components differ less than {@code epsilon}, otherwise false.
+     */
+    public boolean isEqual(final Vec3f o, final float epsilon) {
+        if( this == o ) {
+            return true;
+        } else {
+            return FloatUtil.isEqual(x, o.x, epsilon) &&
+                   FloatUtil.isEqual(y, o.y, epsilon) &&
+                   FloatUtil.isEqual(z, o.z, epsilon);
+        }
+    }
+
+    /**
+     * Equals check using {@link FloatUtil#EPSILON} value and {@link FloatUtil#isEqual(float, float, float)}.
+     * <p>
+     * Implementation considers following corner cases:
+     * <ul>
+     *    <li>NaN == NaN</li>
+     *    <li>+Inf == +Inf</li>
+     *    <li>-Inf == -Inf</li>
+     * </ul>
+     * @param o comparison value
+     * @return true if all components differ less than {@link FloatUtil#EPSILON}, otherwise false.
+     */
+    public boolean isEqual(final Vec3f o) {
+        return isEqual(o, FloatUtil.EPSILON);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if( o instanceof Vec3f ) {
+            return isEqual((Vec3f)o, FloatUtil.EPSILON);
+        } else {
             return false;
         }
-        return true;
     }
 
     @Override

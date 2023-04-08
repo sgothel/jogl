@@ -227,7 +227,7 @@ public class ProjectFloat {
                             final float[] projMatrix, final int projMatrix_offset,
                             final int[] viewport, final int viewport_offset,
                             final float[] win_pos, final int win_pos_offset ) {
-    return FloatUtil.mapObjToWinCoords(objx, objy, objz,
+    return FloatUtil.mapObjToWin(objx, objy, objz,
                       modelMatrix, modelMatrix_offset,
                       projMatrix, projMatrix_offset,
                       viewport, viewport_offset,
@@ -347,7 +347,7 @@ public class ProjectFloat {
                               final float[] projMatrix, final int projMatrix_offset,
                               final int[] viewport, final int viewport_offset,
                               final float[] obj_pos, final int obj_pos_offset) {
-    return FloatUtil.mapWinToObjCoords(winx, winy, winz,
+    return FloatUtil.mapWinToObj(winx, winy, winz,
                                    modelMatrix, modelMatrix_offset,
                                    projMatrix, projMatrix_offset,
                                    viewport, viewport_offset,
@@ -505,7 +505,7 @@ public class ProjectFloat {
                                 final int[] viewport, final int viewport_offset,
                                 final float near, final float far,
                                 final float[] obj_pos, final int obj_pos_offset ) {
-    return FloatUtil.mapWinToObjCoords(winx, winy, winz, clipw,
+    return FloatUtil.mapWinToObj4(winx, winy, winz, clipw,
                                        modelMatrix, modelMatrix_offset,
                                        projMatrix, projMatrix_offset,
                                        viewport, viewport_offset,
@@ -618,7 +618,7 @@ public class ProjectFloat {
                             final float x, final float y,
                             final float deltaX, final float deltaY,
                             final int[] viewport, final int viewport_offset) {
-    if( null != FloatUtil.makePick(mat4Tmp1, 0, x, y, deltaX, deltaY, viewport, viewport_offset, mat4Tmp2) ) {
+    if( null != FloatUtil.makePick(mat4Tmp1, x, y, deltaX, deltaY, viewport, viewport_offset, mat4Tmp2) ) {
         gl.glMultMatrixf(mat4Tmp1, 0);
     }
   }

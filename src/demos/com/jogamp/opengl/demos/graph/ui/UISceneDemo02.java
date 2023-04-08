@@ -34,8 +34,8 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.ui.gl.Scene;
-import com.jogamp.graph.ui.gl.shapes.Label;
+import com.jogamp.graph.ui.Scene;
+import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
@@ -248,7 +248,7 @@ public class UISceneDemo02 {
 
                 final long t1_us = Clock.currentNanos() / 1000; // [us]
                 final long[] t2_us = { t1_us };
-                while( movingGlyph.getPosition()[0] > end_pos && window.isNativeValid() ) {
+                while( movingGlyph.getPosition().x() > end_pos && window.isNativeValid() ) {
                     // Move on GL thread to have vsync for free
                     // Otherwise we would need to employ a sleep(..) w/ manual vsync
                     final long[] t3_us = { 0 };

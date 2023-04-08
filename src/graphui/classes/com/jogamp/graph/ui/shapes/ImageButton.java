@@ -25,17 +25,15 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.ui.gl.shapes;
+package com.jogamp.graph.ui.shapes;
 
-import com.jogamp.opengl.GLProfile;
-import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.GLRegion;
-import com.jogamp.graph.ui.gl.GraphShape;
-import com.jogamp.opengl.util.texture.TextureSequence;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.opengl.util.texture.ImageSequence;
 
 /**
- * An abstract GraphUI {@link TextureSequence} {@link RoundButton} {@link GraphShape}.
+ * A GraphUI {@link ImageSequence} based {@link TexSeqButton} {@link GraphShape}.
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
@@ -44,39 +42,27 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * To render it rectangular, {@link #setCorner(float)} to zero.
  * </p>
  */
-public abstract class TexSeqButton extends RoundButton {
-    protected final TextureSequence texSeq;
+public class ImageButton extends TexSeqButton {
 
-    public TexSeqButton(final int renderModes, final float width,
-                        final float height, final TextureSequence texSeq) {
-        super(renderModes | Region.COLORTEXTURE_RENDERING_BIT, width, height);
-        this.texSeq = texSeq;
+    public ImageButton(final int renderModes, final float width,
+                       final float height, final ImageSequence texSeq) {
+        super(renderModes, width, height, texSeq);
+        setColor(0.95f, 0.95f, 0.95f, 1.0f);
+        setPressedColorMod(1f, 1f, 1f, 0.9f);
+        setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);
+        setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+
+    public final void setCurrentIdx(final int idx) {
+        ((ImageSequence)texSeq).setCurrentIdx(idx);
+        markStateDirty();
     }
 
     @Override
-    protected GLRegion createGLRegion(final GLProfile glp) {
-        return GLRegion.create(glp, getRenderModes(), texSeq);
-    }
-
-    public final TextureSequence getTextureSequence() { return this.texSeq; }
-
-    @Override
-    protected void addShapeToRegion() {
-        final OutlineShape shape = new OutlineShape(vertexFactory);
-        if(corner == 0.0f) {
-            createSharpOutline(shape, 0f);
-        } else {
-            createCurvedOutline(shape, 0f);
+    public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+        super.draw(gl, renderer, sampleCount);
+        if( !((ImageSequence)texSeq).getManualStepping() ) {
+            markStateDirty(); // keep on going
         }
-        shape.setIsQuadraticNurbs();
-        shape.setSharpness(oshapeSharpness);
-        region.addOutlineShape(shape, null, rgbaColor);
-        box.resize(shape.getBounds());
-
-        setRotationPivot( box.getCenter() );
-
-        if( DEBUG_DRAW ) {
-            System.err.println("XXX.UIShape.TextureSeqButton: Added Shape: "+shape+", "+box);
-        }
-    }
+    };
 }

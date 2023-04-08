@@ -39,7 +39,6 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.io.IOException;
 
-import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLCapabilities;
@@ -117,7 +116,7 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
 
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
-        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 
@@ -320,7 +319,7 @@ com.jogamp.opengl.GLException: Thread[main,5,main] glGetError() returned the fol
 
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
-        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
         st.ownUniform(pmvMatrixUniform);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 

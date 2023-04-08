@@ -227,7 +227,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
         pmvMatrix = new PMVMatrix();
         reshapePMV(drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat()); // P, Mv
         if(!st.uniform(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);
         }

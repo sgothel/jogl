@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.ui.gl;
+package com.jogamp.graph.ui;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,6 @@ import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
@@ -137,7 +136,7 @@ public abstract class GraphShape extends Shape {
         if( null != gl ) {
             clearDirtyRegions(gl);
         }
-        if( isShapeDirty() || null == region ) {
+        if( isShapeDirty() ) {
             if( null == region ) {
                 region = createGLRegion(glp);
             } else if( null == gl ) {
@@ -164,7 +163,7 @@ public abstract class GraphShape extends Shape {
         final float x2 = box.getMaxX();
         final float y1 = box.getMinY();
         final float y2 = box.getMaxY();
-        final float z = box.getCenter()[2]; // 0; // box.getMinZ() + 0.025f;
+        final float z = box.getCenter().z(); // 0; // box.getMinZ() + 0.025f;
         {
             // Outer OutlineShape as Winding.CCW.
             shape.moveTo(x1, y1, z);

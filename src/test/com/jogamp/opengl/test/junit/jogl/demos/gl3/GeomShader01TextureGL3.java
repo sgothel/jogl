@@ -35,6 +35,7 @@ import java.nio.FloatBuffer;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GL3;
+import com.jogamp.opengl.GL3ES3;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLException;
@@ -108,7 +109,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
             final ShaderCode vs, gs, fs;
             vs = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(),
                                    "shader", "shader/bin", shaderBasename, true);
-            gs = ShaderCode.create(gl, GL3.GL_GEOMETRY_SHADER, this.getClass(),
+            gs = ShaderCode.create(gl, GL3ES3.GL_GEOMETRY_SHADER, this.getClass(),
                                    "shader", "shader/bin", geomShaderBaseNames[geomShader], true);
             fs = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(),
                                    "shader", "shader/bin", shaderBasename, true);
@@ -134,7 +135,7 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat()); // P, Mv
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 

@@ -51,6 +51,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -392,7 +393,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             rs.setColorStatic(0.9f, 0.0f, 0.0f, 1.0f);
 
             if( bottomTextUseFrustum ) {
-                regionBottom.setFrustum(pmv.glGetFrustum());
+                regionBottom.setFrustum(pmv.getFrustum());
             }
             if(!userInput) {
                 if( bottomTextUseFrustum ) {
@@ -491,7 +492,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         System.err.println("Matrix: " + getXTran() + "/" + getYTran() + " x"+getZTran() + " @"+getAngle() +" fontSize "+fontSizeCenter);
         if(bbox) {
             System.err.println("bbox em: "+font.getMetricBounds(text2));
-            System.err.println("bbox px: "+font.getMetricBounds(text2).scale(nearPlaneS * FontScale.toPixels(fontSizeCenter, dpiV), new float[3]));
+            System.err.println("bbox px: "+font.getMetricBounds(text2).scale( nearPlaneS * FontScale.toPixels(fontSizeCenter, dpiV) ) );
         }
     }
 

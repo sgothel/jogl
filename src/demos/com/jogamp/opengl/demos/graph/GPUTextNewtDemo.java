@@ -155,7 +155,7 @@ public class GPUTextNewtDemo {
             final AABBox fontNameBox = font2.getMetricBounds(GPUTextRendererListenerBase01.textX1);
             System.err.println("GPU Text Newt Demo: "+font2.fullString());
             System.err.println("GPU Text Newt Demo: screen-dpi: "+sDPI[0]+"x"+sDPI[1]+", font "+font_ptpi+" pt, "+font_ppi+" pixel");
-            System.err.println("GPU Text Newt Demo: textX2: "+fontNameBox+" em, "+fontNameBox.scale(font_ppi, new float[3])+" px");
+            System.err.println("GPU Text Newt Demo: textX2: "+fontNameBox+" em, "+fontNameBox.scale(font_ppi)+" px");
             final MonitorDevice monitor = window.getMainMonitor();
             System.err.println("GPU Text Newt Demo: "+monitor);
             // window.setSurfaceSize((int)(fontNameBox.getWidth()*1.1f), (int)(fontNameBox.getHeight()*2f));

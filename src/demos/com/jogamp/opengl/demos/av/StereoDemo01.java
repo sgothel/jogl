@@ -52,6 +52,7 @@ import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.stereo.StereoDeviceUtil;
 import com.jogamp.opengl.math.FovHVHalves;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
@@ -289,9 +290,9 @@ public class StereoDemo01 {
         }
 
         final boolean usesLenses = 0 != ( StereoDeviceRenderer.DISTORTION_BARREL & stereoDevice.getMinimumDistortionBits() );
-        final float[] eyePositionOffset = null != movieSimple && usesLenses ? new float[] { 0f, 0.3f, 0f }                // better fixed movie position w/ lenses
-                                                                            : stereoDevice.getDefaultEyePositionOffset(); // default
-        System.err.println("Eye Position Offset: "+Arrays.toString(eyePositionOffset));
+        final Vec3f eyePositionOffset = null != movieSimple && usesLenses ? new Vec3f( 0f, 0.3f, 0f )                     // better fixed movie position w/ lenses
+                                                                          : stereoDevice.getDefaultEyePositionOffset(); // default
+        System.err.println("Eye Position Offset: "+eyePositionOffset);
 
         final int textureUnit = 0;
         final int reqDistortionBits;
@@ -382,7 +383,7 @@ public class StereoDemo01 {
         System.err.println("Window.1.surfaceSize: "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
 
         if( useAnimator ) {
-            animator.setUpdateFPSFrames(60, System.err);
+            animator.setUpdateFPSFrames(60*10, System.err);
         }
 
         final long t0 = System.currentTimeMillis();

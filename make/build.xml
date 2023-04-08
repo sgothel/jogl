@@ -439,6 +439,48 @@
         <property name="javadoc.bottom" value="Copyright 2010 JogAmp Community." />
     </target>
 
+    <target name="doxygen.public" depends="javadoc.init">
+        <!-- Build the general public Javadoc -->
+        <delete includeEmptyDirs="true" quiet="true" dir="${javadoc.jogl.public.path}" failonerror="false" />
+        <mkdir dir="${javadoc.jogl.public.path}" />
+        <copy file="${project.root}/doxygen/Doxyfile.javapublic.in"
+            tofile="${build}/Doxyfile.javapublic"
+            overwrite="true">
+            <filterset>
+                <filter token="BUILD_DIR" value="${build.abs-path}"/>
+                <filter token="CURRENT_SOURCE_DIR" value="${project.root.abs-path}"/>
+                <filter token="JOGL_VERSION_LONG" value="${jogamp.version}"/>
+                <filter token="JOGL_DOCS_DIR" value="${javadoc.jogl.public.path}"/>
+            </filterset>
+        </copy>
+        <exec dir="${build}" executable="doxygen"
+             vmlauncher="false"
+             failonerror="false">
+            <arg line="Doxyfile.javapublic"/>
+        </exec>
+    </target>
+
+    <target name="doxygen.all" depends="javadoc.init">
+        <!-- Build the general public Javadoc -->
+        <delete includeEmptyDirs="true" quiet="true" dir="${javadoc.jogl.dev.path}" failonerror="false" />
+        <mkdir dir="${javadoc.jogl.dev.path}" />
+        <copy file="${project.root}/doxygen/Doxyfile.javaall.in"
+            tofile="${build}/Doxyfile.javaall"
+            overwrite="true">
+            <filterset>
+                <filter token="BUILD_DIR" value="${build.abs-path}"/>
+                <filter token="CURRENT_SOURCE_DIR" value="${project.root.abs-path}"/>
+                <filter token="JOGL_VERSION_LONG" value="${jogamp.version}"/>
+                <filter token="JOGL_DOCS_DIR" value="${javadoc.jogl.dev.path}"/>
+            </filterset>
+        </copy>
+        <exec dir="${build}" executable="doxygen"
+             vmlauncher="false"
+             failonerror="false">
+            <arg line="Doxyfile.javaall"/>
+        </exec>
+    </target>
+
     <target name="javadoc.public" depends="javadoc.init">
         <!-- Build the general public Javadoc -->
         <mkdir dir="${javadoc.jogl.public.path}" />

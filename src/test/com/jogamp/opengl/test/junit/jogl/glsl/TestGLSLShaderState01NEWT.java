@@ -125,7 +125,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
 
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
-        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         pmvMatrixUniform.setLocation(gl, sp.program());
         gl.glUniform(pmvMatrixUniform);
@@ -244,7 +244,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
 
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
-        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         st.ownUniform(pmvMatrixUniform);
 
@@ -336,7 +336,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
 
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
-        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 
@@ -425,7 +425,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
 
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
-        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 

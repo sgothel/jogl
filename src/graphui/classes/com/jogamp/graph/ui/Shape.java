@@ -25,9 +25,10 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.ui.gl;
+package com.jogamp.graph.ui;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.opengl.GL2ES2;
@@ -43,7 +44,9 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.Recti;
+import com.jogamp.opengl.math.Vec2f;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -66,6 +69,34 @@ import com.jogamp.opengl.util.PMVMatrix;
  * @see Scene
  */
 public abstract class Shape {
+    /**
+     * General {@link Shape} visitor
+     */
+    public static interface Visitor1 {
+        /**
+         * Visitor method
+         * @param s the {@link Shape} to process
+         * @return true to signal operation complete and to stop traversal, otherwise false
+         */
+        boolean visit(Shape s);
+    }
+
+    /**
+     * General {@link Shape} visitor
+     */
+    public static interface Visitor2 {
+        /**
+         * Visitor method
+         * @param s the {@link Shape} to process
+         * @param pmv the {@link PMVMatrix} setup from the {@link Scene} down to the {@link Shape}
+         * @return true to signal operation complete and to stop traversal, otherwise false
+         */
+        boolean visit(Shape s, final PMVMatrix pmv);
+    }
+
+    /**
+     * General {@link Shape} listener action
+     */
     public static interface Listener {
         void run(final Shape shape);
     }
@@ -77,10 +108,10 @@ public abstract class Shape {
 
     protected final AABBox box;
 
-    private final float[] position = new float[] { 0f, 0f, 0f };
+    private final Vec3f position = new Vec3f();
     private final Quaternion rotation = new Quaternion();
-    private final float[] rotPivot = new float[] { 0f, 0f, 0f };
-    private final float[] scale = new float[] { 1f, 1f, 1f };
+    private final Vec3f rotPivot = new Vec3f();
+    private final Vec3f scale = new Vec3f(1f, 1f, 1f);
 
     private volatile int dirty = DIRTY_SHAPE | DIRTY_STATE;
     private final Object dirtySync = new Object();
@@ -101,6 +132,7 @@ public abstract class Shape {
     private boolean toggleable = false;
     private boolean draggable = true;
     private boolean resizable = true;
+    private boolean interactive = true;
     private boolean enabled = true;
     private float dbgbox_thickness = 0f; // fractional thickness of bounds, 0f for no debug box
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
@@ -141,16 +173,10 @@ public abstract class Shape {
     public final void clear(final GL2ES2 gl, final RegionRenderer renderer) {
         synchronized ( dirtySync ) {
             clearImpl0(gl, renderer);
-            position[0] = 0f;
-            position[1] = 0f;
-            position[2] = 0f;
+            position.set(0f, 0f, 0f);
             rotation.setIdentity();
-            rotPivot[0] = 0f;
-            rotPivot[1] = 0f;
-            rotPivot[2] = 0f;
-            scale[0] = 1f;
-            scale[1] = 1f;
-            scale[2] = 1f;
+            rotPivot.set(0f, 0f, 0f);
+            scale.set(1f, 1f, 1f);
             box.reset();
             markShapeDirty();
         }
@@ -163,16 +189,10 @@ public abstract class Shape {
      */
     public final void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
         destroyImpl0(gl, renderer);
-        position[0] = 0f;
-        position[1] = 0f;
-        position[2] = 0f;
+        position.set(0f, 0f, 0f);
         rotation.setIdentity();
-        rotPivot[0] = 0f;
-        rotPivot[1] = 0f;
-        rotPivot[2] = 0f;
-        scale[0] = 1f;
-        scale[1] = 1f;
-        scale[2] = 1f;
+        rotPivot.set(0f, 0f, 0f);
+        scale.set(1f, 1f, 1f);
         box.reset();
         markShapeDirty();
     }
@@ -181,45 +201,53 @@ public abstract class Shape {
 
     /** Move to scaled position. Position ends up in PMVMatrix unmodified. */
     public final void moveTo(final float tx, final float ty, final float tz) {
-        position[0] = tx;
-        position[1] = ty;
-        position[2] = tz;
+        position.set(tx, ty, tz);
         if( null != onMoveListener ) {
             onMoveListener.run(this);
         }
-        // System.err.println("Shape.setTranslate: "+tx+"/"+ty+"/"+tz+": "+toString());
+    }
+
+    /** Move to scaled position. Position ends up in PMVMatrix unmodified. */
+    public final void moveTo(final Vec3f t) {
+        position.set(t);
+        if( null != onMoveListener ) {
+            onMoveListener.run(this);
+        }
     }
 
     /** Move about scaled distance. Position ends up in PMVMatrix unmodified. */
     public final void move(final float dtx, final float dty, final float dtz) {
-        position[0] += dtx;
-        position[1] += dty;
-        position[2] += dtz;
+        position.add(dtx, dty, dtz);
         if( null != onMoveListener ) {
             onMoveListener.run(this);
         }
-        // System.err.println("Shape.translate: "+tx+"/"+ty+"/"+tz+": "+toString());
     }
 
-    /** Returns float[3] position, i.e. scaled translation as set via {@link #moveTo(float, float, float) or {@link #move(float, float, float)}}. */
-    public final float[] getPosition() { return position; }
+    /** Move about scaled distance. Position ends up in PMVMatrix unmodified. */
+    public final void move(final Vec3f dt) {
+        position.add(dt);
+        if( null != onMoveListener ) {
+            onMoveListener.run(this);
+        }
+    }
+
+    /** Returns position, i.e. scaled translation as set via {@link #moveTo(float, float, float) or {@link #move(float, float, float)}}. */
+    public final Vec3f getPosition() { return position; }
 
     /** Returns {@link Quaternion} for rotation. */
     public final Quaternion getRotation() { return rotation; }
-    /** Return float[3] unscaled rotation origin, aka pivot. */
-    public final float[] getRotationPivot() { return rotPivot; }
+    /** Return unscaled rotation origin, aka pivot. */
+    public final Vec3f getRotationPivot() { return rotPivot; }
     /** Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}. */
-    public final void setRotationPivot(final float rx, final float ry, final float rz) {
-        rotPivot[0] = rx;
-        rotPivot[1] = ry;
-        rotPivot[2] = rz;
+    public final void setRotationPivot(final float px, final float py, final float pz) {
+        rotPivot.set(px, py, pz);
     }
     /**
      * Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}.
-     * @param pivot float[3] rotation origin
+     * @param pivot rotation origin
      */
-    public final void setRotationPivot(final float[/*3*/] pivot) {
-        System.arraycopy(pivot, 0, rotPivot, 0, 3);
+    public final void setRotationPivot(final Vec3f pivot) {
+        rotPivot.set(pivot);
     }
 
     /**
@@ -228,9 +256,7 @@ public abstract class Shape {
      * @see #getScale()
      */
     public final void setScale(final float sx, final float sy, final float sz) {
-        scale[0] = sx;
-        scale[1] = sy;
-        scale[2] = sz;
+        scale.set(sx, sy, sz);
     }
     /**
      * Multiply current scale factor by given scale.
@@ -238,22 +264,14 @@ public abstract class Shape {
      * @see #getScale()
      */
     public final void scale(final float sx, final float sy, final float sz) {
-        scale[0] *= sx;
-        scale[1] *= sy;
-        scale[2] *= sz;
+        scale.scale(sx, sy, sz);
     }
     /**
-     * Returns float[3] scale factors.
+     * Returns scale factors.
      * @see #setScale(float, float, float)
      * @see #scale(float, float, float)
      */
-    public final float[] getScale() { return scale; }
-    /** Returns X-axis scale factor. */
-    public final float getScaleX() { return scale[0]; }
-    /** Returns Y-axis scale factor. */
-    public final float getScaleY() { return scale[1]; }
-    /** Returns Z-axis scale factor. */
-    public final float getScaleZ() { return scale[2]; }
+    public final Vec3f getScale() { return scale; }
 
     /**
      * Marks the shape dirty, causing next {@link #draw(GL2ES2, RegionRenderer, int[]) draw()}
@@ -303,7 +321,7 @@ public abstract class Shape {
      * @see #getBounds()
      */
     public final float getScaledWidth() {
-        return box.getWidth() * getScaleX();
+        return box.getWidth() * getScale().x();
     }
 
     /**
@@ -316,7 +334,7 @@ public abstract class Shape {
      * @see #getBounds()
      */
     public final float getScaledHeight() {
-        return box.getHeight() * getScaleY();
+        return box.getHeight() * getScale().y();
     }
 
     /**
@@ -449,39 +467,39 @@ public abstract class Shape {
      * @see #setScale(float, float, float)
      */
     public void setTransform(final PMVMatrix pmv) {
-        final boolean hasScale = !VectorUtil.isVec3Equal(scale, 0, VectorUtil.VEC3_ONE, 0, FloatUtil.EPSILON);
+        final boolean hasScale = !scale.isEqual(Vec3f.ONE);
         final boolean hasRotate = !rotation.isIdentity();
-        final boolean hasRotPivot = !VectorUtil.isVec3Zero(rotPivot, 0, FloatUtil.EPSILON);
-        final float[] ctr = box.getCenter();
-        final boolean sameScaleRotatePivot = hasScale && hasRotate && ( !hasRotPivot || VectorUtil.isVec3Equal(rotPivot, 0, ctr, 0, FloatUtil.EPSILON) );
+        final boolean hasRotPivot = !rotPivot.isZero();
+        final Vec3f ctr = box.getCenter();
+        final boolean sameScaleRotatePivot = hasScale && hasRotate && ( !hasRotPivot || rotPivot.isEqual(ctr) );
 
-        pmv.glTranslatef(position[0], position[1], position[2]); // translate, scaled
+        pmv.glTranslatef(position.x(), position.y(), position.z()); // translate, scaled
 
         if( sameScaleRotatePivot ) {
             // Scale shape from its center position and rotate around its center
-            pmv.glTranslatef(ctr[0]*scale[0], ctr[1]*scale[1], ctr[2]*scale[2]); // add-back center, scaled
+            pmv.glTranslatef(ctr.x()*scale.x(), ctr.y()*scale.y(), ctr.z()*scale.z()); // add-back center, scaled
             pmv.glRotate(rotation);
-            pmv.glScalef(scale[0], scale[1], scale[2]);
-            pmv.glTranslatef(-ctr[0], -ctr[1], -ctr[2]); // move to center
+            pmv.glScalef(scale.x(), scale.y(), scale.z());
+            pmv.glTranslatef(-ctr.x(), -ctr.y(), -ctr.z()); // move to center
         } else if( hasRotate || hasScale ) {
             if( hasRotate ) {
                 if( hasRotPivot ) {
                     // Rotate shape around its scaled pivot
-                    pmv.glTranslatef(rotPivot[0]*scale[0], rotPivot[1]*scale[1], rotPivot[2]*scale[2]); // pivot back from rot-pivot, scaled
+                    pmv.glTranslatef(rotPivot.x()*scale.x(), rotPivot.y()*scale.y(), rotPivot.z()*scale.z()); // pivot back from rot-pivot, scaled
                     pmv.glRotate(rotation);
-                    pmv.glTranslatef(-rotPivot[0]*scale[0], -rotPivot[1]*scale[1], -rotPivot[2]*scale[2]); // pivot to rot-pivot, scaled
+                    pmv.glTranslatef(-rotPivot.x()*scale.x(), -rotPivot.y()*scale.y(), -rotPivot.z()*scale.z()); // pivot to rot-pivot, scaled
                 } else {
                     // Rotate shape around its scaled center
-                    pmv.glTranslatef(ctr[0]*scale[0], ctr[1]*scale[1], ctr[2]*scale[2]); // pivot back from center-pivot, scaled
+                    pmv.glTranslatef(ctr.x()*scale.x(), ctr.y()*scale.y(), ctr.z()*scale.z()); // pivot back from center-pivot, scaled
                     pmv.glRotate(rotation);
-                    pmv.glTranslatef(-ctr[0]*scale[0], -ctr[1]*scale[1], -ctr[2]*scale[2]); // pivot to center-pivot, scaled
+                    pmv.glTranslatef(-ctr.x()*scale.x(), -ctr.y()*scale.y(), -ctr.z()*scale.z()); // pivot to center-pivot, scaled
                 }
             }
             if( hasScale ) {
                 // Scale shape from its center position
-                pmv.glTranslatef(ctr[0]*scale[0], ctr[1]*scale[1], ctr[2]*scale[2]); // add-back center, scaled
-                pmv.glScalef(scale[0], scale[1], scale[2]);
-                pmv.glTranslatef(-ctr[0], -ctr[1], -ctr[2]); // move to center
+                pmv.glTranslatef(ctr.x()*scale.x(), ctr.y()*scale.y(), ctr.z()*scale.z()); // add-back center, scaled
+                pmv.glScalef(scale.x(), scale.y(), scale.z());
+                pmv.glTranslatef(-ctr.x(), -ctr.y(), -ctr.z()); // move to center
             }
         }
         // TODO: Add alignment features.
@@ -498,23 +516,20 @@ public abstract class Shape {
      * @param viewport the int[4] viewport
      * @param surfaceSize int[2] target surface size
      * @return given int[2] {@code surfaceSize} for successful gluProject(..) operation, otherwise {@code null}
-     * @see #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])
+     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])
      * @see #getSurfaceSize(Scene, PMVMatrix, int[])
      */
-    public int[/*2*/] getSurfaceSize(final PMVMatrix pmv, final int[/*4*/] viewport, final int[/*2*/] surfaceSize) {
+    public int[/*2*/] getSurfaceSize(final PMVMatrix pmv, final Recti viewport, final int[/*2*/] surfaceSize) {
         // System.err.println("Shape::getSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
-        final float[] winCoordHigh = new float[3];
-        final float[] winCoordLow = new float[3];
-        final float[] high = getBounds().getHigh();
-        final float[] low = getBounds().getLow();
+        final Vec3f winCoordHigh = new Vec3f();
+        final Vec3f winCoordLow = new Vec3f();
+        final Vec3f high = box.getHigh();
+        final Vec3f low = box.getLow();
 
-        if( pmv.gluProject(high[0], high[1], high[2], viewport, 0, winCoordHigh, 0) ) {
-            // System.err.printf("Shape::surfaceSize.H: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), high[0], high[1], high[2], winCoordHigh[0], winCoordHigh[1], winCoordHigh[2]);
-            if( pmv.gluProject(low[0], low[1], low[2], viewport, 0, winCoordLow, 0) ) {
-                // System.err.printf("Shape::surfaceSize.L: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), low[0], low[1], low[2], winCoordLow[0], winCoordLow[1], winCoordLow[2]);
-                surfaceSize[0] = (int)(winCoordHigh[0] - winCoordLow[0]);
-                surfaceSize[1] = (int)(winCoordHigh[1] - winCoordLow[1]);
-                // System.err.printf("Shape::surfaceSize.S: shape %d: %f x %f -> %d x %d%n", getName(), winCoordHigh[0] - winCoordLow[0], winCoordHigh[1] - winCoordLow[1], surfaceSize[0], surfaceSize[1]);
+        if( pmv.gluProject(high, viewport, winCoordHigh) ) {
+            if( pmv.gluProject(low, viewport, winCoordLow) ) {
+                surfaceSize[0] = (int)(winCoordHigh.x() - winCoordLow.x());
+                surfaceSize[1] = (int)(winCoordHigh.y() - winCoordLow.y());
                 return surfaceSize;
             }
         }
@@ -524,20 +539,20 @@ public abstract class Shape {
     /**
      * Retrieve surface (view) size of this shape.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} properly for this shape
+     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
      * including this shape's {@link #setTransform(PMVMatrix)}.
      * </p>
-     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} given {@link PMVMatrix} {@code pmv}.
-     * @param viewport used viewport for {@link PMVMatrix#gluProject(float, float, float, int[], int, float[], int)}
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
+     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} given {@link PMVMatrix} {@code pmv}.
+     * @param viewport used viewport for {@link PMVMatrix#gluProject(float, float, float, int[], float[])}
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
      *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
      * @param surfaceSize int[2] target surface size
      * @return given int[2] {@code surfaceSize} for successful gluProject(..) operation, otherwise {@code null}
-     * @see #getSurfaceSize(PMVMatrix, int[], int[])
+     * @see #getSurfaceSize(PMVMatrix, Recti, int[])
      * @see #getSurfaceSize(Scene, PMVMatrix, int[])
      */
-    public int[/*2*/] getSurfaceSize(final Scene.PMVMatrixSetup pmvMatrixSetup, final int[/*4*/] viewport, final PMVMatrix pmv, final int[/*2*/] surfaceSize) {
-        pmvMatrixSetup.set(pmv, viewport[0], viewport[1], viewport[2], viewport[3]);
+    public int[/*2*/] getSurfaceSize(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final PMVMatrix pmv, final int[/*2*/] surfaceSize) {
+        pmvMatrixSetup.set(pmv, viewport);
         setTransform(pmv);
         return getSurfaceSize(pmv, viewport, surfaceSize);
     }
@@ -545,16 +560,16 @@ public abstract class Shape {
     /**
      * Retrieve surface (view) size of this shape.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} properly for this shape
+     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
      * including this shape's {@link #setTransform(PMVMatrix)}.
      * </p>
      * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
      *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
      * @param surfaceSize int[2] target surface size
      * @return given int[2] {@code surfaceSize} for successful gluProject(..) operation, otherwise {@code null}
-     * @see #getSurfaceSize(PMVMatrix, int[], int[])
-     * @see #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])
+     * @see #getSurfaceSize(PMVMatrix, Recti, int[])
+     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])
      */
     public int[/*2*/] getSurfaceSize(final Scene scene, final PMVMatrix pmv, final int[/*2*/] surfaceSize) {
         return getSurfaceSize(scene.getPMVMatrixSetup(), scene.getViewport(), pmv, surfaceSize);
@@ -563,11 +578,11 @@ public abstract class Shape {
     /**
      * Retrieve pixel per scaled shape-coordinate unit, i.e. [px]/[obj].
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} properly for this shape
+     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
      * including this shape's {@link #setTransform(PMVMatrix)}.
      * </p>
      * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
      *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
      * @param pixPerShape float[2] pixel per scaled shape-coordinate unit result storage
      * @return given float[2] {@code pixPerShape} for successful gluProject(..) operation, otherwise {@code null}
@@ -587,11 +602,11 @@ public abstract class Shape {
 
     /**
      * Retrieve pixel per scaled shape-coordinate unit, i.e. [px]/[obj].
-     * @param shapeSizePx int[2] shape size in pixel as retrieved via e.g. {@link #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])}
+     * @param shapeSizePx int[2] shape size in pixel as retrieved via e.g. {@link #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])}
      * @param pixPerShape float[2] pixel scaled per shape-coordinate unit result storage
      * @return given float[2] {@code pixPerShape}
      * @see #getPixelPerShapeUnit(Scene, PMVMatrix, float[])
-     * @see #getSurfaceSize(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], PMVMatrix, int[])
+     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])
      * @see #getScaledWidth()
      * @see #getScaledHeight()
      */
@@ -609,22 +624,20 @@ public abstract class Shape {
      * including this shape's {@link #setTransform(PMVMatrix)}.
      * </p>
      * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)} and {@link #setTransform(PMVMatrix)}.
-     * @param viewport the int[4] viewport
-     * @param objPos float[3] object position relative to this shape's center
+     * @param viewport the viewport
+     * @param objPos object position relative to this shape's center
      * @param glWinPos int[2] target window position of objPos relative to this shape
      * @return given int[2] {@code glWinPos} for successful gluProject(..) operation, otherwise {@code null}
-     * @see #shapeToWinCoord(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], float[], PMVMatrix, int[])
+     * @see #shapeToWinCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, float[], PMVMatrix, int[])
      * @see #shapeToWinCoord(Scene, float[], PMVMatrix, int[])
      */
-    public int[/*2*/] shapeToWinCoord(final PMVMatrix pmv, final int[/*4*/] viewport, final float[/*3*/] objPos, final int[/*2*/] glWinPos) {
+    public int[/*2*/] shapeToWinCoord(final PMVMatrix pmv, final Recti viewport, final Vec3f objPos, final int[/*2*/] glWinPos) {
         // System.err.println("Shape::objToWinCoordgetSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
-        final float[] winCoord = new float[3];
+        final Vec3f winCoord = new Vec3f();
 
-        if( pmv.gluProject(objPos[0], objPos[1], objPos[2], viewport, 0, winCoord, 0) ) {
-            // System.err.printf("Shape::objToWinCoord.0: shape %d: obj [%f, %f, %f] -> win [%f, %f, %f]%n", getName(), objPos[0], objPos[1], objPos[2], winCoord[0], winCoord[1], winCoord[2]);
-            glWinPos[0] = (int)(winCoord[0]);
-            glWinPos[1] = (int)(winCoord[1]);
-            // System.err.printf("Shape::objToWinCoord.X: shape %d: %f / %f -> %d / %d%n", getName(), winCoord[0], winCoord[1], glWinPos[0], glWinPos[1]);
+        if( pmv.gluProject(objPos, viewport, winCoord) ) {
+            glWinPos[0] = (int)(winCoord.x());
+            glWinPos[1] = (int)(winCoord.y());
             return glWinPos;
         }
         return null;
@@ -633,21 +646,21 @@ public abstract class Shape {
     /**
      * Map given object coordinate relative to this shape to window coordinates.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} properly for this shape
+     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
      * including this shape's {@link #setTransform(PMVMatrix)}.
      * </p>
-     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} given {@link PMVMatrix} {@code pmv}.
-     * @param viewport used viewport for {@link PMVMatrix#gluProject(float, float, float, int[], int, float[], int)}
-     * @param objPos float[3] object position relative to this shape's center
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
+     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} given {@link PMVMatrix} {@code pmv}.
+     * @param viewport used viewport for {@link PMVMatrix#gluProject(Vec3f, Recti, Vec3f)}
+     * @param objPos object position relative to this shape's center
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
      *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
      * @param glWinPos int[2] target window position of objPos relative to this shape
      * @return given int[2] {@code glWinPos} for successful gluProject(..) operation, otherwise {@code null}
-     * @see #shapeToWinCoord(PMVMatrix, int[], float[], int[])
+     * @see #shapeToWinCoord(PMVMatrix, Recti, float[], int[])
      * @see #shapeToWinCoord(Scene, float[], PMVMatrix, int[])
      */
-    public int[/*2*/] shapeToWinCoord(final Scene.PMVMatrixSetup pmvMatrixSetup, final int[/*4*/] viewport, final float[/*3*/] objPos, final PMVMatrix pmv, final int[/*2*/] glWinPos) {
-        pmvMatrixSetup.set(pmv, viewport[0], viewport[1], viewport[2], viewport[3]);
+    public int[/*2*/] shapeToWinCoord(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final Vec3f objPos, final PMVMatrix pmv, final int[/*2*/] glWinPos) {
+        pmvMatrixSetup.set(pmv, viewport);
         setTransform(pmv);
         return this.shapeToWinCoord(pmv, viewport, objPos, glWinPos);
     }
@@ -655,19 +668,19 @@ public abstract class Shape {
     /**
      * Map given object coordinate relative to this shape to window coordinates.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} properly for this shape
+     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
      * including this shape's {@link #setTransform(PMVMatrix)}.
      * </p>
      * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
-     * @param objPos float[3] object position relative to this shape's center
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
+     * @param objPos object position relative to this shape's center
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
      *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
      * @param glWinPos int[2] target window position of objPos relative to this shape
      * @return given int[2] {@code glWinPos} for successful gluProject(..) operation, otherwise {@code null}
-     * @see #shapeToWinCoord(PMVMatrix, int[], float[], int[])
-     * @see #shapeToWinCoord(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], float[], PMVMatrix, int[])
+     * @see #shapeToWinCoord(PMVMatrix, Recti, float[], int[])
+     * @see #shapeToWinCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, float[], PMVMatrix, int[])
      */
-    public int[/*2*/] shapeToWinCoord(final Scene scene, final float[/*3*/] objPos, final PMVMatrix pmv, final int[/*2*/] glWinPos) {
+    public int[/*2*/] shapeToWinCoord(final Scene scene, final Vec3f objPos, final PMVMatrix pmv, final int[/*2*/] glWinPos) {
         return this.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), objPos, pmv, glWinPos);
     }
 
@@ -679,22 +692,20 @@ public abstract class Shape {
      * including this shape's {@link #setTransform(PMVMatrix)}.
      * </p>
      * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)} and {@link #setTransform(PMVMatrix)}.
-     * @param viewport the int[4] viewport
+     * @param viewport the Rect4i viewport
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
-     * @param objPos float[3] target object position of glWinX/glWinY relative to this shape
-     * @return given float[3] {@code objPos} for successful gluProject(..) and gluUnProject(..) operation, otherwise {@code null}
-     * @see #winToShapeCoord(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], int, int, PMVMatrix, float[])
+     * @param objPos target object position of glWinX/glWinY relative to this shape
+     * @return given {@code objPos} for successful gluProject(..) and gluUnProject(..) operation, otherwise {@code null}
+     * @see #winToShapeCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, int, int, PMVMatrix, float[])
      * @see #winToShapeCoord(Scene, int, int, PMVMatrix, float[])
      */
-    public float[/*3*/] winToShapeCoord(final PMVMatrix pmv, final int[/*4*/] viewport, final int glWinX, final int glWinY, final float[/*3*/] objPos) {
-        final float[] ctr = getBounds().getCenter();
-        final float[] tmp = new float[3];
+    public Vec3f winToShapeCoord(final PMVMatrix pmv, final Recti viewport, final int glWinX, final int glWinY, final Vec3f objPos) {
+        final Vec3f ctr = box.getCenter();
 
-        if( pmv.gluProject(ctr[0], ctr[1], ctr[2], viewport, 0, tmp, 0) ) {
-            // System.err.printf("Shape::winToObjCoord.0: shape %d: obj [%15.10ff, %15.10ff, %15.10ff] -> win [%d / %d -> %7.2ff, %7.2ff, %7.2ff, diff %7.2ff x %7.2ff]%n", getName(), ctr[0], ctr[1], ctr[2], glWinX, glWinY, tmp[0], tmp[1], tmp[2], glWinX-tmp[0], glWinY-tmp[1]);
-            if( pmv.gluUnProject(glWinX, glWinY, tmp[2], viewport, 0, objPos, 0) ) {
-                // System.err.printf("Shape::winToObjCoord.X: shape %d: win [%d, %d, %7.2ff] -> obj [%15.10ff, %15.10ff, %15.10ff]%n", getName(), glWinX, glWinY, tmp[2], objPos[0], objPos[1], objPos[2]);
+        if( pmv.gluProject(ctr, viewport, objPos) ) {
+            final float winZ = objPos.z();
+            if( pmv.gluUnProject(glWinX, glWinY, winZ, viewport, objPos) ) {
                 return objPos;
             }
         }
@@ -704,22 +715,22 @@ public abstract class Shape {
     /**
      * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} properly for this shape
+     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
      * including this shape's {@link #setTransform(PMVMatrix)}.
      * </p>
-     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} given {@link PMVMatrix} {@code pmv}.
-     * @param viewport used viewport for {@link PMVMatrix#gluUnProject(float, float, float, int[], int, float[], int)}
+     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} given {@link PMVMatrix} {@code pmv}.
+     * @param viewport used viewport for {@link PMVMatrix#gluUnProject(float, float, float, Recti, Vec3f)}
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
      *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
-     * @param objPos float[3] target object position of glWinX/glWinY relative to this shape
-     * @return given float[3] {@code objPos} for successful gluProject(..) and gluUnProject(..) operation, otherwise {@code null}
-     * @see #winToShapeCoord(PMVMatrix, int[], int, int, float[])
+     * @param objPos target object position of glWinX/glWinY relative to this shape
+     * @return given {@code objPos} for successful gluProject(..) and gluUnProject(..) operation, otherwise {@code null}
+     * @see #winToShapeCoord(PMVMatrix, Recti, int, int, float[])
      * @see #winToShapeCoord(Scene, int, int, PMVMatrix, float[])
      */
-    public float[/*3*/] winToShapeCoord(final Scene.PMVMatrixSetup pmvMatrixSetup, final int[/*4*/] viewport, final int glWinX, final int glWinY, final PMVMatrix pmv, final float[/*3*/] objPos) {
-        pmvMatrixSetup.set(pmv, viewport[0], viewport[1], viewport[2], viewport[3]);
+    public Vec3f winToShapeCoord(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final int glWinX, final int glWinY, final PMVMatrix pmv, final Vec3f objPos) {
+        pmvMatrixSetup.set(pmv, viewport);
         setTransform(pmv);
         return this.winToShapeCoord(pmv, viewport, glWinX, glWinY, objPos);
     }
@@ -727,20 +738,20 @@ public abstract class Shape {
     /**
      * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) setup} properly for this shape
+     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
      * including this shape's {@link #setTransform(PMVMatrix)}.
      * </p>
      * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, int, int, int, int) be setup},
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
      *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
-     * @param objPos float[3] target object position of glWinX/glWinY relative to this shape
-     * @return given float[3] {@code objPos} for successful gluProject(..) and gluUnProject(..) operation, otherwise {@code null}
-     * @see #winToShapeCoord(PMVMatrix, int[], int, int, float[])
-     * @see #winToShapeCoord(com.jogamp.graph.ui.gl.Scene.PMVMatrixSetup, int[], int, int, PMVMatrix, float[])
+     * @param objPos target object position of glWinX/glWinY relative to this shape
+     * @return given {@code objPos} for successful gluProject(..) and gluUnProject(..) operation, otherwise {@code null}
+     * @see #winToShapeCoord(PMVMatrix, Recti, int, int, float[])
+     * @see #winToShapeCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, int, int, PMVMatrix, float[])
      */
-    public float[/*3*/] winToShapeCoord(final Scene scene, final int glWinX, final int glWinY, final PMVMatrix pmv, final float[/*3*/] objPos) {
+    public Vec3f winToShapeCoord(final Scene scene, final int glWinX, final int glWinY, final PMVMatrix pmv, final Vec3f objPos) {
         return this.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, objPos);
     }
 
@@ -807,14 +818,14 @@ public abstract class Shape {
 
     public String getSubString() {
         final String pivotS;
-        if( !VectorUtil.isVec3Zero(rotPivot, 0, FloatUtil.EPSILON) ) {
-            pivotS = "pivot["+rotPivot[0]+", "+rotPivot[1]+", "+rotPivot[2]+"], ";
+        if( !rotPivot.isZero() ) {
+            pivotS = "pivot["+rotPivot+"], ";
         } else {
             pivotS = "";
         }
         final String scaleS;
-        if( !VectorUtil.isVec3Equal(scale, 0, VectorUtil.VEC3_ONE, 0, FloatUtil.EPSILON) ) {
-            scaleS = "scale["+scale[0]+", "+scale[1]+", "+scale[2]+"], ";
+        if( !scale.isEqual( Vec3f.ONE ) ) {
+            scaleS = "scale["+scale+"], ";
         } else {
             scaleS = "scale 1, ";
         }
@@ -824,7 +835,7 @@ public abstract class Shape {
         } else {
             rotateS = "";
         }
-        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+"], pos["+position[0]+", "+position[1]+", "+position[2]+
+        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+"], pos["+position+
                 "], "+pivotS+scaleS+rotateS+
                 "box "+box;
     }
@@ -841,6 +852,11 @@ public abstract class Shape {
         return this.down;
     }
 
+    /**
+     *
+     * @param toggleable
+     * @see #isInteractive()
+     */
     public void setToggleable(final boolean toggleable) {
         this.toggleable = toggleable;
     }
@@ -848,6 +864,7 @@ public abstract class Shape {
     /**
      * Returns true if this shape is toggable,
      * i.e. rendered w/ {@link #setToggleOnColorMod(float, float, float, float)} or {@link #setToggleOffColorMod(float, float, float, float)}.
+     * @see #isInteractive()
      */
     public boolean isToggleable() {
         return toggleable;
@@ -865,15 +882,36 @@ public abstract class Shape {
     public boolean isToggleOn() { return toggle; }
 
     /**
+     * Set whether this shape is interactive,
+     * i.e. any user interaction like
+     * - {@link #isToggleable()}
+     * - {@link #isDraggable()}
+     * - {@link #isResizable()}
+     * but excluding programmatic changes.
+     * @param v new value for {@link #isInteractive()}
+     */
+    public void setInteractive(final boolean v) { interactive = v; }
+    /**
+     * Returns if this shape allows user interaction, see {@link #setInteractive(boolean)}
+     * @see #setInteractive(boolean)
+     */
+    public boolean isInteractive() { return interactive; }
+
+    /**
      * Set whether this shape is draggable,
      * i.e. translated by 1-pointer-click and drag.
      * <p>
      * Default draggable is true.
      * </p>
+     * @see #isInteractive()
      */
     public void setDraggable(final boolean draggable) {
         this.draggable = draggable;
     }
+    /**
+     * Returns if this shape is draggable, a user interaction.
+     * @see #isInteractive()
+     */
     public boolean isDraggable() {
         return draggable;
     }
@@ -884,10 +922,15 @@ public abstract class Shape {
      * <p>
      * Default resizable is true.
      * </p>
+     * @see #isInteractive()
      */
     public void setResizable(final boolean resizable) {
         this.resizable = resizable;
     }
+    /**
+     * Returns if this shape is resiable, a user interaction.
+     * @see #isInteractive()
+     */
     public boolean isResizable() {
         return resizable;
     }
@@ -937,11 +980,11 @@ public abstract class Shape {
         /** The associated {@link Shape} for this event */
         public final Shape shape;
         /** The relative object coordinate of glWinX/glWinY to the associated {@link Shape}. */
-        public final float[] objPos;
+        public final Vec3f objPos;
         /** The GL window coordinates, origin bottom-left */
         public final int[] winPos;
         /** The drag delta of the relative object coordinate of glWinX/glWinY to the associated {@link Shape}. */
-        public final float[] objDrag = { 0f, 0f };
+        public final Vec2f objDrag = new Vec2f();
         /** The drag delta of GL window coordinates, origin bottom-left */
         public final int[] winDrag = { 0, 0 };
 
@@ -952,7 +995,7 @@ public abstract class Shape {
          * @param shape associated shape
          * @param objPos relative object coordinate of glWinX/glWinY to the associated shape.
          */
-        EventInfo(final int glWinX, final int glWinY, final Shape shape, final float[] objPos) {
+        EventInfo(final int glWinX, final int glWinY, final Shape shape, final Vec3f objPos) {
             this.winPos = new int[] { glWinX, glWinY };
             this.shape = shape;
             this.objPos = objPos;
@@ -960,14 +1003,14 @@ public abstract class Shape {
 
         @Override
         public String toString() {
-            return "EventDetails[winPos ["+winPos[0]+", "+winPos[1]+"], objPos ["+objPos[0]+", "+objPos[1]+", "+objPos[2]+"], "+shape+"]";
+            return "EventDetails[winPos ["+winPos[0]+", "+winPos[1]+"], objPos ["+objPos+"], "+shape+"]";
         }
     }
 
     private boolean dragFirst = false;
-    private final float[] objDraggedFirst = { 0f, 0f }; // b/c its relative to Shape and we stick to it
+    private final Vec2f objDraggedFirst = new Vec2f(); // b/c its relative to Shape and we stick to it
     private final int[] winDraggedLast = { 0, 0 }; // b/c its absolute window pos
-    private boolean inDrag = false;
+    private boolean inMove = false;
     private int inResize = 0; // 1 br, 2 bl
     private static final float resize_sxy_min = 1f/200f; // 1/2% - TODO: Maybe customizable?
     private static final float resize_section = 1f/5f; // resize action in a corner
@@ -979,7 +1022,7 @@ public abstract class Shape {
      * @param glWinY in GL window coordinates, origin bottom-left
      * @param objPos object position of mouse event relative to this shape
      */
-    /* pp */ final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY, final float[] objPos) {
+    /* pp */ final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY, final Vec3f objPos) {
         final Shape.EventInfo shapeEvent = new EventInfo(glWinX, glWinY, this, objPos);
 
         final short eventType = e.getEventType();
@@ -995,7 +1038,7 @@ public abstract class Shape {
                 case MouseEvent.EVENT_MOUSE_RELEASED:
                     // Release active shape: last pointer has been lifted!
                     setPressed(false);
-                    inDrag = false;
+                    inMove = false;
                     inResize = 0;
                     break;
             }
@@ -1004,21 +1047,22 @@ public abstract class Shape {
             case MouseEvent.EVENT_MOUSE_DRAGGED: {
                 // 1 pointer drag and potential drag-resize
                 if(dragFirst) {
-                    objDraggedFirst[0] = objPos[0];
-                    objDraggedFirst[1] = objPos[1];
+                    objDraggedFirst.set(objPos);
                     winDraggedLast[0] = glWinX;
                     winDraggedLast[1] = glWinY;
                     dragFirst=false;
 
-                    final float ix = objPos[0];
-                    final float iy = objPos[1];
+                    final float ix = objPos.x();
+                    final float iy = objPos.y();
                     final float minx_br = box.getMaxX() - box.getWidth() * resize_section;
                     final float miny_br = box.getMinY();
                     final float maxx_br = box.getMaxX();
                     final float maxy_br = box.getMinY() + box.getHeight() * resize_section;
                     if( minx_br <= ix && ix <= maxx_br &&
                         miny_br <= iy && iy <= maxy_br ) {
-                        inResize = 1; // bottom-right
+                        if( interactive && resizable ) {
+                            inResize = 1; // bottom-right
+                        }
                     } else {
                         final float minx_bl = box.getMinX();
                         final float miny_bl = box.getMinY();
@@ -1026,57 +1070,59 @@ public abstract class Shape {
                         final float maxy_bl = box.getMinY() + box.getHeight() * resize_section;
                         if( minx_bl <= ix && ix <= maxx_bl &&
                             miny_bl <= iy && iy <= maxy_bl ) {
-                            inResize = 2; // bottom-left
+                            if( interactive && resizable ) {
+                                inResize = 2; // bottom-left
+                            }
                         } else {
-                            inDrag = true;
+                            inMove = interactive && draggable;
                         }
                     }
                     if( DEBUG ) {
-                        System.err.printf("DragFirst: drag %b, resize %d, obj[%.4f, %.4f, %.4f], drag +[%.4f, %.4f]%n",
-                                inDrag, inResize, objPos[0], objPos[1], objPos[2], shapeEvent.objDrag[0], shapeEvent.objDrag[1]);
+                        System.err.printf("DragFirst: drag %b, resize %d, obj[%s], drag +[%s]%n",
+                                inMove, inResize, objPos, shapeEvent.objDrag);
                         System.err.printf("DragFirst: %s%n", this);
                     }
                     return;
                 }
-                shapeEvent.objDrag[0] = objPos[0] - objDraggedFirst[0];
-                shapeEvent.objDrag[1] = objPos[1] - objDraggedFirst[1];
+                shapeEvent.objDrag.set( objPos.x() - objDraggedFirst.x(),
+                                        objPos.y() - objDraggedFirst.y() );
                 shapeEvent.winDrag[0] = glWinX - winDraggedLast[0];
                 shapeEvent.winDrag[1] = glWinY - winDraggedLast[1];
                 winDraggedLast[0] = glWinX;
                 winDraggedLast[1] = glWinY;
                 if( 1 == e.getPointerCount() ) {
-                    final float sdx = shapeEvent.objDrag[0] * scale[0]; // apply scale, since operation
-                    final float sdy = shapeEvent.objDrag[1] * scale[1]; // is from a scaled-model-viewpoint
-                    if( 0 != inResize && resizable ) {
+                    final float sdx = shapeEvent.objDrag.x() * scale.x(); // apply scale, since operation
+                    final float sdy = shapeEvent.objDrag.y() * scale.y(); // is from a scaled-model-viewpoint
+                    if( 0 != inResize ) {
                         final float bw = box.getWidth();
                         final float bh = box.getHeight();
                         final float sx;
                         if( 1 == inResize ) {
-                            sx = scale[0] + sdx/bw; // bottom-right
+                            sx = scale.x() + sdx/bw; // bottom-right
                         } else {
-                            sx = scale[0] - sdx/bw; // bottom-left
+                            sx = scale.x() - sdx/bw; // bottom-left
                         }
-                        final float sy = scale[1] - sdy/bh;
+                        final float sy = scale.y() - sdy/bh;
                         if( resize_sxy_min <= sx && resize_sxy_min <= sy ) { // avoid scale flip
                             if( DEBUG ) {
-                                System.err.printf("DragZoom: resize %d, win[%4d, %4d], obj[%.4f, %.4f, %.4f], dxy +[%.4f, %.4f], sdxy +[%.4f, %.4f], scale [%.4f, %.4f] -> [%.4f, %.4f]%n",
-                                        inResize, glWinX, glWinY, objPos[0], objPos[1], objPos[2],
-                                        shapeEvent.objDrag[0], shapeEvent.objDrag[1], sdx, sdy,
-                                        scale[0], scale[1], sx, sy);
+                                System.err.printf("DragZoom: resize %d, win[%4d, %4d], obj[%s], dxy +[%s], sdxy +[%.4f, %.4f], scale [%s] -> [%.4f, %.4f]%n",
+                                        inResize, glWinX, glWinY, objPos,
+                                        shapeEvent.objDrag, sdx, sdy,
+                                        scale, sx, sy);
                             }
                             if( 1 == inResize ) {
                                 move(   0, sdy, 0f); // bottom-right, sticky left- and top-edge
                             } else {
                                 move( sdx, sdy, 0f); // bottom-left, sticky right- and top-edge
                             }
-                            setScale(sx, sy, scale[2]);
+                            setScale(sx, sy, scale.z());
                         }
                         return; // FIXME: pass through event? Issue zoom event?
-                    } else if( inDrag && draggable ) {
+                    } else if( inMove ) {
                         if( DEBUG ) {
-                            System.err.printf("DragMove: win[%4d, %4d] +[%2d, %2d], obj[%.4f, %.4f, %.4f] +[%.4f, %.4f]%n",
+                            System.err.printf("DragMove: win[%4d, %4d] +[%2d, %2d], obj[%s] +[%s]%n",
                                     glWinX, glWinY, shapeEvent.winDrag[0], shapeEvent.winDrag[1],
-                                    objPos[0], objPos[1], objPos[2], shapeEvent.objDrag[0], shapeEvent.objDrag[1]);
+                                    objPos, shapeEvent.objDrag);
                         }
                         move( sdx, sdy, 0f);
                         // FIXME: Pass through event? Issue move event?
@@ -1128,32 +1174,30 @@ public abstract class Shape {
      * @param viewport the viewport
      * @param objPos object position of mouse event relative to this shape
      */
-    /* pp */ final void dispatchGestureEvent(final GestureEvent e, final int glWinX, final int glWinY, final PMVMatrix pmv, final int[] viewport, final float[] objPos) {
-        if( resizable && e instanceof PinchToZoomGesture.ZoomEvent ) {
+    /* pp */ final void dispatchGestureEvent(final GestureEvent e, final int glWinX, final int glWinY, final PMVMatrix pmv, final Recti viewport, final Vec3f objPos) {
+        if( interactive && resizable && e instanceof PinchToZoomGesture.ZoomEvent ) {
             final PinchToZoomGesture.ZoomEvent ze = (PinchToZoomGesture.ZoomEvent) e;
             final float pixels = ze.getDelta() * ze.getScale(); //
             final int winX2 = glWinX + Math.round(pixels);
-            final float[] objPos2 = winToShapeCoord(pmv, viewport, winX2, glWinY, new float[3]);
+            final Vec3f objPos2 = winToShapeCoord(pmv, viewport, winX2, glWinY, new Vec3f());
             if( null == objPos2 ) {
                 return;
             }
-            final float dx = objPos2[0];
-            final float dy = objPos2[1];
-            final float sx = scale[0] + ( dx/box.getWidth() ); // bottom-right
-            final float sy = scale[1] + ( dy/box.getHeight() );
+            final float dx = objPos2.x();
+            final float dy = objPos2.y();
+            final float sx = scale.x() + ( dx/box.getWidth() ); // bottom-right
+            final float sy = scale.y() + ( dy/box.getHeight() );
             if( DEBUG ) {
-                System.err.printf("DragZoom: resize %b, obj %4d/%4d, %.3f/%.3f/%.3f %.3f/%.3f/%.3f + %.3f/%.3f -> %.3f/%.3f%n",
-                        inResize, glWinX, glWinY, objPos[0], objPos[1], objPos[2], position[0], position[1], position[2],
-                        dx, dy, sx, sy);
+                System.err.printf("DragZoom: resize %b, win %4d/%4d, obj %s, %s + %.3f/%.3f -> %.3f/%.3f%n",
+                        inResize, glWinX, glWinY, objPos, position, dx, dy, sx, sy);
             }
             if( resize_sxy_min <= sx && resize_sxy_min <= sy ) { // avoid scale flip
                 if( DEBUG ) {
-                    System.err.printf("PinchZoom: pixels %f, obj %4d/%4d, %.3f/%.3f/%.3f %.3f/%.3f/%.3f + %.3f/%.3f -> %.3f/%.3f%n",
-                            pixels, glWinX, glWinY, objPos[0], objPos[1], objPos[2], position[0], position[1], position[2],
-                            dx, dy, sx, sy);
+                    System.err.printf("PinchZoom: pixels %f, win %4d/%4d, obj %s, %s + %.3f/%.3f -> %.3f/%.3f%n",
+                            pixels, glWinX, glWinY, objPos, position, dx, dy, sx, sy);
                 }
                 // move(dx, dy, 0f);
-                setScale(sx, sy, scale[2]);
+                setScale(sx, sy, scale.z());
             }
             return; // FIXME: pass through event? Issue zoom event?
         }
@@ -1184,6 +1228,20 @@ public abstract class Shape {
      * Otherwise the base color will be modulated and passed to {@link #drawImpl0(GL2ES2, RegionRenderer, int[], float[])}.
      */
     public abstract boolean hasColorChannel();
+
+    public static Comparator<Shape> ZAscendingComparator = new Comparator<Shape>() {
+        @Override
+        public int compare(final Shape s1, final Shape s2) {
+            final float s1Z = s1.getBounds().getMinZ()+s1.getPosition().z();
+            final float s2Z = s2.getBounds().getMinZ()+s2.getPosition().z();
+            if( FloatUtil.isEqual(s1Z, s2Z, FloatUtil.EPSILON) ) {
+                return 0;
+            } else if( s1Z < s2Z ){
+                return -1;
+            } else {
+                return 1;
+            }
+        } };
 
     //
     //

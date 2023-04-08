@@ -34,84 +34,84 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.junit.util.JunitTracer;
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Matrix4f;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestFloatUtil02MatrixMatrixMultNOUI extends JunitTracer {
+public class TestMatrix4fMatrixMulNOUI extends JunitTracer {
 
-    final float[] m1 = new float[]{    1,    3,    4,    0,
+    final Matrix4f m1 = new Matrix4f(new float[]{
+                                       1,    3,    4,    0,
                                        6,    7,    8,    5,
                                       98,    7,    6,    9,
-                                      54,    3,    2,    5 };
+                                      54,    3,    2,    5 });
 
-    final float[] m2 = new float[]{    1,    6,   98,   54,
+    final Matrix4f m2 = new Matrix4f(new float[]{
+                                       1,    6,   98,   54,
                                        3,    7,    7,    3,
                                        4,    8,    6,    2,
-                                       0,    5,    9,    5 };
+                                       0,    5,    9,    5 });
 
-    final float[] m1xm2_RM = // m2xm1_CM
-                       new float[]{   26,   59,  143,   71,
+    final Matrix4f m2xm1 =
+                       new Matrix4f(new float[]{
+                                      26,   59,  143,   71,
                                       59,  174,  730,  386,
                                      143,  730, 9770, 5370,
-                                      71,  386, 5370, 2954 };
+                                      71,  386, 5370, 2954 });
 
-    final float[] m2xm1_RM = // m1xm2_CM
-                       new float[]{12557,  893,  748, 1182,
+    final Matrix4f m1xm2 =
+                       new Matrix4f(new float[]{
+                                   12557,  893,  748, 1182,
                                      893,  116,  116,  113,
                                      748,  116,  120,  104,
-                                    1182,  113,  104,  131 };
+                                    1182,  113,  104,  131 });
 
-    public static final void multMatrixf_RM(final float[] a, final int a_off, final float[] b, final int b_off, final float[] d, final int d_off) {
+    public static final void multMatrixf_RM(final Matrix4f a, final Matrix4f b, final Matrix4f d) {
      for (int i = 0; i < 4; i++) {
-        final float ai0=a[a_off+i*4+0],  ai1=a[a_off+i*4+1],  ai2=a[a_off+i*4+2],  ai3=a[a_off+i*4+3];
-        d[d_off+i*4+0] = ai0 * b[b_off+0*4+0] + ai1 * b[b_off+1*4+0] + ai2 * b[b_off+2*4+0] + ai3 * b[b_off+3*4+0] ;
-        d[d_off+i*4+1] = ai0 * b[b_off+0*4+1] + ai1 * b[b_off+1*4+1] + ai2 * b[b_off+2*4+1] + ai3 * b[b_off+3*4+1] ;
-        d[d_off+i*4+2] = ai0 * b[b_off+0*4+2] + ai1 * b[b_off+1*4+2] + ai2 * b[b_off+2*4+2] + ai3 * b[b_off+3*4+2] ;
-        d[d_off+i*4+3] = ai0 * b[b_off+0*4+3] + ai1 * b[b_off+1*4+3] + ai2 * b[b_off+2*4+3] + ai3 * b[b_off+3*4+3] ;
+        final float ai0=a.get(i*4+0),  ai1=a.get(i*4+1),  ai2=a.get(i*4+2),  ai3=a.get(i*4+3);
+        d.set(i*4+0, ai0 * b.get(0*4+0) + ai1 * b.get(1*4+0) + ai2 * b.get(2*4+0) + ai3 * b.get(3*4+0) );
+        d.set(i*4+1, ai0 * b.get(0*4+1) + ai1 * b.get(1*4+1) + ai2 * b.get(2*4+1) + ai3 * b.get(3*4+1) );
+        d.set(i*4+2, ai0 * b.get(0*4+2) + ai1 * b.get(1*4+2) + ai2 * b.get(2*4+2) + ai3 * b.get(3*4+2) );
+        d.set(i*4+3, ai0 * b.get(0*4+3) + ai1 * b.get(1*4+3) + ai2 * b.get(2*4+3) + ai3 * b.get(3*4+3) );
      }
     }
 
     @Test
     public void testCM_m1xm2(){
-
-        final float[] r = new float[16];
-
-        FloatUtil.multMatrix(m1, 0, m2, 0, r, 0);
-
-        Assert.assertArrayEquals(m2xm1_RM, r, 0f);
+        final Matrix4f r = new Matrix4f();
+        r.mul(m1, m2);
+        Assert.assertEquals(m1xm2, r);
     }
 
     @Test
     public void testCM_m2xm1(){
-
-        final float[] r = new float[16];
-
-        FloatUtil.multMatrix(m2, 0, m1, 0, r, 0);
-
-        Assert.assertArrayEquals(m1xm2_RM, r, 0f);
+        final Matrix4f r = new Matrix4f();
+        r.mul(m2, m1);
+        Assert.assertEquals(m2xm1, r);
     }
 
     @Test
     public void testRM_m1xm2(){
+        final Matrix4f r1 = new Matrix4f();
+        final Matrix4f r2 = new Matrix4f();
+        multMatrixf_RM(m1, m2, r1);
+        Assert.assertEquals(m2xm1, r1);
 
-        final float[] r = new float[16];
-
-        multMatrixf_RM(m1, 0, m2, 0, r, 0);
-
-        Assert.assertArrayEquals(m1xm2_RM, r, 0f);
+        r2.mul(m1, m2).transpose();
+        Assert.assertEquals(m2xm1, r1);
     }
 
     @Test
     public void testRM_m2xm1(){
+        final Matrix4f r1 = new Matrix4f();
+        final Matrix4f r2 = new Matrix4f();
+        multMatrixf_RM(m2, m1, r1);
+        Assert.assertEquals(m1xm2, r1);
 
-        final float[] r = new float[16];
-
-        multMatrixf_RM(m2, 0, m1, 0, r, 0);
-
-        Assert.assertArrayEquals(m2xm1_RM, r, 0f);
+        r2.mul(m2, m1).transpose();
+        Assert.assertEquals(m1xm2, r1);
     }
 
     public static void main(final String args[]) {
-        org.junit.runner.JUnitCore.main(TestFloatUtil02MatrixMatrixMultNOUI.class.getName());
+        org.junit.runner.JUnitCore.main(TestMatrix4fMatrixMulNOUI.class.getName());
     }
 }

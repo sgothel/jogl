@@ -34,9 +34,9 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.ui.gl.Scene;
-import com.jogamp.graph.ui.gl.Shape;
-import com.jogamp.graph.ui.gl.shapes.Button;
+import com.jogamp.graph.ui.Scene;
+import com.jogamp.graph.ui.Shape;
+import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -150,7 +150,7 @@ public class UISceneDemo00 {
         final long t0_us = Clock.currentNanos() / 1000; // [us]
         long t1_us = t0_us;
         shape.moveTo(min_obj, 0f, 0f); // move shape to min start position
-        while( shape.getPosition()[0] < max_obj && window.isNativeValid() ) {
+        while( shape.getPosition().x() < max_obj && window.isNativeValid() ) {
             final long t2_us = Clock.currentNanos() / 1000;
             final float dt_s = ( t2_us - t1_us ) / 1e6f;
             t1_us = t2_us;

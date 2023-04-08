@@ -72,6 +72,7 @@ public class MultisampleDemoES2 implements GLEventListener {
 
     public void setClearBuffers(final boolean v) { clearBuffers = v; }
 
+    @Override
     public void init(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
 
@@ -95,7 +96,7 @@ public class MultisampleDemoES2 implements GLEventListener {
         sp0.add(gl, fp0, System.err);
         st.attachShaderProgram(gl, sp0, true);
 
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 
@@ -126,6 +127,7 @@ public class MultisampleDemoES2 implements GLEventListener {
         st.useProgram(gl, false);
     }
 
+    @Override
     public void dispose(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         immModeSink.destroy(gl);
@@ -133,6 +135,7 @@ public class MultisampleDemoES2 implements GLEventListener {
         st.destroy(gl);
     }
 
+    @Override
     public void display(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         if (multisample) {
@@ -153,6 +156,7 @@ public class MultisampleDemoES2 implements GLEventListener {
     }
 
     // Unused routines
+    @Override
     public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
         System.err.println("reshape ..");
         final GL2ES2 gl = glad.getGL().getGL2ES2();

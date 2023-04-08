@@ -67,10 +67,12 @@ public class PointsDemoES2 extends PointsDemo {
         this.swapInterval = 1;
     }
 
+    @Override
     public void setSmoothPoints(final boolean v) {
         pointParams.put(1, v ? 1.0f : 0.0f);
     }
 
+    @Override
     public void setPointParams(final float minSize, final float maxSize, final float distAttenConst, final float distAttenLinear, final float distAttenQuadratic, final float fadeThreshold) {
         pointParams.put(2, minSize);
         pointParams.put(3, maxSize);
@@ -80,6 +82,7 @@ public class PointsDemoES2 extends PointsDemo {
         pointParams.put(4+3, fadeThreshold);
     }
 
+    @Override
     public void init(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
 
@@ -108,7 +111,7 @@ public class PointsDemoES2 extends PointsDemo {
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat()); // P, Mv
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 
@@ -143,6 +146,7 @@ public class PointsDemoES2 extends PointsDemo {
         st.useProgram(gl, false);
     }
 
+    @Override
     public void display(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         gl.glClearColor(0f, 0f, 0f, 0f);
@@ -182,6 +186,7 @@ public class PointsDemoES2 extends PointsDemo {
         st.useProgram(gl, false);
     }
 
+    @Override
     public void reshape(final GLAutoDrawable glad, final int x, final int y, final int width, final int height) {
         // Thread.dumpStack();
         final GL2ES2 gl = glad.getGL().getGL2ES2();
@@ -198,6 +203,7 @@ public class PointsDemoES2 extends PointsDemo {
         st.useProgram(gl, false);
     }
 
+    @Override
     public void dispose(final GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
         st.destroy(gl);

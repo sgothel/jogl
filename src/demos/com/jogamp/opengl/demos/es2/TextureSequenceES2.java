@@ -40,6 +40,8 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.math.Recti;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -163,10 +165,10 @@ public class TextureSequenceES2 implements GLEventListener {
         // Push the 1st uniform down the path
         st.useProgram(gl, true);
 
-        final int[] viewPort = new int[] { 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight()};
+        final Recti viewPort = new Recti(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         pmvMatrix = new PMVMatrix();
-        reshapePMV(viewPort[2], viewPort[3]);
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        reshapePMV(viewPort.width(), viewPort.height());
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
         if(!st.uniform(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);
         }
@@ -200,12 +202,12 @@ public class TextureSequenceES2 implements GLEventListener {
         {
             System.err.println("XXX0: pixel  LB: "+verts[0]+", "+verts[1]+", "+verts[2]);
             System.err.println("XXX0: pixel  RT: "+verts[3]+", "+verts[4]+", "+verts[5]);
-            final float[] winLB = new float[3];
-            final float[] winRT = new float[3];
-            pmvMatrix.gluProject(verts[0], verts[1], verts[2], viewPort, 0, winLB, 0);
-            pmvMatrix.gluProject(verts[3], verts[4], verts[5], viewPort, 0, winRT, 0);
-            System.err.println("XXX0: win   LB: "+winLB[0]+", "+winLB[1]+", "+winLB[2]);
-            System.err.println("XXX0: win   RT: "+winRT[0]+", "+winRT[1]+", "+winRT[2]);
+            final Vec3f winLB = new Vec3f();
+            final Vec3f winRT = new Vec3f();
+            pmvMatrix.gluProject(new Vec3f(verts[0], verts[1], verts[2]), viewPort, winLB);
+            pmvMatrix.gluProject(new Vec3f(verts[3], verts[4], verts[5]), viewPort, winRT);
+            System.err.println("XXX0: win   LB: "+winLB);
+            System.err.println("XXX0: win   RT: "+winRT);
         }
 
         interleavedVBO = GLArrayDataServer.createGLSLInterleaved(3+4+2, GL.GL_FLOAT, false, 3*4, GL.GL_STATIC_DRAW);

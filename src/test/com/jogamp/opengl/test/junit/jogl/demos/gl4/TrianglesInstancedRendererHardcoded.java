@@ -8,14 +8,16 @@ import java.nio.FloatBuffer;
 import java.util.Random;
 
 import com.jogamp.opengl.DebugGL4;
-import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GL4;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.TraceGL4;
-
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.math.Matrix4;
+import com.jogamp.opengl.math.Matrix4f;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.PMVMatrix;
 
 public class TrianglesInstancedRendererHardcoded implements GLEventListener {
@@ -32,7 +34,7 @@ public class TrianglesInstancedRendererHardcoded implements GLEventListener {
 
 	private static final int NO_OF_INSTANCE = 30;
 	private final FloatBuffer triangleTransform = FloatBuffer.allocate(16 * NO_OF_INSTANCE);
-	private final Matrix4[] mat = new Matrix4[NO_OF_INSTANCE];
+	private final Matrix4f[] mat = new Matrix4f[NO_OF_INSTANCE];
 	private final float[] rotationSpeed = new float[NO_OF_INSTANCE];
 
 	private int[] vbo;
@@ -42,22 +44,22 @@ public class TrianglesInstancedRendererHardcoded implements GLEventListener {
 
 	private static final boolean useTraceGL = false;
 
-	public TrianglesInstancedRendererHardcoded(IInstancedRenderingView view) {
+	public TrianglesInstancedRendererHardcoded(final IInstancedRenderingView view) {
 		this.view = view;
 		initTransform();
 
 		if(useTraceGL) {
 			try {
 				stream = new PrintStream(new FileOutputStream(new File("instanced.txt")));
-			} catch (IOException e1) {
+			} catch (final IOException e1) {
 				e1.printStackTrace();
 			}
 		}
 	}
 
 	@Override
-	public void init(GLAutoDrawable drawable) {
-		GL4 gl = drawable.getGL().getGL4();
+	public void init(final GLAutoDrawable drawable) {
+		final GL4 gl = drawable.getGL().getGL4();
 		drawable.setGL(new DebugGL4(gl));
 		if(useTraceGL) {
 			drawable.setGL(new TraceGL4(gl, stream));
@@ -69,27 +71,27 @@ public class TrianglesInstancedRendererHardcoded implements GLEventListener {
 
 		System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
 		System.err.println("INIT GL IS: " + gl.getClass().getName());
-		System.err.println("GL_VENDOR: " + gl.glGetString(GL4.GL_VENDOR));
-		System.err.println("GL_RENDERER: " + gl.glGetString(GL4.GL_RENDERER));
-		System.err.println("GL_VERSION: " + gl.glGetString(GL4.GL_VERSION));
+		System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
+		System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
+		System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
 
 		try {
 			initShaders(gl);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 		initVBO(gl);
 	}
 
 	@Override
-	public void display(GLAutoDrawable drawable) {
+	public void display(final GLAutoDrawable drawable) {
 
-		GL4 gl = drawable.getGL().getGL4();
-		gl.glClear(GL4.GL_COLOR_BUFFER_BIT | GL4.GL_DEPTH_BUFFER_BIT);
+		final GL4 gl = drawable.getGL().getGL4();
+		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
 		gl.glUseProgram(shaderProgram);
 
-		projectionMatrix.glMatrixMode(GL2.GL_PROJECTION);
+		projectionMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 
 		projectionMatrix.glPushMatrix();
 		float winScale = 0.1f;
@@ -98,34 +100,34 @@ public class TrianglesInstancedRendererHardcoded implements GLEventListener {
 		}
 		projectionMatrix.glScalef(winScale, winScale, winScale);
 		projectionMatrix.update();
-		gl.glUniformMatrix4fv(projectionMatrixLocation, 1, false, projectionMatrix.glGetPMatrixf());
+		gl.glUniformMatrix4fv(projectionMatrixLocation, 1, false, projectionMatrix.getSyncPMat().getSyncFloats());
 		projectionMatrix.glPopMatrix();
 		generateTriangleTransform();
 		gl.glUniformMatrix4fv(transformMatrixLocation, NO_OF_INSTANCE, false, triangleTransform);
 
 		gl.glBindVertexArray(vao[0]);
-		gl.glDrawArraysInstanced(GL4.GL_TRIANGLES, 0, 3, NO_OF_INSTANCE);
+		gl.glDrawArraysInstanced(GL.GL_TRIANGLES, 0, 3, NO_OF_INSTANCE);
 		gl.glBindVertexArray(0);
 		gl.glUseProgram(0);
 	}
 
 	@Override
-	public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+	public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
 		System.out.println("Window resized to width=" + width + " height=" + height);
-		GL4 gl3 = drawable.getGL().getGL4();
+		final GL4 gl3 = drawable.getGL().getGL4();
 		gl3.glViewport(0, 0, width, height);
 		aspect = (float) width / (float) height;
 
 		projectionMatrix = new PMVMatrix();
-		projectionMatrix.glMatrixMode(GL2.GL_PROJECTION);
+		projectionMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 		projectionMatrix.glLoadIdentity();
 		projectionMatrix.gluPerspective(45, aspect, 0.001f, 20f);
-		projectionMatrix.gluLookAt(0, 0, -10, 0, 0, 0, 0, 1, 0);
+		projectionMatrix.gluLookAt(new Vec3f(0, 0, -10), new Vec3f(0, 0, 0), new Vec3f(0, 1, 0));
 	}
 
 	@Override
-	public void dispose(GLAutoDrawable drawable){
-		GL4 gl = drawable.getGL().getGL4();
+	public void dispose(final GLAutoDrawable drawable){
+		final GL4 gl = drawable.getGL().getGL4();
 		gl.glUseProgram(0);
 		gl.glDeleteBuffers(2, vbo, 0);
 		gl.glDetachShader(shaderProgram, vertShader);
@@ -136,22 +138,23 @@ public class TrianglesInstancedRendererHardcoded implements GLEventListener {
 	}
 
 	private void initTransform() {
-		Random rnd = new Random();
+		final Random rnd = new Random();
+		final Matrix4f tmp = new Matrix4f();
 		for(int i = 0; i < NO_OF_INSTANCE; i++) {
 			rotationSpeed[i] = 0.3f * rnd.nextFloat();
-			mat[i] = new Matrix4();
+			mat[i] = new Matrix4f();
 			mat[i].loadIdentity();
-			float scale = 1f + 4 * rnd.nextFloat();
-			mat[i].scale(scale, scale, scale);
+			final float scale = 1f + 4 * rnd.nextFloat();
+			mat[i].scale(scale, tmp);
 			//setup initial position of each triangle
 			mat[i].translate(20f * rnd.nextFloat() - 10f,
 							 10f * rnd.nextFloat() -  5f,
-							 0f);
+							 0f, tmp);
 		}
 	}
 
-	private void initVBO(GL4 gl) {
-		FloatBuffer interleavedBuffer = Buffers.newDirectFloatBuffer(vertices.length + colors.length);
+	private void initVBO(final GL4 gl) {
+		final FloatBuffer interleavedBuffer = Buffers.newDirectFloatBuffer(vertices.length + colors.length);
 		for(int i = 0; i < vertices.length/3; i++) {
 			for(int j = 0; j < 3; j++) {
 				interleavedBuffer.put(vertices[i*3 + j]);
@@ -167,54 +170,54 @@ public class TrianglesInstancedRendererHardcoded implements GLEventListener {
 		gl.glBindVertexArray(vao[0]);
 		vbo = new int[1];
 		gl.glGenBuffers(1, vbo, 0);
-		gl.glBindBuffer(GL4.GL_ARRAY_BUFFER, vbo[0]);
-		gl.glBufferData(GL4.GL_ARRAY_BUFFER, interleavedBuffer.limit() * Buffers.SIZEOF_FLOAT, interleavedBuffer, GL4.GL_STATIC_DRAW);
+		gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo[0]);
+		gl.glBufferData(GL.GL_ARRAY_BUFFER, interleavedBuffer.limit() * Buffers.SIZEOF_FLOAT, interleavedBuffer, GL.GL_STATIC_DRAW);
 
 		gl.glEnableVertexAttribArray(locPos);
 		gl.glEnableVertexAttribArray(locCol);
 
-		int stride = Buffers.SIZEOF_FLOAT * (3+4);
-		gl.glVertexAttribPointer( locPos, 3, GL4.GL_FLOAT, false, stride, 0);
-		gl.glVertexAttribPointer( locCol, 4, GL4.GL_FLOAT, false, stride, Buffers.SIZEOF_FLOAT * 3);
+		final int stride = Buffers.SIZEOF_FLOAT * (3+4);
+		gl.glVertexAttribPointer( locPos, 3, GL.GL_FLOAT, false, stride, 0);
+		gl.glVertexAttribPointer( locCol, 4, GL.GL_FLOAT, false, stride, Buffers.SIZEOF_FLOAT * 3);
 	}
 
-	private void initShaders(GL4 gl) throws IOException {
-		vertShader = gl.glCreateShader(GL4.GL_VERTEX_SHADER);
-		fragShader = gl.glCreateShader(GL4.GL_FRAGMENT_SHADER);
+	private void initShaders(final GL4 gl) throws IOException {
+		vertShader = gl.glCreateShader(GL2ES2.GL_VERTEX_SHADER);
+		fragShader = gl.glCreateShader(GL2ES2.GL_FRAGMENT_SHADER);
 
-		String[] vlines = new String[] { vertexShaderString };
-		int[] vlengths = new int[] { vlines[0].length() };
+		final String[] vlines = new String[] { vertexShaderString };
+		final int[] vlengths = new int[] { vlines[0].length() };
 		gl.glShaderSource(vertShader, vlines.length, vlines, vlengths, 0);
 		gl.glCompileShader(vertShader);
 
-		int[] compiled = new int[1];
-		gl.glGetShaderiv(vertShader, GL4.GL_COMPILE_STATUS, compiled, 0);
+		final int[] compiled = new int[1];
+		gl.glGetShaderiv(vertShader, GL2ES2.GL_COMPILE_STATUS, compiled, 0);
 		if(compiled[0] != 0) {
 			System.out.println("Vertex shader compiled");
 		} else {
-			int[] logLength = new int[1];
-			gl.glGetShaderiv(vertShader, GL4.GL_INFO_LOG_LENGTH, logLength, 0);
+			final int[] logLength = new int[1];
+			gl.glGetShaderiv(vertShader, GL2ES2.GL_INFO_LOG_LENGTH, logLength, 0);
 
-			byte[] log = new byte[logLength[0]];
+			final byte[] log = new byte[logLength[0]];
 			gl.glGetShaderInfoLog(vertShader, logLength[0], (int[])null, 0, log, 0);
 
 			System.err.println("Error compiling the vertex shader: " + new String(log));
 			System.exit(1);
 		}
 
-		String[] flines = new String[] { fragmentShaderString };
-		int[] flengths = new int[] { flines[0].length() };
+		final String[] flines = new String[] { fragmentShaderString };
+		final int[] flengths = new int[] { flines[0].length() };
 		gl.glShaderSource(fragShader, flines.length, flines, flengths, 0);
 		gl.glCompileShader(fragShader);
 
-		gl.glGetShaderiv(fragShader, GL4.GL_COMPILE_STATUS, compiled, 0);
+		gl.glGetShaderiv(fragShader, GL2ES2.GL_COMPILE_STATUS, compiled, 0);
 		if(compiled[0] != 0){
 			System.out.println("Fragment shader compiled.");
 		} else {
-			int[] logLength = new int[1];
-			gl.glGetShaderiv(fragShader, GL4.GL_INFO_LOG_LENGTH, logLength, 0);
+			final int[] logLength = new int[1];
+			gl.glGetShaderiv(fragShader, GL2ES2.GL_INFO_LOG_LENGTH, logLength, 0);
 
-			byte[] log = new byte[logLength[0]];
+			final byte[] log = new byte[logLength[0]];
 			gl.glGetShaderInfoLog(fragShader, logLength[0], (int[])null, 0, log, 0);
 
 			System.err.println("Error compiling the fragment shader: " + new String(log));
@@ -238,11 +241,12 @@ public class TrianglesInstancedRendererHardcoded implements GLEventListener {
 
 	private void generateTriangleTransform() {
 		triangleTransform.clear();
+		final Matrix4f tmp = new Matrix4f();
 		for(int i = 0; i < NO_OF_INSTANCE; i++) {
 			//		mat[i].translate(0.1f, 0.1f, 0);
-			mat[i].rotate(rotationSpeed[i], 0, 0, 1);
+			mat[i].rotate(rotationSpeed[i], 0, 0, 1, tmp);
 			//		mat[i].translate(-0.1f, -0.1f, 0);
-			triangleTransform.put(mat[i].getMatrix());
+			mat[i].get(triangleTransform);
 		}
 		triangleTransform.flip();
 	}

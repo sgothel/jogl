@@ -102,7 +102,7 @@ public class TestFontsNEWT00 extends UITestCase {
         System.err.println("            px "+s0_px+", "+s1_px);
         System.err.println("      AABBox");
         System.err.println("        funits "+glyph.getBoundsFU());
-        System.err.println("            em "+glyph.getBounds(new AABBox(), new float[3]));
+        System.err.println("            em "+glyph.getBounds(new AABBox()));
 
         Assert.assertEquals(s0, s1);
 

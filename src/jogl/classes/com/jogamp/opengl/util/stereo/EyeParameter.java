@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2014-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -28,6 +28,7 @@
 package com.jogamp.opengl.util.stereo;
 
 import com.jogamp.opengl.math.FovHVHalves;
+import com.jogamp.opengl.math.Vec3f;
 
 /**
  * Constant single eye parameter of the viewer, relative to its {@link ViewerPose}.
@@ -36,8 +37,8 @@ public final class EyeParameter {
     /** Eye number, <code>0</code> for the left eye and <code>1</code> for the right eye. */
     public final int number;
 
-    /** float[3] eye position vector used to define eye height in meter relative to <i>actor</i>. */
-    public final float[] positionOffset;
+    /** eye position vector used to define eye height in meter relative to <i>actor</i>. */
+    public final Vec3f positionOffset;
 
     /** Field of view in both directions, may not be centered, either {@link FovHVHalves#inTangents} or radians. */
     public final FovHVHalves fovhv;
@@ -51,18 +52,18 @@ public final class EyeParameter {
     /** Z-axis eye relief in meter. */
     public final float eyeReliefZ;
 
-    public EyeParameter(final int number, final float[] positionOffset, final FovHVHalves fovhv,
+    public EyeParameter(final int number, final Vec3f positionOffset, final FovHVHalves fovhv,
                         final float distNoseToPupil, final float verticalDelta, final float eyeRelief) {
         this.number = number;
-        this.positionOffset = new float[3];
-        System.arraycopy(positionOffset, 0, this.positionOffset, 0, 3);
+        this.positionOffset = new Vec3f(positionOffset);
         this.fovhv = fovhv;
         this.distNoseToPupilX = distNoseToPupil;
         this.distMiddleToPupilY = verticalDelta;
         this.eyeReliefZ = eyeRelief;
     }
+    @Override
     public final String toString() {
-        return "EyeParam[num "+number+", posOff["+positionOffset[0]+", "+positionOffset[1]+", "+positionOffset[2]+"], "+fovhv+
-                      ", distPupil[noseX "+distNoseToPupilX+", middleY "+distMiddleToPupilY+", reliefZ "+eyeReliefZ+"]]";
+        return "EyeParam[num "+number+", posOff["+positionOffset+"], "+fovhv+
+               ", distPupil[noseX "+distNoseToPupilX+", middleY "+distMiddleToPupilY+", reliefZ "+eyeReliefZ+"]]";
     }
 }

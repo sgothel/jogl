@@ -56,7 +56,9 @@
 
         <!-- Set the project root directory to be up one directory. -->
         <property name="project.root"               value=".." />
+        <property name="project.root.abs-path"      location="${project.root}" />
         <property name="build"                      value="${project.root}/${rootrel.build}" />
+        <property name="build.abs-path"             location="${build}" />
         <property name="tempdir"                    value="${project.root}/build-temp" />
         <property name="src"                        value="${project.root}/src" />
         <property name="lib"                        value="${build}/lib" />

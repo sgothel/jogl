@@ -33,6 +33,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GL2ES3;
 import com.jogamp.opengl.GL2GL3;
+import com.jogamp.opengl.GL3ES3;
 import com.jogamp.opengl.GL4;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
@@ -81,7 +82,7 @@ public class TessellationShader01aGLSL440CoreHardcoded implements GLEventListene
 
         gl.glGenVertexArrays(vertexArray.length, vertexArray, 0);
         gl.glBindVertexArray(vertexArray[0]);
-        gl.glPatchParameteri(GL4.GL_PATCH_VERTICES, 3);
+        gl.glPatchParameteri(GL3ES3.GL_PATCH_VERTICES, 3);
         gl.glPolygonMode(GL.GL_FRONT_AND_BACK, GL2GL3.GL_LINE);
     }
 
@@ -97,7 +98,7 @@ public class TessellationShader01aGLSL440CoreHardcoded implements GLEventListene
         vertexOffset.put(0, (float)(Math.sin(value) * 0.5f));
         vertexOffset.put(1, (float)(Math.cos(value) * 0.6f));
         gl.glVertexAttrib4fv(0, vertexOffset);
-        gl.glDrawArrays(GL4.GL_PATCHES, 0, 3);
+        gl.glDrawArrays(GL3ES3.GL_PATCHES, 0, 3);
     }
 
     @Override
@@ -170,12 +171,12 @@ public class TessellationShader01aGLSL440CoreHardcoded implements GLEventListene
         if( null == vertexShader ) {
             return null;
         }
-        final ShaderCode tessCtrlShader   = createShader(gl, GL4.GL_TESS_CONTROL_SHADER, tessCtrlSource);
+        final ShaderCode tessCtrlShader   = createShader(gl, GL3ES3.GL_TESS_CONTROL_SHADER, tessCtrlSource);
         if( null == tessCtrlShader ) {
             vertexShader.destroy(gl);
             return null;
         }
-        final ShaderCode tessEvalShader   = createShader(gl, GL4.GL_TESS_EVALUATION_SHADER, tessEvalSource);
+        final ShaderCode tessEvalShader   = createShader(gl, GL3ES3.GL_TESS_EVALUATION_SHADER, tessEvalSource);
         if( null == tessEvalShader ) {
             vertexShader.destroy(gl);
             tessCtrlShader.destroy(gl);

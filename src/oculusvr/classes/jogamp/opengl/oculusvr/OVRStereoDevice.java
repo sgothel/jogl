@@ -40,6 +40,7 @@ import com.jogamp.oculusvr.ovrHmdDesc;
 import com.jogamp.oculusvr.ovrSizei;
 import com.jogamp.oculusvr.ovrTrackingState;
 import com.jogamp.opengl.math.FovHVHalves;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.Frustum;
 import com.jogamp.opengl.util.stereo.LocationSensorParameter;
 import com.jogamp.opengl.util.stereo.StereoDevice;
@@ -49,7 +50,7 @@ import com.jogamp.opengl.util.stereo.StereoUtil;
 
 public class OVRStereoDevice implements StereoDevice {
     /** 1.6 up, 5 forward */
-    private static final float[] DEFAULT_EYE_POSITION_OFFSET = { 0.0f, 1.6f, -5.0f };
+    private static final Vec3f DEFAULT_EYE_POSITION_OFFSET = new Vec3f( 0.0f, 1.6f, -5.0f );
 
     private final StereoDeviceFactory factory;
     public final int deviceIndex;
@@ -181,7 +182,7 @@ public class OVRStereoDevice implements StereoDevice {
     public int getRequiredRotation() { return requiredRotation; }
 
     @Override
-    public float[] getDefaultEyePositionOffset() { return DEFAULT_EYE_POSITION_OFFSET; }
+    public Vec3f getDefaultEyePositionOffset() { return DEFAULT_EYE_POSITION_OFFSET; }
 
     @Override
     public final FovHVHalves[] getDefaultFOV() { return defaultEyeFov; }
@@ -300,7 +301,7 @@ public class OVRStereoDevice implements StereoDevice {
 
     @Override
     public final StereoDeviceRenderer createRenderer(final int distortionBits,
-                                                     final int textureCount, final float[] eyePositionOffset,
+                                                     final int textureCount, final Vec3f eyePositionOffset,
                                                      final FovHVHalves[] eyeFov, final float pixelsPerDisplayPixel, final int textureUnit) {
         final ovrFovPort ovrEyeFov0 = OVRUtil.getOVRFovPort(eyeFov[0]);
         final ovrFovPort ovrEyeFov1 = OVRUtil.getOVRFovPort(eyeFov[1]);

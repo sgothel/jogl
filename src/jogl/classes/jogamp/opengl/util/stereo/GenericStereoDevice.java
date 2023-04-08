@@ -34,6 +34,7 @@ import com.jogamp.nativewindow.util.PointImmutable;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.opengl.math.FovHVHalves;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.stereo.StereoDeviceConfig;
 import com.jogamp.opengl.util.stereo.EyeParameter;
 import com.jogamp.opengl.util.stereo.LocationSensorParameter;
@@ -63,9 +64,9 @@ public class GenericStereoDevice implements StereoDevice {
     private static final GenericStereoDeviceConfig[] configs;
 
     static {
-        final float[] DEFAULT_EYE_POSITION_OFFSET_STEREO_LENSES = { 0.0f, 1.6f, -5.0f };  // 1.6 up, 5 forward
-        final float[] DEFAULT_EYE_POSITION_OFFSET_STEREO        = { 0.0f, 0.3f,  3.0f };  // 0.3 up, 3 back
-        final float[] DEFAULT_EYE_POSITION_OFFSET_MONO          = { 0.0f, 0.0f,  3.0f };  //         3 back
+        final Vec3f DEFAULT_EYE_POSITION_OFFSET_STEREO_LENSES = new Vec3f( 0.0f, 1.6f, -5.0f );  // 1.6 up, 5 forward
+        final Vec3f DEFAULT_EYE_POSITION_OFFSET_STEREO        = new Vec3f( 0.0f, 0.3f,  3.0f );  // 0.3 up, 3 back
+        final Vec3f DEFAULT_EYE_POSITION_OFFSET_MONO          = new Vec3f( 0.0f, 0.0f,  3.0f );  //         3 back
 
         final DimensionImmutable surfaceSizeInPixelDK1 = new Dimension(1280, 800);
         final float[] screenSizeInMetersDK1 = new float[] { 0.14976f, 0.0936f };
@@ -175,7 +176,7 @@ public class GenericStereoDevice implements StereoDevice {
     public int getRequiredRotation() { return 0; }
 
     @Override
-    public float[] getDefaultEyePositionOffset() { return config.defaultEyeParam[0].positionOffset; }
+    public Vec3f getDefaultEyePositionOffset() { return config.defaultEyeParam[0].positionOffset; }
 
     @Override
     public final FovHVHalves[] getDefaultFOV() { return defaultEyeFov; }
@@ -264,7 +265,7 @@ public class GenericStereoDevice implements StereoDevice {
 
     @Override
     public final StereoDeviceRenderer createRenderer(final int distortionBits,
-                                                     final int textureCount, final float[] eyePositionOffset,
+                                                     final int textureCount, final Vec3f eyePositionOffset,
                                                      final FovHVHalves[] eyeFov, final float pixelsPerDisplayPixel,
                                                      final int textureUnit) {
        final EyeParameter[] eyeParam = new EyeParameter[eyeFov.length];

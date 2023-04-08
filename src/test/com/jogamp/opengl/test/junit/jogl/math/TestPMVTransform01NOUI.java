@@ -29,7 +29,9 @@ package com.jogamp.opengl.test.junit.jogl.math;
 
 import com.jogamp.junit.util.JunitTracer;
 
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Matrix4f;
+import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.PMVMatrix;
 
 import org.junit.Assert;
@@ -45,49 +47,51 @@ public class TestPMVTransform01NOUI extends JunitTracer {
     @Test
     public void test01() {
         final PMVMatrix pmv = new PMVMatrix();
-        System.err.println(FloatUtil.matrixToString(null, "Ident     ", "%7.5f", pmv.glGetMatrixf(), 0, 4, 4, true /* rowMajorOrder */));
+        System.err.println(pmv.getCurrentMat().toString(null, "Ident     ", "%7.5f"));
 
-        final float[] t = { 1f, 2f, 3f };
-        final float[] s = { 2f, 2f, 2f };
+        final Vec3f t = new Vec3f(1f, 2f, 3f);
+        final Vec3f s = new Vec3f(2f, 2f, 2f);
 
-        pmv.glTranslatef(t[0], t[1], t[2]);
-        System.err.println(FloatUtil.matrixToString(null, "Translate ", "%7.5f", pmv.glGetMatrixf(), 0, 4, 4, true/* rowMajorOrder */));
-        pmv.glScalef(s[0], s[1], s[2]);
-        System.err.println(FloatUtil.matrixToString(null, "Scale     ", "%7.5f", pmv.glGetMatrixf(), 0, 4, 4, true /* rowMajorOrder */));
+        pmv.glTranslatef(t);
+        System.err.println(pmv.getCurrentMat().toString(null, "Translate ", "%7.5f"));
+        pmv.glScalef(s);
+        System.err.println(pmv.getCurrentMat().toString(null, "Scale     ", "%7.5f"));
 
-        final float[] exp = new float[] {
+        final Matrix4f exp = new Matrix4f(new float[] {
                 2.00000f, 0.00000f, 0.00000f, 0.00000f,
                 0.00000f, 2.00000f, 0.00000f, 0.00000f,
                 0.00000f, 0.00000f, 2.00000f, 0.00000f,
                 1.00000f, 2.00000f, 3.00000f, 1.00000f,
-        };
-        final float[] has = new float[16];
-        pmv.multPMvMatrixf(has, 0);
-        Assert.assertArrayEquals(exp, has, epsilon);
+        });
+        final Matrix4f has = new Matrix4f();
+        pmv.mulPMvMat(has);
+        MiscUtils.assertMatrix4fEquals(exp, has, epsilon);
+        Assert.assertEquals(exp, has);
     }
 
     @Test
     public void test02() {
         final PMVMatrix pmv = new PMVMatrix();
-        System.err.println(FloatUtil.matrixToString(null, "Ident     ", "%7.5f", pmv.glGetMatrixf(), 0, 4, 4, true /* rowMajorOrder */));
+        System.err.println(pmv.getCurrentMat().toString(null, "Ident     ", "%7.5f"));
 
-        final float[] t = { 1f, 2f, 3f };
-        final float[] s = { 2f, 2f, 2f };
+        final Vec3f t = new Vec3f(1f, 2f, 3f);
+        final Vec3f s = new Vec3f(2f, 2f, 2f);
 
-        pmv.glScalef(s[0], s[1], s[2]);
-        System.err.println(FloatUtil.matrixToString(null, "Scale     ", "%7.5f", pmv.glGetMatrixf(), 0, 4, 4, true /* rowMajorOrder */));
-        pmv.glTranslatef(t[0], t[1], t[2]);
-        System.err.println(FloatUtil.matrixToString(null, "Translate ", "%7.5f", pmv.glGetMatrixf(), 0, 4, 4, true/* rowMajorOrder */));
+        pmv.glScalef(s);
+        System.err.println(pmv.getCurrentMat().toString(null, "Scale     ", "%7.5f"));
+        pmv.glTranslatef(t);
+        System.err.println(pmv.getCurrentMat().toString(null, "Translate ", "%7.5f"));
 
-        final float[] exp = new float[] {
+        final Matrix4f exp = new Matrix4f(new float[] {
                 2.00000f, 0.00000f, 0.00000f, 0.00000f,
                 0.00000f, 2.00000f, 0.00000f, 0.00000f,
                 0.00000f, 0.00000f, 2.00000f, 0.00000f,
                 2.00000f, 4.00000f, 6.00000f, 1.00000f,
-        };
-        final float[] has = new float[16];
-        pmv.multPMvMatrixf(has, 0);
-        Assert.assertArrayEquals(exp, has, epsilon);
+        });
+        final Matrix4f has = new Matrix4f();
+        pmv.mulPMvMat(has);
+        MiscUtils.assertMatrix4fEquals(exp, has, epsilon);
+        Assert.assertEquals(exp, has);
     }
 
     public static void main(final String args[]) {

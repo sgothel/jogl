@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -99,7 +99,7 @@ public class Quaternion {
         return FloatUtil.sqrt(magnitudeSQ);
     }
 
-    public final float getW() {
+    public final float w() {
         return w;
     }
 
@@ -107,7 +107,7 @@ public class Quaternion {
         this.w = w;
     }
 
-    public final float getX() {
+    public final float x() {
         return x;
     }
 
@@ -115,7 +115,7 @@ public class Quaternion {
         this.x = x;
     }
 
-    public final float getY() {
+    public final float y() {
         return y;
     }
 
@@ -123,7 +123,7 @@ public class Quaternion {
         this.y = y;
     }
 
-    public final float getZ() {
+    public final float z() {
         return z;
     }
 
@@ -142,15 +142,15 @@ public class Quaternion {
      * Returns the dot product of this quaternion with the given quaternion
      */
     public final float dot(final Quaternion quat) {
-        return dot(quat.getX(), quat.getY(), quat.getZ(), quat.getW());
+        return dot(quat.x(), quat.y(), quat.z(), quat.w());
     }
 
     /**
      * Returns <code>true</code> if this quaternion has identity.
      * <p>
      * Implementation uses {@link FloatUtil#EPSILON epsilon} to compare
-     * {@link #getW() W} {@link FloatUtil#isEqual(float, float, float) against 1f} and
-     * {@link #getX() X}, {@link #getY() Y} and {@link #getZ() Z}
+     * {@link #w() W} {@link FloatUtil#isEqual(float, float, float) against 1f} and
+     * {@link #x() X}, {@link #y() Y} and {@link #z() Z}
      * {@link FloatUtil#isZero(float, float) against zero}.
      * </p>
      */
@@ -404,12 +404,12 @@ public class Quaternion {
      * </ul>
      * </p>
      * For details see {@link #rotateByEuler(float, float, float)}.
-     * @param angradXYZ euler angel array in radians
+     * @param angradXYZ euler angle array in radians
      * @return this quaternion for chaining.
      * @see #rotateByEuler(float, float, float)
      */
-    public final Quaternion rotateByEuler(final float[] angradXYZ) {
-        return rotateByEuler(angradXYZ[0], angradXYZ[1], angradXYZ[2]);
+    public final Quaternion rotateByEuler(final Vec3f angradXYZ) {
+        return rotateByEuler(angradXYZ.x(), angradXYZ.y(), angradXYZ.z());
     }
 
     /**
@@ -450,48 +450,42 @@ public class Quaternion {
 
     /***
      * Rotate the given vector by this quaternion
+     * @param vecIn vector to be rotated
+     * @param vecOut result storage for rotated vector, maybe equal to vecIn for in-place rotation
      *
-     * @param vecOut result float[3] storage for rotated vector, maybe equal to vecIn for in-place rotation
-     * @param vecOutOffset offset in result storage
-     * @param vecIn float[3] vector to be rotated
-     * @param vecInOffset offset in vecIn
      * @return the given vecOut store for chaining
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q63">Matrix-FAQ Q63</a>
      */
-    public final float[] rotateVector(final float[] vecOut, final int vecOutOffset, final float[] vecIn, final int vecInOffset) {
-        if ( VectorUtil.isVec3Zero(vecIn, vecInOffset, FloatUtil.EPSILON) ) {
-            vecOut[0+vecOutOffset] = 0f;
-            vecOut[1+vecOutOffset] = 0f;
-            vecOut[2+vecOutOffset] = 0f;
+    public final Vec3f rotateVector(final Vec3f vecIn, final Vec3f vecOut) {
+        if( vecIn.isZero() ) {
+            vecOut.set(0, 0, 0);
         } else {
-            final float vecX = vecIn[0+vecInOffset];
-            final float vecY = vecIn[1+vecInOffset];
-            final float vecZ = vecIn[2+vecInOffset];
+            final float vecX = vecIn.x();
+            final float vecY = vecIn.y();
+            final float vecZ = vecIn.z();
             final float x_x = x*x;
             final float y_y = y*y;
             final float z_z = z*z;
             final float w_w = w*w;
 
-            vecOut[0+vecOutOffset] =   w_w * vecX
-                                     + x_x * vecX
-                                     - z_z * vecX
-                                     - y_y * vecX
-                                     + 2f * ( y*w*vecZ - z*w*vecY + y*x*vecY + z*x*vecZ );
+            vecOut.setX(   w_w * vecX
+                         + x_x * vecX
+                         - z_z * vecX
+                         - y_y * vecX
+                         + 2f * ( y*w*vecZ - z*w*vecY + y*x*vecY + z*x*vecZ ) );
                                      ;
 
-            vecOut[1+vecOutOffset] =   y_y * vecY
-                                     - z_z * vecY
-                                     + w_w * vecY
-                                     - x_x * vecY
-                                     + 2f * ( x*y*vecX + z*y*vecZ + w*z*vecX - x*w*vecZ );
-                                     ;
+            vecOut.setY(   y_y * vecY
+                         - z_z * vecY
+                         + w_w * vecY
+                         - x_x * vecY
+                         + 2f * ( x*y*vecX + z*y*vecZ + w*z*vecX - x*w*vecZ ) );;
 
-            vecOut[2+vecOutOffset] =   z_z * vecZ
-                                     - y_y * vecZ
-                                     - x_x * vecZ
-                                     + w_w * vecZ
-                                     + 2f * ( x*z*vecX + y*z*vecY - w*y*vecX + w*x*vecY );
-                                     ;
+            vecOut.setZ(   z_z * vecZ
+                         - y_y * vecZ
+                         - x_x * vecZ
+                         + w_w * vecZ
+                         + 2f * ( x*z*vecX + y*z*vecY - w*y*vecX + w*x*vecY ) );
         }
         return vecOut;
     }
@@ -593,21 +587,19 @@ public class Quaternion {
      * @return this quaternion for chaining.
      * @see <a href="http://www.euclideanspace.com/maths/algebra/vectors/lookat/index.htm">euclideanspace.com-LookUp</a>
      */
-    public Quaternion setLookAt(final float[] directionIn, final float[] upIn,
-                                final float[] xAxisOut, final float[] yAxisOut, final float[] zAxisOut) {
+    public Quaternion setLookAt(final Vec3f directionIn, final Vec3f upIn,
+                                final Vec3f xAxisOut, final Vec3f yAxisOut, final Vec3f zAxisOut) {
         // Z = norm(dir)
-        VectorUtil.normalizeVec3(zAxisOut, directionIn);
+        zAxisOut.set(directionIn).normalize();
 
         // X = upIn x Z
         //     (borrow yAxisOut for upNorm)
-        VectorUtil.normalizeVec3(yAxisOut, upIn);
-        VectorUtil.crossVec3(xAxisOut, yAxisOut, zAxisOut);
-        VectorUtil.normalizeVec3(xAxisOut);
+        yAxisOut.set(upIn).normalize();
+        xAxisOut.cross(yAxisOut, zAxisOut).normalize();
 
         // Y = Z x X
         //
-        VectorUtil.crossVec3(yAxisOut, zAxisOut, xAxisOut);
-        VectorUtil.normalizeVec3(yAxisOut);
+        yAxisOut.cross(zAxisOut, xAxisOut).normalize();
 
         /**
             final float m00 = xAxisOut[0];
@@ -642,42 +634,42 @@ public class Quaternion {
      * </p>
      * @param v1 not normalized
      * @param v2 not normalized
-     * @param tmpPivotVec float[3] temp storage for cross product
-     * @param tmpNormalVec float[3] temp storage to normalize vector
+     * @param tmpPivotVec temp storage for cross product
+     * @param tmpNormalVec temp storage to normalize vector
      * @return this quaternion for chaining.
      */
-    public final Quaternion setFromVectors(final float[] v1, final float[] v2, final float[] tmpPivotVec, final float[] tmpNormalVec) {
-        final float factor = VectorUtil.normVec3(v1) * VectorUtil.normVec3(v2);
+    public final Quaternion setFromVectors(final Vec3f v1, final Vec3f v2, final Vec3f tmpPivotVec, final Vec3f tmpNormalVec) {
+        final float factor = v1.length() * v2.length();
         if ( FloatUtil.isZero(factor, FloatUtil.EPSILON ) ) {
             return setIdentity();
         } else {
-            final float dot = VectorUtil.dotVec3(v1, v2) / factor; // normalize
+            final float dot = v1.dot(v2) / factor; // normalize
             final float theta = FloatUtil.acos(Math.max(-1.0f, Math.min(dot, 1.0f))); // clipping [-1..1]
 
-            VectorUtil.crossVec3(tmpPivotVec, v1, v2);
+            tmpPivotVec.cross(v1, v2);
 
-            if ( dot < 0.0f && FloatUtil.isZero( VectorUtil.normVec3(tmpPivotVec), FloatUtil.EPSILON ) ) {
+            if ( dot < 0.0f && FloatUtil.isZero( tmpPivotVec.length(), FloatUtil.EPSILON ) ) {
                 // Vectors parallel and opposite direction, therefore a rotation of 180 degrees about any vector
                 // perpendicular to this vector will rotate vector a onto vector b.
                 //
                 // The following guarantees the dot-product will be 0.0.
                 int dominantIndex;
-                if (Math.abs(v1[0]) > Math.abs(v1[1])) {
-                    if (Math.abs(v1[0]) > Math.abs(v1[2])) {
+                if (Math.abs(v1.x()) > Math.abs(v1.y())) {
+                    if (Math.abs(v1.x()) > Math.abs(v1.z())) {
                         dominantIndex = 0;
                     } else {
                         dominantIndex = 2;
                     }
                 } else {
-                    if (Math.abs(v1[1]) > Math.abs(v1[2])) {
+                    if (Math.abs(v1.y()) > Math.abs(v1.z())) {
                         dominantIndex = 1;
                     } else {
                         dominantIndex = 2;
                     }
                 }
-                tmpPivotVec[dominantIndex]           = -v1[(dominantIndex + 1) % 3];
-                tmpPivotVec[(dominantIndex + 1) % 3] =  v1[dominantIndex];
-                tmpPivotVec[(dominantIndex + 2) % 3] =  0f;
+                tmpPivotVec.set( dominantIndex,           -v1.get( (dominantIndex + 1) % 3 ) );
+                tmpPivotVec.set( (dominantIndex + 1) % 3,  v1.get( dominantIndex ) );
+                tmpPivotVec.set( (dominantIndex + 2) % 3,  0f );
             }
             return setFromAngleAxis(theta, tmpPivotVec, tmpNormalVec);
         }
@@ -698,41 +690,41 @@ public class Quaternion {
      * </p>
      * @param v1 normalized
      * @param v2 normalized
-     * @param tmpPivotVec float[3] temp storage for cross product
+     * @param tmpPivotVec temp storage for cross product
      * @return this quaternion for chaining.
      */
-    public final Quaternion setFromNormalVectors(final float[] v1, final float[] v2, final float[] tmpPivotVec) {
-        final float factor = VectorUtil.normVec3(v1) * VectorUtil.normVec3(v2);
+    public final Quaternion setFromNormalVectors(final Vec3f v1, final Vec3f v2, final Vec3f tmpPivotVec) {
+        final float factor = v1.length() * v2.length();
         if ( FloatUtil.isZero(factor, FloatUtil.EPSILON ) ) {
             return setIdentity();
         } else {
-            final float dot = VectorUtil.dotVec3(v1, v2) / factor; // normalize
+            final float dot = v1.dot(v2) / factor; // normalize
             final float theta = FloatUtil.acos(Math.max(-1.0f, Math.min(dot, 1.0f))); // clipping [-1..1]
 
-            VectorUtil.crossVec3(tmpPivotVec, v1, v2);
+            tmpPivotVec.cross(v1, v2);
 
-            if ( dot < 0.0f && FloatUtil.isZero( VectorUtil.normVec3(tmpPivotVec), FloatUtil.EPSILON ) ) {
+            if ( dot < 0.0f && FloatUtil.isZero( tmpPivotVec.length(), FloatUtil.EPSILON ) ) {
                 // Vectors parallel and opposite direction, therefore a rotation of 180 degrees about any vector
                 // perpendicular to this vector will rotate vector a onto vector b.
                 //
                 // The following guarantees the dot-product will be 0.0.
                 int dominantIndex;
-                if (Math.abs(v1[0]) > Math.abs(v1[1])) {
-                    if (Math.abs(v1[0]) > Math.abs(v1[2])) {
+                if (Math.abs(v1.x()) > Math.abs(v1.y())) {
+                    if (Math.abs(v1.x()) > Math.abs(v1.z())) {
                         dominantIndex = 0;
                     } else {
                         dominantIndex = 2;
                     }
                 } else {
-                    if (Math.abs(v1[1]) > Math.abs(v1[2])) {
+                    if (Math.abs(v1.y()) > Math.abs(v1.z())) {
                         dominantIndex = 1;
                     } else {
                         dominantIndex = 2;
                     }
                 }
-                tmpPivotVec[dominantIndex]           = -v1[(dominantIndex + 1) % 3];
-                tmpPivotVec[(dominantIndex + 1) % 3] =  v1[dominantIndex];
-                tmpPivotVec[(dominantIndex + 2) % 3] =  0f;
+                tmpPivotVec.set( dominantIndex,           -v1.get( (dominantIndex + 1) % 3 ) );
+                tmpPivotVec.set( (dominantIndex + 1) % 3,  v1.get( dominantIndex ) );
+                tmpPivotVec.set( (dominantIndex + 2) % 3,  0f );
             }
             return setFromAngleNormalAxis(theta, tmpPivotVec);
         }
@@ -748,14 +740,14 @@ public class Quaternion {
      * </p>
      * @param angle rotation angle (rads)
      * @param vector axis vector not normalized
-     * @param tmpV3f float[3] temp storage to normalize vector
+     * @param tmpV3f temp storage to normalize vector
      * @return this quaternion for chaining.
      *
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q56">Matrix-FAQ Q56</a>
-     * @see #toAngleAxis(float[])
+     * @see #toAngleAxis(Vec3f)
      */
-    public final Quaternion setFromAngleAxis(final float angle, final float[] vector, final float[] tmpV3f) {
-        VectorUtil.normalizeVec3(tmpV3f, vector);
+    public final Quaternion setFromAngleAxis(final float angle, final Vec3f vector, final Vec3f tmpV3f) {
+        tmpV3f.set(vector).normalize();
         return setFromAngleNormalAxis(angle, tmpV3f);
     }
 
@@ -772,17 +764,17 @@ public class Quaternion {
      * @return this quaternion for chaining.
      *
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q56">Matrix-FAQ Q56</a>
-     * @see #toAngleAxis(float[])
+     * @see #toAngleAxis(Vec3f)
      */
-    public final Quaternion setFromAngleNormalAxis(final float angle, final float[] vector) {
-        if ( VectorUtil.isVec3Zero(vector, 0, FloatUtil.EPSILON) ) {
+    public final Quaternion setFromAngleNormalAxis(final float angle, final Vec3f vector) {
+        if( vector.isZero() ) {
             setIdentity();
         } else {
             final float halfangle = angle * 0.5f;
             final float sin = FloatUtil.sin(halfangle);
-            x = vector[0] * sin;
-            y = vector[1] * sin;
-            z = vector[2] * sin;
+            x = vector.x() * sin;
+            y = vector.y() * sin;
+            z = vector.z() * sin;
             w = FloatUtil.cos(halfangle);
         }
         return this;
@@ -791,24 +783,22 @@ public class Quaternion {
     /**
      * Transform the rotational quaternion to axis based rotation angles
      *
-     * @param axis float[3] storage for computed axis
+     * @param axis storage for computed axis
      * @return the rotation angle in radians
-     * @see #setFromAngleAxis(float, float[], float[])
+     * @see #setFromAngleAxis(float, Vec3f, Vec3f)
      */
-    public final float toAngleAxis(final float[] axis) {
+    public final float toAngleAxis(final Vec3f axis) {
         final float sqrLength = x*x + y*y + z*z;
         float angle;
         if ( FloatUtil.isZero(sqrLength, FloatUtil.EPSILON) ) { // length is ~0
             angle = 0.0f;
-            axis[0] = 1.0f;
-            axis[1] = 0.0f;
-            axis[2] = 0.0f;
+            axis.set( 1.0f, 0.0f, 0.0f );
         } else {
             angle = FloatUtil.acos(w) * 2.0f;
             final float invLength = 1.0f / FloatUtil.sqrt(sqrLength);
-            axis[0] = x * invLength;
-            axis[1] = y * invLength;
-            axis[2] = z * invLength;
+            axis.set( x * invLength,
+                      y * invLength,
+                      z * invLength );
         }
         return angle;
     }
@@ -816,7 +806,7 @@ public class Quaternion {
     /**
      * Initializes this quaternion from the given Euler rotation array <code>angradXYZ</code> in radians.
      * <p>
-     * The <code>angradXYZ</code> array is laid out in natural order:
+     * The <code>angradXYZ</code> vector is laid out in natural order:
      * <ul>
      *  <li>x - bank</li>
      *  <li>y - heading</li>
@@ -824,12 +814,12 @@ public class Quaternion {
      * </ul>
      * </p>
      * For details see {@link #setFromEuler(float, float, float)}.
-     * @param angradXYZ euler angel array in radians
+     * @param angradXYZ euler angle vector in radians holding x-bank, y-heading and z-attitude
      * @return this quaternion for chaining.
      * @see #setFromEuler(float, float, float)
      */
-    public final Quaternion setFromEuler(final float[] angradXYZ) {
-        return setFromEuler(angradXYZ[0], angradXYZ[1], angradXYZ[2]);
+    public final Quaternion setFromEuler(final Vec3f angradXYZ) {
+        return setFromEuler(angradXYZ.x(), angradXYZ.y(), angradXYZ.z());
     }
 
     /**
@@ -857,7 +847,7 @@ public class Quaternion {
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q60">Matrix-FAQ Q60</a>
      * @see <a href="http://vered.rose.utoronto.ca/people/david_dir/GEMS/GEMS.html">Gems</a>
      * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/index.htm">euclideanspace.com-eulerToQuaternion</a>
-     * @see #toEuler(float[])
+     * @see #toEuler(Vec3f)
      */
     public final Quaternion setFromEuler(final float bankX, final float headingY, final float attitudeZ) {
         if ( VectorUtil.isZero(bankX, headingY, attitudeZ, FloatUtil.EPSILON) ) {
@@ -889,55 +879,42 @@ public class Quaternion {
 
     /**
      * Transform this quaternion to Euler rotation angles in radians (pitchX, yawY and rollZ).
+     * <p>
+     * The <code>result</code> array is laid out in natural order:
+     * <ul>
+     *  <li>x - bank</li>
+     *  <li>y - heading</li>
+     *  <li>z - attitude</li>
+     * </ul>
+     * </p>
      *
-     * @param result the float[] array storing the computed angles.
-     * @return the double[] array, filled with heading, attitude and bank in that order..
+     * @param result euler angle result vector for radians x-bank, y-heading and z-attitude
+     * @return the Vec3f `result` filled with x-bank, y-heading and z-attitude
      * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm">euclideanspace.com-quaternionToEuler</a>
      * @see #setFromEuler(float, float, float)
      */
-    public float[] toEuler(final float[] result) {
+    public Vec3f toEuler(final Vec3f result) {
         final float sqw = w*w;
         final float sqx = x*x;
         final float sqy = y*y;
         final float sqz = z*z;
-        final float unit = sqx + sqy + sqz + sqw; // if normalized is one, otherwise
-        // is correction factor
+        final float unit = sqx + sqy + sqz + sqw; // if normalized is one, otherwise, is correction factor
         final float test = x*y + z*w;
 
         if (test > 0.499f * unit) { // singularity at north pole
-            result[0] =  0f;
-            result[1] =  2f * FloatUtil.atan2(x, w);
-            result[2] =  FloatUtil.HALF_PI;
+            result.set( 0f,                          // x-bank
+                        2f * FloatUtil.atan2(x, w),  // y-heading
+                        FloatUtil.HALF_PI );         // z-attitude
         } else if (test < -0.499f * unit) { // singularity at south pole
-            result[0] =  0f;
-            result[1] = -2 * FloatUtil.atan2(x, w);
-            result[2] = -FloatUtil.HALF_PI;
+            result.set( 0f,                          // x-bank
+                       -2 * FloatUtil.atan2(x, w),   // y-heading
+                       -FloatUtil.HALF_PI );         // z-attitude
         } else {
-            result[0] = FloatUtil.atan2(2f * x * w - 2 * y * z, -sqx + sqy - sqz + sqw);
-            result[1] = FloatUtil.atan2(2f * y * w - 2 * x * z,  sqx - sqy - sqz + sqw);
-            result[2] = FloatUtil.asin( 2f * test / unit);
+            result.set( FloatUtil.atan2(2f * x * w - 2 * y * z, -sqx + sqy - sqz + sqw), // x-bank
+                        FloatUtil.atan2(2f * y * w - 2 * x * z,  sqx - sqy - sqz + sqw), // y-heading
+                        FloatUtil.asin( 2f * test / unit) );                             // z-attitude
         }
         return result;
-    }
-
-    /**
-     * Initializes this quaternion from a 4x4 column rotation matrix
-     * <p>
-     * See <a href="ftp://ftp.cis.upenn.edu/pub/graphics/shoemake/quatut.ps.Z">Graphics Gems Code</a>,<br/>
-     * <a href="http://mathworld.wolfram.com/MatrixTrace.html">MatrixTrace</a>.
-     * </p>
-     * <p>
-     * Buggy <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q55">Matrix-FAQ Q55</a>
-     * </p>
-     *
-     * @param m 4x4 column matrix
-     * @return this quaternion for chaining.
-     * @see #toMatrix(float[], int)
-     */
-    public final Quaternion setFromMatrix(final float[] m, final int m_off) {
-        return setFromMatrix(m[0+0*4+m_off], m[0+1*4+m_off], m[0+2*4+m_off],
-                             m[1+0*4+m_off], m[1+1*4+m_off], m[1+2*4+m_off],
-                             m[2+0*4+m_off], m[2+1*4+m_off], m[2+2*4+m_off]);
     }
 
     /**
@@ -951,7 +928,7 @@ public class Quaternion {
      * </p>
      *
      * @return this quaternion for chaining.
-     * @see #toMatrix(float[], int)
+     * @see #setFromMatrix(Matrix4f)
      */
     public Quaternion setFromMatrix(final float m00, final float m01, final float m02,
                                     final float m10, final float m11, final float m12,
@@ -996,6 +973,24 @@ public class Quaternion {
     }
 
     /**
+     * Compute the quaternion from a 3x3 column rotation matrix
+     * <p>
+     * See <a href="ftp://ftp.cis.upenn.edu/pub/graphics/shoemake/quatut.ps.Z">Graphics Gems Code</a>,<br/>
+     * <a href="http://mathworld.wolfram.com/MatrixTrace.html">MatrixTrace</a>.
+     * </p>
+     * <p>
+     * Buggy <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q55">Matrix-FAQ Q55</a>
+     * </p>
+     *
+     * @return this quaternion for chaining.
+     * @see Matrix4f#getRotation(Quaternion)
+     * @see #setFromMatrix(float, float, float, float, float, float, float, float, float)
+     */
+    public Quaternion setFromMatrix(final Matrix4f m) {
+        return m.getRotation(this);
+    }
+
+    /**
      * Transform this quaternion to a normalized 4x4 column matrix representing the rotation.
      * <p>
      * Implementation Details:
@@ -1005,17 +1000,17 @@ public class Quaternion {
      * </p>
      *
      * @param matrix float[16] store for the resulting normalized column matrix 4x4
-     * @param mat_offset
      * @return the given matrix store
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q54">Matrix-FAQ Q54</a>
-     * @see #setFromMatrix(float[], int)
+     * @see #setFromMatrix(Matrix4f)
+     * @see #setFromMatrix(float, float, float, float, float, float, float, float, float)
      */
-    public final float[] toMatrix(final float[] matrix, final int mat_offset) {
+    public final float[] toMatrix(final float[] matrix) {
         // pre-multiply scaled-reciprocal-magnitude to reduce multiplications
         final float norm = magnitudeSquared();
         if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
             // identity matrix -> srecip = 0f
-            return FloatUtil.makeIdentity(matrix, mat_offset);
+            return FloatUtil.makeIdentity(matrix);
         }
         final float srecip;
         if ( FloatUtil.isEqual(1f, norm, FloatUtil.EPSILON) ) {
@@ -1038,81 +1033,45 @@ public class Quaternion {
         final float zz = z  * zs;
         final float zw = zs * w;
 
-        matrix[0+0*4+mat_offset]  = 1f - ( yy + zz );
-        matrix[0+1*4+mat_offset]  =      ( xy - zw );
-        matrix[0+2*4+mat_offset]  =      ( xz + yw );
-        matrix[0+3*4+mat_offset]  = 0f;
+        matrix[0+0*4]  = 1f - ( yy + zz );
+        matrix[0+1*4]  =      ( xy - zw );
+        matrix[0+2*4]  =      ( xz + yw );
+        matrix[0+3*4]  = 0f;
 
-        matrix[1+0*4+mat_offset]  =      ( xy + zw );
-        matrix[1+1*4+mat_offset]  = 1f - ( xx + zz );
-        matrix[1+2*4+mat_offset]  =      ( yz - xw );
-        matrix[1+3*4+mat_offset]  = 0f;
+        matrix[1+0*4]  =      ( xy + zw );
+        matrix[1+1*4]  = 1f - ( xx + zz );
+        matrix[1+2*4]  =      ( yz - xw );
+        matrix[1+3*4]  = 0f;
 
-        matrix[2+0*4+mat_offset]  =      ( xz - yw );
-        matrix[2+1*4+mat_offset]  =      ( yz + xw );
-        matrix[2+2*4+mat_offset]  = 1f - ( xx + yy );
-        matrix[2+3*4+mat_offset]  = 0f;
+        matrix[2+0*4]  =      ( xz - yw );
+        matrix[2+1*4]  =      ( yz + xw );
+        matrix[2+2*4]  = 1f - ( xx + yy );
+        matrix[2+3*4]  = 0f;
 
-        matrix[3+0*4+mat_offset]  = 0f;
-        matrix[3+1*4+mat_offset]  = 0f;
-        matrix[3+2*4+mat_offset]  = 0f;
-        matrix[3+3*4+mat_offset]  = 1f;
+        matrix[3+0*4]  = 0f;
+        matrix[3+1*4]  = 0f;
+        matrix[3+2*4]  = 0f;
+        matrix[3+3*4]  = 1f;
         return matrix;
     }
 
     /**
-     * @param index the 3x3 rotation matrix column to retrieve from this quaternion (normalized). Must be between 0 and 2.
-     * @param result the vector object to store the result in.
-     * @return the result column-vector for chaining.
+     * Transform this quaternion to a normalized 4x4 column matrix representing the rotation.
+     * <p>
+     * Implementation Details:
+     * <ul>
+     *   <li> makes identity matrix if {@link #magnitudeSquared()} is {@link FloatUtil#isZero(float, float) is zero} using {@link FloatUtil#EPSILON epsilon}</li>
+     * </ul>
+     * </p>
+     *
+     * @param matrix store for the resulting normalized column matrix 4x4
+     * @return the given matrix store
+     * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q54">Matrix-FAQ Q54</a>
+     * @see #setFromMatrix(float, float, float, float, float, float, float, float, float)
+     * @see Matrix4f#setToRotation(Quaternion)
      */
-    public float[] copyMatrixColumn(final int index, final float[] result, final int resultOffset) {
-        // pre-multipliy scaled-reciprocal-magnitude to reduce multiplications
-        final float norm = magnitudeSquared();
-        final float srecip;
-        if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
-            srecip= 0f;
-        } else if ( FloatUtil.isEqual(1f, norm, FloatUtil.EPSILON) ) {
-            srecip= 2f;
-        } else {
-            srecip= 2.0f / norm;
-        }
-
-        // compute xs/ys/zs first to save 6 multiplications, since xs/ys/zs
-        // will be used 2-4 times each.
-        final float xs = x * srecip;
-        final float ys = y * srecip;
-        final float zs = z * srecip;
-        final float xx = x * xs;
-        final float xy = x * ys;
-        final float xz = x * zs;
-        final float xw = w * xs;
-        final float yy = y * ys;
-        final float yz = y * zs;
-        final float yw = w * ys;
-        final float zz = z * zs;
-        final float zw = w * zs;
-
-        // using s=2/norm (instead of 1/norm) saves 3 multiplications by 2 here
-        switch (index) {
-        case 0:
-            result[0+resultOffset] = 1.0f - (yy + zz);
-            result[1+resultOffset] = xy + zw;
-            result[2+resultOffset] = xz - yw;
-            break;
-        case 1:
-            result[0+resultOffset] = xy - zw;
-            result[1+resultOffset] = 1.0f - (xx + zz);
-            result[2+resultOffset] = yz + xw;
-            break;
-        case 2:
-            result[0+resultOffset] = xz + yw;
-            result[1+resultOffset] = yz - xw;
-            result[2+resultOffset] = 1.0f - (xx + yy);
-            break;
-        default:
-            throw new IllegalArgumentException("Invalid column index. " + index);
-        }
-        return result;
+    public final Matrix4f toMatrix(final Matrix4f matrix) {
+        return matrix.setToRotation(this);
     }
 
     /**
@@ -1126,10 +1085,10 @@ public class Quaternion {
      * @param zAxis vector representing the <i>orthogonal</i> z-axis of the coordinate system.
      * @return this quaternion for chaining.
      */
-    public final Quaternion setFromAxes(final float[] xAxis, final float[] yAxis, final float[] zAxis) {
-        return setFromMatrix(xAxis[0], yAxis[0], zAxis[0],
-                             xAxis[1], yAxis[1], zAxis[1],
-                             xAxis[2], yAxis[2], zAxis[2]);
+    public final Quaternion setFromAxes(final Vec3f xAxis, final Vec3f yAxis, final Vec3f zAxis) {
+        return setFromMatrix(xAxis.x(), yAxis.x(), zAxis.x(),
+                             xAxis.y(), yAxis.y(), zAxis.y(),
+                             xAxis.z(), yAxis.z(), zAxis.z());
     }
 
     /**
@@ -1140,11 +1099,11 @@ public class Quaternion {
      * @param zAxis vector representing the <i>orthogonal</i> z-axis of the coordinate system.
      * @param tmpMat4 temporary float[4] matrix, used to transform this quaternion to a matrix.
      */
-    public void toAxes(final float[] xAxis, final float[] yAxis, final float[] zAxis, final float[] tmpMat4) {
-        toMatrix(tmpMat4, 0);
-        FloatUtil.copyMatrixColumn(tmpMat4, 0, 2, zAxis, 0);
-        FloatUtil.copyMatrixColumn(tmpMat4, 0, 1, yAxis, 0);
-        FloatUtil.copyMatrixColumn(tmpMat4, 0, 0, xAxis, 0);
+    public void toAxes(final Vec3f xAxis, final Vec3f yAxis, final Vec3f zAxis, final Matrix4f tmpMat4) {
+        tmpMat4.setToRotation(this);
+        tmpMat4.getColumn(2, zAxis);
+        tmpMat4.getColumn(1, yAxis);
+        tmpMat4.getColumn(0, xAxis);
     }
 
     /**
@@ -1154,6 +1113,7 @@ public class Quaternion {
      * @param m 3x3 column matrix
      * @return true if representing a rotational matrix, false otherwise
      */
+    @Deprecated
     public final boolean isRotationMatrix3f(final float[] m) {
         final float epsilon = 0.01f; // margin to allow for rounding errors
         if (FloatUtil.abs(m[0] * m[3] + m[3] * m[4] + m[6] * m[7]) > epsilon)
@@ -1171,6 +1131,7 @@ public class Quaternion {
         return (FloatUtil.abs(determinant3f(m) - 1) < epsilon);
     }
 
+    @Deprecated
     private final float determinant3f(final float[] m) {
         return m[0] * m[4] * m[8] + m[3] * m[7] * m[2] + m[6] * m[1] * m[5]
              - m[0] * m[7] * m[5] - m[3] * m[1] * m[8] - m[6] * m[4] * m[2];
@@ -1193,10 +1154,10 @@ public class Quaternion {
             return false;
         }
         final Quaternion comp = (Quaternion) o;
-        return Math.abs(x - comp.getX()) <= ALLOWED_DEVIANCE &&
-               Math.abs(y - comp.getY()) <= ALLOWED_DEVIANCE &&
-               Math.abs(z - comp.getZ()) <= ALLOWED_DEVIANCE &&
-               Math.abs(w - comp.getW()) <= ALLOWED_DEVIANCE;
+        return Math.abs(x - comp.x()) <= ALLOWED_DEVIANCE &&
+               Math.abs(y - comp.y()) <= ALLOWED_DEVIANCE &&
+               Math.abs(z - comp.z()) <= ALLOWED_DEVIANCE &&
+               Math.abs(w - comp.w()) <= ALLOWED_DEVIANCE;
     }
     @Override
     public final int hashCode() {

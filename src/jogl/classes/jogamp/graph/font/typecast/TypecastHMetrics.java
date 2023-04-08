@@ -119,7 +119,7 @@ final class TypecastHMetrics implements Metrics {
     }
 
     @Override
-    public AABBox getBounds(final AABBox dest, final float[] tmpV3) {
-        return dest.setSize(bbox.getLow(), bbox.getHigh()).scale2(unitsPerEM_inv, tmpV3);
+    public AABBox getBounds(final AABBox dest) {
+        return dest.copy(bbox).scale2(unitsPerEM_inv);
     }
 }

@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.ui.gl.shapes;
+package com.jogamp.graph.ui.shapes;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.graph.ui.gl.GraphShape;
+import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;

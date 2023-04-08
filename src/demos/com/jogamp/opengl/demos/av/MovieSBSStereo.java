@@ -61,9 +61,10 @@ import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.graph.TextRendererGLELBase;
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.Recti;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.CustomGLEventListener;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -465,10 +466,10 @@ public class MovieSBSStereo implements StereoGLEventListener {
             // Push the 1st uniform down the path
             st.useProgram(gl, true);
 
-            final int[] viewPort = new int[] { 0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight()};
+            final Recti viewPort = new Recti(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
             pmvMatrix = new PMVMatrix();
-            reshapePMV(viewPort[2], viewPort[3]);
-            pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+            reshapePMV(viewPort.width(), viewPort.height());
+            pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
             if(!st.uniform(gl, pmvMatrixUniform)) {
                 throw new GLException("Error setting PMVMatrix in shader: "+st);
             }
@@ -494,12 +495,12 @@ public class MovieSBSStereo implements StereoGLEventListener {
             {
                 System.err.println("XXX0: pixel  LB: "+verts[0]+", "+verts[1]+", "+verts[2]);
                 System.err.println("XXX0: pixel  RT: "+verts[3]+", "+verts[4]+", "+verts[5]);
-                final float[] winLB = new float[3];
-                final float[] winRT = new float[3];
-                pmvMatrix.gluProject(verts[0], verts[1], verts[2], viewPort, 0, winLB, 0);
-                pmvMatrix.gluProject(verts[3], verts[4], verts[5], viewPort, 0, winRT, 0);
-                System.err.println("XXX0: win   LB: "+winLB[0]+", "+winLB[1]+", "+winLB[2]);
-                System.err.println("XXX0: win   RT: "+winRT[0]+", "+winRT[1]+", "+winRT[2]);
+                final Vec3f winLB = new Vec3f();
+                final Vec3f winRT = new Vec3f();
+                pmvMatrix.gluProject(new Vec3f(verts[0], verts[1], verts[2]), viewPort, winLB);
+                pmvMatrix.gluProject(new Vec3f(verts[3], verts[4], verts[5]), viewPort, winRT);
+                System.err.println("XXX0: win   LB: "+winLB);
+                System.err.println("XXX0: win   RT: "+winRT);
             }
 
             interleavedVBOLeft = GLArrayDataServer.createGLSLInterleaved(3+4+2, GL.GL_FLOAT, false, 3*4, GL.GL_STATIC_DRAW);
@@ -641,15 +642,15 @@ public class MovieSBSStereo implements StereoGLEventListener {
         pmvMatrix.glTranslatef(0, 0, zoom0);
     }
 
-    private final float[] mat4Tmp1 = new float[16];
-    private final float[] mat4Tmp2 = new float[16];
-    private final float[] vec3Tmp1 = new float[3];
-    private final float[] vec3Tmp2 = new float[3];
-    private final float[] vec3Tmp3 = new float[3];
+    private final Matrix4f mat4Tmp1 = new Matrix4f();
+    private final Matrix4f mat4Tmp2 = new Matrix4f();
+    private final Vec3f vec3Tmp1 = new Vec3f();
+    private final Vec3f vec3Tmp2 = new Vec3f();
+    private final Vec3f vec3Tmp3 = new Vec3f();
 
     GLArrayDataServer interleavedVBOCurrent = null;
 
-    private static final float[] vec3ScalePos = new float[] { 4f, 4f, 4f };
+    private static final float scalePos = 4f;
 
     @Override
     public void reshapeForEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
@@ -663,26 +664,38 @@ public class MovieSBSStereo implements StereoGLEventListener {
         if(null == mPlayer) { return; }
         if(null == st) { return; }
 
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        final float[] mat4Projection = FloatUtil.makePerspective(mat4Tmp1, 0, true, eyeParam.fovhv, zNear, zFar);
-        pmvMatrix.glLoadMatrixf(mat4Projection, 0);
+        {
+            //
+            // Projection
+            //
+            final Matrix4f mat4 = new Matrix4f();
+            pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+            mat4.setToPerspective(eyeParam.fovhv, zNear, zFar);
+            pmvMatrix.glLoadMatrixf(mat4);
 
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        final Quaternion rollPitchYaw = new Quaternion();
-        final float[] shiftedEyePos = rollPitchYaw.rotateVector(vec3Tmp1, 0, viewerPose.position, 0);
-        VectorUtil.scaleVec3(shiftedEyePos, shiftedEyePos, vec3ScalePos); // amplify viewerPose position
-        VectorUtil.addVec3(shiftedEyePos, shiftedEyePos, eyeParam.positionOffset);
+            //
+            // Modelview
+            //
+            pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            final Quaternion rollPitchYaw = new Quaternion();
+            // private final float eyeYaw = FloatUtil.PI; // 180 degrees in radians
+            // rollPitchYaw.rotateByAngleY(eyeYaw);
+            final Vec3f shiftedEyePos = rollPitchYaw.rotateVector(viewerPose.position, vec3Tmp1);
+            shiftedEyePos.scale(scalePos); // amplify viewerPose position
+            shiftedEyePos.add(eyeParam.positionOffset);
 
-        rollPitchYaw.mult(viewerPose.orientation);
-        final float[] up = rollPitchYaw.rotateVector(vec3Tmp2, 0, VectorUtil.VEC3_UNIT_Y, 0);
-        final float[] forward = rollPitchYaw.rotateVector(vec3Tmp3, 0, VectorUtil.VEC3_UNIT_Z_NEG, 0);
-        final float[] center = VectorUtil.addVec3(forward, shiftedEyePos, forward);
+            rollPitchYaw.mult(viewerPose.orientation);
+            final Vec3f up = rollPitchYaw.rotateVector(Vec3f.UNIT_Y, vec3Tmp2);
+            final Vec3f forward = rollPitchYaw.rotateVector(Vec3f.UNIT_Z_NEG, vec3Tmp3); // -> center
+            final Vec3f center = forward.add(shiftedEyePos);
 
-        final float[] mLookAt = FloatUtil.makeLookAt(mat4Tmp1, 0, shiftedEyePos, 0, center, 0, up, 0, mat4Tmp2);
-        final float[] mViewAdjust = FloatUtil.makeTranslation(mat4Tmp2, true, eyeParam.distNoseToPupilX, eyeParam.distMiddleToPupilY, eyeParam.eyeReliefZ);
-        final float[] mat4Modelview = FloatUtil.multMatrix(mViewAdjust, mLookAt);
-        pmvMatrix.glLoadMatrixf(mat4Modelview, 0);
-        pmvMatrix.glTranslatef(0, 0, zoom0);
+            final Matrix4f mLookAt = mat4Tmp2.setToLookAt(shiftedEyePos, center, up, mat4Tmp1);
+            mat4.mul( mat4Tmp1.setToTranslation( eyeParam.distNoseToPupilX,
+                                                 eyeParam.distMiddleToPupilY,
+                                                 eyeParam.eyeReliefZ ), mLookAt);
+            mat4.translate(0, 0, zoom0, mat4Tmp1);
+            pmvMatrix.glLoadMatrixf(mat4);
+        }
         st.useProgram(gl, true);
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);

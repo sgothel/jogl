@@ -48,6 +48,11 @@ public final class Vec2f {
         set(o);
     }
 
+    /** Creating new Vec2f using Vec3f, dropping z. */
+    public Vec2f(final Vec3f o) {
+        set(o);
+    }
+
     public Vec2f copy() {
         return new Vec2f(this);
     }
@@ -64,6 +69,12 @@ public final class Vec2f {
     public void set(final Vec2f o) {
         this.x = o.x;
         this.y = o.y;
+    }
+
+    /** this = o while dropping z, returns this. */
+    public void set(final Vec3f o) {
+        this.x = o.x();
+        this.y = o.y();
     }
 
     /** this = { x, y }, returns this. */
@@ -88,6 +99,13 @@ public final class Vec2f {
         }
     }
 
+    /** xy = this, returns xy. */
+    public float[] get(final float[/*2*/] xy) {
+        xy[0] = this.x;
+        xy[1] = this.y;
+        return xy;
+    }
+
     /** Gets the ith component, 0 <= i < 2 */
     public float get(final int i) {
         switch (i) {
@@ -108,10 +126,17 @@ public final class Vec2f {
         return new Vec2f(this).scale(val);
     }
 
-    /** this = this * val, returns this. */
-    public Vec2f scale(final float val) {
-        x *= val;
-        y *= val;
+    /** this = this * s, returns this. */
+    public Vec2f scale(final float s) {
+        x *= s;
+        y *= s;
+        return this;
+    }
+
+    /** this = this * { sx, sy }, returns this. */
+    public Vec2f scale(final float sx, final float sy) {
+        x *= sx;
+        y *= sy;
         return this;
     }
 
@@ -158,6 +183,7 @@ public final class Vec2f {
         return this;
     }
 
+    /** Return true if all components are zero, i.e. it's absolute value < {@link #EPSILON}. */
     public boolean isZero() {
         return FloatUtil.isZero(x) && FloatUtil.isZero(y);
     }
@@ -275,11 +301,51 @@ public final class Vec2f {
         return new Vec2f(-y, x);
     }
 
-    public boolean intersects(final Vec2f o) {
-        if( Math.abs(x-o.x) >= FloatUtil.EPSILON || Math.abs(y-o.y) >= FloatUtil.EPSILON ) {
+    /**
+     * Equals check using a given {@link FloatUtil#EPSILON} value and {@link FloatUtil#isEqual(float, float, float)}.
+     * <p>
+     * Implementation considers following corner cases:
+     * <ul>
+     *    <li>NaN == NaN</li>
+     *    <li>+Inf == +Inf</li>
+     *    <li>-Inf == -Inf</li>
+     * </ul>
+     * @param o comparison value
+     * @param epsilon consider using {@link FloatUtil#EPSILON}
+     * @return true if all components differ less than {@code epsilon}, otherwise false.
+     */
+    public boolean isEqual(final Vec2f o, final float epsilon) {
+        if( this == o ) {
+            return true;
+        } else {
+            return FloatUtil.isEqual(x, o.x, epsilon) &&
+                   FloatUtil.isEqual(y, o.y, epsilon);
+        }
+    }
+
+    /**
+     * Equals check using {@link FloatUtil#EPSILON} value and {@link FloatUtil#isEqual(float, float, float)}.
+     * <p>
+     * Implementation considers following corner cases:
+     * <ul>
+     *    <li>NaN == NaN</li>
+     *    <li>+Inf == +Inf</li>
+     *    <li>-Inf == -Inf</li>
+     * </ul>
+     * @param o comparison value
+     * @return true if all components differ less than {@link FloatUtil#EPSILON}, otherwise false.
+     */
+    public boolean isEqual(final Vec2f o) {
+        return isEqual(o, FloatUtil.EPSILON);
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if( o instanceof Vec2f ) {
+            return isEqual((Vec2f)o, FloatUtil.EPSILON);
+        } else {
             return false;
         }
-        return true;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -34,7 +34,6 @@ import com.jogamp.graph.geom.plane.Winding;
 public final class VectorUtil {
 
     public static final float[] VEC3_ONE = { 1f, 1f, 1f };
-    public static final float[] VEC3_ZERO = { 0f, 0f, 0f };
     public static final float[] VEC3_UNIT_Y = { 0f, 1f, 0f };
     public static final float[] VEC3_UNIT_Y_NEG = { 0f, -1f, 0f };
     public static final float[] VEC3_UNIT_Z = { 0f, 0f, 1f };
@@ -1025,14 +1024,15 @@ public final class VectorUtil {
      * @param epsilon
      * @return resulting intersecting if exists, otherwise null
      */
-    public static float[] line2PlaneIntersection(final float[] result, final Ray ray, final float[/*4*/] plane, final float epsilon) {
-        final float tmp = dotVec3(ray.dir, plane) ;
+    public static Vec3f line2PlaneIntersection(final Vec3f result, final Ray ray, final Vec4f plane, final float epsilon) {
+        final Vec3f plane3 = new Vec3f(plane);
+        final float tmp = ray.dir.dot(plane3);
 
         if ( Math.abs(tmp) < epsilon ) {
             return null; // ray is parallel to plane
         }
-        scaleVec3 ( result, ray.dir, -( dotVec3(ray.orig, plane) + plane[3] ) / tmp ) ;
-        return addVec3(result, result, ray.orig);
+        result.set( ray.dir );
+        return result.scale( -( ray.orig.dot(plane3) + plane.w() ) / tmp ).add(ray.orig);
     }
 
     /** Compute intersection between two segments

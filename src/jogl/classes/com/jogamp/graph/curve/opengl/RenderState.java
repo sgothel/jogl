@@ -139,7 +139,7 @@ public class RenderState {
         public final boolean update(final GL2ES2 gl, final RenderState rs, final boolean updateLocation, final int renderModes, final boolean pass1, final boolean throwOnError) {
             if( rs.id() != rsId ) {
                 // Assignment of Renderstate buffers to uniforms (no copy, direct reference)
-                gcu_PMVMatrix01.setData(rs.pmvMatrix.glGetPMvMatrixf());
+                gcu_PMVMatrix01.setData(rs.pmvMatrix.getSyncPMvMat());
                 gcu_Weight.setData(rs.weightBuffer);
                 gcu_ColorStatic.setData(rs.colorStaticBuffer);
                 rsId = rs.id();
