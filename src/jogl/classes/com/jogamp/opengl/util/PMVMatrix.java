@@ -54,8 +54,8 @@ import com.jogamp.opengl.math.geom.Frustum;
  * regarding the projection (P), modelview (Mv) and texture (T) matrix operations,
  * which is specified in {@link GLMatrixFunc}.
  * <p>
- * This is the second implementation of {@code PMVMatrix} using
- * direct {@link Matrix4f}, {@link Vec4f} and {@link Vec3f} math operations instead of {@code float[]}
+ * This is the second implementation of `PMVMatrix` using
+ * direct {@link Matrix4f}, {@link Vec4f} and {@link Vec3f} math operations instead of `float[]`
  * via {@link com.jogamp.opengl.math.FloatUtil FloatUtil}.
  * </p>
  * <p>
@@ -79,7 +79,7 @@ import com.jogamp.opengl.math.geom.Frustum;
  * <a name="storageDetails"><h5>Matrix storage details</h5></a>
  * <p>
  * The {@link SyncBuffer} abstraction is provided, e.g. {@link #getSyncPMvMviMat()},
- * to synchronize the respective {@link Matrix4f matrices} with the {@code float[]} backing store.
+ * to synchronize the respective {@link Matrix4f matrices} with the `float[]` backing store.
  * The latter is represents the data to {@link GLUniformData} via its {@link FloatBuffer}s, see {@link SyncBuffer#getBuffer()},
  * and is pushed to the GPU eventually.
  *
@@ -87,9 +87,9 @@ import com.jogamp.opengl.math.geom.Frustum;
  * i.e. before the data is pushed to the GPU.
  *
  * The provided {@link SyncAction} ensures that the {@link Matrix4f matrices data}
- * gets copied into the {@code float[]} backing store.
+ * gets copied into the `float[]` backing store.
  *
- * PMVMatrix provides two specializations of {@link SyncBuffer}, {@link SyncMatrix} for single {@link Matrix4f} mappings
+ * PMVMatrix provides two specializations of {@link SyncBuffer}, {@link SyncMatrix4f} for single {@link Matrix4f} mappings
  * and {@link SyncMatrices4f} for multiple {@link Matrix4f} mappings.
  *
  * They can be feed directly to instantiate a {@link GLUniformData} object via e.g. {@link GLUniformData#GLUniformData(String, int, int, SyncBuffer)}.
