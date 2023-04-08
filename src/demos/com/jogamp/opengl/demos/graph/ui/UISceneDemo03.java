@@ -410,7 +410,7 @@ public class UISceneDemo03 {
             }
             txt_idx = ( txt_idx + 1 ) % originalTexts.length;
         } while (options.keepRunning && window.isNativeValid());
-        if (!options.keepRunning) {
+        if (!options.stayOpen) {
             window.destroy();
         }
     }

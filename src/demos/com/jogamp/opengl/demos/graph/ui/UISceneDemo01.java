@@ -64,19 +64,18 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  */
 public class UISceneDemo01 {
-    public static void main(final String[] args) throws IOException {
-        final int surface_width = 1280, surface_height = 720;
-        final int renderModes = Region.VBAA_RENDERING_BIT;
-        final GLProfile glp = GLProfile.getGL2ES2();
+    static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
 
-        boolean keepRunning = false;
+    public static void main(final String[] args) throws IOException {
         if( 0 != args.length ) {
-            for(int i=0; i<args.length; i++) {
-                if(args[i].equals("-keep")) {
-                    keepRunning = true;
-                }
+            final int[] idx = { 0 };
+            for(idx[0]=0; idx[0]<args.length; ++idx[0]) {
+                options.parse(args, idx);
             }
         }
+        System.err.println(options);
+        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
+        System.err.println("GLProfile: "+reqGLP);
 
         //
         // Resolution independent, no screen size
@@ -84,8 +83,8 @@ public class UISceneDemo01 {
         final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final Shape shape = makeShape(font, renderModes);
-        System.err.println("Shape bounds "+shape.getBounds(glp));
+        final Shape shape = makeShape(font, options.renderModes);
+        System.err.println("Shape bounds "+shape.getBounds(reqGLP));
         System.err.println("Shape "+shape);
 
         final Scene scene = new Scene();
@@ -95,12 +94,12 @@ public class UISceneDemo01 {
 
         final Animator animator = new Animator();
 
-        final GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(reqGLP);
         caps.setAlphaBits(4);
         System.out.println("Requested: " + caps);
 
         final GLWindow window = GLWindow.create(caps);
-        window.setSize(surface_width, surface_height);
+        window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UISceneDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
         window.addGLEventListener(scene);
@@ -178,7 +177,7 @@ public class UISceneDemo01 {
         final float has_dur_s = ( ( Clock.currentNanos() / 1000 ) - t0_us ) / 1e6f; // [us]
         System.err.printf("Actual travel-duration %.3f s, delay %.3f s%n", has_dur_s, has_dur_s-exp_dur_s);
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
-        if( !keepRunning ) {
+        if( !options.stayOpen ) {
             window.destroy();
         }
     }
