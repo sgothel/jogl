@@ -118,14 +118,18 @@ public final class PMVMatrix implements GLMatrixFunc {
     /** Bit value stating all is modified */
     public static final int MODIFIED_ALL                        = MODIFIED_PROJECTION | MODIFIED_MODELVIEW | MODIFIED_TEXTURE ;
 
-    /** Bit value stating a dirty {@link #getMviMat() inverse modelview matrix (Mvi)}. */
-    public static final int DIRTY_INVERSE_MODELVIEW             = 1 << 0;
-    /** Bit value stating a dirty {@link #getMvitMat() inverse transposed modelview matrix (Mvit)}. */
-    public static final int DIRTY_INVERSE_TRANSPOSED_MODELVIEW  = 1 << 1;
-    /** Bit value stating a dirty {@link #getFrustum() frustum}. */
-    public static final int DIRTY_FRUSTUM                       = 1 << 2;
-    /** Bit value stating all is dirty */
-    public static final int DIRTY_ALL                           = DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM;
+    /** Bit value for {@link #getMviMat() inverse modelview matrix (Mvi)}, updated via {@link #update()}. */
+    public static final int INVERSE_MODELVIEW             = 1 << 1;
+    /** Bit value for {@link #getMvitMat() inverse transposed modelview matrix (Mvit)}, updated via {@link #update()}. */
+    public static final int INVERSE_TRANSPOSED_MODELVIEW  = 1 << 2;
+    /** Bit value for {@link #getFrustum() frustum} and updated by {@link #getFrustum()}. */
+    public static final int FRUSTUM                       = 1 << 3;
+    /** Bit value for {@link #getPMvMat() pre-multiplied P * Mv}, updated by {@link #getPMvMat()}. */
+    public static final int PREMUL_PMV                   = 1 << 4;
+    /** Bit value for {@link #getPMviMat() pre-multiplied invert(P * Mv)}, updated by {@link #getPMviMat()}. */
+    public static final int PREMUL_PMVI                  = 1 << 5;
+    /** Manual bits not covered by {@link #update()} but {@link #getFrustum()}, {@link #FRUSTUM}, {@link #getPMvMat()}, {@link #PREMUL_PMV}, {@link #getPMviMat()}, {@link #PREMUL_PMVI}, etc. */
+    public static final int MANUAL_BITS                   = FRUSTUM | PREMUL_PMV | PREMUL_PMVI;
 
     /**
      * @param matrixModeName One of {@link GLMatrixFunc#GL_MODELVIEW GL_MODELVIEW}, {@link GLMatrixFunc#GL_PROJECTION GL_PROJECTION} or {@link GL#GL_TEXTURE GL_TEXTURE}
@@ -193,58 +197,131 @@ public final class PMVMatrix implements GLMatrixFunc {
     /**
      * Creates an instance of PMVMatrix.
      * <p>
-     * Implementation uses non-direct non-NIO Buffers with guaranteed backing array,
-     * which allows faster access in Java computation.
+     * This constructor only sets up an instance w/o additional {@link #INVERSE_MODELVIEW} or {@link #INVERSE_TRANSPOSED_MODELVIEW}.
      * </p>
+     * <p>
+     * Implementation uses non-direct non-NIO Buffers with guaranteed backing array,
+     * which are synchronized to the actual Matrix4f instances.
+     * This allows faster access in Java computation.
+     * </p>
+     * @see #PMVMatrix(int)
      */
     public PMVMatrix() {
-          // I    Identity
-          // T    Texture
-          // P    Projection
-          // Mv   ModelView
-          // Mvi  Modelview-Inverse
-          // Mvit Modelview-Inverse-Transpose
+        this(0);
+    }
 
-          // actual underlying Matrix4f data
-          matP           = new Matrix4f();
-          matMv          = new Matrix4f();
-          matMvi         = new Matrix4f();
-          matMvit        = new Matrix4f();
-          matTex         = new Matrix4f();
+    /**
+     * Creates an instance of PMVMatrix.
+     * <p>
+     * Additional derived matrices can be requested via `derivedMatrices`, i.e.
+     * - {@link #INVERSE_MODELVIEW}
+     * - {@link #INVERSE_TRANSPOSED_MODELVIEW}
+     * </p>
+     * <p>
+     * Implementation uses non-direct non-NIO Buffers with guaranteed backing array,
+     * which are synchronized to the actual Matrix4f instances.
+     * This allows faster access in Java computation.
+     * </p>
+     * @param derivedMatrices additional matrices can be requested by passing bits {@link #INVERSE_MODELVIEW} and {@link #INVERSE_TRANSPOSED_MODELVIEW}.
+     * @see #getReqBits()
+     * @see #isReqDirty()
+     * @see #getDirtyBits()
+     * @see #update()
+     */
+    public PMVMatrix(final int derivedMatrices) {
+        // I    Identity
+        // T    Texture
+        // P    Projection
+        // Mv   ModelView
+        // Mvi  Modelview-Inverse
+        // Mvit Modelview-Inverse-Transpose
+        {
+            int mask = 0;
+            if( 0 != ( derivedMatrices & ( INVERSE_MODELVIEW | INVERSE_TRANSPOSED_MODELVIEW ) ) ) {
+                mask |= INVERSE_MODELVIEW;
+            }
+            if( 0 != ( derivedMatrices & INVERSE_TRANSPOSED_MODELVIEW ) ) {
+                mask |= INVERSE_TRANSPOSED_MODELVIEW;
+            }
+            requestBits = mask;
+        }
 
-          // float back buffer for GPU, Matrix4f -> matrixStore via SyncedBuffer
-          matrixStore    = new float[5*16];
+        // actual underlying Matrix4f count
+        int mcount     = 3;
 
-          // FloatBuffer for single Matrix4f back-buffer
-          matrixP        = Buffers.slice2Float(matrixStore,  mP_offset,    1*16);  // P
-          matrixMv       = Buffers.slice2Float(matrixStore,  mMv_offset,   1*16);  //     Mv
-          matrixMvi      = Buffers.slice2Float(matrixStore,  mMvi_offset,  1*16);  //          Mvi
-          matrixMvit     = Buffers.slice2Float(matrixStore,  mMvit_offset, 1*16);  //                Mvit
-          matrixTex      = Buffers.slice2Float(matrixStore,  mTex_offset,  1*16);  //                       T
+        // actual underlying Matrix4f data
+        matP           = new Matrix4f();
+        matMv          = new Matrix4f();
+        matTex         = new Matrix4f();
 
-          // FloatBuffer for aggregated multiple Matrix4f back-buffer
-          matrixPMvMvit  = Buffers.slice2Float(matrixStore,  mP_offset,    4*16);  // P + Mv + Mvi + Mvit
-          matrixPMvMvi   = Buffers.slice2Float(matrixStore,  mP_offset,    3*16);  // P + Mv + Mvi
-          matrixPMv      = Buffers.slice2Float(matrixStore,  mP_offset,    2*16);  // P + Mv
+        if( 0 != ( requestBits & INVERSE_MODELVIEW ) ) {
+            matMvi         = new Matrix4f();
+            mMvi_offset    = 2*16;
+            ++mcount;
+        } else {
+            matMvi         = null;
+            mMvi_offset    = -1;
+        }
+        if( 0 != ( requestBits & INVERSE_TRANSPOSED_MODELVIEW ) ) {
+            matMvit        = new Matrix4f();
+            mMvit_offset   = 3*16;
+            ++mcount;
+        } else {
+            matMvit        = null;
+            mMvit_offset   = -1;
+        }
+        mTex_offset        = (mcount-1)*16; // last one
 
-          matPSync       = new SyncBuffer0(matP,    matrixP);   // mP_offset
-          matMvSync      = new SyncBuffer1(matMv,   matrixMv,   mMv_offset);
-          matMviSync     = new SyncBuffer1(matMvi,  matrixMvi,  mMvi_offset);
-          matMvitSync    = new SyncBuffer1(matMvit, matrixMvit, mMvit_offset);
-          matTexSync     = new SyncBuffer1(matTex,  matrixTex,  mTex_offset);
+        // float back buffer for GPU, Matrix4f -> matrixStore via SyncedBuffer
+        matrixStore    = new float[mcount*16];
 
-          matPMvMvitSync = new SyncBufferN(new Matrix4f[] { matP, matMv, matMvi, matMvit }, matrixPMvMvit, mP_offset);
-          matPMvMviSync  = new SyncBufferN(new Matrix4f[] { matP, matMv, matMvi },          matrixPMvMvi,  mP_offset);
-          matPMvSync     = new SyncBufferN(new Matrix4f[] { matP, matMv },                  matrixPMv,     mP_offset);
+        // FloatBuffer for single Matrix4f back-buffer
+        bufP        = Buffers.slice2Float(matrixStore,  mP_offset,    1*16);  // P
+        syncP       = new SyncBuffer0(matP,    bufP);   // mP_offset
 
-          mat4Tmp1       = new Matrix4f();
-          mat4Tmp2       = new Matrix4f();
-          vec3Tmp1       = new Vec3f();
-          vec4Tmp1       = new Vec4f();
+        bufMv       = Buffers.slice2Float(matrixStore,  mMv_offset,   1*16);  // Mv
+        syncMv      = new SyncBuffer1(matMv,   bufMv,   mMv_offset);
 
-          reset();
+        bufP_Mv     = Buffers.slice2Float(matrixStore,  mP_offset,    2*16);  // P + Mv
+        syncP_Mv    = new SyncBufferN(new Matrix4f[]  { matP, matMv }, bufP_Mv, mP_offset);
 
-          frustum = null;
+        bufTex      = Buffers.slice2Float(matrixStore,  mTex_offset,  1*16);  // T
+        syncT       = new SyncBuffer1(matTex,  bufTex,  mTex_offset);
+
+        if( null != matMvi ) {
+            bufMvi       = Buffers.slice2Float(matrixStore,  mMvi_offset,  1*16);  // Mvi
+            bufP_Mv_Mvi  = Buffers.slice2Float(matrixStore,  mP_offset,    3*16);  // P + Mv + Mvi
+            syncMvi      = new SyncBuffer1U(matMvi,  bufMvi,  mMvi_offset);
+            syncP_Mv_Mvi = new SyncBufferNU(new Matrix4f[] { matP, matMv, matMvi }, bufP_Mv_Mvi, mP_offset);
+        } else {
+            bufMvi  = null;
+            bufP_Mv_Mvi = null;
+            syncMvi     = null;
+            syncP_Mv_Mvi = null;
+        }
+        if( null != matMvit ) {
+            bufMvit           = Buffers.slice2Float(matrixStore,  mMvit_offset, 1*16);  //          Mvit
+            bufP_Mv_Mvi_Mvit  = Buffers.slice2Float(matrixStore,  mP_offset,    4*16);  // P + Mv + Mvi + Mvit
+            syncMvit          = new SyncBuffer1U(matMvit, bufMvit, mMvit_offset);
+            syncP_Mv_Mvi_Mvit = new SyncBufferNU(new Matrix4f[] { matP, matMv, matMvi, matMvit }, bufP_Mv_Mvi_Mvit, mP_offset);
+        } else {
+            bufMvit = null;
+            bufP_Mv_Mvi_Mvit = null;
+            syncMvit = null;
+            syncP_Mv_Mvi_Mvit = null;
+        }
+
+        mat4Tmp1       = new Matrix4f();
+        vec3Tmp1       = new Vec3f();
+        vec4Tmp1       = new Vec4f();
+
+        mat4Tmp2 = null; // on demand
+        matPMv = null; // on demand
+        matPMvi = null; // on demand
+        matPMviOK = false;
+        frustum = null; // on demand
+
+        reset();
     }
 
     /**
@@ -260,8 +337,7 @@ public final class PMVMatrix implements GLMatrixFunc {
         matTex.loadIdentity();
 
         modifiedBits = MODIFIED_ALL;
-        dirtyBits = DIRTY_ALL;
-        requestMask = 0;
+        dirtyBits = requestBits | MANUAL_BITS;
         matrixMode = GL_MODELVIEW;
     }
 
@@ -275,40 +351,18 @@ public final class PMVMatrix implements GLMatrixFunc {
     //
 
     /**
-     * Return the first temporary Matrix4f exposed to be reused for efficiency.
-     * <p>
-     * Temporary storage is only used by this class within single method calls,
-     * hence has no side-effects.
-     * </p>
-     */
-    public final Matrix4f getTmp1Mat() { return mat4Tmp1; }
-
-    /**
      * Return the second temporary Matrix4f exposed to be reused for efficiency.
      * <p>
      * Temporary storage is only used by this class within single method calls,
      * hence has no side-effects.
      * </p>
      */
-    public final Matrix4f getTmp2Mat() { return mat4Tmp2; }
-
-    /**
-     * Return the first temporary Vec3f exposed to be reused for efficiency.
-     * <p>
-     * Temporary storage is only used by this class within single method calls,
-     * hence has no side-effects.
-     * </p>
-     */
-    public final Vec3f getTmp1Vec3f() { return vec3Tmp1; }
-
-    /**
-     * Return the first temporary Vec4f exposed to be reused for efficiency.
-     * <p>
-     * Temporary storage is only used by this class within single method calls,
-     * hence has no side-effects.
-     * </p>
-     */
-    public final Vec4f getTmp1Vec4f() { return vec4Tmp1; }
+    private final Matrix4f getTmp2Mat() {
+        if( null == mat4Tmp2 ) {
+            mat4Tmp2 = new Matrix4f();
+        }
+        return mat4Tmp2;
+    }
 
     //
     // Regular Matrix4f access as well as their SyncedBuffer counterpart SyncedMatrix and SyncedMatrices
@@ -331,7 +385,7 @@ public final class PMVMatrix implements GLMatrixFunc {
      * </p>
      */
     public final SyncMatrix4f getSyncTMat() {
-        return matTexSync;
+        return syncT;
     }
 
     /**
@@ -351,7 +405,7 @@ public final class PMVMatrix implements GLMatrixFunc {
      * </p>
      */
     public final SyncMatrix4f getSyncPMat() {
-        return matPSync;
+        return syncP;
     }
 
     /**
@@ -371,75 +425,7 @@ public final class PMVMatrix implements GLMatrixFunc {
      * </p>
      */
     public final SyncMatrix4f getSyncMvMat() {
-        return matMvSync;
-    }
-
-    /**
-     * Returns the inverse {@link GLMatrixFunc#GL_MODELVIEW_MATRIX modelview matrix} (Mvi).
-     * <p>
-     * Method enables the Mvi matrix update, and performs it's update w/o clearing the modified bits.
-     * </p>
-     * <p>
-     * See {@link #update()} and <a href="#storageDetails"> matrix storage details</a>.
-     * </p>
-     * @see #update()
-     * @see #clearAllUpdateRequests()
-     */
-    public final Matrix4f getMviMat() {
-        requestMask |= DIRTY_INVERSE_MODELVIEW ;
-        updateImpl(false);
-        return matMvi;
-    }
-
-    /**
-     * Returns the {@link SyncMatrix} of inverse {@link GLMatrixFunc#GL_MODELVIEW_MATRIX modelview matrix} (Mvi).
-     * <p>
-     * Method enables the Mvi matrix update, and performs it's update w/o clearing the modified bits.
-     * </p>
-     * <p>
-     * See {@link #update()} and <a href="#storageDetails"> matrix storage details</a>.
-     * </p>
-     * @see #update()
-     * @see #clearAllUpdateRequests()
-     */
-    public final SyncMatrix4f getSyncMviMat() {
-        requestMask |= DIRTY_INVERSE_MODELVIEW ;
-        updateImpl(false);
-        return matMviSync;
-    }
-
-    /**
-     * Returns the inverse transposed {@link GLMatrixFunc#GL_MODELVIEW_MATRIX modelview matrix} (Mvit).
-     * <p>
-     * Method enables the Mvit matrix update, and performs it's update w/o clearing the modified bits.
-     * </p>
-     * <p>
-     * See {@link #update()} and <a href="#storageDetails"> matrix storage details</a>.
-     * </p>
-     * @see #update()
-     * @see #clearAllUpdateRequests()
-     */
-    public final Matrix4f getMvitMat() {
-        requestMask |= DIRTY_INVERSE_TRANSPOSED_MODELVIEW ;
-        updateImpl(false);
-        return matMvit;
-    }
-
-    /**
-     * Returns the {@link SyncMatrix} of inverse transposed {@link GLMatrixFunc#GL_MODELVIEW_MATRIX modelview matrix} (Mvit).
-     * <p>
-     * Method enables the Mvit matrix update, and performs it's update w/o clearing the modified bits.
-     * </p>
-     * <p>
-     * See {@link #update()} and <a href="#storageDetails"> matrix storage details</a>.
-     * </p>
-     * @see #update()
-     * @see #clearAllUpdateRequests()
-     */
-    public final SyncMatrix4f getSyncMvitMat() {
-        requestMask |= DIRTY_INVERSE_TRANSPOSED_MODELVIEW ;
-        updateImpl(false);
-        return matMvitSync;
+        return syncMv;
     }
 
     /**
@@ -449,48 +435,93 @@ public final class PMVMatrix implements GLMatrixFunc {
      * </p>
      */
     public final SyncMatrices4f getSyncPMvMat() {
-        return matPMvSync;
+        return syncP_Mv;
     }
 
     /**
-     * Returns {@link SyncMatrices4f} of 3 matrices within one FloatBuffer: {@link #getPMat() P}, {@link #getMvMat() Mv} and {@link #getMviMat() Mvi}.
+     * Returns the inverse {@link GLMatrixFunc#GL_MODELVIEW_MATRIX modelview matrix} (Mvi) if requested.
      * <p>
-     * Method enables the Mvi matrix update, and performs it's update w/o clearing the modified bits.
+     * See <a href="#storageDetails"> matrix storage details</a>.
      * </p>
+     * @throws IllegalArgumentException if {@link #INVERSE_MODELVIEW} has not been requested in ctor {@link #PMVMatrix(int)}.
+     */
+    public final Matrix4f getMviMat() {
+        if( 0 == ( INVERSE_MODELVIEW & requestBits ) ) {
+            throw new IllegalArgumentException("Not requested in ctor");
+        }
+        updateImpl(false);
+        return matMvi;
+    }
+
+    /**
+     * Returns the {@link SyncMatrix} of inverse {@link GLMatrixFunc#GL_MODELVIEW_MATRIX modelview matrix} (Mvi) if requested.
      * <p>
-     * See {@link #update()} and <a href="#storageDetails"> matrix storage details</a>.
+     * See <a href="#storageDetails"> matrix storage details</a>.
      * </p>
-     * @see #update()
-     * @see #clearAllUpdateRequests()
+     * @throws IllegalArgumentException if {@link #INVERSE_MODELVIEW} has not been requested in ctor {@link #PMVMatrix(int)}.
+     */
+    public final SyncMatrix4f getSyncMviMat() {
+        if( 0 == ( INVERSE_MODELVIEW & requestBits ) ) {
+            throw new IllegalArgumentException("Not requested in ctor");
+        }
+        return syncMvi;
+    }
+
+    /**
+     * Returns the inverse transposed {@link GLMatrixFunc#GL_MODELVIEW_MATRIX modelview matrix} (Mvit) if requested.
+     * <p>
+     * See <a href="#storageDetails"> matrix storage details</a>.
+     * </p>
+     * @throws IllegalArgumentException if {@link #INVERSE_TRANSPOSED_MODELVIEW} has not been requested in ctor {@link #PMVMatrix(int)}.
+     */
+    public final Matrix4f getMvitMat() {
+        if( 0 == ( INVERSE_TRANSPOSED_MODELVIEW & requestBits ) ) {
+            throw new IllegalArgumentException("Not requested in ctor");
+        }
+        updateImpl(false);
+        return matMvit;
+    }
+
+    /**
+     * Returns the {@link SyncMatrix} of inverse transposed {@link GLMatrixFunc#GL_MODELVIEW_MATRIX modelview matrix} (Mvit) if requested.
+     * <p>
+     * See <a href="#storageDetails"> matrix storage details</a>.
+     * </p>
+     * @throws IllegalArgumentException if {@link #INVERSE_TRANSPOSED_MODELVIEW} has not been requested in ctor {@link #PMVMatrix(int)}.
+     */
+    public final SyncMatrix4f getSyncMvitMat() {
+        if( 0 == ( INVERSE_TRANSPOSED_MODELVIEW & requestBits ) ) {
+            throw new IllegalArgumentException("Not requested in ctor");
+        }
+        return syncMvit;
+    }
+
+    /**
+     * Returns {@link SyncMatrices4f} of 3 matrices within one FloatBuffer: {@link #getPMat() P}, {@link #getMvMat() Mv} and {@link #getMviMat() Mvi} if requested.
+     * <p>
+     * See <a href="#storageDetails"> matrix storage details</a>.
+     * </p>
+     * @throws IllegalArgumentException if {@link #INVERSE_MODELVIEW} has not been requested in ctor {@link #PMVMatrix(int)}.
      */
     public final SyncMatrices4f getSyncPMvMviMat() {
-        requestMask |= DIRTY_INVERSE_MODELVIEW ;
-        updateImpl(false);
-        return matPMvMviSync;
+        if( 0 == ( INVERSE_MODELVIEW & requestBits ) ) {
+            throw new IllegalArgumentException("Not requested in ctor");
+        }
+        return syncP_Mv_Mvi;
     }
 
     /**
-     * Returns {@link SyncMatrices4f} of 4 matrices within one FloatBuffer: {@link #getPMat() P}, {@link #getMvMat() Mv}, {@link #getMviMat() Mvi} and {@link #getMvitMat() Mvit}.
+     * Returns {@link SyncMatrices4f} of 4 matrices within one FloatBuffer: {@link #getPMat() P}, {@link #getMvMat() Mv}, {@link #getMviMat() Mvi} and {@link #getMvitMat() Mvit} if requested.
      * <p>
-     * Method enables the Mvi and Mvit matrix update, and performs it's update w/o clearing the modified bits.
+     * See <a href="#storageDetails"> matrix storage details</a>.
      * </p>
-     * <p>
-     * See {@link #update()} and <a href="#storageDetails"> matrix storage details</a>.
-     * </p>
-     * @see #update()
-     * @see #clearAllUpdateRequests()
+     * @throws IllegalArgumentException if {@link #INVERSE_TRANSPOSED_MODELVIEW} has not been requested in ctor {@link #PMVMatrix(int)}.
      */
-    public final SyncMatrices4f getSyncPMvMvitMat() {
-        requestMask |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW ;
-        updateImpl(false);
-        return matPMvMvitSync;
-    }
-
-    /** Returns the frustum, derived from projection * modelview */
-    public final Frustum getFrustum() {
-        requestMask |= DIRTY_FRUSTUM;
-        updateImpl(false);
-        return frustum;
+    public final SyncMatrices4f getSyncPMvMviMvitMat() {
+        if( 0 == ( INVERSE_TRANSPOSED_MODELVIEW & requestBits ) ) {
+            throw new IllegalArgumentException("Not requested in ctor");
+        }
+        return syncP_Mv_Mvi_Mvit;
     }
 
     /**
@@ -678,11 +709,11 @@ public final class PMVMatrix implements GLMatrixFunc {
     public final void glLoadMatrixf(final float[] values, final int offset) {
         if(matrixMode==GL_MODELVIEW) {
             matMv.load(values, offset);
-            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            dirtyBits |= requestBits | MANUAL_BITS ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
             matP.load(values, offset);
-            dirtyBits |= DIRTY_FRUSTUM ;
+            dirtyBits |= MANUAL_BITS ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
             matTex.load(values, offset);
@@ -695,11 +726,11 @@ public final class PMVMatrix implements GLMatrixFunc {
         final int spos = m.position();
         if(matrixMode==GL_MODELVIEW) {
             matMv.load(m);
-            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            dirtyBits |= requestBits | MANUAL_BITS ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
             matP.load(m);
-            dirtyBits |= DIRTY_FRUSTUM ;
+            dirtyBits |= MANUAL_BITS ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
             matTex.load(m);
@@ -717,11 +748,11 @@ public final class PMVMatrix implements GLMatrixFunc {
     public final void glLoadMatrixf(final Matrix4f m) {
         if(matrixMode==GL_MODELVIEW) {
             matMv.load(m);
-            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            dirtyBits |= requestBits | MANUAL_BITS ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
             matP.load(m);
-            dirtyBits |= DIRTY_FRUSTUM ;
+            dirtyBits |= MANUAL_BITS ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
             matTex.load(m);
@@ -738,11 +769,11 @@ public final class PMVMatrix implements GLMatrixFunc {
     public final void glLoadMatrix(final Quaternion quat) {
         if(matrixMode==GL_MODELVIEW) {
             matMv.setToRotation(quat);
-            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            dirtyBits |= requestBits | MANUAL_BITS ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
             matP.setToRotation(quat);
-            dirtyBits |= DIRTY_FRUSTUM ;
+            dirtyBits |= MANUAL_BITS ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
             matTex.setToRotation(quat);
@@ -754,10 +785,15 @@ public final class PMVMatrix implements GLMatrixFunc {
     public final void glPopMatrix() {
         if(matrixMode==GL_MODELVIEW) {
             matMv.pop();
+            dirtyBits |= requestBits | MANUAL_BITS ;
+            modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
             matP.pop();
+            dirtyBits |= MANUAL_BITS ;
+            modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
             matTex.pop();
+            modifiedBits |= MODIFIED_TEXTURE;
         }
     }
 
@@ -776,11 +812,11 @@ public final class PMVMatrix implements GLMatrixFunc {
     public final void glLoadIdentity() {
         if(matrixMode==GL_MODELVIEW) {
             matMv.loadIdentity();
-            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            dirtyBits |= requestBits | MANUAL_BITS ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
             matP.loadIdentity();
-            dirtyBits |= DIRTY_FRUSTUM ;
+            dirtyBits |= MANUAL_BITS ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
             matTex.loadIdentity();
@@ -788,17 +824,16 @@ public final class PMVMatrix implements GLMatrixFunc {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final void glMultMatrixf(final FloatBuffer m) {
         final int spos = m.position();
         if(matrixMode==GL_MODELVIEW) {
             matMv.mul( mat4Tmp1.load( m ) );
-            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            dirtyBits |= requestBits | MANUAL_BITS ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
             matP.mul( mat4Tmp1.load( m ) );
-            dirtyBits |= DIRTY_FRUSTUM ;
+            dirtyBits |= MANUAL_BITS ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
             matTex.mul( mat4Tmp1.load( m ) );
@@ -811,11 +846,11 @@ public final class PMVMatrix implements GLMatrixFunc {
     public final void glMultMatrixf(final float[] m, final int m_offset) {
         if(matrixMode==GL_MODELVIEW) {
             matMv.mul( mat4Tmp1.load( m, m_offset ) );
-            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            dirtyBits |= requestBits | MANUAL_BITS ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
             matP.mul( mat4Tmp1.load( m, m_offset ) );
-            dirtyBits |= DIRTY_FRUSTUM ;
+            dirtyBits |= MANUAL_BITS ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
             matTex.mul( mat4Tmp1.load( m, m_offset ) );
@@ -834,11 +869,11 @@ public final class PMVMatrix implements GLMatrixFunc {
     public final PMVMatrix glMultMatrixf(final Matrix4f m) {
         if(matrixMode==GL_MODELVIEW) {
             matMv.mul( m );
-            dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
+            dirtyBits |= requestBits | MANUAL_BITS ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
             matP.mul( m );
-            dirtyBits |= DIRTY_FRUSTUM ;
+            dirtyBits |= MANUAL_BITS ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
             matTex.mul( m );
@@ -955,7 +990,7 @@ public final class PMVMatrix implements GLMatrixFunc {
      * with the eye, object and orientation.
      */
     public final void gluLookAt(final Vec3f eye, final Vec3f center, final Vec3f up) {
-        glMultMatrixf( mat4Tmp1.setToLookAt(eye, center, up, mat4Tmp2) );
+        glMultMatrixf( mat4Tmp1.setToLookAt(eye, center, up, getTmp2Mat()) );
     }
 
     /**
@@ -988,7 +1023,7 @@ public final class PMVMatrix implements GLMatrixFunc {
      */
     public final boolean gluUnProject(final float winx, final float winy, final float winz,
                                       final Recti viewport, final Vec3f objPos) {
-        if( Matrix4f.mapWinToObj(winx, winy, winz, matMv, matP, viewport, objPos, mat4Tmp1) ) {
+        if( Matrix4f.mapWinToObj(winx, winy, winz, getPMviMat(), viewport, objPos) ) {
             return true;
         } else {
             return false;
@@ -1015,31 +1050,10 @@ public final class PMVMatrix implements GLMatrixFunc {
                                  final Recti viewport,
                                  final float near, final float far,
                                  final Vec4f objPos) {
-        if( Matrix4f.mapWinToObj4(winx, winy, winz, clipw, matMv, matP, viewport, near, far, objPos, mat4Tmp1) ) {
+        if( Matrix4f.mapWinToObj4(winx, winy, winz, clipw, getPMviMat(), viewport, near, far, objPos) ) {
             return true;
         } else {
             return false;
-        }
-    }
-
-    /**
-     * Make given matrix the <i>pick</i> matrix based on given parameters.
-     * <p>
-     * Traditional <code>gluPickMatrix</code> implementation.
-     * </p>
-     * <p>
-     * See {@link Matrix4f#setToPick(float, float, float, float, Recti, int, Matrix4f) for details.
-     * </p>
-     * @param x the center x-component of a picking region in window coordinates
-     * @param y the center y-component of a picking region in window coordinates
-     * @param deltaX the width of the picking region in window coordinates.
-     * @param deltaY the height of the picking region in window coordinates.
-     * @param viewport Rect4i viewport vector
-     */
-    public final void gluPickMatrix(final float x, final float y,
-                                    final float deltaX, final float deltaY, final Recti viewport) {
-        if( null != mat4Tmp1.setToPick(x, y, deltaX, deltaY, viewport, mat4Tmp2) ) {
-            glMultMatrixf( mat4Tmp1 );
         }
     }
 
@@ -1065,40 +1079,88 @@ public final class PMVMatrix implements GLMatrixFunc {
      */
     public final boolean gluUnProjectRay(final float winx, final float winy, final float winz0, final float winz1,
                                          final Recti viewport, final Ray ray) {
-        return Matrix4f.mapWinToRay(winx, winy, winz0, winz1, matMv, matP, viewport, ray, mat4Tmp1, mat4Tmp2);
+        return Matrix4f.mapWinToRay(winx, winy, winz0, winz1, getPMviMat(), viewport, ray);
+    }
+
+    /**
+     * Make given matrix the <i>pick</i> matrix based on given parameters.
+     * <p>
+     * Traditional <code>gluPickMatrix</code> implementation.
+     * </p>
+     * <p>
+     * See {@link Matrix4f#setToPick(float, float, float, float, Recti, int, Matrix4f) for details.
+     * </p>
+     * @param x the center x-component of a picking region in window coordinates
+     * @param y the center y-component of a picking region in window coordinates
+     * @param deltaX the width of the picking region in window coordinates.
+     * @param deltaY the height of the picking region in window coordinates.
+     * @param viewport Rect4i viewport vector
+     */
+    public final void gluPickMatrix(final float x, final float y,
+                                    final float deltaX, final float deltaY, final Recti viewport) {
+        if( null != mat4Tmp1.setToPick(x, y, deltaX, deltaY, viewport, getTmp2Mat()) ) {
+            glMultMatrixf( mat4Tmp1 );
+        }
     }
 
     public StringBuilder toString(StringBuilder sb, final String f) {
         if(null == sb) {
             sb = new StringBuilder();
         }
-        final boolean mviDirty  = 0 != (DIRTY_INVERSE_MODELVIEW & dirtyBits);
-        final boolean mvitDirty = 0 != (DIRTY_INVERSE_TRANSPOSED_MODELVIEW & dirtyBits);
-        final boolean frustumDirty = 0 != (DIRTY_FRUSTUM & dirtyBits);
-        final boolean mviReq = 0 != (DIRTY_INVERSE_MODELVIEW & requestMask);
-        final boolean mvitReq = 0 != (DIRTY_INVERSE_TRANSPOSED_MODELVIEW & requestMask);
-        final boolean frustumReq = 0 != (DIRTY_FRUSTUM & requestMask);
+        final boolean pmvDirty  = 0 != (PREMUL_PMV & dirtyBits);
+        final boolean pmvUsed = null != matPMv;
+
+        final boolean pmviDirty  = 0 != (PREMUL_PMVI & dirtyBits);
+        final boolean pmviUsed = null != matPMvi;
+
+        final boolean frustumDirty = 0 != (FRUSTUM & dirtyBits);
+        final boolean frustumUsed = null != frustum;
+
+        final boolean mviDirty  = 0 != (INVERSE_MODELVIEW & dirtyBits);
+        final boolean mviReq = 0 != (INVERSE_MODELVIEW & requestBits);
+
+        final boolean mvitDirty = 0 != (INVERSE_TRANSPOSED_MODELVIEW & dirtyBits);
+        final boolean mvitReq = 0 != (INVERSE_TRANSPOSED_MODELVIEW & requestBits);
+
         final boolean modP = 0 != ( MODIFIED_PROJECTION & modifiedBits );
         final boolean modMv = 0 != ( MODIFIED_MODELVIEW & modifiedBits );
         final boolean modT = 0 != ( MODIFIED_TEXTURE & modifiedBits );
+        int count = 3; // P, Mv, T
 
         sb.append("PMVMatrix[modified[P ").append(modP).append(", Mv ").append(modMv).append(", T ").append(modT);
-        sb.append("], dirty/req[Mvi ").append(mviDirty).append("/").append(mviReq).append(", Mvit ").append(mvitDirty).append("/").append(mvitReq).append(", Frustum ").append(frustumDirty).append("/").append(frustumReq).append("]").append(PlatformPropsImpl.NEWLINE);
+        sb.append("], dirty/used[PMv ").append(pmvDirty).append("/").append(pmvUsed).append(", Pmvi ").append(pmviDirty).append("/").append(pmviUsed).append(", Frustum ").append(frustumDirty).append("/").append(frustumUsed);
+        sb.append("], dirty/req[Mvi ").append(mviDirty).append("/").append(mviReq).append(", Mvit ").append(mvitDirty).append("/").append(mvitReq).append("]").append(PlatformPropsImpl.NEWLINE);
         sb.append(", Projection").append(PlatformPropsImpl.NEWLINE);
         matP.toString(sb, null, f);
         sb.append(", Modelview").append(PlatformPropsImpl.NEWLINE);
         matMv.toString(sb, null, f);
         sb.append(", Texture").append(PlatformPropsImpl.NEWLINE);
         matTex.toString(sb, null, f);
-        if( 0 != ( requestMask & DIRTY_INVERSE_MODELVIEW ) ) {
+        if( null != matPMv ) {
+            sb.append(", P * Mv").append(PlatformPropsImpl.NEWLINE);
+            matPMv.toString(sb, null, f);
+            ++count;
+        }
+        if( null != matPMvi ) {
+            sb.append(", P * Mv").append(PlatformPropsImpl.NEWLINE);
+            matPMvi.toString(sb, null, f);
+            ++count;
+        }
+        if( mviReq ) {
             sb.append(", Inverse Modelview").append(PlatformPropsImpl.NEWLINE);
             matMvi.toString(sb, null, f);
+            ++count;
         }
-        if( 0 != ( requestMask & DIRTY_INVERSE_TRANSPOSED_MODELVIEW ) ) {
+        if( mvitReq ) {
             sb.append(", Inverse Transposed Modelview").append(PlatformPropsImpl.NEWLINE);
             matMvit.toString(sb, null, f);
+            ++count;
         }
-        sb.append("]");
+        int tmpCount = 1;
+        if( null != mat4Tmp2 ) {
+            ++tmpCount;
+        }
+        sb.append(", matrices "+count+" + "+tmpCount+" temp = "+(count+tmpCount)+"]");
         return sb;
     }
 
@@ -1118,6 +1180,8 @@ public final class PMVMatrix implements GLMatrixFunc {
      * @see #MODIFIED_PROJECTION
      * @see #MODIFIED_MODELVIEW
      * @see #MODIFIED_TEXTURE
+     * @see #getDirtyBits()
+     * @see #isReqDirty()
      */
     public final int getModifiedBits(final boolean clear) {
         final int r = modifiedBits;
@@ -1128,21 +1192,28 @@ public final class PMVMatrix implements GLMatrixFunc {
     }
 
     /**
-     * Returns the dirty bits due to mutable operations.
+     * Returns the dirty bits due to mutable operations,
+     * i.e.
+     * - {@link #INVERSE_MODELVIEW} (if requested)
+     * - {@link #INVERSE_TRANSPOSED_MODELVIEW} (if requested)
+     * - {@link #FRUSTUM} (always, cleared via {@link #getFrustum()}
      * <p>
-     * A dirty bit is set , if the corresponding matrix had been modified by a mutable operation
-     * since last {@link #update()} call. The latter clears the dirty state only if the dirty matrix (Mvi or Mvit) or {@link Frustum}
-     * has been requested by one of the {@link #getMviMat() Mvi get}, {@link #getMvitMat() Mvit get}
-     * or {@link #getFrustum() Frustum get} methods.
+     * A dirty bit is set, if the corresponding matrix had been modified by a mutable operation
+     * since last {@link #update()} call and requested in the constructor {@link #PMVMatrix(int)}.
+     * </p>
+     * <p>
+     * {@link #update()} clears the dirty state for the matrices and {@link #getFrustum()} for {@link #FRUSTUM}.
      * </p>
      *
-     * @see #DIRTY_INVERSE_MODELVIEW
-     * @see #DIRTY_INVERSE_TRANSPOSED_MODELVIEW
-     * @see #DIRTY_FRUSTUM
+     * @see #isReqDirty()
+     * @see #INVERSE_MODELVIEW
+     * @see #INVERSE_TRANSPOSED_MODELVIEW
+     * @see #FRUSTUM
+     * @see #PMVMatrix(int)
      * @see #getMviMat()
      * @see #getMvitMat()
-     * @see #glGetPMvMviMatrixf()
-     * @see #glGetPMvMvitMatrixf()
+     * @see #getSyncPMvMviMat()
+     * @see #getSyncPMvMviMvitMat()
      * @see #getFrustum()
      */
     public final int getDirtyBits() {
@@ -1150,162 +1221,237 @@ public final class PMVMatrix implements GLMatrixFunc {
     }
 
     /**
-     * Returns the request bit mask, which uses bit values equal to the dirty mask.
+     * Returns true if the one of the {@link #getReqBits() requested bits} are are set dirty due to mutable operations,
+     * i.e. at least one of
+     * - {@link #INVERSE_MODELVIEW}
+     * - {@link #INVERSE_TRANSPOSED_MODELVIEW}
      * <p>
-     * The request bit mask is set by one of the {@link #getMviMat() Mvi get}, {@link #getMvitMat() Mvit get}
-     * or {@link #getFrustum() Frustum get} methods.
+     * A dirty bit is set, if the corresponding matrix had been modified by a mutable operation
+     * since last {@link #update()} call and requested in the constructor {@link #PMVMatrix(int)}.
+     * </p>
+     * <p>
+     * {@link #update()} clears the dirty state for the matrices and {@link #getFrustum()} for {@link #FRUSTUM}.
      * </p>
      *
-     * @see #clearAllUpdateRequests()
-     * @see #DIRTY_INVERSE_MODELVIEW
-     * @see #DIRTY_INVERSE_TRANSPOSED_MODELVIEW
-     * @see #DIRTY_FRUSTUM
+     * @see #INVERSE_MODELVIEW
+     * @see #INVERSE_TRANSPOSED_MODELVIEW
+     * @see #PMVMatrix(int)
      * @see #getMviMat()
      * @see #getMvitMat()
-     * @see #glGetPMvMviMatrixf()
-     * @see #glGetPMvMvitMatrixf()
-     * @see #getFrustum()
+     * @see #getSyncPMvMviMat()
+     * @see #getSyncPMvMviMvitMat()
      */
-    public final int getRequestMask() {
-        return requestMask;
+    public final boolean isReqDirty() {
+        return 0 != ( requestBits & dirtyBits );
     }
 
-
     /**
-     * Clears all {@link #update()} requests of the Mvi and Mvit matrix and Frustum
-     * after it has been enabled by one of the {@link #getMviMat() Mvi get}, {@link #getMvitMat() Mvit get}
-     * or {@link #getFrustum() Frustum get} methods.
+     * Returns the request bit mask, which uses bit values equal to the dirty mask
+     * and may contain
+     * - {@link #INVERSE_MODELVIEW}
+     * - {@link #INVERSE_TRANSPOSED_MODELVIEW}
      * <p>
-     * Allows user to disable subsequent Mvi, Mvit and {@link Frustum} updates if no more required.
+     * The request bit mask is set by in the constructor {@link #PMVMatrix(int)}.
      * </p>
      *
+     * @see #INVERSE_MODELVIEW
+     * @see #INVERSE_TRANSPOSED_MODELVIEW
+     * @see #PMVMatrix(int)
      * @see #getMviMat()
      * @see #getMvitMat()
-     * @see #glGetPMvMviMatrixf()
-     * @see #glGetPMvMvitMatrixf()
+     * @see #getSyncPMvMviMat()
+     * @see #getSyncPMvMviMvitMat()
      * @see #getFrustum()
-     * @see #getRequestMask()
      */
-    public final void clearAllUpdateRequests() {
-        requestMask &= ~DIRTY_ALL;
+    public final int getReqBits() {
+        return requestBits;
+    }
+
+    /**
+     * Returns the pre-multiplied projection x modelview, P x Mv.
+     * <p>
+     * This {@link Matrix4f} instance should be re-fetched via this method and not locally stored
+     * to have it updated from a potential modification of underlying projection and/or modelview matrix.
+     * {@link #update()} has no effect on this {@link Matrix4f}.
+     * </p>
+     * <p>
+     * This pre-multipled P x Mv is considered dirty, if its corresponding
+     * {@link #getPMat() P matrix} or {@link #getMvMat() Mv matrix} has been modified since its last update.
+     * </p>
+     * @see #update()
+     */
+    public final Matrix4f getPMvMat() {
+        if( 0 != ( dirtyBits & PREMUL_PMV ) ) {
+            if( null == matPMv ) {
+                matPMv = new Matrix4f();
+            }
+            matPMv.mul(matP, matMv);
+            dirtyBits &= ~PREMUL_PMV;
+        }
+        return matPMv;
+    }
+
+    /**
+     * Returns the pre-multiplied inverse projection x modelview,
+     * if {@link Matrix4f#invert(Matrix4f)} succeeded, otherwise `null`.
+     * <p>
+     * This {@link Matrix4f} instance should be re-fetched via this method and not locally stored
+     * to have it updated from a potential modification of underlying projection and/or modelview matrix.
+     * {@link #update()} has no effect on this {@link Matrix4f}.
+     * </p>
+     * <p>
+     * This pre-multipled invert(P x Mv) is considered dirty, if its corresponding
+     * {@link #getPMat() P matrix} or {@link #getMvMat() Mv matrix} has been modified since its last update.
+     * </p>
+     * @see #update()
+     */
+    public final Matrix4f getPMviMat() {
+        if( 0 != ( dirtyBits & PREMUL_PMVI ) ) {
+            if( null == matPMvi ) {
+                matPMvi = new Matrix4f();
+            }
+            final Matrix4f mPMv = getPMvMat();
+            matPMviOK = matPMvi.invert(mPMv);
+            dirtyBits &= ~PREMUL_PMVI;
+        }
+        return matPMviOK ? matPMvi : null;
+    }
+
+    /**
+     * Returns the frustum, derived from projection x modelview.
+     * <p>
+     * This {@link Frustum} instance should be re-fetched via this method and not locally stored
+     * to have it updated from a potential modification of underlying projection and/or modelview matrix.
+     * {@link #update()} has no effect on this {@link Frustum}.
+     * </p>
+     * <p>
+     * The {@link Frustum} is considered dirty, if its corresponding
+     * {@link #getPMat() P matrix} or {@link #getMvMat() Mv matrix} has been modified since its last update.
+     * </p>
+     * @see #update()
+     */
+    public final Frustum getFrustum() {
+        if( 0 != ( dirtyBits & FRUSTUM ) ) {
+            if( null == frustum ) {
+                frustum = new Frustum();
+            }
+            final Matrix4f mPMv = getPMvMat();
+            frustum.updateFrustumPlanes(mPMv);
+            dirtyBits &= ~FRUSTUM;
+        }
+        return frustum;
     }
 
     /**
      * Update the derived {@link #getMviMat() inverse modelview (Mvi)},
-     * {@link #getMvitMat() inverse transposed modelview (Mvit)} matrices and {@link Frustum}
-     * <b>if</b> they are dirty <b>and</b> they were requested
-     * by one of the {@link #getMviMat() Mvi get}, {@link #getMvitMat() Mvit get}
-     * or {@link #getFrustum() Frustum get} methods.
+     * {@link #getMvitMat() inverse transposed modelview (Mvit)} matrices
+     * <b>if</b> they {@link #isReqDirty() are dirty} <b>and</b>
+     * requested via the constructor {@link #PMVMatrix(int)}.<br/>
+     * Hence updates the following dirty bits.
+     * - {@link #INVERSE_MODELVIEW}
+     * - {@link #INVERSE_TRANSPOSED_MODELVIEW}
      * <p>
-     * The Mvi and Mvit matrices and {@link Frustum} are considered dirty, if their corresponding
+     * The {@link Frustum} is updated only via {@link #getFrustum()} separately.
+     * </p>
+     * <p>
+     * The Mvi and Mvit matrices are considered dirty, if their corresponding
      * {@link #getMvMat() Mv matrix} has been modified since their last update.
      * </p>
      * <p>
-     * Method should be called manually in case mutable operations has been called
-     * and caller operates on already fetched references, i.e. not calling
-     * {@link #getMviMat() Mvi get}, {@link #getMvitMat() Mvit get}
-     * or {@link #getFrustum() Frustum get} etc anymore.
+     * Method is automatically called by {@link SyncMatrix4f} and {@link SyncMatrices4f}
+     * instances {@link SyncAction} as retrieved by e.g. {@link #getSyncMvitMat()}.
+     * This ensures an automatic update cycle if used with {@link GLUniformData}.
      * </p>
      * <p>
-     * This method clears the modified bits like {@link #getModifiedBits(boolean) getModifiedBits(true)},
+     * Method may be called manually in case mutable operations has been called
+     * and caller operates on already fetched references, i.e. not calling
+     * {@link #getMviMat()}, {@link #getMvitMat()} anymore.
+     * </p>
+     * <p>
+     * Method clears the modified bits like {@link #getModifiedBits(boolean) getModifiedBits(true)},
      * which are set by any mutable operation. The modified bits have no impact
      * on this method, but the return value.
      * </p>
      *
      * @return true if any matrix has been modified since last update call or
-     *         if the derived matrices Mvi and Mvit or {@link Frustum} were updated, otherwise false.
+     *         if the derived matrices Mvi and Mvit were updated, otherwise false.
      *         In other words, method returns true if any matrix used by the caller must be updated,
      *         e.g. uniforms in a shader program.
      *
      * @see #getModifiedBits(boolean)
-     * @see #MODIFIED_PROJECTION
-     * @see #MODIFIED_MODELVIEW
-     * @see #MODIFIED_TEXTURE
-     * @see #DIRTY_INVERSE_MODELVIEW
-     * @see #DIRTY_INVERSE_TRANSPOSED_MODELVIEW
-     * @see #DIRTY_FRUSTUM
+     * @see #isReqDirty()
+     * @see #INVERSE_MODELVIEW
+     * @see #INVERSE_TRANSPOSED_MODELVIEW
+     * @see #PMVMatrix(int)
      * @see #getMviMat()
      * @see #getMvitMat()
-     * @see #glGetPMvMviMatrixf()
-     * @see #glGetPMvMvitMatrixf()
-     * @see #getFrustum()
-     * @see #clearAllUpdateRequests()
+     * @see #getSyncPMvMviMat()
+     * @see #getSyncPMvMviMvitMat()
      */
     public final boolean update() {
         return updateImpl(true);
-    }
-    private final boolean updateImpl(final boolean clearModBits) {
-        boolean mod = 0 != modifiedBits;
-        if(clearModBits) {
-            modifiedBits = 0;
-        }
-
-        if( 0 != ( dirtyBits & ( DIRTY_FRUSTUM & requestMask ) ) ) {
-            if( null == frustum ) {
-                frustum = new Frustum();
-            }
-            mat4Tmp1.mul(matP, matMv);
-            frustum.updateFrustumPlanes(mat4Tmp1);
-            dirtyBits &= ~DIRTY_FRUSTUM;
-            mod = true;
-        }
-
-        if( 0 == ( dirtyBits & requestMask ) ) {
-            return mod; // nothing more requested which may have been dirty
-        }
-
-        return setMviMvit() || mod;
     }
 
     //
     // private
     //
-    private static final String msgCantComputeInverse = "Invalid source Mv matrix, can't compute inverse";
 
-    private final boolean setMviMvit() {
-        boolean res = false;
-        if( 0 != ( dirtyBits & DIRTY_INVERSE_MODELVIEW ) ) { // only if dirt; always requested at this point, see update()
+    private final boolean updateImpl(final boolean clearModBits) {
+        boolean mod = 0 != modifiedBits;
+        if( clearModBits ) {
+            modifiedBits = 0;
+        }
+        if( 0 != ( requestBits & ( ( dirtyBits & ( INVERSE_MODELVIEW | INVERSE_TRANSPOSED_MODELVIEW ) ) ) ) ) { // only if dirt requested & dirty
             if( !matMvi.invert(matMv) ) {
                 throw new GLException(msgCantComputeInverse);
             }
-            dirtyBits &= ~DIRTY_INVERSE_MODELVIEW;
-            res = true;
+            dirtyBits &= ~INVERSE_MODELVIEW;
+            mod = true;
         }
-        if( 0 != ( requestMask & ( dirtyBits & DIRTY_INVERSE_TRANSPOSED_MODELVIEW ) ) ) { // only if requested & dirty
+        if( 0 != ( requestBits & ( dirtyBits & INVERSE_TRANSPOSED_MODELVIEW ) ) ) { // only if requested & dirty
             matMvit.transpose(matMvi);
-            dirtyBits &= ~DIRTY_INVERSE_TRANSPOSED_MODELVIEW;
-            res = true;
+            dirtyBits &= ~INVERSE_TRANSPOSED_MODELVIEW;
+            mod = true;
         }
-        return res;
+        return mod;
     }
+    private static final String msgCantComputeInverse = "Invalid source Mv matrix, can't compute inverse";
 
     private final Matrix4f matP;
     private final Matrix4f matMv;
+    private final Matrix4f matTex;
+
     private final Matrix4f matMvi;
     private final Matrix4f matMvit;
-    private final Matrix4f matTex;
 
     private static final int mP_offset      = 0*16;
     private static final int mMv_offset     = 1*16;
-    private static final int mMvi_offset    = 2*16;
-    private static final int mMvit_offset   = 3*16;
-    private static final int mTex_offset    = 4*16;
+    private final int mMvi_offset;
+    private final int mMvit_offset;
+    private final int mTex_offset;
 
     private final float[] matrixStore;
-    private final FloatBuffer matrixP, matrixMv, matrixMvi, matrixMvit, matrixTex;
-    private final FloatBuffer matrixPMvMvit, matrixPMvMvi, matrixPMv;
 
-    private final SyncMatrix4f matPSync, matMvSync, matMviSync, matMvitSync, matTexSync;
-    private final SyncMatrices4f matPMvMvitSync, matPMvMviSync, matPMvSync;
+    private final FloatBuffer bufP, bufMv, bufTex;
+    private final FloatBuffer bufMvi, bufMvit;
+    private final FloatBuffer bufP_Mv, bufP_Mv_Mvi, bufP_Mv_Mvi_Mvit;
 
-    private final Matrix4f mat4Tmp1, mat4Tmp2;
+    private final SyncMatrix4f syncP, syncMv, syncT;
+    private final SyncMatrix4f syncMvi, syncMvit;
+    private final SyncMatrices4f syncP_Mv, syncP_Mv_Mvi, syncP_Mv_Mvi_Mvit;
+
+    private final Matrix4f mat4Tmp1;
     private final Vec3f vec3Tmp1;
     private final Vec4f vec4Tmp1;
 
     private int matrixMode = GL_MODELVIEW;
     private int modifiedBits = MODIFIED_ALL;
-    private int dirtyBits = DIRTY_ALL; // contains the dirty bits, i.e. hinting for update operation
-    private int requestMask = 0; // may contain the requested dirty bits: DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW
+    private int dirtyBits = 0; // contains the dirty bits, i.e. hinting for update operation
+    private final int requestBits; // may contain the requested bits: INVERSE_MODELVIEW | INVERSE_TRANSPOSED_MODELVIEW
+    private Matrix4f mat4Tmp2;
+    private Matrix4f matPMv;
+    private Matrix4f matPMvi;
+    private boolean matPMviOK;
     private Frustum frustum;
 
     private abstract class PMVSyncBuffer implements SyncMatrix4f {
@@ -1359,9 +1505,50 @@ public final class PMVMatrix implements GLMatrixFunc {
         @Override
         public SyncAction getAction() { return action; }
     }
-    private final class SyncBufferN implements SyncMatrices4f {
-        private final Matrix4f[] mats;
+    private final class SyncBuffer1U extends PMVSyncBuffer {
+        private final int offset;
+        private final SyncAction action = new SyncAction() {
+            @Override
+            public void sync() {
+                updateImpl(true);
+                mat.get(matrixStore, offset);
+            }
+        };
+
+        public SyncBuffer1U(final Matrix4f m, final FloatBuffer fbuf, final int offset) {
+            super(m, fbuf);
+            this.offset = offset;
+        }
+
+        @Override
+        public SyncAction getAction() { return action; }
+    }
+
+    private abstract class PMVSyncBufferN implements SyncMatrices4f {
+        protected final Matrix4f[] mats;
         private final FloatBuffer fbuf;
+
+        public PMVSyncBufferN(final Matrix4f[] ms, final FloatBuffer fbuf) {
+            this.mats = ms;
+            this.fbuf = fbuf;
+        }
+
+        @Override
+        public final Buffer getBuffer() { return fbuf; }
+
+        @Override
+        public final SyncBuffer sync() { getAction().sync(); return this; }
+
+        @Override
+        public final Buffer getSyncBuffer() { getAction().sync(); return fbuf; }
+
+        @Override
+        public Matrix4f[] getMatrices() { return mats; }
+
+        @Override
+        public final FloatBuffer getSyncFloats() { getAction().sync(); return fbuf; }
+    }
+    private final class SyncBufferN extends PMVSyncBufferN {
         private final int offset;
         private final SyncAction action = new SyncAction() {
             @Override
@@ -1374,27 +1561,32 @@ public final class PMVMatrix implements GLMatrixFunc {
         };
 
         public SyncBufferN(final Matrix4f[] ms, final FloatBuffer fbuf, final int offset) {
-            this.mats = ms;
-            this.fbuf = fbuf;
+            super(ms, fbuf);
             this.offset = offset;
         }
 
         @Override
         public SyncAction getAction() { return action; }
+    }
+    private final class SyncBufferNU extends PMVSyncBufferN {
+        private final int offset;
+        private final SyncAction action = new SyncAction() {
+            @Override
+            public void sync() {
+                updateImpl(true);
+                int ioff = offset;
+                for(int i=0; i<mats.length; ++i, ioff+=16) {
+                    mats[i].get(matrixStore, ioff);
+                }
+            }
+        };
+
+        public SyncBufferNU(final Matrix4f[] ms, final FloatBuffer fbuf, final int offset) {
+            super(ms, fbuf);
+            this.offset = offset;
+        }
 
         @Override
-        public Buffer getBuffer() { return fbuf; }
-
-        @Override
-        public SyncBuffer sync() { getAction().sync(); return this; }
-
-        @Override
-        public Buffer getSyncBuffer() { getAction().sync(); return fbuf; }
-
-        @Override
-        public Matrix4f[] getMatrices() { return mats; }
-
-        @Override
-        public FloatBuffer getSyncFloats() { getAction().sync(); return fbuf; }
+        public SyncAction getAction() { return action; }
     }
 }

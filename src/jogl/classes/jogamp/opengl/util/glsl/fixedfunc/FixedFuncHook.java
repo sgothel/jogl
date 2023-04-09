@@ -70,7 +70,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
             this.pmvMatrix = pmvMatrix;
         } else {
             this.ownsPMVMatrix = true;
-            this.pmvMatrix = new PMVMatrix();
+            this.pmvMatrix = new PMVMatrix(PMVMatrix.INVERSE_MODELVIEW | PMVMatrix.INVERSE_TRANSPOSED_MODELVIEW);
         }
         fixedFunction = new FixedFuncPipeline(this.gl, mode, this.pmvMatrix);
     }
@@ -91,7 +91,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
             this.pmvMatrix = pmvMatrix;
         } else {
             this.ownsPMVMatrix = true;
-            this.pmvMatrix = new PMVMatrix();
+            this.pmvMatrix = new PMVMatrix(PMVMatrix.INVERSE_MODELVIEW | PMVMatrix.INVERSE_TRANSPOSED_MODELVIEW);
         }
 
         fixedFunction = new FixedFuncPipeline(this.gl, mode, this.pmvMatrix, shaderRootClass, shaderSrcRoot,

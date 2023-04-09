@@ -140,7 +140,7 @@ public class TestMatrix4fProject01NOUI extends JunitTracer {
         mat4P.load( m.getMat(GLMatrixFunc.GL_PROJECTION_MATRIX) );
         Assert.assertEquals(new Matrix4f(mat4Mv_f16), mat4Mv);
         Assert.assertEquals(new Matrix4f(mat4P_f16), mat4P);
-        Assert.assertEquals(mat4Mv, m.getMviMat());
+        Assert.assertEquals(mat4Mv, m.getMvMat());
         Assert.assertEquals(mat4P, m.getPMat());
 
         m.gluProject(new Vec3f(1f, 0f, 0f), viewport, winA00);
@@ -165,7 +165,7 @@ public class TestMatrix4fProject01NOUI extends JunitTracer {
         mat4P.load( m.getMat(GLMatrixFunc.GL_PROJECTION_MATRIX) );
         Assert.assertEquals(new Matrix4f(mat4Mv_f16), mat4Mv);
         Assert.assertEquals(new Matrix4f(mat4P_f16), mat4P);
-        Assert.assertEquals(mat4Mv, m.getMviMat());
+        Assert.assertEquals(mat4Mv, m.getMvMat());
         Assert.assertEquals(mat4P, m.getPMat());
 
         m.gluProject(new Vec3f(1f, 0f, 0f), viewport, winA10);

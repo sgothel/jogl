@@ -56,6 +56,7 @@ import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.SyncBuffer;
+import com.jogamp.opengl.util.SyncMatrices4f;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -813,13 +814,13 @@ public class FixedFuncPipeline {
         }
 
         GLUniformData ud;
-        if( pmvMatrix.update() ) {
+        if( pmvMatrix.isReqDirty() ) {
             ud = shaderState.getUniform(mgl_PMVMatrix);
             if(null!=ud) {
-                final SyncBuffer m;
+                final SyncMatrices4f m;
                 if(ShaderSelectionMode.COLOR_TEXTURE8_LIGHT_PER_VERTEX == currentShaderSelectionMode ||
                    ShaderSelectionMode.COLOR_LIGHT_PER_VERTEX== currentShaderSelectionMode ) {
-                    m = pmvMatrix.getSyncPMvMvitMat();
+                    m = pmvMatrix.getSyncPMvMviMvitMat();
                 } else {
                     m = pmvMatrix.getSyncPMvMat();
                 }
@@ -827,7 +828,7 @@ public class FixedFuncPipeline {
                     ud.setData(m);
                 }
                 // same data object ..
-                shaderState.uniform(gl, ud);
+                shaderState.uniform(gl, ud); // automatic sync + update of Mvi + Mvit
             } else {
                 throw new GLException("Failed to update: mgl_PMVMatrix");
             }
@@ -1113,7 +1114,7 @@ public class FixedFuncPipeline {
         shaderState.attachShaderProgram(gl, selectShaderProgram(gl, requestedShaderSelectionMode), true);
 
         // mandatory ..
-        if(!shaderState.uniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.getSyncPMvMvitMat()))) {
+        if(!shaderState.uniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.getSyncPMvMviMvitMat()))) {
             throw new GLException("Error setting PMVMatrix in shader: "+this);
         }
 

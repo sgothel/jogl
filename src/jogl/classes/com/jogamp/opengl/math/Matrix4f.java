@@ -1791,18 +1791,19 @@ public class Matrix4f {
      * @param winx
      * @param winy
      * @param winz
-     * @param invPMv inverse [projection] x [modelview] matrix, i.e. Inv(P x Mv)
+     * @param invPMv inverse [projection] x [modelview] matrix, i.e. Inv(P x Mv), if null method returns false
      * @param viewport Rect4i viewport
      * @param objPos 3 component object coordinate, the result
-     * @param mat4Tmp 16 component matrix for temp storage
-     * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
+     * @return true if successful, otherwise false (null invert matrix, or becomes infinity due to zero z)
      */
     public static boolean mapWinToObj(final float winx, final float winy, final float winz,
                                       final Matrix4f invPMv,
                                       final Recti viewport,
-                                      final Vec3f objPos,
-                                      final Matrix4f mat4Tmp)
+                                      final Vec3f objPos)
     {
+        if( null == invPMv ) {
+            return false;
+        }
         final Vec4f winPos = new Vec4f(winx, winy, winz, 1f);
 
         // Map x and y from window coordinates
@@ -1833,18 +1834,19 @@ public class Matrix4f {
      * @param winy
      * @param winz1
      * @param winz2
-     * @param invPMv inverse [projection] x [modelview] matrix, i.e. Inv(P x Mv)
+     * @param invPMv inverse [projection] x [modelview] matrix, i.e. Inv(P x Mv), if null method returns false
      * @param viewport Rect4i viewport vector
      * @param objPos1 3 component object coordinate, the result
-     * @param mat4Tmp 16 component matrix for temp storage
-     * @return true if successful, otherwise false (failed to invert matrix, or becomes infinity due to zero z)
+     * @return true if successful, otherwise false (null invert matrix, or becomes infinity due to zero z)
      */
     public static boolean mapWinToObj(final float winx, final float winy, final float winz1, final float winz2,
                                       final Matrix4f invPMv,
                                       final Recti viewport,
-                                      final Vec3f objPos1, final Vec3f objPos2,
-                                      final Matrix4f mat4Tmp)
+                                      final Vec3f objPos1, final Vec3f objPos2)
     {
+        if( null == invPMv ) {
+            return false;
+        }
         final Vec4f winPos = new Vec4f(winx, winy, winz1, 1f);
 
         // Map x and y from window coordinates
@@ -1928,6 +1930,49 @@ public class Matrix4f {
     }
 
     /**
+     * Map window coordinates to object coordinates.
+     * <p>
+     * Traditional <code>gluUnProject4</code> implementation.
+     * </p>
+     *
+     * @param winx
+     * @param winy
+     * @param winz
+     * @param clipw
+     * @param invPMv inverse [projection] x [modelview] matrix, i.e. Inv(P x Mv), if null method returns false
+     * @param viewport Rect4i viewport vector
+     * @param near
+     * @param far
+     * @param obj_pos 4 component object coordinate, the result
+     * @return true if successful, otherwise false (null invert matrix, or becomes infinity due to zero z)
+     */
+    public static boolean mapWinToObj4(final float winx, final float winy, final float winz, final float clipw,
+                                       final Matrix4f invPMv,
+                                       final Recti viewport,
+                                       final float near, final float far,
+                                       final Vec4f objPos)
+    {
+        if( null == invPMv ) {
+            return false;
+        }
+        final Vec4f winPos = new Vec4f(winx, winy, winz, clipw);
+
+        // Map x and y from window coordinates
+        winPos.add(-viewport.x(), -viewport.y(), -near, 0f).scale(1f/viewport.width(), 1f/viewport.height(), 1f/(far-near), 1f);
+
+        // Map to range -1 to 1
+        winPos.scale(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
+
+        // objPos = Inv(P x Mv) *  winPos
+        invPMv.mulVec4f(winPos, objPos);
+
+        if ( objPos.w() == 0.0f ) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * Map two window coordinates w/ shared X/Y and distinctive Z
      * to a {@link Ray}. The resulting {@link Ray} maybe used for <i>picking</i>
      * using a {@link AABBox#getRayIntersection(Vec3f, Ray, float, boolean)}.
@@ -1952,8 +1997,7 @@ public class Matrix4f {
      * @return true if successful, otherwise false (failed to invert matrix, or becomes z is infinity)
      */
     public static boolean mapWinToRay(final float winx, final float winy, final float winz0, final float winz1,
-                                      final Matrix4f mMv,
-                                      final Matrix4f mP,
+                                      final Matrix4f mMv, final Matrix4f mP,
                                       final Recti viewport,
                                       final Ray ray,
                                       final Matrix4f mat4Tmp1, final Matrix4f mat4Tmp2) {
@@ -1963,8 +2007,40 @@ public class Matrix4f {
             return false;
         }
 
-        if( mapWinToObj(winx, winy, winz0, winz1, invPMv, viewport,
-                        ray.orig, ray.dir, mat4Tmp2) ) {
+        if( mapWinToObj(winx, winy, winz0, winz1, invPMv, viewport, ray.orig, ray.dir) ) {
+            ray.dir.sub(ray.orig).normalize();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Map two window coordinates w/ shared X/Y and distinctive Z
+     * to a {@link Ray}. The resulting {@link Ray} maybe used for <i>picking</i>
+     * using a {@link AABBox#getRayIntersection(Vec3f, Ray, float, boolean)}.
+     * <p>
+     * Notes for picking <i>winz0</i> and <i>winz1</i>:
+     * <ul>
+     *   <li>see {@link FloatUtil#getZBufferEpsilon(int, float, float)}</li>
+     *   <li>see {@link FloatUtil#getZBufferValue(int, float, float, float)}</li>
+     *   <li>see {@link FloatUtil#getOrthoWinZ(float, float, float)}</li>
+     * </ul>
+     * </p>
+     * @param winx
+     * @param winy
+     * @param winz0
+     * @param winz1
+     * @param invPMv inverse [projection] x [modelview] matrix, i.e. Inv(P x Mv), if null method returns false
+     * @param viewport Rect4i viewport
+     * @param ray storage for the resulting {@link Ray}
+     * @return true if successful, otherwise false (null invert matrix, or becomes z is infinity)
+     */
+    public static boolean mapWinToRay(final float winx, final float winy, final float winz0, final float winz1,
+                                      final Matrix4f invPMv,
+                                      final Recti viewport,
+                                      final Ray ray) {
+        if( mapWinToObj(winx, winy, winz0, winz1, invPMv, viewport, ray.orig, ray.dir) ) {
             ray.dir.sub(ray.orig).normalize();
             return true;
         } else {

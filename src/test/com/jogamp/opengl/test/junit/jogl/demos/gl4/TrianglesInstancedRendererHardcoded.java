@@ -99,7 +99,6 @@ public class TrianglesInstancedRendererHardcoded implements GLEventListener {
 			winScale = view.getScale();
 		}
 		projectionMatrix.glScalef(winScale, winScale, winScale);
-		projectionMatrix.update();
 		gl.glUniformMatrix4fv(projectionMatrixLocation, 1, false, projectionMatrix.getSyncPMat().getSyncFloats());
 		projectionMatrix.glPopMatrix();
 		generateTriangleTransform();

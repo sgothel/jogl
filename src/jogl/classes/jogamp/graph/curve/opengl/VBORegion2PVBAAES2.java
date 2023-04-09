@@ -444,7 +444,6 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
 
     private final AABBox drawWinBox = new AABBox();
     private final Recti drawView = new Recti();
-    private final Matrix4f drawMat4PMv = new Matrix4f();
 
     private static final int border = 2; // surrounding border, i.e. width += 2*border, height +=2*border
 
@@ -487,8 +486,7 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
                 drawView.setWidth(vpWidth);
                 drawView.setHeight(vpHeight);
 
-                renderer.getMatrix().mulPMvMat(drawMat4PMv);
-                box.mapToWindow(drawWinBox, drawMat4PMv, drawView, true /* useCenterZ */);
+                box.mapToWindow(drawWinBox, renderer.getMatrix().getPMvMat(), drawView, true /* useCenterZ */);
 
                 winWidth = drawWinBox.getWidth();
                 winHeight = drawWinBox.getHeight();

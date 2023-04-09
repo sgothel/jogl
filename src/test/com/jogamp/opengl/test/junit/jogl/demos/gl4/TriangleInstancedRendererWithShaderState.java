@@ -139,7 +139,6 @@ public class TriangleInstancedRendererWithShaderState implements GLEventListener
 		float winScale = 0.1f;
 		if(view != null) winScale = view.getScale();
 		projectionMatrix.glScalef(winScale, winScale, winScale);
-		projectionMatrix.update();
 		st.uniform(gl, projectionMatrixUniform);
 		projectionMatrix.glPopMatrix();
 

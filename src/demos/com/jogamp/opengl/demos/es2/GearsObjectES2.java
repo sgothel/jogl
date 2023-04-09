@@ -123,11 +123,7 @@ public class GearsObjectES2 extends GearsObject {
         pmvMatrix.glPushMatrix();
         pmvMatrix.glTranslatef(x, y, 0f);
         pmvMatrix.glRotatef(angle, 0f, 0f, 1f);
-        if( pmvMatrix.update() ) {
-            st.uniform(gl, pmvMatrixUniform);
-        } else {
-            throw new InternalError("PMVMatrix.update() returns false after mutable operations");
-        }
+        st.uniform(gl, pmvMatrixUniform); // automatic sync + update of Mvi + Mvit
 
         colorUniform.setData(gearColor);
         st.uniform(gl, colorUniform);

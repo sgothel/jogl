@@ -147,7 +147,7 @@ public class Group extends Shape implements Container {
         }
     }
 
-    private final boolean doFrustumCulling = true; // FIXME
+    private final boolean doFrustumCulling = false; // FIXME
 
     @Override
     protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final float[] rgba) {

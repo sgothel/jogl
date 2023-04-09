@@ -527,8 +527,7 @@ public abstract class Shape {
         final Vec3f high = box.getHigh();
         final Vec3f low = box.getLow();
 
-        // Efficiently reuse matPMv and temporary PMVMatrix storage
-        final Matrix4f matPMv = pmv.mulPMvMat(pmv.getTmp1Mat());
+        final Matrix4f matPMv = pmv.getPMvMat();
         if( Matrix4f.mapObjToWin(high, matPMv, viewport, winCoordHigh) ) {
             if( Matrix4f.mapObjToWin(low, matPMv, viewport, winCoordLow) ) {
                 surfaceSize[0] = (int)Math.abs(winCoordHigh.x() - winCoordLow.x());
@@ -706,14 +705,9 @@ public abstract class Shape {
     public Vec3f winToShapeCoord(final PMVMatrix pmv, final Recti viewport, final int glWinX, final int glWinY, final Vec3f objPos) {
         final Vec3f ctr = box.getCenter();
 
-        // Efficiently reuse matPMv and temporary PMVMatrix storage
-        final Matrix4f matPMv = pmv.mulPMvMat(pmv.getTmp1Mat());
-        if( Matrix4f.mapObjToWin(ctr, matPMv, viewport, objPos) ) {
+        if( Matrix4f.mapObjToWin(ctr, pmv.getPMvMat(), viewport, objPos) ) {
             final float winZ = objPos.z();
-            if( !matPMv.invert() ) {
-                return null;
-            }
-            if( Matrix4f.mapWinToObj(glWinX, glWinY, winZ, matPMv, viewport, objPos, pmv.getTmp2Mat()) ) {
+            if( Matrix4f.mapWinToObj(glWinX, glWinY, winZ, pmv.getPMviMat(), viewport, objPos) ) {
                 return objPos;
             }
         }
