@@ -37,6 +37,7 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Scene.PMVMatrixSetup;
 import com.jogamp.graph.ui.shapes.GlyphShape;
@@ -128,6 +129,12 @@ public class UISceneDemo03 {
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.setDebugBox(options.debugBoxThickness);
 
+        final Group glyphGroup = new Group();
+        scene.addShape(glyphGroup);
+
+        // scene.setFrustumCullingEnabled(true);
+        glyphGroup.setFrustumCullingEnabled(true);
+
         final Animator animator = new Animator();
         animator.setUpdateFPSFrames(1 * 60, null); // System.err);
 
@@ -201,6 +208,7 @@ public class UISceneDemo03 {
         final AABBox sceneBox = scene.getBounds();
         System.err.println("SceneBox " + sceneBox);
         System.err.println("Frustum " + scene.getMatrix().getFrustum());
+        System.err.println("GlyphGroup.0: "+glyphGroup);
 
         final Label statusLabel;
         {
@@ -246,7 +254,6 @@ public class UISceneDemo03 {
         //
 
         final List<GlyphShape> glyphShapes = new ArrayList<GlyphShape>();
-        final List<GlyphShape> addedGlyphShapes = new ArrayList<GlyphShape>();
 
         final float pixPerMM, dpiV;
         {
@@ -268,8 +275,7 @@ public class UISceneDemo03 {
             }
             z_only = !z_only;
             window.invoke(true, (drawable) -> {
-                scene.removeShapes(drawable.getGL().getGL2ES2(), addedGlyphShapes);
-                addedGlyphShapes.clear();
+                glyphGroup.removeAllShapes(drawable.getGL().getGL2ES2(), scene.getRenderer());
                 return true;
             });
 
@@ -300,10 +306,9 @@ public class UISceneDemo03 {
                 }
                 // just add destText to scene to be cleaned up, invisible
                 testGlyph.setEnabled(false);
-                scene.addShape(testGlyph);
+                glyphGroup.addShape(testGlyph);
             }
-            scene.addShapes(glyphShapes);
-            addedGlyphShapes.addAll(glyphShapes);
+            glyphGroup.addShapes(glyphShapes);
 
             final float pos_eps = FloatUtil.EPSILON * 5000; // ~= 0.0005960
             final float rot_eps = FloatUtil.adegToRad(0.5f); // 1 adeg ~= 0.01745 rad
@@ -341,6 +346,7 @@ public class UISceneDemo03 {
                                 }
                             }
                             glyph.moveTo(target.x(), target.y(), target.z());
+                            glyph.setInteractive(false);
                             q.setIdentity();
                             glyphShapes.remove(idx);
                             continue;
