@@ -59,17 +59,24 @@ public class Group extends Shape implements Container {
 
     /**
      * Create a Graph based {@link GLRegion} UI {@link Shape}.
+     * <p>
+     * Default is non-interactive, see {@link #setInteractive(boolean)}.
+     * </p>
      */
     public Group() {
-        super();
+        this(null);
     }
 
     /**
      * Create a Graph based {@link GLRegion} UI {@link Shape} w/ given {@link Group.Layour}.
+     * <p>
+     * Default is non-interactive, see {@link #setInteractive(boolean)}.
+     * </p>
      */
     public Group(final Layout l) {
         super();
         this.layouter = l;
+        this.setInteractive(false);
     }
 
     /** Return current {@link Group.Layout}. */
