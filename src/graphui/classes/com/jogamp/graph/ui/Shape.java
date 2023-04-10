@@ -139,6 +139,7 @@ public abstract class Shape {
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
 
     private Listener onMoveListener = null;
+    private Listener onToggleListener = null;
 
     public Shape() {
         this.box = new AABBox();
@@ -199,6 +200,7 @@ public abstract class Shape {
     }
 
     public final void onMove(final Listener l) { onMoveListener = l; }
+    public final void onToggle(final Listener l) { onToggleListener = l; }
 
     /** Move to scaled position. Position ends up in PMVMatrix unmodified. */
     public final void moveTo(final float tx, final float ty, final float tz) {
@@ -833,12 +835,14 @@ public abstract class Shape {
         }
         final String rotateS;
         if( !rotation.isIdentity() ) {
-            rotateS = "rot "+rotation+", ";
+            final Vec3f euler = rotation.toEuler(new Vec3f());
+            rotateS = "rot["+euler+"], ";
         } else {
             rotateS = "";
         }
-        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+"], pos["+position+
-                "], "+pivotS+scaleS+rotateS+
+        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+
+               "], able[iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
+               "], ["+position+"], "+pivotS+scaleS+rotateS+
                 "box "+box;
     }
 
@@ -878,8 +882,9 @@ public abstract class Shape {
     public void toggle() {
         if( isToggleable() ) {
             toggle = !toggle;
+            onToggleListener.run(this);
+            markStateDirty();
         }
-        markStateDirty();
     }
     public boolean isToggleOn() { return toggle; }
 
