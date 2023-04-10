@@ -51,7 +51,13 @@ public class TreeTool {
     public static boolean forOne(final List<Shape> shapes, final PMVMatrix pmv, final Shape shape, final Runnable action) {
         for(int i=shapes.size()-1; i>=0; i--) {
             final Shape s = shapes.get(i);
-            if( s instanceof Container ) {
+            if( s.equals(shape) ) {
+                pmv.glPushMatrix();
+                s.setTransform(pmv);
+                action.run();
+                pmv.glPopMatrix();
+                return true;
+            } else if( s instanceof Container ) {
                 final Container c = (Container)s;
                 if( !c.contains(shape) ) { // fast-path: skip container
                     continue;
@@ -62,14 +68,6 @@ public class TreeTool {
                 pmv.glPopMatrix();
                 if( !res ) { throw new InternalError("Not found "+shape+" in "+c+", but contained"); }
                 return true;
-            } else {
-                if( s.equals(shape) ) {
-                    pmv.glPushMatrix();
-                    s.setTransform(pmv);
-                    action.run();
-                    pmv.glPopMatrix();
-                    return true;
-                }
             }
         }
         return false;
@@ -83,12 +81,10 @@ public class TreeTool {
     public static boolean forAll(final List<Shape> shapes, final Visitor1 v) {
         for(int i=shapes.size()-1; i>=0; i--) {
             final Shape s = shapes.get(i);
-            boolean res;
-            if( s instanceof Container ) {
+            boolean res = v.visit(s);
+            if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
                 res = c.forAll(v);
-            } else {
-                res = v.visit(s);
             }
             if( res ) {
                 return true;
@@ -108,12 +104,10 @@ public class TreeTool {
             final Shape s = shapes.get(i);
             pmv.glPushMatrix();
             s.setTransform(pmv);
-            boolean res;
-            if( s instanceof Container ) {
+            boolean res = v.visit(s, pmv);
+            if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
                 res = c.forAll(pmv, v);
-            } else {
-                res = v.visit(s, pmv);
             }
             pmv.glPopMatrix();
             if( res ) {
@@ -141,12 +135,10 @@ public class TreeTool {
             final Shape s = (Shape)shapesS[i];
             pmv.glPushMatrix();
             s.setTransform(pmv);
-            boolean res;
-            if( s instanceof Container ) {
+            boolean res = v.visit(s, pmv);
+            if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
-                res = c.forAll(pmv, v);
-            } else {
-                res = v.visit(s, pmv);
+                res = c.forSortedAll(sortComp, pmv, v);
             }
             pmv.glPopMatrix();
             if( res ) {
