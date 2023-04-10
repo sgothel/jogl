@@ -490,7 +490,7 @@ public final class Scene implements Container, GLEventListener {
         shape[0] = null;
 
         forSortedAll(Shape.ZAscendingComparator, pmv, (final Shape s, final PMVMatrix pmv2) -> {
-            final boolean ok = pmv.gluUnProjectRay(glWinX, glWinY, winZ0, winZ1, viewport, ray);
+            final boolean ok = s.isInteractive() && pmv.gluUnProjectRay(glWinX, glWinY, winZ0, winZ1, viewport, ray);
             if( ok ) {
                 final AABBox sbox = s.getBounds();
                 if( sbox.intersectsRay(ray) ) {
@@ -899,9 +899,7 @@ public final class Scene implements Container, GLEventListener {
         final Shape[] shape = { null };
         if( null == pickShape(pmv, glWinX, glWinY, objPos, shape, () -> {
                setActiveShape(shape[0]);
-               if( shape[0].isInteractive() ) {
-                   shape[0].dispatchMouseEvent(e, glWinX, glWinY, objPos);
-               }
+               shape[0].dispatchMouseEvent(e, glWinX, glWinY, objPos);
            } ) )
         {
            releaseActiveShape();
