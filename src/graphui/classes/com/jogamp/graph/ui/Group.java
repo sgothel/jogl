@@ -121,6 +121,19 @@ public class Group extends Shape implements Container {
     }
 
     @Override
+    public void removeAllShapes() {
+        shapes.clear();
+    }
+
+    /** Removes all given shapes and destroys them. */
+    public void removeAllShapes(final GL2ES2 gl, final RegionRenderer renderer) {
+        final int count = shapes.size();
+        for(int i=count-1; i>=0; --i) {
+            removeShape(gl, renderer, shapes.get(i));
+        }
+    }
+
+    @Override
     public boolean hasColorChannel() {
         return false; // FIXME
     }
@@ -147,7 +160,13 @@ public class Group extends Shape implements Container {
         }
     }
 
-    private final boolean doFrustumCulling = false; // FIXME
+    private boolean doFrustumCulling = false;
+
+    @Override
+    public final void setFrustumCullingEnabled(final boolean v) { doFrustumCulling = v; }
+
+    @Override
+    public final boolean isFrustumCullingEnabled() { return doFrustumCulling; }
 
     @Override
     protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final float[] rgba) {

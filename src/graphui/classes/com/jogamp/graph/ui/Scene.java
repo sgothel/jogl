@@ -180,10 +180,10 @@ public final class Scene implements Container, GLEventListener {
     /** Returns the {@link GL#glClear(int) glClear(..)} mask, see {@link #setClearParams(float[], int)}. */
     public final int getClearMask() { return clearMask; }
 
-    /** Enable or disable {@link PMVMatrix#getFrustum()} culling per {@link Shape}. Default is disabled. */
+    @Override
     public final void setFrustumCullingEnabled(final boolean v) { doFrustumCulling = v; }
 
-    /** Return whether {@link #setFrustumCullingEnabled(boolean) frustum culling} is enabled. */
+    @Override
     public final boolean isFrustumCullingEnabled() { return doFrustumCulling; }
 
     public void attachInputListenerTo(final GLWindow window) {
@@ -246,6 +246,18 @@ public final class Scene implements Container, GLEventListener {
             removeShape(gl, s);
         }
     }
+    @Override
+    public void removeAllShapes() {
+        shapes.clear();
+    }
+    /** Removes all given shapes and destroys them. */
+    public void removeAllShapes(final GL2ES2 gl) {
+        final int count = shapes.size();
+        for(int i=count-1; i>=0; --i) {
+            removeShape(gl, shapes.get(i));
+        }
+    }
+
     @Override
     public boolean contains(final Shape s) {
         return false;

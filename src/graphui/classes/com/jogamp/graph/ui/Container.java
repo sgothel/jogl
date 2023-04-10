@@ -56,9 +56,18 @@ public interface Container {
     /** Removes all given shapes, w/o {@link Shape#destroy(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer) destroying} them. */
     void removeShapes(Collection<? extends Shape> shapes);
 
+    /** Removes all contained shapes, w/o {@link Shape#destroy(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer) destroying} them. */
+    void removeAllShapes();
+
     boolean contains(Shape s);
 
     AABBox getBounds(final PMVMatrix pmv, Shape shape);
+
+    /** Enable or disable {@link PMVMatrix#getFrustum()} culling per {@link Shape}. Default is disabled. */
+    void setFrustumCullingEnabled(final boolean v);
+
+    /** Return whether {@link #setFrustumCullingEnabled(boolean) frustum culling} is enabled. */
+    boolean isFrustumCullingEnabled();
 
     /**
      * Traverses through the graph up until {@code shape} and apply {@code action} on it.
