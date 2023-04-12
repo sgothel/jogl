@@ -45,9 +45,12 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.Scene.PMVMatrixSetup;
+import com.jogamp.graph.ui.layout.GridLayout;
+import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.GLButton;
 import com.jogamp.graph.ui.shapes.ImageButton;
@@ -194,12 +197,11 @@ public class UISceneDemo20 implements GLEventListener {
     private final Font fontFPS;
     private final Uri filmURL;
 
-    private final float relTop = 80f/100f;
+    private final float relTop = 90f/100f;
     private final float relMiddle = 22f/100f;
-    private final float relLeft = 11f/100f;
 
     /** Relative Button Size to Window Height, normalized to 1. */
-    private static final float buttonXSizeNorm = 0.084f;
+    private static final float buttonXSizeNorm = 0.09f; // 0.084f;
     private static final float fontSizePt = 10f;
     /** Relative Font Size to Window Height  for Main Text, normalized to 1. */
     private static final float fontSizeFixedNorm = 0.04f;
@@ -217,8 +219,8 @@ public class UISceneDemo20 implements GLEventListener {
     private String actionText = null;
     private Label[] labels = null;
     private String[] strings = null;
-    private final List<RoundButton> buttons = new ArrayList<RoundButton>();
-    private int buttonsLeftCount = 0;
+    final Group buttonsLeft = new Group();
+    final Group buttonsRight = new Group();
     private Label truePtSizeLabel = null;
     private Label jogampLabel = null;
     private Label fpsLabel = null;
@@ -305,20 +307,27 @@ public class UISceneDemo20 implements GLEventListener {
         scene.getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         // scene.setSampleCount(3); // easy on embedded devices w/ just 3 samples (default is 4)?
         scene.setDebugBox(options.debugBoxThickness);
+        scene.addShape(buttonsLeft);
+        scene.addShape(buttonsRight);
     }
 
     private void rotateButtons(final Vec3f angdeg) {
         angdeg.scale(FloatUtil.PI / 180.0f); // -> radians
-        for(int i=0; i<buttons.size(); i++) {
-            buttons.get(i).getRotation().rotateByEuler( angdeg );
+        final List<Shape> sl = new ArrayList<Shape>();
+        sl.addAll(buttonsLeft.getShapes());
+        sl.addAll(buttonsRight.getShapes());
+        for(final Shape s : sl) {
+            s.getRotation().rotateByEuler( angdeg );
         }
     }
 
     private void setButtonsSpacing(final float dx, final float dy) {
-        for(int i=0; i<buttons.size(); i++) {
-            final RoundButton b = buttons.get(i);
-            if( b instanceof Button ) {
-                final Button lb = (Button) b;
+        final List<Shape> sl = new ArrayList<Shape>();
+        sl.addAll(buttonsLeft.getShapes());
+        sl.addAll(buttonsRight.getShapes());
+        for(final Shape s : sl) {
+            if( s instanceof Button ) {
+                final Button lb = (Button) s;
                 final float sx = lb.getSpacingX()+dx, sy = lb.getSpacingY()+dy;
                 System.err.println("Spacing: X "+sx+", Y "+sy);
                 lb.setSpacing(sx, sy);
@@ -327,20 +336,31 @@ public class UISceneDemo20 implements GLEventListener {
     }
 
     private void setButtonsCorner(final float dc) {
-        for(int i=0; i<buttons.size(); i++) {
-            final float c = buttons.get(i).getCorner()+dc;
-            System.err.println("Corner: "+c);
-            buttons.get(i).setCorner(c);
+        final List<Shape> sl = new ArrayList<Shape>();
+        sl.addAll(buttonsLeft.getShapes());
+        sl.addAll(buttonsRight.getShapes());
+        for(final Shape s : sl) {
+            if( s instanceof RoundButton ) {
+                final RoundButton rb = (RoundButton)s;
+                final float c = rb.getCorner()+dc;
+                System.err.println("Corner: "+c);
+                rb.setCorner(c);
+            }
         }
     }
 
     private void resetButtons() {
-        for(int i=0; i<buttons.size(); i++) {
-            final RoundButton b = buttons.get(i);
-            b.getRotation().setIdentity();
-            b.setCorner(RoundButton.DEFAULT_CORNER);
-            if( b instanceof Button ) {
-                ((Button)b).setSpacing(Button.DEFAULT_SPACING_X, Button.DEFAULT_SPACING_Y);
+        final List<Shape> sl = new ArrayList<Shape>();
+        sl.addAll(buttonsLeft.getShapes());
+        sl.addAll(buttonsRight.getShapes());
+        for(final Shape s : sl) {
+            if( s instanceof RoundButton ) {
+                final RoundButton b = (RoundButton)s;
+                b.getRotation().setIdentity();
+                b.setCorner(RoundButton.DEFAULT_CORNER);
+                if( b instanceof Button ) {
+                    ((Button)b).setSpacing(Button.DEFAULT_SPACING_X, Button.DEFAULT_SPACING_Y);
+                }
             }
         }
     }
@@ -356,24 +376,25 @@ public class UISceneDemo20 implements GLEventListener {
         return scene.getShapeByName(name);
     }
 
-    private void initButtons(final GL2ES2 gl, final float scale) {
+    private void initButtons(final GL2ES2 gl) {
         final boolean pass2Mode = Region.isTwoPass( renderModes ) ;
-        buttons.clear();
+        buttonsLeft.removeAllShapes(gl, scene.getRenderer());
+        buttonsRight.removeAllShapes(gl, scene.getRenderer());
 
-        final float buttonXSize = buttonXSizeNorm * scale;
-        final float buttonYSize = buttonXSize / 2.5f;
-        final float button2XSize = 2f*buttonXSize;
-        final float button2YSize = 2f*buttonYSize;
-        System.err.println("Button Size: "+buttonXSize+" x "+buttonYSize+", scale "+scale);
-        final float xStartLeft = 0f; // aligned to left edge w/ space via reshape
-        final float xStartRight = -button2XSize - button2XSize/8f; // aligned to right edge via reshape
-        final float yStartTop =   0f; // aligned to top edge w/ space via reshape
-        final float diffX = 1.2f * buttonXSize;
-        final float diffY = 1.5f * buttonYSize;
+        final float buttonLWidth = buttonXSizeNorm;
+        final float buttonLHeight = buttonLWidth / 2.5f;
+        buttonsLeft.setLayout(new GridLayout(buttonLWidth, buttonLHeight, new Padding(buttonLWidth*0.1f, buttonLHeight*0.5f), 7));
 
-        Button button = new Button(renderModes, fontButtons, " Next Text ", buttonXSize, buttonYSize);
+        final float buttonRWidth = 2f*buttonLWidth;
+        final float buttonRHeight = 2f*buttonLHeight;
+
+        buttonsRight.setLayout(new GridLayout(1, buttonRWidth, buttonRHeight, new Padding(buttonLWidth*0.1f, buttonLHeight*0.5f)));
+
+        System.err.println("Button Size: "+buttonLWidth+" x "+buttonLHeight);
+
+        RoundButton button;
+        button = new Button(renderModes, fontButtons, " Next Text ", buttonLWidth, buttonLHeight);
         button.setName(BUTTON_NEXTTEXT);
-        button.move(xStartLeft, yStartTop-diffY*buttons.size(), 0f);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
@@ -386,11 +407,10 @@ public class UISceneDemo20 implements GLEventListener {
                 }
             } } );
         button.addMouseListener(dragZoomRotateListener);
-        buttons.add(button);
+        buttonsLeft.addShape(button);
 
-        button = new Button(renderModes, fontButtons, "Show fps", buttonXSize, buttonYSize);
+        button = new Button(renderModes, fontButtons, "Show fps", buttonLWidth, buttonLHeight);
         button.setName(BUTTON_FPS);
-        button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.setToggleable(true);
         button.setToggle(fpsLabel.isEnabled());
         button.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -403,11 +423,10 @@ public class UISceneDemo20 implements GLEventListener {
                 fpsLabel.setEnabled(!fpsLabel.isEnabled());
             } } );
         button.addMouseListener(dragZoomRotateListener);
-        buttons.add(button);
+        buttonsLeft.addShape(button);
 
-        button = new Button(renderModes, fontButtons, " V-Sync ", buttonXSize, buttonYSize);
+        button = new Button(renderModes, fontButtons, " V-Sync ", buttonLWidth, buttonLHeight);
         button.setName(BUTTON_VSYNC);
-        button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.setToggleable(true);
         button.setToggle(gl.getSwapInterval()>0);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -427,10 +446,9 @@ public class UISceneDemo20 implements GLEventListener {
                 });
             } } );
         button.addMouseListener(dragZoomRotateListener);
-        buttons.add(button);
+        buttonsLeft.addShape(button);
 
-        button = new Button(renderModes, fontButtons, "< Tilt >", buttonXSize, buttonYSize);
-        button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
+        button = new Button(renderModes, fontButtons, "< Tilt >", buttonLWidth, buttonLHeight);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
@@ -445,11 +463,10 @@ public class UISceneDemo20 implements GLEventListener {
             public void mouseWheelMoved(final MouseEvent e) {
                 rotateButtons(new Vec3f( 0f,  e.getRotation()[1], 0f ) );
             } } );
-        buttons.add(button);
+        buttonsLeft.addShape(button);
 
-        if( pass2Mode ) { // second column to the left
-            button = new Button(renderModes, fontButtons, "< Samples >", buttonXSize, buttonYSize);
-            button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
+        if( pass2Mode ) {
+            button = new Button(renderModes, fontButtons, "< Samples >", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -465,10 +482,9 @@ public class UISceneDemo20 implements GLEventListener {
                     sampleCount = scene.setSampleCount(sampleCount); // validated / clipped
                 } } );
             button.addMouseListener(dragZoomRotateListener);
-            buttons.add(button);
+            buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, "< Quality >", buttonXSize, buttonYSize);
-            button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
+            button = new Button(renderModes, fontButtons, "< Quality >", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -491,14 +507,13 @@ public class UISceneDemo20 implements GLEventListener {
                     }
                 } } );
             button.addMouseListener(dragZoomRotateListener);
-            buttons.add(button);
+            buttonsLeft.addShape(button);
         }
 
-        button = new Button(renderModes, fontButtons, "Quit", buttonXSize, buttonYSize);
+        button = new Button(renderModes, fontButtons, "Quit", buttonLWidth, buttonLHeight);
         button.setName(BUTTON_QUIT);
-        button.move(xStartLeft,yStartTop - diffY*buttons.size(), 0f);
         button.setColor(0.7f, 0.0f, 0.0f, 1.0f);
-        button.setLabelColor(1.2f, 1.2f, 1.2f);
+        ((Button)button).setLabelColor(1.2f, 1.2f, 1.2f);
         button.setPressedColorMod(1.1f, 0.0f, 0.0f, 1.0f);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
@@ -516,36 +531,29 @@ public class UISceneDemo20 implements GLEventListener {
                     } }.start();
             } } );
         button.addMouseListener(dragZoomRotateListener);
-        buttons.add(button);
+        buttonsLeft.addShape(button);
 
         // second column to the left
         {
-            final int j = 1; // column
-            int k = 0; // row
-            button = new Button(renderModes, fontButtons, "Y Flip", buttonXSize, buttonYSize);
-            button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
+            button = new Button(renderModes, fontButtons, "Y Flip", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
                     rotateButtons(new Vec3f ( 0f, 180f, 0f ));
                 } } );
             button.addMouseListener(dragZoomRotateListener);
-            buttons.add(button);
+            buttonsLeft.addShape(button);
 
-            k++;
-            button = new Button(renderModes, fontButtons, "X Flip", buttonXSize, buttonYSize);
-            button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
+            button = new Button(renderModes, fontButtons, "X Flip", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
                     rotateButtons(new Vec3f ( 180f, 0f, 0f ));
                 } } );
             button.addMouseListener(dragZoomRotateListener);
-            buttons.add(button);
-            k++;
+            buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, "< Space >", buttonXSize, buttonYSize);
-            button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
+            button = new Button(renderModes, fontButtons, "< Space >", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -562,11 +570,9 @@ public class UISceneDemo20 implements GLEventListener {
                 public void mouseWheelMoved(final MouseEvent e) {
                     setButtonsSpacing(e.getRotation()[0]/100f, e.getRotation()[1]/200f);
                 } } );
-            buttons.add(button);
-            k++;
+            buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, "< Corner >", buttonXSize, buttonYSize);
-            button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
+            button = new Button(renderModes, fontButtons, "< Corner >", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -583,22 +589,18 @@ public class UISceneDemo20 implements GLEventListener {
                 public void mouseWheelMoved(final MouseEvent e) {
                     setButtonsCorner(e.getRotation()[1]/20f);
                 } } );
-            buttons.add(button);
-            k++;
+            buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, " Reset ", buttonXSize, buttonYSize);
-            button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
+            button = new Button(renderModes, fontButtons, " Reset ", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
                     resetButtons();
                 } } );
             button.addMouseListener(dragZoomRotateListener);
-            buttons.add(button);
-            k++;
+            buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, " Snapshot ", buttonXSize, buttonYSize);
-            button.move(xStartLeft - diffX*j,yStartTop - diffY*k, 0f);
+            button = new Button(renderModes, fontButtons, " Snapshot ", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -608,12 +610,12 @@ public class UISceneDemo20 implements GLEventListener {
                     });
                 } } );
             button.addMouseListener(dragZoomRotateListener);
-            buttons.add(button);
-            k++;
+            buttonsLeft.addShape(button);
         }
 
-        buttonsLeftCount = buttons.size();
-
+        //
+        // buttonRight
+        //
         final int texUnitMediaPlayer, texUnitImageButton, texUnitGLELButton;
         {
             // works - but not required ..
@@ -625,27 +627,27 @@ public class UISceneDemo20 implements GLEventListener {
         if( true ) {
             final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
             mPlayer.setTextureUnit(texUnitMediaPlayer);
-            final MediaButton mPlayerButton = new MediaButton(renderModes, button2XSize,
-                    button2YSize, mPlayer);
-            mPlayerButton.setName(BUTTON_MOVIE);
-            mPlayerButton.setVerbose(false);
-            mPlayerButton.addDefaultEventListener();
-            mPlayerButton.move(xStartRight, yStartTop - diffY*1, 0f);
-            mPlayerButton.setToggleable(true);
-            mPlayerButton.setToggle(true); // toggle == false -> mute audio
-            mPlayerButton.setToggleOffColorMod(0f, 1f, 0f, 1.0f);
-            mPlayerButton.addMouseListener(dragZoomRotateListener);
-            mPlayerButton.addMouseListener(new Shape.MouseGestureAdapter() {
+            button = new MediaButton(renderModes, buttonRWidth, buttonRHeight, mPlayer);
+            button.setName(BUTTON_MOVIE);
+            ((MediaButton)button).setVerbose(false);
+            ((MediaButton)button).addDefaultEventListener();
+            button.setToggleable(true);
+            button.setToggle(true); // toggle == false -> mute audio
+            button.setToggleOffColorMod(0f, 1f, 0f, 1.0f);
+            button.addMouseListener(dragZoomRotateListener);
+            button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
-                    mPlayer.setAudioVolume( mPlayerButton.isToggleOn() ? 1f : 0f );
+                    final Shape.EventInfo info = (Shape.EventInfo)e.getAttachment();
+                    final MediaButton s = (MediaButton)info.shape;
+                    mPlayer.setAudioVolume( s.isToggleOn() ? 1f : 0f );
                 } } );
-            buttons.add(mPlayerButton);
+            buttonsRight.addShape(button);
             mPlayer.playStream(filmURL, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
         }
         if( true ) {
             final ImageSequence imgSeq = new ImageSequence(texUnitImageButton, true);
-            final ImageButton imgButton = new ImageButton(renderModes, button2XSize, button2YSize, imgSeq);
+            button = new ImageButton(renderModes, buttonRWidth, buttonRHeight, imgSeq);
             try {
                 imgSeq.addFrame(gl, UISceneDemo20.class, "button-released-145x53.png", TextureIO.PNG);
                 imgSeq.addFrame(gl, UISceneDemo20.class, "button-pressed-145x53.png", TextureIO.PNG);
@@ -653,19 +655,22 @@ public class UISceneDemo20 implements GLEventListener {
                 e2.printStackTrace();
             }
             imgSeq.setManualStepping(true);
-            imgButton.move(xStartRight, yStartTop - diffY*2.5f, 0f);
-            imgButton.addMouseListener(dragZoomRotateListener);
-            imgButton.addMouseListener(new Shape.MouseGestureAdapter() {
+            button.addMouseListener(dragZoomRotateListener);
+            button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mousePressed(final MouseEvent e) {
-                    imgButton.setCurrentIdx(1);
-                    System.err.println("XXX: "+imgButton);
+                    final Shape.EventInfo info = (Shape.EventInfo)e.getAttachment();
+                    final ImageButton s = (ImageButton)info.shape;
+                    s.setCurrentIdx(1);
+                    System.err.println("XXX: "+s);
                 }
                 @Override
                 public void mouseReleased(final MouseEvent e) {
-                    imgButton.setCurrentIdx(0);
+                    final Shape.EventInfo info = (Shape.EventInfo)e.getAttachment();
+                    final ImageButton s = (ImageButton)info.shape;
+                    s.setCurrentIdx(0);
                 } } );
-            buttons.add(imgButton);
+            buttonsRight.addShape(button);
         }
         if( true ) {
             // Issues w/ OSX and NewtCanvasAWT when rendering / animating
@@ -694,21 +699,22 @@ public class UISceneDemo20 implements GLEventListener {
                     System.err.println("Gears Anim: End");
                 }
             }).start();
-            final GLButton b = new GLButton(renderModes, button2XSize, button2YSize,
-                                            texUnitGLELButton, gears, false /* useAlpha */);
-            b.setName(BUTTON_GLEL);
-            b.setToggleable(true);
-            b.setToggle(false); // toggle == true -> animation
-            b.setAnimate(false);
-            b.move(xStartRight, yStartTop - diffY*4f, 0f);
-            b.addMouseListener(dragZoomRotateListener);
-            b.addMouseListener(new Shape.MouseGestureAdapter() {
+            button = new GLButton(renderModes, buttonRWidth, buttonRHeight,
+                                  texUnitGLELButton, gears, false /* useAlpha */);
+            button.setName(BUTTON_GLEL);
+            button.setToggleable(true);
+            button.setToggle(false); // toggle == true -> animation
+            ((GLButton)button).setAnimate(false);
+            button.addMouseListener(dragZoomRotateListener);
+            button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
-                    b.setAnimate( b.isToggleOn() );
-                    animate[0] = b.getAnimate();
+                    final Shape.EventInfo info = (Shape.EventInfo)e.getAttachment();
+                    final GLButton s = (GLButton)info.shape;
+                    s.setAnimate( s.isToggleOn() );
+                    animate[0] = s.getAnimate();
                 } } );
-            buttons.add(b);
+            buttonsRight.addShape(button);
         }
     }
 
@@ -820,6 +826,7 @@ public class UISceneDemo20 implements GLEventListener {
 
         initTexts();
         initLabels(gl);
+        initButtons(gl);
 
         scene.init(drawable);
 
@@ -848,31 +855,23 @@ public class UISceneDemo20 implements GLEventListener {
         final float sceneWidth = sceneBox.getWidth();
         final float sceneHeight = sceneBox.getHeight();
         final float button_sxy = sceneWidth > sceneHeight ? sceneWidth : sceneHeight;
-        if( buttons.isEmpty() ) {
-            initButtons(drawable.getGL().getGL2ES2(), button_sxy);
-            scene.addShapes(buttons);
-        }
 
-        final float dw = sceneWidth - lastSceneWidth;
-        final float dh = sceneHeight - lastSceneHeight;
+        buttonsLeft.validate(drawable.getGL().getGL2ES2());
+        buttonsRight.validate(drawable.getGL().getGL2ES2());
+
+        buttonsLeft.setScale(button_sxy, button_sxy, 1f);
+        buttonsRight.setScale(button_sxy, button_sxy, 1f);
 
         final float dz = 0f;
-        final float dyTop = dh * relTop;
-        final float dxLeft = dw * relLeft;
-        final float dxRight = dw;
+        final float dyTop = sceneHeight * relTop;
 
-        System.err.println("XXX: dw "+dw+", dh "+dh+", dxLeft "+dxLeft+", dxRight "+dxRight+", dyTop "+dyTop);
-
-        for(int i=0; i<buttons.size() && i<buttonsLeftCount; i++) {
-            // System.err.println("Button["+i+"].L0: "+buttons.get(i));
-            buttons.get(i).move(dxLeft, dyTop, dz);
-            // System.err.println("Button["+i+"].LM: "+buttons.get(i));
-        }
-        for(int i=buttonsLeftCount; i<buttons.size(); i++) {
-            // System.err.println("Button["+i+"].R0: "+buttons.get(i));
-            buttons.get(i).move(dxRight, dyTop, dz);
-            // System.err.println("Button["+i+"].RM: "+buttons.get(i));
-        }
+        System.err.println("XXX: dw "+sceneWidth+", dh "+sceneHeight+", dyTop "+dyTop);
+        System.err.println("BL "+buttonsLeft);
+        System.err.println("BL "+buttonsLeft.getLayout());
+        System.err.println("BR "+buttonsRight);
+        System.err.println("BR "+buttonsRight.getLayout());
+        buttonsLeft.moveTo(0f,                                          dyTop - buttonsLeft.getScaledHeight(), dz);
+        buttonsRight.moveTo(sceneWidth - buttonsRight.getScaledWidth(), dyTop - buttonsRight.getScaledHeight(), dz);
 
         jogampLabel.setScale(sceneHeight, sceneHeight, 1f);
 

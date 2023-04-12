@@ -48,10 +48,22 @@ import jogamp.graph.ui.TreeTool;
  * @see Group.Layout
  */
 public class Group extends Shape implements Container {
-    /** Layout for the group, called @ {@link Group#validate(GL2ES2)} or {@link Group#validate(GLProfile)}.  */
+    /** Layout for the GraphUI {@link Group}, called @ {@link Shape#validate(GL2ES2)} or {@link Shape#validate(GLProfile)}.  */
     public static interface Layout {
-        /** Performing the layout, called @ {@link Group#validate(GL2ES2)} or {@link Group#validate(GLProfile)}. */
-        void layout(Group g);
+        /**
+         * Performing the layout of {@link Group#getShapes()}, called @ {@link Shape#validate(GL2ES2)} or {@link Shape#validate(GLProfile)}.
+         * <p>
+         * According to the implemented layout, method
+         * - may scale the {@Link Shape}s
+         * - may move the {@Link Shape}s
+         * - may reuse the given {@link PMVMatrix} `pmv`
+         * - must update the given {@link AABBox} `box`
+         * </p>
+         * @param g the {@link Group} to layout
+         * @param box the bounding box of {@link Group} to be updated by this method.
+         * @param pmv a {@link PMVMatrix} which can be reused.
+         */
+        void layout(final Group g, final AABBox box, final PMVMatrix pmv);
     }
 
     private final List<Shape> shapes = new ArrayList<Shape>();
@@ -161,12 +173,6 @@ public class Group extends Shape implements Container {
         }
     }
 
-    private void layout() {
-        if( null != layouter ) {
-            layouter.layout(this);
-        }
-    }
-
     private boolean doFrustumCulling = false;
 
     @Override
@@ -200,21 +206,25 @@ public class Group extends Shape implements Container {
     @Override
     protected void validateImpl(final GLProfile glp, final GL2ES2 gl) {
         if( isShapeDirty() ) {
-            layout();
             final PMVMatrix pmv = new PMVMatrix();
             final AABBox tmpBox = new AABBox();
             for(final Shape s : shapes) {
-                // s.validateImpl(glp, gl);
                 if( null != gl ) {
                     s.validate(gl);
                 } else {
                     s.validate(glp);
                 }
-                pmv.glPushMatrix();
-                s.setTransform(pmv);
-                s.getBounds().transformMv(pmv, tmpBox);
-                pmv.glPopMatrix();
-                box.resize(tmpBox);
+            }
+            if( null != layouter ) {
+                layouter.layout(this, box, pmv);
+            } else {
+                for(final Shape s : shapes) {
+                    pmv.glPushMatrix();
+                    s.setTransform(pmv);
+                    s.getBounds().transformMv(pmv, tmpBox);
+                    pmv.glPopMatrix();
+                    box.resize(tmpBox);
+                }
             }
         }
     }
@@ -246,6 +256,11 @@ public class Group extends Shape implements Container {
             shape.getBounds().transformMv(pmv, res);
         });
         return res;
+    }
+
+    @Override
+    public String getSubString() {
+        return super.getSubString()+", shapes "+shapes.size();
     }
 
     @Override

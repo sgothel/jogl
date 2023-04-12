@@ -38,6 +38,7 @@ import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.layout.GridLayout;
+import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.GLButton;
 import com.jogamp.newt.event.MouseEvent;
@@ -82,17 +83,18 @@ public class UISceneDemo11 {
         final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final float shapeWidth = 1/8f;
-        final float shapeHeight = shapeWidth/2.5f;
-        final Group groupA0 = new Group(new GridLayout(2, shapeWidth*1.1f, shapeHeight*1.1f));
+        final Group groupA0 = new Group(new GridLayout(2, 1f, 1/2f, new Padding(0.1f, 0.1f)));
         {
-            groupA0.addShape( new Button(renderModes, font, "1", shapeWidth, shapeHeight) );
-            groupA0.addShape( new Button(renderModes, font, "2", shapeWidth, shapeHeight) );
-            groupA0.addShape( new Button(renderModes, font, "3", shapeWidth, shapeHeight) );
-            groupA0.addShape( new Button(renderModes, font, "4", shapeWidth, shapeHeight) );
+            groupA0.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );
+            groupA0.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );
+            groupA0.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );
+            groupA0.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );
         }
-        groupA0.validate(glp);
+        groupA0.setInteractive(true);
+        groupA0.scale(1/8f, 1/8f, 1);
+        groupA0.validate(reqGLP);
         System.err.println("Group-A0 "+groupA0);
+        System.err.println("Group-A0 Layout "+groupA0.getLayout());
         groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
 
         final Scene scene = new Scene();
