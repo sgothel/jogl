@@ -49,7 +49,7 @@ public class TreeTool {
      * @return true to signal operation complete, i.e. {@code shape} found, otherwise false
      */
     public static boolean forOne(final List<Shape> shapes, final PMVMatrix pmv, final Shape shape, final Runnable action) {
-        for(int i=shapes.size()-1; i>=0; i--) {
+        for(int i=0; i<shapes.size(); ++i) {
             final Shape s = shapes.get(i);
             if( s.equals(shape) ) {
                 pmv.glPushMatrix();
@@ -79,7 +79,7 @@ public class TreeTool {
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor1#visit(Shape)} returned true, otherwise false
      */
     public static boolean forAll(final List<Shape> shapes, final Visitor1 v) {
-        for(int i=shapes.size()-1; i>=0; i--) {
+        for(int i=0; i<shapes.size(); ++i) {
             final Shape s = shapes.get(i);
             boolean res = v.visit(s);
             if( !res && s instanceof Container ) {
@@ -100,7 +100,7 @@ public class TreeTool {
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix)} returned true, otherwise false
      */
     public static boolean forAll(final List<Shape> shapes, final PMVMatrix pmv, final Visitor2 v) {
-        for(int i=shapes.size()-1; i>=0; i--) {
+        for(int i=0; i<shapes.size(); ++i) {
             final Shape s = shapes.get(i);
             pmv.glPushMatrix();
             s.setTransform(pmv);
@@ -131,7 +131,7 @@ public class TreeTool {
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)sortComp);
 
-        for(int i=shapesS.length-1; i>=0; i--) {
+        for(int i=0; i<shapesS.length; ++i) {
             final Shape s = (Shape)shapesS[i];
             pmv.glPushMatrix();
             s.setTransform(pmv);
