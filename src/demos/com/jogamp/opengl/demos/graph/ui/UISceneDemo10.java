@@ -55,7 +55,6 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.es2.GearsES2;
-import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -74,61 +73,38 @@ public class UISceneDemo10 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
+    static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
+
     static private final String defaultMediaPath = "http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4";
     static private String filmPath = defaultMediaPath;
 
     public static void main(final String[] args) throws IOException {
-        int sceneMSAASamples = 0;
-        boolean graphVBAAMode = true;
-        boolean graphMSAAMode = false;
-
         Font font = null;
 
-        final int width = 1280, height = 720;
-
         if( 0 != args.length ) {
-            for(int i=0; i<args.length; i++) {
-                if(args[i].equals("-gnone")) {
-                    sceneMSAASamples = 0;
-                    graphMSAAMode = false;
-                    graphVBAAMode = false;
-                } else if(args[i].equals("-smsaa")) {
-                    i++;
-                    sceneMSAASamples = MiscUtils.atoi(args[i], sceneMSAASamples);
-                    graphMSAAMode = false;
-                    graphVBAAMode = false;
-                } else if(args[i].equals("-gmsaa")) {
-                    sceneMSAASamples = 0;
-                    graphMSAAMode = true;
-                    graphVBAAMode = false;
-                } else if(args[i].equals("-gvbaa")) {
-                    sceneMSAASamples = 0;
-                    graphMSAAMode = false;
-                    graphVBAAMode = true;
-                } else if(args[i].equals("-font")) {
-                    i++;
-                    font = FontFactory.get(new File(args[i]));
-                } else if(args[i].equals("-film")) {
-                    i++;
-                    filmPath = args[i];
+            final int[] idx = { 0 };
+            for (idx[0] = 0; idx[0] < args.length; ++idx[0]) {
+                if( options.parse(args, idx) ) {
+                    continue;
+                } else if(args[idx[0]].equals("-font")) {
+                    ++idx[0];
+                    font = FontFactory.get(new File(args[idx[0]]));
+                } else if(args[idx[0]].equals("-film")) {
+                    ++idx[0];
+                    filmPath = args[idx[0]];
                 }
             }
         }
-        final int renderModes;
-        if( graphVBAAMode ) {
-            renderModes = Region.VBAA_RENDERING_BIT;
-        } else if( graphMSAAMode ) {
-            renderModes = Region.MSAA_RENDERING_BIT;
-        } else {
-            renderModes = 0;
-        }
-        final GLProfile glp = GLProfile.getGL2ES2();
+        System.err.println(options);
 
-        final GLCapabilities caps = new GLCapabilities(glp);
+        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
+        System.err.println("GLProfile: "+reqGLP);
+
+        final GLCapabilities caps = new GLCapabilities(reqGLP);
         caps.setAlphaBits(4);
-        if( sceneMSAASamples > 0 ) {
+        if( options.sceneMSAASamples > 0 ) {
             caps.setSampleBuffers(true);
-            caps.setNumSamples(sceneMSAASamples);
+            caps.setNumSamples(options.sceneMSAASamples);
         }
         System.out.println("Requested: " + caps);
         final GLWindow window = GLWindow.create(caps);
@@ -140,8 +116,8 @@ public class UISceneDemo10 {
             font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         }
         System.err.println("Font: "+font.getFullFamilyName());
-        final Shape shape = makeShape(window, font, renderModes);
-        System.err.println("m0 shape bounds "+shape.getBounds(glp));
+        final Shape shape = makeShape(window, font, options.renderModes);
+        System.err.println("m0 shape bounds "+shape.getBounds(reqGLP));
         System.err.println("m0 "+shape);
 
         // Scene for Shape ...
@@ -175,7 +151,7 @@ public class UISceneDemo10 {
         } );
         scene.addShape(shape);
 
-        window.setSize(width, height);
+        window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UISceneDemo10.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
         window.addGLEventListener(scene);
