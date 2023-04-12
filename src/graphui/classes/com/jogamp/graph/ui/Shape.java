@@ -146,21 +146,22 @@ public abstract class Shape {
     }
 
     /** Set a symbolic name for this shape for identification. Default is -1 for noname. */
-    public final void setName(final int name) { this.name = name; }
+    public final Shape setName(final int name) { this.name = name; return this; }
     /** Return the optional symbolic name for this shape. */
     public final int getName() { return this.name; }
 
     /** Returns true if this shape is enabled and hence visible, otherwise false. */
     public final boolean isEnabled() { return enabled; }
     /** Enable or disable this shape, i.e. its visibility. */
-    public final void setEnabled(final boolean v) { enabled = v; }
+    public final Shape setEnabled(final boolean v) { enabled = v; return this; }
 
     /**
      * Sets the {@link #getBounds()} fractional thickness of the debug box ranging [0..1], zero for no debug box (default).
      * @param v fractional thickness of {@link #getBounds()} ranging [0..1], zero for no debug box
      */
-    public final void setDebugBox(final float v) {
+    public final Shape setDebugBox(final float v) {
         dbgbox_thickness = Math.min(1f, Math.max(0f, v));
+        return this;
     }
     /** Returns true if a debug box has been enabled via {@link #setDebugBox(float)}. */
     public final boolean hasDebugBox() { return !FloatUtil.isZero(dbgbox_thickness); }
@@ -203,35 +204,39 @@ public abstract class Shape {
     public final void onToggle(final Listener l) { onToggleListener = l; }
 
     /** Move to scaled position. Position ends up in PMVMatrix unmodified. */
-    public final void moveTo(final float tx, final float ty, final float tz) {
+    public final Shape moveTo(final float tx, final float ty, final float tz) {
         position.set(tx, ty, tz);
         if( null != onMoveListener ) {
             onMoveListener.run(this);
         }
+        return this;
     }
 
     /** Move to scaled position. Position ends up in PMVMatrix unmodified. */
-    public final void moveTo(final Vec3f t) {
+    public final Shape moveTo(final Vec3f t) {
         position.set(t);
         if( null != onMoveListener ) {
             onMoveListener.run(this);
         }
+        return this;
     }
 
     /** Move about scaled distance. Position ends up in PMVMatrix unmodified. */
-    public final void move(final float dtx, final float dty, final float dtz) {
+    public final Shape move(final float dtx, final float dty, final float dtz) {
         position.add(dtx, dty, dtz);
         if( null != onMoveListener ) {
             onMoveListener.run(this);
         }
+        return this;
     }
 
     /** Move about scaled distance. Position ends up in PMVMatrix unmodified. */
-    public final void move(final Vec3f dt) {
+    public final Shape move(final Vec3f dt) {
         position.add(dt);
         if( null != onMoveListener ) {
             onMoveListener.run(this);
         }
+        return this;
     }
 
     /** Returns position, i.e. scaled translation as set via {@link #moveTo(float, float, float) or {@link #move(float, float, float)}}. */
@@ -249,8 +254,9 @@ public abstract class Shape {
      * Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}.
      * @param pivot rotation origin
      */
-    public final void setRotationPivot(final Vec3f pivot) {
+    public final Shape setRotationPivot(final Vec3f pivot) {
         rotPivot.set(pivot);
+        return this;
     }
 
     /**
@@ -258,16 +264,18 @@ public abstract class Shape {
      * @see #scale(float, float, float)
      * @see #getScale()
      */
-    public final void setScale(final float sx, final float sy, final float sz) {
+    public final Shape setScale(final float sx, final float sy, final float sz) {
         scale.set(sx, sy, sz);
+        return this;
     }
     /**
      * Multiply current scale factor by given scale.
      * @see #setScale(float, float, float)
      * @see #getScale()
      */
-    public final void scale(final float sx, final float sy, final float sz) {
+    public final Shape scale(final float sx, final float sy, final float sz) {
         scale.scale(sx, sy, sz);
+        return this;
     }
     /**
      * Returns scale factors.
@@ -769,11 +777,12 @@ public abstract class Shape {
      * Default base-color w/o color channel, will be modulated w/ pressed- and toggle color
      * </p>
      */
-    public final void setColor(final float r, final float g, final float b, final float a) {
+    public final Shape setColor(final float r, final float g, final float b, final float a) {
         this.rgbaColor[0] = r;
         this.rgbaColor[1] = g;
         this.rgbaColor[2] = b;
         this.rgbaColor[3] = a;
+        return this;
     }
 
     /**
@@ -782,11 +791,12 @@ public abstract class Shape {
      * Default pressed color-factor w/o color channel, modulated base-color. 0.75 * 1.2 = 0.9
      * </p>
      */
-    public final void setPressedColorMod(final float r, final float g, final float b, final float a) {
+    public final Shape setPressedColorMod(final float r, final float g, final float b, final float a) {
         this.pressedRGBAModulate[0] = r;
         this.pressedRGBAModulate[1] = g;
         this.pressedRGBAModulate[2] = b;
         this.pressedRGBAModulate[3] = a;
+        return this;
     }
 
     /**
@@ -795,11 +805,12 @@ public abstract class Shape {
      * Default toggle-on color-factor w/o color channel, modulated base-color.  0.75 * 1.13 ~ 0.85
      * </p>
      */
-    public final void setToggleOnColorMod(final float r, final float g, final float b, final float a) {
+    public final Shape setToggleOnColorMod(final float r, final float g, final float b, final float a) {
         this.toggleOnRGBAModulate[0] = r;
         this.toggleOnRGBAModulate[1] = g;
         this.toggleOnRGBAModulate[2] = b;
         this.toggleOnRGBAModulate[3] = a;
+        return this;
     }
 
     /**
@@ -808,11 +819,12 @@ public abstract class Shape {
      * Default toggle-off color-factor w/o color channel, modulated base-color.  0.75 * 0.86 ~ 0.65
      * </p>
      */
-    public final void setToggleOffColorMod(final float r, final float g, final float b, final float a) {
+    public final Shape setToggleOffColorMod(final float r, final float g, final float b, final float a) {
         this.toggleOffRGBAModulate[0] = r;
         this.toggleOffRGBAModulate[1] = g;
         this.toggleOffRGBAModulate[2] = b;
         this.toggleOffRGBAModulate[3] = a;
+        return this;
     }
 
     @Override
@@ -850,9 +862,10 @@ public abstract class Shape {
     // Input
     //
 
-    public void setPressed(final boolean b) {
+    public Shape setPressed(final boolean b) {
         this.down  = b;
         markStateDirty();
+        return this;
     }
     public boolean isPressed() {
         return this.down;
@@ -863,8 +876,9 @@ public abstract class Shape {
      * @param toggleable
      * @see #isInteractive()
      */
-    public void setToggleable(final boolean toggleable) {
+    public Shape setToggleable(final boolean toggleable) {
         this.toggleable = toggleable;
+        return this;
     }
 
     /**
@@ -875,16 +889,20 @@ public abstract class Shape {
     public boolean isToggleable() {
         return toggleable;
     }
-    public void setToggle(final boolean v) {
+    public Shape setToggle(final boolean v) {
         toggle = v;
         markStateDirty();
+        return this;
     }
-    public void toggle() {
+    public Shape toggle() {
         if( isToggleable() ) {
             toggle = !toggle;
-            onToggleListener.run(this);
+            if( null != onToggleListener ) {
+                onToggleListener.run(this);
+            }
             markStateDirty();
         }
+        return this;
     }
     public boolean isToggleOn() { return toggle; }
 
@@ -897,7 +915,7 @@ public abstract class Shape {
      * but excluding programmatic changes.
      * @param v new value for {@link #isInteractive()}
      */
-    public void setInteractive(final boolean v) { interactive = v; }
+    public Shape setInteractive(final boolean v) { interactive = v; return this; }
     /**
      * Returns if this shape allows user interaction, see {@link #setInteractive(boolean)}
      * @see #setInteractive(boolean)
@@ -912,8 +930,9 @@ public abstract class Shape {
      * </p>
      * @see #isInteractive()
      */
-    public void setDraggable(final boolean draggable) {
+    public Shape setDraggable(final boolean draggable) {
         this.draggable = draggable;
+        return this;
     }
     /**
      * Returns if this shape is draggable, a user interaction.
@@ -931,8 +950,9 @@ public abstract class Shape {
      * </p>
      * @see #isInteractive()
      */
-    public void setResizable(final boolean resizable) {
+    public Shape setResizable(final boolean resizable) {
         this.resizable = resizable;
+        return this;
     }
     /**
      * Returns if this shape is resiable, a user interaction.
@@ -940,6 +960,21 @@ public abstract class Shape {
      */
     public boolean isResizable() {
         return resizable;
+    }
+
+    /**
+     * Set whether this shape is draggable and resizable.
+     * <p>
+     * Default draggable and resizable is true.
+     * </p>
+     * @see #setDraggable(boolean)
+     * @see #setResizable(boolean)
+     * @see #isInteractive()
+     */
+    public Shape setDragAndResizeable(final boolean v) {
+        this.draggable = v;
+        this.resizable = v;
+        return this;
     }
 
     public final void addMouseListener(final MouseGestureListener l) {

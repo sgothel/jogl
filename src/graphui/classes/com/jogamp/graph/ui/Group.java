@@ -80,10 +80,10 @@ public class Group extends Shape implements Container {
     }
 
     /** Return current {@link Group.Layout}. */
-    public Layout getLayour() { return layouter; }
+    public Layout getLayout() { return layouter; }
 
     /** Set {@link Group.Layout}. */
-    public void setLayout(final Layout l) { layouter = l; }
+    public Group setLayout(final Layout l) { layouter = l; return this; }
 
     @Override
     public List<Shape> getShapes() {

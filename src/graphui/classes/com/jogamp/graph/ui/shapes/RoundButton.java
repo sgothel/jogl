@@ -60,10 +60,11 @@ public abstract class RoundButton extends GraphShape {
 
     public final float getCorner() { return corner; }
 
-    public void setSize(final float width, final float height) {
+    public RoundButton setSize(final float width, final float height) {
         this.width = width;
         this.height = height;
         markShapeDirty();
+        return this;
     }
 
     protected void createSharpOutline(final OutlineShape shape, final float zOffset) {
@@ -109,7 +110,7 @@ public abstract class RoundButton extends GraphShape {
     }
 
     /** Set corner size, default is {@link #DEFAULT_CORNER} */
-    public void setCorner(final float corner) {
+    public RoundButton setCorner(final float corner) {
         if(corner > 1.0f){
             this.corner = 1.0f;
         }
@@ -120,6 +121,7 @@ public abstract class RoundButton extends GraphShape {
             this.corner = corner;
         }
         markShapeDirty();
+        return this;
     }
 
     @Override

@@ -74,15 +74,17 @@ public abstract class GraphShape extends Shape {
     public final int getRenderModes() { return renderModes; }
 
     public final int getQuality() { return regionQuality; }
-    public final void setQuality(final int q) {
+    public final GraphShape setQuality(final int q) {
         this.regionQuality = q;
         if( null != region ) {
             region.setQuality(q);
         }
+        return this;
     }
-    public final void setSharpness(final float sharpness) {
+    public final GraphShape setSharpness(final float sharpness) {
         this.oshapeSharpness = sharpness;
         markShapeDirty();
+        return this;
     }
     public final float getSharpness() {
         return oshapeSharpness;
