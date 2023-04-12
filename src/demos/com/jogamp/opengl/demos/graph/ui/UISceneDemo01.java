@@ -145,7 +145,7 @@ public class UISceneDemo01 {
         final float dist_m = dist_px/pixPerMM/1e3f; // [m]
         final float velocity = 50/1e3f; // [m]/[s]
         final float velocity_px = velocity * 1e3f * pixPerMM; // [px]/[s]
-        final float velovity_obj = velocity_px / pixPerShapeUnit[0]; // [shapeUnit]/[s]
+        final float velocity_obj = velocity_px / pixPerShapeUnit[0]; // [shapeUnit]/[s]
         final float exp_dur_s = dist_m / velocity; // [s]
 
         System.err.println();
@@ -154,7 +154,7 @@ public class UISceneDemo01 {
         System.err.println();
         System.err.printf("Distance: %.0f pixel @ %.3f px/mm, %.3f mm%n", dist_px, pixPerMM, dist_m*1e3f);
         System.err.printf("Velocity: %.3f mm/s, %.3f px/s, %.6f obj/s, expected travel-duration %.3f s%n",
-                velocity*1e3f, velocity_px, velovity_obj, exp_dur_s);
+                velocity*1e3f, velocity_px, velocity_obj, exp_dur_s);
 
         final long t0_us = Clock.currentNanos() / 1000; // [us]
         long t1_us = t0_us;
@@ -164,7 +164,7 @@ public class UISceneDemo01 {
             final float dt_s = ( t2_us - t1_us ) / 1e6f;
             t1_us = t2_us;
 
-            final float dx = velovity_obj * dt_s; // [shapeUnit]
+            final float dx = velocity_obj * dt_s; // [shapeUnit]
             // System.err.println("move ")
 
             // Move on GL thread to have vsync for free

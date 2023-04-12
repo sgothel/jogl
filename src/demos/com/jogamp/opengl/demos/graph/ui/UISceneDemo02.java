@@ -231,7 +231,7 @@ public class UISceneDemo02 {
                     // req_velocity = init_velocity;
                 }
                 final float velocity_px = req_velocity * 1e3f * pixPerMM; // [px]/[s]
-                final float velovity_obj = velocity_px / movingGlyphPixPerShapeUnit[0]; // [shapeUnit]/[s]
+                final float velocity_obj = velocity_px / movingGlyphPixPerShapeUnit[0]; // [shapeUnit]/[s]
 
                 if( 0 == idx ) {
                     System.err.println();
@@ -241,7 +241,7 @@ public class UISceneDemo02 {
                     System.err.println();
                     System.err.printf("Distance: %.0f pixel @ %.3f px/mm, %.3f mm%n", dist_px, pixPerMM, dist_m*1e3f);
                     System.err.printf("Velocity: init %.3f mm/s, req %.3f mm/s, %.3f px/s, %.6f obj/s, duration exp %.3f s, req %.3f s%n",
-                            init_velocity*1e3f, req_velocity*1e3f, velocity_px, velovity_obj, exp_dur_s, req_dur_s);
+                            init_velocity*1e3f, req_velocity*1e3f, velocity_px, velocity_obj, exp_dur_s, req_dur_s);
                     // System.err.println();
                     // System.err.printf("Path: start %.4f, end %.4f, pos %.5f%n", start_pos, end_pos, movingGlyph.getPosition()[0]);
                 }
@@ -255,7 +255,7 @@ public class UISceneDemo02 {
                     window.invoke(true, (drawable) -> {
                         t3_us[0] = Clock.currentNanos() / 1000;
                         final float dt_s = ( t3_us[0] - t2_us[0] ) / 1e6f;
-                        final float dx = -1f * velovity_obj * dt_s; // [shapeUnit]
+                        final float dx = -1f * velocity_obj * dt_s; // [shapeUnit]
                         movingGlyph.move(dx, 0f, 0f);
                         final String text = String.format("%s, anim-duration %.1f s",
                                 scene.getStatusText(drawable, renderModes, 0, dpiV), req_total_dur_s);

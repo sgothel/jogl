@@ -322,8 +322,8 @@ public class UISceneDemo03 {
                     t2_us[0] = t3_us;
 
                     final float velocity_px = velocity * 1e3f * pixPerMM; // [px]/[s]
-                    final float velovity_obj = velocity_px / movingGlyphPixPerShapeUnit[0]; // [shapeUnit]/[s]
-                    final float dxy = velovity_obj * dt_s; // [shapeUnit]
+                    final float velocity_obj = velocity_px / movingGlyphPixPerShapeUnit[0]; // [shapeUnit]/[s]
+                    final float dxy = velocity_obj * dt_s; // [shapeUnit]
 
                     for (int idx = glyphShapes.size() - 1; 0 <= idx; --idx) {
                         final GlyphShape glyph = glyphShapes.get(idx);
