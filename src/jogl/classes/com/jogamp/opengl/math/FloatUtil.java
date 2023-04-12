@@ -1264,9 +1264,9 @@ public final class FloatUtil {
               sb.append(prefix).append("  ");
           }
           matrixRowToString(sb, f, a, aOffset, rows, columns, rowMajorOrder, i);
-          sb.append(Platform.getNewline());
+          sb.append(System.lineSeparator());
       }
-      sb.append(prefix).append("}").append(Platform.getNewline());
+      sb.append(prefix).append("}").append(System.lineSeparator());
       return sb;
   }
 
@@ -1293,9 +1293,9 @@ public final class FloatUtil {
               sb.append(prefix).append("  ");
           }
           matrixRowToString(sb, f, a, aOffset, rows, columns, rowMajorOrder, i);
-          sb.append(Platform.getNewline());
+          sb.append(System.lineSeparator());
       }
-      sb.append(prefix).append("}").append(Platform.getNewline());
+      sb.append(prefix).append("}").append(System.lineSeparator());
       return sb;
   }
 

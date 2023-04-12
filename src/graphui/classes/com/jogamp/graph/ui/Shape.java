@@ -854,8 +854,8 @@ public abstract class Shape {
         }
         return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+
                "], able[iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
-               "], ["+position+"], "+pivotS+scaleS+rotateS+
-                "box "+box;
+               "], pos["+position+"], "+pivotS+scaleS+rotateS+
+                "box"+box;
     }
 
     //

@@ -816,7 +816,7 @@ public class AABBox {
 
     @Override
     public final String toString() {
-        return "[ dim "+getWidth()+" x "+getHeight()+" x "+getDepth()+
-               ", box "+low+" .. "+high+", ctr "+center+" ]";
+        return "[dim "+getWidth()+" x "+getHeight()+" x "+getDepth()+
+               ", box "+low+" .. "+high+", ctr "+center+"]";
     }
 }

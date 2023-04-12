@@ -36,8 +36,6 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.GLUniformData;
 
-import jogamp.common.os.PlatformPropsImpl;
-
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Matrix4f;
@@ -1129,30 +1127,30 @@ public final class PMVMatrix implements GLMatrixFunc {
 
         sb.append("PMVMatrix[modified[P ").append(modP).append(", Mv ").append(modMv).append(", T ").append(modT);
         sb.append("], dirty/used[PMv ").append(pmvDirty).append("/").append(pmvUsed).append(", Pmvi ").append(pmviDirty).append("/").append(pmviUsed).append(", Frustum ").append(frustumDirty).append("/").append(frustumUsed);
-        sb.append("], dirty/req[Mvi ").append(mviDirty).append("/").append(mviReq).append(", Mvit ").append(mvitDirty).append("/").append(mvitReq).append("]").append(PlatformPropsImpl.NEWLINE);
-        sb.append(", Projection").append(PlatformPropsImpl.NEWLINE);
+        sb.append("], dirty/req[Mvi ").append(mviDirty).append("/").append(mviReq).append(", Mvit ").append(mvitDirty).append("/").append(mvitReq).append("]").append(System.lineSeparator());
+        sb.append(", Projection").append(System.lineSeparator());
         matP.toString(sb, null, f);
-        sb.append(", Modelview").append(PlatformPropsImpl.NEWLINE);
+        sb.append(", Modelview").append(System.lineSeparator());
         matMv.toString(sb, null, f);
-        sb.append(", Texture").append(PlatformPropsImpl.NEWLINE);
+        sb.append(", Texture").append(System.lineSeparator());
         matTex.toString(sb, null, f);
         if( null != matPMv ) {
-            sb.append(", P * Mv").append(PlatformPropsImpl.NEWLINE);
+            sb.append(", P * Mv").append(System.lineSeparator());
             matPMv.toString(sb, null, f);
             ++count;
         }
         if( null != matPMvi ) {
-            sb.append(", P * Mv").append(PlatformPropsImpl.NEWLINE);
+            sb.append(", P * Mv").append(System.lineSeparator());
             matPMvi.toString(sb, null, f);
             ++count;
         }
         if( mviReq ) {
-            sb.append(", Inverse Modelview").append(PlatformPropsImpl.NEWLINE);
+            sb.append(", Inverse Modelview").append(System.lineSeparator());
             matMvi.toString(sb, null, f);
             ++count;
         }
         if( mvitReq ) {
-            sb.append(", Inverse Transposed Modelview").append(PlatformPropsImpl.NEWLINE);
+            sb.append(", Inverse Transposed Modelview").append(System.lineSeparator());
             matMvit.toString(sb, null, f);
             ++count;
         }

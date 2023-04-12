@@ -27,13 +27,9 @@
  */
 package com.jogamp.opengl.math.geom;
 
-import jogamp.common.os.PlatformPropsImpl;
-
-import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.FovHVHalves;
 import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.geom.Frustum.FovDesc;
 
 /**
  * Providing frustum {@link #getPlanes() planes} derived by different inputs
@@ -364,13 +360,13 @@ public class Frustum {
         if( null == sb ) {
             sb = new StringBuilder();
         }
-        sb.append("Frustum[ Planes[ ").append(PlatformPropsImpl.NEWLINE)
-        .append(" L: ").append(planes[0]).append(", ").append(PlatformPropsImpl.NEWLINE)
-        .append(" R: ").append(planes[1]).append(", ").append(PlatformPropsImpl.NEWLINE)
-        .append(" B: ").append(planes[2]).append(", ").append(PlatformPropsImpl.NEWLINE)
-        .append(" T: ").append(planes[3]).append(", ").append(PlatformPropsImpl.NEWLINE)
-        .append(" N: ").append(planes[4]).append(", ").append(PlatformPropsImpl.NEWLINE)
-        .append(" F: ").append(planes[5]).append("], ").append(PlatformPropsImpl.NEWLINE)
+        sb.append("Frustum[Planes[").append(System.lineSeparator())
+        .append(" L: ").append(planes[0]).append(", ").append(System.lineSeparator())
+        .append(" R: ").append(planes[1]).append(", ").append(System.lineSeparator())
+        .append(" B: ").append(planes[2]).append(", ").append(System.lineSeparator())
+        .append(" T: ").append(planes[3]).append(", ").append(System.lineSeparator())
+        .append(" N: ").append(planes[4]).append(", ").append(System.lineSeparator())
+        .append(" F: ").append(planes[5]).append("], ").append(System.lineSeparator())
         .append("]");
         return sb;
     }
