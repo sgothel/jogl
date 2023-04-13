@@ -393,10 +393,7 @@ public class UISceneDemo03 {
             final float has_dur_s = ((Clock.currentNanos() / 1000) - t0_us) / 1e6f; // [us]
             System.err.printf("Text travel-duration %.3f s, %d chars%n", has_dur_s, originalTexts[txt_idx].length());
             if( scene.getScreenshotCount() < 1 + originalTexts.length ) {
-                window.invoke(true, (drawable) -> {
-                    scene.screenshot(drawable.getGL(), options.renderModes, UISceneDemo03.class.getSimpleName());
-                    return true;
-                });
+                scene.screenshot(true, options.renderModes, UISceneDemo03.class.getSimpleName());
             }
             try { Thread.sleep(2000); } catch (final InterruptedException e1) { }
             if( autoSpeed > 0 ) {

@@ -604,10 +604,7 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
-                    cDrawable.invoke(true, (drawable) -> {
-                        scene.screenshot(drawable.getGL(), renderModes, UISceneDemo20.class.getSimpleName());
-                        return true;
-                    });
+                    scene.screenshot(true, renderModes, UISceneDemo20.class.getSimpleName());
                 } } );
             button.addMouseListener(dragZoomRotateListener);
             buttonsLeft.addShape(button);

@@ -1069,7 +1069,16 @@ public final class Scene implements Container, GLEventListener {
 
     /**
      * Write current read drawable (screen) to a PNG file.
+     *
+     * Best to be {@link GLAutoDrawable#invoke(boolean, GLRunnable) invoked on the display call},
+     * see {@link #screenshot(boolean, int, String)}.
+     *
+     * @param gl current GL object
+     * @param renderModes Graph renderModes
+     * @param prefix filename prefix
+     *
      * @see #getScreenshotCount()
+     * @see #screenshot(boolean, int, String)
      */
     public void screenshot(final GL gl, final int renderModes, final String prefix)  {
         final RegionRenderer renderer = getRenderer();
@@ -1084,6 +1093,25 @@ public final class Scene implements Container, GLEventListener {
         }
     }
     private int shotCount = 0;
+
+    /**
+     * Write current read drawable (screen) to a PNG file on {@link GLAutoDrawable#invoke(boolean, GLRunnable) on the display call}.
+     *
+     * @param wait if true block until execution of screenshot {@link GLRunnable} is finished, otherwise return immediately w/o waiting
+     * @param renderModes Graph renderModes
+     * @param prefix filename prefix
+     *
+     * @see #getScreenshotCount()
+     * @see #screenshot(GL, int, String)
+     */
+    public void screenshot(final boolean wait, final int renderModes, final String prefix)  {
+        if( null != cDrawable ) {
+            cDrawable.invoke(wait, (drawable) -> {
+                screenshot(drawable.getGL(), renderModes, prefix);
+                return true;
+            });
+        }
+    }
 
     /** Return the number of {@link #screenshot(GL, int, String)}s being taken. */
     public int getScreenshotCount() { return shotCount; }

@@ -133,7 +133,6 @@ public class FontView01 {
 
         final Scene scene = new Scene();
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        scene.addShape(grid);
         scene.setFrustumCullingEnabled(true);
 
         final Animator animator = new Animator();
@@ -174,6 +173,7 @@ public class FontView01 {
         // - Compute the animation values with DPI
         scene.waitUntilDisplayed();
 
+        grid.validate(reqGLP); // pre-validate to move & scale before display
         final AABBox sceneBox = scene.getBounds();
         System.err.println("SceneBox "+sceneBox);
         final float sxy = sceneBox.getWidth() < sceneBox.getHeight() ? sceneBox.getWidth() : sceneBox.getHeight();
@@ -182,12 +182,11 @@ public class FontView01 {
         final float sgxy = sxy / gxy;
         grid.scale(sgxy, sgxy, 1f);
         grid.moveTo(sceneBox.getMinX(), sceneBox.getMinY(), 0f);
+        scene.addShape(grid); // late add at correct position and size
         System.err.println("Grid "+grid);
         System.err.println("Grid "+grid.getLayout());
         System.err.println("Grid[0] "+grid.getShapes().get(0));
-        try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
-        if( !options.stayOpen ) {
-            window.destroy();
-        }
+        scene.screenshot(true, options.renderModes, FontView01.class.getSimpleName());
+        // stay open ..
     }
 }
