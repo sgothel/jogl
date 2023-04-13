@@ -60,40 +60,35 @@ public class Rectangle extends GraphShape {
     @Override
     protected void addShapeToRegion() {
         final OutlineShape shape = new OutlineShape(vertexFactory);
-
-        final float lwh = lineWidth/2f;
-
-        final float tw = getWidth();
-        final float th = getHeight();
-
-        final float twh = tw/2f;
-        final float twh_o = twh+lwh;
-        final float twh_i = twh-lwh;
-        final float thh = th/2f;
-        final float thh_o = thh+lwh;
-        final float thh_i = thh-lwh;
-
-        final float ctrX = 0f, ctrY = 0f;
-        final float ctrZ = 0f;
-
-        // outer (CCW!)
-        shape.moveTo(ctrX-twh_o, ctrY-thh_o, ctrZ);
-        shape.lineTo(ctrX+twh_o, ctrY-thh_o, ctrZ);
-        shape.lineTo(ctrX+twh_o, ctrY+thh_o, ctrZ);
-        shape.lineTo(ctrX-twh_o, ctrY+thh_o, ctrZ);
-        shape.closePath();
-
-        // inner (CCW!)
-        shape.moveTo(ctrX-twh_i, ctrY-thh_i, ctrZ);
-        shape.lineTo(ctrX+twh_i, ctrY-thh_i, ctrZ);
-        shape.lineTo(ctrX+twh_i, ctrY+thh_i, ctrZ);
-        shape.lineTo(ctrX-twh_i, ctrY+thh_i, ctrZ);
-        shape.closePath();
-
+        final float x1 = 0f;
+        final float y1 = 0f;
+        final float x2 = getWidth();
+        final float y2 = getHeight();
+        final float z = 0f;
+        {
+            // Outer OutlineShape as Winding.CCW.
+            shape.moveTo(x1, y1, z);
+            shape.lineTo(x2, y1, z);
+            shape.lineTo(x2, y2, z);
+            shape.lineTo(x1, y2, z);
+            shape.lineTo(x1, y1, z);
+            shape.closeLastOutline(true);
+            shape.addEmptyOutline();
+        }
+        {
+            // Inner OutlineShape as Winding.CW.
+            // final float dxy0 = getWidth() < getHeight() ? getWidth() : getHeight();
+            final float dxy = lineWidth; // dxy0 * getDebugBox();
+            shape.moveTo(x1+dxy, y1+dxy, z);
+            shape.lineTo(x1+dxy, y2-dxy, z);
+            shape.lineTo(x2-dxy, y2-dxy, z);
+            shape.lineTo(x2-dxy, y1+dxy, z);
+            shape.lineTo(x1+dxy, y1+dxy, z);
+            shape.closeLastOutline(true);
+        }
         shape.setIsQuadraticNurbs();
         shape.setSharpness(oshapeSharpness);
         region.addOutlineShape(shape, null, rgbaColor);
-
         box.resize(shape.getBounds());
     }
 
