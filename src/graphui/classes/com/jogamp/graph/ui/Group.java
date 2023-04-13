@@ -207,23 +207,28 @@ public class Group extends Shape implements Container {
     protected void validateImpl(final GLProfile glp, final GL2ES2 gl) {
         if( isShapeDirty() ) {
             final PMVMatrix pmv = new PMVMatrix();
-            final AABBox tmpBox = new AABBox();
-            for(final Shape s : shapes) {
-                if( null != gl ) {
-                    s.validate(gl);
-                } else {
-                    s.validate(glp);
-                }
-            }
             if( null != layouter ) {
+                for(final Shape s : shapes) {
+                    if( null != gl ) {
+                        s.validate(gl);
+                    } else {
+                        s.validate(glp);
+                    }
+                }
                 layouter.layout(this, box, pmv);
             } else {
+                final AABBox tsbox = new AABBox();
                 for(final Shape s : shapes) {
+                    if( null != gl ) {
+                        s.validate(gl);
+                    } else {
+                        s.validate(glp);
+                    }
                     pmv.glPushMatrix();
                     s.setTransform(pmv);
-                    s.getBounds().transformMv(pmv, tmpBox);
+                    s.getBounds().transformMv(pmv, tsbox);
                     pmv.glPopMatrix();
-                    box.resize(tmpBox);
+                    box.resize(tsbox);
                 }
             }
         }
