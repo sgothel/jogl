@@ -128,11 +128,12 @@ public class GridLayout implements Group.Layout {
             final float sxy = sx < sy ? sx : sy;
             final float dxh = sbox.getWidth()  * ( sx - sxy ) * 0.5f;
             final float dyh = sbox.getHeight() * ( sy - sxy ) * 0.5f;
-            s.moveTo( x + dxh, y + dyh, 0f );
+            s.moveTo( x + dxh, y + dyh, 0f );       // center the scaled artifact
+            s.move( sbox.getLow().mul(-1f*sxy) );   // remove the bottom-left delta
             s.scale( sxy, sxy, 1f);
             box.resize( x + cellWidth + padding.right, y + cellHeight + padding.top,    0);
             box.resize( x             - padding.left,  y -              padding.bottom, 0);
-            // System.err.println("["+row_i+"]["+col_i+"]: "+x+" / "+y);
+            // System.err.println("["+row_i+"]["+col_i+"]: "+x+" / "+y+", sxy "+sxy+", d[xy]h "+dxh+" x "+dyh+", "+sbox);
 
             // position for next cell
             if( Order.COLUMN == order ) {
