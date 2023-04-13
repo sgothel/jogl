@@ -140,6 +140,7 @@ public abstract class Shape {
 
     private Listener onMoveListener = null;
     private Listener onToggleListener = null;
+    private Listener onClickedListener = null;
 
     public Shape() {
         this.box = new AABBox();
@@ -202,6 +203,7 @@ public abstract class Shape {
 
     public final void onMove(final Listener l) { onMoveListener = l; }
     public final void onToggle(final Listener l) { onToggleListener = l; }
+    public final void onClicked(final Listener l) { onClickedListener = l; }
 
     /** Move to scaled position. Position ends up in PMVMatrix unmodified. */
     public final Shape moveTo(final float tx, final float ty, final float tz) {
@@ -1072,6 +1074,9 @@ public abstract class Shape {
             switch( eventType ) {
                 case MouseEvent.EVENT_MOUSE_CLICKED:
                     toggle();
+                    if( null != onClickedListener ) {
+                        onClickedListener.run(this);
+                    }
                     break;
                 case MouseEvent.EVENT_MOUSE_PRESSED:
                     dragFirst = true;
