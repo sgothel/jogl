@@ -203,6 +203,7 @@ class TypecastFont implements Font {
             } else {
                 glyph_name = "";
             }
+            final int glyph_height = metrics.getAscentFU() - metrics.getDescentFU();
             final int glyph_advance;
             final int glyph_leftsidebearings;
             final AABBox glyph_bbox;
@@ -211,11 +212,20 @@ class TypecastFont implements Font {
             if( null != glyph ) {
                 glyph_advance = glyph.getAdvanceWidth();
                 glyph_leftsidebearings = glyph.getLeftSideBearing();
-                glyph_bbox = glyph.getBBox();
-                shape = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph, OutlineShape.getDefaultVertexFactory());
-                isWhiteSpace = false;
+                final AABBox sb = glyph.getBBox();
+                final OutlineShape s = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph, OutlineShape.getDefaultVertexFactory());
+                if( 0 < s.getOutlineVectexCount() ) {
+                    glyph_bbox = sb;
+                    shape = s;
+                    isWhiteSpace = false;
+                } else {
+                    // non-contour glyph -> whitespace
+                    glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
+                    shape = TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox, OutlineShape.getDefaultVertexFactory());
+                    isWhiteSpace = true;
+                }
             } else {
-                final int glyph_height = metrics.getAscentFU() - metrics.getDescentFU();
+                // non-contour glyph -> whitespace
                 glyph_advance = getAdvanceWidthFU(glyph_id);
                 glyph_leftsidebearings = 0;
                 glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
