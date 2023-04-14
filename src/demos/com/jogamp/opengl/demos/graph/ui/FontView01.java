@@ -136,6 +136,13 @@ public class FontView01 {
         });
         animator.add(window);
 
+        final Scene scene = new Scene();
+        scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        scene.setFrustumCullingEnabled(true);
+
+        scene.attachInputListenerTo(window);
+        window.addGLEventListener(scene);
+
         final float[] ppmm = window.getPixelsPerMM(new float[2]);
         {
             final float[] dpi = FontScale.ppmmToPPI( new float[] { ppmm[0], ppmm[1] } );
@@ -223,17 +230,12 @@ public class FontView01 {
                     // glyphCont.markShapeDirty();
                     // grid.markShapeDirty();
                     System.err.println();
+                    scene.screenshot(true, scene.nextScreenshotFile(null, FontView01.class.getSimpleName(), options.renderModes, window.getChosenGLCapabilities(), null));
                 }
             });
             mainGrid.addShape(c);
         }
 
-        final Scene scene = new Scene();
-        scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        scene.setFrustumCullingEnabled(true);
-
-        scene.attachInputListenerTo(window);
-        window.addGLEventListener(scene);
         animator.start();
         scene.waitUntilDisplayed();
 
@@ -263,6 +265,7 @@ public class FontView01 {
             infoGrid.setScale(icScale, icScale, 1f);
         }
         scene.addShape(infoGrid);
+
         scene.screenshot(true, scene.nextScreenshotFile(null, FontView01.class.getSimpleName(), options.renderModes, window.getChosenGLCapabilities(), null));
         // stay open ..
     }
