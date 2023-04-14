@@ -221,11 +221,16 @@ public final class Scene implements Container, GLEventListener {
         shapes.add(s);
     }
     @Override
-    public void removeShape(final Shape s) {
+    public Shape removeShape(final Shape s) {
         s.setDebugBox(0f);
-        shapes.remove(s);
+        return shapes.remove(s) ? s : null;
     }
-    /** Removes all given shapes and destroys them. */
+    @Override
+    public Shape removeShape(final int idx) {
+        return shapes.remove(idx);
+    }
+
+    /** Removes given shape and destroy it. */
     public void removeShape(final GL2ES2 gl, final Shape s) {
         s.setDebugBox(0f);
         shapes.remove(s);

@@ -48,8 +48,18 @@ public interface Container {
 
     void addShape(Shape s);
 
-    /** Removes given shape, , w/o {@link Shape#destroy(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer) destroying} them. */
-    void removeShape(Shape s);
+    /**
+     * Removes given shape, w/o {@link Shape#destroy(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer) destroying} them.
+     * @return the removed shape or null if not contained
+     */
+    Shape removeShape(Shape s);
+
+    /**
+     * Removes shape at given index, w/o {@link Shape#destroy(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer) destroying} them.
+     * @return the removed shape
+     * @throws IndexOutOfBoundsException if index is out of bounds, i.e. (index < 0 || index >= size())
+     */
+    Shape removeShape(final int idx);
 
     void addShapes(Collection<? extends Shape> shapes);
 
