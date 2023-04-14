@@ -45,16 +45,15 @@ import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.GlyphShape;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.Rectangle;
-import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.opengl.demos.util.MiscUtils;
-import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 
@@ -230,7 +229,7 @@ public class FontView01 {
                     // glyphCont.markShapeDirty();
                     // grid.markShapeDirty();
                     System.err.println();
-                    scene.screenshot(true, scene.nextScreenshotFile(null, FontView01.class.getSimpleName(), options.renderModes, window.getChosenGLCapabilities(), null));
+                    printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gs.getGlyph().getID());
                 }
             });
             mainGrid.addShape(c);
@@ -266,8 +265,13 @@ public class FontView01 {
         }
         scene.addShape(infoGrid);
 
-        scene.screenshot(true, scene.nextScreenshotFile(null, FontView01.class.getSimpleName(), options.renderModes, window.getChosenGLCapabilities(), null));
+        printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, 0);
         // stay open ..
+    }
+
+    static void printScreenOnGLThread(final Scene scene, final GLCapabilitiesImmutable caps, final Font font, final int glyphID) {
+        final String fn = font.getFullFamilyName().replace(' ', '_').replace('-', '_');
+        scene.screenshot(true, scene.nextScreenshotFile(null, FontView01.class.getSimpleName(), options.renderModes, caps, fn+"_gid"+glyphID));
     }
 
     static void setGlyphInfo(final Font font, final Label label, final char symbol, final Font.Glyph g) {
