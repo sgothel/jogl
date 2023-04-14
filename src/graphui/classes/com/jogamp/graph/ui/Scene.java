@@ -43,10 +43,12 @@ import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.ui.Shape.Visitor2;
@@ -67,6 +69,7 @@ import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.graph.ui.TreeTool;
 
@@ -1010,7 +1013,7 @@ public final class Scene implements Container, GLEventListener {
     /**
      * Return a formatted status string containing avg fps and avg frame duration.
      * @param glad GLAutoDrawable instance for FPSCounter, its chosen GLCapabilities and its GL's swap-interval
-     * @param renderModes render modes for {@link Region#getRenderModeString(int)}
+     * @param renderModes render modes for {@link Region#getRenderModeString(int, int, int)}
      * @param quality the Graph-Curve quality setting or -1 to be ignored
      * @param dpi the monitor's DPI (vertical preferred)
      * @return formatted status string
@@ -1027,19 +1030,9 @@ public final class Scene implements Container, GLEventListener {
                 tfps = 0f;
                 td = 0f;
             }
-            final String modeS = Region.getRenderModeString(renderModes);
             final GLCapabilitiesImmutable caps = glad.getChosenGLCapabilities();
-            final String sampleCountStr1, sampleCountStr2, qualityStr, blendStr;
-            if( Region.isVBAA(renderModes) || Region.isMSAA(renderModes) ) {
-                sampleCountStr1 = "-samples "+getSampleCount();
-            } else {
-                sampleCountStr1 = "";
-            }
-            if( caps.getNumSamples() > 0 ) {
-                sampleCountStr2 = ", smsaa "+caps.getNumSamples();
-            } else {
-                sampleCountStr2 = "";
-            }
+            final String modeS = Region.getRenderModeString(renderModes, getSampleCount(), caps.getNumSamples());
+            final String qualityStr, blendStr;
             if( 0 <= quality ) {
                 qualityStr = ", q "+quality;
             } else {
@@ -1050,9 +1043,8 @@ public final class Scene implements Container, GLEventListener {
             } else {
                 blendStr = "";
             }
-            return String.format("%03.1f/%03.1f fps, %.1f ms/f, vsync %d, dpi %.1f, %s%s%s%s%s, a %d",
-                        lfps, tfps, td, glad.getGL().getSwapInterval(), dpi, modeS, sampleCountStr1, sampleCountStr2,
-                        qualityStr, blendStr, caps.getAlphaBits());
+            return String.format("%03.1f/%03.1f fps, %.1f ms/f, vsync %d, dpi %.1f, %s%s%s, a %d",
+                        lfps, tfps, td, glad.getGL().getSwapInterval(), dpi, modeS, qualityStr, blendStr, caps.getAlphaBits());
     }
 
     /**
@@ -1068,53 +1060,73 @@ public final class Scene implements Container, GLEventListener {
     }
 
     /**
-     * Write current read drawable (screen) to a PNG file.
+     * Return the unique next technical screenshot PNG {@link File} instance as follows:
+     * <pre>
+     *    filename = [{dir}][{prefix}-]{@link Region#getRenderModeString(int, int, int)}[-{contentDetails}]-snap{screenShotCount}-{resolution}.png
+     * </pre>
+     * Implementation increments {@link #getScreenshotCount()}.
      *
-     * Best to be {@link GLAutoDrawable#invoke(boolean, GLRunnable) invoked on the display call},
-     * see {@link #screenshot(boolean, int, String)}.
-     *
-     * @param gl current GL object
-     * @param renderModes Graph renderModes
-     * @param prefix filename prefix
-     *
+     * @param dir the target directory, may be `null` or an empty string
+     * @param prefix the prefix, may be `null` or an empty string
+     * @param renderModes the used Graph renderModes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}
+     * @param caps the used {@link GLCapabilitiesImmutable} used to retrieved the full-screen AA (fsaa) {@link GLCapabilitiesImmutable#getNumSamples()}
+     * @param contentDetail user content details to be added at the end but before {@link #getScreenshotCount()}, may be `null` or an empty string
+     * @return a unique descriptive screenshot filename
+     * @see #screenshot(GL, File)
+     * @see #screenshot(boolean, File)
      * @see #getScreenshotCount()
-     * @see #screenshot(boolean, int, String)
      */
-    public void screenshot(final GL gl, final int renderModes, final String prefix)  {
+    public File nextScreenshotFile(final String dir, final String prefix, final int renderModes, final GLCapabilitiesImmutable caps, final String contentDetail) {
+        final String dir2 = ( null != dir && dir.length() > 0 ) ? dir : "";
+        final String prefix2 = ( null != prefix && prefix.length() > 0 ) ? prefix+"-" : "";
         final RegionRenderer renderer = getRenderer();
-        final String modeS = Region.getRenderModeString(renderModes);
-        final String filename = String.format((Locale)null, "%s-shot%03d-%03dx%03d-S_%s_%02d.png",
-                prefix, shotCount++, renderer.getWidth(), renderer.getHeight(),
-                modeS, getSampleCount());
-        gl.glFinish(); // just make sure rendering finished ..
-        if(screenshot.readPixels(gl, false)) {
-            screenshot.write(new File(filename));
-            System.err.println("Wrote: "+filename);
-        }
+        final String modeS = Region.getRenderModeString(renderModes, getSampleCount(), caps.getNumSamples());
+        final String contentDetail2 = ( null != contentDetail && contentDetail.length() > 0 ) ? contentDetail+"-" : "";
+        return new File( String.format((Locale)null, "%s%s%s-%ssnap%02d-%04dx%04d.png",
+                                       dir2, prefix2, modeS, contentDetail2,
+                                       screenShotCount++, renderer.getWidth(), renderer.getHeight() ) );
     }
-    private int shotCount = 0;
+    private int screenShotCount = 0;
+
+    /** Return the number of {@link #nextScreenshotFile(String, String, int, GLCapabilitiesImmutable, String)} calls. */
+    public int getScreenshotCount() { return screenShotCount; }
 
     /**
-     * Write current read drawable (screen) to a PNG file on {@link GLAutoDrawable#invoke(boolean, GLRunnable) on the display call}.
+     * Write current read drawable (screen) to a file.
+     * <p>
+     * Best to be {@link GLAutoDrawable#invoke(boolean, GLRunnable) invoked on the display call},
+     * see {@link #screenshot(boolean, String)}.
+     * </p>
+     * @param gl current GL object
+     * @param file the target file to be used, consider using {@link #nextScreenshotFile(String, String, int, GLCapabilitiesImmutable, String)}
+     * @see #nextScreenshotFile(String, String, int, GLCapabilitiesImmutable, String)
+     * @see #getScreenshotCount()
+     * @see #screenshot(boolean, File)
+     */
+    public void screenshot(final GL gl, final File file)  {
+        if(screenshot.readPixels(gl, false)) {
+            screenshot.write(file);
+            System.err.println("Wrote: "+file);
+        }
+    }
+
+    /**
+     * Write current read drawable (screen) to a file on {@link GLAutoDrawable#invoke(boolean, GLRunnable) on the display call}.
      *
      * @param wait if true block until execution of screenshot {@link GLRunnable} is finished, otherwise return immediately w/o waiting
-     * @param renderModes Graph renderModes
-     * @param prefix filename prefix
-     *
+     * @param file the target file to be used, consider using {@link #nextScreenshotFile(String, String, int, GLCapabilitiesImmutable, String)}
+     * @see #nextScreenshotFile(String, String, int, GLCapabilitiesImmutable, String)
      * @see #getScreenshotCount()
-     * @see #screenshot(GL, int, String)
+     * @see #screenshot(GL, File)
      */
-    public void screenshot(final boolean wait, final int renderModes, final String prefix)  {
+    public void screenshot(final boolean wait, final File file)  {
         if( null != cDrawable ) {
             cDrawable.invoke(wait, (drawable) -> {
-                screenshot(drawable.getGL(), renderModes, prefix);
+                screenshot(drawable.getGL(), file);
                 return true;
             });
         }
     }
-
-    /** Return the number of {@link #screenshot(GL, int, String)}s being taken. */
-    public int getScreenshotCount() { return shotCount; }
 
     private static final PMVMatrixSetup defaultPMVMatrixSetup = new PMVMatrixSetup() {
         @Override
