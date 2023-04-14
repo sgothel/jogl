@@ -236,8 +236,18 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      */
     public final Vertex.Factory<? extends Vertex> vertexFactory() { return vertexFactory; }
 
+    /** Returns the number of {@link Outline}s. */
     public final int getOutlineCount() {
         return outlines.size();
+    }
+
+    /** Returns the total {@link Outline#getVertexCount() vertex number} of all {@link Outline}s. */
+    public final int getOutlineVectexCount() {
+        int res = 0;
+        for(final Outline o : outlines) {
+            res += o.getVertexCount();
+        }
+        return res;
     }
 
     /**
