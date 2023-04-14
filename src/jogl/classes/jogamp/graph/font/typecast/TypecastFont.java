@@ -193,9 +193,13 @@ class TypecastFont implements Font {
         TypecastGlyph result = (TypecastGlyph) idToGlyph.get(glyph_id);
         if (null == result) {
             final jogamp.graph.font.typecast.ot.Glyph glyph = font.getGlyph(glyph_id);
-            final PostTable post = font.getPostTable();
-            final String glyph_name = null != post ? post.getGlyphName(glyph_id) : "";
-
+            final String glyph_name;
+            if( null != glyph ) {
+                final PostTable post = font.getPostTable();
+                glyph_name = null != post ? post.getGlyphName(glyph_id) : "";
+            } else {
+                glyph_name = "";
+            }
             final int glyph_advance;
             final int glyph_leftsidebearings;
             final AABBox glyph_bbox;
