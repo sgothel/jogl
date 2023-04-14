@@ -28,6 +28,7 @@
 package com.jogamp.opengl.test.junit.graph;
 
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
@@ -46,7 +47,7 @@ import com.jogamp.opengl.math.geom.AABBox;
  * Glyph Grid using GraphUI
  */
 public class FontViewListener01 implements GLEventListener {
-    private static final int pxPerCell = 50;
+    private static final float mmPerCell = 10f;
     private final int renderModes;
     private final int startGlyphID;
     private final Font font;
@@ -98,8 +99,25 @@ public class FontViewListener01 implements GLEventListener {
         if( null != grid ) {
             scene.removeShape(gl, grid);
         }
-        final int gridCols = width / pxPerCell;
-        final int gridRows = height / pxPerCell;
+        final int gridCols, gridRows;
+        if( drawable instanceof GLWindow ) {
+            final GLWindow window = (GLWindow)drawable;
+            final float[] ppmm = window.getPixelsPerMM(new float[2]);
+            {
+                final float[] dpi = FontScale.ppmmToPPI( new float[] { ppmm[0], ppmm[1] } );
+                System.err.println("DPI "+dpi[0]+" x "+dpi[1]+", "+ppmm[0]+" x "+ppmm[1]+" pixel/mm");
+
+                final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);
+                System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+                System.err.println("mmPerCell "+mmPerCell);
+            }
+            gridCols = (int)( ( window.getSurfaceWidth() / ppmm[0] ) / mmPerCell );
+            gridRows = (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCell );
+        } else {
+            final int pxPerCell = 50;
+            gridCols = width / pxPerCell;
+            gridRows = height / pxPerCell;
+        }
         final int cellCount = gridCols * gridRows;
         final float gridSize = gridCols > gridRows ? 1f/gridCols : 1f/gridRows;
         System.err.println("Reshape Grid "+gridCols+" x "+gridRows+", "+cellCount+" cells, gridSize "+gridSize);
@@ -134,10 +152,10 @@ public class FontViewListener01 implements GLEventListener {
         System.err.println("SceneBox "+sceneBox);
         final AABBox gridBox = grid.getBounds();
         final float sgxy;
-        if( sceneBox.getWidth() > sceneBox.getHeight() ) {
-            sgxy = sceneBox.getHeight() / gridBox.getHeight();
-        } else {
+        if( gridBox.getWidth() > gridBox.getHeight() ) {
             sgxy = sceneBox.getWidth() / gridBox.getWidth();
+        } else {
+            sgxy = sceneBox.getHeight() / gridBox.getHeight();
         }
         grid.scale(sgxy, sgxy, 1f);
         grid.moveTo(sceneBox.getMinX(), sceneBox.getMinY(), 0f);

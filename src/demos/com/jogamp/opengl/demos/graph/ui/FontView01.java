@@ -34,6 +34,7 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
@@ -59,7 +60,7 @@ public class FontView01 {
     static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
 
     public static void main(final String[] args) throws IOException {
-        final int pxPerCell = 50;
+        float mmPerCell = 10f;
         String fontfilename = null;
         int gridCols = -1;
         int gridRows = -1;
@@ -74,6 +75,9 @@ public class FontView01 {
                 } else if(args[idx[0]].equals("-font")) {
                     idx[0]++;
                     fontfilename = args[idx[0]];
+                } else if(args[idx[0]].equals("-mmPerCell")) {
+                    idx[0]++;
+                    mmPerCell = MiscUtils.atof(args[idx[0]], mmPerCell);
                 } else if(args[idx[0]].equals("-gridCols")) {
                     idx[0]++;
                     gridCols = MiscUtils.atoi(args[idx[0]], gridCols);
@@ -99,11 +103,46 @@ public class FontView01 {
         final GLProfile reqGLP = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+reqGLP);
 
+        final GLCapabilities caps = new GLCapabilities(reqGLP);
+        caps.setAlphaBits(4);
+        if( options.sceneMSAASamples > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(options.sceneMSAASamples);
+        }
+        System.out.println("Requested: " + caps);
+
+        final Animator animator = new Animator();
+        animator.setUpdateFPSFrames(1*60, null); // System.err);
+        final GLWindow window = GLWindow.create(caps);
+        window.setSize(options.surface_width, options.surface_height);
+        window.setTitle(FontView01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+        window.setVisible(true);
+        window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowResized(final WindowEvent e) {
+                window.setTitle(FontView01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+            }
+            @Override
+            public void windowDestroyNotify(final WindowEvent e) {
+                animator.stop();
+            }
+        });
+        animator.add(window);
+
+        final float[] ppmm = window.getPixelsPerMM(new float[2]);
+        {
+            final float[] dpi = FontScale.ppmmToPPI( new float[] { ppmm[0], ppmm[1] } );
+            System.err.println("DPI "+dpi[0]+" x "+dpi[1]+", "+ppmm[0]+" x "+ppmm[1]+" pixel/mm");
+
+            final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);
+            System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+            System.err.println("mmPerCell "+mmPerCell);
+        }
         if( 0 >= gridCols ) {
-            gridCols = options.surface_width / pxPerCell;
+            gridCols = (int)( ( window.getSurfaceWidth() / ppmm[0] ) / mmPerCell );
         }
         if( 0 >= gridRows ) {
-            gridRows = options.surface_height / pxPerCell;
+            gridRows = (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCell );
         }
         final int cellCount = gridCols * gridRows;
         final float gridSize = gridCols > gridRows ? 1f/gridCols : 1f/gridRows;
@@ -144,42 +183,9 @@ public class FontView01 {
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setFrustumCullingEnabled(true);
 
-        final Animator animator = new Animator();
-
-        final GLCapabilities caps = new GLCapabilities(reqGLP);
-        caps.setAlphaBits(4);
-        if( options.sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(options.sceneMSAASamples);
-        }
-        System.out.println("Requested: " + caps);
-
-        final GLWindow window = GLWindow.create(caps);
-        window.setSize(options.surface_width, options.surface_height);
-        window.setTitle(FontView01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
-        window.setVisible(true);
-        window.addGLEventListener(scene);
-        window.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowResized(final WindowEvent e) {
-                window.setTitle(FontView01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
-            }
-            @Override
-            public void windowDestroyNotify(final WindowEvent e) {
-                animator.stop();
-            }
-        });
-
         scene.attachInputListenerTo(window);
-
-        animator.setUpdateFPSFrames(1*60, null); // System.err);
-        animator.add(window);
+        window.addGLEventListener(scene);
         animator.start();
-
-        //
-        // After initial display we can use screen resolution post initial Scene.reshape(..)
-        // However, in this example we merely use the resolution to
-        // - Compute the animation values with DPI
         scene.waitUntilDisplayed();
 
         grid.validate(reqGLP); // pre-validate to move & scale before display
@@ -187,10 +193,10 @@ public class FontView01 {
         System.err.println("SceneBox "+sceneBox);
         final AABBox gridBox = grid.getBounds();
         final float sgxy;
-        if( sceneBox.getWidth() > sceneBox.getHeight() ) {
-            sgxy = sceneBox.getHeight() / gridBox.getHeight();
-        } else {
+        if( gridBox.getWidth() > gridBox.getHeight() ) {
             sgxy = sceneBox.getWidth() / gridBox.getWidth();
+        } else {
+            sgxy = sceneBox.getHeight() / gridBox.getHeight();
         }
         grid.scale(sgxy, sgxy, 1f);
         grid.moveTo(sceneBox.getMinX(), sceneBox.getMinY(), 0f);
