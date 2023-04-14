@@ -179,6 +179,9 @@ public interface Font {
         /** Return true if the underlying {@link #getShape()} is a whitespace, otherwise false. */
         boolean isWhiteSpace();
 
+        /** Return true if the Glyph denotes an undefined {@link #getID()} symbol, i.e. {@link #getName()} == `.notdef`. */
+        boolean isUndefined();
+
         /**
          * Return the AABBox in font-units, borrowing internal instance.
          */

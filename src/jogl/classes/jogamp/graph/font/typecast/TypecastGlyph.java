@@ -142,6 +142,9 @@ public final class TypecastGlyph implements Font.Glyph {
     public final boolean isWhiteSpace() { return this.isWhiteSpace; }
 
     @Override
+    public final boolean isUndefined() { return name == ".notdef"; }
+
+    @Override
     public final AABBox getBoundsFU() { return bbox; }
 
     @Override
