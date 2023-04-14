@@ -59,9 +59,10 @@ public class FontView01 {
     static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
 
     public static void main(final String[] args) throws IOException {
+        final int pxPerCell = 50;
         String fontfilename = null;
-        int gridWidth = 10;
-        int gridHeight = 10;
+        int gridCols = -1;
+        int gridRows = -1;
         final int startGlyphID = 0;
         boolean showUnderline = false;
 
@@ -73,12 +74,12 @@ public class FontView01 {
                 } else if(args[idx[0]].equals("-font")) {
                     idx[0]++;
                     fontfilename = args[idx[0]];
-                } else if(args[idx[0]].equals("-gridWidth")) {
+                } else if(args[idx[0]].equals("-gridCols")) {
                     idx[0]++;
-                    gridWidth = MiscUtils.atoi(args[idx[0]], gridWidth);
-                } else if(args[idx[0]].equals("-gridHeight")) {
+                    gridCols = MiscUtils.atoi(args[idx[0]], gridCols);
+                } else if(args[idx[0]].equals("-gridRows")) {
                     idx[0]++;
-                    gridHeight = MiscUtils.atoi(args[idx[0]], gridHeight);
+                    gridRows = MiscUtils.atoi(args[idx[0]], gridRows);
                 } else if(args[idx[0]].equals("-showUnderline")) {
                     showUnderline = true;
                 }
@@ -94,14 +95,22 @@ public class FontView01 {
             font = FontFactory.get( new File( fontfilename ) );
         }
         System.err.println("Font "+font.getFullFamilyName());
-        System.err.println("Glyph Grid "+gridWidth+" x "+gridHeight);
 
         final GLProfile reqGLP = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+reqGLP);
 
-        final float gridSize = gridWidth > gridHeight ? 1f/gridWidth : 1f/gridHeight;
-        final Group grid = new Group(new GridLayout(gridHeight, gridSize, gridSize, new Padding(gridSize*0.1f, gridSize*0.1f)));
-        final int cellCount = gridWidth * gridHeight;
+        if( 0 >= gridCols ) {
+            gridCols = options.surface_width / pxPerCell;
+        }
+        if( 0 >= gridRows ) {
+            gridRows = options.surface_height / pxPerCell;
+        }
+        final int cellCount = gridCols * gridRows;
+        final float gridSize = gridCols > gridRows ? 1f/gridCols : 1f/gridRows;
+        System.err.println("Grid "+gridCols+" x "+gridRows+", "+cellCount+" cells, gridSize "+gridSize);
+
+        final Group grid = new Group(new GridLayout(gridCols, gridSize, gridSize, new Padding(gridSize*0.1f, gridSize*0.1f)));
+
         for(int i=0; i<cellCount; ++i) {
             final GlyphShape g = new GlyphShape(options.renderModes, (char)0, font.getGlyph(startGlyphID + i), 0, 0);
             g.setColor(0.1f, 0.1f, 0.1f, 1);
@@ -176,10 +185,13 @@ public class FontView01 {
         grid.validate(reqGLP); // pre-validate to move & scale before display
         final AABBox sceneBox = scene.getBounds();
         System.err.println("SceneBox "+sceneBox);
-        final float sxy = sceneBox.getWidth() < sceneBox.getHeight() ? sceneBox.getWidth() : sceneBox.getHeight();
         final AABBox gridBox = grid.getBounds();
-        final float gxy = gridBox.getWidth() > gridBox.getHeight() ? gridBox.getWidth() : gridBox.getHeight();
-        final float sgxy = sxy / gxy;
+        final float sgxy;
+        if( sceneBox.getWidth() > sceneBox.getHeight() ) {
+            sgxy = sceneBox.getHeight() / gridBox.getHeight();
+        } else {
+            sgxy = sceneBox.getWidth() / gridBox.getWidth();
+        }
         grid.scale(sgxy, sgxy, 1f);
         grid.moveTo(sceneBox.getMinX(), sceneBox.getMinY(), 0f);
         scene.addShape(grid); // late add at correct position and size
