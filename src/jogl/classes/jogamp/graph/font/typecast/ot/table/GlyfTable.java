@@ -63,25 +63,25 @@ public class GlyfTable implements Table {
     private final GlyfDescript[] _descript;
 
     public GlyfTable(
-            DataInput di,
-            int length,
-            MaxpTable maxp,
-            LocaTable loca) throws IOException {
+            final DataInput di,
+            final int length,
+            final MaxpTable maxp,
+            final LocaTable loca) throws IOException {
         _descript = new GlyfDescript[maxp.getNumGlyphs()];
-        
+
         // Buffer the whole table so we can randomly access it
-        byte[] buf = new byte[length];
+        final byte[] buf = new byte[length];
         di.readFully(buf);
-        ByteArrayInputStream bais = new ByteArrayInputStream(buf);
-        
+        final ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+
         // Process all the simple glyphs
         for (int i = 0; i < maxp.getNumGlyphs(); i++) {
-            int len = loca.getOffset(i + 1) - loca.getOffset(i);
+            final int len = loca.getOffset(i + 1) - loca.getOffset(i);
             if (len > 0) {
                 bais.reset();
                 bais.skip(loca.getOffset(i));
-                DataInputStream dis = new DataInputStream(bais);
-                short numberOfContours = dis.readShort();
+                final DataInputStream dis = new DataInputStream(bais);
+                final short numberOfContours = dis.readShort();
                 if (numberOfContours >= 0) {
                     _descript[i] = new GlyfSimpleDescript(this, i, numberOfContours, dis);
                 }
@@ -92,12 +92,12 @@ public class GlyfTable implements Table {
 
         // Now do all the composite glyphs
         for (int i = 0; i < maxp.getNumGlyphs(); i++) {
-            int len = loca.getOffset(i + 1) - loca.getOffset(i);
+            final int len = loca.getOffset(i + 1) - loca.getOffset(i);
             if (len > 0) {
                 bais.reset();
                 bais.skip(loca.getOffset(i));
-                DataInputStream dis = new DataInputStream(bais);
-                short numberOfContours = dis.readShort();
+                final DataInputStream dis = new DataInputStream(bais);
+                final short numberOfContours = dis.readShort();
                 if (numberOfContours < 0) {
                     _descript[i] = new GlyfCompositeDescript(this, i, dis);
                 }
