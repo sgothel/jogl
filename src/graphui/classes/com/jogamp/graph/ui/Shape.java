@@ -438,7 +438,7 @@ public abstract class Shape {
      * @param gl current {@link GL2ES2} object
      * @see #validate(GLProfile)
      */
-    public final void validate(final GL2ES2 gl) {
+    public final Shape validate(final GL2ES2 gl) {
         synchronized ( dirtySync ) {
             if( isShapeDirty() ) {
                 box.reset();
@@ -446,6 +446,7 @@ public abstract class Shape {
             validateImpl(gl.getGLProfile(), gl);
             dirty = 0;
         }
+        return this;
     }
 
     /**
@@ -456,7 +457,7 @@ public abstract class Shape {
      * </p>
      * @see #validate(GL2ES2)
      */
-    public final void validate(final GLProfile glp) {
+    public final Shape validate(final GLProfile glp) {
         synchronized ( dirtySync ) {
             if( isShapeDirty() ) {
                 box.reset();
@@ -464,6 +465,7 @@ public abstract class Shape {
             validateImpl(glp, null);
             dirty = 0;
         }
+        return this;
     }
 
     /**
