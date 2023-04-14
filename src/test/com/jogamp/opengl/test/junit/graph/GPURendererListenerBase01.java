@@ -248,7 +248,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     private int screenshot_num = 0;
 
     public void printScreenOnGLThread(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) {
-        drawable.invoke(false, new GLRunnable() {
+        drawable.invoke(true, new GLRunnable() {
             @Override
             public boolean run(final GLAutoDrawable drawable) {
                 try {

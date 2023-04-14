@@ -241,7 +241,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         caps.setNumSamples(4);
         System.err.println("Requested: "+caps);
 
-        final GLWindow window = createWindow("TTRN20", caps, 1024, 640);
+        final GLWindow window = createWindow("TTRN20", caps, win_width, win_height);
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
@@ -287,7 +287,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         caps.setAlphaBits(4);
         System.err.println("Requested: "+caps);
 
-        final GLWindow window = createWindow("TTRN20", caps, 1024, 640);
+        final GLWindow window = createWindow("TTRN20", caps, win_width, win_height);
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
