@@ -29,8 +29,10 @@ package com.jogamp.opengl.demos.graph.ui;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -41,7 +43,9 @@ import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.layout.GridLayout;
 import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.GlyphShape;
+import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.Rectangle;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -50,6 +54,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.opengl.demos.util.MiscUtils;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 
@@ -57,6 +62,7 @@ import com.jogamp.opengl.util.Animator;
  * This may become a little font viewer application, having FontForge as its role model.
  */
 public class FontView01 {
+    private static float gridWidth = 2/3f;
     static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
 
     public static void main(final String[] args) throws IOException {
@@ -99,6 +105,7 @@ public class FontView01 {
             font = FontFactory.get( new File( fontfilename ) );
         }
         System.err.println("Font "+font.getFullFamilyName());
+        final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
 
         final GLProfile reqGLP = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+reqGLP);
@@ -139,7 +146,7 @@ public class FontView01 {
             System.err.println("mmPerCell "+mmPerCell);
         }
         if( 0 >= gridCols ) {
-            gridCols = (int)( ( window.getSurfaceWidth() / ppmm[0] ) / mmPerCell );
+            gridCols = (int)( ( window.getSurfaceWidth() * gridWidth / ppmm[0] ) / mmPerCell );
         }
         if( 0 >= gridRows ) {
             gridRows = (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCell );
@@ -147,23 +154,50 @@ public class FontView01 {
         final int cellCount = gridCols * gridRows;
         final float gridSize = gridCols > gridRows ? 1f/gridCols : 1f/gridRows;
         System.err.println("Grid "+gridCols+" x "+gridRows+", "+cellCount+" cells, gridSize "+gridSize);
+        final Group mainGrid = new Group(new GridLayout(gridCols, gridSize, gridSize, new Padding(gridSize*0.1f, gridSize*0.1f)));
 
-        final Group grid = new Group(new GridLayout(gridCols, gridSize, gridSize, new Padding(gridSize*0.1f, gridSize*0.1f)));
+        final Group glyphCont = new Group();
+        {
+            glyphCont.addShape(new Rectangle(options.renderModes, 1f, 1f, 0.005f).setInteractive(false));
+        }
+        final Group infoCont = new Group();
+        final Label glyphInfo = new Label(options.renderModes, fontStatus, "Nothing there yet");
+        infoCont.addShape(new Rectangle(options.renderModes, 1f, 1f, 0.005f).setInteractive(false));
+        {
+            setGlyphInfo(fontStatus, glyphInfo, 'A', font.getGlyph(font.getGlyphID('A')));
+            glyphInfo.setColor(0.1f, 0.1f, 0.1f, 1.0f);
+            infoCont.addShape(glyphInfo);
+        }
+        final Group infoGrid = new Group(new GridLayout(1/2f, 1/2f, new Padding(1/2f*0.01f, 1/2f*0.01f), 2));
+        infoGrid.addShape(glyphCont);
+        infoGrid.addShape(infoCont);
 
+        char glyphSymbol = 0;
+        int glyphID; // startGlyphID;
+        // final int glyphCount = font.getGlyphCount();
         for(int i=0; i<cellCount; ++i) {
-            final GlyphShape g = new GlyphShape(options.renderModes, (char)0, font.getGlyph(startGlyphID + i), 0, 0);
+            Font.Glyph fg;
+            while( true ) {
+                glyphID = font.getGlyphID(glyphSymbol);
+                fg = font.getGlyph(glyphID);
+                System.err.println("# 0x"+Integer.toHexString(glyphSymbol)+" -> 0x"+Integer.toHexString(glyphID)+": "+fg);
+                System.err.println("# 0x"+Integer.toHexString(glyphSymbol)+" -> 0x"+Integer.toHexString(glyphID)+": "+getGlyphInfo(glyphSymbol, fg));
+                if( !fg.isWhiteSpace() && !fg.isUndefined() ) {
+                    break;
+                } else {
+                    ++glyphSymbol;
+                }
+            }
+            final GlyphShape g = new GlyphShape(options.renderModes, glyphSymbol, fg, 0, 0);
+            System.err.println("# 0x"+Integer.toHexString(glyphSymbol)+" -> 0x"+Integer.toHexString(glyphID)+": "+g);
+            ++glyphSymbol;
             g.setColor(0.1f, 0.1f, 0.1f, 1);
             g.setDragAndResizeable(false);
-            g.onClicked( new Shape.Listener() {
-                @Override
-                public void run(final Shape shape) {
-                    System.err.println( ((GlyphShape)shape).getGlyph().toString() );
-                }
-            });
 
             // grid.addShape( g ); // GridLayout handles bottom-left offset and scale
             // Group each GlyphShape with its bounding box Rectangle
             final Group c = new Group();
+            c.setInteractive(true).setDragAndResizeable(false);
             c.addShape(new Rectangle(options.renderModes, 1f, 1f, 0.02f).setInteractive(false));
             final AABBox gbox = g.getBounds(reqGLP);
             if( showUnderline && gbox.getMinY() < 0f ) {
@@ -176,7 +210,22 @@ public class FontView01 {
             g.move( ( 1f - gbox.getWidth() ) / 2f, ( 1f - gbox.getHeight() ) / 2f, 0f ); // center
             g.move( gbox.getLow().mul(-1f) ); // remove bottom-left delta, here glyph underline
             c.addShape(g);
-            grid.addShape(c);
+            c.onClicked( new Shape.Listener() {
+                @Override
+                public void run(final Shape shape) {
+                    final Group c = (Group)shape;
+                    final GlyphShape gs = (GlyphShape)c.getShapes().get(1);
+                    if( 2 == glyphCont.getShapes().size() ) {
+                        glyphCont.removeShape(1);
+                    }
+                    glyphCont.addShape(gs);
+                    setGlyphInfo(fontStatus, glyphInfo, gs.getSymbol(), gs.getGlyph());
+                    // glyphCont.markShapeDirty();
+                    // grid.markShapeDirty();
+                    System.err.println();
+                }
+            });
+            mainGrid.addShape(c);
         }
 
         final Scene scene = new Scene();
@@ -188,23 +237,59 @@ public class FontView01 {
         animator.start();
         scene.waitUntilDisplayed();
 
-        grid.validate(reqGLP); // pre-validate to move & scale before display
+        mainGrid.validate(reqGLP); // pre-validate to move & scale before display
         final AABBox sceneBox = scene.getBounds();
         System.err.println("SceneBox "+sceneBox);
-        final AABBox gridBox = grid.getBounds();
+        final AABBox mainGridBox = mainGrid.getBounds();
         final float sgxy;
-        if( gridBox.getWidth() > gridBox.getHeight() ) {
-            sgxy = sceneBox.getWidth() / gridBox.getWidth();
+        if( mainGridBox.getWidth() > mainGridBox.getHeight() ) {
+            sgxy = sceneBox.getWidth() * gridWidth / mainGridBox.getWidth();
         } else {
-            sgxy = sceneBox.getHeight() / gridBox.getHeight();
+            sgxy = sceneBox.getHeight() / mainGridBox.getHeight();
         }
-        grid.scale(sgxy, sgxy, 1f);
-        grid.moveTo(sceneBox.getMinX(), sceneBox.getMinY(), 0f);
-        scene.addShape(grid); // late add at correct position and size
-        System.err.println("Grid "+grid);
-        System.err.println("Grid "+grid.getLayout());
-        System.err.println("Grid[0] "+grid.getShapes().get(0));
+        mainGrid.scale(sgxy, sgxy, 1f);
+        mainGrid.moveTo(sceneBox.getMinX(), sceneBox.getMinY(), 0f);
+        scene.addShape(mainGrid); // late add at correct position and size
+        System.err.println("Grid "+mainGrid);
+        System.err.println("Grid "+mainGrid.getLayout());
+        System.err.println("Grid[0] "+mainGrid.getShapes().get(0));
+        final float rightWidth = sceneBox.getWidth() * ( 1f - gridWidth );
+        {
+            final float icScale = sceneBox.getHeight();
+            infoGrid.validate(reqGLP);
+            final AABBox infoGridBox = infoGrid.getBounds();
+            final float rightDiffH = ( rightWidth - infoGridBox.getWidth() * icScale ) * 0.5f;
+            infoGrid.moveTo(sceneBox.getMaxX() - rightWidth + rightDiffH, sceneBox.getMinY(), 0f);
+            infoGrid.setScale(icScale, icScale, 1f);
+        }
+        scene.addShape(infoGrid);
         scene.screenshot(true, scene.nextScreenshotFile(null, FontView01.class.getSimpleName(), options.renderModes, window.getChosenGLCapabilities(), null));
         // stay open ..
+    }
+
+    static void setGlyphInfo(final Font font, final Label label, final char symbol, final Font.Glyph g) {
+        final String info = getGlyphInfo(symbol, g);
+        final AABBox fbox = font.getGlyphBounds(info);
+        final float slScale = 1f / fbox.getWidth();
+        System.err.println("Scale "+slScale+", "+fbox);
+        System.err.println("Info "+g);
+        label.setText(info);
+        label.setScale(slScale, slScale, 1f);
+        System.err.println(info);
+    }
+
+    static String getGlyphInfo(final char symbol, final Font.Glyph g) {
+        final OutlineShape os = g.getShape();
+        final int osVertices = null != os ? os.getOutlineVectexCount() : 0;
+        final String ws = g.isWhiteSpace() ? ", ws" : "";
+        return String.format((Locale)null, "%s%nSymbol: 0x%s, id 0x%s%s%nName: %s%nDim %1.3f x %1.3f%nAdvance %1.3f%nHeight: %1.3f%nLine Height: %1.3f%nLS Bearings: %1.3f%nVertices: %d%n ",
+                g.getFont().getFullFamilyName(),
+                Integer.toHexString(symbol), Integer.toHexString(g.getID()), ws, g.getName(),
+                g.getBounds().getWidth(), g.getBounds().getHeight(),
+                g.getAdvance(),
+                g.getFont().getMetrics().getAscent() - g.getFont().getMetrics().getDescent(),
+                g.getFont().getLineHeight(),
+                g.getLeftSideBearings(),
+                osVertices );
     }
 }
