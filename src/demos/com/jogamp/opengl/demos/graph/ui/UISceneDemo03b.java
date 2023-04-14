@@ -248,7 +248,7 @@ public class UISceneDemo03b {
 
             window.invoke(true, (drawable) -> {
                 final GL2ES2 gl = drawable.getGL().getGL2ES2();
-                scene.screenshot(gl, options.renderModes, UISceneDemo03b.class.getSimpleName());
+                scene.screenshot(gl, scene.nextScreenshotFile(null, UISceneDemo03b.class.getSimpleName(), options.renderModes, drawable.getChosenGLCapabilities(), null));
                 scene.removeShape(gl, l);
                 return true;
             });
@@ -267,9 +267,6 @@ public class UISceneDemo03b {
             final float[] sDPI = MonitorDevice.perMMToPerInch( tmp );
             dpiV = sDPI[1];
         }
-        final float s_w = sceneBox.getWidth();
-        final float s_h = sceneBox.getHeight();
-
         boolean z_only = true;
         int txt_idx = 0;
 
@@ -483,7 +480,7 @@ public class UISceneDemo03b {
             final float has_dur_s = ((Clock.currentNanos() / 1000) - t0_us) / 1e6f; // [us]
             System.err.printf("Text travel-duration %.3f s, %d chars%n", has_dur_s, originalTexts[txt_idx].length());
             if( scene.getScreenshotCount() < 1 + originalTexts.length ) {
-                scene.screenshot(true, options.renderModes, UISceneDemo03b.class.getSimpleName());
+                scene.screenshot(true, scene.nextScreenshotFile(null, UISceneDemo03b.class.getSimpleName(), options.renderModes, window.getChosenGLCapabilities(), null));
             }
             try { Thread.sleep(2000); } catch (final InterruptedException e1) { }
             if( autoSpeed > 0 ) {

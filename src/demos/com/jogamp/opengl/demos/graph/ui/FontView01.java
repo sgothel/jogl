@@ -186,7 +186,7 @@ public class FontView01 {
         System.err.println("Grid "+grid);
         System.err.println("Grid "+grid.getLayout());
         System.err.println("Grid[0] "+grid.getShapes().get(0));
-        scene.screenshot(true, options.renderModes, FontView01.class.getSimpleName());
+        scene.screenshot(true, scene.nextScreenshotFile(null, FontView01.class.getSimpleName(), options.renderModes, window.getChosenGLCapabilities(), null));
         // stay open ..
     }
 }
