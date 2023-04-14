@@ -29,7 +29,6 @@ package com.jogamp.graph.font;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 
 /**
@@ -352,7 +351,20 @@ public interface Font {
     int getLineHeightFU();
 
     /**
-     * Return line height in font em-size [0..1]
+     * Return line height, baseline-to-baseline in em-size [0..1], composed from `hhea' table entries.
+     * <pre>
+     *   return ascent - descent + linegap;
+     * </pre>
+     * or
+     * <pre>
+     *   // lineGap positive value
+     *   // descent negative value
+     *   // ascent positive value
+     *   return ascent - descent + linegap;
+     * </pre>
+     * @see Metrics#getAscent()
+     * @see Metrics#getDescent()
+     * @see Metrics#getLineGap()
      */
     float getLineHeight();
 
