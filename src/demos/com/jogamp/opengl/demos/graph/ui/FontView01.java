@@ -282,13 +282,13 @@ public class FontView01 {
         final OutlineShape os = g.getShape();
         final int osVertices = null != os ? os.getOutlineVectexCount() : 0;
         final String ws = g.isWhiteSpace() ? ", ws" : "";
-        return String.format((Locale)null, "%s%nSymbol: 0x%s, id 0x%s%s%nName: %s%nDim %1.3f x %1.3f%nAdvance %1.3f%nHeight: %1.3f%nLine Height: %1.3f%nLS Bearings: %1.3f%nVertices: %d%n ",
+        return String.format((Locale)null, "%s%nHeight: %1.3f%nLine Height: %1.3f%n%nSymbol: 0x%s, id 0x%s%s%nName: %s%nDim %1.3f x %1.3f%nAdvance %1.3f%nLS Bearings: %1.3f%nVertices: %d%n ",
                 g.getFont().getFullFamilyName(),
+                g.getFont().getMetrics().getAscent() - g.getFont().getMetrics().getDescent(), // font hhea table
+                g.getFont().getLineHeight(), // font hhea table
                 Integer.toHexString(symbol), Integer.toHexString(g.getID()), ws, g.getName(),
                 g.getBounds().getWidth(), g.getBounds().getHeight(),
                 g.getAdvance(),
-                g.getFont().getMetrics().getAscent() - g.getFont().getMetrics().getDescent(),
-                g.getFont().getLineHeight(),
                 g.getLeftSideBearings(),
                 osVertices );
     }
