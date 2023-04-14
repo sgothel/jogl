@@ -152,6 +152,10 @@ public abstract class OTFont {
         return _maxp.getNumGlyphs();
     }
 
+    /** Return number of {@link Glyph} IDs available, i.e. retrievable via {@link #getGlyph(int)} [0..count). */
+    public abstract int getGlyphCount();
+
+    /** Return the {@link Glyph} using given ID, see {@link #getGlyphCount()}. */
     public abstract Glyph getGlyph(int i);
 
     int seekTable(

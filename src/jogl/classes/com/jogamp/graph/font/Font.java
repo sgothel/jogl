@@ -319,8 +319,13 @@ public interface Font {
 
     Metrics getMetrics();
 
+    /** Return the {@link Glyph} ID mapped to given `symbol`, usually UTF16 unicode. Returned ID can be used to retrieve the {@link Glyph} via {@link #getGlyph(int)}. */
     int getGlyphID(final char symbol);
 
+    /** Return number of {@link Glyph} IDs available, i.e. retrievable via {@link #getGlyph(int)} [0..count). */
+    int getGlyphCount();
+
+    /** Return the {@link Glyph} using given ID, see {@link #getGlyphCount()}. */
     Glyph getGlyph(final int glyph_id);
 
     int getNumGlyphs();

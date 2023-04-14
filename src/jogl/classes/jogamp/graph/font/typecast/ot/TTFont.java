@@ -165,6 +165,9 @@ public class TTFont extends OTFont {
     }
 
     @Override
+    public int getGlyphCount() { return _glyf.getSize(); }
+
+    @Override
     public Glyph getGlyph(final int i) {
         final GlyfDescript glyfDescr = _glyf.getDescription(i);
         if( null != glyfDescr ) {

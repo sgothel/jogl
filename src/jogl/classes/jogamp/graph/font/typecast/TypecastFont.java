@@ -189,6 +189,9 @@ class TypecastFont implements Font {
     }
 
     @Override
+    public int getGlyphCount() { return font.getGlyphCount(); }
+
+    @Override
     public Glyph getGlyph(final int glyph_id) {
         TypecastGlyph result = (TypecastGlyph) idToGlyph.get(glyph_id);
         if (null == result) {

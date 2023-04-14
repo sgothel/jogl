@@ -105,7 +105,9 @@ public class GlyfTable implements Table {
         }
     }
 
-    public GlyfDescript getDescription(int i) {
+    public int getSize() { return _descript.length; }
+
+    public GlyfDescript getDescription(final int i) {
         if (i < _descript.length) {
             return _descript[i];
         } else {
