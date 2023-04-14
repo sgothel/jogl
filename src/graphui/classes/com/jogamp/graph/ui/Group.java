@@ -28,6 +28,7 @@
 package com.jogamp.graph.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -191,12 +192,16 @@ public class Group extends Shape implements Container {
     @Override
     public final boolean isFrustumCullingEnabled() { return doFrustumCulling; }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final float[] rgba) {
         final PMVMatrix pmv = renderer.getMatrix();
-        final int shapeCount = shapes.size();
+        final Object[] shapesS = shapes.toArray();
+        Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
+
+        final int shapeCount = shapesS.length;
         for(int i=0; i<shapeCount; i++) {
-            final Shape shape = shapes.get(i);
+            final Shape shape = (Shape) shapesS[i];
             if( shape.isEnabled() ) {
                 pmv.glPushMatrix();
                 shape.setTransform(pmv);
