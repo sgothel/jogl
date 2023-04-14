@@ -33,6 +33,7 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import jogamp.opengl.Debug;
@@ -44,6 +45,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.PerfCounterCtrl;
 import com.jogamp.graph.curve.opengl.GLRegion;
+import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.math.geom.Frustum;
@@ -60,6 +62,14 @@ public abstract class Region {
     /** Debug flag for region impl (graph.curve) */
     public static final boolean DEBUG = Debug.debug("graph.curve");
     public static final boolean DEBUG_INSTANCE = Debug.debug("graph.curve.Instance");
+
+    /**
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
+     * <p>
+     * One pass `norm` rendering either using no AA or underlying full-screen AA (fsaa).
+     * </p>
+     */
+    public static final int NORM_RENDERING_BIT        = 0;
 
     /**
      * Rendering-Mode bit for {@link #getRenderModes() Region}
@@ -169,6 +179,13 @@ public abstract class Region {
         return 0 != (renderModes & Region.COLORTEXTURE_RENDERING_BIT);
     }
 
+    /**
+     * Returns a unique technical description string for renderModes as follows:
+     * <pre>
+     *    (vbaa|msaa|norm)[-curve][-cols][-ctex]
+     * </pre>
+     * @param renderModes Graph renderModes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}
+     */
     public static String getRenderModeString(final int renderModes) {
         final String curveS = hasVariableWeight(renderModes) ? "-curve" : "";
         final String cChanS = hasColorChannel(renderModes) ? "-cols" : "";
@@ -180,6 +197,20 @@ public abstract class Region {
         } else {
             return "norm"+curveS+cChanS+cTexS;
         }
+    }
+
+    /**
+     * Return a unique technical description string for renderModes and sample counts as follows:
+     * <pre>
+     *    {@link #getRenderModeString(int)}-s{sampleCount}-fsaa{CapsNumSamples}
+     * </pre>
+     *
+     * @param renderModes the used Graph renderModes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}
+     * @param graphSampleCount Graph sample count for {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}
+     * @param fsaaSampleCount full-screen AA (fsaa) sample count, retrieved e.g. via {@link GLCapabilitiesImmutable#getNumSamples()}
+     */
+    public static String getRenderModeString(final int renderModes, final int graphSampleCount, final int fsaaSampleCount) {
+        return String.format((Locale)null, "%s-s%02d-fsaa%d", Region.getRenderModeString(renderModes), graphSampleCount, fsaaSampleCount);
     }
 
     protected Region(final int regionRenderModes, final boolean use_int32_idx) {
