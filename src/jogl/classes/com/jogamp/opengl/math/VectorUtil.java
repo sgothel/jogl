@@ -377,9 +377,8 @@ public final class VectorUtil {
             }
         }
 
-        { // FIXME: p2?
-            ap.minus(p1, a); // v3
-            // ap.minus(p2, a); // v2
+        {
+            ap.minus(p2, a); // v2
             final float dotAC_AP2 = ac.dot(ap);
             final float dotAB_AP2 = ab.dot(ap);
             final float u = (dotAB_AB * dotAC_AP2 - dotAC_AB * dotAB_AP2) * invDenom;
@@ -391,9 +390,8 @@ public final class VectorUtil {
             }
         }
 
-        { // FIXME: p3?
-            ap.minus(p2, a); // v4
-            // ap.minus(p3, a); // v3
+        {
+            ap.minus(p3, a); // v3
             final float dotAC_AP3 = ac.dot(ap);
             final float dotAB_AP3 = ab.dot(ap);
             final float u = (dotAB_AB * dotAC_AP3 - dotAC_AB * dotAB_AP3) * invDenom;
@@ -450,9 +448,8 @@ public final class VectorUtil {
             }
         }
 
-        { // FIXME: p2?
-            ap.minus(p1, a); // v2
-            // ap.minus(p2, a); // v3
+        {
+            ap.minus(p2, a); // v3
             final float dotAC_AP2 = ac.dot(ap);
             final float dotAB_AP2 = ab.dot(ap);
             final float u = (dotAB_AB * dotAC_AP2 - dotAC_AB * dotAB_AP2) * invDenom;
@@ -466,9 +463,8 @@ public final class VectorUtil {
             }
         }
 
-        { // FIXME: p3?
-            ap.minus(p2, a); // v2
-            // ap.minus(p3, a); // v4
+        {
+            ap.minus(p3, a); // v4
             final float dotAC_AP3 = ac.dot(ap);
             final float dotAB_AP3 = ab.dot(ap);
             final float u = (dotAB_AB * dotAC_AP3 - dotAC_AB * dotAB_AP3) * invDenom;
