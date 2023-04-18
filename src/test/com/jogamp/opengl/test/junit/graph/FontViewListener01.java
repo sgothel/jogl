@@ -47,7 +47,7 @@ import com.jogamp.opengl.math.geom.AABBox;
  * Glyph Grid using GraphUI
  */
 public class FontViewListener01 implements GLEventListener {
-    private static final float mmPerCell = 10f;
+    private static final float mmPerCell = 8.0f;
     private final int renderModes;
     private final int startGlyphID;
     private final Font font;
