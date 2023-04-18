@@ -43,7 +43,7 @@ public class Glyph05FreeSerifBoldItalic_ae extends GraphShape {
 
     @Override
     protected void addShapeToRegion() {
-        final OutlineShape shape = new OutlineShape(vertexFactory);
+        final OutlineShape shape = new OutlineShape();
 
         // Start TTF Shape for Glyph 168
         // 000: B0a: move-to p0

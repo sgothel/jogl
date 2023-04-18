@@ -32,7 +32,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-
+import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
@@ -273,7 +273,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
                 break;
         }
         region = GLRegion.create(gl.getGLProfile(), getRenderModes(), null);
-        region.addOutlineShape(outlineShape, null, region.hasColorChannel() ? getRenderer().getRenderState().getColorStatic(new float[4]) : null);
+        region.addOutlineShape(outlineShape, null, region.hasColorChannel() ? getRenderer().getRenderState().getColorStatic(new Vec4f()) : null);
     }
 
     @Override

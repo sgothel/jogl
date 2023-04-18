@@ -33,6 +33,7 @@ import java.util.Iterator;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
@@ -82,7 +83,7 @@ public class TextRegionUtil {
      * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] OutlineShape into account.
      */
     public static AABBox addStringToRegion(final Region region, final Font font, final AffineTransform transform,
-                                           final CharSequence str, final float[] rgbaColor) {
+                                           final CharSequence str, final Vec4f rgbaColor) {
         return addStringToRegion(region, font, transform, str, rgbaColor, new AffineTransform(), new AffineTransform());
     }
 
@@ -105,7 +106,7 @@ public class TextRegionUtil {
      * @return the bounding box of the given string by taking each glyph's font em-sized [0..1] OutlineShape into account.
      */
     public static AABBox addStringToRegion(final Region region, final Font font, final AffineTransform transform,
-                                           final CharSequence str, final float[] rgbaColor,
+                                           final CharSequence str, final Vec4f rgbaColor,
                                            final AffineTransform temp1, final AffineTransform temp2) {
         final Font.GlyphVisitor visitor = new Font.GlyphVisitor() {
             @Override
@@ -113,7 +114,7 @@ public class TextRegionUtil {
                 if( glyph.isWhiteSpace() ) {
                     return;
                 }
-                region.addOutlineShape(glyph.getShape(), t, region.hasColorChannel() ? rgbaColor : null);
+                region.addOutlineShape(glyph.getShape(), t, rgbaColor);
             }
         };
         return font.processString(visitor, transform, str, temp1, temp2);
@@ -167,7 +168,7 @@ public class TextRegionUtil {
      */
     public AABBox drawString3D(final GL2ES2 gl,
                                final RegionRenderer renderer, final Font font, final CharSequence str,
-                               final float[] rgbaColor, final int[/*1*/] sampleCount) {
+                               final Vec4f rgbaColor, final int[/*1*/] sampleCount) {
         if( !renderer.isInitialized() ) {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
@@ -193,7 +194,7 @@ public class TextRegionUtil {
      */
     public static AABBox drawString3D(final GL2ES2 gl, final int renderModes,
                                       final RegionRenderer renderer, final Font font, final CharSequence str,
-                                      final float[] rgbaColor, final int[/*1*/] sampleCount) {
+                                      final Vec4f rgbaColor, final int[/*1*/] sampleCount) {
         return drawString3D(gl, renderModes, renderer, font, str, rgbaColor, sampleCount, new AffineTransform(), new AffineTransform());
     }
 
@@ -228,7 +229,7 @@ public class TextRegionUtil {
      */
     public static AABBox drawString3D(final GL2ES2 gl, final int renderModes,
                                       final RegionRenderer renderer, final Font font, final CharSequence str,
-                                      final float[] rgbaColor, final int[/*1*/] sampleCount, final AffineTransform tmp1, final AffineTransform tmp2) {
+                                      final Vec4f rgbaColor, final int[/*1*/] sampleCount, final AffineTransform tmp1, final AffineTransform tmp2) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
@@ -246,7 +247,7 @@ public class TextRegionUtil {
      * </p>
      */
     public static AABBox drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
-                                      final Font font, final CharSequence str, final float[] rgbaColor, final int[/*1*/] sampleCount) {
+                                      final Font font, final CharSequence str, final Vec4f rgbaColor, final int[/*1*/] sampleCount) {
         return drawString3D(gl, region, renderer, font, str, rgbaColor, sampleCount, new AffineTransform(), new AffineTransform());
     }
 
@@ -278,7 +279,7 @@ public class TextRegionUtil {
      * @throws Exception if TextRenderer not initialized
      */
     public static AABBox drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
-                                      final Font font, final CharSequence str, final float[] rgbaColor,
+                                      final Font font, final CharSequence str, final Vec4f rgbaColor,
                                       final int[/*1*/] sampleCount, final AffineTransform tmp1, final AffineTransform tmp2) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");

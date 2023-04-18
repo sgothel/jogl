@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.plane.Winding;
 import com.jogamp.graph.geom.Triangle;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.VectorUtil;
 import com.jogamp.opengl.math.Vert2fImmutable;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -96,9 +97,9 @@ public class Loop {
         final int n = vertices.size();
         float area = 0.0f;
         for (int p = n - 1, q = 0; q < n; p = q++) {
-            final float[] pCoord = vertices.get(p).getCoord();
-            final float[] qCoord = vertices.get(q).getCoord();
-            area += pCoord[0] * qCoord[1] - qCoord[0] * pCoord[1];
+            final Vec3f pCoord = vertices.get(p).getCoord();
+            final Vec3f qCoord = vertices.get(q).getCoord();
+            area += pCoord.x() * qCoord.y() - qCoord.x() * pCoord.y();
         }
         return area;
     }
@@ -136,7 +137,7 @@ public class Loop {
             final int max = vertices.size() - 1;
             for(int index = 0; index <= max; ++index) {
                 final GraphVertex v1 = vertices.get(index);
-                box.resize(v1.getX(), v1.getY(), v1.getZ());
+                box.resize(v1.x(), v1.y(), v1.z());
 
                 final HEdge edge = new HEdge(v1, edgeType);
 
@@ -157,7 +158,7 @@ public class Loop {
             // CCW -> CW
             for(int index = vertices.size() - 1; index >= 0; --index) {
                 final GraphVertex v1 = vertices.get(index);
-                box.resize(v1.getX(), v1.getY(), v1.getZ());
+                box.resize(v1.x(), v1.y(), v1.z());
 
                 final HEdge edge = new HEdge(v1, edgeType);
 
@@ -222,7 +223,7 @@ public class Loop {
             final GraphVertex nextV = initVertices.get(i+1);
             for(int pos=0; pos<vertices.size(); pos++) {
                 final GraphVertex cand = vertices.get(pos);
-                final float distance = VectorUtil.distVec3(v.getCoord(), cand.getCoord());
+                final float distance = v.getCoord().dist( cand.getCoord() );
                 if(distance < minDistance){
                     for (final GraphVertex vert:vertices){
                         if(vert == v || vert == nextV || vert == cand)
@@ -312,7 +313,7 @@ public class Loop {
     }
 
     public boolean checkInside(final Vertex v) {
-        if(!box.contains(v.getX(), v.getY(), v.getZ())){
+        if(!box.contains(v.x(), v.y(), v.z())){
             return false;
         }
 
@@ -323,8 +324,8 @@ public class Loop {
             final Vertex v2 = current.getGraphPoint().getPoint();
             final Vertex v1 = next.getGraphPoint().getPoint();
 
-            if ( ((v1.getY() > v.getY()) != (v2.getY() > v.getY())) &&
-                  (v.getX() < (v2.getX() - v1.getX()) * (v.getY() - v1.getY()) / (v2.getY() - v1.getY()) + v1.getX()) ){
+            if ( ((v1.y() > v.y()) != (v2.y() > v.y())) &&
+                  (v.x() < (v2.x() - v1.x()) * (v.y() - v1.y()) / (v2.y() - v1.y()) + v1.x()) ){
                 inside = !inside;
             }
 

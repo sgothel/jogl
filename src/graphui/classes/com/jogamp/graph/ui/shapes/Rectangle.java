@@ -59,7 +59,7 @@ public class Rectangle extends GraphShape {
 
     @Override
     protected void addShapeToRegion() {
-        final OutlineShape shape = new OutlineShape(vertexFactory);
+        final OutlineShape shape = new OutlineShape();
         final float x1 = 0f;
         final float y1 = 0f;
         final float x2 = getWidth();

@@ -145,6 +145,15 @@ public final class Vec4f {
         return new Vec4f(this).scale(val);
     }
 
+    /** this = a * b, returns this. */
+    public Vec4f mul(final Vec4f a, final Vec4f b) {
+        x = a.x * b.x;
+        y = a.y * b.y;
+        z = a.z * b.z;
+        w = a.w * b.w;
+        return this;
+    }
+
     /** this = this * s, returns this. */
     public Vec4f scale(final float s) {
         x *= s;
@@ -168,6 +177,15 @@ public final class Vec4f {
         return new Vec4f(this).add(arg);
     }
 
+    /** this = a + b, returns this. */
+    public Vec4f plus(final Vec4f a, final Vec4f b) {
+        x = a.x + b.x;
+        y = a.y + b.y;
+        z = a.z + b.z;
+        w = a.w + b.w;
+        return this;
+    }
+
     /** this = this + { dx, dy, dz, dw }, returns this. */
     public Vec4f add(final float dx, final float dy, final float dz, final float dw) {
         x += dx;
@@ -189,6 +207,15 @@ public final class Vec4f {
     /** Returns this - arg; creates new vector */
     public Vec4f minus(final Vec4f arg) {
         return new Vec4f(this).sub(arg);
+    }
+
+    /** this = a - b, returns this. */
+    public Vec4f minus(final Vec4f a, final Vec4f b) {
+        x = a.x - b.x;
+        y = a.y - b.y;
+        z = a.z - b.z;
+        w = a.w - b.w;
+        return this;
     }
 
     /** this = this - b, returns this. */

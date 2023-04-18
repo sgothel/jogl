@@ -36,6 +36,8 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLUniformData;
+import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.opengl.math.Vec4f;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;
@@ -172,12 +174,12 @@ public final class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    protected final void pushVertex(final float[] coords, final float[] texParams, final float[] rgba) {
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords[0], coords[1], coords[2]);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams[0], texParams[1], texParams[2]);
+    protected final void pushVertex(final Vec3f coords, final Vec3f texParams, final Vec4f rgba) {
+        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords);
+        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams);
         if( null != gca_ColorsAttr ) {
             if( null != rgba ) {
-                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), rgba[0], rgba[1], rgba[2], rgba[3]);
+                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), rgba);
             } else {
                 throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
             }
@@ -185,17 +187,17 @@ public final class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
-    protected final void pushVertices(final float[] coords1, final float[] coords2, final float[] coords3,
-                                      final float[] texParams1, final float[] texParams2, final float[] texParams3, final float[] rgba) {
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords1[0], coords1[1], coords1[2]);
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords2[0], coords2[1], coords2[2]);
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords3[0], coords3[1], coords3[2]);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams1[0], texParams1[1], texParams1[2]);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams2[0], texParams2[1], texParams2[2]);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams3[0], texParams3[1], texParams3[2]);
+    protected final void pushVertices(final Vec3f coords1, final Vec3f coords2, final Vec3f coords3,
+                                      final Vec3f texParams1, final Vec3f texParams2, final Vec3f texParams3, final Vec4f rgba) {
+        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords1);
+        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords2);
+        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords3);
+        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams1);
+        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams2);
+        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams3);
         if( null != gca_ColorsAttr ) {
             if( null != rgba ) {
-                final float r=rgba[0], g=rgba[1], b=rgba[2], a=rgba[3];
+                final float r=rgba.x(), g=rgba.y(), b=rgba.z(), a=rgba.w();
                 put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);
                 put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);
                 put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);

@@ -64,11 +64,11 @@ public class Triangle {
     /**
      * Returns a transformed a clone of this instance using the given AffineTransform.
      */
-    public Triangle transform(final AffineTransform t, final Vertex.Factory<? extends Vertex> vertexFactory) {
+    public Triangle transform(final AffineTransform t) {
         final Triangle tri = new Triangle(id, boundaryEdges, boundaryVertices);
-        tri.vertices[0] = t.transform(vertices[0], vertexFactory.create());
-        tri.vertices[1] = t.transform(vertices[1], vertexFactory.create());
-        tri.vertices[2] = t.transform(vertices[2], vertexFactory.create());
+        tri.vertices[0] = t.transform(vertices[0], new Vertex());
+        tri.vertices[1] = t.transform(vertices[1], new Vertex());
+        tri.vertices[2] = t.transform(vertices[2], new Vertex());
         return tri;
     }
 
@@ -83,9 +83,9 @@ public class Triangle {
      * Returns true if all vertices are lines, i.e. zero tex-coord, otherwise false.
      */
     public final boolean isLine() {
-        return VectorUtil.isVec2Zero(vertices[0].getTexCoord(), 0) &&
-               VectorUtil.isVec2Zero(vertices[1].getTexCoord(), 0) &&
-               VectorUtil.isVec2Zero(vertices[2].getTexCoord(), 0) ;
+        return VectorUtil.isVec2Zero(vertices[0].getTexCoord()) &&
+               VectorUtil.isVec2Zero(vertices[1].getTexCoord()) &&
+               VectorUtil.isVec2Zero(vertices[2].getTexCoord()) ;
     }
 
     public int getId() {

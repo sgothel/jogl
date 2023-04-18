@@ -28,12 +28,9 @@
 package com.jogamp.opengl.math;
 
 public interface Vert2fImmutable {
-    float getX();
+    float x();
 
-    float getY();
+    float y();
 
     int getCoordCount();
-
-    float[] getCoord();
-
 }

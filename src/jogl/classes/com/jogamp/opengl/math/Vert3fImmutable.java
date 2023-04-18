@@ -28,5 +28,7 @@
 package com.jogamp.opengl.math;
 
 public interface Vert3fImmutable extends Vert2fImmutable {
-    float getZ();
+    float z();
+
+    Vec3f getCoord();
 }

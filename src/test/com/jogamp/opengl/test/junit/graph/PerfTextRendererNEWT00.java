@@ -55,6 +55,7 @@ import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
@@ -87,7 +88,7 @@ public class PerfTextRendererNEWT00 {
     static boolean do_vsync = false;
 
     static Font font;
-    private final float[] fg_color = new float[] { 0, 0, 0, 1 };
+    private final Vec4f fg_color = new Vec4f( 0, 0, 0, 1 );
 
     static {
         try {

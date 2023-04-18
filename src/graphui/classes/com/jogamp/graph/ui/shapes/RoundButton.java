@@ -40,7 +40,7 @@ import com.jogamp.graph.ui.GraphShape;
  * To render it rectangular, {@link #setCorner(float)} to zero.
  * </p>
  */
-public abstract class RoundButton extends GraphShape {
+public class RoundButton extends GraphShape {
 
     /** {@value} */
     public static final float DEFAULT_CORNER = 1f;
@@ -48,7 +48,7 @@ public abstract class RoundButton extends GraphShape {
     protected float height;
     protected float corner = DEFAULT_CORNER;
 
-    protected RoundButton(final int renderModes, final float width, final float height) {
+    public RoundButton(final int renderModes, final float width, final float height) {
         super(renderModes);
         this.width = width;
         this.height = height;
@@ -65,6 +65,28 @@ public abstract class RoundButton extends GraphShape {
         this.height = height;
         markShapeDirty();
         return this;
+    }
+
+    @Override
+    protected void addShapeToRegion() {
+        addRoundShapeToRegion(0f);
+    }
+    protected OutlineShape addRoundShapeToRegion(final float zOffset) {
+        final OutlineShape shape = new OutlineShape();
+        if(corner == 0.0f) {
+            createSharpOutline(shape, zOffset);
+        } else {
+            createCurvedOutline(shape, zOffset);
+        }
+        shape.setIsQuadraticNurbs();
+        shape.setSharpness(oshapeSharpness);
+        region.addOutlineShape(shape, null, rgbaColor);
+        box.resize(shape.getBounds());
+        setRotationPivot( box.getCenter() );
+        if( DEBUG_DRAW ) {
+            System.err.println("GraphShape.RoundButton: Added Shape: "+shape+", "+box);
+        }
+        return shape;
     }
 
     protected void createSharpOutline(final OutlineShape shape, final float zOffset) {

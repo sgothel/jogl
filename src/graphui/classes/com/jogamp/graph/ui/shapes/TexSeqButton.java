@@ -62,21 +62,6 @@ public abstract class TexSeqButton extends RoundButton {
 
     @Override
     protected void addShapeToRegion() {
-        final OutlineShape shape = new OutlineShape(vertexFactory);
-        if(corner == 0.0f) {
-            createSharpOutline(shape, 0f);
-        } else {
-            createCurvedOutline(shape, 0f);
-        }
-        shape.setIsQuadraticNurbs();
-        shape.setSharpness(oshapeSharpness);
-        region.addOutlineShape(shape, null, rgbaColor);
-        box.resize(shape.getBounds());
-
-        setRotationPivot( box.getCenter() );
-
-        if( DEBUG_DRAW ) {
-            System.err.println("XXX.UIShape.TextureSeqButton: Added Shape: "+shape+", "+box);
-        }
+        addRoundShapeToRegion( 0f );
     }
 }

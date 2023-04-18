@@ -34,10 +34,9 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
@@ -51,8 +50,6 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * @see Scene
  */
 public abstract class GraphShape extends Shape {
-    protected final Factory<? extends Vertex> vertexFactory;
-
     protected final int renderModes;
     protected GLRegion region = null;
     protected float oshapeSharpness = OutlineShape.DEFAULT_SHARPNESS;
@@ -66,7 +63,6 @@ public abstract class GraphShape extends Shape {
      */
     public GraphShape(final int renderModes) {
         super();
-        this.vertexFactory = OutlineShape.getDefaultVertexFactory();
         this.renderModes = renderModes;
     }
 
@@ -122,7 +118,7 @@ public abstract class GraphShape extends Shape {
     }
 
     @Override
-    protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final float[] rgba) {
+    protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final Vec4f rgba) {
         if( null != rgba ) {
             renderer.getRenderState().setColorStatic(rgba);
         }
@@ -157,10 +153,10 @@ public abstract class GraphShape extends Shape {
         }
     }
 
-    private final float[] dbgColor = {0.3f, 0.3f, 0.3f, 0.5f};
+    private final Vec4f dbgColor = new Vec4f(0.3f, 0.3f, 0.3f, 0.5f);
 
     protected void addDebugOutline() {
-        final OutlineShape shape = new OutlineShape(vertexFactory);
+        final OutlineShape shape = new OutlineShape();
         final float x1 = box.getMinX();
         final float x2 = box.getMaxX();
         final float y1 = box.getMinY();

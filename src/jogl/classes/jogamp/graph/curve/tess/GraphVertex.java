@@ -30,6 +30,7 @@ package jogamp.graph.curve.tess;
 import java.util.ArrayList;
 
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.opengl.math.Vec3f;
 
 public class GraphVertex {
     private Vertex point;
@@ -44,18 +45,18 @@ public class GraphVertex {
         return point;
     }
 
-    public float getX(){
-        return point.getX();
+    public float x(){
+        return point.x();
     }
 
-    public float getY(){
-        return point.getY();
+    public float y(){
+        return point.y();
     }
 
-    public float getZ(){
-        return point.getZ();
+    public float z(){
+        return point.z();
     }
-    public float[] getCoord() {
+    public Vec3f getCoord() {
         return point.getCoord();
     }
 
@@ -121,6 +122,7 @@ public class GraphVertex {
         this.boundaryContained = boundaryContained;
     }
 
+    @Override
     public String toString() {
         return "GraphVertex[contained "+boundaryContained+", "+point+"]";
     }

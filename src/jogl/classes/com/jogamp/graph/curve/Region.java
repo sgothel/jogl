@@ -47,6 +47,8 @@ import com.jogamp.common.util.PerfCounterCtrl;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.math.geom.Frustum;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -256,9 +258,9 @@ public abstract class Region {
      */
     public abstract void setBufferCapacity(int verticesCount, int indicesCount);
 
-    protected abstract void pushVertex(final float[] coords, final float[] texParams, float[] rgba);
-    protected abstract void pushVertices(final float[] coords1, final float[] coords2, final float[] coords3,
-                                         final float[] texParams1, final float[] texParams2, final float[] texParams3, float[] rgba);
+    protected abstract void pushVertex(final Vec3f coords, final Vec3f texParams, Vec4f rgba);
+    protected abstract void pushVertices(final Vec3f coords1, final Vec3f coords2, final Vec3f coords3,
+                                         final Vec3f texParams1, final Vec3f texParams2, final Vec3f texParams3, Vec4f rgba);
     protected abstract void pushIndex(int idx);
     protected abstract void pushIndices(int idx1, int idx2, int idx3);
 
@@ -336,12 +338,9 @@ public abstract class Region {
         this.frustum = frustum;
     }
 
-    private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform, final float[] rgba) {
+    private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform, final Vec4f rgba) {
         if( null != transform ) {
-            final float[] coordsEx1 = new float[3];
-            final float[] coordsIn = vertIn.getCoord();
-            transform.transform(coordsIn, coordsEx1);
-            coordsEx1[2] = coordsIn[2];
+            final Vec3f coordsEx1 = transform.transform(vertIn.getCoord(), new Vec3f());
             box.resize(coordsEx1);
             pushVertex(coordsEx1, vertIn.getTexCoord(), rgba);
         } else {
@@ -351,20 +350,11 @@ public abstract class Region {
         numVertices++;
     }
 
-    private void pushNewVerticesImpl(final Vertex vertIn1, final Vertex vertIn2, final Vertex vertIn3, final AffineTransform transform, final float[] rgba) {
+    private void pushNewVerticesImpl(final Vertex vertIn1, final Vertex vertIn2, final Vertex vertIn3, final AffineTransform transform, final Vec4f rgba) {
         if( null != transform ) {
-            final float[] coordsEx1 = new float[3];
-            final float[] coordsEx2 = new float[3];
-            final float[] coordsEx3 = new float[3];
-            final float[] coordsIn1 = vertIn1.getCoord();
-            final float[] coordsIn2 = vertIn2.getCoord();
-            final float[] coordsIn3 = vertIn3.getCoord();
-            transform.transform(coordsIn1, coordsEx1);
-            transform.transform(coordsIn2, coordsEx2);
-            transform.transform(coordsIn3, coordsEx3);
-            coordsEx1[2] = coordsIn1[2];
-            coordsEx2[2] = coordsIn2[2];
-            coordsEx3[2] = coordsIn3[2];
+            final Vec3f coordsEx1 = transform.transform(vertIn1.getCoord(), new Vec3f());
+            final Vec3f coordsEx2 = transform.transform(vertIn2.getCoord(), new Vec3f());
+            final Vec3f coordsEx3 = transform.transform(vertIn3.getCoord(), new Vec3f());
             box.resize(coordsEx1);
             box.resize(coordsEx2);
             box.resize(coordsEx3);
@@ -381,11 +371,11 @@ public abstract class Region {
     }
 
     @SuppressWarnings("unused")
-    private void pushNewVertexIdxImpl(final Vertex vertIn, final AffineTransform transform, final float[] rgba) {
+    private void pushNewVertexIdxImpl(final Vertex vertIn, final AffineTransform transform, final Vec4f rgba) {
         pushIndex(numVertices);
         pushNewVertexImpl(vertIn, transform, rgba);
     }
-    private void pushNewVerticesIdxImpl(final Vertex vertIn1, final Vertex vertIn2, final Vertex vertIn3, final AffineTransform transform, final float[] rgba) {
+    private void pushNewVerticesIdxImpl(final Vertex vertIn1, final Vertex vertIn2, final Vertex vertIn3, final AffineTransform transform, final Vec4f rgba) {
         pushIndices(numVertices, numVertices+1, numVertices+2);
         pushNewVerticesImpl(vertIn1, vertIn2, vertIn3, transform, rgba);
     }
@@ -396,11 +386,14 @@ public abstract class Region {
     protected static void put3s(final ShortBuffer b, final short v1, final short v2, final short v3) {
         b.put(v1); b.put(v2); b.put(v3);
     }
-    protected static void put3f(final FloatBuffer b, final float v1, final float v2, final float v3) {
-        b.put(v1); b.put(v2); b.put(v3);
+    protected static void put3f(final FloatBuffer b, final Vec3f v) {
+        b.put(v.x()); b.put(v.y()); b.put(v.z());
     }
     protected static void put4f(final FloatBuffer b, final float v1, final float v2, final float v3, final float v4) {
         b.put(v1); b.put(v2); b.put(v3); b.put(v4);
+    }
+    protected static void put4f(final FloatBuffer b, final Vec4f v) {
+        b.put(v.x()); b.put(v.y()); b.put(v.z()); b.put(v.w());
     }
 
     private final AABBox tmpBox = new AABBox();
@@ -529,7 +522,7 @@ public abstract class Region {
      * @param t the optional {@link AffineTransform} to be applied on each vertex
      * @param rgbaColor if {@link #hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      */
-    public final void addOutlineShape(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
+    public final void addOutlineShape(final OutlineShape shape, final AffineTransform t, final Vec4f rgbaColor) {
         if( null != frustum ) {
             final AABBox shapeBox = shape.getBounds();
             final AABBox shapeBoxT;
@@ -550,7 +543,7 @@ public abstract class Region {
         }
         markShapeDirty();
     }
-    private final void addOutlineShape0(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
+    private final void addOutlineShape0(final OutlineShape shape, final AffineTransform t, final Vec4f rgbaColor) {
         final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
         final ArrayList<Vertex> vertsIn = shape.getVertices();
         {
@@ -587,7 +580,7 @@ public abstract class Region {
             }
         }
     }
-    private final void addOutlineShape1(final OutlineShape shape, final AffineTransform t, final float[] rgbaColor) {
+    private final void addOutlineShape1(final OutlineShape shape, final AffineTransform t, final Vec4f rgbaColor) {
         ++perf.count;
         final long t0 = Clock.currentNanos();
         final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
@@ -682,7 +675,7 @@ public abstract class Region {
      * @param t the optional {@link AffineTransform} to be applied on each vertex
      * @param rgbaColor if {@link #hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
      */
-    public final void addOutlineShapes(final List<OutlineShape> shapes, final AffineTransform transform, final float[] rgbaColor) {
+    public final void addOutlineShapes(final List<OutlineShape> shapes, final AffineTransform transform, final Vec4f rgbaColor) {
         for (int i = 0; i < shapes.size(); i++) {
             addOutlineShape(shapes.get(i), transform, rgbaColor);
         }

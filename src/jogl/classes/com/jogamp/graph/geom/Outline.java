@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -268,7 +268,7 @@ public class Outline implements Comparable<Outline> {
         if( !isEmpty() ) {
             final Vertex first = vertices.get(0);
             final Vertex last = getLastVertex();
-            if( !VectorUtil.isVec3Equal( first.getCoord(), 0, last.getCoord(), 0, FloatUtil.EPSILON ) ) {
+            if( !first.getCoord().isEqual( last.getCoord() ) ) {
                 if( closeTail ) {
                     vertices.add(first.clone());
                 } else {
@@ -283,12 +283,12 @@ public class Outline implements Comparable<Outline> {
     /**
      * Return a transformed instance with all vertices are copied and transformed.
      */
-    public final Outline transform(final AffineTransform t, final Vertex.Factory<? extends Vertex> vertexFactory) {
+    public final Outline transform(final AffineTransform t) {
         final Outline newOutline = new Outline();
         final int vsize = vertices.size();
         for(int i=0; i<vsize; i++) {
             final Vertex v = vertices.get(i);
-            newOutline.addVertex(t.transform(v, vertexFactory.create()));
+            newOutline.addVertex(t.transform(v, new Vertex()));
         }
         newOutline.closed = this.closed;
         return newOutline;

@@ -59,7 +59,7 @@ public class CrossHair extends GraphShape {
 
     @Override
     protected void addShapeToRegion() {
-        final OutlineShape shape = new OutlineShape(vertexFactory);
+        final OutlineShape shape = new OutlineShape();
 
         final float lwh = lineWidth/2f;
 

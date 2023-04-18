@@ -44,7 +44,7 @@ public class Glyph03FreeMonoRegular_M extends GraphShape {
     @SuppressWarnings("unused")
     @Override
     protected void addShapeToRegion() {
-        final OutlineShape shape = new OutlineShape(vertexFactory);
+        final OutlineShape shape = new OutlineShape();
 
         if( false ) {
             // Start TTF Shape for Glyph 48

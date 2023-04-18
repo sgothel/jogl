@@ -33,6 +33,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLUniformData;
+import com.jogamp.opengl.math.Vec4f;
 
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.graph.curve.opengl.shader.UniformNames;
@@ -241,13 +242,14 @@ public class RenderState {
         weight[0] = v;
     }
 
-
-    public final float[] getColorStatic(final float[] rgbaColor) {
-        System.arraycopy(colorStatic, 0, rgbaColor, 0, 4);
-        return rgbaColor;
+    public final Vec4f getColorStatic(final Vec4f rgbaColor) {
+        return rgbaColor.set(colorStatic);
     }
-    public final void setColorStatic(final float[] rgbaColor){
-        System.arraycopy(rgbaColor, 0, colorStatic, 0, 4);
+    public final void setColorStatic(final Vec4f rgbaColor){
+        colorStatic[0] = rgbaColor.x();
+        colorStatic[1] = rgbaColor.y();
+        colorStatic[2] = rgbaColor.z();
+        colorStatic[3] = rgbaColor.w();
     }
     public final void setColorStatic(final float r, final float g, final float b, final float a){
         colorStatic[0] = r;

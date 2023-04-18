@@ -34,7 +34,6 @@ import jogamp.opengl.Debug;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.Vertex.Factory;
 import com.jogamp.opengl.math.geom.AABBox;
 
 /**
@@ -137,8 +136,8 @@ public class TypecastRenderer {
         shape.addVertex(0, p3.x/unitsPerEM,  p3.y/unitsPerEM, true);
     }
 
-    public static OutlineShape buildEmptyShape(final int unitsPerEM, final AABBox box, final Factory<? extends Vertex> vertexFactory) {
-        final OutlineShape shape = new OutlineShape(vertexFactory);
+    public static OutlineShape buildEmptyShape(final int unitsPerEM, final AABBox box) {
+        final OutlineShape shape = new OutlineShape();
         if( PRINT_CODE ) { System.err.printf("%n// Start Empty Shape%n"); }
         final float x1 = box.getMinX() / unitsPerEM;
         final float x2 = box.getMaxX() / unitsPerEM;
@@ -169,11 +168,11 @@ public class TypecastRenderer {
         return shape;
     }
 
-    public static OutlineShape buildShape(final int unitsPerEM, final Glyph glyph, final Factory<? extends Vertex> vertexFactory) {
+    public static OutlineShape buildShape(final int unitsPerEM, final Glyph glyph) {
         if (glyph == null) {
             return null;
         }
-        final OutlineShape shape = new OutlineShape(vertexFactory);
+        final OutlineShape shape = new OutlineShape();
         if (glyph instanceof T2Glyph) {
             // Type 1/2: Cubic
             if( PRINT_CODE ) { System.err.printf("%n// Start Type-2 Shape for Glyph %d%n", glyph.getID()); }

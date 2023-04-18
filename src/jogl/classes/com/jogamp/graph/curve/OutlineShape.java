@@ -34,14 +34,15 @@ import java.util.Comparator;
 import com.jogamp.graph.curve.tess.Triangulation;
 import com.jogamp.graph.curve.tess.Triangulator;
 import com.jogamp.graph.geom.Outline;
-import com.jogamp.graph.geom.SVertex;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.geom.plane.Path2F;
 import com.jogamp.graph.geom.plane.Winding;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.Vert2fImmutable;
 import com.jogamp.opengl.math.geom.AABBox;
 
 /**
@@ -142,8 +143,6 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      */
     public static final int DIRTY_TRIANGLES  = 1 << 2;
 
-    private final Vertex.Factory<? extends Vertex> vertexFactory;
-
     /** The list of {@link Outline}s that are part of this
      *  outline shape.
      */
@@ -161,25 +160,14 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
     private float sharpness;
 
-    private final float[] tmpV1 = new float[3];
-    private final float[] tmpV2 = new float[3];
-    private final float[] tmpV3 = new float[3];
-
-    /** Returns the default Vertex.Factory. */
-    public static Vertex.Factory<? extends Vertex> getDefaultVertexFactory() { return SVertex.factory(); }
-
-    /**
-     * Create a new Outline based Shape using {@link #getDefaultVertexFactory()}
-     */
-    public OutlineShape() {
-        this(getDefaultVertexFactory());
-    }
+    private final Vec3f tmpV1 = new Vec3f();
+    private final Vec3f tmpV2 = new Vec3f();
+    private final Vec3f tmpV3 = new Vec3f();
 
     /**
      * Create a new Outline based Shape
      */
-    public OutlineShape(final Vertex.Factory<? extends Vertex> factory) {
-        this.vertexFactory = factory;
+    public OutlineShape() {
         this.outlines = new ArrayList<Outline>(3);
         this.outlines.add(new Outline());
         this.outlineState = VerticesState.UNDEFINED;
@@ -229,12 +217,6 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         triangles.clear();
         dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
     }
-
-    /**
-     * Returns the associated vertex factory of this outline shape
-     * @return Vertex.Factory object
-     */
-    public final Vertex.Factory<? extends Vertex> vertexFactory() { return vertexFactory; }
 
     /** Returns the number of {@link Outline}s. */
     public final int getOutlineCount() {
@@ -437,7 +419,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final float x, final float y, final boolean onCurve) {
-        addVertex(vertexFactory.create(x, y, 0f, onCurve));
+        addVertex(new Vertex(x, y, 0f, onCurve));
     }
 
     /**
@@ -451,7 +433,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final int position, final float x, final float y, final boolean onCurve) {
-        addVertex(position, vertexFactory.create(x, y, 0f, onCurve));
+        addVertex(position, new Vertex(x, y, 0f, onCurve));
     }
 
     /**
@@ -464,7 +446,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final float x, final float y, final float z, final boolean onCurve) {
-        addVertex(vertexFactory.create(x, y, z, onCurve));
+        addVertex(new Vertex(x, y, z, onCurve));
     }
 
     /**
@@ -478,7 +460,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final int position, final float x, final float y, final float z, final boolean onCurve) {
-        addVertex(position, vertexFactory.create(x, y, z, onCurve));
+        addVertex(position, new Vertex(x, y, z, onCurve));
     }
 
     /**
@@ -495,7 +477,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final float[] coordsBuffer, final int offset, final int length, final boolean onCurve) {
-        addVertex(vertexFactory.create(coordsBuffer, offset, length, onCurve));
+        addVertex(new Vertex(coordsBuffer, offset, length, onCurve));
     }
 
     /**
@@ -513,7 +495,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @see <a href="#windingrules">see winding rules</a>
      */
     public final void addVertex(final int position, final float[] coordsBuffer, final int offset, final int length, final boolean onCurve) {
-        addVertex(position, vertexFactory.create(coordsBuffer, offset, length, onCurve));
+        addVertex(position, new Vertex(coordsBuffer, offset, length, onCurve));
     }
 
     /**
@@ -578,9 +560,9 @@ public final class OutlineShape implements Comparable<OutlineShape> {
                     }
                     {
                         // Skip if last vertex in last outline matching this point -> already connected.
-                        final float[] llc = lo.getVertex(lo_sz-1).getCoord();
-                        if( llc[0] == points[idx+0] &&
-                            llc[1] == points[idx+1] ) {
+                        final Vert2fImmutable llc = lo.getVertex(lo_sz-1);
+                        if( llc.x() == points[idx+0] &&
+                            llc.y() == points[idx+1] ) {
                             break;
                         }
                     }
@@ -652,9 +634,9 @@ public final class OutlineShape implements Comparable<OutlineShape> {
                     }
                     {
                         // Skip if last vertex in last outline matching this point -> already connected.
-                        final float[] llc = lo.getVertex(0).getCoord();
-                        if( llc[0] == points[idx+0] &&
-                            llc[1] == points[idx+1] ) {
+                        final Vert2fImmutable llc = lo.getVertex(0);
+                        if( llc.x() == points[idx+0] &&
+                            llc.y() == points[idx+1] ) {
                             break;
                         }
                     }
@@ -790,11 +772,11 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         VectorUtil.midVec3(tmpV2, tmpV1, tmpV3);
 
         //drop off-curve vertex to image on the curve
-        b.setCoord(tmpV2, 0, 3);
+        b.setCoord(tmpV2);
         b.setOnCurve(true);
 
-        outline.addVertex(index, vertexFactory.create(tmpV1, 0, 3, false));
-        outline.addVertex(index+2, vertexFactory.create(tmpV3, 0, 3, false));
+        outline.addVertex(index, new Vertex(tmpV1, false));
+        outline.addVertex(index+2, new Vertex(tmpV3, false));
 
         addedVerticeCount += 2;
     }
@@ -934,7 +916,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
                     if ( !currentVertex.isOnCurve() && !nextVertex.isOnCurve() ) {
                         VectorUtil.midVec3(tmpV1, currentVertex.getCoord(), nextVertex.getCoord());
                         System.err.println("XXX: Cubic: "+i+": "+currentVertex+", "+j+": "+nextVertex);
-                        final Vertex v = vertexFactory.create(tmpV1, 0, 3, true);
+                        final Vertex v = new Vertex(tmpV1, true);
                         i++;
                         vertexCount++;
                         addedVerticeCount++;
@@ -946,8 +928,8 @@ public final class OutlineShape implements Comparable<OutlineShape> {
                 outlines.remove(outline);
                 cc--;
                 count--;
-            } else  if( 0 < vertexCount &&
-                        VectorUtil.isVec3Equal( outline.getVertex(0).getCoord(), 0, outline.getLastVertex().getCoord(), 0, FloatUtil.EPSILON )) {
+            } else if( 0 < vertexCount &&
+                       outline.getVertex(0).getCoord().isEqual( outline.getLastVertex().getCoord() ) ) {
                 outline.removeVertex(vertexCount-1);
             }
         }
@@ -1047,10 +1029,10 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * </p>
      */
     public final OutlineShape transform(final AffineTransform t) {
-        final OutlineShape newOutlineShape = new OutlineShape(vertexFactory);
+        final OutlineShape newOutlineShape = new OutlineShape();
         final int osize = outlines.size();
         for(int i=0; i<osize; i++) {
-            newOutlineShape.addOutline( outlines.get(i).transform(t, vertexFactory) );
+            newOutlineShape.addOutline( outlines.get(i).transform(t) );
         }
         return newOutlineShape;
     }

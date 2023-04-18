@@ -44,7 +44,7 @@ public class Glyph02UbuntuLight_ae extends GraphShape {
     @SuppressWarnings("unused")
     @Override
     protected void addShapeToRegion() {
-        final OutlineShape shape = new OutlineShape(vertexFactory);
+        final OutlineShape shape = new OutlineShape();
 
         // Ubuntu-Light, lower case 'æ'
 

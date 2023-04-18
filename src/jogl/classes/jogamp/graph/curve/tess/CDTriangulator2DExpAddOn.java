@@ -30,7 +30,8 @@ package jogamp.graph.curve.tess;
 
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.Vec2f;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.VectorUtil;
 
 /**
@@ -40,10 +41,10 @@ import com.jogamp.opengl.math.VectorUtil;
  */
 public class CDTriangulator2DExpAddOn {
 
-    private final float[] tempV3a = new float[3];
-    private final float[] tempV3b = new float[3];
+    private final Vec3f tempV3a = new Vec3f();
+    private final Vec3f tempV3b = new Vec3f();
 
-    protected final void markLineInTriangle(final Triangle tri1, final float[] tempV2) {
+    protected final void markLineInTriangle(final Triangle tri1) {
         if( !tri1.isOnCurve() || !tri1.isLine() ) {
             return;
         }
@@ -56,19 +57,19 @@ public class CDTriangulator2DExpAddOn {
 
         int lineSegCount = 0;
         final boolean v0IsLS, v1IsLS, v2IsLS;
-        if( v0.isOnCurve() && VectorUtil.isVec2Zero(v0.getTexCoord(), 0) && !boundVs[0] ) {
+        if( v0.isOnCurve() && VectorUtil.isVec2Zero(v0.getTexCoord()) && !boundVs[0] ) {
             v0IsLS = true;
             lineSegCount++;
         } else {
             v0IsLS = false;
         }
-        if( v1.isOnCurve() && VectorUtil.isVec2Zero(v1.getTexCoord(), 0) && !boundVs[1] ) {
+        if( v1.isOnCurve() && VectorUtil.isVec2Zero(v1.getTexCoord()) && !boundVs[1] ) {
             v1IsLS = true;
             lineSegCount++;
         } else {
             v1IsLS = false;
         }
-        if( v2.isOnCurve() && VectorUtil.isVec2Zero(v2.getTexCoord(), 0) && !boundVs[2] ) {
+        if( v2.isOnCurve() && VectorUtil.isVec2Zero(v2.getTexCoord()) && !boundVs[2] ) {
             v2IsLS = true;
             lineSegCount++;
         } else {
@@ -155,17 +156,17 @@ public class CDTriangulator2DExpAddOn {
      * </p>
      * @param tri2
      * @param checkThisOnCurve
-     * @param tempV2 temp float[2] storage
+     * @param temp temp storage
      */
-    protected final float[] processLineAA(final int i, final Triangle tri1, final Triangle tri2, final float[] tempV2) {
+    protected final Vec2f processLineAA(final int i, final Triangle tri1, final Triangle tri2, final Vec2f temp) {
         if(CDTriangulator2D.DEBUG){
             System.err.println("CDTri.genP2["+i+"].1: ? t1 "+tri1);
             System.err.println("CDTri.genP2["+i+"].1: ? t2 "+tri2);
         }
-        final float[] rect = processLineAAImpl(tri1, tri2, tempV2);
+        final Vec2f rect = processLineAAImpl(tri1, tri2, temp);
         if(CDTriangulator2D.DEBUG){
             if( null != rect ) {
-                System.err.println("CDTri.genP2["+i+"].1: RECT ["+rect[0]+", "+rect[1]+"]");
+                System.err.println("CDTri.genP2["+i+"].1: RECT ["+rect.x()+", "+rect.y()+"]");
                 System.err.println("CDTri.genP2["+i+"].1: RECT t1 "+tri1);
                 System.err.println("CDTri.genP2["+i+"].1: RECT t2 "+tri2);
             } else {
@@ -175,40 +176,40 @@ public class CDTriangulator2DExpAddOn {
         }
         return rect;
     }
-    private final float[] processLineAAImpl(final Triangle tri1, final Triangle tri2, final float[] tempV2) {
+    private final Vec2f processLineAAImpl(final Triangle tri1, final Triangle tri2, final Vec2f temp) {
         if( !tri1.isOnCurve() || !tri2.isOnCurve() || !tri1.isLine() || !tri2.isLine() ) {
             return null;
         }
-        final float[] rect;
+        final Vec2f rect;
         int eqCount = 0;
         final int[] commonIdxA = { -1, -1 };
         final int[] commonIdxB = { -1, -1 };
         final Vertex[] verts1 = tri1.getVertices();
         final Vertex[] verts2 = tri2.getVertices();
-        float[] coord = verts1[0].getCoord();
-        if( VectorUtil.isVec3Equal(coord, 0, verts2[0].getCoord(), 0, FloatUtil.EPSILON) ) {
+        Vec3f coord = verts1[0].getCoord();
+        if( coord.isEqual( verts2[0].getCoord() ) ) {
             commonIdxA[eqCount] = 0;
             commonIdxB[eqCount] = 0;
             eqCount++;
-        } else if( VectorUtil.isVec3Equal(coord, 0, verts2[1].getCoord(), 0, FloatUtil.EPSILON) ) {
+        } else if( coord.isEqual( verts2[1].getCoord() ) ) {
             commonIdxA[eqCount] = 0;
             commonIdxB[eqCount] = 1;
             eqCount++;
-        } else if( VectorUtil.isVec3Equal(coord, 0, verts2[2].getCoord(), 0, FloatUtil.EPSILON) ) {
+        } else if( coord.isEqual( verts2[2].getCoord() ) ) {
             commonIdxA[eqCount] = 0;
             commonIdxB[eqCount] = 2;
             eqCount++;
         }
         coord = verts1[1].getCoord();
-        if( VectorUtil.isVec3Equal(coord, 0, verts2[0].getCoord(), 0, FloatUtil.EPSILON) ) {
+        if( coord.isEqual( verts2[0].getCoord() ) ) {
             commonIdxA[eqCount] = 1;
             commonIdxB[eqCount] = 0;
             eqCount++;
-        } else if( VectorUtil.isVec3Equal(coord, 0, verts2[1].getCoord(), 0, FloatUtil.EPSILON) ) {
+        } else if( coord.isEqual( verts2[1].getCoord() ) ) {
             commonIdxA[eqCount] = 1;
             commonIdxB[eqCount] = 1;
             eqCount++;
-        } else if( VectorUtil.isVec3Equal(coord, 0, verts2[2].getCoord(), 0, FloatUtil.EPSILON) ) {
+        } else if( coord.isEqual( verts2[2].getCoord() ) ) {
             commonIdxA[eqCount] = 1;
             commonIdxB[eqCount] = 2;
             eqCount++;
@@ -218,15 +219,15 @@ public class CDTriangulator2DExpAddOn {
             otherIdxA = 3 - ( commonIdxA[0] + commonIdxA[1] );
         } else {
             coord = verts1[2].getCoord();
-            if( VectorUtil.isVec3Equal(coord, 0, verts2[0].getCoord(), 0, FloatUtil.EPSILON) ) {
+            if( coord.isEqual( verts2[0].getCoord() ) ) {
                 commonIdxA[eqCount] = 2;
                 commonIdxB[eqCount] = 0;
                 eqCount++;
-            } else if( VectorUtil.isVec3Equal(coord, 0, verts2[1].getCoord(), 0, FloatUtil.EPSILON) ) {
+            } else if( coord.isEqual( verts2[1].getCoord() ) ) {
                 commonIdxA[eqCount] = 2;
                 commonIdxB[eqCount] = 1;
                 eqCount++;
-            } else if( VectorUtil.isVec3Equal(coord, 0, verts2[2].getCoord(), 0, FloatUtil.EPSILON) ) {
+            } else if( coord.isEqual( verts2[2].getCoord() ) ) {
                 commonIdxA[eqCount] = 2;
                 commonIdxB[eqCount] = 2;
                 eqCount++;
@@ -265,30 +266,30 @@ public class CDTriangulator2DExpAddOn {
             }
 
             final float texZTag = 2f;
-            final float[] vOACoords = vOA.getCoord();
-            final float dOC0A = VectorUtil.distVec3(vOACoords, vC0A.getCoord());
-            final float dOC1A = VectorUtil.distVec3(vOACoords, vC1A.getCoord());
+            final Vec3f vOACoords = vOA.getCoord();
+            final float dOC0A = vOACoords.dist( vC0A.getCoord() );
+            final float dOC1A = vOACoords.dist( vC1A.getCoord() );
             if( false ) {
-                final float[] vec3Z = { 0f, 0f, -1f };
-                final float[] vecLongSide, vecLineHeight;
+                final Vec3f vec3Z = new Vec3f(0f, 0f, -1f);
+                final Vec3f vecLongSide, vecLineHeight;
                 if( dOC0A < dOC1A ) {
-                    tempV2[0] = dOC0A; // line width
-                    tempV2[1] = dOC1A; // long side
-                    vecLongSide = VectorUtil.normalizeVec3( VectorUtil.subVec2(tempV3a, vOACoords, vC1A.getCoord()) ); // normal long side vector
-                    vecLineHeight = VectorUtil.crossVec3(tempV3b, vec3Z, tempV3a); // the line-height vector (normal)
+                    temp.set( dOC0A, // line width
+                              dOC1A); // long side
+                    vecLongSide = tempV3a.minus(vOACoords, vC1A.getCoord()).normalize(); // normal long side vector
+                    vecLineHeight = tempV3b.cross(vec3Z, tempV3a); // the line-height vector (normal)
                     vOA.setTexCoord(-1f, -1f, texZTag);
                     vC1A.setTexCoord(1f, -1f, texZTag);
                     vOB.setTexCoord(0f,   1f, texZTag);
                     vC0A.setTexCoord(0f,  1f, texZTag);
                 } else {
-                    tempV2[0] = dOC1A; // line width
-                    tempV2[1] = dOC0A; // long side
-                    vecLongSide = VectorUtil.normalizeVec3( VectorUtil.subVec2(tempV3a, vOACoords, vC0A.getCoord()) ); // normal long side vector
-                    vecLineHeight = VectorUtil.crossVec3(tempV3b, vec3Z, tempV3a); // the line-height vector (normal)
+                    temp.set( dOC1A, // line width
+                              dOC0A); // long side
+                    vecLongSide = tempV3a.minus(vOACoords, vC0A.getCoord()).normalize(); // normal long side vector
+                    vecLineHeight = tempV3b.cross(vec3Z, tempV3a); // the line-height vector (normal)
                 }
                 if(CDTriangulator2D.DEBUG){
-                    System.err.println("RECT.0 : long-side-vec   "+vecLongSide[0]+", "+vecLongSide[1]+", "+vecLongSide[2]);
-                    System.err.println("RECT.0 : line-height-vec "+vecLineHeight[0]+", "+vecLineHeight[1]+", "+vecLineHeight[2]);
+                    System.err.println("RECT.0 : long-side-vec   "+vecLongSide);
+                    System.err.println("RECT.0 : line-height-vec "+vecLineHeight);
                 }
 
             } else {
@@ -303,16 +304,16 @@ public class CDTriangulator2DExpAddOn {
                 final Vertex vL1, vL2, vR1, vR2;
                 if( dOC0A < dOC1A ) {
                     lineWidth = dOC0A; // line width
-                    tempV2[0] = dOC0A; // line width
-                    tempV2[1] = dOC1A; // long side
+                    temp.set( dOC0A, // line width
+                              dOC1A); // long side
                     // Left:  vOA, vC1A
                     // Right: vOB, vC0A
                     vL1 = vOA; vL2 = vC1A;
                     vR1 = vOB; vR2 = vC0A;
                 } else {
                     lineWidth = dOC1A; // line width
-                    tempV2[0] = dOC1A; // line width
-                    tempV2[1] = dOC0A; // long side
+                    temp.set( dOC1A, // line width
+                              dOC0A); // long side
                     // Left:  vOB, vC1A
                     // Right: vOA, vC0A
                     vL1 = vOB; vL2 = vC1A;
@@ -331,7 +332,7 @@ public class CDTriangulator2DExpAddOn {
                     System.err.println("RECT Right.0: "+vR1+", "+vR2);
                 }
             }
-            rect = tempV2;
+            rect = temp;
         } else {
             rect = null;
         }

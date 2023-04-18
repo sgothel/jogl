@@ -35,11 +35,11 @@ package com.jogamp.opengl.math;
  * and its data layout from JOAL's Vec3f.
  */
 public final class Vec3f {
-    public static final Vec3f ONE = new Vec3f(VectorUtil.VEC3_ONE);
-    public static final Vec3f UNIT_Y = new Vec3f(VectorUtil.VEC3_UNIT_Y);
-    public static final Vec3f UNIT_Y_NEG = new Vec3f(VectorUtil.VEC3_UNIT_Y_NEG);
-    public static final Vec3f UNIT_Z = new Vec3f(VectorUtil.VEC3_UNIT_Z);
-    public static final Vec3f UNIT_Z_NEG = new Vec3f(VectorUtil.VEC3_UNIT_Z_NEG);
+    public static final Vec3f ONE = new Vec3f(1f, 1f, 1f);
+    public static final Vec3f UNIT_Y = new Vec3f(0f, 1f, 0f);
+    public static final Vec3f UNIT_Y_NEG = new Vec3f(0f, -1f, 0f);
+    public static final Vec3f UNIT_Z = new Vec3f(0f, 0f, 1f);
+    public static final Vec3f UNIT_Z_NEG = new Vec3f(0f, 0f, -1f);
 
     private float x;
     private float y;
@@ -154,6 +154,14 @@ public final class Vec3f {
         return new Vec3f(this).scale(val);
     }
 
+    /** this = a * b, returns this. */
+    public Vec3f mul(final Vec3f a, final Vec3f b) {
+        x = a.x * b.x;
+        y = a.y * b.y;
+        z = a.z * b.z;
+        return this;
+    }
+
     /** this = this * s, returns this. */
     public Vec3f scale(final float s) {
         x *= s;
@@ -175,6 +183,14 @@ public final class Vec3f {
         return new Vec3f(this).add(arg);
     }
 
+    /** this = a + b, returns this. */
+    public Vec3f plus(final Vec3f a, final Vec3f b) {
+        x = a.x + b.x;
+        y = a.y + b.y;
+        z = a.z + b.z;
+        return this;
+    }
+
     /** this = this + { dx, dy, dz }, returns this. */
     public Vec3f add(final float dx, final float dy, final float dz) {
         x += dx;
@@ -191,22 +207,17 @@ public final class Vec3f {
         return this;
     }
 
-    /** Returns this + s * arg; creates new vector */
-    public Vec3f plusScaled(final float s, final Vec3f arg) {
-        return new Vec3f(this).addScaled(s, arg);
-    }
-
-    /** this = this + s * b, returns this. */
-    public Vec3f addScaled(final float s, final Vec3f b) {
-        x += s * b.x;
-        y += s * b.y;
-        z += s * b.z;
-        return this;
-    }
-
     /** Returns this - arg; creates new vector */
     public Vec3f minus(final Vec3f arg) {
         return new Vec3f(this).sub(arg);
+    }
+
+    /** this = a - b, returns this. */
+    public Vec3f minus(final Vec3f a, final Vec3f b) {
+        x = a.x - b.x;
+        y = a.y - b.y;
+        z = a.z - b.z;
+        return this;
     }
 
     /** this = this - b, returns this. */

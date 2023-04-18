@@ -48,6 +48,7 @@ import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec2f;
 import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -118,13 +119,13 @@ public abstract class Shape {
     private final Object dirtySync = new Object();
 
     /** Default base-color w/o color channel, will be modulated w/ pressed- and toggle color */
-    protected final float[] rgbaColor         = {0.75f, 0.75f, 0.75f, 1.0f};
+    protected final Vec4f rgbaColor             = new Vec4f(0.75f, 0.75f, 0.75f, 1.0f);
     /** Default pressed color-factor w/o color channel, modulated base-color. 0.75 * 1.2 = 0.9 */
-    protected final float[] pressedRGBAModulate = {1.2f, 1.2f, 1.2f, 0.7f};
+    protected final Vec4f pressedRGBAModulate   = new Vec4f(1.20f, 1.20f, 1.20f, 0.7f);
     /** Default toggle color-factor w/o color channel, modulated base-color.  0.75 * 1.13 ~ 0.85 */
-    protected final float[] toggleOnRGBAModulate = {1.13f, 1.13f, 1.13f, 1.0f};
+    protected final Vec4f toggleOnRGBAModulate  = new Vec4f(1.13f, 1.13f, 1.13f, 1.0f);
     /** Default toggle color-factor w/o color channel, modulated base-color.  0.75 * 0.86 ~ 0.65 */
-    protected final float[] toggleOffRGBAModulate = {0.86f, 0.86f, 0.86f, 1.0f};
+    protected final Vec4f toggleOffRGBAModulate = new Vec4f(0.86f, 0.86f, 0.86f, 1.0f);
 
     private int name = -1;
 
@@ -372,7 +373,7 @@ public abstract class Shape {
         }
     }
 
-    private final float[] rgba_tmp = { 0, 0, 0, 1 };
+    private final Vec4f rgba_tmp = new Vec4f(0, 0, 0, 1);
 
     /**
      * Renders the shape.
@@ -385,7 +386,7 @@ public abstract class Shape {
      */
     public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         final boolean isPressed = isPressed(), isToggleOn = isToggleOn();
-        final float[] rgba;
+        final Vec4f rgba;
         if( hasColorChannel() ) {
             if( isPressed ) {
                 rgba = pressedRGBAModulate;
@@ -401,27 +402,15 @@ public abstract class Shape {
         } else {
             rgba = rgba_tmp;
             if( isPressed ) {
-                rgba[0] = rgbaColor[0]*pressedRGBAModulate[0];
-                rgba[1] = rgbaColor[1]*pressedRGBAModulate[1];
-                rgba[2] = rgbaColor[2]*pressedRGBAModulate[2];
-                rgba[3] = rgbaColor[3]*pressedRGBAModulate[3];
+                rgba.mul(rgbaColor, pressedRGBAModulate);
             } else if( isToggleable() ) {
                 if( isToggleOn ) {
-                    rgba[0] = rgbaColor[0]*toggleOnRGBAModulate[0];
-                    rgba[1] = rgbaColor[1]*toggleOnRGBAModulate[1];
-                    rgba[2] = rgbaColor[2]*toggleOnRGBAModulate[2];
-                    rgba[3] = rgbaColor[3]*toggleOnRGBAModulate[3];
+                    rgba.mul(rgbaColor, toggleOnRGBAModulate);
                 } else {
-                    rgba[0] = rgbaColor[0]*toggleOffRGBAModulate[0];
-                    rgba[1] = rgbaColor[1]*toggleOffRGBAModulate[1];
-                    rgba[2] = rgbaColor[2]*toggleOffRGBAModulate[2];
-                    rgba[3] = rgbaColor[3]*toggleOffRGBAModulate[3];
+                    rgba.mul(rgbaColor, toggleOffRGBAModulate);
                 }
             } else {
-                rgba[0] = rgbaColor[0];
-                rgba[1] = rgbaColor[1];
-                rgba[2] = rgbaColor[2];
-                rgba[3] = rgbaColor[3];
+                rgba.set(rgbaColor);
             }
         }
         synchronized ( dirtySync ) {
@@ -771,7 +760,7 @@ public abstract class Shape {
         return this.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, objPos);
     }
 
-    public float[] getColor() {
+    public Vec4f getColor() {
         return rgbaColor;
     }
 
@@ -782,10 +771,7 @@ public abstract class Shape {
      * </p>
      */
     public final Shape setColor(final float r, final float g, final float b, final float a) {
-        this.rgbaColor[0] = r;
-        this.rgbaColor[1] = g;
-        this.rgbaColor[2] = b;
-        this.rgbaColor[3] = a;
+        this.rgbaColor.set(r, g, b, a);
         return this;
     }
 
@@ -796,10 +782,7 @@ public abstract class Shape {
      * </p>
      */
     public final Shape setPressedColorMod(final float r, final float g, final float b, final float a) {
-        this.pressedRGBAModulate[0] = r;
-        this.pressedRGBAModulate[1] = g;
-        this.pressedRGBAModulate[2] = b;
-        this.pressedRGBAModulate[3] = a;
+        this.pressedRGBAModulate.set(r, g, b, a);
         return this;
     }
 
@@ -810,10 +793,7 @@ public abstract class Shape {
      * </p>
      */
     public final Shape setToggleOnColorMod(final float r, final float g, final float b, final float a) {
-        this.toggleOnRGBAModulate[0] = r;
-        this.toggleOnRGBAModulate[1] = g;
-        this.toggleOnRGBAModulate[2] = b;
-        this.toggleOnRGBAModulate[3] = a;
+        this.toggleOnRGBAModulate.set(r, g, b, a);
         return this;
     }
 
@@ -824,10 +804,7 @@ public abstract class Shape {
      * </p>
      */
     public final Shape setToggleOffColorMod(final float r, final float g, final float b, final float a) {
-        this.toggleOffRGBAModulate[0] = r;
-        this.toggleOffRGBAModulate[1] = g;
-        this.toggleOffRGBAModulate[2] = b;
-        this.toggleOffRGBAModulate[3] = a;
+        this.toggleOffRGBAModulate.set(r, g, b, a);
         return this;
     }
 
@@ -1275,7 +1252,7 @@ public abstract class Shape {
 
     protected abstract void validateImpl(final GLProfile glp, final GL2ES2 gl);
 
-    protected abstract void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, float[] rgba);
+    protected abstract void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, Vec4f rgba);
 
     protected abstract void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer);
 

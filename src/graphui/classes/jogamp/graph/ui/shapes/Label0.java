@@ -32,14 +32,15 @@ import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.opengl.math.Vec2f;
+import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public class Label0 {
     protected Font font;
     protected String text;
-    protected final float[] rgbaColor;
+    protected final Vec4f rgbaColor;
 
-    public Label0(final Font font, final String text, final float[] rgbaColor) {
+    public Label0(final Font font, final String text, final Vec4f rgbaColor) {
         this.font = font;
         this.text = text;
         this.rgbaColor = rgbaColor;
@@ -47,13 +48,14 @@ public class Label0 {
 
     public final String getText() { return text; }
 
-    public final float[] getColor() { return rgbaColor; }
+    public final Vec4f getColor() { return rgbaColor; }
 
     public final void setColor(final float r, final float g, final float b, final float a) {
-        this.rgbaColor[0] = r;
-        this.rgbaColor[1] = g;
-        this.rgbaColor[2] = b;
-        this.rgbaColor[3] = a;
+        this.rgbaColor.set(r, g, b, a);
+    }
+
+    public final void setColor(final Vec4f v) {
+        this.rgbaColor.set(v);
     }
 
     public final void setText(final String text) {

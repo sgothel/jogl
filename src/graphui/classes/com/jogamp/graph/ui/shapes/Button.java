@@ -37,6 +37,7 @@ import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.opengl.math.Vec2f;
 import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 
 import jogamp.graph.ui.shapes.Label0;
@@ -72,7 +73,7 @@ public class Button extends RoundButton {
                   final String labelText, final float width,
                   final float height) {
         super(renderModes | Region.COLORCHANNEL_RENDERING_BIT, width, height);
-        this.label = new Label0(labelFont, labelText, new float[] { 1.33f, 1.33f, 1.33f, 1.0f }); // 0.75 * 1.33 = 1.0
+        this.label = new Label0(labelFont, labelText, new Vec4f( 1.33f, 1.33f, 1.33f, 1.0f )); // 0.75 * 1.33 = 1.0
         setColor(0.75f, 0.75f, 0.75f, 1.0f);
         setPressedColorMod(0.9f, 0.9f, 0.9f, 0.7f);
         setToggleOffColorMod(0.65f, 0.65f, 0.65f, 1.0f);
@@ -93,16 +94,7 @@ public class Button extends RoundButton {
 
     @Override
     protected void addShapeToRegion() {
-        final OutlineShape shape = new OutlineShape(vertexFactory);
-        if(corner == 0.0f) {
-            createSharpOutline(shape, twoPassLabelZOffset);
-        } else {
-            createCurvedOutline(shape, twoPassLabelZOffset);
-        }
-        shape.setIsQuadraticNurbs();
-        shape.setSharpness(oshapeSharpness);
-        region.addOutlineShape(shape, null, rgbaColor);
-        box.resize(shape.getBounds());
+        addRoundShapeToRegion( twoPassLabelZOffset );
 
         // Precompute text-box size .. guessing pixelSize
         final float lw = box.getWidth() * ( 1f - spacingX ) ;
@@ -132,12 +124,6 @@ public class Button extends RoundButton {
         final AABBox lbox2 = label.addShapeToRegion(lScale, region, ltxy, tempT1, tempT2, tempT3);
         if( DEBUG_DRAW ) {
             System.err.printf("Button.X: lbox2 %s%n", lbox2);
-        }
-
-        setRotationPivot( ctr );
-
-        if( DEBUG_DRAW ) {
-            System.err.println("XXX.Button: Added Shape: "+shape+", "+box);
         }
     }
 
@@ -174,7 +160,7 @@ public class Button extends RoundButton {
         markShapeDirty();
     }
 
-    public final float[] getLabelColor() {
+    public final Vec4f getLabelColor() {
         return label.getColor();
     }
 

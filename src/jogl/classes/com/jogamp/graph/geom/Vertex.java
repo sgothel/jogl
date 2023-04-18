@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 JogAmp Community. All rights reserved.
+ * Copyright 2011-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,64 +27,185 @@
  */
 package com.jogamp.graph.geom;
 
+import com.jogamp.opengl.math.Vec2f;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.Vert3fImmutable;
 
 /**
- * A Vertex with custom memory layout using custom factory.
+ * A Vertex exposing Vec3f vertex- and texture-coordinates.
  */
-public interface Vertex extends Vert3fImmutable, Cloneable {
+public final class Vertex implements Vert3fImmutable, Cloneable {
+    private int id;
+    private boolean onCurve;
+    private final Vec3f coord = new Vec3f();
+    private final Vec3f texCoord = new Vec3f();
 
-    public static interface Factory <T extends Vertex> {
-        T create();
-
-        T create(Vertex src);
-
-        T create(int id, boolean onCurve, float[] texCoordsBuffer);
-
-        T create(float x, float y, float z, boolean onCurve);
-
-        T create(float[] coordsBuffer, int offset, int length, boolean onCurve);
+    public Vertex() {
+        this.id = Integer.MAX_VALUE;
     }
 
-    void setCoord(float x, float y, float z);
+    public Vertex(final Vertex src) {
+        this.id = Integer.MAX_VALUE;
+        coord.set(src.getCoord());
+        texCoord.set(src.getTexCoord());
+        setOnCurve(src.isOnCurve());
+    }
 
-    /**
-     * @see System#arraycopy(Object, int, Object, int, int) for thrown IndexOutOfBoundsException
-     */
-    void setCoord(float[] coordsBuffer, int offset, int length);
+    public Vertex(final int id, final boolean onCurve, final Vec3f texCoord) {
+        this.id = id;
+        this.onCurve = onCurve;
+        this.texCoord.set(texCoord);
+    }
 
-    void setX(float x);
+    public Vertex(final int id, final boolean onCurve, final float texCoordX, final float texCoordY, final float texCoordZ) {
+        this.id = id;
+        this.onCurve = onCurve;
+        this.texCoord.set(texCoordX, texCoordY, texCoordZ);
+    }
 
-    void setY(float y);
+    public Vertex(final Vec3f coord, final boolean onCurve) {
+        this.id = Integer.MAX_VALUE;
+        this.coord.set(coord);
+        setOnCurve(onCurve);
+    }
 
-    void setZ(float z);
+    public Vertex(final Vec2f coord, final boolean onCurve) {
+        this.id = Integer.MAX_VALUE;
+        this.coord.set(coord, 0f);
+        setOnCurve(onCurve);
+    }
 
-    boolean isOnCurve();
+    public Vertex(final float x, final float y, final boolean onCurve) {
+        this(x, y, 0, onCurve);
+    }
 
-    void setOnCurve(boolean onCurve);
+    public Vertex(final float[] coordsBuffer, final int offset, final int length, final boolean onCurve) {
+        this(coordsBuffer[offset+0], coordsBuffer[offset+1], 2 < length ? coordsBuffer[offset+2] : 0f, onCurve);
+    }
 
-    int getId();
+    public Vertex(final float x, final float y, final float z, final boolean onCurve) {
+        this.id = Integer.MAX_VALUE;
+        coord.set(x, y, z);
+        setOnCurve(onCurve);
+    }
 
-    void setId(int id);
+    public final void setCoord(final Vec3f coord) {
+        this.coord.set(coord);
+    }
 
-    float[] getTexCoord();
+    public void setCoord(final Vec2f coord) {
+        this.coord.set(coord, 0f);
+    }
 
-    void setTexCoord(float s, float t, float p);
+    public final void setCoord(final float x, final float y, final float z) {
+        coord.set(x, y, z);
+    }
 
-    /**
-     * @see System#arraycopy(Object, int, Object, int, int) for thrown IndexOutOfBoundsException
-     */
-    void setTexCoord(float[] texCoordsBuffer, int offset, int length);
+    public final void setCoord(final float x, final float y) {
+        coord.set(x, y, 0f);
+    }
+
+    @Override
+    public int getCoordCount() {
+        return 3;
+    }
+
+    @Override
+    public final Vec3f getCoord() {
+        return coord;
+    }
+
+    public final void setX(final float x) {
+        coord.setX(x);
+    }
+
+    public final void setY(final float y) {
+        coord.setY(y);
+    }
+
+    public final void setZ(final float z) {
+        coord.setZ(z);
+    }
+
+    @Override
+    public final float x() {
+        return coord.x();
+    }
+
+    @Override
+    public final float y() {
+        return coord.y();
+    }
+
+    @Override
+    public final float z() {
+        return coord.z();
+    }
+
+    public final boolean isOnCurve() {
+        return onCurve;
+    }
+
+    public final void setOnCurve(final boolean onCurve) {
+        this.onCurve = onCurve;
+    }
+
+    public final int getId(){
+        return id;
+    }
+
+    public final void setId(final int id){
+        this.id = id;
+    }
 
     /**
      * @param obj the Object to compare this Vertex with
      * @return true if {@code obj} is a Vertex and not null, on-curve flag is equal and has same vertex- and tex-coords.
      */
     @Override
-    boolean equals(Object obj);
+    public boolean equals(final Object obj) {
+        if( obj == this) {
+            return true;
+        }
+        if( null == obj || !(obj instanceof Vertex) ) {
+            return false;
+        }
+        final Vertex v = (Vertex) obj;
+        return this == v ||
+               isOnCurve() == v.isOnCurve() &&
+               getTexCoord().isEqual( v.getTexCoord() ) &&
+               getCoord().isEqual( v.getCoord() );
+    }
+
+    @Override
+    public final int hashCode() {
+        throw new InternalError("hashCode not designed");
+    }
+
+    public final Vec3f getTexCoord() {
+        return texCoord;
+    }
+
+    public final void setTexCoord(final Vec3f v) {
+        texCoord.set(v);
+    }
+
+    public final void setTexCoord(final float s, final float t, final float p) {
+        texCoord.set(s, t, p);
+    }
 
     /**
-     * @return deep clone of this Vertex
+     * @return deep clone of this Vertex elements
      */
-    Vertex clone();
+    @Override
+    public Vertex clone(){
+        return new Vertex(this); // OK to not call super.clone(), using own copy-ctor
+    }
+
+    @Override
+    public String toString() {
+        return "[ID: " + id + ", onCurve: " + onCurve +
+               ": p " + coord +
+               ", t " + texCoord + "]";
+    }
 }

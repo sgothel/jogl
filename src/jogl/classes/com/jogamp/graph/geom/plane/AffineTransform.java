@@ -420,9 +420,9 @@ public class AffineTransform implements Cloneable {
      * @return dst for chaining
      */
     public final Vertex transform(final Vertex src, final Vertex dst) {
-        final float x = src.getX();
-        final float y = src.getY();
-        dst.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, src.getZ());
+        final float x = src.x();
+        final float y = src.y();
+        dst.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, src.z());
         return dst;
     }
 
@@ -433,9 +433,9 @@ public class AffineTransform implements Cloneable {
             if (dstPoint == null) {
                 throw new IllegalArgumentException("dst["+dstOff+"] is null");
             }
-            final float x = srcPoint.getX();
-            final float y = srcPoint.getY();
-            dstPoint.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, srcPoint.getZ());
+            final float x = srcPoint.x();
+            final float y = srcPoint.y();
+            dstPoint.setCoord(x * m00 + y * m01 + m02, x * m10 + y * m11 + m12, srcPoint.z());
             dst[dstOff++] = dstPoint;
         }
     }
@@ -511,9 +511,9 @@ public class AffineTransform implements Cloneable {
      * @return return dst for chaining
      */
     public final Vertex deltaTransform(final Vertex src, final Vertex dst) {
-        final float x = src.getX();
-        final float y = src.getY();
-        dst.setCoord(x * m00 + y * m01, x * m10 + y * m11, src.getZ());
+        final float x = src.x();
+        final float y = src.y();
+        dst.setCoord(x * m00 + y * m01, x * m10 + y * m11, src.z());
         return dst;
     }
 
@@ -538,9 +538,9 @@ public class AffineTransform implements Cloneable {
         if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
-        final float x = src.getX() - m02;
-        final float y = src.getY() - m12;
-        dst.setCoord((x * m11 - y * m01) / det, (y * m00 - x * m10) / det, src.getZ());
+        final float x = src.x() - m02;
+        final float y = src.y() - m12;
+        dst.setCoord((x * m11 - y * m01) / det, (y * m00 - x * m10) / det, src.z());
         return dst;
     }
 

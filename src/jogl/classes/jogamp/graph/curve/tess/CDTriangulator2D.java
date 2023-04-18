@@ -36,6 +36,7 @@ import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.plane.Winding;
+import com.jogamp.opengl.math.Vec2f;
 import com.jogamp.opengl.math.VectorUtil;
 
 import jogamp.opengl.Debug;
@@ -145,13 +146,13 @@ public class CDTriangulator2D implements Triangulator {
             }
         }
         if( TEST_ENABLED ) {
-            final float[] tempV2 = new float[2];
+            final Vec2f tempV2 = new Vec2f();
             final CDTriangulator2DExpAddOn addOn = new CDTriangulator2DExpAddOn();
             final int sinkSize = sink.size();
             if( TEST_MARK_LINE ) {
                 for(int i=0; i<sinkSize; i++) {
                     final Triangle t0 = sink.get(i);
-                    addOn.markLineInTriangle(t0, tempV2);
+                    addOn.markLineInTriangle(t0);
                 }
             } else if ( TEST_LINE_AA ){
                 for(int i=0; i<sinkSize-1; i+=2) {

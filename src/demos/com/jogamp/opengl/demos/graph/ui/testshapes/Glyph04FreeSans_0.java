@@ -43,7 +43,7 @@ public class Glyph04FreeSans_0 extends GraphShape {
 
     @Override
     protected void addShapeToRegion() {
-        final OutlineShape shape = new OutlineShape(vertexFactory);
+        final OutlineShape shape = new OutlineShape();
 
         // Start TTF Shape for Glyph 19
         // 000: B0a: move-to p0

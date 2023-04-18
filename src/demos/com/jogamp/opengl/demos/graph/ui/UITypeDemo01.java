@@ -70,6 +70,7 @@ import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -158,7 +159,7 @@ public class UITypeDemo01 implements GLEventListener {
         animator.start();
     }
 
-    private final float[] fg_color = new float[] { 0, 0, 0, 1 };
+    private final Vec4f fg_color = new Vec4f( 0, 0, 0, 1 );
     private final Font font;
     private final String text;
     private final int glyph_id;
@@ -332,7 +333,7 @@ public class UITypeDemo01 implements GLEventListener {
                 pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
                 if( null != glyph.getShape() ) {
                     final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null);
-                    region.addOutlineShape(glyph.getShape(), null, region.hasColorChannel() ? fg_color : null);
+                    region.addOutlineShape(glyph.getShape(), null, fg_color);
                     region.draw(gl, renderer, sampleCount);
                     region.destroy(gl);
                 }

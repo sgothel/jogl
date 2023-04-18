@@ -213,7 +213,7 @@ class TypecastFont implements Font {
                 glyph_advance = glyph.getAdvanceWidth();
                 glyph_leftsidebearings = glyph.getLeftSideBearing();
                 final AABBox sb = glyph.getBBox();
-                final OutlineShape s = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph, OutlineShape.getDefaultVertexFactory());
+                final OutlineShape s = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph);
                 if( 0 < s.getOutlineVectexCount() ) {
                     glyph_bbox = sb;
                     shape = s;
@@ -221,7 +221,7 @@ class TypecastFont implements Font {
                 } else {
                     // non-contour glyph -> whitespace
                     glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
-                    shape = TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox, OutlineShape.getDefaultVertexFactory());
+                    shape = TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox);
                     isWhiteSpace = true;
                 }
             } else {
@@ -229,7 +229,7 @@ class TypecastFont implements Font {
                 glyph_advance = getAdvanceWidthFU(glyph_id);
                 glyph_leftsidebearings = 0;
                 glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
-                shape = TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox, OutlineShape.getDefaultVertexFactory());
+                shape = TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox);
                 isWhiteSpace = true;
             }
             KernSubtable kernSub = null;

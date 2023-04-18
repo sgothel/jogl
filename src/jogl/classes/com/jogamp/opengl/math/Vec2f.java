@@ -126,6 +126,13 @@ public final class Vec2f {
         return new Vec2f(this).scale(val);
     }
 
+    /** this = a * b, returns this. */
+    public Vec2f mul(final Vec2f a, final Vec2f b) {
+        x = a.x * b.x;
+        y = a.y * b.y;
+        return this;
+    }
+
     /** this = this * s, returns this. */
     public Vec2f scale(final float s) {
         x *= s;
@@ -145,6 +152,13 @@ public final class Vec2f {
         return new Vec2f(this).add(arg);
     }
 
+    /** this = a + b, returns this. */
+    public Vec2f plus(final Vec2f a, final Vec2f b) {
+        x = a.x + b.x;
+        y = a.y + b.y;
+        return this;
+    }
+
     /** this = this + { dx, dy }, returns this. */
     public Vec2f add(final float dx, final float dy) {
         x += dx;
@@ -159,21 +173,16 @@ public final class Vec2f {
         return this;
     }
 
-    /** Returns this + s * arg; creates new vector */
-    public Vec2f plusScaled(final float s, final Vec2f arg) {
-        return new Vec2f(this).addScaled(s, arg);
-    }
-
-    /** this = this + s * b, returns this. */
-    public Vec2f addScaled(final float s, final Vec2f b) {
-        x += s * b.x;
-        y += s * b.y;
-        return this;
-    }
-
     /** Returns this - arg; creates new vector */
     public Vec2f minus(final Vec2f arg) {
         return new Vec2f(this).sub(arg);
+    }
+
+    /** this = a - b, returns this. */
+    public Vec2f minus(final Vec2f a, final Vec2f b) {
+        x = a.x - b.x;
+        y = a.y - b.y;
+        return this;
     }
 
     /** this = this - b, returns this. */

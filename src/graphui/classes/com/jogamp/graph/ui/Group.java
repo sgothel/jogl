@@ -37,6 +37,7 @@ import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -194,7 +195,7 @@ public class Group extends Shape implements Container {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final float[] rgba) {
+    protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final Vec4f rgba) {
         final PMVMatrix pmv = renderer.getMatrix();
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
@@ -207,6 +208,7 @@ public class Group extends Shape implements Container {
                 shape.setTransform(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
+                    // FIXME: Optimize to reuse modulated rgba
                     if( null == rgba ) {
                         shape.drawToSelect(gl, renderer, sampleCount);
                     } else {
