@@ -46,6 +46,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.es2.GearsES2;
+import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.geom.AABBox;

@@ -48,7 +48,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.demos.es2.GearsES2;
+import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
