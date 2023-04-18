@@ -384,12 +384,12 @@ public class UISceneDemo20 implements GLEventListener {
 
         final float buttonLWidth = buttonXSizeNorm;
         final float buttonLHeight = buttonLWidth / 2.5f;
-        buttonsLeft.setLayout(new GridLayout(buttonLWidth, buttonLHeight, new Padding(buttonLWidth*0.1f, buttonLHeight*0.5f), 7));
+        buttonsLeft.setLayout(new GridLayout(buttonLWidth, buttonLHeight, new Padding(buttonLHeight*0.25f, buttonLWidth*0.05f), 7));
 
         final float buttonRWidth = 2f*buttonLWidth;
         final float buttonRHeight = 2f*buttonLHeight;
 
-        buttonsRight.setLayout(new GridLayout(1, buttonRWidth, buttonRHeight, new Padding(buttonLWidth*0.1f, buttonLHeight*0.5f)));
+        buttonsRight.setLayout(new GridLayout(1, buttonRWidth, buttonRHeight, new Padding(buttonLHeight*0.25f, buttonLWidth*0.05f)));
 
         System.err.println("Button Size: "+buttonLWidth+" x "+buttonLHeight);
 

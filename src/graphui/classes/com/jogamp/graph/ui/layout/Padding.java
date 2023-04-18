@@ -27,23 +27,80 @@
  */
 package com.jogamp.graph.ui.layout;
 
+import com.jogamp.opengl.math.FloatUtil;
+
 /**
- * GraphUI Padding of cells, e.g. {@link GridLayout}.
+ * GraphUI CSS property Padding, space belonging to the element.
+ *
+ * The CSS padding properties are used to generate space around an element's content, inside of any defined borders.
  */
 public class Padding {
-    public final float left, right, bottom, top;
+    /** Top value */
+    public final float top;
+    /** Right value */
+    public final float right;
+    /** Bottom value */
+    public final float bottom;
+    /** Left value */
+    public final float left;
 
+    /**
+     * Ctor w/ zero values
+     */
     public Padding() {
-        left = 0f; right = 0f; bottom = 0f; top = 0f;
+        top = 0f; right = 0f; bottom = 0f; left = 0f;
     }
-    public Padding(final float width, final float height) {
-        left = width/2f; right = width/2f; bottom = height/2f; top = height/2f;
+
+    /**
+     * Ctor
+     * @param top top value
+     * @param right right value
+     * @param bottom bottom value
+     * @param left left value
+     */
+    public Padding(final float top, final float right, final float bottom, final float left) {
+        this.top = top; this.right = right; this.bottom = bottom; this.left = left;
     }
-    public Padding(final float left, final float right, final float bottom, final float top) {
-        this.left = left; this.right = right; this.bottom = bottom; this.top = top;
+
+    /**
+     * Ctor
+     * @param top top value
+     * @param rl right and left value
+     * @param bottom bottom value
+     */
+    public Padding(final float top, final float rl, final float bottom) {
+        this.top = top; this.right = rl; this.bottom = bottom; this.left = rl;
     }
+
+    /**
+     * Ctor
+     * @param tb top and bottom value
+     * @param rl right and left value
+     */
+    public Padding(final float tb, final float rl) {
+        this.top = tb; this.right = rl; this.bottom = tb; this.left = rl;
+    }
+
+    /**
+     * Ctor
+     * @param trbl top, right, bottom and left value
+     */
+    public Padding(final float trbl) {
+        this.top = trbl; this.right = trbl; this.bottom = trbl; this.left = trbl;
+    }
+
+    /** Return width of horizontal values top + right. */
     public float width() { return left + right; }
+
+    /** Return height of vertical values bottom + top. */
     public float height() { return bottom + top; }
+
+    public boolean zeroSumWidth() { return FloatUtil.isZero( width() ); };
+
+    public boolean zeroSumHeight() { return FloatUtil.isZero( height() ); };
+
+    public boolean zeroSumSize() { return zeroSumWidth() && zeroSumHeight(); }
+
     @Override
-    public String toString() { return "Padding[l "+left+", r "+right+", b "+bottom+", t "+top+"]"; }
+    public String toString() { return "Padding[t "+top+", r "+right+", b "+bottom+", l "+left+"]"; }
 }

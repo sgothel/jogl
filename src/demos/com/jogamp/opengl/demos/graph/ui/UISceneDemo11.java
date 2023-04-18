@@ -40,8 +40,6 @@ import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.layout.GridLayout;
 import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Button;
-import com.jogamp.graph.ui.shapes.GLButton;
-import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -83,7 +81,7 @@ public class UISceneDemo11 {
         final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final Group groupA0 = new Group(new GridLayout(2, 1f, 1/2f, new Padding(0.1f, 0.1f)));
+        final Group groupA0 = new Group(new GridLayout(2, 1f, 1/2f, new Padding(0.05f, 0.05f)));
         {
             groupA0.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );
             groupA0.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );
@@ -204,45 +202,4 @@ public class UISceneDemo11 {
             window.destroy();
         }
     }
-
-    static Shape makeGLButton(final float sw, final float sh, final Font font, final int renderModes) {
-        final GearsES2 gears = new GearsES2(0);
-        gears.setVerbose(false);
-        gears.setClearColor(new float[] { 0.9f, 0.9f, 0.9f, 1f } );
-        final boolean[] animate = { true };
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                System.err.println("Gears Anim: Waiting");
-                try {
-                    gears.waitForInit(true);
-                } catch (final InterruptedException e) { }
-                System.err.println("Gears Anim: Started");
-                while( gears.isInit() ) {
-                    if( animate[0] ) {
-                        final float ry = ( gears.getRotY() + 1 ) % 360;
-                        gears.setRotY(ry);
-                    }
-                    try {
-                        Thread.sleep(15);
-                    } catch (final InterruptedException e) { }
-                }
-                System.err.println("Gears Anim: End");
-            }
-        }).start();
-        final int texUnit = 1;
-        final GLButton b = new GLButton(renderModes, sw,
-                                        sh, texUnit, gears, false /* useAlpha */);
-        b.setToggleable(true);
-        b.setToggle(true); // toggle == true -> animation
-        b.setAnimate(true);
-        b.addMouseListener(new Shape.MouseGestureAdapter() {
-            @Override
-            public void mouseClicked(final MouseEvent e) {
-                b.setAnimate( b.isToggleOn() );
-                animate[0] = b.getAnimate();
-            } } );
-        return b;
-    }
-
 }

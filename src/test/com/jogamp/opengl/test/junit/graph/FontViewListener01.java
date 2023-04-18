@@ -122,7 +122,7 @@ public class FontViewListener01 implements GLEventListener {
         final float gridSize = gridCols > gridRows ? 1f/gridCols : 1f/gridRows;
         System.err.println("Reshape Grid "+gridCols+" x "+gridRows+", "+cellCount+" cells, gridSize "+gridSize);
 
-        grid = new Group(new GridLayout(gridCols, gridSize, gridSize, new Padding(gridSize*0.1f, gridSize*0.1f)));
+        grid = new Group(new GridLayout(gridCols, gridSize, gridSize, new Padding(gridSize*0.05f, gridSize*0.05f)));
         scene.addShape(grid);
 
         for(int i=0; i<cellCount; ++i) {

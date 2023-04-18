@@ -161,7 +161,7 @@ public class FontView01 {
         final int cellCount = gridCols * gridRows;
         final float gridSize = gridCols > gridRows ? 1f/gridCols : 1f/gridRows;
         System.err.println("Grid "+gridCols+" x "+gridRows+", "+cellCount+" cells, gridSize "+gridSize);
-        final Group mainGrid = new Group(new GridLayout(gridCols, gridSize, gridSize, new Padding(gridSize*0.1f, gridSize*0.1f)));
+        final Group mainGrid = new Group(new GridLayout(gridCols, gridSize, gridSize, new Padding(gridSize*0.05f, gridSize*0.05f)));
 
         final Group glyphCont = new Group();
         {
@@ -175,7 +175,7 @@ public class FontView01 {
             glyphInfo.setColor(0.1f, 0.1f, 0.1f, 1.0f);
             infoCont.addShape(glyphInfo);
         }
-        final Group infoGrid = new Group(new GridLayout(1/2f, 1/2f, new Padding(1/2f*0.01f, 1/2f*0.01f), 2));
+        final Group infoGrid = new Group(new GridLayout(1/2f, 1/2f, new Padding(1/2f*0.005f, 1/2f*0.005f), 2));
         infoGrid.addShape(glyphCont);
         infoGrid.addShape(infoCont);
 
