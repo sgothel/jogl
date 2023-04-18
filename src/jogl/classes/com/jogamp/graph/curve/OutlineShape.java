@@ -814,7 +814,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
                         } else {
                             overlap = null;
                         }
-                        if( overlaps.contains(currentVertex) || overlap != null ) {
+                        if( null != overlap || overlaps.contains(currentVertex) ) {
                             overlaps.remove(currentVertex);
 
                             subdivideTriangle(outline, prevV, currentVertex, nextV, i);
