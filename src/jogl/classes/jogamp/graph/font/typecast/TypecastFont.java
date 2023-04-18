@@ -364,11 +364,12 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public AABBox getGlyphShapeBounds(final CharSequence string) {
-        return getGlyphShapeBounds(null, string);
-    }
-    @Override
     public AABBox getGlyphShapeBounds(final AffineTransform transform, final CharSequence string) {
+        return getGlyphShapeBounds(transform, string, new AffineTransform(), new AffineTransform());
+    }
+
+    @Override
+    public AABBox getGlyphShapeBounds(final AffineTransform transform, final CharSequence string, final AffineTransform temp1, final AffineTransform temp2) {
         if (null == string || 0 == string.length() ) {
             return new AABBox();
         }
@@ -377,7 +378,7 @@ class TypecastFont implements Font {
             public final void visit(final char symbol, final Font.Glyph shape, final AffineTransform t) {
                 // nop
             } };
-        return processString(visitor, transform, string);
+        return processString(visitor, transform, string, temp1, temp2);
     }
 
     @Override

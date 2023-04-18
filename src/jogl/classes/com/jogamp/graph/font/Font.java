@@ -458,13 +458,16 @@ public interface Font {
      * <p>
      * This method is only exposed to validate the produced {@link OutlineShape} against {@link #getGlyphBounds(CharSequence)}.
      * </p>
+     * @param transform optional given transform
      * @param string string text
+     * @param tmp1 temp {@link AffineTransform} to be reused
+     * @param tmp2 temp {@link AffineTransform} to be reused
      * @return the bounding box of the given string in font-units [0..1]
-     * @see #getGlyphShapeBounds(AffineTransform, CharSequence)
+     * @see #getGlyphShapeBounds(CharSequence)
      * @see #getGlyphBounds(CharSequence)
      * @see #getMetricBounds(CharSequence)
      */
-    AABBox getGlyphShapeBounds(final CharSequence string);
+    AABBox getGlyphShapeBounds(final AffineTransform transform, final CharSequence string, final AffineTransform tmp1, final AffineTransform tmp2);
 
     boolean isPrintableChar(final char c);
 
