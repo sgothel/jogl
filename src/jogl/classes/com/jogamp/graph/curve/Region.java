@@ -547,6 +547,9 @@ public abstract class Region {
         if( null == perf && !DEBUG_INSTANCE ) {
             addOutlineShape0(shape, t, rgbaColor);
         } else {
+            if( null == perf ) {
+                perfCounter().enable(true);
+            }
             addOutlineShape1(shape, t, rgbaColor);
         }
         markShapeDirty();
