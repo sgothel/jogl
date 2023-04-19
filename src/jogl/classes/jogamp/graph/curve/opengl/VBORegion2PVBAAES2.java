@@ -475,6 +475,11 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
                            final int vpWidth, final int vpHeight, final int sampleCount) {
         gl.glViewport(0, 0, vpWidth, vpHeight);
 
+        // Specific BITHINT_GLOBAL_DEPTH_TEST_ENABLED path added to
+        // VBORegion2PMSAA.renderVBO(..) by commit 45395696c252c215a8a22d05e5da7e98c662d07e (2014-04-10),
+        // but not here -> investigate if required for working MSAA:
+        // - "VBORegion2PMSAAES2 enables/disables GL_DEPTH_TEST, otherwise MSAA is corrupt"
+        //
         if( rs.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             // RGB is already multiplied w/ alpha via renderRegion2FBO(..)
             gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
