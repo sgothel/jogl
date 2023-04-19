@@ -74,18 +74,21 @@ public abstract class GLRegion extends Region {
      * - Ubuntu Light ~ vertices 100/char, indices 50/char
      * - FreeSerif    ~ vertices 115/char, indices 61/char
      *
-     * Now let's assume a minimum of 10 chars will be rendered
+     * However, proper initial size is pre-calculated via ..
+     * - {@link GLRegion#create(GLProfile, int, TextureSequence, Font, CharSequence)}
+     * - {@Link Region#countOutlineShape(OutlineShape, int[])}
+     * - {@link TextRegionUtil#countStringRegion(Font, CharSequence, int[])}
      */
 
     /**
-     * Default initial vertices count based on 10 chars w/ FreeSans @ 64 vertices/char avg.
+     * Default initial vertices count {@value}, assuming small sized shapes.
      */
-    public static final int defaultVerticesCount = 10*64;
+    public static final int defaultVerticesCount = 16;
 
     /**
-     * Default initial indices count based on 10 chars w/ FreeSans @ 33 indices/char avg.
+     * Default initial indices count {@value}, assuming small sized shapes.
      */
-    public static final int defaultIndicesCount = 10*33;
+    public static final int defaultIndicesCount = 16;
 
     // private static final float growthFactor = 1.2f; // avg +5% size but 15% more overhead (34% total)
     protected static final float growthFactor = GLArrayDataClient.DEFAULT_GROWTH_FACTOR; // avg +20% size, but 15% less CPU overhead compared to 1.2 (19% total)

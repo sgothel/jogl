@@ -497,7 +497,7 @@ public abstract class Region {
             final int verticeCount = vertsIn.size() + shape.getAddedVerticeCount();
             final int indexCount = trisIn.size() * 3;
             vertIndexCount[0] += verticeCount;
-            vertIndexCount[1] += Math.min( Math.ceil(verticeCount * 0.6), indexCount );
+            vertIndexCount[1] += Math.min( Math.ceil(verticeCount * 0.9), indexCount );
         }
     }
 
