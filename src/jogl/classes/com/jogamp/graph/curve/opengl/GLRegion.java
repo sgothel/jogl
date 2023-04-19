@@ -136,29 +136,15 @@ public abstract class GLRegion extends Region {
      * @param font Font used to {@link Font#processString(com.jogamp.graph.curve.OutlineShape.Visitor2, CharSequence)} to {@link #countOutlineShape(OutlineShape, int[]) to count initial number of vertices and indices}
      * @param str the string used to to {@link #countOutlineShape(OutlineShape, int[]) to count initial number of vertices and indices}
      */
-    public static GLRegion create(final GLProfile glp, int renderModes, final TextureSequence colorTexSeq, final Font font, final CharSequence str) {
-        if( null != colorTexSeq ) {
-            renderModes |= Region.COLORTEXTURE_RENDERING_BIT;
-        } else if( Region.hasColorTexture(renderModes) ) {
-            throw new IllegalArgumentException("COLORTEXTURE_RENDERING_BIT set but null TextureSequence");
-        }
-        GLRegion region;
-        if( isVBAA(renderModes) ) {
-            region = new VBORegion2PVBAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT, 0, 0);
-        } else if( isMSAA(renderModes) ) {
-            region = new VBORegion2PMSAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT, 0, 0);
-        } else {
-            region = new VBORegionSPES2(glp, renderModes, colorTexSeq, 0, 0);
-        }
+    public static GLRegion create(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq, final Font font, final CharSequence str) {
         final int[] vertIndexCount = { 0, 0 };
         final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
             @Override
             public final void visit(final char symbol, final Font.Glyph glyph) {
-                region.countOutlineShape(glyph.getShape(), vertIndexCount);
+                Region.countOutlineShape(glyph.getShape(), vertIndexCount);
             } };
         font.processString(visitor, str);
-        region.setBufferCapacity(vertIndexCount[0], vertIndexCount[1]);
-        return region;
+        return GLRegion.create(glp, renderModes, colorTexSeq, vertIndexCount[0], vertIndexCount[1]);
     }
 
     private final int gl_idx_type;

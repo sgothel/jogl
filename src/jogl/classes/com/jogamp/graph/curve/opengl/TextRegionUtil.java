@@ -75,6 +75,9 @@ public class TextRegionUtil {
      * <p>
      * Origin of rendered text is 0/0 at bottom left.
      * </p>
+     * <p>
+     * The region buffer's size is grown by pre-calculating required string size via {@link #countStringRegion(Font, CharSequence, int[])}.
+     * </p>
      * @param region the {@link GLRegion} sink
      * @param font the target {@link Font}
      * @param transform optional given transform
@@ -84,7 +87,7 @@ public class TextRegionUtil {
      */
     public static AABBox addStringToRegion(final Region region, final Font font, final AffineTransform transform,
                                            final CharSequence str, final Vec4f rgbaColor) {
-        return addStringToRegion(region, font, transform, str, rgbaColor, new AffineTransform(), new AffineTransform());
+        return addStringToRegion(true /* preGrowRegion */, region, font, transform, str, rgbaColor, new AffineTransform(), new AffineTransform());
     }
 
     /**
@@ -95,6 +98,9 @@ public class TextRegionUtil {
      * </p>
      * <p>
      * Origin of rendered text is 0/0 at bottom left.
+     * </p>
+     * <p>
+     * The region buffer's size is grown by pre-calculating required string size via {@link #countStringRegion(Font, CharSequence, int[])}.
      * </p>
      * @param region the {@link GLRegion} sink
      * @param font the target {@link Font}
@@ -108,6 +114,12 @@ public class TextRegionUtil {
     public static AABBox addStringToRegion(final Region region, final Font font, final AffineTransform transform,
                                            final CharSequence str, final Vec4f rgbaColor,
                                            final AffineTransform temp1, final AffineTransform temp2) {
+        return addStringToRegion(true /* preGrowRegion */, region, font, transform, str, rgbaColor, temp1, temp2);
+    }
+
+    private static AABBox addStringToRegion(final boolean preGrowRegion, final Region region, final Font font, final AffineTransform transform,
+                                            final CharSequence str, final Vec4f rgbaColor,
+                                            final AffineTransform temp1, final AffineTransform temp2) {
         final Font.GlyphVisitor visitor = new Font.GlyphVisitor() {
             @Override
             public void visit(final char symbol, final Glyph glyph, final AffineTransform t) {
@@ -117,6 +129,11 @@ public class TextRegionUtil {
                 region.addOutlineShape(glyph.getShape(), t, rgbaColor);
             }
         };
+        if( preGrowRegion ) {
+            final int[] vertIndCount = { 0, 0 };
+            countStringRegion(font, str, vertIndCount);
+            region.growBuffer(vertIndCount[0], vertIndCount[1]);
+        }
         return font.processString(visitor, transform, str, temp1, temp2);
     }
 
@@ -125,7 +142,6 @@ public class TextRegionUtil {
      * <p>
      * The region's buffer can be either set using {@link Region#setBufferCapacity(int, int)} or grown using {@link Region#growBuffer(int, int)}.
      * </p>
-     * @param region the {@link GLRegion} sink
      * @param font the target {@link Font}
      * @param str string text
      * @param vertIndexCount the int[2] storage where the counted vertices and indices are added, vertices at [0] and indices at [1]
@@ -133,11 +149,11 @@ public class TextRegionUtil {
      * @see Region#growBuffer(int, int)
      * @see #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)
      */
-    public static void countStringRegion(final Region region, final Font font, final CharSequence str, final int[/*2*/] vertIndexCount) {
+    public static void countStringRegion(final Font font, final CharSequence str, final int[/*2*/] vertIndexCount) {
         final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
             @Override
             public final void visit(final char symbol, final Font.Glyph glyph) {
-                region.countOutlineShape(glyph.getShape(), vertIndexCount);
+                Region.countOutlineShape(glyph.getShape(), vertIndexCount);
             } };
         font.processString(visitor, str);
     }
@@ -176,7 +192,7 @@ public class TextRegionUtil {
         AABBox res;
         if(null == region) {
             region = GLRegion.create(gl.getGLProfile(), renderModes, null, font, str);
-            res = addStringToRegion(region, font, null, str, rgbaColor, tempT1, tempT2);
+            res = addStringToRegion(false /* preGrowRegion */, region, font, null, str, rgbaColor, tempT1, tempT2);
             addCachedRegion(gl, font, str, region);
         } else {
             res = new AABBox();
@@ -234,7 +250,7 @@ public class TextRegionUtil {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, font, str);
-        final AABBox res = addStringToRegion(region, font, null, str, rgbaColor, tmp1, tmp2);
+        final AABBox res = addStringToRegion(false /* preGrowRegion */, region, font, null, str, rgbaColor, tmp1, tmp2);
         region.draw(gl, renderer, sampleCount);
         region.destroy(gl);
         return res;
@@ -243,7 +259,7 @@ public class TextRegionUtil {
     /**
      * Try using {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
      * <p>
-     * The region's buffer size is pre-calculated via {@link #countStringRegion(Region, Font, CharSequence, int[])}.
+     * The region buffer's size is grown by pre-calculating required string size via {@link #countStringRegion(Font, CharSequence, int[])}.
      * </p>
      */
     public static AABBox drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
@@ -263,7 +279,7 @@ public class TextRegionUtil {
      * Origin of rendered text is 0/0 at bottom left.
      * </p>
      * <p>
-     * The region's buffer size is pre-calculated via {@link #countStringRegion(Region, Font, CharSequence, int[])}.
+     * The region buffer's size is grown by pre-calculating required string size via {@link #countStringRegion(Font, CharSequence, int[])}.
      * </p>
      * @param gl the current GL state
      * @param region
@@ -284,10 +300,7 @@ public class TextRegionUtil {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
-        final int[] vertIndCount = { 0, 0 };
-        TextRegionUtil.countStringRegion(region, font, str, vertIndCount);
-        region.growBuffer(vertIndCount[0], vertIndCount[1]);
-        final AABBox res = addStringToRegion(region, font, null, str, rgbaColor, tmp1, tmp2);
+        final AABBox res = addStringToRegion(true /* preGrowRegion */, region, font, null, str, rgbaColor, tmp1, tmp2);
         region.draw(gl, renderer, sampleCount);
         return res;
     }

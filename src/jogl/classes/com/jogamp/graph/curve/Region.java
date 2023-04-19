@@ -477,14 +477,20 @@ public abstract class Region {
     /**
      * Count required number of vertices and indices adding to given int[2] `vertIndexCount` array.
      * <p>
-     * The region's buffer can be either set using {@link Region#setBufferCapacity(int, int)} or grown using {@link Region#growBuffer(int, int)}.
+     * The region's buffer can be either set using {@link Region#setBufferCapacity(int, int)},
+     * {@link GLRegion#create(GLProfile, int, TextureSequence, int, int) GLRegion ctor w/ initial capacities}
+     * or grown using {@link Region#growBuffer(int, int)}.
+     * </p>
+     * <p>
+     * Method is utilized in {@link GLRegion#create(GLProfile, int, TextureSequence, com.jogamp.graph.font.Font, CharSequence) GLRegion ctor w/ font + text},
+     * computing the initial capacity.
      * </p>
      * @param shape the {@link OutlineShape} to count
      * @param vertIndexCount the int[2] storage where the counted vertices and indices are added, vertices at [0] and indices at [1]
      * @see #setBufferCapacity(int, int)
      * @see #growBuffer(int, int)
      */
-    public final void countOutlineShape(final OutlineShape shape, final int[/*2*/] vertIndexCount) {
+    public static final void countOutlineShape(final OutlineShape shape, final int[/*2*/] vertIndexCount) {
         final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
         final ArrayList<Vertex> vertsIn = shape.getVertices();
         {
@@ -498,14 +504,16 @@ public abstract class Region {
     /**
      * Count required number of vertices and indices adding to given int[2] `vertIndexCount` array.
      * <p>
-     * The region's buffer can be either set using {@link Region#setBufferCapacity(int, int)} or grown using {@link Region#growBuffer(int, int)}.
+     * The region's buffer can be either set using {@link Region#setBufferCapacity(int, int)},
+     * {@link GLRegion#create(GLProfile, int, TextureSequence, int, int) GLRegion ctor w/ initial capacities}
+     * or grown using {@link Region#growBuffer(int, int)}.
      * </p>
      * @param shapes list of {@link OutlineShape} to count
      * @param vertIndexCount the int[2] storage where the counted vertices and indices are added, vertices at [0] and indices at [1]
      * @see #setBufferCapacity(int, int)
      * @see #growBuffer(int, int)
      */
-    public final void countOutlineShapes(final List<OutlineShape> shapes, final int[/*2*/] vertIndexCount) {
+    public static final void countOutlineShapes(final List<OutlineShape> shapes, final int[/*2*/] vertIndexCount) {
         for (int i = 0; i < shapes.size(); i++) {
             countOutlineShape(shapes.get(i), vertIndexCount);
         }
