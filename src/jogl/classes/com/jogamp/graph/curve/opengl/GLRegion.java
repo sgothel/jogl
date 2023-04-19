@@ -32,20 +32,26 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLArrayData;
 import com.jogamp.opengl.util.GLArrayDataClient;
 import com.jogamp.opengl.util.GLArrayDataEditable;
+import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.opengl.math.Vec4f;
 
 import jogamp.graph.curve.opengl.VBORegion2PMSAAES2;
 import jogamp.graph.curve.opengl.VBORegion2PVBAAES2;
 import jogamp.graph.curve.opengl.VBORegionSPES2;
+import jogamp.graph.curve.opengl.shader.AttributeNames;
 
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.Font.Glyph;
 
 import java.io.PrintStream;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
 import com.jogamp.graph.curve.OutlineShape;
 
@@ -150,6 +156,15 @@ public abstract class GLRegion extends Region {
     private final int gl_idx_type;
     protected final TextureSequence colorTexSeq;
 
+    // pass-1 common data
+    protected int curVerticesCap = 0;
+    protected int curIndicesCap = 0;
+    protected int growCount = 0;
+    protected GLArrayDataServer gca_VerticesAttr = null;
+    protected GLArrayDataServer gca_CurveParamsAttr = null;
+    protected GLArrayDataServer gca_ColorsAttr = null;
+    protected GLArrayDataServer indicesBuffer = null;
+
     protected GLRegion(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq) {
         super(renderModes, glp.isGL2ES3() /* use_int32_idx */);
         this.gl_idx_type = usesI32Idx() ? GL.GL_UNSIGNED_INT : GL.GL_UNSIGNED_SHORT;
@@ -158,20 +173,88 @@ public abstract class GLRegion extends Region {
 
     protected final int glIdxType() { return this.gl_idx_type; }
 
-    /**
-     * Updates a graph region by updating the ogl related
-     * objects for use in rendering if {@link #isShapeDirty()}.
-     * <p>Allocates the ogl related data and initializes it the 1st time.<p>
-     * <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
-     * @param curRenderModes TODO
-     */
-    protected abstract void updateImpl(final GL2ES2 gl, int curRenderModes);
+    protected final void initBuffer(final int verticeCount, final int indexCount) {
+        indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), indexCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesBuffer.setGrowthFactor(growthFactor);
+        curIndicesCap = indicesBuffer.getElemCapacity();
 
-    protected abstract void destroyImpl(final GL2ES2 gl);
+        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
+                false, verticeCount, GL.GL_STATIC_DRAW);
+        gca_VerticesAttr.setGrowthFactor(growthFactor);
+        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
+                false, verticeCount, GL.GL_STATIC_DRAW);
+        gca_CurveParamsAttr.setGrowthFactor(growthFactor);
+        if( hasColorChannel() ) {
+            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
+                    false, verticeCount, GL.GL_STATIC_DRAW);
+            gca_ColorsAttr.setGrowthFactor(growthFactor);
+        }
+        curVerticesCap = gca_VerticesAttr.getElemCapacity();
+        growCount = 0;
+    }
 
-    protected abstract void clearImpl(final GL2ES2 gl);
+    @Override
+    public final void growBuffer(final int verticesCount, final int indicesCount) {
+        boolean grown = false;
+        if( curIndicesCap < indicesBuffer.elemPosition() + indicesCount ) {
+            // System.err.printf("XXX Buffer grow - Indices: %d < ( %d = %d + %d ); Status: %s%n",
+            //       curIndicesCap, indicesBuffer.elemPosition() + indicesCount, indicesBuffer.elemPosition(), indicesCount, indicesBuffer.elemStatsToString());
+            indicesBuffer.growIfNeeded(indicesCount * indicesBuffer.getCompsPerElem());
+            // System.err.println("grew.indices 0x"+Integer.toHexString(hashCode())+": "+curIndicesCap+" -> "+indicesBuffer.getElemCapacity()+", "+indicesBuffer.elemStatsToString());
+            curIndicesCap = indicesBuffer.getElemCapacity();
+            grown = true;
+        }
+        if( curVerticesCap < gca_VerticesAttr.elemPosition() + verticesCount ) {
+            // System.err.printf("XXX Buffer grow - Verices: %d < ( %d = %d + %d ); Status: %s%n",
+            //        curVerticesCap, gca_VerticesAttr.elemPosition() + verticesCount, gca_VerticesAttr.elemPosition(), verticesCount, gca_VerticesAttr.elemStatsToString());
+            gca_VerticesAttr.growIfNeeded(verticesCount * gca_VerticesAttr.getCompsPerElem());
+            // System.err.println("grew.vertices 0x"+Integer.toHexString(hashCode())+": "+curVerticesCap+" -> "+gca_VerticesAttr.getElemCapacity()+", "+gca_VerticesAttr.elemStatsToString());
+            gca_CurveParamsAttr.growIfNeeded(verticesCount * gca_CurveParamsAttr.getCompsPerElem());
+            if( null != gca_ColorsAttr ) {
+                gca_ColorsAttr.growIfNeeded(verticesCount * gca_ColorsAttr.getCompsPerElem());
+            }
+            curVerticesCap = gca_VerticesAttr.getElemCapacity();
+            grown = true;
+        }
+        if( grown ) {
+            ++growCount;
+        }
+    }
 
-    protected static void printAndCount(final PrintStream out, final String name, final GLArrayData data, final int[] size, final int[] capacity) {
+    @Override
+    public final void setBufferCapacity(final int verticesCount, final int indicesCount) {
+        if( curIndicesCap < indicesCount ) {
+            indicesBuffer.reserve(indicesCount);
+            curIndicesCap = indicesBuffer.getElemCapacity();
+        }
+        if( curVerticesCap < verticesCount ) {
+            gca_VerticesAttr.reserve(verticesCount);
+            gca_CurveParamsAttr.reserve(verticesCount);
+            if( null != gca_ColorsAttr ) {
+                gca_ColorsAttr.reserve(verticesCount);
+            }
+            curVerticesCap = gca_VerticesAttr.getElemCapacity();
+        }
+    }
+
+    @Override
+    public final void printBufferStats(final PrintStream out) {
+        final int[] size= { 0 }, capacity= { 0 };
+        out.println("GLRegion: idx32 "+usesI32Idx()+", obj 0x"+Integer.toHexString(hashCode()));
+        printAndCount(out, "  indices ", indicesBuffer, size, capacity);
+        out.println();
+        printAndCount(out, "  vertices ", gca_VerticesAttr, size, capacity);
+        out.println();
+        printAndCount(out, "  params ", gca_CurveParamsAttr, size, capacity);
+        out.println();
+        printAndCount(out, "  color ", gca_ColorsAttr, size, capacity);
+        final float filled = (float)size[0]/(float)capacity[0];
+        out.println();
+        out.printf("  total [bytes %,d / %,d], filled[%.1f%%, left %.1f%%], grow-cnt %d, obj 0x%x%n",
+                size[0], capacity[0], filled*100f, (1f-filled)*100f, growCount, hashCode());
+    }
+
+    private static void printAndCount(final PrintStream out, final String name, final GLArrayData data, final int[] size, final int[] capacity) {
         out.print(name+"[");
         if( null != data ) {
             out.print(data.fillStatsToString());
@@ -180,6 +263,67 @@ public abstract class GLRegion extends Region {
             out.print("]");
         } else {
             out.print("null]");
+        }
+    }
+
+    @Override
+    protected final void pushVertex(final Vec3f coords, final Vec3f texParams, final Vec4f rgba) {
+        // NIO array[3] is much slows than group/single
+        // gca_VerticesAttr.putf(coords, 0, 3);
+        // gca_CurveParamsAttr.putf(texParams, 0, 3);
+        // gca_VerticesAttr.put3f(coords[0], coords[1], coords[2]);
+        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords);
+        // gca_CurveParamsAttr.put3f(texParams[0], texParams[1], texParams[2]);
+        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams);
+        if( null != gca_ColorsAttr ) {
+            if( null != rgba ) {
+                // gca_ColorsAttr.putf(rgba, 0, 4);
+                // gca_ColorsAttr.put4f(rgba[0], rgba[1], rgba[2], rgba[3]);
+                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), rgba);
+            } else {
+                throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
+            }
+        }
+    }
+
+    @Override
+    protected final void pushVertices(final Vec3f coords1, final Vec3f coords2, final Vec3f coords3,
+                                      final Vec3f texParams1, final Vec3f texParams2, final Vec3f texParams3, final Vec4f rgba) {
+        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords1);
+        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords2);
+        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords3);
+        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams1);
+        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams2);
+        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams3);
+        if( null != gca_ColorsAttr ) {
+            if( null != rgba ) {
+                final float r=rgba.x(), g=rgba.y(), b=rgba.z(), a=rgba.w();
+                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);
+                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);
+                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);
+            } else {
+                throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
+            }
+        }
+    }
+
+    @Override
+    protected final void pushIndex(final int idx) {
+        if( usesI32Idx() ) {
+            indicesBuffer.puti(idx);
+        } else {
+            indicesBuffer.puts((short)idx);
+        }
+    }
+
+    @Override
+    protected final void pushIndices(final int idx1, final int idx2, final int idx3) {
+        if( usesI32Idx() ) {
+            // indicesBuffer.put3i(idx1, idx2, idx3);
+            put3i((IntBuffer)indicesBuffer.getBuffer(), idx1, idx2, idx3);
+        } else {
+            // indicesBuffer.put3s((short)idx1, (short)idx2, (short)idx3);
+            put3s((ShortBuffer)indicesBuffer.getBuffer(), (short)idx1, (short)idx2, (short)idx3);
         }
     }
 
@@ -193,12 +337,28 @@ public abstract class GLRegion extends Region {
      * @return this {@link GLRegion} for chaining.
      * @see GLArrayDataEditable#clear(GL)
      */
-    public GLRegion clear(final GL2ES2 gl) {
+    public final GLRegion clear(final GL2ES2 gl) {
         lastRenderModes = 0;
+        if(DEBUG_INSTANCE) {
+            System.err.println("GLRegion Clear: " + this);
+        }
+        if( null != indicesBuffer ) {
+            indicesBuffer.clear(gl);
+        }
+        if( null != gca_VerticesAttr ) {
+            gca_VerticesAttr.clear(gl);
+        }
+        if( null != gca_CurveParamsAttr ) {
+            gca_CurveParamsAttr.clear(gl);
+        }
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.clear(gl);
+        }
         clearImpl(gl);
         clearImpl();
         return this;
     }
+    protected abstract void clearImpl(final GL2ES2 gl);
 
     /**
      * Delete and clear the associated OGL objects.
@@ -211,6 +371,7 @@ public abstract class GLRegion extends Region {
         clear(gl);
         destroyImpl(gl);
     }
+    protected abstract void destroyImpl(final GL2ES2 gl);
 
     /**
      * Renders the associated OGL objects specifying
@@ -266,6 +427,15 @@ public abstract class GLRegion extends Region {
         lastRenderModes = curRenderModes;
     }
     private int lastRenderModes = 0;
+
+    /**
+     * Updates a graph region by updating the ogl related
+     * objects for use in rendering if {@link #isShapeDirty()}.
+     * <p>Allocates the ogl related data and initializes it the 1st time.<p>
+     * <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
+     * @param curRenderModes TODO
+     */
+    protected abstract void updateImpl(final GL2ES2 gl, int curRenderModes);
 
     protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, int curRenderModes, final int[/*1*/] sampleCount);
 }

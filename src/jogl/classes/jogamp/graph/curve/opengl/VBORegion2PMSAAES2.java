@@ -27,10 +27,7 @@
  */
 package jogamp.graph.curve.opengl;
 
-import java.io.PrintStream;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
@@ -48,8 +45,6 @@ import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.SyncMatrices4f16;
@@ -65,12 +60,6 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
     private final RenderState.ProgramLocal rsLocal;
 
     // Pass-1:
-    private int curVerticesCap = 0;
-    private int curIndicesCap = 0;
-    private GLArrayDataServer gca_VerticesAttr;
-    private GLArrayDataServer gca_CurveParamsAttr;
-    private GLArrayDataServer gca_ColorsAttr;
-    private GLArrayDataServer indicesBuffer;
     private final GLUniformData gcu_ColorTexUnit;
     private final float[] colorTexBBox; // x0, y0, x1, y1
     private final GLUniformData gcu_ColorTexBBox;
@@ -137,141 +126,9 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
                                                            false, 4, GL.GL_STATIC_DRAW);
     }
 
-    private void initBuffer(final int verticeCount, final int indexCount) {
-        indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), indexCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
-        indicesBuffer.setGrowthFactor(growthFactor);
-        curIndicesCap = indicesBuffer.getElemCapacity();
-
-        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
-                false, verticeCount, GL.GL_STATIC_DRAW);
-        gca_VerticesAttr.setGrowthFactor(growthFactor);
-        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
-                false, verticeCount, GL.GL_STATIC_DRAW);
-        gca_CurveParamsAttr.setGrowthFactor(growthFactor);
-        if( hasColorChannel() ) {
-            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
-                    false, verticeCount, GL.GL_STATIC_DRAW);
-            gca_ColorsAttr.setGrowthFactor(growthFactor);
-        }
-        curVerticesCap = gca_VerticesAttr.getElemCapacity();
-    }
-
-    @Override
-    public void growBuffer(final int verticesCount, final int indicesCount) {
-        if( curIndicesCap < indicesBuffer.elemPosition() + indicesCount ) {
-            indicesBuffer.growIfNeeded(indicesCount * indicesBuffer.getCompsPerElem());
-            curIndicesCap = indicesBuffer.getElemCapacity();
-        }
-        if( curVerticesCap < gca_VerticesAttr.elemPosition() + verticesCount ) {
-            gca_VerticesAttr.growIfNeeded(verticesCount * gca_VerticesAttr.getCompsPerElem());
-            gca_CurveParamsAttr.growIfNeeded(verticesCount * gca_CurveParamsAttr.getCompsPerElem());
-            if( null != gca_ColorsAttr ) {
-                gca_ColorsAttr.growIfNeeded(verticesCount * gca_ColorsAttr.getCompsPerElem());
-            }
-            curVerticesCap = gca_VerticesAttr.getElemCapacity();
-        }
-    }
-
-    @Override
-    public void setBufferCapacity(final int verticesCount, final int indicesCount) {
-        if( curIndicesCap < indicesCount ) {
-            indicesBuffer.reserve(indicesCount);
-            curIndicesCap = indicesBuffer.getElemCapacity();
-        }
-        if( curVerticesCap < verticesCount ) {
-            gca_VerticesAttr.reserve(verticesCount);
-            gca_CurveParamsAttr.reserve(verticesCount);
-            if( null != gca_ColorsAttr ) {
-                gca_ColorsAttr.reserve(verticesCount);
-            }
-            curVerticesCap = gca_VerticesAttr.getElemCapacity();
-        }
-    }
-
     @Override
     protected final void clearImpl(final GL2ES2 gl) {
-        if( null != indicesBuffer ) {
-            indicesBuffer.clear(gl);
-        }
-        if( null != gca_VerticesAttr ) {
-            gca_VerticesAttr.clear(gl);
-        }
-        if( null != gca_CurveParamsAttr ) {
-            gca_CurveParamsAttr.clear(gl);
-        }
-        if( null != gca_ColorsAttr ) {
-            gca_ColorsAttr.clear(gl);
-        }
         fboDirty = true;
-    }
-
-    @Override
-    public void printBufferStats(final PrintStream out) {
-        final int[] size= { 0 }, capacity= { 0 };
-        out.println("VBORegion2PMSAAES2: idx32 "+usesI32Idx());
-        printAndCount(out, "  indices ", indicesBuffer, size, capacity);
-        out.println();
-        printAndCount(out, "  vertices ", gca_VerticesAttr, size, capacity);
-        out.println();
-        printAndCount(out, "  params ", gca_CurveParamsAttr, size, capacity);
-        out.println();
-        printAndCount(out, "  color ", gca_ColorsAttr, size, capacity);
-        final float filled = (float)size[0]/(float)capacity[0];
-        out.println();
-                out.printf("  total [bytes %,d / %,d], filled %.1f%%, left %.1f%%]%n",
-                        size[0], capacity[0], filled*100f, (1f-filled)*100f);
-    }
-
-    @Override
-    protected final void pushVertex(final Vec3f coords, final Vec3f texParams, final Vec4f rgba) {
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams);
-        if( null != gca_ColorsAttr ) {
-            if( null != rgba ) {
-                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), rgba);
-            } else {
-                throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
-            }
-        }
-    }
-
-    @Override
-    protected final void pushVertices(final Vec3f coords1, final Vec3f coords2, final Vec3f coords3,
-                                      final Vec3f texParams1, final Vec3f texParams2, final Vec3f texParams3, final Vec4f rgba) {
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords1);
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords2);
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords3);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams1);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams2);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams3);
-        if( null != gca_ColorsAttr ) {
-            if( null != rgba ) {
-                final float r=rgba.x(), g=rgba.y(), b=rgba.z(), a=rgba.w();
-                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);
-                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);
-                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);
-            } else {
-                throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
-            }
-        }
-    }
-
-    @Override
-    protected final void pushIndex(final int idx) {
-        if( usesI32Idx() ) {
-            indicesBuffer.puti(idx);
-        } else {
-            indicesBuffer.puts((short)idx);
-        }
-    }
-
-    @Override
-    protected final void pushIndices(final int idx1, final int idx2, final int idx3) {
-        if( usesI32Idx() ) {
-            put3i((IntBuffer)indicesBuffer.getBuffer(), idx1, idx2, idx3);
-        } else {
-            put3s((ShortBuffer)indicesBuffer.getBuffer(), (short)idx1, (short)idx2, (short)idx3);
-        }
     }
 
     @Override

@@ -739,6 +739,6 @@ public abstract class Region {
 
     @Override
     public String toString() {
-        return "Region["+getRenderModeString(this.renderModes)+", q "+quality+", dirty "+dirty+", vertices "+numVertices+", box "+box+"]";
+        return "Region[0x"+Integer.toHexString(hashCode())+", "+getRenderModeString(this.renderModes)+", q "+quality+", dirty "+dirty+", vertices "+numVertices+", box "+box+"]";
     }
 }
