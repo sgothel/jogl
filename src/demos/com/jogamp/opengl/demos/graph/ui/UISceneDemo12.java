@@ -43,7 +43,7 @@ import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.Rectangle;
-import com.jogamp.graph.ui.shapes.RoundButton;
+import com.jogamp.graph.ui.shapes.BaseButton;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -129,7 +129,7 @@ public class UISceneDemo12 {
 
         final Group groupA0 = new Group(new BoxLayout( new Padding(0.15f, 0.15f) ) );
         {
-            groupA0.addShape( new RoundButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
+            groupA0.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
             groupA0.addShape( new Button(options.renderModes, font, "stack1", 0.50f, 0.50f/2f).setCorner(0f).setDragAndResizeable(false) );
             groupA0.addShape( new Label(options.renderModes, font, 0.70f/4f, "pajq").setDragAndResizeable(false).setColor(0, 0, 1, 1) );
         }
@@ -146,7 +146,7 @@ public class UISceneDemo12 {
 
         final Group groupA1 = new Group(new BoxLayout( 1f, 1f, new Margin(0.05f, 0.05f), new Padding(0.10f, 0.10f) ) );
         {
-            groupA1.addShape( new RoundButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
+            groupA1.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
             groupA1.addShape( new Button(options.renderModes, font, "stack2", 0.50f, 0.50f/2f).setCorner(0f).setDragAndResizeable(false) );
             groupA1.addShape( new Label(options.renderModes, font, 0.70f/4f, "pajq").setDragAndResizeable(false).setColor(0, 0, 1, 1) );
         }
@@ -163,7 +163,7 @@ public class UISceneDemo12 {
 
         final Group groupA2 = new Group(new BoxLayout( 1f, 1f, new Margin(0.10f, Margin.CENTER), new Padding(0.05f, 0) ) );
         {
-            groupA2.addShape( new RoundButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
+            groupA2.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
             groupA2.addShape( new Button(options.renderModes, font, "stack3", 0.50f, 0.50f/2f).setCorner(0f).setDragAndResizeable(false) );
             groupA2.addShape( new Label(options.renderModes, font, 0.70f/4f, "pajq").setDragAndResizeable(false).setColor(0, 0, 1, 1) );
         }
@@ -180,7 +180,7 @@ public class UISceneDemo12 {
 
         final Group groupA3 = new Group(new BoxLayout( 1f, 1f, new Margin(Margin.CENTER) ) );
         {
-            groupA3.addShape( new RoundButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
+            groupA3.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
             groupA3.addShape( new Button(options.renderModes, font, "stack4", 0.50f, 0.50f/2f).setCorner(0f).setDragAndResizeable(false) );
             groupA3.addShape( new Label(options.renderModes, font, 0.70f/4f, "pajq").setDragAndResizeable(false).setColor(0, 0, 1, 1) );
         }

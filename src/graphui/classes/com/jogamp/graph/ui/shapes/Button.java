@@ -35,6 +35,7 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Vec2f;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.Vec4f;
@@ -43,7 +44,7 @@ import com.jogamp.opengl.math.geom.AABBox;
 import jogamp.graph.ui.shapes.Label0;
 
 /**
- * A GraphUI text labeled {@link RoundButton} {@link GraphShape}
+ * A GraphUI text labeled {@link BaseButton} {@link GraphShape}
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
@@ -52,14 +53,14 @@ import jogamp.graph.ui.shapes.Label0;
  * To render it rectangular, {@link #setCorner(float)} to zero.
  * </p>
  */
-public class Button extends RoundButton {
+public class Button extends BaseButton {
     /** {@value} */
     public static final float DEFAULT_SPACING_X = 0.12f;
     /** {@value} */
     public static final float DEFAULT_SPACING_Y = 0.42f;
 
-    private static final float DEFAULT_2PASS_LABEL_ZOFFSET = -0.005f; // -0.05f;
-    private float twoPassLabelZOffset = DEFAULT_2PASS_LABEL_ZOFFSET;
+    private static final float DEFAULT_LABEL_ZOFFSET = 0.005f; // 0.05f;
+    private float labelZOffset;
 
     private final Label0 label;
     private float spacingX = DEFAULT_SPACING_X;
@@ -73,6 +74,7 @@ public class Button extends RoundButton {
                   final String labelText, final float width,
                   final float height) {
         super(renderModes | Region.COLORCHANNEL_RENDERING_BIT, width, height);
+        this.labelZOffset = DEFAULT_LABEL_ZOFFSET;
         this.label = new Label0(labelFont, labelText, new Vec4f( 1.33f, 1.33f, 1.33f, 1.0f )); // 0.75 * 1.33 = 1.0
         setColor(0.75f, 0.75f, 0.75f, 1.0f);
         setPressedColorMod(0.9f, 0.9f, 0.9f, 0.7f);
@@ -85,6 +87,7 @@ public class Button extends RoundButton {
 
     @Override
     public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+        // No need to setup an poly offset for z-fighting, using one region now
         // Setup poly offset for z-fighting
         // gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
         // gl.glPolygonOffset(0f, 1f);
@@ -94,12 +97,13 @@ public class Button extends RoundButton {
 
     @Override
     protected void addShapeToRegion() {
-        addRoundShapeToRegion( twoPassLabelZOffset );
+        addBaseShapeToRegion( FloatUtil.isZero(labelZOffset) ? 0f : -labelZOffset );
 
         // Precompute text-box size .. guessing pixelSize
         final float lw = box.getWidth() * ( 1f - spacingX ) ;
         final float lh = box.getHeight() * ( 1f - spacingY ) ;
         final AABBox lbox0_em = label.getFont().getGlyphBounds(label.getText(), tempT1, tempT2);
+        // final AABBox lbox0_em = label.getFont().getGlyphShapeBounds(null, label.getText(), tempT1, tempT2);
         final float lsx = lw / lbox0_em.getWidth();
         final float lsy = lh / lbox0_em.getHeight();
         final float lScale = lsx < lsy ? lsx : lsy;
@@ -127,11 +131,12 @@ public class Button extends RoundButton {
         }
     }
 
-    public float get2PassLabelZOffset() { return twoPassLabelZOffset; }
+    public float getLabelZOffset() { return labelZOffset; }
 
-    public void set2PassLabelZOffset(final float v) {
-        twoPassLabelZOffset = v;
+    public Button setLabelZOffset(final float v) {
+        labelZOffset = v;
         markShapeDirty();
+        return this;
     }
 
     public final float getSpacingX() { return spacingX; }
@@ -142,7 +147,7 @@ public class Button extends RoundButton {
      * @param spacingX spacing in percent on X, default is {@link #DEFAULT_SPACING_X}
      * @param spacingY spacing in percent on Y, default is {@link #DEFAULT_SPACING_Y}
      */
-    public final void setSpacing(final float spacingX, final float spacingY) {
+    public final Button setSpacing(final float spacingX, final float spacingY) {
         if ( spacingX < 0.0f ) {
             this.spacingX = 0.0f;
         } else if ( spacingX > 1.0f ) {
@@ -158,35 +163,40 @@ public class Button extends RoundButton {
             this.spacingY = spacingY;
         }
         markShapeDirty();
+        return this;
     }
 
     public final Vec4f getLabelColor() {
         return label.getColor();
     }
 
-    public final void setLabelColor(final float r, final float g, final float b) {
+    public final Button setLabelColor(final float r, final float g, final float b) {
         label.setColor(r, g, b, 1.0f);
         markShapeDirty();
+        return this;
     }
 
-    public final void setFont(final Font labelFont) {
+    public final Button setFont(final Font labelFont) {
         if( !label.getFont().equals(labelFont) ) {
             label.setFont(labelFont);
             markShapeDirty();
         }
+        return this;
     }
-    public final void setLabel(final String labelText) {
+    public final Button setLabel(final String labelText) {
         if( !label.getText().equals(labelText) ) {
             label.setText(labelText);
             markShapeDirty();
         }
+        return this;
     }
-    public final void setLabel(final Font labelFont, final String labelText) {
+    public final Button setLabel(final Font labelFont, final String labelText) {
         if( !label.getText().equals(labelText) || !label.getFont().equals(labelFont) ) {
             label.setFont(labelFont);
             label.setText(labelText);
             markShapeDirty();
         }
+        return this;
     }
 
     @Override

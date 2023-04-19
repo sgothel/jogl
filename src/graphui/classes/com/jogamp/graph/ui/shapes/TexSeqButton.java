@@ -35,7 +35,7 @@ import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
- * An abstract GraphUI {@link TextureSequence} {@link RoundButton} {@link GraphShape}.
+ * An abstract GraphUI {@link TextureSequence} {@link BaseButton} {@link GraphShape}.
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
@@ -44,7 +44,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * To render it rectangular, {@link #setCorner(float)} to zero.
  * </p>
  */
-public abstract class TexSeqButton extends RoundButton {
+public abstract class TexSeqButton extends BaseButton {
     protected final TextureSequence texSeq;
 
     public TexSeqButton(final int renderModes, final float width,
@@ -62,6 +62,6 @@ public abstract class TexSeqButton extends RoundButton {
 
     @Override
     protected void addShapeToRegion() {
-        addRoundShapeToRegion( 0f );
+        addBaseShapeToRegion( 0f );
     }
 }

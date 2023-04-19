@@ -56,7 +56,7 @@ import com.jogamp.graph.ui.shapes.GLButton;
 import com.jogamp.graph.ui.shapes.ImageButton;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.MediaButton;
-import com.jogamp.graph.ui.shapes.RoundButton;
+import com.jogamp.graph.ui.shapes.BaseButton;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.MonitorDevice;
@@ -341,8 +341,8 @@ public class UISceneDemo20 implements GLEventListener {
         sl.addAll(buttonsLeft.getShapes());
         sl.addAll(buttonsRight.getShapes());
         for(final Shape s : sl) {
-            if( s instanceof RoundButton ) {
-                final RoundButton rb = (RoundButton)s;
+            if( s instanceof BaseButton ) {
+                final BaseButton rb = (BaseButton)s;
                 final float c = rb.getCorner()+dc;
                 System.err.println("Corner: "+c);
                 rb.setCorner(c);
@@ -355,10 +355,10 @@ public class UISceneDemo20 implements GLEventListener {
         sl.addAll(buttonsLeft.getShapes());
         sl.addAll(buttonsRight.getShapes());
         for(final Shape s : sl) {
-            if( s instanceof RoundButton ) {
-                final RoundButton b = (RoundButton)s;
+            if( s instanceof BaseButton ) {
+                final BaseButton b = (BaseButton)s;
                 b.getRotation().setIdentity();
-                b.setCorner(RoundButton.DEFAULT_CORNER);
+                b.setCorner(BaseButton.ROUND_CORNER);
                 if( b instanceof Button ) {
                     ((Button)b).setSpacing(Button.DEFAULT_SPACING_X, Button.DEFAULT_SPACING_Y);
                 }
@@ -393,7 +393,7 @@ public class UISceneDemo20 implements GLEventListener {
 
         System.err.println("Button Size: "+buttonLWidth+" x "+buttonLHeight);
 
-        RoundButton button;
+        BaseButton button;
         button = new Button(renderModes, fontButtons, " Next Text ", buttonLWidth, buttonLHeight);
         button.setName(BUTTON_NEXTTEXT);
         button.addMouseListener(new Shape.MouseGestureAdapter() {

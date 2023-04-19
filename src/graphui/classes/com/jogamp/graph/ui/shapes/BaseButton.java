@@ -31,24 +31,28 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.ui.GraphShape;
 
 /**
- * An abstract GraphUI round Button {@link GraphShape}
+ * An abstract GraphUI base filled button {@link GraphShape},
+ * usually used as a backdrop or base shape for more informative button types.
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
  * <p>
- * This button is rendered with a round oval shape.
- * To render it rectangular, {@link #setCorner(float)} to zero.
+ * This button is rendered with a round oval shape {@link #ROUND_CORNER by default},
+ * but can be set to {@link #PERP_CORNER rectangular shape}.
  * </p>
  */
-public class RoundButton extends GraphShape {
+public class BaseButton extends GraphShape {
 
-    /** {@value} */
-    public static final float DEFAULT_CORNER = 1f;
+    /** {@link #setCorner(float) Round corner}, value {@value}. This is the default value. */
+    public static final float ROUND_CORNER = 1f;
+    /** {@link #setCorner(float) Perpendicular corner} for a rectangular shape, value {@value}. */
+    public static final float PERP_CORNER = 0f;
+
     protected float width;
     protected float height;
-    protected float corner = DEFAULT_CORNER;
+    protected float corner = ROUND_CORNER;
 
-    public RoundButton(final int renderModes, final float width, final float height) {
+    public BaseButton(final int renderModes, final float width, final float height) {
         super(renderModes);
         this.width = width;
         this.height = height;
@@ -60,7 +64,32 @@ public class RoundButton extends GraphShape {
 
     public final float getCorner() { return corner; }
 
-    public RoundButton setSize(final float width, final float height) {
+    /**
+     * Set corner size with range [0.01 .. 1.00] for round corners
+     * or `zero` for perpendicular corners.
+     * <p>
+     *  , default is {@link #ROUND_CORNER round corner},
+     * alternative a {@link #PERP_CORNER perpendicular corner} for a rectangular shape is available.
+     * </p>
+     * @see #ROUND_CORNER
+     * @see #PERP_CORNER
+     */
+    public BaseButton setCorner(final float corner) {
+        if( 0.01f <= corner && corner <= 1.0f ) {
+            this.corner = corner;
+        }
+        if( corner > 1.0f ){
+            this.corner = 1.0f;
+        } else if( corner < 0.01f ){
+            this.corner = 0.0f;
+        } else {
+            this.corner = corner;
+        }
+        markShapeDirty();
+        return this;
+    }
+
+    public BaseButton setSize(final float width, final float height) {
         this.width = width;
         this.height = height;
         markShapeDirty();
@@ -69,9 +98,9 @@ public class RoundButton extends GraphShape {
 
     @Override
     protected void addShapeToRegion() {
-        addRoundShapeToRegion(0f);
+        addBaseShapeToRegion(0f);
     }
-    protected OutlineShape addRoundShapeToRegion(final float zOffset) {
+    protected OutlineShape addBaseShapeToRegion(final float zOffset) {
         final OutlineShape shape = new OutlineShape();
         if(corner == 0.0f) {
             createSharpOutline(shape, zOffset);
@@ -129,21 +158,6 @@ public class RoundButton extends GraphShape {
         shape.addVertex(minX,           minY + th - dC, minZ, true);
 
         shape.closeLastOutline(true);
-    }
-
-    /** Set corner size, default is {@link #DEFAULT_CORNER} */
-    public RoundButton setCorner(final float corner) {
-        if(corner > 1.0f){
-            this.corner = 1.0f;
-        }
-        else if(corner < 0.01f){
-            this.corner = 0.0f;
-        }
-        else{
-            this.corner = corner;
-        }
-        markShapeDirty();
-        return this;
     }
 
     @Override
