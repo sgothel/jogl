@@ -28,9 +28,10 @@
 package com.jogamp.graph.ui.shapes;
 
 import com.jogamp.opengl.GL2ES2;
-
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.plane.AffineTransform;
@@ -93,6 +94,18 @@ public class Button extends BaseButton {
         // gl.glPolygonOffset(0f, 1f);
         super.draw(gl, renderer, sampleCount);
         // gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+    }
+
+    @Override
+    protected GLRegion createGLRegion(final GLProfile glp) {
+        final int[] vertIndexCount = { 0, 0 };
+        final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
+            @Override
+            public final void visit(final char symbol, final Font.Glyph glyph) {
+                Region.countOutlineShape(glyph.getShape(), vertIndexCount);
+            } };
+        this.label.getFont().processString(visitor, this.label.getText());
+        return GLRegion.create(glp, renderModes, null, 16+vertIndexCount[0], 16+vertIndexCount[1]);
     }
 
     @Override
