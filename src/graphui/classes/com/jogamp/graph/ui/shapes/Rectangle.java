@@ -29,6 +29,8 @@ package com.jogamp.graph.ui.shapes;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLProfile;
 
 /**
  * A GraphUI Rectangle {@link GraphShape}
@@ -58,7 +60,7 @@ public class Rectangle extends GraphShape {
     }
 
     @Override
-    protected void addShapeToRegion() {
+    protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
         final OutlineShape shape = new OutlineShape();
         final float x1 = 0f;
         final float y1 = 0f;
@@ -88,8 +90,11 @@ public class Rectangle extends GraphShape {
         }
         shape.setIsQuadraticNurbs();
         shape.setSharpness(oshapeSharpness);
+
+        updateGLRegion(glp, gl, null, shape);
         region.addOutlineShape(shape, null, rgbaColor);
         box.resize(shape.getBounds());
+        setRotationPivot( box.getCenter() );
     }
 
     @Override

@@ -27,10 +27,10 @@
  */
 package com.jogamp.graph.ui.shapes;
 
+import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -53,15 +53,14 @@ public abstract class TexSeqButton extends BaseButton {
         this.texSeq = texSeq;
     }
 
-    @Override
-    protected GLRegion createGLRegion(final GLProfile glp) {
-        return GLRegion.create(glp, getRenderModes(), texSeq);
-    }
-
     public final TextureSequence getTextureSequence() { return this.texSeq; }
 
     @Override
-    protected void addShapeToRegion() {
-        addBaseShapeToRegion( 0f );
+    protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
+        final OutlineShape shape = createBaseShape(0f);
+        updateGLRegion(glp, gl, texSeq, shape);
+        region.addOutlineShape(shape, null, rgbaColor);
+        box.resize(shape.getBounds());
+        setRotationPivot( box.getCenter() );
     }
 }

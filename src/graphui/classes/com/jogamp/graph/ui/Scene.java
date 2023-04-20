@@ -217,12 +217,12 @@ public final class Scene implements Container, GLEventListener {
     }
     @Override
     public void addShape(final Shape s) {
-        s.setDebugBox(dbgbox_thickness);
+        s.setBorder(dbgbox_thickness);
         shapes.add(s);
     }
     @Override
     public Shape removeShape(final Shape s) {
-        s.setDebugBox(0f);
+        s.setBorder(0f);
         return shapes.remove(s) ? s : null;
     }
     @Override
@@ -232,7 +232,7 @@ public final class Scene implements Container, GLEventListener {
 
     /** Removes given shape and destroy it. */
     public void removeShape(final GL2ES2 gl, final Shape s) {
-        s.setDebugBox(0f);
+        s.setBorder(0f);
         shapes.remove(s);
         s.destroy(gl, renderer);
     }
@@ -321,7 +321,7 @@ public final class Scene implements Container, GLEventListener {
     public final void setDebugBox(final float v) {
         dbgbox_thickness = v;
         for(int i=0; i<shapes.size(); i++) {
-            shapes.get(i).setDebugBox(v);
+            shapes.get(i).setBorder(v);
         }
     }
 

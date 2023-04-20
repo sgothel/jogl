@@ -91,7 +91,6 @@ public class UISceneDemo12 {
         final GLWindow window = GLWindow.create(caps);
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UISceneDemo12.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
-        window.setVisible(true);
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowResized(final WindowEvent e) {
@@ -104,17 +103,17 @@ public class UISceneDemo12 {
         });
 
 
-        animator.setUpdateFPSFrames(1*60, null); // System.err);
-        animator.add(window);
-        animator.start();
-
         final Scene scene = new Scene();
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setFrustumCullingEnabled(true);
         scene.attachInputListenerTo(window);
         window.addGLEventListener(scene);
+        window.setVisible(true);
         scene.waitUntilDisplayed();
 
+        animator.setUpdateFPSFrames(1*60, null); // System.err);
+        animator.add(window);
+        animator.start();
         //
         // Resolution independent, no screen size
         //

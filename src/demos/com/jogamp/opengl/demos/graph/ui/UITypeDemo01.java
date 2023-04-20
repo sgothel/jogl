@@ -332,7 +332,7 @@ public class UITypeDemo01 implements GLEventListener {
                 pmv.glScalef(txt_scale, txt_scale, 1f);
                 pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
                 if( null != glyph.getShape() ) {
-                    final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null);
+                    final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, glyph.getShape());
                     region.addOutlineShape(glyph.getShape(), null, fg_color);
                     region.draw(gl, renderer, sampleCount);
                     region.destroy(gl);

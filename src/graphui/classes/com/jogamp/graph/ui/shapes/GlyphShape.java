@@ -36,6 +36,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -52,6 +53,8 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 public class GlyphShape extends GraphShape {
     private final char symbol;
     private final Glyph glyph;
+    private final int regionVertCount;
+    private final int regionIdxCount;
     private final Vec3f origPos;
 
     /**
@@ -71,6 +74,9 @@ public class GlyphShape extends GraphShape {
         if( glyph.isWhiteSpace() || null == glyph.getShape() ) {
             setEnabled(false);
         }
+        final int[/*2*/] vertIndexCount = Region.countOutlineShape(glyph.getShape(), new int[2]);
+        regionVertCount = vertIndexCount[0];
+        regionIdxCount = vertIndexCount[1];
     }
 
     /**
@@ -82,13 +88,7 @@ public class GlyphShape extends GraphShape {
      * @param y the intended unscaled Y position of this Glyph, e.g. if part of a string - otherwise use zero.
      */
     public GlyphShape(final int renderModes, final Font font, final char symbol, final float x, final float y) {
-        super(renderModes);
-        this.symbol = symbol;
-        this.glyph = font.getGlyph( font.getGlyphID(symbol) );
-        this.origPos = new Vec3f(x, y, 0f);
-        if( glyph.isWhiteSpace() || null == glyph.getShape() ) {
-            setEnabled(false);
-        }
+        this(renderModes, symbol, font.getGlyph( font.getGlyphID(symbol) ), x, y);
     }
 
     /** Returns the char symbol to be rendered. */
@@ -181,7 +181,7 @@ public class GlyphShape extends GraphShape {
     }
 
     @Override
-    protected void addShapeToRegion() {
+    protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
         final OutlineShape shape = glyph.getShape();
         box.reset();
         if( null != shape ) {
@@ -191,9 +191,11 @@ public class GlyphShape extends GraphShape {
             // but keep the underline (decline) intact!
             tmp.setToTranslation(-sbox.getMinX(), -sbox.getMinY() + glyph.getBounds().getMinY());
             shape.setSharpness(oshapeSharpness);
+
+            updateGLRegion(glp, gl, null, regionVertCount, regionIdxCount);
             region.addOutlineShape(shape, tmp, rgbaColor);
-            setRotationPivot( sbox.getCenter() );
             box.resize(tmp.transform(sbox, new AABBox()));
+            setRotationPivot( box.getCenter() );
         }
     }
 

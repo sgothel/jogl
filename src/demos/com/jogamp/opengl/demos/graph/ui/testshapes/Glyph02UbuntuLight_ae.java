@@ -29,6 +29,8 @@ package com.jogamp.opengl.demos.graph.ui.testshapes;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLProfile;
 
 /**
  * GPU based resolution independent test object
@@ -43,7 +45,7 @@ public class Glyph02UbuntuLight_ae extends GraphShape {
 
     @SuppressWarnings("unused")
     @Override
-    protected void addShapeToRegion() {
+    protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
         final OutlineShape shape = new OutlineShape();
 
         // Ubuntu-Light, lower case 'æ'
@@ -628,9 +630,11 @@ public class Glyph02UbuntuLight_ae extends GraphShape {
 
         shape.setIsQuadraticNurbs();
         shape.setSharpness(oshapeSharpness);
-        region.addOutlineShape(shape, null, rgbaColor);
 
+        updateGLRegion(glp, gl, null, shape);
+        region.addOutlineShape(shape, null, rgbaColor);
         box.resize(shape.getBounds());
+        setRotationPivot( box.getCenter() );
     }
 
     @Override

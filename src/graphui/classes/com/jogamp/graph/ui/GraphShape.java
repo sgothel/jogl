@@ -40,7 +40,7 @@ import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
- * Graph based {@link GLRegion} UI {@link Shape}
+ * Graph based {@link GLRegion} {@link Shape}
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
@@ -125,8 +125,53 @@ public abstract class GraphShape extends Shape {
         region.draw(gl, renderer, sampleCount);
     }
 
-    protected GLRegion createGLRegion(final GLProfile glp) {
-        return GLRegion.create(glp, renderModes, null);
+    /**
+     * Update or freshly create the {@link GLRegion}, while allocating its buffers with given initial `vertexCount` and `indexCount`.
+     *
+     * Method shall be invoked by the {@link #addShapeToRegion(GLProfile, GL2ES2)} implementation
+     * before actually adding the {@link OutlineShape} to the {@link GLRegion}.
+     *
+     * {@link #addShapeToRegion(GLProfile, GL2ES2)} is capable to determine initial `vertexCount` and `indexCount` buffer sizes,
+     * as it composes the {@link OutlineShape}s to be added.
+     *
+     * {@link #updateGLRegion(GLProfile, GL2ES2, TextureSequence, OutlineShape)} maybe used for convenience.
+     *
+     * In case {@link GLRegion} is `null`, a new instance is being created.
+     *
+     * In case the {@link GLRegion} already exists, it will be either {@link GLRegion#clear(GL2ES2) cleared} if the {@link GL2ES2} `gl`
+     * instance is not `null` or earmarked for deletion at a later time and a new instance is being created.
+     *
+     * @param glp the used GLProfile, never `null`
+     * @param gl the optional current {@link GL2ES2} instance, maybe `null`.
+     * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
+     * @param vertexCount the initial {@link GLRegion} vertex buffer size
+     * @param indexCount the initial {@link GLRegion} index buffer size
+     * @see #updateGLRegion(GLProfile, GL2ES2, TextureSequence, OutlineShape)
+     */
+    protected void updateGLRegion(final GLProfile glp, final GL2ES2 gl, final TextureSequence colorTexSeq, final int vertexCount, final int indexCount) {
+        if( null == region ) {
+            region = GLRegion.create(glp, renderModes, colorTexSeq, vertexCount, indexCount);
+        } else if( null == gl ) {
+            dirtyRegions.add(region);
+            region = GLRegion.create(glp, renderModes, colorTexSeq, vertexCount, indexCount);
+        } else {
+            region.clear(gl);
+            region.setBufferCapacity(vertexCount, indexCount);
+        }
+    }
+    /**
+     * Convenient {@link #updateGLRegion(GLProfile, GL2ES2, TextureSequence, int, int)} variant determining initial
+     * {@link GLRegion} buffer sizes via {@link Region#countOutlineShape(OutlineShape, int[])}.
+     *
+     * @param glp the used GLProfile, never `null`
+     * @param gl the optional current {@link GL2ES2} instance, maybe `null`.
+     * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
+     * @param shape the {@link OutlineShape} used to determine {@link GLRegion}'s buffer sizes via {@link Region#countOutlineShape(OutlineShape, int[])}
+     * @see #updateGLRegion(GLProfile, GL2ES2, TextureSequence, int, int)
+     */
+    protected void updateGLRegion(final GLProfile glp, final GL2ES2 gl, final TextureSequence colorTexSeq, final OutlineShape shape) {
+        final int[/*2*/] vertIndexCount = Region.countOutlineShape(shape, new int[2]);
+        updateGLRegion(glp, gl, colorTexSeq, vertIndexCount[0], vertIndexCount[1]);
     }
 
     @Override
@@ -135,17 +180,9 @@ public abstract class GraphShape extends Shape {
             clearDirtyRegions(gl);
         }
         if( isShapeDirty() ) {
-            if( null == region ) {
-                region = createGLRegion(glp);
-            } else if( null == gl ) {
-                dirtyRegions.add(region);
-                region = createGLRegion(glp);
-            } else {
-                region.clear(gl);
-            }
-            addShapeToRegion();
-            if( hasDebugBox() ) {
-                addDebugOutline();
+            addShapeToRegion(glp, gl); // calls updateGLRegion(..)
+            if( hasBorder() ) {
+                addBorderOutline();
             }
             region.setQuality(regionQuality);
         } else if( isStateDirty() ) {
@@ -153,9 +190,7 @@ public abstract class GraphShape extends Shape {
         }
     }
 
-    private final Vec4f dbgColor = new Vec4f(0.3f, 0.3f, 0.3f, 0.5f);
-
-    protected void addDebugOutline() {
+    protected void addBorderOutline() {
         final OutlineShape shape = new OutlineShape();
         final float x1 = box.getMinX();
         final float x2 = box.getMaxX();
@@ -175,7 +210,7 @@ public abstract class GraphShape extends Shape {
         {
             // Inner OutlineShape as Winding.CW.
             final float dxy0 = box.getWidth() < box.getHeight() ? box.getWidth() : box.getHeight();
-            final float dxy = dxy0 * getDebugBox();
+            final float dxy = dxy0 * getBorderThickness();
             shape.moveTo(x1+dxy, y1+dxy, z);
             shape.lineTo(x1+dxy, y2-dxy, z);
             shape.lineTo(x2-dxy, y2-dxy, z);
@@ -185,13 +220,13 @@ public abstract class GraphShape extends Shape {
         }
         shape.setIsQuadraticNurbs();
         shape.setSharpness(oshapeSharpness);
-        region.addOutlineShape(shape, null, dbgColor);
+        region.addOutlineShape(shape, null, borderColor);
     }
 
     protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) { }
 
     protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) { }
 
-    protected abstract void addShapeToRegion();
+    protected abstract void addShapeToRegion(GLProfile glp, GL2ES2 gl);
 
 }

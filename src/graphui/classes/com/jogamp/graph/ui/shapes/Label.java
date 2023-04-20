@@ -31,8 +31,8 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.plane.AffineTransform;
@@ -190,11 +190,6 @@ public class Label extends GraphShape {
         }
     }
 
-    @Override
-    protected GLRegion createGLRegion(final GLProfile glp) {
-        return GLRegion.create(glp, getRenderModes(), null, font, text);
-    }
-
     private final Font.GlyphVisitor glyphVisitor = new Font.GlyphVisitor() {
         @Override
         public void visit(final char symbol, final Glyph glyph, final AffineTransform t) {
@@ -208,7 +203,10 @@ public class Label extends GraphShape {
     };
 
     @Override
-    protected void addShapeToRegion() {
+    protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
+        final int[] vertIndCount = TextRegionUtil.countStringRegion(font, text, new int[2]);
+        updateGLRegion(glp, gl, null, vertIndCount[0], vertIndCount[1]);
+
         AABBox fbox = font.getGlyphBounds(text, tempT2, tempT3);
         tempT1.setToScale(fontScale, fontScale);
         tempT1.translate(-fbox.getMinX(), -fbox.getMinY(), tempT2); // enforce bottom-left origin @ 0/0 for good drag-zoom experience

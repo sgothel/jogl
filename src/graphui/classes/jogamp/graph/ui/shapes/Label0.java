@@ -73,7 +73,7 @@ public class Label0 {
     {
         tmp1.setToTranslation(txy.x(), txy.y());
         tmp1.scale(scale, scale, tmp2);
-        return TextRegionUtil.addStringToRegion(region, font, tmp1, text, rgbaColor, tmp2, tmp3);
+        return TextRegionUtil.addStringToRegion(false, region, font, tmp1, text, rgbaColor, tmp2, tmp3);
     }
 
     @Override

@@ -53,7 +53,7 @@ import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
 
 /**
- * Generic UI Shape, potentially using a Graph via {@link GraphShape} or other means of representing content.
+ * Generic Shape, potentially using a Graph via {@link GraphShape} or other means of representing content.
  * <p>
  * A shape includes the following build-in user-interactions
  * - drag shape w/ 1-pointer click, see {@link #setDraggable(boolean)}
@@ -136,7 +136,8 @@ public abstract class Shape {
     private boolean resizable = true;
     private boolean interactive = true;
     private boolean enabled = true;
-    private float dbgbox_thickness = 0f; // fractional thickness of bounds, 0f for no debug box
+    private float border_thickness = 0f;
+    protected final Vec4f borderColor = new Vec4f(0.75f, 0.75f, 0.75f, 1.0f);
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
 
     private Listener onMoveListener = null;
@@ -158,17 +159,18 @@ public abstract class Shape {
     public final Shape setEnabled(final boolean v) { enabled = v; return this; }
 
     /**
-     * Sets the {@link #getBounds()} fractional thickness of the debug box ranging [0..1], zero for no debug box (default).
-     * @param v fractional thickness of {@link #getBounds()} ranging [0..1], zero for no debug box
+     * Sets the thickness of the debug box, zero for no border (default).
+     * @param v border thickness, zero for no debug box
      */
-    public final Shape setDebugBox(final float v) {
-        dbgbox_thickness = Math.min(1f, Math.max(0f, v));
+    public final Shape setBorder(final float v) {
+        border_thickness = Math.max(0f, v);
         return this;
     }
-    /** Returns true if a debug box has been enabled via {@link #setDebugBox(float)}. */
-    public final boolean hasDebugBox() { return !FloatUtil.isZero(dbgbox_thickness); }
-    /** Returns the fractional thickness of the debug box ranging [0..1], see {@link #setDebugBox(float)}. */
-    public final float getDebugBox() { return dbgbox_thickness; }
+    /** Returns true if a border has been enabled via {@link #setBorder(float)}. */
+    public final boolean hasBorder() { return !FloatUtil.isZero(border_thickness); }
+
+    /** Returns the border thickness, see {@link #setBorder(float)}. */
+    public final float getBorderThickness() { return border_thickness; }
 
     /**
      * Clears all data and reset all states as if this instance was newly created
@@ -760,9 +762,7 @@ public abstract class Shape {
         return this.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, objPos);
     }
 
-    public Vec4f getColor() {
-        return rgbaColor;
-    }
+    public Vec4f getColor() { return rgbaColor; }
 
     /**
      * Set base color.
@@ -772,6 +772,17 @@ public abstract class Shape {
      */
     public final Shape setColor(final float r, final float g, final float b, final float a) {
         this.rgbaColor.set(r, g, b, a);
+        return this;
+    }
+
+    /**
+     * Set base color.
+     * <p>
+     * Default base-color w/o color channel, will be modulated w/ pressed- and toggle color
+     * </p>
+     */
+    public final Shape setColor(final Vec4f c) {
+        this.rgbaColor.set(c);
         return this;
     }
 
@@ -805,6 +816,20 @@ public abstract class Shape {
      */
     public final Shape setToggleOffColorMod(final float r, final float g, final float b, final float a) {
         this.toggleOffRGBAModulate.set(r, g, b, a);
+        return this;
+    }
+
+    public Vec4f getBorderColor() { return borderColor; }
+
+    /** Set border color. */
+    public final Shape setBorderColor(final float r, final float g, final float b, final float a) {
+        this.borderColor.set(r, g, b, a);
+        return this;
+    }
+
+    /** Set border color. */
+    public final Shape setBorderColor(final Vec4f c) {
+        this.borderColor.set(c);
         return this;
     }
 

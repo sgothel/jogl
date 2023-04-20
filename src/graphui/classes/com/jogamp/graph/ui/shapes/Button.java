@@ -31,8 +31,8 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.GraphShape;
@@ -97,20 +97,17 @@ public class Button extends BaseButton {
     }
 
     @Override
-    protected GLRegion createGLRegion(final GLProfile glp) {
-        final int[] vertIndexCount = { 0, 0 };
-        final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
-            @Override
-            public final void visit(final char symbol, final Font.Glyph glyph) {
-                Region.countOutlineShape(glyph.getShape(), vertIndexCount);
-            } };
-        this.label.getFont().processString(visitor, this.label.getText());
-        return GLRegion.create(glp, renderModes, null, 16+vertIndexCount[0], 16+vertIndexCount[1]);
-    }
+    protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
+        final OutlineShape shape = createBaseShape( FloatUtil.isZero(labelZOffset) ? 0f : -labelZOffset );
+        box.resize(shape.getBounds());
+        setRotationPivot( box.getCenter() );
 
-    @Override
-    protected void addShapeToRegion() {
-        addBaseShapeToRegion( FloatUtil.isZero(labelZOffset) ? 0f : -labelZOffset );
+        // Sum Region buffer size of base-shape + text
+        final int[/*2*/] vertIndexCount = Region.countOutlineShape(shape, new int[2]);
+        TextRegionUtil.countStringRegion(label.getFont(), label.getText(), vertIndexCount);
+        updateGLRegion(glp, gl, null, vertIndexCount[0], vertIndexCount[1]);
+
+        region.addOutlineShape(shape, null, rgbaColor);
 
         // Precompute text-box size .. guessing pixelSize
         final float lw = box.getWidth() * ( 1f - spacingX ) ;

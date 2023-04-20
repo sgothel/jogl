@@ -29,6 +29,8 @@ package com.jogamp.graph.ui.shapes;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLProfile;
 
 /**
  * An abstract GraphUI base filled button {@link GraphShape},
@@ -97,10 +99,15 @@ public class BaseButton extends GraphShape {
     }
 
     @Override
-    protected void addShapeToRegion() {
-        addBaseShapeToRegion(0f);
+    protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
+        final OutlineShape shape = createBaseShape(0f);
+        updateGLRegion(glp, gl, null, shape);
+        region.addOutlineShape(shape, null, rgbaColor);
+        box.resize(shape.getBounds());
+        setRotationPivot( box.getCenter() );
     }
-    protected OutlineShape addBaseShapeToRegion(final float zOffset) {
+
+    protected OutlineShape createBaseShape(final float zOffset) {
         final OutlineShape shape = new OutlineShape();
         if(corner == 0.0f) {
             createSharpOutline(shape, zOffset);
@@ -109,11 +116,8 @@ public class BaseButton extends GraphShape {
         }
         shape.setIsQuadraticNurbs();
         shape.setSharpness(oshapeSharpness);
-        region.addOutlineShape(shape, null, rgbaColor);
-        box.resize(shape.getBounds());
-        setRotationPivot( box.getCenter() );
         if( DEBUG_DRAW ) {
-            System.err.println("GraphShape.RoundButton: Added Shape: "+shape+", "+box);
+            System.err.println("GraphShape.RoundButton: Shape: "+shape+", "+box);
         }
         return shape;
     }

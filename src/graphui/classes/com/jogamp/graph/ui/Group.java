@@ -44,7 +44,7 @@ import com.jogamp.opengl.util.PMVMatrix;
 import jogamp.graph.ui.TreeTool;
 
 /**
- * Group of UI {@link Shape}s, optionally utilizing a {@link Group.Layout}.
+ * Group of {@link Shape}s, optionally utilizing a {@link Group.Layout}.
  * @see Scene
  * @see Shape
  * @see Group.Layout
@@ -126,7 +126,7 @@ public class Group extends Shape implements Container {
 
     /** Removes given shape and destroy it. */
     public void removeShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape s) {
-        s.setDebugBox(0f);
+        s.setBorder(0f);
         shapes.remove(s);
         s.destroy(gl, renderer);
     }

@@ -29,6 +29,8 @@ package com.jogamp.graph.ui.shapes;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLProfile;
 
 /**
  * A GraphUI Crosshair {@link GraphShape}
@@ -58,7 +60,7 @@ public class CrossHair extends GraphShape {
     }
 
     @Override
-    protected void addShapeToRegion() {
+    protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
         final OutlineShape shape = new OutlineShape();
 
         final float lwh = lineWidth/2f;
@@ -87,9 +89,11 @@ public class CrossHair extends GraphShape {
 
         shape.setIsQuadraticNurbs();
         shape.setSharpness(oshapeSharpness);
-        region.addOutlineShape(shape, null, rgbaColor);
 
+        updateGLRegion(glp, gl, null, shape);
+        region.addOutlineShape(shape, null, rgbaColor);
         box.resize(shape.getBounds());
+        setRotationPivot( box.getCenter() );
     }
 
     @Override
