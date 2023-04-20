@@ -431,7 +431,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   /**
    * Increase the capacity of the buffer if necessary to add given spareComponents components.
    * <p>
-   * Buffer will not change if current capacity satisfies spareComponents components.
+   * Buffer will not change if remaining free slots, capacity less position, satisfy spareComponents components.
    * </p>
    * @param spareComponents number of components to add if necessary.
    * @return true if buffer size has changed, i.e. grown. Otherwise false.
@@ -461,7 +461,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * Increase the capacity of the buffer to given elementCount element size,
    * i.e. elementCount * componentsPerElement components.
    * <p>
-   * Buffer will not change if given elementCount is lower than current size.
+   * Buffer will not change if given elementCount is lower or equal current capacity.
    * </p>
    * @param elementCount number of elements to hold.
    * @return true if buffer size has changed, i.e. grown. Otherwise false.
