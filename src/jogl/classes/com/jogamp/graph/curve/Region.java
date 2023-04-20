@@ -275,7 +275,7 @@ public abstract class Region {
     /** See {@link #MAX_QUALITY} */
     public final void setQuality(final int q) { quality=q; }
 
-    protected void clearImpl() {
+    protected final void clearImpl() {
         dirty = DIRTY_SHAPE | DIRTY_STATE;
         numVertices = 0;
         box.reset();
@@ -313,7 +313,7 @@ public abstract class Region {
      * @see #addOutlineShape(OutlineShape, AffineTransform, float[])
      * @see com.jogamp.graph.curve.opengl.RegionRenderer#setColorStatic(com.jogamp.opengl.GL2ES2, float, float, float, float)
      */
-    public boolean hasColorChannel() {
+    public final boolean hasColorChannel() {
         return Region.hasColorChannel(renderModes);
     }
 
@@ -323,7 +323,7 @@ public abstract class Region {
      * otherwise false.
      * @see #getRenderModes()
      */
-    public boolean hasColorTexture() {
+    public final boolean hasColorTexture() {
         return Region.hasColorTexture(renderModes);
     }
 

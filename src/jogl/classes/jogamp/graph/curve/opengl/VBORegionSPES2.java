@@ -83,14 +83,8 @@ public final class VBORegionSPES2 extends GLRegion {
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes );
 
         // seal buffers
-        gca_VerticesAttr.seal(gl, true);
-        gca_VerticesAttr.enableBuffer(gl, false);
-        gca_CurveParamsAttr.seal(gl, true);
-        gca_CurveParamsAttr.enableBuffer(gl, false);
-        if( hasColorChannel && null != gca_ColorsAttr ) {
-            gca_ColorsAttr.seal(gl, true);
-            gca_ColorsAttr.enableBuffer(gl, false);
-        }
+        vpc_ileave.seal(gl, true);
+        vpc_ileave.enableBuffer(gl, false);
         if( hasColorTexture && null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
             final TextureSequence.TextureFrame frame = colorTexSeq.getLastTexture();
             final Texture tex = frame.getTexture();
@@ -113,8 +107,7 @@ public final class VBORegionSPES2 extends GLRegion {
         indicesBuffer.enableBuffer(gl, false);
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 idx "+indicesBuffer);
-            System.err.println("VBORegionSPES2 ver "+gca_VerticesAttr);
-            System.err.println("VBORegionSPES2 tex "+gca_CurveParamsAttr);
+            System.err.println("VBORegionSPES2 vpc "+vpc_ileave);
         }
     }
 
@@ -170,11 +163,7 @@ public final class VBORegionSPES2 extends GLRegion {
             }
             return; // empty!
         }
-        gca_VerticesAttr.enableBuffer(gl, true);
-        gca_CurveParamsAttr.enableBuffer(gl, true);
-        if( hasColorChannel && null != gca_ColorsAttr ) {
-            gca_ColorsAttr.enableBuffer(gl, true);
-        }
+        vpc_ileave.enableBuffer(gl, true);
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
 
         if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
@@ -199,33 +188,13 @@ public final class VBORegionSPES2 extends GLRegion {
         }
 
         indicesBuffer.bindBuffer(gl, false);
-        if( hasColorChannel && null != gca_ColorsAttr ) {
-            gca_ColorsAttr.enableBuffer(gl, false);
-        }
-        gca_CurveParamsAttr.enableBuffer(gl, false);
-        gca_VerticesAttr.enableBuffer(gl, false);
+        vpc_ileave.enableBuffer(gl, false);
     }
 
     @Override
     protected void destroyImpl(final GL2ES2 gl) {
         if(DEBUG_INSTANCE) {
             System.err.println("VBORegionSPES2 Destroy: " + this);
-        }
-        if(null != gca_VerticesAttr) {
-            gca_VerticesAttr.destroy(gl);
-            gca_VerticesAttr = null;
-        }
-        if(null != gca_CurveParamsAttr) {
-            gca_CurveParamsAttr.destroy(gl);
-            gca_CurveParamsAttr = null;
-        }
-        if(null != gca_ColorsAttr) {
-            gca_ColorsAttr.destroy(gl);
-            gca_ColorsAttr = null;
-        }
-        if(null != indicesBuffer) {
-            indicesBuffer.destroy(gl);
-            indicesBuffer = null;
         }
         spPass1 = null; // owned by RegionRenderer
     }

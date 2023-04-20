@@ -139,14 +139,9 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
         // seal buffers
         indicesBuffer.seal(gl, true);
         indicesBuffer.enableBuffer(gl, false);
-        gca_CurveParamsAttr.seal(gl, true);
-        gca_CurveParamsAttr.enableBuffer(gl, false);
-        gca_VerticesAttr.seal(gl, true);
-        gca_VerticesAttr.enableBuffer(gl, false);
-        if( hasColorChannel && null != gca_ColorsAttr ) {
-            gca_ColorsAttr.seal(gl, true);
-            gca_ColorsAttr.enableBuffer(gl, false);
-        }
+        vpc_ileave.seal(gl, true);
+        vpc_ileave.enableBuffer(gl, false);
+
         if( hasColorTexture && null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
             final TextureSequence.TextureFrame frame = colorTexSeq.getLastTexture();
             final Texture tex = frame.getTexture();
@@ -471,11 +466,7 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes );
 
         gl.glUniform(gcu_PMVMatrix02);
-        gca_VerticesAttr.enableBuffer(gl, true);
-        gca_CurveParamsAttr.enableBuffer(gl, true);
-        if( hasColorChannel && null != gca_ColorsAttr ) {
-            gca_ColorsAttr.enableBuffer(gl, true);
-        }
+        vpc_ileave.enableBuffer(gl, true);
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
         if( hasColorTexture && null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
             final TextureSequence.TextureFrame frame = colorTexSeq.getNextTexture(gl);
@@ -493,11 +484,7 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
         }
 
         indicesBuffer.bindBuffer(gl, false);
-        if( hasColorChannel && null != gca_ColorsAttr ) {
-            gca_ColorsAttr.enableBuffer(gl, false);
-        }
-        gca_CurveParamsAttr.enableBuffer(gl, false);
-        gca_VerticesAttr.enableBuffer(gl, false);
+        vpc_ileave.enableBuffer(gl, false);
     }
 
     @Override
@@ -508,22 +495,6 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
         if(null != fbo) {
             fbo.destroy(gl);
             fbo = null;
-        }
-        if(null != gca_VerticesAttr) {
-            gca_VerticesAttr.destroy(gl);
-            gca_VerticesAttr = null;
-        }
-        if(null != gca_CurveParamsAttr) {
-            gca_CurveParamsAttr.destroy(gl);
-            gca_CurveParamsAttr = null;
-        }
-        if(null != gca_ColorsAttr) {
-            gca_ColorsAttr.destroy(gl);
-            gca_ColorsAttr = null;
-        }
-        if(null != indicesBuffer) {
-            indicesBuffer.destroy(gl);
-            indicesBuffer = null;
         }
         if(null != gca_FboVerticesAttr) {
             gca_FboVerticesAttr.destroy(gl);

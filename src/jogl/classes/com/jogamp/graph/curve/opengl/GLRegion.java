@@ -33,6 +33,7 @@ import com.jogamp.opengl.GLArrayData;
 import com.jogamp.opengl.util.GLArrayDataClient;
 import com.jogamp.opengl.util.GLArrayDataEditable;
 import com.jogamp.opengl.util.GLArrayDataServer;
+import com.jogamp.opengl.util.GLArrayDataWrapper;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.Vec4f;
@@ -163,9 +164,12 @@ public abstract class GLRegion extends Region {
     protected int curVerticesCap = 0;
     protected int curIndicesCap = 0;
     protected int growCount = 0;
-    protected GLArrayDataServer gca_VerticesAttr = null;
-    protected GLArrayDataServer gca_CurveParamsAttr = null;
-    protected GLArrayDataServer gca_ColorsAttr = null;
+
+    /** Interleaved buffer for GLSL attributes: vectices, curveParams and optionally colors */
+    protected GLArrayDataServer vpc_ileave = null;
+    protected GLArrayDataWrapper gca_VerticesAttr = null;
+    protected GLArrayDataWrapper gca_CurveParamsAttr = null;
+    protected GLArrayDataWrapper gca_ColorsAttr = null;
     protected GLArrayDataServer indicesBuffer = null;
 
     protected GLRegion(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq) {
@@ -176,23 +180,35 @@ public abstract class GLRegion extends Region {
 
     protected final int glIdxType() { return this.gl_idx_type; }
 
+    public GLArrayDataServer createInterleaved(final boolean useMappedBuffers, final int comps, final int dataType, final boolean normalized, final int initialSize, final int vboUsage) {
+        if( useMappedBuffers ) {
+            return GLArrayDataServer.createGLSLInterleavedMapped(comps, dataType, normalized, initialSize, vboUsage);
+        } else {
+            return GLArrayDataServer.createGLSLInterleaved(comps, dataType, normalized, initialSize, vboUsage);
+        }
+    }
+
+    public void addInterleavedVertexAndNormalArrays(final GLArrayDataServer array, final int components) {
+        array.addGLSLSubArray("vertices", components, GL.GL_ARRAY_BUFFER);
+        array.addGLSLSubArray("normals", components, GL.GL_ARRAY_BUFFER);
+    }
+
     protected final void initBuffer(final int verticeCount, final int indexCount) {
         indicesBuffer = GLArrayDataServer.createData(3, glIdxType(), indexCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
         indicesBuffer.setGrowthFactor(growthFactor);
         curIndicesCap = indicesBuffer.getElemCapacity();
 
-        gca_VerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
-                false, verticeCount, GL.GL_STATIC_DRAW);
-        gca_VerticesAttr.setGrowthFactor(growthFactor);
-        gca_CurveParamsAttr = GLArrayDataServer.createGLSL(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_FLOAT,
-                false, verticeCount, GL.GL_STATIC_DRAW);
-        gca_CurveParamsAttr.setGrowthFactor(growthFactor);
-        if( hasColorChannel() ) {
-            gca_ColorsAttr = GLArrayDataServer.createGLSL(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_FLOAT,
-                    false, verticeCount, GL.GL_STATIC_DRAW);
-            gca_ColorsAttr.setGrowthFactor(growthFactor);
+        final boolean cc = hasColorChannel();
+        final int totalCompsPerElem = 3 + 3 + (cc ? 4 : 0);
+        vpc_ileave = GLArrayDataServer.createGLSLInterleaved(totalCompsPerElem, GL.GL_FLOAT, false /* normalized */, verticeCount, GL.GL_STATIC_DRAW);
+        vpc_ileave.setGrowthFactor(growthFactor);
+
+        gca_VerticesAttr = vpc_ileave.addGLSLSubArray(AttributeNames.VERTEX_ATTR_NAME, 3, GL.GL_ARRAY_BUFFER);
+        gca_CurveParamsAttr = vpc_ileave.addGLSLSubArray(AttributeNames.CURVEPARAMS_ATTR_NAME, 3, GL.GL_ARRAY_BUFFER);
+        if( cc ) {
+            gca_ColorsAttr = vpc_ileave.addGLSLSubArray(AttributeNames.COLOR_ATTR_NAME, 4, GL.GL_ARRAY_BUFFER);
         }
-        curVerticesCap = gca_VerticesAttr.getElemCapacity();
+        curVerticesCap = vpc_ileave.getElemCapacity();
         growCount = 0;
     }
 
@@ -207,16 +223,12 @@ public abstract class GLRegion extends Region {
             curIndicesCap = indicesBuffer.getElemCapacity();
             grown = true;
         }
-        if( curVerticesCap < gca_VerticesAttr.elemPosition() + verticesCount ) {
+        if( curVerticesCap < vpc_ileave.elemPosition() + verticesCount ) {
             // System.err.printf("XXX Buffer grow - Verices: %d < ( %d = %d + %d ); Status: %s%n",
             //        curVerticesCap, gca_VerticesAttr.elemPosition() + verticesCount, gca_VerticesAttr.elemPosition(), verticesCount, gca_VerticesAttr.elemStatsToString());
-            gca_VerticesAttr.growIfNeeded(verticesCount * gca_VerticesAttr.getCompsPerElem());
+            vpc_ileave.growIfNeeded(verticesCount * vpc_ileave.getCompsPerElem());
             // System.err.println("grew.vertices 0x"+Integer.toHexString(hashCode())+": "+curVerticesCap+" -> "+gca_VerticesAttr.getElemCapacity()+", "+gca_VerticesAttr.elemStatsToString());
-            gca_CurveParamsAttr.growIfNeeded(verticesCount * gca_CurveParamsAttr.getCompsPerElem());
-            if( null != gca_ColorsAttr ) {
-                gca_ColorsAttr.growIfNeeded(verticesCount * gca_ColorsAttr.getCompsPerElem());
-            }
-            curVerticesCap = gca_VerticesAttr.getElemCapacity();
+            curVerticesCap = vpc_ileave.getElemCapacity();
             grown = true;
         }
         if( grown ) {
@@ -231,12 +243,8 @@ public abstract class GLRegion extends Region {
             curIndicesCap = indicesBuffer.getElemCapacity();
         }
         if( curVerticesCap < verticesCount ) {
-            gca_VerticesAttr.reserve(verticesCount);
-            gca_CurveParamsAttr.reserve(verticesCount);
-            if( null != gca_ColorsAttr ) {
-                gca_ColorsAttr.reserve(verticesCount);
-            }
-            curVerticesCap = gca_VerticesAttr.getElemCapacity();
+            vpc_ileave.reserve(verticesCount);
+            curVerticesCap = vpc_ileave.getElemCapacity();
         }
     }
 
@@ -246,15 +254,21 @@ public abstract class GLRegion extends Region {
         out.println("GLRegion: idx32 "+usesI32Idx()+", obj 0x"+Integer.toHexString(hashCode()));
         printAndCount(out, "  indices ", indicesBuffer, size, capacity);
         out.println();
-        printAndCount(out, "  vertices ", gca_VerticesAttr, size, capacity);
+        printAndCount(out, "  ileave ", vpc_ileave, size, capacity);
         out.println();
-        printAndCount(out, "  params ", gca_CurveParamsAttr, size, capacity);
-        out.println();
-        printAndCount(out, "  color ", gca_ColorsAttr, size, capacity);
+        {
+            print(out, "  - vertices ", gca_VerticesAttr);
+            out.println();
+            print(out, "  - params ", gca_CurveParamsAttr);
+            out.println();
+            print(out, "  - color ", gca_ColorsAttr);
+            out.println();
+        }
         final float filled = (float)size[0]/(float)capacity[0];
-        out.println();
         out.printf("  total [bytes %,d / %,d], filled[%.1f%%, left %.1f%%], grow-cnt %d, obj 0x%x%n",
                 size[0], capacity[0], filled*100f, (1f-filled)*100f, growCount, hashCode());
+        // out.printf("  vpc_ileave: %s%n", vpc_ileave.toString());
+        // out.printf("  - vertices: %s%n", gca_VerticesAttr.toString());
     }
 
     private static void printAndCount(final PrintStream out, final String name, final GLArrayData data, final int[] size, final int[] capacity) {
@@ -268,21 +282,27 @@ public abstract class GLRegion extends Region {
             out.print("null]");
         }
     }
+    private static void print(final PrintStream out, final String name, final GLArrayData data) {
+        out.print(name+"[");
+        if( null != data ) {
+            out.print(data.fillStatsToString());
+            out.print("]");
+        } else {
+            out.print("null]");
+        }
+    }
 
     @Override
     protected final void pushVertex(final Vec3f coords, final Vec3f texParams, final Vec4f rgba) {
         // NIO array[3] is much slows than group/single
         // gca_VerticesAttr.putf(coords, 0, 3);
         // gca_CurveParamsAttr.putf(texParams, 0, 3);
-        // gca_VerticesAttr.put3f(coords[0], coords[1], coords[2]);
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords);
-        // gca_CurveParamsAttr.put3f(texParams[0], texParams[1], texParams[2]);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams);
-        if( null != gca_ColorsAttr ) {
+        // gca_VerticesAttr.put3f(coords.x(), coords.y(), coords.z());
+        put3f((FloatBuffer)vpc_ileave.getBuffer(), coords);
+        put3f((FloatBuffer)vpc_ileave.getBuffer(), texParams);
+        if( hasColorChannel() ) {
             if( null != rgba ) {
-                // gca_ColorsAttr.putf(rgba, 0, 4);
-                // gca_ColorsAttr.put4f(rgba[0], rgba[1], rgba[2], rgba[3]);
-                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), rgba);
+                put4f((FloatBuffer)vpc_ileave.getBuffer(), rgba);
             } else {
                 throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
             }
@@ -292,21 +312,24 @@ public abstract class GLRegion extends Region {
     @Override
     protected final void pushVertices(final Vec3f coords1, final Vec3f coords2, final Vec3f coords3,
                                       final Vec3f texParams1, final Vec3f texParams2, final Vec3f texParams3, final Vec4f rgba) {
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords1);
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords2);
-        put3f((FloatBuffer)gca_VerticesAttr.getBuffer(), coords3);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams1);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams2);
-        put3f((FloatBuffer)gca_CurveParamsAttr.getBuffer(), texParams3);
-        if( null != gca_ColorsAttr ) {
-            if( null != rgba ) {
-                final float r=rgba.x(), g=rgba.y(), b=rgba.z(), a=rgba.w();
-                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);
-                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);
-                put4f((FloatBuffer)gca_ColorsAttr.getBuffer(), r, g, b, a);
-            } else {
-                throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
-            }
+        final boolean cc = hasColorChannel();
+        if( cc && null == rgba ) {
+            throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
+        }
+        put3f((FloatBuffer)vpc_ileave.getBuffer(), coords1);
+        put3f((FloatBuffer)vpc_ileave.getBuffer(), texParams1);
+        if( cc ) {
+            put4f((FloatBuffer)vpc_ileave.getBuffer(), rgba);
+        }
+        put3f((FloatBuffer)vpc_ileave.getBuffer(), coords2);
+        put3f((FloatBuffer)vpc_ileave.getBuffer(), texParams2);
+        if( cc ) {
+            put4f((FloatBuffer)vpc_ileave.getBuffer(), rgba);
+        }
+        put3f((FloatBuffer)vpc_ileave.getBuffer(), coords3);
+        put3f((FloatBuffer)vpc_ileave.getBuffer(), texParams3);
+        if( cc ) {
+            put4f((FloatBuffer)vpc_ileave.getBuffer(), rgba);
         }
     }
 
@@ -348,14 +371,8 @@ public abstract class GLRegion extends Region {
         if( null != indicesBuffer ) {
             indicesBuffer.clear(gl);
         }
-        if( null != gca_VerticesAttr ) {
-            gca_VerticesAttr.clear(gl);
-        }
-        if( null != gca_CurveParamsAttr ) {
-            gca_CurveParamsAttr.clear(gl);
-        }
-        if( null != gca_ColorsAttr ) {
-            gca_ColorsAttr.clear(gl);
+        if( null != vpc_ileave ) {
+            vpc_ileave.clear(gl);
         }
         clearImpl(gl);
         clearImpl();
@@ -372,6 +389,26 @@ public abstract class GLRegion extends Region {
      */
     public final void destroy(final GL2ES2 gl) {
         clear(gl);
+        if( null != vpc_ileave ) {
+            vpc_ileave.destroy(gl);
+            vpc_ileave = null;
+        }
+        if( null != gca_VerticesAttr ) {
+            gca_VerticesAttr.destroy(gl);
+            gca_VerticesAttr = null;
+        }
+        if( null != gca_CurveParamsAttr ) {
+            gca_CurveParamsAttr.destroy(gl);
+            gca_CurveParamsAttr = null;
+        }
+        if( null != gca_ColorsAttr ) {
+            gca_ColorsAttr.destroy(gl);
+            gca_ColorsAttr = null;
+        }
+        if(null != indicesBuffer) {
+            indicesBuffer.destroy(gl);
+            indicesBuffer = null;
+        }
         destroyImpl(gl);
     }
     protected abstract void destroyImpl(final GL2ES2 gl);

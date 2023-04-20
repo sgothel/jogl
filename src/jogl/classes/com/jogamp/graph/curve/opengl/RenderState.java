@@ -39,7 +39,7 @@ import jogamp.common.os.PlatformPropsImpl;
 import jogamp.graph.curve.opengl.shader.UniformNames;
 
 import com.jogamp.graph.curve.Region;
-import com.jogamp.opengl.util.GLArrayDataServer;
+import com.jogamp.opengl.util.GLArrayDataWrapper;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 
@@ -312,7 +312,7 @@ public class RenderState {
      * @param throwOnError TODO
      * @return true if no error occured, i.e. all locations found, otherwise false.
      */
-    public final boolean updateAttributeLoc(final GL2ES2 gl, final boolean updateLocation, final GLArrayDataServer data, final boolean throwOnError) {
+    public final boolean updateAttributeLoc(final GL2ES2 gl, final boolean updateLocation, final GLArrayDataWrapper data, final boolean throwOnError) {
         if( updateLocation || 0 > data.getLocation() ) {
             final boolean ok = 0 <= data.setLocation(gl, sp.program());
             if( throwOnError && !ok ) {
