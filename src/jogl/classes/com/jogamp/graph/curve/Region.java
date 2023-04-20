@@ -236,27 +236,32 @@ public abstract class Region {
     public final boolean usesI32Idx() { return this.use_int32_idx; }
 
     /**
-     * Allow the renderer buffers to pre-emptively grow for given vertices- and index counts.
-     * @param verticesCount number of vertices to hold
-     * @param indicesCount number of indices to hold
+     * Increase the renderer buffers if necessary to add given counts of vertices- and index elements.
+     * <p>
+     * Buffers will not change if remaining free slots, capacity less position, satisfy count elements.
+     * </p>
+     * @param verticesCount number of vertex elements to add if necessary
+     * @param indicesCount number of index elements to add if necessary
+     * @return true if buffer size has changed, i.e. grown. Otherwise false.
      * @see #setBufferCapacity(int, int)
      * @see #countOutlineShape(OutlineShape, int[])
      * @see #countOutlineShapes(List, int[])
      */
-    public abstract void growBuffer(int verticesCount, int indicesCount);
+    public abstract boolean growBuffer(int verticesCount, int indicesCount);
 
     /**
      * Set the renderer buffers pre-emptively for given vertices- and index counts.
      * <p>
-     * If the buffers already exceeds given numbers, the buffers are unchanged.
+     * Buffers will not change if given count elements is lower or equal current capacity.
      * </p>
      * @param verticesCount number of vertices to hold
      * @param indicesCount number of indices to hold
+     * @return true if buffer size has changed, i.e. grown. Otherwise false.
      * @see #growBuffer(int, int)
      * @see #countOutlineShape(OutlineShape, int[])
      * @see #countOutlineShapes(List, int[])
      */
-    public abstract void setBufferCapacity(int verticesCount, int indicesCount);
+    public abstract boolean setBufferCapacity(int verticesCount, int indicesCount);
 
     protected abstract void pushVertex(final Vec3f coords, final Vec3f texParams, Vec4f rgba);
     protected abstract void pushVertices(final Vec3f coords1, final Vec3f coords2, final Vec3f coords3,
@@ -487,18 +492,21 @@ public abstract class Region {
      * </p>
      * @param shape the {@link OutlineShape} to count
      * @param vertIndexCount the int[2] storage where the counted vertices and indices are added, vertices at [0] and indices at [1]
+     * @return the given int[2] storage for chaining
      * @see #setBufferCapacity(int, int)
      * @see #growBuffer(int, int)
      */
-    public static final void countOutlineShape(final OutlineShape shape, final int[/*2*/] vertIndexCount) {
+    public static final int[] countOutlineShape(final OutlineShape shape, final int[/*2*/] vertIndexCount) {
+        if( null == shape ) {
+            return vertIndexCount;
+        }
         final List<Triangle> trisIn = shape.getTriangles(OutlineShape.VerticesState.QUADRATIC_NURBS);
         final ArrayList<Vertex> vertsIn = shape.getVertices();
         {
-            final int verticeCount = vertsIn.size() + shape.getAddedVerticeCount();
-            final int indexCount = trisIn.size() * 3;
-            vertIndexCount[0] += verticeCount;
-            vertIndexCount[1] += Math.min( Math.ceil(verticeCount * 0.9), indexCount );
+            vertIndexCount[0] += vertsIn.size() + shape.getAddedVerticeCount(); // verticesCount
+            vertIndexCount[1] += trisIn.size() * 3; // indicesCount
         }
+        return vertIndexCount;
     }
 
     /**
@@ -510,13 +518,15 @@ public abstract class Region {
      * </p>
      * @param shapes list of {@link OutlineShape} to count
      * @param vertIndexCount the int[2] storage where the counted vertices and indices are added, vertices at [0] and indices at [1]
+     * @return the given int[2] storage for chaining
      * @see #setBufferCapacity(int, int)
      * @see #growBuffer(int, int)
      */
-    public static final void countOutlineShapes(final List<OutlineShape> shapes, final int[/*2*/] vertIndexCount) {
+    public static final int[] countOutlineShapes(final List<OutlineShape> shapes, final int[/*2*/] vertIndexCount) {
         for (int i = 0; i < shapes.size(); i++) {
             countOutlineShape(shapes.get(i), vertIndexCount);
         }
+        return vertIndexCount;
     }
 
     /**

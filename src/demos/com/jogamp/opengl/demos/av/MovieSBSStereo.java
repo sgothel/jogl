@@ -141,16 +141,12 @@ public class MovieSBSStereo implements StereoGLEventListener {
         private final float fontSize = 1f; // 0.01f;
         private final GLRegion regionFPS;
 
-        InfoTextRendererGLELBase(final GLProfile glp, final int rmode, final boolean lowPerfDevice) {
+        InfoTextRendererGLELBase(final GLProfile glp, final int rmode) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(rmode, textSampleCount);
             this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-            if( lowPerfDevice ) {
-                regionFPS = null;
-            } else {
-                regionFPS = GLRegion.create(glp, renderModes, null);
-                System.err.println("RegionFPS "+Region.getRenderModeString(renderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
-            }
+            regionFPS = GLRegion.create(glp, renderModes, null, 0, 0);
+            System.err.println("RegionFPS "+Region.getRenderModeString(renderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
             staticRGBAColor[0] = 0.9f;
             staticRGBAColor[1] = 0.9f;
             staticRGBAColor[2] = 0.9f;
@@ -545,9 +541,8 @@ public class MovieSBSStereo implements StereoGLEventListener {
             surfHeight = window.getSurfaceHeight();
         }
         final int rmode = drawable.getChosenGLCapabilities().getSampleBuffers() ? 0 : Region.VBAA_RENDERING_BIT;
-        final boolean lowPerfDevice = gl.isGLES();
         if( enableTextRendererGLEL ) {
-            textRendererGLEL = new InfoTextRendererGLELBase(gl.getGLProfile(), rmode, lowPerfDevice);
+            textRendererGLEL = new InfoTextRendererGLELBase(gl.getGLProfile(), rmode);
             textRendererGLEL.init(drawable);
         } else {
             textRendererGLEL = null;

@@ -91,7 +91,7 @@ public class GPURegionGLListener00 extends GPURendererListenerBase01 {
         outlineShape.addVertex(offset+10.0f,0.0f, true);
         outlineShape.closeLastOutline(true);
 
-        region = GLRegion.create(glp, getRenderModes(), null);
+        region = GLRegion.create(glp, getRenderModes(), null, outlineShape);
         region.addOutlineShape(outlineShape, null, region.hasColorChannel() ? getRenderer().getRenderState().getColorStatic(new Vec4f()) : null);
     }
 

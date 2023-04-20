@@ -84,12 +84,12 @@ public abstract class GLRegion extends Region {
     /**
      * Default initial vertices count {@value}, assuming small sized shapes.
      */
-    public static final int defaultVerticesCount = 16;
+    public static final int defaultVerticesCount = 64;
 
     /**
      * Default initial indices count {@value}, assuming small sized shapes.
      */
-    public static final int defaultIndicesCount = 16;
+    public static final int defaultIndicesCount = 64;
 
     // private static final float growthFactor = 1.2f; // avg +5% size but 15% more overhead (34% total)
     protected static final float growthFactor = GLArrayDataClient.DEFAULT_GROWTH_FACTOR; // avg +20% size, but 15% less CPU overhead compared to 1.2 (19% total)
@@ -121,7 +121,7 @@ public abstract class GLRegion extends Region {
     }
 
     /**
-     * Create a GLRegion using the passed render mode
+     * Create a GLRegion using the passed render mode and default initial buffer sizes {@link #defaultVerticesCount} and {@link #defaultIndicesCount}.
      *
      * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
      * {@link Region#DEFAULT_TWO_PASS_TEXTURE_UNIT} is being used.</p>
@@ -131,6 +131,22 @@ public abstract class GLRegion extends Region {
      */
     public static GLRegion create(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq) {
         return GLRegion.create(glp, renderModes, colorTexSeq, defaultVerticesCount, defaultIndicesCount);
+    }
+
+    /**
+     * Create a GLRegion using the passed render mode and pre-calculating its buffer sizes
+     * using {@link Region#countOutlineShape(OutlineShape, int[])}.
+     *
+     * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
+     * {@link Region#DEFAULT_TWO_PASS_TEXTURE_UNIT} is being used.</p>
+     * @param glp intended GLProfile to use. Instance may use higher OpenGL features if indicated by GLProfile.
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
+     * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
+     * @param shape the {@link OutlineShape} used to determine {@link GLRegion}'s buffer sizes via {@link Region#countOutlineShape(OutlineShape, int[])}
+     */
+    public static GLRegion create(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq, final OutlineShape shape) {
+        final int[/*2*/] vertIndexCount = Region.countOutlineShape(shape, new int[2]);
+        return GLRegion.create(glp, renderModes, colorTexSeq, vertIndexCount[0], vertIndexCount[1]);
     }
 
     /**
@@ -213,39 +229,47 @@ public abstract class GLRegion extends Region {
     }
 
     @Override
-    public final void growBuffer(final int verticesCount, final int indicesCount) {
+    public final boolean growBuffer(final int verticesCount, final int indicesCount) {
         boolean grown = false;
         if( curIndicesCap < indicesBuffer.elemPosition() + indicesCount ) {
-            // System.err.printf("XXX Buffer grow - Indices: %d < ( %d = %d + %d ); Status: %s%n",
-            //       curIndicesCap, indicesBuffer.elemPosition() + indicesCount, indicesBuffer.elemPosition(), indicesCount, indicesBuffer.elemStatsToString());
+            System.err.printf("XXX Buffer grow - Indices: %d < ( %d = %d + %d ); Status: %s%n",
+                   curIndicesCap, indicesBuffer.elemPosition() + indicesCount, indicesBuffer.elemPosition(), indicesCount, indicesBuffer.elemStatsToString());
             indicesBuffer.growIfNeeded(indicesCount * indicesBuffer.getCompsPerElem());
-            // System.err.println("grew.indices 0x"+Integer.toHexString(hashCode())+": "+curIndicesCap+" -> "+indicesBuffer.getElemCapacity()+", "+indicesBuffer.elemStatsToString());
+            System.err.println("grew.indices 0x"+Integer.toHexString(hashCode())+": "+curIndicesCap+" -> "+indicesBuffer.getElemCapacity()+", "+indicesBuffer.elemStatsToString());
+            Thread.dumpStack();
             curIndicesCap = indicesBuffer.getElemCapacity();
             grown = true;
         }
         if( curVerticesCap < vpc_ileave.elemPosition() + verticesCount ) {
-            // System.err.printf("XXX Buffer grow - Verices: %d < ( %d = %d + %d ); Status: %s%n",
-            //        curVerticesCap, gca_VerticesAttr.elemPosition() + verticesCount, gca_VerticesAttr.elemPosition(), verticesCount, gca_VerticesAttr.elemStatsToString());
+            System.err.printf("XXX Buffer grow - Verices: %d < ( %d = %d + %d ); Status: %s%n",
+                    curVerticesCap, gca_VerticesAttr.elemPosition() + verticesCount, gca_VerticesAttr.elemPosition(), verticesCount, gca_VerticesAttr.elemStatsToString());
             vpc_ileave.growIfNeeded(verticesCount * vpc_ileave.getCompsPerElem());
-            // System.err.println("grew.vertices 0x"+Integer.toHexString(hashCode())+": "+curVerticesCap+" -> "+gca_VerticesAttr.getElemCapacity()+", "+gca_VerticesAttr.elemStatsToString());
+            System.err.println("grew.vertices 0x"+Integer.toHexString(hashCode())+": "+curVerticesCap+" -> "+gca_VerticesAttr.getElemCapacity()+", "+gca_VerticesAttr.elemStatsToString());
             curVerticesCap = vpc_ileave.getElemCapacity();
             grown = true;
         }
         if( grown ) {
             ++growCount;
+            return true;
+        } else {
+            return false;
         }
     }
 
     @Override
-    public final void setBufferCapacity(final int verticesCount, final int indicesCount) {
+    public final boolean setBufferCapacity(final int verticesCount, final int indicesCount) {
+        boolean grown = false;
         if( curIndicesCap < indicesCount ) {
             indicesBuffer.reserve(indicesCount);
             curIndicesCap = indicesBuffer.getElemCapacity();
+            grown = true;
         }
         if( curVerticesCap < verticesCount ) {
             vpc_ileave.reserve(verticesCount);
             curVerticesCap = vpc_ileave.getElemCapacity();
+            grown = true;
         }
+        return grown;
     }
 
     @Override
@@ -409,6 +433,9 @@ public abstract class GLRegion extends Region {
             indicesBuffer.destroy(gl);
             indicesBuffer = null;
         }
+        curVerticesCap = 0;
+        curIndicesCap = 0;
+        growCount = 0;
         destroyImpl(gl);
     }
     protected abstract void destroyImpl(final GL2ES2 gl);

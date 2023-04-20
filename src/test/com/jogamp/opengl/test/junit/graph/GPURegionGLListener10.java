@@ -38,6 +38,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -73,6 +74,7 @@ public class GPURegionGLListener10 extends GPURendererListenerBase01 {
         shape.addVertex(10.0f,0.0f, true);
         shape.addVertex(5.0f,0.0f, false);
         shape.closeLastOutline(true);
+        final int[/*2*/] vertIndexCount = Region.countOutlineShape(shape, new int[2]);
 
         /** Same shape as above but without any off-curve vertices */
         shape = new OutlineShape();
@@ -92,8 +94,9 @@ public class GPURegionGLListener10 extends GPURendererListenerBase01 {
         shape.addVertex(offset+10.0f,-5.0f, true);
         shape.addVertex(offset+10.0f,0.0f, true);
         shape.closeLastOutline(true);
+        Region.countOutlineShape(shape, vertIndexCount);
 
-        region = GLRegion.create(glp, getRenderModes(), null);
+        region = GLRegion.create(glp, getRenderModes(), null, vertIndexCount[0], vertIndexCount[1]);
         region.addOutlineShapes(outlineShapes, null, null);
     }
 

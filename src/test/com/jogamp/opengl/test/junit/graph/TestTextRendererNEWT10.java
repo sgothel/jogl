@@ -295,8 +295,8 @@ public class TestTextRendererNEWT10 extends UITestCase {
             super(renderModes, new int[] { sampleCount });
             setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
 
-            regionFPS = GLRegion.create(glp, renderModes, null);
-            regionFPSAnim = GLRegion.create(glp, renderModes, null);
+            regionFPS = GLRegion.create(glp, renderModes, null, 0, 0);
+            regionFPSAnim = GLRegion.create(glp, renderModes, null, 0, 0);
             if( null != fontURL ) {
                 Font _font = null;
                 try {

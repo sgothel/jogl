@@ -156,9 +156,9 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                                     renderModes, debug, trace);
         this.getRenderer().getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRegionUtil = new TextRegionUtil(renderModes);
-        this.regionFPS = GLRegion.create(glp, renderModes, null);
-        this.regionHead = GLRegion.create(glp, renderModes, null);
-        this.regionBottom = GLRegion.create(glp, renderModes, null);
+        this.regionFPS = GLRegion.create(glp, renderModes, null, 0, 0);
+        this.regionHead = GLRegion.create(glp, renderModes, null, 0, 0);
+        this.regionBottom = GLRegion.create(glp, renderModes, null, 0, 0);
         setFontSet(fontSet, FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE);
         setMatrix(0, 0, 0, 0f, sampleCount);
     }

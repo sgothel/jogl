@@ -126,7 +126,7 @@ public class MovieSimple implements GLEventListener {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
             super(rmode, textSampleCount);
             this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-            regionFPS = GLRegion.create(glp, renderModes, null);
+            regionFPS = GLRegion.create(glp, renderModes, null, 0, 0);
             System.err.println("RegionFPS "+Region.getRenderModeString(renderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
             staticRGBAColor[0] = 0.9f;
             staticRGBAColor[1] = 0.9f;
