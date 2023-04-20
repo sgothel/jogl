@@ -214,7 +214,7 @@ class TypecastFont implements Font {
                 glyph_leftsidebearings = glyph.getLeftSideBearing();
                 final AABBox sb = glyph.getBBox();
                 final OutlineShape s = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph);
-                if( 0 < s.getOutlineVectexCount() ) {
+                if( 0 < s.getVertexCount() ) {
                     glyph_bbox = sb;
                     shape = s;
                     isWhiteSpace = false;

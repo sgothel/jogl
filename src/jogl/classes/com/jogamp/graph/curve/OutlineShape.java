@@ -224,7 +224,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     }
 
     /** Returns the total {@link Outline#getVertexCount() vertex number} of all {@link Outline}s. */
-    public final int getOutlineVectexCount() {
+    public final int getVertexCount() {
         int res = 0;
         for(final Outline o : outlines) {
             res += o.getVertexCount();
