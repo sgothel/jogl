@@ -412,7 +412,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * @param comps This interleaved array segment's component count per element
    * @param vboTarget {@link GL#GL_ARRAY_BUFFER} or {@link GL#GL_ELEMENT_ARRAY_BUFFER}
    */
-  public GLArrayData addGLSLSubArray(final String name, final int comps, final int vboTarget) {
+  public GLArrayDataWrapper addGLSLSubArray(final String name, final int comps, final int vboTarget) {
       if(interleavedOffset >= getCompsPerElem() * getBytesPerComp()) {
           final int iOffC = interleavedOffset / getBytesPerComp();
           throw new GLException("Interleaved offset > total components ("+iOffC+" > "+getCompsPerElem()+")");
