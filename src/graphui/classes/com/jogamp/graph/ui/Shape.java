@@ -123,7 +123,7 @@ public abstract class Shape {
 
     private final Vec3f position = new Vec3f();
     private final Quaternion rotation = new Quaternion();
-    private final Vec3f rotPivot = new Vec3f();
+    private Vec3f rotPivot = null;
     private final Vec3f scale = new Vec3f(1f, 1f, 1f);
 
     private volatile int dirty = DIRTY_SHAPE | DIRTY_STATE;
@@ -228,7 +228,7 @@ public abstract class Shape {
             clearImpl0(gl, renderer);
             position.set(0f, 0f, 0f);
             rotation.setIdentity();
-            rotPivot.set(0f, 0f, 0f);
+            rotPivot = null;
             scale.set(1f, 1f, 1f);
             box.reset();
             markShapeDirty();
@@ -244,7 +244,7 @@ public abstract class Shape {
         destroyImpl0(gl, renderer);
         position.set(0f, 0f, 0f);
         rotation.setIdentity();
-        rotPivot.set(0f, 0f, 0f);
+        rotPivot = null;
         scale.set(1f, 1f, 1f);
         box.reset();
         markShapeDirty();
@@ -295,18 +295,23 @@ public abstract class Shape {
 
     /** Returns {@link Quaternion} for rotation. */
     public final Quaternion getRotation() { return rotation; }
-    /** Return unscaled rotation origin, aka pivot. */
+    /** Return unscaled rotation origin, aka pivot. Null if not set via {@link #getRotationPivot()}. */
     public final Vec3f getRotationPivot() { return rotPivot; }
-    /** Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}. */
-    public final void setRotationPivot(final float px, final float py, final float pz) {
-        rotPivot.set(px, py, pz);
+    /**
+     * Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}.
+     * @return this shape for chaining
+     */
+    public final Shape setRotationPivot(final float px, final float py, final float pz) {
+        rotPivot = new Vec3f(px, py, pz);
+        return this;
     }
     /**
      * Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}.
      * @param pivot rotation origin
+     * @return this shape for chaining
      */
     public final Shape setRotationPivot(final Vec3f pivot) {
-        rotPivot.set(pivot);
+        rotPivot = new Vec3f(pivot);
         return this;
     }
 
@@ -525,7 +530,7 @@ public abstract class Shape {
     public void setTransform(final PMVMatrix pmv) {
         final boolean hasScale = !scale.isEqual(Vec3f.ONE);
         final boolean hasRotate = !rotation.isIdentity();
-        final boolean hasRotPivot = !rotPivot.isZero();
+        final boolean hasRotPivot = null != rotPivot;
         final Vec3f ctr = box.getCenter();
         final boolean sameScaleRotatePivot = hasScale && hasRotate && ( !hasRotPivot || rotPivot.isEqual(ctr) );
 
@@ -558,7 +563,6 @@ public abstract class Shape {
                 pmv.glTranslatef(-ctr.x(), -ctr.y(), -ctr.z()); // move to center
             }
         }
-        // TODO: Add alignment features.
     }
 
     /**
@@ -890,7 +894,7 @@ public abstract class Shape {
 
     public String getSubString() {
         final String pivotS;
-        if( !rotPivot.isZero() ) {
+        if( null != rotPivot ) {
             pivotS = "pivot["+rotPivot+"], ";
         } else {
             pivotS = "";
@@ -908,8 +912,8 @@ public abstract class Shape {
         } else {
             rotateS = "";
         }
-        final String ps = hasPadding() ? padding.toString()+", " : "Padding 0, ";
-        final String bs = hasBorder() ? "Border "+getBorderThickness()+", " : "Border 0, ";
+        final String ps = hasPadding() ? padding.toString()+", " : "";
+        final String bs = hasBorder() ? "Border "+getBorderThickness()+", " : "";
         return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+
                "], able[iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
                "], pos["+position+"], "+pivotS+scaleS+rotateS+
