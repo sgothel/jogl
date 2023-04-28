@@ -1033,24 +1033,26 @@ public abstract class Shape {
         return this;
     }
 
-    public final void addMouseListener(final MouseGestureListener l) {
+    public final Shape addMouseListener(final MouseGestureListener l) {
         if(l == null) {
-            return;
+            return this;
         }
         @SuppressWarnings("unchecked")
         final ArrayList<MouseGestureListener> clonedListeners = (ArrayList<MouseGestureListener>) mouseListeners.clone();
         clonedListeners.add(l);
         mouseListeners = clonedListeners;
+        return this;
     }
 
-    public final void removeMouseListener(final MouseGestureListener l) {
+    public final Shape removeMouseListener(final MouseGestureListener l) {
         if (l == null) {
-            return;
+            return this;
         }
         @SuppressWarnings("unchecked")
         final ArrayList<MouseGestureListener> clonedListeners = (ArrayList<MouseGestureListener>) mouseListeners.clone();
         clonedListeners.remove(l);
         mouseListeners = clonedListeners;
+        return this;
     }
 
     /**
