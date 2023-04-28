@@ -645,6 +645,21 @@ public class AABBox {
 
     /**
      * Translate this AABBox by a float[3] vector
+     * @param dx the translation x-component
+     * @param dy the translation y-component
+     * @param dz the translation z-component
+     * @param t the float[3] translation vector
+     * @return this AABBox for chaining
+     */
+    public final AABBox translate(final float dx, final float dy, final float dz) {
+        low.add(dx, dy, dz);
+        high.add(dx, dy, dz);
+        computeCenter();
+        return this;
+    }
+
+    /**
+     * Translate this AABBox by a float[3] vector
      * @param t the float[3] translation vector
      * @return this AABBox for chaining
      */
