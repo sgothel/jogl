@@ -76,11 +76,7 @@ public class Button extends BaseButton {
                   final float height) {
         super(renderModes | Region.COLORCHANNEL_RENDERING_BIT, width, height);
         this.labelZOffset = DEFAULT_LABEL_ZOFFSET;
-        this.label = new Label0(labelFont, labelText, new Vec4f( 1.33f, 1.33f, 1.33f, 1.0f )); // 0.75 * 1.33 = 1.0
-        setColor(0.75f, 0.75f, 0.75f, 1.0f);
-        setPressedColorMod(0.9f, 0.9f, 0.9f, 0.7f);
-        setToggleOffColorMod(0.65f, 0.65f, 0.65f, 1.0f);
-        setToggleOnColorMod(0.85f, 0.85f, 0.85f, 1.0f);
+        this.label = new Label0(labelFont, labelText, new Vec4f( 1.66f, 1.66f, 1.66f, 1.0f )); // 0.60 * 1.66 ~= 1.0
     }
 
     public Font getFont() { return label.getFont(); }

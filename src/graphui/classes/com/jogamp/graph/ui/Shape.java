@@ -72,6 +72,13 @@ import com.jogamp.opengl.util.PMVMatrix;
  * <p>
  * GraphUI is intended to become an immediate- and retained-mode API.
  * </p>
+ * <p>
+ * Default colors (toggle-off is full color):
+ * - non-toggle: 0.6 * color, static -> 0.6
+ * - pressed: 0.8 * color, static -> 0.5
+ * - toggle-off: 1.0 * color, static -> 0.6
+ * - toggle-on: 0.8 * color
+ * </p>
  * @see Scene
  */
 public abstract class Shape {
@@ -123,13 +130,16 @@ public abstract class Shape {
     private final Object dirtySync = new Object();
 
     /** Default base-color w/o color channel, will be modulated w/ pressed- and toggle color */
-    protected final Vec4f rgbaColor             = new Vec4f(0.75f, 0.75f, 0.75f, 1.0f);
-    /** Default pressed color-factor w/o color channel, modulated base-color. 0.75 * 1.2 = 0.9 */
-    protected final Vec4f pressedRGBAModulate   = new Vec4f(1.20f, 1.20f, 1.20f, 0.7f);
-    /** Default toggle color-factor w/o color channel, modulated base-color.  0.75 * 1.13 ~ 0.85 */
-    protected final Vec4f toggleOnRGBAModulate  = new Vec4f(1.13f, 1.13f, 1.13f, 1.0f);
-    /** Default toggle color-factor w/o color channel, modulated base-color.  0.75 * 0.86 ~ 0.65 */
-    protected final Vec4f toggleOffRGBAModulate = new Vec4f(0.86f, 0.86f, 0.86f, 1.0f);
+    protected final Vec4f rgbaColor             = new Vec4f(0.60f, 0.60f, 0.60f, 1.0f);
+    /** Default pressed color-factor (darker and slightly transparent), modulated base-color. ~0.65 (due to alpha) */
+    protected final Vec4f pressedRGBAModulate   = new Vec4f(0.70f, 0.70f, 0.70f, 0.8f);
+    /** Default toggle color-factor (darkest), modulated base-color.  0.60 * 0.83 ~= 0.50 */
+    protected final Vec4f toggleOnRGBAModulate  = new Vec4f(0.83f, 0.83f, 0.83f, 1.0f);
+    /** Default toggle color-factor, modulated base-color.  0.60 * 1.00 ~= 0.60 */
+    protected final Vec4f toggleOffRGBAModulate = new Vec4f(1.00f, 1.00f, 1.00f, 1.0f);
+
+    private final Vec4f rgba_tmp = new Vec4f(0, 0, 0, 1);
+    private final Vec4f cWhite = new Vec4f(1, 1, 1, 1);
 
     private int name = -1;
 
@@ -417,8 +427,6 @@ public abstract class Shape {
         }
     }
 
-    private final Vec4f rgba_tmp = new Vec4f(0, 0, 0, 1);
-
     /**
      * Renders the shape.
      * <p>
@@ -441,7 +449,7 @@ public abstract class Shape {
                     rgba = toggleOffRGBAModulate;
                 }
             } else {
-                rgba = rgbaColor;
+                rgba = cWhite;
             }
         } else {
             rgba = rgba_tmp;
@@ -1319,6 +1327,13 @@ public abstract class Shape {
 
     protected abstract void validateImpl(final GLProfile glp, final GL2ES2 gl);
 
+    /**
+     * Actual draw implementation
+     * @param gl
+     * @param renderer
+     * @param sampleCount
+     * @param rgba if null, caller is {@link #drawToSelect(GL2ES2, RegionRenderer, int[])}, otherwise regular {@#link #draw(GL2ES2, RegionRenderer, int[])}
+     */
     protected abstract void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, Vec4f rgba);
 
     protected abstract void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer);

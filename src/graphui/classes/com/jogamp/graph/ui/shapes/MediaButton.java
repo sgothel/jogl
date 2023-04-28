@@ -45,6 +45,13 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
  * This button is rendered with a round oval shape.
  * To render it rectangular, {@link #setCorner(float)} to zero.
  * </p>
+ * <p>
+ * Default colors (toggle-on is full color):
+ * - non-toggle: 1 * color
+ * - pressed: 0.9 * color
+ * - toggle-off: 0.8 * color
+ * - toggle-on: 1.0 * color
+ * </p>
  */
 public class MediaButton extends TexSeqButton {
     private boolean verbose = false;
@@ -59,8 +66,9 @@ public class MediaButton extends TexSeqButton {
     public MediaButton(final int renderModes, final float width,
                        final float height, final GLMediaPlayer mPlayer) {
         super(renderModes, width, height, mPlayer);
-        setColor(0.8f, 0.8f, 0.8f, 1.0f);
-        setPressedColorMod(1.1f, 1.1f, 1.1f, 0.7f);
+
+        setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        setPressedColorMod(0.9f, 0.9f, 0.9f, 0.7f);
         setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);
         setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);
     }

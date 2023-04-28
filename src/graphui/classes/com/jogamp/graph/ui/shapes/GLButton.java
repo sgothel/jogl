@@ -54,6 +54,13 @@ import com.jogamp.opengl.util.texture.Texture;
  * This button is rendered with a round oval shape.
  * To render it rectangular, {@link #setCorner(float)} to zero.
  * </p>
+ * <p>
+ * Default colors (toggle-on is full color):
+ * - non-toggle: 1 * color
+ * - pressed: 0.9 * color
+ * - toggle-off: 0.8 * color
+ * - toggle-on: 1.0 * color
+ * </p>
  */
 public class GLButton extends TexSeqButton {
     private final GLEventListener glel;
@@ -69,8 +76,8 @@ public class GLButton extends TexSeqButton {
         this.glel = glel;
         this.useAlpha = useAlpha;
 
-        setColor(0.95f, 0.95f, 0.95f, 1.0f);
-        setPressedColorMod(1f, 1f, 1f, 0.9f);
+        setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        setPressedColorMod(0.9f, 0.9f, 0.9f, 0.7f);
         setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);
         setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);
 

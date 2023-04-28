@@ -41,16 +41,24 @@ import com.jogamp.opengl.util.texture.ImageSequence;
  * This button is rendered with a round oval shape.
  * To render it rectangular, {@link #setCorner(float)} to zero.
  * </p>
+ * <p>
+ * Default colors (toggle-off is full color):
+ * - non-toggle: 1 * color
+ * - pressed: 0.9 * color
+ * - toggle-off: 1.0 * color
+ * - toggle-on: 0.8 * color
+ * </p>
  */
 public class ImageButton extends TexSeqButton {
 
     public ImageButton(final int renderModes, final float width,
                        final float height, final ImageSequence texSeq) {
         super(renderModes, width, height, texSeq);
-        setColor(0.95f, 0.95f, 0.95f, 1.0f);
-        setPressedColorMod(1f, 1f, 1f, 0.9f);
-        setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);
-        setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);
+
+        setColor(1f, 1f, 1f, 1.0f);
+        setPressedColorMod(0.9f, 0.9f, 0.9f, 0.9f);
+        setToggleOffColorMod(1f, 1f, 1f, 1f);
+        setToggleOnColorMod(0.8f, 0.8f, 0.8f, 1f);
     }
 
     public final void setCurrentIdx(final int idx) {
