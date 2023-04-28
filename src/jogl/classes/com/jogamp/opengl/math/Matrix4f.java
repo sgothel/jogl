@@ -800,7 +800,7 @@ public class Matrix4f {
     }
 
     /**
-     * @param v_in 4-component column-vector
+     * @param v_in 4-component column-vector, can be v_out for in-place transformation
      * @param v_out this * v_in
      * @returns v_out for chaining
      */
@@ -815,13 +815,27 @@ public class Matrix4f {
     }
 
     /**
+     * @param v_inout 4-component column-vector input and output, i.e. in-place transformation
+     * @returns v_inout for chaining
+     */
+    public final Vec4f mulVec4f(final Vec4f v_inout) {
+        // (one matrix row in column-major order) X (column vector)
+        final float x = v_inout.x(), y = v_inout.y(), z = v_inout.z(), w = v_inout.w();
+        v_inout.set( x * m00 + y * m01 + z * m02 + w * m03,
+                     x * m10 + y * m11 + z * m12 + w * m13,
+                     x * m20 + y * m21 + z * m22 + w * m23,
+                     x * m30 + y * m31 + z * m32 + w * m33 );
+        return v_inout;
+    }
+
+    /**
      * Affine 3f-vector transformation by 4x4 matrix
      *
      * 4x4 matrix multiplication with 3-component vector,
      * using {@code 1} for for {@code v_in.w()} and dropping {@code v_out.w()},
      * which shall be {@code 1}.
      *
-     * @param v_in 3-component column-vector {@link Vec3f}
+     * @param v_in 3-component column-vector {@link Vec3f}, can be v_out for in-place transformation
      * @param v_out m_in * v_in, 3-component column-vector {@link Vec3f}
      * @returns v_out for chaining
      */
@@ -832,6 +846,25 @@ public class Matrix4f {
                    x * m10 + y * m11 + z * m12 + 1f * m13,
                    x * m20 + y * m21 + z * m22 + 1f * m23 );
         return v_out;
+    }
+
+    /**
+     * Affine 3f-vector transformation by 4x4 matrix
+     *
+     * 4x4 matrix multiplication with 3-component vector,
+     * using {@code 1} for for {@code v_inout.w()} and dropping {@code v_inout.w()},
+     * which shall be {@code 1}.
+     *
+     * @param v_inout 3-component column-vector {@link Vec3f} input and output, i.e. in-place transformation
+     * @returns v_inout for chaining
+     */
+    public final Vec3f mulVec3f(final Vec3f v_inout) {
+        // (one matrix row in column-major order) X (column vector)
+        final float x = v_inout.x(), y = v_inout.y(), z = v_inout.z();
+        v_inout.set( x * m00 + y * m01 + z * m02 + 1f * m03,
+                     x * m10 + y * m11 + z * m12 + 1f * m13,
+                     x * m20 + y * m21 + z * m22 + 1f * m23 );
+        return v_inout;
     }
 
     //

@@ -310,8 +310,6 @@ public final class PMVMatrix implements GLMatrixFunc {
         }
 
         mat4Tmp1       = new Matrix4f();
-        vec3Tmp1       = new Vec3f();
-        vec4Tmp1       = new Vec4f();
 
         mat4Tmp2 = null; // on demand
         matPMv = null; // on demand
@@ -582,12 +580,21 @@ public final class PMVMatrix implements GLMatrixFunc {
 
     /**
      * v_out = Mv * v_in
-     * @param v_in input vector
+     * @param v_in input vector, can be v_out for in-place transformation
      * @param v_out output vector
-     * @return given result vector for chaining
+     * @returns v_out for chaining
      */
     public final Vec4f mulMvMatVec4f(final Vec4f v_in, final Vec4f v_out) {
         return matMv.mulVec4f(v_in, v_out);
+    }
+
+    /**
+     * v_inout = Mv * v_inout
+     * @param v_inout input and output vector, i.e. in-place transformation
+     * @returns v_inout for chaining
+     */
+    public final Vec4f mulMvMatVec4f(final Vec4f v_inout) {
+        return matMv.mulVec4f(v_inout);
     }
 
     /**
@@ -595,43 +602,89 @@ public final class PMVMatrix implements GLMatrixFunc {
      *
      * Affine 3f-vector transformation by 4x4 matrix, see {@link Matrix4f#mulVec3f(Vec3f, Vec3f)}.
      *
-     * @param v_in input vector
+     * @param v_in input vector, can be v_out for in-place transformation
      * @param v_out output vector
-     * @return given result vector for chaining
+     * @returns v_out for chaining
      */
     public final Vec3f mulMvMatVec3f(final Vec3f v_in, final Vec3f v_out) {
         return matMv.mulVec3f(v_in, v_out);
     }
 
     /**
+     * v_inout = Mv * v_inout
+     *
+     * Affine 3f-vector transformation by 4x4 matrix, see {@link Matrix4f#mulVec3f(Vec3f, Vec3f)}.
+     *
+     * @param v_inout input and output vector, i.e. in-place transformation
+     * @returns v_inout for chaining
+     */
+    public final Vec3f mulMvMatVec3f(final Vec3f v_inout) {
+        return matMv.mulVec3f(v_inout);
+    }
+
+    /**
      * v_out = P * v_in
-     * @param v_in input vector
+     * @param v_in input vector, can be v_out for in-place transformation
      * @param v_out output vector
      * @return given result vector for chaining
+     * @returns v_out for chaining
      */
     public final Vec4f mulPMatVec4f(final Vec4f v_in, final Vec4f v_out) {
         return matP.mulVec4f(v_in, v_out);
     }
 
     /**
+     * v_inout = P * v_inout
+     * @param v_inout input and output vector, i.e. in-place transformation
+     * @return given result vector for chaining
+     * @returns v_inout for chaining
+     */
+    public final Vec4f mulPMatVec4f(final Vec4f v_inout) {
+        return matP.mulVec4f(v_inout);
+    }
+
+    /**
      * v_out = P * v_in
      *
      * Affine 3f-vector transformation by 4x4 matrix, see {@link Matrix4f#mulVec3f(Vec3f, Vec3f)}.
      *
-     * @param v_in float[3] input vector
+     * @param v_in float[3] input vector, can be v_out for in-place transformation
      * @param v_out float[3] output vector
+     * @returns v_out for chaining
      */
     public final Vec3f mulPMatVec3f(final Vec3f v_in, final Vec3f v_out) {
         return matP.mulVec3f(v_in, v_out);
     }
 
     /**
+     * v_inout = P * v_inout
+     *
+     * Affine 3f-vector transformation by 4x4 matrix, see {@link Matrix4f#mulVec3f(Vec3f, Vec3f)}.
+     *
+     * @param v_inout input and output vector, i.e. in-place transformation
+     * @returns v_inout for chaining
+     */
+    public final Vec3f mulPMatVec3f(final Vec3f v_inout) {
+        return matP.mulVec3f(v_inout);
+    }
+
+    /**
      * v_out = P * Mv * v_in
-     * @param v_in float[4] input vector
+     * @param v_in float[4] input vector, can be v_out for in-place transformation
      * @param v_out float[4] output vector
+     * @returns v_out for chaining
      */
     public final Vec4f mulPMvMatVec4f(final Vec4f v_in, final Vec4f v_out) {
-        return matP.mulVec4f( matMv.mulVec4f( v_in, vec4Tmp1 ), v_out );
+        return matP.mulVec4f( matMv.mulVec4f( v_in, v_out ) );
+    }
+
+    /**
+     * v_inout = P * Mv * v_inout
+     * @param v_inout input and output vector, i.e. in-place transformation
+     * @returns v_inout for chaining
+     */
+    public final Vec4f mulPMvMatVec4f(final Vec4f v_inout) {
+        return matP.mulVec4f( matMv.mulVec4f( v_inout ) );
     }
 
     /**
@@ -639,11 +692,24 @@ public final class PMVMatrix implements GLMatrixFunc {
      *
      * Affine 3f-vector transformation by 4x4 matrix, see {@link Matrix4f#mulVec3f(Vec3f, Vec3f)}.
      *
-     * @param v_in float[3] input vector
+     * @param v_in float[3] input vector, can be v_out for in-place transformation
      * @param v_out float[3] output vector
+     * @returns v_out for chaining
      */
     public final Vec3f mulPMvMatVec3f(final Vec3f v_in, final Vec3f v_out) {
-        return matP.mulVec3f( matMv.mulVec3f( v_in, vec3Tmp1 ), v_out );
+        return matP.mulVec3f( matMv.mulVec3f( v_in, v_out ) );
+    }
+
+    /**
+     * v_inout = P * Mv * v_inout
+     *
+     * Affine 3f-vector transformation by 4x4 matrix, see {@link Matrix4f#mulVec3f(Vec3f, Vec3f)}.
+     *
+     * @param v_inout float[3] input and output vector, i.e. in-place transformation
+     * @returns v_inout for chaining
+     */
+    public final Vec3f mulPMvMatVec3f(final Vec3f v_inout) {
+        return matP.mulVec3f( matMv.mulVec3f( v_inout ) );
     }
 
     //
@@ -1439,8 +1505,6 @@ public final class PMVMatrix implements GLMatrixFunc {
     private final SyncMatrices4f syncP_Mv, syncP_Mv_Mvi, syncP_Mv_Mvi_Mvit;
 
     private final Matrix4f mat4Tmp1;
-    private final Vec3f vec3Tmp1;
-    private final Vec4f vec4Tmp1;
 
     private int matrixMode = GL_MODELVIEW;
     private int modifiedBits = MODIFIED_ALL;
