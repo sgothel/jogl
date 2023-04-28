@@ -197,7 +197,7 @@ public abstract class Shape {
     public Padding getPadding() { return padding; }
 
     /** Returns true if {@link #setPaddding(Padding)} added a non {@link Padding#zeroSumSize()} spacing to this shape. */
-    public boolean hasPadding() { null != padding && !padding.zeroSumSize(); }
+    public boolean hasPadding() { return null != padding && !padding.zeroSumSize(); }
 
     /**
      * Sets the thickness of the border, which is included in {@link #getBounds()} and is outside of {@link #getPadding()}. Default is zero for no border.
@@ -908,10 +908,12 @@ public abstract class Shape {
         } else {
             rotateS = "";
         }
+        final String ps = hasPadding() ? padding.toString()+", " : "Padding 0, ";
+        final String bs = hasBorder() ? "Border "+getBorderThickness()+", " : "Border 0, ";
         return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+
                "], able[iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
                "], pos["+position+"], "+pivotS+scaleS+rotateS+
-                "box"+box;
+                ps+bs+"box"+box;
     }
 
     //
