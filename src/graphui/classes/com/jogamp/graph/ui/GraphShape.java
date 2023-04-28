@@ -34,8 +34,10 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -206,9 +208,18 @@ public abstract class GraphShape extends Shape {
             clearDirtyRegions(gl);
         }
         if( isShapeDirty() ) {
+            // box has been reset
             addShapeToRegion(glp, gl); // calls updateGLRegion(..)
             if( hasBorder() ) {
+                // Also takes padding into account
                 addBorderOutline();
+            } else if( hasPadding() ) {
+                final Padding p = getPadding();
+                final Vec3f l = box.getLow();
+                final Vec3f h = box.getHigh();
+                box.resize(l.x() - p.left, l.y() - p.bottom, l.z());
+                box.resize(h.x() + p.right, h.y() + p.top, l.z());
+                setRotationPivot( box.getCenter() );
             }
             region.setQuality(regionQuality);
         } else if( isStateDirty() ) {
@@ -218,10 +229,11 @@ public abstract class GraphShape extends Shape {
 
     protected void addBorderOutline() {
         final OutlineShape shape = new OutlineShape();
-        final float x1 = box.getMinX();
-        final float x2 = box.getMaxX();
-        final float y1 = box.getMinY();
-        final float y2 = box.getMaxY();
+        final Padding dist = null != getPadding() ? getPadding() : new Padding();
+        final float x1 = box.getMinX() - dist.left;
+        final float x2 = box.getMaxX() + dist.right;
+        final float y1 = box.getMinY() - dist.bottom;
+        final float y2 = box.getMaxY() + dist.top;
         final float z = box.getCenter().z(); // 0; // box.getMinZ() + 0.025f;
         {
             // Outer OutlineShape as Winding.CCW.
@@ -235,8 +247,7 @@ public abstract class GraphShape extends Shape {
         }
         {
             // Inner OutlineShape as Winding.CW.
-            final float dxy0 = box.getWidth() < box.getHeight() ? box.getWidth() : box.getHeight();
-            final float dxy = dxy0 * getBorderThickness();
+            final float dxy = getBorderThickness();
             shape.moveTo(x1+dxy, y1+dxy, z);
             shape.lineTo(x1+dxy, y2-dxy, z);
             shape.lineTo(x2-dxy, y2-dxy, z);
@@ -246,7 +257,9 @@ public abstract class GraphShape extends Shape {
         }
         shape.setIsQuadraticNurbs();
         shape.setSharpness(oshapeSharpness);
-        region.addOutlineShape(shape, null, borderColor);
+        region.addOutlineShape(shape, null, getBorderColor());
+        box.resize(shape.getBounds()); // border <-> shape = padding, and part of shape size
+        setRotationPivot( box.getCenter() );
     }
 
     protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) { }

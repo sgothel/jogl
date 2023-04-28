@@ -33,10 +33,14 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.ui.layout.Padding;
+import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -70,6 +74,7 @@ public class Group extends Shape implements Container {
 
     private final List<Shape> shapes = new ArrayList<Shape>();
     private Layout layouter;
+    private Rectangle border = null;
 
     /**
      * Create a Graph based {@link GLRegion} UI {@link Shape}.
@@ -126,7 +131,6 @@ public class Group extends Shape implements Container {
 
     /** Removes given shape and destroy it. */
     public void removeShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape s) {
-        s.setBorder(0f);
         shapes.remove(s);
         s.destroy(gl, renderer);
     }
@@ -183,6 +187,10 @@ public class Group extends Shape implements Container {
             // s.destroyImpl0(gl, renderer);
             s.destroy(gl, renderer);;
         }
+        if( null != border ) {
+            border.destroy(gl, renderer);
+            border = null;
+        }
     }
 
     private boolean doFrustumCulling = false;
@@ -208,7 +216,6 @@ public class Group extends Shape implements Container {
                 shape.setTransform(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
-                    // FIXME: Optimize to reuse modulated rgba
                     if( null == rgba ) {
                         shape.drawToSelect(gl, renderer, sampleCount);
                     } else {
@@ -218,11 +225,19 @@ public class Group extends Shape implements Container {
                 pmv.glPopMatrix();
             }
         }
+        if( null != border ) {
+            if( null == rgba ) {
+                border.drawToSelect(gl, renderer, sampleCount);
+            } else {
+                border.draw(gl, renderer, sampleCount);
+            }
+        }
     }
 
     @Override
     protected void validateImpl(final GLProfile glp, final GL2ES2 gl) {
         if( isShapeDirty() ) {
+            // box has been reset
             final PMVMatrix pmv = new PMVMatrix();
             if( null != layouter ) {
                 for(final Shape s : shapes) {
@@ -247,6 +262,25 @@ public class Group extends Shape implements Container {
                     pmv.glPopMatrix();
                     box.resize(tsbox);
                 }
+            }
+            if( hasPadding() ) {
+                final Padding p = getPadding();
+                final Vec3f l = box.getLow();
+                final Vec3f h = box.getHigh();
+                box.resize(l.x() - p.left, l.y() - p.bottom, l.z());
+                box.resize(h.x() + p.right, h.y() + p.top, l.z());
+                setRotationPivot( box.getCenter() );
+            }
+            if( hasBorder() ) {
+                if( null == border ) {
+                    border = new Rectangle(Region.VBAA_RENDERING_BIT, box, getBorderThickness());
+                } else {
+                    border.setEnabled(true);
+                    border.setBounds(box, getBorderThickness());
+                }
+                border.setColor(getBorderColor());
+            } else if( null != border ) {
+                border.setEnabled(false);
             }
         }
     }

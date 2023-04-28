@@ -35,6 +35,7 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.newt.event.GestureHandler.GestureListener;
 import com.jogamp.newt.event.MouseAdapter;
@@ -61,6 +62,9 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  * <p>
  * A shape is expected to have its 0/0 origin in its bottom-left corner, otherwise the drag-zoom sticky-edge will not work as expected.
+ * </p>
+ * <p>
+ * A shape's {@link #getBounds()} includes its optional {@link #getPadding()} and optional {@link #getBorderThickness()}.
  * </p>
  * <p>
  * GraphUI is GPU based and resolution independent.
@@ -136,8 +140,9 @@ public abstract class Shape {
     private boolean resizable = true;
     private boolean interactive = true;
     private boolean enabled = true;
-    private float border_thickness = 0f;
-    protected final Vec4f borderColor = new Vec4f(0.75f, 0.75f, 0.75f, 1.0f);
+    private float borderThickness = 0f;
+    private Padding padding = null;
+    private final Vec4f borderColor = new Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
 
     private Listener onMoveListener = null;
@@ -159,18 +164,49 @@ public abstract class Shape {
     public final Shape setEnabled(final boolean v) { enabled = v; return this; }
 
     /**
-     * Sets the thickness of the debug box, zero for no border (default).
-     * @param v border thickness, zero for no debug box
+     * Sets the padding for this shape, which is included in {@link #getBounds()B} and also includes the border. Default is zero.
+     *
+     * Method issues {@link #markShapeDirty()}.
+     *
+     * @param padding distance of shape to the border, i.e. padding
+     * @return this shape for chaining
+     * @see #getPadding()
+     * @see #hasPadding()
      */
-    public final Shape setBorder(final float v) {
-        border_thickness = Math.max(0f, v);
+    public final Shape setPaddding(final Padding padding) {
+        this.padding = padding;
+        markShapeDirty();
         return this;
     }
-    /** Returns true if a border has been enabled via {@link #setBorder(float)}. */
-    public final boolean hasBorder() { return !FloatUtil.isZero(border_thickness); }
 
-    /** Returns the border thickness, see {@link #setBorder(float)}. */
-    public final float getBorderThickness() { return border_thickness; }
+    /**
+     * Returns {@link Padding} of this shape, which is included in {@link #getBounds()B} and also includes the border. Default is zero.
+     * @see #setPaddding(Padding)
+     * @see #hasPadding()
+     */
+    public Padding getPadding() { return padding; }
+
+    /** Returns true if {@link #setPaddding(Padding)} added a non {@link Padding#zeroSumSize()} spacing to this shape. */
+    public boolean hasPadding() { null != padding && !padding.zeroSumSize(); }
+
+    /**
+     * Sets the thickness of the border, which is included in {@link #getBounds()} and is outside of {@link #getPadding()}. Default is zero for no border.
+     *
+     * Method issues {@link #markShapeDirty()}.
+     *
+     * @param thickness border thickness, zero for no border
+     * @return this shape for chaining
+     */
+    public final Shape setBorder(final float thickness) {
+        borderThickness = Math.max(0f, thickness);
+        markShapeDirty();
+        return this;
+    }
+    /** Returns true if a border has been enabled via {@link #setBorder(float, Padding)}. */
+    public final boolean hasBorder() { return !FloatUtil.isZero(borderThickness); }
+
+    /** Returns the border thickness, see {@link #setBorder(float, Padding)}. */
+    public final float getBorderThickness() { return borderThickness; }
 
     /**
      * Clears all data and reset all states as if this instance was newly created
@@ -319,8 +355,10 @@ public abstract class Shape {
     /**
      * Returns the unscaled bounding {@link AABBox} for this shape, borrowing internal instance.
      *
-     * The returned {@link AABBox} will only cover this unscaled shape
-     * after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
+     * The returned {@link AABBox} will cover the unscaled shape
+     * as well as its optional {@link #getPadding()} and optional {@link #getBorderThickness()}.
+     *
+     * The returned {@link AABBox} is only valid after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
      * or {@link #validate(GL2ES2)}.
      *
      * @see #getBounds(GLProfile)
@@ -330,8 +368,10 @@ public abstract class Shape {
     /**
      * Returns the scaled width of the bounding {@link AABBox} for this shape.
      *
-     * The returned width will only cover the scaled shape
-     * after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
+     * The returned width will cover the scaled shape
+     * as well as its optional scaled {@link #getPadding()} and optional scaled {@link #getBorderThickness()}.
+     *
+     * The returned width is only valid after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
      * or {@link #validate(GL2ES2)}.
      *
      * @see #getBounds()
@@ -343,8 +383,10 @@ public abstract class Shape {
     /**
      * Returns the scaled height of the bounding {@link AABBox} for this shape.
      *
-     * The returned height will only cover the scaled shape
-     * after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
+     * The returned height will cover the scaled shape
+     * as well as its optional scaled {@link #getPadding()} and optional scaled {@link #getBorderThickness()}.
+     *
+     * The returned height is only valid after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
      * or {@link #validate(GL2ES2)}.
      *
      * @see #getBounds()

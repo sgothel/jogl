@@ -31,42 +31,70 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.math.geom.AABBox;
 
 /**
- * A GraphUI Rectangle {@link GraphShape}
+ * A GraphUI rectangle {@link GraphShape}
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
  */
 public class Rectangle extends GraphShape {
-    private float width, height, lineWidth;
+    private float minX, minY, zPos;
+    private float width;
+    private float height;
+    private float lineWidth;
 
-    public Rectangle(final int renderModes, final float width, final float height, final float linewidth) {
+    public Rectangle(final int renderModes, final float minX, final float minY, final float width, final float height, final float lineWidth, final float zPos) {
         super(renderModes);
+        this.minX = minX;
+        this.minY = minY;
+        this.zPos = zPos;
         this.width = width;
         this.height = height;
-        this.lineWidth = linewidth;
+        this.lineWidth = lineWidth;
+    }
+
+    public Rectangle(final int renderModes, final AABBox abox, final float lineWidth) {
+        this( renderModes, abox.getMinX(), abox.getMinY(), abox.getWidth(), abox.getHeight(), lineWidth, abox.getCenter().z());
+    }
+
+    public Rectangle(final int renderModes, final float minX, final float minY, final float width, final float height, final float lineWidth) {
+        this( renderModes, minX, minY, width, height, lineWidth, 0);
+    }
+    public Rectangle(final int renderModes, final float width, final float height, final float lineWidth) {
+        this( renderModes, 0, 0, width, height, lineWidth, 0);
     }
 
     public final float getWidth() { return width; }
     public final float getHeight() { return height; }
     public final float getLineWidth() { return lineWidth; }
 
+    public void setPosition(final float minX, final float minY, final float zPos) {
+        this.minX = minX;
+        this.minY = minY;
+        this.zPos = zPos;
+        markShapeDirty();
+    }
     public void setDimension(final float width, final float height, final float lineWidth) {
         this.width = width;
         this.height = height;
         this.lineWidth = lineWidth;
         markShapeDirty();
     }
+    public void setBounds(final AABBox abox, final float lineWidth) {
+        setPosition(abox.getMinX(), abox.getMinY(), abox.getCenter().z());
+        setDimension(abox.getWidth(), abox.getHeight(), lineWidth);
+    }
 
     @Override
     protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
         final OutlineShape shape = new OutlineShape();
-        final float x1 = 0f;
-        final float y1 = 0f;
-        final float x2 = getWidth();
-        final float y2 = getHeight();
-        final float z = 0f;
+        final float x1 = minX;
+        final float y1 = minY;
+        final float x2 = minX + getWidth();
+        final float y2 = minY + getHeight();
+        final float z = zPos;
         {
             // Outer OutlineShape as Winding.CCW.
             shape.moveTo(x1, y1, z);

@@ -110,7 +110,7 @@ public final class Scene implements Container, GLEventListener {
     private static final boolean DEBUG = false;
 
     private final List<Shape> shapes = new ArrayList<Shape>();
-    private float dbgbox_thickness = 0f;
+    private float dbgBorderThickness = 0f;
     private boolean doFrustumCulling = false;
 
     private float[] clearColor = null;
@@ -217,7 +217,7 @@ public final class Scene implements Container, GLEventListener {
     }
     @Override
     public void addShape(final Shape s) {
-        s.setBorder(dbgbox_thickness);
+        s.setBorder(dbgBorderThickness);
         shapes.add(s);
     }
     @Override
@@ -315,11 +315,11 @@ public final class Scene implements Container, GLEventListener {
     }
 
     /**
-     * Sets the {@link #getBounds()} fractional thickness of the debug box ranging [0..1] for all shapes, zero for no debug box (default).
-     * @param v fractional thickness of {@link #getBounds()} ranging [0..1], zero for no debug box
+     * Sets the debug {@link Shape#setBorder(float) border} thickness for all existing or added shapes, zero for no debug border (default).
+     * @param v thickness debug border, zero for no border
      */
-    public final void setDebugBox(final float v) {
-        dbgbox_thickness = v;
+    public final void setDebugBorderBox(final float v) {
+        dbgBorderThickness = v;
         for(int i=0; i<shapes.size(); i++) {
             shapes.get(i).setBorder(v);
         }

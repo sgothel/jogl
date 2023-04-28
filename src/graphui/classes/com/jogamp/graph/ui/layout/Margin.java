@@ -30,7 +30,7 @@ package com.jogamp.graph.ui.layout;
 import com.jogamp.opengl.math.FloatUtil;
 
 /**
- * GraphUI CSS property Margin, space between or around elements.
+ * GraphUI CSS property Margin, space between or around elements and not included in the element's size.
  *
  * The CSS margin properties are used to create space around elements, outside of any defined borders.
  *
