@@ -205,7 +205,7 @@ public class Label extends GraphShape {
     @Override
     protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
         final int[] vertIndCount = TextRegionUtil.countStringRegion(font, text, new int[2]);
-        updateGLRegion(glp, gl, null, vertIndCount[0], vertIndCount[1]);
+        resetGLRegion(glp, gl, null, vertIndCount[0], vertIndCount[1]);
 
         AABBox fbox = font.getGlyphBounds(text, tempT2, tempT3);
         tempT1.setToScale(fontScale, fontScale);

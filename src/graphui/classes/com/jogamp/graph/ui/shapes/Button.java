@@ -105,7 +105,7 @@ public class Button extends BaseButton {
         // Sum Region buffer size of base-shape + text
         final int[/*2*/] vertIndexCount = Region.countOutlineShape(shape, new int[2]);
         TextRegionUtil.countStringRegion(label.getFont(), label.getText(), vertIndexCount);
-        updateGLRegion(glp, gl, null, vertIndexCount[0], vertIndexCount[1]);
+        resetGLRegion(glp, gl, null, vertIndexCount[0], vertIndexCount[1]);
 
         region.addOutlineShape(shape, null, rgbaColor);
 

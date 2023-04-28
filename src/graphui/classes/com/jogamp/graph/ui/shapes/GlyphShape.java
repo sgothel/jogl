@@ -192,7 +192,7 @@ public class GlyphShape extends GraphShape {
             tmp.setToTranslation(-sbox.getMinX(), -sbox.getMinY() + glyph.getBounds().getMinY());
             shape.setSharpness(oshapeSharpness);
 
-            updateGLRegion(glp, gl, null, regionVertCount, regionIdxCount);
+            resetGLRegion(glp, gl, null, regionVertCount, regionIdxCount);
             region.addOutlineShape(shape, tmp, rgbaColor);
             box.resize(tmp.transform(sbox, new AABBox()));
             setRotationPivot( box.getCenter() );

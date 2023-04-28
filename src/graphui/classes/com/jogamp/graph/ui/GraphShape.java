@@ -126,7 +126,12 @@ public abstract class GraphShape extends Shape {
     }
 
     /**
-     * Update or freshly create the {@link GLRegion}, while allocating its buffers with given initial `vertexCount` and `indexCount`.
+     * Reset the {@link GLRegion} and reserving its buffers to have a free capacity for `vertexCount` and `indexCount` elements.
+     *
+     * In case {@link GLRegion} is `null`, a new instance is being created.
+     *
+     * In case the {@link GLRegion} already exists, it will be either {@link GLRegion#clear(GL2ES2) cleared} if the {@link GL2ES2} `gl`
+     * instance is not `null` or earmarked for deletion at a later time and a new instance is being created.
      *
      * Method shall be invoked by the {@link #addShapeToRegion(GLProfile, GL2ES2)} implementation
      * before actually adding the {@link OutlineShape} to the {@link GLRegion}.
@@ -134,21 +139,20 @@ public abstract class GraphShape extends Shape {
      * {@link #addShapeToRegion(GLProfile, GL2ES2)} is capable to determine initial `vertexCount` and `indexCount` buffer sizes,
      * as it composes the {@link OutlineShape}s to be added.
      *
-     * {@link #updateGLRegion(GLProfile, GL2ES2, TextureSequence, OutlineShape)} maybe used for convenience.
-     *
-     * In case {@link GLRegion} is `null`, a new instance is being created.
-     *
-     * In case the {@link GLRegion} already exists, it will be either {@link GLRegion#clear(GL2ES2) cleared} if the {@link GL2ES2} `gl`
-     * instance is not `null` or earmarked for deletion at a later time and a new instance is being created.
+     * {@link #resetGLRegion(GLProfile, GL2ES2, TextureSequence, OutlineShape)} maybe used for convenience.
      *
      * @param glp the used GLProfile, never `null`
      * @param gl the optional current {@link GL2ES2} instance, maybe `null`.
      * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
      * @param vertexCount the initial {@link GLRegion} vertex buffer size
      * @param indexCount the initial {@link GLRegion} index buffer size
-     * @see #updateGLRegion(GLProfile, GL2ES2, TextureSequence, OutlineShape)
+     * @see #resetGLRegion(GLProfile, GL2ES2, TextureSequence, OutlineShape)
      */
-    protected void updateGLRegion(final GLProfile glp, final GL2ES2 gl, final TextureSequence colorTexSeq, final int vertexCount, final int indexCount) {
+    protected void resetGLRegion(final GLProfile glp, final GL2ES2 gl, final TextureSequence colorTexSeq, int vertexCount, int indexCount) {
+        if( hasBorder() ) {
+            vertexCount += 8;
+            indexCount += 24;
+        }
         if( null == region ) {
             region = GLRegion.create(glp, renderModes, colorTexSeq, vertexCount, indexCount);
         } else if( null == gl ) {
@@ -160,18 +164,18 @@ public abstract class GraphShape extends Shape {
         }
     }
     /**
-     * Convenient {@link #updateGLRegion(GLProfile, GL2ES2, TextureSequence, int, int)} variant determining initial
+     * Convenient {@link #resetGLRegion(GLProfile, GL2ES2, TextureSequence, int, int)} variant determining initial
      * {@link GLRegion} buffer sizes via {@link Region#countOutlineShape(OutlineShape, int[])}.
      *
      * @param glp the used GLProfile, never `null`
      * @param gl the optional current {@link GL2ES2} instance, maybe `null`.
      * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
      * @param shape the {@link OutlineShape} used to determine {@link GLRegion}'s buffer sizes via {@link Region#countOutlineShape(OutlineShape, int[])}
-     * @see #updateGLRegion(GLProfile, GL2ES2, TextureSequence, int, int)
+     * @see #resetGLRegion(GLProfile, GL2ES2, TextureSequence, int, int)
      */
-    protected void updateGLRegion(final GLProfile glp, final GL2ES2 gl, final TextureSequence colorTexSeq, final OutlineShape shape) {
+    protected void resetGLRegion(final GLProfile glp, final GL2ES2 gl, final TextureSequence colorTexSeq, final OutlineShape shape) {
         final int[/*2*/] vertIndexCount = Region.countOutlineShape(shape, new int[2]);
-        updateGLRegion(glp, gl, colorTexSeq, vertIndexCount[0], vertIndexCount[1]);
+        resetGLRegion(glp, gl, colorTexSeq, vertIndexCount[0], vertIndexCount[1]);
     }
 
     @Override
