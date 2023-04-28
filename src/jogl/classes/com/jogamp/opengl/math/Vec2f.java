@@ -121,6 +121,19 @@ public final class Vec2f {
     public void setX(final float x) { this.x = x; }
     public void setY(final float y) { this.y = y; }
 
+    /** this = max(this, m), returns this. */
+    public Vec2f max(final Vec2f m) {
+        this.x = Math.max(this.x, m.x);
+        this.y = Math.max(this.y, m.y);
+        return this;
+    }
+    /** this = min(this, m), returns this. */
+    public Vec2f min(final Vec2f m) {
+        this.x = Math.min(this.x, m.x);
+        this.y = Math.min(this.y, m.y);
+        return this;
+    }
+
     /** Returns this * val; creates new vector */
     public Vec2f mul(final float val) {
         return new Vec2f(this).scale(val);

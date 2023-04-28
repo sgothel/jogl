@@ -140,6 +140,23 @@ public final class Vec4f {
     public void setZ(final float z) { this.z = z; }
     public void setW(final float w) { this.w = w; }
 
+    /** this = max(this, m), returns this. */
+    public Vec4f max(final Vec4f m) {
+        this.x = Math.max(this.x, m.x);
+        this.y = Math.max(this.y, m.y);
+        this.z = Math.max(this.z, m.z);
+        this.w = Math.max(this.w, m.w);
+        return this;
+    }
+    /** this = min(this, m), returns this. */
+    public Vec4f min(final Vec4f m) {
+        this.x = Math.min(this.x, m.x);
+        this.y = Math.min(this.y, m.y);
+        this.z = Math.min(this.z, m.z);
+        this.w = Math.min(this.w, m.w);
+        return this;
+    }
+
     /** Returns this * val; creates new vector */
     public Vec4f mul(final float val) {
         return new Vec4f(this).scale(val);
