@@ -69,7 +69,11 @@ public abstract class GraphShape extends Shape {
     /** Return Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}. */
     public final int getRenderModes() { return renderModes; }
 
-    public final int getQuality() { return regionQuality; }
+    /**
+     * Sets the shape's Graph {@link Region}'s quality parameter. Default is {@link Region#MAX_QUALITY}.
+     * @param q Graph {@link Region}'s quality parameter, default is {@link Region#MAX_QUALITY}.
+     * @return this shape for chaining.
+     */
     public final GraphShape setQuality(final int q) {
         this.regionQuality = q;
         if( null != region ) {
@@ -77,11 +81,29 @@ public abstract class GraphShape extends Shape {
         }
         return this;
     }
+    /**
+     * Return the shape's Graph {@link Region}'s quality parameter.
+     * @see #setQuality(int)
+     */
+    public final int getQuality() { return regionQuality; }
+
+    /**
+     * Sets the shape's Graph {@link OutlineShape}'s sharpness parameter. Default is {@link OutlineShape#DEFAULT_SHARPNESS}.
+     *
+     * Method issues {@link #markShapeDirty()}.
+     *
+     * @param sharpness Graph {@link OutlineShape}'s sharpness value, default is {@link OutlineShape#DEFAULT_SHARPNESS}.
+     * @return this shape for chaining.
+     */
     public final GraphShape setSharpness(final float sharpness) {
         this.oshapeSharpness = sharpness;
         markShapeDirty();
         return this;
     }
+    /**
+     * Return the shape's Graph {@link OutlineShape}'s sharpness value.
+     * @see #setSharpness(float)
+     */
     public final float getSharpness() {
         return oshapeSharpness;
     }
