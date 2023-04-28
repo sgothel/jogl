@@ -58,7 +58,7 @@ public abstract class TexSeqButton extends BaseButton {
     @Override
     protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
         final OutlineShape shape = createBaseShape(0f);
-        updateGLRegion(glp, gl, texSeq, shape);
+        resetGLRegion(glp, gl, texSeq, shape);
         region.addOutlineShape(shape, null, rgbaColor);
         box.resize(shape.getBounds());
         setRotationPivot( box.getCenter() );

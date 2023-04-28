@@ -266,7 +266,7 @@ public class Glyph05FreeSerifBoldItalic_ae extends GraphShape {
         shape.setIsQuadraticNurbs();
         shape.setSharpness(oshapeSharpness);
 
-        updateGLRegion(glp, gl, null, shape);
+        resetGLRegion(glp, gl, null, shape);
         region.addOutlineShape(shape, null, rgbaColor);
         box.resize(shape.getBounds());
         setRotationPivot( box.getCenter() );

@@ -101,7 +101,7 @@ public class BaseButton extends GraphShape {
     @Override
     protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
         final OutlineShape shape = createBaseShape(0f);
-        updateGLRegion(glp, gl, null, shape);
+        resetGLRegion(glp, gl, null, shape);
         region.addOutlineShape(shape, null, rgbaColor);
         box.resize(shape.getBounds());
         setRotationPivot( box.getCenter() );
