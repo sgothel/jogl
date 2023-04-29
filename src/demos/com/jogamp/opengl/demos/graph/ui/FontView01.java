@@ -40,8 +40,9 @@ import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
+import com.jogamp.graph.ui.layout.Alignment;
+import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
-import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.GlyphShape;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.Rectangle;
@@ -62,11 +63,11 @@ import com.jogamp.opengl.util.Animator;
  * This may become a little font viewer application, having FontForge as its role model.
  */
 public class FontView01 {
-    private static float gridWidth = 2/3f;
+    private static float GlyphGridWidth = 2/3f;
     static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
 
     public static void main(final String[] args) throws IOException {
-        float mmPerCell = 10f;
+        float mmPerCell = 8f;
         String fontfilename = null;
         int gridCols = -1;
         int gridRows = -1;
@@ -153,15 +154,16 @@ public class FontView01 {
             System.err.println("mmPerCell "+mmPerCell);
         }
         if( 0 >= gridCols ) {
-            gridCols = (int)( ( window.getSurfaceWidth() * gridWidth / ppmm[0] ) / mmPerCell );
+            gridCols = (int)( ( window.getSurfaceWidth() * GlyphGridWidth / ppmm[0] ) / mmPerCell );
         }
         if( 0 >= gridRows ) {
             gridRows = (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCell );
         }
         final int cellCount = gridCols * gridRows;
+
         final float gridSize = gridCols > gridRows ? 1f/gridCols : 1f/gridRows;
         System.err.println("Grid "+gridCols+" x "+gridRows+", "+cellCount+" cells, gridSize "+gridSize);
-        final Group mainGrid = new Group(new GridLayout(gridCols, gridSize, gridSize, new Padding(gridSize*0.05f, gridSize*0.05f)));
+        final Group mainGrid = new Group(new GridLayout(gridCols, gridSize, gridSize, Alignment.Fill, new Gap(gridSize*0.10f)));
 
         final Group glyphCont = new Group();
         {
@@ -175,7 +177,7 @@ public class FontView01 {
             glyphInfo.setColor(0.1f, 0.1f, 0.1f, 1.0f);
             infoCont.addShape(glyphInfo);
         }
-        final Group infoGrid = new Group(new GridLayout(1/2f, 1/2f, new Padding(1/2f*0.005f, 1/2f*0.005f), 2));
+        final Group infoGrid = new Group(new GridLayout(1/2f, 1/2f, Alignment.Fill, new Gap(1/2f*0.01f), 2));
         infoGrid.addShape(glyphCont);
         infoGrid.addShape(infoCont);
 
@@ -243,19 +245,19 @@ public class FontView01 {
         final AABBox sceneBox = scene.getBounds();
         System.err.println("SceneBox "+sceneBox);
         final AABBox mainGridBox = mainGrid.getBounds();
-        final float sgxy;
-        if( mainGridBox.getWidth() > mainGridBox.getHeight() ) {
-            sgxy = sceneBox.getWidth() * gridWidth / mainGridBox.getWidth();
-        } else {
-            sgxy = sceneBox.getHeight() / mainGridBox.getHeight();
+        final float sxy;
+        {
+            final float sx = sceneBox.getWidth() * GlyphGridWidth / mainGridBox.getWidth();
+            final float sy = sceneBox.getHeight() / mainGridBox.getHeight();
+            sxy = sx < sy ? sx : sy;
         }
-        mainGrid.scale(sgxy, sgxy, 1f);
+        mainGrid.scale(sxy, sxy, 1f);
         mainGrid.moveTo(sceneBox.getMinX(), sceneBox.getMinY(), 0f);
         scene.addShape(mainGrid); // late add at correct position and size
         System.err.println("Grid "+mainGrid);
         System.err.println("Grid "+mainGrid.getLayout());
         System.err.println("Grid[0] "+mainGrid.getShapes().get(0));
-        final float rightWidth = sceneBox.getWidth() * ( 1f - gridWidth );
+        final float rightWidth = sceneBox.getWidth() * ( 1f - GlyphGridWidth );
         {
             final float icScale = sceneBox.getHeight();
             infoGrid.validate(reqGLP);

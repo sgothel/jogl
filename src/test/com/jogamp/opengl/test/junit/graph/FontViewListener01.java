@@ -32,8 +32,9 @@ import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
+import com.jogamp.graph.ui.layout.Alignment;
+import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
-import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.GlyphShape;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.newt.opengl.GLWindow;
@@ -122,7 +123,7 @@ public class FontViewListener01 implements GLEventListener {
         final float gridSize = gridCols > gridRows ? 1f/gridCols : 1f/gridRows;
         System.err.println("Reshape Grid "+gridCols+" x "+gridRows+", "+cellCount+" cells, gridSize "+gridSize);
 
-        grid = new Group(new GridLayout(gridCols, gridSize, gridSize, new Padding(gridSize*0.05f, gridSize*0.05f)));
+        grid = new Group(new GridLayout(gridCols, gridSize, gridSize, Alignment.Fill, new Gap(gridSize*0.10f)));
         scene.addShape(grid);
 
         for(int i=0; i<cellCount; ++i) {

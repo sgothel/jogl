@@ -1032,8 +1032,9 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo12 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutGrid01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutBox01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 $*
 

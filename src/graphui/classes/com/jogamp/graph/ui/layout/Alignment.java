@@ -39,6 +39,8 @@ public final class Alignment {
     public static final Alignment Center = new Alignment(Alignment.Bit.Center);
     /** {@link Bit#Fill} alignment constant. */
     public static final Alignment Fill = new Alignment(Alignment.Bit.Fill.value);
+    /** {@link Bit#Fill} and {@link Bit#Center} alignment constant. */
+    public static final Alignment FillCenter = new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.Center.value);
 
     public enum Bit {
         /** Left alignment. */

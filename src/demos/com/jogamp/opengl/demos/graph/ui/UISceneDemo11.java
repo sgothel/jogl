@@ -37,8 +37,9 @@ import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
+import com.jogamp.graph.ui.layout.Alignment;
+import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
-import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
@@ -81,7 +82,7 @@ public class UISceneDemo11 {
         final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final Group groupA0 = new Group(new GridLayout(2, 1f, 1/2f, new Padding(0.05f, 0.05f)));
+        final Group groupA0 = new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f)));
         {
             groupA0.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );
             groupA0.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );

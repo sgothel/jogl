@@ -100,7 +100,9 @@ public class UISceneDemo03b {
     }
 
     public static void main(final String[] args) throws IOException {
-        int autoSpeed = 0;
+        int autoSpeed = -1;
+        setVelocity(80/1000f);
+        options.keepRunning = true;
 
         if (0 != args.length) {
             final int[] idx = { 0 };
@@ -110,6 +112,7 @@ public class UISceneDemo03b {
                 } else if (args[idx[0]].equals("-v")) {
                     ++idx[0];
                     setVelocity(MiscUtils.atoi(args[idx[0]], (int) velocity * 1000) / 1000f);
+                    autoSpeed = 0;
                 } else if(args[idx[0]].equals("-aspeed")) {
                     autoSpeed = -1;
                     setVelocity(80/1000f);
@@ -134,12 +137,12 @@ public class UISceneDemo03b {
         final Scene scene = new Scene();
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f }, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
-        scene.setDebugBox(options.debugBoxThickness);
+        scene.setDebugBorderBox(options.debugBoxThickness);
 
         final Group glyphGroup = new Group();
         scene.addShape(glyphGroup);
 
-        // scene.setFrustumCullingEnabled(true);
+        scene.setFrustumCullingEnabled(true);
         glyphGroup.setFrustumCullingEnabled(true);
 
         final Animator animator = new Animator();
@@ -212,6 +215,13 @@ public class UISceneDemo03b {
 
         final GLProfile hasGLP = window.getChosenGLCapabilities().getGLProfile();
         final AABBox sceneBox = scene.getBounds();
+        glyphGroup.addShape( new Rectangle(options.renderModes, sceneBox, sceneBox.getWidth()*0.01f) );
+        // glyphGroup.addShape( new Rectangle(options.renderModes, sceneBox.getMinX(), sceneBox.getMinY(), sceneBox.getWidth(), sceneBox.getHeight(), sceneBox.getWidth()*0.01f) );
+        // glyphGroup.addShape( new Rectangle(options.renderModes, sceneBox.getMinX()*0.5f, sceneBox.getMinY()*0.5f, sceneBox.getWidth()*0.5f, sceneBox.getHeight()*0.5f, sceneBox.getWidth()*0.5f*0.01f, sceneBox.getMinZ()) );
+        glyphGroup.scale(0.8f, 0.8f, 1f);
+        // glyphGroup.scale(0.5f, 0.5f, 1f);
+        glyphGroup.setRotationPivot(0, 0, 0);
+        glyphGroup.validate(hasGLP);
         System.err.println("SceneBox " + sceneBox);
         System.err.println("Frustum " + scene.getMatrix().getFrustum());
         System.err.println("GlyphGroup.0: "+glyphGroup);
@@ -259,7 +269,8 @@ public class UISceneDemo03b {
         // Setup the moving glyphs
         //
 
-        final List<GlyphShape> glyphShapes = new ArrayList<GlyphShape>();
+        final List<GlyphShape> glyphShapesAnim = new ArrayList<GlyphShape>();
+        final List<GlyphShape> glyphShapesAll = new ArrayList<GlyphShape>();
 
         final float pixPerMM, dpiV;
         {
@@ -271,12 +282,14 @@ public class UISceneDemo03b {
         boolean z_only = true;
         int txt_idx = 0;
 
-        final AABBox glyphBox = glyphGroup.getBounds().resize(sceneBox);
+        final AABBox glyphBox = glyphGroup.getBounds();
         final float g_w = glyphBox.getWidth();
         final float g_h = glyphBox.getHeight();
-        glyphGroup.scale(0.8f, 0.8f, 1f);
-        glyphGroup.validate(hasGLP);
+
+        // glyphGroup.scale(0.8f, 0.8f, 1f);
+        // glyphGroup.validate(hasGLP);
         System.err.println("GlyphBox " + glyphBox);
+        System.err.println("GlyphGroup " + glyphGroup);
 
         glyphGroup.addMouseListener( new Shape.MouseGestureAdapter() {
             @Override
@@ -361,11 +374,11 @@ public class UISceneDemo03b {
             }
             z_only = !z_only;
             window.invoke(true, (drawable) -> {
-                glyphGroup.removeAllShapes(drawable.getGL().getGL2ES2(), scene.getRenderer());
+                glyphGroup.removeShapes(drawable.getGL().getGL2ES2(), scene.getRenderer(), glyphShapesAll);
                 return true;
             });
-            glyphGroup.addShape( new Rectangle(options.renderModes, g_w, g_h, g_w*0.01f) );
-            glyphGroup.getShapes().get(0).setInteractive(false);
+            glyphShapesAll.clear();
+            glyphShapesAnim.clear();
 
             final float[] movingGlyphPixPerShapeUnit;
             {
@@ -378,9 +391,9 @@ public class UISceneDemo03b {
                 final int[] movingGlyphSizePx = testGlyph.getSurfaceSize(scene, pmv, new int[2]); // [px]
                 movingGlyphPixPerShapeUnit = testGlyph.getPixelPerShapeUnit(movingGlyphSizePx, new float[2]); // [px]/[shapeUnit]
 
-                final AABBox box = GlyphShape.processString(glyphShapes, options.renderModes, font, originalTexts[txt_idx]);
+                final AABBox box = GlyphShape.processString(glyphShapesAll, options.renderModes, font, originalTexts[txt_idx]);
                 System.err.println("Shapes: "+box);
-                for(final GlyphShape gs : glyphShapes) {
+                for(final GlyphShape gs : glyphShapesAll) {
                     gs.setScale(fontScale, fontScale, 1f);
                     gs.setColor(0.1f, 0.1f, 0.1f, 1);
                     final Vec3f target = gs.getOrigPos(fontScale).add(glyphBox.getMinX(), 0f, 0f);
@@ -396,14 +409,15 @@ public class UISceneDemo03b {
                 testGlyph.setEnabled(false);
                 glyphGroup.addShape(testGlyph);
             }
-            glyphGroup.addShapes(glyphShapes);
+            glyphGroup.addShapes(glyphShapesAll);
+            glyphShapesAnim.addAll(glyphShapesAll);
 
             final float pos_eps = FloatUtil.EPSILON * 5000; // ~= 0.0005960
             final float rot_eps = FloatUtil.adegToRad(0.5f); // 1 adeg ~= 0.01745 rad
 
             final long t0_us = Clock.currentNanos() / 1000; // [us]
             final long[] t2_us = { t0_us };
-            while (!glyphShapes.isEmpty()) {
+            while (!glyphShapesAnim.isEmpty()) {
                 window.invoke(true, (drawable) -> {
                     final long t3_us = Clock.currentNanos() / 1000;
                     final float dt_s = (t3_us - t2_us[0]) / 1e6f;
@@ -413,8 +427,8 @@ public class UISceneDemo03b {
                     final float velocity_obj = velocity_px / movingGlyphPixPerShapeUnit[0]; // [shapeUnit]/[s]
                     final float dxy = velocity_obj * dt_s; // [shapeUnit]
 
-                    for (int idx = glyphShapes.size() - 1; 0 <= idx; --idx) {
-                        final GlyphShape glyph = glyphShapes.get(idx);
+                    for (int idx = glyphShapesAnim.size() - 1; 0 <= idx; --idx) {
+                        final GlyphShape glyph = glyphShapesAnim.get(idx);
                         final Vec3f pos = new Vec3f(glyph.getPosition());
                         final Vec3f target = glyph.getOrigPos(fontScale).add(glyphBox.getMinX(), 0f, 0f);
                         final Vec3f p_t = target.minus(pos);
@@ -435,7 +449,7 @@ public class UISceneDemo03b {
                             }
                             glyph.moveTo(target.x(), target.y(), target.z());
                             q.setIdentity();
-                            glyphShapes.remove(idx);
+                            glyphShapesAnim.remove(idx);
                             continue;
                         }
                         if( !pos_ok ) {

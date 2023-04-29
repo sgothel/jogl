@@ -49,8 +49,9 @@ import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.Scene.PMVMatrixSetup;
+import com.jogamp.graph.ui.layout.Alignment;
+import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
-import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.GLButton;
 import com.jogamp.graph.ui.shapes.ImageButton;
@@ -307,7 +308,7 @@ public class UISceneDemo20 implements GLEventListener {
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         // scene.setSampleCount(3); // easy on embedded devices w/ just 3 samples (default is 4)?
-        scene.setDebugBox(options.debugBoxThickness);
+        scene.setDebugBorderBox(options.debugBoxThickness);
         scene.addShape(buttonsLeft);
         scene.addShape(buttonsRight);
     }
@@ -384,12 +385,12 @@ public class UISceneDemo20 implements GLEventListener {
 
         final float buttonLWidth = buttonXSizeNorm;
         final float buttonLHeight = buttonLWidth / 2.5f;
-        buttonsLeft.setLayout(new GridLayout(buttonLWidth, buttonLHeight, new Padding(buttonLHeight*0.25f, buttonLWidth*0.05f), 7));
+        buttonsLeft.setLayout(new GridLayout(buttonLWidth, buttonLHeight, Alignment.Fill, new Gap(buttonLHeight*0.50f, buttonLWidth*0.10f), 7));
 
         final float buttonRWidth = 2f*buttonLWidth;
         final float buttonRHeight = 2f*buttonLHeight;
 
-        buttonsRight.setLayout(new GridLayout(1, buttonRWidth, buttonRHeight, new Padding(buttonLHeight*0.25f, buttonLWidth*0.05f)));
+        buttonsRight.setLayout(new GridLayout(1, buttonRWidth, buttonRHeight, Alignment.Fill, new Gap(buttonLHeight*0.50f, buttonLWidth*0.10f)));
 
         System.err.println("Button Size: "+buttonLWidth+" x "+buttonLHeight);
 
@@ -861,20 +862,22 @@ public class UISceneDemo20 implements GLEventListener {
         buttonsRight.setScale(button_sxy, button_sxy, 1f);
 
         final float dz = 0f;
-        final float dyTop = sceneHeight * relTop;
+        final float dxLeft = sceneBox.getMinX();
+        final float dyBottom = sceneBox.getMinY();
+        final float dyTop = dyBottom + sceneHeight * relTop;
 
         System.err.println("XXX: dw "+sceneWidth+", dh "+sceneHeight+", dyTop "+dyTop);
         System.err.println("BL "+buttonsLeft);
         System.err.println("BL "+buttonsLeft.getLayout());
         System.err.println("BR "+buttonsRight);
         System.err.println("BR "+buttonsRight.getLayout());
-        buttonsLeft.moveTo(0f,                                          dyTop - buttonsLeft.getScaledHeight(), dz);
-        buttonsRight.moveTo(sceneWidth - buttonsRight.getScaledWidth(), dyTop - buttonsRight.getScaledHeight(), dz);
+        buttonsLeft.moveTo(dxLeft,                                               dyTop - buttonsLeft.getScaledHeight(), dz);
+        buttonsRight.moveTo(dxLeft + sceneWidth - buttonsRight.getScaledWidth(), dyTop - buttonsRight.getScaledHeight(), dz);
 
         jogampLabel.setScale(sceneHeight, sceneHeight, 1f);
 
-        final float dxMiddleAbs = sceneWidth * relMiddle;
-        final float dyTopLabelAbs = sceneHeight - jogampLabel.getScaledLineHeight();
+        final float dxMiddleAbs = dxLeft + sceneWidth * relMiddle;
+        final float dyTopLabelAbs = dyBottom + sceneHeight - jogampLabel.getScaledLineHeight();
         jogampLabel.moveTo(dxMiddleAbs, dyTopLabelAbs - jogampLabel.getScaledLineHeight(), dz);
         {
             final float pixelSize10Pt = FontScale.toPixels(fontSizePt, dpiV);
@@ -920,8 +923,8 @@ public class UISceneDemo20 implements GLEventListener {
         if(null == labels[currentText]) {
             final AABBox sbox = scene.getBounds();
             final float sceneHeight = sbox.getHeight();
-            final float dyTop = sbox.getHeight() - jogampLabel.getScaledLineHeight();
-            final float dxMiddle = sbox.getWidth() * relMiddle;
+            final float dyTop = sbox.getMinY() + sbox.getHeight() - jogampLabel.getScaledLineHeight();
+            final float dxMiddle = sbox.getMinX() + sbox.getWidth() * relMiddle;
             labels[currentText] = new Label(renderModes, font, fontSizeFixedNorm, strings[currentText]);
             labels[currentText].setScale(sceneHeight, sceneHeight, 1f);
             labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -984,32 +987,33 @@ public class UISceneDemo20 implements GLEventListener {
     /**
      * Our PMVMatrixSetup:
      * - gluPerspective like Scene's default
-     * - no normal scale to 1, keep distance to near plane for rotation effects. We scale Shapes
-     * - translate origin to bottom-left
+     * - no normal scale to 1, keep a longer distance to near plane for rotation effects. We scale Shapes
      */
     public static class MyPMVMatrixSetup implements PMVMatrixSetup {
+        static float Z_DIST = -1f;
         @Override
         public void set(final PMVMatrix pmv, final Recti viewport) {
             final float ratio = (float)viewport.width()/(float)viewport.height();
             pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmv.glLoadIdentity();
             pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
-            pmv.glTranslatef(0f, 0f, Scene.DEFAULT_SCENE_DIST);
+            pmv.glTranslatef(0f, 0f, Z_DIST);
 
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             pmv.glLoadIdentity();
-
-            // Translate origin to bottom-left
-            final AABBox planeBox0 = new AABBox();
-            setPlaneBox(planeBox0, pmv, viewport);
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glTranslatef(planeBox0.getMinX(), planeBox0.getMinY(), 0f);
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         }
 
         @Override
         public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final Recti viewport) {
-            Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, viewport);
+            // Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, viewport);
+            final float orthoDist = -Z_DIST; // Scene.DEFAULT_SCENE_DIST;
+            final Vec3f obj00Coord = new Vec3f();
+            final Vec3f obj11Coord = new Vec3f();
+
+            Scene.winToPlaneCoord(pmv, viewport, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR, viewport.x(), viewport.y(), orthoDist, obj00Coord);
+            Scene.winToPlaneCoord(pmv, viewport, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR, viewport.width(), viewport.height(), orthoDist, obj11Coord);
+
+            planeBox.setSize( obj00Coord, obj11Coord );
         }
     };
 

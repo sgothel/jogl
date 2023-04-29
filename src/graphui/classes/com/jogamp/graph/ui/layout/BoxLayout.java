@@ -39,16 +39,17 @@ import com.jogamp.opengl.util.PMVMatrix;
  * GraphUI Stack {@link Group.Layout}.
  * <p>
  * A stack of {@link Shape}s
- * - size kept unscaled
- * - position depends on {@Link Padding} and {@link Margin}
- * - *cell* size can be set
+ * - Size kept unscaled
+ * - Position depends on {@Link Padding} and {@link Margin}
+ * - Cell size can be set
  * </p>
  */
 public class BoxLayout implements Group.Layout {
     private final float cellWidth, cellHeight;
     private final Margin margin;
     private final Padding padding;
-    private final float borderThickness;
+
+    private static final boolean TRACE_LAYOUT = false;
 
     public BoxLayout(final Padding padding) {
         this(0f, 0f, new Margin(), padding);
@@ -56,12 +57,19 @@ public class BoxLayout implements Group.Layout {
     public BoxLayout(final float width, final float height, final Margin margin) {
         this(width, height, margin, new Padding());
     }
+
+    /**
+     *
+     * @param width
+     * @param height
+     * @param margin
+     * @param padding
+     */
     public BoxLayout(final float width, final float height, final Margin margin, final Padding padding) {
         this.cellWidth = Math.max(0f, width);
         this.cellHeight = Math.max(0f, height);
         this.margin = margin;
         this.padding = padding;
-        this.borderThickness = 0f;
     }
 
     public Padding getPadding() { return padding; }
@@ -75,6 +83,8 @@ public class BoxLayout implements Group.Layout {
         final AABBox sbox = new AABBox();
         for(int i=0; i < shapes.size(); ++i) {
             final Shape s = shapes.get(i);
+
+            // measure size
             pmv.glPushMatrix();
             s.setTransform(pmv);
             s.getBounds().transformMv(pmv, sbox);
@@ -83,34 +93,39 @@ public class BoxLayout implements Group.Layout {
             // adjust size and position (centered)
             final float paddedWidth = sbox.getWidth() + padding.width();
             final float paddedHeight = sbox.getHeight() + padding.height();
-            final float marginedWidth = paddedWidth + margin.width();
-            final float marginedHeight = paddedHeight + margin.height();
-            final float cellWidth2 = hasCellWidth ? cellWidth : marginedWidth;
-            final float cellHeight2 = hasCellHeight ? cellHeight : marginedHeight;
-            final float x, y;
-            if( margin.isCenteredHoriz() || hasCellWidth && sbox.getWidth() + padding.width() + margin.width() > cellWidth2 ) {
-                x = 0;
-            } else {
-                x = margin.left + padding.left;
+            final float cellWidth2 = hasCellWidth ? cellWidth : paddedWidth;
+            final float cellHeight2 = hasCellHeight ? cellHeight : paddedHeight;
+            float x = margin.left;
+            float y = margin.bottom;
+            if( !margin.isCenteredHoriz() && paddedWidth <= cellWidth2 ) {
+                x += padding.left;
             }
-            if( margin.isCenteredVert() || hasCellHeight && sbox.getHeight() + padding.height() + margin.height() > cellHeight2 ) {
-                y = 0;
-            } else {
-                y = margin.bottom + padding.bottom;
+            if( !margin.isCenteredVert() && paddedHeight <= cellHeight2 ) {
+                y += padding.bottom;
             }
-            float dxh = 0, dyh = 0;
+            final float dxh, dyh;
             if( margin.isCenteredHoriz() ) {
-                dxh += 0.5f * ( cellWidth2 - paddedWidth ); // actual horiz-centered
+                dxh = 0.5f * ( cellWidth2 - paddedWidth ); // actual horiz-centered
+            } else {
+                dxh = 0;
             }
             if( margin.isCenteredVert() ) {
-                dyh += 0.5f * ( cellHeight2 - paddedHeight ); // actual vert-centered
+                dyh = 0.5f * ( cellHeight2 - paddedHeight ); // actual vert-centered
+            } else {
+                dyh = 0;
             }
-            System.err.println("["+i+"].m: "+x+" / "+y+" + "+dxh+" / "+dyh+", p "+paddedWidth+" x "+paddedHeight+", sz "+cellWidth2+" x "+cellHeight2+", box "+box.getWidth()+" x "+box.getHeight());
-            s.moveTo( x + dxh, y + dyh, 0f ); // center the scaled artifact
+            if( TRACE_LAYOUT ) {
+                System.err.println("bl["+i+"].0: @ "+s.getPosition()+", sbox "+sbox);
+                System.err.println("bl["+i+"].m: "+x+" / "+y+" + "+dxh+" / "+dyh+", p "+paddedWidth+" x "+paddedHeight+", sz "+cellWidth2+" x "+cellHeight2+", box "+box.getWidth()+" x "+box.getHeight());
+            }
+            s.move( x + dxh, y + dyh, 0f ); // center the scaled artifact
             s.move( sbox.getLow().mul(-1f) ); // remove the bottom-left delta
-            box.resize( x + cellWidth2 + padding.right, y + cellHeight2 + padding.top,    0);
-            box.resize( x              - padding.left,  y -               padding.bottom, 0);
-            System.err.println("["+i+"].x: "+x+" / "+y+" + "+dxh+" / "+dyh+" -> "+s.getPosition()+", p "+paddedWidth+" x "+paddedHeight+", sz "+cellWidth2+" x "+cellHeight2+", box "+box.getWidth()+" x "+box.getHeight());
+            // resize bounds including padding, excluding margin
+            box.resize( x + sbox.getWidth() + padding.right, y + sbox.getHeight() + padding.top,    0);
+            box.resize( x                   - padding.left,  y                    - padding.bottom, 0);
+            if( TRACE_LAYOUT ) {
+                System.err.println("bl["+i+"].x: "+x+" / "+y+" + "+dxh+" / "+dyh+" -> "+s.getPosition()+", p "+paddedWidth+" x "+paddedHeight+", sz "+cellWidth2+" x "+cellHeight2+", box "+box.getWidth()+" x "+box.getHeight());
+            }
         }
     }
 
