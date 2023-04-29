@@ -139,7 +139,6 @@ public class GridLayout implements Group.Layout {
         float x=0, y=0;
         float totalWidth=-Float.MAX_VALUE, totalHeight=-Float.MAX_VALUE;
         final AABBox[] sboxes = new AABBox[shapes.size()];
-        final Vec3f[] diffBLs = new Vec3f[shapes.size()];
         final float[] y_pos = new float[col_count * row_count]; // y_bottom = totalHeight - y_pos[..]
 
         // Pass-1: Determine totalHeight, while collect sbox and y_pos
@@ -151,14 +150,6 @@ public class GridLayout implements Group.Layout {
             {
                 final AABBox sbox0 = s.getBounds();
                 sboxes[i] = sbox0.transformMv(pmv, new AABBox());
-
-                final Vec3f diffBL = new Vec3f();
-                if( !diffBL.set( sbox0.getLow().x(), sbox0.getLow().y(), 0).min( zeroVec3 ).isZero() ) {
-                    // pmv.mulMvMatVec3f(diffBL).scale(-1f, -1f, 0f);
-                    final Vec3f ss = s.getScale();
-                    diffBL.scale(-1f*ss.x(), -1f*ss.y(), 0f);
-                }
-                diffBLs[i] = diffBL;
             }
             pmv.glPopMatrix();
             final AABBox sbox = sboxes[i];
@@ -226,8 +217,17 @@ public class GridLayout implements Group.Layout {
         for(int i=0; i < shapes.size(); ++i) {
             final Shape s = shapes.get(i);
             final AABBox sbox = sboxes[i];
-            final Vec3f diffBL = diffBLs[i];
             final float zPos = sbox.getCenter().z();
+            final Vec3f diffBL = new Vec3f();
+
+            {
+                final AABBox sbox0 = s.getBounds();
+                if( !diffBL.set( sbox0.getLow().x(), sbox0.getLow().y(), 0).min( zeroVec3 ).isZero() ) {
+                    // pmv.mulMvMatVec3f(diffBL).scale(-1f, -1f, 0f);
+                    final Vec3f ss = s.getScale();
+                    diffBL.scale(-1f*ss.x(), -1f*ss.y(), 0f);
+                }
+            }
 
             if( TRACE_LAYOUT ) {
                 System.err.println("gl("+i+")["+col_i+"]["+row_i+"].0: "+s);
