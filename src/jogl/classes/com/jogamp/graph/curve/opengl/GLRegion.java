@@ -228,6 +228,8 @@ public abstract class GLRegion extends Region {
         growCount = 0;
     }
 
+    private static final boolean DEBUG_BUFFER = false;
+
     @Override
     public final boolean growBuffer(final int verticesCount, final int indicesCount) {
         boolean grown = false;
@@ -235,8 +237,10 @@ public abstract class GLRegion extends Region {
             System.err.printf("XXX Buffer grow - Indices: %d < ( %d = %d + %d ); Status: %s%n",
                    curIndicesCap, indicesBuffer.elemPosition() + indicesCount, indicesBuffer.elemPosition(), indicesCount, indicesBuffer.elemStatsToString());
             indicesBuffer.growIfNeeded(indicesCount * indicesBuffer.getCompsPerElem());
-            System.err.println("grew.indices 0x"+Integer.toHexString(hashCode())+": "+curIndicesCap+" -> "+indicesBuffer.getElemCapacity()+", "+indicesBuffer.elemStatsToString());
-            Thread.dumpStack();
+            if( DEBUG_BUFFER ) {
+                System.err.println("grew.indices 0x"+Integer.toHexString(hashCode())+": "+curIndicesCap+" -> "+indicesBuffer.getElemCapacity()+", "+indicesBuffer.elemStatsToString());
+                Thread.dumpStack();
+            }
             curIndicesCap = indicesBuffer.getElemCapacity();
             grown = true;
         }
@@ -244,7 +248,9 @@ public abstract class GLRegion extends Region {
             System.err.printf("XXX Buffer grow - Verices: %d < ( %d = %d + %d ); Status: %s%n",
                     curVerticesCap, gca_VerticesAttr.elemPosition() + verticesCount, gca_VerticesAttr.elemPosition(), verticesCount, gca_VerticesAttr.elemStatsToString());
             vpc_ileave.growIfNeeded(verticesCount * vpc_ileave.getCompsPerElem());
-            System.err.println("grew.vertices 0x"+Integer.toHexString(hashCode())+": "+curVerticesCap+" -> "+gca_VerticesAttr.getElemCapacity()+", "+gca_VerticesAttr.elemStatsToString());
+            if( DEBUG_BUFFER ) {
+                System.err.println("grew.vertices 0x"+Integer.toHexString(hashCode())+": "+curVerticesCap+" -> "+gca_VerticesAttr.getElemCapacity()+", "+gca_VerticesAttr.elemStatsToString());
+            }
             curVerticesCap = vpc_ileave.getElemCapacity();
             grown = true;
         }
