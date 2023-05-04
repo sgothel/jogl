@@ -147,7 +147,7 @@ public class FontFactory {
                 InputStream bis = null;
                 try {
                     tempFile[0] = IOUtil.createTempFile( "jogl.font", ".ttf", false);
-                    streamLen[0] = IOUtil.copyStream2File(stream, tempFile[0], -1);
+                    streamLen[0] = IOUtil.copyStream2File(stream, tempFile[0]);
                     if( 0 == streamLen[0] ) {
                         throw new IOException("Font stream has zero bytes");
                     }
