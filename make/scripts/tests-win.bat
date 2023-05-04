@@ -21,9 +21,14 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLa
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT %*
 
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.TexCubeES2 %*
+REM
+REM av demos
+REM
+REM scripts\java-win.bat jogamp.opengl.openal.av.ALDummyUsage %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.av.MovieCube %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.av.MovieSimple %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.av.CrossFadePlayer %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.av.StereoDemo01 %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001RawInit00NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.perf.TestPerf001GLJPanelInit01AWT %*
@@ -217,17 +222,35 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscre
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT
 
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01
-scripts\java-win.bat com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtCanvasAWTDemo %*
+REM 
+REM Graph
+REM
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestFontScale01NOUI %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestFontsNEWT00 %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWTBugXXXX %*
+
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT20 %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 %*
+
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.GPUTextNewtDemo %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.GPURegionNewtDemo %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UITypeDemo01 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo00 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo01 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo02 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo03 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo10 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo11 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo20 %*
+
+scripts\java-win.bat com.jogamp.opengl.demos.av.MovieCube %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.av.MovieSimple %*
+
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
 
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.stereo.StereoDemo01 %*

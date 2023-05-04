@@ -20,7 +20,7 @@ REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\PVR
 set PATH=%J2RE_HOME%\bin;%JAVA_HOME%\bin;%ANT_PATH%\bin;C:\temp;%MESA3D_LIB%;%FFMPEG_LIB%;%PATH%
 echo PATH %PATH%
 
-set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\atomic\oculusvr.jar;%BLD_DIR%\jar\jogl-test.jar;..\..\joal\%BLD_SUB%\joal.jar;..\..\gluegen\%BLD_SUB%\gluegen-rt.jar;..\..\gluegen\%BLD_SUB%\gluegen-test-util.jar;..\..\gluegen\make\lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;%BLD_DIR%\..\make\lib\swt\win32-win32-x86_64\swt.jar
+set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\atomic\oculusvr.jar;%BLD_DIR%\jar\jogl-test.jar;%BLD_DIR%\jar\jogl-demos.jar;..\..\joal\%BLD_SUB%\jar\joal.jar;..\..\gluegen\%BLD_SUB%\gluegen-rt.jar;..\..\gluegen\%BLD_SUB%\gluegen-test-util.jar;..\..\gluegen\make\lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;%BLD_DIR%\..\make\lib\swt\win32-win32-x86_64\swt.jar
 
 echo CP_ALL %CP_ALL%
 
@@ -44,8 +44,8 @@ REM set D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.Capabili
 REM set D_ARGS="-Djogamp.debug.IOUtil"
 REM set D_ARGS="-Djogl.debug.GLSLCode"
 REM set D_ARGS="-Djogl.debug.GLSLCode" "-Djogl.debug.GLMediaPlayer"
-set D_ARGS="-Djogl.debug.GLMediaPlayer"
-REM set D_ARGS="-Djogl.debug.GLMediaPlayer" "-Djogl.debug.AudioSink"
+REM set D_ARGS="-Djogl.debug.GLMediaPlayer"
+set D_ARGS="-Djogl.debug.GLMediaPlayer" "-Djogl.debug.AudioSink"
 REM set D_ARGS="-Djogl.debug.GLMediaPlayer" "-Djogl.debug.GLMediaPlayer.Native"
 REM set D_ARGS="-Djogl.debug.GLMediaPlayer" "-Djogl.debug.GLMediaPlayer.Native" "-Djogamp.debug.NativeLibrary=true"
 REM set D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25" "-Djogl.debug.GLMediaPlayer"
