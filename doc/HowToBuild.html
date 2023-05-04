@@ -205,14 +205,19 @@ ln -s libudev.so.1 libudev.so
                         </li>
                         <li> <b>MacOS and iOS</b> x86_64 and aarch64
                             <ul>
+                                <li><a href="http://www.apple.com/macosx/">Mac OS</a> 12.6.5</li>
+                                <li><a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> 14.2 for clang, etc (included in MacOS)</li>
+                                <li>MacOS SDK 11.3 from a previous XCode version or <a href="https://github.com/phracker/MacOSX-SDKs">from this alternative site</a>
+                                <ul>
+                                    <li><i>export SDKROOT=macosx11.3</i></li>
+                                    <li>We use <i>-mmacosx-version-min=10.5</i> deployment target in general.</li>
+                                </ul></li>
                                 <li>git &ge; 2.37 provided by Xcode &ge; 14</li>
                                 <li>awk is provided by MacOS</li>
                                 <li><a href="https://cmake.org/">CMake 3.25.1</a>, and install the <a href="https://stackoverflow.com/questions/30668601/installing-cmake-command-line-tools-on-a-mac">command line tools</a>
                                 <ul>
                                     <li>Install symlinks to <i>/usr/local/bin</i>, run: <i>sudo "/Applications/CMake.app/Contents/bin/cmake-gui" --install</i></li>
                                 </ul></li>
-                                <li><a href="http://www.apple.com/macosx/">Mac OS</a> 11 or later (note: may not work with earlier releases) </li>
-                                <li><a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> 14 or later for clang, etc (included in MacOS)</li>
                                 <li><a href="https://7-zip.org/">7-Zip 21.07</a> x86_64 and arm64 version</li>
                             </ul>
                             Prepare fat universal OpenJDK libraries
