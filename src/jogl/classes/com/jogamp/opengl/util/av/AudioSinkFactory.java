@@ -57,6 +57,8 @@ public class AudioSinkFactory {
                 audioSink = (AudioSink) ReflectionUtil.createInstance(implName, cl);
                 if( audioSink.isInitialized() ) {
                     return audioSink;
+                } else if(AudioSink.DEBUG) {
+                    System.err.println("AudioSinkFactory: Couldn't initialize AudioSink '"+implName+"'");
                 }
             } catch (final Throwable t) {
                 if(AudioSink.DEBUG) { System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); }
