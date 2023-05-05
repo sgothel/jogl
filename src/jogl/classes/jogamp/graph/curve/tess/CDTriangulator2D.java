@@ -89,8 +89,36 @@ public class CDTriangulator2D implements Triangulator {
             final GraphOutline outline = new GraphOutline(polyline); // , winding);
             final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, false, sharpness);
             // vertices.addAll(polyline.getVertices());
-            loop = new Loop(innerPoly, winding);
-            loops.add(loop);
+            if( innerPoly.getGraphPoint().size() >= 3 ) {
+                loop = new Loop(innerPoly, winding);
+                loops.add(loop);
+            } else if( DEBUG ) {
+                /*
+                 * Font FreeMono-Bold: ID 0 + 465: Glyph[id 465 'uni020F', advance 600, leftSideBearings 42, kerning[size 0, horiz true, cross true], shape true], OutlineShape@5e8a459[outlines 2, vertices 34]
+                    Drop innerPoly ctrlpts < 3
+                    - innerPo[vertices 2, ctrlpts 2] < 3
+                    - outline[vertices 4, ctrlpts 4]
+                    -   Input[vertices 4]
+                 *
+                 * Font FreeSans-Regular: ID 0 + 409: Glyph[id 409 'Udieresiscaron', advance 720, leftSideBearings 80, kerning[size 0, horiz true, cross false], shape true], OutlineShape@5eb97ced[outlines 3, vertices 33]
+                    Drop innerPoly ctrlpts < 3
+                    - innerPo[vertices 1, ctrlpts 1] < 3
+                    - outline[vertices 1, ctrlpts 1]
+                    -   Input[vertices 1]
+
+                 * Stack:
+                   at jogamp.graph.curve.tess.CDTriangulator2D.addCurve(CDTriangulator2D.java:97)
+                   at com.jogamp.graph.curve.OutlineShape.triangulateImpl(OutlineShape.java:988)
+                   at com.jogamp.graph.curve.OutlineShape.getTriangles(OutlineShape.java:1012)
+                   at com.jogamp.graph.curve.Region.countOutlineShape(Region.java:503)
+                   at com.jogamp.graph.ui.shapes.GlyphShape.<init>(GlyphShape.java:77)
+                 */
+                System.err.println("Drop innerPoly ctrlpts < 3");
+                System.err.println("- innerPo[vertices "+innerPoly.getOutline().getVertexCount()+", ctrlpts "+innerPoly.getGraphPoint().size()+"] < 3");
+                System.err.println("- outline[vertices "+outline.getOutline().getVertexCount()+", ctrlpts "+outline.getGraphPoint().size()+"]");
+                System.err.println("-   Input[vertices "+polyline.getVertexCount()+"]");
+                Thread.dumpStack();
+            }
         } else {
             // final Winding winding = Winding.CW; // -> HEdge.HOLE
             // Not required, handled in Loop.initFromPolyline(): polyline.setWinding(winding);
