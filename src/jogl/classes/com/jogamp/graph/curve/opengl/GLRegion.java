@@ -42,6 +42,7 @@ import jogamp.graph.curve.opengl.VBORegion2PMSAAES2;
 import jogamp.graph.curve.opengl.VBORegion2PVBAAES2;
 import jogamp.graph.curve.opengl.VBORegionSPES2;
 import jogamp.graph.curve.opengl.shader.AttributeNames;
+import jogamp.opengl.Debug;
 
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
@@ -93,6 +94,8 @@ public abstract class GLRegion extends Region {
 
     // private static final float growthFactor = 1.2f; // avg +5% size but 15% more overhead (34% total)
     protected static final float growthFactor = GLArrayDataClient.DEFAULT_GROWTH_FACTOR; // avg +20% size, but 15% less CPU overhead compared to 1.2 (19% total)
+
+    private static final boolean DEBUG_BUFFER = Debug.debug("graph.curve.Buffer");
 
     /**
      * Create a GLRegion using the passed render mode
@@ -228,31 +231,44 @@ public abstract class GLRegion extends Region {
         growCount = 0;
     }
 
-    private static final boolean DEBUG_BUFFER = false;
-
     @Override
     public final boolean growBuffer(final int verticesCount, final int indicesCount) {
         boolean grown = false;
-        if( curIndicesCap < indicesBuffer.elemPosition() + indicesCount ) {
-            System.err.printf("XXX Buffer grow - Indices: %d < ( %d = %d + %d ); Status: %s%n",
-                   curIndicesCap, indicesBuffer.elemPosition() + indicesCount, indicesBuffer.elemPosition(), indicesCount, indicesBuffer.elemStatsToString());
-            indicesBuffer.growIfNeeded(indicesCount * indicesBuffer.getCompsPerElem());
-            if( DEBUG_BUFFER ) {
-                System.err.println("grew.indices 0x"+Integer.toHexString(hashCode())+": "+curIndicesCap+" -> "+indicesBuffer.getElemCapacity()+", "+indicesBuffer.elemStatsToString());
+        if( !DEBUG_BUFFER ) {
+            if( curIndicesCap < indicesBuffer.elemPosition() + indicesCount ) {
+                indicesBuffer.growIfNeeded(indicesCount * indicesBuffer.getCompsPerElem());
+                curIndicesCap = indicesBuffer.getElemCapacity();
+                grown = true;
+            }
+            if( curVerticesCap < vpc_ileave.elemPosition() + verticesCount ) {
+                vpc_ileave.growIfNeeded(verticesCount * vpc_ileave.getCompsPerElem());
+                curVerticesCap = vpc_ileave.getElemCapacity();
+                grown = true;
+            }
+        } else {
+            if( curIndicesCap < indicesBuffer.elemPosition() + indicesCount ) {
+                System.err.printf("GLRegion: Buffer grow - Indices: %d < ( %d = %d + %d ); Status: %s%n",
+                       curIndicesCap, indicesBuffer.elemPosition() + indicesCount, indicesBuffer.elemPosition(), indicesCount, indicesBuffer.elemStatsToString());
+
+                indicesBuffer.growIfNeeded(indicesCount * indicesBuffer.getCompsPerElem());
+
+                System.err.println("GLRegion: Grew Indices 0x"+Integer.toHexString(hashCode())+": "+curIndicesCap+" -> "+indicesBuffer.getElemCapacity()+", "+indicesBuffer.elemStatsToString());
                 Thread.dumpStack();
+
+                curIndicesCap = indicesBuffer.getElemCapacity();
+                grown = true;
             }
-            curIndicesCap = indicesBuffer.getElemCapacity();
-            grown = true;
-        }
-        if( curVerticesCap < vpc_ileave.elemPosition() + verticesCount ) {
-            System.err.printf("XXX Buffer grow - Verices: %d < ( %d = %d + %d ); Status: %s%n",
-                    curVerticesCap, gca_VerticesAttr.elemPosition() + verticesCount, gca_VerticesAttr.elemPosition(), verticesCount, gca_VerticesAttr.elemStatsToString());
-            vpc_ileave.growIfNeeded(verticesCount * vpc_ileave.getCompsPerElem());
-            if( DEBUG_BUFFER ) {
-                System.err.println("grew.vertices 0x"+Integer.toHexString(hashCode())+": "+curVerticesCap+" -> "+gca_VerticesAttr.getElemCapacity()+", "+gca_VerticesAttr.elemStatsToString());
+            if( curVerticesCap < vpc_ileave.elemPosition() + verticesCount ) {
+                System.err.printf("GLRegion: Buffer grow - Vertices: %d < ( %d = %d + %d ); Status: %s%n",
+                        curVerticesCap, gca_VerticesAttr.elemPosition() + verticesCount, gca_VerticesAttr.elemPosition(), verticesCount, gca_VerticesAttr.elemStatsToString());
+
+                vpc_ileave.growIfNeeded(verticesCount * vpc_ileave.getCompsPerElem());
+
+                System.err.println("GLRegion: Grew Vertices 0x"+Integer.toHexString(hashCode())+": "+curVerticesCap+" -> "+gca_VerticesAttr.getElemCapacity()+", "+gca_VerticesAttr.elemStatsToString());
+
+                curVerticesCap = vpc_ileave.getElemCapacity();
+                grown = true;
             }
-            curVerticesCap = vpc_ileave.getElemCapacity();
-            grown = true;
         }
         if( grown ) {
             ++growCount;
