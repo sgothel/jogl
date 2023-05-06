@@ -94,6 +94,8 @@ public abstract class GLContextImpl extends GLContext {
       public static final VersionNumber Lion;
       /** OSX Mavericks, i.e. 10.9.0 */
       public static final VersionNumber Mavericks;
+      /** OSX High Sierra, i.e. 10.13.0 */
+      public static final VersionNumber HighSierra;
       /** OSX Mojave, i.e. 10.14.0 */
       public static final VersionNumber Mojave;
 
@@ -101,10 +103,12 @@ public abstract class GLContextImpl extends GLContext {
           if( Platform.getOSType() == Platform.OSType.MACOS ) {
               Lion = new VersionNumber(10,7,0);
               Mavericks = new VersionNumber(10,9,0);
+              HighSierra = new VersionNumber(10,13,0);
               Mojave = new VersionNumber(10,14,0);
           } else {
               Lion = null;
               Mavericks = null;
+              HighSierra = null;
               Mojave = null;
           }
       }

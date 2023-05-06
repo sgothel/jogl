@@ -396,8 +396,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   public boolean canCreateGLPbuffer(final AbstractGraphicsDevice device, final GLProfile glp) {
     if( glp.isGL2() ) {
         // OSX only supports pbuffer w/ compatible, non-core, context
-        // on MacMacOS < 12  (my setup) or <= 10.14.0 (Mojave) (FIXME)
-        return Platform.getOSVersionNumber().compareTo(MacOSVersion.Mojave) <= 0;
+        // on MacMacOS < High Sierra 10.13.6  (my setup) (FIXME)
+        return Platform.getOSVersionNumber().compareTo(MacOSVersion.HighSierra) <= 0;
     } else {
         return false;
     }
