@@ -253,7 +253,7 @@
         <compilerarg value="arm64" if="use.macosx64"/ -->
         <compilerarg value="-Wmost" />
         <!-- compilerarg value="-ObjC" / -->
-        <compilerarg value="-mmacosx-version-min=10.5"/>
+        <compilerarg value="-mmacosx-version-min=10.7"/>
         <defineset>
           <define name="NDEBUG"   unless="c.compiler.use-debug"/>
         </defineset>
