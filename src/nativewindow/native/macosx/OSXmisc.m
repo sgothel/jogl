@@ -999,7 +999,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Set
     [CATransaction commit];
 
     [pool release];
-    DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.X: root %p (refcnt %d)\n", layer, (int)[rootLayer retainCount]);
+    DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.X: root %p (refcnt %d)\n", rootLayer, (int)[rootLayer retainCount]);
 }
 
 /*
@@ -1038,13 +1038,12 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 }
 
 @interface MainRunnable : NSObject
-
 {
-    int _name;
-    jobject runnableObj;
+@private
+    int name;
+    jobject runnable;
 }
-
-- (id) initWithRunnable: (jobject)runnable name:(int)name; 
+- (id) initWithRunnable: (jobject)aRunnable name:(int)aName;
 - (void) jRun;
 
 #ifdef DBG_LIFECYCLE
@@ -1053,34 +1052,36 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 - (void)dealloc;
 #endif
 
-
 @end
 
 @implementation MainRunnable
 
-- (id) initWithRunnable: (jobject)runnable name:(int)name;
+- (id) initWithRunnable: (jobject)aRunnable name:(int)aName
 {
-    _name = name;
-    runnableObj = runnable;
-    return [super init];
+    MainRunnable * o = [super init];
+    if( NULL != o ) {
+        o->name = aName;
+        o->runnable = aRunnable;
+    }
+    return o;
 }
 
 - (void) jRun
 {
     int shallBeDetached = 0;
     JNIEnv* env = NativewindowCommon_GetJNIEnv(1 /* asDaemon */, &shallBeDetached);
-    DBG_PRINT2("MainRunnable.%d.1 env: %d\n", _name, (int)(NULL!=env));
+    DBG_PRINT2("MainRunnable.%d.1 env: %d, shallBeDetached %d\n", name, (int)(NULL!=env), shallBeDetached);
     if(NULL!=env) {
-        DBG_PRINT2("MainRunnable.%d.1.0\n", _name);
-        (*env)->CallVoidMethod(env, runnableObj, runnableRunID);
-        DBG_PRINT2("MainRunnable.%d.1.1\n", _name);
-        (*env)->DeleteGlobalRef(env, runnableObj);
+        DBG_PRINT2("MainRunnable.%d.1.0\n", name);
+        (*env)->CallVoidMethod(env, runnable, runnableRunID);
+        DBG_PRINT2("MainRunnable.%d.1.1\n", name);
+        (*env)->DeleteGlobalRef(env, runnable);
 
-        DBG_PRINT2("MainRunnable.%d.1.3\n", _name);
+        DBG_PRINT2("MainRunnable.%d.1.3\n", name);
         // detaching thread not required - daemon
         // NativewindowCommon_ReleaseJNIEnv(shallBeDetached);
     }
-    DBG_PRINT2("MainRunnable.%d.X\n", _name);
+    DBG_PRINT2("MainRunnable.%d.X\n", name);
 }
 
 #ifdef DBG_LIFECYCLE
