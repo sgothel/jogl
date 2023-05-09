@@ -664,23 +664,33 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     throw streamInitErr;
                 }
             }
+            if(DEBUG) {
+                System.err.println("GLMediaPlayer.initGL: "+this);
+            }
             try {
-                if( STREAM_ID_NONE != vid && State.Uninitialized != state ) {
-                    resetAVPTSAndFlush();
-                    removeAllTextureFrames(gl);
+                resetAVPTSAndFlush();
+                removeAllTextureFrames(gl);
+                if( State.Uninitialized != state ) {
                     initGLImpl(gl);
                     if(DEBUG) {
                         System.err.println("initGLImpl.X "+this);
                     }
-                    videoFramesOrig = createTexFrames(gl, textureCount);
-                    if( TEXTURE_COUNT_MIN == textureCount ) {
+                    if( null != gl ) {
+                        videoFramesOrig = createTexFrames(gl, textureCount);
+                        if( TEXTURE_COUNT_MIN == textureCount ) {
+                            videoFramesFree = null;
+                            videoFramesDecoded = null;
+                            lastFrame = videoFramesOrig[0];
+                        } else {
+                            videoFramesFree = new LFRingbuffer<TextureFrame>(videoFramesOrig);
+                            videoFramesDecoded = new LFRingbuffer<TextureFrame>(TextureFrame[].class, textureCount);
+                            lastFrame = videoFramesFree.getBlocking( );
+                        }
+                    } else {
+                        videoFramesOrig = null;
                         videoFramesFree = null;
                         videoFramesDecoded = null;
-                        lastFrame = videoFramesOrig[0];
-                    } else {
-                        videoFramesFree = new LFRingbuffer<TextureFrame>(videoFramesOrig);
-                        videoFramesDecoded = new LFRingbuffer<TextureFrame>(TextureFrame[].class, textureCount);
-                        lastFrame = videoFramesFree.getBlocking( );
+                        lastFrame = null;
                     }
                     if( null == streamWorker &&
                         ( TEXTURE_COUNT_MIN < textureCount || STREAM_ID_NONE == vid ) ) // Enable StreamWorker for 'audio only' as well (Bug 918).
@@ -691,10 +701,17 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     streamWorker.doResume();
                     changeState(new GLMediaPlayer.EventMask(), State.Paused);
                     resume();
+                } else if( null == gl ) {
+                    width = 0;
+                    height = 0;
+                    setTextureFormat(GL.GL_RGBA, GL.GL_RGBA);
+                    setTextureType(GL.GL_UNSIGNED_BYTE);
+                    textureCount = 0;
+                    videoFramesOrig = null;
+                    videoFramesFree = null;
+                    videoFramesDecoded = null;
+                    lastFrame = null;
                 } else {
-                    resetAVPTSAndFlush();
-                    removeAllTextureFrames(gl);
-                    // initGLImpl(gl);
                     // Using a dummy test frame
                     width = TestTexture.singleton.getWidth();
                     height = TestTexture.singleton.getHeight();
@@ -711,9 +728,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         videoFramesDecoded = new LFRingbuffer<TextureFrame>(TextureFrame[].class, textureCount);
                         lastFrame = videoFramesFree.getBlocking( );
                     }
-                    videoFramesFree = null;
-                    videoFramesDecoded = null;
-                    lastFrame = videoFramesOrig[0];
                     // changeState(0, State.Paused);
                 }
             } catch (final Throwable t) {
@@ -1239,6 +1253,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
 
         public final synchronized void initGL(final GL gl) {
+            if( null == gl ) {
+                return;
+            }
             final GLContext glCtx = gl.getContext();
             final boolean glCtxCurrent = glCtx.isCurrent();
             final GLProfile glp = gl.getGLProfile();
