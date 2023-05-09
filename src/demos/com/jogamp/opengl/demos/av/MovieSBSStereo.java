@@ -829,20 +829,18 @@ public class MovieSBSStereo implements StereoGLEventListener {
             }
 
             @Override
-            public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
-                System.err.println("MovieSimple AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+            public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
+                System.err.println("MovieSimple AttributesChanges: "+eventMask+", when "+when);
                 System.err.println("MovieSimple State: "+mp);
                 final GLWindow window = (GLWindow) mp.getAttachedObject(WINDOW_KEY);
                 final MovieSBSStereo ms = (MovieSBSStereo)mp.getAttachedObject(PLAYER);
                 final StereoClientRenderer stereoClientRenderer = (StereoClientRenderer) mp.getAttachedObject(STEREO_RENDERER_KEY);
 
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
-                    System.err.println("MovieSimple State: CHANGE_SIZE");
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Size) ) {
                     // window.disposeGLEventListener(ms, false /* remove */ );
                     ms.resetGLState();
                 }
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
-                    System.err.println("MovieSimple State: INIT");
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
                     // Use GLEventListener in all cases [A+V, V, A]
                     stereoClientRenderer.addGLEventListener(ms);
                     final GLAnimatorControl anim = window.getAnimator();
@@ -850,20 +848,19 @@ public class MovieSBSStereo implements StereoGLEventListener {
                     anim.resetFPSCounter();
                     ms.setStereoClientRenderer(stereoClientRenderer);
                 }
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_PLAY & event_mask ) ) {
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                     window.getAnimator().resetFPSCounter();
                 }
 
                 boolean destroy = false;
                 Throwable err = null;
 
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
                     err = ms.mPlayer.getStreamException();
                     if( null != err ) {
-                        System.err.println("MovieSimple State: EOS + Exception");
+                        System.err.println("MovieSimple State: Exception");
                         destroy = true;
                     } else {
-                        System.err.println("MovieSimple State: EOS");
                         new InterruptSource.Thread() {
                             @Override
                             public void run() {
@@ -874,12 +871,10 @@ public class MovieSBSStereo implements StereoGLEventListener {
                         }.start();
                     }
                 }
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_ERR & event_mask ) ) {
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Error) ) {
                     err = ms.mPlayer.getStreamException();
                     if( null != err ) {
-                        System.err.println("MovieSimple State: ERR + Exception");
-                    } else {
-                        System.err.println("MovieSimple State: ERR");
+                        System.err.println("MovieSimple State: Exception");
                     }
                     destroy = true;
                 }

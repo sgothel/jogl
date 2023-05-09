@@ -112,13 +112,13 @@ public class MovieCube implements GLEventListener {
             public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
 
             @Override
-            public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
-                System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+            public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
+                System.err.println("MovieCube AttributesChanges: "+eventMask+", when "+when);
                 System.err.println("MovieCube State: "+mp);
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Size) ) {
                     resetGLState();
                 }
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
                     new InterruptSource.Thread() {
                         @Override
                         public void run() {
@@ -602,24 +602,24 @@ public class MovieCube implements GLEventListener {
             }
 
             @Override
-            public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
-                System.err.println("MovieCube AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+            public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask event_mask, final long when) {
+                System.err.println("MovieCube AttributesChanges: events_mask "+event_mask+", when "+when);
                 System.err.println("MovieCube State: "+mp);
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
+                if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.Size) ) {
                     if( origSize ) {
                         window.setSurfaceSize(mp.getWidth(), mp.getHeight());
                     }
                     // window.disposeGLEventListener(ms, false /* remove */ );
                 }
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+                if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
                     anim.setUpdateFPSFrames(60, null);
                     anim.resetFPSCounter();
                     mc.resetGLState();
                 }
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_PLAY & event_mask ) ) {
+                if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                     anim.resetFPSCounter();
                 }
-                if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+                if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.Error) || event_mask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
                     final StreamException se = mc.mPlayer.getStreamException();
                     if( null != se ) {
                         se.printStackTrace();

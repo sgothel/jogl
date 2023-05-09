@@ -64,17 +64,17 @@ public class CrossFadePlayer
 			public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
 
 			@Override
-			public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when)
+			public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when)
 			{
-				System.out.println("\n***\nEvent mask changed: " + event_mask);
-				System.out.println("Timestamp: "+ when);
+				System.out.println("\n***\nAttributesChanges: "+eventMask+", when "+when);
 				System.out.println("State of player: " + mp.getState().toString() +"\n");
 
-				if ((event_mask & GLMediaEventListener.EVENT_CHANGE_INIT) !=0) {
+				if ( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
 					System.out.println("Duration: " + mp.getDuration() + "ms");
 					System.out.println("Volume: " + mp.getAudioVolume());
 					System.out.println("player.initGL()...");
                     new InterruptSource.Thread() {
+                        @Override
                         public void run() {
                             try {
                                 mp.initGL(null);
@@ -86,20 +86,18 @@ public class CrossFadePlayer
                             }
                         }
                     }.start();
-				} else if ((event_mask & GLMediaEventListener.EVENT_CHANGE_PAUSE) !=0) {
-					System.out.println("player.paused()...");
-				} else if ((event_mask & GLMediaEventListener.EVENT_CHANGE_PLAY) !=0) {
-					System.out.println("playing...");
+				} else if ( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Pause) ) {
+				} else if ( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
 					System.out.println(mp.toString());
 					System.out.println(mp.getAudioSink().toString());
-				} else if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
+				} else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
                     final StreamException se = mp.getStreamException();
                     if( null != se ) {
-                        System.err.println("Player State: EOS + Exception");
+                        System.err.println("Player State: Exception");
                         stop = true;
                     } else {
-                        System.err.println("Player State: EOS");
                         new InterruptSource.Thread() {
+                            @Override
                             public void run() {
                                 System.out.println("mp.setPlaySpeed(1f) returned: " + mp.setPlaySpeed(1f));
                                 mp.seek(0);
@@ -108,13 +106,14 @@ public class CrossFadePlayer
                         }.start();
                     }
                 }
-				if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+				if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Error) || eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
 					final StreamException se = mp.getStreamException();
 					if( null != se ) {
 						se.printStackTrace();
 					}
 					new InterruptSource.Thread() {
-						public void run() {
+						@Override
+                        public void run() {
 							System.out.println("terminating...");
 							stop = true;
 						}

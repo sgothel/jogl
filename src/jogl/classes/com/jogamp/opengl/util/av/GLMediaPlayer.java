@@ -33,6 +33,8 @@ import com.jogamp.opengl.GLException;
 
 import jogamp.opengl.Debug;
 
+import java.util.List;
+
 import com.jogamp.common.net.Uri;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -82,18 +84,18 @@ import com.jogamp.opengl.util.av.GLMediaPlayer.State;
  * <a name="lifecycle"><h5>GLMediaPlayer Lifecycle</h5></a>
  * <p>
  * <table border="1">
- *   <tr><th>Action</th>                                               <th>{@link State} Before</th>                                        <th>{@link State} After</th>                                                                                                       <th>{@link GLMediaEventListener Event}</th></tr>
- *   <tr><td>{@link #playStream(Uri, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td>  <td>{@link GLMediaEventListener#EVENT_CHANGE_INIT EVENT_CHANGE_INIT} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
- *   <tr><td>{@link #initGL(GL)}</td>                                  <td>{@link State#Initialized Initialized}, {@link State#Uninitialized Uninitialized} </td>    <td>{@link State#Playing Playing}, {@link State#Uninitialized Uninitialized}</td>                         <td>{@link GLMediaEventListener#EVENT_CHANGE_PLAY EVENT_CHANGE_PLAY} or ( {@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
- *   <tr><td>{@link #pause(boolean)}</td>                              <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
- *   <tr><td>{@link #resume()}</td>                                    <td>{@link State#Paused Paused}</td>                                 <td>{@link State#Playing Playing}</td>                                                                                             <td>{@link GLMediaEventListener#EVENT_CHANGE_PLAY EVENT_CHANGE_PLAY}</td></tr>
- *   <tr><td>{@link #stop()}</td>                                      <td>{@link State#Playing Playing}, {@link State#Paused Paused}</td>  <td>{@link State#Uninitialized Uninitialized}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
+ *   <tr><th>Action</th>                                               <th>{@link State} Before</th>                                        <th>{@link State} After</th>                                                                                                       <th>{@link EventMask#Bit Event}</th></tr>
+ *   <tr><td>{@link #playStream(Uri, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td>  <td>{@link EventMask.Bit#Init Init} or ( {@link EventMask.Bit#Error Error} + {@link EventMask.Bit#Uninit Uninit} )</td></tr>
+ *   <tr><td>{@link #initGL(GL)}</td>                                  <td>{@link State#Initialized Initialized}, {@link State#Uninitialized Uninitialized} </td>    <td>{@link State#Playing Playing}, {@link State#Uninitialized Uninitialized}</td>                         <td>{@link EventMask.Bit#Play Play} or ( {@link EventMask.Bit#Error Error} + {@link EventMask.Bit#Uninit Uninit} )</td></tr>
+ *   <tr><td>{@link #pause(boolean)}</td>                              <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link EventMask.Bit#Pause Pause}</td></tr>
+ *   <tr><td>{@link #resume()}</td>                                    <td>{@link State#Paused Paused}</td>                                 <td>{@link State#Playing Playing}</td>                                                                                             <td>{@link EventMask.Bit#Play Play}</td></tr>
+ *   <tr><td>{@link #stop()}</td>                                      <td>{@link State#Playing Playing}, {@link State#Paused Paused}</td>  <td>{@link State#Uninitialized Uninitialized}</td>                                                                                 <td>{@link EventMask.Bit#Pause Pause}</td></tr>
  *   <tr><td>{@link #seek(int)}</td>                                   <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>  <td>{@link State#Paused Paused}, {@link State#Playing Playing}</td>                                                                <td>none</td></tr>
  *   <tr><td>{@link #getNextTexture(GL)}</td>                          <td><i>any</i></td>                                                  <td><i>same</i></td>        <td>none</td></tr>
  *   <tr><td>{@link #getLastTexture()}</td>                            <td><i>any</i></td>                                                  <td><i>same</i></td>        <td>none</td></tr>
- *   <tr><td>{@link TextureFrame#END_OF_STREAM_PTS END_OF_STREAM}</td> <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link GLMediaEventListener#EVENT_CHANGE_EOS EVENT_CHANGE_EOS} + {@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE}</td></tr>
- *   <tr><td>{@link StreamException}</td>                              <td><i>any</i></td>                                                  <td>{@link State#Paused Paused}, {@link State#Uninitialized Uninitialized}</td>                                                    <td>{@link GLMediaEventListener#EVENT_CHANGE_ERR EVENT_CHANGE_ERR} + ( {@link GLMediaEventListener#EVENT_CHANGE_PAUSE EVENT_CHANGE_PAUSE} or {@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT} )</td></tr>
- *   <tr><td>{@link #destroy(GL)}</td>                                 <td><i>any</i></td>                                                  <td>{@link State#Uninitialized Uninitialized}</td>                                                                                 <td>{@link GLMediaEventListener#EVENT_CHANGE_UNINIT EVENT_CHANGE_UNINIT}</td></tr>
+ *   <tr><td>{@link TextureFrame#END_OF_STREAM_PTS END_OF_STREAM}</td> <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link EventMask.Bit#EOS EOS} + {@link EventMask.Bit#Pause Pause}</td></tr>
+ *   <tr><td>{@link StreamException}</td>                              <td><i>any</i></td>                                                  <td>{@link State#Paused Paused}, {@link State#Uninitialized Uninitialized}</td>                                                    <td>{@link EventMask.Bit#Error Error} + ( {@link EventMask.Bit#Pause Pause} or {@link EventMask.Bit#Uninit Uninit} )</td></tr>
+ *   <tr><td>{@link #destroy(GL)}</td>                                 <td><i>any</i></td>                                                  <td>{@link State#Uninitialized Uninitialized}</td>                                                                                 <td>{@link EventMask.Bit#Uninit Uninit}</td></tr>
  * </table>
  * </p>
  *
@@ -278,41 +280,112 @@ public interface GLMediaPlayer extends TextureSequence {
      * </p>
      */
     public interface GLMediaEventListener extends TexSeqEventListener<GLMediaPlayer> {
-
-        /** State changed to {@link State#Initialized}. See <a href="#lifecycle">Lifecycle</a>.*/
-        static final int EVENT_CHANGE_INIT   = 1<<0;
-        /** State changed to {@link State#Uninitialized}. See <a href="#lifecycle">Lifecycle</a>.*/
-        static final int EVENT_CHANGE_UNINIT = 1<<1;
-        /** State changed to {@link State#Playing}. See <a href="#lifecycle">Lifecycle</a>.*/
-        static final int EVENT_CHANGE_PLAY   = 1<<2;
-        /** State changed to {@link State#Paused}. See <a href="#lifecycle">Lifecycle</a>.*/
-        static final int EVENT_CHANGE_PAUSE  = 1<<3;
-        /** End of stream reached. See <a href="#lifecycle">Lifecycle</a>.*/
-        static final int EVENT_CHANGE_EOS    = 1<<4;
-        /** An error occurred, e.g. during off-thread initialization. See {@link StreamException} and <a href="#lifecycle">Lifecycle</a>. */
-        static final int EVENT_CHANGE_ERR    = 1<<5;
-
-        /** Stream video id change. */
-        static final int EVENT_CHANGE_VID    = 1<<16;
-        /** Stream audio id change. */
-        static final int EVENT_CHANGE_AID    = 1<<17;
-        /** TextureFrame size or vertical flip change. */
-        static final int EVENT_CHANGE_SIZE   = 1<<18;
-        /** Stream fps change. */
-        static final int EVENT_CHANGE_FPS    = 1<<19;
-        /** Stream bps change. */
-        static final int EVENT_CHANGE_BPS    = 1<<20;
-        /** Stream length change. */
-        static final int EVENT_CHANGE_LENGTH = 1<<21;
-        /** Stream codec change. */
-        static final int EVENT_CHANGE_CODEC  = 1<<22;
-
         /**
          * @param mp the event source
          * @param event_mask the changes attributes
          * @param when system time in msec.
          */
-        public void attributesChanged(GLMediaPlayer mp, int event_mask, long when);
+        public void attributesChanged(GLMediaPlayer mp, EventMask event_mask, long when);
+    }
+
+    /** Changes attributes event mask */
+    public static final class EventMask {
+
+        /** Attribute change bits */
+        public static enum Bit {
+            /** State changed to {@link State#Initialized}. See <a href="#lifecycle">Lifecycle</a>.*/
+            Init  ( 1<<0 ),
+            /** State changed to {@link State#Uninitialized}. See <a href="#lifecycle">Lifecycle</a>.*/
+            Uninit ( 1<<1 ),
+            /** State changed to {@link State#Playing}. See <a href="#lifecycle">Lifecycle</a>.*/
+            Play ( 1<<2 ),
+            /** State changed to {@link State#Paused}. See <a href="#lifecycle">Lifecycle</a>.*/
+            Pause  ( 1<<3 ),
+            /** End of stream reached. See <a href("#lifecycle">Lifecycle</a>.*/
+            EOS    ( 1<<4 ),
+            /** An error occurred, e.g. during off-thread initialization. See {@link StreamException} and <a href("#lifecycle">Lifecycle</a>. */
+            Error  ( 1<<5 ),
+
+            /** Stream video id change. */
+            VID    ( 1<<16 ),
+            /** Stream audio id change. */
+            AID    ( 1<<17 ),
+            /** TextureFrame size or vertical flip change. */
+            Size   ( 1<<18 ),
+            /** Stream fps change. */
+            FPS    ( 1<<19 ),
+            /** Stream bps change. */
+            BPS ( 1<<20 ),
+            /** Stream length change. */
+            Length ( 1<<21 ),
+            /** Stream codec change. */
+            Codec  ( 1<<22 );
+
+            Bit(final int v) { value = v; }
+            public final int value;
+        }
+        public int mask;
+
+        public static int getBits(final List<Bit> v) {
+            int res = 0;
+            for(final Bit b : v) {
+                res |= b.value;
+            }
+            return res;
+        }
+        public EventMask(final List<Bit> v) {
+            mask = getBits(v);
+        }
+        public EventMask(final Bit v) {
+            mask = v.value;
+        }
+        public EventMask(final int v) {
+            mask = v;
+        }
+        public EventMask() {
+            mask = 0;
+        }
+
+        public boolean isSet(final Bit bit) { return bit.value == ( mask & bit.value ); }
+        public boolean isSet(final List<Bit> bits) { final int bits_i = getBits(bits); return bits_i == ( mask & bits_i ); }
+        public boolean isSet(final int bits) { return bits == ( mask & bits ); }
+        public boolean isZero() { return 0 == mask; }
+
+        public EventMask setBit(final Bit v) { mask |= v.value; return this; }
+        public EventMask setBits(final List<Bit> v) {
+            for(final Bit b : v) {
+                mask |= b.value;
+            }
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            int count = 0;
+            final StringBuilder out = new StringBuilder();
+            for (final Bit dt : Bit.values()) {
+                if( isSet(dt) ) {
+                    if( 0 < count ) { out.append(", "); }
+                    out.append(dt.name()); count++;
+                }
+            }
+            if( 0 == count ) {
+                out.append("None");
+            } else if( 1 < count ) {
+                out.insert(0, "[");
+                out.append("]");
+            }
+            return out.toString();
+        }
+
+        @Override
+        public boolean equals(final Object other) {
+            if (this == other) {
+                return true;
+            }
+            return (other instanceof EventMask) &&
+                   this.mask == ((EventMask)other).mask;
+        }
     }
 
     /**

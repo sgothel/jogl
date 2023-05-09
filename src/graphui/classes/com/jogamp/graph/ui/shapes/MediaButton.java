@@ -91,18 +91,18 @@ public class MediaButton extends TexSeqButton {
             }
 
             @Override
-            public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
+            public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                 if( verbose ) {
-                    System.err.println("MediaButton AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                    System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
                     System.err.println("MediaButton State: "+mp);
                 }
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
                     resetGL = true;
                 }
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) ) {
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Size) ) {
                     // FIXME: mPlayer.resetGLState();
                 }
-                if( 0 != ( GLMediaEventListener.EVENT_CHANGE_EOS & event_mask ) ) {
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
                     new InterruptSource.Thread() {
                         @Override
                         public void run() {
@@ -110,7 +110,7 @@ public class MediaButton extends TexSeqButton {
                             mp.seek(0);
                             mp.resume();
                         } }.start();
-                } else if( 0 != ( GLMediaEventListener.EVENT_CHANGE_ERR & event_mask ) ) {
+                } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Error) ) {
                     final StreamException se = mp.getStreamException();
                     if( null != se ) {
                         se.printStackTrace();

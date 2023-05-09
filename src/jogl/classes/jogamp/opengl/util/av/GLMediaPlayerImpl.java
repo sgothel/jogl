@@ -363,7 +363,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         if( null != streamWorker ) {
                             streamWorker.doResume();
                         }
-                        changeState(0, State.Playing);
+                        changeState(new GLMediaPlayer.EventMask(), State.Playing);
                     }
                 default:
             }
@@ -375,13 +375,13 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public final State pause(final boolean flush) {
-        return pauseImpl(flush, 0);
+        return pauseImpl(flush, new GLMediaPlayer.EventMask());
     }
-    private final State pauseImpl(final boolean flush, int event_mask) {
+    private final State pauseImpl(final boolean flush, GLMediaPlayer.EventMask eventMask) {
         synchronized( stateLock ) {
             final State preState = state;
             if( State.Playing == state ) {
-                event_mask = addStateEventMask(event_mask, GLMediaPlayer.State.Paused);
+                eventMask = addStateEventMask(eventMask, GLMediaPlayer.State.Paused);
                 setState( State.Paused );
                 if( null != streamWorker ) {
                     streamWorker.doPause(true);
@@ -391,7 +391,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 } else if( null != audioSink ) {
                     audioSink.pause();
                 }
-                attributesUpdated( event_mask );
+                attributesUpdated( eventMask );
                 if( !pauseImpl() ) {
                     resume();
                 }
@@ -412,7 +412,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             }
             resetAVPTSAndFlush();
             stopImpl();
-            changeState(0, State.Uninitialized);
+            changeState(new GLMediaPlayer.EventMask(), State.Uninitialized);
             // attachedObjects.clear();
             if(DEBUG) { System.err.println("Stop: "+preState+" -> "+state+", "+toString()); }
             return state;
@@ -422,9 +422,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public final State destroy(final GL gl) {
-        return destroyImpl(gl, 0, true);
+        return destroyImpl(gl, new GLMediaPlayer.EventMask(), true);
     }
-    private final State destroyImpl(final GL gl, final int event_mask, final boolean wait) {
+    private final State destroyImpl(final GL gl, final GLMediaPlayer.EventMask eventMask, final boolean wait) {
         synchronized( stateLock ) {
             if( null != streamWorker ) {
                 streamWorker.doStopImpl(wait);
@@ -435,7 +435,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             removeAllTextureFrames(gl);
             lastFrame = null;
             textureCount=0;
-            changeState(event_mask, State.Uninitialized);
+            changeState(eventMask, State.Uninitialized);
             attachedObjects.clear();
             return state;
         }
@@ -619,7 +619,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         initStreamImpl(vid, aid);
                     } catch (final Throwable t) {
                         streamErr = new StreamException(t.getClass().getSimpleName()+" while initializing: "+GLMediaPlayerImpl.this.toString(), t);
-                        changeState(GLMediaEventListener.EVENT_CHANGE_ERR, GLMediaPlayer.State.Uninitialized);
+                        changeState(new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.Error), GLMediaPlayer.State.Uninitialized);
                     } // also initializes width, height, .. etc
                 }
             }.start();
@@ -689,7 +689,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     }
                     streamWorker.initGL(gl);
                     streamWorker.doResume();
-                    changeState(0, State.Paused);
+                    changeState(new GLMediaPlayer.EventMask(), State.Paused);
                     resume();
                 } else {
                     resetAVPTSAndFlush();
@@ -717,7 +717,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     // changeState(0, State.Paused);
                 }
             } catch (final Throwable t) {
-                destroyImpl(gl, GLMediaEventListener.EVENT_CHANGE_ERR, false /* wait */); // -> GLMediaPlayer.State.Uninitialized
+                destroyImpl(gl, new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.Error), false /* wait */); // -> GLMediaPlayer.State.Uninitialized
                 throw new GLException("Error initializing GL resources", t);
             }
         }
@@ -959,7 +959,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             if( DEBUG ) {
                                 System.err.println( "AV-EOS (getNextTexture): EOS_PTS "+(TimeFrameI.END_OF_STREAM_PTS == video_pts)+", "+this);
                             }
-                            pauseImpl(true, GLMediaEventListener.EVENT_CHANGE_EOS);
+                            pauseImpl(true, new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.EOS));
 
                         } else if( TimeFrameI.INVALID_PTS == video_pts ) { // no audio or video frame
                             if( null == videoFramesDecoded || !videoFramesDecoded.isEmpty() ) {
@@ -1413,7 +1413,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             if( DEBUG ) {
                                 System.err.println( "AV-EOS (StreamWorker): EOS_PTS "+(TimeFrameI.END_OF_STREAM_PTS == vPTS)+", "+GLMediaPlayerImpl.this);
                             }
-                            pauseImpl(true, GLMediaEventListener.EVENT_CHANGE_EOS);
+                            pauseImpl(true, new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.EOS));
                         }
                     }
                 } catch (final InterruptedException e) {
@@ -1438,7 +1438,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             isActive = false;
                             this.notifyAll(); // wake-up potential do*()
                         }
-                        pauseImpl(true, GLMediaEventListener.EVENT_CHANGE_ERR);
+                        pauseImpl(true, new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.Error));
                     }
                 }
             }
@@ -1457,46 +1457,49 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private volatile StreamWorker streamWorker = null;
     private volatile StreamException streamErr = null;
 
-    protected final int addStateEventMask(int event_mask, final State newState) {
+    protected final GLMediaPlayer.EventMask addStateEventMask(final GLMediaPlayer.EventMask eventMask, final State newState) {
         if( state != newState ) {
             switch( newState ) {
                 case Uninitialized:
-                    event_mask |= GLMediaEventListener.EVENT_CHANGE_UNINIT;
+                    eventMask.setBit(GLMediaPlayer.EventMask.Bit.Uninit);
                     break;
                 case Initialized:
-                    event_mask |= GLMediaEventListener.EVENT_CHANGE_INIT;
+                    eventMask.setBit(GLMediaPlayer.EventMask.Bit.Init);
                     break;
                 case Playing:
-                    event_mask |= GLMediaEventListener.EVENT_CHANGE_PLAY;
+                    eventMask.setBit(GLMediaPlayer.EventMask.Bit.Play);
                     break;
                 case Paused:
-                    event_mask |= GLMediaEventListener.EVENT_CHANGE_PAUSE;
+                    eventMask.setBit(GLMediaPlayer.EventMask.Bit.Pause);
                     break;
             }
         }
-        return event_mask;
+        return eventMask;
     }
 
-    protected final void attributesUpdated(final int event_mask) {
-        if( 0 != event_mask ) {
+    protected final void attributesUpdated(final GLMediaPlayer.EventMask eventMask) {
+        if( !eventMask.isZero() ) {
             final long now = Platform.currentTimeMillis();
+            if( DEBUG ) {
+                System.err.println("GLMediaPlayer.AttributesChanged: "+eventMask+", state "+state+", when "+now);
+            }
             synchronized(eventListenersLock) {
                 for(final Iterator<GLMediaEventListener> i = eventListeners.iterator(); i.hasNext(); ) {
-                    i.next().attributesChanged(this, event_mask, now);
+                    i.next().attributesChanged(this, eventMask, now);
                 }
             }
         }
     }
 
-    protected final void changeState(int event_mask, final State newState) {
-        event_mask = addStateEventMask(event_mask, newState);
-        if( 0 != event_mask ) {
+    protected final void changeState(GLMediaPlayer.EventMask eventMask, final State newState) {
+        eventMask = addStateEventMask(eventMask, newState);
+        if( !eventMask.isZero() ) {
             setState( newState );
             if(State.Uninitialized == state) {
                 textureLookupFunctionName = "texture2D";
                 textureFragmentShaderHashCode = 0;
             }
-            attributesUpdated( event_mask );
+            attributesUpdated( eventMask );
         }
     }
 
@@ -1513,34 +1516,34 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected final void updateAttributes(int vid, final int aid, final int width, final int height, final int bps_stream,
                                           final int bps_video, final int bps_audio, final float fps,
                                           final int videoFrames, final int audioFrames, final int duration, final String vcodec, final String acodec) {
-        int event_mask = 0;
+        final GLMediaPlayer.EventMask eventMask = new GLMediaPlayer.EventMask();
         final boolean wasUninitialized = state == State.Uninitialized;
 
         if( wasUninitialized ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_INIT;
+            eventMask.setBit(GLMediaPlayer.EventMask.Bit.Init);
             setState( State.Initialized );
         }
         if( STREAM_ID_AUTO == vid ) {
             vid = STREAM_ID_NONE;
         }
         if( this.vid != vid ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_VID;
+            eventMask.setBit(GLMediaPlayer.EventMask.Bit.VID);
             this.vid = vid;
         }
         if( STREAM_ID_AUTO == vid ) {
             vid = STREAM_ID_NONE;
         }
         if( this.aid != aid ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_AID;
+            eventMask.setBit(GLMediaPlayer.EventMask.Bit.AID);
             this.aid = aid;
         }
         if( this.width != width || this.height != height ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_SIZE;
+            eventMask.setBit(GLMediaPlayer.EventMask.Bit.Size);
             this.width = width;
             this.height = height;
         }
         if( this.fps != fps ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_FPS;
+            eventMask.setBit(GLMediaPlayer.EventMask.Bit.FPS);
             this.fps = fps;
             if( 0 != fps ) {
                 this.frame_duration = 1000f / fps;
@@ -1556,26 +1559,26 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             }
         }
         if( this.bps_stream != bps_stream || this.bps_video != bps_video || this.bps_audio != bps_audio ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_BPS;
+            eventMask.setBit(GLMediaPlayer.EventMask.Bit.BPS);
             this.bps_stream = bps_stream;
             this.bps_video = bps_video;
             this.bps_audio = bps_audio;
         }
         if( this.videoFrames != videoFrames || this.audioFrames != audioFrames || this.duration != duration ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_LENGTH;
+            eventMask.setBit(GLMediaPlayer.EventMask.Bit.Length);
             this.videoFrames = videoFrames;
             this.audioFrames = audioFrames;
             this.duration = duration;
         }
         if( (null!=acodec && acodec.length()>0 && !this.acodec.equals(acodec)) ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_CODEC;
+            eventMask.setBit(GLMediaPlayer.EventMask.Bit.Codec);
             this.acodec = acodec;
         }
         if( (null!=vcodec && vcodec.length()>0 && !this.vcodec.equals(vcodec)) ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_CODEC;
+            eventMask.setBit(GLMediaPlayer.EventMask.Bit.Codec);
             this.vcodec = vcodec;
         }
-        if(0==event_mask) {
+        if( eventMask.isZero() ) {
             return;
         }
         if( wasUninitialized ) {
@@ -1583,7 +1586,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 System.err.println("XXX Initialize @ updateAttributes: "+this);
             }
         }
-        attributesUpdated(event_mask);
+        attributesUpdated(eventMask);
     }
 
     protected void setIsGLOriented(final boolean isGLOriented) {
@@ -1596,7 +1599,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 for(int i=0; i<videoFramesOrig.length; i++) {
                     videoFramesOrig[i].getTexture().setMustFlipVertically(!isGLOriented);
                 }
-                attributesUpdated(GLMediaEventListener.EVENT_CHANGE_SIZE);
+                attributesUpdated(new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.Size));
             }
         }
     }

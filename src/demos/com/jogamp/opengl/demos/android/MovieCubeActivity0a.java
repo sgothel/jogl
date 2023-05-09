@@ -105,18 +105,18 @@ public class MovieCubeActivity0a extends NewtBaseActivity {
                 }
 
                 @Override
-                public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
-                    System.err.println("MovieCubeActivity0 AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+                public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
+                    System.err.println("MovieCubeActivity0 AttributesChanges: "+eventMask+", when "+when);
                     System.err.println("MovieCubeActivity0 State: "+mp);
-                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+                    if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
                         glWindowMain.addGLEventListener(demoMain);
                         anim.setUpdateFPSFrames(60*5, null);
                         anim.resetFPSCounter();
                     }
-                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_PLAY & event_mask ) ) {
+                    if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                         anim.resetFPSCounter();
                     }
-                    if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+                    if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Error) || eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
                         final StreamException se = mPlayer.getStreamException();
                         if( null != se ) {
                             se.printStackTrace();
