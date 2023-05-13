@@ -664,7 +664,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         if( withinLiveResize && !resizeAnimatorPaused && null!=lh ) {
             resizeAnimatorPaused = lh.pauseRenderingAction();
         }
-        sizeChanged(defer, false, newWidth, newHeight, force);
+        sizeChanged(defer, true /* windowUnits */, newWidth, newHeight, force);
         screenPositionChanged(defer, newX, newY);
         insetsChanged(false, left, right, top, bottom);
         if( !withinLiveResize && resizeAnimatorPaused ) {
