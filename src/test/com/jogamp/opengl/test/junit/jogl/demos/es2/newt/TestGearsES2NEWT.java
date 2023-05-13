@@ -33,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Display;
+import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
@@ -351,6 +352,10 @@ public class TestGearsES2NEWT extends UITestCase {
                            valReqSurfacePixelScale[0]+"x"+valReqSurfacePixelScale[1]+" (val) -> "+
                            hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
         NEWTDemoListener.setTitle(glWindow);
+        {
+            final MonitorDevice mm = glWindow.getMainMonitor();
+            System.err.println("Monitor: "+mm);
+        }
 
         snap.setMakeSnapshot();
 
