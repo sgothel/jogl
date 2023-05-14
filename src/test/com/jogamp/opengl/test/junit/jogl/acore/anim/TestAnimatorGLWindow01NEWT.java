@@ -46,8 +46,8 @@ import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAnimatorGLWindow01NEWT extends UITestCase {
-    static final int width = 640;
-    static final int height = 480;
+    static final int width = 400;
+    static final int height = 400;
 
     protected GLWindow createGLWindow(final GLCapabilities caps, final int x, final int y, final GearsES2 gears) throws InterruptedException {
         final GLWindow glWindow = GLWindow.create(caps);

@@ -22,6 +22,26 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestEl
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT %*
 
 REM
+REM HiDPI
+REM
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLWindow01NEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLJPanel01AWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo20 %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSingleGLInJSliderNewtAWT %*
+
+
+REM
 REM av demos
 REM
 REM scripts\java-win.bat jogamp.opengl.openal.av.ALDummyUsage %*
@@ -248,7 +268,7 @@ REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo10 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo11 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo20 %*
 
-scripts\java-win.bat com.jogamp.opengl.demos.av.MovieCube %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.av.MovieCube %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.av.MovieSimple %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT

@@ -47,8 +47,8 @@ import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestAnimatorGLJPanel01AWT extends UITestCase {
-    static final int width = 640;
-    static final int height = 480;
+    static final int width = 400;
+    static final int height = 400;
 
     protected GLJPanel createGLJPanel(final GLCapabilities caps, final Frame frame, final int x, final int y, final GearsES2 gears) throws InterruptedException {
         final GLJPanel glCanvas = new GLJPanel(caps);
@@ -111,6 +111,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
         animator.add(c3);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 f1.setVisible(true);
                 f2.setVisible(true);
@@ -159,6 +160,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
         stopAnimator(animator);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 try {
                     f1.dispose();
@@ -187,6 +189,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
         Assert.assertEquals(false, a1.isPaused());
         Assert.assertEquals(true, a1.isAnimating());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 f1.setVisible(true);
             } } );
@@ -201,6 +204,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
         Assert.assertEquals(false, a2.isPaused());
         Assert.assertEquals(true, a2.isAnimating());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 f2.setVisible(true);
             } } );
@@ -215,6 +219,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
         Assert.assertEquals(false, a3.isPaused());
         Assert.assertEquals(true, a3.isAnimating());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 f3.setVisible(true);
             } } );
@@ -267,6 +272,7 @@ public class TestAnimatorGLJPanel01AWT extends UITestCase {
         stopAnimator(a3);
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 try {
                     f1.dispose();
