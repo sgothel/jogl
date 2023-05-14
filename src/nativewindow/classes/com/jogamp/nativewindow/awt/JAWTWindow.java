@@ -391,6 +391,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    */
   public final boolean updatePixelScale(final GraphicsConfiguration gc, final boolean clearFlag) {
       if( JAWTUtil.getPixelScale(gc, minPixelScale, maxPixelScale) ) {
+          // Enforce maxPixelScale as used by AWT
           hasPixelScaleChanged = true;
           System.arraycopy(maxPixelScale, 0, hasPixelScale, 0, 2);
           if( DEBUG ) {

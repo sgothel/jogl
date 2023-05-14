@@ -308,6 +308,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window"
+    #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug.JAWT"
     #D_ARGS="-Dnewt.debug.Window.visibility.failure.freeze"
     #D_ARGS="-Xprof"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
@@ -510,6 +511,8 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT $*
+#testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 $*
+testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSingleGLInJSliderNewtAWT $*
 
 #
 # demos (any TK, more user driven tests)
@@ -631,6 +634,7 @@ function testawtswt() {
 #testswt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2SWT3 $*
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextWithJTabbedPaneAWT $*
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedExternalContextAWT $*
+#testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSingleGLInJSliderNewtAWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestPBufferDeadlockAWT $*
@@ -1038,7 +1042,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 $*
 
-testnoawt com.jogamp.opengl.demos.av.MovieCube $*
+#testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
 
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*

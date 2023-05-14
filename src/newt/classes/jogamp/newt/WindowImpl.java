@@ -163,6 +163,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected final float[] maxPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
     protected final float[] hasPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
     protected final float[] reqPixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
+    private boolean hasSetPixelScale = false;
     private volatile int[] pixelPos = new int[] { 64, 64 }; // client-area pos w/o insets in pixel units
     private volatile int[] pixelSize = new int[] { 128, 128 }; // client-area size w/o insets in pixel units, default: may be overwritten by user
     private volatile int[] windowPos = new int[] { 64, 64 }; // client-area pos w/o insets in window units
@@ -2695,15 +2696,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /**
      * {@inheritDoc}
-     * <p>
-     * FIXME: Bug 1373, 1374: Implement general High-DPI for even non native DPI toolkit aware platforms (Linux, Windows)
-     * </p>
      */
     @Override
     public boolean setSurfaceScale(final float[] pixelScale) {
+        final boolean isAuto = SurfaceScaleUtils.isEqual(pixelScale, ScalableSurface.AUTOMAX_PIXELSCALE);
+        if( DEBUG_IMPLEMENTATION ) {
+            System.err.println("WindowImpl.setPixelScale.0: has["+hasPixelScale[0]+", "+hasPixelScale[1]+"], req["+
+                                reqPixelScale[0]+", "+reqPixelScale[1]+"] -> req["+
+                                pixelScale[0]+", "+pixelScale[1]+"], isAuto "+isAuto+", realized "+isNativeValid());
+        }
         System.arraycopy(pixelScale, 0, reqPixelScale, 0, 2);
+        hasSetPixelScale = !isAuto;
         return false;
     }
+    protected boolean hasSetPixelScale() { return hasSetPixelScale; }
 
     @Override
     public final float[] getRequestedSurfaceScale(final float[] result) {
@@ -2967,7 +2973,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         boolean res = false;
         if( DEBUG_IMPLEMENTATION ) {
             System.err.println("Window.SoftPixelScale.0a: req "+reqPixelScale[0]+", has "+hasPixelScale[0]+", new "+newPixelScale[0]+" - "+getThreadName());
-            // Thread.dumpStack();
+            Thread.dumpStack();
         }
         synchronized( scaleLock ) {
             try {
@@ -5244,30 +5250,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
     // Misc
     //
-
-    /**
-     * Notify to update the pixel-scale values.
-     * <p>
-     * FIXME: Bug 1373, 1374: Implement general High-DPI for even non native DPI toolkit aware platforms (Linux, Windows)
-     * A variation may be be desired like
-     * {@code pixelScaleChangeNotify(final float[] curPixelScale, final float[] minPixelScale, final float[] maxPixelScale)}.
-     * </p>
-     * <p>
-     * Maybe create interface {@code ScalableSurface.Upstream} with above method,
-     * to allow downstream to notify upstream ScalableSurface implementations like NEWT's {@link Window} to act accordingly.
-     * </p>
-     * @param minPixelScale
-     * @param maxPixelScale
-     * @param reset if {@code true} {@link #setSurfaceScale(float[]) reset pixel-scale} w/ {@link #getRequestedSurfaceScale(float[]) requested values}
-     *        value to reflect the new minimum and maximum values.
-     */
-    public final void pixelScaleChangeNotify(final float[] minPixelScale, final float[] maxPixelScale, final boolean reset) {
-        System.arraycopy(minPixelScale, 0, this.minPixelScale, 0, 2);
-        System.arraycopy(maxPixelScale, 0, this.maxPixelScale, 0, 2);
-        if( reset ) {
-            setSurfaceScale(reqPixelScale);
-        }
-    }
 
     @Override
     public final void windowRepaint(final int x, final int y, final int width, final int height) {

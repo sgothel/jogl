@@ -105,7 +105,7 @@ public class WindowDriver extends WindowImpl {
      */
     private boolean updatePixelScaleByMonitor(final MonitorDevice md, final int[] move_diff, final boolean sendEvent, final boolean defer) {
         boolean res = false;
-        if( null != md ) {
+        if( !hasSetPixelScale() && null != md ) {
             final float newPixelScale[] = { 0, 0 };
             md.getPixelScale(newPixelScale);
             if( DEBUG_IMPLEMENTATION ) {

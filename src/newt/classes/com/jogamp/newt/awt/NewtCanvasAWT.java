@@ -636,23 +636,16 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
             }
         }
     }
-    private final boolean updatePixelScale(final GraphicsConfiguration gc) {
-        if( jawtWindow.updatePixelScale(gc, true) ) {
+
+    /** Propagates AWT pixelScale to NEWT */
+    private final boolean updatePixelScale(final GraphicsConfiguration gc, final boolean force) {
+        if( jawtWindow.updatePixelScale(gc, false) || jawtWindow.hasPixelScaleChanged() || force ) {
+            jawtWindow.hasPixelScaleChanged(); // clear
+            final float[] hasPixelScale = jawtWindow.getCurrentSurfaceScale(new float[2]);
             final Window cWin = newtChild;
             final Window dWin = cWin.getDelegatedWindow();
             if( dWin instanceof WindowImpl ) {
-                final float[] maxPixelScale = jawtWindow.getMaximumSurfaceScale(new float[2]);
-                final float[] minPixelScale = jawtWindow.getMinimumSurfaceScale(new float[2]);
-                // FIXME: Bug 1373, 1374: Implement general High-DPI for even non native DPI toolkit aware platforms (Linux, Windows)
-                // final float[] curPixelScale = jawtWindow.getCurrentSurfaceScale(new float[2]);
-                // ((WindowImpl)dWin).pixelScaleChangeNotify(curPixelScale, minPixelScale, maxPixelScale);
-                ((WindowImpl)dWin).pixelScaleChangeNotify(minPixelScale, maxPixelScale, true);
-                // ((WindowImpl)dWin).sizeChangedNotify(true /* defer */, getWidth(), getHeight(), true /* force */);
-            } else {
-                final float[] reqPixelScale = jawtWindow.getRequestedSurfaceScale(new float[2]);
-                if( jawtWindow.setSurfaceScale(reqPixelScale) ) {
-                    // jawtWindow.getRequestedSurfaceScale(reqPixelScale);
-                }
+                ((WindowImpl)dWin).setSurfaceScale(hasPixelScale);
             }
             return true;
         }
@@ -761,7 +754,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
                     System.err.println("NewtCanvasAWT.reshape: "+x+"/"+y+" "+width+"x"+height);
                 }
                 if( validateComponent(true) ) {
-                    if( !printActive && updatePixelScale(getGraphicsConfiguration()) ) {
+                    if( !printActive && updatePixelScale(getGraphicsConfiguration(), false /* force */) ) {
                         // NOP
                     } else {
                         // newtChild.setSize(width, height);
@@ -1059,8 +1052,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
       }
       newtChild.setVisible(false);
       newtChild.setSize(w, h);
-      final float[] reqSurfaceScale = newtChild.getRequestedSurfaceScale(new float[2]);
-      jawtWindow.setSurfaceScale(reqSurfaceScale);
+      updatePixelScale(getGraphicsConfiguration(), true /* force */); // AWT -> NEWT
       newtChild.reparentWindow(jawtWindow, -1, -1, Window.REPARENT_HINT_BECOMES_VISIBLE);
       newtChild.addSurfaceUpdatedListener(jawtWindow);
       if( jawtWindow.isOffscreenLayerSurfaceEnabled() &&

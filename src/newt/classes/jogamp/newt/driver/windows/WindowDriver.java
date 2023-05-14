@@ -76,7 +76,7 @@ public class WindowDriver extends WindowImpl {
      */
     private boolean updatePixelScaleByMonitor(final long crt_handle, final int[] move_diff, final boolean sendEvent, final boolean defer) {
         boolean res = false;
-        if( 0 != crt_handle ) {
+        if( !hasSetPixelScale() && 0 != crt_handle ) {
             final float newPixelScaleRaw[] = { 0, 0 };
             if( GDIUtil.GetMonitorPixelScale(crt_handle, newPixelScaleRaw) ) {
                 res = applySoftPixelScale(move_diff, sendEvent, defer, newPixelScaleRaw);

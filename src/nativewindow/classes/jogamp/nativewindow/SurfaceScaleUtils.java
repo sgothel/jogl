@@ -41,8 +41,28 @@ public class SurfaceScaleUtils {
 
     private static final float EPSILON = 1.1920929E-7f; // Float.MIN_VALUE == 1.4e-45f ; double EPSILON 2.220446049250313E-16d
 
-    private static boolean isZero(final float a) {
+    /** Returns true if `abs(a) < EPSILON`, otherwise false. */
+    public static boolean isZero(final float a) {
         return Math.abs(a) < EPSILON;
+    }
+    /** Returns true if `isZero(f2[0]) && isZero(f2[1])`, otherwise false. */
+    public static boolean isZero(final float[] f2) {
+        return isZero(f2[0]) && isZero(f2[1]);
+    }
+
+    /** Returns true if `abs(a-b) < EPSILON`, otherwise false. */
+    public static boolean isEqual(final float a, final float b) {
+        return Math.abs(a-b) < EPSILON;
+    }
+
+    /** Returns true if `isEqual(f2[0], c) && isEqual(f2[1], c)`, otherwise false. */
+    public static boolean isEqual(final float[] f2, final float c) {
+        return isEqual(f2[0], c) && isEqual(f2[1], c);
+    }
+
+    /** Returns true if `isEqual(f2[0], g2[0]) && isEqual(f2[1], g2[1])`, otherwise false. */
+    public static boolean isEqual(final float[] f2, final float[] g2) {
+        return isEqual(f2[0], g2[0]) && isEqual(f2[1], g2[1]);
     }
 
     /**
@@ -158,15 +178,15 @@ public class SurfaceScaleUtils {
      * @return the constrained pixel-scale
      */
     public static float clampPixelScale(final float pixelScale, final float minPixelScale, final float maxPixelScale) {
-        if( isZero(pixelScale-ScalableSurface.IDENTITY_PIXELSCALE) ) {
+        if( isEqual(pixelScale, ScalableSurface.IDENTITY_PIXELSCALE) ) {
             return ScalableSurface.IDENTITY_PIXELSCALE;
-        } else if( isZero(pixelScale-ScalableSurface.AUTOMAX_PIXELSCALE) ||
+        } else if( isEqual(pixelScale, ScalableSurface.AUTOMAX_PIXELSCALE) ||
                    pixelScale > maxPixelScale ||
-                   isZero(pixelScale-maxPixelScale)
+                   isEqual(pixelScale, maxPixelScale)
                  )
         {
             return maxPixelScale;
-        } else if( pixelScale < minPixelScale || isZero(pixelScale-minPixelScale) )
+        } else if( pixelScale < minPixelScale || isEqual(pixelScale, minPixelScale) )
         {
             return minPixelScale;
         } else {
