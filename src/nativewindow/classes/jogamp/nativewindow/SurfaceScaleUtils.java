@@ -41,15 +41,6 @@ public class SurfaceScaleUtils {
 
     private static final float EPSILON = 1.1920929E-7f; // Float.MIN_VALUE == 1.4e-45f ; double EPSILON 2.220446049250313E-16d
 
-    /** Returns true if `abs(a) < EPSILON`, otherwise false. */
-    public static boolean isZero(final float a) {
-        return Math.abs(a) < EPSILON;
-    }
-    /** Returns true if `isZero(f2[0]) && isZero(f2[1])`, otherwise false. */
-    public static boolean isZero(final float[] f2) {
-        return isZero(f2[0]) && isZero(f2[1]);
-    }
-
     /** Returns true if `abs(a-b) < EPSILON`, otherwise false. */
     public static boolean isEqual(final float a, final float b) {
         return Math.abs(a-b) < EPSILON;
