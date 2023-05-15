@@ -50,7 +50,6 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
-import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
@@ -62,7 +61,8 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
    static String TAG = "MovieSimpleActivity1";
 
    MouseAdapter toFrontMouseListener = new MouseAdapter() {
-       public void mouseClicked(final MouseEvent e) {
+       @Override
+    public void mouseClicked(final MouseEvent e) {
            final Object src = e.getSource();
            if(src instanceof Window) {
                ((Window)src).requestFocus(false);
@@ -141,15 +141,15 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
 
            @Override
-           public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
-               System.err.println("MovieSimpleActivity1 AttributesChanges: events_mask 0x"+Integer.toHexString(event_mask)+", when "+when);
+           public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
+               System.err.println("MovieSimpleActivity1 AttributesChanges: "+eventMask+", when "+when);
                System.err.println("MovieSimpleActivity1 State: "+mp);
-               if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
+               if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
                    glWindowMain.addGLEventListener(demoMain);
                    anim.setUpdateFPSFrames(60*5, System.err);
                    anim.resetFPSCounter();
                }
-               if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+               if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Error) || eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
                    final StreamException se = mPlayerMain.getStreamException();
                    if( null != se ) {
                        se.printStackTrace();
@@ -192,11 +192,11 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                        public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
 
                        @Override
-                       public void attributesChanged(final GLMediaPlayer mp, final int event_mask, final long when) {
-                            if( 0 != ( GLMediaEventListener.EVENT_CHANGE_INIT & event_mask ) ) {
-                                glWindowHUD.addGLEventListener(demoHUD);
-                            }
-                           if( 0 != ( ( GLMediaEventListener.EVENT_CHANGE_ERR | GLMediaEventListener.EVENT_CHANGE_EOS ) & event_mask ) ) {
+                       public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
+                           if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
+                               glWindowHUD.addGLEventListener(demoHUD);
+                           }
+                           if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Error) || eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
                                final StreamException se = mPlayerMain.getStreamException();
                                if( null != se ) {
                                    se.printStackTrace();
@@ -214,6 +214,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                     glWindowHUD.addMouseListener(toFrontMouseListener);
 
                     viewGroup.post(new Runnable() {
+                        @Override
                         public void run() {
                             final android.view.View androidView = ((jogamp.newt.driver.android.WindowDriver)glWindowHUD.getDelegatedWindow()).getAndroidView();
                             // addContentView(getWindow(), glWindowHUD, new android.view.ViewGroup.LayoutParams(glWindowHUD.getWidth(), glWindowHUD.getHeight()));
