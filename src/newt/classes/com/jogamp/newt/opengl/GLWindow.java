@@ -482,6 +482,15 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         return window.convertToPixelUnits(windowUnitsAndResult);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This implementation returns true, i.e. supporting manual change of pixel-scale.
+     * </p>
+     */
+    @Override
+    public final boolean canSetSurfaceScale() { return true; }
+
     @Override
     public final boolean setSurfaceScale(final float[] pixelScale) {
         return window.setSurfaceScale(pixelScale);

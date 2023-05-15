@@ -33,7 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.awt.GLJPanel;
+import com.jogamp.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -49,10 +49,10 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
- * Multiple GLJPanels in a JFrame
+ * Multiple GLCanvas in a JFrame
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestGLJPanelResize01AWT extends UITestCase {
+public class TestGLCanvasResize01AWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
@@ -90,7 +90,7 @@ public class TestGLJPanelResize01AWT extends UITestCase {
         new Dimension(282, 154), // #1: new pixelBuffer-0
     };
 
-    public void test(final GLCapabilitiesImmutable caps, final Dimension[] dims, final boolean useSwingDoubleBuffer) {
+    public void test(final GLCapabilitiesImmutable caps, final Dimension[] dims) {
         final int cols = 4;
         final int rows = dims.length / cols + ( dims.length % cols > 0 ? 1 : 0 );
         final JFrame[] frame = new JFrame[] { null };
@@ -104,7 +104,7 @@ public class TestGLJPanelResize01AWT extends UITestCase {
                     frame[0].setLocation(64, 64);
                     final JPanel panel = new JPanel();
                     panel.setLayout(null); // new BorderLayout());
-                    panel.setDoubleBuffered(useSwingDoubleBuffer);
+                    panel.setDoubleBuffered(false);
                     frame[0].getContentPane().add(panel);
 
                     final int x0 = 4;
@@ -119,7 +119,7 @@ public class TestGLJPanelResize01AWT extends UITestCase {
                             if( d.height > maxColHeight ) {
                                 maxColHeight = d.height;
                             }
-                            final GLJPanel glad = createGLJPanel(useSwingDoubleBuffer, caps, d, "[r "+i+", c "+j+"]");
+                            final GLCanvas glad = createGLJPanel(caps, d, "[r "+i+", c "+j+"]");
                             panel.add(glad);
                             glad.setLocation(x, y);
                             x+=d.width+4;
@@ -154,15 +154,13 @@ public class TestGLJPanelResize01AWT extends UITestCase {
         }
     }
 
-    private GLJPanel createGLJPanel(final boolean useSwingDoubleBuffer, final GLCapabilitiesImmutable caps, final Dimension size, final String name) {
-        final GLJPanel canvas = new GLJPanel(caps);
+    private GLCanvas createGLJPanel(final GLCapabilitiesImmutable caps, final Dimension size, final String name) {
+        final GLCanvas canvas = new GLCanvas(caps);
         canvas.setName(name);
         canvas.setSize(size);
         canvas.setPreferredSize(size);
         canvas.setMinimumSize(size);
-        canvas.setDoubleBuffered(useSwingDoubleBuffer);
         final GearsES2 g = new GearsES2(0);
-        // g.setVerbose(false);
         canvas.addGLEventListener(g);
         return canvas;
     }
@@ -171,40 +169,38 @@ public class TestGLJPanelResize01AWT extends UITestCase {
 
     // @Test
     public void test00() throws InterruptedException, InvocationTargetException {
-        test(new GLCapabilities(null), esize00, false /*useSwingDoubleBuffer*/);
+        test(new GLCapabilities(null), esize00);
     }
 
     @Test
     public void test01() throws InterruptedException, InvocationTargetException {
-        test(new GLCapabilities(null), esize01, false /*useSwingDoubleBuffer*/);
+        test(new GLCapabilities(null), esize01);
     }
 
     @Test
     public void test02() throws InterruptedException, InvocationTargetException {
-        test(new GLCapabilities(null), esize02, false /*useSwingDoubleBuffer*/);
+        test(new GLCapabilities(null), esize02);
     }
 
     static long duration = 600; // ms
 
     public static void main(final String[] args) {
-        boolean useSwingDoubleBuffer=false, manual=false;
+        boolean manual=false;
 
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 duration = MiscUtils.atol(args[i], duration);
-            } else if(args[i].equals("-swingDoubleBuffer")) {
-                useSwingDoubleBuffer = true;
             } else if(args[i].equals("-manual")) {
                 manual = true;
             }
         }
         if( manual ) {
             GLProfile.initSingleton();
-            final TestGLJPanelResize01AWT demo = new TestGLJPanelResize01AWT();
-            demo.test(new GLCapabilities(null), esize01, useSwingDoubleBuffer);
+            final TestGLCanvasResize01AWT demo = new TestGLCanvasResize01AWT();
+            demo.test(new GLCapabilities(null), esize01);
         } else {
-            org.junit.runner.JUnitCore.main(TestGLJPanelResize01AWT.class.getName());
+            org.junit.runner.JUnitCore.main(TestGLCanvasResize01AWT.class.getName());
         }
     }
 

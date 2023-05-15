@@ -30,6 +30,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGea
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLWindow01NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLJPanel01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasResize01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs %*

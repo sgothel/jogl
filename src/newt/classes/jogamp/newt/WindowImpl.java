@@ -2696,6 +2696,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /**
      * {@inheritDoc}
+     * <p>
+     * This implementation returns true, i.e. supporting manual change of pixel-scale.
+     * </p>
+     */
+    @Override
+    public final boolean canSetSurfaceScale() { return true; }
+
+    /**
+     * {@inheritDoc}
      */
     @Override
     public boolean setSurfaceScale(final float[] pixelScale) {

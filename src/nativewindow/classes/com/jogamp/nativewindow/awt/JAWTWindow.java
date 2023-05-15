@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -102,10 +102,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected Insets insets;
   private volatile long offscreenSurfaceLayer;
 
-  private final float[] minPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-  private final float[] maxPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
   private final float[] hasPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
-  private final float[] reqPixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };
   private volatile boolean hasPixelScaleChanged = false;
   private long drawable_old;
 
@@ -283,10 +280,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     insets = new Insets();
     hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
     hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
-    minPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
-    minPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
-    maxPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
-    maxPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
     hasPixelScaleChanged = false;
   }
   protected abstract void invalidateNative(final long _offscreenSurfaceLayer);
@@ -322,15 +315,36 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     return awtConfig;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * This implementation returns false, i.e. not supporting manual change of pixel-scale.
+   * </p>
+   */
+  @Override
+  public final boolean canSetSurfaceScale() { return false; }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Ignored for an AWT widget since pixelScale is dictated by AWT mechanisms.
+   * </p>
+   */
   @Override
   public boolean setSurfaceScale(final float[] pixelScale) {
-      System.arraycopy(pixelScale, 0, reqPixelScale, 0, 2);
       return false;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Returns {@link ScalableSurface#AUTOMAX_PIXELSCALE}, always.
+   * </p>
+   */
   @Override
   public final float[] getRequestedSurfaceScale(final float[] result) {
-      System.arraycopy(reqPixelScale, 0, result, 0, 2);
+      result[0] = ScalableSurface.AUTOMAX_PIXELSCALE;
+      result[1] = ScalableSurface.AUTOMAX_PIXELSCALE;
       return result;
   }
 
@@ -340,15 +354,28 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       return result;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Returns 1.0, always.
+   * </p>
+   */
   @Override
   public float[] getMinimumSurfaceScale(final float[] result) {
-      System.arraycopy(minPixelScale, 0, result, 0, 2);
+      result[0] = 1f;
+      result[1] = 1f;
       return result;
   }
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * Returns {@link #getCurrentSurfaceScale(float[])}.
+   * </p>
+   */
   @Override
   public final float[] getMaximumSurfaceScale(final float[] result) {
-      System.arraycopy(maxPixelScale, 0, result, 0, 2);
+      System.arraycopy(hasPixelScale, 0, result, 0, 2);
       return result;
   }
 
@@ -390,17 +417,15 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * @see Component#getGraphicsConfiguration()
    */
   public final boolean updatePixelScale(final GraphicsConfiguration gc, final boolean clearFlag) {
-      if( JAWTUtil.getPixelScale(gc, minPixelScale, maxPixelScale) ) {
+      final float[] min = { 1, 1 };
+      final float[] max = { hasPixelScale[0], hasPixelScale[1] };
+      if( JAWTUtil.getPixelScale(gc, min, max) ) {
           // Enforce maxPixelScale as used by AWT
-          hasPixelScaleChanged = true;
-          System.arraycopy(maxPixelScale, 0, hasPixelScale, 0, 2);
           if( DEBUG ) {
-              System.err.println("JAWTWindow.updatePixelScale: updated req["+
-                      reqPixelScale[0]+", "+reqPixelScale[1]+"], min["+
-                      minPixelScale[0]+", "+minPixelScale[1]+"], max["+
-                      maxPixelScale[0]+", "+maxPixelScale[1]+"], has["+
-                      hasPixelScale[0]+", "+hasPixelScale[1]+"]");
+              System.err.println("JAWTWindow.updatePixelScale: ["+hasPixelScale[0]+", "+hasPixelScale[1]+"] -> ["+max[0]+", "+max[1]+"]");
           }
+          hasPixelScaleChanged = true;
+          System.arraycopy(max, 0, hasPixelScale, 0, 2);
       }
       if( clearFlag ) {
           final boolean r = hasPixelScaleChanged;
@@ -426,15 +451,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       final boolean v = hasPixelScaleChanged;
       hasPixelScaleChanged = false;
       return v;
-  }
-
-  /**
-   * set requested pixelScale
-   * @return true if pixelScale has changed, otherwise false
-   */
-  protected final boolean setReqPixelScale() {
-    updatePixelScale(awtConfig.getAWTGraphicsConfiguration(), true);
-    return SurfaceScaleUtils.setNewPixelScale(hasPixelScale, hasPixelScale, reqPixelScale, minPixelScale, maxPixelScale, DEBUG ? getClass().getSimpleName() : null);
   }
 
   /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds in pixel units, updated with lock */

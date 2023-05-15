@@ -198,7 +198,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
-    #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas"
+    #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas -Djogl.debug.GLJPanel -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.TaskBase.TraceSource"
     #D_ARGS="-Dnativewindow.debug.JAWT"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
@@ -298,7 +298,6 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
-    #D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window -Djogl.debug.GLJPanel -Djogl.debug.GLCanvas -Djogamp.debug.TempJarCache"
     #D_ARGS="-Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
@@ -308,7 +307,6 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.MouseEvent -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window"
-    #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug.JAWT"
     #D_ARGS="-Dnewt.debug.Window.visibility.failure.freeze"
     #D_ARGS="-Xprof"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
@@ -503,9 +501,11 @@ function testawtswt() {
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2SimpleNEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLWindow01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLJPanel01AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasResize01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs $*

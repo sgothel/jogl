@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -128,6 +128,15 @@ public class WrappedSurface extends ProxySurfaceImpl implements ScalableSurface 
   public final int[] convertToPixelUnits(final int[] windowUnitsAndResult) {
       return SurfaceScaleUtils.scale(windowUnitsAndResult, windowUnitsAndResult, hasPixelScale);
   }
+
+  /**
+   * {@inheritDoc}
+   * <p>
+   * This implementation returns false, i.e. not supporting manual change of pixel-scale.
+   * </p>
+   */
+  @Override
+  public final boolean canSetSurfaceScale() { return false; }
 
   /**
    * {@inheritDoc}

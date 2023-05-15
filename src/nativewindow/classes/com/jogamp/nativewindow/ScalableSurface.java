@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2014-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -39,10 +39,23 @@ public interface ScalableSurface {
   public static final float AUTOMAX_PIXELSCALE = 0f;
 
   /**
+   * Returns true if {@link #setSurfaceScale(float[])} is supported, otherwise false.
+   * <p>
+   * For pure downstream scalable surfaces like AWT widgets,
+   * setting the picel scale is not supported since the pixel scale is set by the underlying toolkit.
+   * </p>
+   */
+  public boolean canSetSurfaceScale();
+
+  /**
    * Request a pixel scale in x- and y-direction for the associated {@link NativeSurface},
    * where {@code size_in_pixel_units = pixel_scale * size_in_window_units}.
    * <p>
    * Default pixel scale request for both directions is {@link #AUTOMAX_PIXELSCALE}.
+   * </p>
+   * <p>
+   * If {@link #canSetSurfaceScale()} returns false, requested pixel scale is {@link #AUTOMAX_PIXELSCALE},
+   * immutable and method returns false.
    * </p>
    * <p>
    * In case platform only supports uniform pixel scale, i.e. one scale for both directions,
@@ -61,15 +74,20 @@ public interface ScalableSurface {
    * @param pixelScale <i>requested</i> surface pixel scale float[2] values for x- and y-direction.
    * @return {@code true} if the {@link #getCurrentSurfaceScale(float[]) current pixel scale} has changed, otherwise {@code false}.
    * @see #getRequestedSurfaceScale(float[])
+   * @see #canSetSurfaceScale()
    */
   public boolean setSurfaceScale(final float[] pixelScale);
 
   /**
    * Returns the {@link #setSurfaceScale(float[]) requested} pixel scale of the associated {@link NativeSurface}.
+   * <p>
+   * If {@link #canSetSurfaceScale()} returns false, requested pixel scale is {@link #AUTOMAX_PIXELSCALE} and immutable.
+   * </p>
    *
    * @param result float[2] storage for the result
    * @return the passed storage containing the current pixelScale for chaining
    * @see #setSurfaceScale(float[])
+   * @see #canSetSurfaceScale()
    */
   public float[] getRequestedSurfaceScale(final float[] result);
 

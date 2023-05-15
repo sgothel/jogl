@@ -125,27 +125,6 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   @Override
-  public boolean setSurfaceScale(final float[] pixelScale) {
-      super.setSurfaceScale(pixelScale);
-      if( 0 != getWindowHandle() && setReqPixelScale() ) { // locked at least once _and_ updated pixel-scale
-          if( 0 != getAttachedSurfaceLayer() ) {
-              OSXUtil.RunOnMainThread(false /* wait */, false, new Runnable() {
-                  @Override
-                  public void run() {
-                      final long osl = getAttachedSurfaceLayer();
-                      if( 0 != rootSurfaceLayer && 0 != osl ) {
-                          OSXUtil.SetCALayerPixelScale(rootSurfaceLayer, osl, getPixelScaleX());
-                      }
-                  }
-              });
-          }
-          return true;
-      } else {
-          return false;
-      }
-  }
-
-  @Override
   protected void attachSurfaceLayerImpl(final long _offscreenSurfaceLayer) {
       OSXUtil.RunOnMainThread(false /* wait */, false /* kickNSApp */, new Runnable() {
               @Override
