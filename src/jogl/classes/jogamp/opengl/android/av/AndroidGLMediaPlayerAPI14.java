@@ -35,7 +35,7 @@ import com.jogamp.opengl.GLES2;
 import com.jogamp.opengl.GLException;
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
-import com.jogamp.opengl.util.TimeFrameI;
+import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;

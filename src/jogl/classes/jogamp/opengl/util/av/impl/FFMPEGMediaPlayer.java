@@ -35,17 +35,16 @@ import java.security.PrivilegedAction;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLException;
-
+import com.jogamp.common.av.AudioSink;
+import com.jogamp.common.av.AudioSink.AudioFormat;
+import com.jogamp.common.av.AudioSinkFactory;
+import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
-import com.jogamp.opengl.util.TimeFrameI;
 import com.jogamp.opengl.util.GLPixelStorageModes;
-import com.jogamp.opengl.util.av.AudioSink;
-import com.jogamp.opengl.util.av.AudioSink.AudioFormat;
-import com.jogamp.opengl.util.av.AudioSinkFactory;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 
@@ -345,7 +344,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
             audioSink = AudioSinkFactory.createNull();
         } else {
-            audioSink = AudioSinkFactory.createDefault();
+            audioSink = AudioSinkFactory.createDefault(FFMPEGMediaPlayer.class.getClassLoader());
         }
         final AudioFormat preferredAudioFormat = audioSink.getPreferredFormat();
         if(DEBUG) {

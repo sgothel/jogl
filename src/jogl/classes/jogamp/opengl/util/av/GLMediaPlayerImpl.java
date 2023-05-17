@@ -51,6 +51,8 @@ import jogamp.opengl.Debug;
 import com.jogamp.common.net.UriQueryProps;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.av.AudioSink;
+import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
@@ -60,8 +62,6 @@ import com.jogamp.common.util.LFRingbuffer;
 import com.jogamp.common.util.Ringbuffer;
 import com.jogamp.common.util.SourcedInterruptedException;
 import com.jogamp.opengl.GLExtensions;
-import com.jogamp.opengl.util.TimeFrameI;
-import com.jogamp.opengl.util.av.AudioSink;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.texture.Texture;
@@ -511,7 +511,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * Override if not using AudioSink, or AudioSink's {@link AudioSink#setPlaySpeed(float)} is not sufficient!
      * <p>
      * AudioSink shall respect <code>!audioSinkPlaySpeedSet</code> to determine data_size
-     * at {@link AudioSink#enqueueData(com.jogamp.opengl.util.av.AudioSink.AudioFrame)}.
+     * at {@link AudioSink#enqueueData(int, ByteBuffer, int)}
      * </p>
      */
     protected boolean setPlaySpeedImpl(final float rate) {

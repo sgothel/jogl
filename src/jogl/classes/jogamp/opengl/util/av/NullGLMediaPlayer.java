@@ -35,8 +35,6 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 
-import jogamp.opengl.util.av.GLMediaPlayerImpl;
-
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;

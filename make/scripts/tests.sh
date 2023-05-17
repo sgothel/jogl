@@ -514,7 +514,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT $*
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 $*
-testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSingleGLInJSliderNewtAWT $*
+#testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSingleGLInJSliderNewtAWT $*
 
 #
 # demos (any TK, more user driven tests)
@@ -994,7 +994,7 @@ testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSingleGLInJSliderNewtAWT $
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 
-#testnoawt com.jogamp.opengl.demos.av.MovieCube $*
+testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT $*

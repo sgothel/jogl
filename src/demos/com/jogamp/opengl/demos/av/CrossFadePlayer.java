@@ -28,9 +28,9 @@
 
 package com.jogamp.opengl.demos.av;
 
+import com.jogamp.common.av.AudioSink;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.InterruptSource;
-import com.jogamp.opengl.util.av.AudioSink;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
