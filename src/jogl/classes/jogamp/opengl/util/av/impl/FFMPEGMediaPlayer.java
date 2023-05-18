@@ -35,8 +35,8 @@ import java.security.PrivilegedAction;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLException;
+import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
-import com.jogamp.common.av.AudioSink.AudioFormat;
 import com.jogamp.common.av.AudioSinkFactory;
 import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.common.util.IOUtil;
@@ -288,7 +288,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     // Audio
     //
 
-    private AudioSink.AudioFormat avChosenAudioFormat;
+    private AudioFormat avChosenAudioFormat;
     private int audioSamplesPerFrameAndChannel = 0;
 
     public FFMPEGMediaPlayer() {
