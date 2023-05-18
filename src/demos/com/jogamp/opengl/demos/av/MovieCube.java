@@ -113,8 +113,8 @@ public class MovieCube implements GLEventListener {
 
             @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
-                System.err.println("MovieCube AttributesChanges: "+eventMask+", when "+when);
-                System.err.println("MovieCube State: "+mp);
+                System.err.println("MovieCube.0 AttributesChanges: "+eventMask+", when "+when);
+                System.err.println("MovieCube.0 State: "+mp);
                 if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Size) ) {
                     resetGLState();
                 }
@@ -603,8 +603,8 @@ public class MovieCube implements GLEventListener {
 
             @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask event_mask, final long when) {
-                System.err.println("MovieCube AttributesChanges: events_mask "+event_mask+", when "+when);
-                System.err.println("MovieCube State: "+mp);
+                System.err.println("MovieCube.1 AttributesChanges: events_mask "+event_mask+", when "+when);
+                System.err.println("MovieCube.1 State: "+mp);
                 if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.Size) ) {
                     if( origSize ) {
                         window.setSurfaceSize(mp.getWidth(), mp.getHeight());
@@ -619,7 +619,16 @@ public class MovieCube implements GLEventListener {
                 if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                     anim.resetFPSCounter();
                 }
-                if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.Error) || event_mask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
+                if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
+                    new InterruptSource.Thread() {
+                        @Override
+                        public void run() {
+                            // loop for-ever ..
+                            mc.mPlayer.seek(0);
+                            mc.mPlayer.resume();
+                        } }.start();
+                }
+                if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.Error) ) {
                     final StreamException se = mc.mPlayer.getStreamException();
                     if( null != se ) {
                         se.printStackTrace();

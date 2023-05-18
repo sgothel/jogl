@@ -379,8 +379,8 @@ public class MovieSimple implements GLEventListener {
 
             @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
-                System.err.println("MovieSimple AttributesChanges: "+eventMask+", when "+when);
-                System.err.println("MovieSimple State: "+mp);
+                System.err.println("MovieSimple.0 AttributesChanges: "+eventMask+", when "+when);
+                System.err.println("MovieSimple.0 State: "+mp);
                 if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
                     new InterruptSource.Thread() {
                         @Override
@@ -578,8 +578,8 @@ public class MovieSimple implements GLEventListener {
 
             @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
-                System.err.println("MovieSimple AttributesChanges: "+eventMask+", when "+when);
-                System.err.println("MovieSimple State: "+mp);
+                System.err.println("MovieSimple.1 AttributesChanges: "+eventMask+", when "+when);
+                System.err.println("MovieSimple.1 State: "+mp);
                 final GLWindow window = (GLWindow) mp.getAttachedObject(WINDOW_KEY);
                 final MovieSimple ms = (MovieSimple)mp.getAttachedObject(PLAYER);
                 if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Size) ) {
