@@ -112,6 +112,8 @@
             <fileset dir="${build.graphui}" includes="*.jar" />
             <fileset dir="${build.oculusvr}" includes="*.jar" erroronmissingdir="false"/> <!-- optional -->
         </copy>
+        <move todir="${jar}"
+              file="${jar}/atomic/jogl-fonts-p0.jar"/>
 
         <copy file="joglversion-all"
             tofile="${build}/manifest-all.mf"

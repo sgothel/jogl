@@ -49,7 +49,6 @@ public class UbuntuFontLoader implements FontSet {
     // FIXME: Add cache size to limit memory usage
     private static final IntObjectHashMap fontMap = new IntObjectHashMap();
 
-    private static final Uri.Encoded jarSubDir = Uri.Encoded.cast("atomic/");
     private static final Uri.Encoded jarName = Uri.Encoded.cast("jogl-fonts-p0.jar");
 
     private static final String absFontPath = "jogamp/graph/font/fonts/ubuntu/" ;
@@ -138,7 +137,7 @@ public class UbuntuFontLoader implements FontSet {
             Platform.initSingleton();
             if( TempJarCache.isInitialized(false) ) {
                 try {
-                    final Uri uri = JarUtil.getRelativeOf(UbuntuFontLoader.class, jarSubDir, jarName);
+                    final Uri uri = JarUtil.getRelativeOf(UbuntuFontLoader.class, null, jarName);
                     final Exception e0 = SecurityUtil.doPrivileged(new PrivilegedAction<Exception>() {
                         @Override
                         public Exception run() {
