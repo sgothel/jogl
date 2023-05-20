@@ -315,9 +315,10 @@
         <copy file="${build}/artifact.properties" todir="${archive}" />
         <copy file="../CHANGELOG.txt"  todir="${archive}" />
         <copy file="../LICENSE.txt"    todir="${archive}" />
+        <copy file="../README.md"      todir="${archive}" />
         <copy file="../doc/userguide/index.html" tofile="${archive}/Userguide.html" />
         <copy file="README-zip-bundles.txt"
-            tofile="${archive}/README.txt"
+            tofile="${archive}/README-zip-bundles.txt"
             overwrite="true">
             <filterset>
                 <filter token="VERSION" value="${jogamp.version}"/>
