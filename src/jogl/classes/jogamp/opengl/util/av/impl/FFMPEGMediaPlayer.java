@@ -430,9 +430,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             audioSink = AudioSinkFactory.createNull();
             audioSink.init(AudioSink.DefaultFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
         } else {
-            final float frameDuration;
+            final int frameDuration;
             if( audioSamplesPerFrameAndChannel > 0 ) {
-                frameDuration= avChosenAudioFormat.getSamplesDuration(audioSamplesPerFrameAndChannel);
+                frameDuration = avChosenAudioFormat.getSamplesDuration(audioSamplesPerFrameAndChannel);
             } else {
                 frameDuration = AudioSink.DefaultFrameDuration;
             }
