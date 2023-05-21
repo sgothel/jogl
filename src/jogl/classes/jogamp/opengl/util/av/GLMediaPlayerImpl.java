@@ -1698,7 +1698,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         final String audioSinkInfo;
         final AudioSink audioSink = getAudioSink();
         if( null != audioSink ) {
-            audioSinkInfo = "AudioSink[frames [p "+audioSink.getEnqueuedFrameCount()+", q "+audioSink.getQueuedFrameCount()+", f "+audioSink.getFreeFrameCount()+", c "+audioSink.getFrameCount()+"], time "+audioSink.getQueuedTime()+", bytes "+audioSink.getQueuedByteCount()+"]";
+            audioSinkInfo = String.format("AudioSink[frames [p %d, q %d, f %d, c %d], dur %.1f ms, bytes %d]",
+                    audioSink.getEnqueuedFrameCount(), audioSink.getQueuedFrameCount(),
+                    audioSink.getFreeFrameCount(), audioSink.getFrameCount(), 1000f*audioSink.getQueuedTime(),
+                    audioSink.getQueuedByteCount()
+                    );
         } else {
             audioSinkInfo = "";
         }
