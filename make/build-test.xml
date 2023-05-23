@@ -103,7 +103,7 @@
                target="${target.targetlevel}" 
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="junit_jogl_newt.compile.classpath"/>
+            <classpath refid="junit_joal_jogl_newt.compile.classpath"/>
             <src path="${src.demos}" />
         </javac>
         <copy file="joglversion-test"
@@ -208,7 +208,7 @@
                target="${target.targetlevel}" 
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="junit_jogl_newt.compile.classpath"/>
+            <classpath refid="junit_joal_jogl_newt.compile.classpath"/>
             <src path="${src.test}" />
         </javac>
     </target>

@@ -605,7 +605,7 @@
 
 
         <!-- Test Compilation .. -->
-        <path id="junit_jogl_newt.compile.classpath">
+        <path id="junit_joal_jogl_newt.compile.classpath">
             <pathelement location="${junit.jar}" />
             <pathelement location="${ant.jar}" />
             <pathelement location="${ant-junit.jar}" />
@@ -613,6 +613,7 @@
             <pathelement location="${semver.jar}" />
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${gluegen-test-util.jar}" />
+            <pathelement location="${joal.jar}" />
             <pathelement location="${swt.jar}" />
             <pathelement location="${project.root}/make/lib/openjfx/11/javafx-base-11.jar" />
             <pathelement location="${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar" />

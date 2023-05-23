@@ -366,6 +366,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLContext"
     #D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogamp.debug.AudioSink"
+    #D_ARGS="-Djogamp.debug.AudioSink -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogamp.debug.AudioSink -Djoal.openal.lib=system"
     #D_ARGS="-Djogamp.debug.AudioSink -Djoal.debug.AudioSink.trace"
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.AudioSink -Djogl.debug.GLMediaPlayer"
@@ -993,9 +994,9 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 
-testnoawt com.jogamp.opengl.demos.av.MovieCube $*
+#testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLReadBuffer01GLWindowNEWT $*
