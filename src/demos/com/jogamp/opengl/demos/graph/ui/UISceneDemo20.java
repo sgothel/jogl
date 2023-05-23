@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import com.jogamp.common.av.AudioSink;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.InterruptSource;
@@ -68,6 +69,9 @@ import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.openal.sound3d.AudioSystem3D;
+import com.jogamp.openal.util.ALAudioSink;
+import com.jogamp.openal.util.SimpleSineSynth;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAnimatorControl;
@@ -91,10 +95,13 @@ import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayer.EventMask;
+import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 import com.jogamp.opengl.util.texture.ImageSequence;
 import com.jogamp.opengl.util.texture.TextureIO;
+import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /**
  * Complex interactive GraphUI Scene demo with different Button and Label Shapes layout on the screen.
@@ -133,7 +140,7 @@ public class UISceneDemo20 implements GLEventListener {
                     final float pS = MiscUtils.atof(args[idx[0]], reqSurfacePixelScale[0]);
                     reqSurfacePixelScale[0] = pS;
                     reqSurfacePixelScale[1] = pS;
-                } else if(args[idx[0]].equals("-film")) {
+                } else if(args[idx[0]].equals("-film") || args[idx[0]].equals("-file")) {
                     idx[0]++;
                     filmURL = args[idx[0]];
                 }
@@ -144,7 +151,7 @@ public class UISceneDemo20 implements GLEventListener {
         final Display dpy = NewtFactory.createDisplay(null);
         final Screen screen = NewtFactory.createScreen(dpy, 0);
         System.err.println(VersionUtil.getPlatformInfo());
-        System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(dpy.getGraphicsDevice(), null).toString());
+        // System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(dpy.getGraphicsDevice(), null).toString());
 
         final GLProfile glp = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+glp);
@@ -158,7 +165,7 @@ public class UISceneDemo20 implements GLEventListener {
 
         final GLWindow window = GLWindow.create(screen, caps);
         if( 0 == options.sceneMSAASamples ) {
-            window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(true));
+            window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(false));
         }
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle("GraphUI Newt Demo: graph["+Region.getRenderModeString(options.renderModes)+"], msaa "+options.sceneMSAASamples);
@@ -376,6 +383,84 @@ public class UISceneDemo20 implements GLEventListener {
 
     public Shape getShapeByName(final int name) {
         return scene.getShapeByName(name);
+    }
+
+    private void initSound(final Shape shape,
+                           final com.jogamp.openal.sound3d.Context context,
+                           final com.jogamp.openal.sound3d.Source aSource)
+    {
+        final com.jogamp.openal.sound3d.Listener audioListener = AudioSystem3D.getListener();
+        context.makeCurrent(true);
+        try {
+            float[] f3x2;
+            f3x2 = audioListener.getOrientation();
+            System.err.printf("Listener init orientation: at[%.3f %.3f %.3f], up[%.3f %.3f %.3f]%n",
+                    f3x2[0], f3x2[1], f3x2[2], f3x2[3], f3x2[4], f3x2[5]);
+            f3x2 = new float[]{ /* at */ 0f, 0f, -1f, /* up */ 0f, 1f, 0f }; // default
+            audioListener.setOrientation(f3x2);
+            f3x2 = audioListener.getOrientation();
+            System.err.printf("Listener set orientation: at[%.3f %.3f %.3f], up[%.3f %.3f %.3f]%n",
+                    f3x2[0], f3x2[1], f3x2[2], f3x2[3], f3x2[4], f3x2[5]);
+
+            com.jogamp.openal.sound3d.Vec3f ap = audioListener.getPosition();
+            System.err.printf("Listener init pos: %.3f %.3f %.3f%n", ap.v1, ap.v2, ap.v3);
+            audioListener.setPosition(0, 0, -0.25f);
+            ap = audioListener.getPosition();
+            System.err.printf("Listener set pos: %.3f %.3f %.3f%n", ap.v1, ap.v2, ap.v3);
+
+            System.err.printf("Source init rel: %b%n", aSource.isSourceRelative());
+            aSource.setSourceRelative(false); // default
+            System.err.printf("Source set rel: %b%n", aSource.isSourceRelative());
+
+            ap = aSource.getDirection();
+            System.err.printf("Source init dir: %.3f %.3f %.3f%n", ap.v1, ap.v2, ap.v3);
+
+            final float rollOff0 = aSource.getRolloffFactor();
+            System.err.printf("Source init rollOff: %.3f%n", rollOff0);
+
+            final float refDist0 = aSource.getReferenceDistance();
+            aSource.setReferenceDistance(0.75f); // listener dist is min 0.25 -> 0.5 left; default is 1
+            final float refDist1 = aSource.getReferenceDistance();
+            System.err.printf("Source ref-dist: %.3f -> %.3f%n", refDist0, refDist1);
+
+            ap = aSource.getPosition();
+            System.err.printf("Source init pos: %.3f %.3f %.3f%n", ap.v1, ap.v2, ap.v3);
+            AudioSystem3D.checkError(context.getDevice(), "setup", true, false);
+
+            setSoundPosition(shape, context, aSource);
+        } finally {
+            context.release(true);
+        }
+    }
+
+    private void setSoundPosition(final Shape shape,
+                                  final com.jogamp.openal.sound3d.Context context,
+                                  final com.jogamp.openal.sound3d.Source aSource) {
+        AABBox worldBounds;
+        {
+            final PMVMatrix pmv = new PMVMatrix();
+            worldBounds = scene.getBounds(pmv, shape);
+        }
+        context.makeCurrent(true);
+        try {
+            aSource.setPosition(worldBounds.getCenter().x(), worldBounds.getCenter().y(), worldBounds.getCenter().z());
+            System.err.println("Source pos: "+worldBounds.getCenter());
+        } finally {
+            context.release(true);
+        }
+    }
+
+    private static void setSineSoundLabel(final Button shape, final float freq, final float amp) {
+        final String s;
+        if( shape.isToggleOn() ) {
+            s = String.format("scroll %.0f Hz\nctrl-scroll %.2f amp\nmove spatial", freq, amp);
+            shape.setSpacing(0.05f, 0.20f);
+        } else {
+            s = String.format("click to enable\nf %.0f Hz, a %.2f", freq, amp);
+            shape.setSpacing(Button.DEFAULT_SPACING_X, Button.DEFAULT_SPACING_Y);
+
+        }
+        shape.setLabel(s);
     }
 
     private void initButtons(final GL2ES2 gl) {
@@ -626,6 +711,7 @@ public class UISceneDemo20 implements GLEventListener {
         if( true ) {
             final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
             mPlayer.setTextureUnit(texUnitMediaPlayer);
+            mPlayer.setAudioChannelLimit(1); // enforce mono to enjoy spatial 3D position effects
             button = new MediaButton(renderModes, buttonRWidth, buttonRHeight, mPlayer);
             button.setName(BUTTON_MOVIE);
             ((MediaButton)button).setVerbose(false);
@@ -634,6 +720,10 @@ public class UISceneDemo20 implements GLEventListener {
             button.setToggle(true); // toggle == false -> mute audio
             button.setToggleOffColorMod(0f, 1f, 0f, 1.0f);
             button.addMouseListener(dragZoomRotateListener);
+
+            final ALAudioSink[] alAudioSink = { null };
+            final com.jogamp.openal.sound3d.Listener audioListener = new com.jogamp.openal.sound3d.Listener();
+
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -641,8 +731,128 @@ public class UISceneDemo20 implements GLEventListener {
                     final MediaButton s = (MediaButton)info.shape;
                     mPlayer.setAudioVolume( s.isToggleOn() ? 1f : 0f );
                 } } );
+            mPlayer.addEventListener( new GLMediaEventListener() {
+                @Override
+                public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
+                }
+
+                @Override
+                public void attributesChanged(final GLMediaPlayer mp, final EventMask eventMask, final long when) {
+                    System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
+                    System.err.println("MediaButton State: "+mp);
+                    if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
+                        final AudioSink audioSink = mp.getAudioSink();
+                        if( audioSink instanceof ALAudioSink ) {
+                            alAudioSink[0] = (ALAudioSink)audioSink;
+                        } else {
+                            alAudioSink[0] = null;
+                        }
+                    }
+                    if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
+                        alAudioSink[0] = null;
+                    }
+                }
+
+            });
+            final Shape.Listener setAudioPosition = new Shape.Listener() {
+                @Override
+                public void run(final Shape shape) {
+                    final ALAudioSink aSink = alAudioSink[0];
+                    if( null != aSink ) {
+                        setSoundPosition(shape, aSink.getContext(), aSink.getSource());
+                    }
+                }
+            };
+            final Shape.ListenerBool initAudio = new Shape.ListenerBool() {
+                @Override
+                public boolean run(final Shape shape) {
+                    final ALAudioSink aSink = alAudioSink[0];
+                    if( null != aSink ) {
+                        initSound(shape, aSink.getContext(), aSink.getSource());
+                        System.err.println("Media Audio: "+aSink);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            };
+            button.onInit( initAudio );
+            button.onMove( setAudioPosition );
+
             buttonsRight.addShape(button);
             mPlayer.playStream(filmURL, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
+        }
+        if( true ) {
+            final SimpleSineSynth sineSound = new SimpleSineSynth();
+            sineSound.setFreq(200f);
+            sineSound.setAmplitude(0.1f);
+            final Button sineButton = new Button(renderModes, fontButtons, "lala", buttonRWidth, buttonRHeight);
+            button = sineButton;
+            button.setToggleable(true);
+            button.setToggle(false); // toggle == false -> mute audio
+            setSineSoundLabel(sineButton, sineSound.getFreq(), sineSound.getAmplitude());
+
+            final ALAudioSink aSink = sineSound.getSink();
+            final com.jogamp.openal.sound3d.Source aSource = aSink.getSource();
+
+            button.addMouseListener(new Shape.MouseGestureAdapter() {
+                @Override
+                public void mouseReleased(final MouseEvent e) {
+                    actionText = null;
+                }
+
+                @Override
+                public void mouseDragged(final MouseEvent e) {
+                    final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
+                    if( e.getPointerCount() == 1 ) {
+                        final AABBox worldBounds;
+                        {
+                            final PMVMatrix pmv = new PMVMatrix();
+                            worldBounds = scene.getBounds(pmv, shapeEvent.shape);
+                        }
+                        actionText = String.format((Locale)null, "Pos %s", worldBounds.getCenter());
+                    }
+                }
+                @Override
+                public void mouseClicked(final MouseEvent e) {
+                    final Shape.EventInfo info = (Shape.EventInfo)e.getAttachment();
+                    if( info.shape.isToggleOn() ) {
+                        sineSound.play();
+                    } else {
+                        sineSound.pause();
+                    }
+                    setSineSoundLabel(sineButton, sineSound.getFreq(), sineSound.getAmplitude());
+                }
+                @Override
+                public void mouseWheelMoved(final MouseEvent e) {
+                    if( e.isControlDown() ) {
+                        final float a1 = sineSound.getAmplitude() + + e.getRotation()[1] / 20f;
+                        sineSound.setAmplitude(a1);
+                    } else {
+                        final float f1 = sineSound.getFreq() + e.getRotation()[1] * 10f;
+                        sineSound.setFreq(f1);
+                    }
+                    setSineSoundLabel(sineButton, sineSound.getFreq(), sineSound.getAmplitude());
+                    System.err.println("Sine "+sineSound);
+                } } );
+
+            final Shape.Listener setAudioPosition = new Shape.Listener() {
+                @Override
+                public void run(final Shape shape) {
+                    setSoundPosition(shape, aSink.getContext(), aSource);
+                }
+            };
+            final Shape.ListenerBool initAudio = new Shape.ListenerBool() {
+                @Override
+                public boolean run(final Shape shape) {
+                    initSound(shape, aSink.getContext(), aSource);
+                    System.err.println("Sine Audio: "+aSink);
+                    return true;
+                }
+            };
+            button.onInit( initAudio );
+            button.onMove( setAudioPosition );
+            buttonsRight.addShape(button);
         }
         if( true ) {
             final ImageSequence imgSeq = new ImageSequence(texUnitImageButton, true);
@@ -969,8 +1179,12 @@ public class UISceneDemo20 implements GLEventListener {
         public void mouseDragged(final MouseEvent e) {
             final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
             if( e.getPointerCount() == 1 ) {
-                final Vec3f tx = shapeEvent.shape.getPosition();
-                actionText = String.format((Locale)null, "Pos %s", tx);
+                final AABBox worldBounds;
+                {
+                    final PMVMatrix pmv = new PMVMatrix();
+                    worldBounds = scene.getBounds(pmv, shapeEvent.shape);
+                }
+                actionText = String.format((Locale)null, "Pos %s", worldBounds.getCenter());
             }
         }
 
