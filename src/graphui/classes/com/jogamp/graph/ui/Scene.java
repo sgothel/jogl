@@ -631,26 +631,24 @@ public final class Scene implements Container, GLEventListener {
 
     /**
      * Traverses through the graph up until {@code shape} and apply {@code action} on it.
-     * @param pmv
+     * @param pmv {@link PMVMatrix}, which shall be properly initialized, e.g. via {@link Scene#setupMatrix(PMVMatrix)}
      * @param shape
      * @param action
      * @return true to signal operation complete, i.e. {@code shape} found, otherwise false
      */
     @Override
     public boolean forOne(final PMVMatrix pmv, final Shape shape, final Runnable action) {
-        setupMatrix(pmv);
         return TreeTool.forOne(shapes, pmv, shape, action);
     }
 
     /**
      * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix)} for each, stop if it returns true.
-     * @param pmv
+     * @param pmv {@link PMVMatrix}, which shall be properly initialized, e.g. via {@link Scene#setupMatrix(PMVMatrix)}
      * @param v
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix)} returned true, otherwise false
      */
     @Override
     public boolean forAll(final PMVMatrix pmv, final Visitor2 v) {
-        setupMatrix(pmv);
         return TreeTool.forAll(shapes, pmv, v);
     }
 
