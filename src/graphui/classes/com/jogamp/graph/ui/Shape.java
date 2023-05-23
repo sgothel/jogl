@@ -113,6 +113,12 @@ public abstract class Shape {
     public static interface Listener {
         void run(final Shape shape);
     }
+    /**
+     * {@link Shape} listener action returning a boolean value
+     */
+    public static interface ListenerBool {
+        boolean run(final Shape shape);
+    }
     protected static final boolean DEBUG_DRAW = false;
     private static final boolean DEBUG = false;
 
@@ -155,6 +161,7 @@ public abstract class Shape {
     private final Vec4f borderColor = new Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
 
+    private ListenerBool onInitListener = null;
     private Listener onMoveListener = null;
     private Listener onToggleListener = null;
     private Listener onClickedListener = null;
@@ -250,6 +257,16 @@ public abstract class Shape {
         markShapeDirty();
     }
 
+    /**
+     * Set a user one-shot initializer callback.
+     * <p>
+     * {@link ListenerBool#run(Shape)} will be called
+     * after each {@link #draw(GL2ES2, RegionRenderer, int[])}
+     * until it returns true, signaling user initialization is completed.
+     * </p>
+     * @param l callback, which shall return true signaling user initialization is done
+     */
+    public final void onInit(final ListenerBool l) { onInitListener = l; }
     public final void onMove(final Listener l) { onMoveListener = l; }
     public final void onToggle(final Listener l) { onToggleListener = l; }
     public final void onClicked(final Listener l) { onClickedListener = l; }
@@ -473,6 +490,11 @@ public abstract class Shape {
         synchronized ( dirtySync ) {
             validate(gl);
             drawImpl0(gl, renderer, sampleCount, rgba);
+        }
+        if( null != onInitListener ) {
+            if( onInitListener.run(this) ) {
+                onInitListener = null;
+            }
         }
     }
 
