@@ -28,6 +28,7 @@
 package com.jogamp.graph.ui.shapes;
 
 import com.jogamp.opengl.GL2ES2;
+import com.jogamp.common.av.AudioSink;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.GraphShape;
@@ -83,6 +84,8 @@ public class MediaButton extends TexSeqButton {
     }
 
     public final GLMediaPlayer getGLMediaPlayer() { return (GLMediaPlayer)texSeq; }
+
+    public final AudioSink getAudioSink() { return getGLMediaPlayer().getAudioSink(); }
 
     private final GLMediaEventListener defGLMediaEventListener = new GLMediaEventListener() {
             @Override
