@@ -96,6 +96,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private int textureInternalFormat;
     private int textureType;
     private int texUnit;
+    private int userMaxChannels = -1; // not set
 
     private int textureFragmentShaderHashCode;
 
@@ -246,6 +247,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public final void setTextureWrapST(final int[] wrapST) { texWrapST[0] = wrapST[0]; texWrapST[1] = wrapST[1];}
     @Override
     public final int[] getTextureWrapST() { return texWrapST; }
+
+    @Override
+    public final void setAudioChannelLimit(final int cc) {
+        userMaxChannels = Math.min(8, Math.max(1, cc));
+    }
+    protected int getAudioChannelLimit() { return userMaxChannels; }
 
     @Override
     public String getRequiredExtensionsShaderStub() {

@@ -35,6 +35,7 @@ import jogamp.opengl.Debug;
 
 import java.util.List;
 
+import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
 import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.common.net.Uri;
@@ -417,6 +418,20 @@ public interface GLMediaPlayer extends TextureSequence {
     public void setTextureMinMagFilter(int[] minMagFilter);
     /** Sets the texture min-mag filter, defaults to {@link GL#GL_CLAMP_TO_EDGE}. */
     public void setTextureWrapST(int[] wrapST);
+
+    /**
+     * Limit maximum supported audio channels by user.
+     * <p>
+     * Must be set before {@link #playStream(Uri, int, int, int)}
+     * </p>
+     * <p>
+     * May be utilized to enforce 1 channel (mono) downsampling
+     * in combination with JOAL/OpenAL to experience spatial 3D position effects.
+     * </p>
+     * @param cc maximum supported audio channels, will be clipped [1..x], with x being the underlying audio subsystem's maximum
+     * @see #playStream(Uri, int, int, int)
+     */
+    public void setAudioChannelLimit(final int cc);
 
     /**
      * Issues asynchronous stream initialization.

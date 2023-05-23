@@ -346,6 +346,12 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         } else {
             audioSink = AudioSinkFactory.createDefault(FFMPEGMediaPlayer.class.getClassLoader());
         }
+        {
+            final int audioChannelLimit = getAudioChannelLimit();
+            if( audioChannelLimit >= 1 ) {
+                audioSink.setChannelLimit(audioChannelLimit);
+            }
+        }
         final AudioFormat preferredAudioFormat = audioSink.getPreferredFormat();
         if(DEBUG) {
             System.err.println("initStream: p2 aid "+aid+", preferred "+preferredAudioFormat+" on "+audioSink+", "+this);
@@ -385,7 +391,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         } else {
             resStreamLocS = streamLocS;
         }
-        final int aMaxChannelCount = audioSink.getMaxSupportedChannels();
+        final int aMaxChannelCount = preferredAudioFormat.channelCount;
         final int aPrefSampleRate = preferredAudioFormat.sampleRate;
          // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
         if(DEBUG) {
