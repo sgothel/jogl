@@ -336,6 +336,12 @@
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux" />
     </target>
 
+    <target name="c.configure.linux.riscv64" if="isLinuxRiscV64">
+      <echo message="Linux.RISCV64" />
+      <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.os"                    value="linker.cfg.linux" />
+    </target>
+
     <target name="c.configure.linux.s390" if="isLinuxs390">
       <echo message="Linux.S390" />
       <property name="compiler.cfg.id"                     value="compiler.cfg.linux" />
@@ -348,7 +354,7 @@
       <property name="linker.cfg.id.os"                    value="linker.cfg.linux" />
     </target>
 
-    <target name="c.configure.linux" depends="c.configure.linux.armv6,c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.x11" if="isLinux" />
+    <target name="c.configure.linux" depends="c.configure.linux.armv6,c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.riscv64,c.configure.linux.s390,c.configure.linux.sparc,c.configure.x11" if="isLinux" />
 
     <target name="c.configure.android" if="isAndroid">
       <echo message="Android" />
