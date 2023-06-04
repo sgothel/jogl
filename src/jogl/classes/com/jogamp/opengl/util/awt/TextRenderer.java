@@ -42,6 +42,8 @@ package com.jogamp.opengl.util.awt;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.nativewindow.NativeSurface;
+import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.packrect.*;
 import com.jogamp.opengl.util.texture.*;
@@ -291,7 +293,18 @@ public class TextRenderer {
     public TextRenderer(final Font font, final boolean antialiased,
                         final boolean useFractionalMetrics, RenderDelegate renderDelegate,
                         final boolean mipmap) {
-        this.font = font;
+       
+    	NativeSurface surface = GLContext.getCurrent().getGLDrawable().getNativeSurface();
+        if (surface instanceof ScalableSurface) {
+        	// DPI scaling for surface
+        	float[] surfaceScale = new float[2];
+        	((ScalableSurface) surface).getCurrentSurfaceScale(surfaceScale);
+        	float newSize = font.getSize() * surfaceScale[0];
+        	this.font = font.deriveFont(newSize);
+        } else {
+        	this.font = font;
+        }
+
         this.antialiased = antialiased;
         this.useFractionalMetrics = useFractionalMetrics;
         this.mipmap = mipmap;
