@@ -783,6 +783,16 @@
       <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.newt.drm"/>
     </target>
 
+    <target name="c.configure.linux.ppc64le" if="isLinuxPpc64le">
+      <echo message="Linux.ppc64le" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.newt.x11"
+                                                            else="linker.cfg.linux">
+          <isset property="isX11" />
+      </condition>
+      <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.newt.drm"/>
+    </target>
+
     <target name="c.configure.linux.riscv64" if="isLinuxRiscV64">
       <echo message="Linux.riscv64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
@@ -820,7 +830,7 @@
       <property name="linker.cfg.id.drm"                    value="linker.cfg.linux.newt.drm"/>
     </target>
 
-    <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.armv6,c.configure.linux.aarch64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.riscv64,c.configure.linux.s390,c.configure.linux.sparc,c.configure.linux.ia64,c.configure.x11" if="isLinux"/>
+    <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.armv6,c.configure.linux.aarch64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.ppc64le,c.configure.linux.riscv64,c.configure.linux.s390,c.configure.linux.sparc,c.configure.linux.ia64,c.configure.x11" if="isLinux"/>
 
     <target name="c.configure.android" if="isAndroid">
       <echo message="Android" />
