@@ -45,7 +45,7 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetFBConfigAttributes(JNIEnv *env, j
  *     C function: XVisualInfo *  glXGetVisualFromFBConfig(Display *  dpy, GLXFBConfig config);
  */
 JNIEXPORT jobject JNICALL 
-Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetVisualFromFBConfig(JNIEnv *env, jclass _unused, jlong dpy, jlong config, jlong procAddress) {
+Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetVisualFromFBConfig(JNIEnv *env, jclass _unused, jclass clazzBuffers, jlong dpy, jlong config, jlong procAddress) {
   typedef XVisualInfo* (APIENTRY*_local_PFNGLXGETVISUALFROMFBCONFIG)(Display *  dpy, GLXFBConfig config);
   _local_PFNGLXGETVISUALFROMFBCONFIG ptr_glXGetVisualFromFBConfig;
   XVisualInfo *  _res;
@@ -55,7 +55,7 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetVisualFromFBConfig(JNIEnv *env, j
   _res = (* ptr_glXGetVisualFromFBConfig) ((Display *) (intptr_t) dpy, (GLXFBConfig) (intptr_t) config);
   if (_res == NULL) return NULL;
 
-  jbyteCopy   = JVMUtil_NewDirectByteBufferCopy(env, _res, sizeof(XVisualInfo));
+  jbyteCopy   = JVMUtil_NewDirectByteBufferCopy(env, clazzBuffers, _res, sizeof(XVisualInfo));
   XFree(_res);
 
   return jbyteCopy;
@@ -67,7 +67,7 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetVisualFromFBConfig(JNIEnv *env, j
  *     C function: GLXFBConfig *  glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems);
  */
 JNIEXPORT jobject JNICALL 
-Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseFBConfig(JNIEnv *env, jclass _unused, jlong dpy, jint screen, jobject attribList, jint attribList_byte_offset, jobject nitems, jint nitems_byte_offset, jlong procAddress) {
+Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseFBConfig(JNIEnv *env, jclass _unused, jclass clazzBuffers, jlong dpy, jint screen, jobject attribList, jint attribList_byte_offset, jobject nitems, jint nitems_byte_offset, jlong procAddress) {
   typedef GLXFBConfig *  (APIENTRY*_local_PFNGLXCHOOSEFBCONFIGPROC)(Display *  dpy, int screen, const int *  attribList, int *  nitems);
   _local_PFNGLXCHOOSEFBCONFIGPROC ptr_glXChooseFBConfig;
   int * _attribList_ptr = NULL;
@@ -105,7 +105,7 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseFBConfig(JNIEnv *env, jclass _
   }
   // fprintf(stderr, "glXChooseFBConfig.X: Count %d\n", count);
 
-  jbyteCopy   = JVMUtil_NewDirectByteBufferCopy(env, _res, count * sizeof(GLXFBConfig));
+  jbyteCopy   = JVMUtil_NewDirectByteBufferCopy(env, clazzBuffers, _res, count * sizeof(GLXFBConfig));
   XFree(_res);
 
   return jbyteCopy;
@@ -117,7 +117,7 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseFBConfig(JNIEnv *env, jclass _
  *     C function: GLXFBConfig *  glXGetFBConfigs(Display *  dpy, int screen, int *  nelements);
  */
 JNIEXPORT jobject JNICALL 
-Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetFBConfigs(JNIEnv *env, jclass _unused, jlong dpy, jint screen, jobject nelements, jint nelements_byte_offset, jlong procAddress) {
+Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetFBConfigs(JNIEnv *env, jclass _unused, jclass clazzBuffers, jlong dpy, jint screen, jobject nelements, jint nelements_byte_offset, jlong procAddress) {
   typedef GLXFBConfig *  (APIENTRY*_local_PFNGLXGETFBCONFIGSPROC)(Display *  dpy, int screen, int *  nelements);
   _local_PFNGLXGETFBCONFIGSPROC ptr_glXGetFBConfigs;
   int * _nelements_ptr = NULL;
@@ -149,7 +149,7 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetFBConfigs(JNIEnv *env, jclass _un
     }
   }
 
-  jbyteCopy   = JVMUtil_NewDirectByteBufferCopy(env, _res, count * sizeof(GLXFBConfig));
+  jbyteCopy   = JVMUtil_NewDirectByteBufferCopy(env, clazzBuffers, _res, count * sizeof(GLXFBConfig));
   XFree(_res);
 
   return jbyteCopy;
@@ -162,7 +162,7 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXGetFBConfigs(JNIEnv *env, jclass _un
  *     C function: XVisualInfo *  glXChooseVisual(Display *  dpy, int screen, int *  attribList);
  */
 JNIEXPORT jobject JNICALL 
-Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseVisual(JNIEnv *env, jclass _unused, jlong dpy, jint screen, jobject attribList, jint attribList_byte_offset, jlong procAddress) {
+Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseVisual(JNIEnv *env, jclass _unused, jclass clazzBuffers, jlong dpy, jint screen, jobject attribList, jint attribList_byte_offset, jlong procAddress) {
   typedef XVisualInfo *  (APIENTRY*_local_PFNGLXCHOOSEVISUALPROC)(Display *  dpy, int screen, int *  attribList);
   _local_PFNGLXCHOOSEVISUALPROC ptr_glXChooseVisual;
   int * _attribList_ptr = NULL;
@@ -176,7 +176,7 @@ Java_jogamp_opengl_x11_glx_GLX_dispatch_1glXChooseVisual(JNIEnv *env, jclass _un
   _res = (* ptr_glXChooseVisual) ((Display *) (intptr_t) dpy, (int) screen, (int *) _attribList_ptr);
   if (NULL == _res) return NULL;
 
-  jbyteCopy   = JVMUtil_NewDirectByteBufferCopy(env, _res, sizeof(XVisualInfo));
+  jbyteCopy   = JVMUtil_NewDirectByteBufferCopy(env, clazzBuffers, _res, sizeof(XVisualInfo));
   XFree(_res);
 
   return jbyteCopy;

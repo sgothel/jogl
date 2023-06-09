@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -45,6 +45,7 @@ import com.jogamp.gluegen.ConstantDefinition;
 import com.jogamp.gluegen.FunctionEmitter;
 import com.jogamp.gluegen.GlueEmitterControls;
 import com.jogamp.gluegen.GlueGen;
+import com.jogamp.gluegen.JavaCodeUnit;
 import com.jogamp.gluegen.JavaConfiguration;
 import com.jogamp.gluegen.JavaEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
@@ -58,7 +59,6 @@ import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
 import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -497,85 +497,84 @@ public class GLEmitter extends ProcAddressEmitter {
      */
     @Override
     protected void endProcAddressTable() throws Exception {
-        final PrintWriter w = tableWriter;
+        final JavaCodeUnit u = tableJavaUnit;
 
-        w.println("  @Override");
-        w.println("  protected boolean isFunctionAvailableImpl(String functionNameUsr) throws IllegalArgumentException  {");
-        w.println("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
-        w.println("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
-        w.println("    final int funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
-        w.println("    final java.lang.reflect.Field addressField = com.jogamp.common.util.SecurityUtil.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
-        w.println("        public final java.lang.reflect.Field run() {");
-        w.println("            java.lang.reflect.Field addressField = null;");
-        w.println("            for(int i = 0; i < funcNamePermNum; i++) {");
-        w.println("                final String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
-        w.println("                try {");
-        w.println("                    addressField = "+tableClassName+".class.getDeclaredField( addressFieldName );");
-        w.println("                    addressField.setAccessible(true); // we need to read the protected value!");
-        w.println("                    return addressField;");
-        w.println("                } catch (NoSuchFieldException ex) { }");
-        w.println("            }");
-        w.println("            return null;");
-        w.println("        } } );");
-        w.println();
-        w.println("    if(null==addressField) {");
-        w.println("      // The user is calling a bogus function or one which is not");
-        w.println("      // runtime linked");
-        w.println("      throw new RuntimeException(");
-        w.println("          \"WARNING: Address field query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
-        w.println("          \"\\\"; it's either statically linked or address field is not a known \" +");
-        w.println("          \"function\");");
-        w.println("    } ");
-        w.println("    try {");
-        w.println("      return 0 != addressField.getLong(this);");
-        w.println("    } catch (Exception e) {");
-        w.println("      throw new RuntimeException(");
-        w.println("          \"WARNING: Address query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
-        w.println("          \"\\\"; it's either statically linked or is not a known \" +");
-        w.println("          \"function\", e);");
-        w.println("    }");
-        w.println("  }");
+        u.emitln("  @Override");
+        u.emitln("  protected boolean isFunctionAvailableImpl(String functionNameUsr) throws IllegalArgumentException  {");
+        u.emitln("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
+        u.emitln("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
+        u.emitln("    final int funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
+        u.emitln("    final java.lang.reflect.Field addressField = com.jogamp.common.util.SecurityUtil.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
+        u.emitln("        public final java.lang.reflect.Field run() {");
+        u.emitln("            java.lang.reflect.Field addressField = null;");
+        u.emitln("            for(int i = 0; i < funcNamePermNum; i++) {");
+        u.emitln("                final String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
+        u.emitln("                try {");
+        u.emitln("                    addressField = "+tableClassName+".class.getDeclaredField( addressFieldName );");
+        u.emitln("                    addressField.setAccessible(true); // we need to read the protected value!");
+        u.emitln("                    return addressField;");
+        u.emitln("                } catch (NoSuchFieldException ex) { }");
+        u.emitln("            }");
+        u.emitln("            return null;");
+        u.emitln("        } } );");
+        u.emitln();
+        u.emitln("    if(null==addressField) {");
+        u.emitln("      // The user is calling a bogus function or one which is not");
+        u.emitln("      // runtime linked");
+        u.emitln("      throw new RuntimeException(");
+        u.emitln("          \"WARNING: Address field query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
+        u.emitln("          \"\\\"; it's either statically linked or address field is not a known \" +");
+        u.emitln("          \"function\");");
+        u.emitln("    } ");
+        u.emitln("    try {");
+        u.emitln("      return 0 != addressField.getLong(this);");
+        u.emitln("    } catch (Exception e) {");
+        u.emitln("      throw new RuntimeException(");
+        u.emitln("          \"WARNING: Address query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
+        u.emitln("          \"\\\"; it's either statically linked or is not a known \" +");
+        u.emitln("          \"function\", e);");
+        u.emitln("    }");
+        u.emitln("  }");
 
-        w.println("  @Override");
-        w.println("  public long getAddressFor(String functionNameUsr) throws SecurityException, IllegalArgumentException {");
-        w.println("    SecurityUtil.checkAllLinkPermission();");
-        w.println("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
-        w.println("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
-        w.println("    final int  funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
-        w.println("    final java.lang.reflect.Field addressField = com.jogamp.common.util.SecurityUtil.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
-        w.println("        public final java.lang.reflect.Field run() {");
-        w.println("            java.lang.reflect.Field addressField = null;");
-        w.println("            for(int i = 0; i < funcNamePermNum; i++) {");
-        w.println("                final String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
-        w.println("                try {");
-        w.println("                    addressField = "+tableClassName+".class.getDeclaredField( addressFieldName );");
-        w.println("                    addressField.setAccessible(true); // we need to read the protected value!");
-        w.println("                    return addressField;");
-        w.println("                } catch (NoSuchFieldException ex) { }");
-        w.println("            }");
-        w.println("            return null;");
-        w.println("        } } );");
-        w.println();
-        w.println("    if(null==addressField) {");
-        w.println("      // The user is calling a bogus function or one which is not");
-        w.println("      // runtime linked");
-        w.println("      throw new RuntimeException(");
-        w.println("          \"WARNING: Address field query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
-        w.println("          \"\\\"; it's either statically linked or address field is not a known \" +");
-        w.println("          \"function\");");
-        w.println("    } ");
-        w.println("    try {");
-        w.println("      return addressField.getLong(this);");
-        w.println("    } catch (Exception e) {");
-        w.println("      throw new RuntimeException(");
-        w.println("          \"WARNING: Address query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
-        w.println("          \"\\\"; it's either statically linked or is not a known \" +");
-        w.println("          \"function\", e);");
-        w.println("    }");
-        w.println("  }");
+        u.emitln("  @Override");
+        u.emitln("  public long getAddressFor(String functionNameUsr) throws SecurityException, IllegalArgumentException {");
+        u.emitln("    SecurityUtil.checkAllLinkPermission();");
+        u.emitln("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
+        u.emitln("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
+        u.emitln("    final int  funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
+        u.emitln("    final java.lang.reflect.Field addressField = com.jogamp.common.util.SecurityUtil.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
+        u.emitln("        public final java.lang.reflect.Field run() {");
+        u.emitln("            java.lang.reflect.Field addressField = null;");
+        u.emitln("            for(int i = 0; i < funcNamePermNum; i++) {");
+        u.emitln("                final String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
+        u.emitln("                try {");
+        u.emitln("                    addressField = "+tableClassName+".class.getDeclaredField( addressFieldName );");
+        u.emitln("                    addressField.setAccessible(true); // we need to read the protected value!");
+        u.emitln("                    return addressField;");
+        u.emitln("                } catch (NoSuchFieldException ex) { }");
+        u.emitln("            }");
+        u.emitln("            return null;");
+        u.emitln("        } } );");
+        u.emitln();
+        u.emitln("    if(null==addressField) {");
+        u.emitln("      // The user is calling a bogus function or one which is not");
+        u.emitln("      // runtime linked");
+        u.emitln("      throw new RuntimeException(");
+        u.emitln("          \"WARNING: Address field query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
+        u.emitln("          \"\\\"; it's either statically linked or address field is not a known \" +");
+        u.emitln("          \"function\");");
+        u.emitln("    } ");
+        u.emitln("    try {");
+        u.emitln("      return addressField.getLong(this);");
+        u.emitln("    } catch (Exception e) {");
+        u.emitln("      throw new RuntimeException(");
+        u.emitln("          \"WARNING: Address query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
+        u.emitln("          \"\\\"; it's either statically linked or is not a known \" +");
+        u.emitln("          \"function\", e);");
+        u.emitln("    }");
+        u.emitln("  }");
 
-        w.println("} // end of class " + tableClassName);
-        w.flush();
-        w.close();
+        u.emitln("} // end of class " + tableClassName);
+        u.close();
     }
 }

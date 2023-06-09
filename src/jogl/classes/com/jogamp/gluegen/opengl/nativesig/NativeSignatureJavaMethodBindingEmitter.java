@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -49,8 +49,6 @@ import com.jogamp.gluegen.opengl.GLEmitter;
 import com.jogamp.gluegen.opengl.GLJavaMethodBindingEmitter;
 import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
 
-import java.io.PrintWriter;
-
 /** Review: This Package/Class is not used and subject to be deleted. */
 public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBindingEmitter {
 
@@ -67,35 +65,35 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
   }
 
     @Override
-  protected void emitSignature(final PrintWriter writer) {
-    writer.print(getBaseIndentString());
-    emitNativeSignatureAnnotation(writer);
-    super.emitSignature(writer);
+  protected void emitSignature() {
+    unit.emit(getBaseIndentString());
+    emitNativeSignatureAnnotation();
+    super.emitSignature();
   }
 
-  protected void emitNativeSignatureAnnotation(final PrintWriter writer) {
+  protected void emitNativeSignatureAnnotation() {
     if (hasModifier(JavaMethodBindingEmitter.NATIVE)) {
       // Emit everything as a leaf for now
       // FIXME: make this configurable
-      writer.print("@NativeSignature(\"l");
+      unit.emit("@NativeSignature(\"l");
       final MethodBinding binding = getBinding();
       if (callThroughProcAddress) {
-        writer.print("p");
+        unit.emit("p");
       }
-      writer.print("(");
+      unit.emit("(");
       if (callThroughProcAddress) {
-        writer.print("P");
+        unit.emit("P");
       }
       for (int i = 0; i < binding.getNumArguments(); i++) {
-        emitNativeSignatureElement(writer, binding.getJavaArgumentType(i), binding.getCArgumentType(i), i);
+        emitNativeSignatureElement(binding.getJavaArgumentType(i), binding.getCArgumentType(i), i);
       }
-      writer.print(")");
-      emitNativeSignatureElement(writer, binding.getJavaReturnType(), binding.getCReturnType(), -1);
-      writer.println("\")");
+      unit.emit(")");
+      emitNativeSignatureElement(binding.getJavaReturnType(), binding.getCReturnType(), -1);
+      unit.emitln("\")");
     }
   }
 
-  protected void emitNativeSignatureElement(final PrintWriter writer, final JavaType type, final Type cType, final int index) {
+  protected void emitNativeSignatureElement(final JavaType type, final Type cType, final int index) {
     if (type.isVoid()) {
       if (index > 0) {
         throw new InternalError("Error parsing arguments -- void should not be seen aside from argument 0");
@@ -104,29 +102,29 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     }
 
     if (type.isNIOBuffer()) {
-      writer.print("A");
+      unit.emit("A");
     } else if (type.isPrimitiveArray()) {
-      writer.print("MO");
+      unit.emit("MO");
     } else if (type.isPrimitive()) {
       final Class<?> clazz = type.getJavaClass();
-      if      (clazz == Byte.TYPE)      { writer.print("B"); }
-      else if (clazz == Character.TYPE) { writer.print("C"); }
-      else if (clazz == Double.TYPE)    { writer.print("D"); }
-      else if (clazz == Float.TYPE)     { writer.print("F"); }
-      else if (clazz == Integer.TYPE)   { writer.print("I"); }
+      if      (clazz == Byte.TYPE)      { unit.emit("B"); }
+      else if (clazz == Character.TYPE) { unit.emit("C"); }
+      else if (clazz == Double.TYPE)    { unit.emit("D"); }
+      else if (clazz == Float.TYPE)     { unit.emit("F"); }
+      else if (clazz == Integer.TYPE)   { unit.emit("I"); }
       else if (clazz == Long.TYPE)      {
         // See if this is intended to be a pointer at the C level
         if (cType.isPointer()) {
-          writer.print("A");
+          unit.emit("A");
         } else {
-          writer.print("J");
+          unit.emit("J");
         }
       }
-      else if (clazz == Short.TYPE)     { writer.print("S"); }
-      else if (clazz == Boolean.TYPE)   { writer.print("Z"); }
+      else if (clazz == Short.TYPE)     { unit.emit("S"); }
+      else if (clazz == Boolean.TYPE)   { unit.emit("Z"); }
       else throw new InternalError("Unhandled primitive type " + clazz);
     } else if (type.isString()) {
-      writer.print("A");
+      unit.emit("A");
     } else {
       throw new RuntimeException("Type not yet handled: " + type);
     }
@@ -145,17 +143,17 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
   }
 
   @Override
-  protected void emitPreCallSetup(final MethodBinding binding, final PrintWriter writer) {
-    super.emitPreCallSetup(binding, writer);
+  protected void emitPreCallSetup(final MethodBinding binding) {
+    super.emitPreCallSetup(binding);
     for (int i = 0; i < binding.getNumArguments(); i++) {
       final JavaType type = binding.getJavaArgumentType(i);
       if (type.isNIOBuffer() && !useNIODirectOnly ) {
         // Emit declarations for variables holding primitive arrays as type Object
         // We don't know 100% sure we're going to use these at this point in the code, though
-        writer.println("  Object " + getNIOBufferArrayName(i) + " = (_direct ? null : Buffers.getArray(" +
+        unit.emitln("  Object " + getNIOBufferArrayName(i) + " = (_direct ? null : Buffers.getArray(" +
                        getArgumentName(i) + "));");
       } else if (type.isString()) {
-        writer.println("    long " + binding.getArgumentName(i) + "_c_str = BuffersInternal.newCString(" + binding.getArgumentName(i) + ");");
+        unit.emitln("    long " + binding.getArgumentName(i) + "_c_str = BuffersInternal.newCString(" + binding.getArgumentName(i) + ");");
       }
       // FIXME: going to need more of these for Buffer[] and String[], at least
     }
@@ -166,14 +164,14 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
   }
 
   @Override
-  protected int emitArguments(final PrintWriter writer)
+  protected int emitArguments()
   {
     boolean needComma = false;
     int numEmitted = 0;
 
     if (callThroughProcAddress) {
       if (changeNameAndArguments) {
-        writer.print("long procAddress");
+        unit.emit("long procAddress");
         ++numEmitted;
         needComma = true;
       }
@@ -181,12 +179,12 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
 
     if (isPrivateNativeMethod() && binding.hasContainingType()) {
       if (needComma) {
-        writer.print(", ");
+        unit.emit(", ");
       }
 
       // Always emit outgoing "this" argument
-      writer.print("long ");
-      writer.print(javaThisArgumentName());
+      unit.emit("long ");
+      unit.emit(javaThisArgumentName());
       ++numEmitted;
       needComma = true;
     }
@@ -210,20 +208,20 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       }
 
       if (needComma) {
-        writer.print(", ");
+        unit.emit(", ");
       }
 
       if (isPrivateNativeMethod() &&
           (isForDirectBufferImplementation() && type.isNIOBuffer() ||
            type.isString())) {
         // Direct Buffers and Strings go out as longs
-        writer.print("long");
+        unit.emit("long");
         // FIXME: will need more tests here to handle other constructs like String and direct Buffer arrays
       } else {
-        writer.print(erasedTypeString(type, false));
+        unit.emit(erasedTypeString(type, false));
       }
-      writer.print(" ");
-      writer.print(getArgumentName(i));
+      unit.emit(" ");
+      unit.emit(getArgumentName(i));
 
       ++numEmitted;
       needComma = true;
@@ -231,46 +229,46 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       // Add Buffer and array index offset arguments after each associated argument
       if (isForIndirectBufferAndArrayImplementation()) {
         if (type.isNIOBuffer()) {
-          writer.print(", int " + byteOffsetArgName(i));
+          unit.emit(", int " + byteOffsetArgName(i));
         } else if (type.isNIOBufferArray()) {
-          writer.print(", int[] " +
+          unit.emit(", int[] " +
                        byteOffsetArrayArgName(i));
         }
       }
 
       // Add offset argument after each primitive array
       if (type.isPrimitiveArray()) {
-        writer.print(", int " + offsetArgName(i));
+        unit.emit(", int " + offsetArgName(i));
       }
     }
     return numEmitted;
   }
 
   @Override
-  protected void emitReturnVariableSetupAndCall(final MethodBinding binding, final PrintWriter writer) {
-    writer.print("    ");
+  protected void emitReturnVariableSetupAndCall(final MethodBinding binding) {
+    unit.emit("    ");
     final JavaType returnType = binding.getJavaReturnType();
     boolean needsResultAssignment = false;
 
     if (!returnType.isVoid()) {
       if (returnType.isCompoundTypeWrapper() ||
           returnType.isNIOByteBuffer()) {
-        writer.println("final java.nio.ByteBuffer _res;");
+        unit.emitln("final java.nio.ByteBuffer _res;");
         needsResultAssignment = true;
       } else if (returnType.isArrayOfCompoundTypeWrappers()) {
-        writer.println("final java.nio.ByteBuffer[] _res;");
+        unit.emitln("final java.nio.ByteBuffer[] _res;");
         needsResultAssignment = true;
       } else if (returnType.isString() || returnType.isNIOByteBuffer()) {
-        writer.print("final ");
-        writer.print(returnType);
-        writer.println(" _res;");
+        unit.emit("final ");
+        unit.emit(returnType.toString());
+        unit.emitln(" _res;");
         needsResultAssignment = true;
       } else {
         // Always assign to "_res" variable so we can clean up
         // outgoing String arguments, for example
-        writer.print("final ");
-        emitReturnType(writer);
-        writer.println(" _res;");
+        unit.emit("final ");
+        emitReturnType();
+        unit.emitln(" _res;");
         needsResultAssignment = true;
       }
     }
@@ -278,21 +276,21 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     if (binding.signatureCanUseIndirectNIO() && !useNIODirectOnly) {
       // Must generate two calls for this gated on whether the NIO
       // buffers coming in are all direct or indirect
-      writer.println("if (_direct) {");
-      writer.print  ("    ");
+      unit.emitln("if (_direct) {");
+      unit.emit  ("    ");
     }
 
     if (needsResultAssignment) {
-      writer.print("  _res = ");
+      unit.emit("  _res = ");
       if (returnType.isString()) {
-        writer.print("BuffersInternal.newJavaString(");
+        unit.emit("BuffersInternal.newJavaString(");
       } else if (returnType.isNIOByteBuffer()) {
-        writer.print("BuffersInternal.newDirectByteBuffer(");
+        unit.emit("BuffersInternal.newDirectByteBuffer(");
       }
     } else {
-      writer.print("  ");
+      unit.emit("  ");
       if (!returnType.isVoid()) {
-        writer.print("return ");
+        unit.emit("return ");
       }
     }
 
@@ -304,48 +302,48 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
 
       // Only one call being made in this body, going to indirect
       // buffer / array entry point
-      emitCall(binding, writer);
+      emitCall(binding);
       if (returnType.isString() || returnType.isNIOByteBuffer()) {
-        writer.print(")");
+        unit.emit(")");
       }
-      writer.print(";");
-      writer.println();
+      unit.emit(";");
+      unit.emitln();
     } else {
-      emitCall(binding, writer);
+      emitCall(binding);
       if (returnType.isString() || returnType.isNIOByteBuffer()) {
-        writer.print(")");
+        unit.emit(")");
       }
-      writer.print(";");
+      unit.emit(";");
     }
 
     if (binding.signatureCanUseIndirectNIO() && !useNIODirectOnly) {
       // Must generate two calls for this gated on whether the NIO
       // buffers coming in are all direct or indirect
-      writer.println();
-      writer.println("    } else {");
-      writer.print  ("    ");
+      unit.emitln();
+      unit.emitln("    } else {");
+      unit.emit  ("    ");
       if (needsResultAssignment) {
-        writer.print("    _res = ");
+        unit.emit("    _res = ");
       } else {
-        writer.print("  ");
+        unit.emit("  ");
         if (!returnType.isVoid()) {
-          writer.print("return ");
+          unit.emit("return ");
         }
       }
-      emitCall(binding, writer);
-      writer.print(";");
-      writer.println();
-      writer.println("    }");
+      emitCall(binding);
+      unit.emit(";");
+      unit.emitln();
+      unit.emitln("    }");
     } else {
-      writer.println();
+      unit.emitln();
     }
-    emitPrologueOrEpilogue(epilogue, writer);
+    emitPrologueOrEpilogue(epilogue);
     if (needsResultAssignment) {
-      emitCallResultReturn(binding, writer);
+      emitCallResultReturn(binding);
     }
   }
 
-  protected int emitCallArguments(final MethodBinding binding, final PrintWriter writer, final boolean direct) {
+  protected int emitCallArguments(final MethodBinding binding, final boolean direct) {
     // Note that we override this completely because we both need to
     // move the potential location of the outgoing proc address as
     // well as change the way we pass out Buffers, arrays, Strings, etc.
@@ -354,7 +352,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     int numArgsEmitted = 0;
 
     if (callThroughProcAddress) {
-      writer.print("__addr_");
+      unit.emit("__addr_");
       needComma = true;
       ++numArgsEmitted;
     }
@@ -362,9 +360,9 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     if (binding.hasContainingType()) {
       // Emit this pointer
       assert(binding.getContainingType().isCompoundTypeWrapper());
-      writer.print("BuffersInternal.getDirectBufferAddress(");
-      writer.print("getBuffer()");
-      writer.print(")");
+      unit.emit("BuffersInternal.getDirectBufferAddress(");
+      unit.emit("getBuffer()");
+      unit.emit(")");
       needComma = true;
       ++numArgsEmitted;
     }
@@ -383,76 +381,76 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       }
 
       if (needComma) {
-        writer.print(", ");
+        unit.emit(", ");
       }
 
       if (type.isCompoundTypeWrapper()) {
-        writer.print("BuffersInternal.getDirectBufferAddress(");
-        writer.print("((");
+        unit.emit("BuffersInternal.getDirectBufferAddress(");
+        unit.emit("((");
       }
 
       if (type.isNIOBuffer()) {
         if (!direct) {
-          writer.print(getNIOBufferArrayName(i));
+          unit.emit(getNIOBufferArrayName(i));
         } else {
-          writer.print("BuffersInternal.getDirectBufferAddress(");
-          writer.print(getArgumentName(i));
-          writer.print(")");
+          unit.emit("BuffersInternal.getDirectBufferAddress(");
+          unit.emit(getArgumentName(i));
+          unit.emit(")");
         }
       } else {
-        writer.print(getArgumentName(i));
+        unit.emit(getArgumentName(i));
       }
 
       if (type.isCompoundTypeWrapper()) {
-        writer.print(" == null) ? null : ");
-        writer.print(getArgumentName(i));
-        writer.print(".getBuffer())");
-        writer.print(")");
+        unit.emit(" == null) ? null : ");
+        unit.emit(getArgumentName(i));
+        unit.emit(".getBuffer())");
+        unit.emit(")");
       }
 
       if (type.isNIOBuffer()) {
         if (direct) {
-          writer.print("+ Buffers.getDirectBufferByteOffset(" + getArgumentName(i) + ")");
+          unit.emit("+ Buffers.getDirectBufferByteOffset(" + getArgumentName(i) + ")");
         } else {
-          writer.print(", BuffersInternal.arrayBaseOffset(" +
+          unit.emit(", BuffersInternal.arrayBaseOffset(" +
                        getNIOBufferArrayName(i) +
                        ") + Buffers.getIndirectBufferByteOffset(" + getArgumentName(i) + ")");
         }
       } else if (type.isNIOBufferArray()) {
-        writer.print(", " + byteOffsetArrayArgName(i));
+        unit.emit(", " + byteOffsetArrayArgName(i));
       }
 
       // Add Array offset parameter for primitive arrays
       if (type.isPrimitiveArray()) {
-        writer.print(", ");
-        writer.print("BuffersInternal.arrayBaseOffset(" + getArgumentName(i) + ") + ");
+        unit.emit(", ");
+        unit.emit("BuffersInternal.arrayBaseOffset(" + getArgumentName(i) + ") + ");
         if(type.isFloatArray()) {
-          writer.print("Buffers.SIZEOF_FLOAT * ");
+          unit.emit("Buffers.SIZEOF_FLOAT * ");
         } else if(type.isDoubleArray()) {
-          writer.print("Buffers.SIZEOF_DOUBLE * ");
+          unit.emit("Buffers.SIZEOF_DOUBLE * ");
         } else if(type.isByteArray()) {
-          writer.print("1 * ");
+          unit.emit("1 * ");
         } else if(type.isLongArray()) {
-          writer.print("Buffers.SIZEOF_LONG * ");
+          unit.emit("Buffers.SIZEOF_LONG * ");
         } else if(type.isShortArray()) {
-          writer.print("Buffers.SIZEOF_SHORT * ");
+          unit.emit("Buffers.SIZEOF_SHORT * ");
         } else if(type.isIntArray()) {
-          writer.print("Buffers.SIZEOF_INT * ");
+          unit.emit("Buffers.SIZEOF_INT * ");
         } else {
           throw new GlueGenException("Unsupported type for calculating array offset argument for " +
                                      getArgumentName(i) +
                                      "-- error occurred while processing Java glue code for " + binding.getCSymbol().getAliasedString(),
                                      binding.getCSymbol().getASTLocusTag());
         }
-        writer.print(offsetArgName(i));
+        unit.emit(offsetArgName(i));
       }
 
       if (type.isString()) {
-        writer.print("_c_str");
+        unit.emit("_c_str");
       }
 
       if (type.isCompoundTypeWrapper()) {
-        writer.print(")");
+        unit.emit(")");
       }
 
       needComma = true;
@@ -462,17 +460,17 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
   }
 
   @Override
-  protected void emitCallResultReturn(final MethodBinding binding, final PrintWriter writer) {
+  protected void emitCallResultReturn(final MethodBinding binding) {
     for (int i = 0; i < binding.getNumArguments(); i++) {
       final JavaType type = binding.getJavaArgumentType(i);
       if (type.isString()) {
-        writer.println(";");
-        writer.println("    BuffersInternal.freeCString(" + binding.getArgumentName(i) + "_c_str);");
+        unit.emitln(";");
+        unit.emitln("    BuffersInternal.freeCString(" + binding.getArgumentName(i) + "_c_str);");
       }
       // FIXME: will need more of these cleanups for things like Buffer[] and String[] (see above)
     }
 
-    super.emitCallResultReturn(binding, writer);
+    super.emitCallResultReturn(binding);
   }
 
   @Override

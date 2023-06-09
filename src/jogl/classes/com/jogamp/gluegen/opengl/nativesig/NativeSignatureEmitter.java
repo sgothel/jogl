@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,6 +39,7 @@
  */
 package com.jogamp.gluegen.opengl.nativesig;
 
+import com.jogamp.gluegen.CodeUnit;
 import com.jogamp.gluegen.FunctionEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
 import com.jogamp.gluegen.JavaType;
@@ -77,14 +78,14 @@ public class NativeSignatureEmitter extends GLEmitter {
             return res;
         }
 
-        final PrintWriter writer = (getConfig().allStatic() ? javaWriter() : javaImplWriter());
+        final CodeUnit unit = (getConfig().allStatic() ? javaUnit() : javaImplUnit());
 
         final List<FunctionEmitter> processed = new ArrayList<FunctionEmitter>();
 
         // First, filter out all emitters going to the "other" (public) writer
         for (final Iterator<? extends FunctionEmitter> iter = res.iterator(); iter.hasNext();) {
             final FunctionEmitter emitter = iter.next();
-            if (emitter.getDefaultOutput() != writer) {
+            if (emitter.getUnit() != unit) {
                 processed.add(emitter);
                 iter.remove();
             }
@@ -116,7 +117,7 @@ public class NativeSignatureEmitter extends GLEmitter {
             return;
         }
 
-        final PrintWriter writer = (getConfig().allStatic() ? javaWriter() : javaImplWriter());
+        final CodeUnit unit = (getConfig().allStatic() ? javaUnit() : javaImplUnit());
 
         // Give ourselves the chance to interpose on the generation of all code to keep things simple
         final List<JavaMethodBindingEmitter> newEmitters = new ArrayList<JavaMethodBindingEmitter>();
@@ -137,7 +138,7 @@ public class NativeSignatureEmitter extends GLEmitter {
         // been called with signatureOnly both true and false.
         if (signatureContainsStrings(binding) && !haveEmitterWithBody(allEmitters)) {
             // This basically handles glGetString but also any similar methods
-            final NativeSignatureJavaMethodBindingEmitter javaEmitter = findEmitterWithWriter(allEmitters, writer);
+            final NativeSignatureJavaMethodBindingEmitter javaEmitter = findEmitterWithUnit(allEmitters, unit);
 
             // First, we need to clone this emitter to produce the native
             // entry point
@@ -180,10 +181,10 @@ public class NativeSignatureEmitter extends GLEmitter {
         return false;
     }
 
-    protected NativeSignatureJavaMethodBindingEmitter findEmitterWithWriter(final List<JavaMethodBindingEmitter> allEmitters, final PrintWriter writer) {
+    protected NativeSignatureJavaMethodBindingEmitter findEmitterWithUnit(final List<JavaMethodBindingEmitter> allEmitters, final CodeUnit unit) {
         for (final JavaMethodBindingEmitter jemitter : allEmitters) {
             final NativeSignatureJavaMethodBindingEmitter emitter = (NativeSignatureJavaMethodBindingEmitter)jemitter;
-            if (emitter.getDefaultOutput() == writer) {
+            if (emitter.getUnit() == unit) {
                 return emitter;
             }
         }
