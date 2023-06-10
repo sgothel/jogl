@@ -62,22 +62,15 @@ Bottom line, too much work has been performed to be listed here.
 However, let's have a few sentimental points listed and we may add a few more as we go.
 
 ### *OpenGL™ for Java™ (GL4Java)*
-[*OpenGL™ for Java™ (GL4Java)*](https://jogamp.org/cgit/gl4java.git/about/)
-was developed [from March 1997](https://jausoft.com/gl4java/docs/overview/history.html) 
-until [March 2003](https://jogamp.org/cgit/gl4java.git/log/).
-
-Its many concepts were reused in the subsequently launched [JOGL project](https://jogamp.org/jogl/www/),    
-initially [lead by Sun Microsystems](#gluegen-joal-and-jogl-at-sun-microsystems) and later run by [myself and the JogAmp community](https://jogamp.org/),    
-rendering *GL4Java* effectively *JOGL's* predecessor.    
-A few of the concepts reused were:
+[*OpenGL™ for Java™ (GL4Java)*](https://jogamp.org/cgit/gl4java.git/about/) was developed by Sven Gothel [from March 1997](https://jausoft.com/gl4java/docs/overview/history.html) 
+until [March 2003](https://jogamp.org/cgit/gl4java.git/log/).    
+Its concepts were reused in the subsequently launched [JOGL project](https://jogamp.org/jogl/www/)    
+initially [lead by Sun Microsystems](#gluegen-joal-and-jogl-at-sun-microsystems) and later by [the JogAmp community](https://jogamp.org/),    
+rendering *GL4Java* effectively *JOGL's* predecessor.  A few of the concepts reused were:
 - C-Header Compiler to JNI glue code: C2J -> GlueGen
 - AWT integration: GLCanvas, GLJPanel (swing)
 - WinHandleAccess -> NativeWindow
-- GLDrawableFactory
-- GLDrawable
-- GLContext
-- GLEvenListener
-- etc
+- GLDrawableFactory, GLDrawable, GLContext, GLEvenListener
 
 ### GlueGen, JOAL and JOGL at Sun Microsystems
 - 2003-06-06 [Initial JOGL code commit](https://jogamp.org/cgit/jogl.git/commit/?id=d49fd968963909f181423eae46c613189468fac3) 
