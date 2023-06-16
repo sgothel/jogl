@@ -62,7 +62,7 @@ Bottom line, too much work has been performed to be listed here.
 However, let's have a few sentimental points listed and we may add a few more as we go.
 
 ### *OpenGL™ for Java™ (GL4Java)*
-[*OpenGL™ for Java™ (GL4Java)*](https://jogamp.org/cgit/gl4java.git/about/) was developed by Sven Gothel [from March 1997](https://jausoft.com/gl4java/docs/overview/history.html) 
+[*OpenGL™ for Java™ (GL4Java)*](https://jogamp.org/cgit/gl4java.git/about/) was developed [from March 1997](https://jausoft.com/gl4java/docs/overview/history.html) 
 until [March 2003](https://jogamp.org/cgit/gl4java.git/log/).    
 Its concepts were reused in the subsequently launched [JOGL project](https://jogamp.org/jogl/www/)    
 initially [lead by Sun Microsystems](#gluegen-joal-and-jogl-at-sun-microsystems) and later by [the JogAmp community](https://jogamp.org/),    
@@ -122,6 +122,8 @@ rendering *GL4Java* effectively *JOGL's* predecessor.  A few of the concepts reu
 - 2023-05-06 [Supported MacOS Version](https://jogamp.org/cgit/gluegen.git/tree/doc/JogAmpMacOSVersions.md)
 - 2023-05-15 Fixed [DPI Scaling with AWT and AWT+NEWT](https://forum.jogamp.org/DPI-scaling-not-working-tp4042206p4042603.html) (JOGL)
 - 2023-05-20 [JOAL: OpenAL-Soft v1.23.1](https://openal-soft.org/), [git about](https://jogamp.org/cgit/joal.git/about/), [www face](https://jogamp.org/joal/www/).
+- 2023-06-16 [GlueGen Revised Struct Mapping](https://jogamp.org/cgit/gluegen.git/commit/?id=8b127c4c1dd26fcb1756805ddb83729203161f78), [documentation](https://jogamp.org/gluegen/doc/GlueGen_Mapping.html)
+  - 2023-06-16 Added [GlueGen git-about](https://jogamp.org/cgit/gluegen.git/about/) and updated [www face](https://jogamp.org/gluegen/www/)
 
 ### Conferences 
 - JavaOne [2002 (GL4Java)](https://jogamp.org/jogl/www/3167.pdf), [2003](https://jogamp.org/jogl/www/2125.pdf), [2004](https://jogamp.org/jogl/www/ts1361.pdf), [2006](https://jogamp.org/jogl/www/bof0899.pdf), [2007](https://jogamp.org/jogl/www/BOF-3908-JOGL-slides.pdf), [2008](https://www.youtube.com/watch?v=DeupVAMnvFA)

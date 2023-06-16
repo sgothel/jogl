@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 JogAmp Community. All rights reserved.
+ * Copyright 2019-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -136,7 +136,8 @@ public class DrmMode {
                 _connectors.toArray(res.connectors);
             }
             for(int k=0; k<res.count; k++) {
-                final drmModeModeInfo _modes[] = res.connectors[k].getModes(0, new drmModeModeInfo[res.connectors[k].getCount_modes()]);
+                final int _modeCount = res.connectors[k].getCount_modes();
+                final drmModeModeInfo _modes[] = res.connectors[k].getModes(0, new drmModeModeInfo[_modeCount], 0, _modeCount);
                 drmModeModeInfo _mode = null;
                 {
                     int maxArea = 0;
