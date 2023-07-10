@@ -101,10 +101,12 @@ rendering *GL4Java* effectively *JOGL's* predecessor.  A few of the concepts reu
   - 2011-10-05 [Paper and software release](https://jausoft.com/blog/2011/10/05/jogljogamp-red-square-moscow-nurbs-graphicon2011/) 
 - 2011-08-17 [Work on embedded devices and Android](https://jausoft.com/blog/2011/08/17/jogl-embedded-device-status-p1/) 
 - 2012-04-19 Added [streaming audio/video player, JOGL on desktop & mobile status](https://jausoft.com/blog/2012/04/19/jogljogamp-status-update/) 
+- 2013-02-20 [Java3D Continuation](https://jogamp.org/wiki/index.php?title=Java3D_Overview) and [its git repo](https://jogamp.org/cgit/java3d/)
 - 2013-07-24 First [JogAmp Release 2.0.2](https://jogamp.org/wiki/index.php?title=SW_Tracking_Report_Objectives_for_the_release_2.0.2_of_JOGL) 
 - 2015-03-11 [JogAmp Release 2.3.0](https://jogamp.org/wiki/index.php?title=SW_Tracking_Report_Objectives_for_the_release_2.3.0) 
 - 2015-10-10 [JogAmp Release 2.3.2](https://jogamp.org/wiki/index.php?title=SW_Tracking_Report_Objectives_for_the_release_2.3.2) 
 - 2015-11-08 [JOCL: OpenCL 2.0 Support](https://jogamp.org/cgit/jocl.git/commit/?id=edd9720fbb570e0fe177cc41d3612084ea8a7b17)
+- 2018-01-28 [Ardor3D Continuation](https://jogamp.org/wiki/index.php?title=Ardor3D_Overview) and [its git repo](https://jogamp.org/cgit/ardor3d.git/)
 - JogAmp on iOS 
   - 2019-06-23 [First iOS Visuals](https://jausoft.com/blog/2019/06/23/jogamp-ios-arm64-port-first-visuals/), running on my [own custom OpenJDK build](https://jausoft.com/blog/2019/06/17/jogamp-ios-arm64-bring-up/) 
   - 2019-07-08 Fully working [NEWT + JOGL on iOS](https://jausoft.com/blog/2019/07/08/jogamp-ios-arm64-port-newt/) 
@@ -122,8 +124,10 @@ rendering *GL4Java* effectively *JOGL's* predecessor.  A few of the concepts reu
 - 2023-05-06 [Supported MacOS Version](https://jogamp.org/cgit/gluegen.git/tree/doc/JogAmpMacOSVersions.md)
 - 2023-05-15 Fixed [DPI Scaling with AWT and AWT+NEWT](https://forum.jogamp.org/DPI-scaling-not-working-tp4042206p4042603.html) (JOGL)
 - 2023-05-20 [JOAL: OpenAL-Soft v1.23.1](https://openal-soft.org/), [git about](https://jogamp.org/cgit/joal.git/about/), [www face](https://jogamp.org/joal/www/).
-- 2023-06-16 [GlueGen Revised Struct Mapping](https://jogamp.org/cgit/gluegen.git/commit/?id=8b127c4c1dd26fcb1756805ddb83729203161f78), [documentation](https://jogamp.org/gluegen/doc/GlueGen_Mapping.html)
+- 2023-06-16 [GlueGen Updates](https://jogamp.org/gluegen/doc/GlueGen_Mapping.html)
+  - 2023-06-16 [GlueGen Revised Struct Mapping](https://jogamp.org/gluegen/doc/GlueGen_Mapping.html#struct-mapping)
   - 2023-06-16 Added [GlueGen git-about](https://jogamp.org/cgit/gluegen.git/about/) and updated [www face](https://jogamp.org/gluegen/www/)
+  - 2023-07-10 Added [GlueGen JavaCallback](https://jogamp.org/gluegen/doc/GlueGen_Mapping.html#java-callback) w/ `AL_SOFT_events` support in JOAL
 
 ### Conferences 
 - JavaOne [2002 (GL4Java)](https://jogamp.org/jogl/www/3167.pdf), [2003](https://jogamp.org/jogl/www/2125.pdf), [2004](https://jogamp.org/jogl/www/ts1361.pdf), [2006](https://jogamp.org/jogl/www/bof0899.pdf), [2007](https://jogamp.org/jogl/www/BOF-3908-JOGL-slides.pdf), [2008](https://www.youtube.com/watch?v=DeupVAMnvFA)
