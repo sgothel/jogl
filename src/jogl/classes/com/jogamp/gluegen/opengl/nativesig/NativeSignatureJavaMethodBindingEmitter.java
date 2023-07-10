@@ -64,36 +64,36 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     super(methodToWrap, false, null, false, false, emitter);
   }
 
-    @Override
-  protected void emitSignature() {
-    unit.emit(getBaseIndentString());
-    emitNativeSignatureAnnotation();
-    super.emitSignature();
+  @Override
+  protected StringBuilder appendSignature(final StringBuilder buf)  {
+    buf.append(getBaseIndentString());
+    appendNativeSignatureAnnotation(buf);
+    return super.appendSignature(buf);
   }
 
-  protected void emitNativeSignatureAnnotation() {
+  protected void appendNativeSignatureAnnotation(final StringBuilder buf) {
     if (hasModifier(JavaMethodBindingEmitter.NATIVE)) {
       // Emit everything as a leaf for now
       // FIXME: make this configurable
-      unit.emit("@NativeSignature(\"l");
+      buf.append("@NativeSignature(\"l");
       final MethodBinding binding = getBinding();
       if (callThroughProcAddress) {
-        unit.emit("p");
+        buf.append("p");
       }
-      unit.emit("(");
+      buf.append("(");
       if (callThroughProcAddress) {
-        unit.emit("P");
+        buf.append("P");
       }
       for (int i = 0; i < binding.getNumArguments(); i++) {
-        emitNativeSignatureElement(binding.getJavaArgumentType(i), binding.getCArgumentType(i), i);
+        appendNativeSignatureElement(buf, binding.getJavaArgumentType(i), binding.getCArgumentType(i), i);
       }
-      unit.emit(")");
-      emitNativeSignatureElement(binding.getJavaReturnType(), binding.getCReturnType(), -1);
-      unit.emitln("\")");
+      buf.append(")");
+      appendNativeSignatureElement(buf, binding.getJavaReturnType(), binding.getCReturnType(), -1);
+      buf.append("\")");
     }
   }
 
-  protected void emitNativeSignatureElement(final JavaType type, final Type cType, final int index) {
+  protected void appendNativeSignatureElement(final StringBuilder buf, final JavaType type, final Type cType, final int index) {
     if (type.isVoid()) {
       if (index > 0) {
         throw new InternalError("Error parsing arguments -- void should not be seen aside from argument 0");
@@ -102,29 +102,29 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     }
 
     if (type.isNIOBuffer()) {
-      unit.emit("A");
+      buf.append("A");
     } else if (type.isPrimitiveArray()) {
-      unit.emit("MO");
+      buf.append("MO");
     } else if (type.isPrimitive()) {
       final Class<?> clazz = type.getJavaClass();
-      if      (clazz == Byte.TYPE)      { unit.emit("B"); }
-      else if (clazz == Character.TYPE) { unit.emit("C"); }
-      else if (clazz == Double.TYPE)    { unit.emit("D"); }
-      else if (clazz == Float.TYPE)     { unit.emit("F"); }
-      else if (clazz == Integer.TYPE)   { unit.emit("I"); }
+      if      (clazz == Byte.TYPE)      { buf.append("B"); }
+      else if (clazz == Character.TYPE) { buf.append("C"); }
+      else if (clazz == Double.TYPE)    { buf.append("D"); }
+      else if (clazz == Float.TYPE)     { buf.append("F"); }
+      else if (clazz == Integer.TYPE)   { buf.append("I"); }
       else if (clazz == Long.TYPE)      {
         // See if this is intended to be a pointer at the C level
         if (cType.isPointer()) {
-          unit.emit("A");
+          buf.append("A");
         } else {
-          unit.emit("J");
+          buf.append("J");
         }
       }
-      else if (clazz == Short.TYPE)     { unit.emit("S"); }
-      else if (clazz == Boolean.TYPE)   { unit.emit("Z"); }
+      else if (clazz == Short.TYPE)     { buf.append("S"); }
+      else if (clazz == Boolean.TYPE)   { buf.append("Z"); }
       else throw new InternalError("Unhandled primitive type " + clazz);
     } else if (type.isString()) {
-      unit.emit("A");
+      buf.append("A");
     } else {
       throw new RuntimeException("Type not yet handled: " + type);
     }
@@ -164,14 +164,13 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
   }
 
   @Override
-  protected int emitArguments()
-  {
+  protected int appendArguments(final StringBuilder buf) {
     boolean needComma = false;
     int numEmitted = 0;
 
     if (callThroughProcAddress) {
       if (changeNameAndArguments) {
-        unit.emit("long procAddress");
+        buf.append("long procAddress");
         ++numEmitted;
         needComma = true;
       }
@@ -179,12 +178,12 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
 
     if (isPrivateNativeMethod() && binding.hasContainingType()) {
       if (needComma) {
-        unit.emit(", ");
+        buf.append(", ");
       }
 
       // Always emit outgoing "this" argument
-      unit.emit("long ");
-      unit.emit(javaThisArgumentName());
+      buf.append("long ");
+      buf.append(javaThisArgumentName());
       ++numEmitted;
       needComma = true;
     }
@@ -208,20 +207,20 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       }
 
       if (needComma) {
-        unit.emit(", ");
+        buf.append(", ");
       }
 
       if (isPrivateNativeMethod() &&
           (isForDirectBufferImplementation() && type.isNIOBuffer() ||
            type.isString())) {
         // Direct Buffers and Strings go out as longs
-        unit.emit("long");
+        buf.append("long");
         // FIXME: will need more tests here to handle other constructs like String and direct Buffer arrays
       } else {
-        unit.emit(erasedTypeString(type, false));
+        buf.append(erasedTypeString(type, false));
       }
-      unit.emit(" ");
-      unit.emit(getArgumentName(i));
+      buf.append(" ");
+      buf.append(getArgumentName(i));
 
       ++numEmitted;
       needComma = true;
@@ -229,16 +228,16 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       // Add Buffer and array index offset arguments after each associated argument
       if (isForIndirectBufferAndArrayImplementation()) {
         if (type.isNIOBuffer()) {
-          unit.emit(", int " + byteOffsetArgName(i));
+          buf.append(", int " + byteOffsetArgName(i));
         } else if (type.isNIOBufferArray()) {
-          unit.emit(", int[] " +
+          buf.append(", int[] " +
                        byteOffsetArrayArgName(i));
         }
       }
 
       // Add offset argument after each primitive array
       if (type.isPrimitiveArray()) {
-        unit.emit(", int " + offsetArgName(i));
+        buf.append(", int " + offsetArgName(i));
       }
     }
     return numEmitted;
