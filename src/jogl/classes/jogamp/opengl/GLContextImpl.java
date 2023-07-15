@@ -2938,6 +2938,8 @@ public abstract class GLContextImpl extends GLContext {
   @Override
   public final int getDefaultReadFramebuffer() { return drawable.getDefaultReadFramebuffer(); }
   @Override
+  public final int getDefaultDrawBuffer() { return drawable.getDefaultDrawBuffer(gl); }
+  @Override
   public final int getDefaultReadBuffer() { return drawable.getDefaultReadBuffer(gl, drawableRead != drawable); }
 
   //---------------------------------------------------------------------------

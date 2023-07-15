@@ -257,6 +257,17 @@ public abstract class GLDrawableImpl implements GLDrawable {
   protected int getDefaultDrawFramebuffer() { return 0; }
   /** Callback for special implementations, allowing GLContext to fetch a custom default read framebuffer. Defaults to zero. */
   protected int getDefaultReadFramebuffer() { return 0; }
+
+  /** Callback for special implementations, allowing GLContext to fetch a custom default draw buffer of current framebuffer. */
+  protected int getDefaultDrawBuffer(final GL gl) {
+      if( gl.isGLES() || getChosenGLCapabilities().getDoubleBuffered() ) {
+          // Note-1: Neither ES1 nor ES2 supports selecting the read buffer via glDrawBuffer
+          // Note-2: ES3 only supports GL_BACK, GL_NONE or GL_COLOR_ATTACHMENT0+i
+          return GL.GL_BACK;
+      }
+      return GL.GL_FRONT;
+  }
+
   /** Callback for special implementations, allowing GLContext to fetch a custom default read buffer of current framebuffer. */
   protected int getDefaultReadBuffer(final GL gl, final boolean hasDedicatedDrawableRead) {
       if( gl.isGLES() || hasDedicatedDrawableRead || getChosenGLCapabilities().getDoubleBuffered() ) {

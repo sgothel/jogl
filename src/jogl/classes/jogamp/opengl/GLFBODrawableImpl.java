@@ -411,6 +411,11 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     protected final int getDefaultReadFramebuffer() { return initialized ? fbos[fboIFront].getReadFramebuffer() : 0; }
 
     @Override
+    protected final int getDefaultDrawBuffer(final GL gl) {
+        return initialized ? fbos[fboIBack].getDefaultDrawBuffer() : GL.GL_COLOR_ATTACHMENT0 ;
+    }
+
+    @Override
     protected final int getDefaultReadBuffer(final GL gl, final boolean hasDedicatedDrawableRead) {
         return initialized ? fbos[fboIFront].getDefaultReadBuffer() : GL.GL_COLOR_ATTACHMENT0 ;
     }

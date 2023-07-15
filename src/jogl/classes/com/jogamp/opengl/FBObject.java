@@ -2772,7 +2772,11 @@ public class FBObject {
     public final int getReadFramebuffer() {
         return 0 < samples ? ( null != samplingSink ? samplingSink.getReadFramebuffer() : 0 ) : fbName;
     }
+
+    public final int getDefaultDrawBuffer() { return GL.GL_COLOR_ATTACHMENT0; }
+
     public final int getDefaultReadBuffer() { return GL.GL_COLOR_ATTACHMENT0; }
+
     /** Return the number of attached {@link Colorbuffer}s */
     public final int getColorbufferCount() { return colorbufferCount; }
     /** Return the number of attached {@link TextureAttachment}s */

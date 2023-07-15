@@ -124,6 +124,11 @@
     }
 
     @Override
+    public final int getDefaultDrawBuffer() {
+      return _context.getDefaultDrawBuffer();
+    }
+
+    @Override
     public final int getDefaultReadBuffer() {
       return _context.getDefaultReadBuffer();
     }

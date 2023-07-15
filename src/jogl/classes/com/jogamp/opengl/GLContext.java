@@ -1367,12 +1367,36 @@ public abstract class GLContext {
   /**
    * Returns the default color buffer within the current bound
    * {@link #getDefaultReadFramebuffer()}, i.e. GL_READ_FRAMEBUFFER​,
+   * which will be used as the target (output) for (fragment shader) draw commands,
+   * settable via {@link GL2ES2#glDrawBuffers(int, int[], int)} or {@link GL2#glDrawBuffer(int)}.
+   * <p>
+   * For offscreen framebuffer objects this is {@link GL#GL_COLOR_ATTACHMENT0},
+   * otherwise this is {@link GL#GL_FRONT} for non-ES profile and single buffer configurations
+   * and {@link GL#GL_BACK} for double buffer configurations or ES profiles.
+   * </p>
+   * <p>
+   * Note-1: Neither ES1 nor ES2 supports selecting the draw buffer at all
+   * and {@link GL#GL_BACK} is the default.
+   * </p>
+   * <p>
+   * Note-2: ES3 only supports {@link GL#GL_BACK}, {@link GL#GL_NONE} or {@link GL#GL_COLOR_ATTACHMENT0}+i
+   * via {@link GL2ES2#glDrawBuffers(int, int[], int)}.
+   * </p>
+   * <p>
+   * Method is only thread-safe while context is {@link #makeCurrent() made current}.
+   * </p>
+   */
+  public abstract int getDefaultDrawBuffer();
+
+  /**
+   * Returns the default color buffer within the current bound
+   * {@link #getDefaultReadFramebuffer()}, i.e. GL_READ_FRAMEBUFFER​,
    * which will be used as the source for pixel reading commands,
    * like {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels} etc.
    * <p>
    * For offscreen framebuffer objects this is {@link GL#GL_COLOR_ATTACHMENT0},
-   * otherwise this is {@link GL#GL_FRONT} for single buffer configurations
-   * and {@link GL#GL_BACK} for double buffer configurations.
+   * otherwise this is {@link GL#GL_FRONT} for non-ES profile and single buffer configurations
+   * and {@link GL#GL_BACK} for double buffer configurations or ES profiles.
    * </p>
    * <p>
    * Note-1: Neither ES1 nor ES2 supports selecting the read buffer via glReadBuffer
