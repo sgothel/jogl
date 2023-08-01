@@ -212,6 +212,7 @@ areas of the project (Alphabetical):
 - Julien Gouesse
 - Rob Grzywinski 
 - Yuri Vladimir Gushchin
+- Harvey Harrison
 - Christopher John Kline 
 - Martin Pernollet
 - Gregory Pierce
