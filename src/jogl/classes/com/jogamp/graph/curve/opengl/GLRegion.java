@@ -100,6 +100,33 @@ public abstract class GLRegion extends Region {
     /**
      * Create a GLRegion using the passed render mode
      *
+     * @param glp intended GLProfile to use. Instance may use higher OpenGL features if indicated by GLProfile.
+     * @param renderModes bit-field of modes, e.g. {@link Region#VARWEIGHT_RENDERING_BIT}, {@link Region#VBAA_RENDERING_BIT}
+     * @param colorTexSeq optional {@link TextureSequence} for {@link Region#COLORTEXTURE_RENDERING_BIT} rendering mode.
+     * @param pass2TexUnit texture unit for 2nd pass rendering ({@link Region#VBAA_RENDERING_BIT}), default is {@link Region#DEFAULT_TWO_PASS_TEXTURE_UNIT}.
+     * @param initialVerticesCount initial number of vertices in the render-buffer
+     * @param initialIndicesCount initial number of indices in the render-buffer
+     */
+    public static GLRegion create(final GLProfile glp, int renderModes, final TextureSequence colorTexSeq, final int pass2TexUnit,
+                                  final int initialVerticesCount, final int initialIndicesCount)
+    {
+        if( null != colorTexSeq ) {
+            renderModes |= Region.COLORTEXTURE_RENDERING_BIT;
+        } else if( Region.hasColorTexture(renderModes) ) {
+            throw new IllegalArgumentException("COLORTEXTURE_RENDERING_BIT set but null TextureSequence");
+        }
+        if( isVBAA(renderModes) ) {
+            return new VBORegion2PVBAAES2(glp, renderModes, colorTexSeq, pass2TexUnit, initialVerticesCount, initialIndicesCount);
+        } else if( isMSAA(renderModes) ) {
+            return new VBORegion2PMSAAES2(glp, renderModes, colorTexSeq, pass2TexUnit, initialVerticesCount, initialIndicesCount);
+        } else {
+            return new VBORegionSPES2(glp, renderModes, colorTexSeq, initialVerticesCount, initialIndicesCount);
+        }
+    }
+
+    /**
+     * Create a GLRegion using the passed render mode
+     *
      * <p> In case {@link Region#VBAA_RENDERING_BIT} is being requested the default texture unit
      * {@link Region#DEFAULT_TWO_PASS_TEXTURE_UNIT} is being used.</p>
      * @param glp intended GLProfile to use. Instance may use higher OpenGL features if indicated by GLProfile.
@@ -108,19 +135,10 @@ public abstract class GLRegion extends Region {
      * @param initialVerticesCount initial number of vertices in the render-buffer
      * @param initialIndicesCount initial number of indices in the render-buffer
      */
-    public static GLRegion create(final GLProfile glp, int renderModes, final TextureSequence colorTexSeq, final int initialVerticesCount, final int initialIndicesCount) {
-        if( null != colorTexSeq ) {
-            renderModes |= Region.COLORTEXTURE_RENDERING_BIT;
-        } else if( Region.hasColorTexture(renderModes) ) {
-            throw new IllegalArgumentException("COLORTEXTURE_RENDERING_BIT set but null TextureSequence");
-        }
-        if( isVBAA(renderModes) ) {
-            return new VBORegion2PVBAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT, initialVerticesCount, initialIndicesCount);
-        } else if( isMSAA(renderModes) ) {
-            return new VBORegion2PMSAAES2(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT, initialVerticesCount, initialIndicesCount);
-        } else {
-            return new VBORegionSPES2(glp, renderModes, colorTexSeq, initialVerticesCount, initialIndicesCount);
-        }
+    public static GLRegion create(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq,
+                                  final int initialVerticesCount, final int initialIndicesCount)
+    {
+        return create(glp, renderModes, colorTexSeq, Region.DEFAULT_TWO_PASS_TEXTURE_UNIT, initialVerticesCount, initialIndicesCount);
     }
 
     /**
