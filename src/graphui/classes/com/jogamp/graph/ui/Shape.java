@@ -588,6 +588,37 @@ public abstract class Shape {
     }
 
     /**
+     * Retrieve surface (view) port of this shape, i.e. lower x/y position and size.
+     * <p>
+     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
+     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * </p>
+     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)} and {@link #setTransform(PMVMatrix)}.
+     * @param viewport the int[4] viewport
+     * @param surfacePort Recti target surface port
+     * @return given Recti {@code surfacePort} for successful gluProject(..) operation, otherwise {@code null}
+     */
+    public Recti getSurfacePort(final PMVMatrix pmv, final Recti viewport, final Recti surfacePort) {
+        final Vec3f winCoordHigh = new Vec3f();
+        final Vec3f winCoordLow = new Vec3f();
+        final Vec3f high = box.getHigh();
+        final Vec3f low = box.getLow();
+
+        final Matrix4f matPMv = pmv.getPMvMat();
+        if( Matrix4f.mapObjToWin(high, matPMv, viewport, winCoordHigh) ) {
+            if( Matrix4f.mapObjToWin(low, matPMv, viewport, winCoordLow) ) {
+                surfacePort.setX( (int)Math.abs( winCoordLow.x() ) );
+                surfacePort.setY( (int)Math.abs( winCoordLow.y() ) );
+                surfacePort.setWidth( (int)Math.abs( winCoordHigh.x() - winCoordLow.x() ) );
+                surfacePort.setHeight( (int)Math.abs( winCoordHigh.y() - winCoordLow.y() ) );
+                return surfacePort;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Retrieve surface (view) size of this shape.
      * <p>
      * The given {@link PMVMatrix} has to be setup properly for this object,
