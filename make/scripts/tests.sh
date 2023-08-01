@@ -988,14 +988,21 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UITypeDemo01 $*
+
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo02 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemoU01a $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemoU01a $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutGrid01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutBox01 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
@@ -1026,29 +1033,6 @@ testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemoU01a $*
 #
 #testmobile com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.PerfTextRendererNEWT00 $*
-
-#testnoawt com.jogamp.opengl.demos.graph.GPUTextNewtDemo $*
-#testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UITypeDemo01 $*
-
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo00 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01b $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo02 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutGrid01 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutBox01 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 $*
-
-#testnoawt com.jogamp.opengl.demos.av.MovieCube $*
-#testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
 
 #testmobile com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testmobile com.jogamp.opengl.test.junit.jogl.acore.TestGLProfileXXNEWTPost $*
