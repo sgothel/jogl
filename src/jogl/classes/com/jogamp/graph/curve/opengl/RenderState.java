@@ -193,7 +193,7 @@ public class RenderState {
         this.pmvMatrix = null != sharedPMVMatrix ? sharedPMVMatrix : new PMVMatrix();
         this.weight = new float[1];
         this.weightBuffer = FloatBuffer.wrap(weight);
-        this.colorStatic = new float[4];
+        this.colorStatic = new float[] { 0, 0, 0, 1 };
         this.colorStaticBuffer = FloatBuffer.wrap(colorStatic);
         this.hintBitfield = 0;
     }
