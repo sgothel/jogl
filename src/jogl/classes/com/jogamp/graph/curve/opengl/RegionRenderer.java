@@ -318,7 +318,8 @@ public final class RegionRenderer {
      * Same as {@link #enable(GL2ES2, boolean)} but allowing to force {@link GLCallback}s off.
      * @param gl current GL object
      * @param enable if true enable the current {@link ShaderProgram}, otherwise disable.
-     * @param doCallbacks if true (default) perform {@link GLCallback}s, otherwise don't.
+     * @param enableCB explicit {@link GLCallback} for enable
+     * @param disableCB explicit {@link GLCallback} for disable
      * @see #enable(GL2ES2, boolean)
      */
     public final void enable(final GL2ES2 gl, final boolean enable, final GLCallback enableCB, final GLCallback disableCB) {
@@ -330,8 +331,6 @@ public final class RegionRenderer {
             if( null != disableCB ) {
                 disableCB.run(gl, this);
             }
-        }
-        if( !enable ) {
             final ShaderProgram sp = rs.getShaderProgram();
             if( null != sp ) {
                 sp.useProgram(gl, false);

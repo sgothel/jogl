@@ -169,7 +169,7 @@ public class TextRegionUtil {
      * @return the given int[2] storage for chaining
      * @see Region#setBufferCapacity(int, int)
      * @see Region#growBuffer(int, int)
-     * @see #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)
+     * @see #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, Vec4f, int[], AffineTransform, AffineTransform)
      */
     public static int[] countStringRegion(final Font font, final CharSequence str, final int[/*2*/] vertIndexCount) {
         final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
@@ -226,7 +226,7 @@ public class TextRegionUtil {
     }
 
     /**
-     * Try using {@link #drawString3D(GL2ES2, int, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
+     * Try using {@link #drawString3D(GL2ES2, int, RegionRenderer, Font, CharSequence, Vec4f, int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
      * <p>
      * The region's buffer size is pre-calculated via {@link GLRegion#create(com.jogamp.opengl.GLProfile, int, com.jogamp.opengl.util.texture.TextureSequence, Font, CharSequence)}
      * </p>
@@ -251,7 +251,7 @@ public class TextRegionUtil {
      * <p>
      * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
      * is a huge performance impact.
-     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)}
+     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, Vec4f, int[], AffineTransform, AffineTransform)}
      * instead.
      * </p>
      * @param gl the current GL state
@@ -280,7 +280,7 @@ public class TextRegionUtil {
     }
 
     /**
-     * Try using {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, float[], int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
+     * Try using {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, Vec4f, int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
      * <p>
      * The region buffer's size is grown by pre-calculating required size via {@link #countStringRegion(Font, CharSequence, int[])}.
      * </p>
