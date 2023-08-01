@@ -356,6 +356,9 @@ public abstract class GLRegion extends Region {
         }
     }
 
+    /** Set the 2nd pass texture unit. */
+    public abstract void setTextureUnit(final int pass2TexUnit);
+
     @Override
     protected final void pushVertex(final Vec3f coords, final Vec3f texParams, final Vec4f rgba) {
         // NIO array[3] is much slows than group/single

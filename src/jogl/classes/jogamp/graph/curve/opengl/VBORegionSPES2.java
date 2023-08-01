@@ -75,6 +75,11 @@ public final class VBORegionSPES2 extends GLRegion {
     }
 
     @Override
+    public void setTextureUnit(final int pass2TexUnit) {
+        // nop
+    }
+
+    @Override
     protected final void clearImpl(final GL2ES2 gl) { }
 
     @Override

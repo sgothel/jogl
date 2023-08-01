@@ -53,6 +53,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  */
 public abstract class GraphShape extends Shape {
     protected final int renderModes;
+    protected int pass2TexUnit = GLRegion.DEFAULT_TWO_PASS_TEXTURE_UNIT;
     protected GLRegion region = null;
     protected float oshapeSharpness = OutlineShape.DEFAULT_SHARPNESS;
     private int regionQuality = Region.MAX_QUALITY;
@@ -83,6 +84,15 @@ public abstract class GraphShape extends Shape {
         }
         return this;
     }
+
+    /** Set the 2nd pass texture unit. */
+    public void setTextureUnit(final int pass2TexUnit) {
+        this.pass2TexUnit = pass2TexUnit;
+        if( null != region ) {
+            region.setTextureUnit(pass2TexUnit);
+        }
+    }
+
     /**
      * Return the shape's Graph {@link Region}'s quality parameter.
      * @see #setQuality(int)
@@ -178,10 +188,10 @@ public abstract class GraphShape extends Shape {
             indexCount += 24;
         }
         if( null == region ) {
-            region = GLRegion.create(glp, renderModes, colorTexSeq, vertexCount, indexCount);
+            region = GLRegion.create(glp, renderModes, colorTexSeq, pass2TexUnit, vertexCount, indexCount);
         } else if( null == gl ) {
             dirtyRegions.add(region);
-            region = GLRegion.create(glp, renderModes, colorTexSeq, vertexCount, indexCount);
+            region = GLRegion.create(glp, renderModes, colorTexSeq, pass2TexUnit, vertexCount, indexCount);
         } else {
             region.clear(gl);
             region.setBufferCapacity(vertexCount, indexCount);

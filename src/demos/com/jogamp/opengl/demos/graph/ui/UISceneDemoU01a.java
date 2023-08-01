@@ -37,7 +37,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.graph.ui.Shape;
+import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.shapes.CrossHair;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
@@ -48,6 +48,7 @@ import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
@@ -95,6 +96,7 @@ public class UISceneDemoU01a {
     static Font font;
     static boolean projOrtho = true;
     static boolean projOrthoWin = false;
+    static int pass2TexUnit = GLRegion.DEFAULT_TWO_PASS_TEXTURE_UNIT;
     static final Vec2i winOrigin = new Vec2i(options.surface_width/2, options.surface_height/2);
     static final float normWidgetSize = 1/4f;
 
@@ -110,6 +112,9 @@ public class UISceneDemoU01a {
                 } else if(args[idx[0]].equals("-projWin")) {
                     projOrtho = true;
                     projOrthoWin = true;
+                } else if(args[idx[0]].equals("-texUnit")) {
+                    idx[0]++;
+                    pass2TexUnit = MiscUtils.atoi(args[idx[0]], pass2TexUnit);
                 } else if(args[idx[0]].equals("-x")) {
                     idx[0]++;
                     winOrigin.setX( MiscUtils.atoi(args[idx[0]], winOrigin.x()) );
@@ -119,8 +124,11 @@ public class UISceneDemoU01a {
                 }
             }
         }
+        System.err.println(JoglVersion.getInstance().toString());
+
         System.err.println(options);
         System.err.println("Ortho Projection "+projOrtho+", Ortho-Win "+projOrthoWin);
+        System.err.println("pass2TexUnit "+pass2TexUnit);
         final GLProfile reqGLP = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+reqGLP);
 
@@ -178,7 +186,7 @@ public class UISceneDemoU01a {
         /** The Graph region for text */
         private GLRegion textRegion;
         /** The GraphUI shape */
-        private Shape shape;
+        private GraphShape shape;
 
         public MyRenderer() {
             if( projOrtho ) {
@@ -200,6 +208,7 @@ public class UISceneDemoU01a {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
             shape = new CrossHair(options.renderModes, normWidgetSize, normWidgetSize, normWidgetSize/100f); // normalized: 1 is 100% surface size (width and/or height)
+            shape.setTextureUnit(pass2TexUnit);
             shape.setColor(0, 0, 1, 1);
             System.err.println("Init: Shape bounds "+shape.getBounds(drawable.getGLProfile()));
             System.err.println("Init: Shape "+shape);
@@ -207,7 +216,7 @@ public class UISceneDemoU01a {
             renderer.init(gl);
 
             if( null == textRegion ) {
-                textRegion = GLRegion.create(gl.getGLProfile(), options.renderModes, null, 0, 0);
+                textRegion = GLRegion.create(gl.getGLProfile(), options.renderModes, null, pass2TexUnit, 0, 0);
             }
         }
 
@@ -230,6 +239,7 @@ public class UISceneDemoU01a {
                 worldDim.setX( viewport.width() );
                 worldDim.setY( worldDim.x() / ratio ); // adjust aspect ratio
                 pmv.glOrthof(0, worldDim.x(), 0, worldDim.y(), zNear, zFar);
+                // similar: renderer.reshapeOrtho(viewport.width(), viewport.height(), zNear, zFar);
             } else if( projOrtho ) {
                 worldDim.setY( worldDim.x() / ratio ); // adjust aspect ratio
                 pmv.glOrthof(-worldDim.x()/2f, worldDim.x()/2f, -worldDim.y()/2f, worldDim.y()/2f, zNear, zFar);
@@ -293,6 +303,11 @@ public class UISceneDemoU01a {
             renderer.enable(gl, true);
             {
                 pmv.glPushMatrix();
+                drawText(gl, pmv, "Hello JogAmp Users!");
+                pmv.glPopMatrix();
+            }
+            {
+                pmv.glPushMatrix();
                 shape.setTransform(pmv);
 
                 shape.draw(gl, renderer, sampleCount);
@@ -306,11 +321,6 @@ public class UISceneDemoU01a {
                     final Recti shapePort = shape.getSurfacePort(pmv, renderer.getViewport(), new Recti());
                     System.err.println("Display.1: Shape SurfacePort "+shapePort);
                 }
-                pmv.glPopMatrix();
-            }
-            {
-                pmv.glPushMatrix();
-                drawText(gl, pmv, "Hello JogAmp Users!");
                 pmv.glPopMatrix();
             }
             renderer.enable(gl, false);

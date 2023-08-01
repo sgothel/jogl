@@ -220,6 +220,11 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
     }
 
     @Override
+    public void setTextureUnit(final int pass2TexUnit) {
+        gcu_FboTexUnit.setData(pass2TexUnit);
+    }
+
+    @Override
     protected final void clearImpl(final GL2ES2 gl) {
         fboDirty = true;
     }
