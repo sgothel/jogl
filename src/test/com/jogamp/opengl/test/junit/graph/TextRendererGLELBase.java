@@ -132,8 +132,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
         this.textRenderUtil = new TextRegionUtil(renderModes);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         renderer.init(gl);
-        this.getRenderer().getRenderState().setColorStatic(staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2], staticRGBAColor[3]);
-        renderer.enable(gl, false);
+        renderer.getRenderState().setColorStatic(staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2], staticRGBAColor[3]);
 
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {

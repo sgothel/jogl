@@ -238,8 +238,8 @@ public final class RegionRenderer {
     /**
      * Initialize shader and bindings for GPU based rendering bound to the given GL object's GLContext
      * if not initialized yet.
-     * <p>Leaves the renderer enabled, ie ShaderState.</p>
-     * <p>Shall be called by a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, int)}</p>
+     * <p>Disables the renderer via {@link #enable(GL2ES2, boolean)} to remove any side-effects, ie ShaderState incl. shader program.</p>
+     * <p>Shall be called once before at initialization before a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, int)}</p>
      *
      * @param gl referencing the current GLContext to which the ShaderState is bound to
      * @throws GLException if initialization failed
@@ -265,10 +265,8 @@ public final class RegionRenderer {
 
         rs.attachTo(gl);
 
-        if( null != enableCallback ) {
-            enableCallback.run(gl, this);
-        }
         initialized = true;
+        enable(gl, false);
     }
 
     /** Deletes all {@link ShaderProgram}s and nullifies its references including {@link RenderState#destroy(GL2ES2)}. */
