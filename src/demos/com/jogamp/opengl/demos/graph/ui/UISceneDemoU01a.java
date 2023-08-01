@@ -353,6 +353,7 @@ public class UISceneDemoU01a {
         @Override
         public void dispose(final GLAutoDrawable drawable) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
+            textRegion.destroy(gl);
             shape.destroy(gl, renderer);
             renderer.destroy(gl);
             System.err.println("Destroyed");
