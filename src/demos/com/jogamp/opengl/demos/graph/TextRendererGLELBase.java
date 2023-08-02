@@ -132,11 +132,11 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     public void init(final GLAutoDrawable drawable) {
         exclusivePMVMatrix = null == sharedPMVMatrix;
         renderer = RegionRenderer.create(sharedPMVMatrix, enableCallback, disableCallback);
-        renderer.getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        renderer.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRenderUtil = new TextRegionUtil(renderModes);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         renderer.init(gl);
-        renderer.getRenderState().setColorStatic(staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2], staticRGBAColor[3]);
+        renderer.setColorStatic(staticRGBAColor[0], staticRGBAColor[1], staticRGBAColor[2], staticRGBAColor[3]);
 
         final Object upObj = drawable.getUpstreamWidget();
         if( upObj instanceof Window ) {

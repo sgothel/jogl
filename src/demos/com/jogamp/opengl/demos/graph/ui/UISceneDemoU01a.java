@@ -92,10 +92,11 @@ import com.jogamp.opengl.util.PMVMatrix;
  */
 public class UISceneDemoU01a {
     static final GraphUIDemoArgs options = new GraphUIDemoArgs(1432, 770, Region.VBAA_RENDERING_BIT | Region.COLORCHANNEL_RENDERING_BIT);
-    static final Vec4f fg_color = new Vec4f( 0, 0, 0, 1 );
+    static final Vec4f text_color = new Vec4f( 0, 1, 0, 1 );
     static Font font;
     static boolean projOrtho = true;
     static boolean projOrthoWin = false;
+    static boolean textOnly = false;
     static int pass2TexUnit = GLRegion.DEFAULT_TWO_PASS_TEXTURE_UNIT;
     static final Vec2i winOrigin = new Vec2i(options.surface_width/2, options.surface_height/2);
     static final float normWidgetSize = 1/4f;
@@ -121,6 +122,8 @@ public class UISceneDemoU01a {
                 } else if(args[idx[0]].equals("-y")) {
                     idx[0]++;
                     winOrigin.setY( MiscUtils.atoi(args[idx[0]], winOrigin.y()) );
+                } else if(args[idx[0]].equals("-textOnly")) {
+                    textOnly = true;
                 }
             }
         }
@@ -207,11 +210,13 @@ public class UISceneDemoU01a {
         public void init(final GLAutoDrawable drawable) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-            shape = new CrossHair(options.renderModes, normWidgetSize, normWidgetSize, normWidgetSize/100f); // normalized: 1 is 100% surface size (width and/or height)
-            shape.setTextureUnit(pass2TexUnit);
-            shape.setColor(0, 0, 1, 1);
-            System.err.println("Init: Shape bounds "+shape.getBounds(drawable.getGLProfile()));
-            System.err.println("Init: Shape "+shape);
+            if( !textOnly ) {
+                shape = new CrossHair(options.renderModes, normWidgetSize, normWidgetSize, normWidgetSize/100f); // normalized: 1 is 100% surface size (width and/or height)
+                shape.setTextureUnit(pass2TexUnit);
+                shape.setColor(0, 0, 1, 1);
+                System.err.println("Init: Shape bounds "+shape.getBounds(drawable.getGLProfile()));
+                System.err.println("Init: Shape "+shape);
+            }
 
             renderer.init(gl);
 
@@ -226,7 +231,7 @@ public class UISceneDemoU01a {
             setMatrix(renderer.getMatrix(), renderer.getViewport());
 
             // scale shapes from normalized size 1 and to keep aspect ratio
-            {
+            if( !textOnly ) {
                 final float s = Math.min(worldDim.x(), worldDim.y());
                 shape.setScale(s, s, 1f);
             }
@@ -306,7 +311,7 @@ public class UISceneDemoU01a {
                 drawText(gl, pmv, "Hello JogAmp Users!");
                 pmv.glPopMatrix();
             }
-            {
+            if( !textOnly ) {
                 pmv.glPushMatrix();
                 shape.setTransform(pmv);
 
@@ -336,7 +341,7 @@ public class UISceneDemoU01a {
             final float txt_scale = full_width_s < full_height_s ? full_width_s * normWidgetSize : full_height_s * normWidgetSize;
             pmv.glScalef(txt_scale, txt_scale, 1f);
             pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
-            final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, textRegion.clear(gl), renderer, font, text, fg_color, sampleCount, tempT1, tempT2);
+            final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, textRegion.clear(gl), renderer, font, text, text_color, sampleCount, tempT1, tempT2);
 
             if( onceAtDisplay ) {
                 System.err.println("XXX: full_width: "+worldDim.x()+" / "+txt_box_em.getWidth()+" -> "+full_width_s);
@@ -354,7 +359,9 @@ public class UISceneDemoU01a {
         public void dispose(final GLAutoDrawable drawable) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
             textRegion.destroy(gl);
-            shape.destroy(gl, renderer);
+            if( !textOnly ) {
+                shape.destroy(gl, renderer);
+            }
             renderer.destroy(gl);
             System.err.println("Destroyed");
         }

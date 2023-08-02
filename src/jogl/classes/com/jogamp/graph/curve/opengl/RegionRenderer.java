@@ -36,6 +36,7 @@ import com.jogamp.opengl.GLES2;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.Recti;
+import com.jogamp.opengl.math.Vec4f;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;
@@ -99,14 +100,14 @@ public final class RegionRenderer {
     public static final GLCallback defaultBlendEnable = new GLCallback() {
         @Override
         public void run(final GL gl, final RegionRenderer renderer) {
-            if( renderer.rs.isHintMaskSet(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
+            if( renderer.isHintMaskSet(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
                 gl.glDepthMask(false);
                 // gl.glDisable(GL.GL_DEPTH_TEST);
                 // gl.glDepthFunc(GL.GL_ALWAYS);
             }
             gl.glEnable(GL.GL_BLEND);
             gl.glBlendEquation(GL.GL_FUNC_ADD); // default
-            renderer.rs.setHintMask(RenderState.BITHINT_BLENDING_ENABLED);
+            renderer.setHintMask(RenderState.BITHINT_BLENDING_ENABLED);
         }
     };
 
@@ -123,9 +124,9 @@ public final class RegionRenderer {
     public static final GLCallback defaultBlendDisable = new GLCallback() {
         @Override
         public void run(final GL gl, final RegionRenderer renderer) {
-            renderer.rs.clearHintMask(RenderState.BITHINT_BLENDING_ENABLED);
+            renderer.clearHintMask(RenderState.BITHINT_BLENDING_ENABLED);
             gl.glDisable(GL.GL_BLEND);
-            if( renderer.rs.isHintMaskSet(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
+            if( renderer.isHintMaskSet(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
                 // gl.glEnable(GL.GL_DEPTH_TEST);
                 // gl.glDepthFunc(GL.GL_LESS);
                 gl.glDepthMask(true);
@@ -213,16 +214,10 @@ public final class RegionRenderer {
     /** Return height of current viewport */
     public final int getHeight() { return viewport.height(); }
 
-    /** Borrow the current {@link PMVMatrix}. */
-    public final PMVMatrix getMatrix() { return rs.getMatrix(); }
-
     //////////////////////////////////////
 
-    protected RegionRenderer(final GLCallback enableCallback, final GLCallback disableCallback)
-    {
-        this.rs = new RenderState(null);
-        this.enableCallback = enableCallback;
-        this.disableCallback = disableCallback;
+    protected RegionRenderer(final GLCallback enableCallback, final GLCallback disableCallback) {
+        this(null, enableCallback, disableCallback);
     }
 
     protected RegionRenderer(final PMVMatrix sharedPMVMatrix,
@@ -289,6 +284,29 @@ public final class RegionRenderer {
     /** Return the {@link RenderState} composition. */
     public final RenderState getRenderState() { return rs; }
 
+    //
+    // RenderState forwards
+    //
+
+    /** Borrow the current {@link PMVMatrix}. */
+    public final PMVMatrix getMatrix() { return rs.getMatrix(); }
+
+    public final float getWeight() { return rs.getWeight(); }
+
+    public final void setWeight(final float v) { rs.setWeight(v); }
+
+    public final Vec4f getColorStatic(final Vec4f rgbaColor) { return rs.getColorStatic(rgbaColor); }
+
+    public final void setColorStatic(final Vec4f rgbaColor){ rs.setColorStatic(rgbaColor); }
+
+    public final void setColorStatic(final float r, final float g, final float b, final float a){ rs.setColorStatic(r, g, b, a); }
+
+    public final boolean isHintMaskSet(final int mask) { return rs.isHintMaskSet(mask); }
+
+    public final void setHintMask(final int mask) { rs.setHintMask(mask); }
+
+    public final void clearHintMask(final int mask) { rs.clearHintMask(mask); }
+
     /**
      * Enabling or disabling the {@link #getRenderState() RenderState}'s
      * current {@link RenderState#getShaderProgram() shader program}.
@@ -346,7 +364,7 @@ public final class RegionRenderer {
     public final void reshapePerspective(final float angle, final int width, final int height, final float near, final float far) {
         reshapeNotify(0, 0, width, height);
         final float ratio = (float)width/(float)height;
-        final PMVMatrix p = rs.getMatrix();
+        final PMVMatrix p = getMatrix();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         p.glLoadIdentity();
         p.gluPerspective(angle, ratio, near, far);
@@ -357,7 +375,7 @@ public final class RegionRenderer {
      */
     public final void reshapeOrtho(final int width, final int height, final float near, final float far) {
         reshapeNotify(0, 0, width, height);
-        final PMVMatrix p = rs.getMatrix();
+        final PMVMatrix p = getMatrix();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         p.glLoadIdentity();
         p.glOrthof(0, width, 0, height, near, far);
@@ -525,7 +543,7 @@ public final class RegionRenderer {
 
         ShaderProgram sp = (ShaderProgram) shaderPrograms.get( shaderKey );
         if( null != sp ) {
-            final boolean spChanged = getRenderState().setShaderProgram(gl, sp);
+            final boolean spChanged = rs.setShaderProgram(gl, sp);
             if( DEBUG ) {
                 if( spChanged ) {
                     System.err.printf("RegionRendererImpl01.useShaderProgram.X1: GOT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (changed)%n", Region.getRenderModeString(renderModes), sel1, shaderKey, sp.program(), sp.id());
@@ -648,7 +666,7 @@ public final class RegionRenderer {
         if( !sp.link(gl, System.err) ) {
             throw new GLException("could not link program: "+sp);
         }
-        getRenderState().setShaderProgram(gl, sp);
+        rs.setShaderProgram(gl, sp);
 
         shaderPrograms.put(shaderKey, sp);
         if( DEBUG ) {

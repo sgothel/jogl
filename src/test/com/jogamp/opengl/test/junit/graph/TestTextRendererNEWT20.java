@@ -350,8 +350,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
             System.err.println(JoglVersion.getGLInfo(gl, null, false /* withCapsAndExts */).toString());
             MSAATool.dump(drawable);
 
-            final RenderState rs = getRenderer().getRenderState();
-            rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
+            getRenderer().setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
         }
 
         @Override

@@ -59,7 +59,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
     public GPURegionGLListener01 (final int shape_ctor_mode, final int renderModes, final int sampleCount, final boolean debug, final boolean trace) {
         super(RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
         this.shape_ctor_mode = shape_ctor_mode;
-        this.getRenderer().getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        this.getRenderer().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         setMatrix(-20, 00, -50, 0f, sampleCount);
     }
 
@@ -247,12 +247,10 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
 
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        final RenderState rs = getRenderer().getRenderState();
-
         gl.setSwapInterval(1);
         gl.glEnable(GL.GL_DEPTH_TEST);
         gl.glEnable(GL.GL_BLEND);
-        rs.setColorStatic(0.0f, 0.0f, 0.0f, 1.0f);
+        getRenderer().setColorStatic(0.0f, 0.0f, 0.0f, 1.0f);
 
         outlineShape = new OutlineShape();
         switch( shape_ctor_mode ) {
@@ -273,7 +271,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
                 break;
         }
         region = GLRegion.create(gl.getGLProfile(), getRenderModes(), null, outlineShape);
-        region.addOutlineShape(outlineShape, null, region.hasColorChannel() ? getRenderer().getRenderState().getColorStatic(new Vec4f()) : null);
+        region.addOutlineShape(outlineShape, null, region.hasColorChannel() ? getRenderer().getColorStatic(new Vec4f()) : null);
     }
 
     @Override
@@ -289,8 +287,8 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
         pmv.glLoadIdentity();
         pmv.glTranslatef(getXTran(), getYTran(), getZTran());
         pmv.glRotatef(getAngle(), 0, 1, 0);
-        if( weight != regionRenderer.getRenderState().getWeight() ) {
-            regionRenderer.getRenderState().setWeight(weight);
+        if( weight != regionRenderer.getWeight() ) {
+            regionRenderer.setWeight(weight);
         }
         regionRenderer.enable(gl, true);
         region.draw(gl, regionRenderer, getSampleCount());

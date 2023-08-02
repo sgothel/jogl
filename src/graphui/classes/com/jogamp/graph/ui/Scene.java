@@ -161,9 +161,6 @@ public final class Scene implements Container, GLEventListener {
     /** Returns the associated RegionRenderer */
     public RegionRenderer getRenderer() { return renderer; }
 
-    /** Returns the associated RegionRenderer's RenderState. */
-    public RenderState getRenderState() { return renderer.getRenderState(); }
-
     /**
      * Sets the clear parameter for {@link GL#glClearColor(float, float, float, float) glClearColor(..)} and {@link GL#glClear(int) glClear(..)}
      * to be issued at {@link #display(GLAutoDrawable)}.
@@ -401,7 +398,7 @@ public final class Scene implements Container, GLEventListener {
                         final float color = ( i + 1f ) / ( shapeCount + 2f );
                         // FIXME
                         // System.err.printf("drawGL: color %f, index %d of [0..%d[%n", color, i, shapeCount);
-                        renderer.getRenderState().setColorStatic(color, color, color, 1f);
+                        renderer.setColorStatic(color, color, color, 1f);
                         shape.drawToSelect(gl, renderer, sampleCount0);
                     } else {
                         shape.draw(gl, renderer, sampleCount0);
@@ -1041,7 +1038,7 @@ public final class Scene implements Container, GLEventListener {
             } else {
                 qualityStr = "";
             }
-            if( getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+            if( getRenderer().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
                 blendStr = ", blend";
             } else {
                 blendStr = "";

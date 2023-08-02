@@ -154,7 +154,7 @@ public abstract class GraphShape extends Shape {
     @Override
     protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final Vec4f rgba) {
         if( null != rgba ) {
-            renderer.getRenderState().setColorStatic(rgba);
+            renderer.setColorStatic(rgba);
         }
         region.draw(gl, renderer, sampleCount);
     }

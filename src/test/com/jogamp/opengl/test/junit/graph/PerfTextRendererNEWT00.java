@@ -242,7 +242,7 @@ public class PerfTextRendererNEWT00 {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
 
         final RegionRenderer renderer = RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-        renderer.getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        renderer.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
 
         final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, font, text);
         System.err.println("Region post ctor w/ pre-calculated buffer size");
@@ -268,7 +268,7 @@ public class PerfTextRendererNEWT00 {
             // region.growBufferSize(123000, 62000); // hack-me
             gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             renderer.init(gl);
-            renderer.getRenderState().setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
+            renderer.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
 
             // reshape
             gl.glViewport(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());

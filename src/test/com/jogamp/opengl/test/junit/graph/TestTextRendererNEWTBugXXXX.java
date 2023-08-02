@@ -137,13 +137,13 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
         System.err.println("Chosen: "+winctx.window.getChosenCapabilities());
 
         final RegionRenderer renderer = RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-        renderer.getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        renderer.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         final TextRegionUtil textRenderUtil = new TextRegionUtil(renderModes);
 
         // init
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         renderer.init(gl);
-        renderer.getRenderState().setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
+        renderer.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
         screenshot = new GLReadBufferUtil(false, false);
 
         // reshape

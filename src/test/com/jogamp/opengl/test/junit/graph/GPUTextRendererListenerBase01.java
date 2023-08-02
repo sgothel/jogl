@@ -153,7 +153,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         // NOTE_ALPHA_BLENDING: We use alpha-blending
         super(RegionRenderer.create(blending ? RegionRenderer.defaultBlendEnable : null, blending ? RegionRenderer.defaultBlendDisable : null),
                                     renderModes, debug, trace);
-        this.getRenderer().getRenderState().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        this.getRenderer().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRegionUtil = new TextRegionUtil(renderModes);
         this.regionFPS = GLRegion.create(glp, renderModes, null, 0, 0);
         this.regionHead = GLRegion.create(glp, renderModes, null, 0, 0);
@@ -301,11 +301,10 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         // final int[] view = new int[] { 0, 0, drawable.getWidth(),  drawable.getHeight() };
 
         final RegionRenderer renderer = getRenderer();
-        final RenderState rs = renderer.getRenderState();
         final PMVMatrix pmv = renderer.getMatrix();
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
-        rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
+        renderer.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
         final float pixelSizeFName = FontScale.toPixels(fontSizeFName, dpiV);
         final float pixelSizeHead = FontScale.toPixels(fontSizeHead, dpiV);
         final float mmSizeHead = pixelSizeHead / ppmmV;
@@ -332,7 +331,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                     fontSizeHead, pixelSizeHead, mmSizeHead,
                     fontSizeCenter, pixelSizeCenter, mmSizeCenter,
                     modeS, getSampleCount()[0], sampleCountFPS[0],
-                    renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
+                    renderer.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
                     drawable.getChosenGLCapabilities().getAlphaBits());
 
             // bottom, half line up
@@ -389,7 +388,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 final float sxy = nearPlaneS * pixelSizeCenter;
                 pmv.glScalef(sxy, sxy, 1.0f);
             }
-            rs.setColorStatic(0.9f, 0.0f, 0.0f, 1.0f);
+            renderer.setColorStatic(0.9f, 0.0f, 0.0f, 1.0f);
 
             if( bottomTextUseFrustum ) {
                 regionBottom.setFrustum(pmv.getFrustum());

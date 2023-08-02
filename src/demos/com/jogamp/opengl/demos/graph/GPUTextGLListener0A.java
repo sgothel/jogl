@@ -51,12 +51,10 @@ public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
 
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        final RenderState rs = getRenderer().getRenderState();
-
         gl.setSwapInterval(1);
         gl.glEnable(GL.GL_DEPTH_TEST);
         gl.glEnable(GL.GL_BLEND);
-        rs.setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
+        getRenderer().setColorStatic(0.1f, 0.1f, 0.1f, 1.0f);
     }
 
     @Override
