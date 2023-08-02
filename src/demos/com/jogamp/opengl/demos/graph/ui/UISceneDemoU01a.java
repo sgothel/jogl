@@ -91,7 +91,7 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  */
 public class UISceneDemoU01a {
-    static final GraphUIDemoArgs options = new GraphUIDemoArgs(1432, 770, Region.VBAA_RENDERING_BIT | Region.COLORCHANNEL_RENDERING_BIT);
+    static final GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT );
     static final Vec4f text_color = new Vec4f( 0, 1, 0, 1 );
     static Font font;
     static boolean projOrtho = true;

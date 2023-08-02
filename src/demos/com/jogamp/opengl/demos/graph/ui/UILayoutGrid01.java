@@ -113,7 +113,6 @@ public class UILayoutGrid01 {
                 }
             }
         }
-        options.renderModes |= Region.COLORCHANNEL_RENDERING_BIT;
         System.err.println(options);
 
         final GLProfile reqGLP = GLProfile.get(options.glProfileName);

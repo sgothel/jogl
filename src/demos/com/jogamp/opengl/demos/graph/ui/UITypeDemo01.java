@@ -121,8 +121,7 @@ public class UITypeDemo01 implements GLEventListener {
         caps.setAlphaBits(4);
         System.out.println("Requested: " + caps);
 
-        final int renderModes = Region.COLORCHANNEL_RENDERING_BIT | Region.VBAA_RENDERING_BIT;
-        // final int renderModes = Region.COLORCHANNEL_RENDERING_BIT;
+        final int renderModes = Region.VBAA_RENDERING_BIT;
 
         final GLWindow window = GLWindow.create(caps);
         // window.setPosition(10, 10);
@@ -287,7 +286,7 @@ public class UITypeDemo01 implements GLEventListener {
             drawShape(gl, pmv, renderer, testObj);
             pmv.glPopMatrix();
         }
-        // drawShape(gl, pmv, renderer, crossHair);
+        drawShape(gl, pmv, renderer, crossHair);
         {
             final float full_width_o;
             final float full_height_o;

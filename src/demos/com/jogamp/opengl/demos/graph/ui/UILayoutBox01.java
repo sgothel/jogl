@@ -205,7 +205,7 @@ public class UILayoutBox01 {
         final Group groupA1 = new Group(new BoxLayout( 1f, 1f, new Margin(0.05f, 0.05f), new Padding(0.10f, 0.10f) ) );
         {
             // groupA1.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
-            groupA1.addShape( new BaseButton(options.renderModes | Region.COLORCHANNEL_RENDERING_BIT, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1)
+            groupA1.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1)
                     .setBorder(0.01f).setPaddding(new Padding(0.0f)) );
             groupA1.addShape( new Button(options.renderModes, font, "stack-1", 0.50f, 0.50f/2f).setCorner(0f).addMouseListener(dragZoomRotateListener) );
             groupA1.addShape( new Label(options.renderModes, font, 0.70f/4f, "A1 pajq").setDragAndResizeable(false).setColor(0, 0, 1, 1) );
@@ -228,7 +228,7 @@ public class UILayoutBox01 {
         final Group groupA2 = new Group(new BoxLayout( 1f, 1f, new Margin(0.10f, Margin.CENTER), new Padding(0.05f, 0) ) );
         {
             // groupA2.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
-            groupA2.addShape( new BaseButton(options.renderModes | Region.COLORCHANNEL_RENDERING_BIT, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1)
+            groupA2.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1)
                     .setBorder(0.01f).setPaddding(new Padding(0.0f)).setBorderColor(1, 0, 0, 1) );
             groupA2.addShape( new Button(options.renderModes, font, "stack-2", 0.50f, 0.50f/2f).setCorner(0f).setDragAndResizeable(false) );
             groupA2.addShape( new Label(options.renderModes, font, 0.70f/4f, "A2 pajq").setDragAndResizeable(false).setColor(0, 0, 1, 1) );
@@ -247,7 +247,7 @@ public class UILayoutBox01 {
         final Group groupA3 = new Group(new BoxLayout( 1f, 1f, new Margin(0.10f, Margin.CENTER), new Padding(0.05f, 0f) ) );
         {
             // groupA3.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
-            groupA3.addShape( new BaseButton(options.renderModes | Region.COLORCHANNEL_RENDERING_BIT, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1)
+            groupA3.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1)
                     .setBorder(0.01f).setPaddding(new Padding(0.0f)).setBorderColor(0, 0, 1, 1) );
             groupA3.addShape( new Button(options.renderModes, font, "stack-3", 0.50f, 0.50f/2f).setCorner(0f).setDragAndResizeable(false) );
             groupA3.addShape( new Label(options.renderModes, font, 0.70f/4f, "A3 pajq").setDragAndResizeable(false).setColor(0, 0, 1, 1) );
@@ -265,7 +265,7 @@ public class UILayoutBox01 {
         final Group groupA4 = new Group(new BoxLayout( 1f, 1f, new Margin(Margin.CENTER), new Padding(0.0f, 0f) ) );
         {
             // groupA4.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1) );
-            groupA4.addShape( new BaseButton(options.renderModes | Region.COLORCHANNEL_RENDERING_BIT, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1)
+            groupA4.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setCorner(0f).setInteractive(false).setColor(0, 1, 0, 1)
                     .setBorder(0.01f).setPaddding(new Padding(0.0f)).setBorderColor(0f, 0f, 0f, 1) );
             groupA4.addShape( new Button(options.renderModes, font, "stack-4", 0.50f, 0.50f/2f).setCorner(0f).setDragAndResizeable(false) );
             groupA4.addShape( new Label(options.renderModes, font, 0.70f/4f, "A4 pajq").setDragAndResizeable(false).setColor(0, 0, 1, 1) );

@@ -87,16 +87,22 @@ public class GraphUIDemoArgs {
         } else if(args[idx[0]].equals("-gnone")) {
             sceneMSAASamples = 0;
             renderModes = 0;
+        } else if(args[idx[0]].equals("-color")) {
+            renderModes |= Region.COLORCHANNEL_RENDERING_BIT;
+        } else if(args[idx[0]].equals("-no-color")) {
+            renderModes &= ~Region.COLORCHANNEL_RENDERING_BIT;
         } else if(args[idx[0]].equals("-smsaa")) {
             ++idx[0];
             sceneMSAASamples = MiscUtils.atoi(args[idx[0]], 4);
-            renderModes = 0;
+            renderModes &= ~(Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT );
         } else if(args[idx[0]].equals("-gmsaa")) {
             sceneMSAASamples = 0;
-            renderModes = Region.MSAA_RENDERING_BIT;
+            renderModes &= ~(Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT );
+            renderModes |= Region.MSAA_RENDERING_BIT;
         } else if(args[idx[0]].equals("-gvbaa")) {
             sceneMSAASamples = 0;
-            renderModes = Region.VBAA_RENDERING_BIT;
+            renderModes &= ~(Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT );
+            renderModes |= Region.VBAA_RENDERING_BIT;
         } else if (args[idx[0]].equals("-dbgbox")) {
             ++idx[0];
             debugBoxThickness = MiscUtils.atof(args[idx[0]], debugBoxThickness);
