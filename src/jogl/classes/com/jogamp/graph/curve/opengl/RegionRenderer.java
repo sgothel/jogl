@@ -277,6 +277,7 @@ public final class RegionRenderer {
             sp.destroy(gl);
         }
         shaderPrograms.clear();
+        rs.detachFrom(gl);
         rs.destroy();
         initialized = false;
     }
