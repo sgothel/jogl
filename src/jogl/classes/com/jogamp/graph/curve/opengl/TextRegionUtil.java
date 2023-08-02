@@ -199,7 +199,9 @@ public class TextRegionUtil {
      * @param renderer TODO
      * @param font {@link Font} to be used
      * @param str text to be rendered
-     * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
+     * @param rgbaColor used to fill the {@link Region#hasColorChannel() region's color-channel} if used
+     *                  and set {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} to white.
+     *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @return the bounding box of the given string from the produced and rendered GLRegion
@@ -220,6 +222,11 @@ public class TextRegionUtil {
         } else {
             res = new AABBox();
             res.copy(region.getBounds());
+        }
+        if( !region.hasColorChannel() ) {
+            renderer.setColorStatic(rgbaColor);
+        } else {
+            renderer.setColorStatic(1, 1, 1, 1);
         }
         region.draw(gl, renderer, sampleCount);
         return res;
@@ -258,7 +265,9 @@ public class TextRegionUtil {
      * @param renderModes TODO
      * @param font {@link Font} to be used
      * @param str text to be rendered
-     * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
+     * @param rgbaColor used to fill the {@link Region#hasColorChannel() region's color-channel} if used
+     *                  and set {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} to white.
+     *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @param tmp1 temp {@link AffineTransform} to be reused
@@ -274,6 +283,11 @@ public class TextRegionUtil {
         }
         final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, font, str);
         final AABBox res = addStringToRegion(false /* preGrowRegion */, region, font, null, str, rgbaColor, tmp1, tmp2);
+        if( !region.hasColorChannel() ) {
+            renderer.setColorStatic(rgbaColor);
+        } else {
+            renderer.setColorStatic(1, 1, 1, 1);
+        }
         region.draw(gl, renderer, sampleCount);
         region.destroy(gl);
         return res;
@@ -309,7 +323,9 @@ public class TextRegionUtil {
      * @param renderer
      * @param font {@link Font} to be used
      * @param str text to be rendered
-     * @param rgbaColor if {@link Region#hasColorChannel()} RGBA color must be passed, otherwise value is ignored.
+     * @param rgbaColor used to fill the {@link Region#hasColorChannel() region's color-channel} if used
+     *                  and set {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} to white.
+     *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @param tmp1 temp {@link AffineTransform} to be reused
@@ -324,6 +340,11 @@ public class TextRegionUtil {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
         final AABBox res = addStringToRegion(true /* preGrowRegion */, region, font, null, str, rgbaColor, tmp1, tmp2);
+        if( !region.hasColorChannel() ) {
+            renderer.setColorStatic(rgbaColor);
+        } else {
+            renderer.setColorStatic(1, 1, 1, 1);
+        }
         region.draw(gl, renderer, sampleCount);
         return res;
     }
