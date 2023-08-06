@@ -578,7 +578,9 @@
                  config="${config.jogl}/gl-if-gl3.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
-                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
+                 debug="false"
+                 logLevel="WARNING">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
@@ -643,7 +645,9 @@
                  config="${config.jogl}/gl-if-gl4.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
-                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
+                 debug="false"
+                 logLevel="WARNING">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
@@ -657,7 +661,8 @@
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter"
-                 debug="false">
+                 debug="false"
+                 logLevel="WARNING">
             <classpath refid="gluegen-gl.classpath" />
         </gluegen>
     </target>
