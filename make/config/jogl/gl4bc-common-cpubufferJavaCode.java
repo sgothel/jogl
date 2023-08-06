@@ -1,12 +1,4 @@
 
-  /** Entry point to C language function: <code> void {@native glDrawArraysIndirect}(GLenum mode, const GLvoid *  indirect); </code> <br>Part of <code>GL_VERSION_4_0</code>, <code>GL_ARB_draw_indirect</code>
-      @param indirect a direct or array-backed {@link java.nio.Buffer}   */
-  public void glDrawArraysIndirect(int mode, Buffer indirect);
-
-  /** Entry point to C language function: <code> void {@native glDrawElementsIndirect}(GLenum mode, GLenum type, const GLvoid *  indirect); </code> <br>Part of <code>GL_VERSION_4_0</code>, <code>GL_ARB_draw_indirect</code>
-      @param indirect a direct or array-backed {@link java.nio.Buffer}   */
-  public void glDrawElementsIndirect(int mode, int type, Buffer indirect);
-
   /** Entry point to C language function: <code> void {@native glDrawElementsInstancedBaseInstance}(GLenum mode, GLsizei count, GLenum type, const void *  indices, GLsizei instancecount, GLuint baseinstance); </code> <br>Part of <code>GL_VERSION_4_2</code>, <code>GL_ARB_base_instance</code>
       @param indices a direct or array-backed {@link java.nio.Buffer}   */
   public void glDrawElementsInstancedBaseInstance(int mode, int count, int type, Buffer indices, int instancecount, int baseinstance);
