@@ -17,6 +17,9 @@ JOGL integrates with the AWT, Swing, OpenJFX and SWT widget sets, as well as wit
 
 JOGL also provides its own [native windowing toolkit, NEWT](https://jogamp.org/jogl/doc/NEWT-Overview.html), running on top of X11, Windows, MacOS and even on bare-metal console mode without a windowing system.
 
+JOGL contains [Graph](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/graph/curve/OutlineShape.html), [a resolution-independent GPU NURBS curve renderer](https://jausoft.com/blog/2023/02/22/reimagine-java-on-desktop-bare-metal-devices/) suitable for desktop and embedded devices and supporting [text type rendering](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/graph/curve/opengl/TextRegionUtil.html) \[ [paper](https://jogamp.org/doc/gpunurbs2011/p70-santina.pdf), [slides](https://jogamp.org/doc/gpunurbs2011/graphicon2011-slides.pdf) \].
+Graph is used in the contained [Graph UI, enabling immersive UI within the 3D scene](https://jausoft.com/blog/tag/graph_type_rendering/).
+
 JOGL is part of [the JogAmp project](https://jogamp.org).
 
 [List of proposed work items & use-cases](https://jogamp.org/wiki/index.php?title=SW_Tracking_Report_Feature_Objectives_Overview)
@@ -28,11 +31,9 @@ Please contact [Göthel Software (Jausoft)](https://jausoft.com/).
 ## Organization of the JOGL source tree
 ```
 doc/                Build and user documentation
-make/               Ant build scripts,
-                    see top of build.xml for brief invocation instructions
+make/               Ant build scripts
 make/config         Configuration files for glue code generation
 make/stub_includes  Header files for glue code generation
-
 src/                Java and native source code for:
 src/jogl            - JOGL
 src/nativewindow    - NativeWindow Interface
@@ -40,21 +41,28 @@ src/newt            - NEWT
 src/graphui         - GraphUI
 src/demos           - Demos
 src/test            - Unit tests
-
 www/                Web pages
 ```
 
 NativeWindow, NEWT and GraphUI might be build seperately.
 
 ## Contact Us
-- JogAmp             [http://jogamp.org/](http://jogamp.org/)
-- JOGL Web           [http://jogamp.org/](http://jogamp.org/jogl/)
 - Forum/Mailinglist  [http://forum.jogamp.org/](http://forum.jogamp.org/)
-- Repository         [http://jogamp.org/git/](http://jogamp.org/git/)
-- Wiki               [https://jogamp.org/wiki/](https://jogamp.org/wiki/)
 - Maintainer         [https://jogamp.org/wiki/index.php/Maintainer_and_Contacts](https://jogamp.org/wiki/index.php/Maintainer_and_Contacts)
 - Sven's Blog        [https://jausoft.com/blog/tag/jogamp/](https://jausoft.com/blog/tag/jogamp/)
 - Email              sgothel _at_ jausoft _dot_ com
+
+## References
+- [JogAmp Home](https://jogamp.org/)
+- [JOGL Home](https://jogamp.org/jogl/www/)
+- [Git Repository](https://jogamp.org/cgit/jogl.git/about/)
+- [OpenGL Evolution & JOGL](https://jogamp.org/jogl/doc/Overview-OpenGL-Evolution-And-JOGL.html)
+- [Mapping of OpenGL Profiles to Interfaces](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#overview_description)
+  - [OpenGL API Inclusion Criteria](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#GLAPIInclusionCriteria)
+  - [UML Diagram](https://jogamp.org/jogl/doc/uml/html/index-withframe.html)
+- [JOGL and OpenGL Divergence](https://jogamp.org/jogl/doc/Overview-OpenGL-Evolution-And-JOGL.html)
+- [How To Build](https://jogamp.org/jogl/doc/HowToBuild.html)
+- [Wiki](https://jogamp.org/wiki/)
 
 
 ## JogAmp History & Milestones
@@ -72,7 +80,7 @@ rendering *GL4Java* effectively *JOGL's* predecessor.  A few of the concepts reu
 - WinHandleAccess -> NativeWindow
 - GLDrawableFactory, GLDrawable, GLContext, GLEvenListener
 
-### GlueGen, JOAL and JOGL at Sun Microsystems
+### GlueGen, JOAL and JOGL at Sun Microsystems &amp; Co
 - 2003-06-06 [Initial JOGL code commit](https://jogamp.org/cgit/jogl.git/commit/?id=d49fd968963909f181423eae46c613189468fac3) 
 - 2003-06-07 [Initial JOAL code commit](https://jogamp.org/cgit/joal.git/commit/?id=5f9e58c5b1a23119a63dfb1e76e73349858439db)
 - 2004-02-18 [JOGL version 1.0.0-b01](https://jogamp.org/cgit/jogl.git/commit/?id=9b0fa9dad2b196d8f86e5e6b575deadac059e877)
@@ -86,7 +94,7 @@ rendering *GL4Java* effectively *JOGL's* predecessor.  A few of the concepts reu
 - 2008-12-xx [OpenMAX and JOGL GL ES2 on embedded Nvidia APX 2500 (Tegra1)](https://www.youtube.com/watch?v=D6Lkw3eZK1w)
 - 2009-06-16 [Merged JOGL 2 Branch: NEWT, NativeWindow abstraction, OpenGL profiles, ...](https://jogamp.org/cgit/jogl.git/log/?h=JOGL_2_SANDBOX)
 - 2009-07-09 [completed git migration](https://jogamp.org/cgit/jogl.git/commit/?id=9d910cf21fb8a61e3a1604f6258364c3b725964d), see also [this blog](https://jausoft.com/blog/2009/07/08/svn-to-git-migration-1/) 
-- 2009-07-24 [Initial JOCL commit](https://jogamp.org/cgit/jocl.git/commit/?id=1737ee672c05d956a99a91d9894556230f6363bc)
+- 2009-07-24 [JOCL initiation](https://jogamp.org/cgit/jocl.git/commit/?id=1737ee672c05d956a99a91d9894556230f6363bc), independent from Sun
 - 2009-10-02 [Adding embedded Intel-GDL support (NEWT, EGL, ES2) to JOGL](https://jogamp.org/cgit/jogl.git/commit/?id=52c3caf07ad07fcb029ea584d7e5f4c5031f84c2)
 - 2009-10-10 [JOGL Plugin3 Integration](https://jogamp.org/cgit/jogl.git/commit/?id=2268a6ce8a900ae7aa9f20d5f595f811185574a9)
 

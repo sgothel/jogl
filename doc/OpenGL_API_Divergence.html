@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>OpenGL_API_Divergence.md</title>
+  <style>
+        div#header, header
+            {
+
+            border-bottom: 1px solid #aaa;
+            margin-bottom: 0.5em;
+            }
+
+        .title
+            {
+            text-align: center;
+            }
+
+        .author, .date
+            {
+            text-align: center;
+            }
+
+        div#TOC, nav#TOC
+            {
+
+            border-bottom: 1px solid #aaa;
+            margin-bottom: 0.5em;
+            }
+
+        nav#TOC {
+          margin-bottom: var(--line-height);
+
+          padding-bottom: 0.5rem;
+        }
+
+        nav#TOC input {
+          display: none;
+        }
+
+        nav#TOC label {
+          color: var(--color-link);
+          cursor: pointer;
+        }
+
+        nav#TOC > ul {
+          display: none;
+        }
+
+        nav#TOC > input:checked + ul {
+          display: block;
+        }
+
+        @media print
+            {
+            div#TOC, nav#TOC
+                {
+
+                display: none;
+                }
+            }
+
+        div.content
+            {
+                color: #111111;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+
+        div#cgit a
+            {
+                color: #1212a0;
+            }
+
+        div#cgit a.sourceLine
+            {
+                color: #111111;
+            }
+
+        h1, h2, h3, h4, h5, h6
+        {
+            font-family: "Helvetica Neue", Helvetica, "Liberation Sans", Calibri, Arial, sans-serif;
+
+            page-break-after: avoid;
+
+            margin: 20px 0 10px;
+            padding: 0;
+        }
+
+        h2 {
+            border-bottom: 1px solid #ccc;
+        }
+
+        div div
+            {
+
+            }
+
+        section section
+            {
+            margin-left: 2em;
+            }
+
+        p {}
+
+        blockquote
+            {
+            font-style: italic;
+            }
+
+        li
+            {
+            }
+
+        li > p
+            {
+            margin-top: 1em;
+            }
+
+        ul
+            {
+            }
+
+        ul li
+            {
+            }
+
+        ol
+            {
+            }
+
+        ol li
+            {
+            }
+
+        hr {}
+
+        sub
+            {
+            }
+
+        sup
+            {
+            }
+
+        em
+            {
+            }
+
+        em > em
+            {
+            font-style: normal;
+            }
+
+        strong
+            {
+            }
+
+        a
+            {
+
+            text-decoration: none;
+            }
+
+        @media screen
+            {
+            a:hover
+                {
+
+                text-decoration: underline;
+                }
+            }
+
+        @media print
+            {
+            a {
+
+                color: black;
+                background: transparent;
+                }
+
+            a[href^="http://"]:after, a[href^="https://"]:after
+                {
+
+                content: " (" attr(href) ") ";
+                font-size: 90%;
+                }
+            }
+
+        img
+            {
+
+            vertical-align: middle;
+            }
+
+        div.figure
+            {
+
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+            font-style: italic;
+            }
+
+        p.caption
+            {
+
+            }
+
+        pre, code
+            {
+            background-color: #f8f8f8;
+
+            white-space: pre-wrap;
+            white-space: -moz-pre-wrap !important;
+            white-space: -pre-wrap;
+            white-space: -o-pre-wrap;
+            word-wrap: break-word;
+
+            }
+
+        pre
+            {
+
+            padding: 0.5em;
+            border-radius: 5px;
+
+            background-color: #f8f8f8;
+            border: 1px solid #ccc;
+            font-size: 13px;
+            line-height: 19px;
+            overflow: auto;
+            padding: 6px 10px;
+
+            margin-left: 0.5em;
+            margin-right: 0.5em;
+            }
+
+        @media screen
+            {
+            pre
+                {
+
+                white-space: pre;
+                overflow: auto;
+
+                border: 1px dotted #777;
+                }
+            }
+
+        code
+            {
+            }
+
+        p > code, li > code
+            {
+
+            padding-left: 2px;
+            padding-right: 2px;
+            }
+
+        li > p code
+            {
+
+            padding: 2px;
+            }
+
+        span.math
+            {
+
+            }
+
+        div.math
+            {
+            }
+
+        span.LaTeX
+            {
+            }
+
+        eq
+            {
+            }
+
+        table
+            {
+            border-collapse: collapse;
+            border-spacing: 0;
+
+            margin-left: auto;
+            margin-right: auto;
+            }
+
+        thead
+            {
+            border-bottom: 1pt solid #000;
+            background-color: #eee;
+            }
+
+        tr.header
+            {
+            }
+
+        tbody
+            {
+            }
+
+        tr {
+            }
+        tr.odd:hover, tr.even:hover
+            {
+            background-color: #eee;
+            }
+
+        tr.odd {}
+        tr.even {}
+
+        td, th
+            {
+            vertical-align: top;
+            vertical-align: baseline;
+            padding-left: 0.5em;
+            padding-right: 0.5em;
+            padding-top: 0.2em;
+            padding-bottom: 0.2em;
+            }
+        th
+            {
+            font-weight: bold;
+            }
+
+        tfoot
+            {
+            }
+
+        caption
+            {
+            caption-side: top;
+            border: none;
+            font-size: 0.9em;
+            font-style: italic;
+            text-align: center;
+            margin-bottom: 0.3em;
+            padding-bottom: 0.2em;
+            }
+
+        dl
+            {
+            border-top: 2pt solid black;
+            padding-top: 0.5em;
+            border-bottom: 2pt solid black;
+            }
+
+        dt
+            {
+            font-weight: bold;
+            }
+
+        dd+dt
+            {
+            border-top: 1pt solid black;
+            padding-top: 0.5em;
+            }
+
+        dd
+            {
+            margin-bottom: 0.5em;
+            }
+
+        dd+dd
+            {
+            border-top: 1px solid black;
+            }
+
+        a.footnote, a.footnoteRef {
+            font-size: small;
+            vertical-align: text-top;
+        }
+
+        a[href^="#fnref"], a.reversefootnote
+            {
+            }
+
+        @media print
+            {
+            a[href^="#fnref"], a.reversefootnote
+                {
+
+                display: none;
+                }
+            }
+
+        div.footnotes
+            {
+            }
+
+        div.footnotes li[id^="fn"]
+            {
+            }
+
+        @media print
+            {
+            .noprint
+                {
+                display:none;
+                }
+            }
+      </style>
+</head>
+<body>
+<nav id="TOC" role="doc-toc">
+    <strong>Contents</strong><label for="contents">⊕</label>
+  <input type="checkbox" id="contents">
+  <ul>
+  <li><a href="#jogl-and-opengl-divergence">JOGL and OpenGL
+  Divergence</a>
+  <ul>
+  <li><a href="#overview">Overview</a>
+  <ul>
+  <li><a href="#opengl-debugging">OpenGL Debugging</a></li>
+  <li><a href="#retrieve-mapped-buffers-data">Retrieve Mapped Buffer's
+  Data</a></li>
+  </ul></li>
+  <li><a href="#references">References</a></li>
+  </ul></li>
+  </ul>
+</nav>
+<style>
+table, th, td {
+   border: 1px solid black;
+}
+</style>
+
+<h1 id="jogl-and-opengl-divergence">JOGL and OpenGL Divergence</h1>
+<h2 id="overview">Overview</h2>
+<p>As described in <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#overview_description">mapping
+of OpenGL profiles to interfaces</a>, JOGL is mostly API compatible with
+the OpenGL API while packaging functionality in <a
+href="https://jogamp.org/jogl/doc/uml/html/index-withframe.html">OpenGL
+profiles</a>.</p>
+<p>However, there are certain aspects where JOGL diverges due to managed
+code aspects and the Java™ language.</p>
+<h3 id="opengl-debugging">OpenGL Debugging</h3>
+<p>In 2009-2012 the <a
+href="https://www.khronos.org/opengl/wiki/Debug_Output">Debug Output</a>
+extensions <a
+href="http://www.opengl.org/registry/specs/AMD/debug_output.txt">AMD_debug_output</a>
+and <a
+href="https://registry.khronos.org/OpenGL/extensions/ARB/ARB_debug_output.txt">ARB_debug_output</a>
+were created, subsumed to the core via <a
+href="https://registry.khronos.org/OpenGL/extensions/KHR/KHR_debug.txt">KHR_debug</a>.</p>
+<p>They allow applications to <a
+href="https://docs.gl/gl4/glDebugMessageCallback">enable and control
+low-level debugging</a> using the OpenGL implementation.</p>
+<p>These extensions have been subsumed in <a
+href="https://www.khronos.org/opengl/wiki/GLAPI/glDebugMessageCallback">OpenGL
+4.3</a> and in <a
+href="https://registry.khronos.org/OpenGL-Refpages/es3/html/glDebugMessageCallback.xhtml">OpenGL
+ES 3.2</a>.</p>
+<p>In JOGL a user may attached a <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLDebugListener.html">GLDebugListener</a>
+to the <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLContext.html">GLContext</a>
+via <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLContext.html#addGLDebugListener(com.jogamp.opengl.GLDebugListener)">addGLDebugListener(..)</a>.
+The GLDebugListener receives the native <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLDebugMessage.html">GLDebugMessage</a>
+if debugging is enabled.</p>
+<p>To enable debugging, the GLContext must be created having <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLContext.html#CTX_OPTION_DEBUG">CTX_OPTION_DEBUG</a>
+set via <code>setContextCreationFlags(int)</code> on the <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLContext.html#setContextCreationFlags(int)">GLContext</a>
+or <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLAutoDrawable.html#setContextCreationFlags(int)">GLAutoDrawable</a>.
+Alternatively, <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLContext.html#enableGLDebugMessage(boolean)">GLContext.enableGLDebugMessage(boolean</a>
+may be used.</p>
+<p>Test cases</p>
+<ul>
+<li><a
+href="https://jogamp.org/cgit/jogl.git/tree/src/test/com/jogamp/opengl/test/junit/jogl/acore/TestGLDebug00NEWT.java">TestGLDebug00NEWT</a></li>
+<li><a
+href="https://jogamp.org/cgit/jogl.git/tree/src/test/com/jogamp/opengl/test/junit/jogl/acore/TestGLDebug01NEWT.java">TestGLDebug01NEWT</a></li>
+</ul>
+<h3 id="retrieve-mapped-buffers-data">Retrieve Mapped Buffer's Data</h3>
+<p>Since OpenGL 1.5, a mapped buffer object's data can be retrieved via
+<a
+href="https://www.khronos.org/opengl/wiki/GLAPI/glGetBufferPointer">glGetBufferPointerv(..)</a>,
+i.e. the client's memory pointer.</p>
+<p>In JOGL, buffers are tracked via <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLBufferStorage.html">GLBufferStorage</a>,
+covering the storage size, NIO client memory reference if mapped and
+usage flags. This ensures lifecycle alignment of the native NIO Java
+client memory with OpenGL buffer semantics.</p>
+<p>To retrieve the bound buffer you may use <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLBase.html#getBoundBuffer(int)">getBoundBuffer(..)</a>
+and <a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/opengl/GLBase.html#getBufferStorage(int)">getBufferStorage(..)</a>.</p>
+<p>Tracker Implementation</p>
+<ul>
+<li><a
+href="https://jogamp.org/cgit/jogl.git/tree/src/jogl/classes/jogamp/opengl/GLBufferObjectTracker.java">GLBufferObjectTracker</a></li>
+<li><a
+href="https://jogamp.org/cgit/jogl.git/tree/src/jogl/classes/jogamp/opengl/GLBufferStateTracker.java">GLBufferStateTracker</a></li>
+</ul>
+<p>Test Cases</p>
+<ul>
+<li><a
+href="https://jogamp.org/cgit/jogl.git/tree/src/test/com/jogamp/opengl/test/junit/jogl/acore/TestMapBufferRead01NEWT.java">TestMapBufferRead01NEWT</a></li>
+<li><a
+href="https://jogamp.org/cgit/jogl.git/tree/src/test/com/jogamp/opengl/test/junit/jogl/acore/TestMapBufferRead02NEWT.java">TestMapBufferRead02NEWT</a></li>
+</ul>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://jogamp.org/">JogAmp Home</a></li>
+<li><a href="https://jogamp.org/cgit/jogl.git/about/">JOGL Git
+Repo</a></li>
+<li><a href="https://jogamp.org/jogl/www/">JOGL Home</a></li>
+<li><a
+href="https://jogamp.org/jogl/doc/Overview-OpenGL-Evolution-And-JOGL.html">OpenGL
+Evolution &amp; JOGL</a></li>
+<li><a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#overview_description">Mapping
+of OpenGL Profiles to Interfaces</a>
+<ul>
+<li><a
+href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#GLAPIInclusionCriteria">OpenGL
+API Inclusion Criteria</a></li>
+<li><a
+href="https://jogamp.org/jogl/doc/uml/html/index-withframe.html">UML
+Diagram</a></li>
+</ul></li>
+<li><a href="https://jogamp.org/jogl/doc/HowToBuild.html">How To
+Build</a></li>
+</ul>
+</body>
+</html>

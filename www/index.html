@@ -17,7 +17,8 @@
             <div id="menu">
                 <ul>
                     <li><a href="../../">Home</a></li>
-                    <li><a href="../../deployment/jogamp-current/jogl-test-applets.html">Tests</a></li>
+                    <li><a href="../../cgit/jogl.git/about/">Git</a></li>
+                    <!-- li><a href="../../deployment/jogamp-current/jogl-test-applets.html">Tests</a></li -->
                     <li><a href="../../jogl-demos/www/">Demos</a></li>
                     <li><a href="../../deployment/jogamp-next/javadoc/jogl/javadoc/">JavaDoc</a></li>
                     <li><a href="../../gluegen/www/">Gluegen</a></li>
@@ -30,15 +31,18 @@
                 <div id="sidebar">
                     <h3>Useful Links</h3>
                     <ul>
-                        <li><a href="../../">Builds / Downloads</a></li>
+                        <li><a href="../../">Builds</a></li>
+                        <li><a href="../../cgit/jogl.git/about/">Git Repo</a></li>
+                        <li><a href="../doc/Overview-OpenGL-Evolution-And-JOGL.html">[JO]GL Evolution..</a></li>
+                        <li><a href="../../deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#overview_description">OpenGL Profiles</a></li>
+                        <li><a href="../doc/Overview-OpenGL-Evolution-And-JOGL.html">[JO]GL Divergence</a></li>
                         <li><a href="../../deployment/jogamp-next/javadoc/jogl/javadoc/">JavaDoc</a></li>
-                        <li><a href="../../wiki/index.php/Jogl_Overview">Project Overview</a></li>
-                        <li><a href="../doc/HowToBuild.html">Building JOGL</a></li>
-                        <li><a href="../doc/deployment/JOGL-DEPLOYMENT.html">Deploying JOGL</a></li>
+                        <li><a href="../../wiki/index.php/Maintainer_and_Contacts">Maintainer</a></li>
+                        <!-- li><a href="../../wiki/index.php/Jogl_Overview">Project Overview</a></li -->
+                        <!-- li><a href="../doc/deployment/JOGL-DEPLOYMENT.html">Deploying JOGL</a></li -->
                         <li><a href="../../wiki/index.php/Jogl_Tutorial">Tutorial</a></li>
                         <li><a href="../doc/userguide/">Userguide</a></li>
                         <li><a href="../../wiki/index.php/Jogl_FAQ">FAQ</a></li>
-                        <li><a href="../../git/?p=jogl.git">Code Repository</a></li>
                         <li><a href="../../git/?p=jogl-demos.git">Demo Repository</a></li>
                         <li><a href="http://www.khronos.org/registry/"><b>Khronos Registry</b></a></li>
                             <li><a href="http://www.khronos.org/opengles/sdk/docs/man32/">ES 3.2 Ref Pages</a></li>
@@ -100,6 +104,10 @@
                     </p>
                     <p>
                         JOGL also provides its own <a href="../doc/NEWT-Overview.html">native windowing toolkit, NEWT</a>, running on top of X11, Windows, MacOS and even on bare-metal console mode without a windowing system.
+                    </p>
+                    <p>
+                    JOGL contains <a href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/graph/curve/OutlineShape.html">Graph</a>, <a href="https://jausoft.com/blog/2023/02/22/reimagine-java-on-desktop-bare-metal-devices/">a resolution-independent GPU NURBS curve renderer</a> suitable for desktop and embedded devices and supporting <a href="https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/graph/curve/opengl/TextRegionUtil.html">text type rendering</a> [ <a href="https://jogamp.org/doc/gpunurbs2011/p70-santina.pdf">paper</a>, <a href="https://jogamp.org/doc/gpunurbs2011/graphicon2011-slides.pdf">slides</a> ].
+                    Graph is used in the contained <a href="https://jausoft.com/blog/tag/graph_type_rendering/">Graph UI, enabling immersive UI within the 3D scene</a>.
                     </p>
                     <p>
                     <a href="https://jogamp.org/wiki/index.php?title=SW_Tracking_Report_Feature_Objectives_Overview">List of proposed work items &amp; use-cases</a> and <a href="https://jausoft.com/blog/tag/jogamp/">current blog entries</a>.
