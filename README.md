@@ -215,6 +215,7 @@ areas of the project (Alphabetical):
 - Lilian Chamontin
 - Alban Cousinié
 - Pepijn Van Eeckhoudt
+- Mathieu Féry
 - Athomas Goldberg
 - Sven Gothel
 - Julien Gouesse
