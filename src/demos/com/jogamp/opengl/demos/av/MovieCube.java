@@ -47,7 +47,6 @@ import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontScale;
-import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -392,7 +391,7 @@ public class MovieCube implements GLEventListener {
         cube = new TextureSequenceCubeES2(mPlayer, false, zoom0, rotx, roty);
 
         if(waitForKey) {
-            JunitTracer.waitForKey("Init>");
+            MiscUtils.waitForKey("Init>");
         }
 
         try {

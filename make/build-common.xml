@@ -512,8 +512,8 @@
         <property name="gluegen-test-util.jar"          value="${build.gluegen}/gluegen-test-util.jar" />
         <property name="jogl-test.jar"                  value="${jar}/jogl-test.jar"/>
         <property name="jogl-demos.jar"                 value="${jar}/jogl-demos.jar"/>
-        <property name="jogl-demo-android.jar"          value="${jar}/jogl-demo-android.jar"/>
-        <property name="jogl-demo-android.apk"          value="${jar}/jogl-demo-android.apk"/>
+        <property name="jogl-demos-android.jar"         value="${jar}/jogl-demos-android.jar"/>
+        <property name="jogl-demos-android.apk"         value="${jar}/jogl-demos-android.apk"/>
 
         <!-- JavaSE combinations . AWT -->
         <property name="jogl-all.jar"                   value="${jar}/jogl-all.jar" />
@@ -529,7 +529,15 @@
         <condition property="joal-jars.available">
             <available file="${joal.jar}"/>
         </condition>
-        <echo message="joal-jars.available: ${joal-jars.available} ${joal.jar}" />
+        <condition property="android-joal-jars.available">
+            <and>
+                <istrue value="${joal-jars.available}" />
+                <istrue value="${android-jars.available}" />
+            </and>
+        </condition>
+        <echo message="joal-jars.available: ${joal-jars.available}, ${joal.jar}" />
+        <echo message="android-jars.available: ${android-jars.available}, ${android.jar}" />
+        <echo message="android-joal-jars.available: ${android-joal-jars.available}" />
 
         <!-- NativeWindow Compilation .. -->
         <path id="swt_gluegen.classpath">
@@ -604,8 +612,61 @@
         </path>
 
 
+        <!-- Demo Compilation .. -->
+        <path id="demo_joal_jogl_newt.compile.classpath">
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${gluegen-test-util.jar}" />
+            <pathelement location="${joal.jar}" />
+            <pathelement location="${swt.jar}" />
+            <pathelement location="${project.root}/make/lib/openjfx/11/javafx-base-11.jar" />
+            <pathelement location="${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar" />
+            <path refid="nativewindow_all_atoms.classpath" />
+            <path refid="jogl_all_atoms.classpath" />
+            <path refid="newt_all_atoms.classpath" />
+            <pathelement location="${graphui.jar}" />
+        </path>
+        <path id="demo_jogl_newt.compile.classpath">
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${gluegen-test-util.jar}" />
+            <pathelement location="${swt.jar}" />
+            <pathelement location="${project.root}/make/lib/openjfx/11/javafx-base-11.jar" />
+            <pathelement location="${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar" />
+            <path refid="nativewindow_all_atoms.classpath" />
+            <path refid="jogl_all_atoms.classpath" />
+            <path refid="newt_all_atoms.classpath" />
+            <pathelement location="${graphui.jar}" />
+        </path>
+
+        <path id="demo_joal_jogl_newt_android.compile.classpath">
+            <pathelement location="${android.jar}" />
+            <pathelement location="${gluegen-rt-android.jar}" />
+            <pathelement location="${gluegen-test-util.jar}" />
+            <pathelement location="${joal.jar}" />
+            <pathelement location="${swt.jar}" />
+            <pathelement location="${project.root}/make/lib/openjfx/11/javafx-base-11.jar" />
+            <pathelement location="${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar" />
+            <path refid="nativewindow_all_atoms.classpath" />
+            <path refid="jogl_all_atoms.classpath" />
+            <path refid="newt_all_atoms.classpath" />
+            <pathelement location="${newt-driver-android.jar}" />
+            <pathelement location="${graphui.jar}" />
+        </path>
+        <path id="demo_jogl_newt_android.compile.classpath">
+            <pathelement location="${android.jar}" />
+            <pathelement location="${gluegen-rt-android.jar}" />
+            <pathelement location="${gluegen-test-util.jar}" />
+            <pathelement location="${swt.jar}" />
+            <pathelement location="${project.root}/make/lib/openjfx/11/javafx-base-11.jar" />
+            <pathelement location="${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar" />
+            <path refid="nativewindow_all_atoms.classpath" />
+            <path refid="jogl_all_atoms.classpath" />
+            <path refid="newt_all_atoms.classpath" />
+            <pathelement location="${newt-driver-android.jar}" />
+            <pathelement location="${graphui.jar}" />
+        </path>
+
         <!-- Test Compilation .. -->
-        <path id="junit_joal_jogl_newt.compile.classpath">
+        <path id="junit_jogl_newt.compile.classpath">
             <pathelement location="${junit.jar}" />
             <pathelement location="${ant.jar}" />
             <pathelement location="${ant-junit.jar}" />
@@ -613,7 +674,6 @@
             <pathelement location="${semver.jar}" />
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${gluegen-test-util.jar}" />
-            <pathelement location="${joal.jar}" />
             <pathelement location="${swt.jar}" />
             <pathelement location="${project.root}/make/lib/openjfx/11/javafx-base-11.jar" />
             <pathelement location="${project.root}/make/lib/openjfx/11/javafx-graphics-11.jar" />

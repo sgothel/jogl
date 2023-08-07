@@ -30,6 +30,9 @@
 
         <property name="java.part.demo"       value="com/jogamp/opengl/demos/**"/>
         <property name="java.part.demo.android" value="com/jogamp/opengl/demos/android/**"/>
+        <property name="java.part.demo.openal" value="com/jogamp/opengl/demos/graph/ui/UISceneDemo20*"/>
+        <property name="java.part.demo.android.openal" value="com/jogamp/opengl/demos/graph/ui/UISceneDemo20*, com/jogamp/opengl/demos/android/NEWTGraphUI1p*, com/jogamp/opengl/demos/android/NEWTGraphUI2p*"/>
+
         <property name="java.part.test.all"   value="com/jogamp/opengl/test/** jogamp/**"/>
         <property name="java.part.test.oculusvr" value="com/jogamp/opengl/test/junit/jogl/stereo/ovr/**"/>
         <property name="java.dir.test"        value="com/jogamp/opengl/test"/>
@@ -92,9 +95,9 @@
        - Build/run tests/junit.
       -->
 
-    <target name="make.demos">
+    <target name="make.demos.firstpass">
         <javac destdir="${classes.demos}"
-               excludes="${java.part.demo.android} ${java.part.demo.oculusvr}"
+               excludes="${java.part.demo.android} ${java.part.demo.oculusvr} ${java.part.demo.openal}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -103,9 +106,26 @@
                target="${target.targetlevel}" 
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="junit_joal_jogl_newt.compile.classpath"/>
+            <classpath refid="demo_jogl_newt.compile.classpath"/>
             <src path="${src.demos}" />
         </javac>
+    </target>
+    <target name="make.demos.secondpass.openal" if="joal-jars.available">
+        <javac destdir="${classes.demos}"
+               includes="${java.part.demo.openal}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="demo_joal_jogl_newt.compile.classpath"/>
+            <src path="${src.demos}" />
+        </javac>
+    </target>
+    <target name="make.demos" depends="make.demos.firstpass, make.demos.secondpass.openal">
         <copy file="joglversion-test"
             tofile="${build.test}/manifest-demo.mf"
             overwrite="true">
@@ -132,10 +152,9 @@
         </jar>
     </target>
 
-    <target name="demo.compile.android" if="android-jars.available">
-        <!-- Perform the junit pass Java Android compile -->
+    <target name="demos.cc.android.firstpass" if="android-jars.available">
         <javac destdir="${classes.demos}"
-               excludes="${java.part.demo.oculusvr}"
+               excludes="${java.part.demo.oculusvr} ${java.part.demo.android.openal}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -144,9 +163,26 @@
                target="${target.targetlevel}"
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="junit_jogl_newt_android.compile.classpath"/>
+            <classpath refid="demo_jogl_newt_android.compile.classpath"/>
             <src path="${src.demos}" />
         </javac>
+    </target>
+    <target name="demos.cc.android.secondpass.openal" if="android-joal-jars.available">
+        <javac destdir="${classes.demos}"
+               includes="${java.part.demo.android.openal}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}"
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="demo_joal_jogl_newt_android.compile.classpath"/>
+            <src path="${src.demos}" />
+        </javac>
+    </target>
+    <target name="demos.cc.android" depends="demos.cc.android.firstpass, demos.cc.android.secondpass.openal" if="android-jars.available">
         <copy file="joglversion-demo-android"
             tofile="${build.test}/manifest-demo-android.mf"
             overwrite="true">
@@ -159,7 +195,7 @@
             </filterset>
         </copy>
 
-        <jar manifest="${build.test}/manifest-demo-android.mf" destfile="${jogl-demo-android.jar}" filesonly="true">
+        <jar manifest="${build.test}/manifest-demo-android.mf" destfile="${jogl-demos-android.jar}" filesonly="true">
             <!-- get all class files, but skip any resource files that external tools
                  might have copied into the class directory (otherwise, it's possible
                  to get the same resource file twice in the jar) -->
@@ -168,12 +204,12 @@
         </jar>
     </target>
 
-    <target name="demo.package.android" depends="demo.compile.android" if="isAndroid">
+    <target name="demo.package.android" depends="demos.cc.android" if="isAndroid">
         <aapt.signed 
             assetsdir="resources/assets-test"
             jarsrcdir="${src}/demos"
             jarbuilddir="${jar}"
-            jarbasename="jogl-demo-android"
+            jarbasename="jogls-demo-android"
             nativebuilddir="${lib}"
             nativebasename="non-existing"
             androidmanifest.path="resources/android/AndroidManifest-demo.xml"
@@ -208,7 +244,7 @@
                target="${target.targetlevel}" 
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="junit_joal_jogl_newt.compile.classpath"/>
+            <classpath refid="junit_jogl_newt.compile.classpath"/>
             <src path="${src.test}" />
         </javac>
     </target>
