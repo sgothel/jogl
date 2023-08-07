@@ -18,7 +18,7 @@ JOGL integrates with the AWT, Swing, OpenJFX and SWT widget sets, as well as wit
 JOGL also provides its own [native windowing toolkit, NEWT](https://jogamp.org/jogl/doc/NEWT-Overview.html), running on top of X11, Windows, MacOS and even on bare-metal console mode without a windowing system.
 
 JOGL contains [Graph](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/graph/curve/OutlineShape.html), [a resolution-independent GPU NURBS curve renderer](https://jausoft.com/blog/2023/02/22/reimagine-java-on-desktop-bare-metal-devices/) suitable for desktop and embedded devices and supporting [text type rendering](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/com/jogamp/graph/curve/opengl/TextRegionUtil.html) \[ [paper](https://jogamp.org/doc/gpunurbs2011/p70-santina.pdf), [slides](https://jogamp.org/doc/gpunurbs2011/graphicon2011-slides.pdf) \].
-Graph is used in the contained [Graph UI, enabling immersive UI within the 3D scene](https://jausoft.com/blog/tag/graph_type_rendering/).
+Graph is used in the contained [GraphUI, enabling immersive UI within the 3D scene](https://jausoft.com/blog/tag/graph_type_rendering/).
 
 JOGL is part of [the JogAmp project](https://jogamp.org).
 
