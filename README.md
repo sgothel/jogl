@@ -60,7 +60,7 @@ NativeWindow, NEWT and GraphUI might be build seperately.
 - [Mapping of OpenGL Profiles to Interfaces](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#overview_description)
   - [OpenGL API Inclusion Criteria](https://jogamp.org/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#GLAPIInclusionCriteria)
   - [UML Diagram](https://jogamp.org/jogl/doc/uml/html/index-withframe.html)
-- [JOGL and OpenGL Divergence](https://jogamp.org/jogl/doc/Overview-OpenGL-Evolution-And-JOGL.html)
+- [JOGL and OpenGL Divergence](https://jogamp.org/jogl/doc/OpenGL_API_Divergence.html)
 - [How To Build](https://jogamp.org/jogl/doc/HowToBuild.html)
 - [Wiki](https://jogamp.org/wiki/)
 
