@@ -704,10 +704,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     {
                         streamWorker = new StreamWorker();
                     }
-                    streamWorker.initGL(gl);
-                    streamWorker.doResume();
-                    changeState(new GLMediaPlayer.EventMask(), State.Paused);
-                    resume();
+                    if( null != streamWorker ) {
+                        streamWorker.initGL(gl);
+                        streamWorker.doResume();
+                        changeState(new GLMediaPlayer.EventMask(), State.Paused);
+                        resume();
+                    }
                 } else if( null == gl ) {
                     width = 0;
                     height = 0;

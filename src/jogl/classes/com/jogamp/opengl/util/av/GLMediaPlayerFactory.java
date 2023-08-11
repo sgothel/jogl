@@ -29,6 +29,7 @@ package com.jogamp.opengl.util.av;
 
 import jogamp.opengl.util.av.NullGLMediaPlayer;
 
+import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
 
 public class GLMediaPlayerFactory {
@@ -52,15 +53,32 @@ public class GLMediaPlayerFactory {
         return sink;
     }
     public static GLMediaPlayer createNull() {
+        if(GLMediaPlayer.DEBUG) { System.err.println("GLMediaPlayerFactory: Using NullGLMediaPlayer"); }
         return new NullGLMediaPlayer();
     }
 
     public static GLMediaPlayer create(final ClassLoader cl, final String implName) {
         try {
+            if(GLMediaPlayer.DEBUG) { System.err.println("GLMediaPlayerFactory: Trying: "+implName); }
             if(((Boolean)ReflectionUtil.callStaticMethod(implName, isAvailableMethodName, null, null, cl)).booleanValue()) {
-                return (GLMediaPlayer) ReflectionUtil.createInstance(implName, cl);
+                final GLMediaPlayer res = (GLMediaPlayer) ReflectionUtil.createInstance(implName, cl);
+                if(GLMediaPlayer.DEBUG) { System.err.println("GLMediaPlayerFactory: Using: "+implName); }
+                return res;
+            } else {
+                if(GLMediaPlayer.DEBUG) { System.err.println("GLMediaPlayerFactory: Not available: "+implName); }
             }
-        } catch (final Throwable t) { if(GLMediaPlayer.DEBUG) { System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); } }
+        } catch (final JogampRuntimeException jre) {
+            if(GLMediaPlayer.DEBUG) {
+                final Throwable cause = jre.getCause();
+                System.err.println("GLMediaPlayerFactory: Not available: "+implName);
+                System.err.println("Caught cause "+cause.getClass().getName()+": "+cause.getMessage());
+            }
+        } catch (final Throwable t) {
+            if(GLMediaPlayer.DEBUG) {
+                System.err.println("GLMediaPlayerFactory: Not available: "+implName);
+                System.err.println("Caught "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace();
+            }
+        }
         return null;
     }
 }
