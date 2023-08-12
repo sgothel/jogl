@@ -48,7 +48,10 @@ import com.jogamp.opengl.math.geom.AABBox;
  * Glyph Grid using GraphUI
  */
 public class FontViewListener01 implements GLEventListener {
-    private static final float mmPerCell = 8.0f;
+    private float mmPerCell = 8.0f;
+    private int pixelPerCell = 30; // 1280 x 720 pixel @ 94.268 dpi, 3.7113402 pixel/mm, 8mm -> 29.69 pixel
+    private boolean useDPI = false;
+
     private final int renderModes;
     private final int startGlyphID;
     private final Font font;
@@ -64,6 +67,15 @@ public class FontViewListener01 implements GLEventListener {
         scene.setSampleCount(graphSampleCount);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setFrustumCullingEnabled(true);
+    }
+
+    public void setMMPerCell(final float mmPerCell) {
+        this.mmPerCell = mmPerCell;
+        this.useDPI = true;
+    }
+    public void setPixelPerCell(final int pixelPerCell) {
+        this.pixelPerCell = pixelPerCell;
+        this.useDPI = false;
     }
 
     public void attachInputListenerTo(final GLWindow window) {
@@ -101,7 +113,7 @@ public class FontViewListener01 implements GLEventListener {
             scene.removeShape(gl, grid);
         }
         final int gridCols, gridRows;
-        if( drawable instanceof GLWindow ) {
+        if( useDPI && drawable instanceof GLWindow ) {
             final GLWindow window = (GLWindow)drawable;
             final float[] ppmm = window.getPixelsPerMM(new float[2]);
             {
@@ -112,18 +124,17 @@ public class FontViewListener01 implements GLEventListener {
                 System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
                 System.err.println("mmPerCell "+mmPerCell);
             }
-            gridCols = (int)( ( window.getSurfaceWidth() / ppmm[0] ) / mmPerCell );
-            gridRows = (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCell );
+            gridCols = (int)( 0.90f * ( width / ppmm[0] ) / mmPerCell );
+            gridRows = (int)( 0.90f * ( height / ppmm[1] ) / mmPerCell );
         } else {
-            final int pxPerCell = 50;
-            gridCols = width / pxPerCell;
-            gridRows = height / pxPerCell;
+            gridCols = (int)( 0.90f * width / pixelPerCell );
+            gridRows = (int)( 0.90f * height / pixelPerCell );
         }
         final int cellCount = gridCols * gridRows;
-        final float gridSize = gridCols > gridRows ? 1f/gridCols : 1f/gridRows;
-        System.err.println("Reshape Grid "+gridCols+" x "+gridRows+", "+cellCount+" cells, gridSize "+gridSize);
+        final float netGridSize = gridCols > gridRows ? 1f/gridCols : 1f/gridRows;
+        System.err.println("Reshape Grid "+gridCols+" x "+gridRows+", "+cellCount+" cells, netGridSize "+netGridSize);
 
-        grid = new Group(new GridLayout(gridCols, gridSize, gridSize, Alignment.Fill, new Gap(gridSize*0.10f)));
+        grid = new Group(new GridLayout(gridCols, netGridSize, netGridSize, Alignment.Fill, new Gap(netGridSize/0.90f*0.10f)));
         scene.addShape(grid);
 
         for(int i=0; i<cellCount; ++i) {
