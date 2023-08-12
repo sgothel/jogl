@@ -65,7 +65,7 @@
         <property name="jar"                        value="${build}/jar" />
         <property name="jar-atomic"                 value="${build}/jar/atomic" />
 
-        <property name="all.srcj.path" value="${src}/nativewindow/classes;${src}/jogl/classes;${src}/newt/classes" />
+        <property name="all.srcj.path" value="${src}/nativewindow/classes;${src}/jogl/classes;${src}/newt/classes;${src}/graphui/classes" />
         <!-- No generated classes for Newt at the present time -->
         <property name="all.genj.path" value="${build}/nativewindow/gensrc/classes;${build}/jogl/gensrc/classes" />
 
