@@ -209,7 +209,7 @@
             assetsdir="resources/assets-test"
             jarsrcdir="${src}/demos"
             jarbuilddir="${jar}"
-            jarbasename="jogls-demo-android"
+            jarbasename="jogl-demos-android"
             nativebuilddir="${lib}"
             nativebasename="non-existing"
             androidmanifest.path="resources/android/AndroidManifest-demo.xml"
