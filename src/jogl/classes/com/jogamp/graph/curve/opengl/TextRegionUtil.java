@@ -201,7 +201,7 @@ public class TextRegionUtil {
      * @param str text to be rendered
      * @param rgbaColor used to fill the {@link Region#hasColorChannel() region's color-channel} if used
      *                  and set {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} to white.
-     *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only.
+     *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only, if not {@code null}.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @return the bounding box of the given string from the produced and rendered GLRegion
@@ -224,7 +224,9 @@ public class TextRegionUtil {
             res.copy(region.getBounds());
         }
         if( !region.hasColorChannel() ) {
-            renderer.setColorStatic(rgbaColor);
+            if( null != rgbaColor ) {
+                renderer.setColorStatic(rgbaColor);
+            }
         } else {
             renderer.setColorStatic(1, 1, 1, 1);
         }
@@ -267,7 +269,7 @@ public class TextRegionUtil {
      * @param str text to be rendered
      * @param rgbaColor used to fill the {@link Region#hasColorChannel() region's color-channel} if used
      *                  and set {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} to white.
-     *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only.
+     *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only, if not {@code null}.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @param tmp1 temp {@link AffineTransform} to be reused
@@ -284,7 +286,9 @@ public class TextRegionUtil {
         final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, font, str);
         final AABBox res = addStringToRegion(false /* preGrowRegion */, region, font, null, str, rgbaColor, tmp1, tmp2);
         if( !region.hasColorChannel() ) {
-            renderer.setColorStatic(rgbaColor);
+            if( null != rgbaColor ) {
+                renderer.setColorStatic(rgbaColor);
+            }
         } else {
             renderer.setColorStatic(1, 1, 1, 1);
         }
@@ -325,7 +329,7 @@ public class TextRegionUtil {
      * @param str text to be rendered
      * @param rgbaColor used to fill the {@link Region#hasColorChannel() region's color-channel} if used
      *                  and set {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} to white.
-     *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only.
+     *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only, if not {@code null}.
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @param tmp1 temp {@link AffineTransform} to be reused
@@ -341,7 +345,9 @@ public class TextRegionUtil {
         }
         final AABBox res = addStringToRegion(true /* preGrowRegion */, region, font, null, str, rgbaColor, tmp1, tmp2);
         if( !region.hasColorChannel() ) {
-            renderer.setColorStatic(rgbaColor);
+            if( null != rgbaColor ) {
+                renderer.setColorStatic(rgbaColor);
+            }
         } else {
             renderer.setColorStatic(1, 1, 1, 1);
         }
