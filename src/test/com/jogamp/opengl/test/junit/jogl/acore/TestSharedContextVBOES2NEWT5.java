@@ -101,7 +101,7 @@ public class TestSharedContextVBOES2NEWT5 extends UITestCase {
 
     public void asyncEachAnimator(final boolean destroyCleanOrder, final int loops) throws InterruptedException {
         // master
-        final Animator a1 = new Animator();
+        final Animator a1 = new Animator(0 /* w/o AWT */);
         final GearsES2 g1 = new GearsES2(0);
         g1.setVerbose(false);
         g1.setSyncObjects(g1); // this is master, since rendered we must use it as sync
@@ -130,7 +130,7 @@ public class TestSharedContextVBOES2NEWT5 extends UITestCase {
             final GLWindow[] sf = new GLWindow[slaveCount];
             final GLContext[] sc = new GLContext[slaveCount];
             for(int i=0; i<slaveCount; i++) {
-                final Animator a2 = new Animator();
+                final Animator a2 = new Animator(0 /* w/o AWT */);
                 final GearsES2 g2 = new GearsES2(0);
                 g2.setVerbose(false);
                 g2.setSharedGears(g1); // also uses master g1 as sync, if required

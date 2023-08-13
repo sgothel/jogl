@@ -209,7 +209,7 @@ public class Hello {
                                    ", isCAEAGLLayer "+IOSUtil.isCAEAGLLayer(caeaglLayer));
             }
 
-            final Animator animator = new Animator();
+            final Animator animator = new Animator(0 /* w/o AWT */);
             // animator.setExclusiveContext(exclusiveContext);
             animator.setUpdateFPSFrames(60, System.err);
             animator.add(glWindow);

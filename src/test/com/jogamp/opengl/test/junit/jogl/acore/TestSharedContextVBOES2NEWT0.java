@@ -110,7 +110,7 @@ public class TestSharedContextVBOES2NEWT0 extends UITestCase {
         testCommonAnimatorSharedImpl(true);
     }
     private void testCommonAnimatorSharedImpl(final boolean useMappedBuffers) throws InterruptedException {
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
 
         //
         // 1st

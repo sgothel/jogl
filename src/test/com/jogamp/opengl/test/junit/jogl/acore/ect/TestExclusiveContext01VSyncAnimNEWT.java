@@ -45,7 +45,7 @@ public class TestExclusiveContext01VSyncAnimNEWT extends ExclusiveContextBase00N
 
     @Override
     protected AnimatorBase createAnimator() {
-        return new Animator();
+        return new Animator(0 /* w/o AWT */);
     }
 
     public static void main(final String args[]) throws IOException {

@@ -96,7 +96,7 @@ public class TestSharedContextVBOES2NEWT4 extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException {
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.start();
 
         final GearsES2 g1 = new GearsES2(0);

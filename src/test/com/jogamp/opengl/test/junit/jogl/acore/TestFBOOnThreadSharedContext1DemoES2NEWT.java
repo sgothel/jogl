@@ -162,8 +162,11 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
         glWindow.addGLEventListener(mixerDemo);
         glWindow.addGLEventListener(new GLEventListener() {
             int i=0, c=0;
+            @Override
             public void init(final GLAutoDrawable drawable) {}
+            @Override
             public void dispose(final GLAutoDrawable drawable) {}
+            @Override
             public void display(final GLAutoDrawable drawable) {
                 if(mainRun) return;
 
@@ -186,10 +189,11 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
                     }
                 }
             }
+            @Override
             public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
         });
 
-        final Animator animator1 = new Animator();
+        final Animator animator1 = new Animator(0 /* w/o AWT */);
         animator1.add(fbod1);
         animator1.add(glWindow);
 
@@ -201,9 +205,11 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
         glWindow.addWindowListener(quitAdapter);
 
         glWindow.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowResized(final WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
+            @Override
             public void windowMoved(final WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }

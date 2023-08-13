@@ -118,7 +118,7 @@ public class UILayoutBox01 {
         final GLProfile reqGLP = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+reqGLP);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
 
         final GLCapabilities caps = new GLCapabilities(reqGLP);
         caps.setAlphaBits(4);

@@ -175,7 +175,7 @@ public class UISceneDemo20 implements GLEventListener {
         final UISceneDemo20 scene = new UISceneDemo20(fontfilename, filmURL, options.renderModes, DEBUG, TRACE);
         window.addGLEventListener(scene);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(5*60, null);
         animator.add(window);
 
@@ -722,7 +722,6 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
 
             final ALAudioSink[] alAudioSink = { null };
-            final com.jogamp.openal.sound3d.Listener audioListener = new com.jogamp.openal.sound3d.Listener();
 
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override

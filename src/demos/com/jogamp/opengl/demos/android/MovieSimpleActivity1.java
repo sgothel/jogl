@@ -113,7 +113,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
        final com.jogamp.newt.Screen scrn = NewtFactory.createScreen(dpy, 0);
        scrn.addReference();
 
-       final Animator anim = new Animator();
+       final Animator anim = new Animator(0 /* w/o AWT */);
 
        // Main
        final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);

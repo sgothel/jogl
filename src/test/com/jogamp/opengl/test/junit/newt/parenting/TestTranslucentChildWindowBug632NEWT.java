@@ -89,7 +89,7 @@ public class TestTranslucentChildWindowBug632NEWT extends UITestCase {
 
     @Test
     public void testWindow00() throws InterruptedException {
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
 
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);

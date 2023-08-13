@@ -202,7 +202,7 @@ public class Hello1 {
             System.out.println("Choosen demo "+demo.getClass().getName());
             glad.addGLEventListener(demo);
 
-            final Animator animator = new Animator();
+            final Animator animator = new Animator(0 /* w/o AWT */);
             // animator.setExclusiveContext(exclusiveContext);
             animator.setUpdateFPSFrames(60, System.err);
             animator.add(glad);

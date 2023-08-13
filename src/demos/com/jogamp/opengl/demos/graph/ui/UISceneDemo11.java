@@ -101,7 +101,7 @@ public class UISceneDemo11 {
         scene.addShape(groupA0);
         scene.setFrustumCullingEnabled(true);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
 
         final GLCapabilities caps = new GLCapabilities(reqGLP);
         caps.setAlphaBits(4);

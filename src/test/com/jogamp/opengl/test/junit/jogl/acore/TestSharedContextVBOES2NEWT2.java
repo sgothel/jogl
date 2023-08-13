@@ -104,7 +104,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
     }
 
     public void syncedOneAnimator(final boolean destroyCleanOrder) throws InterruptedException {
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.start();
 
         final GearsES2 g1 = new GearsES2(0);
@@ -222,7 +222,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
     }
 
     public void asyncEachAnimator(final boolean destroyCleanOrder) throws InterruptedException {
-        final Animator a1 = new Animator();
+        final Animator a1 = new Animator(0 /* w/o AWT */);
         final GearsES2 g1 = new GearsES2(0);
         g1.setSyncObjects(g1); // this is master, since rendered we must use it as sync
         final GLWindow f1 = createGLWindow(0, 0, g1);
@@ -231,7 +231,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
 
         final InsetsImmutable insets = f1.getInsets();
 
-        final Animator a2 = new Animator();
+        final Animator a2 = new Animator(0 /* w/o AWT */);
         final GearsES2 g2 = new GearsES2(0);
         g2.setSharedGears(g1); // also uses master g1 as sync, if required
         final GLWindow f2 = createGLWindow(f1.getX()+width+insets.getTotalWidth(),
@@ -241,7 +241,7 @@ public class TestSharedContextVBOES2NEWT2 extends UITestCase {
         a2.start();
         f2.setVisible(true);
 
-        final Animator a3 = new Animator();
+        final Animator a3 = new Animator(0 /* w/o AWT */);
         final GearsES2 g3 = new GearsES2(0);
         g3.setSharedGears(g1); // also uses master g1 as sync, if required
         final GLWindow f3 = createGLWindow(f1.getX()+0,

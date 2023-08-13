@@ -111,6 +111,7 @@ public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
         };
 
         window.setWindowDestroyNotifyAction( new Runnable() {
+            @Override
             public void run() {
                 glad.windowDestroyNotifyOp();
             } } );
@@ -170,7 +171,7 @@ public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
         glad1.addGLEventListener(snapshotGLEventListener);
         snapshotGLEventListener.setMakeSnapshot();
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.add(glad1);
         animator.add(glad2);
         animator.start();
@@ -231,7 +232,7 @@ public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
         glWindow2.setPosition(2*64+width, 64);
         glWindow2.addWindowListener(quitAdapter);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.add(glWindow1);
         animator.add(glWindow2);
         animator.start();
@@ -308,7 +309,7 @@ public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
         glWindow2.addGLEventListener(snapshotGLEventListener2);
         glWindow2.addWindowListener(quitAdapter);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.add(glWindow1);
         animator.add(glWindow2);
         animator.start();

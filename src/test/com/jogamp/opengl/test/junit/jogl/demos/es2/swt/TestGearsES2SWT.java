@@ -155,8 +155,7 @@ public class TestGearsES2SWT extends UITestCase {
         final GearsES2 demo = new GearsES2(swapInterval);
         canvas.addGLEventListener(demo);
 
-        final Animator animator = new Animator();
-        animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setExclusiveContext(exclusiveContext);
 
         animator.add(canvas);

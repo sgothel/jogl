@@ -82,7 +82,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
     @Test
     public void test01SyncedOneAnimator() throws InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(null);
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.start();
         Assert.assertEquals(true, animator.isStarted());
         Assert.assertEquals(true, animator.isPaused());
@@ -162,7 +162,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
     @Test
     public void test02AsyncEachAnimator() throws InterruptedException, InvocationTargetException {
         final GLCapabilities caps = new GLCapabilities(null);
-        final Animator a1 = new Animator();
+        final Animator a1 = new Animator(0 /* w/o AWT */);
         final GearsES2 g1 = new GearsES2(0);
         final GLWindow c1 = createGLWindow(caps, 0, 0, g1);
         a1.add(c1);
@@ -172,7 +172,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
         Assert.assertEquals(true, a1.isAnimating());
         c1.setVisible(true);
 
-        final Animator a2 = new Animator();
+        final Animator a2 = new Animator(0 /* w/o AWT */);
         final GearsES2 g2 = new GearsES2(0);
         final GLWindow c2 = createGLWindow(caps, c1.getX()+width, c1.getY()+0, g2);
         a2.add(c2);
@@ -182,7 +182,7 @@ public class TestAnimatorGLWindow01NEWT extends UITestCase {
         Assert.assertEquals(true, a2.isAnimating());
         c2.setVisible(true);
 
-        final Animator a3 = new Animator();
+        final Animator a3 = new Animator(0 /* w/o AWT */);
         final GearsES2 g3 = new GearsES2(0);
         final GLWindow c3 = createGLWindow(caps, c1.getX()+0, c1.getY()+height, g3);
         a3.add(c3);

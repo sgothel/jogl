@@ -247,7 +247,7 @@ public class TestTextRendererNEWT10 extends UITestCase {
 
         window.addGLEventListener(textGLListener);
 
-        final Animator anim = new Animator();
+        final Animator anim = new Animator(0 /* w/o AWT */);
         anim.add(window);
         anim.start();
         anim.setUpdateFPSFrames(60, null);

@@ -176,7 +176,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
     @Test
     public void test01CommonAnimatorSharedOnscreen() throws InterruptedException {
         initShared(true);
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         final GLWindow f1 = runTestGL(animator, 0, 0, true, false);
         final InsetsImmutable insets = f1.getInsets();
         final GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
@@ -209,9 +209,9 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
     @Test
     public void test02EachWithAnimatorSharedOnscreen() throws InterruptedException {
         initShared(true);
-        final Animator animator1 = new Animator();
-        final Animator animator2 = new Animator();
-        final Animator animator3 = new Animator();
+        final Animator animator1 = new Animator(0 /* w/o AWT */);
+        final Animator animator2 = new Animator(0 /* w/o AWT */);
+        final Animator animator3 = new Animator(0 /* w/o AWT */);
         final GLWindow f1 = runTestGL(animator1, 0, 0, true, false);
         final InsetsImmutable insets = f1.getInsets();
         final GLWindow f2 = runTestGL(animator2, f1.getX()+width+insets.getTotalWidth(),
@@ -247,7 +247,7 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
     @Test
     public void test11CommonAnimatorSharedOffscreen() throws InterruptedException {
         initShared(false);
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         final GLWindow f1 = runTestGL(animator, 0, 0, true, false);
         final InsetsImmutable insets = f1.getInsets();
         final GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),
@@ -280,9 +280,9 @@ public class TestSharedContextVBOES2NEWT1 extends UITestCase {
     @Test
     public void test12EachWithAnimatorSharedOffscreen() throws InterruptedException {
         initShared(false);
-        final Animator animator1 = new Animator();
-        final Animator animator2 = new Animator();
-        final Animator animator3 = new Animator();
+        final Animator animator1 = new Animator(0 /* w/o AWT */);
+        final Animator animator2 = new Animator(0 /* w/o AWT */);
+        final Animator animator3 = new Animator(0 /* w/o AWT */);
         final GLWindow f1 = runTestGL(animator1, 0, 0, true, false);
         final InsetsImmutable insets = f1.getInsets();
         final GLWindow f2 = runTestGL(animator2, f1.getX()+width+insets.getTotalWidth(),

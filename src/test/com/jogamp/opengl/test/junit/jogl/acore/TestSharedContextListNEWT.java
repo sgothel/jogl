@@ -116,7 +116,7 @@ public class TestSharedContextListNEWT extends UITestCase {
     @Test
     public void test01() throws InterruptedException {
         initShared();
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         final GLWindow f1 = runTestGL(animator, 0, 0, true, false);
         final InsetsImmutable insets = f1.getInsets();
         final GLWindow f2 = runTestGL(animator, f1.getX()+width+insets.getTotalWidth(),

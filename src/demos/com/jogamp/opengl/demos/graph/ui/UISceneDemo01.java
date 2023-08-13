@@ -93,7 +93,7 @@ public class UISceneDemo01 {
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.addShape(shape);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
 
         final GLCapabilities caps = new GLCapabilities(reqGLP);
         caps.setAlphaBits(4);

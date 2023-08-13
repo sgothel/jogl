@@ -788,7 +788,7 @@ public class MovieSimple implements GLEventListener {
         final MovieSimple[] mss = new MovieSimple[windowCount];
         final GLWindow[] windows = new GLWindow[windowCount];
         for(int i=0; i<windowCount; i++) {
-            final Animator anim = new Animator();
+            final Animator anim = new Animator(0 /* w/o AWT */);
             anim.start();
             windows[i] = GLWindow.create(caps);
             windows[i].addWindowListener(new WindowAdapter() {

@@ -89,7 +89,7 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
        scrn.addReference();
 
        try {
-           final Animator anim = new Animator();
+           final Animator anim = new Animator(0 /* w/o AWT */);
 
            // Main
            final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);

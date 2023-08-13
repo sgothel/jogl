@@ -149,7 +149,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         final GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */, true /* vsync */);
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(1, null);
         Assert.assertTrue(animator.start());
         Thread.sleep(250); // give animator a chance to become paused
@@ -191,7 +191,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         final RectangleImmutable screenBoundsInWinU = screen.getViewportInWindowUnits();
         window2.setPosition(screenBoundsInWinU.getWidth()-width, 0);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(1, null);
         Assert.assertEquals(false, animator.isStarted());
         Assert.assertEquals(false, animator.isAnimating()); // zero drawables
@@ -258,7 +258,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         final RectangleImmutable screen2BoundsInWinU = screen2.getViewportInWindowUnits();
         window2.setPosition(screen2BoundsInWinU.getWidth()-width, 0);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(1, null);
         Assert.assertEquals(false, animator.isStarted());
         Assert.assertEquals(false, animator.isAnimating());

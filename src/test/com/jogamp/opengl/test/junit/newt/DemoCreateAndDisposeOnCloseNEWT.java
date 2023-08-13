@@ -64,7 +64,7 @@ public class DemoCreateAndDisposeOnCloseNEWT {
         caps.setBackgroundOpaque(true);
         caps.setDoubleBuffered(true);
         caps.setDepthBits(16);
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         final GLWindow glWindow = GLWindow.create(caps);
         animator.add(glWindow);
         glWindow.addGLEventListener(new GLEventListener() {

@@ -76,8 +76,7 @@ public class TestOlympicES1NEWT extends UITestCase {
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glWindow.addGLEventListener(snap);
 
-        final Animator animator = new Animator();
-        animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setExclusiveContext(exclusiveContext);
 
         final QuitAdapter quitAdapter = new QuitAdapter();

@@ -203,8 +203,11 @@ public class Launcher0 {
 
         if(waitForKey) {
             glWindow.addGLEventListener(new GLEventListener() {
+                @Override
                 public void init(final GLAutoDrawable drawable) { }
+                @Override
                 public void dispose(final GLAutoDrawable drawable) { }
+                @Override
                 public void display(final GLAutoDrawable drawable) {
                     final GLAnimatorControl  actrl = drawable.getAnimator();
                     if(waitForKey && actrl.getTotalFPSFrames() == 60*3) {
@@ -213,22 +216,24 @@ public class Launcher0 {
                         waitForKey = false;
                     }
                 }
+                @Override
                 public void reshape(final GLAutoDrawable drawable, final int x, final int y,
                         final int width, final int height) { }
             });
         }
 
-        final Animator animator = useAnimator ? new Animator() : null;
+        final Animator animator = useAnimator ? new Animator(0 /* w/o AWT */) : null;
         if( useAnimator ) {
-            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
 
         glWindow.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowResized(final WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getBounds()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
                 NEWTDemoListener.setTitle(glWindow);
             }
+            @Override
             public void windowMoved(final WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getBounds()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
                 NEWTDemoListener.setTitle(glWindow);

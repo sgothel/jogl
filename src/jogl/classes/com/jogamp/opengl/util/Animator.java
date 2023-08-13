@@ -45,6 +45,7 @@ import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.SourcedInterruptedException;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLProfile;
 
 /** <P> An Animator can be attached to one or more {@link
     GLAutoDrawable}s to drive their display() methods in a loop. </P>
@@ -69,46 +70,100 @@ public class Animator extends AnimatorBase {
     volatile boolean stopIssued;
 
     /**
-     * Creates a new, empty Animator.
+     * Creates a new, empty Animator instance
+     * while expecting an AWT rendering thread if AWT is available.
+     *
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see #Animator(int, ThreadGroup, GLAutoDrawable)
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
      */
     public Animator() {
-        super();
-        if(DEBUG) {
-            System.err.println("Animator created");
-        }
+        this(MODE_EXPECT_AWT_RENDERING_THREAD, null, null);
+    }
+
+    /**
+     * Creates a new, empty Animator instance
+     * with given modeBits.
+     * <p>
+     * Passing {@link AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD} is considered default.
+     * However, passing {@code 0} is recommended if not using AWT in your application.
+     * </p>
+     *
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see #Animator(int, ThreadGroup, GLAutoDrawable)
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
+     */
+    public Animator(final int modeBits) {
+        this(modeBits, null, null);
     }
 
     /**
      * Creates a new Animator w/ an associated ThreadGroup.
+     * <p>
+     * This ctor variant expects an AWT rendering thread if AWT is available.
+     * </p>
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see #Animator(int, ThreadGroup, GLAutoDrawable)
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
      */
     public Animator(final ThreadGroup tg) {
-        super();
-        setThreadGroup(tg);
-        if(DEBUG) {
-            System.err.println("Animator created, ThreadGroup: "+threadGroup);
-        }
+        this(MODE_EXPECT_AWT_RENDERING_THREAD, tg, null);
     }
 
     /**
      * Creates a new Animator for a particular drawable.
+     * <p>
+     * This ctor variant expects an AWT rendering thread if AWT is available.
+     * </p>
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see #Animator(int, ThreadGroup, GLAutoDrawable)
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
      */
     public Animator(final GLAutoDrawable drawable) {
-        super();
-        add(drawable);
-        if(DEBUG) {
-            System.err.println("Animator created, w/ "+drawable);
-        }
+        this(MODE_EXPECT_AWT_RENDERING_THREAD, null, drawable);
     }
 
     /**
      * Creates a new Animator w/ an associated ThreadGroup for a particular drawable.
+     * <p>
+     * This ctor variant expects an AWT rendering thread if AWT is available.
+     * </p>
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see #Animator(int, ThreadGroup, GLAutoDrawable)
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
      */
     public Animator(final ThreadGroup tg, final GLAutoDrawable drawable) {
-        super();
-        setThreadGroup(tg);
-        add(drawable);
+        this(MODE_EXPECT_AWT_RENDERING_THREAD, tg, drawable);
+    }
+
+    /**
+     * Creates a new Animator w/ an associated ThreadGroup for a particular drawable.
+     * <p>
+     * Passing {@link AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD} is considered default.
+     * However, passing {@code 0} is recommended if not using AWT in your application.
+     * </p>
+     * @param modeBits pass {@link AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD} if an AWT rendering thread is expected, otherwise {@code 0}.
+     * @param tg desired {@link ThreadGroup} or {@code null}
+     * @param drawable {@link #add(GLAutoDrawable) added} {@link GLAutoDrawable} or {@code null}
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
+     */
+    public Animator(final int modeBits, final ThreadGroup tg, final GLAutoDrawable drawable) {
+        super(modeBits);
+        if( null != tg ) {
+            setThreadGroup(tg);
+        }
+        if( null != drawable ) {
+            add(drawable);
+        }
         if(DEBUG) {
-            System.err.println("Animator created, ThreadGroup: "+threadGroup+" and "+drawable);
+            System.err.println("Animator created, modeBits 0x"+Integer.toHexString(modeBits)+", ThreadGroup: "+threadGroup+" and "+drawable);
         }
     }
 

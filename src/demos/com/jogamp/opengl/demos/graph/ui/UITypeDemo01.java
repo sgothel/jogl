@@ -132,7 +132,7 @@ public class UITypeDemo01 implements GLEventListener {
         window.addGLEventListener(uiGLListener);
         window.setVisible(true);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         // animator.setUpdateFPSFrames(60, System.err);
         animator.add(window);
 

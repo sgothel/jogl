@@ -80,8 +80,8 @@ public class TestBug669RecursiveGLContext02NEWT extends UITestCase {
 
     final GLWindow window1 = GLWindow.create(caps);
 
-    final Animator animator1 = new Animator();
-    final Animator animator2 = new Animator();
+    final Animator animator1 = new Animator(0 /* w/o AWT */);
+    final Animator animator2 = new Animator(0 /* w/o AWT */);
     if(anim) {
         animator1.add(window1);
         animator2.add(window2);
@@ -92,15 +92,19 @@ public class TestBug669RecursiveGLContext02NEWT extends UITestCase {
     window1.setPosition(250, 0);
     window1.setSize(200, 200);
     window1.addGLEventListener(new GLEventListener() {
-      public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
+        @Override
+        public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
 
-      public void init(final GLAutoDrawable drawable) { }
+        @Override
+        public void init(final GLAutoDrawable drawable) { }
 
-      public void dispose(final GLAutoDrawable drawable) { }
+        @Override
+        public void dispose(final GLAutoDrawable drawable) { }
 
-      public void display(final GLAutoDrawable drawable) {
-        window2.display();
-      }
+        @Override
+        public void display(final GLAutoDrawable drawable) {
+            window2.display();
+        }
     });
     window1.addGLEventListener(new GearsES2());
 

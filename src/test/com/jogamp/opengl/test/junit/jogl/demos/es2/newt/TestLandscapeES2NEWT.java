@@ -68,9 +68,8 @@ public class TestLandscapeES2NEWT extends UITestCase {
         snap.setPostSNDetail(demo.getClass().getSimpleName());
         glWindow.addGLEventListener(snap);
 
-        final Animator animator = useAnimator ? new Animator() : null;
+        final Animator animator = useAnimator ? new Animator(0 /* w/o AWT */) : null;
         if( useAnimator ) {
-            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
 
@@ -82,17 +81,20 @@ public class TestLandscapeES2NEWT extends UITestCase {
         glWindow.addWindowListener(quitAdapter);
 
         glWindow.addKeyListener(new KeyAdapter() {
+            @Override
             public void keyReleased(final KeyEvent e) {
                 if( !e.isPrintableKey() || e.isAutoRepeat() ) {
                     return;
                 }
                 if(e.getKeyChar()=='f') {
                     glWindow.invokeOnNewThread(null, false, new Runnable() {
+                        @Override
                         public void run() {
                             glWindow.setFullscreen(!glWindow.isFullscreen());
                     } } );
                 } else if(e.getKeyChar()=='d') {
                     glWindow.invokeOnNewThread(null, false, new Runnable() {
+                        @Override
                         public void run() {
                             glWindow.setUndecorated(!glWindow.isUndecorated());
                     } } );

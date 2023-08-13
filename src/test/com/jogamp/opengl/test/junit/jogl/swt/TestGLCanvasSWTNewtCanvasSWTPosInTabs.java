@@ -130,30 +130,32 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         try {
             if( null != display ) {
                 display.syncExec(new Runnable() {
-                   public void run() {
-                    if( null != sash ) {
-                        sash.dispose();
-                    }
-                    if( null != tab1Comp ) {
-                        tab1Comp.dispose();
-                    }
-                    if( null != tabFolder ) {
-                        tabFolder.dispose();
-                    }
-                    if( null != composite ) {
-                        composite.dispose();
-                    }
-                    if( null != shell ) {
-                        shell.dispose();
-                    }
-                   }});
+                    @Override
+                    public void run() {
+                        if( null != sash ) {
+                            sash.dispose();
+                        }
+                        if( null != tab1Comp ) {
+                            tab1Comp.dispose();
+                        }
+                        if( null != tabFolder ) {
+                            tabFolder.dispose();
+                        }
+                        if( null != composite ) {
+                            composite.dispose();
+                        }
+                        if( null != shell ) {
+                            shell.dispose();
+                        }
+                    }});
             }
             SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
-               public void run() {
-                if( null != display ) {
-                    display.dispose();
-                }
-               }});
+                @Override
+                public void run() {
+                    if( null != display ) {
+                        display.dispose();
+                    }
+                }});
         }
         catch( final Throwable throwable ) {
             throwable.printStackTrace();
@@ -174,6 +176,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             throws InterruptedException
     {
         SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
+            @Override
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
@@ -181,6 +184,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             }});
 
         display.syncExec(new Runnable() {
+            @Override
             public void run() {
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
@@ -240,6 +244,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         glad1.addGLEventListener(demo1);
 
         display.syncExec(new Runnable() {
+            @Override
             public void run() {
                 if( !addComposite ) {
                     tabItem1.setControl(canvas1);
@@ -265,8 +270,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
                 tabItem2.setControl(sash);
             } } );
 
-        final Animator animator = new Animator();
-        animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.add(glad1);
 
         final GLWindow glWindow2;
@@ -307,6 +311,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             // Index 0 -> newtCanvasSWT1 ( glWindow1 )
             // Index 1 -> newtCanvasSWT2 ( glWindow2 )
             display.syncExec(new Runnable() {
+                @Override
                 public void run() {
                     final Listener swtListener0 = new Listener() {
                         @Override
@@ -335,6 +340,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         animator.add(glad2);
 
         display.syncExec(new Runnable() {
+            @Override
             public void run() {
                 if( focusOnTab1 ) {
                     canvas1.setFocus();
@@ -353,12 +359,14 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             glWindow2.addWindowListener(quitAdapter);
 
             final WindowListener wl = new WindowAdapter() {
+                @Override
                 public void windowResized(final WindowEvent e) {
                     final GLWindow glWindow = ( e.getSource() instanceof GLWindow ) ? (GLWindow)e.getSource() : null;
                     if( null != glWindow ) {
                         System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
                     }
                 }
+                @Override
                 public void windowMoved(final WindowEvent e) {
                     final GLWindow glWindow = ( e.getSource() instanceof GLWindow ) ? (GLWindow)e.getSource() : null;
                     if( null != glWindow ) {
@@ -370,6 +378,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
             glWindow2.addWindowListener(wl);
 
             final KeyListener kl = new KeyAdapter() {
+                @Override
                 public void keyReleased(final KeyEvent e) {
                     if( !e.isPrintableKey() || e.isAutoRepeat() ) {
                         return;
@@ -378,6 +387,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
                     if( null != glWindow ) {
                         if(e.getKeyChar()=='f') {
                             glWindow.invokeOnNewThread(null, false, new Runnable() {
+                                @Override
                                 public void run() {
                                     final Thread t = glWindow.setExclusiveContextThread(null);
                                     System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
@@ -413,12 +423,14 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         animator.setUpdateFPSFrames(60, null);
 
         display.syncExec(new Runnable() {
+            @Override
             public void run() {
                 shell.open();
             } } );
 
         Assert.assertEquals(true,  GLTestUtil.waitForRealized( focusOnTab1 ? glad1 : glad2, true, waitAction));
         display.syncExec(new Runnable() {
+            @Override
             public void run() {
                 final Canvas canvas = focusOnTab1 ? canvas1 : canvas2;
                 System.err.println("Canvas pixel-units  pos/siz.0: pos "+SWTAccessor.getLocationInPixels(canvas)+", size "+SWTAccessor.getSizeInPixels(canvas));
@@ -444,13 +456,14 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
                 generalWaitAction.run();
             }
             display.syncExec( new Runnable() {
-               public void run() {
-                   shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
-                   final Canvas canvas = focusOnTab1 ? canvas1 : canvas2;
-                   System.err.println("Canvas pixel-units  pos/siz.1: pos "+SWTAccessor.getLocationInPixels(canvas)+", size "+SWTAccessor.getSizeInPixels(canvas));
-                   System.err.println("Canvas window-units pos/siz.1: pos "+canvas.getLocation()+", size "+canvas.getSize());
-                   System.err.println("Canvas LOS.1: "+canvas.toDisplay(0, 0));
-               } } );
+                @Override
+                public void run() {
+                    shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
+                    final Canvas canvas = focusOnTab1 ? canvas1 : canvas2;
+                    System.err.println("Canvas pixel-units  pos/siz.1: pos "+SWTAccessor.getLocationInPixels(canvas)+", size "+SWTAccessor.getSizeInPixels(canvas));
+                    System.err.println("Canvas window-units pos/siz.1: pos "+canvas.getLocation()+", size "+canvas.getSize());
+                    System.err.println("Canvas LOS.1: "+canvas.toDisplay(0, 0));
+                } } );
             if( useNewtCanvasSWT ) {
                 final GLWindow glWindow = focusOnTab1 ? glWindow1 : glWindow2;
                 final NewtCanvasSWT newtCanvasSWT = focusOnTab1 ? newtCanvasSWT1 : newtCanvasSWT2;
@@ -471,6 +484,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
                 Assert.assertTrue( "NewtCanvasAWT2 LOS "+pNatWinLOS+" not >= sash-right "+pSashRightClient, pNatWinLOS.compareTo(pSashRightClient) >= 0 );
             } else {
                 display.syncExec(new Runnable() {
+                    @Override
                     public void run() {
                         final org.eclipse.swt.graphics.Point los = glCanvas2.toDisplay(0, 0);
                         pGLWinLOS[0] = new Point(los.x, los.y);
@@ -501,12 +515,14 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
         try {
             if( useNewtCanvasSWT ) {
                 display.syncExec( new Runnable() {
-                   public void run() {
-                       newtCanvasSWT1.dispose();
-                   } } );
+                    @Override
+                    public void run() {
+                        newtCanvasSWT1.dispose();
+                    } } );
                 glWindow1.destroy();
                 Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow1, false, null));
                 display.syncExec( new Runnable() {
+                    @Override
                     public void run() {
                         newtCanvasSWT2.dispose();
                     } } );
@@ -514,6 +530,7 @@ public class TestGLCanvasSWTNewtCanvasSWTPosInTabs extends UITestCase {
                 Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow2, false, null));
             } else {
                 display.syncExec( new Runnable() {
+                    @Override
                     public void run() {
                         glCanvas1.dispose();
                         glCanvas2.dispose();

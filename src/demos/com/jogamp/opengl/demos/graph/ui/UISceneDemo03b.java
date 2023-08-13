@@ -145,7 +145,7 @@ public class UISceneDemo03b {
         scene.setFrustumCullingEnabled(true);
         glyphGroup.setFrustumCullingEnabled(true);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(1 * 60, null); // System.err);
 
         final GLCapabilities caps = new GLCapabilities(reqGLP);

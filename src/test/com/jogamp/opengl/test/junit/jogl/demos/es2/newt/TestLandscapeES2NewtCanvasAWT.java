@@ -107,16 +107,17 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
         frame.add(newtCanvasAWT);
         frame.setTitle("Gears NewtCanvasAWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval+", size "+wsize);
 
-        final Animator animator = useAnimator ? new Animator() : null;
+        final Animator animator = useAnimator ? new Animator(0 /* w/o AWT */) : null;
         if( useAnimator ) {
-            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
 
         glWindow.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowResized(final WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
+            @Override
             public void windowMoved(final WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
@@ -134,10 +135,11 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
         }
 
         SwingUtilities.invokeAndWait(new Runnable() {
-           public void run() {
-               frame.validate();
-               frame.setVisible(true);
-           }
+            @Override
+            public void run() {
+                frame.validate();
+                frame.setVisible(true);
+            }
         });
 
         if( useAnimator ) {
@@ -159,9 +161,10 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
             animator.stop();
         }
         SwingUtilities.invokeAndWait(new Runnable() {
-           public void run() {
-               frame.dispose();
-           }
+            @Override
+            public void run() {
+                frame.dispose();
+            }
         });
         glWindow.destroy(); // removeNotify does not destroy GLWindow
     }

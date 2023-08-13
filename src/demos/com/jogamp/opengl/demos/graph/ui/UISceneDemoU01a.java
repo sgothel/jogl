@@ -141,7 +141,7 @@ public class UISceneDemoU01a {
         font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
 
         final GLCapabilities caps = new GLCapabilities(reqGLP);
         caps.setAlphaBits(4);

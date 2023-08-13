@@ -127,6 +127,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             glw.setSize(new_sz.getWidth(), new_sz.getHeight());
             if( null != frame ) {
                 javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                    @Override
                     public void run() {
                         frame.pack();
                     } } );
@@ -139,6 +140,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     static void setComponentSize(final Frame frame, final Component comp, final DimensionImmutable new_sz) {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     final java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
                     comp.setMinimumSize(d);
@@ -156,6 +158,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     static void setFrameSize(final Frame frame, final boolean frameLayout, final DimensionImmutable new_sz) {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     final java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
                     frame.setSize(d);
@@ -280,16 +283,17 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             public void componentHidden(final ComponentEvent e) { }
         });
 
-        final Animator animator = useAnimator ? new Animator() : null;
+        final Animator animator = useAnimator ? new Animator(0 /* w/o AWT */) : null;
         if( useAnimator ) {
-            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
 
         glWindow.addWindowListener(new WindowAdapter() {
+            @Override
             public void windowResized(final WindowEvent e) {
                 System.err.println("window resized: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
+            @Override
             public void windowMoved(final WindowEvent e) {
                 System.err.println("window moved:   "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getSurfaceWidth()+"x"+glWindow.getSurfaceHeight());
             }
@@ -304,14 +308,15 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         }
 
         SwingUtilities.invokeAndWait(new Runnable() {
-           public void run() {
-               if( ResizeBy.Frame == resizeBy ) {
-                   frame.validate();
-               } else {
-                   frame.pack();
-               }
-               frame.setVisible(true);
-           }
+            @Override
+            public void run() {
+                if( ResizeBy.Frame == resizeBy ) {
+                    frame.validate();
+                } else {
+                    frame.pack();
+                }
+                frame.setVisible(true);
+            }
         });
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true, null));
         Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, true, null));
@@ -351,9 +356,10 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         }
         Assert.assertEquals(null, glWindow.getExclusiveContextThread());
         SwingUtilities.invokeAndWait(new Runnable() {
-           public void run() {
-               frame.dispose();
-           }
+            @Override
+            public void run() {
+                frame.dispose();
+            }
         });
         glWindow.destroy();
         Assert.assertEquals(true,  NewtTestUtil.waitForRealized(glWindow, false, null));

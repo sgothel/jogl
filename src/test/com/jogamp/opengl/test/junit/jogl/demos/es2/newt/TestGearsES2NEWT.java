@@ -228,9 +228,8 @@ public class TestGearsES2NEWT extends UITestCase {
             });
         }
 
-        final Animator animator = useAnimator ? new Animator() : null;
+        final Animator animator = useAnimator ? new Animator(0 /* w/o AWT */) : null;
         if( useAnimator ) {
-            animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
             animator.setExclusiveContext(exclusiveContext);
         }
 

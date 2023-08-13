@@ -44,7 +44,7 @@ import java.util.TimerTask;
 
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLException;
-
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.common.ExceptionUtils;
 
 /**
@@ -71,32 +71,99 @@ public class FPSAnimator extends AnimatorBase {
         return "FPS" + prefix + "Animator" ;
     }
 
-    /** Creates an FPSAnimator with a given target frames-per-second
-    value. Equivalent to <code>FPSAnimator(null, fps)</code>. */
+    /**
+     * Creates an FPSAnimator with a given target frames-per-second
+     * value. Equivalent to <code>FPSAnimator(null, fps)</code>.
+     * <p>
+     * This ctor variant expects an AWT rendering thread if AWT is available.
+     * </p>
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see #FPSAnimator(int, GLAutoDrawable, int, boolean)
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
+     */
     public FPSAnimator(final int fps) {
-        this(null, fps);
+        this(MODE_EXPECT_AWT_RENDERING_THREAD, null, fps, false);
     }
 
-    /** Creates an FPSAnimator with a given target frames-per-second
-    value and a flag indicating whether to use fixed-rate
-    scheduling. Equivalent to <code>FPSAnimator(null, fps,
-    scheduleAtFixedRate)</code>. */
+    /**
+     * Creates an FPSAnimator with modeBits, see {@link AnimatorBase#AnimatorBase(int)}
+     * and a given target frames-per-second value.
+     *
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see #FPSAnimator(int, GLAutoDrawable, int, boolean)
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
+     */
+    public FPSAnimator(final int modeBits, final int fps) {
+        this(modeBits, null, fps, false);
+    }
+
+    /**
+     * Creates an FPSAnimator with a given target frames-per-second
+     * value and a flag indicating whether to use fixed-rate
+     * scheduling. Equivalent to <code>FPSAnimator(null, fps,
+     * scheduleAtFixedRate)</code>.
+     * <p>
+     * This ctor variant expects an AWT rendering thread if AWT is available.
+     * </p>
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see #FPSAnimator(int, GLAutoDrawable, int, boolean)
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
+     */
     public FPSAnimator(final int fps, final boolean scheduleAtFixedRate) {
-        this(null, fps, scheduleAtFixedRate);
+        this(MODE_EXPECT_AWT_RENDERING_THREAD, null, fps, scheduleAtFixedRate);
     }
 
-    /** Creates an FPSAnimator with a given target frames-per-second
-    value and an initial drawable to animate. Equivalent to
-    <code>FPSAnimator(null, fps, false)</code>. */
+    /**
+     * Creates an FPSAnimator with a given target frames-per-second
+     * value and an initial drawable to animate. Equivalent to
+     * <code>FPSAnimator(null, fps, false)</code>.
+     * <p>
+     * This ctor variant expects an AWT rendering thread if AWT is available.
+     * </p>
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see #FPSAnimator(int, GLAutoDrawable, int, boolean)
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
+     */
     public FPSAnimator(final GLAutoDrawable drawable, final int fps) {
-        this(drawable, fps, false);
+        this(MODE_EXPECT_AWT_RENDERING_THREAD, drawable, fps, false);
     }
 
-    /** Creates an FPSAnimator with a given target frames-per-second
-    value, an initial drawable to animate, and a flag indicating
-    whether to use fixed-rate scheduling. */
+    /**
+     * Creates an FPSAnimator with a given target frames-per-second
+     * value, an initial drawable to animate, and a flag indicating
+     * whether to use fixed-rate scheduling.
+     * <p>
+     * This ctor variant expects an AWT rendering thread if AWT is available.
+     * </p>
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see #FPSAnimator(int, GLAutoDrawable, int, boolean)
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
+     */
     public FPSAnimator(final GLAutoDrawable drawable, final int fps, final boolean scheduleAtFixedRate) {
-        super();
+        this(MODE_EXPECT_AWT_RENDERING_THREAD, drawable, fps, scheduleAtFixedRate);
+    }
+
+    /**
+     * Creates an FPSAnimator with modeBits, see {@link AnimatorBase#AnimatorBase(int)}, a given target frames-per-second
+     * value, an initial drawable to animate, and a flag indicating
+     * whether to use fixed-rate scheduling.
+     *
+     * @param modeBits pass {@link AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD} if an AWT rendering thread is expected, otherwise {@code 0}.
+     * @param drawable {@link #add(GLAutoDrawable) added} {@link GLAutoDrawable} or {@code null}
+     * @param fps target frames per seconds
+     * @param scheduleAtFixedRate flag indicating fixed rate scheduling
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     * @see #FPSAnimator(int, GLAutoDrawable, int, boolean)
+     * @see GLProfile#isAWTAvailable()
+     * @see AnimatorBase#setModeBits(boolean, int)
+     */
+    public FPSAnimator(final int modeBits, final GLAutoDrawable drawable, final int fps, final boolean scheduleAtFixedRate) {
+        super(modeBits);
         this.fps = fps;
         if (drawable != null) {
             add(drawable);

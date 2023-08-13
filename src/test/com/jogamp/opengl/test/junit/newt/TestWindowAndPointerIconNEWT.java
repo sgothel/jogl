@@ -107,8 +107,7 @@ public class TestWindowAndPointerIconNEWT extends SingletonJunitCase {
         glWindow.setPointerIcon(pointerIcon);
         System.err.println("Set PointerIcon: "+glWindow.getPointerIcon());
 
-        final Animator animator = new Animator();
-        animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.add(glWindow);
         animator.start();
 

@@ -102,7 +102,7 @@ public class TestGearsES2SimpleNEWT extends UITestCase {
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glWindow.addGLEventListener(snap);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
 
         final QuitAdapter quitAdapter = new QuitAdapter();
         glWindow.addKeyListener(quitAdapter);

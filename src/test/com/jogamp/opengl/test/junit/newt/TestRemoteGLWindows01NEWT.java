@@ -89,7 +89,7 @@ public class TestRemoteGLWindows01NEWT extends UITestCase {
 
     @Test
     public void testRemoteWindow01() throws InterruptedException {
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         final GLProfile glpLocal = GLProfile.getGL2ES1();
         Assert.assertNotNull(glpLocal);
         final GLCapabilities capsLocal = new GLCapabilities(glpLocal);

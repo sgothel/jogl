@@ -100,6 +100,7 @@ public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
             };
 
         window.setWindowDestroyNotifyAction( new Runnable() {
+            @Override
             public void run() {
                 glad.windowDestroyNotifyOp();
             } } );
@@ -124,9 +125,8 @@ public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
         window.addKeyListener(quitAdapter);
         window.addWindowListener(quitAdapter);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(60, System.err);
-        animator.setModeBits(false, AnimatorBase.MODE_EXPECT_AWT_RENDERING_THREAD);
         animator.add(glad);
         animator.start();
         Assert.assertTrue(animator.isStarted());

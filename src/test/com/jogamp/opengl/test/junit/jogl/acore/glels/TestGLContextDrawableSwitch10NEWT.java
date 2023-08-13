@@ -164,7 +164,7 @@ public class TestGLContextDrawableSwitch10NEWT extends UITestCase {
     private void testGLADDelegateImpl(final GLCapabilities caps) throws InterruptedException {
         final GLEventListenerCounter glelCounter = new GLEventListenerCounter();
         final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.start();
 
         final GLEventListenerState glls1;

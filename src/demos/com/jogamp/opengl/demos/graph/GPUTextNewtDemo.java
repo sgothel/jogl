@@ -162,7 +162,7 @@ public class GPUTextNewtDemo {
         }
 
         // FPSAnimator animator = new FPSAnimator(60);
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(60, null);
         animator.add(window);
 

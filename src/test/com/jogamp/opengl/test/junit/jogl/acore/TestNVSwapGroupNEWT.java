@@ -72,6 +72,7 @@ public class TestNVSwapGroupNEWT extends UITestCase {
 
         final GearsES2 gears = new GearsES2(1);
         glWindow.addGLEventListener(new GLEventListener() {
+            @Override
             public void init(final GLAutoDrawable drawable) {
                 final int[] maxVals = new int[] { -1, -1 } ;
                 final GLContext glc = drawable.getContext();
@@ -84,8 +85,11 @@ public class TestNVSwapGroupNEWT extends UITestCase {
                     }
                 }
             }
+            @Override
             public void dispose(final GLAutoDrawable drawable) {}
+            @Override
             public void display(final GLAutoDrawable drawable) {}
+            @Override
             public void reshape(final GLAutoDrawable drawable, final int x, final int y,
                     final int width, final int height) {}
         });
@@ -108,7 +112,7 @@ public class TestNVSwapGroupNEWT extends UITestCase {
         final int swap_group = 9999;
         final int swap_barrier = 9999;
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         final GLWindow f1 = runTestGL(animator, 0, 0, swap_group, swap_barrier);
         final InsetsImmutable insets = f1.getInsets();
         final GLWindow f2 = runTestGL(animator, width+insets.getTotalWidth(), 0, swap_group, swap_barrier);

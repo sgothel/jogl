@@ -76,7 +76,7 @@ public class TestBug669RecursiveGLContext01NEWT extends UITestCase {
     final GLCapabilities caps = new GLCapabilities(pro);
     final GLWindow window = GLWindow.create(caps);
 
-    final Animator animator = new Animator();
+    final Animator animator = new Animator(0 /* w/o AWT */);
     if(anim) {
         animator.add(window);
     }
@@ -107,16 +107,20 @@ public class TestBug669RecursiveGLContext01NEWT extends UITestCase {
         Assert.assertEquals(true, context.isCurrent()); // still current
       }
 
+      @Override
       public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
 
+      @Override
       public void init(final GLAutoDrawable drawable) { }
 
+      @Override
       public void dispose(final GLAutoDrawable drawable) { }
 
+      @Override
       public void display(final GLAutoDrawable drawable) {
-        final GLContextImpl context = (GLContextImpl)drawable.getContext();
-        makeCurrentRecursive(context, 1);
-        releaseRecursive(context, 2);
+          final GLContextImpl context = (GLContextImpl)drawable.getContext();
+          makeCurrentRecursive(context, 1);
+          releaseRecursive(context, 2);
       }
     });
     window.addGLEventListener(new GearsES2());

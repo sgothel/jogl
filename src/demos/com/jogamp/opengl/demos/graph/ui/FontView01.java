@@ -119,7 +119,7 @@ public class FontView01 {
         }
         System.out.println("Requested: " + caps);
 
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(1*60, null); // System.err);
         final GLWindow window = GLWindow.create(caps);
         window.setSize(options.surface_width, options.surface_height);

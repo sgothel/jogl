@@ -88,7 +88,7 @@ public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
         final GLWindow window1 = createWindow(null, caps); // local
         Assert.assertEquals(true,window1.isNativeValid());
         Assert.assertEquals(true,window1.isVisible());
-        final Animator animator = new Animator();
+        final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(1, null);
         animator.add(window1);
         animator.start();
