@@ -41,6 +41,10 @@ public class GraphUIDemoArgs {
     public int sceneMSAASamples = 0;
     public float debugBoxThickness = 0f;
 
+    static {
+        GLProfile.initSingleton(); // ensure JOGL is completely initialized
+    }
+
     public GraphUIDemoArgs(final int width, final int height, final int renderModes) {
         this.surface_width = width;
         this.surface_height = height;

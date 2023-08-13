@@ -343,7 +343,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable, GLSharedContextS
       /* NO_BACKGROUND required to avoid clearing bg in native SWT widget (we do this in the GL display) */
       super(parent, style | SWT.NO_BACKGROUND);
 
-      GLProfile.initSingleton(); // ensure JOGL is completly initialized
+      GLProfile.initSingleton(); // ensure JOGL is completely initialized
 
       SWTAccessor.setRealized(this, true);
 
