@@ -218,8 +218,8 @@ public class UISceneDemo20 implements GLEventListener {
 
     /**
      * Default DPI threshold value to disable {@link Region#VBAA_RENDERING_BIT VBAA}: {@value} dpi
-     * @see #GPUUISceneGLListener0A(float)
-     * @see #GPUUISceneGLListener0A(float, boolean, boolean)
+     * @see #UISceneDemo20(float)
+     * @see #UISceneDemo20(float, boolean, boolean)
      */
     public static final float DefaultNoAADPIThreshold = 200f;
 
@@ -1009,11 +1009,11 @@ public class UISceneDemo20 implements GLEventListener {
             renderModes = noAA ? 0 : Region.VBAA_RENDERING_BIT;
         }
         if(drawable instanceof GLWindow) {
-            System.err.println("GPUUISceneGLListener0A: init (1)");
+            System.err.println("UISceneDemo20: init (1)");
             final GLWindow glw = (GLWindow) drawable;
             scene.attachInputListenerTo(glw);
         } else {
-            System.err.println("GPUUISceneGLListener0A: init (0)");
+            System.err.println("UISceneDemo20: init (0)");
         }
         cDrawable = drawable;
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -1046,7 +1046,8 @@ public class UISceneDemo20 implements GLEventListener {
 
     @Override
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-        System.err.println("GPUUISceneGLListener0A: reshape");
+        System.err.println("UISceneDemo20: reshape: "+x+"/"+y+" "+width+"x"+height);
+        System.err.println("UISceneDemo20: drawable: "+drawable);
 
         //
         // Layout all shapes: Relational move regarding object coordinates
@@ -1117,14 +1118,14 @@ public class UISceneDemo20 implements GLEventListener {
 
     @Override
     public void dispose(final GLAutoDrawable drawable) {
-        System.err.println("GPUUISceneGLListener0A: dispose");
+        System.err.println("UISceneDemo20: dispose");
 
         scene.dispose(drawable); // disposes all registered UIShapes
     }
 
     @Override
     public void display(final GLAutoDrawable drawable) {
-        // System.err.println("GPUUISceneGLListener0A: display");
+        // System.err.println("UISceneDemo20: display");
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         gl.glClearColor(1f, 1f, 1f, 1f);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
