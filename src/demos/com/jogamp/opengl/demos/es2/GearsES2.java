@@ -20,41 +20,49 @@
  */
 package com.jogamp.opengl.demos.es2;
 
+import java.nio.FloatBuffer;
+
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.nativewindow.NativeWindow;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.GestureHandler;
+import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.PinchToZoomGesture;
-import com.jogamp.newt.event.GestureHandler.GestureEvent;
-import com.jogamp.opengl.GLRendererQuirks;
-import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.demos.GearsObject;
-import com.jogamp.opengl.math.Matrix4f;
-import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.util.CustomGLEventListener;
-import com.jogamp.opengl.util.PMVMatrix;
-import com.jogamp.opengl.util.TileRendererBase;
-import com.jogamp.opengl.util.glsl.ShaderCode;
-import com.jogamp.opengl.util.glsl.ShaderProgram;
-import com.jogamp.opengl.util.glsl.ShaderState;
-import com.jogamp.opengl.util.stereo.EyeParameter;
-import com.jogamp.opengl.util.stereo.ViewerPose;
-import com.jogamp.opengl.util.stereo.StereoGLEventListener;
-
-import java.nio.FloatBuffer;
-
-import com.jogamp.nativewindow.NativeWindow;
+import com.jogamp.newt.event.WindowAdapter;
+import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.GLUniformData;
+import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.demos.GearsObject;
+import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.math.Matrix4f;
+import com.jogamp.opengl.math.Quaternion;
+import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.CustomGLEventListener;
+import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.TileRendererBase;
+import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
+import com.jogamp.opengl.util.glsl.ShaderCode;
+import com.jogamp.opengl.util.glsl.ShaderProgram;
+import com.jogamp.opengl.util.glsl.ShaderState;
+import com.jogamp.opengl.util.stereo.EyeParameter;
+import com.jogamp.opengl.util.stereo.StereoGLEventListener;
+import com.jogamp.opengl.util.stereo.ViewerPose;
 
 /**
  * GearsES2.java <BR>
@@ -688,4 +696,46 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
             // System.err.println("rotXY.1: "+view_rotx+"/"+view_roty+", source "+e);
         }
     }
+
+    public static void main(final String[] args) {
+        final GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, 0);
+
+        System.err.println(options);
+        System.err.println(VersionUtil.getPlatformInfo());
+        // System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(dpy.getGraphicsDevice(), null).toString());
+
+        final GLProfile glp = GLProfile.get(options.glProfileName);
+        System.err.println("GLProfile: "+glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(4);
+        if( options.sceneMSAASamples > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(options.sceneMSAASamples);
+        }
+        System.out.println("Requested: " + caps);
+
+        final GLWindow window = GLWindow.create(caps);
+        if( 0 == options.sceneMSAASamples ) {
+            window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(false));
+        }
+        window.setSize(options.surface_width, options.surface_height);
+        window.setTitle(GearsES2.class.getSimpleName());
+
+        window.addGLEventListener(new GearsES2(1));
+
+        final Animator animator = new Animator(0 /* w/o AWT */);
+        animator.setUpdateFPSFrames(5*60, null);
+        animator.add(window);
+
+        window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowDestroyed(final WindowEvent e) {
+                animator.stop();
+            }
+        });
+
+        window.setVisible(true);
+        animator.start();
+    }
+
 }

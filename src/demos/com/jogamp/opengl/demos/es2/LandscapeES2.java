@@ -27,17 +27,26 @@
  */
 package com.jogamp.opengl.demos.es2;
 
+import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLArrayDataServer;
+import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 import java.nio.FloatBuffer;
 
+import com.jogamp.common.util.VersionUtil;
+import com.jogamp.newt.event.WindowAdapter;
+import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
+import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLUniformData;
+import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
 
 /**
  * LandscapeES2
@@ -72,6 +81,7 @@ public class LandscapeES2 implements GLEventListener {
 
     public void setVerbose(final boolean v) { verbose = v; }
 
+    @Override
     public void init(final GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" LandscapeES2.init ...");
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -123,6 +133,7 @@ public class LandscapeES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" LandscapeES2.init FIN");
     }
 
+    @Override
     public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
         System.err.println(Thread.currentThread()+" LandscapeES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
 
@@ -139,6 +150,7 @@ public class LandscapeES2 implements GLEventListener {
         shaderState.useProgram(gl, false);
     }
 
+    @Override
     public void dispose(final GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" LandscapeES2.dispose ... ");
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -149,6 +161,7 @@ public class LandscapeES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" LandscapeES2.dispose FIN");
     }
 
+    @Override
     public void display(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         // Shader fills complete framebuffer regardless of DEPTH, no Clear required.
@@ -183,5 +196,46 @@ public class LandscapeES2 implements GLEventListener {
 
     public void setConfinedFixedCenter(final boolean v) {
         confinedFixedCenter = v;
+    }
+
+    public static void main(final String[] args) {
+        final GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, 0);
+
+        System.err.println(options);
+        System.err.println(VersionUtil.getPlatformInfo());
+        // System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(dpy.getGraphicsDevice(), null).toString());
+
+        final GLProfile glp = GLProfile.get(options.glProfileName);
+        System.err.println("GLProfile: "+glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(4);
+        if( options.sceneMSAASamples > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(options.sceneMSAASamples);
+        }
+        System.out.println("Requested: " + caps);
+
+        final GLWindow window = GLWindow.create(caps);
+        if( 0 == options.sceneMSAASamples ) {
+            window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(false));
+        }
+        window.setSize(options.surface_width, options.surface_height);
+        window.setTitle(LandscapeES2.class.getSimpleName());
+
+        window.addGLEventListener(new LandscapeES2(1));
+
+        final Animator animator = new Animator(0 /* w/o AWT */);
+        animator.setUpdateFPSFrames(5*60, null);
+        animator.add(window);
+
+        window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowDestroyed(final WindowEvent e) {
+                animator.stop();
+            }
+        });
+
+        window.setVisible(true);
+        animator.start();
     }
 }
