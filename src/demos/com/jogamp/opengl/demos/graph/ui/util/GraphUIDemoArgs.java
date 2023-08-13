@@ -75,6 +75,8 @@ public class GraphUIDemoArgs {
             glProfileName = GLProfile.GLES3;
         } else if(args[idx[0]].equals("-gl3")) {
             glProfileName = GLProfile.GL3;
+        } else if(args[idx[0]].equals("-gl4")) {
+            glProfileName = GLProfile.GL4;
         } else if(args[idx[0]].equals("-gldef")) {
             glProfileName = null;
         } else if(args[idx[0]].equals("-wait")) {
