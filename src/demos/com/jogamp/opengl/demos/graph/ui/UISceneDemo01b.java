@@ -46,7 +46,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
+import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Recti;
@@ -66,7 +66,7 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  */
 public class UISceneDemo01b {
-    static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
+    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
 
     public static void main(final String[] args) throws IOException {
         if( 0 != args.length ) {

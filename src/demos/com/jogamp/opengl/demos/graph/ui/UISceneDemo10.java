@@ -55,7 +55,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.es2.GearsES2;
-import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
+import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -74,7 +74,7 @@ public class UISceneDemo10 {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
-    static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
+    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
 
     static private final String defaultMediaPath = "http://archive.org/download/BigBuckBunny_328/BigBuckBunny_512kb.mp4";
     static private String filmPath = defaultMediaPath;

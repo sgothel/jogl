@@ -46,7 +46,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLUniformData;
-import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
+import com.jogamp.opengl.demos.util.CommandlineOptions;
 
 /**
  * LandscapeES2
@@ -199,7 +199,7 @@ public class LandscapeES2 implements GLEventListener {
     }
 
     public static void main(final String[] args) {
-        final GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, 0);
+        final CommandlineOptions options = new CommandlineOptions(1280, 720, 0);
 
         System.err.println(options);
         System.err.println(VersionUtil.getPlatformInfo());

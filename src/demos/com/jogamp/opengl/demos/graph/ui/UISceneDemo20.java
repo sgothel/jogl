@@ -85,7 +85,7 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.es2.GearsES2;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.opengl.demos.graph.MSAATool;
-import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
+import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
@@ -119,7 +119,7 @@ public class UISceneDemo20 implements GLEventListener {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
-    static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
+    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
 
     public static void main(final String[] args) {
         final float[] reqSurfacePixelScale = new float[] { ScalableSurface.AUTOMAX_PIXELSCALE, ScalableSurface.AUTOMAX_PIXELSCALE };

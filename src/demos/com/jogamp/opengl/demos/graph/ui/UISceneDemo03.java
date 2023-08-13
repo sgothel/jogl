@@ -53,7 +53,7 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
-import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
+import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
@@ -84,7 +84,7 @@ public class UISceneDemo03 {
             " JogAmp, Java™ libraries for 3D & Media "
     };
 
-    static GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT);
+    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
     static float velocity = 30 / 1e3f; // [m]/[s]
     static float rot_step = velocity * 1;
 

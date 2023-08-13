@@ -49,7 +49,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
+import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
@@ -91,7 +91,7 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  */
 public class UISceneDemoU01a {
-    static final GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, Region.VBAA_RENDERING_BIT );
+    static final CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT );
     static final Vec4f text_color = new Vec4f( 0, 1, 0, 1 );
     static Font font;
     static boolean projOrtho = true;

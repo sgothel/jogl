@@ -47,7 +47,7 @@ import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.GearsObject;
-import com.jogamp.opengl.demos.graph.ui.util.GraphUIDemoArgs;
+import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Quaternion;
@@ -698,7 +698,7 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
     }
 
     public static void main(final String[] args) {
-        final GraphUIDemoArgs options = new GraphUIDemoArgs(1280, 720, 0);
+        final CommandlineOptions options = new CommandlineOptions(1280, 720, 0);
 
         System.err.println(options);
         System.err.println(VersionUtil.getPlatformInfo());

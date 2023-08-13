@@ -37,7 +37,7 @@ uname -a | grep -i Darwin && MOSX=1
 if [ $MOSX -eq 1 ] ; then
     echo setup OSX environment vars
     #export NSZombieEnabled=YES
-    export NSTraceEvents=YES
+    #export NSTraceEvents=YES
     #export OBJC_PRINT_EXCEPTIONS=YES
     echo NSZombieEnabled $NSZombieEnabled 2>&1 | tee -a java-run.log
     echo NSTraceEvents $NSTraceEvents  2>&1 | tee -a java-run.log
@@ -1003,6 +1003,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 testawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
+#testawt com.jogamp.opengl.demos.es2.GearsES2 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemoU01a $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutBox01 $*

@@ -25,13 +25,12 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.demos.graph.ui.util;
+package com.jogamp.opengl.demos.util;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.demos.util.MiscUtils;
 
-public class GraphUIDemoArgs {
+public class CommandlineOptions {
     public int surface_width, surface_height;
     public String glProfileName = GLProfile.GL2ES2;
     public boolean wait_to_start = false;
@@ -45,7 +44,7 @@ public class GraphUIDemoArgs {
         GLProfile.initSingleton(); // ensure JOGL is completely initialized
     }
 
-    public GraphUIDemoArgs(final int width, final int height, final int renderModes) {
+    public CommandlineOptions(final int width, final int height, final int renderModes) {
         this.surface_width = width;
         this.surface_height = height;
         this.renderModes = renderModes;
