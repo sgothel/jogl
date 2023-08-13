@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -30,22 +30,11 @@ package com.jogamp.opengl;
 
 import java.util.Arrays;
 
-import com.jogamp.opengl.GL;
-import com.jogamp.opengl.GL2ES2;
-import com.jogamp.opengl.GL2ES3;
-import com.jogamp.opengl.GL2GL3;
-import com.jogamp.opengl.GLBase;
-import com.jogamp.opengl.GLCapabilities;
-import com.jogamp.opengl.GLCapabilitiesImmutable;
-import com.jogamp.opengl.GLContext;
-import com.jogamp.opengl.GLException;
-import com.jogamp.opengl.GLProfile;
-
-import jogamp.opengl.Debug;
-
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.opengl.FBObject.Attachment.Type;
+
+import jogamp.opengl.Debug;
 
 /**
  * Core utility class simplifying usage of framebuffer objects (FBO)

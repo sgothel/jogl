@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,9 +33,6 @@
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- *
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
 package com.jogamp.opengl;
@@ -47,21 +44,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import com.jogamp.nativewindow.AbstractGraphicsDevice;
-import com.jogamp.nativewindow.NativeSurface;
-
-import jogamp.opengl.Debug;
-import jogamp.opengl.GLContextImpl;
-import jogamp.opengl.GLContextShareSet;
-
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.Bitfield;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.VersionNumberString;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
-import com.jogamp.opengl.GLExtensions;
-import com.jogamp.opengl.GLRendererQuirks;
+import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.NativeSurface;
+
+import jogamp.opengl.Debug;
+import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLContextShareSet;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current

@@ -1,6 +1,6 @@
-/*
+/**
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,9 +33,6 @@
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- *
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
 package jogamp.opengl;
@@ -62,9 +59,6 @@ import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
-import com.jogamp.opengl.GLExtensions;
-import com.jogamp.opengl.GLRendererQuirks;
-
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.NativeSurface;
@@ -83,8 +77,10 @@ import com.jogamp.opengl.GLDebugMessage;
 import com.jogamp.opengl.GLDrawable;
 import com.jogamp.opengl.GLDrawableFactory;
 import com.jogamp.opengl.GLException;
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.GLRendererQuirks;
 
 public abstract class GLContextImpl extends GLContext {
 

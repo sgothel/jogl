@@ -1,6 +1,6 @@
-/*
+/**
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,17 +37,24 @@
 
 package com.jogamp.opengl.util.texture;
 
-import java.nio.*;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
-import com.jogamp.opengl.*;
-import com.jogamp.opengl.glu.*;
 import com.jogamp.common.util.Bitfield;
 import com.jogamp.nativewindow.NativeWindowFactory;
-
-import jogamp.opengl.*;
-
+import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2;
+import com.jogamp.opengl.GL2ES1;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLES2;
+import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLExtensions;
-import com.jogamp.opengl.util.texture.spi.*;
+import com.jogamp.opengl.glu.GLU;
+import com.jogamp.opengl.util.texture.spi.DDSImage;
+
+import jogamp.opengl.Debug;
 
 /**
  * Represents an OpenGL texture object. Contains convenience routines
