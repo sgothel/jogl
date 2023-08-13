@@ -843,6 +843,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     protected abstract TextureFrame createTexImage(GL gl, int texName);
 
+    /**
+     * Creating a {@link Texture} instance by taking ownership of the given {@code texName} texture object.
+     * @param gl current GL object
+     * @param texName generated texture object to be used and taken ownership of
+     * @param tWidth
+     * @param tHeight
+     * @return
+     */
     protected final Texture createTexImageImpl(final GL gl, final int texName, final int tWidth, final int tHeight) {
         if( 0 > texName ) {
             throw new RuntimeException("TextureName "+toHexString(texName)+" invalid.");
@@ -886,7 +894,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_S, texWrapST[0]);
         gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_T, texWrapST[1]);
 
-        return new Texture(texName, textureTarget,
+        return new Texture(texName, true /* ownsTextureID */,
+                           textureTarget,
                            tWidth, tHeight, width,  height, !isInGLOrientation);
     }
 

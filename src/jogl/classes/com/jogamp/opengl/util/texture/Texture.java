@@ -170,6 +170,8 @@ public class Texture {
     private int imageTarget;
     /** The GL texture ID. */
     private int texID;
+    /** Owning texture texID */
+    private final boolean ownsTextureID;
     /** The width of the texture. */
     private int texWidth;
     /** The height of the texture. */
@@ -211,6 +213,7 @@ public class Texture {
 
     public Texture(final GL gl, final TextureData data) throws GLException {
         this.texID = 0;
+        this.ownsTextureID = true;
         this.target = 0;
         this.imageTarget = 0;
         updateImage(gl, data);
@@ -224,6 +227,7 @@ public class Texture {
      */
     public Texture(final int target) {
         this.texID = 0;
+        this.ownsTextureID = true;
         this.target = target;
         this.imageTarget = target;
     }
@@ -235,7 +239,10 @@ public class Texture {
      * it. Attempts to update such textures' contents will yield
      * undefined results.
      *
-     * @param textureID the OpenGL texture object to wrap
+     * @param textureID the valid OpenGL texture object to wrap
+     * @param ownsTextureID pass {@code true} if this {@link Texture} instance takes ownership of {@code textureID} texture
+     *        and {@link GL#glDeleteTextures(int, int[], int) deletes the texture} at {@link #destroy(GL)}.
+     *        Otherwise, if {@code false}, {@code textureID} texture will not be {@link GL#glDeleteTextures(int, int[], int) deleted} at {@link #destroy(GL)}.
      * @param target the OpenGL texture target, eg GL.GL_TEXTURE_2D,
      *               GL2.GL_TEXTURE_RECTANGLE
      * @param texWidth the width of the texture in pixels
@@ -251,11 +258,13 @@ public class Texture {
      *                           in order to properly display the
      *                           texture
      */
-    public Texture(final int textureID, final int target,
+    public Texture(final int textureID, final boolean ownsTextureID,
+                   final int target,
                    final int texWidth, final int texHeight,
                    final int imgWidth, final int imgHeight,
                    final boolean mustFlipVertically) {
         this.texID = textureID;
+        this.ownsTextureID = ownsTextureID;
         this.target = target;
         this.imageTarget = target;
         this.mustFlipVertically = mustFlipVertically;
@@ -265,6 +274,9 @@ public class Texture {
         this.imgWidth = imgWidth;
         this.imgHeight = imgHeight;
         this.updateTexCoords();
+        if ( 0 == texID ) {
+            throw new GLException("External texture ID invalid: texID "+textureID);
+        }
     }
 
     /**
@@ -341,15 +353,16 @@ public class Texture {
     }
 
     /**
-     * Destroys the native resources used by this texture object.
+     * Destroys and {@code null}s the {@link #getTextureObject() underlying native texture} used by this {@link Texture} instance
+     * if {@link #ownsTexture() owned}, otherwise just {@code null}s the {@link #getTextureObject() underlying native texture}.
      *
      * @throws GLException if any OpenGL-related errors occurred
      */
     public void destroy(final GL gl) throws GLException {
-        if(0!=texID) {
+        if( 0 != texID && ownsTextureID ) {
             gl.glDeleteTextures(1, new int[] {texID}, 0);
-            texID = 0;
         }
+        texID = 0;
     }
 
     /**
@@ -939,9 +952,10 @@ public class Texture {
      * </p>
      * @see #getTextureObject(GL)
      */
-    public int getTextureObject() {
-        return texID;
-    }
+    public int getTextureObject() { return texID; }
+
+    /** Returns whether {@link #getTextureObject()} is owned by this {@link Texture} instance. */
+    public final boolean ownsTexture() { return ownsTextureID; }
 
     /** Returns an estimate of the amount of texture memory in bytes
         this Texture consumes. It should only be treated as an estimate;
@@ -1130,7 +1144,7 @@ public class Texture {
 
     private boolean validateTexID(final GL gl, final boolean throwException) {
         if( 0 == texID ) {
-            if( null != gl ) {
+            if( null != gl && ownsTextureID ) {
                 final int[] tmp = new int[1];
                 gl.glGenTextures(1, tmp, 0);
                 texID = tmp[0];
@@ -1138,7 +1152,11 @@ public class Texture {
                     throw new GLException("Create texture ID invalid: texID "+texID+", glerr 0x"+Integer.toHexString(gl.glGetError()));
                 }
             } else if ( throwException ) {
-                throw new GLException("No GL context given, can't create texture ID");
+                if( !ownsTextureID ) {
+                    throw new GLException("Invalid external texture ID");
+                } else {
+                    throw new GLException("No GL context given, can't create texture ID");
+                }
             }
         }
         return 0 != texID;

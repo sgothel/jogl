@@ -138,9 +138,11 @@ public class GLButton extends TexSeqButton {
             fboGLAD.display(); // 1st init!
 
             final FBObject.TextureAttachment texA01 = fboGLAD.getColorbuffer(GL.GL_FRONT).getTextureAttachment();
-            final Texture tex = new Texture(texA01.getName(), imgSeq.getTextureTarget(),
-                                    fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(), fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(),
-                                    false /* mustFlipVertically */);
+            final Texture tex = new Texture(texA01.getName(), false /* ownsTextureID */,
+                                            imgSeq.getTextureTarget(),
+                                            fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(),
+                                            fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(),
+                                            false /* mustFlipVertically */);
             imgSeq.addFrame(gl, tex);
             markStateDirty();
         } else if( 0 != fboWidth*fboHeight ) {
@@ -157,9 +159,11 @@ public class GLButton extends TexSeqButton {
 
             imgSeq.destroy(gl);
             final FBObject.TextureAttachment texA01 = fboGLAD.getColorbuffer(GL.GL_FRONT).getTextureAttachment();
-            final Texture tex = new Texture(texA01.getName(), imgSeq.getTextureTarget(),
-                                    fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(), fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(),
-                                    false /* mustFlipVertically */);
+            final Texture tex = new Texture(texA01.getName(), false /* ownsTextureID */,
+                                            imgSeq.getTextureTarget(),
+                                            fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(),
+                                            fboGLAD.getSurfaceWidth(), fboGLAD.getSurfaceHeight(),
+                                            false /* mustFlipVertically */);
             imgSeq.addFrame(gl, tex);
             fboWidth = 0;
             fboHeight = 0;
