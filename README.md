@@ -161,8 +161,8 @@ Sven Gothel created [*OpenGL™ for Java™ (GL4Java)*](#opengl-for-java-gl4java
 in March 1997 and maintained it up until March 2003.
 
 Kenneth Bradley Russell and Christopher John Kline 
-[launched JOGL @ Sun Microsystems](#gluegen-joal-and-jogl-at-sun-microsystems) 
-in 2003 having authored the first version.
+[developed JOGL, acquired by Sun Microsystems](#gluegen-joal-and-jogl-at-sun-microsystems) 
+and released the first public version in 2003.
 
 Gerard Ziemski contributed the original port of JOGL to Mac OS X.
 
