@@ -266,9 +266,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private final float[] hasPixelScale = new float[] { ScalableSurface.IDENTITY_PIXELSCALE, ScalableSurface.IDENTITY_PIXELSCALE };
 
   /** For handling reshape events lazily: reshapeWidth -> panelWidth -> backend.width in pixel units (scaled) */
-  private int reshapeWidth;
+  private int reshapeWidth = 0;
   /** For handling reshape events lazily: reshapeHeight -> panelHeight -> backend.height in pixel units (scaled) */
-  private int reshapeHeight;
+  private int reshapeHeight = 0;
 
   /** Scaled pixel width of the actual GLJPanel: reshapeWidth -> panelWidth -> backend.width */
   private int panelWidth   = 0;
@@ -277,8 +277,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   // These are always set to (0, 0) except when the Java2D / OpenGL
   // pipeline is active
-  private int viewportX;
-  private int viewportY;
+  private int viewportX = 0;
+  private int viewportY = 0;
 
   private int requestedTextureUnit = 0; // default
 
@@ -294,7 +294,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       return null == customPixelBufferProvider &&  useJava2DGLPipeline && java2DGLPipelineOK;
   }
 
-  private volatile boolean isShowing;
+  private volatile boolean isShowing = false;
   private final HierarchyListener hierarchyListener = new HierarchyListener() {
       @Override
       public void hierarchyChanged(final HierarchyEvent e) {
@@ -371,6 +371,16 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     this.setFocusable(true); // allow keyboard input!
     this.addHierarchyListener(hierarchyListener);
     this.isShowing = isShowing();
+
+    // init values
+    handleReshape = false;
+    sendReshape = true;
+    hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+    reshapeWidth = 0;
+    reshapeHeight = 0;
+    panelWidth   = 0;
+    panelHeight  = 0;
   }
 
   /**
@@ -497,6 +507,16 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         animator.resume();
       }
     }
+
+    // reset init values, ensuring same state in case of re-adding (Bug 1310)
+    handleReshape = false;
+    sendReshape = true;
+    hasPixelScale[0] = ScalableSurface.IDENTITY_PIXELSCALE;
+    hasPixelScale[1] = ScalableSurface.IDENTITY_PIXELSCALE;
+    reshapeWidth = 0;
+    reshapeHeight = 0;
+    panelWidth   = 0;
+    panelHeight  = 0;
 
     if(DEBUG) {
         System.err.println(getThreadName()+": GLJPanel.dispose() - stop");
@@ -667,6 +687,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       <DL><DD><CODE>addNotify</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   @Override
   public void addNotify() {
+    if (DEBUG) {
+        System.err.println(getThreadName()+": GLJPanel.addNotify() - 0");
+    }
     super.addNotify();
     awtWindowClosingProtocol.addClosingListener();
 
@@ -679,12 +702,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                 System.err.printf("GLJPanel.addNotify: pixelScale %.2f %.2f -> %.2f %.2f\n", hasPixelScale[0], hasPixelScale[1], max[0], max[1]);
             }
             System.arraycopy(max, 0, hasPixelScale, 0, 2);
-            reshapeImpl(getWidth(), getHeight());
         }
     }
+    reshapeImpl(getWidth(), getHeight()); // AWT reshape(..) might not be called after re-adding this panel (Bug 1310)
 
     if (DEBUG) {
-        System.err.println(getThreadName()+": GLJPanel.addNotify()");
+        System.err.println(getThreadName()+": GLJPanel.addNotify() - X");
     }
   }
 
