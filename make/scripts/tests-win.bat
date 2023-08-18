@@ -31,6 +31,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimat
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLJPanel01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasResize01AWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelReadd01Bug1310AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs %*
@@ -39,7 +40,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo20 %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSingleGLInJSliderNewtAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSingleGLInJSliderNewtAWT %*
 
 
 REM

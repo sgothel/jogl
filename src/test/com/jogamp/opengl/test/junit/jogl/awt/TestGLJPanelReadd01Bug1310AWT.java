@@ -33,6 +33,7 @@ import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2;
@@ -50,6 +51,7 @@ import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -109,10 +111,13 @@ public class TestGLJPanelReadd01Bug1310AWT extends UITestCase {
                     toolbar.add(new AbstractAction("Remove and add") {
                         @Override
                         public void actionPerformed(final ActionEvent e) {
+                            System.err.println("XXX: Remove");
                             _container.removeAll();
+                            System.err.println("XXX: ReAdd.0: glJPanel-Size: "+glJPanel[0].getSize());
                             _container.add(_glJPanel);
                             _glJPanel.invalidate();
                             _glJPanel.repaint();
+                            System.err.println("XXX: ReAdd.X: glJPanel-Size: "+glJPanel[0].getSize());
                         }
                     });
 
@@ -138,11 +143,13 @@ public class TestGLJPanelReadd01Bug1310AWT extends UITestCase {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
+                    System.err.println("XXX: Remove");
                     container[0].removeAll();
+                    System.err.println("XXX: ReAdd.0: glJPanel-Size: "+glJPanel[0].getSize());
                     container[0].add(glJPanel[0]);
                     glJPanel[0].invalidate();
                     glJPanel[0].repaint();
-
+                    System.err.println("XXX: ReAdd.X: glJPanel-Size: "+glJPanel[0].getSize());
                 }
             });
         } catch( final Throwable throwable ) {
@@ -169,7 +176,12 @@ public class TestGLJPanelReadd01Bug1310AWT extends UITestCase {
     public void test00() throws InterruptedException, InvocationTargetException {
         // test(new GLCapabilities(null), new RedSquareES2());
         test(new GLCapabilities(null), new MyRotTriangle());
+        System.err.println("Exp GL_Viewport: "+Arrays.toString(exp_gl_viewport));
+        System.err.println("Has GL_Viewport: "+Arrays.toString(has_gl_viewport));
+        Assert.assertArrayEquals(exp_gl_viewport, has_gl_viewport);
     }
+    final int[] exp_gl_viewport = { -1, -1, -1, -1 };
+    final int[] has_gl_viewport = { -1, -1, -1, -1 };
 
     public static void main(final String[] args) {
         for(int i=0; i<args.length; i++) {
@@ -210,7 +222,9 @@ public class TestGLJPanelReadd01Bug1310AWT extends UITestCase {
 
       @Override
       public void init(final GLAutoDrawable drawable) {
-          System.err.println("GLEL init, swap-ival "+drawable.getGL().getSwapInterval());
+          System.err.println("GLEL init: Surface "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceWidth()+
+                             ", "+drawable.getClass().getSimpleName()+
+                             ", swap-ival "+drawable.getGL().getSwapInterval());
           theta = 0;
           s = 0;
           c = 0;
@@ -219,6 +233,14 @@ public class TestGLJPanelReadd01Bug1310AWT extends UITestCase {
 
       @Override
       public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int w, final int h) {
+          exp_gl_viewport[0] = x;
+          exp_gl_viewport[1] = y;
+          exp_gl_viewport[2] = w;
+          exp_gl_viewport[3] = h;
+          System.err.println("GLEL reshape: Surface "+drawable.getSurfaceWidth()+"x"+drawable.getSurfaceWidth()+
+                             ", reshape "+x+"/"+y+" "+w+"x"+h);
+          final GL2 gl = drawable.getGL().getGL2();
+          gl.glGetIntegerv(GL.GL_VIEWPORT, has_gl_viewport, 0);
       }
 
       private void update() {
