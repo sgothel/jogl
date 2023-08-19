@@ -37,6 +37,7 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
@@ -103,6 +104,8 @@ public class UISceneDemo03b {
         int autoSpeed = -1;
         setVelocity(80/1000f);
         options.keepRunning = true;
+        boolean groupRotate = true;
+        boolean groupFrame = true;
 
         if (0 != args.length) {
             final int[] idx = { 0 };
@@ -117,6 +120,10 @@ public class UISceneDemo03b {
                     autoSpeed = -1;
                     setVelocity(80/1000f);
                     options.keepRunning = true;
+                } else if(args[idx[0]].equals("-no_group_rotate")) {
+                    groupRotate = false;
+                } else if(args[idx[0]].equals("-no_group_frame")) {
+                    groupFrame = false;
                 }
             }
         }
@@ -136,7 +143,7 @@ public class UISceneDemo03b {
 
         final Scene scene = new Scene();
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f }, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
+        scene.setPMVMatrixSetup(new MyPMVMatrixSetup(groupRotate ? Scene.DEFAULT_SCENE_DIST : -0.16f));
         scene.setDebugBorderBox(options.debugBoxThickness);
 
         final Group glyphGroup = new Group();
@@ -215,9 +222,15 @@ public class UISceneDemo03b {
 
         final GLProfile hasGLP = window.getChosenGLCapabilities().getGLProfile();
         final AABBox sceneBox = scene.getBounds();
-        glyphGroup.addShape( new Rectangle(options.renderModes, sceneBox, sceneBox.getWidth()*0.01f) );
-        // glyphGroup.addShape( new Rectangle(options.renderModes, sceneBox.getMinX(), sceneBox.getMinY(), sceneBox.getWidth(), sceneBox.getHeight(), sceneBox.getWidth()*0.01f) );
-        // glyphGroup.addShape( new Rectangle(options.renderModes, sceneBox.getMinX()*0.5f, sceneBox.getMinY()*0.5f, sceneBox.getWidth()*0.5f, sceneBox.getHeight()*0.5f, sceneBox.getWidth()*0.5f*0.01f, sceneBox.getMinZ()) );
+        {
+            final GraphShape r = new Rectangle(options.renderModes, sceneBox, sceneBox.getWidth()*0.01f);
+            // final GraphShape r = new Rectangle(options.renderModes, sceneBox.getMinX(), sceneBox.getMinY(), sceneBox.getWidth(), sceneBox.getHeight(), sceneBox.getWidth()*0.01f);
+            // final GraphShape r = new Rectangle(options.renderModes, sceneBox.getMinX()*0.5f, sceneBox.getMinY()*0.5f, sceneBox.getWidth()*0.5f, sceneBox.getHeight()*0.5f, sceneBox.getWidth()*0.5f*0.01f, sceneBox.getMinZ());
+            if( !groupFrame ) {
+                r.setColor(0f, 0f, 0f, 0f);
+            }
+            glyphGroup.addShape( r );
+        }
         glyphGroup.scale(0.8f, 0.8f, 1f);
         // glyphGroup.scale(0.5f, 0.5f, 1f);
         glyphGroup.setRotationPivot(0, 0, 0);
@@ -337,7 +350,7 @@ public class UISceneDemo03b {
         glyphGroup.setDraggable(false);
         glyphGroup.setResizable(false);
         glyphGroup.setToggleable(true);
-        glyphGroup.setToggle(true);
+        glyphGroup.setToggle( groupRotate );
         System.err.println("GlyphGroup.1: "+glyphGroup);
 
         window.addGLEventListener(new GLEventListener() {
@@ -526,13 +539,17 @@ public class UISceneDemo03b {
      * - no normal scale to 1, keep distance to near plane for rotation effects.
      */
     public static class MyPMVMatrixSetup implements PMVMatrixSetup {
+        private final float scene_dist;
+        public MyPMVMatrixSetup(final float scene_dist) {
+            this.scene_dist = scene_dist;
+        }
         @Override
         public void set(final PMVMatrix pmv, final Recti viewport) {
             final float ratio = (float) viewport.width() / (float) viewport.height();
             pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmv.glLoadIdentity();
             pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
-            pmv.glTranslatef(0f, 0f, Scene.DEFAULT_SCENE_DIST);
+            pmv.glTranslatef(0f, 0f, scene_dist);
 
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             pmv.glLoadIdentity();

@@ -509,7 +509,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.anim.TestAnimatorGLJPanel01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelResize01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasResize01AWT $*
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelReadd01Bug1310AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelReadd01Bug1310AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestGLCanvasSWTNewtCanvasSWTPosInTabs $*
@@ -999,7 +999,7 @@ testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLJPanelReadd01Bug1310AWT $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo02 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
+testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
