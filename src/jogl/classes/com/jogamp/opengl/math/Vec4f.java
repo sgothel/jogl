@@ -189,6 +189,9 @@ public final class Vec4f {
         return this;
     }
 
+    /** this = this * { s.x, s.y, s.z, s.w }, returns this. */
+    public Vec4f scale(final Vec4f s) { return scale(s.x, s.y, s.z, s.w); }
+
     /** Returns this + arg; creates new vector */
     public Vec4f plus(final Vec4f arg) {
         return new Vec4f(this).add(arg);

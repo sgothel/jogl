@@ -193,6 +193,9 @@ public final class Vec3f {
         return this;
     }
 
+    /** this = this * { s.x, s.y, s.z }, returns this. */
+    public Vec3f scale(final Vec3f s) { return scale(s.x, s.y, s.z); }
+
     /** Returns this + arg; creates new vector */
     public Vec3f plus(final Vec3f arg) {
         return new Vec3f(this).add(arg);

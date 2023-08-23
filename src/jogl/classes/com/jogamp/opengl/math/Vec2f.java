@@ -160,6 +160,9 @@ public final class Vec2f {
         return this;
     }
 
+    /** this = this * { s.x, s.y }, returns this. */
+    public Vec2f scale(final Vec2f s) { return scale(s.x, s.y); }
+
     /** Returns this + arg; creates new vector */
     public Vec2f plus(final Vec2f arg) {
         return new Vec2f(this).add(arg);
