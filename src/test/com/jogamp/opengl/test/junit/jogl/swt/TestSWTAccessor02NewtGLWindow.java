@@ -94,6 +94,7 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
 
     protected void init() throws InterruptedException, InvocationTargetException {
         SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
+            @Override
             public void run() {
                 display = new Display();
                 Assert.assertNotNull( display );
@@ -124,8 +125,7 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
 
-        SWTAccessor.invokeOnOSTKThread(true, new Runnable() {
-            public void run() {
+        SWTAccessor.invokeOnOSTKThread(true, () -> {
                 glwin.destroy();
                 composite.dispose();
                 shell.close();
@@ -134,7 +134,7 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
                 display = null;
                 shell = null;
                 composite = null;
-            }});
+            } );
     }
 
     protected void runTest() throws InterruptedException, InvocationTargetException {
@@ -156,7 +156,8 @@ public class TestSWTAccessor02NewtGLWindow extends UITestCase {
         final Canvas canvas[] = { null };
         try {
             display.syncExec( new Runnable() {
-               public void run() {
+                @Override
+                public void run() {
                     canvas[0] = new Canvas (composite, SWT.NO_BACKGROUND);
                     // Bug 1362 fix or workaround: Seems SWT/GTK3 at least performs lazy initialization
                     // Minimal action required: setBackground of the parent canvas before reparenting!
