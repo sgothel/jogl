@@ -34,6 +34,7 @@ import java.util.Random;
 
 import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -166,22 +167,25 @@ public class UISceneDemo03 {
         window.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(final KeyEvent e) {
-                if (e.getKeySymbol() == KeyEvent.VK_PLUS ||
-                    e.getKeySymbol() == KeyEvent.VK_ADD)
+                final short keySym = e.getKeySymbol();
+                if (keySym == KeyEvent.VK_PLUS ||
+                    keySym == KeyEvent.VK_ADD)
                 {
                     if (e.isShiftDown()) {
                         setVelocity(velocity + 10 / 1000f);
                     } else {
                         setVelocity(velocity + 1 / 1000f);
                     }
-                } else if (e.getKeySymbol() == KeyEvent.VK_MINUS ||
-                           e.getKeySymbol() == KeyEvent.VK_SUBTRACT)
+                } else if (keySym == KeyEvent.VK_MINUS ||
+                           keySym == KeyEvent.VK_SUBTRACT)
                 {
                     if (e.isShiftDown()) {
                         setVelocity(velocity - 10 / 1000f);
                     } else {
                         setVelocity(velocity - 1 / 1000f);
                     }
+                } else if( keySym == KeyEvent.VK_F4 || keySym == KeyEvent.VK_ESCAPE || keySym == KeyEvent.VK_Q ) {
+                    new InterruptSource.Thread( () -> { window.destroy(); } ).start();
                 }
             }
         });
@@ -305,7 +309,7 @@ public class UISceneDemo03 {
                     final float start_pos_z = 0f + random.nextFloat() * sceneBox.getHeight() * 1f;
                     gs.moveTo(start_pos_x, start_pos_y, start_pos_z);
                 }
-                // just add destText to scene to be cleaned up, invisible
+                // just add testGlyph to scene to be cleaned up, invisible
                 testGlyph.setEnabled(false);
                 glyphGroup.addShape(testGlyph);
             }
@@ -316,7 +320,7 @@ public class UISceneDemo03 {
 
             final long t0_us = Clock.currentNanos() / 1000; // [us]
             final long[] t2_us = { t0_us };
-            while (!glyphShapes.isEmpty()) {
+            while ( !glyphShapes.isEmpty() && window.isNativeValid() ) {
                 window.invoke(true, (drawable) -> {
                     final long t3_us = Clock.currentNanos() / 1000;
                     final float dt_s = (t3_us - t2_us[0]) / 1e6f;

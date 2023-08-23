@@ -31,6 +31,7 @@ package com.jogamp.opengl.demos.graph;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.MiscUtils;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -142,8 +143,9 @@ public class GPURegionNewtDemo {
         window.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(final KeyEvent arg0) {
-                if(arg0.getKeyCode() == KeyEvent.VK_F4) {
-                    window.destroy();
+                final short keySym = arg0.getKeySymbol();
+                if( keySym == KeyEvent.VK_F4 || keySym == KeyEvent.VK_ESCAPE || keySym == KeyEvent.VK_Q ) {
+                    new InterruptSource.Thread( () -> { window.destroy(); } ).start();
                 }
             }
         });

@@ -564,11 +564,7 @@ public class MovieSimple implements GLEventListener {
 
     static class MyGLMediaEventListener implements GLMediaEventListener {
             void destroyWindow(final Window window) {
-                new InterruptSource.Thread() {
-                    @Override
-                    public void run() {
-                        window.destroy();
-                    } }.start();
+                new InterruptSource.Thread( () -> { window.destroy(); } ).start();
             }
 
             @Override

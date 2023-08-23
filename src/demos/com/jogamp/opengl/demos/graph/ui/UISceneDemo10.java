@@ -165,12 +165,9 @@ public class UISceneDemo10 {
         window.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(final KeyEvent arg0) {
-                if(arg0.getKeyCode() == KeyEvent.VK_F4) {
-                    new InterruptSource.Thread() {
-                        @Override
-                        public void run() {
-                            window.destroy();
-                        } }.start();
+                final short keySym = arg0.getKeySymbol();
+                if( keySym == KeyEvent.VK_F4 || keySym == KeyEvent.VK_ESCAPE || keySym == KeyEvent.VK_Q ) {
+                    new InterruptSource.Thread( () -> { window.destroy(); } ).start();
                 }
             }
         });

@@ -817,11 +817,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
 
     static class StereoGLMediaEventListener implements GLMediaEventListener {
             void destroyWindow(final Window window) {
-                new InterruptSource.Thread() {
-                    @Override
-                    public void run() {
-                        window.destroy();
-                    } }.start();
+                new InterruptSource.Thread( () -> { window.destroy(); } ).start();
             }
 
             @Override

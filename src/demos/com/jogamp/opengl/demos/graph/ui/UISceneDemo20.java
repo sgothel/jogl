@@ -65,6 +65,7 @@ import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
+import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
@@ -605,17 +606,14 @@ public class UISceneDemo20 implements GLEventListener {
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                new InterruptSource.Thread() {
-                    @Override
-                    public void run() {
-                        if( null != cDrawable ) {
-                            final GLAnimatorControl actrl = cDrawable.getAnimator();
-                            if( null != actrl ) {
-                                actrl.stop();
-                            }
-                            cDrawable.destroy();
+                new InterruptSource.Thread( () -> {
+                    if( null != cDrawable ) {
+                        final GLAnimatorControl actrl = cDrawable.getAnimator();
+                        if( null != actrl ) {
+                            actrl.stop();
                         }
-                    } }.start();
+                        cDrawable.destroy();
+                    } } ).start();
             } } );
         button.addMouseListener(dragZoomRotateListener);
         buttonsLeft.addShape(button);

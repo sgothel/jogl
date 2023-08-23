@@ -632,11 +632,7 @@ public class MovieCube implements GLEventListener {
                     if( null != se ) {
                         se.printStackTrace();
                     }
-                    new InterruptSource.Thread() {
-                        @Override
-                        public void run() {
-                            window.destroy();
-                        } }.start();
+                    new InterruptSource.Thread( () -> { window.destroy(); } ).start();
                 }
             }
         });
