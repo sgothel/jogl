@@ -46,7 +46,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * Representing a single {@link Font.Glyph} as a {@link GraphShape}
  *
  * A GlyphShape is represented in font em-size [0..1] unscaled w/ bottom-left origin at 0/0
- * while preserving an intended position, see {@link #getOrigPos()} and {@link #getOrigPos(float)}.
+ * while preserving an intended position, see {@link #getOrigPos()}.
  *
  * Scaling, if any, should be applied via {@link #setScale(float, float, float)} etc.
  */
@@ -118,41 +118,6 @@ public class GlyphShape extends GraphShape {
      * @see #processString(List, int, Font, String)
      */
     public Vec3f getOrigPos() { return origPos; }
-
-    /**
-     * Returns the unscaled original position of this glyph, e.g. if part of a string, otherwise zero.
-     *
-     * @param s {@link Vec3f} storage to be returned
-     * @return storage containing the unscaled original position
-     * @see #processString(List, int, Font, String)
-     */
-    public Vec3f getOrigPos(final Vec3f s) { return s.set(origPos); }
-
-    /**
-     * Returns a copy of the scaled original position of this glyph, see {@link #getOrigPos(Vec3f)}
-     * @see #processString(List, int, Font, String)
-     */
-    public Vec3f getOrigPos(final float scale) { return origPos.mul(scale); }
-
-    /**
-     * Returns the scaled original position of this glyph, see {@link #getOrigPos(float)}
-     * @param s {@link Vec3f} storage to be returned
-     * @return storage containing the scaled original position
-     * @see #processString(List, int, Font, String)
-     */
-    public Vec3f getOrigPos(final Vec3f s, final float scale) { return s.set(origPos).scale(scale); }
-
-    /** Resets this Shape's position to the scaled original position, see {@link #getOrigPos(float)}. */
-    public void resetPos(final float scale) {
-        moveTo(origPos.x() * scale, origPos.y() * scale, 0f);
-    }
-
-    /** Resets this Shape's position to the scaled original position and {@link #setScale(float, float, float) set scale}, see {@link #resetPos(float)}. */
-    public void resetPosAndScale(final float scale) {
-        moveTo(origPos.x() * scale, origPos.y() * scale, 0f);
-        setScale(scale, scale, 1f);
-    }
-
     /** Returns {@link Font#getLineHeight()}. */
     public float getLineHeight() {
         return glyph.getFont().getLineHeight();
@@ -168,7 +133,9 @@ public class GlyphShape extends GraphShape {
      * @see #getOrigX()
      * @see #getOrigY()
      */
-    public static final AABBox processString(final List<GlyphShape> res, final int renderModes, final Font font, final String text) {
+    public static final AABBox processString(final List<GlyphShape> res, final int renderModes,
+                                             final Font font, final CharSequence text)
+    {
         final Font.GlyphVisitor fgv = new Font.GlyphVisitor() {
             @Override
             public void visit(final char symbol, final Glyph glyph, final AffineTransform t) {

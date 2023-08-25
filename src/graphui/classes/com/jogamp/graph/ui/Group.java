@@ -34,7 +34,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Rectangle;
@@ -77,7 +76,7 @@ public class Group extends Shape implements Container {
     private Rectangle border = null;
 
     /**
-     * Create a Graph based {@link GLRegion} UI {@link Shape}.
+     * Create a group of {@link Shape}s w/o {@link Group.Layout}.
      * <p>
      * Default is non-interactive, see {@link #setInteractive(boolean)}.
      * </p>
@@ -87,10 +86,11 @@ public class Group extends Shape implements Container {
     }
 
     /**
-     * Create a Graph based {@link GLRegion} UI {@link Shape} w/ given {@link Group.Layour}.
+     * Create a group of {@link Shape}s w/ given {@link Group.Layout}.
      * <p>
      * Default is non-interactive, see {@link #setInteractive(boolean)}.
      * </p>
+     * @param l optional {@link Layout}, maybe {@code null}
      */
     public Group(final Layout l) {
         super();
