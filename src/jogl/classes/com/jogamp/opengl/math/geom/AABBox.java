@@ -203,6 +203,19 @@ public class AABBox {
     }
 
     /**
+     * Assign values of given AABBox to this instance.
+     *
+     * @param o source AABBox
+     * @return this AABBox for chaining
+     */
+    public final AABBox set(final AABBox o) {
+        this.low.set(o.low);
+        this.high.set(o.high);
+        this.center.set(o.center);
+        return this;
+    }
+
+    /**
      * Resize the AABBox to encapsulate another AABox
      * @param newBox AABBox to be encapsulated in
      * @return this AABBox for chaining
