@@ -225,6 +225,13 @@ public abstract class Shape {
     /** Returns the border thickness, see {@link #setBorder(float, Padding)}. */
     public final float getBorderThickness() { return borderThickness; }
 
+    /** Perform given {@link Runnable} action synchronized */
+    public final void runSynced(final Runnable action) {
+        synchronized ( dirtySync ) {
+            action.run();
+        }
+    }
+
     /**
      * Clears all data and reset all states as if this instance was newly created
      * @param gl TODO
@@ -588,13 +595,48 @@ public abstract class Shape {
     }
 
     /**
+     * {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) Setup} the given {@link PMVMatrix}
+     * and apply this shape's {@link #setTransform(PMVMatrix) transformation}.
+     * </p>
+     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} given {@link PMVMatrix} {@code pmv}.
+     * @param viewport used viewport for {@link PMVMatrix#gluProject(float, float, float, int[], float[])}
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
+     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
+     * @return the given {@link PMVMatrix} for chaining
+     * @see Scene.PMVMatrixSetup#set(PMVMatrix, Recti)
+     * @see #setTransform(PMVMatrix)
+     * @see #setPMVMatrix(Scene, PMVMatrix)
+     */
+    public PMVMatrix setPMVMatrix(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final PMVMatrix pmv) {
+        pmvMatrixSetup.set(pmv, viewport);
+        setTransform(pmv);
+        return pmv;
+    }
+
+    /**
+     * {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) Setup} the given {@link PMVMatrix}
+     * and apply this shape's {@link #setTransform(PMVMatrix) transformation}.
+     * </p>
+     * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
+     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
+     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
+     * @return the given {@link PMVMatrix} for chaining
+     * @see Scene.PMVMatrixSetup#set(PMVMatrix, Recti)
+     * @see #setTransform(PMVMatrix)
+     * @see #setPMVMatrix(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix)
+     */
+    public PMVMatrix setPMVMatrix(final Scene scene, final PMVMatrix pmv) {
+        return setPMVMatrix(scene.getPMVMatrixSetup(), scene.getViewport(), pmv);
+    }
+
+    /**
      * Retrieve surface (view) port of this shape, i.e. lower x/y position and size.
      * <p>
      * The given {@link PMVMatrix} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * including this shape's {@link #setTransform(PMVMatrix)}. See {@link #setPMVMatrix(Scene, PMVMatrix)}.
      * </p>
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)} and {@link #setTransform(PMVMatrix)}.
+     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix)}.
      * @param viewport the int[4] viewport
      * @param surfacePort Recti target surface port
      * @return given Recti {@code surfacePort} for successful gluProject(..) operation, otherwise {@code null}
@@ -619,16 +661,16 @@ public abstract class Shape {
     }
 
     /**
-     * Retrieve surface (view) size of this shape.
+     * Retrieve surface (view) size in pixels of this shape.
      * <p>
      * The given {@link PMVMatrix} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * including this shape's {@link #setTransform(PMVMatrix)}. See {@link #setPMVMatrix(Scene, PMVMatrix)}.
      * </p>
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)} and {@link #setTransform(PMVMatrix)}.
+     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix)}.
      * @param viewport the int[4] viewport
      * @param surfaceSize int[2] target surface size
-     * @return given int[2] {@code surfaceSize} for successful gluProject(..) operation, otherwise {@code null}
+     * @return given int[2] {@code surfaceSize} in pixels for successful gluProject(..) operation, otherwise {@code null}
      * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])
      * @see #getSurfaceSize(Scene, PMVMatrix, int[])
      */
@@ -651,7 +693,7 @@ public abstract class Shape {
     }
 
     /**
-     * Retrieve surface (view) size of this shape.
+     * Retrieve surface (view) size in pixels of this shape.
      * <p>
      * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
      * including this shape's {@link #setTransform(PMVMatrix)}.
@@ -661,18 +703,16 @@ public abstract class Shape {
      * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
      *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
      * @param surfaceSize int[2] target surface size
-     * @return given int[2] {@code surfaceSize} for successful gluProject(..) operation, otherwise {@code null}
+     * @return given int[2] {@code surfaceSize} in pixels for successful gluProject(..) operation, otherwise {@code null}
      * @see #getSurfaceSize(PMVMatrix, Recti, int[])
      * @see #getSurfaceSize(Scene, PMVMatrix, int[])
      */
     public int[/*2*/] getSurfaceSize(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final PMVMatrix pmv, final int[/*2*/] surfaceSize) {
-        pmvMatrixSetup.set(pmv, viewport);
-        setTransform(pmv);
-        return getSurfaceSize(pmv, viewport, surfaceSize);
+        return getSurfaceSize(setPMVMatrix(pmvMatrixSetup, viewport, pmv), viewport, surfaceSize);
     }
 
     /**
-     * Retrieve surface (view) size of this shape.
+     * Retrieve surface (view) size in pixels of this shape.
      * <p>
      * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
      * including this shape's {@link #setTransform(PMVMatrix)}.
@@ -681,12 +721,53 @@ public abstract class Shape {
      * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
      *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
      * @param surfaceSize int[2] target surface size
-     * @return given int[2] {@code surfaceSize} for successful gluProject(..) operation, otherwise {@code null}
+     * @return given int[2] {@code surfaceSize} in pixels for successful gluProject(..) operation, otherwise {@code null}
      * @see #getSurfaceSize(PMVMatrix, Recti, int[])
      * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])
      */
     public int[/*2*/] getSurfaceSize(final Scene scene, final PMVMatrix pmv, final int[/*2*/] surfaceSize) {
         return getSurfaceSize(scene.getPMVMatrixSetup(), scene.getViewport(), pmv, surfaceSize);
+    }
+
+    /**
+     * Retrieve pixel per scaled shape-coordinate unit, i.e. [px]/[obj].
+     * @param shapeSizePx int[2] shape size in pixel as retrieved via e.g. {@link #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])}
+     * @param pixPerShape float[2] pixel scaled per shape-coordinate unit result storage
+     * @return given float[2] {@code pixPerShape}
+     * @see #getPixelPerShapeUnit(Scene, PMVMatrix, float[])
+     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])
+     * @see #getScaledWidth()
+     * @see #getScaledHeight()
+     */
+    public float[] getPixelPerShapeUnit(final int[] shapeSizePx, final float[] pixPerShape) {
+        pixPerShape[0] = shapeSizePx[0] / getScaledWidth();
+        pixPerShape[0] = shapeSizePx[1] / getScaledHeight();
+        return pixPerShape;
+    }
+
+    /**
+     * Retrieve pixel per scaled shape-coordinate unit, i.e. [px]/[obj].
+     * <p>
+     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
+     * including this shape's {@link #setTransform(PMVMatrix)}. See {@link #setPMVMatrix(Scene, PMVMatrix)}.
+     * </p>
+     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix)}.
+     * @param viewport the int[4] viewport
+     * @param pixPerShape float[2] pixel per scaled shape-coordinate unit result storage
+     * @return given float[2] {@code pixPerShape} for successful gluProject(..) operation, otherwise {@code null}
+     * @see #getPixelPerShapeUnit(int[], float[])
+     * @see #getSurfaceSize(Scene, PMVMatrix, int[])
+     * @see #getScaledWidth()
+     * @see #getScaledHeight()
+     */
+    public float[] getPixelPerShapeUnit(final PMVMatrix pmv, final Recti viewport, final float[] pixPerShape) {
+        final int[] shapeSizePx = new int[2];
+        if( null != getSurfaceSize(pmv, viewport, shapeSizePx) ) {
+            return getPixelPerShapeUnit(shapeSizePx, pixPerShape);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -707,7 +788,7 @@ public abstract class Shape {
      */
     public float[] getPixelPerShapeUnit(final Scene scene, final PMVMatrix pmv, final float[] pixPerShape) {
         final int[] shapeSizePx = new int[2];
-        if( null != getSurfaceSize(scene, new PMVMatrix(), shapeSizePx) ) {
+        if( null != getSurfaceSize(scene, pmv, shapeSizePx) ) {
             return getPixelPerShapeUnit(shapeSizePx, pixPerShape);
         } else {
             return null;
@@ -715,29 +796,13 @@ public abstract class Shape {
     }
 
     /**
-     * Retrieve pixel per scaled shape-coordinate unit, i.e. [px]/[obj].
-     * @param shapeSizePx int[2] shape size in pixel as retrieved via e.g. {@link #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])}
-     * @param pixPerShape float[2] pixel scaled per shape-coordinate unit result storage
-     * @return given float[2] {@code pixPerShape}
-     * @see #getPixelPerShapeUnit(Scene, PMVMatrix, float[])
-     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])
-     * @see #getScaledWidth()
-     * @see #getScaledHeight()
-     */
-    public float[] getPixelPerShapeUnit(final int[] shapeSizePx, final float[] pixPerShape) {
-        pixPerShape[0] = shapeSizePx[0] / getScaledWidth();
-        pixPerShape[0] = shapeSizePx[1] / getScaledHeight();
-        return pixPerShape;
-    }
-
-    /**
      * Map given object coordinate relative to this shape to window coordinates.
      * <p>
      * The given {@link PMVMatrix} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * including this shape's {@link #setTransform(PMVMatrix)}. See {@link #setPMVMatrix(Scene, PMVMatrix)}.
      * </p>
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)} and {@link #setTransform(PMVMatrix)}.
+     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix)}.
      * @param viewport the viewport
      * @param objPos object position relative to this shape's center
      * @param glWinPos int[2] target window position of objPos relative to this shape
@@ -774,9 +839,7 @@ public abstract class Shape {
      * @see #shapeToWinCoord(Scene, float[], PMVMatrix, int[])
      */
     public int[/*2*/] shapeToWinCoord(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final Vec3f objPos, final PMVMatrix pmv, final int[/*2*/] glWinPos) {
-        pmvMatrixSetup.set(pmv, viewport);
-        setTransform(pmv);
-        return this.shapeToWinCoord(pmv, viewport, objPos, glWinPos);
+        return this.shapeToWinCoord(setPMVMatrix(pmvMatrixSetup, viewport, pmv), viewport, objPos, glWinPos);
     }
 
     /**
@@ -803,9 +866,9 @@ public abstract class Shape {
      * <p>
      * The given {@link PMVMatrix} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * including this shape's {@link #setTransform(PMVMatrix)}. See {@link #setPMVMatrix(Scene, PMVMatrix)}.
      * </p>
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene#setupMatrix(PMVMatrix) setupMatrix(..)} and {@link #setTransform(PMVMatrix)}.
+     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix)}.
      * @param viewport the Rect4i viewport
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
@@ -844,9 +907,7 @@ public abstract class Shape {
      * @see #winToShapeCoord(Scene, int, int, PMVMatrix, float[])
      */
     public Vec3f winToShapeCoord(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final int glWinX, final int glWinY, final PMVMatrix pmv, final Vec3f objPos) {
-        pmvMatrixSetup.set(pmv, viewport);
-        setTransform(pmv);
-        return this.winToShapeCoord(pmv, viewport, glWinX, glWinY, objPos);
+        return this.winToShapeCoord(setPMVMatrix(pmvMatrixSetup, viewport, pmv), viewport, glWinX, glWinY, objPos);
     }
 
     /**
