@@ -60,7 +60,7 @@ public class Button extends BaseButton {
     /** {@value} */
     public static final float DEFAULT_SPACING_Y = 0.42f;
 
-    private static final float DEFAULT_LABEL_ZOFFSET = 0.005f; // 0.05f;
+    private static final float DEFAULT_LABEL_ZOFFSET = 0.0001f; // 0.05f;
     private float labelZOffset;
 
     private final Label0 label;
