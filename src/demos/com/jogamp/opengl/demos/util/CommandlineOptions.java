@@ -36,9 +36,10 @@ public class CommandlineOptions {
     public boolean wait_to_start = false;
     public boolean keepRunning = false;
     public boolean stayOpen = false;
-    public int renderModes;
+    public int renderModes = Region.NORM_RENDERING_BIT;
     public int sceneMSAASamples = 0;
     public float debugBoxThickness = 0f;
+    public boolean exclusiveContext = false;
 
     static {
         GLProfile.initSingleton(); // ensure JOGL is completely initialized
@@ -76,12 +77,20 @@ public class CommandlineOptions {
             glProfileName = GLProfile.GLES2;
         } else if(args[idx[0]].equals("-es3")) {
             glProfileName = GLProfile.GLES3;
+        } else if(args[idx[0]].equals("-gl2")) {
+            glProfileName = GLProfile.GL2;
+        } else if(args[idx[0]].equals("-gl3bc")) {
+            glProfileName = GLProfile.GL3bc;
         } else if(args[idx[0]].equals("-gl3")) {
             glProfileName = GLProfile.GL3;
         } else if(args[idx[0]].equals("-gl4")) {
             glProfileName = GLProfile.GL4;
+        } else if(args[idx[0]].equals("-gl4bc")) {
+            glProfileName = GLProfile.GL4bc;
         } else if(args[idx[0]].equals("-gldef")) {
             glProfileName = null;
+        } else if(args[idx[0]].equals("-exclusiveContext")) {
+            exclusiveContext = true;
         } else if(args[idx[0]].equals("-wait")) {
             wait_to_start = true;
         } else if (args[idx[0]].equals("-keep")) {
@@ -91,7 +100,7 @@ public class CommandlineOptions {
             stayOpen = true;
         } else if(args[idx[0]].equals("-gnone")) {
             sceneMSAASamples = 0;
-            renderModes = 0;
+            renderModes = Region.NORM_RENDERING_BIT;
         } else if(args[idx[0]].equals("-color")) {
             renderModes |= Region.COLORCHANNEL_RENDERING_BIT;
         } else if(args[idx[0]].equals("-no-color")) {
@@ -119,7 +128,7 @@ public class CommandlineOptions {
     @Override
     public String toString() {
         return "Options{surface[width "+surface_width+" x "+surface_height+"], glp "+glProfileName+
-               ", wait "+wait_to_start+", keep "+keepRunning+", stay "+stayOpen+
+               ", exclusiveContext "+exclusiveContext+", wait "+wait_to_start+", keep "+keepRunning+", stay "+stayOpen+
                ", renderModes "+Region.getRenderModeString(renderModes)+
                ", smsaa "+sceneMSAASamples+", dbgbox "+debugBoxThickness+"}";
     }

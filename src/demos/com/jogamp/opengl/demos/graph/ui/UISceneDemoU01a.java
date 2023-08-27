@@ -209,6 +209,7 @@ public class UISceneDemoU01a {
         @Override
         public void init(final GLAutoDrawable drawable) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
+            System.err.println(JoglVersion.getGLInfo(gl, null));
 
             if( !textOnly ) {
                 shape = new CrossHair(options.renderModes, normWidgetSize, normWidgetSize, normWidgetSize/100f); // normalized: 1 is 100% surface size (width and/or height)

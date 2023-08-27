@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,8 +25,6 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-
-
 package com.jogamp.opengl.demos.util;
 
 import java.io.BufferedReader;
@@ -39,6 +37,8 @@ import java.nio.FloatBuffer;
 import java.util.Iterator;
 import java.util.List;
 
+import com.jogamp.opengl.GLAnimatorControl;
+import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLContext;
 
 import com.jogamp.common.os.Platform;
@@ -252,6 +252,19 @@ public class MiscUtils {
       }
       System.err.println("\t Total created "+i+" + destroyed "+j+" = "+(i+j));
       System.err.println();
+    }
+
+    public static void destroyWindow(final GLAutoDrawable glad) {
+        if( glad.isRealized() ) {
+            glad.setExclusiveContextThread(null);
+            final GLAnimatorControl actrl = glad.getAnimator();
+            if( null != actrl ) {
+                actrl.stop();
+            }
+            System.err.println("Destroying window from thread "+Thread.currentThread());
+            // Thread.dumpStack();
+            new InterruptSource.Thread( () -> { glad.destroy(); } ).start();
+        }
     }
 }
 

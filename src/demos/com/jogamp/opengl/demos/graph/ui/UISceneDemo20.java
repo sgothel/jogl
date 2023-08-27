@@ -38,7 +38,6 @@ import java.util.Locale;
 import com.jogamp.common.av.AudioSink;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
@@ -65,7 +64,6 @@ import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
@@ -179,6 +177,7 @@ public class UISceneDemo20 implements GLEventListener {
         final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(5*60, null);
         animator.add(window);
+        animator.setExclusiveContext(options.exclusiveContext);
 
         window.addWindowListener(new WindowAdapter() {
             @Override
@@ -600,20 +599,13 @@ public class UISceneDemo20 implements GLEventListener {
 
         button = new Button(renderModes, fontButtons, "Quit", buttonLWidth, buttonLHeight);
         button.setName(BUTTON_QUIT);
-        button.setColor(0.7f, 0.0f, 0.0f, 1.0f);
+        button.setColor(0.7f, 0.3f, 0.3f, 1.0f);
         ((Button)button).setLabelColor(1.2f, 1.2f, 1.2f);
         button.setPressedColorMod(1.1f, 0.0f, 0.0f, 1.0f);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
-                new InterruptSource.Thread( () -> {
-                    if( null != cDrawable ) {
-                        final GLAnimatorControl actrl = cDrawable.getAnimator();
-                        if( null != actrl ) {
-                            actrl.stop();
-                        }
-                        cDrawable.destroy();
-                    } } ).start();
+                MiscUtils.destroyWindow(cDrawable);
             } } );
         button.addMouseListener(dragZoomRotateListener);
         buttonsLeft.addShape(button);
@@ -689,7 +681,7 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
-                    scene.screenshot(true, scene.nextScreenshotFile(null, UISceneDemo20.class.getSimpleName(), options.renderModes, gl.getContext().getGLDrawable().getChosenGLCapabilities(), null));
+                    scene.screenshot(false, scene.nextScreenshotFile(null, UISceneDemo20.class.getSimpleName(), options.renderModes, gl.getContext().getGLDrawable().getChosenGLCapabilities(), null));
                 } } );
             button.addMouseListener(dragZoomRotateListener);
             buttonsLeft.addShape(button);

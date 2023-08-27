@@ -201,7 +201,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogl.debug.GLCanvas -Djogl.debug.GLJPanel -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.TaskBase.TraceSource"
     #D_ARGS="-Dnativewindow.debug.JAWT"
-    D_ARGS="-Djogl.debug.GLJPanel"
+    #D_ARGS="-Djogl.debug.GLJPanel"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState -Djogl.debug.GLSLCode"
@@ -999,8 +999,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo02 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03b $*
+testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
