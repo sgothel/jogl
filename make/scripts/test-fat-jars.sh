@@ -15,7 +15,7 @@ MODULE_ARGS="--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.deskt
 USE_CLASSPATH=jogamp-fat.jar:jogl-demos.jar
 
 TEST_CLASS=com.jogamp.opengl.demos.graph.ui.UISceneDemo20
-# TEST_CLASS=com.jogamp.opengl.demos.graph.ui.UISceneDemo03b
+# TEST_CLASS=com.jogamp.opengl.demos.graph.ui.UISceneDemo03
 # TEST_CLASS=com.jogamp.opengl.demos.es2.GearsES2
 # TEST_CLASS=com.jogamp.opengl.demos.es2.LandscapeES2
 
