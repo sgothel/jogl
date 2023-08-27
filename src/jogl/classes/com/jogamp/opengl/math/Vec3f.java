@@ -36,6 +36,8 @@ package com.jogamp.opengl.math;
  */
 public final class Vec3f {
     public static final Vec3f ONE = new Vec3f(1f, 1f, 1f);
+    public static final Vec3f UNIT_X = new Vec3f(1f, 0f, 0f);
+    public static final Vec3f UNIT_X_NEG = new Vec3f(-1f, 0f, 0f);
     public static final Vec3f UNIT_Y = new Vec3f(0f, 1f, 0f);
     public static final Vec3f UNIT_Y_NEG = new Vec3f(0f, -1f, 0f);
     public static final Vec3f UNIT_Z = new Vec3f(0f, 0f, 1f);
@@ -328,14 +330,14 @@ public final class Vec3f {
     }
 
     /**
-     * Return the cosines of the angle between two vectors
+     * Return the cosine of the angle between two vectors using {@link #dot(Vec3f)}
      */
     public float cosAngle(final Vec3f o) {
         return dot(o) / ( length() * o.length() ) ;
     }
 
     /**
-     * Return the angle between two vectors in radians
+     * Return the angle between two vectors in radians using {@link Math#acos(double)} on {@link #cosAngle(Vec3f)}.
      */
     public float angle(final Vec3f o) {
         return (float) Math.acos( cosAngle(o) );
