@@ -29,12 +29,12 @@ package com.jogamp.graph.ui;
 
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.jogamp.opengl.FPSCounter;
 import com.jogamp.opengl.GL;
@@ -109,7 +109,7 @@ public final class Scene implements Container, GLEventListener {
     @SuppressWarnings("unused")
     private static final boolean DEBUG = false;
 
-    private final List<Shape> shapes = new ArrayList<Shape>();
+    private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
     private float dbgBorderThickness = 0f;
     private boolean doFrustumCulling = false;
 

@@ -27,11 +27,11 @@
  */
 package com.jogamp.graph.ui;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -71,7 +71,7 @@ public class Group extends Shape implements Container {
         void layout(final Group g, final AABBox box, final PMVMatrix pmv);
     }
 
-    private final List<Shape> shapes = new ArrayList<Shape>();
+    private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
     private Layout layouter;
     private Rectangle border = null;
 
