@@ -89,18 +89,22 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
  * <p>
  * This variation of {@link UISceneDemo00} shows
  * <ul>
- *   <li>Two repetitive scrolling text lines. One text shorter than the line-width and one longer.</li>
- *   <li>One line of animated rectangles, rotating around their z-axis</li>
+ *   <li>Two repetitive steady scrolling text lines. One text shorter than the line-width and one longer.</li>
+ *   <li>One line of animated rectangles, rotating around their z-axis and accelerating towards their target.</li>
  *   <li>A text animation assembling one line of text,
  *       each glyph coming from from a random 3D point moving to its destination all at once including rotation.</li>
- *   <li>One line of text with sine wave animation.</li>
+ *   <li>One line of text with sine wave animation flattening and accelerating towards its target.</li>
  * </ul>
+ * </p>
+ * <p>
+ * Blog entry: https://jausoft.com/blog/2023/08/27/graphui_animation_animgroup/
  * </p>
  * <p>
  * - Pass '-keep' to main-function to keep running.
  * - Pass '-aspeed' to vary velocity
  * - Pass '-rspeed <float>' angular velocity in radians/s
  * - Pass '-no_anim_box' to not show a visible and shrunken box around the AnimGroup
+ * - Pass '-audio <uri or file-path>' to play audio (only)
  * </p>
  */
 public class UISceneDemo03 {
