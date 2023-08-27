@@ -75,7 +75,7 @@ public class Quaternion {
     }
 
     /**
-     * Return the magnitude of this quaternion, i.e. sqrt({@link #magnitude()})
+     * Return the magnitude of this quaternion, i.e. sqrt({@link #magnitudeSquared()})
      * <p>
      * A magnitude of zero shall equal {@link #isIdentity() identity},
      * as performed by {@link #normalize()}.
@@ -343,6 +343,23 @@ public class Quaternion {
                    -x * qz + y * qw + z * qx + w * qy,
                     x * qy - y * qx + z * qw + w * qz,
                    -x * qx - y * qy - z * qz + w * qw);
+    }
+
+    /**
+     * Rotate this quaternion by the given angle and axis.
+     * <p>
+     * The axis must be a normalized vector.
+     * </p>
+     * <p>
+     * A rotational quaternion is made from the given angle and axis.
+     * </p>
+     *
+     * @param angle in radians
+     * @param axis  Vec3f coord of rotation axis
+     * @return this quaternion for chaining.
+     */
+    public Quaternion rotateByAngleNormalAxis(final float angle, final Vec3f axis) {
+        return rotateByAngleNormalAxis(angle, axis.x(), axis.y(), axis.z());
     }
 
     /**
