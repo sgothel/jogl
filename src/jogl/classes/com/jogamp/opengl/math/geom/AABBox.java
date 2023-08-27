@@ -103,6 +103,15 @@ public class AABBox {
     }
 
     /**
+     * Create a AABBox defining the low and high
+     * @param low min xyz-coordinates
+     * @param high max xyz-coordinates
+     */
+    public AABBox(final Vec3f low, final Vec3f high) {
+        setSize(low, high);
+    }
+
+    /**
      * Resets this box to the inverse low/high, allowing the next {@link #resize(float, float, float)} command to hit.
      * <p>
      * The dimension, i.e. {@link #getWidth()} abd {@link #getHeight()} is {@link Float#isInfinite()} thereafter.
@@ -199,6 +208,50 @@ public class AABBox {
         this.low.set(low);
         this.high.set(high);
         computeCenter();
+        return this;
+    }
+
+    /**
+     * Resize width of this AABBox with explicit left- and right delta values
+     * @param deltaLeft positive value will shrink width, otherwise expand width
+     * @param deltaRight positive value will expand width, otherwise shrink width
+     * @return this AABBox for chaining
+     */
+    public final AABBox resizeWidth(final float deltaLeft, final float deltaRight) {
+        boolean mod = false;
+        if( !FloatUtil.isZero(deltaLeft) ) {
+            low.setX( low.x() + deltaLeft );
+            mod = true;
+        }
+        if( !FloatUtil.isZero(deltaRight) ) {
+            high.setX( high.x() + deltaRight );
+            mod = true;
+        }
+        if( mod ) {
+            computeCenter();
+        }
+        return this;
+    }
+
+    /**
+     * Resize height of this AABBox with explicit bottom- and top delta values
+     * @param deltaBottom positive value will shrink height, otherwise expand height
+     * @param deltaTop positive value will expand height, otherwise shrink height
+     * @return this AABBox for chaining
+     */
+    public final AABBox resizeHeight(final float deltaBottom, final float deltaTop) {
+        boolean mod = false;
+        if( !FloatUtil.isZero(deltaBottom) ) {
+            low.setY( low.y() + deltaBottom );
+            mod = true;
+        }
+        if( !FloatUtil.isZero(deltaTop) ) {
+            high.setY( high.y() + deltaTop );
+            mod = true;
+        }
+        if( mod ) {
+            computeCenter();
+        }
         return this;
     }
 
@@ -413,10 +466,10 @@ public class AABBox {
 
         final float x0 = getMinX();
         final float y0 = getMinY();
-        return (x + w > x0 &&
-                y + h > y0 &&
-                x < x0 + _w &&
-                y < y0 + _h);
+        return (x >= x0 &&
+                y >= y0 &&
+                x + w <= x0 + _w &&
+                y + h <= y0 + _h);
     }
 
     /**
