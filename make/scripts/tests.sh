@@ -599,6 +599,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix03NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVTransform01NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestQuaternion01NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestVec3f01NOUI $*
 
 
 #
