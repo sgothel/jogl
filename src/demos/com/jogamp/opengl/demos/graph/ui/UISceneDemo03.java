@@ -28,11 +28,14 @@
 package com.jogamp.opengl.demos.graph.ui;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Random;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -76,6 +79,10 @@ import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
+import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
+import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /**
  * Res independent Shape, Scene attached to GLWindow showing multiple animated shape movements.
@@ -111,6 +118,9 @@ public class UISceneDemo03 {
     static float ang_velo = velocity * 60f; // [radians]/[s]
     static int autoSpeed = -1;
 
+    static Uri audioUri = null;
+    static GLMediaPlayer mPlayer = null;
+
     static final int[] manualScreenShorCount = { 0 };
 
     static void setVelocity(final float v) {
@@ -142,6 +152,14 @@ public class UISceneDemo03 {
                     ang_velo = MiscUtils.atof(args[idx[0]], ang_velo);
                 } else if(args[idx[0]].equals("-no_anim_box")) {
                     showAnimBox = false;
+                } else if(args[idx[0]].equals("-audio")) {
+                    ++idx[0];
+                    try {
+                        audioUri = Uri.cast( args[idx[0]] );
+                    } catch (final URISyntaxException e1) {
+                        System.err.println(e1);
+                        audioUri = null;
+                    }
                 }
             }
         }
@@ -335,7 +353,20 @@ public class UISceneDemo03 {
             return true;
         });
 
+        //
+        // Optional Audio
+        //
+        if( null != audioUri ) {
+            mPlayer = GLMediaPlayerFactory.createDefault();
+            mPlayer.addEventListener( new MyGLMediaEventListener() );
+            mPlayer.playStream(audioUri, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
+        } else {
+            mPlayer = null;
+        }
+
         do {
+            System.err.println();
+            System.err.println("Next animation loop ...");
             //
             // Setup new animation sequence
             // - Flush all AnimGroup.Set entries
@@ -424,11 +455,9 @@ public class UISceneDemo03 {
                 return true;
             });
 
-            // animGroup.setTickOnDraw(false);
-
             final long t0_us = Clock.currentNanos() / 1000; // [us]
-            while ( ( null == dynAnimSet[0] || dynAnimSet[0].isAnimationActive() ) && window.isNativeValid() ) {
-                try { Thread.sleep(100); } catch (final InterruptedException e1) { }
+            while ( ( null == dynAnimSet[0] || dynAnimSet[0].isAnimationActive() || animGroup.getTickPaused() ) && window.isNativeValid() ) {
+                try { Thread.sleep(250); } catch (final InterruptedException e1) { }
             }
             if( window.isNativeValid() ) {
                 final float has_dur_s = ((Clock.currentNanos() / 1000) - t0_us) / 1e6f; // [us]
@@ -437,6 +466,9 @@ public class UISceneDemo03 {
                     scene.screenshot(true, scene.nextScreenshotFile(null, UISceneDemo03.class.getSimpleName(), options.renderModes, window.getChosenGLCapabilities(), null));
                 }
                 try { Thread.sleep(1500); } catch (final InterruptedException e1) { }
+                while ( animGroup.getTickPaused() && window.isNativeValid() ) {
+                    try { Thread.sleep(250); } catch (final InterruptedException e1) { }
+                }
                 if( autoSpeed > 0 ) {
                     if( velocity < 60/1000f ) {
                         setVelocity(velocity + 9/1000f);
@@ -453,6 +485,8 @@ public class UISceneDemo03 {
                     }
                 }
                 txt_idx = ( txt_idx + 1 ) % originalTexts.length;
+            }
+            if( window.isNativeValid() ) {
                 window.invoke(true, (drawable) -> {
                     animGroup.removeAnimSets(drawable.getGL().getGL2ES2(), scene.getRenderer(), Arrays.asList(dynAnimSet));
                     return true;
@@ -578,6 +612,14 @@ public class UISceneDemo03 {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
                     animGroup.setTickPaused ( !animGroup.getTickPaused() );
+                    System.err.println("Tick Paused: "+animGroup.getTickPaused());
+                    if( null != mPlayer ) {
+                        if( animGroup.getTickPaused() ) {
+                            mPlayer.pause(false);
+                        } else {
+                            mPlayer.resume();
+                        }
+                    }
                 } } );
             buttonsRight.addShape(button);
         }
@@ -709,6 +751,68 @@ public class UISceneDemo03 {
         System.err.println("Rot: angleDelta "+angle+" (eps "+eps+"): "+eulerOld+" -> "+euler);
         rot.setFromEuler(euler);
     }
+
+    static class MyGLMediaEventListener implements GLMediaEventListener {
+            @Override
+            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
+            }
+
+            @Override
+            public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
+                System.err.println("MediaPlayer.1 AttributesChanges: "+eventMask+", when "+when);
+                System.err.println("MediaPlayer.1 State: "+mp);
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
+                    new InterruptSource.Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                mp.initGL(null);
+                                if ( GLMediaPlayer.State.Paused == mp.getState() ) { // init OK
+                                    mp.resume();
+                                }
+                                System.out.println("MediaPlayer.1 "+mp);
+                            } catch (final Exception e) {
+                                e.printStackTrace();
+                                mp.destroy(null);
+                                mPlayer = null;
+                                return;
+                            }
+                        }
+                    }.start();
+                }
+                boolean destroy = false;
+                Throwable err = null;
+
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
+                    err = mp.getStreamException();
+                    if( null != err ) {
+                        System.err.println("MovieSimple State: Exception");
+                        destroy = true;
+                    } else {
+                        new InterruptSource.Thread() {
+                            @Override
+                            public void run() {
+                                mp.setPlaySpeed(1f);
+                                mp.seek(0);
+                                mp.resume();
+                            }
+                        }.start();
+                    }
+                }
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Error) ) {
+                    err = mp.getStreamException();
+                    destroy = true;;
+                }
+                if( destroy ) {
+                    if( null != err ) {
+                        System.err.println("MovieSimple State: Exception");
+                        err.printStackTrace();
+                    }
+                    mp.destroy(null);
+                    mPlayer = null;
+                }
+            }
+        };
 
     /**
      * Our PMVMatrixSetup:
