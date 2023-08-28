@@ -56,7 +56,7 @@ import com.jogamp.opengl.math.geom.AABBox;
  * http://walon.org/pub/ttf/ttf_glyphs.htm
  */
 public class TypecastRenderer {
-    private static final boolean DEBUG = Debug.debug("graph.font.Renderer");
+    /* pp */ static final boolean DEBUG = Debug.debug("graph.font.Renderer");
     private static final boolean PRINT_CODE = Debug.debug("graph.font.Renderer.Code");
 
     private static void addShapeMoveTo(final float unitsPerEM, final OutlineShape shape, final Point p1) {
