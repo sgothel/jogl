@@ -39,6 +39,25 @@ public final class TypecastGlyph implements Font.Glyph {
 
     public static final short INVALID_ID    = (short)((1 << 16) - 1);
     public static final short MAX_ID        = (short)((1 << 16) - 2);
+    private static final String dot_undef_NAME = ".notdef";
+    private static final String NULL_NAME = "NULL";
+    private static final String null_NAME = "null";
+    private static final String dot_null_NAME = ".null";
+
+    /* pp */ static final boolean isUndefName(final String name) {
+        if( null != name ) {
+            if( TypecastGlyph.dot_undef_NAME.equals(name) ) {
+                return true;
+            } else if( TypecastGlyph.NULL_NAME.equals(name) ) {
+                return true;
+            } else if( TypecastGlyph.null_NAME.equals(name) ) {
+                return true;
+            } else if( TypecastGlyph.dot_null_NAME.equals(name) ) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private static int[][] growPairArray(final int[][] src) {
         final int length = src.length;
@@ -66,7 +85,8 @@ public final class TypecastGlyph implements Font.Glyph {
 
     private final int id;
     private final String name;
-    private final boolean isWhiteSpace;
+    private final boolean isUndefined;
+    private final boolean isWhitespace;
 
     private final TypecastFont font;
     private final AABBox bbox; // in font-units
@@ -90,10 +110,12 @@ public final class TypecastGlyph implements Font.Glyph {
      */
     protected TypecastGlyph(final TypecastFont font, final int id, final String name,
                             final AABBox bbox, final int advance, final int leftSideBearings,
-                            final KernSubtable kernSub, final OutlineShape shape, final boolean isWhiteSpace) {
+                            final KernSubtable kernSub, final OutlineShape shape,
+                            final boolean isUndefined, final boolean isWhiteSpace) {
         this.id = id;
         this.name = name;
-        this.isWhiteSpace = isWhiteSpace;
+        this.isUndefined = isUndefined;
+        this.isWhitespace = isWhiteSpace;
         this.font = font;
         this.bbox = bbox;
         this.advance = advance;
@@ -139,10 +161,13 @@ public final class TypecastGlyph implements Font.Glyph {
     public final String getName() { return name; }
 
     @Override
-    public final boolean isWhiteSpace() { return this.isWhiteSpace; }
+    public final boolean isWhitespace() { return this.isWhitespace; }
 
     @Override
-    public final boolean isUndefined() { return name == ".notdef"; }
+    public final boolean isUndefined() { return this.isUndefined; }
+
+    @Override
+    public final boolean isNonContour() { return isUndefined() || isWhitespace(); }
 
     @Override
     public final AABBox getBoundsFU() { return bbox; }
@@ -232,21 +257,41 @@ public final class TypecastGlyph implements Font.Glyph {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        final String ws_s = isWhiteSpace() ? ", ws" : "";
-        sb.append("Glyph[id ").append(id).append(" '").append(name).append("'").append(ws_s)
+        final String contour_s;
+        if( isNonContour() ) {
+            final String ws_s = isWhitespace() ? "whitespace" : "";
+            final String undef_s = isUndefined() ? "undefined" : "";
+            contour_s = "non-cont("+ws_s+undef_s+")";
+        } else {
+            contour_s = "contour";
+        }
+        final String name_s = null != name ? name : "";
+        final String shape_s = null != shape ? "shape "+shape.getVertexCount()+"v" : "shape null";
+        sb.append("Glyph[id ").append(id).append(" '").append(name_s).append("', ").append(contour_s)
+          .append(", ").append(shape_s)
           .append(", advance ").append(getAdvanceFU())
           .append(", leftSideBearings ").append(getLeftSideBearingsFU())
           .append(", kerning[size ").append(kerning.length).append(", horiz ").append(this.isKerningHorizontal()).append(", cross ").append(this.isKerningCrossstream()).append("]")
-          .append(", shape ").append(null != shape).append("]");
+          .append("]");
         return sb.toString();
     }
 
     @Override
     public String fullString() {
         final PostTable post = font.getPostTable();
-        final String glyph_name = null != post ? post.getGlyphName(id) : "n/a";
         final StringBuilder sb = new StringBuilder();
-        sb.append("Glyph id ").append(id).append(" '").append(glyph_name).append("'")
+        final String contour_s;
+        if( isNonContour() ) {
+            final String ws_s = isWhitespace() ? "whitespace" : "";
+            final String undef_s = isUndefined() ? "undefined" : "";
+            contour_s = "non-cont("+ws_s+undef_s+")";
+        } else {
+            contour_s = "contour";
+        }
+        final String name_s = null != name ? name : "";
+        final String shape_s = null != shape ? "shape "+shape.getVertexCount()+"v" : "shape null";
+        sb.append("Glyph id ").append(id).append(" '").append(name_s).append("', ").append(contour_s)
+          .append(", shape ").append(shape_s)
           .append(", advance ").append(getAdvanceFU())
           .append(", leftSideBearings ").append(getLeftSideBearingsFU())
           .append(", ").append(getBoundsFU());

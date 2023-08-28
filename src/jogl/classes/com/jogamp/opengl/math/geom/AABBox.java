@@ -784,6 +784,26 @@ public class AABBox {
         return high.z() - low.z();
     }
 
+    /** Returns the volume, i.e. width * height * depth */
+    public final float getVolume() {
+        return getWidth() * getHeight() * getDepth();
+    }
+
+    /** Return true if {@link #getVolume()} is {@link FloatUtil#isZero(float)}, considering epsilon. */
+    public final boolean hasZeroVolume() {
+        return FloatUtil.isZero(getVolume());
+    }
+
+    /** Returns the assumed 2D area, i.e. width * height while assuming low and high lies on same plane. */
+    public final float get2DArea() {
+        return getWidth() * getHeight();
+    }
+
+    /** Return true if {@link #get2DArea()} is {@link FloatUtil#isZero(float)}, considering epsilon. */
+    public final boolean hasZero2DArea() {
+        return FloatUtil.isZero(get2DArea());
+    }
+
     @Override
     public final boolean equals(final Object obj) {
         if( obj == this ) {

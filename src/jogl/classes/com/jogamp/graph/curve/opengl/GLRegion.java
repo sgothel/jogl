@@ -188,7 +188,9 @@ public abstract class GLRegion extends Region {
         final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
             @Override
             public final void visit(final char symbol, final Font.Glyph glyph) {
-                Region.countOutlineShape(glyph.getShape(), vertIndexCount);
+                if( !glyph.isNonContour() ) {
+                    Region.countOutlineShape(glyph.getShape(), vertIndexCount);
+                }
             } };
         font.processString(visitor, str);
         return GLRegion.create(glp, renderModes, colorTexSeq, vertIndexCount[0], vertIndexCount[1]);

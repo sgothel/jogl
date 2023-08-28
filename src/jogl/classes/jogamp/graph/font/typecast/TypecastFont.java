@@ -48,9 +48,10 @@ import jogamp.graph.font.typecast.ot.table.KernSubtableFormat0;
 import jogamp.graph.font.typecast.ot.table.KernTable;
 import jogamp.graph.font.typecast.ot.table.KerningPair;
 import jogamp.graph.font.typecast.ot.table.PostTable;
+import jogamp.opengl.Debug;
 
 class TypecastFont implements Font {
-    static final boolean DEBUG = false;
+    private static final boolean DEBUG = Debug.debug("graph.font.Font");
 
     // private final OTFontCollection fontset;
     /* pp */ final TTFont font;
@@ -203,34 +204,36 @@ class TypecastFont implements Font {
             } else {
                 glyph_name = "";
             }
+            final boolean isUndefined = Glyph.ID_UNKNOWN == glyph_id || null == glyph || TypecastGlyph.isUndefName(glyph_name);
             final int glyph_height = metrics.getAscentFU() - metrics.getDescentFU();
             final int glyph_advance;
             final int glyph_leftsidebearings;
+            final boolean isWhitespace;
             final AABBox glyph_bbox;
             final OutlineShape shape;
-            final boolean isWhiteSpace;
             if( null != glyph ) {
                 glyph_advance = glyph.getAdvanceWidth();
                 glyph_leftsidebearings = glyph.getLeftSideBearing();
                 final AABBox sb = glyph.getBBox();
-                final OutlineShape s = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph);
-                if( 0 < s.getVertexCount() ) {
+                final OutlineShape os = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph);
+                if( 0 < os.getVertexCount() ) {
+                    // Case 1: Either valid contour glyph, undefined or a whitespace (Case 2 with zero-area shape)
+                    isWhitespace = isUndefined ? false : os.getBounds().hasZero2DArea();
                     glyph_bbox = sb;
-                    shape = s;
-                    isWhiteSpace = false;
+                    shape = ( !isWhitespace && !isUndefined ) || Glyph.ID_UNKNOWN == glyph_id ? os : null;
                 } else {
-                    // non-contour glyph -> whitespace
+                    // Case 2: Non-contour glyph -> whitespace or undefined
+                    isWhitespace = !isUndefined;
                     glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
-                    shape = TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox);
-                    isWhiteSpace = true;
+                    shape = Glyph.ID_UNKNOWN == glyph_id ? TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox) : null;
                 }
             } else {
-                // non-contour glyph -> whitespace
+                // Case 3: Non-contour glyph -> undefined
                 glyph_advance = getAdvanceWidthFU(glyph_id);
                 glyph_leftsidebearings = 0;
+                isWhitespace = false;
                 glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
-                shape = TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox);
-                isWhiteSpace = true;
+                shape = Glyph.ID_UNKNOWN == glyph_id ? TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox) : null;
             }
             KernSubtable kernSub = null;
             {
@@ -239,8 +242,9 @@ class TypecastFont implements Font {
                     kernSub = kern.getSubtable0();
                 }
             }
-            result = new TypecastGlyph(this, glyph_id, glyph_name, glyph_bbox, glyph_advance, glyph_leftsidebearings, kernSub, shape, isWhiteSpace);
-            if(DEBUG) {
+            result = new TypecastGlyph(this, glyph_id, glyph_name, glyph_bbox, glyph_advance, glyph_leftsidebearings, kernSub, shape,
+                                       isUndefined, isWhitespace);
+            if( DEBUG || TypecastRenderer.DEBUG ) {
                 System.err.println("New glyph: " + glyph_id + "/'"+glyph_name+"', shape " + (null != shape));
                 System.err.println("  tc_glyph "+glyph);
                 System.err.println("     glyph "+result);
@@ -340,22 +344,24 @@ class TypecastFont implements Font {
                 temp1.setToIdentity();
                 final int glyph_id = getGlyphID(character);
                 final Font.Glyph glyph = getGlyph(glyph_id);
-                final OutlineShape glyphShape = glyph.getShape();
-                if( null == glyphShape ) { // also covers 'space' and all non-contour symbols
+                if( glyph.isUndefined() ) {
+                    // break kerning, drop undefined
                     advanceTotal += glyph.getAdvanceFU();
-                    left_glyph = null; // break kerning
-                    continue;
-                } else if( glyph.isWhiteSpace() ) { // covers 'space' and all non-contour symbols
-                    left_glyph = null; // break kerning
-                }
-                if( null != left_glyph ) {
-                    advanceTotal += left_glyph.getKerningFU(glyph_id);
-                }
-                temp1.translate(advanceTotal, y, temp2);
-                res.resize(temp1.transform(glyph.getBoundsFU(), temp_box));
-
-                advanceTotal += glyph.getAdvanceFU();
-                if( !glyph.isWhiteSpace() ) {
+                    left_glyph = null;
+                } else if( glyph.isWhitespace() ) {
+                    // break kerning, but include its bounding box space
+                    left_glyph = null;
+                    temp1.translate(advanceTotal, y, temp2);
+                    res.resize(temp1.transform(glyph.getBoundsFU(), temp_box));
+                    advanceTotal += glyph.getAdvanceFU();
+                } else {
+                    // regular contour
+                    if( null != left_glyph ) {
+                        advanceTotal += left_glyph.getKerningFU(glyph_id);
+                    }
+                    temp1.translate(advanceTotal, y, temp2);
+                    res.resize(temp1.transform(glyph.getBoundsFU(), temp_box));
+                    advanceTotal += glyph.getAdvanceFU();
                     left_glyph = glyph;
                 }
             }
@@ -421,23 +427,26 @@ class TypecastFont implements Font {
                 final int glyph_id = getGlyphID(character);
 
                 final Font.Glyph glyph = getGlyph(glyph_id);
-                final OutlineShape glyphShape = glyph.getShape();
-
-                if( null == glyphShape ) { // also covers 'space' and all non-contour symbols
+                if( glyph.isUndefined() ) {
+                    // break kerning, drop undefined
                     advanceTotal += glyph.getAdvance();
-                    left_glyph = null; // break kerning
-                    continue;
-                } else if( glyph.isWhiteSpace() ) { // covers 'space' and all non-contour symbols
-                    left_glyph = null; // break kerning
-                }
-                if( null != left_glyph ) {
-                    advanceTotal += left_glyph.getKerning(glyph_id);
-                }
-                temp1.translate(advanceTotal, y, temp2);
-                res.resize(temp1.transform(glyphShape.getBounds(), temp_box));
-                visitor.visit(character, glyph, temp1);
-                advanceTotal += glyph.getAdvance();
-                if( !glyph.isWhiteSpace() ) {
+                    left_glyph = null;
+                } else if( glyph.isWhitespace() ) {
+                    // break kerning, but include its bounding box space and visit the visitor
+                    left_glyph = null;
+                    temp1.translate(advanceTotal, y, temp2);
+                    res.resize(temp1.transform(glyph.getBounds(), temp_box));
+                    visitor.visit(character, glyph, temp1);
+                    advanceTotal += glyph.getAdvance();
+                } else {
+                    // regular contour
+                    if( null != left_glyph ) {
+                        advanceTotal += left_glyph.getKerning(glyph_id);
+                    }
+                    temp1.translate(advanceTotal, y, temp2);
+                    res.resize(temp1.transform(glyph.getShape().getBounds(), temp_box));
+                    visitor.visit(character, glyph, temp1);
+                    advanceTotal += glyph.getAdvance();
                     left_glyph = glyph;
                 }
             }

@@ -71,7 +71,7 @@ public class GlyphShape extends GraphShape {
         this.symbol = symbol;
         this.glyph = glyph;
         this.origPos = new Vec3f(x, y, 0f);
-        if( glyph.isWhiteSpace() || null == glyph.getShape() ) {
+        if( glyph.isNonContour() ) {
             setEnabled(false);
         }
         final int[/*2*/] vertIndexCount = Region.countOutlineShape(glyph.getShape(), new int[2]);
@@ -139,7 +139,7 @@ public class GlyphShape extends GraphShape {
         final Font.GlyphVisitor fgv = new Font.GlyphVisitor() {
             @Override
             public void visit(final char symbol, final Glyph glyph, final AffineTransform t) {
-                if( !glyph.isWhiteSpace() && null != glyph.getShape() ) {
+                if( !glyph.isNonContour() ) {
                     res.add( new GlyphShape(renderModes, symbol, glyph, t.getTranslateX(), t.getTranslateY()) );
                 }
             }

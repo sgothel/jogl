@@ -175,11 +175,42 @@ public interface Font {
         /** Return the glyph's name, source from `post` table */
         String getName();
 
-        /** Return true if the underlying {@link #getShape()} is a whitespace, otherwise false. */
-        boolean isWhiteSpace();
+        /**
+         * Return true if the glyph is a whitespace, otherwise false.
+         * <p>
+         * A whitespace glyph has no {@link #getShape()}, but a valid {@link #getBounds()} and {@link #getAdvance()}.
+         * </p>
+         * Being a whitespace glyph excludes {@link #isUndefined()}.
+         * @see #isUndefined()
+         * @see #isNonContour()
+         */
+        boolean isWhitespace();
 
-        /** Return true if the Glyph denotes an undefined {@link #getID()} symbol, i.e. {@link #getName()} == `.notdef`. */
+        /**
+         * Return true if the Glyph denotes an undefined {@link #getID()} symbol as follows
+         * <ul>
+         *   <li>it's glyph index is {@link #ID_UNKNOWN}, i.e. {@code 0x00}</li>
+         *   <li>has the {@link #getName() name} `.notdef`, `NULL`, `null` or `.null`</li>
+         *   <li>has no original underlying shape</li>
+         * </ul>
+         * <p>
+         * An undefined glyph has no {@link #getShape()}  if glyph index is not {@link #ID_UNKNOWN}.
+         * </p>
+         * <p>
+         * An undefined glyph has a default {@link #getBounds()} and {@link #getAdvance()}.
+         * </p>
+         * Being an undefined shape excludes {@link #isWhitespace()}.
+         * @see #isWhitespace()
+         * @see #isNonContour()
+         */
         boolean isUndefined();
+
+        /**
+         * Returns true if {@link #isWhitespace()} or {@link #isUndefined()}.
+         * @see #isWhitespace()
+         * @see #isUndefined()
+         */
+        boolean isNonContour();
 
         /**
          * Return the AABBox in font-units, borrowing internal instance.
