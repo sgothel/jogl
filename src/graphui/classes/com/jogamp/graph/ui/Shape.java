@@ -391,6 +391,18 @@ public abstract class Shape {
         return 0 != ( dirty & DIRTY_STATE ) ;
     }
 
+    protected final String getDirtyString() {
+        if( isShapeDirty() && isShapeDirty() ) {
+            return "dirty[shape, state]";
+        } else if( isShapeDirty() ) {
+            return "dirty[shape]";
+        } else if( isStateDirty() ) {
+            return "dirty[state]";
+        } else {
+            return "clean";
+        }
+    }
+
     /**
      * Returns the unscaled bounding {@link AABBox} for this shape, borrowing internal instance.
      *
@@ -1028,7 +1040,7 @@ public abstract class Shape {
         }
         final String ps = hasPadding() ? padding.toString()+", " : "";
         final String bs = hasBorder() ? "Border "+getBorderThickness()+", " : "";
-        return "enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+
+        return getDirtyString()+", enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+
                "], able[iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
                "], pos["+position+"], "+pivotS+scaleS+rotateS+
                 ps+bs+"box"+box;
