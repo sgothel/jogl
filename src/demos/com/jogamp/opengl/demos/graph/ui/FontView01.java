@@ -192,7 +192,7 @@ public class FontView01 {
             @Override
             public void run(final Shape shape) {
                 final Group c = (Group)shape;
-                final GlyphShape gs = (GlyphShape)c.getShapes().get(1);
+                final GlyphShape gs = (GlyphShape)c.getShapes().get( c.getShapes().size() - 1 );
                 if( 2 == glyphCont.getShapes().size() ) {
                     glyphCont.removeShape(1);
                 }
