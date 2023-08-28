@@ -61,7 +61,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  */
 public abstract class Region {
 
-    /** Debug flag for region impl (graph.curve) */
+    /** Debug flag for [com.]jogamp.graph.curve.* incl. Region (graph.curve) */
     public static final boolean DEBUG = Debug.debug("graph.curve");
     public static final boolean DEBUG_INSTANCE = Debug.debug("graph.curve.Instance");
 

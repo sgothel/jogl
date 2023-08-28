@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -35,7 +35,6 @@ import com.jogamp.graph.geom.plane.Winding;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.VectorUtil;
-import com.jogamp.opengl.math.Vert2fImmutable;
 import com.jogamp.opengl.math.geom.AABBox;
 
 public class Loop {
@@ -43,9 +42,14 @@ public class Loop {
     private final AABBox box = new AABBox();
     private GraphOutline initialOutline = null;
 
-    public Loop(final GraphOutline polyline, final Winding winding){
+    private Loop(final GraphOutline polyline, final Winding winding){
         initialOutline = polyline;
         this.root = initFromPolyline(initialOutline, winding);
+    }
+
+    public static Loop create(final GraphOutline polyline, final Winding winding) {
+        final Loop res = new Loop(polyline, winding);
+        return null != res.root ? res : null;
     }
 
     public HEdge getHEdge(){
@@ -116,7 +120,11 @@ public class Loop {
         final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
 
         if(vertices.size()<3) {
-            throw new IllegalArgumentException("outline's vertices < 3: " + vertices.size());
+            System.err.println( "Graph: Loop.initFromPolyline: GraphOutline's vertices < 3: " + vertices.size() );
+            if( GraphOutline.DEBUG ) {
+                Thread.dumpStack();
+            }
+            return null;
         }
         final Winding hasWinding = getWinding( vertices ); // requires area-winding detection
 
@@ -183,9 +191,18 @@ public class Loop {
     public void addConstraintCurve(final GraphOutline polyline) {
         //        GraphOutline outline = new GraphOutline(polyline);
         /**needed to generate vertex references.*/
-        initFromPolyline(polyline, Winding.CW); // -> HEdge.HOLE
+        if( null == initFromPolyline(polyline, Winding.CW) ) { // -> HEdge.HOLE
+            return;
+        }
 
         final GraphVertex v3 = locateClosestVertex(polyline);
+        if( null == v3 ) {
+            System.err.println( "Graph: Loop.locateClosestVertex returns null; root valid? "+(null!=root));
+            if( GraphOutline.DEBUG ) {
+                Thread.dumpStack();
+            }
+            return;
+        }
         final HEdge v3Edge = v3.findBoundEdge();
         final HEdge v3EdgeP = v3Edge.getPrev();
         final HEdge crossEdge = new HEdge(root.getGraphPoint(), HEdge.INNER);

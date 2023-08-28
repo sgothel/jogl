@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -83,15 +83,17 @@ public class CDTriangulator2D implements Triangulator {
     public final void addCurve(final List<Triangle> sink, final Outline polyline, final float sharpness) {
         Loop loop = getContainerLoop(polyline);
 
-        if(loop == null) {
+        if( null == loop ) {
             final Winding winding = Winding.CCW; // -> HEdge.BOUNDARY
             // Too late: polyline.setWinding(winding);
             final GraphOutline outline = new GraphOutline(polyline); // , winding);
             final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, false, sharpness);
             // vertices.addAll(polyline.getVertices());
             if( innerPoly.getGraphPoint().size() >= 3 ) {
-                loop = new Loop(innerPoly, winding);
-                loops.add(loop);
+                loop = Loop.create(innerPoly, winding);
+                if( null != loop ) {
+                    loops.add(loop);
+                }
             } else if( DEBUG ) {
                 /*
                  * Font FreeMono-Bold: ID 0 + 465: Glyph[id 465 'uni020F', advance 600, leftSideBearings 42, kerning[size 0, horiz true, cross true], shape true], OutlineShape@5e8a459[outlines 2, vertices 34]

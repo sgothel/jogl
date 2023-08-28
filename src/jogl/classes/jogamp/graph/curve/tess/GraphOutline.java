@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -29,11 +29,14 @@ package jogamp.graph.curve.tess;
 
 import java.util.ArrayList;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.plane.Winding;
 
 public class GraphOutline {
+    /** Debug flag for [com.]jogamp.graph.curve.* (graph.curve) */
+    /* pp */ static boolean DEBUG = Region.DEBUG; // Debug.debug("graph.curve");
+
     final private Outline outline;
     final private ArrayList<GraphVertex> controlpoints = new ArrayList<GraphVertex>(3);
 
