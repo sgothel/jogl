@@ -338,7 +338,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.graph.curve.Instance -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.triangulation.LINE_AA -Djogl.debug.graph.curve.Triangulation -Djogl.debug.graph.font.Renderer"
-    #D_ARGS="-Djogl.debug.graph.font.Renderer -Djogl.debug.graph.font.Renderer.Code"
+    #D_ARGS="-Djogl.debug.graph.font.Font -Djogl.debug.graph.font.Renderer -Djogl.debug.graph.font.Renderer.Code"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.vbaa.resizeLowerBoundary=100"
     #D_ARGS="-Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.graph.curve.instance -Djogl.debug.graph.curve"
@@ -999,7 +999,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01b $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo02 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
@@ -1008,7 +1008,7 @@ testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemoU01a $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutBox01 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
