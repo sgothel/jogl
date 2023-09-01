@@ -34,6 +34,7 @@ import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.geom.plane.AffineTransform;
@@ -90,7 +91,7 @@ import com.jogamp.opengl.util.PMVMatrix;
  * Note: Reshape won't adjust and this is merely to demonstrate the coordinate space.
  * </p>
  */
-public class UISceneDemoU01a {
+public class UIGraphDemoU01a {
     static final CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT );
     static final Vec4f text_color = new Vec4f( 0, 1, 0, 1 );
     static Font font;
@@ -151,14 +152,14 @@ public class UISceneDemoU01a {
 
         final GLWindow window = GLWindow.create(caps);
         window.setSize(options.surface_width, options.surface_height);
-        window.setTitle(UISceneDemoU01a.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+        window.setTitle(UIGraphDemoU01a.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
         System.out.println("Chosen: " + window.getChosenGLCapabilities());
         window.addGLEventListener(renderer);
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowResized(final WindowEvent e) {
-                window.setTitle(UISceneDemoU01a.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+                window.setTitle(UIGraphDemoU01a.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
             }
             @Override
             public void windowDestroyNotify(final WindowEvent e) {
@@ -309,7 +310,7 @@ public class UISceneDemoU01a {
             renderer.enable(gl, true);
             {
                 pmv.glPushMatrix();
-                drawText(gl, pmv, "Hello JogAmp Users!");
+                drawText(gl, pmv, " Hello JogAmp Users!");
                 pmv.glPopMatrix();
             }
             if( !textOnly ) {
@@ -352,6 +353,25 @@ public class UISceneDemoU01a {
                 System.err.println("XXX: txt_box_r  "+txt_box_r);
                 final AABBox textPort = txt_box_r.mapToWindow(new AABBox(), pmv.getPMvMat(), renderer.getViewport(), true /* useCenterZ */);
                 System.err.println("Display.1: Shape TextPort "+textPort);
+
+                final Font.GlyphVisitor visitor = new Font.GlyphVisitor() {
+                    int idx = 0;
+                    @Override
+                    public void visit(final char symbol, final Glyph glyph, final AffineTransform t) {
+                        System.err.println("idx["+idx+"]: "+glyph);
+                        ++idx;
+                    }
+                };
+                final AABBox txt_box_r2 = font.processString(visitor, null, text, new AffineTransform(), new AffineTransform());
+                System.err.println("XXX: txt_box_r2 "+txt_box_r2);
+                {
+                    final Glyph g = font.getGlyph( font.getGlyphID(' '));
+                    System.err.println("XXX: space "+g);
+                }
+                {
+                    final Glyph g = font.getGlyph( font.getGlyphID('\t'));
+                    System.err.println("XXX: tab "+g);
+                }
             }
         }
         private boolean onceAtDisplay = true;
