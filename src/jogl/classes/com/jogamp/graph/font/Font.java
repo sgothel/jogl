@@ -176,22 +176,10 @@ public interface Font {
         String getName();
 
         /**
-         * Return true if the glyph is a whitespace, otherwise false.
-         * <p>
-         * A whitespace glyph has no {@link #getShape()}, but a valid {@link #getBounds()} and {@link #getAdvance()}.
-         * </p>
-         * Being a whitespace glyph excludes {@link #isUndefined()}.
-         * @see #isUndefined()
-         * @see #isNonContour()
-         */
-        boolean isWhitespace();
-
-        /**
-         * Return true if the Glyph denotes an undefined {@link #getID()} symbol as follows
+         * Return true if the Glyph denotes an undefined {@link #getID()} symbol, determined as follows
          * <ul>
          *   <li>it's glyph index is {@link #ID_UNKNOWN}, i.e. {@code 0x00}</li>
          *   <li>has the {@link #getName() name} `.notdef`, `NULL`, `null` or `.null`</li>
-         *   <li>has no original underlying shape</li>
          * </ul>
          * <p>
          * An undefined glyph has no {@link #getShape()}  if glyph index is not {@link #ID_UNKNOWN}.
@@ -204,6 +192,22 @@ public interface Font {
          * @see #isNonContour()
          */
         boolean isUndefined();
+
+        /**
+         * Return true if the Glyph denotes a whitespace, determined as follows
+         * <ul>
+         *   <li>is not {@link #isUndefined()}</li>
+         *   <li>has no original underlying shape</li>
+         *   <li>has an underlying shape with a zero sized area</li>
+         * </ul>
+         * <p>
+         * A whitespace glyph has no {@link #getShape()}, but a valid {@link #getBounds()} and {@link #getAdvance()}.
+         * </p>
+         * Being a whitespace glyph excludes {@link #isUndefined()}.
+         * @see #isUndefined()
+         * @see #isNonContour()
+         */
+        boolean isWhitespace();
 
         /**
          * Returns true if {@link #isWhitespace()} or {@link #isUndefined()}.

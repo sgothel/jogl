@@ -198,19 +198,18 @@ class TypecastFont implements Font {
         if (null == result) {
             final jogamp.graph.font.typecast.ot.Glyph glyph = font.getGlyph(glyph_id);
             final String glyph_name;
-            if( null != glyph ) {
+            {
                 final PostTable post = font.getPostTable();
                 glyph_name = null != post ? post.getGlyphName(glyph_id) : "";
-            } else {
-                glyph_name = "";
             }
-            final boolean isUndefined = Glyph.ID_UNKNOWN == glyph_id || null == glyph || TypecastGlyph.isUndefName(glyph_name);
+            final boolean isUndefined = Glyph.ID_UNKNOWN == glyph_id || TypecastGlyph.isUndefName(glyph_name);
             final int glyph_height = metrics.getAscentFU() - metrics.getDescentFU();
             final int glyph_advance;
             final int glyph_leftsidebearings;
             final boolean isWhitespace;
             final AABBox glyph_bbox;
             final OutlineShape shape;
+            final int mode;
             if( null != glyph ) {
                 glyph_advance = glyph.getAdvanceWidth();
                 glyph_leftsidebearings = glyph.getLeftSideBearing();
@@ -221,19 +220,22 @@ class TypecastFont implements Font {
                     isWhitespace = isUndefined ? false : os.getBounds().hasZero2DArea();
                     glyph_bbox = sb;
                     shape = ( !isWhitespace && !isUndefined ) || Glyph.ID_UNKNOWN == glyph_id ? os : null;
+                    mode = 1;
                 } else {
                     // Case 2: Non-contour glyph -> whitespace or undefined
                     isWhitespace = !isUndefined;
                     glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
                     shape = Glyph.ID_UNKNOWN == glyph_id ? TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox) : null;
+                    mode = 2;
                 }
             } else {
-                // Case 3: Non-contour glyph -> undefined
+                // Case 3: Non-contour glyph -> whitespace or undefined
                 glyph_advance = getAdvanceWidthFU(glyph_id);
                 glyph_leftsidebearings = 0;
-                isWhitespace = false;
+                isWhitespace = !isUndefined;
                 glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
                 shape = Glyph.ID_UNKNOWN == glyph_id ? TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox) : null;
+                mode = 3;
             }
             KernSubtable kernSub = null;
             {
@@ -245,7 +247,7 @@ class TypecastFont implements Font {
             result = new TypecastGlyph(this, glyph_id, glyph_name, glyph_bbox, glyph_advance, glyph_leftsidebearings, kernSub, shape,
                                        isUndefined, isWhitespace);
             if( DEBUG || TypecastRenderer.DEBUG ) {
-                System.err.println("New glyph: " + glyph_id + "/'"+glyph_name+"', shape " + (null != shape));
+                System.err.println("New glyph: " + glyph_id + "/'"+glyph_name+"', shape " + (null != shape)+", mode "+mode);
                 System.err.println("  tc_glyph "+glyph);
                 System.err.println("     glyph "+result);
             }
