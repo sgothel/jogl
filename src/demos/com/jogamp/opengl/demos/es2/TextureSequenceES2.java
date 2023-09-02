@@ -40,6 +40,7 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.GLArrayDataServer;
@@ -302,7 +303,7 @@ public class TextureSequenceES2 implements GLEventListener {
             pmvMatrix.glOrthof(-fw, fw, -fh, fh, -1.0f, 1.0f);
             nearPlaneNormalized = 0f;
         } else {
-            pmvMatrix.gluPerspective(45.0f, (float)width / (float)height, zNear, zFar);
+            pmvMatrix.gluPerspective(FloatUtil.QUARTER_PI, (float)width / (float)height, zNear, zFar);
             nearPlaneNormalized = 1f/(10f-1f);
         }
         System.err.println("XXX0: Perspective nearPlaneNormalized: "+nearPlaneNormalized);

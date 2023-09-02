@@ -1038,15 +1038,15 @@ public final class PMVMatrix implements GLMatrixFunc {
     /**
      * {@link #glMultMatrixf(FloatBuffer) Multiply} the {@link #glGetMatrixMode() current matrix} with the perspective/frustum matrix.
      *
-     * @param fovy_deg fov angle in degrees
+     * @param fovy_rad fov angle in radians
      * @param aspect aspect ratio width / height
      * @param zNear
      * @param zFar
      * @throws GLException if {@code zNear <= 0} or {@code zFar <= zNear}
      * @see Matrix4f#setToPerspective(float, float, float, float)
      */
-    public final void gluPerspective(final float fovy_deg, final float aspect, final float zNear, final float zFar) throws GLException {
-         glMultMatrixf( mat4Tmp1.setToPerspective(FloatUtil.adegToRad(fovy_deg), aspect, zNear, zFar) );
+    public final void gluPerspective(final float fovy_rad, final float aspect, final float zNear, final float zFar) throws GLException {
+         glMultMatrixf( mat4Tmp1.setToPerspective(fovy_rad, aspect, zNear, zFar) );
     }
 
     /**

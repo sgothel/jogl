@@ -199,7 +199,7 @@ public class UIGraphDemoU01a {
                 zFar = 1f;
                 sceneDist = zNear;
             } else {
-                angle = 45.0f;
+                angle = FloatUtil.QUARTER_PI;
                 zNear = 0.1f;
                 zFar = 7000.0f;
                 sceneDist = -zNear;

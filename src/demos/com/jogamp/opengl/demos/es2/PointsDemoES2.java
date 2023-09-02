@@ -51,7 +51,7 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.demos.PointsDemo;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 
@@ -207,7 +207,7 @@ public class PointsDemoES2 extends PointsDemo {
         // Set location in front of camera
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, ( (float) width / (float) height ) / 1.0f, 1.0F, 100.0F);
+        pmvMatrix.gluPerspective(FloatUtil.QUARTER_PI, ( (float) width / (float) height ) / 1.0f, 1.0F, 100.0F);
         //pmvMatrix.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);

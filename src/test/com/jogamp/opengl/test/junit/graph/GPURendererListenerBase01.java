@@ -50,6 +50,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
@@ -159,7 +160,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     @Override
     public void reshape(final GLAutoDrawable drawable, final int xstart, final int ystart, final int width, final int height) {
         final PMVMatrix pmv = renderer.getMatrix();
-        renderer.reshapePerspective(45.0f, width, height, zNear, zFar);
+        renderer.reshapePerspective(FloatUtil.QUARTER_PI, width, height, zNear, zFar);
         pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmv.glLoadIdentity();
         System.err.printf("Reshape: zNear %f,  zFar %f%n", zNear, zFar);

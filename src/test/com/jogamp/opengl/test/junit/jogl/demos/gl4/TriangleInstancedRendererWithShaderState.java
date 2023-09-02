@@ -17,6 +17,7 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.TraceGL4;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.GLArrayDataClient;
@@ -169,7 +170,7 @@ public class TriangleInstancedRendererWithShaderState implements GLEventListener
 
 		projectionMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
 		projectionMatrix.glLoadIdentity();
-		projectionMatrix.gluPerspective(45, aspect, 0.001f, 20f);
+		projectionMatrix.gluPerspective(FloatUtil.QUARTER_PI, aspect, 0.001f, 20f);
 		projectionMatrix.gluLookAt(new Vec3f(0, 0, -10), new Vec3f(0, 0, 0), new Vec3f(0, 1, 0));
 	}
 

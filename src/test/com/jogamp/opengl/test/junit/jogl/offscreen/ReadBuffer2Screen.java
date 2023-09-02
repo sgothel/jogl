@@ -36,7 +36,7 @@ import com.jogamp.opengl.fixedfunc.*;
 import com.jogamp.opengl.util.*;
 
 import com.jogamp.opengl.fixedfunc.GLPointerFunc;
-
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.GLArrayDataClient;
 import com.jogamp.opengl.util.GLArrayDataServer;
@@ -114,7 +114,7 @@ public class ReadBuffer2Screen extends ReadBufferBase {
         // Set location in front of camera
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0f, (float)width / (float)height, 1.0f, 100.0f);
+        pmvMatrix.gluPerspective(FloatUtil.QUARTER_PI, (float)width / (float)height, 1.0f, 100.0f);
         if(null!=glM) {
             glM.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             glM.glLoadMatrixf(pmvMatrix.getSyncPMat().getSyncFloats());

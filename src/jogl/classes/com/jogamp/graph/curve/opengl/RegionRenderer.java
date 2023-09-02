@@ -362,17 +362,29 @@ public final class RegionRenderer {
         viewport.set(x, y, width, height);
     }
 
-    public final void reshapePerspective(final float angle, final int width, final int height, final float near, final float far) {
+    /**
+     * Perspective projection, method also calls {@link #reshapeNotify(int, int, int, int)}.
+     * @param angle_rad perspective angle in radians
+     * @param width viewport width
+     * @param height viewport height
+     * @param near projection z-near
+     * @param far projection z-far
+     */
+    public final void reshapePerspective(final float angle_rad, final int width, final int height, final float near, final float far) {
         reshapeNotify(0, 0, width, height);
         final float ratio = (float)width/(float)height;
         final PMVMatrix p = getMatrix();
         p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         p.glLoadIdentity();
-        p.gluPerspective(angle, ratio, near, far);
+        p.gluPerspective(angle_rad, ratio, near, far);
     }
 
     /**
-     * Perspective orthogonal, method calls {@link #reshapeNotify(int, int, int, int)}.
+     * Orthogonal projection, method also calls {@link #reshapeNotify(int, int, int, int)}.
+     * @param width viewport width
+     * @param height viewport height
+     * @param near projection z-near
+     * @param far projection z-far
      */
     public final void reshapeOrtho(final int width, final int height, final float near, final float far) {
         reshapeNotify(0, 0, width, height);

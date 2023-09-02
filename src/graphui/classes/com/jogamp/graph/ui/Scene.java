@@ -99,8 +99,8 @@ import jogamp.graph.ui.TreeTool;
 public final class Scene implements Container, GLEventListener {
     /** Default scene distance on z-axis to projection is -1/5f. */
     public static final float DEFAULT_SCENE_DIST = -1/5f;
-    /** Default projection angle in degrees value is 45.0. */
-    public static final float DEFAULT_ANGLE = 45.0f;
+    /** Default projection angle in radians is PI/4, i.e. 45.0 degrees. */
+    public static final float DEFAULT_ANGLE = FloatUtil.QUARTER_PI;
     /** Default projection z-near value is 0.1. */
     public static final float DEFAULT_ZNEAR = 0.1f;
     /** Default projection z-far value is 7000. */

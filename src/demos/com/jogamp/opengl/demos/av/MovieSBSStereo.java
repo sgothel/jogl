@@ -61,6 +61,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.graph.TextRendererGLELBase;
 import com.jogamp.opengl.demos.util.MiscUtils;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.opengl.math.Quaternion;
 import com.jogamp.opengl.math.Recti;
@@ -630,7 +631,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
     private void reshapePMV(final int width, final int height) {
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0f, (float)width / (float)height, zNear, zFar);
+        pmvMatrix.gluPerspective(FloatUtil.QUARTER_PI, (float)width / (float)height, zNear, zFar);
 
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();

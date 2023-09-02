@@ -46,6 +46,7 @@ import com.jogamp.opengl.GLDrawable;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.math.FloatUtil;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -152,7 +153,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         // reshape
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, (float) drawable.getSurfaceWidth() / (float) drawable.getSurfaceHeight(), 1.0F, 100.0F);
+        pmvMatrix.gluPerspective(FloatUtil.QUARTER_PI, (float) drawable.getSurfaceWidth() / (float) drawable.getSurfaceHeight(), 1.0F, 100.0F);
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
@@ -272,7 +273,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         // reshape
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, (float) drawable.getSurfaceWidth() / (float) drawable.getSurfaceHeight(), 1.0F, 100.0F);
+        pmvMatrix.gluPerspective(FloatUtil.QUARTER_PI, (float) drawable.getSurfaceWidth() / (float) drawable.getSurfaceHeight(), 1.0F, 100.0F);
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
@@ -355,7 +356,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         // reshape
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, (float) drawable.getSurfaceWidth() / (float) drawable.getSurfaceHeight(), 1.0F, 100.0F);
+        pmvMatrix.gluPerspective(FloatUtil.QUARTER_PI, (float) drawable.getSurfaceWidth() / (float) drawable.getSurfaceHeight(), 1.0F, 100.0F);
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
@@ -452,7 +453,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         // reshape
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, (float) drawable.getSurfaceWidth() / (float) drawable.getSurfaceHeight(), 1.0F, 100.0F);
+        pmvMatrix.gluPerspective(FloatUtil.QUARTER_PI, (float) drawable.getSurfaceWidth() / (float) drawable.getSurfaceHeight(), 1.0F, 100.0F);
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);

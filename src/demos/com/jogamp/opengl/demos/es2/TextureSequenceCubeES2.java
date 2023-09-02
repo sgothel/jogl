@@ -38,7 +38,7 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.common.os.Platform;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseAdapter;
@@ -335,7 +335,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmvMatrix.glLoadIdentity();
             if(!innerCube) {
-                pmvMatrix.gluPerspective(45.0f, (float)width / (float)height, 1f, 10.0f);
+                pmvMatrix.gluPerspective(FloatUtil.QUARTER_PI, (float)width / (float)height, 1f, 10.0f);
                 nearPlaneNormalized = 1f/(100f-1f);
             } else {
                 pmvMatrix.glOrthof(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 10.0f);

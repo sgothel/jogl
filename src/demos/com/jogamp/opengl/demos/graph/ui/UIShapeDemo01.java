@@ -221,7 +221,7 @@ public class UIShapeDemo01 implements GLEventListener {
         // final GL2ES2 gl = drawable.getGL().getGL2ES2();
         // gl.glViewport(xstart, ystart, width, height);
 
-        rRenderer.reshapePerspective(45.0f, width, height, zNear, zFar);
+        rRenderer.reshapePerspective(FloatUtil.QUARTER_PI, width, height, zNear, zFar);
         // rRenderer.reshapeOrtho(width, height, zNear, zFar);
 
         final PMVMatrix pmv = rRenderer.getMatrix();
