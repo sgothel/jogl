@@ -33,13 +33,14 @@ import com.jogamp.opengl.GLProfile;
 public class CommandlineOptions {
     public int surface_width, surface_height;
     public String glProfileName = GLProfile.GL2ES2;
-    public boolean wait_to_start = false;
-    public boolean keepRunning = false;
-    public boolean stayOpen = false;
     public int renderModes = Region.NORM_RENDERING_BIT;
     public int sceneMSAASamples = 0;
     public float debugBoxThickness = 0f;
     public boolean exclusiveContext = false;
+    public boolean wait_to_start = false;
+    public boolean keepRunning = false;
+    public boolean stayOpen = false;
+    public float total_duration = 0f; // [s]
 
     static {
         GLProfile.initSingleton(); // ensure JOGL is completely initialized
@@ -89,15 +90,6 @@ public class CommandlineOptions {
             glProfileName = GLProfile.GL4bc;
         } else if(args[idx[0]].equals("-gldef")) {
             glProfileName = null;
-        } else if(args[idx[0]].equals("-exclusiveContext")) {
-            exclusiveContext = true;
-        } else if(args[idx[0]].equals("-wait")) {
-            wait_to_start = true;
-        } else if (args[idx[0]].equals("-keep")) {
-            keepRunning = true;
-            stayOpen = true;
-        } else if (args[idx[0]].equals("-stay")) {
-            stayOpen = true;
         } else if(args[idx[0]].equals("-gnone")) {
             sceneMSAASamples = 0;
             renderModes = Region.NORM_RENDERING_BIT;
@@ -120,6 +112,18 @@ public class CommandlineOptions {
         } else if (args[idx[0]].equals("-dbgbox")) {
             ++idx[0];
             debugBoxThickness = MiscUtils.atof(args[idx[0]], debugBoxThickness);
+        } else if(args[idx[0]].equals("-exclusiveContext")) {
+            exclusiveContext = true;
+        } else if(args[idx[0]].equals("-wait")) {
+            wait_to_start = true;
+        } else if (args[idx[0]].equals("-keep")) {
+            keepRunning = true;
+            stayOpen = true;
+        } else if (args[idx[0]].equals("-stay")) {
+            stayOpen = true;
+        } else if (args[idx[0]].equals("-duration")) {
+            ++idx[0];
+            total_duration = MiscUtils.atof(args[idx[0]], total_duration);
         } else {
             res = false;
         }
@@ -128,8 +132,9 @@ public class CommandlineOptions {
     @Override
     public String toString() {
         return "Options{surface[width "+surface_width+" x "+surface_height+"], glp "+glProfileName+
-               ", exclusiveContext "+exclusiveContext+", wait "+wait_to_start+", keep "+keepRunning+", stay "+stayOpen+
                ", renderModes "+Region.getRenderModeString(renderModes)+
-               ", smsaa "+sceneMSAASamples+", dbgbox "+debugBoxThickness+"}";
+               ", smsaa "+sceneMSAASamples+", dbgbox "+debugBoxThickness+
+               ", exclusiveContext "+exclusiveContext+", wait "+wait_to_start+", keep "+keepRunning+", stay "+stayOpen+", dur "+total_duration+"s"+
+               "}";
     }
 }
