@@ -44,6 +44,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
+import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
@@ -60,32 +61,30 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  */
 public class UISceneDemo02 {
+    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
     static float req_total_dur_s = 6f; // [s]
 
     public static void main(final String[] args) throws IOException {
-        final int surface_width = 1280, surface_height = 720;
-        final int renderModes = Region.VBAA_RENDERING_BIT;
-        final GLProfile reqGLP = GLProfile.getGL2ES2();
         boolean wait_to_start = false;
         int autoSpeed = 0;
 
         boolean keepRunning = false;
         if( 0 != args.length ) {
-            for(int i=0; i<args.length; i++) {
-                if(args[i].equals("-keep")) {
-                    keepRunning = true;
-                } else if(args[i].equals("-dur")) {
-                    ++i;
-                    req_total_dur_s = MiscUtils.atoi(args[i], (int)req_total_dur_s*1000) / 1000f;
-                } else if(args[i].equals("-aspeed")) {
+            final int[] idx = { 0 };
+            for (idx[0] = 0; idx[0] < args.length; ++idx[0]) {
+                if( options.parse(args, idx) ) {
+                    continue;
+                } else if(args[idx[0]].equals("-aspeed")) {
                     autoSpeed = 1;
                     req_total_dur_s = 1f;
                     keepRunning = true;
-                } else if(args[i].equals("-wait")) {
+                } else if(args[idx[0]].equals("-wait")) {
                     wait_to_start = true;
                 }
             }
         }
+        System.err.println(options);
+        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
 
         //
         // Resolution independent, no screen size
@@ -95,9 +94,9 @@ public class UISceneDemo02 {
         System.err.println("Font: "+font.getFullFamilyName());
         final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
 
-        final Label destText = new Label(renderModes, font, "");
+        final Label destText = new Label(options.renderModes, font, "");
         destText.setColor(0.1f, 0.1f, 0.1f, 1);
-        final Label movingGlyph = new Label(renderModes, font, "");
+        final Label movingGlyph = new Label(options.renderModes, font, "");
         movingGlyph.setColor(0.1f, 0.1f, 0.1f, 1);
 
         final Scene scene = new Scene();
@@ -113,7 +112,7 @@ public class UISceneDemo02 {
         System.out.println("Requested: " + caps);
 
         final GLWindow window = GLWindow.create(caps);
-        window.setSize(surface_width, surface_height);
+        window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UISceneDemo02.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
         window.addGLEventListener(scene);
@@ -154,7 +153,7 @@ public class UISceneDemo02 {
             final float statusLabelScale = sceneBox.getWidth() / fbox.getWidth();
             System.err.println("StatusLabel Scale: " + statusLabelScale + " = " + sceneBox.getWidth() + " / " + fbox.getWidth() + ", " + fbox);
 
-            statusLabel = new Label(renderModes, fontStatus, "Nothing there yet");
+            statusLabel = new Label(options.renderModes, fontStatus, "Nothing there yet");
             statusLabel.setScale(statusLabelScale, statusLabelScale, 1f);
             statusLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
             statusLabel.moveTo(sceneBox.getMinX(), sceneBox.getMinY() + statusLabelScale * (fontStatus.getMetrics().getLineGap() - fontStatus.getMetrics().getDescent()), 0f);
@@ -258,7 +257,7 @@ public class UISceneDemo02 {
                         final float dx = -1f * velocity_obj * dt_s; // [shapeUnit]
                         movingGlyph.move(dx, 0f, 0f);
                         final String text = String.format("%s, anim-duration %.1f s",
-                                scene.getStatusText(drawable, renderModes, 0, dpiV), req_total_dur_s);
+                                scene.getStatusText(drawable, options.renderModes, 0, dpiV), req_total_dur_s);
                         statusLabel.setText(text);
                         return true;
                     });

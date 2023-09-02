@@ -68,12 +68,7 @@ public class UISceneDemo01 {
     static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
 
     public static void main(final String[] args) throws IOException {
-        if( 0 != args.length ) {
-            final int[] idx = { 0 };
-            for(idx[0]=0; idx[0]<args.length; ++idx[0]) {
-                options.parse(args, idx);
-            }
-        }
+        options.parse(args);
         System.err.println(options);
         final GLProfile reqGLP = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+reqGLP);
