@@ -72,7 +72,7 @@ public class TestFloatUtil01NOUI extends JunitTracer {
     }
     private void dumpTestNE(final int tstNum, final int exp, final float a, final float b) {
         final float delta = a-b;
-        final boolean equal =  FloatUtil.isEqual(a, b);
+        final boolean equal =  FloatUtil.isEqualRaw(a, b);
         final int comp = FloatUtil.compare(a, b);
         final String msg = ( exp != comp ) ? "**** mismatch ****" : " OK";
         System.err.println("Print.NE."+tstNum+": a: "+a+", b: "+b+" -> d "+delta+", exp "+exp+", equal "+equal+", comp "+comp+" - "+msg);
@@ -136,7 +136,7 @@ public class TestFloatUtil01NOUI extends JunitTracer {
         dumpTestNE(i++, 0, 0f, 0f+Float.MIN_VALUE);
     }
     private void testEqualsNoEpsilon(final int tstNum, final boolean exp, final float a, final float b) {
-        final boolean equal =  FloatUtil.isEqual(a, b);
+        final boolean equal =  FloatUtil.isEqualRaw(a, b);
         final int comp = FloatUtil.compare(a, b);
         final float delta = a-b;
         System.err.println("Equal.NE."+tstNum+": a: "+a+", b: "+b+" -> d "+delta+", exp "+exp+", equal "+equal+", comp "+comp);
@@ -223,7 +223,7 @@ public class TestFloatUtil01NOUI extends JunitTracer {
         dumpTestNE(i++, 0, 0f, 0f+Float.MIN_VALUE);
     }
     private void testCompareNoEpsilon(final int tstNum, final int exp, final float a, final float b) {
-        final boolean equal =  FloatUtil.isEqual(a, b);
+        final boolean equal =  FloatUtil.isEqualRaw(a, b);
         final int comp = FloatUtil.compare(a, b);
         final float delta = a-b;
         System.err.println("Comp.NE."+tstNum+": a: "+a+", b: "+b+" -> d "+delta+", equal "+equal+", comp: exp "+exp+" has "+comp);
@@ -238,42 +238,42 @@ public class TestFloatUtil01NOUI extends JunitTracer {
     public void test05bCompareWithMachEpsilon() {
         test05CompareWithEpsilon(50, MACH_EPSILON);
     }
-    private void test05CompareWithEpsilon(int i, final float EPSILON) {
+    private void test05CompareWithEpsilon(int i, final float epsilon) {
         System.err.println();
-        testCompareWithEpsilon(i++, 0, 0f, 0f, EPSILON);
-        testCompareWithEpsilon(i++, 0, 1f, 1f-EPSILON/2f, EPSILON);
-        testCompareWithEpsilon(i++, 0, 1f, 1f+EPSILON/2f, EPSILON);
-        testCompareWithEpsilon(i++, 0, 1f, 1f-Float.MIN_VALUE, EPSILON);
-        testCompareWithEpsilon(i++, 0, 1f, 1f+Float.MIN_VALUE, EPSILON);
-        testCompareWithEpsilon(i++, 0, Float.MAX_VALUE, Float.MAX_VALUE, EPSILON);
-        testCompareWithEpsilon(i++, 0, Float.MIN_VALUE, Float.MIN_VALUE, EPSILON);
-        testCompareWithEpsilon(i++, 0, Float.MIN_NORMAL, Float.MIN_NORMAL, EPSILON);
-        testCompareWithEpsilon(i++, 0, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, EPSILON);
-        testCompareWithEpsilon(i++, 0, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, EPSILON);
-        testCompareWithEpsilon(i++, 0, Float.NaN, Float.NaN, EPSILON);
+        testCompareWithEpsilon(i++, 0, 0f, 0f, epsilon);
+        testCompareWithEpsilon(i++, 0, 1f, 1f-epsilon/2f, epsilon);
+        testCompareWithEpsilon(i++, 0, 1f, 1f+epsilon/2f, epsilon);
+        testCompareWithEpsilon(i++, 0, 1f, 1f-Float.MIN_VALUE, epsilon);
+        testCompareWithEpsilon(i++, 0, 1f, 1f+Float.MIN_VALUE, epsilon);
+        testCompareWithEpsilon(i++, 0, Float.MAX_VALUE, Float.MAX_VALUE, epsilon);
+        testCompareWithEpsilon(i++, 0, Float.MIN_VALUE, Float.MIN_VALUE, epsilon);
+        testCompareWithEpsilon(i++, 0, Float.MIN_NORMAL, Float.MIN_NORMAL, epsilon);
+        testCompareWithEpsilon(i++, 0, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, epsilon);
+        testCompareWithEpsilon(i++, 0, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, epsilon);
+        testCompareWithEpsilon(i++, 0, Float.NaN, Float.NaN, epsilon);
 
-        testCompareWithEpsilon(i++,  1,  1f,  0f, EPSILON);
-        testCompareWithEpsilon(i++, -1,  0f,  1f, EPSILON);
-        testCompareWithEpsilon(i++,  1,  0f, -1f, EPSILON);
-        testCompareWithEpsilon(i++, -1, -1f,  0f, EPSILON);
+        testCompareWithEpsilon(i++,  1,  1f,  0f, epsilon);
+        testCompareWithEpsilon(i++, -1,  0f,  1f, epsilon);
+        testCompareWithEpsilon(i++,  1,  0f, -1f, epsilon);
+        testCompareWithEpsilon(i++, -1, -1f,  0f, epsilon);
 
-        testCompareWithEpsilon(i++,  1, Float.MAX_VALUE, Float.MIN_VALUE, EPSILON);
-        testCompareWithEpsilon(i++, -1, Float.MIN_VALUE, Float.MAX_VALUE, EPSILON);
-        testCompareWithEpsilon(i++,  1, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, EPSILON);
-        testCompareWithEpsilon(i++, -1, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, EPSILON);
+        testCompareWithEpsilon(i++,  1, Float.MAX_VALUE, Float.MIN_VALUE, epsilon);
+        testCompareWithEpsilon(i++, -1, Float.MIN_VALUE, Float.MAX_VALUE, epsilon);
+        testCompareWithEpsilon(i++,  1, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, epsilon);
+        testCompareWithEpsilon(i++, -1, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, epsilon);
 
-        testCompareWithEpsilon(i++, -1, 0f,Float.NaN, EPSILON);
-        testCompareWithEpsilon(i++,  1, Float.NaN, 0f, EPSILON);
+        testCompareWithEpsilon(i++, -1, 0f,Float.NaN, epsilon);
+        testCompareWithEpsilon(i++,  1, Float.NaN, 0f, epsilon);
 
-        testCompareWithEpsilon(i++,  0, -0f, 0f, EPSILON);
-        testCompareWithEpsilon(i++,  0, 0f, -0f, EPSILON);
+        testCompareWithEpsilon(i++,  0, -0f, 0f, epsilon);
+        testCompareWithEpsilon(i++,  0, 0f, -0f, epsilon);
     }
-    private void testCompareWithEpsilon(final int tstNum, final int exp, final float a, final float b, final float EPSILON) {
-        final boolean equal =  FloatUtil.isEqual(a, b, EPSILON);
-        final int comp = FloatUtil.compare(a, b, EPSILON);
+    private void testCompareWithEpsilon(final int tstNum, final int exp, final float a, final float b, final float epsilon) {
+        final boolean equal =  FloatUtil.isEqual(a, b, epsilon);
+        final int comp = FloatUtil.compare(a, b, epsilon);
         final float delta = a-b;
         System.err.println("Comp.WE."+tstNum+": a: "+a+", b: "+b+" -> d "+delta+", equal "+equal+", comp: exp "+exp+" has "+comp);
-        Assert.assertEquals("Compare failed a: "+a+", b: "+b+" within "+EPSILON, exp, comp);
+        Assert.assertEquals("Compare failed a: "+a+", b: "+b+" within "+epsilon, exp, comp);
     }
 
 

@@ -1422,7 +1422,7 @@ public final class FloatUtil {
    * </p>
    * @see #isEqual(float, float, float)
    */
-  public static boolean isEqual(final float a, final float b) {
+  public static boolean isEqualRaw(final float a, final float b) {
       // Values are equal (Inf, Nan .. )
       return Float.floatToIntBits(a) == Float.floatToIntBits(b);
   }
@@ -1446,6 +1446,38 @@ public final class FloatUtil {
           // Values are equal (Inf, Nan .. )
           return Float.floatToIntBits(a) == Float.floatToIntBits(b);
       }
+  }
+
+  /**
+   * Return true if both values are equal, i.e. their absolute delta < {@link #EPSILON}.
+   * <p>
+   * Implementation considers following corner cases:
+   * <ul>
+   *    <li>NaN == NaN</li>
+   *    <li>+Inf == +Inf</li>
+   *    <li>-Inf == -Inf</li>
+   * </ul>
+   * </p>
+   * @see #EPSILON
+   */
+  public static boolean isEqual(final float a, final float b) {
+      if ( Math.abs(a - b) < EPSILON ) {
+          return true;
+      } else {
+          // Values are equal (Inf, Nan .. )
+          return Float.floatToIntBits(a) == Float.floatToIntBits(b);
+      }
+  }
+
+  /**
+   * Return true if both values are equal, i.e. their absolute delta < {@link #EPSILON}.
+   * <p>
+   * Implementation does not consider corner cases like {@link #isEqual(float, float, float)}.
+   * </p>
+   * @see #EPSILON
+   */
+  public static boolean isEqual2(final float a, final float b) {
+      return Math.abs(a - b) < EPSILON;
   }
 
   /**

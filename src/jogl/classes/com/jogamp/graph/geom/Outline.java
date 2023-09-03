@@ -318,7 +318,7 @@ public class Outline implements Comparable<Outline> {
     public final int compareTo(final Outline other) {
         final float thisSize = getBounds().getSize();
         final float otherSize = other.getBounds().getSize();
-        if( FloatUtil.isEqual(thisSize, otherSize, FloatUtil.EPSILON) ) {
+        if( FloatUtil.isEqual2(thisSize, otherSize) ) {
             return 0;
         } else if(thisSize < otherSize){
             return -1;

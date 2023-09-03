@@ -977,13 +977,13 @@ public class Matrix4fb {
     public final Matrix4fb setToRotation(final Quaternion q) {
         // pre-multiply scaled-reciprocal-magnitude to reduce multiplications
         final float norm = q.magnitudeSquared();
-        if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
+        if ( FloatUtil.isZero(norm) ) {
             // identity matrix -> srecip = 0f
             loadIdentity();
             return this;
         }
         final float srecip;
-        if ( FloatUtil.isEqual(1f, norm, FloatUtil.EPSILON) ) {
+        if ( FloatUtil.isEqual(1f, norm) ) {
             srecip = 2f;
         } else {
             srecip = 2.0f / norm;

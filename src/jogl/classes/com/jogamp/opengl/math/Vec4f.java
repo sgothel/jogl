@@ -356,7 +356,7 @@ public final class Vec4f {
     }
 
     /**
-     * Equals check using {@link FloatUtil#EPSILON} value and {@link FloatUtil#isEqual(float, float, float)}.
+     * Equals check using {@link FloatUtil#EPSILON} in {@link FloatUtil#isEqual(float, float)}.
      * <p>
      * Implementation considers following corner cases:
      * <ul>
@@ -368,13 +368,20 @@ public final class Vec4f {
      * @return true if all components differ less than {@link FloatUtil#EPSILON}, otherwise false.
      */
     public boolean isEqual(final Vec4f o) {
-        return isEqual(o, FloatUtil.EPSILON);
+        if( this == o ) {
+            return true;
+        } else {
+            return FloatUtil.isEqual(x, o.x) &&
+                   FloatUtil.isEqual(y, o.y) &&
+                   FloatUtil.isEqual(z, o.z) &&
+                   FloatUtil.isEqual(w, o.w);
+        }
     }
 
     @Override
     public boolean equals(final Object o) {
         if( o instanceof Vec4f ) {
-            return isEqual((Vec4f)o, FloatUtil.EPSILON);
+            return isEqual((Vec4f)o);
         } else {
             return false;
         }

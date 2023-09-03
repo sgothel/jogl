@@ -367,7 +367,7 @@ public final class Vec3f {
     }
 
     /**
-     * Equals check using {@link FloatUtil#EPSILON} value and {@link FloatUtil#isEqual(float, float, float)}.
+     * Equals check using {@link FloatUtil#EPSILON} in {@link FloatUtil#isEqual(float, float)}.
      * <p>
      * Implementation considers following corner cases:
      * <ul>
@@ -379,13 +379,19 @@ public final class Vec3f {
      * @return true if all components differ less than {@link FloatUtil#EPSILON}, otherwise false.
      */
     public boolean isEqual(final Vec3f o) {
-        return isEqual(o, FloatUtil.EPSILON);
+        if( this == o ) {
+            return true;
+        } else {
+            return FloatUtil.isEqual(x, o.x) &&
+                   FloatUtil.isEqual(y, o.y) &&
+                   FloatUtil.isEqual(z, o.z);
+        }
     }
 
     @Override
     public boolean equals(final Object o) {
         if( o instanceof Vec3f ) {
-            return isEqual((Vec3f)o, FloatUtil.EPSILON);
+            return isEqual((Vec3f)o);
         } else {
             return false;
         }

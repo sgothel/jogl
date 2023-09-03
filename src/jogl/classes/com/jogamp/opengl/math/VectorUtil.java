@@ -52,6 +52,18 @@ public final class VectorUtil {
     }
 
     /**
+     * Return true if all three vector components are zero, i.e. it's their absolute value < {@link FloatUtil#EPSILON}.
+     * <p>
+     * Implementation uses {@link FloatUtil#isZero(float)}, see API doc for details.
+     * </p>
+     */
+    public static boolean isZero(final float x, final float y, final float z) {
+        return FloatUtil.isZero(x) &&
+               FloatUtil.isZero(y) &&
+               FloatUtil.isZero(z) ;
+    }
+
+    /**
      * Return the squared distance between the given two points described vector v1 and v2.
      * <p>
      * When comparing the relative distance between two points it is usually sufficient to compare the squared

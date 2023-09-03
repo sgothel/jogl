@@ -90,10 +90,10 @@ public class Quaternion {
      */
     public final float magnitude() {
         final float magnitudeSQ = magnitudeSquared();
-        if ( FloatUtil.isZero(magnitudeSQ, FloatUtil.EPSILON) ) {
+        if ( FloatUtil.isZero(magnitudeSQ) ) {
             return 0f;
         }
-        if ( FloatUtil.isEqual(1f, magnitudeSQ, FloatUtil.EPSILON) ) {
+        if ( FloatUtil.isEqual(1f, magnitudeSQ) ) {
             return 1f;
         }
         return FloatUtil.sqrt(magnitudeSQ);
@@ -149,13 +149,13 @@ public class Quaternion {
      * Returns <code>true</code> if this quaternion has identity.
      * <p>
      * Implementation uses {@link FloatUtil#EPSILON epsilon} to compare
-     * {@link #w() W} {@link FloatUtil#isEqual(float, float, float) against 1f} and
+     * {@link #w() W} {@link FloatUtil#isEqual(float, float) against 1f} and
      * {@link #x() X}, {@link #y() Y} and {@link #z() Z}
-     * {@link FloatUtil#isZero(float, float) against zero}.
+     * {@link FloatUtil#isZero(float) against zero}.
      * </p>
      */
     public final boolean isIdentity() {
-        return FloatUtil.isEqual(1f, w, FloatUtil.EPSILON) && VectorUtil.isZero(x, y, z, FloatUtil.EPSILON);
+        return FloatUtil.isEqual(1f, w) && VectorUtil.isZero(x, y, z);
         // return w == 1f && x == 0f && y == 0f && z == 0f;
     }
 
@@ -217,7 +217,7 @@ public class Quaternion {
      */
     public final Quaternion invert() {
         final float magnitudeSQ = magnitudeSquared();
-        if ( FloatUtil.isEqual(1.0f, magnitudeSQ, FloatUtil.EPSILON) ) {
+        if ( FloatUtil.isEqual(1.0f, magnitudeSQ) ) {
             conjugate();
         } else {
             final float invmsq = 1f/magnitudeSQ;
@@ -1025,12 +1025,12 @@ public class Quaternion {
     public final float[] toMatrix(final float[] matrix) {
         // pre-multiply scaled-reciprocal-magnitude to reduce multiplications
         final float norm = magnitudeSquared();
-        if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
+        if ( FloatUtil.isZero(norm) ) {
             // identity matrix -> srecip = 0f
             return FloatUtil.makeIdentity(matrix);
         }
         final float srecip;
-        if ( FloatUtil.isEqual(1f, norm, FloatUtil.EPSILON) ) {
+        if ( FloatUtil.isEqual(1f, norm) ) {
             srecip = 2f;
         } else {
             srecip = 2.0f / norm;
