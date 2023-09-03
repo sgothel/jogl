@@ -149,8 +149,10 @@ public class Button extends BaseButton {
         }
 
         final AABBox lbox2 = label.addShapeToRegion(lScale, region, ltxy, tempT1, tempT2, tempT3);
+        box.resize(lbox2);
         if( DEBUG_DRAW ) {
             System.err.printf("Button.X: lbox2 %s%n", lbox2);
+            System.err.printf("Button.X: shape %s%n", box);
         }
     }
 
