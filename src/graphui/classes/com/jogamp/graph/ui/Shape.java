@@ -448,6 +448,13 @@ public abstract class Shape {
         return box.getHeight() * getScale().y();
     }
 
+    public final float getScaledDepth() {
+        return box.getDepth() * getScale().z();
+    }
+    private final float getScaledMinZ() {
+        return box.getMinZ() * getScale().z();
+    }
+
     /**
      * Returns the unscaled bounding {@link AABBox} for this shape.
      *
@@ -1514,9 +1521,9 @@ public abstract class Shape {
     public static Comparator<Shape> ZAscendingComparator = new Comparator<Shape>() {
         @Override
         public int compare(final Shape s1, final Shape s2) {
-            final float s1Z = s1.getBounds().getMinZ()+s1.getPosition().z();
-            final float s2Z = s2.getBounds().getMinZ()+s2.getPosition().z();
-            if( FloatUtil.isEqual(s1Z, s2Z, FloatUtil.EPSILON) ) {
+            final float s1Z = s1.getScaledMinZ()+s1.getPosition().z();
+            final float s2Z = s2.getScaledMinZ()+s2.getPosition().z();
+            if( FloatUtil.isEqual2(s1Z, s2Z) ) {
                 return 0;
             } else if( s1Z < s2Z ){
                 return -1;
