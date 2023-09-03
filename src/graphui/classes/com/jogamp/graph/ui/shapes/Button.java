@@ -36,6 +36,7 @@ import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.graph.ui.Scene;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Vec2f;
 import com.jogamp.opengl.math.Vec3f;
@@ -60,7 +61,7 @@ public class Button extends BaseButton {
     /** {@value} */
     public static final float DEFAULT_SPACING_Y = 0.42f;
 
-    private static final float DEFAULT_LABEL_ZOFFSET = 0.0001f; // 0.05f;
+    private static final float DEFAULT_LABEL_ZOFFSET = 0.00016f; // 16 zBits, -1 zDist, 0.1 zNear, i.e. FloatUtil.getZBufferEpsilon(16, -1f, 0.1f)
     private float labelZOffset;
 
     private final Label0 label;
@@ -72,10 +73,26 @@ public class Button extends BaseButton {
     private final AffineTransform tempT3 = new AffineTransform();
 
     public Button(final int renderModes, final Font labelFont,
-                  final String labelText, final float width,
-                  final float height) {
+                  final String labelText, final float width, final float height) {
+        this(renderModes, labelFont, labelText, width, height, DEFAULT_LABEL_ZOFFSET);
+    }
+
+    public Button(final int renderModes, final Font labelFont,
+                  final String labelText, final float width, final float height,
+                  final int zBits, final Scene.PMVMatrixSetup setup) {
+        this(renderModes, labelFont, labelText, width, height, Scene.getZEpsilon(zBits, setup));
+    }
+
+    public Button(final int renderModes, final Font labelFont,
+                  final String labelText, final float width, final float height,
+                  final int zBits, final Scene scene) {
+        this(renderModes, labelFont, labelText, width, height, scene.getZEpsilon(zBits));
+    }
+
+    public Button(final int renderModes, final Font labelFont, final String labelText,
+                  final float width, final float height, final float zOffset) {
         super(renderModes | Region.COLORCHANNEL_RENDERING_BIT, width, height);
-        this.labelZOffset = DEFAULT_LABEL_ZOFFSET;
+        this.labelZOffset = zOffset;
         this.label = new Label0(labelFont, labelText, new Vec4f( 1.66f, 1.66f, 1.66f, 1.0f )); // 0.60 * 1.66 ~= 1.0
     }
 
@@ -143,6 +160,15 @@ public class Button extends BaseButton {
         labelZOffset = v;
         markShapeDirty();
         return this;
+    }
+    public Button setLabelZOffset(final int zBits, final float zDist, final float zNear) {
+        return setLabelZOffset( FloatUtil.getZBufferEpsilon(zBits, zDist, zNear) );
+    }
+    public Button setLabelZOffset(final int zBits, final Scene.PMVMatrixSetup setup) {
+        return setLabelZOffset( Scene.getZEpsilon(zBits, setup) );
+    }
+    public Button setLabelZOffset(final int zBits, final Scene scene) {
+        return setLabelZOffset( scene.getZEpsilon(zBits) );
     }
 
     public final float getSpacingX() { return spacingX; }

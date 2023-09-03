@@ -102,10 +102,22 @@ public final class Scene implements Container, GLEventListener {
     public static final float DEFAULT_SCENE_DIST = -1/5f;
     /** Default projection angle in radians is PI/4, i.e. 45.0 degrees. */
     public static final float DEFAULT_ANGLE = FloatUtil.QUARTER_PI;
-    /** Default projection z-near value is 0.1. */
+    /** Default projection z-near value is {@value}. */
     public static final float DEFAULT_ZNEAR = 0.1f;
-    /** Default projection z-far value is 7000. */
+    /** Default projection z-far value is {@value}. */
     public static final float DEFAULT_ZFAR = 7000.0f;
+    /** Default Z precision on 16-bit depth buffer using {@link #DEFAULT_SCENE_DIST} z-position and {@link #DEFAULT_ZNEAR}. Value is {@code 0.0000061033...}*/
+    public static final float DEFAULT_Z16_EPSILON = FloatUtil.getZBufferEpsilon(16 /* zBits */, DEFAULT_SCENE_DIST, DEFAULT_ZNEAR);
+
+    /**
+     * Return Z precision on using {@link PMVMatrixSetup#getSceneDist()} z-position and {@link PMVMatrixSetup#getZNear()}.
+     * @param zBits depth buffer bit-depth, minimum 16-bit
+     * @param setup {@link PMVMatrixSetup} for scene-distance as z-position and zNear
+     * @return the Z precision
+     */
+    public static float getZEpsilon(final int zBits, final PMVMatrixSetup setup) {
+        return FloatUtil.getZBufferEpsilon(zBits, setup.getSceneDist(), setup.getZNear());
+    }
 
     /** Minimum sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
     public static final int MIN_SAMPLE_COUNT = 1;
@@ -811,6 +823,15 @@ public final class Scene implements Container, GLEventListener {
      * </p>
      */
     public AABBox getBounds() { return planeBox; }
+
+    /**
+     * Return Z precision on using current {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#getSceneDist()} z-position and {@link PMVMatrixSetup#getZNear()}.
+     * @param zBits depth buffer bit-depth, minimum 16-bit
+     * @return the Z precision
+     */
+    public float getZEpsilon(final int zBits) {
+        return FloatUtil.getZBufferEpsilon(zBits, pmvMatrixSetup.getSceneDist(), pmvMatrixSetup.getZNear());
+    }
 
     /**
      *
