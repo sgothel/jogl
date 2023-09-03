@@ -35,6 +35,8 @@ public class CommandlineOptions {
     public String glProfileName = GLProfile.GL2ES2;
     public int renderModes = Region.NORM_RENDERING_BIT;
     public int sceneMSAASamples = 0;
+    /** Sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT} */
+    public int graphAASamples = 0;
     public float debugBoxThickness = 0f;
     public boolean exclusiveContext = false;
     public boolean wait_to_start = false;
@@ -46,10 +48,19 @@ public class CommandlineOptions {
         GLProfile.initSingleton(); // ensure JOGL is completely initialized
     }
 
+    /**
+     * Commandline options
+     * @param width viewport width in pixels
+     * @param height viewport height in pixels
+     * @param renderModes {@link Region#getRenderModes()}, if {@link Region#isGraphAA(int)} {@link #graphAASamples} is set to {@code 4}.
+     */
     public CommandlineOptions(final int width, final int height, final int renderModes) {
         this.surface_width = width;
         this.surface_height = height;
         this.renderModes = renderModes;
+        if( Region.isGraphAA(renderModes) ) {
+            this.graphAASamples = 4;
+        }
     }
     public void parse(final String[] args) {
         final int[] idx = { 0 };
@@ -92,6 +103,7 @@ public class CommandlineOptions {
             glProfileName = null;
         } else if(args[idx[0]].equals("-gnone")) {
             sceneMSAASamples = 0;
+            graphAASamples = 0;
             renderModes = Region.NORM_RENDERING_BIT;
         } else if(args[idx[0]].equals("-color")) {
             renderModes |= Region.COLORCHANNEL_RENDERING_BIT;
@@ -99,15 +111,20 @@ public class CommandlineOptions {
             renderModes &= ~Region.COLORCHANNEL_RENDERING_BIT;
         } else if(args[idx[0]].equals("-smsaa")) {
             ++idx[0];
+            graphAASamples = 0;
             sceneMSAASamples = MiscUtils.atoi(args[idx[0]], 4);
-            renderModes &= ~(Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT );
+            renderModes &= ~Region.AA_RENDERING_MASK;
         } else if(args[idx[0]].equals("-gmsaa")) {
+            ++idx[0];
             sceneMSAASamples = 0;
-            renderModes &= ~(Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT );
+            graphAASamples = MiscUtils.atoi(args[idx[0]], 4);
+            renderModes &= ~Region.AA_RENDERING_MASK;
             renderModes |= Region.MSAA_RENDERING_BIT;
         } else if(args[idx[0]].equals("-gvbaa")) {
+            ++idx[0];
             sceneMSAASamples = 0;
-            renderModes &= ~(Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT );
+            graphAASamples = MiscUtils.atoi(args[idx[0]], 4);
+            renderModes &= ~Region.AA_RENDERING_MASK;
             renderModes |= Region.VBAA_RENDERING_BIT;
         } else if (args[idx[0]].equals("-dbgbox")) {
             ++idx[0];

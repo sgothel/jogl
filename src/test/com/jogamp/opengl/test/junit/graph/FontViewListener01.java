@@ -63,8 +63,7 @@ public class FontViewListener01 implements GLEventListener {
         this.startGlyphID = startGlyphID;
         this.font = font;
 
-        scene = new Scene();
-        scene.setSampleCount(graphSampleCount);
+        scene = new Scene(graphSampleCount);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setFrustumCullingEnabled(true);
     }

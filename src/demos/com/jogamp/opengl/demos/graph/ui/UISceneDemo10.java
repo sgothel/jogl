@@ -122,7 +122,7 @@ public class UISceneDemo10 {
         System.err.println("m0 "+shape);
 
         // Scene for Shape ...
-        final Scene scene = new Scene();
+        final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         shape.onMove(new Shape.Listener() {

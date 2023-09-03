@@ -75,7 +75,7 @@ public class UISceneDemo00 {
         final Shape shape = new Button(options.renderModes, font, "+", 0.10f, 0.10f/2.5f); // normalized: 1 is 100% surface size (width and/or height)
         System.err.println("Shape bounds "+shape.getBounds(reqGLP));
 
-        final Scene scene = new Scene();
+        final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.addShape(shape);
 

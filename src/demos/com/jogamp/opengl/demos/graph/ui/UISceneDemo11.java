@@ -96,7 +96,7 @@ public class UISceneDemo11 {
         System.err.println("Group-A0 Layout "+groupA0.getLayout());
         groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
 
-        final Scene scene = new Scene();
+        final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.addShape(groupA0);
         scene.setFrustumCullingEnabled(true);

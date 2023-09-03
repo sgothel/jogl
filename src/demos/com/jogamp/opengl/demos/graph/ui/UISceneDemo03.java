@@ -182,7 +182,7 @@ public class UISceneDemo03 {
         System.err.println("Font: " + font.getFullFamilyName());
         final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
 
-        final Scene scene = new Scene();
+        final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f }, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setPMVMatrixSetup( new MyPMVMatrixSetup(Scene.DEFAULT_SCENE_DIST) );
         scene.setDebugBorderBox(options.debugBoxThickness);

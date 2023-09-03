@@ -91,7 +91,7 @@ public class UISceneDemo01b {
         System.err.println("Shape bounds "+shape.getBounds(reqGLP));
         System.err.println("Shape "+shape);
 
-        final Scene scene = new Scene();
+        final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.addShape(shape);

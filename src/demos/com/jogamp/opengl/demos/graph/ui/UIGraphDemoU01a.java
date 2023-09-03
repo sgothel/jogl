@@ -184,7 +184,7 @@ public class UIGraphDemoU01a {
         /** World origin (bottom left) offset.  */
         private final Vec3f worldOrigin = new Vec3f();
         /** Sample count for Graph-VBAA */
-        private final int[] sampleCount = { 4 };
+        private final int[] sampleCount = { options.graphAASamples };
         /** Graph region renderer */
         private final RegionRenderer renderer;
         /** The Graph region for text */

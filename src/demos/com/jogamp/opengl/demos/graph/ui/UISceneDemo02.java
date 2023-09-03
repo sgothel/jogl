@@ -58,6 +58,7 @@ import com.jogamp.opengl.util.PMVMatrix;
  * </p>
  * <p>
  * Pass '-keep' to main-function to keep running.
+ * Pass '-auto' to main-function to keep running and change speed for each animation cycle
  * </p>
  */
 public class UISceneDemo02 {
@@ -65,10 +66,8 @@ public class UISceneDemo02 {
     static float req_total_dur_s = 6f; // [s]
 
     public static void main(final String[] args) throws IOException {
-        boolean wait_to_start = false;
         int autoSpeed = 0;
 
-        boolean keepRunning = false;
         if( 0 != args.length ) {
             final int[] idx = { 0 };
             for (idx[0] = 0; idx[0] < args.length; ++idx[0]) {
@@ -77,9 +76,7 @@ public class UISceneDemo02 {
                 } else if(args[idx[0]].equals("-aspeed")) {
                     autoSpeed = 1;
                     req_total_dur_s = 1f;
-                    keepRunning = true;
-                } else if(args[idx[0]].equals("-wait")) {
-                    wait_to_start = true;
+                    options.keepRunning = true;
                 }
             }
         }
@@ -99,7 +96,7 @@ public class UISceneDemo02 {
         final Label movingGlyph = new Label(options.renderModes, font, "");
         movingGlyph.setColor(0.1f, 0.1f, 0.1f, 1);
 
-        final Scene scene = new Scene();
+        final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.addShape(destText);
         scene.addShape(movingGlyph);
@@ -142,7 +139,7 @@ public class UISceneDemo02 {
         final AABBox sceneBox = scene.getBounds();
         System.err.println("SceneBox "+sceneBox);
 
-        if( wait_to_start ) {
+        if( options.wait_to_start ) {
             MiscUtils.waitForKey("Start");
         }
 
@@ -293,8 +290,8 @@ public class UISceneDemo02 {
                     autoSpeed = 1;
                 }
             }
-        } while ( keepRunning && window.isNativeValid() );
-        if( !keepRunning ) {
+        } while ( options.keepRunning && window.isNativeValid() );
+        if( !options.keepRunning ) {
             window.destroy();
         }
     }

@@ -52,6 +52,7 @@ import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.ui.Shape.Visitor2;
+import com.jogamp.graph.ui.Scene.PMVMatrixSetup;
 import com.jogamp.graph.ui.Shape.Visitor1;
 import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.InputEvent;
@@ -106,6 +107,12 @@ public final class Scene implements Container, GLEventListener {
     /** Default projection z-far value is 7000. */
     public static final float DEFAULT_ZFAR = 7000.0f;
 
+    /** Minimum sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
+    public static final int MIN_SAMPLE_COUNT = 1;
+
+    /** Maximum sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
+    public static final int MAX_SAMPLE_COUNT = 8;
+
     @SuppressWarnings("unused")
     private static final boolean DEBUG = false;
 
@@ -138,23 +145,38 @@ public final class Scene implements Container, GLEventListener {
     }
 
     /**
-     * Create a new scene with an internally created RegionRenderer
-     * and using default values {@link #DEFAULT_SCENE_DIST}, {@link #DEFAULT_ANGLE}, {@link #DEFAULT_ZNEAR} and {@link #DEFAULT_ZFAR}.
+     * Create a new scene with an internally created {@link RegionRenderer}, a graph AA sample-count 4 and using {@link DefaultPMVMatrixSetup#DefaultPMVMatrixSetup()}.
+     * @see #Scene(RegionRenderer, int)
+     * @see #setSampleCount(int)
      */
     public Scene() {
-        this(createRenderer());
+        this(createRenderer(), 4);
     }
 
     /**
-     * Create a new scene taking ownership of the given RegionRenderer
-     * and using default values {@link #DEFAULT_SCENE_DIST}, {@link #DEFAULT_ANGLE}, {@link #DEFAULT_ZNEAR} and {@link #DEFAULT_ZFAR}.
+     * Create a new scene with an internally created {@link RegionRenderer}, using {@link DefaultPMVMatrixSetup#DefaultPMVMatrixSetup()}.
+     * @param sampleCount sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT},
+     *                    clipped to [{@link #MIN_SAMPLE_COUNT}..{@link #MAX_SAMPLE_COUNT}]
+     * @see #Scene(RegionRenderer, int)
+     * @see #setSampleCount(int)
      */
-    public Scene(final RegionRenderer renderer) {
+    public Scene(final int sampleCount) {
+        this(createRenderer(), sampleCount);
+    }
+
+    /**
+     * Create a new scene taking ownership of the given RegionRenderer, using {@link DefaultPMVMatrixSetup#DefaultPMVMatrixSetup()}.
+     * @param renderer {@link RegionRenderer} to be owned
+     * @param sampleCount sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT},
+     *                    clipped to [{@link #MIN_SAMPLE_COUNT}..{@link #MAX_SAMPLE_COUNT}]
+     * @see #setSampleCount(int)
+     */
+    public Scene(final RegionRenderer renderer, final int sampleCount) {
         if( null == renderer ) {
             throw new IllegalArgumentException("Null RegionRenderer");
         }
         this.renderer = renderer;
-        this.sampleCount[0] = 4;
+        this.sampleCount[0] = Math.min(MAX_SAMPLE_COUNT, Math.max(sampleCount, MIN_SAMPLE_COUNT)); // clip
         this.screenshot = new GLReadBufferUtil(false, false);
     }
 
@@ -282,9 +304,16 @@ public final class Scene implements Container, GLEventListener {
         return null;
     }
 
+    /** Returns sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT} */
     public int getSampleCount() { return sampleCount[0]; }
+
+    /**
+     * Sets sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}
+     * @param v sample count, clipped to [{@link #MIN_SAMPLE_COUNT}..{@link #MAX_SAMPLE_COUNT}]
+     * @return clipped and set value
+     */
     public int setSampleCount(final int v) {
-        sampleCount[0] = Math.min(8, Math.max(v, 0)); // clip
+        sampleCount[0] = Math.min(MAX_SAMPLE_COUNT, Math.max(v, MIN_SAMPLE_COUNT)); // clip
         markAllShapesDirty();
         return sampleCount[0];
     }

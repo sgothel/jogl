@@ -93,6 +93,9 @@ public abstract class Region {
      */
     public static final int VBAA_RENDERING_BIT        = 1 <<  1;
 
+    /** Rendering bit-mask including {@link #MSAA_RENDERING_BIT} and {@link #VBAA_RENDERING_BIT}. */
+    public static final int AA_RENDERING_MASK         = MSAA_RENDERING_BIT | VBAA_RENDERING_BIT;
+
     /**
      * Rendering-Mode bit for {@link #getRenderModes() Region}
      * <p>
@@ -142,16 +145,24 @@ public abstract class Region {
     protected final AABBox box = new AABBox();
     protected Frustum frustum = null;
 
+    /** Returns true if given {@code renderModes} has {@link Region#VBAA_RENDERING_BIT} set. */
     public static boolean isVBAA(final int renderModes) {
         return 0 != (renderModes & Region.VBAA_RENDERING_BIT);
     }
 
+    /** Returns true if given {@code renderModes} has {@link Region#MSAA_RENDERING_BIT} set. */
     public static boolean isMSAA(final int renderModes) {
         return 0 != (renderModes & Region.MSAA_RENDERING_BIT);
     }
 
+    /** Returns true if given {@code renderModes} has any of {@link Region#AA_RENDERING_MASK} set. */
+    public static boolean isGraphAA(final int renderModes) {
+        return 0 != ( renderModes & Region.AA_RENDERING_MASK );
+    }
+
+    /** Returns true if given {@code renderModes} has any of {@link Region#AA_RENDERING_MASK} set. */
     public static boolean isTwoPass(final int renderModes) {
-        return 0 != ( renderModes & ( Region.VBAA_RENDERING_BIT | Region.MSAA_RENDERING_BIT) );
+        return 0 != ( renderModes & Region.AA_RENDERING_MASK );
     }
 
     /**
