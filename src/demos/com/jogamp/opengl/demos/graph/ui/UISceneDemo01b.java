@@ -36,7 +36,6 @@ import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
-import com.jogamp.graph.ui.Scene.PMVMatrixSetup;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.GLButton;
 import com.jogamp.newt.event.MouseEvent;
@@ -47,9 +46,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -58,7 +55,7 @@ import com.jogamp.opengl.util.PMVMatrix;
  * Res independent Shape, Scene attached to GLWindow showing simple linear Shape movement.
  * <p>
  * This variation of {@link UISceneDemo00} uses a {@link GLButton} shape with animating and rotating gears
- * and sets up an own {@link Scene.PMVMatrixSetup} with a plane dimension of 100.
+ * using the default {@link Scene.PMVMatrixSetup}.
  * </p>
  * <p>
  * Pass '-keep' to main-function to keep running after animation,
@@ -93,7 +90,6 @@ public class UISceneDemo01b {
 
         final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.addShape(shape);
 
         final Animator animator = new Animator(0 /* w/o AWT */);
@@ -218,23 +214,4 @@ public class UISceneDemo01b {
             window.destroy();
         }
     }
-
-    static class MyPMVMatrixSetup implements PMVMatrixSetup {
-        @Override
-        public void set(final PMVMatrix pmv, final Recti viewport) {
-            final float ratio = (float)viewport.width()/(float)viewport.height();
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glLoadIdentity();
-            pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
-            pmv.glTranslatef(0f, 0f, Scene.DEFAULT_SCENE_DIST);
-
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
-        }
-
-        @Override
-        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final Recti viewport) {
-            Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, viewport);
-        }
-    };
 }

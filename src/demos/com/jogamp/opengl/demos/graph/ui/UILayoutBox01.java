@@ -36,7 +36,6 @@ import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
-import com.jogamp.graph.ui.Scene.PMVMatrixSetup;
 import com.jogamp.graph.ui.layout.BoxLayout;
 import com.jogamp.graph.ui.layout.Margin;
 import com.jogamp.graph.ui.layout.Padding;
@@ -52,13 +51,10 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  * Res independent {@link Shape}s in a {@link Group} using a {@link BoxLayout}, contained within a Scene attached to GLWindow.
@@ -70,38 +66,6 @@ import com.jogamp.opengl.util.PMVMatrix;
 public class UILayoutBox01 {
     static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
 
-    /**
-     * Our PMVMatrixSetup:
-     * - gluPerspective like Scene's default
-     * - no normal scale to 1, keep a longer distance to near plane for rotation effects. We scale Shapes
-     */
-    public static class MyPMVMatrixSetup implements PMVMatrixSetup {
-        static float Z_DIST = -1f;
-        @Override
-        public void set(final PMVMatrix pmv, final Recti viewport) {
-            final float ratio = (float)viewport.width()/(float)viewport.height();
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glLoadIdentity();
-            pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
-            pmv.glTranslatef(0f, 0f, Z_DIST); // Scene.DEFAULT_SCENE_DIST);
-
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
-        }
-
-        @Override
-        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final Recti viewport) {
-            final float orthoDist = -Z_DIST; // Scene.DEFAULT_SCENE_DIST;
-            final Vec3f obj00Coord = new Vec3f();
-            final Vec3f obj11Coord = new Vec3f();
-
-            Scene.winToPlaneCoord(pmv, viewport, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR, viewport.x(), viewport.y(), orthoDist, obj00Coord);
-            Scene.winToPlaneCoord(pmv, viewport, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR, viewport.width(), viewport.height(), orthoDist, obj11Coord);
-
-            planeBox.setSize( obj00Coord, obj11Coord );
-        }
-    };
-
     static final boolean reLayout = false;
 
     public static void main(final String[] args) throws IOException {
@@ -110,6 +74,8 @@ public class UILayoutBox01 {
             for (idx[0] = 0; idx[0] < args.length; ++idx[0]) {
                 if( options.parse(args, idx) ) {
                     continue;
+                } else if (args[idx[0]].equals("-no_relayout")) {
+                    reLayout = false;
                 }
             }
         }
@@ -143,8 +109,8 @@ public class UILayoutBox01 {
         });
 
 
-        final Scene scene = new Scene();
-        scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
+        final Scene scene = new Scene(options.graphAASamples);
+        scene.setPMVMatrixSetup(new Scene.DefaultPMVMatrixSetup(-1f));
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setFrustumCullingEnabled(true);
         scene.attachInputListenerTo(window);
@@ -182,6 +148,7 @@ public class UILayoutBox01 {
         System.err.println("SceneBox "+sceneBox);
 
         final float sxy = 1/8f * sceneBox.getWidth();
+        System.err.println("Scale xy "+sxy);
         float nextPos = 0;
 
         final Group groupA0 = new Group(new BoxLayout( new Padding(0.15f, 0.15f) ) );

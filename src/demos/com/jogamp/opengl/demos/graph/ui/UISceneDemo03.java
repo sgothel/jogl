@@ -44,7 +44,6 @@ import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.AnimGroup;
-import com.jogamp.graph.ui.Scene.PMVMatrixSetup;
 import com.jogamp.graph.ui.layout.Alignment;
 import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
@@ -70,15 +69,12 @@ import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
@@ -184,7 +180,6 @@ public class UISceneDemo03 {
 
         final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f }, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        scene.setPMVMatrixSetup( new MyPMVMatrixSetup(Scene.DEFAULT_SCENE_DIST) );
         scene.setDebugBorderBox(options.debugBoxThickness);
 
         final AnimGroup animGroup = new AnimGroup(null);
@@ -817,32 +812,4 @@ public class UISceneDemo03 {
                 }
             }
         };
-
-    /**
-     * Our PMVMatrixSetup:
-     * - gluPerspective like Scene's default
-     * - no normal scale to 1, keep distance to near plane for rotation effects.
-     */
-    public static class MyPMVMatrixSetup implements PMVMatrixSetup {
-        private final float scene_dist;
-        public MyPMVMatrixSetup(final float scene_dist) {
-            this.scene_dist = scene_dist;
-        }
-        @Override
-        public void set(final PMVMatrix pmv, final Recti viewport) {
-            final float ratio = (float) viewport.width() / (float) viewport.height();
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glLoadIdentity();
-            pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
-            pmv.glTranslatef(0f, 0f, scene_dist);
-
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
-        }
-
-        @Override
-        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final Recti viewport) {
-            Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, viewport);
-        }
-    };
 }

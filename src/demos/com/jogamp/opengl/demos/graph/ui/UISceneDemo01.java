@@ -178,17 +178,10 @@ public class UISceneDemo01 {
         }
     }
 
-    static class MyPMVMatrixSetup implements PMVMatrixSetup {
+    static class MyPMVMatrixSetup extends Scene.DefaultPMVMatrixSetup {
         @Override
         public void set(final PMVMatrix pmv, final Recti viewport) {
-            final float ratio = (float)viewport.width()/(float)viewport.height();
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glLoadIdentity();
-            pmv.gluPerspective(Scene.DEFAULT_ANGLE, ratio, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR);
-            pmv.glTranslatef(0f, 0f, Scene.DEFAULT_SCENE_DIST);
-
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
+            super.set(pmv, viewport);
 
             // Scale (back) to have normalized plane dimensions, 100 for the greater of width and height.
             final AABBox planeBox0 = new AABBox();
@@ -199,11 +192,6 @@ public class UISceneDemo01 {
             pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmv.glScalef(sxy / 100f, sxy / 100f, 1f);
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        }
-
-        @Override
-        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final Recti viewport) {
-            Scene.getDefaultPMVMatrixSetup().setPlaneBox(planeBox, pmv, viewport);
         }
     };
 

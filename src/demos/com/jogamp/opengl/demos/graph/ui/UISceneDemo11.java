@@ -48,6 +48,8 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
+import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.opengl.math.Recti;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -97,6 +99,7 @@ public class UISceneDemo11 {
         groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
 
         final Scene scene = new Scene(options.graphAASamples);
+        scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.addShape(groupA0);
         scene.setFrustumCullingEnabled(true);
@@ -203,4 +206,20 @@ public class UISceneDemo11 {
             window.destroy();
         }
     }
+    static class MyPMVMatrixSetup extends Scene.DefaultPMVMatrixSetup {
+        @Override
+        public void set(final PMVMatrix pmv, final Recti viewport) {
+            super.set(pmv, viewport);
+
+            // Scale (back) to have normalized plane dimensions, 1 for the greater of width and height.
+            final AABBox planeBox0 = new AABBox();
+            setPlaneBox(planeBox0, pmv, viewport);
+            final float sx = planeBox0.getWidth();
+            final float sy = planeBox0.getHeight();
+            final float sxy = sx > sy ? sx : sy;
+            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
+            pmv.glScalef(sxy, sxy, 1f);
+            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        }
+    };
 }

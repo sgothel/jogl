@@ -716,23 +716,20 @@ public final class Scene implements Container, GLEventListener {
      * Custom implementations can be set via {@link Scene#setPMVMatrixSetup(PMVMatrixSetup)}.
      * </p>
      * <p>
-     * The default implementation is described below:
-     * <ul>
-     *   <li>{@link GLMatrixFunc#GL_PROJECTION} Matrix
-     *   <ul>
-     *     <li>Identity</li>
-     *     <li>Perspective {@link Scene#DEFAULT_ANGLE} with {@link Scene#DEFAULT_ZNEAR} and {@link Scene#DEFAULT_ZFAR}</li>
-     *     <li>Translated to given {@link Scene#DEFAULT_SCENE_DIST}</li>
-     *     <li>Scale (back) to have normalized {@link Scene#getBounds() plane dimensions}, 1 for the greater of width and height.</li>
-     *   </ul></li>
-     *   <li>{@link GLMatrixFunc#GL_MODELVIEW} Matrix
-     *   <ul>
-     *     <li>identity</li>
-     *   </ul></li>
-     * </ul>
-     * </p>
+     * The default implementation is {@link Scene.DefaultPMVMatrixSetup}.
+     * @see DefaultPMVMatrixSetup
+     * @see Scene#setPMVMatrixSetup(PMVMatrixSetup)
      */
     public static interface PMVMatrixSetup {
+        /** Returns scene distance on z-axis to projection. */
+        float getSceneDist();
+        /** Returns fov projection angle in radians, shall be {@code 0} for orthogonal projection. */
+        float getAngle();
+        /** Returns projection z-near value. */
+        float getZNear();
+        /** Returns projection z-far value. */
+        float getZFar();
+
         /**
          * Setup {@link PMVMatrix}'s {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}.
          * <p>
@@ -763,9 +760,6 @@ public final class Scene implements Container, GLEventListener {
 
     /** Set a custom {@link PMVMatrixSetup}. */
     public final void setPMVMatrixSetup(final PMVMatrixSetup setup) { pmvMatrixSetup = setup; }
-
-    /** Return the default {@link PMVMatrixSetup}. */
-    public static PMVMatrixSetup getDefaultPMVMatrixSetup() { return defaultPMVMatrixSetup; }
 
     /**
      * Setup {@link PMVMatrix} {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}
@@ -1157,41 +1151,120 @@ public final class Scene implements Container, GLEventListener {
         }
     }
 
-    private static final PMVMatrixSetup defaultPMVMatrixSetup = new PMVMatrixSetup() {
+    /**
+     * Default implementation of {@link Scene.PMVMatrixSetup},
+     * implementing {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti)} as follows:
+     * <ul>
+     *   <li>{@link GLMatrixFunc#GL_PROJECTION} Matrix
+     *   <ul>
+     *     <li>Identity</li>
+     *     <li>Perspective {@link #getAngle()} with {@link #getZNear()} and {@link #getZFar()}</li>
+     *     <li>Translated to given {@link #getSceneDist()}</li>
+     *   </ul></li>
+     *   <li>{@link GLMatrixFunc#GL_MODELVIEW} Matrix
+     *   <ul>
+     *     <li>identity</li>
+     *   </ul></li>
+     * </ul>
+     * </p>
+     * @see DefaultPMVMatrixSetup#DefaultPMVMatrixSetup()
+     * @see Scene#setPMVMatrixSetup(PMVMatrixSetup)
+     * @see Scene.PMVMatrixSetup
+     */
+    public static class DefaultPMVMatrixSetup implements PMVMatrixSetup {
+        /** Scene distance on z-axis to projection. */
+        private final float scene_dist;
+        /** Projection angle in radians. */
+        private final float angle;
+        /** Projection z-near value. */
+        private final float zNear;
+        /** Projection z-far value. */
+        private final float zFar;
+
+        /**
+         * Custom {@link DefaultPMVMatrixSetup} instance
+         * @param scene_dist scene distance on z-axix
+         * @param zNear projection z-near value
+         * @param zFar projection z-far value
+         * @param angle projection angle in radians
+         * @see DefaultPMVMatrixSetup
+         * @see Scene#setPMVMatrixSetup(PMVMatrixSetup)
+         * @see Scene.PMVMatrixSetup
+         */
+        public DefaultPMVMatrixSetup(final float scene_dist, final float zNear, final float zFar, final float angle) {
+            if( !( zNear > 0 && zFar > zNear ) ) {
+                throw new IllegalArgumentException("zNear is "+zNear+", but must be > 0 and < zFar, zFar "+zFar);
+            }
+            this.scene_dist = scene_dist;
+            this.zNear = zNear;
+            this.zFar = zFar;
+            this.angle = angle;
+        }
+        /**
+         * Custom {@link DefaultPMVMatrixSetup} instance using given {@code scene_dist}, {@code zNear}, {@code zFar} and {@link Scene#DEFAULT_ANGLE}.
+         * @param scene_dist scene distance on z-axix
+         * @param zNear projection z-near value
+         * @param zFar projection z-far value
+         * @see DefaultPMVMatrixSetup
+         * @see Scene#setPMVMatrixSetup(PMVMatrixSetup)
+         * @see Scene.PMVMatrixSetup
+         */
+        public DefaultPMVMatrixSetup(final float scene_dist, final float zNear, final float zFar) {
+            this(scene_dist, zNear, zFar, Scene.DEFAULT_ANGLE);
+        }
+        /**
+         * Custom {@link DefaultPMVMatrixSetup} instance using given {@code scene_dist} and {@link Scene#DEFAULT_ZNEAR}, {@link Scene#DEFAULT_ZFAR}, {@link Scene#DEFAULT_ANGLE}.
+         * @param scene_dist scene distance on z-axix
+         * @see DefaultPMVMatrixSetup
+         * @see Scene#setPMVMatrixSetup(PMVMatrixSetup)
+         * @see Scene.PMVMatrixSetup
+         */
+        public DefaultPMVMatrixSetup(final float scene_dist) {
+            this(scene_dist, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR, Scene.DEFAULT_ANGLE);
+        }
+        /**
+         * Default {@link DefaultPMVMatrixSetup} instance using {@link Scene#DEFAULT_SCENE_DIST}, {@link Scene#DEFAULT_ZNEAR}, {@link Scene#DEFAULT_ZFAR}, {@link Scene#DEFAULT_ANGLE}.
+         * @see DefaultPMVMatrixSetup
+         * @see Scene#setPMVMatrixSetup(PMVMatrixSetup)
+         * @see Scene.PMVMatrixSetup
+         */
+        public DefaultPMVMatrixSetup() {
+            this(Scene.DEFAULT_SCENE_DIST, Scene.DEFAULT_ZNEAR, Scene.DEFAULT_ZFAR, Scene.DEFAULT_ANGLE);
+        }
+
         @Override
         public void set(final PMVMatrix pmv, final Recti viewport) {
-            final float ratio = (float)viewport.width()/(float)viewport.height();
+            final float ratio = (float) viewport.width() / (float) viewport.height();
             pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmv.glLoadIdentity();
-            pmv.gluPerspective(DEFAULT_ANGLE, ratio, DEFAULT_ZNEAR, DEFAULT_ZFAR);
-            pmv.glTranslatef(0f, 0f, DEFAULT_SCENE_DIST);
+            pmv.gluPerspective(angle, ratio, zNear, zFar);
+            pmv.glTranslatef(0f, 0f, scene_dist);
 
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             pmv.glLoadIdentity();
-
-            // Scale (back) to have normalized plane dimensions, 1 for the greater of width and height.
-            final AABBox planeBox0 = new AABBox();
-            setPlaneBox(planeBox0, pmv, viewport);
-            final float sx = planeBox0.getWidth();
-            final float sy = planeBox0.getHeight();
-            final float sxy = sx > sy ? sx : sy;
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glScalef(sxy, sxy, 1f);
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         }
 
         @Override
         public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final Recti viewport) {
-                final float orthoDist = -DEFAULT_SCENE_DIST;
-                final Vec3f obj00Coord = new Vec3f();
-                final Vec3f obj11Coord = new Vec3f();
+            final float orthoDist = -scene_dist;
+            final Vec3f obj00Coord = new Vec3f();
+            final Vec3f obj11Coord = new Vec3f();
 
-                winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, viewport.x(), viewport.y(), orthoDist, obj00Coord);
-                winToPlaneCoord(pmv, viewport, DEFAULT_ZNEAR, DEFAULT_ZFAR, viewport.width(), viewport.height(), orthoDist, obj11Coord);
+            winToPlaneCoord(pmv, viewport, zNear, zFar, viewport.x(), viewport.y(), orthoDist, obj00Coord);
+            winToPlaneCoord(pmv, viewport, zNear, zFar, viewport.width(), viewport.height(), orthoDist, obj11Coord);
 
-                planeBox.setSize( obj00Coord, obj11Coord );
+            planeBox.setSize( obj00Coord, obj11Coord );
         }
+
+        @Override
+        public float getSceneDist() { return scene_dist; }
+        @Override
+        public float getAngle() { return angle; }
+        @Override
+        public float getZNear() { return zNear; }
+        @Override
+        public float getZFar() { return zFar; }
     };
-    private PMVMatrixSetup pmvMatrixSetup = defaultPMVMatrixSetup;
+    private PMVMatrixSetup pmvMatrixSetup = new DefaultPMVMatrixSetup();
 
 }
