@@ -119,6 +119,7 @@ public abstract class Shape {
     public static interface ListenerBool {
         boolean run(final Shape shape);
     }
+
     protected static final boolean DEBUG_DRAW = false;
     private static final boolean DEBUG = false;
 
@@ -213,6 +214,7 @@ public abstract class Shape {
      *
      * @param thickness border thickness, zero for no border
      * @return this shape for chaining
+     * @see #setBorderColor(Vec4f)
      */
     public final Shape setBorder(final float thickness) {
         borderThickness = Math.max(0f, thickness);
@@ -947,7 +949,10 @@ public abstract class Shape {
     /**
      * Set base color.
      * <p>
-     * Default base-color w/o color channel, will be modulated w/ pressed- and toggle color
+     * Base color w/o color channel, will be modulated w/ pressed- and toggle color
+     * </p>
+     * <p>
+     * Default RGBA value is 0.60f, 0.60f, 0.60f, 1.0f
      * </p>
      */
     public final Shape setColor(final float r, final float g, final float b, final float a) {
@@ -960,6 +965,9 @@ public abstract class Shape {
      * <p>
      * Default base-color w/o color channel, will be modulated w/ pressed- and toggle color
      * </p>
+     * <p>
+     * Default RGBA value is 0.60f, 0.60f, 0.60f, 1.0f
+     * </p>
      */
     public final Shape setColor(final Vec4f c) {
         this.rgbaColor.set(c);
@@ -969,7 +977,10 @@ public abstract class Shape {
     /**
      * Set pressed color.
      * <p>
-     * Default pressed color-factor w/o color channel, modulated base-color. 0.75 * 1.2 = 0.9
+     * Default pressed color-factor w/o color channel, modulated base-color. ~0.65 (due to alpha)
+     * </p>
+     * <p>
+     * Default RGBA value is 0.70f, 0.70f, 0.70f, 0.8f
      * </p>
      */
     public final Shape setPressedColorMod(final float r, final float g, final float b, final float a) {
@@ -980,7 +991,10 @@ public abstract class Shape {
     /**
      * Set toggle-on color.
      * <p>
-     * Default toggle-on color-factor w/o color channel, modulated base-color.  0.75 * 1.13 ~ 0.85
+     * Default toggle-on color-factor w/o color channel, modulated base-color.  0.60 * 0.83 ~= 0.50
+     * </p>
+     * <p>
+     * Default RGBA value is 0.83f, 0.83f, 0.83f, 1.0f
      * </p>
      */
     public final Shape setToggleOnColorMod(final float r, final float g, final float b, final float a) {
@@ -991,7 +1005,10 @@ public abstract class Shape {
     /**
      * Set toggle-off color.
      * <p>
-     * Default toggle-off color-factor w/o color channel, modulated base-color.  0.75 * 0.86 ~ 0.65
+     * Default toggle-off color-factor w/o color channel, modulated base-color.  0.60 * 1.00 ~= 0.60
+     * </p>
+     * <p>
+     * Default RGBA value is 1.00f, 1.00f, 1.00f, 1.0f
      * </p>
      */
     public final Shape setToggleOffColorMod(final float r, final float g, final float b, final float a) {
@@ -1001,13 +1018,25 @@ public abstract class Shape {
 
     public Vec4f getBorderColor() { return borderColor; }
 
-    /** Set border color. */
+    /**
+     * Set border color.
+     * <p>
+     * Default RGBA value is 0.00f, 0.00f, 0.00f, 1.0f
+     * </p>
+     * @see #setBorder(float)
+     */
     public final Shape setBorderColor(final float r, final float g, final float b, final float a) {
         this.borderColor.set(r, g, b, a);
         return this;
     }
 
-    /** Set border color. */
+    /**
+     * Set border color.
+     * <p>
+     * Default RGBA value is 0.00f, 0.00f, 0.00f, 1.0f
+     * </p>
+     * @see #setBorder(float)
+     */
     public final Shape setBorderColor(final Vec4f c) {
         this.borderColor.set(c);
         return this;
