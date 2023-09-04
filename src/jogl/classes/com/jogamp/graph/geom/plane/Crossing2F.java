@@ -106,7 +106,7 @@ import com.jogamp.opengl.math.FloatUtil;
             res[rc++] = m * FloatUtil.cos(t - p) + n;
         } else {
 //          Debug.println("R2 >= Q3 (" + R2 + "/" + Q3 + ")");
-            float A = FloatUtil.pow(FloatUtil.abs(R) + FloatUtil.sqrt(R2 - Q3), 1.0f / 3.0f);
+            float A = FloatUtil.pow(Math.abs(R) + FloatUtil.sqrt(R2 - Q3), 1.0f / 3.0f);
             if (R > 0.0) {
                 A = -A;
             }

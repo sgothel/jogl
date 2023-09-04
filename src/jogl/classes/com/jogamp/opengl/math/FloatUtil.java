@@ -1550,6 +1550,13 @@ public final class FloatUtil {
       return Math.abs(a) < FloatUtil.EPSILON;
   }
 
+  /**
+   * Invokes {@link Math#abs(float)}
+   * @param a float to process
+   * @return absolute value of {@code a}
+   * @deprecated use {@link Math#abs(float)} directly
+   */
+  @Deprecated
   public static float abs(final float a) { return java.lang.Math.abs(a);  }
 
   public static float pow(final float a, final float b) { return (float) java.lang.Math.pow(a, b);  }

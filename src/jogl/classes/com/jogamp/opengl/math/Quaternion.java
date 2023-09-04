@@ -1133,19 +1133,19 @@ public class Quaternion {
     @Deprecated
     public final boolean isRotationMatrix3f(final float[] m) {
         final float epsilon = 0.01f; // margin to allow for rounding errors
-        if (FloatUtil.abs(m[0] * m[3] + m[3] * m[4] + m[6] * m[7]) > epsilon)
+        if (Math.abs(m[0] * m[3] + m[3] * m[4] + m[6] * m[7]) > epsilon)
             return false;
-        if (FloatUtil.abs(m[0] * m[2] + m[3] * m[5] + m[6] * m[8]) > epsilon)
+        if (Math.abs(m[0] * m[2] + m[3] * m[5] + m[6] * m[8]) > epsilon)
             return false;
-        if (FloatUtil.abs(m[1] * m[2] + m[4] * m[5] + m[7] * m[8]) > epsilon)
+        if (Math.abs(m[1] * m[2] + m[4] * m[5] + m[7] * m[8]) > epsilon)
             return false;
-        if (FloatUtil.abs(m[0] * m[0] + m[3] * m[3] + m[6] * m[6] - 1) > epsilon)
+        if (Math.abs(m[0] * m[0] + m[3] * m[3] + m[6] * m[6] - 1) > epsilon)
             return false;
-        if (FloatUtil.abs(m[1] * m[1] + m[4] * m[4] + m[7] * m[7] - 1) > epsilon)
+        if (Math.abs(m[1] * m[1] + m[4] * m[4] + m[7] * m[7] - 1) > epsilon)
             return false;
-        if (FloatUtil.abs(m[2] * m[2] + m[5] * m[5] + m[8] * m[8] - 1) > epsilon)
+        if (Math.abs(m[2] * m[2] + m[5] * m[5] + m[8] * m[8] - 1) > epsilon)
             return false;
-        return (FloatUtil.abs(determinant3f(m) - 1) < epsilon);
+        return (Math.abs(determinant3f(m) - 1) < epsilon);
     }
 
     @Deprecated

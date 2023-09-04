@@ -276,11 +276,11 @@ public class AffineTransform implements Cloneable {
     public final AffineTransform setToRotation(final float angle) {
         float sin = FloatUtil.sin(angle);
         float cos = FloatUtil.cos(angle);
-        if (FloatUtil.abs(cos) < ZERO) {
+        if (Math.abs(cos) < ZERO) {
             cos = 0.0f;
             sin = sin > 0.0f ? 1.0f : -1.0f;
         } else
-            if (FloatUtil.abs(sin) < ZERO) {
+            if (Math.abs(sin) < ZERO) {
                 sin = 0.0f;
                 cos = cos > 0.0f ? 1.0f : -1.0f;
             }
@@ -387,7 +387,7 @@ public class AffineTransform implements Cloneable {
 
     public final AffineTransform createInverse() throws NoninvertibleTransformException {
         final float det = getDeterminant();
-        if (FloatUtil.abs(det) < ZERO) {
+        if (Math.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
         return new AffineTransform(
@@ -535,7 +535,7 @@ public class AffineTransform implements Cloneable {
      */
     public final Vertex inverseTransform(final Vertex src, final Vertex dst) throws NoninvertibleTransformException {
         final float det = getDeterminant();
-        if (FloatUtil.abs(det) < ZERO) {
+        if (Math.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
         final float x = src.x() - m02;
@@ -548,7 +548,7 @@ public class AffineTransform implements Cloneable {
         throws NoninvertibleTransformException
     {
         final float det = getDeterminant();
-        if (FloatUtil.abs(det) < ZERO) {
+        if (Math.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
 
