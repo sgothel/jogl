@@ -28,19 +28,23 @@
 package com.jogamp.graph.ui.shapes;
 
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.graph.ui.Shape;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
- * An abstract GraphUI base filled button {@link GraphShape},
+ * An abstract GraphUI filled base button {@link GraphShape},
  * usually used as a backdrop or base shape for more informative button types.
  * <p>
  * GraphUI is GPU based and resolution independent.
  * </p>
  * <p>
  * This button is rendered with a round oval shape {@link #ROUND_CORNER by default},
- * but can be set to {@link #PERP_CORNER rectangular shape}.
+ * but can be set to any roundness or {@link #PERP_CORNER rectangular shape} via {#link {@link #setCorner(float)} or {@link #setPerp()}.
  * </p>
  */
 public class BaseButton extends GraphShape {
@@ -54,6 +58,15 @@ public class BaseButton extends GraphShape {
     protected float height;
     protected float corner = ROUND_CORNER;
 
+    /**
+     * Create a base button Graph based {@link GLRegion} UI {@link Shape} with a {@link #ROUND_CORNER}.
+     * <p>
+     * Call {#link {@link #setCorner(float)} or {@link #setPerp()} to modify the corner shape.
+     * </p>
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     * @param width
+     * @param height
+     */
     public BaseButton(final int renderModes, final float width, final float height) {
         super(renderModes);
         this.width = width;
@@ -70,23 +83,33 @@ public class BaseButton extends GraphShape {
      * Set corner size with range [0.01 .. 1.00] for round corners
      * or `zero` for perpendicular corners.
      * <p>
-     *  , default is {@link #ROUND_CORNER round corner},
+     * Default is {@link #ROUND_CORNER round corner},
      * alternative a {@link #PERP_CORNER perpendicular corner} for a rectangular shape is available.
      * </p>
+     * @param corner corner size with range [0.01 .. 1.00 ] for round corners or `zero` for perpendicular corners.
+     * @return this instance for chaining
      * @see #ROUND_CORNER
      * @see #PERP_CORNER
+     * @see #setPerp()
      */
     public BaseButton setCorner(final float corner) {
-        if( 0.01f <= corner && corner <= 1.0f ) {
-            this.corner = corner;
-        }
         if( corner > 1.0f ){
-            this.corner = 1.0f;
+            this.corner = ROUND_CORNER;
         } else if( corner < 0.01f ){
-            this.corner = 0.0f;
+            this.corner = PERP_CORNER;
         } else {
             this.corner = corner;
         }
+        markShapeDirty();
+        return this;
+    }
+    /**
+     * Sets a {@link #PERP_CORNER perpendicular} {@link #setCorner(float) corner}.
+     * @return this instance for chaining
+     * @see #setCorner(float)
+     */
+    public BaseButton setPerp() {
+        this.corner = PERP_CORNER;
         markShapeDirty();
         return this;
     }

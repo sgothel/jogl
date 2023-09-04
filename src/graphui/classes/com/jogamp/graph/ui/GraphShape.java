@@ -60,11 +60,11 @@ public abstract class GraphShape extends Shape {
     private final List<GLRegion> dirtyRegions = new ArrayList<GLRegion>();
 
     /**
-     * Create a Graph based {@link GLRegion} UI {@link Shape}.
+     * Create a generic Graph based {@link GLRegion} UI {@link Shape}.
      *
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      */
-    public GraphShape(final int renderModes) {
+    protected GraphShape(final int renderModes) {
         super();
         this.renderModes = renderModes;
     }

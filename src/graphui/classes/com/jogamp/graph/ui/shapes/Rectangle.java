@@ -28,10 +28,14 @@
 package com.jogamp.graph.ui.shapes;
 
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.graph.ui.Shape;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
  * A GraphUI rectangle {@link GraphShape}
@@ -45,6 +49,17 @@ public class Rectangle extends GraphShape {
     private float height;
     private float lineWidth;
 
+    /**
+     * Create a rectangular Graph based {@link GLRegion} UI {@link Shape}.
+     *
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     * @param minX
+     * @param minY
+     * @param width
+     * @param height
+     * @param lineWidth
+     * @param zPos
+     */
     public Rectangle(final int renderModes, final float minX, final float minY, final float width, final float height, final float lineWidth, final float zPos) {
         super(renderModes);
         this.minX = minX;
@@ -55,13 +70,39 @@ public class Rectangle extends GraphShape {
         this.lineWidth = lineWidth;
     }
 
+    /**
+     * Create a rectangular Graph based {@link GLRegion} UI {@link Shape}.
+     *
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     * @param abox
+     * @param lineWidth
+     */
     public Rectangle(final int renderModes, final AABBox abox, final float lineWidth) {
         this( renderModes, abox.getMinX(), abox.getMinY(), abox.getWidth(), abox.getHeight(), lineWidth, abox.getCenter().z());
     }
 
+    /**
+     * Create a rectangular Graph based {@link GLRegion} UI {@link Shape}.
+     *
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     * @param minX
+     * @param minY
+     * @param width
+     * @param height
+     * @param lineWidth
+     */
     public Rectangle(final int renderModes, final float minX, final float minY, final float width, final float height, final float lineWidth) {
         this( renderModes, minX, minY, width, height, lineWidth, 0);
     }
+
+    /**
+     * Create a rectangular Graph based {@link GLRegion} UI {@link Shape}.
+     *
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     * @param width
+     * @param height
+     * @param lineWidth
+     */
     public Rectangle(final int renderModes, final float width, final float height, final float lineWidth) {
         this( renderModes, 0, 0, width, height, lineWidth, 0);
     }

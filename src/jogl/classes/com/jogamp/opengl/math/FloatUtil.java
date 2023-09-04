@@ -1576,6 +1576,11 @@ public final class FloatUtil {
    * <pre>
    *  return z * z / ( zNear * (1&lt;&lt;zBits) - z )
    * </pre>
+   * Examples:
+   * <pre>
+   * 1.5256461E-4 = 16 zBits, -0.2 zDist, 0.1 zNear
+   * 6.1033297E-6 = 16 zBits, -1.0 zDist, 0.1 zNear
+   * </pre>
    * @param zBits number of bits of Z precision, i.e. z-buffer depth
    * @param z distance from the eye to the object
    * @param zNear distance from eye to near clip plane

@@ -30,7 +30,10 @@ package com.jogamp.graph.ui.shapes;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
@@ -47,20 +50,20 @@ import com.jogamp.graph.ui.GraphShape;
 public class Label extends GraphShape {
     private Font font;
     private float fontScale;
-    private String text;
-
-    private final AffineTransform tempT1 = new AffineTransform();
-    private final AffineTransform tempT2 = new AffineTransform();
-    private final AffineTransform tempT3 = new AffineTransform();
+    private CharSequence text;
 
     /**
-     * Label ctor using a separate {@code fontScale} to scale the em-sized type glyphs
-     * @param renderModes region renderModes
-     * @param font the font
+     * Label ctor using a separate {@code fontScale} to scale the em-sized type glyphs.
+     * <p>
+     * If possible, try using {@link Label#Label(int, Font, CharSequence)} and {@link #scale(float, float, float)}.
+     * </p>
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     * @param font {@link Font} for this label
      * @param fontScale font-scale factor, by which the em-sized type glyphs shall be scaled
-     * @param text the text to render
+     * @param text the label text
+     * @see #Label(int, Font, CharSequence)
      */
-    public Label(final int renderModes, final Font font, final float fontScale, final String text) {
+    public Label(final int renderModes, final Font font, final float fontScale, final CharSequence text) {
         super(renderModes);
         this.font = font;
         this.fontScale = fontScale;
@@ -69,19 +72,17 @@ public class Label extends GraphShape {
 
     /**
      * Label ctor using em-size type glyphs
-     * @param renderModes region renderModes
-     * @param font the font
-     * @param text the text to render
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     * @param font {@link Font} for this label
+     * @param text the label text
+     * @see #Label(int, Font, float, CharSequence)
      */
-    public Label(final int renderModes, final Font font, final String text) {
-        super(renderModes);
-        this.font = font;
-        this.fontScale = 1f;
-        this.text = text;
+    public Label(final int renderModes, final Font font, final CharSequence text) {
+        this(renderModes, font, 1f, text);
     }
 
-    /** Return the text to be rendered. */
-    public String getText() {
+    /** Returns the label text. */
+    public CharSequence getText() {
         return text;
     }
 
@@ -131,7 +132,7 @@ public class Label extends GraphShape {
     }
 
     /**
-     * Return the {@link Font} used to render the text
+     * Returns the {@link Font} used to render the text
      */
     public Font getFont() {
         return font;
@@ -153,7 +154,7 @@ public class Label extends GraphShape {
     }
 
     /**
-     * Gets the font-scale factor, by which the em-sized type glyphs shall be scaled.
+     * Returns the font-scale factor, by which the em-sized type glyphs shall be scaled.
      */
     public float getFontScale() {
         return fontScale;
@@ -203,6 +204,10 @@ public class Label extends GraphShape {
 
     @Override
     protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
+        final AffineTransform tempT1 = new AffineTransform();
+        final AffineTransform tempT2 = new AffineTransform();
+        final AffineTransform tempT3 = new AffineTransform();
+
         final int[] vertIndCount = TextRegionUtil.countStringRegion(font, text, new int[2]);
         resetGLRegion(glp, gl, null, vertIndCount[0], vertIndCount[1]);
 
@@ -217,6 +222,6 @@ public class Label extends GraphShape {
     @Override
     public String getSubString() {
         final int m = Math.min(text.length(), 8);
-        return super.getSubString()+", fscale " + fontScale + ", '" + text.substring(0, m)+"'";
+        return super.getSubString()+", fscale " + fontScale + ", '" + text.subSequence(0, m)+"'";
     }
 }

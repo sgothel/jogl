@@ -167,7 +167,10 @@ public abstract class Shape {
     private Listener onToggleListener = null;
     private Listener onClickedListener = null;
 
-    public Shape() {
+    /**
+     * Create a generic UI {@link Shape}
+     */
+    protected Shape() {
         this.box = new AABBox();
     }
 

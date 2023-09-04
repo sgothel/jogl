@@ -37,16 +37,16 @@ import com.jogamp.opengl.math.geom.AABBox;
 
 public class Label0 {
     protected Font font;
-    protected String text;
+    protected CharSequence text;
     protected final Vec4f rgbaColor;
 
-    public Label0(final Font font, final String text, final Vec4f rgbaColor) {
+    public Label0(final Font font, final CharSequence text, final Vec4f rgbaColor) {
         this.font = font;
         this.text = text;
         this.rgbaColor = rgbaColor;
     }
 
-    public final String getText() { return text; }
+    public final CharSequence getText() { return text; }
 
     public final Vec4f getColor() { return rgbaColor; }
 
@@ -79,6 +79,6 @@ public class Label0 {
     @Override
     public final String toString(){
         final int m = Math.min(text.length(), 8);
-        return "Label0 ['" + text.substring(0, m) + "']";
+        return "Label0 ['" + text.subSequence(0, m) + "']";
     }
 }
