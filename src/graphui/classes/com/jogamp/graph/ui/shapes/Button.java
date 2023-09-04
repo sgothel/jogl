@@ -327,14 +327,14 @@ public class Button extends BaseButton {
         }
         return this;
     }
-    public final Button setLabel(final String labelText) {
+    public final Button setText(final CharSequence labelText) {
         if( !label.getText().equals(labelText) ) {
             label.setText(labelText);
             markShapeDirty();
         }
         return this;
     }
-    public final Button setLabel(final Font labelFont, final String labelText) {
+    public final Button setText(final Font labelFont, final CharSequence labelText) {
         if( !label.getText().equals(labelText) || !label.getFont().equals(labelFont) ) {
             label.setFont(labelFont);
             label.setText(labelText);

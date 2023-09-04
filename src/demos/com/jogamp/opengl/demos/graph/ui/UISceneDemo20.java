@@ -457,7 +457,7 @@ public class UISceneDemo20 implements GLEventListener {
             shape.setSpacing(Button.DEFAULT_SPACING_X, Button.DEFAULT_SPACING_Y);
 
         }
-        shape.setLabel(s);
+        shape.setText(s);
     }
 
     private void initButtons(final GL2ES2 gl) {

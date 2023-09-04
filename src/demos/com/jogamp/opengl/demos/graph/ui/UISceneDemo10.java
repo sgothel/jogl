@@ -260,9 +260,7 @@ public class UISceneDemo10 {
                 } } );
             return b;
         } else if( true ){
-            final Button b = new Button(renderModes, font, "+", sw, sh);
-            b.setCorner(0.0f);
-            return b;
+            return new Button(renderModes, font, "+", sw, sh).setPerp();
         } else {
             final CrossHair b = new CrossHair(renderModes, sw, sw, 1f/100f);
             return b;

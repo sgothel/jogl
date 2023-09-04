@@ -91,7 +91,7 @@ public class Label extends GraphShape {
      * @param text the text to be set.
      * @return true if text has been updated, false if unchanged.
      */
-    public boolean setText(final String text) {
+    public boolean setText(final CharSequence text) {
         if( !this.text.equals(text) ) {
             this.text = text;
             markShapeDirty();
@@ -107,7 +107,7 @@ public class Label extends GraphShape {
      * @param text the text to be set.
      * @return true if text has been updated, false if unchanged.
      */
-    public boolean setText(final GL2ES2 gl, final String text) {
+    public boolean setText(final GL2ES2 gl, final CharSequence text) {
         if( setText(text) ) {
             validate(gl);
             return true;
@@ -122,7 +122,7 @@ public class Label extends GraphShape {
      * @param text the text to be set.
      * @return true if text has been updated, false if unchanged.
      */
-    public boolean setText(final GLProfile glp, final String text) {
+    public boolean setText(final GLProfile glp, final CharSequence text) {
         if( setText(text) ) {
             validate(glp);
             return true;

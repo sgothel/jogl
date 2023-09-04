@@ -77,12 +77,7 @@ public class UISceneDemo01b {
         final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final Shape shape;
-        {
-            final Button b = new Button(options.renderModes, font, "L", 1/8f, 1/8f/2.5f); // normalized: 1 is 100% surface size (width and/or height)
-            b.setCorner(0f);
-            shape = b;
-        }
+        final Shape shape = new Button(options.renderModes, font, "L", 1/8f, 1/8f/2.5f).setPerp(); // normalized: 1 is 100% surface size (width and/or height)
         shape.getRotation().rotateByAngleX(FloatUtil.PI);
         shape.getRotation().rotateByAngleY(FloatUtil.PI);
         System.err.println("Shape bounds "+shape.getBounds(reqGLP));

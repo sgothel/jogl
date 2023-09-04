@@ -58,7 +58,7 @@ public class Label0 {
         this.rgbaColor.set(v);
     }
 
-    public final void setText(final String text) {
+    public final void setText(final CharSequence text) {
         this.text = text;
     }
 

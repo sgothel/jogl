@@ -86,10 +86,10 @@ public class UISceneDemo11 {
 
         final Group groupA0 = new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f)));
         {
-            groupA0.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );
-            groupA0.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );
-            groupA0.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );
-            groupA0.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f).setCorner(0f).setDragAndResizeable(false) );
+            groupA0.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1f/2f).setPerp().setDragAndResizeable(false) );
+            groupA0.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f).setPerp().setDragAndResizeable(false) );
+            groupA0.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f).setPerp().setDragAndResizeable(false) );
+            groupA0.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f).setPerp().setDragAndResizeable(false) );
         }
         groupA0.setInteractive(true);
         groupA0.scale(1/8f, 1/8f, 1);

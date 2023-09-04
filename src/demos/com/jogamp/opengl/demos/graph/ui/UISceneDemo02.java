@@ -207,7 +207,7 @@ public class UISceneDemo02 {
                 destText.validate(hasGLP);
                 movingGlyph.setText(hasGLP, movingChar[0]);
                 final float start_pos = sceneBox.getMaxX() - movingGlyph.getScaledWidth();
-                final float end_pos = sceneBox.getMinX() + ( destText.getText().isEmpty() ? 0 : destText.getScaledWidth() );
+                final float end_pos = sceneBox.getMinX() + ( destText.getText().length() == 0 ? 0 : destText.getScaledWidth() );
                 movingGlyph.moveTo(start_pos, 0f, 0f);
 
                 final PMVMatrix pmv = new PMVMatrix();
@@ -265,7 +265,7 @@ public class UISceneDemo02 {
                     System.err.printf("Actual char travel-duration %.3f s, %.3f mm/s, delay exp %.3f s, req %.3f%n",
                             has_dur_s, (dist_m/has_dur_s)*1e3f, has_dur_s-exp_dur_s, has_dur_s-req_dur_s);
                 }
-                destText.setText(destText.getText() + movingGlyph.getText());
+                destText.setText( new StringBuilder(destText.getText()).append(movingGlyph.getText()) );
                 movingGlyph.setText("");
             }
             final float has_dur_s = ( ( Clock.currentNanos() / 1000 ) - t0_us ) / 1e6f; // [us]
