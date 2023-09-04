@@ -48,7 +48,7 @@ public class Padding {
      * Ctor w/ zero values
      */
     public Padding() {
-        top = 0f; right = 0f; bottom = 0f; left = 0f;
+        this(0f);
     }
 
     /**

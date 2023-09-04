@@ -68,7 +68,7 @@ public class Margin {
      * Ctor w/ zero values
      */
     public Margin() {
-        top = 0f; right = 0f; bottom = 0f; left = 0f; bits = 0;
+        this(0f);
     }
 
     /**
