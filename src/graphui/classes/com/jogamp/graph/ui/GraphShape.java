@@ -52,7 +52,8 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * @see Scene
  */
 public abstract class GraphShape extends Shape {
-    protected final int renderModes;
+    protected final int renderModesReq;
+    protected int renderModes;
     protected int pass2TexUnit = GLRegion.DEFAULT_TWO_PASS_TEXTURE_UNIT;
     protected GLRegion region = null;
     protected float oshapeSharpness = OutlineShape.DEFAULT_SHARPNESS;
@@ -66,10 +67,22 @@ public abstract class GraphShape extends Shape {
      */
     protected GraphShape(final int renderModes) {
         super();
+        this.renderModesReq = renderModes;
         this.renderModes = renderModes;
     }
 
-    /** Return Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}. */
+    /** Returns requested Graph {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}. */
+    public final int getRenderModesReq() { return renderModesReq; }
+
+    /**
+     * Returns validated Graph {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     * <p>
+     * May differ from {@link #getRenderModesReq()}, e.g. adding a {@link Region#COLORCHANNEL_RENDERING_BIT} for {@link #hasBorder()} etc.
+     * </p>
+     * <p>
+     * Potentially modified during {@link #validate(GL2ES2)} or {@link #validate(GLProfile)}.
+     * </p>
+     */
     public final int getRenderModes() { return renderModes; }
 
     /**
@@ -218,6 +231,9 @@ public abstract class GraphShape extends Shape {
             clearDirtyRegions(gl);
         }
         if( isShapeDirty() ) {
+            if( hasBorder() && !rgbaColor.isEqual(getBorderColor()) && !Region.hasColorChannel(renderModes) ) {
+                renderModes |= Region.COLORCHANNEL_RENDERING_BIT;
+            }
             // box has been reset
             addShapeToRegion(glp, gl); // calls updateGLRegion(..)
             if( hasBorder() ) {
@@ -278,4 +294,12 @@ public abstract class GraphShape extends Shape {
 
     protected abstract void addShapeToRegion(GLProfile glp, GL2ES2 gl);
 
+    @Override
+    public String getSubString() {
+        if( renderModesReq != renderModes ) {
+            return super.getSubString()+", renderMode[req "+Region.getRenderModeString(renderModesReq) + ", has "+Region.getRenderModeString(renderModes)+"]";
+        } else {
+            return super.getSubString()+", renderMode "+Region.getRenderModeString(renderModesReq);
+        }
+    }
 }
