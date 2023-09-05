@@ -35,12 +35,12 @@ import java.util.List;
 public final class Alignment {
     /** No alignment constant. */
     public static final Alignment None = new Alignment();
-    /** {@link Bit#Center} alignment constant. */
-    public static final Alignment Center = new Alignment(Alignment.Bit.Center);
+    /** {@link Bit#CenterHoriz} and {@link Bit#CenterVert} alignment constant. */
+    public static final Alignment Center = new Alignment(Alignment.Bit.CenterHoriz.value | Alignment.Bit.CenterVert.value );
     /** {@link Bit#Fill} alignment constant. */
     public static final Alignment Fill = new Alignment(Alignment.Bit.Fill.value);
-    /** {@link Bit#Fill} and {@link Bit#Center} alignment constant. */
-    public static final Alignment FillCenter = new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.Center.value);
+    /** {@link Bit#Fill}, {@link Bit#CenterHoriz} and {@link Bit#CenterVert} alignment constant. */
+    public static final Alignment FillCenter = new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.CenterHoriz.value | Alignment.Bit.CenterVert.value);
 
     public enum Bit {
         /** Left alignment. */
@@ -53,12 +53,15 @@ public final class Alignment {
         Bottom ( ( 1 << 2 ) ),
 
         /** Top alignment. */
-        Top ( ( 1 << 8 ) ),
+        Top ( ( 1 << 3 ) ),
 
-        /** Center alignment. */
-        Center ( ( 1 << 9 ) ),
+        /** Horizontal center alignment. */
+        CenterHoriz ( ( 1 << 4 ) ),
 
-        /** Scale object to parent size, e.g. fill {@link GridLayout} cell size. */
+        /** Vertical center alignment. */
+        CenterVert ( ( 1 << 5 ) ),
+
+        /** Scale object to parent size, e.g. fill {@link GridLayout} or {@link BoxLayout} cell size. */
         Fill ( ( 1 << 15 ) );
 
         Bit(final int v) { value = v; }
