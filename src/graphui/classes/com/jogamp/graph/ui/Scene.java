@@ -250,7 +250,9 @@ public final class Scene implements Container, GLEventListener {
     }
     @Override
     public void addShape(final Shape s) {
-        s.setBorder(dbgBorderThickness);
+        if( !s.hasBorder() && !FloatUtil.isZero(dbgBorderThickness) ) {
+            s.setBorder(dbgBorderThickness);
+        }
         shapes.add(s);
     }
     @Override
