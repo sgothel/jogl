@@ -255,12 +255,12 @@ public abstract class GraphShape extends Shape {
 
     protected void addBorderOutline() {
         final OutlineShape shape = new OutlineShape();
-        final Padding dist = null != getPadding() ? getPadding() : new Padding();
-        final float x1 = box.getMinX() - dist.left;
-        final float x2 = box.getMaxX() + dist.right;
-        final float y1 = box.getMinY() - dist.bottom;
-        final float y2 = box.getMaxY() + dist.top;
-        final float z = box.getCenter().z(); // 0; // box.getMinZ() + 0.025f;
+        final Padding p = null != getPadding() ? getPadding() : new Padding();
+        final float x1 = box.getMinX() - p.left;
+        final float x2 = box.getMaxX() + p.right;
+        final float y1 = box.getMinY() - p.bottom;
+        final float y2 = box.getMaxY() + p.top;
+        final float z = box.getMaxZ(); // on top
         {
             // Outer OutlineShape as Winding.CCW.
             shape.moveTo(x1, y1, z);
