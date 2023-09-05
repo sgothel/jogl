@@ -33,6 +33,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
+import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
@@ -41,13 +42,16 @@ import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
 import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Button;
+import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.demos.graph.ui.util.Tooltips;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Vec3f;
@@ -63,7 +67,7 @@ import com.jogamp.opengl.util.Animator;
  * </p>
  */
 public class UILayoutGrid01 {
-    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
+    static CommandlineOptions options = new CommandlineOptions(1920, 1080, Region.VBAA_RENDERING_BIT);
 
     static boolean reLayout = true;
     static final int reLayoutSleep = 500;
@@ -109,8 +113,12 @@ public class UILayoutGrid01 {
         });
 
 
+        final int zBits = 16;
         final Scene scene = new Scene(options.graphAASamples);
         scene.setPMVMatrixSetup(new Scene.DefaultPMVMatrixSetup(-1f));
+        System.err.println("Z16-Precision: default               "+Scene.DEFAULT_Z16_EPSILON);
+        System.err.println("Z16-Precision: zDist -1f, zNear 0.1f "+FloatUtil.getZBufferEpsilon(zBits, -1f, 0.1f));
+        System.err.println("Z16-Precision: current               "+scene.getZEpsilon(zBits));
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setFrustumCullingEnabled(true);
         scene.attachInputListenerTo(window);
@@ -145,318 +153,203 @@ public class UILayoutGrid01 {
         System.err.println("Font: "+font.getFullFamilyName());
 
         final AABBox sceneBox = scene.getBounds();
-        System.err.println("SceneBox "+sceneBox);
+        final float zEps = scene.getZEpsilon(zBits); // Z Epsilon, i.e. minimum recognized delta (resolution)
+        System.err.println("SceneBox "+sceneBox+", zEps "+zEps);
 
+        final float cellGap = 1.1f;
         final Vec4f borderColor = new Vec4f(0, 0, 1f, 0.6f);
         final float borderThickness = 0.01f;
-        final float sxy = 1/10f * sceneBox.getWidth();
-        float nextXPos = 0, nextYTop = sceneBox.getHeight();
+        // final float sxy = 1/10f * sceneBox.getWidth();
+        final float sxy = 1/11f * sceneBox.getWidth();
+        // final float sxy = 1/4f * sceneBox.getHeight();
+        final Vec3f nextPos = new Vec3f();
 
-        final Group groupA0 = new Group(new GridLayout(1, 1f, 1/2f, Alignment.Fill, new Gap(0.10f)));
-        groupA0.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-        groupA0.setBorder(borderThickness).setBorderColor(borderColor);
-        groupA0.scale(sxy, sxy, 1);
-        groupA0.setInteractive(true);
-        groupA0.validate(reqGLP);
-        groupA0.moveTo(sceneBox.getLow()).move(nextXPos, nextYTop-groupA0.getScaledHeight(), 0);
-        System.err.println("Group-A0 "+groupA0);
-        System.err.println("Group-A0 Layout "+groupA0.getLayout());
-        groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        scene.addShape(groupA0);
-        nextXPos += groupA0.getScaledWidth() * 1.1f;
-        if( reLayout ) {
-            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
-            groupA0.markShapeDirty();
-            groupA0.validate(reqGLP);
-            System.err.println("Group-A0.2 "+groupA0);
-            System.err.println("Group-A0 Layout.2 "+groupA0.getLayout());
-            groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(1, 1f, 1/2f, Alignment.Fill, new Gap(0.10f))),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 11,
+                borderThickness, borderColor, (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
 
-        final Group groupA1 = new Group(new GridLayout(1, 1, 1/2f, Alignment.Fill, new Gap(0.10f)));
-        groupA1.addShape( new Button(options.renderModes, font, "ro co", 1f, 1/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-        groupA1.addShape( new Button(options.renderModes, font, "r1 r1", 1f, 1/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-        groupA1.setBorder(sxy*borderThickness).setBorderColor(borderColor);
-        groupA1.scale(sxy, sxy, 1);
-        groupA1.setInteractive(true);
-        groupA1.validate(reqGLP);
-        groupA1.moveTo(sceneBox.getLow()).move(nextXPos, nextYTop-groupA1.getScaledHeight(), 0);
-        System.err.println("Group-A1 "+groupA1);
-        System.err.println("Group-A1 Layout "+groupA1.getLayout());
-        groupA1.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        scene.addShape(groupA1);
-        nextXPos += groupA1.getScaledWidth() * 1.1f;
-        if( reLayout ) {
-            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
-            groupA1.markShapeDirty();
-            groupA1.validate(reqGLP);
-            System.err.println("Group-A1.2 "+groupA1);
-            System.err.println("Group-A1 Layout.2 "+groupA1.getLayout());
-            groupA1.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(1, 1f, 1/2f, Alignment.Fill, new Gap(0.10f))),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 12,
+                borderThickness, borderColor, (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 r1", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
 
-        final Group groupA2 = new Group(new GridLayout(1, 1/2f, Alignment.Fill, new Gap(0.10f), 1));
-        groupA2.addShape( new Button(options.renderModes, font, "ro co", 1f, 1/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-        groupA2.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-        groupA2.setBorder(sxy*borderThickness).setBorderColor(borderColor);
-        groupA2.scale(sxy, sxy, 1);
-        groupA2.setInteractive(true);
-        groupA2.validate(reqGLP);
-        groupA2.moveTo(sceneBox.getLow()).move(nextXPos, nextYTop-groupA2.getScaledHeight(), 0);
-        System.err.println("Group-A2 "+groupA2);
-        System.err.println("Group-A2 Layout "+groupA2.getLayout());
-        groupA2.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        scene.addShape(groupA2);
-        nextXPos += groupA2.getScaledWidth() * 1.1f;
-        if( reLayout ) {
-            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
-            groupA2.markShapeDirty();
-            groupA2.validate(reqGLP);
-            System.err.println("Group-A2.2 "+groupA2);
-            System.err.println("Group-A2 Layout.2 "+groupA2.getLayout());
-            groupA2.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(1f, 1/2f, Alignment.Fill, new Gap(0.10f), 1)),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 13,
+                borderThickness, borderColor, (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
 
-        final Group groupA3 = new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f)));
-        {
-            groupA3.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupA3.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            groupA3.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            groupA3.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-        }
-        groupA3.setBorder(borderThickness).setBorderColor(borderColor);
-        groupA3.scale(sxy, sxy, 1);
-        groupA3.setInteractive(true);
-        groupA3.validate(reqGLP);
-        groupA3.moveTo(sceneBox.getLow()).move(nextXPos, nextYTop-groupA3.getScaledHeight(), 0);
-        System.err.println("Group-A3 "+groupA3);
-        System.err.println("Group-A3 Layout "+groupA3.getLayout());
-        groupA3.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        scene.addShape(groupA3);
-        nextXPos += groupA3.getScaledWidth() * 1.1f;
-        if( reLayout ) {
-            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
-            groupA3.markShapeDirty();
-            groupA3.validate(reqGLP);
-            System.err.println("Group-A3.2 "+groupA3);
-            System.err.println("Group-A3 Layout.2 "+groupA3.getLayout());
-            groupA3.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f))),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 14,
+                borderThickness, borderColor, (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
 
-        final Group groupA4 = new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f)));
-        {
-            groupA4.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupA4.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            groupA4.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            groupA4.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupA4.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f))),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 15,
+                borderThickness, borderColor, (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
-        groupA4.setBorder(borderThickness).setBorderColor(borderColor);
-        groupA4.scale(sxy, sxy, 1);
-        groupA4.setInteractive(true);
-        groupA4.validate(reqGLP);
-        groupA4.moveTo(sceneBox.getLow()).move(nextXPos, nextYTop-groupA4.getScaledHeight(), 0);
-        System.err.println("Group-A4 "+groupA4);
-        System.err.println("Group-A4 Layout "+groupA4.getLayout());
-        groupA4.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        scene.addShape(groupA4);
-        nextXPos += groupA4.getScaledWidth() * 1.1f;
-        if( reLayout ) {
-            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
-            groupA4.markShapeDirty();
-            groupA4.validate(reqGLP);
-            System.err.println("Group-A4.2 "+groupA4);
-            System.err.println("Group-A4 Layout.2 "+groupA4.getLayout());
-            groupA4.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+
+        //
+        //
+        // next line
+        nextPos.set(0, nextPos.y() + sceneBox.getHeight()/3f, 0 );
+
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f))),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 21,
+                sxy*borderThickness, borderColor, (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
+        }
+
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.FillCenter, new Gap(0.10f), new Padding(0.05f))),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 22,
+                borderThickness, borderColor, (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
+        }
+
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.FillCenter, new Gap(0.10f), new Padding(0.05f))),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 23,
+                borderThickness, borderColor, (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
+        }
+
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f), new Padding(0.05f))),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 24,
+                borderThickness, borderColor, (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
 
         // next line
-        nextXPos = 0;
-        nextYTop = 2f*sceneBox.getHeight()/3f;
+        nextPos.set(0, nextPos.y() + sceneBox.getHeight()/3f, 0 );
 
-        final Group groupB0 = new Group(new GridLayout(2, sxy, sxy/2f, Alignment.Fill, new Gap(sxy*0.10f)));
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(2, 0, 0, Alignment.Fill, new Gap(0.03f))),
+                reqGLP, scene, zEps,
+                2*sxy, nextPos, cellGap,
+                font, 31,
+                borderThickness, borderColor, (final Group gp) -> {
+                    final Group glyphGrid = new Group(new GridLayout(2, 0.3f, 0.3f, Alignment.Fill, new Gap(0.3f * 0.10f)));
+                    glyphGrid.addShape( new Button(options.renderModes, font, "0.0", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    glyphGrid.addShape( new Button(options.renderModes, font, "0.1", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    glyphGrid.addShape( new Button(options.renderModes, font, "1.0", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    glyphGrid.addShape( new Button(options.renderModes, font, "1.1", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape(glyphGrid.setBorder(borderThickness));
+
+                    final Group infoGrid = new Group(new GridLayout(1, 1/4f, 1/2.2f, Alignment.Fill, new Gap(0.02f)));
+                    // final Group glyphView = new Group();
+                    // glyphView.addShape(new Rectangle(options.renderModes, 1f, 1f, 0.005f).setInteractive(false));
+                    // glyphView.addShape(new Button(options.renderModes, font, "S", 1f, 1f).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    // infoGrid.addShape(glyphView.setBorder(borderThickness));
+                    infoGrid.addShape(new Button(options.renderModes, font, " S ", 1/2f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+
+                    // final Group infoView = new Group();
+                    // infoView.addShape(new Button(options.renderModes, font, "Info", 1f, 1f).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    // infoGrid.addShape(infoView.setBorder(borderThickness));
+                    infoGrid.addShape(new Button(options.renderModes, font, " Info ", 1/2f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape(infoGrid.setBorder(borderThickness));
+                    // groupC0.addShape(new Button(options.renderModes, font, "S", 1/4f, 0.5f).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
+        }
+
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(2, 1, 1/2f, Alignment.Center, new Gap(0.10f), new Padding(0.05f))),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 32,
+                borderThickness, borderColor, (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1/2f, 1/4.1f, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1/2f, 1/4.1f, zEps).setPerp().setBorder(sxy*borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1/2f, 1/4.1f, zEps).setPerp().setBorder(sxy*borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c2", 1/2f, 1/4.1f, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1/2f, 1/4.1f, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
+        }
         {
-            groupB0.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupB0.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            groupB0.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            groupB0.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupB0.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-        }
-        groupB0.setBorder(sxy*borderThickness).setBorderColor(borderColor);
-        // groupB0.scale(2*sxy, 2*sxy, 1);
-        groupB0.setInteractive(true);
-        groupB0.validate(reqGLP);
-        groupB0.moveTo(sceneBox.getLow()).move(nextXPos, nextYTop-groupB0.getScaledHeight(), 0);
-        System.err.println("Group-B0 "+groupB0);
-        System.err.println("Group-B0 Layout "+groupB0.getLayout());
-        groupB0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        scene.addShape(groupB0);
-        nextXPos += groupB0.getScaledWidth() * 1.1f;
-        if( reLayout ) {
-            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
-            groupB0.markShapeDirty();
-            groupB0.validate(reqGLP);
-            System.err.println("Group-B0.2 "+groupB0);
-            System.err.println("Group-B0 Layout.2 "+groupB0.getLayout());
-            groupB0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        }
+            final AABBox sceneDim = scene.getBounds();
+            final String text = " Press group description to magnify! ";
+            final AABBox textDim = font.getGlyphBounds(text, new AffineTransform(), new AffineTransform());
+            final float l_sxy = 1/4f * sceneDim.getWidth() / textDim.getWidth();
 
-        final Group groupB1 = new Group(new GridLayout(2, sxy, sxy/2f, Alignment.FillCenter, new Gap(sxy*0.10f)));
-        {
-            final Padding p = new Padding(0.05f);
-            groupB1.addShape( new Button(options.renderModes, font, "ro co", 1, 1/2f).setCorner(0f).setPaddding(p).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupB1.addShape( new Button(options.renderModes, font, "r1 c2", 1, 1/2f).setCorner(0f).setPaddding(p).setBorder(borderThickness).setDragAndResizeable(false) );
-            groupB1.addShape( new Button(options.renderModes, font, "r2 c1", 1, 1/2f).setCorner(0f).setPaddding(p).setBorder(borderThickness).setDragAndResizeable(false) );
-            groupB1.addShape( new Button(options.renderModes, font, "r2 c2", 1, 1/2f).setCorner(0f).setPaddding(p).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupB1.addShape( new Button(options.renderModes, font, "r3 c1", 1, 1/2f).setCorner(0f).setPaddding(p).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-        }
-        groupB1.setBorder(sxy*borderThickness).setBorderColor(borderColor);
-        // groupB1.scale(2*sxy, 2*sxy, 1);
-        groupB1.setInteractive(true);
-        groupB1.validate(reqGLP);
-        groupB1.moveTo(sceneBox.getLow()).move(nextXPos, nextYTop-groupB1.getScaledHeight(), 0);
-        System.err.println("Group-B1 "+groupB1);
-        System.err.println("Group-B1 Layout "+groupB1.getLayout());
-        groupB1.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        scene.addShape(groupB1);
-        nextXPos += groupB1.getScaledWidth() * 1.1f;
-        if( reLayout ) {
-            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
-            groupB1.markShapeDirty();
-            groupB1.validate(reqGLP);
-            System.err.println("Group-B1.2 "+groupB1);
-            System.err.println("Group-B1 Layout.2 "+groupB1.getLayout());
-            groupB1.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        }
-
-        final Group groupB2 = new Group(new GridLayout(2, sxy, sxy/2f, Alignment.FillCenter, new Gap(sxy*0.10f)));
-        {
-            final Padding p = new Padding(sxy/2f*0.05f);
-            groupB2.addShape( new Button(options.renderModes, font, "ro co", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy/2f*borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupB2.addShape( new Button(options.renderModes, font, "r1 c2", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy/2f*borderThickness).setDragAndResizeable(false) );
-            groupB2.addShape( new Button(options.renderModes, font, "r2 c1", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy/2f*borderThickness).setDragAndResizeable(false) );
-            groupB2.addShape( new Button(options.renderModes, font, "r2 c2", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy/2f*borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupB2.addShape( new Button(options.renderModes, font, "r3 c1", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy/2f*borderThickness).addMouseListener(dragZoomRotateListener) );
-        }
-        groupB2.setBorder(sxy*borderThickness).setBorderColor(borderColor);
-        // groupB2.scale(2*sxy, 2*sxy, 1);
-        groupB2.setInteractive(true);
-        groupB2.validate(reqGLP);
-        groupB2.moveTo(sceneBox.getLow()).move(nextXPos, nextYTop-groupB2.getScaledHeight(), 0);
-        System.err.println("Group-B2 "+groupB2);
-        System.err.println("Group-B2 Layout "+groupB2.getLayout());
-        groupB2.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        scene.addShape(groupB2);
-        nextXPos += groupB2.getScaledWidth() * 1.1f;
-        if( reLayout ) {
-            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
-            groupB2.markShapeDirty();
-            groupB2.validate(reqGLP);
-            System.err.println("Group-B2.2 "+groupB2);
-            System.err.println("Group-B2 Layout.2 "+groupB2.getLayout());
-            groupB2.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        }
-
-        final Group groupB3 = new Group(new GridLayout(2, sxy, sxy/2f, Alignment.Fill, new Gap(sxy*0.10f)));
-        {
-            final Padding p = new Padding(sxy/2f*0.05f);
-            groupB3.addShape( new Button(options.renderModes, font, "ro co", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy/2f*borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupB3.addShape( new Button(options.renderModes, font, "r1 c2", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy/2f*borderThickness).setDragAndResizeable(false) );
-            groupB3.addShape( new Button(options.renderModes, font, "r2 c1", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy/2f*borderThickness).setDragAndResizeable(false) );
-            groupB3.addShape( new Button(options.renderModes, font, "r2 c2", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy/2f*borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupB3.addShape( new Button(options.renderModes, font, "r3 c1", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy/2f*borderThickness).addMouseListener(dragZoomRotateListener) );
-        }
-        groupB3.setBorder(sxy*borderThickness).setBorderColor(borderColor);
-        // groupB3.scale(2*sxy, 2*sxy, 1);
-        groupB3.setInteractive(true);
-        groupB3.validate(reqGLP);
-        groupB3.moveTo(sceneBox.getLow()).move(nextXPos, nextYTop-groupB3.getScaledHeight(), 0);
-        System.err.println("Group-B3 "+groupB3);
-        System.err.println("Group-B3 Layout "+groupB3.getLayout());
-        groupB3.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        scene.addShape(groupB3);
-        nextXPos += groupB3.getScaledWidth() * 1.1f;
-        if( reLayout ) {
-            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
-            groupB3.markShapeDirty();
-            groupB3.validate(reqGLP);
-            System.err.println("Group-B3.2 "+groupB3);
-            System.err.println("Group-B3 Layout.2 "+groupB3.getLayout());
-            groupB3.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        }
-
-        // next line
-        nextXPos = 0;
-        nextYTop = sceneBox.getHeight()/3f;
-
-        final Group groupC0 = new Group(new GridLayout(2, 0, 0, Alignment.Fill, new Gap(0.03f)));
-        {
-            final Group glyphGrid = new Group(new GridLayout(2, 0.3f, 0.3f, Alignment.Fill, new Gap(0.3f * 0.10f)));
-            glyphGrid.addShape( new Button(options.renderModes, font, "0.0", 1f, 1f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            glyphGrid.addShape( new Button(options.renderModes, font, "0.1", 1f, 1f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            glyphGrid.addShape( new Button(options.renderModes, font, "1.0", 1f, 1f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            glyphGrid.addShape( new Button(options.renderModes, font, "1.1", 1f, 1f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            groupC0.addShape(glyphGrid.setBorder(borderThickness));
-
-            final Group infoGrid = new Group(new GridLayout(1, 1/4f, 1/2f, Alignment.Fill, new Gap(0.02f)));
-            // final Group glyphView = new Group();
-            // glyphView.addShape(new Rectangle(options.renderModes, 1f, 1f, 0.005f).setInteractive(false));
-            // glyphView.addShape(new Button(options.renderModes, font, "S", 1f, 1f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            // infoGrid.addShape(glyphView.setBorder(borderThickness));
-            infoGrid.addShape(new Button(options.renderModes, font, " S ", 1/2f, 1f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-
-            // final Group infoView = new Group();
-            // infoView.addShape(new Button(options.renderModes, font, "Info", 1f, 1f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            // infoGrid.addShape(infoView.setBorder(borderThickness));
-            infoGrid.addShape(new Button(options.renderModes, font, " Info ", 1/2f, 1f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-            groupC0.addShape(infoGrid.setBorder(borderThickness));
-            // groupC0.addShape(new Button(options.renderModes, font, "S", 1/4f, 0.5f).setCorner(0f).setBorder(borderThickness).setDragAndResizeable(false) );
-        }
-        groupC0.setBorder(sxy*borderThickness).setBorderColor(borderColor);
-        groupC0.scale(2*sxy, 2*sxy, 1);
-        groupC0.setInteractive(true);
-        groupC0.validate(reqGLP);
-        groupC0.moveTo(sceneBox.getLow()).move(nextXPos, nextYTop-groupC0.getScaledHeight(), 0);
-        System.err.println("Group-C0 "+groupC0);
-        System.err.println("Group-C0 Layout "+groupC0.getLayout());
-        groupC0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        scene.addShape(groupC0);
-        nextXPos += groupC0.getScaledWidth() * 1.1f;
-        if( reLayout ) {
-            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
-            groupC0.markShapeDirty();
-            groupC0.validate(reqGLP);
-            System.err.println("Group-C0.2 "+groupC0);
-            System.err.println("Group-C0 Layout.2 "+groupC0.getLayout());
-            groupC0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        }
-
-        final Group groupC3 = new Group(new GridLayout(2, sxy, sxy/2f, Alignment.Center, new Gap(sxy*0.10f)));
-        {
-            final Padding p = new Padding(sxy*0.05f);
-            groupC3.addShape( new Button(options.renderModes, font, "ro co", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupC3.addShape( new Button(options.renderModes, font, "r1 c2", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy*borderThickness).setDragAndResizeable(false) );
-            groupC3.addShape( new Button(options.renderModes, font, "r2 c1", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy*borderThickness).setDragAndResizeable(false) );
-            groupC3.addShape( new Button(options.renderModes, font, "r2 c2", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
-            groupC3.addShape( new Button(options.renderModes, font, "r3 c1", sxy/2f, sxy/4f).setCorner(0f).setPaddding(p).setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
-        }
-        groupC3.setBorder(sxy*borderThickness).setBorderColor(borderColor);
-        // groupC3.scale(2*sxy, 2*sxy, 1);
-        groupC3.setInteractive(true);
-        groupC3.validate(reqGLP);
-        groupC3.moveTo(sceneBox.getLow()).move(nextXPos, nextYTop-groupC3.getScaledHeight(), 0);
-        System.err.println("Group-C3 "+groupC3);
-        System.err.println("Group-C3 Layout "+groupC3.getLayout());
-        groupC3.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
-        scene.addShape(groupC3);
-        nextXPos += groupC3.getScaledWidth() * 1.1f;
-        if( reLayout ) {
-            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
-            groupC3.markShapeDirty();
-            groupC3.validate(reqGLP);
-            System.err.println("Group-C3.2 "+groupC3);
-            System.err.println("Group-C3 Layout.2 "+groupC3.getLayout());
-            groupC3.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+            final Shape label = new Label(options.renderModes, font, text).setColor(0, 0, 0, 1).setInteractive(false)
+                                    .scale(l_sxy, l_sxy, 1).moveTo(sceneDim.getLow())
+                                    .move(sceneDim.getWidth() - textDim.getWidth()*l_sxy, sceneDim.getHeight() - textDim.getHeight()*l_sxy, 0);
+            scene.addShape(label);
         }
 
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
@@ -465,4 +358,57 @@ public class UILayoutGrid01 {
             window.destroy();
         }
     }
+
+    static interface GroupMod {
+        void mod(Group group);
+    }
+    static Group setupGroup(final Group g, final GLProfile reqGLP, final Scene scene, final float zEps,
+                            final float sxy, final Vec3f nextPos, final float cellGap,
+                            final Font font, final int id,
+                            final float borderThickness, final Vec4f borderColor, final GroupMod modImpl) {
+        final String suffix = String.format("%2d", id);
+        g.setName(id);
+        final AABBox sceneBox = scene.getBounds();
+        modImpl.mod(g);
+        g.setBorder(borderThickness).setBorderColor(borderColor);
+        g.scale(sxy, sxy, 1);
+        g.setInteractive(true);
+        g.validate(reqGLP);
+        g.moveTo(sceneBox.getLow()).move(nextPos);
+        System.err.println("Group-"+suffix+" "+g);
+        System.err.println("Group-"+suffix+" Layout "+g.getLayout());
+        g.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        scene.addShape(g);
+        {
+            final float X_width = font.getGlyph(font.getGlyphID(' ')).getAdvance();
+            /**
+             * ID 23: G 23, size[total 2.1 x 1.7, cell 1.0 x 0.5]
+             * Padding[t 0.05, r 0.05, b 0.05, l 0.05]
+             * Gap[r 0.1, c 0.1], Align [CenterHoriz, CenterVert, Fill]
+             */
+            final String fixed_text = "Gap[r 0.1, c 0.1], Align [CenterHoriz, CenterVert, Fi";
+            final float l_sxy = g.getScaledWidth() / font.getGlyphBounds(fixed_text, new AffineTransform(), new AffineTransform()).getWidth();
+
+            final GridLayout l = (GridLayout)g.getLayout();
+            final String text = String.format("G %2d, size[total %.1f x %.1f, cell %.1f x %.1f]%n%s%n%s, Align %s",
+                                    id, g.getBounds().getWidth(), g.getBounds().getHeight(), l.getCellSize().x(), l.getCellSize().y(),
+                                    ( null == l.getPadding() || l.getPadding().zeroSumSize() ) ? "Padding none" : l.getPadding().toString(),
+                                    l.getGap().zeroSumSize() ? "Gap none" : l.getGap().toString(),
+                                    l.getAlignment() );
+            final Shape label = new Label(options.renderModes, font, text).setColor(0, 0, 0, 1).validate(reqGLP);
+            label.scale(l_sxy, l_sxy, 1).moveTo(sceneBox.getLow()).move(nextPos).move(l_sxy*X_width, g.getScaledHeight(), 0)
+                .addMouseListener(new Tooltips.ZoomLabelOnClickListener(scene, options.renderModes, 1/6f)).setDragAndResizeable(false);
+            scene.addShape(label);
+        }
+        if( reLayout ) {
+            try { Thread.sleep(reLayoutSleep); } catch (final InterruptedException e1) { }
+            g.markShapeDirty();
+            g.validate(reqGLP);
+            System.err.println("Group-"+suffix+".2 "+g);
+            System.err.println("Group-"+suffix+" Layout.2 "+g.getLayout());
+            g.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        }
+        return g;
+    }
+
 }

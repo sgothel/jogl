@@ -31,16 +31,14 @@ import com.jogamp.opengl.math.FloatUtil;
 
 /**
  * GraphUI CSS property Margin, space between or around elements and not included in the element's size.
- *
+ * <p>
  * The CSS margin properties are used to create space around elements, outside of any defined borders.
- *
- * {@link Margin#CENTER} is mapped to `zero` while earmarking {@link #isCenteredHoriz()} and {@link #isCenteredVert()}.
- * The container must be sized via its layout horizontally and/or vertically matching the centered axis, similar to CSS.
+ * </p>
+ * <p>
+ * Center alignment is defined via {@link Alignment} and {@link Margin} ignored on centered dimension.
+ * </p>
  */
 public class Margin {
-    /** Auto margin value to horizontally and/or vertically center an element within its sized-layout container, value if {@link Float#NaN}. */
-    public static final float CENTER = Float.NaN;
-
     /** Top value */
     public final float top;
     /** Right value */
@@ -49,20 +47,6 @@ public class Margin {
     public final float bottom;
     /** Left value */
     public final float left;
-
-    private final int bits;
-    static private final int CENTER_HORIZ = 1 << 0;
-    static private final int CENTER_VERT  = 1 << 1;
-    static private int getBits(final float top, final float right, final float bottom, final float left) {
-        int b = 0;
-        if( FloatUtil.isEqual(CENTER, left) && FloatUtil.isEqual(CENTER, right) ) {
-            b |= CENTER_HORIZ;
-        }
-        if( FloatUtil.isEqual(CENTER, top) && FloatUtil.isEqual(CENTER, bottom) ) {
-            b |= CENTER_VERT;
-        }
-        return b;
-    }
 
     /**
      * Ctor w/ zero values
@@ -79,105 +63,46 @@ public class Margin {
      * @param left left value
      */
     public Margin(final float top, final float right, final float bottom, final float left) {
-        this.bits = getBits(top, right, bottom, left);
-        if( isCenteredVert() ) {
-            this.top = 0;
-            this.bottom = 0;
-        } else {
-            this.top = top;
-            this.bottom = bottom;
-        }
-        if( isCenteredHoriz() ) {
-            this.right = 0;
-            this.left = 0;
-        } else {
-            this.right = right;
-            this.left = left;
-        }
+        this.top = top;
+        this.bottom = bottom;
+        this.right = right;
+        this.left = left;
     }
 
     /**
      * Ctor
      * @param top top value
-     * @param rl right and left value, use {@link #CENTER} to horizontally center the element in its container
+     * @param rl right and left value
      * @param bottom bottom value
      */
     public Margin(final float top, final float rl, final float bottom) {
-        this.bits = getBits(top, rl, bottom, rl);
-        if( isCenteredVert() ) {
-            this.top = 0;
-            this.bottom = 0;
-        } else {
-            this.top = top;
-            this.bottom = bottom;
-        }
-        if( isCenteredHoriz() ) {
-            this.right = 0;
-            this.left = 0;
-        } else {
-            this.right = rl;
-            this.left = rl;
-        }
+        this.top = top;
+        this.bottom = bottom;
+        this.right = rl;
+        this.left = rl;
     }
 
     /**
      * Ctor
-     * @param tb top and bottom value, use {@link #CENTER} to vertically center the element in its container
-     * @param rl right and left value, use {@link #CENTER} to horizontally center the element in its container
+     * @param tb top and bottom value
+     * @param rl right and left value
      */
     public Margin(final float tb, final float rl) {
-        this.bits = getBits(tb, rl, tb, rl);
-        if( isCenteredVert() ) {
-            this.top = 0;
-            this.bottom = 0;
-        } else {
-            this.top = tb;
-            this.bottom = tb;
-        }
-        if( isCenteredHoriz() ) {
-            this.right = 0;
-            this.left = 0;
-        } else {
-            this.right = rl;
-            this.left = rl;
-        }
+        this.top = tb;
+        this.bottom = tb;
+        this.right = rl;
+        this.left = rl;
     }
 
     /**
      * Ctor
-     * @param trbl top, right, bottom and left value, use {@link #CENTER} to horizontally and vertically center the element in its container.
+     * @param trbl top, right, bottom and left value
      */
     public Margin(final float trbl) {
-        this.bits = getBits(trbl, trbl, trbl, trbl);
-        if( isCenteredVert() ) {
-            this.top = 0;
-            this.bottom = 0;
-        } else {
-            this.top = trbl;
-            this.bottom = trbl;
-        }
-        if( isCenteredHoriz() ) {
-            this.right = 0;
-            this.left = 0;
-        } else {
-            this.right = trbl;
-            this.left = trbl;
-        }
-    }
-
-    /** Returns true if {@link #left} and {@link #right} is {@link #CENTER}. */
-    public boolean isCenteredHoriz() {
-        return 0 != ( CENTER_HORIZ & bits );
-    }
-
-    /** Returns true if {@link #top} and {@link #bottom} is {@link #CENTER}. */
-    public boolean isCenteredVert() {
-        return 0 != ( CENTER_VERT & bits );
-    }
-
-    /** Returns true if {@link #isCenteredHoriz()} and {@link #isCenteredVert()} is true, i.e. for horizontal and vertical center. */
-    public boolean isCentered() {
-        return 0 != ( ( CENTER_VERT | CENTER_HORIZ ) & bits );
+        this.top = trbl;
+        this.bottom = trbl;
+        this.right = trbl;
+        this.left = trbl;
     }
 
     /** Return width of horizontal values top + right. Zero if {@link #isCenteredHoriz()}. */
@@ -193,5 +118,5 @@ public class Margin {
     public boolean zeroSumSize() { return zeroSumWidth() && zeroSumHeight(); }
 
     @Override
-    public String toString() { return "Margin[t "+top+", r "+right+", b "+bottom+", l "+left+", ctr[h "+isCenteredHoriz()+", v "+isCenteredVert()+"]]"; }
+    public String toString() { return "Margin[t "+top+", r "+right+", b "+bottom+", l "+left+"]"; }
 }

@@ -55,6 +55,9 @@ import jogamp.graph.ui.TreeTool;
 public class Group extends Shape implements Container {
     /** Layout for the GraphUI {@link Group}, called @ {@link Shape#validate(GL2ES2)} or {@link Shape#validate(GLProfile)}.  */
     public static interface Layout {
+        /** Prepare given {@link Shape} before {@link Shape#validate(GL2ES2) validation}, e.g. {@link Shape#setPaddding(Padding)}. */
+        void preValidate(final Shape s);
+
         /**
          * Performing the layout of {@link Group#getShapes()}, called @ {@link Shape#validate(GL2ES2)} or {@link Shape#validate(GLProfile)}.
          * <p>
@@ -241,6 +244,7 @@ public class Group extends Shape implements Container {
             final PMVMatrix pmv = new PMVMatrix();
             if( null != layouter ) {
                 for(final Shape s : shapes) {
+                    layouter.preValidate(s);
                     if( null != gl ) {
                         s.validate(gl);
                     } else {

@@ -338,6 +338,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.graph.curve.Instance -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.triangulation.LINE_AA -Djogl.debug.graph.curve.Triangulation -Djogl.debug.graph.font.Renderer"
+    #D_ARGS="-Djogl.debug.graph.font.Font"
     #D_ARGS="-Djogl.debug.graph.font.Font -Djogl.debug.graph.font.Renderer -Djogl.debug.graph.font.Renderer.Code"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.vbaa.resizeLowerBoundary=100"
     #D_ARGS="-Djogl.debug.GLSLCode"
@@ -1007,8 +1008,8 @@ function testawtswt() {
 #testawt com.jogamp.opengl.demos.es2.GearsES2 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIGraphDemoU01a $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutGrid01 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutBox01 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutBox01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
