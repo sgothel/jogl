@@ -374,6 +374,27 @@ public final class Scene implements Container, GLEventListener {
     }
 
     /**
+     * Enqueues a one-shot {@link GLRunnable},
+     * which will be executed within the next {@link GLAutoDrawable#display()} call
+     * if this {@link Scene} has been added as a {@link GLEventListener} and {@link #init(GLAutoDrawable)} has been called.
+     * <p>
+     * See {@link GLAutoDrawable#invoke(boolean, GLRunnable)}.
+     * </p>
+     *
+     * @param wait if <code>true</code> block until execution of <code>glRunnable</code> is finished, otherwise return immediately w/o waiting
+     * @param glRunnable the {@link GLRunnable} to execute within {@link #display()}
+     * @return <code>true</code> if the {@link GLRunnable} has been processed or queued, otherwise <code>false</code>.
+     * @throws IllegalStateException in case of a detected deadlock situation ahead, see above.
+     * @see GLAutoDrawable#invoke(boolean, GLRunnable)
+     */
+    public boolean invoke(final boolean wait, final GLRunnable glRunnable) throws IllegalStateException  {
+        if( null != cDrawable ) {
+            return cDrawable.invoke(wait, glRunnable);
+        }
+        return false;
+    }
+
+    /**
      * Reshape scene using {@link #setupMatrix(PMVMatrix, int, int, int, int)} using {@link PMVMatrixSetup}.
      * <p>
      * {@inheritDoc}
