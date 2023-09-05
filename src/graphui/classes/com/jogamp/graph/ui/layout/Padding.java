@@ -31,8 +31,9 @@ import com.jogamp.opengl.math.FloatUtil;
 
 /**
  * GraphUI CSS property Padding, space belonging to the element and included in the element's size.
- *
+ * <p>
  * The CSS padding properties are used to generate space around an element's content, inside of any defined borders.
+ * </p>
  */
 public class Padding {
     /** Top value */
