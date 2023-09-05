@@ -346,11 +346,29 @@ public abstract class Shape {
 
     /**
      * Set scale factor to given scale.
+     * @see #scale(Vec3f)
+     * @see #getScale()
+     */
+    public final Shape setScale(final Vec3f s) {
+        scale.set(s);
+        return this;
+    }
+    /**
+     * Set scale factor to given scale.
      * @see #scale(float, float, float)
      * @see #getScale()
      */
     public final Shape setScale(final float sx, final float sy, final float sz) {
         scale.set(sx, sy, sz);
+        return this;
+    }
+    /**
+     * Multiply current scale factor by given scale.
+     * @see #setScale(Vec3f)
+     * @see #getScale()
+     */
+    public final Shape scale(final Vec3f s) {
+        scale.scale(s);
         return this;
     }
     /**
@@ -1078,8 +1096,8 @@ public abstract class Shape {
             rotateS = "";
         }
         final String ps = hasPadding() ? padding.toString()+", " : "";
-        final String bs = hasBorder() ? "Border "+getBorderThickness()+", " : "";
-        return getDirtyString()+", enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+
+        final String bs = hasBorder() ? "border[l "+getBorderThickness()+", c "+getBorderColor()+"], " : "";
+        return getDirtyString()+", id "+name+", enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+
                "], able[iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
                "], pos["+position+"], "+pivotS+scaleS+rotateS+
                 ps+bs+"box"+box;
