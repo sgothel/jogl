@@ -407,7 +407,7 @@ public abstract class Shape {
         }
     }
 
-    protected final boolean isShapeDirty() {
+    protected boolean isShapeDirty() {
         return 0 != ( dirty & DIRTY_SHAPE ) ;
     }
     protected final boolean isStateDirty() {

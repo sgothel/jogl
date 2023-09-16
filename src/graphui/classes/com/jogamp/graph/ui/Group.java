@@ -238,6 +238,19 @@ public class Group extends Shape implements Container {
     }
 
     @Override
+    protected boolean isShapeDirty() {
+        // Deep dirty state update:
+        // - Ensure all group member's dirty state is updated
+        // - Allowing all group member's validate to function
+        for(final Shape s : shapes) {
+            if( s.isShapeDirty() ) {
+                markShapeDirty();
+            }
+        }
+        return super.isShapeDirty();
+    }
+
+    @Override
     protected void validateImpl(final GLProfile glp, final GL2ES2 gl) {
         if( isShapeDirty() ) {
             // box has been reset
