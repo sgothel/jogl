@@ -82,6 +82,18 @@ public class GlyphShape extends GraphShape {
     /**
      * Creates a new GlyphShape
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     * @param symbol the represented character
+     * @param glyph the {@link Font.Glyph}
+     * @param pos the intended unscaled Vec3f position of this Glyph, e.g. if part of a string - otherwise use zero.
+     * @see #processString(List, int, Font, String)
+     */
+    public GlyphShape(final int renderModes, final char symbol, final Glyph glyph, final Vec3f pos) {
+        this(renderModes, symbol, glyph, pos.x(), pos.y());
+    }
+
+    /**
+     * Creates a new GlyphShape
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param font the {@link Font} to lookup the symbol's {@link Font.Glyph}
      * @param symbol the represented character
      * @param x the intended unscaled X position of this Glyph, e.g. if part of a string - otherwise use zero.
@@ -89,6 +101,11 @@ public class GlyphShape extends GraphShape {
      */
     public GlyphShape(final int renderModes, final Font font, final char symbol, final float x, final float y) {
         this(renderModes, symbol, font.getGlyph( font.getGlyphID(symbol) ), x, y);
+    }
+
+    /** GlyphShape copy-ctor */
+    public GlyphShape(final GlyphShape orig) {
+        this(orig.renderModes, orig.symbol, orig.glyph, orig.origPos);
     }
 
     /** Returns the char symbol to be rendered. */
