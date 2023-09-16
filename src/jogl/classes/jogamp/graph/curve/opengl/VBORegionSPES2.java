@@ -138,7 +138,9 @@ public final class VBORegionSPES2 extends GLRegion {
         final boolean updateLocLocal = !sp.equals(spPass1);
         spPass1 = sp;
         if( DEBUG ) {
-            System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+            if( DEBUG_ALL_EVENT || updateLocLocal || updateLocGlobal ) {
+                System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+            }
         }
         if( updateLocLocal ) {
             rs.updateAttributeLoc(gl, true, gca_VerticesAttr, throwOnError);

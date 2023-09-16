@@ -61,9 +61,11 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  */
 public abstract class Region {
 
+    public static final boolean DEBUG_ALL_EVENT = Debug.debugExplicit("graph.curve.AllEvent");
+    public static final boolean DEBUG_INSTANCE = Debug.debugExplicit("graph.curve.Instance");
+
     /** Debug flag for [com.]jogamp.graph.curve.* incl. Region (graph.curve) */
-    public static final boolean DEBUG = Debug.debug("graph.curve");
-    public static final boolean DEBUG_INSTANCE = Debug.debug("graph.curve.Instance");
+    public static final boolean DEBUG = DEBUG_ALL_EVENT || Debug.debug("graph.curve");
 
     /**
      * Rendering-Mode bit for {@link #getRenderModes() Region}

@@ -208,7 +208,9 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
             updateLocLocal = !sp.equals(spPass1);
             spPass1 = sp;
             if( DEBUG ) {
-                System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+                if( DEBUG_ALL_EVENT || updateLocLocal || updateLocGlobal ) {
+                    System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+                }
             }
             if( updateLocLocal ) {
                 rs.updateAttributeLoc(gl, true, gca_VerticesAttr, true);
@@ -229,7 +231,9 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
             updateLocLocal = !sp.equals(spPass2);
             spPass2 = sp;
             if( DEBUG ) {
-                System.err.println("XXX changedSP.p2 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+                if( DEBUG_ALL_EVENT || updateLocLocal || updateLocGlobal ) {
+                    System.err.println("XXX changedSP.p2 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+                }
             }
             if( updateLocLocal ) {
                 rs.updateAttributeLoc(gl, true, gca_FboVerticesAttr, true);

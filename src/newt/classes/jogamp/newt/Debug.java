@@ -69,7 +69,11 @@ public class Debug extends PropertyAccess {
     return debugAll;
   }
 
+  public static final boolean debugExplicit(final String subcomponent) {
+    return isPropertyDefined("newt.debug." + subcomponent, true);
+  }
+
   public static final boolean debug(final String subcomponent) {
-    return debugAll() || isPropertyDefined("newt.debug." + subcomponent, true);
+    return debugAll() || debugExplicit(subcomponent);
   }
 }

@@ -81,7 +81,7 @@ import com.jogamp.common.os.Platform;
  * </p>
  */
 public final class FloatUtil {
-  public static final boolean DEBUG = Debug.debug("Math");
+  public static final boolean DEBUG = Debug.debugExplicit("Math");
 
   //
   // Matrix Ops

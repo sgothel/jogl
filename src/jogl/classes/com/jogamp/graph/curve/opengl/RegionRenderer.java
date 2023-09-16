@@ -65,6 +65,7 @@ import com.jogamp.graph.curve.Region;
  */
 public final class RegionRenderer {
     protected static final boolean DEBUG = Region.DEBUG;
+    protected static final boolean DEBUG_ALL_EVENT = Region.DEBUG_ALL_EVENT;
     protected static final boolean DEBUG_INSTANCE = Region.DEBUG_INSTANCE;
 
     /**
@@ -560,7 +561,7 @@ public final class RegionRenderer {
             if( DEBUG ) {
                 if( spChanged ) {
                     System.err.printf("RegionRendererImpl01.useShaderProgram.X1: GOT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (changed)%n", Region.getRenderModeString(renderModes), sel1, shaderKey, sp.program(), sp.id());
-                } else {
+                } else if( DEBUG_ALL_EVENT ) {
                     System.err.printf("RegionRendererImpl01.useShaderProgram.X1: GOT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (keep)%n", Region.getRenderModeString(renderModes), sel1, shaderKey, sp.program(), sp.id());
                 }
             }

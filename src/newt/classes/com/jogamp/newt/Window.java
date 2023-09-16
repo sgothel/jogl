@@ -113,8 +113,8 @@ import com.jogamp.nativewindow.util.SurfaceSize;
  * </p>
  */
 public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSurface {
-    public static final boolean DEBUG_MOUSE_EVENT = Debug.debug("Window.MouseEvent");
-    public static final boolean DEBUG_KEY_EVENT = Debug.debug("Window.KeyEvent");
+    public static final boolean DEBUG_MOUSE_EVENT = Debug.debugExplicit("Window.MouseEvent");
+    public static final boolean DEBUG_KEY_EVENT = Debug.debugExplicit("Window.KeyEvent");
     public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
 
     /** A 1s timeout while waiting for a native action response, ie {@link #setVisible(boolean)}. */
