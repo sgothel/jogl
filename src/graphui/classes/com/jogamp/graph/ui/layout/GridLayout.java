@@ -113,6 +113,17 @@ public class GridLayout implements Group.Layout {
      * @param cellWidth
      * @param cellHeight
      * @param alignment TODO
+     * @param row_limit [1..inf)
+     */
+    public GridLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final int row_limit) {
+        this(alignment, -1, Math.max(1, row_limit), cellWidth, cellHeight, new Gap(), null);
+    }
+
+    /**
+     * Default layout order of {@link Group#getShapes()}} is {@link Order#ROW}.
+     * @param cellWidth
+     * @param cellHeight
+     * @param alignment TODO
      * @param gap {@link Gap} is applied unscaled
      * @param row_limit [1..inf)
      */
@@ -170,7 +181,6 @@ public class GridLayout implements Group.Layout {
 
     @Override
     public void layout(final Group g, final AABBox box, final PMVMatrix pmv) {
-        final Vec3f zeroVec3 = new Vec3f();
         final boolean hasCellWidth = !FloatUtil.isZero(cellSize.x());
         final boolean hasCellHeight = !FloatUtil.isZero(cellSize.y());
         final boolean isCenteredHoriz = hasCellWidth && alignment.isSet(Alignment.Bit.CenterHoriz);
@@ -185,7 +195,7 @@ public class GridLayout implements Group.Layout {
             col_count = (int) Math.ceil( (double)shapes.size() / (double)row_limit );
         }
         if( TRACE_LAYOUT ) {
-            System.err.println("gl.00: "+order+", "+col_count+" x "+row_count+", a "+alignment+", shapes "+shapes.size()+", "+gap);
+            System.err.println("gl.00: "+order+", "+col_count+" x "+row_count+", a "+alignment+", shapes "+shapes.size()+", "+gap+", "+box);
         }
         int col_i = 0, row_i = 0;
         float x=0, y=0;

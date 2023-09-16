@@ -172,7 +172,6 @@ public class BoxLayout implements Group.Layout {
 
     @Override
     public void layout(final Group g, final AABBox box, final PMVMatrix pmv) {
-        final Vec3f zeroVec3 = new Vec3f();
         final boolean hasCellWidth = !FloatUtil.isZero(cellSize.x());
         final boolean hasCellHeight = !FloatUtil.isZero(cellSize.y());
         final boolean isCenteredHoriz = hasCellWidth && alignment.isSet(Alignment.Bit.CenterHoriz);
