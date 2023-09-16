@@ -253,10 +253,16 @@ public class Group extends Shape implements Container {
     @Override
     protected void validateImpl(final GLProfile glp, final GL2ES2 gl) {
         if( isShapeDirty() ) {
+            final boolean needsRMs = hasBorder() && null == border;
+            GraphShape firstGS = null;
+
             // box has been reset
             final PMVMatrix pmv = new PMVMatrix();
             if( null != layouter ) {
                 for(final Shape s : shapes) {
+                    if( needsRMs && null == firstGS && s instanceof GraphShape ) {
+                        firstGS = (GraphShape)s;
+                    }
                     layouter.preValidate(s);
                     if( null != gl ) {
                         s.validate(gl);
@@ -268,6 +274,9 @@ public class Group extends Shape implements Container {
             } else {
                 final AABBox tsbox = new AABBox();
                 for(final Shape s : shapes) {
+                    if( needsRMs && null == firstGS && s instanceof GraphShape ) {
+                        firstGS = (GraphShape)s;
+                    }
                     if( null != gl ) {
                         s.validate(gl);
                     } else {
@@ -290,7 +299,9 @@ public class Group extends Shape implements Container {
             }
             if( hasBorder() ) {
                 if( null == border ) {
-                    border = new Rectangle(Region.VBAA_RENDERING_BIT, box, getBorderThickness());
+                    final int firstRMs = null != firstGS ? firstGS.getRenderModes() : 0;
+                    final int myRMs = Region.isVBAA(firstRMs) ? Region.VBAA_RENDERING_BIT : 0;
+                    border = new Rectangle(myRMs, box, getBorderThickness());
                 } else {
                     border.setEnabled(true);
                     border.setBounds(box, getBorderThickness());
