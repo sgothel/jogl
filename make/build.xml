@@ -14,7 +14,7 @@
 
     <target name="all.but-archives" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,build.graphui,build.oculusvr,one.dir,tag.build,test.compile" />
 
-    <target name="all.but-onejar" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,build.graphui,build.oculusvr,test.compile" />
+    <target name="all.but-onejar" description="Build nativewindow, jogl and newt projects, incl. all junit tests " depends="init,build.nativewindow,build.jogl,build.newt,build.graphui,build.oculusvr,one.dir.skip.check,one.lib.dir,test.compile" />
 
     <target name="all.ide" description="Debug IDE build nativewindow, jogl and newt projects, including all junit tests, but don't tag the build or create archives" depends="init.debug,build.nativewindow,build.jogl,build.newt,build.graphui,build.oculusvr,one.dir,test.compile" />
 
