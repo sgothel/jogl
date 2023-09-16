@@ -55,14 +55,14 @@ public final class Alignment {
         /** Top alignment. */
         Top ( ( 1 << 3 ) ),
 
+        /** Scale object to parent size, e.g. fill {@link GridLayout} or {@link BoxLayout} cell size. */
+        Fill ( ( 1 << 4 ) ),
+
         /** Horizontal center alignment. */
-        CenterHoriz ( ( 1 << 4 ) ),
+        CenterHoriz ( ( 1 << 5 ) ),
 
         /** Vertical center alignment. */
-        CenterVert ( ( 1 << 5 ) ),
-
-        /** Scale object to parent size, e.g. fill {@link GridLayout} or {@link BoxLayout} cell size. */
-        Fill ( ( 1 << 15 ) );
+        CenterVert ( ( 1 << 6 ) );
 
         Bit(final int v) { value = v; }
         public final int value;

@@ -44,8 +44,9 @@ import com.jogamp.opengl.util.PMVMatrix;
  * <ul>
  *   <li>Optionally centered {@link Alignment.Bit#CenterHoriz horizontally}, {@link Alignment.Bit#CenterVert vertically} or {@link Alignment#Center both}.</li>
  *   <li>Optionally scaled to cell-size if given and {@link Alignment#Fill}</li>
- *   <li>Padding is applied to each {@Shape} via {@link Shape#setPaddding(Padding)} if passed in constructor</li>
- *   <li>Without cell-size behaves like a grid bag using individual shape sizes including padding</li>
+ *   <li>{@link Padding} is applied to each {@Shape} via {@link Shape#setPaddding(Padding)} if passed in constructor and is scaled if {@link Alignment.Bit#Fill}</li>
+ *   <li>Without cell-size behaves like a grid bag using individual shape sizes including {@link Padding}</li>
+ *   <li>{@link Gap} is applied unscaled if used.</li>
  *   <li>Can be filled in {@link Order#COLUMN} or {@link Order#ROW} major-order.</li>
  *   <li>Not implemented {@link Alignment}: {@link Alignment.Bit#Top Top}, {@link Alignment.Bit#Right Right}, {@link Alignment.Bit#Bottom Bottom}, {@link Alignment.Bit#Left Left}</li>
  *   <li>..</li>
@@ -66,7 +67,7 @@ public class GridLayout implements Group.Layout {
     private final Vec2f cellSize;
     private final Alignment alignment;
     private final Gap gap;
-    private final Padding padding;
+    private final Padding padding; // scaled!
     private int row_count, col_count;
 
     private static final boolean TRACE_LAYOUT = false;
@@ -88,7 +89,7 @@ public class GridLayout implements Group.Layout {
      * @param cellWidth
      * @param cellHeight
      * @param alignment TODO
-     * @param gap
+     * @param gap {@link Gap} is applied unscaled
      */
     public GridLayout(final int column_limit, final float cellWidth, final float cellHeight, final Alignment alignment, final Gap gap) {
         this(alignment, Math.max(1, column_limit), -1, cellWidth, cellHeight, gap, null);
@@ -100,8 +101,8 @@ public class GridLayout implements Group.Layout {
      * @param cellWidth
      * @param cellHeight
      * @param alignment TODO
-     * @param gap
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)}
+     * @param gap {@link Gap} is applied unscaled
+     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public GridLayout(final int column_limit, final float cellWidth, final float cellHeight, final Alignment alignment, final Gap gap, final Padding padding) {
         this(alignment, Math.max(1, column_limit), -1, cellWidth, cellHeight, gap, padding);
@@ -112,7 +113,7 @@ public class GridLayout implements Group.Layout {
      * @param cellWidth
      * @param cellHeight
      * @param alignment TODO
-     * @param gap
+     * @param gap {@link Gap} is applied unscaled
      * @param row_limit [1..inf)
      */
     public GridLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Gap gap, final int row_limit) {
@@ -124,8 +125,8 @@ public class GridLayout implements Group.Layout {
      * @param cellWidth
      * @param cellHeight
      * @param alignment TODO
-     * @param gap
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)}
+     * @param gap {@link Gap} is applied unscaled
+     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      * @param row_limit [1..inf)
      */
     public GridLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Gap gap, final Padding padding, final int row_limit) {
@@ -205,11 +206,11 @@ public class GridLayout implements Group.Layout {
             pmv.glPopMatrix();
             final AABBox sbox = sboxes[i];
 
+            final float shapeWidthU  = sbox.getWidth();
+            final float shapeHeightU = sbox.getHeight();
             final float sxy;
             if( isScaled ) {
                 // scaling to cell size
-                final float shapeWidthU = sbox.getWidth();
-                final float shapeHeightU = sbox.getHeight();
                 final float cellWidthU = hasCellWidth ? cellSize.x() : shapeWidthU;
                 final float cellHeightU = hasCellHeight ? cellSize.y() : shapeHeightU;
                 final float sx = cellWidthU / shapeWidthU;
@@ -218,8 +219,8 @@ public class GridLayout implements Group.Layout {
             } else {
                 sxy = 1;
             }
-            final float shapeWidthS = sxy*sbox.getWidth();
-            final float shapeHeightS = sxy*sbox.getHeight();
+            final float shapeWidthS = sxy * shapeWidthU;
+            final float shapeHeightS = sxy * shapeHeightU;
             final float cellWidthS = hasCellWidth ? cellSize.x() : shapeWidthS;
             final float cellHeightS = hasCellHeight ? cellSize.y() : shapeHeightS;
 
@@ -274,12 +275,12 @@ public class GridLayout implements Group.Layout {
             }
 
             // IF isScaled: Uniform scale w/ lowest axis scale and center position on lower-scale axis
+            final float shapeWidthU = sbox.getWidth();
+            final float shapeHeightU = sbox.getHeight();
             final float sxy;
             float dxh = 0, dyh = 0;
             if( isScaled ) {
                 // scaling to cell size
-                final float shapeWidthU = sbox.getWidth();
-                final float shapeHeightU = sbox.getHeight();
                 final float cellWidth2 = hasCellWidth ? cellSize.x() : shapeWidthU;
                 final float cellHeight2 = hasCellHeight ? cellSize.y() : shapeHeightU;
                 final float sx = cellWidth2 / shapeWidthU;
@@ -293,8 +294,8 @@ public class GridLayout implements Group.Layout {
             } else {
                 sxy = 1;
             }
-            final float shapeWidthS = sxy*sbox.getWidth();
-            final float shapeHeightS = sxy*sbox.getHeight();
+            final float shapeWidthS = sxy * shapeWidthU;
+            final float shapeHeightS = sxy * shapeHeightU;
             final float cellWidthS = hasCellWidth ? cellSize.x() : shapeWidthS;
             final float cellHeightS = hasCellHeight ? cellSize.y() : shapeHeightS;
 
@@ -317,17 +318,11 @@ public class GridLayout implements Group.Layout {
                 s.moveTo( aX, aY, s.getPosition().z() );
 
                 // Remove the bottom-left delta
-                final Vec3f diffBL = new Vec3f();
-                {
-                    final AABBox sbox0 = s.getBounds();
-                    if( !diffBL.set( sbox0.getLow().x(), sbox0.getLow().y(), 0).min( zeroVec3 ).isZero() ) {
-                        // pmv.mulMvMatVec3f(diffBL_).scale(-1f, -1f, 0f);
-                        final Vec3f ss = s.getScale();
-                        diffBL.scale(-1f*ss.x(), -1f*ss.y(), 0f);
-                    }
-                    if( TRACE_LAYOUT ) {
-                        System.err.println("gl("+i+")["+col_i+"]["+row_i+"].bl: sbox0 "+sbox0+", diffBL_ "+diffBL);
-                    }
+                final Vec3f diffBL = new Vec3f(s.getBounds().getLow());
+                diffBL.setZ(0);
+                diffBL.scale(s.getScale()).scale(-1f);
+                if( TRACE_LAYOUT ) {
+                    System.err.println("gl("+i+")["+col_i+"]["+row_i+"].bl: sbox0 "+s.getBounds()+", diffBL_ "+diffBL);
                 }
                 s.move( diffBL.scale(sxy) );
 

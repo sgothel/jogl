@@ -346,7 +346,15 @@ public class UILayoutBox01 {
             groups.add(g);
         }
         ++id;
+        nextPos.setX( nextPos.x() + sxy * cellGap );
+
+        if( true ) {
+            final Group g = fillDemoGroup(new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, margin, null ) ),
+                                          reqGLP, scene, zEps, sxy, nextPos, font, id, dragZoomRotateListener);
+            groups.add(g);
+        }
         nextPos.set(0, nextPos.y() + sxy * cellGap, 0);
+        ++id;
 
         //
         // 3. Row
@@ -385,7 +393,7 @@ public class UILayoutBox01 {
         ++id;
 
         if( true ) {
-            final Group g = fillDemoGroup(new Group( new BoxLayout( 1f, 1f, Alignment.Fill, new Margin(), padding ) ),
+            final Group g = fillDemoGroup(new Group( new BoxLayout( 1f, 1f, Alignment.Fill, margin, padding ) ),
                                           reqGLP, scene, zEps, sxy, nextPos, font, id, dragZoomRotateListener);
             groups.add(g);
         }
@@ -393,7 +401,7 @@ public class UILayoutBox01 {
         ++id;
 
         if( true ) {
-            final Group g = fillDemoGroup(new Group( new BoxLayout( 1f, 1f, Alignment.Fill, margin, padding ) ),
+            final Group g = fillDemoGroup(new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, margin, padding ) ),
                                           reqGLP, scene, zEps, sxy, nextPos, font, id, dragZoomRotateListener);
             groups.add(g);
         }

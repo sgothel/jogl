@@ -44,8 +44,8 @@ import com.jogamp.opengl.util.PMVMatrix;
  * <ul>
  *   <li>Optionally centered {@link Alignment.Bit#CenterHoriz horizontally}, {@link Alignment.Bit#CenterVert vertically} or {@link Alignment#Center both}.</li>
  *   <li>Optionally scaled to cell-size if given and {@link Alignment#Fill}</li>
- *   <li>Padding is applied to each {@Shape} via {@link Shape#setPaddding(Padding)} if passed in constructor</li>
- *   <li>Margin is ignored on dimension with center {@link Alignment}</li>
+ *   <li>{@link Padding} is applied to each {@Shape} via {@link Shape#setPaddding(Padding)} if passed in constructor and is scaled if {@link Alignment.Bit#Fill}</li>
+ *   <li>{@link Margin} is applied unscaled if used and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale</li>
  *   <li>Not implemented {@link Alignment}: {@link Alignment.Bit#Top Top}, {@link Alignment.Bit#Right Right}, {@link Alignment.Bit#Bottom Bottom}, {@link Alignment.Bit#Left Left}</li>
  * </ul>
  * </p>
@@ -53,8 +53,8 @@ import com.jogamp.opengl.util.PMVMatrix;
 public class BoxLayout implements Group.Layout {
     private final Vec2f cellSize;
     private final Alignment alignment;
-    private final Margin margin;
-    private final Padding padding;
+    private final Margin margin; // unscaled
+    private final Padding padding; // scaled
 
     private static final boolean TRACE_LAYOUT = false;
 
@@ -67,77 +67,88 @@ public class BoxLayout implements Group.Layout {
 
     /**
      *
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)}
+     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final Padding padding) {
         this(0f, 0f, new Alignment(), new Margin(), padding);
     }
 
-    public BoxLayout(final float width, final float height) {
-        this(width, height, new Alignment(), new Margin(), null);
+    public BoxLayout(final float cellWidth, final float cellHeight) {
+        this(cellWidth, cellHeight, new Alignment(), new Margin(), null);
     }
 
     /**
      *
-     * @param width
-     * @param height
+     * @param cellWidth
+     * @param cellHeight
      * @param alignment
      */
-    public BoxLayout(final float width, final float height, final Alignment alignment) {
-        this(width, height, alignment, new Margin(), null);
+    public BoxLayout(final float cellWidth, final float cellHeight, final Alignment alignment) {
+        this(cellWidth, cellHeight, alignment, new Margin(), null);
     }
 
     /**
      *
-     * @param width
-     * @param height
-     * @param margin
+     * @param cellWidth
+     * @param cellHeight
+     * @param margin {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale
      */
-    public BoxLayout(final float width, final float height, final Margin margin) {
-        this(width, height, new Alignment(), margin, null);
+    public BoxLayout(final float cellWidth, final float cellHeight, final Margin margin) {
+        this(cellWidth, cellHeight, new Alignment(), margin, null);
     }
 
     /**
      *
-     * @param width
-     * @param height
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)}
+     * @param cellWidth
+     * @param cellHeight
+     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
-    public BoxLayout(final float width, final float height, final Padding padding) {
-        this(width, height, new Alignment(), new Margin(), padding);
+    public BoxLayout(final float cellWidth, final float cellHeight, final Padding padding) {
+        this(cellWidth, cellHeight, new Alignment(), new Margin(), padding);
     }
 
     /**
      *
-     * @param width
-     * @param height
-     * @param margin
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)}
+     * @param cellWidth
+     * @param cellHeight
+     * @param margin {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale
+     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
-    public BoxLayout(final float width, final float height, final Margin margin, final Padding padding) {
-        this(width, height, new Alignment(), margin, padding);
+    public BoxLayout(final float cellWidth, final float cellHeight, final Margin margin, final Padding padding) {
+        this(cellWidth, cellHeight, new Alignment(), margin, padding);
     }
 
     /**
      *
-     * @param width
-     * @param height
-     * @param margin
+     * @param cellWidth
+     * @param cellHeight
+     * @param margin {@link Margin} is applied unscaled
      */
-    public BoxLayout(final float width, final float height, final Alignment alignment, final Margin margin) {
-        this(width, height, alignment, margin, null);
+    public BoxLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Margin margin) {
+        this(cellWidth, cellHeight, alignment, margin, null);
     }
 
     /**
      *
-     * @param width
-     * @param height
+     * @param cellWidth
+     * @param cellHeight
      * @param alignment
-     * @param margin
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)}
+     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
-    public BoxLayout(final float width, final float height, final Alignment alignment, final Margin margin, final Padding padding) {
-        this.cellSize = new Vec2f(Math.max(0f, width), Math.max(0f, height));
+    public BoxLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Padding padding) {
+        this(cellWidth, cellHeight, alignment, new Margin(), padding);
+    }
+
+    /**
+     *
+     * @param cellWidth
+     * @param cellHeight
+     * @param alignment
+     * @param margin {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale
+     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
+     */
+    public BoxLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Margin margin, final Padding padding) {
+        this.cellSize = new Vec2f(Math.max(0f, cellWidth), Math.max(0f, cellHeight));
         this.alignment = alignment;
         this.margin = margin;
         this.padding = padding;
@@ -185,21 +196,26 @@ public class BoxLayout implements Group.Layout {
             }
 
             // IF isScaled: Uniform scale w/ lowest axis scale and center position on lower-scale axis
-            final float shapeWidthU     = sbox.getWidth() + margin.width();
-            final float shapeWidthU_LH  = ( sbox.getWidth()  * 0.5f ) + margin.left;   // left-half
-            final float shapeHeightU    = sbox.getHeight() + margin.height();
-            final float shapeHeightU_BH = ( sbox.getHeight() * 0.5f ) + margin.bottom; // bottom-half
+            final float shapeWidthU  = sbox.getWidth();
+            final float shapeHeightU = sbox.getHeight();
             final float sxy;
             float dxh = 0, dyh = 0;
             if( isScaled ) {
-                // scaling to cell size, implies center (horiz + vert)
-                final float cellWidth2 = hasCellWidth ? cellSize.x() : shapeWidthU;
-                final float cellHeight2 = hasCellHeight ? cellSize.y() : shapeHeightU;
+                // scaling to cell size
+                final float cellWidth2 = hasCellWidth ? cellSize.x() - margin.width() : shapeWidthU;
+                final float cellHeight2 = hasCellHeight ? cellSize.y() - margin.height() : shapeHeightU;
                 final float sx = cellWidth2 / shapeWidthU;
                 final float sy = cellHeight2/ shapeHeightU;
                 sxy = sx < sy ? sx : sy;
-                dxh += sxy * margin.left   + shapeWidthU_LH  * ( sx - sxy ); // adjustment for scale-axis
-                dyh += sxy * margin.bottom + shapeHeightU_BH * ( sy - sxy ); // ditto
+
+                if( isCenteredHoriz ) {
+                    dxh += shapeWidthU  * ( sx - sxy ) * 0.5f; // horiz-center (adjustment for scale-axis)
+                }
+                if( isCenteredVert ) {
+                    dyh += shapeHeightU * ( sy - sxy ) * 0.5f; // vert-center (adjustment for scale-axis)
+                }
+                dyh += margin.bottom;
+                dxh += margin.left;
                 if( TRACE_LAYOUT ) {
                     System.err.println("bl("+i+").s: "+sx+" x "+sy+" -> "+sxy+": +"+dxh+" / "+dyh+", U: s "+shapeWidthU+" x "+shapeHeightU+", sz "+cellWidth2+" x "+cellHeight2);
                 }
@@ -212,22 +228,19 @@ public class BoxLayout implements Group.Layout {
             final float cellHeightS = hasCellHeight ? cellSize.y() : shapeHeightS;
 
             if( !isScaled ) {
-                // Use half delta of net-size to center, margin is ignored when centering
-                final float shapeWidthS_H = sxy * sbox.getWidth() * 0.5f;
-                final float shapeHeightS_H = sxy * sbox.getHeight() * 0.5f;
-                final float cellWidthS_H = hasCellWidth ? cellSize.x() * 0.5f : shapeWidthS_H;
-                final float cellHeightS_H = hasCellHeight ? cellSize.y() * 0.5f : shapeHeightS_H;
+                // Center w/o scale and ignoring margin (not scaled)
                 if( isCenteredHoriz ) {
-                    dxh += cellWidthS_H - shapeWidthS_H; // horiz-center
+                    dxh += 0.5f * ( cellWidthS - shapeWidthS ); // horiz-center
                 } else {
-                    dxh += sxy * margin.left;
+                    dxh += margin.left;
                 }
                 if( isCenteredVert ) {
-                    dyh += cellHeightS_H - shapeHeightS_H; // vert-center
+                    dyh += 0.5f * ( cellHeightS - shapeHeightS ); // vert-center
                 } else {
-                    dyh += sxy * margin.bottom;
+                    dyh += margin.bottom;
                 }
             }
+
             if( TRACE_LAYOUT ) {
                 System.err.println("bl("+i+").m: "+x+" / "+y+" + "+dxh+" / "+dyh+", sxy "+sxy+", S: s "+shapeWidthS+" x "+shapeHeightS+", sz "+cellWidthS+" x "+cellHeightS);
             }
@@ -238,16 +251,12 @@ public class BoxLayout implements Group.Layout {
                 final float aY = y + dyh;
                 s.moveTo( aX, aY, s.getPosition().z() );
 
-                // remove the bottom-left delta
-                final Vec3f diffBL = new Vec3f();
-                final AABBox sbox0 = s.getBounds();
-                if( !diffBL.set( sbox0.getLow().x(), sbox0.getLow().y(), 0).min( zeroVec3 ).isZero() ) {
-                    // pmv.mulMvMatVec3f(diffBL).scale(-1f, -1f, 0f);
-                    final Vec3f ss = s.getScale();
-                    diffBL.scale(-1f*ss.x(), -1f*ss.y(), 0f);
-                }
+                // Remove the bottom-left delta
+                final Vec3f diffBL = new Vec3f(s.getBounds().getLow());
+                diffBL.setZ(0);
+                diffBL.scale(s.getScale()).scale(-1f);
                 if( TRACE_LAYOUT ) {
-                    System.err.println("bl("+i+").bl: sbox0 "+sbox0+", diffBL "+diffBL);
+                    System.err.println("bl("+i+").bl: sbox0 "+s.getBounds()+", diffBL_ "+diffBL);
                 }
                 s.move( diffBL.scale(sxy) );
 

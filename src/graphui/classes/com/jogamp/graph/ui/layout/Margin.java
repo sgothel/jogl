@@ -35,7 +35,7 @@ import com.jogamp.opengl.math.FloatUtil;
  * The CSS margin properties are used to create space around elements, outside of any defined borders.
  * </p>
  * <p>
- * Center alignment is defined via {@link Alignment} and {@link Margin} ignored on centered dimension.
+ * Center alignment is defined via {@link Alignment} and {@link Margin} ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale.
  * </p>
  */
 public class Margin {
