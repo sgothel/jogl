@@ -250,14 +250,33 @@ public class BoxLayout implements Group.Layout {
                 final float aY = y + dyh;
                 s.moveTo( aX, aY, s.getPosition().z() );
 
-                // Remove the bottom-left delta
+                // Remove the negative or positive delta on centered axis.
+                // Only remove negative offset of non-centered axis (i.e. underline)
                 final Vec3f diffBL = new Vec3f(s.getBounds().getLow());
                 diffBL.setZ(0);
-                diffBL.scale(s.getScale()).scale(-1f);
+                if( isCenteredHoriz || isCenteredVert ) {
+                    if( !isCenteredVert && diffBL.y() > 0 ) {
+                        diffBL.setY(0); // only adjust negative if !center-vert
+                    } else if( !isCenteredHoriz && diffBL.x() > 0 ) {
+                        diffBL.setX(0); // only adjust negative if !center-horiz
+                    }
+                    diffBL.scale(s.getScale()).scale(-1f);
+                    s.move( diffBL.scale(sxy) );
+                } else if( diffBL.x() < 0 || diffBL.y() < 0 ) {
+                    if( diffBL.x() > 0 ) {
+                        diffBL.setX(0);
+                    }
+                    if( diffBL.y() > 0 ) {
+                        diffBL.setY(0);
+                    }
+                    diffBL.scale(s.getScale()).scale(-1f);
+                    s.move( diffBL.scale(sxy) );
+                } else {
+                    diffBL.set(0, 0, 0);
+                }
                 if( TRACE_LAYOUT ) {
                     System.err.println("bl("+i+").bl: sbox0 "+s.getBounds()+", diffBL_ "+diffBL);
                 }
-                s.move( diffBL.scale(sxy) );
 
                 // resize bounds
                 box.resize(  x,               y,               sbox.getMinZ());
