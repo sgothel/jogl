@@ -201,22 +201,22 @@ public class BoxLayout implements Group.Layout {
             float dxh = 0, dyh = 0;
             if( isScaled ) {
                 // scaling to cell size
-                final float cellWidth2 = hasCellWidth ? cellSize.x() - margin.width() : shapeWidthU;
-                final float cellHeight2 = hasCellHeight ? cellSize.y() - margin.height() : shapeHeightU;
-                final float sx = cellWidth2 / shapeWidthU;
-                final float sy = cellHeight2/ shapeHeightU;
+                final float cellWidth = hasCellWidth ? cellSize.x() - margin.width() : shapeWidthU;
+                final float cellHeight = hasCellHeight ? cellSize.y() - margin.height() : shapeHeightU;
+                final float sx = cellWidth / shapeWidthU;
+                final float sy = cellHeight/ shapeHeightU;
                 sxy = sx < sy ? sx : sy;
 
                 if( isCenteredHoriz ) {
-                    dxh += shapeWidthU  * ( sx - sxy ) * 0.5f; // horiz-center (adjustment for scale-axis)
+                    dxh += shapeWidthU  * ( sx - sxy ) * 0.5f; // horiz-center (adjustment for scale-axis w/o margin)
                 }
                 if( isCenteredVert ) {
-                    dyh += shapeHeightU * ( sy - sxy ) * 0.5f; // vert-center (adjustment for scale-axis)
+                    dyh += shapeHeightU * ( sy - sxy ) * 0.5f; // vert-center (adjustment for scale-axis w/o margin)
                 }
-                dyh += margin.bottom;
-                dxh += margin.left;
+                dyh += margin.bottom; // always consider unscaled margin when scaling
+                dxh += margin.left;   // ditto
                 if( TRACE_LAYOUT ) {
-                    System.err.println("bl("+i+").s: "+sx+" x "+sy+" -> "+sxy+": +"+dxh+" / "+dyh+", U: s "+shapeWidthU+" x "+shapeHeightU+", sz "+cellWidth2+" x "+cellHeight2);
+                    System.err.println("bl("+i+").s: "+sx+" x "+sy+" -> "+sxy+": +"+dxh+" / "+dyh+", U: s "+shapeWidthU+" x "+shapeHeightU+", sz "+cellWidth+" x "+cellHeight);
                 }
             } else {
                 sxy = 1;

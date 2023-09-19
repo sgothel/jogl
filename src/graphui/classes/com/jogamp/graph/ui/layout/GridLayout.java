@@ -70,7 +70,7 @@ public class GridLayout implements Group.Layout {
     private final Padding padding; // scaled!
     private int row_count, col_count;
 
-    private static final boolean TRACE_LAYOUT = false;
+    private static final boolean TRACE_LAYOUT = true;
 
     /**
      * Default layout order of {@link Group#getShapes()}} is {@link Order#COLUMN}.
@@ -209,22 +209,19 @@ public class GridLayout implements Group.Layout {
             // measure size
             pmv.glPushMatrix();
             s.setTransform(pmv);
-            {
-                final AABBox sbox0 = s.getBounds();
-                sboxes[i] = sbox0.transformMv(pmv, new AABBox());
-            }
+            final AABBox sbox = s.getBounds().transformMv(pmv, new AABBox());
+            sboxes[i] = sbox;
             pmv.glPopMatrix();
-            final AABBox sbox = sboxes[i];
 
             final float shapeWidthU  = sbox.getWidth();
             final float shapeHeightU = sbox.getHeight();
             final float sxy;
             if( isScaled ) {
                 // scaling to cell size
-                final float cellWidthU = hasCellWidth ? cellSize.x() : shapeWidthU;
-                final float cellHeightU = hasCellHeight ? cellSize.y() : shapeHeightU;
-                final float sx = cellWidthU / shapeWidthU;
-                final float sy = cellHeightU/ shapeHeightU;
+                final float cellWidth = hasCellWidth ? cellSize.x() : shapeWidthU;
+                final float cellHeight = hasCellHeight ? cellSize.y() : shapeHeightU;
+                final float sx = cellWidth / shapeWidthU;
+                final float sy = cellHeight/ shapeHeightU;
                 sxy = sx < sy ? sx : sy;
             } else {
                 sxy = 1;
@@ -291,15 +288,14 @@ public class GridLayout implements Group.Layout {
             float dxh = 0, dyh = 0;
             if( isScaled ) {
                 // scaling to cell size
-                final float cellWidth2 = hasCellWidth ? cellSize.x() : shapeWidthU;
-                final float cellHeight2 = hasCellHeight ? cellSize.y() : shapeHeightU;
-                final float sx = cellWidth2 / shapeWidthU;
-                final float sy = cellHeight2/ shapeHeightU;
+                final float cellWidth = hasCellWidth ? cellSize.x() : shapeWidthU;
+                final float cellHeight = hasCellHeight ? cellSize.y() : shapeHeightU;
+                final float sx = cellWidth / shapeWidthU;
+                final float sy = cellHeight/ shapeHeightU;
                 sxy = sx < sy ? sx : sy;
-                dxh += shapeWidthU  * ( sx - sxy ) * 0.5f; // adjustment for scale-axis
-                dyh += shapeHeightU * ( sy - sxy ) * 0.5f; // ditto
+
                 if( TRACE_LAYOUT ) {
-                    System.err.println("gl("+i+")["+col_i+"]["+row_i+"].s: "+sx+" x "+sy+" -> "+sxy+": +"+dxh+" / "+dyh+", U: s "+shapeWidthU+" x "+shapeHeightU+", sz "+cellWidth2+" x "+cellHeight2);
+                    System.err.println("gl("+i+")["+col_i+"]["+row_i+"].s: "+sx+" x "+sy+" -> "+sxy+": +"+dxh+" / "+dyh+", U: s "+shapeWidthU+" x "+shapeHeightU+", sz "+cellWidth+" x "+cellHeight);
                 }
             } else {
                 sxy = 1;
@@ -317,6 +313,7 @@ public class GridLayout implements Group.Layout {
             if( isCenteredVert ) {
                 dyh += 0.5f * ( cellHeightS - shapeHeightS ); // vert-center
             }
+
             if( TRACE_LAYOUT ) {
                 System.err.println("gl("+i+")["+col_i+"]["+row_i+"].m: "+x+" / "+y+" + "+dxh+" / "+dyh+", S: s "+shapeWidthS+" x "+shapeHeightS+", sz "+cellWidthS+" x "+cellHeightS);
             }
