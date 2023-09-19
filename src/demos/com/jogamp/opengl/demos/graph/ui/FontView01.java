@@ -183,7 +183,7 @@ public class FontView01 {
         final Group glyphGrid;
         final Shape.MouseGestureListener glyphMouseListener;
         {
-            final Group glyphShapeBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter ) ); // , new Margin(0.05f) ) );
+            final Group glyphShapeBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.025f) ) );
             glyphShapeBox.addShape( new GlyphShape(options.renderModes, 'A', font.getGlyph( font.getGlyphID('A')), 0, 0) );
 
             final Group glyphInfoBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter ) ); // , new Margin(0.05f, 0.025f, 0.05f, 0.025f) ) );
@@ -478,11 +478,10 @@ public class FontView01 {
                           final GridDim gridDim, final boolean showUnderline,
                           final Font fontStatus, final Shape.MouseGestureListener glyphMouseListener) {
         int glyphID = -1; // startGlyphID;
-        gridDim.nextLine = -1;
-        gridDim.nextPage = gridDim.start;
-        // final int glyphCount = font.getGlyphCount();
-        for(int i=0; i<gridDim.elemCount && gridDim.nextPage < gridDim.contourChars.size(); ++i) {
-            final char charID = gridDim.contourChars.get(gridDim.nextPage);
+        gridDim.nextLine = Math.min(gridDim.start + gridDim.columns,   gridDim.contourChars.size()-1);
+        gridDim.nextPage = Math.min(gridDim.start + gridDim.elemCount, gridDim.contourChars.size()-1);
+        for(int idx = gridDim.start; idx < gridDim.nextPage; ++idx) {
+            final char charID = gridDim.contourChars.get(idx);
             glyphID = font.getGlyphID( charID );
             final Font.Glyph fg = font.getGlyph(glyphID);
 
@@ -497,24 +496,15 @@ public class FontView01 {
             final Group c = new Group( new BoxLayout( 1f, 1f, addUnderline ? Alignment.None : Alignment.Center) );
             c.setBorder(0.02f).setBorderColor(0, 0, 0, 1).setInteractive(true).setDragAndResizeable(false);
             if( addUnderline ) {
-                final Shape underline = new Rectangle(options.renderModes, 1f, gbox.getHeight(), 0.02f).setInteractive(false);
-                underline.move( 0f, ( 1f - gbox.getHeight() ) / 2f, 0f ); // vert-center
-                underline.move( 0f, gbox.getMinY() * -1f, 0f );           // remove glyph underline
-                underline.setColor(0f, 0f, 1f, 1f);
+                final Shape underline = new Rectangle(options.renderModes, 1f, gbox.getMinY(), 0.01f).setInteractive(false).setColor(0f, 0f, 1f, 0.25f);
                 c.addShape(underline);
-                g.move( ( 1f - gbox.getWidth() ) / 2f, ( 1f - gbox.getHeight() ) / 2f, 0f ); // center
-                g.move( gbox.getLow().mul(-1f) ); // remove bottom-left delta, here glyph underline
             }
             c.addShape(g);
             c.addMouseListener(glyphMouseListener);
-            if( 0 == i % gridDim.columns ) {
+            if( 0 == ( idx - gridDim.start ) % gridDim.columns ) {
                 addLabel(grid, fontStatus, String.format("%04x", (int)charID));
-                if( 0 > gridDim.nextLine && i == gridDim.columns ) {
-                    gridDim.nextLine = gridDim.nextPage;
-                }
             }
             grid.addShape(c);
-            ++gridDim.nextPage;
         }
     }
     static void addLabel(final Group c, final Font font, final String text) {
