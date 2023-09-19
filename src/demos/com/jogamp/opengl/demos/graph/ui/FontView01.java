@@ -29,6 +29,8 @@ package com.jogamp.opengl.demos.graph.ui;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import com.jogamp.common.util.IOUtil;
@@ -174,7 +176,9 @@ public class FontView01 {
         if( 0 >= rawGridSize.y() ) {
             rawGridSize.setY( (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCell ) );
         }
-        final GridDim gridDim = new GridDim(rawGridSize, 1, 0);
+        final GridDim gridDim = new GridDim(font, rawGridSize, 1, 0);
+        System.err.println("GridDim "+gridDim);
+
         final Group mainGrid;
         final Group glyphGrid;
         final Shape.MouseGestureListener glyphMouseListener;
@@ -253,8 +257,9 @@ public class FontView01 {
                 final float cellSize = gridDim.rawSize.x() > gridDim.rawSize.y() ? GlyphGridWidth/gridDim.rawSize.x() : GlyphGridWidth/gridDim.rawSize.y();
                 // final float gapSizeX = ( gridDim.rawSize.x() - 1 ) * cellSize * 0.1f;
                 System.err.println("Grid "+gridDim+", scale "+cellSize);
-                glyphGrid = new Group(new GridLayout(gridDim.rawSize.x(), cellSize*0.9f, cellSize*0.9f, Alignment.Fill, new Gap(cellSize*0.1f)));
+                glyphGrid = new Group(new GridLayout(gridDim.rawSize.x(), cellSize*0.9f, cellSize*0.9f, Alignment.FillCenter, new Gap(cellSize*0.1f)));
             }
+
             addGlyphs(reqGLP, font, glyphGrid, gridDim, showUnderline[0], fontStatus, glyphMouseListener);
             glyphGrid.validate(reqGLP);
             System.err.println("GlyphGrid "+glyphGrid);
@@ -406,6 +411,7 @@ public class FontView01 {
 
     static class GridDim {
         final Vec2i rawSize;
+        final List<Character> contourChars;
         final int columns;
         final int rows;
         final int elemCount;
@@ -413,78 +419,74 @@ public class FontView01 {
         int nextLine;
         int nextPage;
 
-        public GridDim(final Vec2i gridSize, final int xReserve, final int yReserve) {
+        public GridDim(final Font font, final Vec2i gridSize, final int xReserve, final int yReserve) {
             this.rawSize = gridSize;
+            contourChars = new ArrayList<Character>();
             columns = gridSize.x() - xReserve;
             rows = gridSize.y() - yReserve;
             elemCount = columns * rows;
             start = 0; nextLine = -1; nextPage = -1;
+            scanContourGlyphs(font);
+        }
+
+        public int scanContourGlyphs(final Font font) {
+            contourChars.clear();
+            for(int i=0; i <= Character.MAX_VALUE; ++i) {
+                final int glyphID = font.getGlyphID((char)i);
+                final Font.Glyph fg = font.getGlyph(glyphID);
+                if( !fg.isNonContour() ) {
+                    contourChars.add((char)i);
+                }
+            }
+            return contourChars.size();
         }
 
         void pageDown() {
-            if( nextPage < Character.MAX_VALUE - elemCount ) {
+            if( nextPage < contourChars.size() - elemCount ) {
                 start = nextPage;
             } else {
-                start = 0; // Character.MAX_VALUE - glyphCount;
+                start = 0;
             }
         }
         void pageUp() {
             if( start >= elemCount ) {
                 start -= elemCount;
             } else {
-                start = Character.MAX_VALUE - elemCount;
+                start = contourChars.size() - 1 - elemCount;
             }
         }
         void lineDown() {
-            if( nextLine < Character.MAX_VALUE - columns ) {
+            if( nextLine < contourChars.size() - columns ) {
                 start = nextLine;
             } else {
-                start = 0; // Character.MAX_VALUE - glyphPerRow;
+                start = 0;
             }
         }
         void lineUp() {
             if( start >= columns ) {
                 start -= columns;
             } else {
-                start = Character.MAX_VALUE - columns;
+                start = contourChars.size() - 1 - columns;
             }
         }
 
         @Override
-        public String toString() { return "GridDim[start "+start+", nextLine "+nextLine+", nextPage "+nextPage+", "+columns+"x"+rows+"="+elemCount+", raw "+rawSize+"]"; }
+        public String toString() { return "GridDim[contours "+contourChars.size()+", start "+start+", nextLine "+nextLine+", nextPage "+nextPage+", "+columns+"x"+rows+"="+elemCount+", raw "+rawSize+"]"; }
     }
-    static void addGlyphs(final GLProfile glp, final Font font, final Group mainGrid,
+
+    static void addGlyphs(final GLProfile glp, final Font font, final Group grid,
                           final GridDim gridDim, final boolean showUnderline,
                           final Font fontStatus, final Shape.MouseGestureListener glyphMouseListener) {
         int glyphID = -1; // startGlyphID;
         gridDim.nextLine = -1;
         gridDim.nextPage = gridDim.start;
         // final int glyphCount = font.getGlyphCount();
-        for(int i=0; i<gridDim.elemCount && gridDim.nextPage <= Character.MAX_VALUE; ++i) {
-            Font.Glyph fg = null;
-            while( gridDim.nextPage <= Character.MAX_VALUE ) {
-                glyphID = font.getGlyphID((char)gridDim.nextPage);
-                fg = font.getGlyph(glyphID);
-                if( VERBOSE_GLYPHS ) {
-                    System.err.println("# Sym 0x"+Integer.toHexString(gridDim.nextPage)+" -> ID 0x"+Integer.toHexString(glyphID)+": "+fg);
-                }
-                if( fg.isNonContour() ) {
-                    ++gridDim.nextPage;
-                } else {
-                    if( VERBOSE_GLYPHS ) {
-                        System.err.println("First meaningful symbol: 0x"+Integer.toHexString(gridDim.nextPage)+" -> 0x"+Integer.toHexString(glyphID));
-                        System.err.println("# Sym 0x"+Integer.toHexString(gridDim.nextPage)+" -> ID 0x"+Integer.toHexString(glyphID)+": "+getGlyphInfo((char)gridDim.nextPage, fg));
-                    }
-                    break;
-                }
-            }
-            if( gridDim.nextPage > Character.MAX_VALUE ) {
-                break;
-            }
-            final GlyphShape g = new GlyphShape(options.renderModes, (char)gridDim.nextPage, fg, 0, 0);
-            if( VERBOSE_GLYPHS ) {
-                System.err.println("# Sym 0x"+Integer.toHexString(gridDim.nextPage)+" -> ID 0x"+Integer.toHexString(glyphID)+": "+g);
-            }
+        for(int i=0; i<gridDim.elemCount && gridDim.nextPage < gridDim.contourChars.size(); ++i) {
+            final char charID = gridDim.contourChars.get(gridDim.nextPage);
+            glyphID = font.getGlyphID( charID );
+            final Font.Glyph fg = font.getGlyph(glyphID);
+
+            final GlyphShape g = new GlyphShape(options.renderModes, charID, fg, 0, 0);
             g.setColor(0.1f, 0.1f, 0.1f, 1);
             g.setDragAndResizeable(false);
 
@@ -506,12 +508,12 @@ public class FontView01 {
             c.addShape(g);
             c.addMouseListener(glyphMouseListener);
             if( 0 == i % gridDim.columns ) {
-                addLabel(mainGrid, fontStatus, String.format("%04x", gridDim.nextPage));
+                addLabel(grid, fontStatus, String.format("%04x", (int)charID));
                 if( 0 > gridDim.nextLine && i == gridDim.columns ) {
                     gridDim.nextLine = gridDim.nextPage;
                 }
             }
-            mainGrid.addShape(c);
+            grid.addShape(c);
             ++gridDim.nextPage;
         }
     }
