@@ -70,7 +70,7 @@ public class GridLayout implements Group.Layout {
     private final Padding padding; // scaled!
     private int row_count, col_count;
 
-    private static final boolean TRACE_LAYOUT = true;
+    private static final boolean TRACE_LAYOUT = false;
 
     /**
      * Default layout order of {@link Group#getShapes()}} is {@link Order#COLUMN}.
