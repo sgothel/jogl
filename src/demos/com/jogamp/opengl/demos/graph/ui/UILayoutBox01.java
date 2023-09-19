@@ -58,6 +58,7 @@ import com.jogamp.opengl.demos.graph.ui.util.Tooltips;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 
@@ -419,8 +420,11 @@ public class UILayoutBox01 {
                                     .move(0, sceneDim.getHeight() - textDim.getHeight()*l_sxy, 0);
             scene.addShape(label);
         }
-
     }
+
+    private static final Vec4f groupBorderColor = new Vec4f(0, 0, 1f, 0.6f);
+    private static final float borderThickness = 0.01f;
+
     static Group fillDemoGroup(final Group g, final GLProfile reqGLP, final Scene scene, final float zEps, final float sxy, final Vec3f nextPos,
                                final Font font, final int id,
                                final Shape.MouseGestureListener dragZoomRotateListener)
@@ -429,13 +433,13 @@ public class UILayoutBox01 {
         g.setName(id);
         final AABBox sceneBox = scene.getBounds();
         {
-            g.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setPerp().setColor(0, 1, 0, 1).setBorder(0.01f).setBorderColor(0, 0, 1, 1.0f).addMouseListener(dragZoomRotateListener) );
+            g.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setPerp().setColor(0, 1, 0, 1).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
             g.addShape( new Button(options.renderModes, font, "stack-"+suffix, 0.50f, 0.50f/2f, zEps).setPerp().move(0, 0, zEps).setInteractive(false) );
             g.addShape( new Label(options.renderModes, font, 0.70f/4f, "A"+suffix+" pajq").setColor(0, 0, 1, 1).move(0, 0, 2*zEps).setInteractive(false) );
         }
         g.scale(sxy, sxy, 1);
         g.moveTo(sceneBox.getLow()).move(nextPos);
-        g.setBorder(0.01f).setBorderColor(0, 0, 0, 0.6f);
+        g.setBorder(borderThickness).setBorderColor(groupBorderColor);
         g.validate(reqGLP);
         System.err.println("Group-A"+suffix+" "+g);
         System.err.println("Group-A"+suffix+" Layout "+g.getLayout());

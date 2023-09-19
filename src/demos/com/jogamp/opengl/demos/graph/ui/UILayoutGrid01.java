@@ -48,7 +48,6 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
-import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.graph.ui.util.Tooltips;
@@ -71,6 +70,9 @@ public class UILayoutGrid01 {
 
     static boolean reLayout = true;
     static final int reLayoutSleep = 500;
+
+    private static final Vec4f groupBorderColor = new Vec4f(0, 0, 1f, 0.6f);
+    private static final float borderThickness = 0.01f;
 
     public static void main(final String[] args) throws IOException {
         if( 0 != args.length ) {
@@ -157,10 +159,8 @@ public class UILayoutGrid01 {
         System.err.println("SceneBox "+sceneBox+", zEps "+zEps);
 
         final float cellGap = 1.1f;
-        final Vec4f borderColor = new Vec4f(0, 0, 1f, 0.6f);
-        final float borderThickness = 0.01f;
         // final float sxy = 1/10f * sceneBox.getWidth();
-        final float sxy = 1/11f * sceneBox.getWidth();
+        final float sxy = 1/12f * sceneBox.getWidth();
         // final float sxy = 1/4f * sceneBox.getHeight();
         final Vec3f nextPos = new Vec3f();
 
@@ -169,7 +169,7 @@ public class UILayoutGrid01 {
                 reqGLP, scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 11,
-                borderThickness, borderColor, (final Group gp) -> {
+                (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
@@ -180,7 +180,7 @@ public class UILayoutGrid01 {
                 reqGLP, scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 12,
-                borderThickness, borderColor, (final Group gp) -> {
+                (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r1 r1", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                 } );
@@ -192,7 +192,7 @@ public class UILayoutGrid01 {
                 reqGLP, scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 13,
-                borderThickness, borderColor, (final Group gp) -> {
+                (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                 } );
@@ -204,7 +204,7 @@ public class UILayoutGrid01 {
                 reqGLP, scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 14,
-                borderThickness, borderColor, (final Group gp) -> {
+                (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
                     gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
@@ -218,7 +218,22 @@ public class UILayoutGrid01 {
                 reqGLP, scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 15,
-                borderThickness, borderColor, (final Group gp) -> {
+                (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
+        }
+
+        if( true ) {
+            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f), new Padding(0.05f))),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 16,
+                (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
                     gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
@@ -238,7 +253,7 @@ public class UILayoutGrid01 {
                 reqGLP, scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 21,
-                sxy*borderThickness, borderColor, (final Group gp) -> {
+                (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
                     gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
@@ -249,11 +264,11 @@ public class UILayoutGrid01 {
         }
 
         if( true ) {
-            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.FillCenter, new Gap(0.10f), new Padding(0.05f))),
+            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.FillCenter, new Gap(0.10f))),
                 reqGLP, scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 22,
-                borderThickness, borderColor, (final Group gp) -> {
+                (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
                     gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
@@ -268,7 +283,7 @@ public class UILayoutGrid01 {
                 reqGLP, scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 23,
-                borderThickness, borderColor, (final Group gp) -> {
+                (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
                     gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
@@ -279,16 +294,34 @@ public class UILayoutGrid01 {
         }
 
         if( true ) {
-            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f), new Padding(0.05f))),
+            final float bw = 0.5f, bh = bw/2f;
+            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, new Alignment(Alignment.Bit.CenterHoriz.value),
+                                                 new Gap(0.10f), new Padding(0.05f))),
                 reqGLP, scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 24,
-                borderThickness, borderColor, (final Group gp) -> {
-                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", bw, bh, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c2", bw, bh, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                } );
+            nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
+        }
+        if( true ) {
+            final float bw = 0.5f, bh = bw/2f;
+            final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, new Alignment(Alignment.Bit.CenterVert.value),
+                                                 new Gap(0.10f), new Padding(0.05f))),
+                reqGLP, scene, zEps,
+                sxy, nextPos, cellGap,
+                font, 25,
+                (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", bw, bh, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c2", bw, bh, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
@@ -301,7 +334,7 @@ public class UILayoutGrid01 {
                 reqGLP, scene, zEps,
                 2*sxy, nextPos, cellGap,
                 font, 31,
-                borderThickness, borderColor, (final Group gp) -> {
+                (final Group gp) -> {
                     final Group glyphGrid = new Group(new GridLayout(2, 0.3f, 0.3f, Alignment.Fill, new Gap(0.3f * 0.10f)));
                     glyphGrid.addShape( new Button(options.renderModes, font, "0.0", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                     glyphGrid.addShape( new Button(options.renderModes, font, "0.1", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
@@ -327,16 +360,17 @@ public class UILayoutGrid01 {
         }
 
         if( true ) {
+            final float bw = 0.5f, bh = bw/2f;
             final Group g = setupGroup(new Group(new GridLayout(2, 1, 1/2f, Alignment.Center, new Gap(0.10f), new Padding(0.05f))),
                 reqGLP, scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 32,
-                borderThickness, borderColor, (final Group gp) -> {
-                    gp.addShape( new Button(options.renderModes, font, "ro co", 1/2f, 1/4.1f, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1/2f, 1/4.1f, zEps).setPerp().setBorder(sxy*borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1/2f, 1/4.1f, zEps).setPerp().setBorder(sxy*borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c2", 1/2f, 1/4.1f, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1/2f, 1/4.1f, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
+                (final Group gp) -> {
+                    gp.addShape( new Button(options.renderModes, font, "ro co", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c2", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
@@ -365,12 +399,12 @@ public class UILayoutGrid01 {
     static Group setupGroup(final Group g, final GLProfile reqGLP, final Scene scene, final float zEps,
                             final float sxy, final Vec3f nextPos, final float cellGap,
                             final Font font, final int id,
-                            final float borderThickness, final Vec4f borderColor, final GroupMod modImpl) {
+                            final GroupMod modImpl) {
         final String suffix = String.format("%2d", id);
         g.setName(id);
         final AABBox sceneBox = scene.getBounds();
         modImpl.mod(g);
-        g.setBorder(borderThickness).setBorderColor(borderColor);
+        g.setBorder(borderThickness).setBorderColor(groupBorderColor);
         g.scale(sxy, sxy, 1);
         g.setInteractive(true);
         g.validate(reqGLP);
