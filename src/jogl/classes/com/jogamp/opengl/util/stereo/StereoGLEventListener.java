@@ -27,10 +27,9 @@
  */
 package com.jogamp.opengl.util.stereo;
 
+import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
-
-import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.util.CustomGLEventListener;
 
 /**
@@ -65,7 +64,7 @@ public interface StereoGLEventListener extends CustomGLEventListener {
      * @param height viewport height in pixel units
      * @param eyeParam constant eye parameter, i.e. FOV and IPD
      * @param viewerPose current viewer position and orientation
-     * @see FloatUtil#makePerspective(float[], int, boolean, com.jogamp.opengl.math.FloatUtil.FovHVHalves, float, float)
+     * @see FloatUtil#makePerspective(float[], int, boolean, com.jogamp.math.FloatUtil.FovHVHalves, float, float)
      */
     public void reshapeForEye(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height,
                               final EyeParameter eyeParam, final ViewerPose viewerPose);

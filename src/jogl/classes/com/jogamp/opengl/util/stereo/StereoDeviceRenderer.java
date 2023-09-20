@@ -27,11 +27,10 @@
  */
 package com.jogamp.opengl.util.stereo;
 
+import com.jogamp.math.FovHVHalves;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.RectangleImmutable;
 import com.jogamp.opengl.GL;
-
-import com.jogamp.opengl.math.FovHVHalves;
 
 /**
  * Stereoscopic device rendering interface.
@@ -175,7 +174,7 @@ public interface StereoDeviceRenderer {
      * <p>
      * In case the renderer does not support multiple textures for post-processing,
      * or no post-processing at all, method returns zero despite the request
-     * from {@link StereoDevice#createRenderer(int, int, float[], com.jogamp.opengl.math.FovHVHalves[], float)}.
+     * from {@link StereoDevice#createRenderer(int, int, float[], com.jogamp.math.FovHVHalves[], float)}.
      * </p>
      */
     public int getTextureCount();

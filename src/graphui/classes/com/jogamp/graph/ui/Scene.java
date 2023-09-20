@@ -52,7 +52,13 @@ import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.ui.Shape.Visitor2;
-import com.jogamp.graph.ui.Scene.PMVMatrixSetup;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Ray;
+import com.jogamp.math.Recti;
+import com.jogamp.math.Vec2f;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.graph.ui.Shape.Visitor1;
 import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.InputEvent;
@@ -61,15 +67,8 @@ import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.PinchToZoomGesture;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Ray;
-import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.Vec2f;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.GLReadBufferUtil;
-import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.graph.ui.TreeTool;
@@ -93,7 +92,7 @@ import jogamp.graph.ui.TreeTool;
  * - {@link GLEventListener#dispose(GLAutoDrawable)}
  * </p>
  * <p>
- * {@link #setPMVMatrixSetup(PMVMatrixSetup)} maybe used to provide a custom {@link PMVMatrix} setup.
+ * {@link #setPMVMatrixSetup(PMVMatrixSetup)} maybe used to provide a custom {@link PMVMatrix4f} setup.
  * </p>
  * @see Shape
  */
@@ -141,7 +140,7 @@ public final class Scene implements Container, GLEventListener {
 
     private final int[] sampleCount = new int[1];
 
-    /** Describing the bounding box in shape's object model-coordinates of the near-plane parallel at its scene-distance, post {@link #translate(PMVMatrix)} */
+    /** Describing the bounding box in shape's object model-coordinates of the near-plane parallel at its scene-distance, post {@link #translate(PMVMatrix4f)} */
     private final AABBox planeBox = new AABBox(0f, 0f, 0f, 0f, 0f, 0f);
 
     private volatile Shape activeShape = null;
@@ -395,13 +394,13 @@ public final class Scene implements Container, GLEventListener {
     }
 
     /**
-     * Reshape scene using {@link #setupMatrix(PMVMatrix, int, int, int, int)} using {@link PMVMatrixSetup}.
+     * Reshape scene using {@link #setupMatrix(PMVMatrix4f, int, int, int, int)} using {@link PMVMatrixSetup}.
      * <p>
      * {@inheritDoc}
      * </p>
      * @see PMVMatrixSetup
      * @see #setPMVMatrixSetup(PMVMatrixSetup)
-     * @see #setupMatrix(PMVMatrix, int, int, int, int)
+     * @see #setupMatrix(PMVMatrix4f, int, int, int, int)
      * @see #getBounds()
      * @see #getBoundsCenter()
      */
@@ -440,8 +439,7 @@ public final class Scene implements Container, GLEventListener {
             sampleCount0 = sampleCount;
         }
 
-        final PMVMatrix pmv = renderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+        final PMVMatrix4f pmv = renderer.getMatrix();
 
         if( glSelect ) {
             renderer.enable(gl, true, RegionRenderer.defaultBlendDisable, RegionRenderer.defaultBlendDisable);
@@ -456,8 +454,8 @@ public final class Scene implements Container, GLEventListener {
             final Shape shape = (Shape)shapes[i];
             // System.err.println("Id "+i+": "+uiShape);
             if( shape.isEnabled() ) {
-                pmv.glPushMatrix();
-                shape.setTransform(pmv);
+                pmv.pushMv();
+                shape.setMvTransform(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
                     if( glSelect ) {
@@ -470,7 +468,7 @@ public final class Scene implements Container, GLEventListener {
                         shape.draw(gl, renderer, sampleCount0);
                     }
                 }
-                pmv.glPopMatrix();
+                pmv.popMv();
             }
         }
         if( glSelect ) {
@@ -537,8 +535,8 @@ public final class Scene implements Container, GLEventListener {
      * <p>
      * Method performs on current thread and returns after probing every {@link Shape}.
      * </p>
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
-     *            {@link Shape#setTransform(PMVMatrix) shape-transformed} and can be reused by the caller and runnable.
+     * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
+     *            {@link Shape#setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller and runnable.
      * @param glWinX window X coordinate, bottom-left origin
      * @param glWinY window Y coordinate, bottom-left origin
      * @param objPos storage for found object position in model-space of found {@link Shape}
@@ -546,7 +544,7 @@ public final class Scene implements Container, GLEventListener {
      * @param runnable the action to perform if {@link Shape} was found
      * @return picked Shape if any or null as stored in {@code shape}
      */
-    public Shape pickShape(final PMVMatrix pmv, final int glWinX, final int glWinY, final Vec3f objPos, final Shape[] shape, final Runnable runnable) {
+    public Shape pickShape(final PMVMatrix4f pmv, final int glWinX, final int glWinY, final Vec3f objPos, final Shape[] shape, final Runnable runnable) {
         setupMatrix(pmv);
 
         final float winZ0 = 0f;
@@ -560,8 +558,8 @@ public final class Scene implements Container, GLEventListener {
         final Ray ray = new Ray();
         shape[0] = null;
 
-        forSortedAll(Shape.ZAscendingComparator, pmv, (final Shape s, final PMVMatrix pmv2) -> {
-            final boolean ok = s.isInteractive() && pmv.gluUnProjectRay(glWinX, glWinY, winZ0, winZ1, viewport, ray);
+        forSortedAll(Shape.ZAscendingComparator, pmv, (final Shape s, final PMVMatrix4f pmv2) -> {
+            final boolean ok = s.isInteractive() && pmv.mapWinToRay(glWinX, glWinY, winZ0, winZ1, viewport, ray);
             if( ok ) {
                 final AABBox sbox = s.getBounds();
                 if( sbox.intersectsRay(ray) ) {
@@ -604,11 +602,11 @@ public final class Scene implements Container, GLEventListener {
                 final Shape s = pickShapeGLImpl(drawable, glWinX, glWinY);
                 shape[0] = s;
                 if( null != s ) {
-                    final PMVMatrix pmv = renderer.getMatrix();
-                    pmv.glPushMatrix();
-                    s.setTransform(pmv);
+                    final PMVMatrix4f pmv = renderer.getMatrix();
+                    pmv.pushMv();
+                    s.setMvTransform(pmv);
                     final boolean ok = null != shape[0].winToShapeCoord(getMatrix(), getViewport(), glWinX, glWinY, objPos);
-                    pmv.glPopMatrix();
+                    pmv.popMv();
                     if( ok ) {
                         runnable.run();
                     }
@@ -661,12 +659,12 @@ public final class Scene implements Container, GLEventListener {
      * @param shape
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
-     *            {@link Shape#setTransform(PMVMatrix) shape-transformed} and can be reused by the caller and runnable.
+     * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
+     *            {@link Shape#setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller and runnable.
      * @param objPos resulting object position
      * @param runnable action
      */
-    public void winToShapeCoord(final Shape shape, final int glWinX, final int glWinY, final PMVMatrix pmv, final Vec3f objPos, final Runnable runnable) {
+    public void winToShapeCoord(final Shape shape, final int glWinX, final int glWinY, final PMVMatrix4f pmv, final Vec3f objPos, final Runnable runnable) {
         if( null == shape ) {
             return;
         }
@@ -680,38 +678,38 @@ public final class Scene implements Container, GLEventListener {
     }
 
     @Override
-    public AABBox getBounds(final PMVMatrix pmv, final Shape shape) {
+    public AABBox getBounds(final PMVMatrix4f pmv, final Shape shape) {
         final AABBox res = new AABBox();
         if( null == shape ) {
             return res;
         }
         setupMatrix(pmv);
         forOne(pmv, shape, () -> {
-            shape.getBounds().transformMv(pmv, res);
+            shape.getBounds().transform(pmv.getMv(), res);
         });
         return res;
     }
 
     /**
      * Traverses through the graph up until {@code shape} and apply {@code action} on it.
-     * @param pmv {@link PMVMatrix}, which shall be properly initialized, e.g. via {@link Scene#setupMatrix(PMVMatrix)}
+     * @param pmv {@link PMVMatrix4f}, which shall be properly initialized, e.g. via {@link Scene#setupMatrix(PMVMatrix4f)}
      * @param shape
      * @param action
      * @return true to signal operation complete, i.e. {@code shape} found, otherwise false
      */
     @Override
-    public boolean forOne(final PMVMatrix pmv, final Shape shape, final Runnable action) {
+    public boolean forOne(final PMVMatrix4f pmv, final Shape shape, final Runnable action) {
         return TreeTool.forOne(shapes, pmv, shape, action);
     }
 
     /**
-     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix)} for each, stop if it returns true.
-     * @param pmv {@link PMVMatrix}, which shall be properly initialized, e.g. via {@link Scene#setupMatrix(PMVMatrix)}
+     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
+     * @param pmv {@link PMVMatrix4f}, which shall be properly initialized, e.g. via {@link Scene#setupMatrix(PMVMatrix4f)}
      * @param v
-     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix)} returned true, otherwise false
+     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
      */
     @Override
-    public boolean forAll(final PMVMatrix pmv, final Visitor2 v) {
+    public boolean forAll(final PMVMatrix4f pmv, final Visitor2 v) {
         return TreeTool.forAll(shapes, pmv, v);
     }
 
@@ -726,27 +724,27 @@ public final class Scene implements Container, GLEventListener {
     }
 
     /**
-     * Traverses through the graph and apply {@link Visitor#visit(Shape, PMVMatrix)} for each, stop if it returns true.
+     * Traverses through the graph and apply {@link Visitor#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
      *
      * Each {@link Container} level is sorted using {@code sortComp}
      * @param sortComp
      * @param pmv
      * @param v
-     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix)} returned true, otherwise false
+     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
      */
     @Override
-    public boolean forSortedAll(final Comparator<Shape> sortComp, final PMVMatrix pmv, final Visitor2 v) {
+    public boolean forSortedAll(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
         return TreeTool.forSortedAll(sortComp, shapes, pmv, v);
     }
 
     /**
-     * Interface providing {@link #set(PMVMatrix, Recti) a method} to
-     * setup {@link PMVMatrix}'s {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}.
+     * Interface providing {@link #set(PMVMatrix4f, Recti) a method} to
+     * setup {@link PMVMatrix4f}'s {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}.
      * <p>
      * At the end of operations, the {@link GLMatrixFunc#GL_MODELVIEW} matrix has to be selected.
      * </p>
      * <p>
-     * Implementation is being called by {@link Scene#setupMatrix(PMVMatrix, int, int, int, int)}
+     * Implementation is being called by {@link Scene#setupMatrix(PMVMatrix4f, int, int, int, int)}
      * and hence {@link Scene#reshape(GLAutoDrawable, int, int, int, int)}.
      * </p>
      * <p>
@@ -768,28 +766,28 @@ public final class Scene implements Container, GLEventListener {
         float getZFar();
 
         /**
-         * Setup {@link PMVMatrix}'s {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}.
+         * Setup {@link PMVMatrix4f}'s {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}.
          * <p>
          * See {@link PMVMatrixSetup} for details.
          * </p>
          * <p>
          * At the end of operations, the {@link GLMatrixFunc#GL_MODELVIEW} matrix is selected.
          * </p>
-         * @param pmv the {@link PMVMatrix} to setup
+         * @param pmv the {@link PMVMatrix4f} to setup
          * @param viewport Rect4i viewport
          */
-        void set(PMVMatrix pmv, Recti viewport);
+        void set(PMVMatrix4f pmv, Recti viewport);
 
         /**
          * Optional method to set the {@link Scene#getBounds()} {@link AABBox}, maybe a {@code nop} if not desired.
          * <p>
-         * Will be called by {@link Scene#reshape(GLAutoDrawable, int, int, int, int)} after {@link #set(PMVMatrix, Recti)}.
+         * Will be called by {@link Scene#reshape(GLAutoDrawable, int, int, int, int)} after {@link #set(PMVMatrix4f, Recti)}.
          * </p>
          * @param planeBox the {@link AABBox} to define
-         * @param pmv the {@link PMVMatrix}, already setup via {@link #set(PMVMatrix, Recti)}.
+         * @param pmv the {@link PMVMatrix4f}, already setup via {@link #set(PMVMatrix4f, Recti)}.
          * @param viewport Rect4i viewport
          */
-        void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, Recti viewport);
+        void setPlaneBox(final AABBox planeBox, final PMVMatrix4f pmv, Recti viewport);
     }
 
     /** Return the default or {@link #setPMVMatrixSetup(PMVMatrixSetup)} {@link PMVMatrixSetup}. */
@@ -799,21 +797,21 @@ public final class Scene implements Container, GLEventListener {
     public final void setPMVMatrixSetup(final PMVMatrixSetup setup) { pmvMatrixSetup = setup; }
 
     /**
-     * Setup {@link PMVMatrix} {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}
-     * by calling {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#set(PMVMatrix, Recti)}.
-     * @param pmv the {@link PMVMatrix} to setup
+     * Setup {@link PMVMatrix4f} {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}
+     * by calling {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
+     * @param pmv the {@link PMVMatrix4f} to setup
      * @param Recti viewport
      */
-    public void setupMatrix(final PMVMatrix pmv, final Recti viewport) {
+    public void setupMatrix(final PMVMatrix4f pmv, final Recti viewport) {
         pmvMatrixSetup.set(pmv, viewport);
     }
 
     /**
-     * Setup {@link PMVMatrix} {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}
-     * using implicit {@link #getViewport()} surface dimension by calling {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#set(PMVMatrix, Recti)}.
-     * @param pmv the {@link PMVMatrix} to setup
+     * Setup {@link PMVMatrix4f} {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW}
+     * using implicit {@link #getViewport()} surface dimension by calling {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
+     * @param pmv the {@link PMVMatrix4f} to setup
      */
-    public void setupMatrix(final PMVMatrix pmv) {
+    public void setupMatrix(final PMVMatrix4f pmv) {
         final Recti viewport = renderer.getViewport();
         setupMatrix(pmv, viewport);
     }
@@ -829,8 +827,8 @@ public final class Scene implements Container, GLEventListener {
     /** Returns the {@link #getViewport()}'s height, set after initial {@link #reshape(GLAutoDrawable, int, int, int, int)}. */
     public int getHeight() { return renderer.getHeight(); }
 
-    /** Borrow the current {@link PMVMatrix}. */
-    public PMVMatrix getMatrix() { return renderer.getMatrix(); }
+    /** Borrow the current {@link PMVMatrix4f}. */
+    public PMVMatrix4f getMatrix() { return renderer.getMatrix(); }
 
     /**
      * Describing the scene's object model-dimensions of the plane at scene-distance covering the visible viewport rectangle.
@@ -841,7 +839,7 @@ public final class Scene implements Container, GLEventListener {
      * {@link AABBox#getWidth()} and {@link AABBox#getHeight()} define scene's dimension covered by surface size.
      * </p>
      * <p>
-     * {@link AABBox} is setup via {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#setPlaneBox(AABBox, PMVMatrix, Recti)}.
+     * {@link AABBox} is setup via {@link #getPMVMatrixSetup()}'s {@link PMVMatrixSetup#setPlaneBox(AABBox, PMVMatrix4f, Recti)}.
      * </p>
      * <p>
      * The default {@link PMVMatrixSetup} implementation scales to normalized plane dimensions, 1 for the greater of width and height.
@@ -870,12 +868,12 @@ public final class Scene implements Container, GLEventListener {
      * @param objPos float[3] storage for object coord result
      * @param winZ
      */
-    public static void winToPlaneCoord(final PMVMatrix pmv, final Recti viewport,
+    public static void winToPlaneCoord(final PMVMatrix4f pmv, final Recti viewport,
                                        final float zNear, final float zFar,
                                        final float winX, final float winY, final float objOrthoZ,
                                        final Vec3f objPos) {
         final float winZ = FloatUtil.getOrthoWinZ(objOrthoZ, zNear, zFar);
-        pmv.gluUnProject(winX, winY, winZ, viewport, objPos);
+        pmv.mapWinToObj(winX, winY, winZ, viewport, objPos);
     }
 
     /**
@@ -888,7 +886,7 @@ public final class Scene implements Container, GLEventListener {
      * @param objSceneSize Vec2f storage for object surface size result
      */
     public void surfaceToPlaneSize(final Recti viewport, final float zNear, final float zFar, final float objOrthoDist, final Vec2f objSceneSize) {
-        final PMVMatrix pmv = new PMVMatrix();
+        final PMVMatrix4f pmv = new PMVMatrix4f();
         setupMatrix(pmv, viewport);
         {
             final Vec3f obj00Coord = new Vec3f();
@@ -935,7 +933,7 @@ public final class Scene implements Container, GLEventListener {
                         // flip to GL window coordinates
                         final int glWinX = e.getX();
                         final int glWinY = getHeight() - e.getY() - 1;
-                        final PMVMatrix pmv = new PMVMatrix();
+                        final PMVMatrix4f pmv = new PMVMatrix4f();
                         final Vec3f objPos = new Vec3f();
                         winToShapeCoord(shape, glWinX, glWinY, pmv, objPos, () -> {
                             shape.dispatchGestureEvent(gh, glWinX, glWinY, pmv, renderer.getViewport(), objPos);
@@ -966,7 +964,7 @@ public final class Scene implements Container, GLEventListener {
      * @param glWinY in GL window coordinates, origin bottom-left
      */
     final void dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY) {
-        final PMVMatrix pmv = new PMVMatrix();
+        final PMVMatrix4f pmv = new PMVMatrix4f();
         final Vec3f objPos = new Vec3f();
         final Shape[] shape = { null };
         if( null == pickShape(pmv, glWinX, glWinY, objPos, shape, () -> {
@@ -985,7 +983,7 @@ public final class Scene implements Container, GLEventListener {
      * @param glWinY in GL window coordinates, origin bottom-left
      */
     final void dispatchMouseEventForShape(final Shape shape, final MouseEvent e, final int glWinX, final int glWinY) {
-        final PMVMatrix pmv = new PMVMatrix();
+        final PMVMatrix4f pmv = new PMVMatrix4f();
         final Vec3f objPos = new Vec3f();
         winToShapeCoord(shape, glWinX, glWinY, pmv, objPos, () -> { shape.dispatchMouseEvent(e, glWinX, glWinY, objPos); });
     }
@@ -1199,7 +1197,7 @@ public final class Scene implements Container, GLEventListener {
 
     /**
      * Default implementation of {@link Scene.PMVMatrixSetup},
-     * implementing {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti)} as follows:
+     * implementing {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)} as follows:
      * <ul>
      *   <li>{@link GLMatrixFunc#GL_PROJECTION} Matrix
      *   <ul>
@@ -1279,19 +1277,17 @@ public final class Scene implements Container, GLEventListener {
         }
 
         @Override
-        public void set(final PMVMatrix pmv, final Recti viewport) {
+        public void set(final PMVMatrix4f pmv, final Recti viewport) {
             final float ratio = (float) viewport.width() / (float) viewport.height();
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glLoadIdentity();
-            pmv.gluPerspective(angle, ratio, zNear, zFar);
-            pmv.glTranslatef(0f, 0f, scene_dist);
+            pmv.loadPIdentity();
+            pmv.perspectiveP(angle, ratio, zNear, zFar);
+            pmv.translateMv(0f, 0f, scene_dist);
 
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
+            pmv.loadMvIdentity();
         }
 
         @Override
-        public void setPlaneBox(final AABBox planeBox, final PMVMatrix pmv, final Recti viewport) {
+        public void setPlaneBox(final AABBox planeBox, final PMVMatrix4f pmv, final Recti viewport) {
             final float orthoDist = -scene_dist;
             final Vec3f obj00Coord = new Vec3f();
             final Vec3f obj11Coord = new Vec3f();

@@ -56,6 +56,10 @@ import com.jogamp.graph.ui.shapes.GLButton;
 import com.jogamp.graph.ui.shapes.ImageButton;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.MediaButton;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.graph.ui.shapes.BaseButton;
 import com.jogamp.nativewindow.ScalableSurface;
 import com.jogamp.newt.Display;
@@ -85,11 +89,7 @@ import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.opengl.demos.graph.MSAATool;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.EventMask;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
@@ -435,7 +435,7 @@ public class UISceneDemo20 implements GLEventListener {
                                   final com.jogamp.openal.sound3d.Source aSource) {
         AABBox worldBounds;
         {
-            final PMVMatrix pmv = new PMVMatrix();
+            final PMVMatrix4f pmv = new PMVMatrix4f();
             worldBounds = scene.getBounds(pmv, shape);
         }
         context.makeCurrent(true);
@@ -793,7 +793,7 @@ public class UISceneDemo20 implements GLEventListener {
                     if( e.getPointerCount() == 1 ) {
                         final AABBox worldBounds;
                         {
-                            final PMVMatrix pmv = new PMVMatrix();
+                            final PMVMatrix4f pmv = new PMVMatrix4f();
                             worldBounds = scene.getBounds(pmv, shapeEvent.shape);
                         }
                         actionText = String.format((Locale)null, "Pos %s", worldBounds.getCenter());
@@ -1168,7 +1168,7 @@ public class UISceneDemo20 implements GLEventListener {
             if( e.getPointerCount() == 1 ) {
                 final AABBox worldBounds;
                 {
-                    final PMVMatrix pmv = new PMVMatrix();
+                    final PMVMatrix4f pmv = new PMVMatrix4f();
                     worldBounds = scene.getBounds(pmv, shapeEvent.shape);
                 }
                 actionText = String.format((Locale)null, "Pos %s", worldBounds.getCenter());

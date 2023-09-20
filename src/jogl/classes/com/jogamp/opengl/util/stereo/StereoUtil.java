@@ -27,9 +27,9 @@
  */
 package com.jogamp.opengl.util.stereo;
 
-import com.jogamp.opengl.math.Matrix4f;
-import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.math.Matrix4f;
+import com.jogamp.math.Quaternion;
+import com.jogamp.math.Vec3f;
 import com.jogamp.opengl.util.CustomGLEventListener;
 import com.jogamp.opengl.util.stereo.StereoDeviceRenderer.Eye;
 

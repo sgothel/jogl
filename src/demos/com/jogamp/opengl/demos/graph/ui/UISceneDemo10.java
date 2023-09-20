@@ -43,6 +43,10 @@ import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.CrossHair;
 import com.jogamp.graph.ui.shapes.GLButton;
 import com.jogamp.graph.ui.shapes.MediaButton;
+import com.jogamp.math.Recti;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -56,12 +60,7 @@ import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.es2.GearsES2;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 
@@ -202,7 +201,7 @@ public class UISceneDemo10 {
     }
 
     static void testProject(final Scene scene, final Shape shape, final int glWinX, final int glWinY) {
-        final PMVMatrix pmv = new PMVMatrix();
+        final PMVMatrix4f pmv = new PMVMatrix4f();
         final Vec3f objPos = shape.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, new Vec3f());
         System.err.printf("MM1: winToObjCoord: obj %s%n", objPos);
         final int[] glWinPos = shape.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), objPos, pmv, new int[2]);
@@ -268,7 +267,7 @@ public class UISceneDemo10 {
     }
     static class MyPMVMatrixSetup extends Scene.DefaultPMVMatrixSetup {
         @Override
-        public void set(final PMVMatrix pmv, final Recti viewport) {
+        public void set(final PMVMatrix4f pmv, final Recti viewport) {
             super.set(pmv, viewport);
 
             // Scale (back) to have normalized plane dimensions, 1 for the greater of width and height.
@@ -277,9 +276,7 @@ public class UISceneDemo10 {
             final float sx = planeBox0.getWidth();
             final float sy = planeBox0.getHeight();
             final float sxy = sx > sy ? sx : sy;
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glScalef(sxy, sxy, 1f);
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmv.scaleP(sxy, sxy, 1f);
         }
     };
 

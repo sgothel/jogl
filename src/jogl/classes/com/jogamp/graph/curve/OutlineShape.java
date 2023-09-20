@@ -36,14 +36,14 @@ import com.jogamp.graph.curve.tess.Triangulator;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.graph.geom.plane.Path2F;
-import com.jogamp.graph.geom.plane.Winding;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.VectorUtil;
-import com.jogamp.opengl.math.Vert2fImmutable;
-import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.VectorUtil;
+import com.jogamp.math.Vert2fImmutable;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.AffineTransform;
+import com.jogamp.math.geom.plane.Path2F;
+import com.jogamp.math.geom.plane.Winding;
 
 /**
  * A Generic shape objects which is defined by a list of Outlines.
@@ -671,7 +671,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @param y point (P1)
      * @param z point (P1)
      * @see Path2F#moveTo(float, float)
-     * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     * @see #addPath(com.jogamp.math.geom.plane.Path2F.Iterator, boolean)
      * @see <a href="#windingrules">see winding rules</a>
      */
     public final void moveTo(final float x, final float y, final float z) {
@@ -691,7 +691,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @param y final point (P1)
      * @param z final point (P1)
      * @see Path2F#lineTo(float, float)
-     * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     * @see #addPath(com.jogamp.math.geom.plane.Path2F.Iterator, boolean)
      * @see <a href="#windingrules">see winding rules</a>
      */
     public final void lineTo(final float x, final float y, final float z) {
@@ -708,7 +708,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @param y2 final interpolated control point (P2)
      * @param z2 quadratic parametric control point (P2)
      * @see Path2F#quadTo(float, float, float, float)
-     * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     * @see #addPath(com.jogamp.math.geom.plane.Path2F.Iterator, boolean)
      * @see <a href="#windingrules">see winding rules</a>
      */
     public final void quadTo(final float x1, final float y1, final float z1, final float x2, final float y2, final float z2) {
@@ -729,7 +729,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @param y3 final interpolated control point (P3)
      * @param z3 final interpolated control point (P3)
      * @see Path2F#cubicTo(float, float, float, float, float, float)
-     * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     * @see #addPath(com.jogamp.math.geom.plane.Path2F.Iterator, boolean)
      * @see <a href="#windingrules">see winding rules</a>
      */
     public final void cubicTo(final float x1, final float y1, final float z1, final float x2, final float y2, final float z2, final float x3, final float y3, final float z3) {
@@ -741,7 +741,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     /**
      * Closes the current sub-path segment by drawing a straight line back to the coordinates of the last moveTo. If the path is already closed then this method has no effect.
      * @see Path2F#closePath()
-     * @see #addPath(com.jogamp.graph.geom.plane.Path2F.Iterator, boolean)
+     * @see #addPath(com.jogamp.math.geom.plane.Path2F.Iterator, boolean)
      */
     public final void closePath() {
         if ( 0 < getLastOutline().getVertexCount() ) {

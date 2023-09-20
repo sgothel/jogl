@@ -27,11 +27,10 @@
  */
 package jogamp.opengl.util.stereo;
 
+import com.jogamp.math.FovHVHalves;
+import com.jogamp.math.VectorUtil;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.RectangleImmutable;
-
-import com.jogamp.opengl.math.FovHVHalves;
-import com.jogamp.opengl.math.VectorUtil;
 
 /**
  * 2D scale and offset NDC class,

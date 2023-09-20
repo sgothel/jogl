@@ -32,9 +32,9 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.util.SyncAction;
-import com.jogamp.opengl.util.SyncBuffer;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.util.SyncAction;
+import com.jogamp.math.util.SyncBuffer;
 
 /**
  * GLSL uniform data wrapper encapsulating data to be uploaded to the GPU as a uniform.

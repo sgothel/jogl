@@ -27,6 +27,9 @@
  */
 package jogamp.opengl.oculusvr;
 
+import com.jogamp.math.FovHVHalves;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.geom.Frustum;
 import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.PointImmutable;
@@ -39,9 +42,6 @@ import com.jogamp.oculusvr.ovrFovPort;
 import com.jogamp.oculusvr.ovrHmdDesc;
 import com.jogamp.oculusvr.ovrSizei;
 import com.jogamp.oculusvr.ovrTrackingState;
-import com.jogamp.opengl.math.FovHVHalves;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.geom.Frustum;
 import com.jogamp.opengl.util.stereo.LocationSensorParameter;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceFactory;

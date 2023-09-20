@@ -27,8 +27,8 @@
  */
 package com.jogamp.opengl.util.stereo;
 
-import com.jogamp.opengl.math.Matrix4f;
-import com.jogamp.opengl.math.geom.Frustum;
+import com.jogamp.math.Matrix4f;
+import com.jogamp.math.geom.Frustum;
 
 /**
  * Constant parameter of the positioning sensor to locate the {@link ViewerPose}.

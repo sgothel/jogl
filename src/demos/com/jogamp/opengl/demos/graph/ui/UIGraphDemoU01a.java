@@ -37,9 +37,18 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.shapes.CrossHair;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Matrix4f;
+import com.jogamp.math.Recti;
+import com.jogamp.math.Vec2f;
+import com.jogamp.math.Vec2i;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.AffineTransform;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -52,17 +61,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Matrix4f;
-import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.Vec2f;
-import com.jogamp.opengl.math.Vec2i;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.Vec4f;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  * Res independent Graph + GraphUI integration demo
@@ -238,20 +237,19 @@ public class UIGraphDemoU01a {
                 shape.setScale(s, s, 1f);
             }
         }
-        private void setMatrix(final PMVMatrix pmv, final Recti viewport) {
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glLoadIdentity();
+        private void setMatrix(final PMVMatrix4f pmv, final Recti viewport) {
+            pmv.loadPIdentity();
             final float ratio = (float)viewport.width()/(float)viewport.height();
             if( projOrthoWin ) {
                 worldDim.setX( viewport.width() );
                 worldDim.setY( worldDim.x() / ratio ); // adjust aspect ratio
-                pmv.glOrthof(0, worldDim.x(), 0, worldDim.y(), zNear, zFar);
+                pmv.orthoP(0, worldDim.x(), 0, worldDim.y(), zNear, zFar);
                 // similar: renderer.reshapeOrtho(viewport.width(), viewport.height(), zNear, zFar);
             } else if( projOrtho ) {
                 worldDim.setY( worldDim.x() / ratio ); // adjust aspect ratio
-                pmv.glOrthof(-worldDim.x()/2f, worldDim.x()/2f, -worldDim.y()/2f, worldDim.y()/2f, zNear, zFar);
+                pmv.orthoP(-worldDim.x()/2f, worldDim.x()/2f, -worldDim.y()/2f, worldDim.y()/2f, zNear, zFar);
             } else {
-                pmv.gluPerspective(angle, ratio, zNear, zFar);
+                pmv.perspectiveP(angle, ratio, zNear, zFar);
                 {
                     final Vec3f obj00Coord = new Vec3f();
                     final Vec3f obj11Coord = new Vec3f();
@@ -264,15 +262,14 @@ public class UIGraphDemoU01a {
                     worldDim.set(planeBox.getWidth(), planeBox.getHeight());
                 }
             }
-            pmv.glTranslatef(0f, 0f, sceneDist); // nose to plane
+            pmv.translateP(0f, 0f, sceneDist); // nose to plane
 
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
+            pmv.loadMvIdentity();
 
             winToPlaneCoord(pmv, viewport, zNear, zFar, winOrigin.x(), winOrigin.y(), -sceneDist, worldOrigin);
             {
-                final Matrix4f p = pmv.getPMat();
-                final Matrix4f mv = pmv.getMvMat();
+                final Matrix4f p = pmv.getP();
+                final Matrix4f mv = pmv.getMv();
                 System.err.println("Reshape VP: "+viewport);
                 System.err.println("Reshape P :"); System.err.println(p.toString());
                 System.err.println("Reshape Mv:"); System.err.println(mv.toString());
@@ -280,14 +277,14 @@ public class UIGraphDemoU01a {
                 System.err.println("Window Origin: "+winOrigin);
                 System.err.println("World Origin : "+worldOrigin);
             }
-            pmv.glTranslatef(worldOrigin.x(), worldOrigin.y(), 0); // move to custom origin
+            pmv.translateMv(worldOrigin.x(), worldOrigin.y(), 0); // move to custom origin
         }
-        public static void winToPlaneCoord(final PMVMatrix pmv, final Recti viewport,
+        public static void winToPlaneCoord(final PMVMatrix4f pmv, final Recti viewport,
                 final float zNear, final float zFar,
                 final float winX, final float winY, final float objOrthoZ,
                 final Vec3f objPos) {
             final float winZ = FloatUtil.getOrthoWinZ(objOrthoZ, zNear, zFar);
-            pmv.gluUnProject(winX, winY, winZ, viewport, objPos);
+            pmv.mapWinToObj(winX, winY, winZ, viewport, objPos);
         }
 
         @Override
@@ -297,30 +294,29 @@ public class UIGraphDemoU01a {
             gl.glClearColor(1f, 1f, 1f, 1f);
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-            final PMVMatrix pmv = renderer.getMatrix();
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            final PMVMatrix4f pmv = renderer.getMatrix();
 
             if( onceAtDisplay ) {
-                final Matrix4f p = pmv.getPMat();
-                final Matrix4f mv = pmv.getMvMat();
+                final Matrix4f p = pmv.getP();
+                final Matrix4f mv = pmv.getMv();
                 System.err.println("Display.0: P :"); System.err.println(p.toString());
                 System.err.println("Display.0: Mv:"); System.err.println(mv.toString());
             }
 
             renderer.enable(gl, true);
             {
-                pmv.glPushMatrix();
+                pmv.pushMv();
                 drawText(gl, pmv, " Hello JogAmp Users!");
-                pmv.glPopMatrix();
+                pmv.popMv();
             }
             if( !textOnly ) {
-                pmv.glPushMatrix();
-                shape.setTransform(pmv);
+                pmv.pushMv();
+                shape.setMvTransform(pmv);
 
                 shape.draw(gl, renderer, sampleCount);
                 if( onceAtDisplay ) {
-                    final Matrix4f p = pmv.getPMat();
-                    final Matrix4f mv = pmv.getMvMat();
+                    final Matrix4f p = pmv.getP();
+                    final Matrix4f mv = pmv.getMv();
                     System.err.println("Display.1: P :"); System.err.println(p.toString());
                     System.err.println("Display.1: Mv:"); System.err.println(mv.toString());
                     System.err.println("Display.1: Shape bounds "+shape.getBounds(drawable.getGLProfile()));
@@ -328,12 +324,12 @@ public class UIGraphDemoU01a {
                     final Recti shapePort = shape.getSurfacePort(pmv, renderer.getViewport(), new Recti());
                     System.err.println("Display.1: Shape SurfacePort "+shapePort);
                 }
-                pmv.glPopMatrix();
+                pmv.popMv();
             }
             renderer.enable(gl, false);
             onceAtDisplay = false;
         }
-        private void drawText(final GL2ES2 gl, final PMVMatrix pmv, final String text) {
+        private void drawText(final GL2ES2 gl, final PMVMatrix4f pmv, final String text) {
             final AffineTransform tempT1 = new AffineTransform();
             final AffineTransform tempT2 = new AffineTransform();
 
@@ -341,8 +337,8 @@ public class UIGraphDemoU01a {
             final float full_width_s = worldDim.x() / txt_box_em.getWidth();
             final float full_height_s = worldDim.y() / txt_box_em.getHeight();
             final float txt_scale = full_width_s < full_height_s ? full_width_s * normWidgetSize : full_height_s * normWidgetSize;
-            pmv.glScalef(txt_scale, txt_scale, 1f);
-            pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
+            pmv.scaleMv(txt_scale, txt_scale, 1f);
+            pmv.translateMv(-txt_box_em.getWidth(), 0f, 0f);
             final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, textRegion.clear(gl), renderer, font, text, text_color, sampleCount, tempT1, tempT2);
 
             if( onceAtDisplay ) {
@@ -351,7 +347,7 @@ public class UIGraphDemoU01a {
                 System.err.println("XXX: txt_scale: "+txt_scale);
                 System.err.println("XXX: txt_box_em "+txt_box_em);
                 System.err.println("XXX: txt_box_r  "+txt_box_r);
-                final AABBox textPort = txt_box_r.mapToWindow(new AABBox(), pmv.getPMvMat(), renderer.getViewport(), true /* useCenterZ */);
+                final AABBox textPort = txt_box_r.mapToWindow(new AABBox(), pmv.getPMv(), renderer.getViewport(), true /* useCenterZ */);
                 System.err.println("Display.1: Shape TextPort "+textPort);
 
                 final Font.GlyphVisitor visitor = new Font.GlyphVisitor() {

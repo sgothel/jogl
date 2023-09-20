@@ -36,8 +36,8 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontScale;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.geom.AABBox;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 

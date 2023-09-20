@@ -115,11 +115,10 @@
 
 package jogamp.opengl.glu;
 
+import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.glu.GLU;
 import com.jogamp.opengl.glu.GLUquadric;
-
-import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.util.ImmModeSink;
 import com.jogamp.opengl.util.glsl.ShaderState;
 

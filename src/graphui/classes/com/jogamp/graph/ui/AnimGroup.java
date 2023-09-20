@@ -36,20 +36,20 @@ import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
-import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.Group.Layout;
 import com.jogamp.graph.ui.shapes.GlyphShape;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Quaternion;
+import com.jogamp.math.Recti;
+import com.jogamp.math.Vec2f;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.AffineTransform;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.Vec2f;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.Vec4f;
-import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  * Group of animated {@link Shape}s including other static {@link Shape}s, optionally utilizing a {@link Group.Layout}.
@@ -304,13 +304,13 @@ public class AnimGroup extends Group {
     /**
      * Add a new {@link Set} with an empty {@link ShapeData} container.
      * <p>
-     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setTransform(PMVMatrix)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti)}.
+     * only, without a shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti)}.
+     * @param pmv well formed {@link PMVMatrix4f}, e.g. could have been setup via {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * @param viewport the int[4] viewport
      * @param accel translation acceleration in [m]/[s*s]
      * @param velocity translation velocity in [m]/[s]
@@ -322,21 +322,21 @@ public class AnimGroup extends Group {
      * @return a new {@link Set} instance
      */
     public Set addAnimSet(final float pixPerMM,
-                              final GLProfile glp, final PMVMatrix pmv, final Recti viewport,
-                              final float accel, final float velocity,
-                              final float ang_accel, final float ang_velo,
-                              final LerpFunc lerp, final Shape refShape)
+                          final GLProfile glp, final PMVMatrix4f pmv, final Recti viewport,
+                          final float accel, final float velocity,
+                          final float ang_accel, final float ang_velo,
+                          final LerpFunc lerp, final Shape refShape)
     {
         final Set as;
         refShape.validate(glp);
-        pmv.glPushMatrix();
+        pmv.pushMv();
         {
-            refShape.setTransform(pmv);
+            refShape.setMvTransform(pmv);
             as = new Set(pixPerMM, refShape.getPixelPerShapeUnit(pmv, viewport, new float[2]), refShape,
                               accel, velocity, ang_accel, ang_velo,
                               new ArrayList<ShapeData>(), new AABBox(), lerp);
         }
-        pmv.glPopMatrix();
+        pmv.popMv();
         animSets.add(as);
         return as;
     }
@@ -345,13 +345,13 @@ public class AnimGroup extends Group {
      * Add a new {@link Set} with {@link ShapeData} for each {@link GlyphShape}, moving towards its target position
      * using a generic displacement via {@link ShapeSetup} to determine each {@link ShapeData}'s starting position.
      * <p>
-     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setTransform(PMVMatrix)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti)}.
+     * only, without a shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti)}.
+     * @param pmv well formed {@link PMVMatrix4f}, e.g. could have been setup via {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * @param viewport the int[4] viewport
      * @param renderModes used {@link GLRegion#create(GLProfile, int, com.jogamp.opengl.util.texture.TextureSequence) region render-modes}
      * @param font {@link Font} to be used for resulting {@link GlyphShape}s
@@ -367,10 +367,10 @@ public class AnimGroup extends Group {
      * @return newly created and added {@link Set}
      */
     public final Set addGlyphSet(final float pixPerMM,
-                                     final GLProfile glp, final PMVMatrix pmv, final Recti viewport, final int renderModes,
-                                     final Font font, final char refChar, final CharSequence text, final float fontScale,
-                                     final float accel, final float velocity, final float ang_accel, final float ang_velo,
-                                     final LerpFunc lerp, final ShapeSetup op)
+                                 final GLProfile glp, final PMVMatrix4f pmv, final Recti viewport, final int renderModes,
+                                 final Font font, final char refChar, final CharSequence text, final float fontScale,
+                                 final float accel, final float velocity, final float ang_accel, final float ang_velo,
+                                 final LerpFunc lerp, final ShapeSetup op)
     {
         final Set as;
         {
@@ -379,13 +379,13 @@ public class AnimGroup extends Group {
             final GlyphShape refShape = new GlyphShape(renderModes, font, refChar, 0, 0);
             refShape.setScale(fontScale, fontScale, 1f);
             refShape.validate(glp);
-            pmv.glPushMatrix();
+            pmv.pushMv();
             {
-                refShape.setTransform(pmv);
+                refShape.setMvTransform(pmv);
                 as = new Set(pixPerMM, refShape.getPixelPerShapeUnit(pmv, viewport, new float[2]), refShape,
                                  accel, velocity, ang_accel, ang_velo, allShapes, sourceBounds, lerp);
             }
-            pmv.glPopMatrix();
+            pmv.popMv();
         }
         animSets.add(as);
 
@@ -424,13 +424,13 @@ public class AnimGroup extends Group {
      * The start-position is randomly chosen within given {@link AABBox} glyphBox.
      * </p>
      * <p>
-     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setTransform(PMVMatrix)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti)}.
+     * only, without a shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti)}.
+     * @param pmv well formed {@link PMVMatrix4f}, e.g. could have been setup via {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * @param viewport the int[4] viewport
      * @param renderModes used {@link GLRegion#create(GLProfile, int, com.jogamp.opengl.util.texture.TextureSequence) region render-modes}
      * @param font {@link Font} to be used for resulting {@link GlyphShape}s
@@ -448,7 +448,7 @@ public class AnimGroup extends Group {
      * @return newly created and added {@link Set}
      */
     public final Set addGlyphSetRandom01(final float pixPerMM,
-                                             final GLProfile glp, final PMVMatrix pmv, final Recti viewport, final int renderModes,
+                                             final GLProfile glp, final PMVMatrix4f pmv, final Recti viewport, final int renderModes,
                                              final Font font, final CharSequence text, final float fontScale, final Vec4f fgCol,
                                              final float accel, final float velocity, final float ang_accel, final float ang_velo,
                                              final AABBox animBox, final boolean z_only, final Random random, final LerpFunc lerp)
@@ -473,13 +473,13 @@ public class AnimGroup extends Group {
      * Add a new {@link Set} with {@link ShapeData} for each {@link GlyphShape}, implementing<br/>
      * horizontal continuous scrolling while repeating the given {@code text}.
      * <p>
-     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setTransform(PMVMatrix)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti)}.
+     * only, without a shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti)}.
+     * @param pmv well formed {@link PMVMatrix4f}, e.g. could have been setup via {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * @param viewport the int[4] viewport
      * @param renderModes used {@link GLRegion#create(GLProfile, int, com.jogamp.opengl.util.texture.TextureSequence) region render-modes}
      * @param font {@link Font} to be used for resulting {@link GlyphShape}s
@@ -491,7 +491,7 @@ public class AnimGroup extends Group {
      * @return newly created and added {@link Set}
      */
     public final Set addGlyphSetHorizScroll01(final float pixPerMM,
-                                              final GLProfile glp, final PMVMatrix pmv, final Recti viewport, final int renderModes,
+                                              final GLProfile glp, final PMVMatrix4f pmv, final Recti viewport, final int renderModes,
                                               final Font font, final CharSequence text, final float fontScale, final Vec4f fgCol,
                                               final float velocity, final AABBox animBox, final float y_offset)
     {

@@ -27,8 +27,8 @@
  */
 package com.jogamp.opengl.util.stereo;
 
-import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.math.Quaternion;
+import com.jogamp.math.Vec3f;
 
 /**
  * {@link #position} and {@link #orientation} of viewer.

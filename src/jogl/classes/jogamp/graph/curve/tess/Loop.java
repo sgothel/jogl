@@ -31,11 +31,11 @@ import java.util.ArrayList;
 
 
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.plane.Winding;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.VectorUtil;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.Winding;
 import com.jogamp.graph.geom.Triangle;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.VectorUtil;
-import com.jogamp.opengl.math.geom.AABBox;
 
 public class Loop {
     private HEdge root = null;

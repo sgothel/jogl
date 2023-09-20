@@ -32,7 +32,6 @@ import java.io.IOException;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
@@ -42,9 +41,9 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.math.geom.plane.AffineTransform;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.Window;
-import com.jogamp.opengl.util.PMVMatrix;
 
 public abstract class TextRendererGLELBase implements GLEventListener {
     public final int renderModes;
@@ -53,7 +52,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     protected final float[] staticRGBAColor = new float[] { 1f, 1f, 1f, 1f };
 
     private boolean exclusivePMVMatrix = true;
-    private PMVMatrix sharedPMVMatrix = null;
+    private PMVMatrix4f sharedPMVMatrix = null;
     private RegionRenderer.GLCallback enableCallback=null, disableCallback=null;
     protected RegionRenderer renderer = null;
     protected TextRegionUtil textRenderUtil = null;
@@ -105,7 +104,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      * Must be called before {@link #init(GLAutoDrawable)}.
      * </p>
      */
-    public void setSharedPMVMatrix(final PMVMatrix pmv) {
+    public void setSharedPMVMatrix(final PMVMatrix4f pmv) {
         this.sharedPMVMatrix = pmv;
     }
 
@@ -245,18 +244,17 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             dx += sxy * font.getAdvanceWidth('X') * column;
             dy -= sxy * lineHeight * ( row + 1 );
 
-            final PMVMatrix pmvMatrix = renderer.getMatrix();
-            pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            final PMVMatrix4f pmvMatrix = renderer.getMatrix();
             if( !exclusivePMVMatrix )  {
-                pmvMatrix.glPushMatrix();
+                pmvMatrix.pushMv();
             } else {
-                pmvMatrix.glLoadIdentity();
+                pmvMatrix.loadMvIdentity();
             }
-            pmvMatrix.glTranslatef(dx, dy, tz);
+            pmvMatrix.translateMv(dx, dy, tz);
             if( flipVerticalInGLOrientation && drawable.isGLOriented() ) {
-                pmvMatrix.glScalef(sxy, -1f*sxy, 1.0f);
+                pmvMatrix.scaleMv(sxy, -1f*sxy, 1.0f);
             } else {
-                pmvMatrix.glScalef(sxy, sxy, 1.0f);
+                pmvMatrix.scaleMv(sxy, sxy, 1.0f);
             }
             renderer.enable(gl, true);
             if( cacheRegion ) {
@@ -269,7 +267,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             renderer.enable(gl, false);
 
             if( !exclusivePMVMatrix )  {
-                pmvMatrix.glPopMatrix();
+                pmvMatrix.popMv();
             }
             lastRow = row + newLineCount;
         }

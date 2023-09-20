@@ -37,6 +37,9 @@ import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.shapes.Button;
+import com.jogamp.math.Recti;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -44,11 +47,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  * Res independent Shape, Scene attached to GLWindow showing simple linear Shape movement within one main function.
@@ -125,7 +124,7 @@ public class UISceneDemo00 {
         final float min_obj = sceneBox.getMinX();
         final float max_obj = sceneBox.getMaxX() - shape.getScaledWidth();
 
-        final int[] shapeSizePx = shape.getSurfaceSize(scene, new PMVMatrix(), new int[2]); // [px]
+        final int[] shapeSizePx = shape.getSurfaceSize(scene, new PMVMatrix4f(), new int[2]); // [px]
         final float[] pixPerShapeUnit = shape.getPixelPerShapeUnit(shapeSizePx, new float[2]); // [px]/[shapeUnit]
 
         final float pixPerMM = window.getPixelsPerMM(new float[2])[0]; // [px]/[mm]
@@ -172,7 +171,7 @@ public class UISceneDemo00 {
 
     static class MyPMVMatrixSetup extends Scene.DefaultPMVMatrixSetup {
         @Override
-        public void set(final PMVMatrix pmv, final Recti viewport) {
+        public void set(final PMVMatrix4f pmv, final Recti viewport) {
             super.set(pmv, viewport);
 
             // Scale (back) to have normalized plane dimensions, 1 for the greater of width and height.
@@ -181,9 +180,7 @@ public class UISceneDemo00 {
             final float sx = planeBox0.getWidth();
             final float sy = planeBox0.getHeight();
             final float sxy = sx > sy ? sx : sy;
-            pmv.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmv.glScalef(sxy, sxy, 1f);
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
+            pmv.scaleP(sxy, sxy, 1f);
         }
     };
 

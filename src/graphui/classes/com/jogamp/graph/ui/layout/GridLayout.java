@@ -31,11 +31,11 @@ import java.util.List;
 
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Shape;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Vec2f;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Vec2f;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 
 /**
  * GraphUI Grid {@link Group.Layout}.
@@ -159,9 +159,9 @@ public class GridLayout implements Group.Layout {
 
     /** Returns given {@link Order}. */
     public Order getOrder() { return order; }
-    /** Returns column count after {@link #layout(Group, AABBox, PMVMatrix)}. */
+    /** Returns column count after {@link #layout(Group, AABBox, PMVMatrix4f)}. */
     public int getColumnCount() { return col_count; }
-    /** Returns row count after {@link #layout(Group, AABBox, PMVMatrix)}. */
+    /** Returns row count after {@link #layout(Group, AABBox, PMVMatrix4f)}. */
     public int getRowCount() { return row_count; }
     /** Returns the preset cell size */
     public Vec2f getCellSize() { return cellSize; }
@@ -180,7 +180,7 @@ public class GridLayout implements Group.Layout {
     }
 
     @Override
-    public void layout(final Group g, final AABBox box, final PMVMatrix pmv) {
+    public void layout(final Group g, final AABBox box, final PMVMatrix4f pmv) {
         final boolean hasCellWidth = !FloatUtil.isZero(cellSize.x());
         final boolean hasCellHeight = !FloatUtil.isZero(cellSize.y());
         final boolean isCenteredHoriz = hasCellWidth && alignment.isSet(Alignment.Bit.CenterHoriz);
@@ -207,11 +207,11 @@ public class GridLayout implements Group.Layout {
         for(int i=0; i < shapes.size(); ++i) {
             final Shape s = shapes.get(i);
             // measure size
-            pmv.glPushMatrix();
-            s.setTransform(pmv);
-            final AABBox sbox = s.getBounds().transformMv(pmv, new AABBox());
+            pmv.pushMv();
+            s.setMvTransform(pmv);
+            final AABBox sbox = s.getBounds().transform(pmv.getMv(), new AABBox());
             sboxes[i] = sbox;
-            pmv.glPopMatrix();
+            pmv.popMv();
 
             final float shapeWidthU  = sbox.getWidth();
             final float shapeHeightU = sbox.getHeight();

@@ -35,6 +35,7 @@
 package jogamp.newt.driver.macosx;
 
 import com.jogamp.common.util.InterruptSource;
+import com.jogamp.math.FloatUtil;
 import com.jogamp.nativewindow.AbstractGraphicsConfiguration;
 import com.jogamp.nativewindow.GraphicsConfigurationFactory;
 import com.jogamp.nativewindow.NativeWindow;
@@ -58,7 +59,6 @@ import jogamp.newt.driver.DriverUpdatePosition;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MonitorEvent;
-import com.jogamp.opengl.math.FloatUtil;
 
 public class WindowDriver extends WindowImpl implements MutableSurface, DriverClearFocus, DriverUpdatePosition {
 

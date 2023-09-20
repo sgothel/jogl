@@ -40,17 +40,17 @@ import jogamp.opengl.Debug;
 
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.Frustum;
+import com.jogamp.math.geom.plane.AffineTransform;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.PerfCounterCtrl;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.Vec4f;
-import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.math.geom.Frustum;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**

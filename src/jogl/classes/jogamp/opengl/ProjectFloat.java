@@ -118,10 +118,9 @@ package jogamp.opengl;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
+import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-
-import com.jogamp.opengl.math.FloatUtil;
 
 /**
  * ProjectFloat.java

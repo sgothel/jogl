@@ -30,7 +30,7 @@ package jogamp.graph.curve.tess;
 import java.util.ArrayList;
 
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.math.Vec3f;
 
 public class GraphVertex {
     private Vertex point;

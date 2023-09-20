@@ -36,10 +36,10 @@ import jogamp.newt.MonitorModeProps;
 import jogamp.newt.ScreenImpl;
 
 import com.jogamp.common.util.ArrayHashSet;
+import com.jogamp.math.FloatUtil;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
-import com.jogamp.opengl.math.FloatUtil;
 
 public class ScreenDriver extends ScreenImpl {
 

@@ -39,10 +39,16 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.shapes.CrossHair;
 import com.jogamp.graph.ui.shapes.Rectangle;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Recti;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.AffineTransform;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -66,15 +72,8 @@ import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.demos.graph.MSAATool;
 import com.jogamp.opengl.demos.graph.ui.testshapes.Glyph03FreeMonoRegular_M;
 import com.jogamp.opengl.demos.util.MiscUtils;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.Vec4f;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
-import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  * Basic UIShape and Type Rendering demo.
@@ -257,11 +256,11 @@ public class UITypeDemo01 implements GLEventListener {
 
     final int[] sampleCount = { 4 };
 
-    private void drawShape(final GL2ES2 gl, final PMVMatrix pmv, final RegionRenderer renderer, final Shape shape) {
-        pmv.glPushMatrix();
-        shape.setTransform(pmv);
+    private void drawShape(final GL2ES2 gl, final PMVMatrix4f pmv, final RegionRenderer renderer, final Shape shape) {
+        pmv.pushMv();
+        shape.setMvTransform(pmv);
         shape.draw(gl, renderer, sampleCount);
-        pmv.glPopMatrix();
+        pmv.popMv();
     }
 
     @Override
@@ -272,16 +271,15 @@ public class UITypeDemo01 implements GLEventListener {
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         final RegionRenderer renderer = getRegionRenderer();
-        final PMVMatrix pmv = renderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmv.glLoadIdentity();
-        pmv.glTranslatef(xTran, yTran, zTran);
+        final PMVMatrix4f pmv = renderer.getMatrix();
+        pmv.loadMvIdentity();
+        pmv.translateMv(xTran, yTran, zTran);
         renderer.enable(gl, true);
         {
-            pmv.glPushMatrix();
-            pmv.glScalef(0.8f, 0.8f, 1f);
+            pmv.pushMv();
+            pmv.scaleMv(0.8f, 0.8f, 1f);
             drawShape(gl, pmv, renderer, testObj);
-            pmv.glPopMatrix();
+            pmv.popMv();
         }
         drawShape(gl, pmv, renderer, crossHair);
         {
@@ -294,14 +292,14 @@ public class UITypeDemo01 implements GLEventListener {
                 final float winZ = FloatUtil.getOrthoWinZ(orthoDist, zNear, zFar);
                 final Vec3f objCoord0 = new Vec3f();
                 final Vec3f objCoord1 = new Vec3f();
-                if( pmv.gluUnProject(glWinX, glWinY, winZ, renderer.getViewport(), objCoord0) ) {
+                if( pmv.mapWinToObj(glWinX, glWinY, winZ, renderer.getViewport(), objCoord0) ) {
                     if( once ) {
                         System.err.printf("winToObjCoord: win [%f, %f, %f] -> obj [%s]%n", glWinX, glWinY, winZ, objCoord0);
                     }
                 }
                 glWinX = drawable.getSurfaceWidth();
                 glWinY = drawable.getSurfaceHeight();
-                if( pmv.gluUnProject(glWinX, glWinY, winZ, renderer.getViewport(), objCoord1) ) {
+                if( pmv.mapWinToObj(glWinX, glWinY, winZ, renderer.getViewport(), objCoord1) ) {
                     if( once ) {
                         System.err.printf("winToObjCoord: win [%f, %f, %f] -> obj [%s]%n", glWinX, glWinY, winZ, objCoord1);
                     }
@@ -309,7 +307,7 @@ public class UITypeDemo01 implements GLEventListener {
                 full_width_o = objCoord1.x() - objCoord0.x();
                 full_height_o = objCoord1.y() - objCoord0.y();
             }
-            pmv.glPushMatrix();
+            pmv.pushMv();
 
             final Font.Glyph glyph;
             if( Glyph.ID_UNKNOWN < glyph_id ) {
@@ -325,8 +323,8 @@ public class UITypeDemo01 implements GLEventListener {
                 final float full_width_s = full_width_o / txt_box_em.getWidth();
                 final float full_height_s = full_height_o / txt_box_em.getHeight();
                 final float txt_scale = full_width_s < full_height_s ? full_width_s/2f : full_height_s/2f;
-                pmv.glScalef(txt_scale, txt_scale, 1f);
-                pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
+                pmv.scaleMv(txt_scale, txt_scale, 1f);
+                pmv.translateMv(-txt_box_em.getWidth(), 0f, 0f);
                 if( null != glyph.getShape() ) {
                     final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, glyph.getShape());
                     region.addOutlineShape(glyph.getShape(), null, fg_color);
@@ -346,8 +344,8 @@ public class UITypeDemo01 implements GLEventListener {
                 final float full_width_s = full_width_o / txt_box_em.getWidth();
                 final float full_height_s = full_height_o / txt_box_em.getHeight();
                 final float txt_scale = full_width_s < full_height_s ? full_width_s/2f : full_height_s/2f;
-                pmv.glScalef(txt_scale, txt_scale, 1f);
-                pmv.glTranslatef(-txt_box_em.getWidth(), 0f, 0f);
+                pmv.scaleMv(txt_scale, txt_scale, 1f);
+                pmv.translateMv(-txt_box_em.getWidth(), 0f, 0f);
                 final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, fg_color, sampleCount, tempT1, tempT2);
                 if( once ) {
                     final AABBox txt_box_em2 = font.getGlyphShapeBounds(null, text);
@@ -359,7 +357,7 @@ public class UITypeDemo01 implements GLEventListener {
                     System.err.println("XXX: txt_box_rg "+txt_box_r);
                 }
             }
-            pmv.glPopMatrix();
+            pmv.popMv();
             if( once ) {
                 try {
                     printScreen(drawable);
@@ -454,10 +452,9 @@ public class UITypeDemo01 implements GLEventListener {
                     System.err.println("\n\nMouse: "+e);
 
                     final RegionRenderer renderer = getRegionRenderer();
-                    final PMVMatrix pmv = renderer.getMatrix();
-                    pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-                    pmv.glLoadIdentity();
-                    pmv.glTranslatef(xTran, yTran, zTran);
+                    final PMVMatrix4f pmv = renderer.getMatrix();
+                    pmv.loadMvIdentity();
+                    pmv.translateMv(xTran, yTran, zTran);
 
                     // flip to GL window coordinates, origin bottom-left
                     final Recti viewport = renderer.getViewport(new Recti());
@@ -465,8 +462,8 @@ public class UITypeDemo01 implements GLEventListener {
                     final int glWinY = viewport.height() - e.getY() - 1;
 
                     {
-                        pmv.glPushMatrix();
-                        crossHair.setTransform(pmv);
+                        pmv.pushMv();
+                        crossHair.setMvTransform(pmv);
 
                         final Vec3f objPosC = crossHair.getBounds().getCenter();
                         System.err.println("\n\nCrossHair: "+crossHair);
@@ -493,7 +490,7 @@ public class UITypeDemo01 implements GLEventListener {
                         final int[] surfaceSize = crossHair.getSurfaceSize(pmv, viewport, new int[2]);
                         System.err.println("CrossHair: Size: Pixel "+surfaceSize[0]+" x "+surfaceSize[1]);
 
-                        pmv.glPopMatrix();
+                        pmv.popMv();
                     }
                     return true;
                 } } );

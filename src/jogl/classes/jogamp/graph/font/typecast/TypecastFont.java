@@ -31,8 +31,8 @@ import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.AffineTransform;
 
 import jogamp.graph.font.typecast.ot.OTFontCollection;
 import jogamp.graph.font.typecast.ot.TTFont;

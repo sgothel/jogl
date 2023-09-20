@@ -17,7 +17,7 @@
  */
 package jogamp.graph.font.typecast.ot;
 
-import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.math.geom.AABBox;
 
 import jogamp.graph.font.typecast.cff.CharstringType2;
 import jogamp.graph.font.typecast.cff.T2Interpreter;

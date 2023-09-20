@@ -27,8 +27,8 @@
  */
 package com.jogamp.graph.geom;
 
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.math.VectorUtil;
+import com.jogamp.math.geom.plane.AffineTransform;
 
 public class Triangle {
     private final Vertex[] vertices = new Vertex[3];

@@ -29,7 +29,6 @@ package com.jogamp.graph.ui.shapes;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
@@ -38,8 +37,9 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
-import com.jogamp.graph.geom.plane.AffineTransform;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.AffineTransform;
 
 /**
  * A GraphUI text label {@link GraphShape}

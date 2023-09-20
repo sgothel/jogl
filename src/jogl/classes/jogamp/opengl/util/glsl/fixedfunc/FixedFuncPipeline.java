@@ -54,9 +54,9 @@ import jogamp.opengl.Debug;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.opengl.util.PMVMatrix;
-import com.jogamp.opengl.util.SyncBuffer;
-import com.jogamp.opengl.util.SyncMatrices4f;
+import com.jogamp.math.util.PMVMatrix4f;
+import com.jogamp.math.util.SyncBuffer;
+import com.jogamp.math.util.SyncMatrices4f;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -82,7 +82,7 @@ public class FixedFuncPipeline {
     public static final int MAX_TEXTURE_UNITS = 8;
     public static final int MAX_LIGHTS        = 8;
 
-    public FixedFuncPipeline(final GL2ES2 gl, final ShaderSelectionMode mode, final PMVMatrix pmvMatrix) {
+    public FixedFuncPipeline(final GL2ES2 gl, final ShaderSelectionMode mode, final PMVMatrix4f pmvMatrix) {
         shaderRootClass = FixedFuncPipeline.class;
         shaderSrcRoot = shaderSrcRootDef;
         shaderBinRoot = shaderBinRootDef;
@@ -92,7 +92,7 @@ public class FixedFuncPipeline {
         fragmentColorTextureFile = fragmentColorTextureFileDef;
         init(gl, mode, pmvMatrix);
     }
-    public FixedFuncPipeline(final GL2ES2 gl, final ShaderSelectionMode mode, final PMVMatrix pmvMatrix,
+    public FixedFuncPipeline(final GL2ES2 gl, final ShaderSelectionMode mode, final PMVMatrix4f pmvMatrix,
                              final Class<?> shaderRootClass, final String shaderSrcRoot,
                              final String shaderBinRoot,
                              final String vertexColorFile, final String vertexColorLightFile,
@@ -820,9 +820,9 @@ public class FixedFuncPipeline {
                 final SyncMatrices4f m;
                 if(ShaderSelectionMode.COLOR_TEXTURE8_LIGHT_PER_VERTEX == currentShaderSelectionMode ||
                    ShaderSelectionMode.COLOR_LIGHT_PER_VERTEX== currentShaderSelectionMode ) {
-                    m = pmvMatrix.getSyncPMvMviMvitMat();
+                    m = pmvMatrix.getSyncPMvMviMvit();
                 } else {
-                    m = pmvMatrix.getSyncPMvMat();
+                    m = pmvMatrix.getSyncPMv();
                 }
                 if(m != ud.getBuffer()) {
                     ud.setData(m);
@@ -1102,7 +1102,7 @@ public class FixedFuncPipeline {
         return sp;
     }
 
-    private void init(final GL2ES2 gl, final ShaderSelectionMode mode, final PMVMatrix pmvMatrix) {
+    private void init(final GL2ES2 gl, final ShaderSelectionMode mode, final PMVMatrix4f pmvMatrix) {
         if(null==pmvMatrix) {
             throw new GLException("PMVMatrix is null");
         }
@@ -1114,7 +1114,7 @@ public class FixedFuncPipeline {
         shaderState.attachShaderProgram(gl, selectShaderProgram(gl, requestedShaderSelectionMode), true);
 
         // mandatory ..
-        if(!shaderState.uniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.getSyncPMvMviMvitMat()))) {
+        if(!shaderState.uniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.getSyncPMvMviMvit()))) {
             throw new GLException("Error setting PMVMatrix in shader: "+this);
         }
 
@@ -1202,7 +1202,7 @@ public class FixedFuncPipeline {
     /** ( pointSize, pointSmooth, attn. pointMinSize, attn. pointMaxSize ) , ( attenuation coefficients 1f 0f 0f, attenuation fade theshold 1f )   */
     private final FloatBuffer pointParams = Buffers.newDirectFloatBuffer(new float[] {  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f });
 
-    private PMVMatrix pmvMatrix;
+    private PMVMatrix4f pmvMatrix;
     private ShaderState shaderState;
     private ShaderProgram shaderProgramColor;
     private ShaderProgram shaderProgramColorTexture2, shaderProgramColorTexture4, shaderProgramColorTexture8;

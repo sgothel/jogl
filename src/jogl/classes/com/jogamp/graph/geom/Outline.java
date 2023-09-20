@@ -29,13 +29,13 @@ package com.jogamp.graph.geom;
 
 import java.util.ArrayList;
 
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.graph.geom.plane.Winding;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.VectorUtil;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.AffineTransform;
+import com.jogamp.math.geom.plane.Winding;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.VectorUtil;
-import com.jogamp.opengl.math.geom.AABBox;
 
 
 

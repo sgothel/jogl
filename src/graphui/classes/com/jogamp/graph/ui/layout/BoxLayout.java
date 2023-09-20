@@ -31,11 +31,11 @@ import java.util.List;
 
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Shape;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Vec2f;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Vec2f;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 
 /**
  * GraphUI Stack {@link Group.Layout}.
@@ -171,7 +171,7 @@ public class BoxLayout implements Group.Layout {
     }
 
     @Override
-    public void layout(final Group g, final AABBox box, final PMVMatrix pmv) {
+    public void layout(final Group g, final AABBox box, final PMVMatrix4f pmv) {
         final boolean hasCellWidth = !FloatUtil.isZero(cellSize.x());
         final boolean hasCellHeight = !FloatUtil.isZero(cellSize.y());
         final boolean isCenteredHoriz = hasCellWidth && alignment.isSet(Alignment.Bit.CenterHoriz);
@@ -184,10 +184,10 @@ public class BoxLayout implements Group.Layout {
             final Shape s = shapes.get(i);
 
             // measure size
-            pmv.glPushMatrix();
-            s.setTransform(pmv);
-            s.getBounds().transformMv(pmv, sbox);
-            pmv.glPopMatrix();
+            pmv.pushMv();
+            s.setMvTransform(pmv);
+            s.getBounds().transform(pmv.getMv(), sbox);
+            pmv.popMv();
 
             final int x = 0, y = 0;
             if( TRACE_LAYOUT ) {

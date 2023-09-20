@@ -42,7 +42,6 @@ import com.jogamp.opengl.GLDrawable;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IOUtil;
@@ -54,13 +53,13 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.opengl.math.Vec4f;
-import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.AffineTransform;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
 import com.jogamp.opengl.util.GLReadBufferUtil;
-import com.jogamp.opengl.util.PMVMatrix;
 
 
 /**
@@ -305,11 +304,10 @@ public class PerfTextRendererNEWT00 {
             final float dx = 0;
             final float dy = drawable.getSurfaceHeight() - 2 * fontScale * font.getLineHeight();
 
-            final PMVMatrix pmv = renderer.getMatrix();
-            pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmv.glLoadIdentity();
-            pmv.glTranslatef(dx, dy, z0);
-            pmv.glScalef(fontScale, fontScale, 1f);
+            final PMVMatrix4f pmv = renderer.getMatrix();
+            pmv.loadMvIdentity();
+            pmv.translateMv(dx, dy, z0);
+            pmv.scaleMv(fontScale, fontScale, 1f);
             region.draw(gl, renderer, sampleCountIO);
             final long t5 = Clock.currentNanos(); // text added to region
             if( null != perf ) {

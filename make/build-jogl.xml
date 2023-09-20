@@ -90,6 +90,9 @@
         <property name="java.part.gluegen-gl-rt" 
                   value="com/jogamp/gluegen/runtime/opengl/*"/>
 
+        <property name="java.part.core.math" 
+                  value="com/jogamp/math/**"/>
+
         <property name="java.part.core.shadercode"
                   value="jogamp/opengl/shader/* jogamp/opengl/shader/bin/**"/>
 
@@ -100,7 +103,7 @@
                   value="com/jogamp/opengl/util/* jogamp/opengl/util/* com/jogamp/opengl/util/glsl/* jogamp/opengl/util/glsl/* ${java.part.core.shadercode} ${java.part.core.assets}"/>
 
         <property name="java.part.core" 
-                  value="${java.part.gluegen-gl-rt} com/jogamp/opengl/* com/jogamp/opengl/fixedfunc/* com/jogamp/opengl/math/** jogamp/opengl/* ${java.part.core.util}"/>
+                  value="${java.part.gluegen-gl-rt} ${java.part.core.math} com/jogamp/opengl/* com/jogamp/opengl/fixedfunc/* jogamp/opengl/* ${java.part.core.util}"/>
 
         <property name="java.part.core.exclude" value="com/jogamp/opengl/Debug* com/jogamp/opengl/Trace* com/jogamp/opengl/util/AWTAnimatorImpl* com/jogamp/opengl/util/PNG*"/>
 

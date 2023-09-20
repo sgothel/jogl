@@ -100,7 +100,7 @@ public class Mix2TexturesES2 implements GLEventListener {
         sp0.add(gl, fp0, System.err);
         st.attachShaderProgram(gl, sp0, true);
 
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 

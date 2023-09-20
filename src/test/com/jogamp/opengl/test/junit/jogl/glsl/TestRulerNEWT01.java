@@ -83,7 +83,7 @@ public class TestRulerNEWT01 extends UITestCase {
         glWindow.addGLEventListener(new GLEventListener() {
             final ShaderState st = new ShaderState();
             final PMVMatrix pmvMatrix = new PMVMatrix();
-            final GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
+            final GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
             final GLArrayDataServer vertices0 = GLArrayDataServer.createGLSL("gca_Vertices", 3, GL.GL_FLOAT, false, 4, GL.GL_STATIC_DRAW);
             final GLUniformData rulerPixFreq = new GLUniformData("gcu_RulerPixFreq", 2, Buffers.newDirectFloatBuffer(2));
 

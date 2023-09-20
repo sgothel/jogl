@@ -36,6 +36,15 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.layout.Padding;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Matrix4f;
+import com.jogamp.math.Quaternion;
+import com.jogamp.math.Recti;
+import com.jogamp.math.Vec2f;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.newt.event.GestureHandler.GestureListener;
 import com.jogamp.newt.event.MouseAdapter;
@@ -43,15 +52,6 @@ import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.PinchToZoomGesture;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Matrix4f;
-import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.Vec2f;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.Vec4f;
-import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  * Generic Shape, potentially using a Graph via {@link GraphShape} or other means of representing content.
@@ -101,10 +101,10 @@ public abstract class Shape {
         /**
          * Visitor method
          * @param s the {@link Shape} to process
-         * @param pmv the {@link PMVMatrix} setup from the {@link Scene} down to the {@link Shape}
+         * @param pmv the {@link PMVMatrix4f} setup from the {@link Scene} down to the {@link Shape}
          * @return true to signal operation complete and to stop traversal, otherwise false
          */
-        boolean visit(Shape s, final PMVMatrix pmv);
+        boolean visit(Shape s, final PMVMatrix4f pmv);
     }
 
     /**
@@ -283,7 +283,7 @@ public abstract class Shape {
     public final void onToggle(final Listener l) { onToggleListener = l; }
     public final void onClicked(final Listener l) { onClickedListener = l; }
 
-    /** Move to scaled position. Position ends up in PMVMatrix unmodified. */
+    /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. */
     public final Shape moveTo(final float tx, final float ty, final float tz) {
         position.set(tx, ty, tz);
         if( null != onMoveListener ) {
@@ -292,7 +292,7 @@ public abstract class Shape {
         return this;
     }
 
-    /** Move to scaled position. Position ends up in PMVMatrix unmodified. */
+    /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. */
     public final Shape moveTo(final Vec3f t) {
         position.set(t);
         if( null != onMoveListener ) {
@@ -301,7 +301,7 @@ public abstract class Shape {
         return this;
     }
 
-    /** Move about scaled distance. Position ends up in PMVMatrix unmodified. */
+    /** Move about scaled distance. Position ends up in PMVMatrix4f unmodified. */
     public final Shape move(final float dtx, final float dty, final float dtz) {
         position.add(dtx, dty, dtz);
         if( null != onMoveListener ) {
@@ -310,7 +310,7 @@ public abstract class Shape {
         return this;
     }
 
-    /** Move about scaled distance. Position ends up in PMVMatrix unmodified. */
+    /** Move about scaled distance. Position ends up in PMVMatrix4f unmodified. */
     public final Shape move(final Vec3f dt) {
         position.add(dt);
         if( null != onMoveListener ) {
@@ -501,7 +501,7 @@ public abstract class Shape {
     /**
      * Renders the shape.
      * <p>
-     * {@link #setTransform(PMVMatrix)} is expected to be completed beforehand.
+     * {@link #setMvTransform(PMVMatrix4f)} is expected to be completed beforehand.
      * </p>
      * @param gl the current GL object
      * @param renderer {@link RegionRenderer} which might be used for Graph Curve Rendering, also source of {@link RegionRenderer#getMatrix()} and {@link RegionRenderer#getViewport()}.
@@ -586,7 +586,7 @@ public abstract class Shape {
     }
 
     /**
-     * Setup the pre-selected {@link GLMatrixFunc#GL_MODELVIEW} {@link PMVMatrix} for this object.
+     * Setup the {@link PMVMatrix4f#getMv() modelview matrix} of the given {@link PMVMatrix4f} for this object.
      * - Scale shape from its center position
      * - Rotate shape around optional scaled pivot, see {@link #setRotationPivot(float[])}), otherwise rotate around its scaled center (default)
      * <p>
@@ -598,98 +598,98 @@ public abstract class Shape {
      * @see #moveTo(float, float, float)
      * @see #setScale(float, float, float)
      */
-    public void setTransform(final PMVMatrix pmv) {
+    public void setMvTransform(final PMVMatrix4f pmv) {
         final boolean hasScale = !scale.isEqual(Vec3f.ONE);
         final boolean hasRotate = !rotation.isIdentity();
         final boolean hasRotPivot = null != rotPivot;
         final Vec3f ctr = box.getCenter();
         final boolean sameScaleRotatePivot = hasScale && hasRotate && ( !hasRotPivot || rotPivot.isEqual(ctr) );
 
-        pmv.glTranslatef(position.x(), position.y(), position.z()); // translate, scaled
+        pmv.translateMv(position.x(), position.y(), position.z()); // translate, scaled
 
         if( sameScaleRotatePivot ) {
             // Scale shape from its center position and rotate around its center
-            pmv.glTranslatef(ctr.x()*scale.x(), ctr.y()*scale.y(), ctr.z()*scale.z()); // add-back center, scaled
-            pmv.glRotate(rotation);
-            pmv.glScalef(scale.x(), scale.y(), scale.z());
-            pmv.glTranslatef(-ctr.x(), -ctr.y(), -ctr.z()); // move to center
+            pmv.translateMv(ctr.x()*scale.x(), ctr.y()*scale.y(), ctr.z()*scale.z()); // add-back center, scaled
+            pmv.rotateMv(rotation);
+            pmv.scaleMv(scale.x(), scale.y(), scale.z());
+            pmv.translateMv(-ctr.x(), -ctr.y(), -ctr.z()); // move to center
         } else if( hasRotate || hasScale ) {
             if( hasRotate ) {
                 if( hasRotPivot ) {
                     // Rotate shape around its scaled pivot
-                    pmv.glTranslatef(rotPivot.x()*scale.x(), rotPivot.y()*scale.y(), rotPivot.z()*scale.z()); // pivot back from rot-pivot, scaled
-                    pmv.glRotate(rotation);
-                    pmv.glTranslatef(-rotPivot.x()*scale.x(), -rotPivot.y()*scale.y(), -rotPivot.z()*scale.z()); // pivot to rot-pivot, scaled
+                    pmv.translateMv(rotPivot.x()*scale.x(), rotPivot.y()*scale.y(), rotPivot.z()*scale.z()); // pivot back from rot-pivot, scaled
+                    pmv.rotateMv(rotation);
+                    pmv.translateMv(-rotPivot.x()*scale.x(), -rotPivot.y()*scale.y(), -rotPivot.z()*scale.z()); // pivot to rot-pivot, scaled
                 } else {
                     // Rotate shape around its scaled center
-                    pmv.glTranslatef(ctr.x()*scale.x(), ctr.y()*scale.y(), ctr.z()*scale.z()); // pivot back from center-pivot, scaled
-                    pmv.glRotate(rotation);
-                    pmv.glTranslatef(-ctr.x()*scale.x(), -ctr.y()*scale.y(), -ctr.z()*scale.z()); // pivot to center-pivot, scaled
+                    pmv.translateMv(ctr.x()*scale.x(), ctr.y()*scale.y(), ctr.z()*scale.z()); // pivot back from center-pivot, scaled
+                    pmv.rotateMv(rotation);
+                    pmv.translateMv(-ctr.x()*scale.x(), -ctr.y()*scale.y(), -ctr.z()*scale.z()); // pivot to center-pivot, scaled
                 }
             }
             if( hasScale ) {
                 // Scale shape from its center position
-                pmv.glTranslatef(ctr.x()*scale.x(), ctr.y()*scale.y(), ctr.z()*scale.z()); // add-back center, scaled
-                pmv.glScalef(scale.x(), scale.y(), scale.z());
-                pmv.glTranslatef(-ctr.x(), -ctr.y(), -ctr.z()); // move to center
+                pmv.translateMv(ctr.x()*scale.x(), ctr.y()*scale.y(), ctr.z()*scale.z()); // add-back center, scaled
+                pmv.scaleMv(scale.x(), scale.y(), scale.z());
+                pmv.translateMv(-ctr.x(), -ctr.y(), -ctr.z()); // move to center
             }
         }
     }
 
     /**
-     * {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) Setup} the given {@link PMVMatrix}
-     * and apply this shape's {@link #setTransform(PMVMatrix) transformation}.
+     * {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) Setup} the given {@link PMVMatrix4f}
+     * and apply this shape's {@link #setMvTransform(PMVMatrix4f) transformation}.
      * </p>
-     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} given {@link PMVMatrix} {@code pmv}.
-     * @param viewport used viewport for {@link PMVMatrix#gluProject(float, float, float, int[], float[])}
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
-     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
-     * @return the given {@link PMVMatrix} for chaining
-     * @see Scene.PMVMatrixSetup#set(PMVMatrix, Recti)
-     * @see #setTransform(PMVMatrix)
-     * @see #setPMVMatrix(Scene, PMVMatrix)
+     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) setup} given {@link PMVMatrix4f} {@code pmv}.
+     * @param viewport used viewport for {@link PMVMatrix4f#mapObjToWin(Vec3f, Recti, Vec3f)}
+     * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
+     *            {@link #setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller.
+     * @return the given {@link PMVMatrix4f} for chaining
+     * @see Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)
+     * @see #setMvTransform(PMVMatrix4f)
+     * @see #setPMVMatrix(Scene, PMVMatrix4f)
      */
-    public PMVMatrix setPMVMatrix(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final PMVMatrix pmv) {
+    public PMVMatrix4f setPMVMatrix(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final PMVMatrix4f pmv) {
         pmvMatrixSetup.set(pmv, viewport);
-        setTransform(pmv);
+        setMvTransform(pmv);
         return pmv;
     }
 
     /**
-     * {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) Setup} the given {@link PMVMatrix}
-     * and apply this shape's {@link #setTransform(PMVMatrix) transformation}.
+     * {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) Setup} the given {@link PMVMatrix4f}
+     * and apply this shape's {@link #setMvTransform(PMVMatrix4f) transformation}.
      * </p>
      * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
-     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
-     * @return the given {@link PMVMatrix} for chaining
-     * @see Scene.PMVMatrixSetup#set(PMVMatrix, Recti)
-     * @see #setTransform(PMVMatrix)
-     * @see #setPMVMatrix(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix)
+     * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
+     *            {@link #setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller.
+     * @return the given {@link PMVMatrix4f} for chaining
+     * @see Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)
+     * @see #setMvTransform(PMVMatrix4f)
+     * @see #setPMVMatrix(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix4f)
      */
-    public PMVMatrix setPMVMatrix(final Scene scene, final PMVMatrix pmv) {
+    public PMVMatrix4f setPMVMatrix(final Scene scene, final PMVMatrix4f pmv) {
         return setPMVMatrix(scene.getPMVMatrixSetup(), scene.getViewport(), pmv);
     }
 
     /**
      * Retrieve surface (view) port of this shape, i.e. lower x/y position and size.
      * <p>
-     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * including this shape's {@link #setTransform(PMVMatrix)}. See {@link #setPMVMatrix(Scene, PMVMatrix)}.
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link #setPMVMatrix(Scene, PMVMatrix4f)}.
      * </p>
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix)}.
+     * @param pmv well formed {@link PMVMatrix4f}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix4f)}.
      * @param viewport the int[4] viewport
      * @param surfacePort Recti target surface port
-     * @return given Recti {@code surfacePort} for successful gluProject(..) operation, otherwise {@code null}
+     * @return given Recti {@code surfacePort} for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)} operation, otherwise {@code null}
      */
-    public Recti getSurfacePort(final PMVMatrix pmv, final Recti viewport, final Recti surfacePort) {
+    public Recti getSurfacePort(final PMVMatrix4f pmv, final Recti viewport, final Recti surfacePort) {
         final Vec3f winCoordHigh = new Vec3f();
         final Vec3f winCoordLow = new Vec3f();
         final Vec3f high = box.getHigh();
         final Vec3f low = box.getLow();
 
-        final Matrix4f matPMv = pmv.getPMvMat();
+        final Matrix4f matPMv = pmv.getPMv();
         if( Matrix4f.mapObjToWin(high, matPMv, viewport, winCoordHigh) ) {
             if( Matrix4f.mapObjToWin(low, matPMv, viewport, winCoordLow) ) {
                 surfacePort.setX( (int)Math.abs( winCoordLow.x() ) );
@@ -705,25 +705,25 @@ public abstract class Shape {
     /**
      * Retrieve surface (view) size in pixels of this shape.
      * <p>
-     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * including this shape's {@link #setTransform(PMVMatrix)}. See {@link #setPMVMatrix(Scene, PMVMatrix)}.
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link #setPMVMatrix(Scene, PMVMatrix4f)}.
      * </p>
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix)}.
+     * @param pmv well formed {@link PMVMatrix4f}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix4f)}.
      * @param viewport the int[4] viewport
      * @param surfaceSize int[2] target surface size
-     * @return given int[2] {@code surfaceSize} in pixels for successful gluProject(..) operation, otherwise {@code null}
-     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])
-     * @see #getSurfaceSize(Scene, PMVMatrix, int[])
+     * @return given int[2] {@code surfaceSize} in pixels for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)} operation, otherwise {@code null}
+     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix4f, int[])
+     * @see #getSurfaceSize(Scene, PMVMatrix4f, int[])
      */
-    public int[/*2*/] getSurfaceSize(final PMVMatrix pmv, final Recti viewport, final int[/*2*/] surfaceSize) {
+    public int[/*2*/] getSurfaceSize(final PMVMatrix4f pmv, final Recti viewport, final int[/*2*/] surfaceSize) {
         // System.err.println("Shape::getSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
         final Vec3f winCoordHigh = new Vec3f();
         final Vec3f winCoordLow = new Vec3f();
         final Vec3f high = box.getHigh();
         final Vec3f low = box.getLow();
 
-        final Matrix4f matPMv = pmv.getPMvMat();
+        final Matrix4f matPMv = pmv.getPMv();
         if( Matrix4f.mapObjToWin(high, matPMv, viewport, winCoordHigh) ) {
             if( Matrix4f.mapObjToWin(low, matPMv, viewport, winCoordLow) ) {
                 surfaceSize[0] = (int)Math.abs(winCoordHigh.x() - winCoordLow.x());
@@ -737,47 +737,47 @@ public abstract class Shape {
     /**
      * Retrieve surface (view) size in pixels of this shape.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
-     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * The given {@link PMVMatrix4f} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) setup} properly for this shape
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}.
      * </p>
-     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} given {@link PMVMatrix} {@code pmv}.
-     * @param viewport used viewport for {@link PMVMatrix#gluProject(float, float, float, int[], float[])}
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
-     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
+     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) setup} given {@link PMVMatrix4f} {@code pmv}.
+     * @param viewport used viewport for {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)}
+     * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
+     *            {@link #setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller.
      * @param surfaceSize int[2] target surface size
-     * @return given int[2] {@code surfaceSize} in pixels for successful gluProject(..) operation, otherwise {@code null}
-     * @see #getSurfaceSize(PMVMatrix, Recti, int[])
-     * @see #getSurfaceSize(Scene, PMVMatrix, int[])
+     * @return given int[2] {@code surfaceSize} in pixels for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)} operation, otherwise {@code null}
+     * @see #getSurfaceSize(PMVMatrix4f, Recti, int[])
+     * @see #getSurfaceSize(Scene, PMVMatrix4f, int[])
      */
-    public int[/*2*/] getSurfaceSize(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final PMVMatrix pmv, final int[/*2*/] surfaceSize) {
+    public int[/*2*/] getSurfaceSize(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final PMVMatrix4f pmv, final int[/*2*/] surfaceSize) {
         return getSurfaceSize(setPMVMatrix(pmvMatrixSetup, viewport, pmv), viewport, surfaceSize);
     }
 
     /**
      * Retrieve surface (view) size in pixels of this shape.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
-     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * The given {@link PMVMatrix4f} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) setup} properly for this shape
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}.
      * </p>
      * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
-     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
+     * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
+     *            {@link #setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller.
      * @param surfaceSize int[2] target surface size
-     * @return given int[2] {@code surfaceSize} in pixels for successful gluProject(..) operation, otherwise {@code null}
-     * @see #getSurfaceSize(PMVMatrix, Recti, int[])
-     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])
+     * @return given int[2] {@code surfaceSize} in pixels for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)} operation, otherwise {@code null}
+     * @see #getSurfaceSize(PMVMatrix4f, Recti, int[])
+     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix4f, int[])
      */
-    public int[/*2*/] getSurfaceSize(final Scene scene, final PMVMatrix pmv, final int[/*2*/] surfaceSize) {
+    public int[/*2*/] getSurfaceSize(final Scene scene, final PMVMatrix4f pmv, final int[/*2*/] surfaceSize) {
         return getSurfaceSize(scene.getPMVMatrixSetup(), scene.getViewport(), pmv, surfaceSize);
     }
 
     /**
      * Retrieve pixel per scaled shape-coordinate unit, i.e. [px]/[obj].
-     * @param shapeSizePx int[2] shape size in pixel as retrieved via e.g. {@link #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])}
+     * @param shapeSizePx int[2] shape size in pixel as retrieved via e.g. {@link #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix4f, int[])}
      * @param pixPerShape float[2] pixel scaled per shape-coordinate unit result storage
      * @return given float[2] {@code pixPerShape}
-     * @see #getPixelPerShapeUnit(Scene, PMVMatrix, float[])
-     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix, int[])
+     * @see #getPixelPerShapeUnit(Scene, PMVMatrix4f, float[])
+     * @see #getSurfaceSize(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, PMVMatrix4f, int[])
      * @see #getScaledWidth()
      * @see #getScaledHeight()
      */
@@ -790,20 +790,20 @@ public abstract class Shape {
     /**
      * Retrieve pixel per scaled shape-coordinate unit, i.e. [px]/[obj].
      * <p>
-     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * including this shape's {@link #setTransform(PMVMatrix)}. See {@link #setPMVMatrix(Scene, PMVMatrix)}.
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link #setPMVMatrix(Scene, PMVMatrix4f)}.
      * </p>
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix)}.
+     * @param pmv well formed {@link PMVMatrix4f}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix4f)}.
      * @param viewport the int[4] viewport
      * @param pixPerShape float[2] pixel per scaled shape-coordinate unit result storage
-     * @return given float[2] {@code pixPerShape} for successful gluProject(..) operation, otherwise {@code null}
+     * @return given float[2] {@code pixPerShape} for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)} operation, otherwise {@code null}
      * @see #getPixelPerShapeUnit(int[], float[])
-     * @see #getSurfaceSize(Scene, PMVMatrix, int[])
+     * @see #getSurfaceSize(Scene, PMVMatrix4f, int[])
      * @see #getScaledWidth()
      * @see #getScaledHeight()
      */
-    public float[] getPixelPerShapeUnit(final PMVMatrix pmv, final Recti viewport, final float[] pixPerShape) {
+    public float[] getPixelPerShapeUnit(final PMVMatrix4f pmv, final Recti viewport, final float[] pixPerShape) {
         final int[] shapeSizePx = new int[2];
         if( null != getSurfaceSize(pmv, viewport, shapeSizePx) ) {
             return getPixelPerShapeUnit(shapeSizePx, pixPerShape);
@@ -815,20 +815,20 @@ public abstract class Shape {
     /**
      * Retrieve pixel per scaled shape-coordinate unit, i.e. [px]/[obj].
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
-     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * The given {@link PMVMatrix4f} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) setup} properly for this shape
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}.
      * </p>
      * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
-     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
+     * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
+     *            {@link #setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller.
      * @param pixPerShape float[2] pixel per scaled shape-coordinate unit result storage
-     * @return given float[2] {@code pixPerShape} for successful gluProject(..) operation, otherwise {@code null}
+     * @return given float[2] {@code pixPerShape} for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)} operation, otherwise {@code null}
      * @see #getPixelPerShapeUnit(int[], float[])
-     * @see #getSurfaceSize(Scene, PMVMatrix, int[])
+     * @see #getSurfaceSize(Scene, PMVMatrix4f, int[])
      * @see #getScaledWidth()
      * @see #getScaledHeight()
      */
-    public float[] getPixelPerShapeUnit(final Scene scene, final PMVMatrix pmv, final float[] pixPerShape) {
+    public float[] getPixelPerShapeUnit(final Scene scene, final PMVMatrix4f pmv, final float[] pixPerShape) {
         final int[] shapeSizePx = new int[2];
         if( null != getSurfaceSize(scene, pmv, shapeSizePx) ) {
             return getPixelPerShapeUnit(shapeSizePx, pixPerShape);
@@ -840,23 +840,23 @@ public abstract class Shape {
     /**
      * Map given object coordinate relative to this shape to window coordinates.
      * <p>
-     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * including this shape's {@link #setTransform(PMVMatrix)}. See {@link #setPMVMatrix(Scene, PMVMatrix)}.
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link #setPMVMatrix(Scene, PMVMatrix4f)}.
      * </p>
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix)}.
+     * @param pmv well formed {@link PMVMatrix4f}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix4f)}.
      * @param viewport the viewport
      * @param objPos object position relative to this shape's center
      * @param glWinPos int[2] target window position of objPos relative to this shape
-     * @return given int[2] {@code glWinPos} for successful gluProject(..) operation, otherwise {@code null}
-     * @see #shapeToWinCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, float[], PMVMatrix, int[])
-     * @see #shapeToWinCoord(Scene, float[], PMVMatrix, int[])
+     * @return given int[2] {@code glWinPos} for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)} operation, otherwise {@code null}
+     * @see #shapeToWinCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, float[], PMVMatrix4f, int[])
+     * @see #shapeToWinCoord(Scene, float[], PMVMatrix4f, int[])
      */
-    public int[/*2*/] shapeToWinCoord(final PMVMatrix pmv, final Recti viewport, final Vec3f objPos, final int[/*2*/] glWinPos) {
+    public int[/*2*/] shapeToWinCoord(final PMVMatrix4f pmv, final Recti viewport, final Vec3f objPos, final int[/*2*/] glWinPos) {
         // System.err.println("Shape::objToWinCoordgetSurfaceSize.VP "+viewport[0]+"/"+viewport[1]+" "+viewport[2]+"x"+viewport[3]);
         final Vec3f winCoord = new Vec3f();
 
-        if( pmv.gluProject(objPos, viewport, winCoord) ) {
+        if( pmv.mapObjToWin(objPos, viewport, winCoord) ) {
             glWinPos[0] = (int)(winCoord.x());
             glWinPos[1] = (int)(winCoord.y());
             return glWinPos;
@@ -867,64 +867,66 @@ public abstract class Shape {
     /**
      * Map given object coordinate relative to this shape to window coordinates.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
-     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * The given {@link PMVMatrix4f} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) setup} properly for this shape
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}.
      * </p>
-     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} given {@link PMVMatrix} {@code pmv}.
-     * @param viewport used viewport for {@link PMVMatrix#gluProject(Vec3f, Recti, Vec3f)}
+     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) setup} given {@link PMVMatrix4f} {@code pmv}.
+     * @param viewport used viewport for {@link PMVMatrix4f#mapObjToWin(Vec3f, Recti, Vec3f)}
      * @param objPos object position relative to this shape's center
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
-     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
+     * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
+     *            {@link #setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller.
      * @param glWinPos int[2] target window position of objPos relative to this shape
-     * @return given int[2] {@code glWinPos} for successful gluProject(..) operation, otherwise {@code null}
-     * @see #shapeToWinCoord(PMVMatrix, Recti, float[], int[])
-     * @see #shapeToWinCoord(Scene, float[], PMVMatrix, int[])
+     * @return given int[2] {@code glWinPos} for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)} operation, otherwise {@code null}
+     * @see #shapeToWinCoord(PMVMatrix4f, Recti, float[], int[])
+     * @see #shapeToWinCoord(Scene, float[], PMVMatrix4f, int[])
      */
-    public int[/*2*/] shapeToWinCoord(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final Vec3f objPos, final PMVMatrix pmv, final int[/*2*/] glWinPos) {
+    public int[/*2*/] shapeToWinCoord(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final Vec3f objPos, final PMVMatrix4f pmv, final int[/*2*/] glWinPos) {
         return this.shapeToWinCoord(setPMVMatrix(pmvMatrixSetup, viewport, pmv), viewport, objPos, glWinPos);
     }
 
     /**
      * Map given object coordinate relative to this shape to window coordinates.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
-     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * The given {@link PMVMatrix4f} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) setup} properly for this shape
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}.
      * </p>
      * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
      * @param objPos object position relative to this shape's center
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
-     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
+     * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
+     *            {@link #setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller.
      * @param glWinPos int[2] target window position of objPos relative to this shape
-     * @return given int[2] {@code glWinPos} for successful gluProject(..) operation, otherwise {@code null}
-     * @see #shapeToWinCoord(PMVMatrix, Recti, float[], int[])
-     * @see #shapeToWinCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, float[], PMVMatrix, int[])
+     * @return given int[2] {@code glWinPos} for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)} operation, otherwise {@code null}
+     * @see #shapeToWinCoord(PMVMatrix4f, Recti, float[], int[])
+     * @see #shapeToWinCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, float[], PMVMatrix4f, int[])
      */
-    public int[/*2*/] shapeToWinCoord(final Scene scene, final Vec3f objPos, final PMVMatrix pmv, final int[/*2*/] glWinPos) {
+    public int[/*2*/] shapeToWinCoord(final Scene scene, final Vec3f objPos, final PMVMatrix4f pmv, final int[/*2*/] glWinPos) {
         return this.shapeToWinCoord(scene.getPMVMatrixSetup(), scene.getViewport(), objPos, pmv, glWinPos);
     }
 
     /**
      * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate.
      * <p>
-     * The given {@link PMVMatrix} has to be setup properly for this object,
+     * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * including this shape's {@link #setTransform(PMVMatrix)}. See {@link #setPMVMatrix(Scene, PMVMatrix)}.
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link #setPMVMatrix(Scene, PMVMatrix4f)}.
      * </p>
-     * @param pmv well formed {@link PMVMatrix}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix)}.
+     * @param pmv well formed {@link PMVMatrix4f}, e.g. could have been setup via {@link Shape#setPMVMatrix(Scene, PMVMatrix4f)}.
      * @param viewport the Rect4i viewport
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      * @param objPos target object position of glWinX/glWinY relative to this shape
-     * @return given {@code objPos} for successful gluProject(..) and gluUnProject(..) operation, otherwise {@code null}
-     * @see #winToShapeCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, int, int, PMVMatrix, float[])
-     * @see #winToShapeCoord(Scene, int, int, PMVMatrix, float[])
+     * @return given {@code objPos} for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)}
+     *         and {@link Matrix4f#mapWinToObj(float, float, float, float, Matrix4f, Recti, Vec3f, Vec3f) gluUnProject(..)}
+     *         operation, otherwise {@code null}
+     * @see #winToShapeCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, int, int, PMVMatrix4f, float[])
+     * @see #winToShapeCoord(Scene, int, int, PMVMatrix4f, float[])
      */
-    public Vec3f winToShapeCoord(final PMVMatrix pmv, final Recti viewport, final int glWinX, final int glWinY, final Vec3f objPos) {
+    public Vec3f winToShapeCoord(final PMVMatrix4f pmv, final Recti viewport, final int glWinX, final int glWinY, final Vec3f objPos) {
         final Vec3f ctr = box.getCenter();
 
-        if( Matrix4f.mapObjToWin(ctr, pmv.getPMvMat(), viewport, objPos) ) {
+        if( Matrix4f.mapObjToWin(ctr, pmv.getPMv(), viewport, objPos) ) {
             final float winZ = objPos.z();
-            if( Matrix4f.mapWinToObj(glWinX, glWinY, winZ, pmv.getPMviMat(), viewport, objPos) ) {
+            if( Matrix4f.mapWinToObj(glWinX, glWinY, winZ, pmv.getPMvi(), viewport, objPos) ) {
                 return objPos;
             }
         }
@@ -934,41 +936,45 @@ public abstract class Shape {
     /**
      * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
-     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * The given {@link PMVMatrix4f} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) setup} properly for this shape
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}.
      * </p>
-     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} given {@link PMVMatrix} {@code pmv}.
-     * @param viewport used viewport for {@link PMVMatrix#gluUnProject(float, float, float, Recti, Vec3f)}
+     * @param pmvMatrixSetup {@link Scene.PMVMatrixSetup} to {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) setup} given {@link PMVMatrix4f} {@code pmv}.
+     * @param viewport used viewport for {@link PMVMatrix4f#mapWinToObj(float, float, float, Recti, Vec3f)}
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
-     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
+     * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
+     *            {@link #setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller.
      * @param objPos target object position of glWinX/glWinY relative to this shape
-     * @return given {@code objPos} for successful gluProject(..) and gluUnProject(..) operation, otherwise {@code null}
-     * @see #winToShapeCoord(PMVMatrix, Recti, int, int, float[])
-     * @see #winToShapeCoord(Scene, int, int, PMVMatrix, float[])
+     * @return given {@code objPos} for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)}
+     *         and {@link Matrix4f#mapWinToObj(float, float, float, float, Matrix4f, Recti, Vec3f, Vec3f) gluUnProject(..)}
+     *         operation, otherwise {@code null}
+     * @see #winToShapeCoord(PMVMatrix4f, Recti, int, int, float[])
+     * @see #winToShapeCoord(Scene, int, int, PMVMatrix4f, float[])
      */
-    public Vec3f winToShapeCoord(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final int glWinX, final int glWinY, final PMVMatrix pmv, final Vec3f objPos) {
+    public Vec3f winToShapeCoord(final Scene.PMVMatrixSetup pmvMatrixSetup, final Recti viewport, final int glWinX, final int glWinY, final PMVMatrix4f pmv, final Vec3f objPos) {
         return this.winToShapeCoord(setPMVMatrix(pmvMatrixSetup, viewport, pmv), viewport, glWinX, glWinY, objPos);
     }
 
     /**
      * Map given gl-window-coordinates to object coordinates relative to this shape and its z-coordinate.
      * <p>
-     * The given {@link PMVMatrix} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) setup} properly for this shape
-     * including this shape's {@link #setTransform(PMVMatrix)}.
+     * The given {@link PMVMatrix4f} will be {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) setup} properly for this shape
+     * including this shape's {@link #setMvTransform(PMVMatrix4f)}.
      * </p>
      * @param scene {@link Scene} to retrieve {@link Scene.PMVMatrixSetup} and the viewport.
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
-     * @param pmv a new {@link PMVMatrix} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix, Recti) be setup},
-     *            {@link #setTransform(PMVMatrix) shape-transformed} and can be reused by the caller.
+     * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
+     *            {@link #setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller.
      * @param objPos target object position of glWinX/glWinY relative to this shape
-     * @return given {@code objPos} for successful gluProject(..) and gluUnProject(..) operation, otherwise {@code null}
-     * @see #winToShapeCoord(PMVMatrix, Recti, int, int, float[])
-     * @see #winToShapeCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, int, int, PMVMatrix, float[])
+     * @return given {@code objPos} for successful {@link Matrix4f#mapObjToWin(Vec3f, Matrix4f, Recti, Vec3f) gluProject(..)}
+     *         and {@link Matrix4f#mapWinToObj(float, float, float, float, Matrix4f, Recti, Vec3f, Vec3f) gluUnProject(..)}
+     *         operation, otherwise {@code null}
+     * @see #winToShapeCoord(PMVMatrix4f, Recti, int, int, float[])
+     * @see #winToShapeCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, int, int, PMVMatrix4f, float[])
      */
-    public Vec3f winToShapeCoord(final Scene scene, final int glWinX, final int glWinY, final PMVMatrix pmv, final Vec3f objPos) {
+    public Vec3f winToShapeCoord(final Scene scene, final int glWinX, final int glWinY, final PMVMatrix4f pmv, final Vec3f objPos) {
         return this.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, objPos);
     }
 
@@ -1473,11 +1479,11 @@ public abstract class Shape {
      * @param e original Newt {@link GestureEvent}
      * @param glWinX x-position in OpenGL model space
      * @param glWinY y-position in OpenGL model space
-     * @param pmv well formed PMVMatrix for this shape
+     * @param pmv well formed PMVMatrix4f for this shape
      * @param viewport the viewport
      * @param objPos object position of mouse event relative to this shape
      */
-    /* pp */ final void dispatchGestureEvent(final GestureEvent e, final int glWinX, final int glWinY, final PMVMatrix pmv, final Recti viewport, final Vec3f objPos) {
+    /* pp */ final void dispatchGestureEvent(final GestureEvent e, final int glWinX, final int glWinY, final PMVMatrix4f pmv, final Recti viewport, final Vec3f objPos) {
         if( interactive && resizable && e instanceof PinchToZoomGesture.ZoomEvent ) {
             final PinchToZoomGesture.ZoomEvent ze = (PinchToZoomGesture.ZoomEvent) e;
             final float pixels = ze.getDelta() * ze.getScale(); //

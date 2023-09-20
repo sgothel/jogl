@@ -34,9 +34,6 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLES2;
 import com.jogamp.opengl.GLException;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.Vec4f;
 
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;
@@ -46,10 +43,12 @@ import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.TextureSequence;
-import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.math.Recti;
+import com.jogamp.math.Vec4f;
+import com.jogamp.math.util.PMVMatrix4f;
 
 /**
  * OpenGL {@link Region} renderer
@@ -177,7 +176,7 @@ public final class RegionRenderer {
      * For example, instances {@link #defaultBlendEnable} and {@link #defaultBlendDisable}
      * can be utilized to enable and disable {@link GL#GL_BLEND}.
      * </p>
-     * @param sharedPMVMatrix optional shared {@link PMVMatrix} to be used for the {@link RenderState} composition.
+     * @param sharedPMVMatrix optional shared {@link PMVMatrix4f} to be used for the {@link RenderState} composition.
      * @param enableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
      *                       {@link #init(GL2ES2) init(gl)} and {@link #enable(GL2ES2, boolean) enable(gl, true)}.
      * @param disableCallback optional {@link GLCallback}, if not <code>null</code> will be issued at
@@ -185,7 +184,7 @@ public final class RegionRenderer {
      * @return an instance of Region Renderer
      * @see #enable(GL2ES2, boolean)
      */
-    public static RegionRenderer create(final PMVMatrix sharedPMVMatrix,
+    public static RegionRenderer create(final PMVMatrix4f sharedPMVMatrix,
                                         final GLCallback enableCallback, final GLCallback disableCallback) {
         return new RegionRenderer(sharedPMVMatrix, enableCallback, disableCallback);
     }
@@ -221,7 +220,7 @@ public final class RegionRenderer {
         this(null, enableCallback, disableCallback);
     }
 
-    protected RegionRenderer(final PMVMatrix sharedPMVMatrix,
+    protected RegionRenderer(final PMVMatrix4f sharedPMVMatrix,
                              final GLCallback enableCallback, final GLCallback disableCallback)
     {
         this.rs = new RenderState(sharedPMVMatrix);
@@ -290,8 +289,8 @@ public final class RegionRenderer {
     // RenderState forwards
     //
 
-    /** Borrow the current {@link PMVMatrix}. */
-    public final PMVMatrix getMatrix() { return rs.getMatrix(); }
+    /** Borrow the current {@link PMVMatrix4f}. */
+    public final PMVMatrix4f getMatrix() { return rs.getMatrix(); }
 
     public final float getWeight() { return rs.getWeight(); }
 
@@ -357,7 +356,7 @@ public final class RegionRenderer {
     }
 
     /**
-     * No PMVMatrix operation is performed here.
+     * No PMVMatrix4f operation is performed here.
      */
     public final void reshapeNotify(final int x, final int y, final int width, final int height) {
         viewport.set(x, y, width, height);
@@ -374,10 +373,9 @@ public final class RegionRenderer {
     public final void reshapePerspective(final float angle_rad, final int width, final int height, final float near, final float far) {
         reshapeNotify(0, 0, width, height);
         final float ratio = (float)width/(float)height;
-        final PMVMatrix p = getMatrix();
-        p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        p.glLoadIdentity();
-        p.gluPerspective(angle_rad, ratio, near, far);
+        final PMVMatrix4f p = getMatrix();
+        p.loadPIdentity();
+        p.perspectiveP(angle_rad, ratio, near, far);
     }
 
     /**
@@ -389,10 +387,9 @@ public final class RegionRenderer {
      */
     public final void reshapeOrtho(final int width, final int height, final float near, final float far) {
         reshapeNotify(0, 0, width, height);
-        final PMVMatrix p = getMatrix();
-        p.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        p.glLoadIdentity();
-        p.glOrthof(0, width, 0, height, near, far);
+        final PMVMatrix4f p = getMatrix();
+        p.loadPIdentity();
+        p.orthoP(0, width, 0, height, near, far);
     }
 
     //

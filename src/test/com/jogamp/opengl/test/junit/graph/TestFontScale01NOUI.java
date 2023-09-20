@@ -29,8 +29,7 @@ package com.jogamp.opengl.test.junit.graph;
 
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.junit.util.JunitTracer;
-
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.math.FloatUtil;
 
 import org.junit.Assert;
 import org.junit.Test;

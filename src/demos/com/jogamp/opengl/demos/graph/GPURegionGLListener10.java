@@ -41,6 +41,7 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -123,11 +124,10 @@ public class GPURegionGLListener10 extends GPURendererListenerBase01 {
 
         final RegionRenderer regionRenderer = getRenderer();
 
-        final PMVMatrix pmv = regionRenderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmv.glLoadIdentity();
-        pmv.glTranslatef(getXTran(), getYTran(), getZTran());
-        pmv.glRotatef(getAngle(), 0, 1, 0);
+        final PMVMatrix4f pmv = regionRenderer.getMatrix();
+        pmv.loadMvIdentity();
+        pmv.translateMv(getXTran(), getYTran(), getZTran());
+        pmv.rotateMv(getAngleRad(), 0, 1, 0);
         if( weight != regionRenderer.getWeight() ) {
             regionRenderer.setWeight(weight);
         }

@@ -36,6 +36,8 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.shapes.Label;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
@@ -46,9 +48,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  * Res independent Shape, Scene attached to GLWindow showing simple linear Shape movement.
@@ -210,7 +210,7 @@ public class UISceneDemo02 {
                 final float end_pos = sceneBox.getMinX() + ( destText.getText().length() == 0 ? 0 : destText.getScaledWidth() );
                 movingGlyph.moveTo(start_pos, 0f, 0f);
 
-                final PMVMatrix pmv = new PMVMatrix();
+                final PMVMatrix4f pmv = new PMVMatrix4f();
                 final int[] destTextSizePx = destText.getSurfaceSize(scene, pmv, new int[2]); // [px]
                 final int[] movingGlyphSizePx = movingGlyph.getSurfaceSize(scene, pmv, new int[2]); // [px]
                 final float[] movingGlyphPixPerShapeUnit = movingGlyph.getPixelPerShapeUnit(movingGlyphSizePx, new float[2]); // [px]/[shapeUnit]

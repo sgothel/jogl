@@ -37,12 +37,12 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Rectangle;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.Vec4f;
-import com.jogamp.opengl.math.geom.AABBox;
-import com.jogamp.opengl.util.PMVMatrix;
 
 import jogamp.graph.ui.TreeTool;
 
@@ -64,14 +64,14 @@ public class Group extends Shape implements Container {
          * According to the implemented layout, method
          * - may scale the {@Link Shape}s
          * - may move the {@Link Shape}s
-         * - may reuse the given {@link PMVMatrix} `pmv`
+         * - may reuse the given {@link PMVMatrix4f} `pmv`
          * - must update the given {@link AABBox} `box`
          * </p>
          * @param g the {@link Group} to layout
          * @param box the bounding box of {@link Group} to be updated by this method.
-         * @param pmv a {@link PMVMatrix} which can be reused.
+         * @param pmv a {@link PMVMatrix4f} which can be reused.
          */
-        void layout(final Group g, final AABBox box, final PMVMatrix pmv);
+        void layout(final Group g, final AABBox box, final PMVMatrix4f pmv);
     }
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
@@ -207,7 +207,7 @@ public class Group extends Shape implements Container {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final Vec4f rgba) {
-        final PMVMatrix pmv = renderer.getMatrix();
+        final PMVMatrix4f pmv = renderer.getMatrix();
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
 
@@ -215,8 +215,8 @@ public class Group extends Shape implements Container {
         for(int i=0; i<shapeCount; i++) {
             final Shape shape = (Shape) shapesS[i];
             if( shape.isEnabled() ) {
-                pmv.glPushMatrix();
-                shape.setTransform(pmv);
+                pmv.pushMv();
+                shape.setMvTransform(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
                     if( null == rgba ) {
@@ -225,7 +225,7 @@ public class Group extends Shape implements Container {
                         shape.draw(gl, renderer, sampleCount);
                     }
                 }
-                pmv.glPopMatrix();
+                pmv.popMv();
             }
         }
         if( null != border ) {
@@ -257,7 +257,7 @@ public class Group extends Shape implements Container {
             GraphShape firstGS = null;
 
             // box has been reset
-            final PMVMatrix pmv = new PMVMatrix();
+            final PMVMatrix4f pmv = new PMVMatrix4f();
             if( null != layouter ) {
                 for(final Shape s : shapes) {
                     if( needsRMs && null == firstGS && s instanceof GraphShape ) {
@@ -282,10 +282,10 @@ public class Group extends Shape implements Container {
                     } else {
                         s.validate(glp);
                     }
-                    pmv.glPushMatrix();
-                    s.setTransform(pmv);
-                    s.getBounds().transformMv(pmv, tsbox);
-                    pmv.glPopMatrix();
+                    pmv.pushMv();
+                    s.setMvTransform(pmv);
+                    s.getBounds().transform(pmv.getMv(), tsbox);
+                    pmv.popMv();
                     box.resize(tsbox);
                 }
             }
@@ -329,15 +329,15 @@ public class Group extends Shape implements Container {
     }
 
     @Override
-    public AABBox getBounds(final PMVMatrix pmv, final Shape shape) {
+    public AABBox getBounds(final PMVMatrix4f pmv, final Shape shape) {
         pmv.reset();
-        setTransform(pmv);
+        setMvTransform(pmv);
         final AABBox res = new AABBox();
         if( null == shape ) {
             return res;
         }
         forOne(pmv, shape, () -> {
-            shape.getBounds().transformMv(pmv, res);
+            shape.getBounds().transform(pmv.getMv(), res);
         });
         return res;
     }
@@ -348,7 +348,7 @@ public class Group extends Shape implements Container {
     }
 
     @Override
-    public boolean forOne(final PMVMatrix pmv, final Shape shape, final Runnable action) {
+    public boolean forOne(final PMVMatrix4f pmv, final Shape shape, final Runnable action) {
         return TreeTool.forOne(shapes, pmv, shape, action);
     }
 
@@ -358,12 +358,12 @@ public class Group extends Shape implements Container {
     }
 
     @Override
-    public boolean forAll(final PMVMatrix pmv, final Visitor2 v) {
+    public boolean forAll(final PMVMatrix4f pmv, final Visitor2 v) {
         return TreeTool.forAll(shapes, pmv, v);
     }
 
     @Override
-    public boolean forSortedAll(final Comparator<Shape> sortComp, final PMVMatrix pmv, final Visitor2 v) {
+    public boolean forSortedAll(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
         return TreeTool.forSortedAll(sortComp, shapes, pmv, v);
     }
 }

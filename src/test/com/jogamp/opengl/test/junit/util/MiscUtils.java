@@ -40,9 +40,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.jogamp.opengl.GLContext;
-import com.jogamp.opengl.math.Matrix4f;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.InterruptSource;
+import com.jogamp.math.Matrix4f;
 
 public class MiscUtils {
     public static boolean atob(final String str, final boolean def) {

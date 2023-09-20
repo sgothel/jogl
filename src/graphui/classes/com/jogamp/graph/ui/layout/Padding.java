@@ -27,7 +27,7 @@
  */
 package com.jogamp.graph.ui.layout;
 
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.math.FloatUtil;
 
 /**
  * GraphUI CSS property Padding, space belonging to the element and included in the element's size.

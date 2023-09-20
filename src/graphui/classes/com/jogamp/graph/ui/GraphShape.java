@@ -35,10 +35,10 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.layout.Padding;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.Vec4f;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**

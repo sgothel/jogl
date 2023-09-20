@@ -27,7 +27,7 @@
  */
 package com.jogamp.graph.ui.layout;
 
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.math.FloatUtil;
 
 /**
  * GraphUI CSS property Gap, spacing between (grid) cells not belonging to the element.

@@ -7,6 +7,9 @@ import java.io.PrintStream;
 import java.nio.FloatBuffer;
 import java.util.Random;
 
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Matrix4f;
+import com.jogamp.math.Vec3f;
 import com.jogamp.opengl.DebugGL4;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
@@ -17,9 +20,6 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.TraceGL4;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Matrix4f;
-import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.GLArrayDataClient;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -104,7 +104,7 @@ public class TriangleInstancedRendererWithShaderState implements GLEventListener
 
 		initShader(gl);
         projectionMatrix = new PMVMatrix();
-		projectionMatrixUniform = new GLUniformData("mgl_PMatrix", 4, 4, projectionMatrix.getSyncPMat());
+		projectionMatrixUniform = new GLUniformData("mgl_PMatrix", 4, 4, projectionMatrix.getSyncP());
 		st.ownUniform(projectionMatrixUniform);
         if(!st.uniform(gl, projectionMatrixUniform)) {
             throw new GLException("Error setting mgl_PMatrix in shader: " + st);

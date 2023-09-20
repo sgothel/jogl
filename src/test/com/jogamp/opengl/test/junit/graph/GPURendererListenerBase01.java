@@ -39,23 +39,22 @@ import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLPipelineFactory;
 import com.jogamp.opengl.GLRunnable;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.FontScale;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Recti;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLReadBufferUtil;
-import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  *
@@ -110,7 +109,8 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public final float getZTran() { return zTran; }
     public final float getXTran() { return xTran; }
     public final float getYTran() { return yTran; }
-    public final float getAngle() { return ang; }
+    public final float getAngleDeg() { return ang; }
+    public final float getAngleRad() { return FloatUtil.adegToRad(ang); }
     public final int[] getSampleCount() { return sampleCount; }
     public final float[] getPosition() { return position; }
 
@@ -149,20 +149,19 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         getRenderer().init(gl);
     }
 
-    public static void mapWin2ObjectCoords(final PMVMatrix pmv, final Recti view,
+    public static void mapWin2ObjectCoords(final PMVMatrix4f pmv, final Recti view,
                                            final float zNear, final float zFar,
                                            final float orthoX, final float orthoY, final float orthoDist,
                                            final float[] winZ, final Vec3f objPos) {
         winZ[0] = (1f/zNear-1f/orthoDist)/(1f/zNear-1f/zFar);
-        pmv.gluUnProject(orthoX, orthoY, winZ[0], view, objPos);
+        pmv.mapWinToObj(orthoX, orthoY, winZ[0], view, objPos);
     }
 
     @Override
     public void reshape(final GLAutoDrawable drawable, final int xstart, final int ystart, final int width, final int height) {
-        final PMVMatrix pmv = renderer.getMatrix();
+        final PMVMatrix4f pmv = renderer.getMatrix();
         renderer.reshapePerspective(FloatUtil.QUARTER_PI, width, height, zNear, zFar);
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmv.glLoadIdentity();
+        pmv.loadMvIdentity();
         System.err.printf("Reshape: zNear %f,  zFar %f%n", zNear, zFar);
         System.err.printf("Reshape: Frustum: %s%n", pmv.getFrustum());
         {

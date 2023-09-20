@@ -30,7 +30,6 @@ package com.jogamp.opengl.demos.graph;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.MiscUtils;
-import com.jogamp.opengl.math.geom.AABBox;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +39,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
+import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;

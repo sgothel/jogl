@@ -27,13 +27,12 @@
  */
 package com.jogamp.opengl.util.stereo;
 
+import com.jogamp.math.FovHVHalves;
+import com.jogamp.math.Vec3f;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.PointImmutable;
 
 import jogamp.opengl.Debug;
-
-import com.jogamp.opengl.math.FovHVHalves;
-import com.jogamp.opengl.math.Vec3f;
 
 /**
  * Interface describing a native stereoscopic device

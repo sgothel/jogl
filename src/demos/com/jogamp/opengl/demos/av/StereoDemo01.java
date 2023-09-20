@@ -45,14 +45,14 @@ import com.jogamp.opengl.demos.util.QuitAdapter;
 import jogamp.opengl.util.stereo.GenericStereoDevice;
 
 import com.jogamp.common.net.Uri;
+import com.jogamp.math.FovHVHalves;
+import com.jogamp.math.Vec3f;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.opengl.util.stereo.StereoDeviceUtil;
-import com.jogamp.opengl.math.FovHVHalves;
-import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.util.av.GLMediaPlayer;

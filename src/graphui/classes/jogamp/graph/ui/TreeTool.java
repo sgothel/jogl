@@ -36,7 +36,7 @@ import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.Shape.Visitor1;
 import com.jogamp.graph.ui.Shape.Visitor2;
-import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.math.util.PMVMatrix4f;
 
 /** Generic static {@link Shape} tree traversal tools, utilized by {@link Scene} and {@link Container} implementations. */
 public class TreeTool {
@@ -48,24 +48,24 @@ public class TreeTool {
      * @param action
      * @return true to signal operation complete, i.e. {@code shape} found, otherwise false
      */
-    public static boolean forOne(final List<Shape> shapes, final PMVMatrix pmv, final Shape shape, final Runnable action) {
+    public static boolean forOne(final List<Shape> shapes, final PMVMatrix4f pmv, final Shape shape, final Runnable action) {
         for(int i=0; i<shapes.size(); ++i) {
             final Shape s = shapes.get(i);
             if( s.equals(shape) ) {
-                pmv.glPushMatrix();
-                s.setTransform(pmv);
+                pmv.pushMv();
+                s.setMvTransform(pmv);
                 action.run();
-                pmv.glPopMatrix();
+                pmv.popMv();
                 return true;
             } else if( s instanceof Container ) {
                 final Container c = (Container)s;
                 if( !c.contains(shape) ) { // fast-path: skip container
                     continue;
                 }
-                pmv.glPushMatrix();
-                s.setTransform(pmv);
+                pmv.pushMv();
+                s.setMvTransform(pmv);
                 final boolean res = c.forOne(pmv, shape, action);
-                pmv.glPopMatrix();
+                pmv.popMv();
                 if( !res ) { throw new InternalError("Not found "+shape+" in "+c+", but contained"); }
                 return true;
             }
@@ -99,17 +99,17 @@ public class TreeTool {
      * @param v
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix)} returned true, otherwise false
      */
-    public static boolean forAll(final List<Shape> shapes, final PMVMatrix pmv, final Visitor2 v) {
+    public static boolean forAll(final List<Shape> shapes, final PMVMatrix4f pmv, final Visitor2 v) {
         for(int i=0; i<shapes.size(); ++i) {
             final Shape s = shapes.get(i);
-            pmv.glPushMatrix();
-            s.setTransform(pmv);
+            pmv.pushMv();
+            s.setMvTransform(pmv);
             boolean res = v.visit(s, pmv);
             if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
                 res = c.forAll(pmv, v);
             }
-            pmv.glPopMatrix();
+            pmv.popMv();
             if( res ) {
                 return true;
             }
@@ -127,20 +127,20 @@ public class TreeTool {
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix)} returned true, otherwise false
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static boolean forSortedAll(final Comparator<Shape> sortComp, final List<Shape> shapes, final PMVMatrix pmv, final Visitor2 v) {
+    public static boolean forSortedAll(final Comparator<Shape> sortComp, final List<Shape> shapes, final PMVMatrix4f pmv, final Visitor2 v) {
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)sortComp);
 
         for(int i=0; i<shapesS.length; ++i) {
             final Shape s = (Shape)shapesS[i];
-            pmv.glPushMatrix();
-            s.setTransform(pmv);
+            pmv.pushMv();
+            s.setMvTransform(pmv);
             boolean res = v.visit(s, pmv);
             if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
                 res = c.forSortedAll(sortComp, pmv, v);
             }
-            pmv.glPopMatrix();
+            pmv.popMv();
             if( res ) {
                 return true;
             }

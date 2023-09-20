@@ -31,11 +31,11 @@ import jogamp.opengl.util.stereo.DistortionMesh;
 import jogamp.opengl.util.stereo.GenericStereoDevice;
 
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.FovHVHalves;
+import com.jogamp.math.Vec3f;
 import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.DimensionImmutable;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.FovHVHalves;
-import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.stereo.EyeParameter;
 import com.jogamp.opengl.util.stereo.StereoDevice;
 import com.jogamp.opengl.util.stereo.StereoDeviceConfig;

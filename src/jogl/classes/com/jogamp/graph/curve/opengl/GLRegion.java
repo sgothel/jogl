@@ -35,8 +35,6 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.GLArrayDataWrapper;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.Vec4f;
 
 import jogamp.graph.curve.opengl.VBORegion2PMSAAES2;
 import jogamp.graph.curve.opengl.VBORegion2PVBAAES2;
@@ -44,11 +42,12 @@ import jogamp.graph.curve.opengl.VBORegionSPES2;
 import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.opengl.Debug;
 
-import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
 
 import java.io.PrintStream;
 import java.nio.FloatBuffer;
@@ -508,7 +507,7 @@ public abstract class GLRegion extends Region {
      * {@link RegionRenderer#create(Vertex.Factory<? extends Vertex>, RenderState, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback) created}
      * with the appropriate {@link RegionRenderer.GLCallback callbacks}.
      * </p>
-     * @param matrix current {@link PMVMatrix}.
+     * @param gl current {@link GL2ES2}.
      * @param renderer the {@link RegionRenderer} to be used
      * @param sampleCount desired multisampling sample count for vbaa- or msaa-rendering.
      *        Use -1 for glSelect mode, pass1 w/o any color texture nor channel, use static select color only.

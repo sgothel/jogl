@@ -33,10 +33,10 @@ import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.Label;
+import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 public class Tooltips {

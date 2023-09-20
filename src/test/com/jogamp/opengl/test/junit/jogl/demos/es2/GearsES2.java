@@ -21,6 +21,10 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es2;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.math.Matrix4f;
+import com.jogamp.math.Quaternion;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.KeyAdapter;
@@ -32,9 +36,6 @@ import com.jogamp.newt.event.PinchToZoomGesture;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.math.Matrix4f;
-import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
 import com.jogamp.opengl.util.CustomGLEventListener;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -172,7 +173,7 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
     public void setUseMappedBuffers(final boolean v) { useMappedBuffers = v; }
     public void setValidateBuffers(final boolean v) { validateBuffers = v; }
 
-    public PMVMatrix getPMVMatrix() {
+    public PMVMatrix4f getPMVMatrix() {
         return pmvMatrix;
     }
 
@@ -231,9 +232,9 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
         // Use debug pipeline
         // drawable.setGL(new DebugGL(drawable.getGL()));
 
-        pmvMatrix = new PMVMatrix(PMVMatrix.INVERSE_MODELVIEW | PMVMatrix.INVERSE_TRANSPOSED_MODELVIEW);
+        pmvMatrix = new PMVMatrix(PMVMatrix4f.INVERSE_MODELVIEW | PMVMatrix4f.INVERSE_TRANSPOSED_MODELVIEW);
         st.attachObject("pmvMatrix", pmvMatrix);
-        pmvMatrixUniform = new GLUniformData("pmvMatrix", 4, 4, pmvMatrix.getSyncPMvMviMvitMat()); // P, Mv, Mvi and Mvit
+        pmvMatrixUniform = new GLUniformData("pmvMatrix", 4, 4, pmvMatrix.getSyncPMvMviMvit()); // P, Mv, Mvi and Mvit
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 

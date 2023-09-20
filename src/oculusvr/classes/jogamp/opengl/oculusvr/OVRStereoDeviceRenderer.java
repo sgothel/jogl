@@ -42,6 +42,8 @@ import com.jogamp.opengl.GLUniformData;
 import jogamp.common.os.PlatformPropsImpl;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Vec3f;
 import com.jogamp.oculusvr.OVR;
 import com.jogamp.oculusvr.OVRException;
 import com.jogamp.oculusvr.ovrDistortionMesh;
@@ -58,8 +60,6 @@ import com.jogamp.oculusvr.ovrTrackingState;
 import com.jogamp.oculusvr.ovrVector2f;
 import com.jogamp.oculusvr.ovrVector3f;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;

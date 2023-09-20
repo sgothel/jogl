@@ -27,8 +27,8 @@
  */
 package com.jogamp.opengl.util.stereo;
 
-import com.jogamp.opengl.math.FovHVHalves;
-import com.jogamp.opengl.math.Vec3f;
+import com.jogamp.math.FovHVHalves;
+import com.jogamp.math.Vec3f;
 
 /**
  * Constant single eye parameter of the viewer, relative to its {@link ViewerPose}.

@@ -30,10 +30,10 @@ package jogamp.graph.ui.shapes;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.opengl.math.Vec2f;
-import com.jogamp.opengl.math.Vec4f;
-import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.math.Vec2f;
+import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.AffineTransform;
 
 public class Label0 {
     protected Font font;

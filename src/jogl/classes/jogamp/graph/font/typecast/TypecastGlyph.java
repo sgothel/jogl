@@ -29,7 +29,7 @@ package jogamp.graph.font.typecast;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
-import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.math.geom.AABBox;
 
 import jogamp.graph.font.typecast.ot.table.KernSubtable;
 import jogamp.graph.font.typecast.ot.table.KerningPair;

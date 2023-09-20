@@ -4,6 +4,7 @@
 
 package com.jogamp.opengl.util.glsl.fixedfunc;
 
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES1;
 import com.jogamp.opengl.GL2ES2;
@@ -66,7 +67,7 @@ public class FixedFuncUtil {
      * @see ShaderSelectionMode#COLOR_TEXTURE
      * @see ShaderSelectionMode#COLOR_TEXTURE_LIGHT_PER_VERTEX
      */
-    public static final GL2ES1 wrapFixedFuncEmul(final GL gl, final ShaderSelectionMode mode, final PMVMatrix pmvMatrix) {
+    public static final GL2ES1 wrapFixedFuncEmul(final GL gl, final ShaderSelectionMode mode, final PMVMatrix4f pmvMatrix) {
         return wrapFixedFuncEmul(gl, mode, null, false, false);
     }
 

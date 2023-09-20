@@ -1459,6 +1459,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     isBlocked = false;
                 } catch (final Throwable t) {
                     streamErr = new StreamException(t.getClass().getSimpleName()+" while decoding: "+GLMediaPlayerImpl.this.toString(), t);
+                    isBlocked = false;
                 } finally {
                     if( null != nextFrame ) { // put back
                         videoFramesFree.put(nextFrame);

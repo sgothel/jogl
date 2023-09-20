@@ -27,9 +27,9 @@
  */
 package com.jogamp.graph.geom;
 
-import com.jogamp.opengl.math.Vec2f;
-import com.jogamp.opengl.math.Vec3f;
-import com.jogamp.opengl.math.Vert3fImmutable;
+import com.jogamp.math.Vec2f;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vert3fImmutable;
 
 /**
  * A Vertex exposing Vec3f vertex- and texture-coordinates.

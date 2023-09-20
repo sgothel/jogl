@@ -34,7 +34,7 @@ import jogamp.opengl.Debug;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.math.geom.AABBox;
 
 /**
  * Factory to build an {@link OutlineShape} from

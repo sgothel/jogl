@@ -43,6 +43,7 @@ import com.jogamp.opengl.fixedfunc.GLPointerFunc;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.ValueConv;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.util.GLArrayDataWrapper;
 import com.jogamp.opengl.util.GLBuffers;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -70,7 +71,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
             this.pmvMatrix = pmvMatrix;
         } else {
             this.ownsPMVMatrix = true;
-            this.pmvMatrix = new PMVMatrix(PMVMatrix.INVERSE_MODELVIEW | PMVMatrix.INVERSE_TRANSPOSED_MODELVIEW);
+            this.pmvMatrix = new PMVMatrix(PMVMatrix4f.INVERSE_MODELVIEW | PMVMatrix4f.INVERSE_TRANSPOSED_MODELVIEW);
         }
         fixedFunction = new FixedFuncPipeline(this.gl, mode, this.pmvMatrix);
     }
@@ -91,7 +92,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
             this.pmvMatrix = pmvMatrix;
         } else {
             this.ownsPMVMatrix = true;
-            this.pmvMatrix = new PMVMatrix(PMVMatrix.INVERSE_MODELVIEW | PMVMatrix.INVERSE_TRANSPOSED_MODELVIEW);
+            this.pmvMatrix = new PMVMatrix(PMVMatrix4f.INVERSE_MODELVIEW | PMVMatrix4f.INVERSE_TRANSPOSED_MODELVIEW);
         }
 
         fixedFunction = new FixedFuncPipeline(this.gl, mode, this.pmvMatrix, shaderRootClass, shaderSrcRoot,
@@ -109,7 +110,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         gl=null;
     }
 
-    public PMVMatrix getMatrix() { return pmvMatrix; }
+    public PMVMatrix4f getMatrix() { return pmvMatrix; }
 
     //
     // FixedFuncHookIf - hooks

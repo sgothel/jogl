@@ -31,23 +31,21 @@ package jogamp.opengl.util.glsl;
 import java.nio.FloatBuffer;
 
 import com.jogamp.opengl.util.GLArrayDataServer;
-import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
-
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLArrayData;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLUniformData;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 public class GLSLTextureRaster  {
     private final boolean textureVertFlipped;
     private final int textureUnit;
 
     private ShaderProgram sp;
-    private PMVMatrix pmvMatrix;
+    private PMVMatrix4f pmvMatrix;
     private GLUniformData pmvMatrixUniform;
     private GLUniformData activeTexUniform;
     private GLArrayDataServer interleavedVBO;
@@ -82,12 +80,10 @@ public class GLSLTextureRaster  {
         sp.useProgram(gl, true);
 
         // setup mgl_PMVMatrix
-        pmvMatrix = new PMVMatrix();
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-        pmvMatrix.glLoadIdentity();
-        pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmvMatrix.glLoadIdentity();
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat()); // P, Mv
+        pmvMatrix = new PMVMatrix4f();
+        pmvMatrix.loadPIdentity();
+        pmvMatrix.loadMvIdentity();
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv()); // P, Mv
         if( pmvMatrixUniform.setLocation(gl, sp.program()) < 0 ) {
             throw new GLException("Couldn't locate "+pmvMatrixUniform+" in shader: "+sp);
         }
@@ -130,12 +126,10 @@ public class GLSLTextureRaster  {
 
     public void reshape(final GL2ES2 gl, final int x, final int y, final int width, final int height) {
         if(null != sp) {
-            pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-            pmvMatrix.glLoadIdentity();
-            pmvMatrix.glOrthof(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 10.0f);
+            pmvMatrix.loadPIdentity();
+            pmvMatrix.orthoP(-1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 10.0f);
 
-            pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-            pmvMatrix.glLoadIdentity();
+            pmvMatrix.loadMvIdentity();
 
             sp.useProgram(gl, true);
             gl.glUniform(pmvMatrixUniform);

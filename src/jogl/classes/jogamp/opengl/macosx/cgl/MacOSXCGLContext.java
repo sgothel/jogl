@@ -58,7 +58,6 @@ import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLUniformData;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.opengl.Debug;
@@ -76,8 +75,8 @@ import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GLRendererQuirks;
-import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 
@@ -199,12 +198,10 @@ public class MacOSXCGLContext extends GLContextImpl
       sp.useProgram(gl, true);
 
       // setup mgl_PMVMatrix
-      final PMVMatrix pmvMatrix = new PMVMatrix();
-      pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
-      pmvMatrix.glLoadIdentity();
-      pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-      pmvMatrix.glLoadIdentity();
-      final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat()); // P, Mv
+      final PMVMatrix4f pmvMatrix = new PMVMatrix4f();
+      pmvMatrix.loadPIdentity();
+      pmvMatrix.loadMvIdentity();
+      final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv()); // P, Mv
       pmvMatrixUniform.setLocation(gl, sp.program());
       gl.glUniform(pmvMatrixUniform);
 

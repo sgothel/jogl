@@ -37,7 +37,6 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLDrawable;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -49,11 +48,11 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.TextRegionUtil;
 import com.jogamp.graph.font.Font;
-import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.GLReadBufferUtil;
-import com.jogamp.opengl.util.PMVMatrix;
 
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -195,13 +194,12 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
         dx += fontSize * font.getAdvanceWidth('X') * column;
         dy -= fontSize * textBox.getHeight() * ( row + 1 );
 
-        final PMVMatrix pmv = renderer.getMatrix();
-        pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
-        pmv.glLoadIdentity();
-        pmv.glTranslatef(dx, dy, z0);
+        final PMVMatrix4f pmv = renderer.getMatrix();
+        pmv.loadMvIdentity();
+        pmv.translateMv(dx, dy, z0);
         {
             final float sxy = fontSize / font.getMetrics().getUnitsPerEM();
-            pmv.glScalef(sxy, sxy, 1.0f);
+            pmv.scaleMv(sxy, sxy, 1.0f);
         }
         textRenderUtil.drawString3D(gl, renderer, font, text, null, sampleCount);
 

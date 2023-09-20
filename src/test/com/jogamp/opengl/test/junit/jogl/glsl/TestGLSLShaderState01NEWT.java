@@ -39,6 +39,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.io.IOException;
 
+import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLCapabilities;
@@ -46,7 +47,6 @@ import com.jogamp.opengl.GLDrawable;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.opengl.math.FloatUtil;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -126,7 +126,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
 
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
-        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
+        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         pmvMatrixUniform.setLocation(gl, sp.program());
         gl.glUniform(pmvMatrixUniform);
@@ -245,7 +245,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
 
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
-        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
+        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         st.ownUniform(pmvMatrixUniform);
 
@@ -337,7 +337,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
 
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
-        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
+        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 
@@ -426,7 +426,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
 
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
-        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
+        final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 

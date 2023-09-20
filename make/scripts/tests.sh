@@ -583,24 +583,24 @@ function testawtswt() {
 #
 # Math
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestBinary16NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestBinary32NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestBinary64NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil01NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestGluUnprojectFloatNOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestGluUnprojectDoubleNOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4f01NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4f02MulNOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4f03InversionNOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4fMatrixMulNOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4fProject01NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestMatrix4fProject02NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix02NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix03NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVTransform01NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestQuaternion01NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestVec3f01NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestBinary16NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestBinary32NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestBinary64NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestFloatUtil01NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestGluUnprojectFloatNOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestGluUnprojectDoubleNOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4f01NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4f02MulNOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4f03InversionNOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4fMatrixMulNOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4fProject01NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4fProject02NOUI $*
+testnoawt com.jogamp.opengl.test.junit.math.TestPMVMatrix01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestPMVMatrix02NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestPMVMatrix03NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestPMVTransform01NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestQuaternion01NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestVec3f01NOUI $*
 
 
 #
@@ -1009,7 +1009,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIGraphDemoU01a $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutBox01 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
@@ -1038,7 +1038,7 @@ testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 
 # GLDrawableFactory.createOffscreenDrawable(..)
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT
+#testnoawt com.jogamp.opengl.test.junit.math.TestPMVMatrix01NEWT
 #testnoawt com.jogamp.opengl.test.junit.jogl.tile.TestTiledRendering1GL2NEWT
 #testnoawt com.jogamp.opengl.test.junit.jogl.perf.TestPerf001RawInit00NEWT
 

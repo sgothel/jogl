@@ -43,14 +43,14 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.math.Matrix4f;
+import com.jogamp.math.Recti;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.SyncMatrices4f16;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.FBObject.TextureAttachment;
-import com.jogamp.opengl.math.Matrix4f;
-import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.GLArrayDataServer;
-import com.jogamp.opengl.util.SyncMatrices4f16;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
@@ -322,7 +322,7 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
                 drawView.setWidth(vpWidth);
                 drawView.setHeight(vpHeight);
 
-                box.mapToWindow(drawWinBox, renderer.getMatrix().getPMvMat(), drawView, true /* useCenterZ */);
+                box.mapToWindow(drawWinBox, renderer.getMatrix().getPMv(), drawView, true /* useCenterZ */);
 
                 winWidth = drawWinBox.getWidth();
                 winHeight = drawWinBox.getHeight();

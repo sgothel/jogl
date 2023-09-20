@@ -29,6 +29,7 @@
 package jogamp.newt;
 
 import com.jogamp.common.util.ArrayHashSet;
+import com.jogamp.math.FloatUtil;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.Screen;
@@ -41,7 +42,6 @@ import com.jogamp.nativewindow.util.Dimension;
 import com.jogamp.nativewindow.util.DimensionImmutable;
 import com.jogamp.nativewindow.util.Rectangle;
 import com.jogamp.nativewindow.util.SurfaceSize;
-import com.jogamp.opengl.math.FloatUtil;
 
 import jogamp.newt.MonitorDeviceImpl;
 import jogamp.newt.ScreenImpl;

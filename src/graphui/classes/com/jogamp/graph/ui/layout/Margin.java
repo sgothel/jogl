@@ -27,7 +27,7 @@
  */
 package com.jogamp.graph.ui.layout;
 
-import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.math.FloatUtil;
 
 /**
  * GraphUI CSS property Margin, space between or around elements and not included in the element's size.

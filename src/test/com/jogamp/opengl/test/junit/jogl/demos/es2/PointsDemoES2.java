@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2;
 import java.nio.FloatBuffer;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.PointsDemo;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -44,7 +45,6 @@ import com.jogamp.opengl.GL2GL3;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLUniformData;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.opengl.math.FloatUtil;
 
 public class PointsDemoES2 extends PointsDemo {
     ShaderState st;
@@ -112,7 +112,7 @@ public class PointsDemoES2 extends PointsDemo {
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat()); // P, Mv
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv()); // P, Mv
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 

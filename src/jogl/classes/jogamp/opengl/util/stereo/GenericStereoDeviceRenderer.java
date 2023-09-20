@@ -44,8 +44,8 @@ import jogamp.common.os.PlatformPropsImpl;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
+import com.jogamp.math.Vec3f;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;

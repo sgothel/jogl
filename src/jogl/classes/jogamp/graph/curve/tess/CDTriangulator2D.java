@@ -35,9 +35,9 @@ import com.jogamp.graph.curve.tess.Triangulator;
 import com.jogamp.graph.geom.Outline;
 import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.geom.plane.Winding;
-import com.jogamp.opengl.math.Vec2f;
-import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.math.Vec2f;
+import com.jogamp.math.VectorUtil;
+import com.jogamp.math.geom.plane.Winding;
 
 import jogamp.opengl.Debug;
 

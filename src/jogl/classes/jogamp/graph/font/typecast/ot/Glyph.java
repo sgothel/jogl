@@ -18,7 +18,7 @@
 
 package jogamp.graph.font.typecast.ot;
 
-import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.math.geom.AABBox;
 
 /**
  * An individual glyph within a font.

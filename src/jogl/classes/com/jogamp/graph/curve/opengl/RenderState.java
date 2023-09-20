@@ -33,20 +33,20 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLUniformData;
-import com.jogamp.opengl.math.Vec4f;
 
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.graph.curve.opengl.shader.UniformNames;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.math.Vec4f;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.util.GLArrayDataWrapper;
-import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 
 /**
  * The RenderState is owned by {@link RegionRenderer}.
  *
- * It holds rendering state data like {@link PMVMatrix}, viewport,
+ * It holds rendering state data like {@link PMVMatrix4f}, viewport,
  * but also the current {@link #getColorStatic(float[]) static color}.
  */
 public class RenderState {
@@ -91,7 +91,7 @@ public class RenderState {
         return (RenderState) gl.getContext().getAttachedObject(thisKey);
     }
 
-    private final PMVMatrix pmvMatrix;
+    private final PMVMatrix4f pmvMatrix;
     private final float[] weight;
     private final FloatBuffer weightBuffer;
     private final float[] colorStatic;
@@ -140,7 +140,7 @@ public class RenderState {
         public final boolean update(final GL2ES2 gl, final RenderState rs, final boolean updateLocation, final int renderModes, final boolean pass1, final boolean throwOnError) {
             if( rs.id() != rsId ) {
                 // Assignment of Renderstate buffers to uniforms (no copy, direct reference)
-                gcu_PMVMatrix01.setData(rs.pmvMatrix.getSyncPMvMat());
+                gcu_PMVMatrix01.setData(rs.pmvMatrix.getSyncPMv());
                 gcu_Weight.setData(rs.weightBuffer);
                 gcu_ColorStatic.setData(rs.colorStaticBuffer);
                 rsId = rs.id();
@@ -185,12 +185,12 @@ public class RenderState {
 
     /**
      * Create a RenderState, a composition of RegionRenderer
-     * @param sharedPMVMatrix optional shared PMVMatrix, if null using a local instance
+     * @param sharedPMVMatrix optional shared PMVMatrix4f, if null using a local instance
      */
-    /* pp */ RenderState(final PMVMatrix sharedPMVMatrix) {
+    /* pp */ RenderState(final PMVMatrix4f sharedPMVMatrix) {
         this.id = getNextID();
         this.sp = null;
-        this.pmvMatrix = null != sharedPMVMatrix ? sharedPMVMatrix : new PMVMatrix();
+        this.pmvMatrix = null != sharedPMVMatrix ? sharedPMVMatrix : new PMVMatrix4f();
         this.weight = new float[1];
         this.weightBuffer = FloatBuffer.wrap(weight);
         this.colorStatic = new float[] { 1, 1, 1, 1 };
@@ -229,7 +229,8 @@ public class RenderState {
         return true;
     }
 
-    public final PMVMatrix getMatrix() { return pmvMatrix; }
+    /** Borrow the current {@link PMVMatrix4f}. */
+    public final PMVMatrix4f getMatrix() { return pmvMatrix; }
 
     public static boolean isWeightValid(final float v) {
         return 0.0f <= v && v <= 1.9f ;

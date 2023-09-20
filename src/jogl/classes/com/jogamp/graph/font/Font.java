@@ -28,8 +28,8 @@
 package com.jogamp.graph.font;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.geom.plane.AffineTransform;
-import com.jogamp.opengl.math.geom.AABBox;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.AffineTransform;
 
 /**
  * Interface wrapper for font implementation.

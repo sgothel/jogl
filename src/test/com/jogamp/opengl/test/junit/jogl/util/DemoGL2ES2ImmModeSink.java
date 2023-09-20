@@ -89,7 +89,7 @@ public class DemoGL2ES2ImmModeSink implements GLEventListener {
             sp.useProgram(gl, true);
         }
 
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat().getSyncFloats());
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv().getSyncFloats());
         if(null != st) {
             st.ownUniform(pmvMatrixUniform);
             st.uniform(gl, pmvMatrixUniform);

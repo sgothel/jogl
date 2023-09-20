@@ -33,13 +33,13 @@ import java.util.Iterator;
 
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLException;
-import com.jogamp.opengl.math.Vec4f;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
-import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.plane.AffineTransform;
 
 /**
  * Text Type Rendering Utility Class adding the {@link Font.Glyph}s {@link OutlineShape} to a {@link GLRegion}.

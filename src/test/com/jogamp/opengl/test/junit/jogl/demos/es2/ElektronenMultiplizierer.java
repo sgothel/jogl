@@ -259,7 +259,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
         st.uniform(gl, mScreenDimensionUniform);
 
         pmvMatrix = new PMVMatrix();
-        pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
+        pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);
 

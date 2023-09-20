@@ -38,6 +38,9 @@ import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.GLButton;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
@@ -46,10 +49,7 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.geom.AABBox;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.PMVMatrix;
 
 /**
  * Res independent Shape, Scene attached to GLWindow showing simple linear Shape movement.
@@ -134,7 +134,7 @@ public class UISceneDemo01b {
         final float min_obj = sceneBox.getMinX();
         final float max_obj = sceneBox.getMaxX() - shape.getScaledWidth();
 
-        final int[] shapeSizePx = shape.getSurfaceSize(scene, new PMVMatrix(), new int[2]); // [px]
+        final int[] shapeSizePx = shape.getSurfaceSize(scene, new PMVMatrix4f(), new int[2]); // [px]
         final float[] pixPerShapeUnit = shape.getPixelPerShapeUnit(shapeSizePx, new float[2]); // [px]/[shapeUnit]
 
         final float pixPerMM = window.getPixelsPerMM(new float[2])[0]; // [px]/[mm]
@@ -173,8 +173,8 @@ public class UISceneDemo01b {
                         shape.getRotation().rotateByAngleY(rad);
                     }
                     System.err.println("Shape "+shape);
-                    final PMVMatrix pmv = new PMVMatrix();
-                    shape.setTransform(pmv);
+                    final PMVMatrix4f pmv = new PMVMatrix4f();
+                    shape.setMvTransform(pmv);
                     System.err.println("Shape "+pmv);
                 }
             }

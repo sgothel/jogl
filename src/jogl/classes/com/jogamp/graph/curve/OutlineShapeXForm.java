@@ -1,6 +1,6 @@
 package com.jogamp.graph.curve;
 
-import com.jogamp.graph.geom.plane.AffineTransform;
+import com.jogamp.math.geom.plane.AffineTransform;
 
 public class OutlineShapeXForm {
     public final OutlineShape shape;

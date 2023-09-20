@@ -119,7 +119,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         st.attachShaderProgram(gl, sp1, true);
 
         final PMVMatrix pmvMatrix = new PMVMatrix();
-        final GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
+        final GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         st.ownUniform(pmvMatrixUniform);
         st.uniform(gl, pmvMatrixUniform);

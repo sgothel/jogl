@@ -48,6 +48,11 @@ import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontScale;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Matrix4f;
+import com.jogamp.math.Quaternion;
+import com.jogamp.math.Recti;
+import com.jogamp.math.Vec3f;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -61,11 +66,6 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.graph.TextRendererGLELBase;
 import com.jogamp.opengl.demos.util.MiscUtils;
-import com.jogamp.opengl.math.FloatUtil;
-import com.jogamp.opengl.math.Matrix4f;
-import com.jogamp.opengl.math.Quaternion;
-import com.jogamp.opengl.math.Recti;
-import com.jogamp.opengl.math.Vec3f;
 import com.jogamp.opengl.util.CustomGLEventListener;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -466,7 +466,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
             final Recti viewPort = new Recti(0, 0, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
             pmvMatrix = new PMVMatrix();
             reshapePMV(viewPort.width(), viewPort.height());
-            pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMvMat());
+            pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.getSyncPMv());
             if(!st.uniform(gl, pmvMatrixUniform)) {
                 throw new GLException("Error setting PMVMatrix in shader: "+st);
             }
@@ -494,8 +494,8 @@ public class MovieSBSStereo implements StereoGLEventListener {
                 System.err.println("XXX0: pixel  RT: "+verts[3]+", "+verts[4]+", "+verts[5]);
                 final Vec3f winLB = new Vec3f();
                 final Vec3f winRT = new Vec3f();
-                pmvMatrix.gluProject(new Vec3f(verts[0], verts[1], verts[2]), viewPort, winLB);
-                pmvMatrix.gluProject(new Vec3f(verts[3], verts[4], verts[5]), viewPort, winRT);
+                pmvMatrix.mapObjToWin(new Vec3f(verts[0], verts[1], verts[2]), viewPort, winLB);
+                pmvMatrix.mapObjToWin(new Vec3f(verts[3], verts[4], verts[5]), viewPort, winRT);
                 System.err.println("XXX0: win   LB: "+winLB);
                 System.err.println("XXX0: win   RT: "+winRT);
             }
