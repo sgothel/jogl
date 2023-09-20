@@ -186,7 +186,7 @@ public class FontView01 {
             final Group glyphShapeBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.025f) ) );
             glyphShapeBox.addShape( new GlyphShape(options.renderModes, 'A', font.getGlyph( font.getGlyphID('A')), 0, 0) );
 
-            final Group glyphInfoBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter ) ); // , new Margin(0.05f, 0.025f, 0.05f, 0.025f) ) );
+            final Group glyphInfoBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.05f, 0.025f, 0.05f, 0.025f) ) );
             final Label glyphInfo = new Label(options.renderModes, fontStatus, "Nothing there yet");
             setGlyphInfo(fontStatus, glyphInfo, 'A', font.getGlyph(font.getGlyphID('A')));
             glyphInfo.setColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -201,7 +201,7 @@ public class FontView01 {
                         return;
                     }
                     final Group group = (Group)shape;
-                    final int last = group.getShapes().size()-1;
+                    final int last = group.getShapeCount()-1;
                     if( 0 > last ) {
                         return;
                     }
@@ -214,7 +214,7 @@ public class FontView01 {
                     final boolean doScreenshot = e.isControlDown() && e.getButtonDownCount() > 0;
                     scene.invoke(false, (final GLAutoDrawable d) -> {
                         // Handle old one
-                        if( 1 == glyphShapeBox.getShapes().size() ) {
+                        if( 1 == glyphShapeBox.getShapeCount() ) {
                             final GlyphShape old = (GlyphShape) glyphShapeBox.getShapes().get(0);
                             if( null != old ) {
                                 if( !doScreenshot && old.getSymbol() == g0.getSymbol() ) {

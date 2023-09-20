@@ -595,7 +595,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4fMatrixMulNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4fProject01NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4fProject02NOUI $*
-testnoawt com.jogamp.opengl.test.junit.math.TestPMVMatrix01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.math.TestPMVMatrix01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.math.TestPMVMatrix02NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.math.TestPMVMatrix03NOUI $*
 #testnoawt com.jogamp.opengl.test.junit.math.TestPMVTransform01NOUI $*
@@ -1009,7 +1009,7 @@ testnoawt com.jogamp.opengl.test.junit.math.TestPMVMatrix01NEWT $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIGraphDemoU01a $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UILayoutBox01 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
