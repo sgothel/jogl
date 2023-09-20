@@ -43,8 +43,13 @@ import com.jogamp.graph.ui.Shape.Visitor1;
  */
 public interface Container {
 
+    /** Returns number of {@link Shape}s, see {@link #getShapes()}. */
+    int getShapeCount();
+
+    /** Returns added {@link Shape}s, see {@link #addShape(Shape)}. */
     List<Shape> getShapes();
 
+    /** Adds a {@link Shape}. */
     void addShape(Shape s);
 
     /**

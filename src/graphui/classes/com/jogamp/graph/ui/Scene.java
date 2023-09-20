@@ -244,9 +244,11 @@ public final class Scene implements Container, GLEventListener {
     }
 
     @Override
-    public List<Shape> getShapes() {
-        return shapes;
-    }
+    public int getShapeCount() { return shapes.size(); }
+
+    @Override
+    public List<Shape> getShapes() { return shapes; }
+
     @Override
     public void addShape(final Shape s) {
         if( !s.hasBorder() && !FloatUtil.isZero(dbgBorderThickness) ) {
