@@ -149,7 +149,7 @@ public class TestTextRendererNEWT21 extends UITestCase {
                 System.err.printf("Test Run: %s, %s%n",
                         Region.getRenderModeString(renderModes, graphSampleCount, fsaaSampleCount),
                         font.getFullFamilyName());
-                final FontViewListener01 glel = new FontViewListener01(renderModes, graphSampleCount, font, 0 /* startGlyphID */);
+                final FontViewListener01 glel = new FontViewListener01(renderModes, graphSampleCount, font, '!' /* startCharSymbol */);
                 glel.attachInputListenerTo(window);
                 window.addGLEventListener(glel);
                 window.display();

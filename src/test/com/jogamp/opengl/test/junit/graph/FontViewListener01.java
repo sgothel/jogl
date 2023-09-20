@@ -33,6 +33,7 @@ import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.layout.Alignment;
+import com.jogamp.graph.ui.layout.BoxLayout;
 import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
 import com.jogamp.graph.ui.shapes.GlyphShape;
@@ -53,14 +54,14 @@ public class FontViewListener01 implements GLEventListener {
     private boolean useDPI = false;
 
     private final int renderModes;
-    private final int startGlyphID;
+    private final char startCharSymbol;
     private final Font font;
     private final Scene scene;
     private Group grid;
 
-    public FontViewListener01(final int renderModes, final int graphSampleCount, final Font font, final int startGlyphID) {
+    public FontViewListener01(final int renderModes, final int graphSampleCount, final Font font, final char startCharSymbol) {
         this.renderModes = renderModes;
-        this.startGlyphID = startGlyphID;
+        this.startCharSymbol = startCharSymbol;
         this.font = font;
 
         scene = new Scene(graphSampleCount);
@@ -133,43 +134,47 @@ public class FontViewListener01 implements GLEventListener {
         final float netGridSize = gridCols > gridRows ? 1f/gridCols : 1f/gridRows;
         System.err.println("Reshape Grid "+gridCols+" x "+gridRows+", "+cellCount+" cells, netGridSize "+netGridSize);
 
-        grid = new Group(new GridLayout(gridCols, netGridSize, netGridSize, Alignment.Fill, new Gap(netGridSize/0.90f*0.10f)));
+        grid = new Group(new GridLayout(gridCols, netGridSize, netGridSize, Alignment.FillCenter, new Gap(netGridSize/0.90f*0.10f)));
         scene.addShape(grid);
 
-        for(int i=0; i<cellCount; ++i) {
-            final GlyphShape g = new GlyphShape(renderModes, (char)0, font.getGlyph(startGlyphID + i), 0, 0);
-            g.setColor(0.1f, 0.1f, 0.1f, 1);
-            g.setDragAndResizeable(false);
-            g.onClicked( new Shape.Listener() {
+        for(int idx=0; idx<Character.MAX_VALUE && grid.getShapeCount() < cellCount ; ++idx) {
+            final char symbol = (char)(startCharSymbol+idx);
+            final int glyphID = font.getGlyphID(symbol);
+            final Font.Glyph glyph = font.getGlyph(glyphID);
+            if( glyph.isNonContour() ) {
+                continue;
+            }
+            final GlyphShape glyphShape = new GlyphShape(renderModes, symbol, glyph, 0, 0);
+            glyphShape.setColor(0.1f, 0.1f, 0.1f, 1);
+            glyphShape.setDragAndResizeable(false);
+            glyphShape.onClicked( new Shape.Listener() {
                 @Override
                 public void run(final Shape shape) {
                     System.err.println( ((GlyphShape)shape).getGlyph().toString() );
                 }
             });
-            g.validate(gl);
+            glyphShape.validate(gl);
 
-            // Group each GlyphShape with its bounding box Rectangle
-            final Group c = new Group();
-            c.addShape(new Rectangle(renderModes, 1f, 1f, 0.02f).setInteractive(false));
-            final AABBox gbox = g.getBounds();
-            g.move( ( 1f - gbox.getWidth() ) / 2f, ( 1f - gbox.getHeight() ) / 2f, 0f ); // center
-            g.move( gbox.getLow().mul(-1f) ); // remove bottom-left delta, here glyph underline
-            c.addShape(g);
+            // Group each GlyphShape with a border
+            final Group c = new Group( new BoxLayout( 1f, 1f, Alignment.Center) );
+            c.setBorder(0.02f).setBorderColor(0, 0, 0, 1).setInteractive(false);
+            final AABBox gbox = glyphShape.getBounds();
+            glyphShape.move( ( 1f - gbox.getWidth() ) / 2f, ( 1f - gbox.getHeight() ) / 2f, 0f ); // center
+            glyphShape.move( gbox.getLow().mul(-1f) ); // remove bottom-left delta, here glyph underline
+            c.addShape(glyphShape);
             grid.addShape(c);
         }
 
         grid.validate(gl);
         final AABBox sceneBox = scene.getBounds();
-        System.err.println("SceneBox "+sceneBox);
         final AABBox gridBox = grid.getBounds();
-        final float sgxy;
-        if( gridBox.getWidth() > gridBox.getHeight() ) {
-            sgxy = sceneBox.getWidth() / gridBox.getWidth();
-        } else {
-            sgxy = sceneBox.getHeight() / gridBox.getHeight();
-        }
-        grid.scale(sgxy, sgxy, 1f);
-        grid.moveTo(sceneBox.getMinX(), sceneBox.getMinY(), 0f);
+        final float sx = sceneBox.getWidth() / gridBox.getWidth();
+        final float sy = sceneBox.getHeight() / gridBox.getHeight();
+        final float sxy = Math.min(sx, sy);
+        grid.scale(sxy, sxy, 1f).moveTo(sceneBox.getLow());
+        System.err.println("SceneBox "+sceneBox);
+        System.err.println("GridBox "+gridBox);
+        System.err.println("scale sx "+sx+", sy "+sy+", sxy "+sxy);
         System.err.println("Grid "+grid);
         System.err.println("Grid "+grid.getLayout());
         System.err.println("Grid[0] "+grid.getShapes().get(0));
