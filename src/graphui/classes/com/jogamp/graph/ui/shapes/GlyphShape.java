@@ -180,6 +180,9 @@ public class GlyphShape extends GraphShape {
             region.addOutlineShape(shape, tmp, rgbaColor);
             box.resize(tmp.transform(sbox, new AABBox()));
             setRotationPivot( box.getCenter() );
+        } else {
+            // needs a dummy 'region'
+            resetGLRegion(glp, gl, null, regionVertCount, regionIdxCount);
         }
     }
 
