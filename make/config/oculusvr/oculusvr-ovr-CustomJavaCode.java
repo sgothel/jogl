@@ -17,10 +17,11 @@
                           System.err.println("Couldn't load native OVR/JNI glue library");
                           return null;
                         }
+                        /** Not required nor forced
                         if( !initializeImpl() ) {
                           System.err.println("Native initialization failure of OVR/JNI glue library");
                           return null;
-                        }
+                        } */
                         return bundle;
                     } } );
     }

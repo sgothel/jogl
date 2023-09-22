@@ -195,7 +195,7 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
             ovRes[0] = ovrDistortionVertex.create();
 
             for ( int vertNum = 0; vertNum < vertexCount; vertNum++ ) {
-                final ovrDistortionVertex ov = meshData.getPVertexData(vertNum, ovRes)[0];
+                final ovrDistortionVertex ov = meshData.getPVertexData(vertNum, ovRes, 0, 1)[0];
                 ovrVector2f v;
 
                 if( StereoDevice.DUMP_DATA ) {
@@ -332,12 +332,12 @@ public class OVRStereoDeviceRenderer implements StereoDeviceRenderer {
         /* pp */ void updateTimewarp(final ovrHmdDesc hmdDesc, final ovrPosef eyeRenderPose, final float[] mat4Tmp1, final float[] mat4Tmp2) {
             OVR.ovrHmd_GetEyeTimewarpMatrices(hmdDesc, eyeName, eyeRenderPose, timeWarpMatrices);
 
-            final float[] eyeRotationStartM = FloatUtil.transposeMatrix(timeWarpMatrices[0].getM(0, mat4Tmp1), mat4Tmp2);
+            final float[] eyeRotationStartM = FloatUtil.transposeMatrix(timeWarpMatrices[0].getM(0, mat4Tmp1, 0, 16), mat4Tmp2);
             final FloatBuffer eyeRotationStartU = eyeRotationStart.floatBufferValue();
             eyeRotationStartU.put(eyeRotationStartM);
             eyeRotationStartU.rewind();
 
-            final float[] eyeRotationEndM = FloatUtil.transposeMatrix(timeWarpMatrices[1].getM(0, mat4Tmp1), mat4Tmp2);
+            final float[] eyeRotationEndM = FloatUtil.transposeMatrix(timeWarpMatrices[1].getM(0, mat4Tmp1, 0, 16), mat4Tmp2);
             final FloatBuffer eyeRotationEndU = eyeRotationEnd.floatBufferValue();
             eyeRotationEndU.put(eyeRotationEndM);
             eyeRotationEndU.rewind();

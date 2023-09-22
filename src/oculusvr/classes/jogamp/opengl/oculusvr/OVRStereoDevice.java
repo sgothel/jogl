@@ -87,13 +87,13 @@ public class OVRStereoDevice implements StereoDevice {
         this.deviceIndex = deviceIndex;
         this.hmdDesc = hmdDesc;
 
-        final ovrFovPort[] defaultOVREyeFov = hmdDesc.getDefaultEyeFov(0, new ovrFovPort[ovrHmdDesc.getEyeRenderOrderArrayLength()]);
+        final ovrFovPort[] defaultOVREyeFov = hmdDesc.getDefaultEyeFov(0, new ovrFovPort[ovrHmdDesc.getEyeRenderOrderElemCount()], 0, ovrHmdDesc.getEyeRenderOrderElemCount());
         defaultEyeFov = new FovHVHalves[defaultOVREyeFov.length];
         for(int i=0; i<defaultEyeFov.length; i++) {
             defaultEyeFov[i] = OVRUtil.getFovHV(defaultOVREyeFov[i]);
         }
-        eyeRenderOrder = new int[ovrHmdDesc.getEyeRenderOrderArrayLength()];
-        hmdDesc.getEyeRenderOrder(0, eyeRenderOrder);
+        eyeRenderOrder = new int[ovrHmdDesc.getEyeRenderOrderElemCount()];
+        hmdDesc.getEyeRenderOrder(0, eyeRenderOrder, 0, eyeRenderOrder.length);
         supportedDistortionBits = OVRUtil.ovrDistCaps2DistBits(hmdDesc.getDistortionCaps());
         recommendedDistortionBits = supportedDistortionBits; //  & ~StereoDeviceRenderer.DISTORTION_TIMEWARP;
         minimumDistortionBits = StereoDeviceRenderer.DISTORTION_BARREL;
