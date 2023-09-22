@@ -675,19 +675,19 @@ public class MovieSimple implements GLEventListener {
 
         final int windowCount;
         {
-            int _windowCount = 1;
+            int _windowCount = 0;
             for(int i=0; i<args.length; i++) {
-                if(args[i].equals("-windows")) {
+                if(args[i].equals("-url")) {
                     i++;
-                    _windowCount = MiscUtils.atoi(args[i], _windowCount);
+                    _windowCount++;
                 }
             }
-            windowCount = _windowCount;
+            windowCount = Math.max(1, _windowCount);
         }
         final String[] urls_s = new String[windowCount];
-        String file_s1=null, file_s2=null;
         {
             boolean _origSize = false;
+            int url_idx = 0;
             for(int i=0; i<args.length; i++) {
                 if(args[i].equals("-vid")) {
                     i++;
@@ -723,39 +723,23 @@ public class MovieSimple implements GLEventListener {
                     useOrigScale=true;
                 } else if(args[i].equals("-loop")) {
                     loopEOS=true;
-                } else if(args[i].equals("-urlN")) {
-                    i++;
-                    final int n = MiscUtils.atoi(args[i], 0);
-                    i++;
-                    urls_s[n] = args[i];
                 } else if(args[i].equals("-url")) {
                     i++;
-                    urls_s[0] = args[i];
-                } else if(args[i].equals("-file1")) {
-                    i++;
-                    file_s1 = args[i];
-                } else if(args[i].equals("-file2")) {
-                    i++;
-                    file_s2 = args[i];
+                    urls_s[url_idx++] = args[i];
                 } else if(args[i].equals("-wait")) {
                     waitForKey = true;
                 }
             }
             origSize = _origSize;
         }
-        final Uri streamLoc0;
+        Uri streamLoc0 = null;
         if( null != urls_s[0] ) {
-            streamLoc0 = Uri.cast( urls_s[0] );
-        } else if( null != file_s1 ) {
-            final File movieFile = new File(file_s1);
-            streamLoc0 = Uri.valueOf(movieFile);
-        } else if( null != file_s2 ) {
-            streamLoc0 = Uri.valueOf(new File(file_s2));
-        } else {
+            streamLoc0 = Uri.tryUriOrFile( urls_s[0] );
+        }
+        if( null == streamLoc0 ) {
             streamLoc0 = defURI;
         }
         System.err.println("url_s "+urls_s[0]);
-        System.err.println("file_s 1: "+file_s1+", 2: "+file_s2);
         System.err.println("stream0 "+streamLoc0);
         System.err.println("vid "+vid+", aid "+aid);
         System.err.println("textureCount "+textureCount);
@@ -806,13 +790,14 @@ public class MovieSimple implements GLEventListener {
             windows[i].setSize(width, height);
             windows[i].setVisible(true);
 
-            final Uri streamLocN;
+            Uri streamLocN = null;
             if( 0 == i ) {
                 streamLocN = streamLoc0;
             } else {
                 if( null != urls_s[i] ) {
-                    streamLocN = Uri.cast(urls_s[i]);
-                } else {
+                    streamLocN = Uri.tryUriOrFile( urls_s[i] );
+                }
+                if( null == streamLocN ) {
                     streamLocN = defURI;
                 }
             }

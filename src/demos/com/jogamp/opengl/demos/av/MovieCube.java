@@ -500,7 +500,8 @@ public class MovieCube implements GLEventListener {
         int aid = GLMediaPlayer.STREAM_ID_AUTO;
         final boolean origSize;
 
-        String url_s=null, file_s=null;
+        String url_s=null;
+        final String file_s=null;
         {
             boolean _origSize = false;
             for(int i=0; i<args.length; i++) {
@@ -524,9 +525,6 @@ public class MovieCube implements GLEventListener {
                 } else if(args[i].equals("-url")) {
                     i++;
                     url_s = args[i];
-                } else if(args[i].equals("-file")) {
-                    i++;
-                    file_s = args[i];
                 } else if(args[i].equals("-es2")) {
                     forceES2 = true;
                 } else if(args[i].equals("-es3")) {
@@ -544,16 +542,14 @@ public class MovieCube implements GLEventListener {
             }
             origSize = _origSize;
         }
-        final Uri streamLoc;
+        Uri streamLoc = null;
         if( null != url_s ) {
-            streamLoc = Uri.cast( url_s );
-        } else if( null != file_s ) {
-            streamLoc = Uri.valueOf(new File(file_s));
-        } else {
+            streamLoc = Uri.tryUriOrFile( url_s );
+        }
+        if( null == streamLoc ) {
             streamLoc = defURI;
         }
         System.err.println("url_s "+url_s);
-        System.err.println("file_s "+file_s);
         System.err.println("stream "+streamLoc);
         System.err.println("vid "+vid+", aid "+aid);
         System.err.println("textureCount "+textureCount);
