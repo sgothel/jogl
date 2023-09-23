@@ -647,9 +647,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public final StreamException getStreamException() {
-        final StreamException e;
+        StreamException e = null;
         synchronized( stateLock ) {
-            e = streamErr;
+            if( null != streamWorker ) {
+                e = streamWorker.getStreamException();
+            }
+            if( null == e ) {
+                e = streamErr;
+            }
             streamErr = null;
         }
         return e;
@@ -1208,7 +1213,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * {@link GLMediaPlayerImpl#updateAttributes(int, int, int, int, int, int, int, float, int, int, int, String, String) updateAttributes(..)},
      * the latter decides whether StreamWorker is being used.
      */
-    class StreamWorker {
+    private final class StreamWorker {
         private volatile GLContext sharedGLCtx = null;
         private boolean hasSharedGLCtx = false;
         private GLDrawable dummyDrawable = null;
@@ -1269,6 +1274,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
         private final synchronized void stop(final boolean waitUntilDone) {
             wt.stop(waitUntilDone);
+        }
+
+        private final synchronized StreamException getStreamException() {
+            final Exception e = wt.getError(true);
+            if( null != e ) {
+                return new StreamException(e);
+            }
+            return null;
         }
 
         WorkerThread.StateCallback stateCB = (final WorkerThread self, final WorkerThread.StateCallback.State cause) -> {
@@ -1364,9 +1377,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             wt.start( true );
         }
     }
-    static int StreamWorkerInstanceId = 0;
     private volatile StreamWorker streamWorker = null;
-    private volatile StreamException streamErr = null;
+    private StreamException streamErr = null;
 
     protected final GLMediaPlayer.EventMask addStateEventMask(final GLMediaPlayer.EventMask eventMask, final State newState) {
         if( state != newState ) {
