@@ -545,6 +545,9 @@ public interface GLMediaPlayer extends TextureSequence {
     /** Returns the audio volume. */
     public float getAudioVolume();
 
+    /** Returns true if audio is muted, i.e. {@link #setAudioVolume(float)} to zero. */
+    public boolean isAudioMuted();
+
     /**
      * Starts or resumes the <i>StreamWorker</i> decoding thread.
      * <p>

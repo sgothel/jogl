@@ -59,6 +59,7 @@ import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.LFRingbuffer;
 import com.jogamp.common.util.Ringbuffer;
 import com.jogamp.common.util.WorkerThread;
+import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -533,6 +534,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         getAudioVolumeImpl();
         return audioVolume;
     }
+
+    @Override
+    public boolean isAudioMuted() {
+        return FloatUtil.isZero(audioVolume);
+    }
+
     /**
      * Override if not using AudioSink, or AudioSink's {@link AudioSink#getVolume()} is not sufficient!
      */
@@ -542,21 +549,30 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
     }
 
+    private static final float clipAudioVolume(final float v) {
+        if( v < 0.01f ) {
+            return 0.0f;
+        } else if( Math.abs(1.0f - v) < 0.01f ) {
+            return 1.0f;
+        }
+        return v;
+    }
+
     @Override
     public boolean setAudioVolume(float v) {
         synchronized( stateLock ) {
             final float preVolume = audioVolume;
             boolean res = false;
+            v = clipAudioVolume(v);
             if(State.Uninitialized != state ) {
-                if( Math.abs(v) < 0.01f ) {
-                    v = 0.0f;
-                } else if( Math.abs(1.0f - v) < 0.01f ) {
-                    v = 1.0f;
-                }
                 if( setAudioVolumeImpl(v) ) {
                     audioVolume = v;
                     res = true;
                 }
+            } else {
+                // earmark ..
+                audioVolume = v;
+                res = true;
             }
             if(DEBUG) { System.err.println("setAudioVolume("+v+"): "+state+", "+preVolume+" -> "+audioVolume+", "+toString()); }
             return res;
@@ -682,6 +698,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 removeAllTextureFrames(gl);
                 if( State.Uninitialized != state ) {
                     initGLImpl(gl);
+                    setAudioVolume( audioVolume ); // update volume
                     if(DEBUG) {
                         System.err.println("initGLImpl.X "+this);
                     }
