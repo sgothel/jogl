@@ -560,7 +560,7 @@ public final class Scene implements Container, GLEventListener {
         final Ray ray = new Ray();
         shape[0] = null;
 
-        forSortedAll(Shape.ZAscendingComparator, pmv, (final Shape s, final PMVMatrix4f pmv2) -> {
+        forSortedAll(Shape.ZDescendingComparator, pmv, (final Shape s, final PMVMatrix4f pmv2) -> {
             final boolean ok = s.isInteractive() && pmv.mapWinToRay(glWinX, glWinY, winZ0, winZ1, viewport, ray);
             if( ok ) {
                 final AABBox sbox = s.getBounds();
@@ -916,11 +916,24 @@ public final class Scene implements Container, GLEventListener {
     }
 
     public void releaseActiveShape() {
+        if( null != activeShape && !FloatUtil.isZero(lastActiveZOffset) ) {
+            activeShape.move(0, 0, -lastActiveZOffset);
+            lastActiveZOffset = 0f;
+        }
         activeShape = null;
     }
     private void setActiveShape(final Shape shape) {
+        if( activeShape != shape ) {
+            releaseActiveShape();
+            lastActiveZOffset = zOffsetScale * getZEpsilon(16);
+            if( null != shape && !FloatUtil.isZero(lastActiveZOffset) ) {
+                shape.move(0, 0, +lastActiveZOffset);
+            }
+        }
         activeShape = shape;
     }
+    private float lastActiveZOffset = 0f;
+    private static final float zOffsetScale = 10f;
 
     private final class SBCGestureListener implements GestureHandler.GestureListener {
         @Override

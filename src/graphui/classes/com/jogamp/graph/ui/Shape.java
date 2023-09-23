@@ -1559,6 +1559,20 @@ public abstract class Shape {
             }
         } };
 
+    public static Comparator<Shape> ZDescendingComparator = new Comparator<Shape>() {
+        @Override
+        public int compare(final Shape s1, final Shape s2) {
+            final float s1Z = s1.getScaledMinZ()+s1.getPosition().z();
+            final float s2Z = s2.getScaledMinZ()+s2.getPosition().z();
+            if( FloatUtil.isEqual2(s1Z, s2Z) ) {
+                return 0;
+            } else if( s1Z < s2Z ){
+                return 1;
+            } else {
+                return -1;
+            }
+        } };
+
     //
     //
     //
