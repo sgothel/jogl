@@ -174,7 +174,7 @@ public class UISceneDemo01b {
                     }
                     System.err.println("Shape "+shape);
                     final PMVMatrix4f pmv = new PMVMatrix4f();
-                    shape.setMvTransform(pmv);
+                    shape.setTransformMv(pmv);
                     System.err.println("Shape "+pmv);
                 }
             }

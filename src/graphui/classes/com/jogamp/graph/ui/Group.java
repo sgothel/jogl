@@ -218,7 +218,7 @@ public class Group extends Shape implements Container {
             final Shape shape = (Shape) shapesS[i];
             if( shape.isEnabled() ) {
                 pmv.pushMv();
-                shape.setMvTransform(pmv);
+                shape.setTransformMv(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
                     if( null == rgba ) {
@@ -285,7 +285,7 @@ public class Group extends Shape implements Container {
                         s.validate(glp);
                     }
                     pmv.pushMv();
-                    s.setMvTransform(pmv);
+                    s.setTransformMv(pmv);
                     s.getBounds().transform(pmv.getMv(), tsbox);
                     pmv.popMv();
                     box.resize(tsbox);
@@ -333,7 +333,7 @@ public class Group extends Shape implements Container {
     @Override
     public AABBox getBounds(final PMVMatrix4f pmv, final Shape shape) {
         pmv.reset();
-        setMvTransform(pmv);
+        setTransformMv(pmv);
         final AABBox res = new AABBox();
         if( null == shape ) {
             return res;

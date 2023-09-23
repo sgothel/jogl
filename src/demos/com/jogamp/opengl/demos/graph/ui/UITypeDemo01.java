@@ -258,7 +258,7 @@ public class UITypeDemo01 implements GLEventListener {
 
     private void drawShape(final GL2ES2 gl, final PMVMatrix4f pmv, final RegionRenderer renderer, final Shape shape) {
         pmv.pushMv();
-        shape.setMvTransform(pmv);
+        shape.setTransformMv(pmv);
         shape.draw(gl, renderer, sampleCount);
         pmv.popMv();
     }
@@ -463,7 +463,7 @@ public class UITypeDemo01 implements GLEventListener {
 
                     {
                         pmv.pushMv();
-                        crossHair.setMvTransform(pmv);
+                        crossHair.setTransformMv(pmv);
 
                         final Vec3f objPosC = crossHair.getBounds().getCenter();
                         System.err.println("\n\nCrossHair: "+crossHair);

@@ -311,7 +311,7 @@ public class UIGraphDemoU01a {
             }
             if( !textOnly ) {
                 pmv.pushMv();
-                shape.setMvTransform(pmv);
+                shape.setTransformMv(pmv);
 
                 shape.draw(gl, renderer, sampleCount);
                 if( onceAtDisplay ) {

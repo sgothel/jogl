@@ -457,7 +457,7 @@ public final class Scene implements Container, GLEventListener {
             // System.err.println("Id "+i+": "+uiShape);
             if( shape.isEnabled() ) {
                 pmv.pushMv();
-                shape.setMvTransform(pmv);
+                shape.setTransformMv(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
                     if( glSelect ) {
@@ -538,7 +538,7 @@ public final class Scene implements Container, GLEventListener {
      * Method performs on current thread and returns after probing every {@link Shape}.
      * </p>
      * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
-     *            {@link Shape#setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller and runnable.
+     *            {@link Shape#setTransformMv(PMVMatrix4f) shape-transformed} and can be reused by the caller and runnable.
      * @param glWinX window X coordinate, bottom-left origin
      * @param glWinY window Y coordinate, bottom-left origin
      * @param objPos storage for found object position in model-space of found {@link Shape}
@@ -606,7 +606,7 @@ public final class Scene implements Container, GLEventListener {
                 if( null != s ) {
                     final PMVMatrix4f pmv = renderer.getMatrix();
                     pmv.pushMv();
-                    s.setMvTransform(pmv);
+                    s.setTransformMv(pmv);
                     final boolean ok = null != shape[0].winToShapeCoord(getMatrix(), getViewport(), glWinX, glWinY, objPos);
                     pmv.popMv();
                     if( ok ) {
@@ -662,7 +662,7 @@ public final class Scene implements Container, GLEventListener {
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
-     *            {@link Shape#setMvTransform(PMVMatrix4f) shape-transformed} and can be reused by the caller and runnable.
+     *            {@link Shape#setTransformMv(PMVMatrix4f) shape-transformed} and can be reused by the caller and runnable.
      * @param objPos resulting object position
      * @param runnable action
      */

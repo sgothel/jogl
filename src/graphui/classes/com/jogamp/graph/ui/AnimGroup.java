@@ -306,7 +306,7 @@ public class AnimGroup extends Group {
      * <p>
      * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
+     * only, without a shape's {@link #setTransformMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}
@@ -331,7 +331,7 @@ public class AnimGroup extends Group {
         refShape.validate(glp);
         pmv.pushMv();
         {
-            refShape.setMvTransform(pmv);
+            refShape.setTransformMv(pmv);
             as = new Set(pixPerMM, refShape.getPixelPerShapeUnit(pmv, viewport, new float[2]), refShape,
                               accel, velocity, ang_accel, ang_velo,
                               new ArrayList<ShapeData>(), new AABBox(), lerp);
@@ -347,7 +347,7 @@ public class AnimGroup extends Group {
      * <p>
      * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
+     * only, without a shape's {@link #setTransformMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}
@@ -381,7 +381,7 @@ public class AnimGroup extends Group {
             refShape.validate(glp);
             pmv.pushMv();
             {
-                refShape.setMvTransform(pmv);
+                refShape.setTransformMv(pmv);
                 as = new Set(pixPerMM, refShape.getPixelPerShapeUnit(pmv, viewport, new float[2]), refShape,
                                  accel, velocity, ang_accel, ang_velo, allShapes, sourceBounds, lerp);
             }
@@ -426,7 +426,7 @@ public class AnimGroup extends Group {
      * <p>
      * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
+     * only, without a shape's {@link #setTransformMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}
@@ -475,7 +475,7 @@ public class AnimGroup extends Group {
      * <p>
      * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setMvTransform(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
+     * only, without a shape's {@link #setTransformMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}

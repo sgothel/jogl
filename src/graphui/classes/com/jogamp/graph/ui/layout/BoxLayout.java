@@ -185,7 +185,7 @@ public class BoxLayout implements Group.Layout {
 
             // measure size
             pmv.pushMv();
-            s.setMvTransform(pmv);
+            s.setTransformMv(pmv);
             s.getBounds().transform(pmv.getMv(), sbox);
             pmv.popMv();
 

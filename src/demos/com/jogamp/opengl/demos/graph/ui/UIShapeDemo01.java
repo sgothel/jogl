@@ -237,7 +237,7 @@ public class UIShapeDemo01 implements GLEventListener {
     private void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape shape) {
         final PMVMatrix4f pmv = renderer.getMatrix();
         pmv.pushMv();
-        shape.setMvTransform(pmv);
+        shape.setTransformMv(pmv);
         shape.draw(gl, renderer, sampleCount);
         if( once ) {
             System.err.println("draw.0: "+shape);
@@ -393,7 +393,7 @@ public class UIShapeDemo01 implements GLEventListener {
 
                     {
                         pmv.pushMv();
-                        button.setMvTransform(pmv);
+                        button.setTransformMv(pmv);
 
                         System.err.println("\n\nButton: "+button);
                         final Vec3f objPos = button.winToShapeCoord(pmv, viewport, glWinX, glWinY, new Vec3f());
@@ -410,7 +410,7 @@ public class UIShapeDemo01 implements GLEventListener {
                     }
                     {
                         pmv.pushMv();
-                        crossHair.setMvTransform(pmv);
+                        crossHair.setTransformMv(pmv);
 
                         final Vec3f objPosC = crossHair.getBounds().getCenter();
                         System.err.println("\n\nCrossHair: "+crossHair);

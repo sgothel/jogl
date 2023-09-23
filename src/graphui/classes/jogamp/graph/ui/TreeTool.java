@@ -53,7 +53,7 @@ public class TreeTool {
             final Shape s = shapes.get(i);
             if( s.equals(shape) ) {
                 pmv.pushMv();
-                s.setMvTransform(pmv);
+                s.setTransformMv(pmv);
                 action.run();
                 pmv.popMv();
                 return true;
@@ -63,7 +63,7 @@ public class TreeTool {
                     continue;
                 }
                 pmv.pushMv();
-                s.setMvTransform(pmv);
+                s.setTransformMv(pmv);
                 final boolean res = c.forOne(pmv, shape, action);
                 pmv.popMv();
                 if( !res ) { throw new InternalError("Not found "+shape+" in "+c+", but contained"); }
@@ -103,7 +103,7 @@ public class TreeTool {
         for(int i=0; i<shapes.size(); ++i) {
             final Shape s = shapes.get(i);
             pmv.pushMv();
-            s.setMvTransform(pmv);
+            s.setTransformMv(pmv);
             boolean res = v.visit(s, pmv);
             if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
@@ -134,7 +134,7 @@ public class TreeTool {
         for(int i=0; i<shapesS.length; ++i) {
             final Shape s = (Shape)shapesS[i];
             pmv.pushMv();
-            s.setMvTransform(pmv);
+            s.setTransformMv(pmv);
             boolean res = v.visit(s, pmv);
             if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
