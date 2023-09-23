@@ -345,6 +345,6 @@ public class Button extends BaseButton {
 
     @Override
     public String getSubString() {
-        return super.getSubString()+", "+ label + ", " + "spacing["+spacingX+", "+spacingY+"]";
+        return super.getSubString()+", "+ label + ", " + "spacing["+spacingX+", "+spacingY+"], zOff "+labelZOffset;
     }
 }
