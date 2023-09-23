@@ -1283,7 +1283,7 @@ public final class Scene implements Container, GLEventListener {
             final float ratio = (float) viewport.width() / (float) viewport.height();
             pmv.loadPIdentity();
             pmv.perspectiveP(angle, ratio, zNear, zFar);
-            pmv.translateMv(0f, 0f, scene_dist);
+            pmv.translateP(0f, 0f, scene_dist);
 
             pmv.loadMvIdentity();
         }
