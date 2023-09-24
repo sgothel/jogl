@@ -1046,12 +1046,16 @@ public class UISceneDemo20 implements GLEventListener {
 
         scene.reshape(drawable, x, y, width, height);
         final AABBox sceneBox = scene.getBounds();
+        final float zEpsilon = scene.getZEpsilon(16);
         System.err.println("Reshape: Scene Plane.1 "+sceneBox);
+        System.err.println("Reshape: Scene zEpsilon "+zEpsilon);
 
         final float sceneWidth = sceneBox.getWidth();
         final float sceneHeight = sceneBox.getHeight();
         final float button_sxy = sceneWidth > sceneHeight ? sceneWidth : sceneHeight;
 
+        buttonsLeft.forAll((final Shape s) -> { if( s instanceof Button) { ((Button)s).setLabelZOffset(zEpsilon); } return false; } );
+        buttonsRight.forAll((final Shape s) -> { if( s instanceof Button) { ((Button)s).setLabelZOffset(zEpsilon); } return false; } );
         buttonsLeft.validate(drawable.getGL().getGL2ES2());
         buttonsRight.validate(drawable.getGL().getGL2ES2());
 
