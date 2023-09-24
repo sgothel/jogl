@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 JogAmp Community. All rights reserved.
+ * Copyright 2011-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -28,23 +28,13 @@
 package jogamp.graph.font;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLConnection;
 
 import com.jogamp.common.net.Uri;
-import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.IntObjectHashMap;
-import com.jogamp.common.util.JarUtil;
-import com.jogamp.common.util.SecurityUtil;
-import com.jogamp.common.util.cache.TempJarCache;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontSet;
-import com.jogamp.graph.font.FontFactory;
 
-import java.security.PrivilegedAction;
-
-public class UbuntuFontLoader implements FontSet {
+public class UbuntuFontLoader extends FontLoaderImpl implements FontSet {
 
     // FIXME: Add cache size to limit memory usage
     private static final IntObjectHashMap fontMap = new IntObjectHashMap();
@@ -75,17 +65,13 @@ public class UbuntuFontLoader implements FontSet {
     private UbuntuFontLoader() {
     }
 
-    static boolean is(final int bits, final int bit) {
-        return 0 != ( bits & bit ) ;
-    }
-
     @Override
     public Font getDefault() throws IOException {
         return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular
     }
 
     @Override
-    public Font get(final int family, final int style) throws IOException {
+    public synchronized Font get(final int family, final int style) throws IOException {
         Font font = (Font)fontMap.get( ( family << 8 ) | style );
         if (font != null) {
             return font;
@@ -95,108 +81,38 @@ public class UbuntuFontLoader implements FontSet {
             case FAMILY_MONOSPACED:
             case FAMILY_CONDENSED:
             case FAMILY_REGULAR:
-                if( is(style, STYLE_BOLD) ) {
-                    if( is(style, STYLE_ITALIC) ) {
-                        font = abspath(availableFontFileNames[3], family, style);
+                if( isOneSet(style, STYLE_BOLD) ) {
+                    if( isOneSet(style, STYLE_ITALIC) ) {
+                        font = readFont(availableFontFileNames[3], jarName, absFontPath);
                     } else {
-                        font = abspath(availableFontFileNames[2], family, style);
+                        font = readFont(availableFontFileNames[2], jarName, absFontPath);
                     }
-                } else if( is(style, STYLE_ITALIC) ) {
-                    font = abspath(availableFontFileNames[1], family, style);
+                } else if( isOneSet(style, STYLE_ITALIC) ) {
+                    font = readFont(availableFontFileNames[1], jarName, absFontPath);
                 } else {
-                    font = abspath(availableFontFileNames[0], family, style);
+                    font = readFont(availableFontFileNames[0], jarName, absFontPath);
                 }
                 break;
 
             case FAMILY_LIGHT:
-                if( is(style, STYLE_ITALIC) ) {
-                    font = abspath(availableFontFileNames[5], family, style);
+                if( isOneSet(style, STYLE_ITALIC) ) {
+                    font = readFont(availableFontFileNames[5], jarName, absFontPath);
                 } else {
-                    font = abspath(availableFontFileNames[4], family, style);
+                    font = readFont(availableFontFileNames[4], jarName, absFontPath);
                 }
                 break;
 
             case FAMILY_MEDIUM:
-                if( is(style, STYLE_ITALIC) ) {
-                    font = abspath(availableFontFileNames[6], family, style);
+                if( isOneSet(style, STYLE_ITALIC) ) {
+                    font = readFont(availableFontFileNames[6], jarName, absFontPath);
                 } else {
-                    font = abspath(availableFontFileNames[7], family, style);
+                    font = readFont(availableFontFileNames[7], jarName, absFontPath);
                 }
                 break;
         }
-
+        if( null != font ) {
+            fontMap.put( ( family << 8 ) | style, font );
+        }
         return font;
-    }
-
-    private static boolean attemptedJARLoading = false;
-    private static boolean useTempJARCache = false;
-
-    private synchronized Font abspath(final String fname, final int family, final int style) throws IOException {
-        if( !attemptedJARLoading ) {
-            attemptedJARLoading = true;
-            Platform.initSingleton();
-            if( TempJarCache.isInitialized(false) ) {
-                try {
-                    final Uri uri = JarUtil.getRelativeOf(UbuntuFontLoader.class, null, jarName);
-                    final Exception e0 = SecurityUtil.doPrivileged(new PrivilegedAction<Exception>() {
-                        @Override
-                        public Exception run() {
-                            try {
-                                TempJarCache.addResources(UbuntuFontLoader.class, uri);
-                                useTempJARCache = true;
-                                return null;
-                            } catch (final Exception e) {
-                                return e;
-                            }
-                        } } );
-                    if( null != e0 ) {
-                        throw e0;
-                    }
-                } catch(final Exception e1) {
-                    System.err.println("Caught "+e1.getMessage());
-                    e1.printStackTrace();
-                }
-            }
-        }
-        try {
-            final Font f = abspathImpl(absFontPath+fname, family, style);
-            if( null != f ) {
-                return f;
-            }
-            throw new IOException(String.format("Problem loading font %s, stream %s%s", fname, absFontPath, fname));
-        } catch(final Exception e) {
-            throw new IOException(String.format("Problem loading font %s, stream %s%s", fname, absFontPath, fname), e);
-        }
-    }
-    private Font abspathImpl(final String fname, final int family, final int style) throws IOException {
-        final InputStream stream;
-        if( useTempJARCache ) {
-            final Exception[] privErr = { null };
-            stream = SecurityUtil.doPrivileged(new PrivilegedAction<InputStream>() {
-                @Override
-                public InputStream run() {
-                    try {
-                        final Uri uri = TempJarCache.getResourceUri(fname);
-                        return null != uri ? uri.toURL().openConnection().getInputStream() : null;
-                    } catch (final Exception e) {
-                        privErr[0] = e;
-                        return null;
-                    }
-                } } );
-            if( null != privErr[0] ) {
-                throw new IOException(privErr[0]);
-            }
-        } else {
-            final URLConnection urlConn = IOUtil.getResource(fname, getClass().getClassLoader(), null);
-            stream = null != urlConn ? urlConn.getInputStream() : null;
-        }
-        if(null != stream) {
-            final Font f= FontFactory.get ( stream, true ) ;
-            if(null != f) {
-                fontMap.put( ( family << 8 ) | style, f );
-                return f;
-            }
-        }
-        return null;
     }
 }
