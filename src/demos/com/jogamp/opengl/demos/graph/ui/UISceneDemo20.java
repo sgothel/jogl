@@ -701,8 +701,7 @@ public class UISceneDemo20 implements GLEventListener {
             mPlayer.setAudioChannelLimit(1); // enforce mono to enjoy spatial 3D position effects
             button = new MediaButton(renderModes, buttonRWidth, buttonRHeight, mPlayer);
             button.setName(BUTTON_MOVIE);
-            ((MediaButton)button).setVerbose(false);
-            ((MediaButton)button).addDefaultEventListener();
+            ((MediaButton)button).setVerbose(false).addDefaultEventListener().setFixedARatioResize(true);
             button.setToggleable(true);
             button.setToggle(true); // toggle == false -> mute audio
             button.setToggleOffColorMod(0f, 1f, 0f, 1.0f);
@@ -752,7 +751,6 @@ public class UISceneDemo20 implements GLEventListener {
                     return false;
                 }
             });
-
             buttonsRight.addShape(button);
             mPlayer.playStream(filmURL, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
         }

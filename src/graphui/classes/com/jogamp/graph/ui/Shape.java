@@ -155,6 +155,7 @@ public abstract class Shape {
     private boolean toggleable = false;
     private boolean draggable = true;
     private boolean resizable = true;
+    private boolean resizeFixedARatio = false;
     private boolean interactive = true;
     private boolean active = false;
     private boolean enabled = true;
@@ -1250,6 +1251,18 @@ public abstract class Shape {
      */
     public boolean isResizable() { return resizable; }
 
+    /**
+     * Returns if aspect-ratio shall be kept at resize, if {@link #isResizable()}.
+     * @see #setFixedARatioResize(boolean)
+     */
+    public boolean isFixedARatioResize() { return resizeFixedARatio; }
+
+    /**
+     * Sets whether aspect-ratio shall be kept at resize, if {@link #isResizable()}.
+     * @see #isResizable()
+     * @see #isFixedARatioResize()
+     */
+    public Shape setFixedARatioResize(final boolean v) { resizeFixedARatio = v; return this; }
 
     /**
      * Set whether this shape is draggable and resizable.
@@ -1445,24 +1458,30 @@ public abstract class Shape {
                     if( 0 != inResize ) {
                         final float bw = box.getWidth();
                         final float bh = box.getHeight();
-                        final float sx;
+                        final float sdy2, sx, sy;
                         if( 1 == inResize ) {
                             sx = scale.x() + sdx/bw; // bottom-right
                         } else {
                             sx = scale.x() - sdx/bw; // bottom-left
                         }
-                        final float sy = scale.y() - sdy/bh;
+                        if( resizeFixedARatio ) {
+                            sy = sx;
+                            sdy2  = bh * ( scale.y() - sy );
+                        } else {
+                            sdy2 = sdy;
+                            sy = scale.y() - sdy2/bh;
+                        }
                         if( resize_sxy_min <= sx && resize_sxy_min <= sy ) { // avoid scale flip
                             if( DEBUG ) {
-                                System.err.printf("DragZoom: resize %d, win[%4d, %4d], , flip[x %b, y %b], obj[%s], dxy +[%s], sdxy +[%.4f, %.4f], scale [%s] -> [%.4f, %.4f]%n",
+                                System.err.printf("DragZoom: resize %d, win[%4d, %4d], , flip[x %b, y %b], obj[%s], dxy +[%s], sdxy +[%.4f, %.4f], sdxy2 +[%.4f, %.4f], scale [%s] -> [%.4f, %.4f]%n",
                                         inResize, glWinX, glWinY, x_flip, y_flip, objPos,
-                                        shapeEvent.objDrag, sdx, sdy,
+                                        shapeEvent.objDrag, sdx, sdy, sdx, sdy2,
                                         scale, sx, sy);
                             }
                             if( 1 == inResize ) {
-                                move(   0, sdy, 0f); // bottom-right, sticky left- and top-edge
+                                move(   0, sdy2, 0f); // bottom-right, sticky left- and top-edge
                             } else {
-                                move( sdx, sdy, 0f); // bottom-left, sticky right- and top-edge
+                                move( sdx, sdy2, 0f); // bottom-left, sticky right- and top-edge
                             }
                             setScale(sx, sy, scale.z());
                         }
