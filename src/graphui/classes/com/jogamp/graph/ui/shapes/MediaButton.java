@@ -74,13 +74,14 @@ public class MediaButton extends TexSeqButton {
         setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);
     }
 
-    public void setVerbose(final boolean v) { verbose = v; }
+    public MediaButton setVerbose(final boolean v) { verbose = v; return this; }
 
     /**
      * Add the default {@link GLMediaEventListener} to {@link #getGLMediaPlayer() this class's GLMediaPlayer}.
      */
-    public void addDefaultEventListener() {
+    public MediaButton addDefaultEventListener() {
         getGLMediaPlayer().addEventListener(defGLMediaEventListener);
+        return this;
     }
 
     public final GLMediaPlayer getGLMediaPlayer() { return (GLMediaPlayer)texSeq; }
