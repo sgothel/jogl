@@ -916,11 +916,14 @@ public final class Scene implements Container, GLEventListener {
     }
 
     public void releaseActiveShape() {
-        if( null != activeShape && !FloatUtil.isZero(lastActiveZOffset) ) {
-            activeShape.move(0, 0, -lastActiveZOffset);
-            lastActiveZOffset = 0f;
+        if( null != activeShape ) {
+            if( !FloatUtil.isZero(lastActiveZOffset) ) {
+                activeShape.move(0, 0, -lastActiveZOffset);
+                lastActiveZOffset = 0f;
+            }
+            activeShape.setActive(false);
+            activeShape = null;
         }
-        activeShape = null;
     }
     private void setActiveShape(final Shape shape) {
         if( activeShape != shape ) {
@@ -929,6 +932,9 @@ public final class Scene implements Container, GLEventListener {
             if( null != shape && !FloatUtil.isZero(lastActiveZOffset) ) {
                 shape.move(0, 0, +lastActiveZOffset);
             }
+        }
+        if( null != shape ) {
+            shape.setActive(true);
         }
         activeShape = shape;
     }

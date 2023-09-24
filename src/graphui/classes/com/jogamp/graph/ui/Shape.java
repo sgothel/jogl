@@ -156,6 +156,7 @@ public abstract class Shape {
     private boolean draggable = true;
     private boolean resizable = true;
     private boolean interactive = true;
+    private boolean active = false;
     private boolean enabled = true;
     private float borderThickness = 0f;
     private Padding padding = null;
@@ -165,6 +166,7 @@ public abstract class Shape {
     private ListenerBool onInitListener = null;
     private Listener onMoveListener = null;
     private Listener onToggleListener = null;
+    private Listener onActivationListener = null;
     private Listener onClickedListener = null;
 
     /**
@@ -279,8 +281,34 @@ public abstract class Shape {
      * @param l callback, which shall return true signaling user initialization is done
      */
     public final void onInit(final ListenerBool l) { onInitListener = l; }
+    /**
+     * Set user callback to be notified when shape is {@link #move(Vec3f)}'ed.
+     */
     public final void onMove(final Listener l) { onMoveListener = l; }
+    /**
+     * Set user callback to be notified when shape {@link #toggle()}'ed.
+     * <p>
+     * This is usually the case when clicked, see {@link #onClicked(Listener)}.
+     * </p>
+     * <p>
+     * Use {@link #isToggleOn()} to retrieve the state.
+     * </p>
+     */
     public final void onToggle(final Listener l) { onToggleListener = l; }
+    /**
+     * Set user callback to be notified when shape is activated (pointer-over and/or click) or de-activated (pointer left).
+     * <p>
+     * Use {@link #isActive()} to retrieve the state.
+     * </p>
+     */
+    public final void onActivation(final Listener l) { onActivationListener = l; }
+    /**
+     * Set user callback to be notified when shape is clicked.
+     * <p>
+     * Usually shape is {@link #toggle()}'ed when clicked, see {@link #onToggle(Listener)}.
+     * However, in case shape is not {@link #isToggleable()} this is the last resort.
+     * </p>
+     */
     public final void onClicked(final Listener l) { onClickedListener = l; }
 
     /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. */
@@ -1101,10 +1129,11 @@ public abstract class Shape {
         } else {
             rotateS = "";
         }
+        final String activeS = active ? ", active" : "";
         final String ps = hasPadding() ? padding.toString()+", " : "";
         final String bs = hasBorder() ? "border[l "+getBorderThickness()+", c "+getBorderColor()+"], " : "";
-        return getDirtyString()+", id "+name+", enabled "+enabled+", toggle[able "+toggleable+", state "+toggle+
-               "], able[iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
+        return getDirtyString()+", id "+name+", enabled "+enabled+activeS+", toggle "+toggle+
+               ", able[toggle "+toggleable+", iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
                "], pos["+position+"], "+pivotS+scaleS+rotateS+
                 ps+bs+"box"+box;
     }
@@ -1155,7 +1184,18 @@ public abstract class Shape {
         }
         return this;
     }
+    /** Returns true this shape's toggle state. */
     public boolean isToggleOn() { return toggle; }
+
+    protected void setActive(final boolean v) {
+        active = v;
+        if( null != onActivationListener ) {
+            onActivationListener.run(this);
+        }
+    }
+
+    /** Returns true of this shape is active */
+    public boolean isActive() { return active; }
 
     /**
      * Set whether this shape is interactive,
