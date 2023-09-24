@@ -200,6 +200,7 @@ public class UISceneDemo20 implements GLEventListener {
 
     private final Font font;
     private final Font fontButtons;
+    private final Font fontSymbols;
     private final Font fontFPS;
     private final Uri filmURL;
 
@@ -295,7 +296,7 @@ public class UISceneDemo20 implements GLEventListener {
             System.err.println("Font "+font.getFullFamilyName());
 
             fontButtons = FontFactory.get(FontFactory.UBUNTU).getDefault();
-
+            fontSymbols = FontFactory.get(FontFactory.SYMBOLS).getDefault();
             fontFPS = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf",
                                       FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
             System.err.println("Font FPS "+fontFPS.getFullFamilyName());
@@ -477,7 +478,7 @@ public class UISceneDemo20 implements GLEventListener {
         System.err.println("Button Size: "+buttonLWidth+" x "+buttonLHeight);
 
         BaseButton button;
-        button = new Button(renderModes, fontButtons, " Next Text ", buttonLWidth, buttonLHeight);
+        button = new Button(renderModes, fontSymbols, " "+fontSymbols.getUTF16String("fast_forward")+" ", buttonLWidth, buttonLHeight); // next (ffwd)
         button.setName(BUTTON_NEXTTEXT);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
@@ -594,7 +595,7 @@ public class UISceneDemo20 implements GLEventListener {
             buttonsLeft.addShape(button);
         }
 
-        button = new Button(renderModes, fontButtons, "Quit", buttonLWidth, buttonLHeight);
+        button = new Button(renderModes, fontSymbols, " "+fontSymbols.getUTF16String("power_settings_new")+" ", buttonLWidth, buttonLHeight); // exit (power_settings_new)
         button.setName(BUTTON_QUIT);
         button.setColor(0.7f, 0.3f, 0.3f, 1.0f);
         ((Button)button).setLabelColor(1.2f, 1.2f, 1.2f);
@@ -609,7 +610,7 @@ public class UISceneDemo20 implements GLEventListener {
 
         // second column to the left
         {
-            button = new Button(renderModes, fontButtons, "Y Flip", buttonLWidth, buttonLHeight);
+            button = new Button(renderModes, fontSymbols, " "+fontSymbols.getUTF16String("flip")+" ", buttonLWidth, buttonLHeight); // Y Flip (flip)
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -665,7 +666,7 @@ public class UISceneDemo20 implements GLEventListener {
                 } } );
             buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, " Reset ", buttonLWidth, buttonLHeight);
+            button = new Button(renderModes, fontSymbols, " "+fontSymbols.getUTF16String("undo")+" ", buttonLWidth, buttonLHeight); // reset (undo)
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -674,7 +675,7 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
             buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, " Snapshot ", buttonLWidth, buttonLHeight);
+            button = new Button(renderModes, fontSymbols, " "+fontSymbols.getUTF16String("camera")+" ", buttonLWidth, buttonLHeight); // snapshot (camera)
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
