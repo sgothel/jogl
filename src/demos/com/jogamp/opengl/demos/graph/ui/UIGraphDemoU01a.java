@@ -353,7 +353,7 @@ public class UIGraphDemoU01a {
                 final Font.GlyphVisitor visitor = new Font.GlyphVisitor() {
                     int idx = 0;
                     @Override
-                    public void visit(final char symbol, final Glyph glyph, final AffineTransform t) {
+                    public void visit(final Glyph glyph, final AffineTransform t) {
                         System.err.println("idx["+idx+"]: "+glyph);
                         ++idx;
                     }
@@ -361,11 +361,11 @@ public class UIGraphDemoU01a {
                 final AABBox txt_box_r2 = font.processString(visitor, null, text, new AffineTransform(), new AffineTransform());
                 System.err.println("XXX: txt_box_r2 "+txt_box_r2);
                 {
-                    final Glyph g = font.getGlyph( font.getGlyphID(' '));
+                    final Glyph g = font.getGlyph( ' ' );
                     System.err.println("XXX: space "+g);
                 }
                 {
-                    final Glyph g = font.getGlyph( font.getGlyphID('\t'));
+                    final Glyph g = font.getGlyph( '\t' );
                     System.err.println("XXX: tab "+g);
                 }
             }

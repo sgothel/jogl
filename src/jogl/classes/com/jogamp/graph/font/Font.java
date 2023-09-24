@@ -240,11 +240,11 @@ public interface Font {
          */
         AABBox getBounds();
 
-        /** Return advance in font units, sourced from `hmtx` table. */
-        int getAdvanceFU();
+        /** Returns advance in font units, sourced from `hmtx` table. */
+        int getAdvanceWidthFU();
 
-        /** Return advance in font em-size [0..1], sourced from `hmtx` table. */
-        float getAdvance();
+        /** Returns advance in font em-size [0..1], sourced from `hmtx` table. */
+        float getAdvanceWidth();
 
         /** Return leftSideBearings in font units, sourced from `hmtx` table. */
         int getLeftSideBearingsFU();
@@ -258,7 +258,7 @@ public interface Font {
         /** True if kerning values are perpendicular to text flow, otherwise along with flow */
         boolean isKerningCrossstream();
 
-        /** Return the number of kerning values stored for this glyph, associated to a right hand glyph. */
+        /** Returns the number of kerning values stored for this glyph, associated to a right hand glyph. */
         int getKerningPairCount();
 
         /**
@@ -295,25 +295,47 @@ public interface Font {
     public static interface GlyphVisitor {
         /**
          * Visiting the given {@link Font.Glyph} having an {@link OutlineShape} with it's corresponding {@link AffineTransform}.
-         * @param symbol the character symbol matching the given glyph
          * @param glyph {@link Font.Glyph} which contains an {@link OutlineShape} via {@link Font.Glyph#getShape()}.
          * @param t may be used immediately as is, otherwise a copy shall be made if stored.
          */
-        public void visit(final char symbol, final Glyph glyph, final AffineTransform t);
+        public void visit(final Glyph glyph, final AffineTransform t);
     }
 
     /**
-     * Constrained {@link Font.Glyph} visitor w/o {@link AffineTransform}.
+     * General purpose {@link Font.Glyph} visitor w/o {@link AffineTransform}.
      */
     public static interface GlyphVisitor2 {
         /**
-         * Visiting the given {@link Font.Glyph} having an {@link OutlineShape}.
-         * @param symbol the character symbol matching the given glyph
-         * @param glyph {@link Font.Glyph} which contains an {@link OutlineShape} via {@link Font.Glyph#getShape()}.
+         * Visiting the given {@link Font.Glyph}
+         * @param glyph {@link Font.Glyph} which may contain an {@link OutlineShape} via {@link Font.Glyph#getShape()}.
          */
-        public void visit(final char symbol, final Glyph glyph);
+        public void visit(final Glyph glyph);
     }
 
+    /**
+     * General purpose (unicode) `codepoint` symbol and {@link Font.Glyph} ID visitor without enforcing {@link Glyph} caching.
+     */
+    public static interface CodepointIDVisitor {
+        /**
+         * Visiting the given (unicode) `codepoint` symbol and {@link Font.Glyph} ID.
+         * @param codepoint (unicode) `codepoint` symbol
+         * @param glyph_id {@link Font.Glyph} ID
+         */
+        public void visit(final char codepoint, final int glyph_id);
+    }
+
+    /**
+     * Returns UTF-16 representation of the specified (unicode) `codepoint` symbol like {@link Character#toChars(int)} or {@link Character#toString()}.
+     * <p>
+     * The returned string can be inserted in any text.
+     * </p>
+     * @param codepoint the (unicode) `codepoint` symbol
+     * @return the Java {@link String} conforming result
+     */
+    public static String getUTF16String(final char codepoint) {
+        return Character.toString(codepoint);
+        // return new String(Character.toChars(codepoint));
+    }
 
     String getName(final int nameIndex);
 
@@ -343,32 +365,64 @@ public interface Font {
     boolean equals(final Object o);
 
     /**
-     * Return advance-width of given glyphID in font-units, sourced from `hmtx` table.
+     * Returns advance-width of given glyphID in font-units, sourced from `hmtx` table - same as {@link Glyph#getAdvanceWidthFU()}.
      * @param glyphID
      */
     int getAdvanceWidthFU(final int glyphID);
 
     /**
-     * Return advance-width of given glyphID in font em-size [0..1], sourced from `hmtx` table.
+     * Returns advance-width of given glyphID in font em-size [0..1], sourced from `hmtx` table  - same as {@link Glyph#getAdvanceWidth()}.
      * @param glyphID
      */
     float getAdvanceWidth(final int glyphID);
 
     Metrics getMetrics();
 
-    /** Return the {@link Glyph} ID mapped to given `symbol`, usually UTF16 unicode. Returned ID can be used to retrieve the {@link Glyph} via {@link #getGlyph(int)}. */
-    int getGlyphID(final char symbol);
-
-    /** Return number of {@link Glyph} IDs available, i.e. retrievable via {@link #getGlyph(int)} [0..count). */
+    /** Returns number of {@link Glyph} IDs available, i.e. retrievable via {@link #getGlyph(int)} [0..count). */
     int getGlyphCount();
 
-    /** Return the {@link Glyph} using given ID, see {@link #getGlyphCount()}. */
-    Glyph getGlyph(final int glyph_id);
-
-    int getNumGlyphs();
+    /** Returns the {@link Glyph} (unicode) `codepoint` symbol mapped to given {@link Glyph} `name`. */
+    char getGlyphCodepoint(final String name);
 
     /**
-     * Return line height, baseline-to-baseline in font-units, composed from `hhea' table entries.
+     * Returns UTF-16 representation of the specified {@link Glyph} `name` using {@link #getGlyphCodepoint(String)} and {@link #getUTF16String(char)}.
+     * <p>
+     * The returned string can be inserted in any text.
+     * </p>
+     * @param codepoint the (unicode) `codepoint` symbol
+     * @return the Java {@link String} conforming result
+     */
+    String getUTF16String(final String name);
+
+    /** Returns the {@link Glyph} ID mapped to given UTF16 (unicode) `codepoint` symbol. */
+    int getGlyphID(final char codepoint);
+
+    /** Returns the {@link Glyph} mapped to given `name`. */
+    Glyph getGlyph(final String name);
+
+    /** Returns the {@link Glyph} mapped to given (unicode) `codepoint` symbol. */
+    Glyph getGlyph(final char codepoint);
+
+    /** Returns the {@link Glyph} using given ID. */
+    Glyph getGlyph(final int glyph_id);
+
+    /**
+     * Visit all (unicode) `codepoint` symbol and {@link Glyph} ID tuple of this font.
+     * @param visitor handling each (unicode) `codepoint` symbol and {@link Glyph} ID tuple.
+     */
+    void forAllCodepoints(final Font.CodepointIDVisitor visitor);
+
+    /**
+     * Visit all {@link Glyph}s of this font.
+     * <p>
+     * Warning: All {@link Glyph}s will be cached.
+     * </p>
+     * @param visitor handling each {@link Glyph}
+     */
+    void forAllGlyphs(final Font.GlyphVisitor2 visitor);
+
+    /**
+     * Returns line height, baseline-to-baseline in font-units, composed from `hhea' table entries.
      * <pre>
      *   return ascent - descent + linegap;
      * </pre>

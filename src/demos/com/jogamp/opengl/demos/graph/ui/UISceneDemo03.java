@@ -175,9 +175,9 @@ public class UISceneDemo03 {
         //
         final Font font = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerif.ttf",FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
         // final Font font = FontFactory.get(IOUtil.getResource("jogamp/graph/font/fonts/ubuntu/Ubuntu-R.ttf",FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        System.err.println("Font: " + font.getFullFamilyName());
+        System.err.println("Font FreeSerif: " + font.getFullFamilyName());
         final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        final Font fontSymbols = FontFactory.get(FontFactory.SYMBOLS).getDefault();
+        System.err.println("Font Status: " + fontStatus.getFullFamilyName());
 
         final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f }, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -608,7 +608,7 @@ public class UISceneDemo03 {
 
         buttonsRight.setLayout(new GridLayout(buttonWidth, buttonHeight, Alignment.Fill, new Gap(buttonHeight*0.50f, buttonWidth*0.10f), 7));
         {
-            final Button button = new Button(options.renderModes, fontSymbols, " \uE034 ", buttonWidth, buttonHeight); // pause
+            final Button button = new Button(options.renderModes, fontSymbols, " "+fontSymbols.getUTF16String("pause")+" ", buttonWidth, buttonHeight); // pause
             button.setToggleable(true);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -626,7 +626,7 @@ public class UISceneDemo03 {
             buttonsRight.addShape(button);
         }
         {
-            final Button button = new Button(options.renderModes, fontSymbols, " \uE01F ", buttonWidth, buttonHeight); // next (ffwd)
+            final Button button = new Button(options.renderModes, fontSymbols, " "+fontSymbols.getUTF16String("fast_forward")+" ", buttonWidth, buttonHeight); // next (ffwd)
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -638,7 +638,7 @@ public class UISceneDemo03 {
             buttonsRight.addShape(button);
         }
         {
-            final Button button = new Button(options.renderModes, fontSymbols, " \uE042 ", buttonWidth, buttonHeight); // rotate
+            final Button button = new Button(options.renderModes, fontSymbols, " "+fontSymbols.getUTF16String("replay")+" ", buttonWidth, buttonHeight); // rotate (replay)
             button.setToggleable(true);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
@@ -687,7 +687,7 @@ public class UISceneDemo03 {
             buttonsRight.addShape(button);
         }
         {
-            final Button button = new Button(options.renderModes, fontSymbols, " \uE3AF ", buttonWidth, buttonHeight); // snapshot (camera)
+            final Button button = new Button(options.renderModes, fontSymbols, " "+fontSymbols.getUTF16String("camera")+" ", buttonWidth, buttonHeight); // snapshot (camera)
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -697,7 +697,7 @@ public class UISceneDemo03 {
             buttonsRight.addShape(button);
         }
         {
-            final Button button = new Button(options.renderModes, fontSymbols, " \uE8AC ", buttonWidth, buttonHeight); // exit (power off)
+            final Button button = new Button(options.renderModes, fontSymbols, " "+fontSymbols.getUTF16String("power_settings_new")+" ", buttonWidth, buttonHeight); // exit (power_settings_new)
             button.setColor(0.7f, 0.3f, 0.3f, 1.0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override

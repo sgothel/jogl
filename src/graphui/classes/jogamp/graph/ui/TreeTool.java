@@ -94,10 +94,10 @@ public class TreeTool {
     }
 
     /**
-     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix)} for each, stop if it returns true.
+     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
      * @param pmv
      * @param v
-     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix)} returned true, otherwise false
+     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
      */
     public static boolean forAll(final List<Shape> shapes, final PMVMatrix4f pmv, final Visitor2 v) {
         for(int i=0; i<shapes.size(); ++i) {
@@ -118,13 +118,13 @@ public class TreeTool {
     }
 
     /**
-     * Traverses through the graph and apply {@link Visitor#visit(Shape, PMVMatrix)} for each, stop if it returns true.
+     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
      *
      * Each {@link Container} level is sorted using {@code sortComp}
      * @param sortComp
      * @param pmv
      * @param v
-     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix)} returned true, otherwise false
+     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public static boolean forSortedAll(final Comparator<Shape> sortComp, final List<Shape> shapes, final PMVMatrix4f pmv, final Visitor2 v) {

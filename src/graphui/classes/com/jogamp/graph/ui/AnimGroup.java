@@ -405,9 +405,9 @@ public class AnimGroup extends Group {
     {
         final Font.GlyphVisitor fgv = new Font.GlyphVisitor() {
             @Override
-            public void visit(final char symbol, final Glyph glyph, final AffineTransform t) {
+            public void visit(final Glyph glyph, final AffineTransform t) {
                 if( !glyph.isNonContour() ) {
-                    final GlyphShape gs = new GlyphShape(renderModes, symbol, glyph, t.getTranslateX(), t.getTranslateY());
+                    final GlyphShape gs = new GlyphShape(renderModes, glyph, t.getTranslateX(), t.getTranslateY());
                     gs.setScale(fontScale, fontScale, 1f);
                     gs.moveTo(gs.getOrigPos().x()*fontScale, gs.getOrigPos().y()*fontScale, gs.getOrigPos().z());
                     res.add( new ShapeData( gs ) );

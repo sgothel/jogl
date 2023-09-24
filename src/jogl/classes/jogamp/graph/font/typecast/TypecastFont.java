@@ -27,6 +27,9 @@
  */
 package jogamp.graph.font.typecast;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
@@ -52,14 +55,24 @@ import jogamp.opengl.Debug;
 
 class TypecastFont implements Font {
     private static final boolean DEBUG = Debug.debug("graph.font.Font");
+    private static final char UNDEF_SYMBOL = 0xffff;
+    static class SymAndID {
+        public final char codepoint;
+        public final int id;
+        public final String name;
+        public TypecastGlyph glyph;
+        SymAndID(final char codepoint, final int id, final String name) { this.codepoint = codepoint; this.id = id; this.name = name; this.glyph = null; }
+    }
+    private static final SymAndID UNDEF_VALUE = new SymAndID(UNDEF_SYMBOL, Glyph.ID_UNKNOWN, TypecastGlyph.dot_undef_NAME);
 
     // private final OTFontCollection fontset;
     /* pp */ final TTFont font;
     private final CmapFormat cmapFormat;
     private final int cmapentries;
     private final IntObjectHashMap idToGlyph;
+    private final IntObjectHashMap cpToGlyph;
+    private final Map<String, SymAndID> nameToGlyph;
     private final TypecastHMetrics metrics;
-    // FIXME: Add cache size to limit memory usage ??
 
     private static final boolean forceAscii = false; // FIXME ??? (ASCII/Macintosh cmap format)
 
@@ -92,27 +105,58 @@ class TypecastFont implements Font {
             throw new RuntimeException("Cannot find a suitable cmap table");
         }
         cmapFormat = cmapFmt;
-        if(DEBUG) {
-            System.err.println("Selected CmapFormat: platform " + platform + ", encoding "+encoding + ": "+cmapFormat);
-        }
-
         {
             int _cmapentries = 0;
-            for (int i = 0; i < cmapFormat.getRangeCount(); ++i) {
+            for(int i=0; i<cmapFormat.getRangeCount(); ++i) {
                 final CmapFormat.Range range = cmapFormat.getRange(i);
                 _cmapentries += range.getEndCode() - range.getStartCode() + 1; // end included
             }
             cmapentries = _cmapentries;
+            idToGlyph = new IntObjectHashMap(cmapentries + cmapentries/4);
+            idToGlyph.setKeyNotFoundValue(UNDEF_VALUE);
+            cpToGlyph = new IntObjectHashMap(cmapentries + cmapentries/4);
+            cpToGlyph.setKeyNotFoundValue(UNDEF_VALUE);
+            nameToGlyph = new HashMap<String, SymAndID>(cmapentries + cmapentries/4);
+            final PostTable post = font.getPostTable();
+            for(int i=0; i<cmapFormat.getRangeCount(); ++i) {
+                final CmapFormat.Range range = cmapFormat.getRange(i);
+                for(int codepoint = range.getStartCode(); codepoint <= range.getEndCode(); ++codepoint) {
+                    final int id = cmapFormat.mapCharCode(codepoint);
+                    if( 0 < id ) {
+                        boolean mapped = false;
+                        if( null != post ) {
+                            final String name = post.getGlyphName(id);
+                            if( null != name && name.length() > 0 ) {
+                                final SymAndID value = new SymAndID((char)codepoint, id, name);
+                                nameToGlyph.put(name, value);
+                                idToGlyph.put(id, value);
+                                cpToGlyph.put(codepoint, value);
+                                mapped = true;
+                            }
+                        }
+                        if( !mapped ) {
+                            final SymAndID value = new SymAndID((char)codepoint, id, "");
+                            idToGlyph.put(id, value);
+                            cpToGlyph.put(codepoint, value);
+                        }
+                    }
+                }
+            }
+            if( DEBUG ) {
+                System.err.println("Selected CmapFormat: platform " + platform + ", encoding "+encoding + ": "+cmapFormat.getClass().getSimpleName());
+                System.err.println("Map Result");
+                System.err.println("Map: idToGlyph: "+idToGlyph.size());
+                System.err.println("Map: nameToGlyph: "+nameToGlyph.size());
+                System.err.println("CMap entries: "+cmapentries);
+                System.err.println("Font glyph-count "+this.getGlyphCount()+", num-glyphs "+font.getNumGlyphs());
+            }
         }
-        idToGlyph = new IntObjectHashMap(cmapentries + cmapentries/4);
         metrics = new TypecastHMetrics(this);
+        getGlyphImpl(UNDEF_VALUE);
 
         if(DEBUG) {
             final int max_id = 36; // "A"
             System.err.println("font direction hint: "+font.getHeadTable().getFontDirectionHint());
-            System.err.println("num glyphs: "+font.getNumGlyphs());
-            System.err.println("num cmap entries: "+cmapentries);
-            System.err.println("num cmap ranges: "+cmapFormat.getRangeCount());
 
             for (int i = 0; i < cmapFormat.getRangeCount(); ++i) {
                 final CmapFormat.Range range = cmapFormat.getRange(i);
@@ -177,12 +221,31 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public int getGlyphID(final char symbol) {
-        final int glyphID = cmapFormat.mapCharCode(symbol);
-        if( 0 < glyphID ) {
-            return glyphID;
+    public int getGlyphCount() { return font.getGlyphCount(); }
+
+    @Override
+    public char getGlyphCodepoint(final String name) {
+        final SymAndID value = nameToGlyph.get(name);
+        if( null != value ) {
+            return value.codepoint;
+        } else {
+            return UNDEF_VALUE.codepoint;
         }
-        return Glyph.ID_UNKNOWN;
+    }
+
+    @Override
+    public String getUTF16String(final String name) {
+        return Font.getUTF16String( getGlyphCodepoint( name ) );
+    }
+
+    @Override
+    public int getGlyphID(final char codepoint) {
+        final SymAndID value = (SymAndID) cpToGlyph.get(codepoint);
+        if( null != value ) {
+            return value.id;
+        } else {
+            return UNDEF_VALUE.id;
+        }
     }
 
     /** pp **/ PostTable getPostTable() {
@@ -190,73 +253,112 @@ class TypecastFont implements Font {
     }
 
     @Override
-    public int getGlyphCount() { return font.getGlyphCount(); }
+    public synchronized Glyph getGlyph(final String name) {
+        final SymAndID value = nameToGlyph.get(name);
+        if( null != value ) {
+            return getGlyphImpl(value);
+        } else {
+            return UNDEF_VALUE.glyph;
+        }
+    }
 
     @Override
-    public Glyph getGlyph(final int glyph_id) {
-        TypecastGlyph result = (TypecastGlyph) idToGlyph.get(glyph_id);
-        if (null == result) {
-            final jogamp.graph.font.typecast.ot.Glyph glyph = font.getGlyph(glyph_id);
-            final String glyph_name;
-            {
-                final PostTable post = font.getPostTable();
-                glyph_name = null != post ? post.getGlyphName(glyph_id) : "";
+    public synchronized Glyph getGlyph(final char codepoint) {
+        final SymAndID value = (SymAndID) cpToGlyph.get(codepoint);
+        if( null != value ) {
+            return getGlyphImpl(value);
+        } else {
+            return UNDEF_VALUE.glyph;
+        }
+    }
+
+    @Override
+    public synchronized Glyph getGlyph(final int glyph_id) {
+        final SymAndID value = (SymAndID) idToGlyph.get(glyph_id);
+        if( null != value ) {
+            return getGlyphImpl(value);
+        } else {
+            return UNDEF_VALUE.glyph;
+        }
+    }
+
+    @Override
+    public void forAllCodepoints(final Font.CodepointIDVisitor visitor) {
+        for(int i=0; i<cmapFormat.getRangeCount(); ++i) {
+            final CmapFormat.Range range = cmapFormat.getRange(i);
+            for(int codepoint = range.getStartCode(); codepoint <= range.getEndCode(); ++codepoint) {
+                visitor.visit( (char)codepoint, getGlyphID((char)codepoint) );
             }
-            final boolean isUndefined = Glyph.ID_UNKNOWN == glyph_id || TypecastGlyph.isUndefName(glyph_name);
-            final int glyph_height = metrics.getAscentFU() - metrics.getDescentFU();
-            final int glyph_advance;
-            final int glyph_leftsidebearings;
-            final boolean isWhitespace;
-            final AABBox glyph_bbox;
-            final OutlineShape shape;
-            final int mode;
-            if( null != glyph ) {
-                glyph_advance = glyph.getAdvanceWidth();
-                glyph_leftsidebearings = glyph.getLeftSideBearing();
-                final AABBox sb = glyph.getBBox();
-                final OutlineShape os = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph);
-                if( 0 < os.getVertexCount() ) {
-                    // Case 1: Either valid contour glyph, undefined or a whitespace (Case 2 with zero-area shape)
-                    isWhitespace = isUndefined ? false : os.getBounds().hasZero2DArea();
-                    glyph_bbox = sb;
-                    shape = ( !isWhitespace && !isUndefined ) || Glyph.ID_UNKNOWN == glyph_id ? os : null;
-                    mode = 1;
-                } else {
-                    // Case 2: Non-contour glyph -> whitespace or undefined
-                    isWhitespace = !isUndefined;
-                    glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
-                    shape = Glyph.ID_UNKNOWN == glyph_id ? TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox) : null;
-                    mode = 2;
-                }
+        }
+    }
+    @Override
+    public void forAllGlyphs(final Font.GlyphVisitor2 visitor) {
+        for(int i=0; i<cmapFormat.getRangeCount(); ++i) {
+            final CmapFormat.Range range = cmapFormat.getRange(i);
+            for(int codepoint = range.getStartCode(); codepoint <= range.getEndCode(); ++codepoint) {
+                visitor.visit( getGlyph( (char)codepoint ) );
+            }
+        }
+    }
+
+    private Glyph getGlyphImpl(final SymAndID key) {
+        if( null != key.glyph ) {
+            return key.glyph;
+        }
+        final jogamp.graph.font.typecast.ot.Glyph glyph = font.getGlyph(key.id);
+        final boolean isUndefined = Glyph.ID_UNKNOWN == key.id || TypecastGlyph.isUndefName(key.name);
+        final int glyph_height = metrics.getAscentFU() - metrics.getDescentFU();
+        final int glyph_advance;
+        final int glyph_leftsidebearings;
+        final boolean isWhitespace;
+        final AABBox glyph_bbox;
+        final OutlineShape shape;
+        final int mode;
+        if( null != glyph ) {
+            glyph_advance = glyph.getAdvanceWidth();
+            glyph_leftsidebearings = glyph.getLeftSideBearing();
+            final AABBox sb = glyph.getBBox();
+            final OutlineShape os = TypecastRenderer.buildShape(metrics.getUnitsPerEM(), glyph);
+            if( 0 < os.getVertexCount() ) {
+                // Case 1: Either valid contour glyph, undefined or a whitespace (Case 2 with zero-area shape)
+                isWhitespace = isUndefined ? false : os.getBounds().hasZero2DArea();
+                glyph_bbox = sb;
+                shape = ( !isWhitespace && !isUndefined ) || Glyph.ID_UNKNOWN == key.id ? os : null;
+                mode = 1;
             } else {
-                // Case 3: Non-contour glyph -> whitespace or undefined
-                glyph_advance = getAdvanceWidthFU(glyph_id);
-                glyph_leftsidebearings = 0;
+                // Case 2: Non-contour glyph -> whitespace or undefined
                 isWhitespace = !isUndefined;
                 glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
-                shape = Glyph.ID_UNKNOWN == glyph_id ? TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox) : null;
-                mode = 3;
+                shape = Glyph.ID_UNKNOWN == key.id ? TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox) : null;
+                mode = 2;
             }
-            KernSubtable kernSub = null;
-            {
-                final KernTable kern = font.getKernTable();
-                if (kern != null ) {
-                    kernSub = kern.getSubtable0();
-                }
-            }
-            result = new TypecastGlyph(this, glyph_id, glyph_name, glyph_bbox, glyph_advance, glyph_leftsidebearings, kernSub, shape,
-                                       isUndefined, isWhitespace);
-            if( DEBUG || TypecastRenderer.DEBUG ) {
-                System.err.println("New glyph: " + glyph_id + "/'"+glyph_name+"', shape " + (null != shape)+", mode "+mode);
-                System.err.println("  tc_glyph "+glyph);
-                System.err.println("     glyph "+result);
-            }
-            if( null != glyph ) {
-                glyph.clearPointData();
-            }
-
-            idToGlyph.put(glyph_id, result);
+        } else {
+            // Case 3: Non-contour glyph -> whitespace or undefined
+            glyph_advance = getAdvanceWidthFU(key.id);
+            glyph_leftsidebearings = 0;
+            isWhitespace = !isUndefined;
+            glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
+            shape = Glyph.ID_UNKNOWN == key.id ? TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox) : null;
+            mode = 3;
         }
+        KernSubtable kernSub = null;
+        {
+            final KernTable kern = font.getKernTable();
+            if (kern != null ) {
+                kernSub = kern.getSubtable0();
+            }
+        }
+        final TypecastGlyph result = new TypecastGlyph(this, key.codepoint, key.id, key.name, glyph_bbox, glyph_advance, glyph_leftsidebearings, kernSub,
+                                                       shape, isUndefined, isWhitespace);
+        if( DEBUG || TypecastRenderer.DEBUG ) {
+            System.err.println("New glyph: id 0x" + Integer.toHexString(key.id) + "/'"+key.name+"', sym 0x"+Integer.toHexString(key.codepoint)+", shape " + (null != shape)+", mode "+mode);
+            System.err.println("  tc_glyph "+glyph);
+            System.err.println("     glyph "+result);
+        }
+        if( null != glyph ) {
+            glyph.clearPointData();
+        }
+        key.glyph = result;
         return result;
     }
 
@@ -336,34 +438,33 @@ class TypecastFont implements Font {
         final AABBox temp_box = new AABBox();
 
         for(int i=0; i< charCount; i++) {
-            final char character = string.charAt(i);
-            if( '\n' == character ) {
+            final char codepoint = string.charAt(i);
+            if( '\n' == codepoint ) {
                 y -= lineHeight;
                 advanceTotal = 0;
                 left_glyph = null;
             } else {
                 // reset transform
                 temp1.setToIdentity();
-                final int glyph_id = getGlyphID(character);
-                final Font.Glyph glyph = getGlyph(glyph_id);
+                final Font.Glyph glyph = getGlyph( codepoint );
                 if( glyph.isUndefined() ) {
                     // break kerning, drop undefined
-                    advanceTotal += glyph.getAdvanceFU();
+                    advanceTotal += glyph.getAdvanceWidthFU();
                     left_glyph = null;
                 } else if( glyph.isWhitespace() ) {
                     // break kerning, but include its bounding box space
                     left_glyph = null;
                     temp1.translate(advanceTotal, y, temp2);
                     res.resize(temp1.transform(glyph.getBoundsFU(), temp_box));
-                    advanceTotal += glyph.getAdvanceFU();
+                    advanceTotal += glyph.getAdvanceWidthFU();
                 } else {
                     // regular contour
                     if( null != left_glyph ) {
-                        advanceTotal += left_glyph.getKerningFU(glyph_id);
+                        advanceTotal += left_glyph.getKerningFU( glyph.getID() );
                     }
                     temp1.translate(advanceTotal, y, temp2);
                     res.resize(temp1.transform(glyph.getBoundsFU(), temp_box));
-                    advanceTotal += glyph.getAdvanceFU();
+                    advanceTotal += glyph.getAdvanceWidthFU();
                     left_glyph = glyph;
                 }
             }
@@ -383,7 +484,7 @@ class TypecastFont implements Font {
         }
         final Font.GlyphVisitor visitor = new Font.GlyphVisitor() {
             @Override
-            public final void visit(final char symbol, final Font.Glyph shape, final AffineTransform t) {
+            public final void visit(final Font.Glyph shape, final AffineTransform t) {
                 // nop
             } };
         return processString(visitor, transform, string, temp1, temp2);
@@ -414,8 +515,8 @@ class TypecastFont implements Font {
         final AABBox temp_box = new AABBox();
 
         for(int i=0; i< charCount; i++) {
-            final char character = string.charAt(i);
-            if( '\n' == character ) {
+            final char codepoint = string.charAt(i);
+            if( '\n' == codepoint ) {
                 y -= lineHeight;
                 advanceTotal = 0;
                 left_glyph = null;
@@ -426,29 +527,27 @@ class TypecastFont implements Font {
                 } else {
                     temp1.setToIdentity();
                 }
-                final int glyph_id = getGlyphID(character);
-
-                final Font.Glyph glyph = getGlyph(glyph_id);
+                final Font.Glyph glyph = getGlyph( codepoint );
                 if( glyph.isUndefined() ) {
                     // break kerning, drop undefined
-                    advanceTotal += glyph.getAdvance();
+                    advanceTotal += glyph.getAdvanceWidth();
                     left_glyph = null;
                 } else if( glyph.isWhitespace() ) {
                     // break kerning, but include its bounding box space and visit the visitor
                     left_glyph = null;
                     temp1.translate(advanceTotal, y, temp2);
                     res.resize(temp1.transform(glyph.getBounds(), temp_box));
-                    visitor.visit(character, glyph, temp1);
-                    advanceTotal += glyph.getAdvance();
+                    visitor.visit(glyph, temp1);
+                    advanceTotal += glyph.getAdvanceWidth();
                 } else {
                     // regular contour
                     if( null != left_glyph ) {
-                        advanceTotal += left_glyph.getKerning(glyph_id);
+                        advanceTotal += left_glyph.getKerning( glyph.getID() );
                     }
                     temp1.translate(advanceTotal, y, temp2);
                     res.resize(temp1.transform(glyph.getShape().getBounds(), temp_box));
-                    visitor.visit(character, glyph, temp1);
-                    advanceTotal += glyph.getAdvance();
+                    visitor.visit(glyph, temp1);
+                    advanceTotal += glyph.getAdvanceWidth();
                     left_glyph = glyph;
                 }
             }
@@ -464,19 +563,11 @@ class TypecastFont implements Font {
         final int charCount = string.length();
 
         for(int i=0; i< charCount; i++) {
-            final char character = string.charAt(i);
-            if( '\n' != character ) {
-                final Glyph glyph = getGlyph(getGlyphID(character));
-                if( null != glyph.getShape() ) { // also covers 'space' and all non-contour symbols
-                    visitor.visit(character, glyph);
-                }
+            final char codepoint = string.charAt(i);
+            if( '\n' != codepoint ) {
+                visitor.visit( getGlyph( codepoint ) );
             }
         }
-    }
-
-    @Override
-    final public int getNumGlyphs() {
-        return font.getNumGlyphs();
     }
 
     @Override

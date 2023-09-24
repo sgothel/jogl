@@ -51,7 +51,6 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * Scaling, if any, should be applied via {@link #setScale(float, float, float)} etc.
  */
 public class GlyphShape extends GraphShape {
-    private final char symbol;
     private final Glyph glyph;
     private final int regionVertCount;
     private final int regionIdxCount;
@@ -60,15 +59,13 @@ public class GlyphShape extends GraphShape {
     /**
      * Creates a new GlyphShape
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
-     * @param symbol the represented character
      * @param glyph the {@link Font.Glyph}
      * @param x the intended unscaled X position of this Glyph, e.g. if part of a string - otherwise use zero.
      * @param y the intended unscaled Y position of this Glyph, e.g. if part of a string - otherwise use zero.
      * @see #processString(List, int, Font, String)
      */
-    public GlyphShape(final int renderModes, final char symbol, final Glyph glyph, final float x, final float y) {
+    public GlyphShape(final int renderModes, final Glyph glyph, final float x, final float y) {
         super(renderModes);
-        this.symbol = symbol;
         this.glyph = glyph;
         this.origPos = new Vec3f(x, y, 0f);
         if( glyph.isNonContour() ) {
@@ -82,35 +79,29 @@ public class GlyphShape extends GraphShape {
     /**
      * Creates a new GlyphShape
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
-     * @param symbol the represented character
      * @param glyph the {@link Font.Glyph}
      * @param pos the intended unscaled Vec3f position of this Glyph, e.g. if part of a string - otherwise use zero.
      * @see #processString(List, int, Font, String)
      */
-    public GlyphShape(final int renderModes, final char symbol, final Glyph glyph, final Vec3f pos) {
-        this(renderModes, symbol, glyph, pos.x(), pos.y());
+    public GlyphShape(final int renderModes, final Glyph glyph, final Vec3f pos) {
+        this(renderModes, glyph, pos.x(), pos.y());
     }
 
     /**
      * Creates a new GlyphShape
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param font the {@link Font} to lookup the symbol's {@link Font.Glyph}
-     * @param symbol the represented character
+     * @param codepoint the represented character unicode `codepoint` symbol
      * @param x the intended unscaled X position of this Glyph, e.g. if part of a string - otherwise use zero.
      * @param y the intended unscaled Y position of this Glyph, e.g. if part of a string - otherwise use zero.
      */
-    public GlyphShape(final int renderModes, final Font font, final char symbol, final float x, final float y) {
-        this(renderModes, symbol, font.getGlyph( font.getGlyphID(symbol) ), x, y);
+    public GlyphShape(final int renderModes, final Font font, final char codepoint, final float x, final float y) {
+        this(renderModes, font.getGlyph( codepoint ), x, y);
     }
 
     /** GlyphShape copy-ctor */
     public GlyphShape(final GlyphShape orig) {
-        this(orig.renderModes, orig.symbol, orig.glyph, orig.origPos);
-    }
-
-    /** Returns the char symbol to be rendered. */
-    public char getSymbol() {
-        return symbol;
+        this(orig.renderModes, orig.glyph, orig.origPos);
     }
 
     /**
@@ -155,9 +146,9 @@ public class GlyphShape extends GraphShape {
     {
         final Font.GlyphVisitor fgv = new Font.GlyphVisitor() {
             @Override
-            public void visit(final char symbol, final Glyph glyph, final AffineTransform t) {
+            public void visit(final Glyph glyph, final AffineTransform t) {
                 if( !glyph.isNonContour() ) {
-                    res.add( new GlyphShape(renderModes, symbol, glyph, t.getTranslateX(), t.getTranslateY()) );
+                    res.add( new GlyphShape(renderModes, glyph, t.getTranslateX(), t.getTranslateY()) );
                 }
             }
         };
@@ -188,6 +179,6 @@ public class GlyphShape extends GraphShape {
 
     @Override
     public String getSubString() {
-        return super.getSubString()+", origPos " + origPos.x() + " / " + origPos.y() + ", '" + symbol + "'";
+        return super.getSubString()+", origPos " + origPos.x() + " / " + origPos.y() + ", cp 0x" + Integer.toHexString(glyph.getCodepoint());
     }
 }

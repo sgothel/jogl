@@ -186,7 +186,7 @@ public abstract class GLRegion extends Region {
         final int[] vertIndexCount = { 0, 0 };
         final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
             @Override
-            public final void visit(final char symbol, final Font.Glyph glyph) {
+            public final void visit(final Font.Glyph glyph) {
                 if( !glyph.isNonContour() ) {
                     Region.countOutlineShape(glyph.getShape(), vertIndexCount);
                 }

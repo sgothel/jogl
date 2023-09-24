@@ -726,7 +726,7 @@ public final class Scene implements Container, GLEventListener {
     }
 
     /**
-     * Traverses through the graph and apply {@link Visitor#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
+     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
      *
      * Each {@link Container} level is sorted using {@code sortComp}
      * @param sortComp

@@ -39,7 +39,7 @@ public final class TypecastGlyph implements Font.Glyph {
 
     public static final short INVALID_ID    = (short)((1 << 16) - 1);
     public static final short MAX_ID        = (short)((1 << 16) - 2);
-    private static final String dot_undef_NAME = ".notdef";
+    /* pp */ static final String dot_undef_NAME = ".notdef";
     private static final String NULL_NAME = "NULL";
     private static final String null_NAME = "null";
     private static final String dot_null_NAME = ".null";
@@ -83,6 +83,7 @@ public final class TypecastGlyph implements Font.Glyph {
         return dst;
     }
 
+    private final char codepoint;
     private final int id;
     private final String name;
     private final boolean isUndefined;
@@ -101,17 +102,19 @@ public final class TypecastGlyph implements Font.Glyph {
     /**
      *
      * @param font
-     * @param name from `post` table
+     * @param codepoint TODO
      * @param id
+     * @param name from `post` table
      * @param bbox in font-units
      * @param advance from hmtx in font-units
      * @param leftSideBearings from hmtx in font-units
      * @param shape
      */
-    protected TypecastGlyph(final TypecastFont font, final int id, final String name,
-                            final AABBox bbox, final int advance, final int leftSideBearings,
-                            final KernSubtable kernSub, final OutlineShape shape,
-                            final boolean isUndefined, final boolean isWhiteSpace) {
+    protected TypecastGlyph(final TypecastFont font, final char codepoint, final int id,
+                            final String name, final AABBox bbox, final int advance,
+                            final int leftSideBearings, final KernSubtable kernSub,
+                            final OutlineShape shape, final boolean isUndefined, final boolean isWhiteSpace) {
+        this.codepoint = codepoint;
         this.id = id;
         this.name = name;
         this.isUndefined = isUndefined;
@@ -155,6 +158,9 @@ public final class TypecastGlyph implements Font.Glyph {
     }
 
     @Override
+    public char getCodepoint() { return codepoint; }
+
+    @Override
     public final int getID() { return id; }
 
     @Override
@@ -187,10 +193,10 @@ public final class TypecastGlyph implements Font.Glyph {
     }
 
     @Override
-    public final int getAdvanceFU() { return advance; }
+    public final int getAdvanceWidthFU() { return advance; }
 
     @Override
-    public float getAdvance() { return font.getMetrics().getScale( advance ); }
+    public float getAdvanceWidth() { return font.getMetrics().getScale( advance ); }
 
     @Override
     public final int getLeftSideBearingsFU() { return leftSideBearings; }
@@ -267,9 +273,10 @@ public final class TypecastGlyph implements Font.Glyph {
         }
         final String name_s = null != name ? name : "";
         final String shape_s = null != shape ? "shape "+shape.getVertexCount()+"v" : "shape null";
-        sb.append("Glyph[id ").append(id).append(" '").append(name_s).append("', ").append(contour_s)
+        sb.append("Glyph[id 0x").append(Integer.toHexString(id)).append(", cp 0x").append(Integer.toHexString(codepoint))
+          .append(", name '").append(name_s).append("', ").append(contour_s)
           .append(", ").append(shape_s)
-          .append(", advance ").append(getAdvanceFU())
+          .append(", advance ").append(getAdvanceWidthFU())
           .append(", leftSideBearings ").append(getLeftSideBearingsFU())
           .append(", kerning[size ").append(kerning.length).append(", horiz ").append(this.isKerningHorizontal()).append(", cross ").append(this.isKerningCrossstream()).append("]")
           .append("]");
@@ -290,9 +297,10 @@ public final class TypecastGlyph implements Font.Glyph {
         }
         final String name_s = null != name ? name : "";
         final String shape_s = null != shape ? "shape "+shape.getVertexCount()+"v" : "shape null";
-        sb.append("Glyph id ").append(id).append(" '").append(name_s).append("', ").append(contour_s)
+        sb.append("Glyph[id 0x").append(Integer.toHexString(id)).append(", cp 0x").append(Integer.toHexString(codepoint))
+          .append(" name '").append(name_s).append("', ").append(contour_s)
           .append(", shape ").append(shape_s)
-          .append(", advance ").append(getAdvanceFU())
+          .append(", advance ").append(getAdvanceWidthFU())
           .append(", leftSideBearings ").append(getLeftSideBearingsFU())
           .append(", ").append(getBoundsFU());
 

@@ -414,7 +414,7 @@ public class UILayoutGrid01 {
         g.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
         scene.addShape(g);
         {
-            final float X_width = font.getGlyph(font.getGlyphID(' ')).getAdvance();
+            final float X_width = font.getGlyph( ' ' ).getAdvanceWidth();
             /**
              * ID 23: G 23, size[total 2.1 x 1.7, cell 1.0 x 0.5]
              * Padding[t 0.05, r 0.05, b 0.05, l 0.05]

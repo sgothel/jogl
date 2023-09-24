@@ -81,20 +81,19 @@ public class TestFontsNEWT00 extends UITestCase {
         }
     }
     void testFontGlyph01(final Font font, final char c, final float pixelSize) {
-        final int glyphID = font.getGlyphID(c);
-        final int s0 = font.getAdvanceWidthFU(glyphID);
-        final Font.Glyph glyph = font.getGlyph(glyphID);
-        final int s1 = glyph.getAdvanceFU();
+        final Font.Glyph glyph = font.getGlyph( c );
+        final int s0 = font.getAdvanceWidthFU( glyph.getID() );
+        final int s1 = glyph.getAdvanceWidthFU();
 
         final int unitsPerEM = font.getMetrics().getUnitsPerEM();
 
-        final float s0_em = font.getAdvanceWidth(glyphID);
-        final float s1_em = glyph.getAdvance();
+        final float s0_em = font.getAdvanceWidth( glyph.getID() );
+        final float s1_em = glyph.getAdvanceWidth();
 
         final float s0_px = s0_em * pixelSize;
         final float s1_px = s1_em * pixelSize;
 
-        System.err.println("    Char '"+c+"', id "+glyphID+", font-px "+pixelSize+", unitsPerEM "+unitsPerEM+":");
+        System.err.println("    Char '"+c+"', id "+glyph.getID()+", font-px "+pixelSize+", unitsPerEM "+unitsPerEM+":");
         System.err.println("      "+glyph);
         System.err.println("      Advance");
         System.err.println("        funits "+s0+", "+s1);

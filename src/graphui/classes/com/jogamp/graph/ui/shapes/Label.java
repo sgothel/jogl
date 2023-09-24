@@ -202,7 +202,7 @@ public class Label extends GraphShape {
 
     private final Font.GlyphVisitor glyphVisitor = new Font.GlyphVisitor() {
         @Override
-        public void visit(final char symbol, final Glyph glyph, final AffineTransform t) {
+        public void visit(final Glyph glyph, final AffineTransform t) {
             if( !glyph.isNonContour() ) {
                 final OutlineShape shape = glyph.getShape();
                 shape.setSharpness(oshapeSharpness);

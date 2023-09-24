@@ -37,6 +37,7 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
@@ -127,6 +128,7 @@ public class FontView01 {
         final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
         final Font fontInfo = FontFactory.get(FontFactory.UBUNTU).getDefault();
         System.err.println("Status Font "+fontStatus.getFullFamilyName());
+        System.err.println("Info Font "+fontInfo.getFullFamilyName());
 
         final GLProfile reqGLP = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+reqGLP);
@@ -187,11 +189,11 @@ public class FontView01 {
         final Shape.MouseGestureListener glyphMouseListener;
         {
             final Group glyphShapeBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.025f) ) );
-            glyphShapeBox.addShape( new GlyphShape(options.renderModes, 'A', font.getGlyph( font.getGlyphID('A')), 0, 0) );
+            glyphShapeBox.addShape( new GlyphShape(options.renderModes, font.getGlyph( 'A' ), 0, 0) );
 
             final Group glyphInfoBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.05f, 0.025f, 0.05f, 0.025f) ) );
             final Label glyphInfo = new Label(options.renderModes, fontStatus, "Nothing there yet");
-            setGlyphInfo(fontStatus, glyphInfo, 'A', font.getGlyph(font.getGlyphID('A')));
+            setGlyphInfo(fontStatus, glyphInfo, font.getGlyph( 'A' ));
             glyphInfo.setColor(0.1f, 0.1f, 0.1f, 1.0f);
             glyphInfoBox.addShape(glyphInfo);
 
@@ -220,7 +222,7 @@ public class FontView01 {
                         if( 1 == glyphShapeBox.getShapeCount() ) {
                             final GlyphShape old = (GlyphShape) glyphShapeBox.getShapes().get(0);
                             if( null != old ) {
-                                if( !doScreenshot && old.getSymbol() == g0.getSymbol() ) {
+                                if( !doScreenshot && old.getGlyph().getCodepoint() == g0.getGlyph().getCodepoint() ) {
                                     // System.err.println("GlyphShape Same: "+old);
                                     return true; // abort - no change
                                 }
@@ -238,7 +240,7 @@ public class FontView01 {
                         final GlyphShape gs = new GlyphShape( g0 ); // copy GlyphShape
                         gs.setColor(0, 0, 0, 1);
                         glyphShapeBox.addShape( gs );
-                        setGlyphInfo(fontStatus, glyphInfo, gs.getSymbol(), gs.getGlyph());
+                        setGlyphInfo(fontStatus, glyphInfo, gs.getGlyph());
                         glyphInfo.validate(d.getGL().getGL2ES2()); // avoid group re-validate
                         // System.err.println("GlyphInfo "+glyphInfo.getBounds());
                         if( doScreenshot ) {
@@ -436,14 +438,12 @@ public class FontView01 {
         public int scanContourGlyphs(final Font font) {
             contourChars.clear();
             maxNameLen = 1;
-            for(int i=0; i <= Character.MAX_VALUE; ++i) {
-                final int glyphID = font.getGlyphID((char)i);
-                final Font.Glyph fg = font.getGlyph(glyphID);
+            font.forAllGlyphs((final Glyph fg) -> {
                 if( !fg.isNonContour() ) {
-                    contourChars.add((char)i);
+                    contourChars.add( fg.getCodepoint() );
                     maxNameLen = Math.max(maxNameLen, fg.getName().length());
                 }
-            }
+            });
             return contourChars.size();
         }
 
@@ -483,15 +483,13 @@ public class FontView01 {
     static void addGlyphs(final GLProfile glp, final Font font, final Group sink,
                           final GridDim gridDim, final boolean showUnderline, final boolean showLabel,
                           final Font fontStatus, final Font fontInfo, final Shape.MouseGestureListener glyphMouseListener) {
-        int glyphID = -1; // startGlyphID;
         gridDim.nextLine = Math.min(gridDim.start + gridDim.columns,   gridDim.contourChars.size()-1);
         gridDim.nextPage = Math.min(gridDim.start + gridDim.elemCount, gridDim.contourChars.size()-1);
         for(int idx = gridDim.start; idx < gridDim.nextPage; ++idx) {
-            final char charID = gridDim.contourChars.get(idx);
-            glyphID = font.getGlyphID( charID );
-            final Font.Glyph fg = font.getGlyph(glyphID);
+            final char codepoint = gridDim.contourChars.get(idx);
+            final Font.Glyph fg = font.getGlyph(codepoint);
 
-            final GlyphShape g = new GlyphShape(options.renderModes, charID, fg, 0, 0);
+            final GlyphShape g = new GlyphShape(options.renderModes, fg, 0, 0);
             g.setColor(0.1f, 0.1f, 0.1f, 1);
             g.setDragAndResizeable(false);
 
@@ -508,7 +506,7 @@ public class FontView01 {
             c1.addShape(g);
             c1.addMouseListener(glyphMouseListener);
             if( 0 == ( idx - gridDim.start ) % gridDim.columns ) {
-                addLabel(sink, fontStatus, String.format("%04x", (int)charID));
+                addLabel(sink, fontStatus, String.format("%04x", (int)codepoint));
             }
             if( showLabel ) {
                 final Group c2 = new Group( new GridLayout( 1, 0, 0, Alignment.None) ); //  Alignment(Alignment.Bit.CenterHoriz) ) );
@@ -529,14 +527,14 @@ public class FontView01 {
         c.addShape( new Label(options.renderModes, font, 1f, text).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizeable(false) );
     }
 
-    static void setGlyphInfo(final Font font, final Label label, final char symbol, final Font.Glyph g) {
-        label.setText( getGlyphInfo(symbol, g) );
+    static void setGlyphInfo(final Font font, final Label label, final Font.Glyph g) {
+        label.setText( getGlyphInfo(g) );
         if( VERBOSE_GLYPHS ) {
             System.err.println( label.getText() );
         }
     }
 
-    static String getGlyphInfo(final char symbol, final Font.Glyph g) {
+    static String getGlyphInfo(final Font.Glyph g) {
         final OutlineShape os = g.getShape();
         final int osVertices = null != os ? os.getVertexCount() : 0;
         final String name_s = null != g.getName() ? g.getName() : "";
@@ -546,9 +544,9 @@ public class FontView01 {
                 g.getFont().getFullFamilyName(),
                 g.getFont().getMetrics().getAscent() - g.getFont().getMetrics().getDescent(), // font hhea table
                 g.getFont().getLineHeight(), // font hhea table
-                (int)symbol, g.getID(), name_s,
+                (int)g.getCodepoint(), g.getID(), name_s,
                 bounds.getWidth(), bounds.getHeight(), box_s,
-                g.getAdvance(),
+                g.getAdvanceWidth(),
                 g.getLeftSideBearings(),
                 osVertices);
     }

@@ -138,13 +138,12 @@ public class FontViewListener01 implements GLEventListener {
         scene.addShape(grid);
 
         for(int idx=0; idx<Character.MAX_VALUE && grid.getShapeCount() < cellCount ; ++idx) {
-            final char symbol = (char)(startCharSymbol+idx);
-            final int glyphID = font.getGlyphID(symbol);
-            final Font.Glyph glyph = font.getGlyph(glyphID);
+            final char codepoint = (char)(startCharSymbol+idx);
+            final Font.Glyph glyph = font.getGlyph( codepoint );
             if( glyph.isNonContour() ) {
                 continue;
             }
-            final GlyphShape glyphShape = new GlyphShape(renderModes, symbol, glyph, 0, 0);
+            final GlyphShape glyphShape = new GlyphShape(renderModes, glyph, 0, 0);
             glyphShape.setColor(0.1f, 0.1f, 0.1f, 1);
             glyphShape.setDragAndResizeable(false);
             glyphShape.onClicked( new Shape.Listener() {
