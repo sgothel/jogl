@@ -925,7 +925,7 @@ public final class Scene implements Container, GLEventListener {
     private void setActiveShape(final Shape shape) {
         if( activeShape != shape ) {
             releaseActiveShape();
-            lastActiveZOffset = zOffsetScale * getZEpsilon(16);
+            lastActiveZOffset = activeZOffsetScale * getZEpsilon(16);
             if( null != shape && !FloatUtil.isZero(lastActiveZOffset) ) {
                 shape.move(0, 0, +lastActiveZOffset);
             }
@@ -933,7 +933,12 @@ public final class Scene implements Container, GLEventListener {
         activeShape = shape;
     }
     private float lastActiveZOffset = 0f;
-    private static final float zOffsetScale = 10f;
+    private float activeZOffsetScale = 10f;
+
+    /** Returns the active {@link Shape} Z-Offset scale, defaults to {@code 10.0}. */
+    public float getActiveShapeZOffsetScale() { return activeZOffsetScale; }
+    /** Sets the active {@link Shape} Z-Offset scale, defaults to {@code 10.0}. */
+    public void setActiveShapeZOffsetScale(final float v) { activeZOffsetScale = v; }
 
     private final class SBCGestureListener implements GestureHandler.GestureListener {
         @Override
