@@ -43,6 +43,7 @@ import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.graph.font.FontConstructor;
 import jogamp.graph.font.JavaFontLoader;
+import jogamp.graph.font.SymbolsFontLoader;
 import jogamp.graph.font.UbuntuFontLoader;
 
 /**
@@ -59,6 +60,9 @@ public class FontFactory {
 
     /** Ubuntu is the default font family, {@value} */
     public static final int UBUNTU = 0;
+
+    /** Symbols is the default symbol font family and contains rounded material symbol fonts, {@value} */
+    public static final int SYMBOLS = 10;
 
     /** Java fonts are optional, {@value} */
     public static final int JAVA = 1;
@@ -86,6 +90,8 @@ public class FontFactory {
         switch (font) {
             case JAVA:
                 return JavaFontLoader.get();
+            case SYMBOLS:
+                return SymbolsFontLoader.get();
             default:
                 return UbuntuFontLoader.get();
         }
