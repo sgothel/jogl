@@ -191,7 +191,7 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
             row = lastRow + 1;
         }
         final AABBox textBox = font.getMetricBounds(text);
-        dx += fontSize * font.getAdvanceWidth('X') * column;
+        dx += fontSize * font.getAdvanceWidth( font.getGlyphID( 'X' ) ) * column;
         dy -= fontSize * textBox.getHeight() * ( row + 1 );
 
         final PMVMatrix4f pmv = renderer.getMatrix();

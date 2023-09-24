@@ -245,7 +245,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             final float sxy = pixelScale * pixelSize;
             final int newLineCount = TextRegionUtil.getCharCount(text, '\n');
             final float lineHeight = font.getLineHeight();
-            dx += sxy * font.getAdvanceWidth('X') * column;
+            dx += sxy * font.getAdvanceWidth( font.getGlyphID( 'X' ) ) * column;
             dy -= sxy * lineHeight * ( row + 1 );
 
             final PMVMatrix4f pmvMatrix = getMatrix();
@@ -294,7 +294,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             }
             final float sxy = pixelScale * pixelSize;
             final float lineHeight = font.getLineHeight();
-            dx += sxy * font.getAdvanceWidth('X') * column;
+            dx += sxy * font.getAdvanceWidth( font.getGlyphID( 'X' ) ) * column;
             dy -= sxy * lineHeight * ( row + 1 );
 
             final PMVMatrix4f pmvMatrix = getMatrix();
