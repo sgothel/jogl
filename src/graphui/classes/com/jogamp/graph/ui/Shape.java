@@ -1147,28 +1147,22 @@ public abstract class Shape {
         markStateDirty();
         return this;
     }
-    public boolean isPressed() {
-        return this.down;
-    }
+    public boolean isPressed() { return this.down; }
 
     /**
      *
      * @param toggleable
      * @see #isInteractive()
      */
-    public Shape setToggleable(final boolean toggleable) {
-        this.toggleable = toggleable;
-        return this;
-    }
+    public Shape setToggleable(final boolean toggleable) { this.toggleable = toggleable; return this; }
 
     /**
      * Returns true if this shape is toggable,
      * i.e. rendered w/ {@link #setToggleOnColorMod(float, float, float, float)} or {@link #setToggleOffColorMod(float, float, float, float)}.
      * @see #isInteractive()
      */
-    public boolean isToggleable() {
-        return toggleable;
-    }
+    public boolean isToggleable() { return toggleable; }
+
     public Shape setToggle(final boolean v) {
         toggle = v;
         markStateDirty();
@@ -1193,7 +1187,6 @@ public abstract class Shape {
             onActivationListener.run(this);
         }
     }
-
     /** Returns true of this shape is active */
     public boolean isActive() { return active; }
 
@@ -1205,6 +1198,10 @@ public abstract class Shape {
      * - {@link #isResizable()}
      * but excluding programmatic changes.
      * @param v new value for {@link #isInteractive()}
+     * @see #isInteractive()
+     * @see #setDraggable(boolean)
+     * @see #setResizable(boolean)
+     * @see #setDragAndResizeable(boolean)
      */
     public Shape setInteractive(final boolean v) { interactive = v; return this; }
     /**
@@ -1219,7 +1216,10 @@ public abstract class Shape {
      * <p>
      * Default draggable is true.
      * </p>
-     * @see #isInteractive()
+     * @see #isDraggable()
+     * @see #setInteractive(boolean)
+     * @see #setResizable(boolean)
+     * @see #setDragAndResizeable(boolean)
      */
     public Shape setDraggable(final boolean draggable) {
         this.draggable = draggable;
@@ -1227,11 +1227,9 @@ public abstract class Shape {
     }
     /**
      * Returns if this shape is draggable, a user interaction.
-     * @see #isInteractive()
+     * @see #setDraggable(boolean)
      */
-    public boolean isDraggable() {
-        return draggable;
-    }
+    public boolean isDraggable() { return draggable; }
 
     /**
      * Set whether this shape is resizable,
@@ -1239,28 +1237,30 @@ public abstract class Shape {
      * <p>
      * Default resizable is true.
      * </p>
-     * @see #isInteractive()
+     * @see #isResizable()
+     * @see #setInteractive(boolean)
+     * @see #setDraggable(boolean)
+     * @see #setDragAndResizeable(boolean)
      */
-    public Shape setResizable(final boolean resizable) {
-        this.resizable = resizable;
-        return this;
-    }
+    public Shape setResizable(final boolean resizable) { this.resizable = resizable; return this; }
+
     /**
      * Returns if this shape is resiable, a user interaction.
-     * @see #isInteractive()
+     * @see #setResizable(boolean)
      */
-    public boolean isResizable() {
-        return resizable;
-    }
+    public boolean isResizable() { return resizable; }
+
 
     /**
      * Set whether this shape is draggable and resizable.
      * <p>
      * Default draggable and resizable is true.
      * </p>
+     * @see #isDraggable()
+     * @see #isResizable()
+     * @see #setInteractive(boolean)
      * @see #setDraggable(boolean)
      * @see #setResizable(boolean)
-     * @see #isInteractive()
      */
     public Shape setDragAndResizeable(final boolean v) {
         this.draggable = v;
