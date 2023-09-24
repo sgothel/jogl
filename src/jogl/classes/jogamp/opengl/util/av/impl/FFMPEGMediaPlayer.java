@@ -900,7 +900,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
     final void pushSound(final ByteBuffer sampleData, final int data_size, final int audio_pts) {
         setFirstAudioPTS2SCR( audio_pts );
-        if( 1.0f == getPlaySpeed() || audioSinkPlaySpeedSet ) {
+        if( !isAudioMuted() && ( 1.0f == getPlaySpeed() || audioSinkPlaySpeedSet ) ) {
             audioSink.enqueueData( audio_pts, sampleData, data_size);
         }
     }

@@ -583,7 +583,15 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      */
     protected boolean setAudioVolumeImpl(final float v) {
         if( null != audioSink ) {
-            return audioSink.setVolume(v);
+            final boolean res = audioSink.setVolume(v);
+            if( State.Playing == state ) {
+                if( FloatUtil.isZero(v) ) {
+                    audioSink.flush(); // implies stop!
+                } else {
+                    audioSink.play(); // cont. w/ new data
+                }
+            }
+            return res;
         }
         // still true, even if audioSink rejects command ..
         return true;
