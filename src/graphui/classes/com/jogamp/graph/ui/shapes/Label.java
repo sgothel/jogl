@@ -193,10 +193,7 @@ public class Label extends GraphShape {
 
     /** Convenient shortcut to {@link Font#getGlyphBounds(CharSequence, AffineTransform, AffineTransform)}. */
     public static AABBox getUnscaledGlyphBounds(final Font font, final CharSequence text) {
-        final AffineTransform tempT1 = new AffineTransform();
-        final AffineTransform tempT2 = new AffineTransform();
-
-        return font.getGlyphBounds(text, tempT1, tempT2);
+        return font.getGlyphBounds(text);
     }
     /** Convenient shortcut to {@link Font#getGlyphBounds(CharSequence, AffineTransform, AffineTransform)} using {@link #getFont()} and {@link #getText()}. */
     public AABBox getUnscaledGlyphBounds() {
