@@ -105,48 +105,6 @@ public class Button extends BaseButton {
 
     /**
      * Create a text labeled button Graph based {@link GLRegion} UI {@link Shape}.
-     * <p>
-     * Sets the {@link #setLabelZOffset(float) Z-axis offset} to the smallest resolvable Z separation at the given range,
-     * used to separate the {@link BaseButton} from the {@link Label}.
-     * </p>
-     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
-     * @param labelFont {@link Font} for the label
-     * @param labelText the label text
-     * @param width width of the button
-     * @param height height of the button
-     * @param zBits depth buffer bit-depth, minimum 16-bit
-     * @param setup {@link PMVMatrixSetup} for scene-distance as z-position and zNear
-     * @see FloatUtil#getZBufferEpsilon(int, float, float)
-     * @see Scene#getZEpsilon(int, com.jogamp.graph.ui.Scene.PMVMatrixSetup)
-     */
-    public Button(final int renderModes, final Font labelFont, final CharSequence labelText,
-                  final float width, final float height, final int zBits, final Scene.PMVMatrixSetup setup) {
-        this(renderModes, labelFont, labelText, width, height, Scene.getZEpsilon(zBits, setup));
-    }
-
-    /**
-     * Create a text labeled button Graph based {@link GLRegion} UI {@link Shape}.
-     * <p>
-     * Sets the {@link #setLabelZOffset(float) Z-axis offset} to the smallest resolvable Z separation at the given range,
-     * used to separate the {@link BaseButton} from the {@link Label}.
-     * </p>
-     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
-     * @param labelFont {@link Font} for the label
-     * @param labelText the label text
-     * @param width width of the button
-     * @param height height of the button
-     * @param zBits depth buffer bit-depth, minimum 16-bit
-     * @param scene {@link Scene} to use {@link Scene#getZEpsilon(int)}
-     * @see FloatUtil#getZBufferEpsilon(int, float, float)
-     * @see Scene#getZEpsilon(int)
-     */
-    public Button(final int renderModes, final Font labelFont, final CharSequence labelText,
-                  final float width, final float height, final int zBits, final Scene scene) {
-        this(renderModes, labelFont, labelText, width, height, scene.getZEpsilon(zBits));
-    }
-
-    /**
-     * Create a text labeled button Graph based {@link GLRegion} UI {@link Shape}.
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param labelFont {@link Font} for the label
      * @param labelText the label text
@@ -255,32 +213,6 @@ public class Button extends BaseButton {
      */
     public Button setLabelZOffset(final int zBits, final float zDist, final float zNear) {
         return setLabelZOffset( FloatUtil.getZBufferEpsilon(zBits, zDist, zNear) );
-    }
-
-    /**
-     * Set the Z-axis offset to the smallest resolvable Z separation at the given range,
-     * used to separate the {@link BaseButton} from the {@link Label}.
-     * @param zBits depth buffer bit-depth, minimum 16-bit
-     * @param setup {@link PMVMatrixSetup} for scene-distance as z-position and zNear
-     * @return this instance for chaining
-     * @see FloatUtil#getZBufferEpsilon(int, float, float)
-     * @see Scene#getZEpsilon(int, com.jogamp.graph.ui.Scene.PMVMatrixSetup)
-     */
-    public Button setLabelZOffset(final int zBits, final Scene.PMVMatrixSetup setup) {
-        return setLabelZOffset( Scene.getZEpsilon(zBits, setup) );
-    }
-
-    /**
-     * Set the Z-axis offset to the smallest resolvable Z separation at the given range,
-     * used to separate the {@link BaseButton} from the {@link Label}.
-     * @param zBits depth buffer bit-depth, minimum 16-bit
-     * @param scene {@link Scene} to use {@link Scene#getZEpsilon(int)}
-     * @return this instance for chaining
-     * @see FloatUtil#getZBufferEpsilon(int, float, float)
-     * @see Scene#getZEpsilon(int)
-     */
-    public Button setLabelZOffset(final int zBits, final Scene scene) {
-        return setLabelZOffset( scene.getZEpsilon(zBits) );
     }
 
     public final float getSpacingX() { return spacingX; }
