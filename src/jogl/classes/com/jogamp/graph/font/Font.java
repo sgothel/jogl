@@ -132,7 +132,7 @@ public interface Font {
         int getUnitsPerEM();
 
         /**
-         * Return fractional font em-size [0..1], i.e. funits divided by {@link #getUnitsPerEM()}, i.e.
+         * Returns fractional font em-size [0..1], i.e. funits divided by {@link #getUnitsPerEM()}, i.e.
          * <pre>
          *    return funits / head.unitsPerEM;
          * </pre>
@@ -166,17 +166,20 @@ public interface Font {
         // http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08#ba57949e
         public static final int ID_UNKNOWN = 0;
 
-        /** Return the {@link Font} owning this {@link Glyph}. */
+        /** Returns the {@link Font} owning this {@link Glyph}. */
         Font getFont();
 
-        /** Return this glyph's ID */
+        /** Returns this glyph's mapped (unicode) `codepoint` symbol. */
+        char getCodepoint();
+
+        /** Returns this glyph's ID */
         int getID();
 
-        /** Return the glyph's name, source from `post` table */
+        /** Returns the glyph's name, source from `post` table */
         String getName();
 
         /**
-         * Return true if the Glyph denotes an undefined {@link #getID()} symbol, determined as follows
+         * Returns true if the Glyph denotes an undefined {@link #getID()} symbol, determined as follows
          * <ul>
          *   <li>it's glyph index is {@link #ID_UNKNOWN}, i.e. {@code 0x00}</li>
          *   <li>has the {@link #getName() name} `.notdef`, `NULL`, `null` or `.null`</li>
@@ -185,7 +188,7 @@ public interface Font {
          * An undefined glyph has no {@link #getShape()}  if glyph index is not {@link #ID_UNKNOWN}.
          * </p>
          * <p>
-         * An undefined glyph has a default {@link #getBounds()} and {@link #getAdvance()}.
+         * An undefined glyph has a default {@link #getBounds()} and {@link #getAdvanceWidth()}.
          * </p>
          * Being an undefined shape excludes {@link #isWhitespace()}.
          * @see #isWhitespace()
@@ -194,14 +197,14 @@ public interface Font {
         boolean isUndefined();
 
         /**
-         * Return true if the Glyph denotes a whitespace, determined as follows
+         * Returns true if the Glyph denotes a whitespace, determined as follows
          * <ul>
          *   <li>is not {@link #isUndefined()}</li>
          *   <li>has no original underlying shape</li>
          *   <li>has an underlying shape with a zero sized area</li>
          * </ul>
          * <p>
-         * A whitespace glyph has no {@link #getShape()}, but a valid {@link #getBounds()} and {@link #getAdvance()}.
+         * A whitespace glyph has no {@link #getShape()}, but a valid {@link #getBounds()} and {@link #getAdvanceWidth()}.
          * </p>
          * Being a whitespace glyph excludes {@link #isUndefined()}.
          * @see #isUndefined()
@@ -217,26 +220,26 @@ public interface Font {
         boolean isNonContour();
 
         /**
-         * Return the AABBox in font-units, borrowing internal instance.
+         * Returns the AABBox in font-units, borrowing internal instance.
          */
         AABBox getBoundsFU();
 
         /**
-         * Return the AABBox in font-units, copying into given dest.
+         * Returns the AABBox in font-units, copying into given dest.
          * @param dest AABBox instance set to this metrics boundary in font-units
          * @return the given and set AABBox 'dest' in font-units
          */
         AABBox getBoundsFU(final AABBox dest);
 
         /**
-         * Return the AABBox in font em-size [0..1], copying into given dest.
+         * Returns the AABBox in font em-size [0..1], copying into given dest.
          * @param dest AABBox instance set to this metrics boundary in font em-size [0..1]
          * @return the given and set AABBox 'dest' in font em-size [0..1]
          */
         AABBox getBounds(final AABBox dest);
 
         /**
-         * Return the AABBox in font em-size [0..1], creating a new copy.
+         * Returns the AABBox in font em-size [0..1], creating a new copy.
          */
         AABBox getBounds();
 
@@ -246,10 +249,10 @@ public interface Font {
         /** Returns advance in font em-size [0..1], sourced from `hmtx` table. */
         float getAdvanceWidth();
 
-        /** Return leftSideBearings in font units, sourced from `hmtx` table. */
+        /** Returns leftSideBearings in font units, sourced from `hmtx` table. */
         int getLeftSideBearingsFU();
 
-        /** Return leftSideBearings in font em-size [0..1], sourced from `hmtx` table. */
+        /** Returns leftSideBearings in font em-size [0..1], sourced from `hmtx` table. */
         float getLeftSideBearings();
 
         /** True if kerning values are horizontal, otherwise vertical */
@@ -285,7 +288,7 @@ public interface Font {
         @Override
         String toString();
 
-        /** Return all glyph details as string. */
+        /** Returns all glyph details as string. */
         String fullString();
     }
 
@@ -440,7 +443,7 @@ public interface Font {
     int getLineHeightFU();
 
     /**
-     * Return line height, baseline-to-baseline in em-size [0..1], composed from `hhea' table entries.
+     * Returns line height, baseline-to-baseline in em-size [0..1], composed from `hhea' table entries.
      * <pre>
      *   return ascent - descent + linegap;
      * </pre>
@@ -601,6 +604,6 @@ public interface Font {
     @Override
     public String toString();
 
-    /** Return all font details as string. */
+    /** Returns all font details as string. */
     String fullString();
 }
