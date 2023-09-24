@@ -710,13 +710,9 @@ public class UISceneDemo20 implements GLEventListener {
 
             final ALAudioSink[] alAudioSink = { null };
 
-            button.addMouseListener(new Shape.MouseGestureAdapter() {
-                @Override
-                public void mouseClicked(final MouseEvent e) {
-                    final Shape.EventInfo info = (Shape.EventInfo)e.getAttachment();
-                    final MediaButton s = (MediaButton)info.shape;
-                    mPlayer.setAudioVolume( s.isToggleOn() ? 1f : 0f );
-                } } );
+            button.onToggle( (final Shape s) -> {
+                mPlayer.setAudioVolume( s.isToggleOn() ? 1f : 0f );
+            });
             mPlayer.addEventListener( new GLMediaEventListener() {
                 @Override
                 public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
@@ -740,30 +736,22 @@ public class UISceneDemo20 implements GLEventListener {
                 }
 
             });
-            final Shape.Listener setAudioPosition = new Shape.Listener() {
-                @Override
-                public void run(final Shape shape) {
-                    final ALAudioSink aSink = alAudioSink[0];
-                    if( null != aSink ) {
-                        setSoundPosition(shape, aSink.getContext(), aSink.getSource());
-                    }
+            button.onMove( (final Shape shape) -> {
+                final ALAudioSink aSink = alAudioSink[0];
+                if( null != aSink ) {
+                    setSoundPosition(shape, aSink.getContext(), aSink.getSource());
                 }
-            };
-            final Shape.ListenerBool initAudio = new Shape.ListenerBool() {
-                @Override
-                public boolean run(final Shape shape) {
-                    final ALAudioSink aSink = alAudioSink[0];
-                    if( null != aSink ) {
-                        initSound(shape, aSink.getContext(), aSink.getSource());
-                        System.err.println("Media Audio: "+aSink);
-                        return true;
-                    } else {
-                        return false;
-                    }
+            });
+            button.onInit( (final Shape shape) -> {
+                final ALAudioSink aSink = alAudioSink[0];
+                if( null != aSink ) {
+                    initSound(shape, aSink.getContext(), aSink.getSource());
+                    System.err.println("Media Audio: "+aSink);
+                    return true;
+                } else {
+                    return false;
                 }
-            };
-            button.onInit( initAudio );
-            button.onMove( setAudioPosition );
+            });
 
             buttonsRight.addShape(button);
             mPlayer.playStream(filmURL, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
