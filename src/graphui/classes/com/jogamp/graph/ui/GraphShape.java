@@ -37,6 +37,7 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -238,7 +239,8 @@ public abstract class GraphShape extends Shape {
             addShapeToRegion(glp, gl); // calls updateGLRegion(..)
             if( hasBorder() ) {
                 // Also takes padding into account
-                addBorderOutline();
+                addRectangle(region, oshapeSharpness, box, getPadding(), getBorderThickness(), getBorderColor());
+                setRotationPivot( box.getCenter() );
             } else if( hasPadding() ) {
                 final Padding p = getPadding();
                 final Vec3f l = box.getLow();
@@ -253,9 +255,9 @@ public abstract class GraphShape extends Shape {
         }
     }
 
-    protected void addBorderOutline() {
+    static protected void addRectangle(final Region region, final float sharpness, final AABBox box, final Padding padding, final float borderThickness, final Vec4f color) {
         final OutlineShape shape = new OutlineShape();
-        final Padding p = null != getPadding() ? getPadding() : new Padding();
+        final Padding p = null != padding ? padding : new Padding();
         final float x1 = box.getMinX() - p.left;
         final float x2 = box.getMaxX() + p.right;
         final float y1 = box.getMinY() - p.bottom;
@@ -273,7 +275,7 @@ public abstract class GraphShape extends Shape {
         }
         {
             // Inner OutlineShape as Winding.CW.
-            final float dxy = getBorderThickness();
+            final float dxy = borderThickness;
             shape.moveTo(x1+dxy, y1+dxy, z);
             shape.lineTo(x1+dxy, y2-dxy, z);
             shape.lineTo(x2-dxy, y2-dxy, z);
@@ -282,10 +284,9 @@ public abstract class GraphShape extends Shape {
             shape.closeLastOutline(true);
         }
         shape.setIsQuadraticNurbs();
-        shape.setSharpness(oshapeSharpness);
-        region.addOutlineShape(shape, null, getBorderColor());
+        shape.setSharpness(sharpness);
+        region.addOutlineShape(shape, null, color);
         box.resize(shape.getBounds()); // border <-> shape = padding, and part of shape size
-        setRotationPivot( box.getCenter() );
     }
 
     protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) { }
