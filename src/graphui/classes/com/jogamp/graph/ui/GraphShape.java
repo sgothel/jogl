@@ -196,7 +196,7 @@ public abstract class GraphShape extends Shape {
      * @param indexCount the initial {@link GLRegion} index buffer size
      * @see #resetGLRegion(GLProfile, GL2ES2, TextureSequence, OutlineShape)
      */
-    protected void resetGLRegion(final GLProfile glp, final GL2ES2 gl, final TextureSequence colorTexSeq, int vertexCount, int indexCount) {
+    protected final void resetGLRegion(final GLProfile glp, final GL2ES2 gl, final TextureSequence colorTexSeq, int vertexCount, int indexCount) {
         if( hasBorder() ) {
             vertexCount += 8;
             indexCount += 24;
@@ -221,7 +221,7 @@ public abstract class GraphShape extends Shape {
      * @param shape the {@link OutlineShape} used to determine {@link GLRegion}'s buffer sizes via {@link Region#countOutlineShape(OutlineShape, int[])}
      * @see #resetGLRegion(GLProfile, GL2ES2, TextureSequence, int, int)
      */
-    protected void resetGLRegion(final GLProfile glp, final GL2ES2 gl, final TextureSequence colorTexSeq, final OutlineShape shape) {
+    protected final void resetGLRegion(final GLProfile glp, final GL2ES2 gl, final TextureSequence colorTexSeq, final OutlineShape shape) {
         final int[/*2*/] vertIndexCount = Region.countOutlineShape(shape, new int[2]);
         resetGLRegion(glp, gl, colorTexSeq, vertIndexCount[0], vertIndexCount[1]);
     }

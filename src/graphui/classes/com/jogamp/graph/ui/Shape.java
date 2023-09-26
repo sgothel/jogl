@@ -1007,11 +1007,11 @@ public abstract class Shape {
      * @see #winToShapeCoord(PMVMatrix4f, Recti, int, int, float[])
      * @see #winToShapeCoord(com.jogamp.graph.ui.Scene.PMVMatrixSetup, Recti, int, int, PMVMatrix4f, float[])
      */
-    public Vec3f winToShapeCoord(final Scene scene, final int glWinX, final int glWinY, final PMVMatrix4f pmv, final Vec3f objPos) {
+    public final Vec3f winToShapeCoord(final Scene scene, final int glWinX, final int glWinY, final PMVMatrix4f pmv, final Vec3f objPos) {
         return this.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, objPos);
     }
 
-    public Vec4f getColor() { return rgbaColor; }
+    public final Vec4f getColor() { return rgbaColor; }
 
     /**
      * Set base color.
@@ -1083,7 +1083,7 @@ public abstract class Shape {
         return this;
     }
 
-    public Vec4f getBorderColor() { return borderColor; }
+    public final Vec4f getBorderColor() { return borderColor; }
 
     /**
      * Set border color.
