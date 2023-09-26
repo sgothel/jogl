@@ -307,7 +307,9 @@ class TypecastFont implements Font {
         }
         final jogamp.graph.font.typecast.ot.Glyph glyph = font.getGlyph(key.id);
         final boolean isUndefined = Glyph.ID_UNKNOWN == key.id || TypecastGlyph.isUndefName(key.name);
-        final int glyph_height = metrics.getAscentFU() - metrics.getDescentFU();
+        // Whitespace/Undefined: Drop full height 'metrics.getAscentFU() - metrics.getDescentFU()', b/c of non-existing shape height.
+        // Otherwise, layout on AABBox or created empty shape would pick up such default hhea-table ascent which might exceed actual string height.
+        final int whitespace_ascent = 0;
         final int glyph_advance;
         final int glyph_leftsidebearings;
         final boolean isWhitespace;
@@ -328,7 +330,7 @@ class TypecastFont implements Font {
             } else {
                 // Case 2: Non-contour glyph -> whitespace or undefined
                 isWhitespace = !isUndefined;
-                glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
+                glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, whitespace_ascent, 0f);
                 shape = Glyph.ID_UNKNOWN == key.id ? TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox) : null;
                 mode = 2;
             }
@@ -337,7 +339,7 @@ class TypecastFont implements Font {
             glyph_advance = getAdvanceWidthFU(key.id);
             glyph_leftsidebearings = 0;
             isWhitespace = !isUndefined;
-            glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, glyph_height, 0f);
+            glyph_bbox = new AABBox(0f,0f,0f, glyph_advance, whitespace_ascent, 0f);
             shape = Glyph.ID_UNKNOWN == key.id ? TypecastRenderer.buildEmptyShape(metrics.getUnitsPerEM(), glyph_bbox) : null;
             mode = 3;
         }
@@ -513,6 +515,7 @@ class TypecastFont implements Font {
         float advanceTotal = 0;
         Font.Glyph left_glyph = null;
         final AABBox temp_box = new AABBox();
+        final AABBox temp_box2 = new AABBox();
 
         for(int i=0; i< charCount; i++) {
             final char codepoint = string.charAt(i);
@@ -536,7 +539,7 @@ class TypecastFont implements Font {
                     // break kerning, but include its bounding box space and visit the visitor
                     left_glyph = null;
                     temp1.translate(advanceTotal, y, temp2);
-                    res.resize(temp1.transform(glyph.getBounds(), temp_box));
+                    res.resize(temp1.transform(glyph.getBounds(temp_box2), temp_box));
                     visitor.visit(glyph, temp1);
                     advanceTotal += glyph.getAdvanceWidth();
                 } else {
