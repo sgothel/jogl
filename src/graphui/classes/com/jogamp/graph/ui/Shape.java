@@ -150,15 +150,19 @@ public abstract class Shape {
 
     private int name = -1;
 
-    private boolean down = false;
-    private boolean toggle = false;
-    private boolean toggleable = false;
-    private boolean draggable = true;
-    private boolean resizable = true;
-    private boolean resizeFixedARatio = false;
-    private boolean interactive = true;
-    private boolean active = false;
-    private boolean enabled = true;
+    private static final int IO_ENABLED            = 1 << 0;
+    private static final int IO_INTERACTIVE        = 1 << 1;
+    private static final int IO_TOGGLEABLE         = 1 << 2;
+    private static final int IO_DRAGGABLE          = 1 << 3;
+    private static final int IO_RESIZABLE          = 1 << 4;
+    private static final int IO_RESIZE_FIXED_RATIO = 1 << 5;
+    private static final int IO_ACTIVE             = 1 << 6;
+    private static final int IO_DOWN               = 1 << 7;
+    private static final int IO_TOGGLE             = 1 << 8;
+    private volatile int ioState = IO_DRAGGABLE | IO_RESIZABLE | IO_INTERACTIVE | IO_ENABLED;
+    private final boolean isIO(final int mask) { return mask == ( ioState & mask ); }
+    private final void setIO(final int mask, final boolean v) { if( v ) { ioState |= mask; } else { ioState &= ~mask; }; }
+
     private float borderThickness = 0f;
     private Padding padding = null;
     private final Vec4f borderColor = new Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
@@ -183,9 +187,9 @@ public abstract class Shape {
     public final int getName() { return this.name; }
 
     /** Returns true if this shape is enabled and hence visible, otherwise false. */
-    public final boolean isEnabled() { return enabled; }
+    public final boolean isEnabled() { return isIO(IO_ENABLED); }
     /** Enable or disable this shape, i.e. its visibility. */
-    public final Shape setEnabled(final boolean v) { enabled = v; return this; }
+    public final Shape setEnabled(final boolean v) { setIO(IO_ENABLED, v); return this; }
 
     /**
      * Sets the padding for this shape, which is included in {@link #getBounds()B} and also includes the border. Default is zero.
@@ -1130,11 +1134,11 @@ public abstract class Shape {
         } else {
             rotateS = "";
         }
-        final String activeS = active ? ", active" : "";
+        final String activeS = isIO(IO_ACTIVE) ? ", active" : "";
         final String ps = hasPadding() ? padding.toString()+", " : "";
         final String bs = hasBorder() ? "border[l "+getBorderThickness()+", c "+getBorderColor()+"], " : "";
-        return getDirtyString()+", id "+name+", enabled "+enabled+activeS+", toggle "+toggle+
-               ", able[toggle "+toggleable+", iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
+        return getDirtyString()+", id "+name+", enabled "+isIO(IO_ENABLED)+activeS+", toggle "+isIO(IO_TOGGLE)+
+               ", able[toggle "+isIO(IO_TOGGLEABLE)+", iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
                "], pos["+position+"], "+pivotS+scaleS+rotateS+
                 ps+bs+"box"+box;
     }
@@ -1143,35 +1147,35 @@ public abstract class Shape {
     // Input
     //
 
-    public Shape setPressed(final boolean b) {
-        this.down  = b;
+    public final Shape setPressed(final boolean b) {
+        setIO(IO_DOWN, b);
         markStateDirty();
         return this;
     }
-    public boolean isPressed() { return this.down; }
+    public final boolean isPressed() { return isIO(IO_DOWN); }
 
     /**
      *
      * @param toggleable
      * @see #isInteractive()
      */
-    public Shape setToggleable(final boolean toggleable) { this.toggleable = toggleable; return this; }
+    public final Shape setToggleable(final boolean toggleable) { setIO(IO_TOGGLEABLE, toggleable); return this; }
 
     /**
      * Returns true if this shape is toggable,
      * i.e. rendered w/ {@link #setToggleOnColorMod(float, float, float, float)} or {@link #setToggleOffColorMod(float, float, float, float)}.
      * @see #isInteractive()
      */
-    public boolean isToggleable() { return toggleable; }
+    public boolean isToggleable() { return isIO(IO_TOGGLEABLE); }
 
-    public Shape setToggle(final boolean v) {
-        toggle = v;
+    public final Shape setToggle(final boolean v) {
+        setIO(IO_TOGGLE, v);
         markStateDirty();
         return this;
     }
-    public Shape toggle() {
+    public final Shape toggle() {
         if( isToggleable() ) {
-            toggle = !toggle;
+            setIO(IO_TOGGLE, !isToggleOn());
             if( null != onToggleListener ) {
                 onToggleListener.run(this);
             }
@@ -1180,16 +1184,16 @@ public abstract class Shape {
         return this;
     }
     /** Returns true this shape's toggle state. */
-    public boolean isToggleOn() { return toggle; }
+    public final boolean isToggleOn() { return isIO(IO_TOGGLE); }
 
-    protected void setActive(final boolean v) {
-        active = v;
+    protected final void setActive(final boolean v) {
+        setIO(IO_ACTIVE, v);
         if( null != onActivationListener ) {
             onActivationListener.run(this);
         }
     }
     /** Returns true of this shape is active */
-    public boolean isActive() { return active; }
+    public final boolean isActive() { return isIO(IO_ACTIVE); }
 
     /**
      * Set whether this shape is interactive,
@@ -1204,12 +1208,12 @@ public abstract class Shape {
      * @see #setResizable(boolean)
      * @see #setDragAndResizeable(boolean)
      */
-    public Shape setInteractive(final boolean v) { interactive = v; return this; }
+    public final Shape setInteractive(final boolean v) { setIO(IO_INTERACTIVE, v); return this; }
     /**
      * Returns if this shape allows user interaction, see {@link #setInteractive(boolean)}
      * @see #setInteractive(boolean)
      */
-    public boolean isInteractive() { return interactive; }
+    public final boolean isInteractive() { return isIO(IO_INTERACTIVE); }
 
     /**
      * Set whether this shape is draggable,
@@ -1222,15 +1226,12 @@ public abstract class Shape {
      * @see #setResizable(boolean)
      * @see #setDragAndResizeable(boolean)
      */
-    public Shape setDraggable(final boolean draggable) {
-        this.draggable = draggable;
-        return this;
-    }
+    public final Shape setDraggable(final boolean draggable) { setIO(IO_DRAGGABLE, draggable); return this; }
     /**
      * Returns if this shape is draggable, a user interaction.
      * @see #setDraggable(boolean)
      */
-    public boolean isDraggable() { return draggable; }
+    public final boolean isDraggable() { return isIO(IO_DRAGGABLE); }
 
     /**
      * Set whether this shape is resizable,
@@ -1243,26 +1244,26 @@ public abstract class Shape {
      * @see #setDraggable(boolean)
      * @see #setDragAndResizeable(boolean)
      */
-    public Shape setResizable(final boolean resizable) { this.resizable = resizable; return this; }
+    public final Shape setResizable(final boolean resizable) { setIO(IO_RESIZABLE, resizable); return this; }
 
     /**
      * Returns if this shape is resiable, a user interaction.
      * @see #setResizable(boolean)
      */
-    public boolean isResizable() { return resizable; }
+    public final boolean isResizable() { return isIO(IO_RESIZABLE); }
 
     /**
      * Returns if aspect-ratio shall be kept at resize, if {@link #isResizable()}.
      * @see #setFixedARatioResize(boolean)
      */
-    public boolean isFixedARatioResize() { return resizeFixedARatio; }
+    public final boolean isFixedARatioResize() { return isIO(IO_RESIZE_FIXED_RATIO); }
 
     /**
      * Sets whether aspect-ratio shall be kept at resize, if {@link #isResizable()}.
      * @see #isResizable()
      * @see #isFixedARatioResize()
      */
-    public Shape setFixedARatioResize(final boolean v) { resizeFixedARatio = v; return this; }
+    public final Shape setFixedARatioResize(final boolean v) { setIO(IO_RESIZE_FIXED_RATIO, v); return this; }
 
     /**
      * Set whether this shape is draggable and resizable.
@@ -1275,9 +1276,9 @@ public abstract class Shape {
      * @see #setDraggable(boolean)
      * @see #setResizable(boolean)
      */
-    public Shape setDragAndResizeable(final boolean v) {
-        this.draggable = v;
-        this.resizable = v;
+    public final Shape setDragAndResizeable(final boolean v) {
+        setDraggable(v);
+        setResizable(v);
         return this;
     }
 
@@ -1420,7 +1421,7 @@ public abstract class Shape {
                     final float maxy_br = box.getMinY() + box.getHeight() * resize_section;
                     if( minx_br <= ix && ix <= maxx_br &&
                         miny_br <= iy && iy <= maxy_br ) {
-                        if( interactive && resizable ) {
+                        if( isInteractive() && isResizable() ) {
                             inResize = 1; // bottom-right
                         }
                     } else {
@@ -1430,11 +1431,11 @@ public abstract class Shape {
                         final float maxy_bl = box.getMinY() + box.getHeight() * resize_section;
                         if( minx_bl <= ix && ix <= maxx_bl &&
                             miny_bl <= iy && iy <= maxy_bl ) {
-                            if( interactive && resizable ) {
+                            if( isInteractive() && isResizable() ) {
                                 inResize = 2; // bottom-left
                             }
                         } else {
-                            inMove = interactive && draggable;
+                            inMove = isInteractive() && isDraggable();
                         }
                     }
                     if( DEBUG ) {
@@ -1464,7 +1465,7 @@ public abstract class Shape {
                         } else {
                             sx = scale.x() - sdx/bw; // bottom-left
                         }
-                        if( resizeFixedARatio ) {
+                        if( isFixedARatioResize() ) {
                             sy = sx;
                             sdy2  = bh * ( scale.y() - sy );
                         } else {
@@ -1543,7 +1544,7 @@ public abstract class Shape {
      * @param objPos object position of mouse event relative to this shape
      */
     /* pp */ final void dispatchGestureEvent(final GestureEvent e, final int glWinX, final int glWinY, final PMVMatrix4f pmv, final Recti viewport, final Vec3f objPos) {
-        if( interactive && resizable && e instanceof PinchToZoomGesture.ZoomEvent ) {
+        if( isInteractive() && isResizable() && e instanceof PinchToZoomGesture.ZoomEvent ) {
             final PinchToZoomGesture.ZoomEvent ze = (PinchToZoomGesture.ZoomEvent) e;
             final float pixels = ze.getDelta() * ze.getScale(); //
             final int winX2 = glWinX + Math.round(pixels);
