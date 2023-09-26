@@ -52,6 +52,7 @@ import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Quaternion;
+import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
@@ -605,28 +606,37 @@ public class UISceneDemo03 {
 
         final float buttonWidth = sceneBox.getWidth() * 0.09f;
         final float buttonHeight = buttonWidth / 3.0f;
+        final float buttonZOffset = scene.getZEpsilon(16);
+        final Vec2f fixedSymSize = new Vec2f(0.0f, 1.0f);
+        final Vec2f symSpacing = new Vec2f(0f, 0.2f);
 
         buttonsRight.setLayout(new GridLayout(buttonWidth, buttonHeight, Alignment.Fill, new Gap(buttonHeight*0.50f, buttonWidth*0.10f), 7));
         {
-            final Button button = new Button(options.renderModes, fontSymbols, " "+fontSymbols.getUTF16String("pause")+" ", buttonWidth, buttonHeight); // pause
-            button.setToggleable(true);
-            button.addMouseListener(new Shape.MouseGestureAdapter() {
-                @Override
-                public void mouseClicked(final MouseEvent e) {
-                    animGroup.setTickPaused ( !animGroup.getTickPaused() );
-                    System.err.println("Tick Paused: "+animGroup.getTickPaused());
+            final Button button = new Button(options.renderModes, fontSymbols,
+                        fontSymbols.getUTF16String("play_arrow"),  fontSymbols.getUTF16String("pause"),
+                        buttonWidth, buttonHeight, buttonZOffset);
+            button.setSpacing(symSpacing, fixedSymSize);
+            button.onToggle((final Shape s) -> {
+                System.err.println("Play/Pause "+s);
+                animGroup.setTickPaused ( s.isToggleOn() );
+                if( s.isToggleOn() ) {
+                    animGroup.setTickPaused ( false );
                     if( null != mPlayer ) {
-                        if( animGroup.getTickPaused() ) {
-                            mPlayer.pause(false);
-                        } else {
-                            mPlayer.resume();
-                        }
+                        mPlayer.resume();
                     }
-                } } );
+                } else {
+                    animGroup.setTickPaused ( true );
+                    if( null != mPlayer ) {
+                        mPlayer.pause(false);
+                    }
+                }
+            });
+            button.setToggle(true); // on == play
             buttonsRight.addShape(button);
         }
         {
-            final Button button = new Button(options.renderModes, fontSymbols, " "+fontSymbols.getUTF16String("fast_forward")+" ", buttonWidth, buttonHeight); // next (ffwd)
+            final Button button = new Button(options.renderModes, fontSymbols, fontSymbols.getUTF16String("fast_forward"), buttonWidth, buttonHeight, buttonZOffset); // next (ffwd)
+            button.setSpacing(symSpacing, fixedSymSize);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -638,17 +648,18 @@ public class UISceneDemo03 {
             buttonsRight.addShape(button);
         }
         {
-            final Button button = new Button(options.renderModes, fontSymbols, " "+fontSymbols.getUTF16String("replay")+" ", buttonWidth, buttonHeight); // rotate (replay)
+            final Button button = new Button(options.renderModes, fontSymbols,
+                    fontSymbols.getUTF16String("rotate_right"), fontSymbols.getUTF16String("stop_circle"),
+                    buttonWidth, buttonHeight, buttonZOffset); // rotate (replay)
+            button.setSpacing(symSpacing, fixedSymSize);
             button.setToggleable(true);
-            button.addMouseListener(new Shape.MouseGestureAdapter() {
-                @Override
-                public void mouseClicked(final MouseEvent e) {
-                    animGroup.toggle();
-                } } );
+            button.onToggle((final Shape s) -> {
+                animGroup.toggle();
+            });
             buttonsRight.addShape(button);
         }
         {
-            final Button button = new Button(options.renderModes, fontButtons, " < Rot > ", buttonWidth, buttonHeight);
+            final Button button = new Button(options.renderModes, fontButtons, " < Rot > ", buttonWidth, buttonHeight, buttonZOffset);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -668,7 +679,7 @@ public class UISceneDemo03 {
             buttonsRight.addShape(button);
         }
         {
-            final Button button = new Button(options.renderModes, fontButtons, " < Velo > ", buttonWidth, buttonHeight);
+            final Button button = new Button(options.renderModes, fontButtons, " < Velo > ", buttonWidth, buttonHeight, buttonZOffset);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -687,7 +698,8 @@ public class UISceneDemo03 {
             buttonsRight.addShape(button);
         }
         {
-            final Button button = new Button(options.renderModes, fontSymbols, " "+fontSymbols.getUTF16String("camera")+" ", buttonWidth, buttonHeight); // snapshot (camera)
+            final Button button = new Button(options.renderModes, fontSymbols, fontSymbols.getUTF16String("camera"), buttonWidth, buttonHeight, buttonZOffset); // snapshot (camera)
+            button.setSpacing(symSpacing, fixedSymSize);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -697,7 +709,8 @@ public class UISceneDemo03 {
             buttonsRight.addShape(button);
         }
         {
-            final Button button = new Button(options.renderModes, fontSymbols, " "+fontSymbols.getUTF16String("power_settings_new")+" ", buttonWidth, buttonHeight); // exit (power_settings_new)
+            final Button button = new Button(options.renderModes, fontSymbols, fontSymbols.getUTF16String("power_settings_new"), buttonWidth, buttonHeight, buttonZOffset); // exit (power_settings_new)
+            button.setSpacing(symSpacing, fixedSymSize);
             button.setColor(0.7f, 0.3f, 0.3f, 1.0f);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override

@@ -487,12 +487,12 @@ public class UIShapeDemo01 implements GLEventListener {
                 button.move(button.getWidth()/10f, 0f, 0f);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_4){
-                button.setSpacing(button.getSpacingX()-0.01f, button.getSpacingY()-0.005f);
-                System.err.println("Button Spacing: " + button.getSpacingX());
+                button.setSpacing(button.getSpacing().x()-0.01f, button.getSpacing().y()-0.005f);
+                System.err.println("Button Spacing: " + button.getSpacing());
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_5){
-                button.setSpacing(button.getSpacingX()+0.01f, button.getSpacingY()+0.005f);
-                System.err.println("Button Spacing: " + button.getSpacingX());
+                button.setSpacing(button.getSpacing().x()+0.01f, button.getSpacing().y()+0.005f);
+                System.err.println("Button Spacing: " + button.getSpacing());
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_6){
                 button.setCorner(button.getCorner()-0.01f);

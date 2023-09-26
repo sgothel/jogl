@@ -485,6 +485,7 @@ public class FontView01 {
                           final Font fontStatus, final Font fontInfo, final Shape.MouseGestureListener glyphMouseListener) {
         gridDim.nextLine = Math.min(gridDim.start + gridDim.columns,   gridDim.contourChars.size()-1);
         gridDim.nextPage = Math.min(gridDim.start + gridDim.elemCount, gridDim.contourChars.size()-1);
+        final AABBox tmpBox = new AABBox();
         for(int idx = gridDim.start; idx < gridDim.nextPage; ++idx) {
             final char codepoint = gridDim.contourChars.get(idx);
             final Font.Glyph fg = font.getGlyph(codepoint);
@@ -495,7 +496,7 @@ public class FontView01 {
 
             // grid.addShape( g ); // GridLayout handles bottom-left offset and scale
             // Group each GlyphShape with its bounding box Rectangle
-            final AABBox gbox = fg.getBounds(); // g.getBounds(glp);
+            final AABBox gbox = fg.getBounds(tmpBox); // g.getBounds(glp);
             final boolean addUnderline = showUnderline && gbox.getMinY() < 0f;
             final Group c1 = new Group( new BoxLayout( 1f, 1f, addUnderline ? Alignment.None : Alignment.Center) );
             c1.setBorder(0.02f).setBorderColor(0, 0, 0, 1).setInteractive(true).setDragAndResizeable(false);

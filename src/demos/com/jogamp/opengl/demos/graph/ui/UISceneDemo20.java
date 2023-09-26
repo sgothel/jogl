@@ -57,6 +57,7 @@ import com.jogamp.graph.ui.shapes.ImageButton;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
@@ -335,7 +336,7 @@ public class UISceneDemo20 implements GLEventListener {
         for(final Shape s : sl) {
             if( s instanceof Button ) {
                 final Button lb = (Button) s;
-                final float sx = lb.getSpacingX()+dx, sy = lb.getSpacingY()+dy;
+                final float sx = lb.getSpacing().x()+dx, sy = lb.getSpacing().y()+dy;
                 System.err.println("Spacing: X "+sx+", Y "+sy);
                 lb.setSpacing(sx, sy);
             }
@@ -476,9 +477,12 @@ public class UISceneDemo20 implements GLEventListener {
         buttonsRight.setLayout(new GridLayout(1, buttonRWidth, buttonRHeight, Alignment.Fill, new Gap(buttonLHeight*0.50f, buttonLWidth*0.10f)));
 
         System.err.println("Button Size: "+buttonLWidth+" x "+buttonLHeight);
+        final Vec2f fixedSymSize = new Vec2f(0.0f, 1.0f);
+        final Vec2f symSpacing = new Vec2f(0f, 0.2f);
 
         BaseButton button;
-        button = new Button(renderModes, fontSymbols, " "+fontSymbols.getUTF16String("fast_forward")+" ", buttonLWidth, buttonLHeight); // next (ffwd)
+        button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("fast_forward"), buttonLWidth, buttonLHeight); // next (ffwd)
+        ((Button)button).setSpacing(symSpacing, fixedSymSize);
         button.setName(BUTTON_NEXTTEXT);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
@@ -533,7 +537,7 @@ public class UISceneDemo20 implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttonsLeft.addShape(button);
 
-        button = new Button(renderModes, fontButtons, "< Tilt >", buttonLWidth, buttonLHeight);
+        button = new Button(renderModes, fontButtons, " < Tilt > ", buttonLWidth, buttonLHeight);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
@@ -595,7 +599,8 @@ public class UISceneDemo20 implements GLEventListener {
             buttonsLeft.addShape(button);
         }
 
-        button = new Button(renderModes, fontSymbols, " "+fontSymbols.getUTF16String("power_settings_new")+" ", buttonLWidth, buttonLHeight); // exit (power_settings_new)
+        button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("power_settings_new"), buttonLWidth, buttonLHeight); // exit (power_settings_new)
+        ((Button)button).setSpacing(symSpacing, fixedSymSize);
         button.setName(BUTTON_QUIT);
         button.setColor(0.7f, 0.3f, 0.3f, 1.0f);
         ((Button)button).setLabelColor(1.2f, 1.2f, 1.2f);
@@ -610,7 +615,8 @@ public class UISceneDemo20 implements GLEventListener {
 
         // second column to the left
         {
-            button = new Button(renderModes, fontSymbols, " "+fontSymbols.getUTF16String("flip")+" ", buttonLWidth, buttonLHeight); // Y Flip (flip)
+            button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("flip"), buttonLWidth, buttonLHeight); // Y Flip (flip)
+            ((Button)button).setSpacing(symSpacing, fixedSymSize);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -619,7 +625,7 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
             buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontButtons, "X Flip", buttonLWidth, buttonLHeight);
+            button = new Button(renderModes, fontButtons, " X Flip ", buttonLWidth, buttonLHeight);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -666,7 +672,8 @@ public class UISceneDemo20 implements GLEventListener {
                 } } );
             buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontSymbols, " "+fontSymbols.getUTF16String("undo")+" ", buttonLWidth, buttonLHeight); // reset (undo)
+            button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("undo"), buttonLWidth, buttonLHeight); // reset (undo)
+            ((Button)button).setSpacing(symSpacing, fixedSymSize);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {
@@ -675,7 +682,8 @@ public class UISceneDemo20 implements GLEventListener {
             button.addMouseListener(dragZoomRotateListener);
             buttonsLeft.addShape(button);
 
-            button = new Button(renderModes, fontSymbols, " "+fontSymbols.getUTF16String("camera")+" ", buttonLWidth, buttonLHeight); // snapshot (camera)
+            button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("camera"), buttonLWidth, buttonLHeight); // snapshot (camera)
+            ((Button)button).setSpacing(symSpacing, fixedSymSize);
             button.addMouseListener(new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseClicked(final MouseEvent e) {

@@ -38,7 +38,6 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
-import com.jogamp.graph.ui.Scene.PMVMatrixSetup;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
@@ -80,9 +79,10 @@ public class Button extends BaseButton {
     public static final float DEFAULT_LABEL_ZOFFSET = 0.000153f; // 0.00015256461 = 16 zBits, -1 zDist, 0.1 zNear, i.e. FloatUtil.getZBufferEpsilon(16, -1f, 0.1f)
     private float labelZOffset;
 
-    private final Label0 label;
-    private float spacingX = DEFAULT_SPACING_X;
-    private float spacingY = DEFAULT_SPACING_Y;
+    private final Label0 labelOff, labelOn;
+    private volatile Label0 labelNow;
+    private final Vec2f spacing = new Vec2f(DEFAULT_SPACING_X, DEFAULT_SPACING_Y);
+    private final Vec2f fixedLabelSize = new Vec2f(0, 0);
 
     /**
      * Create a text labeled button Graph based {@link GLRegion} UI {@link Shape}.
@@ -100,7 +100,7 @@ public class Button extends BaseButton {
      */
     public Button(final int renderModes, final Font labelFont, final CharSequence labelText,
                   final float width, final float height) {
-        this(renderModes, labelFont, labelText, width, height, DEFAULT_LABEL_ZOFFSET);
+        this(renderModes, labelFont, labelText, null, width, height, DEFAULT_LABEL_ZOFFSET);
     }
 
     /**
@@ -115,15 +115,58 @@ public class Button extends BaseButton {
      */
     public Button(final int renderModes, final Font labelFont, final CharSequence labelText,
                   final float width, final float height, final float zOffset) {
+        this(renderModes, labelFont, labelText, null, width, height, zOffset);
+    }
+
+    /**
+     * Create a text labeled button Graph based {@link GLRegion} UI {@link Shape}.
+     * <p>
+     * If {@code labelTextOn} is not {@code null}, constructor enables {@link #setToggleable(boolean) toggle-able} mode
+     * to automatically switch the labels depending on {@Link #isToggleOn()}.
+     * </p>
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
+     * @param labelFont {@link Font} for the label
+     * @param labelTextOff the label text of the toggle-off state (current at creation), see {@link #isToggleOn()}
+     * @param labelTextOn optional label text of the toggle-on state, see {@link #isToggleOn()}. If not {@code null}, enables {@link #setToggleable(boolean) toggle-able} mode.
+     * @param width width of the button
+     * @param height height of the button
+     * @param zOffset the Z-axis offset, used to separate the {@link BaseButton} from the {@link Label}
+     * @see FloatUtil#getZBufferEpsilon(int, float, float)
+     */
+    public Button(final int renderModes, final Font labelFont, final CharSequence labelTextOff, final CharSequence labelTextOn,
+                  final float width, final float height, final float zOffset) {
         super(renderModes | Region.COLORCHANNEL_RENDERING_BIT, width, height);
         this.labelZOffset = zOffset;
-        this.label = new Label0(labelFont, labelText, new Vec4f( 1.66f, 1.66f, 1.66f, 1.0f )); // 0.60 * 1.66 ~= 1.0
+        this.labelOff = new Label0(labelFont, labelTextOff, new Vec4f( 1.66f, 1.66f, 1.66f, 1.0f )); // 0.60 * 1.66 ~= 1.0
+        this.labelNow = this.labelOff;
+        if( null != labelTextOn ) {
+            this.labelOn = new Label0(labelFont, labelTextOn, new Vec4f( 1.66f, 1.66f, 1.66f, 1.0f )); // 0.60 * 1.66 ~= 1.0
+            this.setToggleable(true);
+        } else {
+            this.labelOn = null;
+        }
+    }
+
+    @Override
+    protected void toggleNotify(final boolean on) {
+        int i=0;
+        if( null != labelOn ) {
+            if( on ) {
+                labelNow = labelOn;
+                i = 1;
+            } else {
+                labelNow = labelOff;
+                i = -1;
+            }
+            markShapeDirty();
+        }
     }
 
     /** Returns the label {@link Font}. */
-    public Font getFont() { return label.getFont(); }
-    /** Returns the label text. */
-    public CharSequence getText() { return label.getText(); }
+    public Font getFont() { return labelNow.getFont(); }
+
+    /** Returns the text of the current label. */
+    public CharSequence getText() { return labelNow.getText(); }
 
     @Override
     public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
@@ -147,38 +190,42 @@ public class Button extends BaseButton {
 
         // Sum Region buffer size of base-shape + text
         final int[/*2*/] vertIndexCount = Region.countOutlineShape(shape, new int[2]);
-        TextRegionUtil.countStringRegion(label.getFont(), label.getText(), vertIndexCount);
+        TextRegionUtil.countStringRegion(labelNow.getFont(), labelNow.getText(), vertIndexCount);
         resetGLRegion(glp, gl, null, vertIndexCount[0], vertIndexCount[1]);
 
         region.addOutlineShape(shape, null, rgbaColor);
 
         // Precompute text-box size .. guessing pixelSize
-        final float lw = box.getWidth() * ( 1f - spacingX ) ;
-        final float lh = box.getHeight() * ( 1f - spacingY ) ;
-        final AABBox lbox0_em = label.getFont().getGlyphBounds(label.getText(), tempT1, tempT2);
-        // final AABBox lbox0_em = label.getFont().getGlyphShapeBounds(null, label.getText(), tempT1, tempT2);
-        final float lsx = lw / lbox0_em.getWidth();
-        final float lsy = lh / lbox0_em.getHeight();
+        final AABBox lbox0_em = labelNow.getFont().getGlyphBounds(labelNow.getText(), tempT1, tempT2);
+        final float lw = box.getWidth() * ( 1f - spacing.x() ) ;
+        final float lsx = lw / Math.max(fixedLabelSize.x(), lbox0_em.getWidth());
+        final float lh = box.getHeight() * ( 1f - spacing.y() ) ;
+        final float lsy = lh / Math.max(fixedLabelSize.y(), lbox0_em.getHeight());
         final float lScale = lsx < lsy ? lsx : lsy;
 
         // Setting left-corner transform using text-box in font em-size [0..1]
-        final AABBox lbox1_s = new AABBox(lbox0_em).scale2(lScale);
+        final AABBox lbox0_s = new AABBox(lbox0_em).scale2(lScale);
         // Center text .. (share same center w/ button)
-        final Vec3f lctr = lbox1_s.getCenter();
+        final Vec3f lctr = lbox0_s.getCenter();
         final Vec3f ctr = box.getCenter();
         final Vec2f ltxy = new Vec2f(ctr.x() - lctr.x(), ctr.y() - lctr.y() );
 
         if( DEBUG_DRAW ) {
-            System.err.println("Button: dim "+width+" x "+height+", spacing "+spacingX+", "+spacingY);
-            System.err.println("Button: net-text "+lw+" x "+lh);
-            System.err.println("Button: shape "+box);
-            System.err.println("Button: text_em "+lbox0_em+" em, "+label.getText());
+            System.err.println("Button: dim "+width+" x "+height+", spacing "+spacing+", fixedLabelSize "+fixedLabelSize);
+            System.err.println("Button: text0_em "+lbox0_em+" em, "+labelNow.getText());
+            System.err.println("Button: shape   "+box);
+            System.err.println("Button: text-space "+lw+" x "+lh);
             System.err.println("Button: lscale "+lsx+" x "+lsy+" -> "+lScale);
-            System.err.printf ("Button: text_s  %s%n", lbox1_s);
+            System.err.printf ("Button: text0_s  %s%n", lbox0_s);
             System.err.printf ("Button: ltxy %s, %f / %f%n", ltxy, ltxy.x() * lScale, ltxy.y() * lScale);
+            final float x0 = ( box.getWidth() - lbox0_s.getWidth() ) * 0.5f;
+            final float y0 = ( box.getHeight() - lbox0_s.getHeight() ) * 0.5f;
+            final AABBox lbox3 = new AABBox(new Vec3f(x0, y0, 0), new Vec3f(x0 + lbox0_s.getWidth(), y0 + lbox0_s.getHeight(), 0));
+            addRectangle(region, this.oshapeSharpness, lbox3, null, 0.0001f, new Vec4f(0, 0, 0, 1));
+            System.err.printf("Button.X: lbox3 %s%n", lbox3);
         }
 
-        final AABBox lbox2 = label.addShapeToRegion(lScale, region, ltxy, tempT1, tempT2, tempT3);
+        final AABBox lbox2 = labelNow.addShapeToRegion(lScale, region, ltxy, tempT1, tempT2, tempT3);
         box.resize(lbox2);
         if( DEBUG_DRAW ) {
             System.err.printf("Button.X: lbox2 %s%n", lbox2);
@@ -215,61 +262,115 @@ public class Button extends BaseButton {
         return setLabelZOffset( FloatUtil.getZBufferEpsilon(zBits, zDist, zNear) );
     }
 
-    public final float getSpacingX() { return spacingX; }
-    public final float getSpacingY() { return spacingY; }
+    /** Returns the current fixed label font size, see {@Link #setFixedLabelSize(Vec2f)} and {@link #setSpacing(Vec2f, Vec2f)}. */
+    public final Vec2f getFixedLabelSize() { return fixedLabelSize; }
 
     /**
-     * In percent of text label
+     * Sets fixed label font size clipped to range [0 .. 1], defaults to {@code 0, 0}.
+     * <p>
+     * Use {@code w=0, h=1} when using single symbols from fixed sized symbol fonts!
+     * Use {@link #setSpacing(Vec2f, Vec2f)} to also set spacing.
+     * </p>
+     * <p>
+     * The fixed label font size is used as the denominator when scaling.{@code max(fixedLabelSize, fontLabelSize)},
+     * hence reasonable values are either {@code 1} to enable using the given font-size
+     * for the axis or {@code 0} to scale up/down the font to match the button box less spacing for the axis.
+     * </p>
+     * @see #setSpacing(Vec2f, Vec2f)
+     * @see #setSpacing(Vec2f)
+     */
+    public final Button setFixedLabelSize(final float w, final float h) {
+        fixedLabelSize.set(
+            Math.max(0f, Math.min(1f, w)),
+            Math.max(0f, Math.min(1f, h)) );
+        markShapeDirty();
+        return this;
+    }
+    public final Button setFixedLabelSize(final Vec2f v) {
+        return setFixedLabelSize(v.x(), v.y());
+    }
+
+    /** Returns the current spacing size, see {@Link #setSpacing(Vec2f)} and {@link #setSpacing(Vec2f, Vec2f)}. */
+    public final Vec2f getSpacing() { return spacing; }
+
+    /**
+     * Sets spacing in percent of text label, clipped to range [0 .. 1].
      * @param spacingX spacing in percent on X, default is {@link #DEFAULT_SPACING_X}
      * @param spacingY spacing in percent on Y, default is {@link #DEFAULT_SPACING_Y}
+     * @see #setSpacing(Vec2f)
+     * @see #setSpacing(Vec2f, Vec2f)
      */
     public final Button setSpacing(final float spacingX, final float spacingY) {
-        if ( spacingX < 0.0f ) {
-            this.spacingX = 0.0f;
-        } else if ( spacingX > 1.0f ) {
-            this.spacingX = 1.0f;
-        } else {
-            this.spacingX = spacingX;
-        }
-        if ( spacingY < 0.0f ) {
-            this.spacingY = 0.0f;
-        } else if ( spacingY > 1.0f ) {
-            this.spacingY = 1.0f;
-        } else {
-            this.spacingY = spacingY;
-        }
+        spacing.set(
+            Math.max(0f, Math.min(1f, spacingX)),
+            Math.max(0f, Math.min(1f, spacingY)) );
         markShapeDirty();
         return this;
     }
+    /**
+     * Sets spacing in percent of text label, clipped to range [0 .. 1].
+     * @param spacingX spacing in percent on X, default is {@link #DEFAULT_SPACING_X}
+     * @param spacingY spacing in percent on Y, default is {@link #DEFAULT_SPACING_Y}
+     * @see #setSpacing(Vec2f, Vec2f)
+     */
+    public final Button setSpacing(final Vec2f spacing) {
+        return setSpacing(spacing.x(), spacing.y());
+    }
+    /**
+     * Sets spacing {@link #setSpacing(Vec2f)} and fixed label font size {@link #setFixedLabelSize(Vec2f)} for convenience.
+     * @see #setSpacing(Vec2f)
+     * @see #setFixedLabelSize(Vec2f)
+     */
+    public final Button setSpacing(final Vec2f spacing, final Vec2f fixedLabelSize) {
+        setSpacing(spacing.x(), spacing.y());
+        setFixedLabelSize(fixedLabelSize.x(), fixedLabelSize.y());
+        return this;
+    }
 
+    /** Returns the label color. */
     public final Vec4f getLabelColor() {
-        return label.getColor();
+        return labelNow.getColor();
     }
 
+    /** Sets the label color. */
     public final Button setLabelColor(final float r, final float g, final float b) {
-        label.setColor(r, g, b, 1.0f);
+        labelOff.setColor(r, g, b, 1.0f);
+        if( null != labelOn ) {
+            labelOn.setColor(r, g, b, 1.0f);
+        }
         markShapeDirty();
         return this;
     }
 
+    /** Sets the label font. */
     public final Button setFont(final Font labelFont) {
-        if( !label.getFont().equals(labelFont) ) {
-            label.setFont(labelFont);
+        if( !labelOff.getFont().equals(labelFont) ) {
+            labelOff.setFont(labelFont);
             markShapeDirty();
+        }
+        if( null != labelOn ) {
+            if( !labelOn.getFont().equals(labelFont) ) {
+                labelOn.setFont(labelFont);
+                markShapeDirty();
+            }
         }
         return this;
     }
+
+    /** Sets the current label text. */
     public final Button setText(final CharSequence labelText) {
-        if( !label.getText().equals(labelText) ) {
-            label.setText(labelText);
+        if( !labelNow.getText().equals(labelText) ) {
+            labelNow.setText(labelText);
             markShapeDirty();
         }
         return this;
     }
+
+    /** Sets the current label text. */
     public final Button setText(final Font labelFont, final CharSequence labelText) {
-        if( !label.getText().equals(labelText) || !label.getFont().equals(labelFont) ) {
-            label.setFont(labelFont);
-            label.setText(labelText);
+        if( !labelNow.getText().equals(labelText) || !labelNow.getFont().equals(labelFont) ) {
+            labelNow.setFont(labelFont);
+            labelNow.setText(labelText);
             markShapeDirty();
         }
         return this;
@@ -277,6 +378,9 @@ public class Button extends BaseButton {
 
     @Override
     public String getSubString() {
-        return super.getSubString()+", "+ label + ", " + "spacing["+spacingX+", "+spacingY+"], zOff "+labelZOffset;
+        final String onS = null != labelOn ? ( labelOn + (labelNow == labelOn ? "*" : "" ) + ", " ) : "";
+        final String offS = labelOff + (labelNow == labelOff ? "*" : "" ) + ", ";
+        final String flsS = fixedLabelSize.isZero() ? "" : "fixedLabelSize["+fixedLabelSize+"], ";
+        return super.getSubString()+", "+ offS + onS + "spacing["+spacing+"], "+flsS+"zOff "+labelZOffset;
     }
 }
