@@ -498,7 +498,7 @@ public class UISceneDemo20 implements GLEventListener {
         button.addMouseListener(dragZoomRotateListener);
         buttonsLeft.addShape(button);
 
-        button = new Button(renderModes, fontButtons, "Show fps", buttonLWidth, buttonLHeight);
+        button = new Button(renderModes, fontButtons, "Show fps", "Hide fps", buttonLWidth, buttonLHeight, Button.DEFAULT_LABEL_ZOFFSET);
         button.setName(BUTTON_FPS);
         button.setToggleable(true);
         button.setToggle(fpsLabel.isEnabled());
@@ -1125,6 +1125,7 @@ public class UISceneDemo20 implements GLEventListener {
             labels[currentText].setScale(sceneHeight, sceneHeight, 1f);
             labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
             labels[currentText].setEnabled(enableOthers);
+            labels[currentText].setFixedARatioResize(true);
             labels[currentText].validate(gl);
             labels[currentText].move(dxMiddle,
                     dyTop - jogampLabel.getScaledLineHeight()
