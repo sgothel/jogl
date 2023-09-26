@@ -335,19 +335,10 @@ public class GridLayout implements Group.Layout {
                         diffBL.setX(0); // only adjust negative if !center-horiz
                     }
                     diffBL.scale(s.getScale()).scale(-1f);
-                    s.move( diffBL.scale(sxy) );
-                } else if( diffBL.x() < 0 || diffBL.y() < 0 ) {
-                    if( diffBL.x() > 0 ) {
-                        diffBL.setX(0);
-                    }
-                    if( diffBL.y() > 0 ) {
-                        diffBL.setY(0);
-                    }
-                    diffBL.scale(s.getScale()).scale(-1f);
-                    s.move( diffBL.scale(sxy) );
                 } else {
-                    diffBL.set(0, 0, 0);
+                    diffBL.min(new Vec3f()).scale(s.getScale()).scale(-1f);
                 }
+                s.move( diffBL.scale(sxy) );
                 if( TRACE_LAYOUT ) {
                     System.err.println("gl("+i+")["+col_i+"]["+row_i+"].bl: sbox0 "+s.getBounds()+", diffBL_ "+diffBL);
                 }
