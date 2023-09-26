@@ -1179,12 +1179,17 @@ public abstract class Shape {
 
     public final Shape setToggle(final boolean v) {
         setIO(IO_TOGGLE, v);
+        toggleNotify(v);
+        if( null != onToggleListener ) {
+            onToggleListener.run(this);
+        }
         markStateDirty();
         return this;
     }
     public final Shape toggle() {
         if( isToggleable() ) {
             setIO(IO_TOGGLE, !isToggleOn());
+            toggleNotify(isToggleOn());
             if( null != onToggleListener ) {
                 onToggleListener.run(this);
             }
@@ -1192,6 +1197,8 @@ public abstract class Shape {
         }
         return this;
     }
+    protected void toggleNotify(final boolean on) {}
+
     /** Returns true this shape's toggle state. */
     public final boolean isToggleOn() { return isIO(IO_TOGGLE); }
 
