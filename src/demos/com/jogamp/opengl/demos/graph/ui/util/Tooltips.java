@@ -77,7 +77,7 @@ public class Tooltips {
             final Label label = (Label)shapeEvent.shape;
             final AABBox textDim = label.getBounds();
             final float l_sxy = sceneHeightScale * sceneDim.getHeight() / textDim.getHeight(); // text width independent
-            buttonLabel = (Button) new Button(renderModes, label.getFont(), label.getText(), textDim.getWidth(), textDim.getHeight(), zEps)
+            buttonLabel = (Button) new Button(renderModes, label.getFont(), label.getText(), textDim.getWidth()+3, textDim.getHeight(), zEps)
                     .setPerp().scale(l_sxy, l_sxy, 1).move(0, 0, 10*zEps)
                     .setColor(0.97f, 0.97f, 0.97f, 0.92f).setBorder(0.05f).setBorderColor(0, 0, 0, 1)
                     .setInteractive(false);

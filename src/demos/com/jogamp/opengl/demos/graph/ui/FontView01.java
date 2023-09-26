@@ -244,7 +244,7 @@ public class FontView01 {
                         glyphInfo.validate(d.getGL().getGL2ES2()); // avoid group re-validate
                         // System.err.println("GlyphInfo "+glyphInfo.getBounds());
                         if( doScreenshot ) {
-                            printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gs.getGlyph().getID());
+                            printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gs.getGlyph().getCodepoint());
                         }
                         return true;
                     });
@@ -405,13 +405,13 @@ public class FontView01 {
             System.err.println("scale sx "+sx+", sy "+sy+", sxy "+sxy);
             mainGrid.scale(sxy, sxy, 1f).moveTo(sceneBox.getLow());
         }
-        printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, 0);
+        printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gridDim.contourChars.get(gridDim.start));
         // stay open ..
     }
 
-    static void printScreenOnGLThread(final Scene scene, final GLCapabilitiesImmutable caps, final Font font, final int glyphID) {
+    static void printScreenOnGLThread(final Scene scene, final GLCapabilitiesImmutable caps, final Font font, final int codepoint) {
         final String fn = font.getFullFamilyName().replace(' ', '_').replace('-', '_');
-        scene.screenshot(true, scene.nextScreenshotFile(null, FontView01.class.getSimpleName(), options.renderModes, caps, fn+"_gid"+glyphID));
+        scene.screenshot(true, scene.nextScreenshotFile(null, FontView01.class.getSimpleName(), options.renderModes, caps, fn+"_cp"+Integer.toHexString(codepoint)));
     }
 
     static class GridDim {
