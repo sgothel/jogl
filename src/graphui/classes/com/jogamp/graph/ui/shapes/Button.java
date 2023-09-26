@@ -61,9 +61,9 @@ import jogamp.graph.ui.shapes.Label0;
  */
 public class Button extends BaseButton {
     /** {@value} */
-    public static final float DEFAULT_SPACING_X = 0.12f;
+    public static final float DEFAULT_SPACING_X = 0.20f;
     /** {@value} */
-    public static final float DEFAULT_SPACING_Y = 0.42f;
+    public static final float DEFAULT_SPACING_Y = 0.46f;
 
     /**
      * Default {@link #setLabelZOffset(float) Z-axis offset},
