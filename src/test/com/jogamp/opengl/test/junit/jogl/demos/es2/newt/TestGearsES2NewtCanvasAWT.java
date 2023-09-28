@@ -116,6 +116,9 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         if(null == wsize) {
             wsize = new Dimension(640, 480);
         }
+        if(null == rwsize) {
+            rwsize = new Dimension(800, 600);
+        }
     }
 
     @AfterClass

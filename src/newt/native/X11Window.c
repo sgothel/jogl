@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -198,7 +198,7 @@ uint32_t NewtWindows_getNET_WM_STATE(Display *dpy, JavaWindow *w) {
     return res;
 }
 
-static JavaWindow* createJavaWindowProperty(JNIEnv *env, Display *dpy, Window root, Window window, 
+static JavaWindow* createJavaWindowProperty(JNIEnv *env, Display *dpy, Window root, Window parentWindow, Window window, 
                                             jlong javaObjectAtom, jlong windowDeleteAtom, jobject obj, Bool verbose) {
     jobject jwindow = (*env)->NewGlobalRef(env, obj);
     JavaWindow * res;
@@ -210,6 +210,7 @@ static JavaWindow* createJavaWindowProperty(JNIEnv *env, Display *dpy, Window ro
             return NULL;
         }
         res = calloc(1, sizeof(JavaWindow));
+        res->parentWindow = parentWindow;
         res->window = window;
         res->jwindow = jwindow;
         res->allAtoms = allAtoms;
@@ -920,7 +921,7 @@ JNIEXPORT jlongArray JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWind
     // XClearWindow(dpy, window);
 
     XSetWMProtocols(dpy, window, &wm_delete_atom, 1); // windowDeleteAtom
-    javaWindow = createJavaWindowProperty(env, dpy, root, window, javaObjectAtom, windowDeleteAtom, obj, verbose);
+    javaWindow = createJavaWindowProperty(env, dpy, root, (Window)parent, window, javaObjectAtom, windowDeleteAtom, obj, verbose);
 
     NewtWindows_setWindowTypeEWMH(dpy, javaWindow, _NET_WM_WINDOW_TYPE_NORMAL_IDX);
     NewtWindows_setDecorations(dpy, javaWindow, TST_FLAG_IS_UNDECORATED(flags) ? False : True );
@@ -1215,8 +1216,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         fsEWMHFlags |= _MASK_NET_WM_STATE_BELOW;         // toggle below
     }
 
-    DBG_PRINT( "X11: reconfigureWindow0 dpy %p, scrn %d, parent %p/%p, win %p, %d/%d %dx%d, parentChange %d, isChild %d, undecorated[change %d, val %d], fullscreen[change %d, val %d (span %d)], alwaysOn[Top[change %d, val %d], Bottom[change %d, val %d]], visible[change %d, val %d, tempInvisible %d], resizable[change %d, val %d], sticky[change %d, val %d], fsEWMHFlags %d\n",
-        (void*)dpy, screen_index, (void*) jparent, (void*)parent, (void*)jw->window,
+    DBG_PRINT( "X11: reconfigureWindow0 dpy %p, scrn %d, parent %p -> %p (%p), win %p, %d/%d %dx%d, parentChange %d, isChild %d, undecorated[change %d, val %d], fullscreen[change %d, val %d (span %d)], alwaysOn[Top[change %d, val %d], Bottom[change %d, val %d]], visible[change %d, val %d, tempInvisible %d], resizable[change %d, val %d], sticky[change %d, val %d], fsEWMHFlags %d\n",
+        (void*)dpy, screen_index, (void*)jw->parentWindow, (void*) jparent, (void*)parent, (void*)jw->window,
         x, y, width, height, 
         TST_FLAG_CHANGE_PARENTING(flags),   TST_FLAG_IS_CHILD(flags),
         TST_FLAG_CHANGE_DECORATION(flags),  TST_FLAG_IS_UNDECORATED(flags),
@@ -1267,7 +1268,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
 
     if( TST_FLAG_CHANGE_PARENTING(flags) && !TST_FLAG_IS_CHILD(flags) ) {
         // TOP: in -> out
-        DBG_PRINT( "X11: reconfigureWindow0 PARENTING in->out\n");
+        DBG_PRINT( "X11: reconfigureWindow0 PARENTING in->out %p -> %p\n", (void*)jw->parentWindow, (void*)jparent);
+        jw->parentWindow = (Window)jparent;
         XReparentWindow( dpy, jw->window, parent, x, y ); // actual reparent call
         #ifdef REPARENT_WAIT_FOR_REPARENT_NOTIFY
             XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) jw->window );
@@ -1313,7 +1315,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
 
     if( TST_FLAG_CHANGE_PARENTING(flags) && TST_FLAG_IS_CHILD(flags) ) {
         // CHILD: out -> in
-        DBG_PRINT( "X11: reconfigureWindow0 PARENTING out->in\n");
+        DBG_PRINT( "X11: reconfigureWindow0 PARENTING out->in %p -> %p\n", (void*)jw->parentWindow, (void*)jparent);
+        jw->parentWindow = (Window)jparent;
         XReparentWindow( dpy, jw->window, parent, x, y ); // actual reparent call
         XFlush(dpy);
         #ifdef REPARENT_WAIT_FOR_REPARENT_NOTIFY

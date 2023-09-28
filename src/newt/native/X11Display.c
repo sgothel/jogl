@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 JogAmp Community. All rights reserved.
+ * Copyright 2011-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -764,11 +764,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                         Window winRoot, winTopParent;
                         Bool translated = False;
                         if( 0 != NewtWindows_getRootAndParent(dpy, evt.xconfigure.window, &winRoot, &winTopParent) ) {
+                            DBG_PRINT( "X11: event . ConfigureNotify call %p (root %p, top %p)\n", 
+                                (void*)evt.xconfigure.window, (void*)winRoot, (void*)winTopParent);
                             int x_return=-1, y_return=-1;
+                            Window winDest = ( winTopParent == jw->parentWindow ) ? winTopParent : winRoot;
                             Window child;
-                            if( True == XTranslateCoordinates(dpy, evt.xconfigure.window, winRoot, 0, 0, &x_return, &y_return, &child) ) {
-                                DBG_PRINT( "X11: event . ConfigureNotify call %p POS (Xtrans) %d/%d -> %d/%d\n", 
-                                    (void*)evt.xconfigure.window, x_pos, y_pos, x_return, y_return);
+                            if( True == XTranslateCoordinates(dpy, evt.xconfigure.window, winDest, 0, 0, &x_return, &y_return, &child) ) {
+                                DBG_PRINT( "X11: event . ConfigureNotify call %p of dest %p POS (Xtrans) %d/%d -> %d/%d (child %p)\n", 
+                                    (void*)evt.xconfigure.window, winDest, x_pos, y_pos, x_return, y_return, child);
                                 x_pos = x_return;
                                 y_pos = y_return;
                                 translated = True;

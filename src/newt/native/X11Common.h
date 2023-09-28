@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 JogAmp Community. All rights reserved.
+ * Copyright 2011-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -83,6 +83,7 @@ typedef struct {
 #define XI_TOUCHCOORD_COUNT 10
 
 typedef struct {
+    Window parentWindow;
     Window window;
     jobject jwindow;
     Atom * allAtoms;

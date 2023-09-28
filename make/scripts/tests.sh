@@ -91,6 +91,7 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
 echo LIBGL_ALWAYS_INDIRECT: $LIBGL_ALWAYS_INDIRECT 2>&1 | tee -a java-run.log
 echo LIBGL_ALWAYS_SOFTWARE: $LIBGL_ALWAYS_SOFTWARE 2>&1 | tee -a java-run.log
 echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
+echo OPENJFX_CLASSPATH: $OPENJFX_CLASSPATH 2>&1 | tee -a java-run.log
 echo MacOsX $MOSX 2>&1 | tee -a java-run.log
 echo DISPLAY $DISPLAY 2>&1 | tee -a java-run.log
 echo WAYLAND_DISPLAY $WAYLAND_DISPLAY 2>&1 | tee -a java-run.log
@@ -109,6 +110,7 @@ function jrun() {
 
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=True -Dsun.java2d.xrender=false"
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=false -Dsun.java2d.xrender=false"
+    #X_ARGS="-Dsun.awt.noerasebackground=true"
     #X_ARGS="-verbose:jni"
     #X_ARGS="-Xcheck:jni"
     #X_ARGS="-Xcheck:jni -verbose:jni"
@@ -329,7 +331,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.NativeWindow"
     #D_ARGS="-Dnativewindow.osx.calayer.bugfree"
     #D_ARGS="-Dnativewindow.debug.ToolkitLock"
-    #D_ARGS="-Djogl.debug.graph.curve.Instance"
+    #D_ARGS="-Djogl.debug.graph.curve"
     #D_ARGS="-Djogl.debug.graph.curve.Instance -Djogl.debug.graph.curve.Triangulation"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.graph.curve.Instance -Djogl.debug.graph.curve.Triangulation"
     #D_ARGS="-Djogl.debug.graph.curve"
@@ -420,6 +422,9 @@ function jrun() {
 
     if [ $swton -eq 1 ] ; then
         export USE_CLASSPATH=$USE_CLASSPATH:$JOGL_SWT_CLASSPATH
+    fi
+    if [ ! -z "$OPENJFX_CLASSPATH" ] ; then
+        export USE_CLASSPATH=$USE_CLASSPATH:$OPENJFX_CLASSPATH
     fi
     if [ ! -z "$CUSTOM_CLASSPATH" ] ; then
         export USE_CLASSPATH=$CUSTOM_CLASSPATH:$USE_CLASSPATH
@@ -532,6 +537,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.ManualHiDPIBufferedImage01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestBug1431NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
@@ -919,6 +925,10 @@ function testawtswt() {
 #testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestBug1431NewtCanvasAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 
 #
 # JavaFX (testjfx)
@@ -1004,7 +1014,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testawt com.jogamp.opengl.demos.es2.GearsES2 $*

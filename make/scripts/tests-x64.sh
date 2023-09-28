@@ -21,6 +21,8 @@ fi
 export SWT_CLASSPATH=`pwd`/lib/swt/gtk-linux-x86_64/swt.jar
 #export SWT_CLASSPATH=/usr/local/projects/JOGL/SWT/swt-4.3.0/gtk-linux-x86_64/swt-debug.jar
 
+#export OPENJFX_CLASSPATH=/usr/share/openjfx/lib/javafx.base.jar:/usr/share/openjfx/lib/javafx.graphics.jar
+
 #JAVA_CMD=/opt-linux-x86_64/zulu19.32.13-ca-jdk19.0.2-linux_x64/bin/java
 JAVA_CMD=`which java`
 
