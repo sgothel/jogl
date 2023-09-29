@@ -1104,6 +1104,7 @@ public abstract class Shape {
      */
     public final Shape setBorderColor(final float r, final float g, final float b, final float a) {
         this.borderColor.set(r, g, b, a);
+        markShapeDirty();
         return this;
     }
 
@@ -1116,6 +1117,7 @@ public abstract class Shape {
      */
     public final Shape setBorderColor(final Vec4f c) {
         this.borderColor.set(c);
+        markShapeDirty();
         return this;
     }
 
