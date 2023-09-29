@@ -1008,11 +1008,15 @@ public final class Scene implements Container, GLEventListener {
         winToShapeCoord(shape, glWinX, glWinY, pmv, objPos, () -> { shape.dispatchMouseEvent(e, glWinX, glWinY, objPos); });
     }
 
-    private class SBCMouseListener implements MouseListener {
-        int lx=-1, ly=-1, lId=-1;
+    private final class SBCMouseListener implements MouseListener {
+        private int lx, ly, lId;
+        private boolean mouseOver;
 
-        void clear() {
-            lx = -1; ly = -1; lId = -1;
+        private SBCMouseListener() {
+            clear();
+        }
+        private final void clear() {
+            lx = -1; ly = -1; lId = -1; mouseOver = false;
         }
 
         @Override
@@ -1034,10 +1038,12 @@ public final class Scene implements Container, GLEventListener {
             final int glWinX = e.getX();
             final int glWinY = getHeight() - e.getY() - 1;
             dispatchMouseEvent(e, glWinX, glWinY);
-            if( 1 == e.getPointerCount() ) {
-                // Release active shape: last pointer has been lifted!
-                releaseActiveShape();
-                clear();
+            if( !mouseOver ) {
+                if( 1 == e.getPointerCount() ) {
+                    // Release active shape: last pointer has been lifted!
+                    releaseActiveShape();
+                    clear();
+                }
             }
         }
 
@@ -1046,11 +1052,15 @@ public final class Scene implements Container, GLEventListener {
             // flip to GL window coordinates
             final int glWinX = e.getX();
             final int glWinY = getHeight() - e.getY() - 1;
-            // activeId should have been released by mouseRelease() already!
-            dispatchMouseEventPickShape(e, glWinX, glWinY);
-            // Release active shape: last pointer has been lifted!
-            releaseActiveShape();
-            clear();
+            if( mouseOver ) {
+                dispatchMouseEvent(e, glWinX, glWinY);
+            } else {
+                // activeId should have been released by mouseRelease() already!
+                dispatchMouseEventPickShape(e, glWinX, glWinY);
+                // Release active shape: last pointer has been lifted!
+                releaseActiveShape();
+                clear();
+            }
         }
 
         @Override
@@ -1085,8 +1095,7 @@ public final class Scene implements Container, GLEventListener {
             }
             final int glWinX = lx;
             final int glWinY = getHeight() - ly - 1;
-            // dispatchMouseEvent(e, glWinX, glWinY);
-            dispatchMouseEventPickShape(e, glWinX, glWinY);
+            mouseOver = dispatchMouseEventPickShape(e, glWinX, glWinY);
         }
         @Override
         public void mouseEntered(final MouseEvent e) { }
