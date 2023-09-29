@@ -735,6 +735,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case YUVJ420P:
         case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
           return
+              "// YUV420P: planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)\n"+
               "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  const vec2 u_off = vec2("+tc_w_1+", 0.0);\n"+
               "  const vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
@@ -754,8 +755,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
           ;
 
         case YUVJ422P:
-        case YUV422P: ///< planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)
+        case YUV422P: // < planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)
           return
+              "// YUV422P: planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)\n"+
               "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  const vec2 u_off = vec2("+tc_w_1+"      , 0.0);\n"+
               "  const vec2 v_off = vec2("+tc_w_1+" * 1.5, 0.0);\n"+
@@ -777,6 +779,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case YUYV422: // < packed YUV 4:2:2, 2 x 16bpp, [Y0 Cb] [Y1 Cr]
                       // Stuffed into RGBA half width texture
           return
+              "// YUYV422: packed YUV 4:2:2, 2 x 16bpp, [Y0 Cb] [Y1 Cr]\n"+
               "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  "+
               "  float y1,u,y2,v,y,r,g,b;\n"+
@@ -799,6 +802,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case UYVY422: // < packed YUV 4:2:2, 2 x 16bpp, Cb Y0 Cr Y1
                       // Stuffed into RGBA half width texture
           return
+              "// UYVY422: packed YUV 4:2:2, 2 x 16bpp, Cb Y0 Cr Y1\n"+
               "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  "+
               "  float y1,u,y2,v,y,r,g,b;\n"+
@@ -821,6 +825,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
         case BGR24:
           return
+              "// BGR24\n"+
               "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  "+
               "  vec3 bgr = texture2D(image, texCoord).rgb;\n"+
