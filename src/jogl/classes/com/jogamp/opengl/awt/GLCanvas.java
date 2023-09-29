@@ -86,6 +86,8 @@ import com.jogamp.opengl.GLSharedContextSetter;
 import com.jogamp.opengl.Threading;
 
 import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.os.Platform.OSType;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.common.util.locks.LockFactory;
@@ -168,6 +170,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                                                 AWTPrintLifecycle, GLSharedContextSetter, ScalableSurface {
 
   private static final boolean DEBUG = Debug.debug("GLCanvas");
+
+  private static JAWTUtil.BackgroundEraseControl backgroundEraseControl = new JAWTUtil.BackgroundEraseControl();
 
   private final RecursiveLock lock = LockFactory.createRecursiveLock();
   private final GLDrawableHelper helper = new GLDrawableHelper();
@@ -589,7 +593,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
              */
 
             // before native peer is valid: X11
-            JAWTUtil.disableBackgroundErase(this);
+            if( OSType.WINDOWS != Platform.getOSType() ) {
+                backgroundEraseControl.disable(this);
+            }
 
             final GraphicsDevice awtDevice;
             if(null==awtDeviceReq) {
@@ -614,7 +620,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             super.addNotify();
 
             // after native peer is valid: Windows
-            JAWTUtil.disableBackgroundErase(this);
+            if( OSType.WINDOWS == Platform.getOSType() ) {
+                backgroundEraseControl.disable(this);
+            }
 
             createJAWTDrawableAndContext();
 

@@ -4,6 +4,12 @@ set J2RE_HOME=c:\jdk-17
 set JAVA_HOME=c:\jdk-17
 set ANT_PATH=C:\apache-ant-1.10.5
 
+REM set LIBGL_DEBUG=verbose
+REM set MESA_DEBUG=true
+set LIBGL_ALWAYS_SOFTWARE=true
+REM set INTEL_DEBUG="buf bat"
+REM set INTEL_STRICT_CONFORMANCE=1
+
 REM set TEMP=C:\Documents and Settings\jogamp\temp
 REM set TMP=C:\Documents and Settings\jogamp\temp
 REM set TEMP=C:\Users\jogamp\temp\no-exec
@@ -25,8 +31,9 @@ set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\atomic\oculusvr.jar;%BLD_D
 echo CP_ALL %CP_ALL%
 
 REM set MODULE_ARGS=--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED
-set MODULE_ARGS=--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED
-set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %MODULE_ARGS%
+set MODULE_ARGS=--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED
+REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %MODULE_ARGS%
+set X_ARGS="-Dsun.java2d.noddraw=true" %MODULE_ARGS%
 
 scripts\tests-win.bat %*
 

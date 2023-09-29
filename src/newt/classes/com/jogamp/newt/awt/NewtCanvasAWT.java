@@ -69,6 +69,8 @@ import jogamp.newt.driver.DriverClearFocus;
 import jogamp.opengl.awt.AWTTilePainter;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.os.Platform.OSType;
 import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
 import com.jogamp.nativewindow.awt.AWTPrintLifecycle;
@@ -99,6 +101,8 @@ import com.jogamp.opengl.util.TileRenderer;
 @SuppressWarnings("serial")
 public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder, WindowClosingProtocol, OffscreenLayerOption, AWTPrintLifecycle {
     public static final boolean DEBUG = Debug.debug("Window");
+
+    private static JAWTUtil.BackgroundEraseControl backgroundEraseControl = new JAWTUtil.BackgroundEraseControl();
 
     private final Object sync = new Object();
     private volatile JAWTWindow jawtWindow = null; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
@@ -589,7 +593,9 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
              * This code order also allows recreation, ie re-adding the GLCanvas.
              */
             // before native peer is valid: X11
-            JAWTUtil.disableBackgroundErase(this);
+            if( OSType.WINDOWS != Platform.getOSType() ) {
+                backgroundEraseControl.disable(this);
+            }
 
             // Query AWT GraphicsDevice from parent tree, default
             final GraphicsConfiguration gc = super.getGraphicsConfiguration();
@@ -607,7 +613,9 @@ public class NewtCanvasAWT extends java.awt.Canvas implements NativeWindowHolder
             super.addNotify();
 
             // after native peer is valid: Windows
-            JAWTUtil.disableBackgroundErase(this);
+            if( OSType.WINDOWS == Platform.getOSType() ) {
+                backgroundEraseControl.disable(this);
+            }
 
             synchronized(sync) {
                 determineIfApplet();

@@ -29,7 +29,7 @@ do_test() {
         -cp ${TST_CLASSPATH} \
         -Djunit.run.arg0=dummy -Djunit.run.arg1=dummy -Djnlp.no.jvm.data.model.set=true \
         -Djava.library.path=../../gluegen/${build_dir_base}/obj:${build_dir}/nativewindow/obj:${build_dir}/jogl/obj:${build_dir}/newt/obj:${build_dir}/test/build/obj \
-        --add-opens=java.desktop/sun.awt=ALL-UNNAMED --add-opens=java.desktop/sun.java2d=ALL-UNNAMED \
+        --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED \
         org.junit.runner.JUnitCore ${test_class} \
         && OK=0
 

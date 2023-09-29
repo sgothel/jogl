@@ -42,8 +42,8 @@
         <property name="test.archive.name"    value="${archive.name}-test-results-${build.node.name}"/>
 
         <!-- not required:     java.base/java.lang=ALL-UNNAMED -->
-        <!-- required for AWT: java.desktop/sun.awt=ALL-UNNAMED java.desktop/sun.java2d=ALL-UNNAMED -->
-        <condition property="jvmarg.modules"  value="--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED">
+        <!-- required for AWT: java.desktop/sun.awt=ALL-UNNAMED java.desktop/sun.awt.windows=ALL-UNNAMED java.desktop/sun.java2d=ALL-UNNAMED -->
+        <condition property="jvmarg.modules"  value="--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED">
             <isset property="minJava17"/>
         </condition>
         <condition property="jvmarg.modules"  value="--illegal-access=warn">

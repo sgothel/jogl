@@ -39,6 +39,8 @@ import java.awt.Graphics;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsConfiguration;
 
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.os.Platform.OSType;
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.AbstractGraphicsScreen;
 import com.jogamp.nativewindow.CapabilitiesChooser;
@@ -59,6 +61,8 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 
 @SuppressWarnings("serial")
 public class AWTCanvas extends Canvas {
+  private static JAWTUtil.BackgroundEraseControl backgroundEraseControl = new JAWTUtil.BackgroundEraseControl();
+
   private final WindowDriver driver;
   private final CapabilitiesImmutable capabilities;
   private final CapabilitiesChooser chooser;
@@ -121,7 +125,9 @@ public class AWTCanvas extends Canvas {
   public void addNotify() {
 
     // before native peer is valid: X11
-    JAWTUtil.disableBackgroundErase(this);
+    if( OSType.WINDOWS != Platform.getOSType() ) {
+        backgroundEraseControl.disable(this);
+    }
 
     /**
      * 'super.addNotify()' determines the GraphicsConfiguration,
@@ -146,7 +152,9 @@ public class AWTCanvas extends Canvas {
     super.addNotify();
 
     // after native peer is valid: Windows
-    JAWTUtil.disableBackgroundErase(this);
+    if( OSType.WINDOWS == Platform.getOSType() ) {
+        backgroundEraseControl.disable(this);
+    }
 
     {
         jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);

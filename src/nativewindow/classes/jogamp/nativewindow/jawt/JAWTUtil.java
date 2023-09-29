@@ -109,7 +109,7 @@ public class JAWTUtil {
     // default initialization to null, false
     Method awtLockMID;
     Method awtUnlockMID;
-    Method disableBackgroundEraseMID;
+    Method stkDisableBackgroundEraseMID;
     boolean ok;
   }
   private static class GraphicsDeviceData {
@@ -117,7 +117,6 @@ public class JAWTUtil {
     // default initialization to null, false
     Method getScaleFactorMID;
     Method getCGDisplayIDMIDOnOSX;
-    boolean ok;
   }
 
   /**
@@ -381,8 +380,8 @@ public class JAWTUtil {
                                 d.awtLockMID.setAccessible(true);
                                 d.awtUnlockMID = sunToolkitClass.getDeclaredMethod("awtUnlock");
                                 d.awtUnlockMID.setAccessible(true);
-                                d.disableBackgroundEraseMID = sunToolkitClass.getDeclaredMethod("disableBackgroundErase", java.awt.Component.class);
-                                d.disableBackgroundEraseMID.setAccessible(true);
+                                d.stkDisableBackgroundEraseMID = sunToolkitClass.getDeclaredMethod("disableBackgroundErase", java.awt.Component.class);
+                                d.stkDisableBackgroundEraseMID.setAccessible(true);
                                 d.ok=true;
                             } catch (final Exception e) {
                                 // Either not a Sun JDK or the interfaces have changed since [Java 1.4.2 / 1.5 -> Java 11]
@@ -394,7 +393,7 @@ public class JAWTUtil {
                         }}); }});
             stkAWTLockMID = std.awtLockMID;
             stkAWTUnlockMID = std.awtUnlockMID;
-            stkDisableBackgroundEraseMID = std.disableBackgroundEraseMID;
+            stkDisableBackgroundEraseMID = std.stkDisableBackgroundEraseMID;
             boolean _hasSunToolkitAWTLock = false;
             if ( std.ok ) {
                 try {
@@ -489,7 +488,7 @@ public class JAWTUtil {
     }
 
     if (DEBUG) {
-        System.err.println("JAWTUtil: Has sun.awt.SunToolkit: awtLock/awtUnlock " + hasSTKAWTLock + ", disableBackgroundErase "+(null!=stkDisableBackgroundEraseMID));
+        System.err.println("JAWTUtil: Has sun.awt.SunToolkit: awtLock/awtUnlock " + hasSTKAWTLock + ", stkDisableBackgroundErase "+(null!=stkDisableBackgroundEraseMID));
         System.err.println("JAWTUtil: Has Java2D " + j2dExist);
         System.err.println("JAWTUtil: Is headless " + headlessMode);
         final int hints = ( null != desktophints ) ? desktophints.size() : 0 ;
@@ -604,19 +603,27 @@ public class JAWTUtil {
    * @param component
    * @return {@code true} if available and successful, otherwise {@code false}
    */
-  public static boolean disableBackgroundErase(final java.awt.Component component) {
+  public static boolean disableBackgroundEraseSTK(final java.awt.Component component) {
       if( null != stkDisableBackgroundEraseMID ) {
           try {
               stkDisableBackgroundEraseMID.invoke(component.getToolkit(), component);
+              if( DEBUG ) {
+                  System.err.println(getThreadName()+dbe_msg+" OK");
+              }
               return true;
           } catch (final Exception e) {
               if( DEBUG ) {
-                  ExceptionUtils.dumpThrowable("JAWTUtil", e);
+                  System.err.println(getThreadName()+dbe_msg+" failed, error "+e);
+                  ExceptionUtils.dumpThrowable(dbe_msg, e);
               }
           }
       }
+      if( DEBUG ) {
+          System.err.println(getThreadName()+dbe_msg+" failed, no method");
+      }
       return false;
   }
+  private static final String dbe_msg = ": java.awt.Component: STK disableBackgroundErase";
 
   /**
    * Queries the Monitor's display ID of the given device
@@ -798,6 +805,86 @@ public class JAWTUtil {
   public static AbstractGraphicsScreen getAbstractGraphicsScreen(final java.awt.Component awtComp) throws IllegalArgumentException {
       final AbstractGraphicsDevice adevice = createDevice(awtComp);
       return NativeWindowFactory.createScreen(adevice, AWTGraphicsScreen.findScreenIndex(awtComp.getGraphicsConfiguration().getDevice()));
+  }
+
+
+  /**
+   * Disables the AWT's erasing of this Canvas's background on Windows in Java SE 6.
+   * <p>
+   * Utilize this class as a static instance within your AWT Canvas override.
+   * </p>
+   * <p>
+   * Implementation also calls {@link JAWTUtil#disableBackgroundEraseSTK(java.awt.Component)} just in case.
+   * </p>
+   * <p>
+   * This internal API is not available in previous releases,
+   * but the system property {@code -Dsun.awt.noerasebackground=true}
+   * can be specified to get similar results globally in previous releases.
+   * </p>
+   */
+  public static class BackgroundEraseControl {
+      private boolean disableBackgroundEraseInitialized = false;
+      private Method  disableBackgroundEraseMethod = null;
+      private static final String msg = ": java.awt.Canvas: TK disableBackgroundErase";
+
+      /**
+       * Disables the AWT's erasing of this Canvas's background on Windows in Java SE 6.
+       * <p>
+       * Method also calls {@link JAWTUtil#disableBackgroundEraseSTK(java.awt.Component)} just in case.
+       * </p>
+       */
+      public boolean disable(final java.awt.Canvas canvas) {
+          if (!disableBackgroundEraseInitialized) {
+              try {
+                  SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
+                      @Override
+                      public Object run() {
+                          try {
+                              Class<?> clazz = canvas.getToolkit().getClass();
+                              while (clazz != null && disableBackgroundEraseMethod == null) {
+                                  try {
+                                      disableBackgroundEraseMethod =
+                                              clazz.getDeclaredMethod("disableBackgroundErase",
+                                                      new Class[] { java.awt.Canvas.class });
+                                      disableBackgroundEraseMethod.setAccessible(true);
+                                  } catch (final Exception e) {
+                                      clazz = clazz.getSuperclass();
+                                  }
+                              }
+                          } catch (final Exception e) {
+                          }
+                          return null;
+                      }
+                  });
+              } catch (final Exception e) {
+              }
+              disableBackgroundEraseInitialized = true;
+              if(DEBUG) {
+                  System.err.println(getThreadName()+msg+" method found: "+
+                          (null!=disableBackgroundEraseMethod));
+              }
+          }
+          boolean res = false;
+          if (disableBackgroundEraseMethod != null) {
+              Throwable t=null;
+              try {
+                  disableBackgroundEraseMethod.invoke(canvas.getToolkit(), new Object[] { canvas });
+                  res = true;
+              } catch (final Exception e) {
+                  t = e;
+              }
+              if(DEBUG) {
+                  System.err.println(getThreadName()+msg+" res "+res+", error: "+t);
+                  if( null != t ) {
+                      ExceptionUtils.dumpThrowable(msg, t);
+                  }
+              }
+          } else if(DEBUG) {
+              System.err.println(getThreadName()+msg+" failed, no method");
+          }
+          JAWTUtil.disableBackgroundEraseSTK(canvas);
+          return res;
+      }
   }
 
 }
