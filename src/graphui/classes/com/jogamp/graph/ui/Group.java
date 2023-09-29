@@ -239,14 +239,20 @@ public class Group extends Shape implements Container {
         }
     }
 
+    private boolean relayoutOnDirtyShapes = true;
+    public void setRelayoutOnDirtyShapes(final boolean v) { relayoutOnDirtyShapes = v; }
+    public boolean getRelayoutOnDirtyShapes() { return relayoutOnDirtyShapes; }
+
     @Override
     protected boolean isShapeDirty() {
-        // Deep dirty state update:
-        // - Ensure all group member's dirty state is updated
-        // - Allowing all group member's validate to function
-        for(final Shape s : shapes) {
-            if( s.isShapeDirty() ) {
-                markShapeDirty();
+        if( relayoutOnDirtyShapes ) {
+            // Deep dirty state update:
+            // - Ensure all group member's dirty state is updated
+            // - Allowing all group member's validate to function
+            for(final Shape s : shapes) {
+                if( s.isShapeDirty() ) {
+                    markShapeDirty();
+                }
             }
         }
         return super.isShapeDirty();
@@ -266,10 +272,12 @@ public class Group extends Shape implements Container {
                         firstGS = (GraphShape)s;
                     }
                     layouter.preValidate(s);
-                    if( null != gl ) {
-                        s.validate(gl);
-                    } else {
-                        s.validate(glp);
+                    if( s.isShapeDirty() ) {
+                        if( null != gl ) {
+                            s.validate(gl);
+                        } else {
+                            s.validate(glp);
+                        }
                     }
                 }
                 layouter.layout(this, box, pmv);
@@ -279,10 +287,12 @@ public class Group extends Shape implements Container {
                     if( needsRMs && null == firstGS && s instanceof GraphShape ) {
                         firstGS = (GraphShape)s;
                     }
-                    if( null != gl ) {
-                        s.validate(gl);
-                    } else {
-                        s.validate(glp);
+                    if( s.isShapeDirty() ) {
+                        if( null != gl ) {
+                            s.validate(gl);
+                        } else {
+                            s.validate(glp);
+                        }
                     }
                     pmv.pushMv();
                     s.setTransformMv(pmv);
