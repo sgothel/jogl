@@ -129,6 +129,7 @@ public abstract class Shape {
     protected final AABBox box;
 
     private final Vec3f position = new Vec3f();
+    private float zOffset = 0;
     private final Quaternion rotation = new Quaternion();
     private Vec3f rotPivot = null;
     private final Vec3f scale = new Vec3f(1f, 1f, 1f);
@@ -1202,7 +1203,8 @@ public abstract class Shape {
     /** Returns true this shape's toggle state. */
     public final boolean isToggleOn() { return isIO(IO_TOGGLE); }
 
-    protected final void setActive(final boolean v) {
+    protected final void setActive(final boolean v, final float zOffset) {
+        this.zOffset = zOffset;
         setIO(IO_ACTIVE, v);
         if( null != onActivationListener ) {
             onActivationListener.run(this);
@@ -1614,32 +1616,44 @@ public abstract class Shape {
      */
     public abstract boolean hasColorChannel();
 
+    public final float getAscendingZ() {
+        return getScaledMinZ() + position.z() + zOffset;
+    }
+    public final float getDescendingZ() {
+        return getScaledMinZ() + position.z() + zOffset;
+    }
+
+    private static int compare0(final float a, final float b) {
+        if( FloatUtil.isEqual2(a, b) ) {
+            return 0;
+        } else if( a < b ){
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+    private static int compare1(final float a, final float b) {
+        if (a < b) {
+            return -1; // Neither is NaN, a is smaller
+        }
+        if (a > b) {
+            return 1;  // Neither is NaN, a is larger
+        }
+        return 0;
+    }
+
     public static Comparator<Shape> ZAscendingComparator = new Comparator<Shape>() {
         @Override
         public int compare(final Shape s1, final Shape s2) {
-            final float s1Z = s1.getScaledMinZ()+s1.getPosition().z();
-            final float s2Z = s2.getScaledMinZ()+s2.getPosition().z();
-            if( FloatUtil.isEqual2(s1Z, s2Z) ) {
-                return 0;
-            } else if( s1Z < s2Z ){
-                return -1;
-            } else {
-                return 1;
-            }
+            return compare1( s1.getAscendingZ(), s2.getAscendingZ() );
+            // return Float.compare( s1.getAscendingZ(), s2.getAscendingZ() );
         } };
 
     public static Comparator<Shape> ZDescendingComparator = new Comparator<Shape>() {
         @Override
         public int compare(final Shape s1, final Shape s2) {
-            final float s1Z = s1.getScaledMinZ()+s1.getPosition().z();
-            final float s2Z = s2.getScaledMinZ()+s2.getPosition().z();
-            if( FloatUtil.isEqual2(s1Z, s2Z) ) {
-                return 0;
-            } else if( s1Z < s2Z ){
-                return 1;
-            } else {
-                return -1;
-            }
+            return compare1( s2.getDescendingZ(), s1.getDescendingZ() );
+            // return Float.compare( s2.getDescendingZ(), s1.getDescendingZ() );
         } };
 
     //

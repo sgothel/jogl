@@ -917,28 +917,19 @@ public final class Scene implements Container, GLEventListener {
 
     public void releaseActiveShape() {
         if( null != activeShape ) {
-            if( !FloatUtil.isZero(lastActiveZOffset) ) {
-                activeShape.move(0, 0, -lastActiveZOffset);
-                lastActiveZOffset = 0f;
-            }
-            activeShape.setActive(false);
+            activeShape.setActive(false, 0);
             activeShape = null;
         }
     }
     private void setActiveShape(final Shape shape) {
         if( activeShape != shape ) {
             releaseActiveShape();
-            lastActiveZOffset = activeZOffsetScale * getZEpsilon(16);
-            if( null != shape && !FloatUtil.isZero(lastActiveZOffset) ) {
-                shape.move(0, 0, +lastActiveZOffset);
+            if( null != shape ) {
+                shape.setActive(true, activeZOffsetScale * getZEpsilon(16));
             }
+            activeShape = shape;
         }
-        if( null != shape ) {
-            shape.setActive(true);
-        }
-        activeShape = shape;
     }
-    private float lastActiveZOffset = 0f;
     private float activeZOffsetScale = 10f;
 
     /** Returns the active {@link Shape} Z-Offset scale, defaults to {@code 10.0}. */
@@ -989,16 +980,19 @@ public final class Scene implements Container, GLEventListener {
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      */
-    final void dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY) {
+    final boolean dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY) {
         final PMVMatrix4f pmv = new PMVMatrix4f();
         final Vec3f objPos = new Vec3f();
         final Shape[] shape = { null };
-        if( null == pickShape(pmv, glWinX, glWinY, objPos, shape, () -> {
-               setActiveShape(shape[0]);
+        if( null != pickShape(pmv, glWinX, glWinY, objPos, shape, () -> {
                shape[0].dispatchMouseEvent(e, glWinX, glWinY, objPos);
            } ) )
         {
+           setActiveShape(shape[0]);
+           return true;
+        } else {
            releaseActiveShape();
+           return false;
         }
     }
     /**
