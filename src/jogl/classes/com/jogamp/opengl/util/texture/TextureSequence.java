@@ -33,6 +33,7 @@ import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.GLEventListener;
 
 import com.jogamp.common.av.TimeFrameI;
+import com.jogamp.math.geom.AABBox;
 
 /**
  * Protocol for texture sequences, like animations, movies, etc.
@@ -303,4 +304,114 @@ public interface TextureSequence {
      * @see #getTextureLookupFragmentShaderImpl()
      */
     public int getTextureFragmentShaderHashCode();
+
+    /**
+     * Calculates the texture coordinates bounding box while correcting for aspect-ratio.
+     * @param tex the {@link Texture}
+     * @param box the {@Link AABBpx} of the destination
+     * @param letterBox true to produce letter-box space to match aspect-ratio, otherwise will zoom in
+     * @param colorTexBBox destination float[6] array for the following three texture-coordinate tuples: minX/minY, maxX/maxY, texW/texH
+     */
+    @SuppressWarnings("unused")
+    public static void setTexCoordBBox(final Texture tex, final AABBox box, final boolean letterBox, final float[] colorTexBBox) {
+        final TextureCoords tc = tex.getImageTexCoords();
+        final float boxRatio = box.getWidth() / box.getHeight();
+        final float imgRatio = tex.getAspectRatio();
+        final float box2ImgRatio = boxRatio / imgRatio;
+        final float tcW = tc.right() - tc.left();
+        final float tcH;
+        float boxWidthCut=0, boxHeightCut=0, boxWidthExt=0, boxHeightExt=0;
+        if( box2ImgRatio >= 1.0f ) {
+            if( letterBox ) {
+                boxWidthCut = box.getWidth() * ( 1f - 1f / box2ImgRatio );
+                final float tcWH = tcW * 0.5f;
+                final float boxWidthCutL = boxWidthCut * tcWH;
+                final float boxWidthCutR = boxWidthCut * ( 1f - tcWH );
+                colorTexBBox[0] = ( box.getMinX() + boxWidthCutL ) / tcW;
+                colorTexBBox[2] = ( box.getMaxX() - boxWidthCutR ) / tcW;
+                if( tex.getMustFlipVertically() ) {
+                    tcH = tc.bottom() - tc.top();
+                    colorTexBBox[1] = box.getMaxY() / tcH;
+                    colorTexBBox[3] = box.getMinY() / tcH;
+                } else {
+                    tcH = tc.top() - tc.bottom();
+                    colorTexBBox[1] = box.getMinY() / tcH;
+                    colorTexBBox[3] = box.getMaxY() / tcH;
+                }
+            } else {
+                colorTexBBox[0] = box.getMinX() / tcW;
+                colorTexBBox[2] = box.getMaxX() / tcW;
+                boxHeightExt = box.getHeight() * ( box2ImgRatio - 1f );
+                if( tex.getMustFlipVertically() ) {
+                    tcH = tc.bottom() - tc.top();
+                    final float tcHH = tcH * 0.5f;
+                    final float boxHeightExtB = boxHeightExt * tcHH;
+                    final float boxHeightExtT = boxHeightExt * ( 1f - tcHH );
+                    colorTexBBox[1] = ( box.getMaxY() + boxHeightExtT ) / tcH;
+                    colorTexBBox[3] = ( box.getMinY() - boxHeightExtB ) / tcH;
+                } else {
+                    tcH = tc.top() - tc.bottom();
+                    final float tcHH = tcH * 0.5f;
+                    final float boxHeightExtB = boxHeightExt * tcHH;
+                    final float boxHeightExtT = boxHeightExt * ( 1f - tcHH );
+                    colorTexBBox[1] = ( box.getMinY() - boxHeightExtB ) / tcH;
+                    colorTexBBox[3] = ( box.getMaxY() + boxHeightExtT ) / tcH;
+                }
+            }
+        } else {
+            if( letterBox ) {
+                colorTexBBox[0] = box.getMinX() / tcW;
+                colorTexBBox[2] = box.getMaxX() / tcW;
+                boxHeightCut = box.getHeight() * ( 1f - box2ImgRatio );
+                if( tex.getMustFlipVertically() ) {
+                    tcH = tc.bottom() - tc.top();
+                    final float tcHH = tcH * 0.5f;
+                    final float boxHeightCutB = boxHeightCut * tcHH;
+                    final float boxHeightCutT = boxHeightCut * ( 1f - tcHH );
+                    colorTexBBox[1] = ( box.getMaxY() - boxHeightCutT ) / tcH;
+                    colorTexBBox[3] = ( box.getMinY() + boxHeightCutB ) / tcH;
+                } else {
+                    tcH = tc.top() - tc.bottom();
+                    final float tcHH = tcH * 0.5f;
+                    final float boxHeightCutB = boxHeightCut * tcHH;
+                    final float boxHeightCutT = boxHeightCut * ( 1f - tcHH );
+                    colorTexBBox[1] = ( box.getMinY() + boxHeightCutB ) / tcH;
+                    colorTexBBox[3] = ( box.getMaxY() - boxHeightCutT ) / tcH;
+                }
+            } else {
+                boxWidthExt = box.getWidth() * ( 1f / box2ImgRatio - 1f );
+                final float tcWH = tcW * 0.5f;
+                final float boxWidthExtL = boxWidthExt * tcWH;
+                final float boxWidthExtR = boxWidthExt * ( 1f - tcWH );
+                colorTexBBox[0] = ( box.getMinX() - boxWidthExtL ) / tcW;
+                colorTexBBox[2] = ( box.getMaxX() + boxWidthExtR ) / tcW;
+                if( tex.getMustFlipVertically() ) {
+                    tcH = tc.bottom() - tc.top();
+                    colorTexBBox[1] = box.getMaxY() / tcH;
+                    colorTexBBox[3] = box.getMinY() / tcH;
+                } else {
+                    tcH = tc.top() - tc.bottom();
+                    colorTexBBox[1] = box.getMinY() / tcH;
+                    colorTexBBox[3] = box.getMaxY() / tcH;
+                }
+            }
+        }
+        colorTexBBox[4] = tcW;
+        colorTexBBox[5] = tcH;
+        if( false ) {
+            final float texWidthRatio = (float)tex.getImageWidth() / (float)tex.getWidth();
+            final float texHeightRatio = (float)tex.getImageHeight() / (float)tex.getHeight();
+            final float texRatio = ( tc.right() - tc.left() ) / ( tc.bottom() - tc.top() );
+            final float box2TexRatio = boxRatio / texRatio;
+            final float colorTexBBoxW = colorTexBBox[2] - colorTexBBox[0];
+            final float colorTexBBoxH = colorTexBBox[3] - colorTexBBox[1];
+            System.err.println("XXX");
+            System.err.println("XXX ColorTex imgRatio "+imgRatio+", texRatio "+texRatio+", texPixelRatio[w "+texWidthRatio+", h "+texHeightRatio+"], "+tex);
+            System.err.println("XXX ColorTexBBox lbox "+letterBox+", cut "+boxWidthCut+"/"+boxHeightCut+", ext "+boxWidthExt+"/"+boxHeightExt);
+            System.err.println("XXX ColorTexBBox min "+colorTexBBox[0]+"/"+colorTexBBox[1]+", max "+colorTexBBox[2]+" x "+colorTexBBox[3]+
+                    ", dim "+colorTexBBoxW+" x "+colorTexBBoxH+
+                    ", tc-dim "+tcW+" x "+tcH+", tc "+tc+", box2ImgRatio "+box2ImgRatio+", box2TexRatio "+box2TexRatio);
+            System.err.println("XXX Box ratio "+boxRatio+", "+box);
+        }
+    }
 }

@@ -7,7 +7,7 @@ uniform vec4    gcu_ColorStatic;
 uniform float   gcu_Weight;
 
 #ifdef USE_COLOR_TEXTURE
-    uniform vec4  gcu_ColorTexBBox;
+    uniform vec2  gcu_ColorTexBBox[3]; // box-min[2], box-max[2] and tex-size[2] 
 #endif
 
 uniform mat4    gcu_PMVMatrix02[3]; // P, Mv, and Mvi

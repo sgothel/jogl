@@ -78,20 +78,16 @@ public class TextureCoords {
         return d;
     }
 
-    /** Returns the leftmost (x) texture coordinate of this
-        rectangle. */
+    /** Returns the leftmost (x) texture coordinate of this rectangle. */
     public float left() { return left; }
 
-    /** Returns the rightmost (x) texture coordinate of this
-        rectangle. */
+    /** Returns the rightmost (x) texture coordinate of this rectangle. */
     public float right() { return right; }
 
-    /** Returns the bottommost (y) texture coordinate of this
-        rectangle. */
+    /** Returns the bottommost (y) texture coordinate of this rectangle. */
     public float bottom() { return bottom; }
 
-    /** Returns the topmost (y) texture coordinate of this
-        rectangle. */
+    /** Returns the topmost (y) texture coordinate of this rectangle. */
     public float top() { return top; }
 
     @Override

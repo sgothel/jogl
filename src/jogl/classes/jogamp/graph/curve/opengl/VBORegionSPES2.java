@@ -42,7 +42,6 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.Texture;
-import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 public final class VBORegionSPES2 extends GLRegion {
@@ -50,8 +49,8 @@ public final class VBORegionSPES2 extends GLRegion {
 
     // Pass-1:
     private final GLUniformData gcu_ColorTexUnit;
-    private final float[] colorTexBBox; // x0, y0, x1, y1
-    private final GLUniformData gcu_ColorTexBBox;
+    private final float[] colorTexBBox; // minX/minY, maxX/maxY, texW/texH
+    private final GLUniformData gcu_ColorTexBBox; // vec2 gcu_ColorTexBBox[3] -> boxMin[2], boxMax[2] and texSize[2]
     private ShaderProgram spPass1 = null;
 
     public VBORegionSPES2(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq,
@@ -65,8 +64,8 @@ public final class VBORegionSPES2 extends GLRegion {
 
         if( hasColorTexture() ) {
             gcu_ColorTexUnit = new GLUniformData(UniformNames.gcu_ColorTexUnit, colorTexSeq.getTextureUnit());
-            colorTexBBox = new float[4];
-            gcu_ColorTexBBox = new GLUniformData(UniformNames.gcu_ColorTexBBox, 4, FloatBuffer.wrap(colorTexBBox));
+            colorTexBBox = new float[6];
+            gcu_ColorTexBBox = new GLUniformData(UniformNames.gcu_ColorTexBBox, 2, FloatBuffer.wrap(colorTexBBox));
         } else {
             gcu_ColorTexUnit = null;
             colorTexBBox = null;
@@ -91,22 +90,7 @@ public final class VBORegionSPES2 extends GLRegion {
         vpc_ileave.seal(gl, true);
         vpc_ileave.enableBuffer(gl, false);
         if( hasColorTexture && null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
-            final TextureSequence.TextureFrame frame = colorTexSeq.getLastTexture();
-            final Texture tex = frame.getTexture();
-            final TextureCoords tc = tex.getImageTexCoords();
-            final float tcSx = 1f / ( tc.right() - tc.left() );
-            colorTexBBox[0] = box.getMinX() * tcSx;
-            colorTexBBox[2] = box.getMaxX() * tcSx;
-            final float tcSy;
-            if( tex.getMustFlipVertically() ) {
-                tcSy = 1f / ( tc.bottom() - tc.top() );
-                colorTexBBox[1] = box.getMaxY() * tcSy;
-                colorTexBBox[3] = box.getMinY() * tcSy;
-            } else {
-                tcSy = 1f / ( tc.top() - tc.bottom() );
-                colorTexBBox[1] = box.getMinY() * tcSy;
-                colorTexBBox[3] = box.getMaxY() * tcSy;
-            }
+            TextureSequence.setTexCoordBBox(colorTexSeq.getLastTexture().getTexture(), box, isColorTextureLetterbox(), colorTexBBox);
         }
         indicesBuffer.seal(gl, true);
         indicesBuffer.enableBuffer(gl, false);

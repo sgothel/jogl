@@ -1,10 +1,15 @@
+    // Copyright 2010-2023 JogAmp Community. All rights reserved.
 
     if( gcv_CurveParam.x == 0.0 && gcv_CurveParam.y == 0.0 ) {
         // pass-1: Lines
 #if defined(USE_COLOR_TEXTURE) && defined(USE_COLOR_CHANNEL)
-        mgl_FragColor = gcuTexture2D(gcu_ColorTexUnit, gcv_ColorTexCoord.st) * gcv_Color * gcu_ColorStatic;
+        vec4 t = clip_coord(gcuTexture2D(gcu_ColorTexUnit, gcv_ColorTexCoord.st), vec4(1), gcv_ColorTexCoord, vec2(0), gcv_ColorTexExt);
+          
+        mgl_FragColor = vec4( mix( t.rgb * gcu_ColorStatic.rgb, gcv_Color.rgb, gcv_Color.a ), 
+                              mix( t.a * gcu_ColorStatic.a, 1, gcv_Color.a) ); 
 #elif defined(USE_COLOR_TEXTURE)
-        mgl_FragColor = gcuTexture2D(gcu_ColorTexUnit, gcv_ColorTexCoord.st) * gcu_ColorStatic;
+        mgl_FragColor = clip_coord(gcuTexture2D(gcu_ColorTexUnit, gcv_ColorTexCoord.st), vec4(1), gcv_ColorTexCoord, vec2(0), gcv_ColorTexExt) 
+                        * gcu_ColorStatic;
 #elif defined(USE_COLOR_CHANNEL)
         mgl_FragColor = gcv_Color * gcu_ColorStatic;
 #else
@@ -22,10 +27,13 @@
 
         float a = clamp(0.5 - ( position/length(f) ) * sign(gcv_CurveParam.y), 0.0, 1.0);
 #if defined(USE_COLOR_TEXTURE) && defined(USE_COLOR_CHANNEL)
-        vec4 t = gcuTexture2D(gcu_ColorTexUnit, gcv_ColorTexCoord.st);
-        mgl_FragColor = vec4(t.rgb * gcv_Color.rgb * gcu_ColorStatic.rgb, t.a * gcv_Color.a * gcu_ColorStatic.a * a);
+        vec4 t = clip_coord(gcuTexture2D(gcu_ColorTexUnit, gcv_ColorTexCoord.st), vec4(1), gcv_ColorTexCoord, vec2(0), gcv_ColorTexExt);
+                                              
+        mgl_FragColor = vec4( mix( t.rgb * gcu_ColorStatic.rgb, gcv_Color.rgb, gcv_Color.a ), 
+                              a * mix( t.a * gcu_ColorStatic.a, 1, gcv_Color.a) ); 
 #elif defined(USE_COLOR_TEXTURE)
-        vec4 t = gcuTexture2D(gcu_ColorTexUnit, gcv_ColorTexCoord.st);
+        vec4 t = clip_coord(gcuTexture2D(gcu_ColorTexUnit, gcv_ColorTexCoord.st), vec4(1), gcv_ColorTexCoord, vec2(0), gcv_ColorTexExt);
+        
         mgl_FragColor = vec4(t.rgb * gcu_ColorStatic.rgb, t.a * gcu_ColorStatic.a * a);
 #elif defined(USE_COLOR_CHANNEL)
         mgl_FragColor = vec4(gcv_Color.rgb * gcu_ColorStatic.rgb, gcv_Color.a * gcu_ColorStatic.a * a);

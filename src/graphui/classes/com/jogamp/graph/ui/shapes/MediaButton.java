@@ -68,7 +68,7 @@ public class MediaButton extends TexSeqButton {
                        final float height, final GLMediaPlayer mPlayer) {
         super(renderModes, width, height, mPlayer);
 
-        setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        setColor(1.0f, 1.0f, 1.0f, 0.0f);
         setPressedColorMod(0.9f, 0.9f, 0.9f, 0.7f);
         setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);
         setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);

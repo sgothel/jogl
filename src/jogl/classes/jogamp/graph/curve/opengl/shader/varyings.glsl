@@ -8,11 +8,13 @@ varying vec2    gcv_FboTexCoord;
 
 #ifdef USE_COLOR_TEXTURE
     varying vec2    gcv_ColorTexCoord;
+    varying vec2    gcv_ColorTexExt;    
 #endif
 
 #ifdef USE_COLOR_CHANNEL
     varying vec4    gcv_Color;
 #endif
+
 
 #endif // varyings_glsl
 

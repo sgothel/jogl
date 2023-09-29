@@ -55,6 +55,19 @@ public abstract class TexSeqButton extends BaseButton {
 
     public final TextureSequence getTextureSequence() { return this.texSeq; }
 
+    /**
+     * Sets a renderMode {@link Region#COLORTEXTURE_LETTERBOX_RENDERING_BIT} on or off.
+     * @return this instance for chaining
+     */
+    public TexSeqButton setTextureLetterbox(final boolean v) {
+        if( getTextureLetterbox() != v ) {
+            renderModes = Region.setRenderMode(renderModes, Region.COLORTEXTURE_LETTERBOX_RENDERING_BIT, v);
+            markShapeDirty();
+        }
+        return this;
+    }
+    public boolean getTextureLetterbox() { return Region.isColorTextureLetterbox(renderModes); }
+
     @Override
     protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
         final OutlineShape shape = createBaseShape(0f);

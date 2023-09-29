@@ -55,7 +55,7 @@ public class ImageButton extends TexSeqButton {
                        final float height, final ImageSequence texSeq) {
         super(renderModes, width, height, texSeq);
 
-        setColor(1f, 1f, 1f, 1.0f);
+        setColor(1f, 1f, 1f, 0.0f);
         setPressedColorMod(0.9f, 0.9f, 0.9f, 0.9f);
         setToggleOffColorMod(1f, 1f, 1f, 1f);
         setToggleOnColorMod(0.8f, 0.8f, 0.8f, 1f);

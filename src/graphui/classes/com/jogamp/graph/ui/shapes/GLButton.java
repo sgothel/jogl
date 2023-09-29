@@ -76,7 +76,7 @@ public class GLButton extends TexSeqButton {
         this.glel = glel;
         this.useAlpha = useAlpha;
 
-        setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        setColor(1.0f, 1.0f, 1.0f, 0.0f);
         setPressedColorMod(0.9f, 0.9f, 0.9f, 0.7f);
         setToggleOffColorMod(0.8f, 0.8f, 0.8f, 1.0f);
         setToggleOnColorMod(1.0f, 1.0f, 1.0f, 1.0f);

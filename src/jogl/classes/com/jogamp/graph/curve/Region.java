@@ -127,8 +127,20 @@ public abstract class Region {
      * <p>
      * If set, a color texture is used to determine the color.
      * </p>
+     * @see #COLORTEXTURE_LETTERBOX_RENDERING_BIT
      */
     public static final int COLORTEXTURE_RENDERING_BIT = 1 <<  10;
+
+    /**
+     * Rendering-Mode bit for {@link #getRenderModes() Region}
+     * <p>
+     * If set, a used {@link #COLORTEXTURE_RENDERING_BIT} color texture is added letter-box space to match aspect-ratio, otherwise it will be zoomed in.
+     * </p>
+     * <p>
+     * Note that {@link #COLORTEXTURE_RENDERING_BIT} must also be set to even enable color texture.
+     * </p>
+     */
+    public static final int COLORTEXTURE_LETTERBOX_RENDERING_BIT = 1 <<  11;
 
     /** Default maximum {@link #getQuality() quality}, {@value}. */
     public static final int MAX_QUALITY  = 1;
@@ -146,6 +158,9 @@ public abstract class Region {
     private int numVertices = 0;
     protected final AABBox box = new AABBox();
     protected Frustum frustum = null;
+
+    public static final boolean isRenderModeSet(final int renderModes, final int mask) { return mask == ( renderModes & mask ); }
+    public static final int setRenderMode(int renderModes, final int mask, final boolean v) { if( v ) { renderModes |= mask; } else { renderModes &= ~mask; }; return renderModes; }
 
     /** Returns true if given {@code renderModes} has {@link Region#VBAA_RENDERING_BIT} set. */
     public static boolean isVBAA(final int renderModes) {
@@ -194,6 +209,11 @@ public abstract class Region {
         return 0 != (renderModes & Region.COLORTEXTURE_RENDERING_BIT);
     }
 
+    /** Returns true if given {@code renderModes} has {@link Region#COLORTEXTURE_LETTERBOX_RENDERING_BIT} set. */
+    public static boolean isColorTextureLetterbox(final int renderModes) {
+        return 0 != ( renderModes & Region.COLORTEXTURE_LETTERBOX_RENDERING_BIT );
+    }
+
     /**
      * Returns a unique technical description string for renderModes as follows:
      * <pre>
@@ -204,7 +224,16 @@ public abstract class Region {
     public static String getRenderModeString(final int renderModes) {
         final String curveS = hasVariableWeight(renderModes) ? "-curve" : "";
         final String cChanS = hasColorChannel(renderModes) ? "-cols" : "";
-        final String cTexS = hasColorTexture(renderModes) ? "-ctex" : "";
+        final String cTexS;
+        if( hasColorTexture(renderModes) ) {
+            if( Region.isColorTextureLetterbox(renderModes) ) {
+                cTexS = "-ctex_lbox";
+            } else {
+                cTexS = "-ctex_zoom";
+            }
+        } else {
+            cTexS = "";
+        }
         if( Region.isVBAA(renderModes) ) {
             return "vbaa"+curveS+cChanS+cTexS;
         } else if( Region.isMSAA(renderModes) ) {
@@ -299,6 +328,8 @@ public abstract class Region {
         box.reset();
     }
 
+    public final boolean isRenderModeSet(final int mask) { return mask == ( renderModes & mask ); }
+
     /**
      * Returns true if capable of two pass rendering - VBAA, otherwise false.
      * @see #getRenderModes()
@@ -340,11 +371,16 @@ public abstract class Region {
      * i.e. the bit {@link #COLORTEXTURE_RENDERING_BIT} is set,
      * otherwise false.
      * @see #getRenderModes()
+     * @see #isColorTextureLetterbox()
      */
     public final boolean hasColorTexture() {
         return Region.hasColorTexture(renderModes);
     }
 
+    /** Returns true if given {@code renderModes} has {@link Region#COLORTEXTURE_LETTERBOX_RENDERING_BIT} set. */
+    public final boolean isColorTextureLetterbox() {
+        return Region.isColorTextureLetterbox(renderModes);
+    }
 
     /** See {@link #setFrustum(Frustum)} */
     public final Frustum getFrustum() { return frustum; }

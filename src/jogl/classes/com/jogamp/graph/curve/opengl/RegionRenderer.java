@@ -631,6 +631,7 @@ public final class RegionRenderer {
         }
 
         try {
+            posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "functions.glsl");
             posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "uniforms.glsl");
             posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "varyings.glsl");
         } catch (final IOException ioe) {
