@@ -257,13 +257,9 @@ public class MiscUtils {
     public static void destroyWindow(final GLAutoDrawable glad) {
         if( glad.isRealized() ) {
             glad.setExclusiveContextThread(null);
-            final GLAnimatorControl actrl = glad.getAnimator();
-            if( null != actrl ) {
-                actrl.stop();
-            }
             System.err.println("Destroying window from thread "+Thread.currentThread());
             // Thread.dumpStack();
-            new InterruptSource.Thread( () -> { glad.destroy(); } ).start();
+            glad.destroy();
         }
     }
 }

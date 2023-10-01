@@ -316,7 +316,6 @@ public class MovieCube implements GLEventListener {
                 case KeyEvent.VK_LEFT:       pts1 = pts0 -  1000; break;
                 case KeyEvent.VK_DOWN:       pts1 = pts0 - 10000; break;
                 case KeyEvent.VK_PAGE_DOWN:  pts1 = pts0 - 30000; break;
-                case KeyEvent.VK_ESCAPE:
                 case KeyEvent.VK_HOME:
                 case KeyEvent.VK_BACK_SPACE: {
                     mPlayer.seek(0);
@@ -367,6 +366,13 @@ public class MovieCube implements GLEventListener {
                 case KeyEvent.VK_S:
                     if(null != autoDrawable) {
                         printScreenOnGLThread(autoDrawable);
+                    }
+                    break;
+                case KeyEvent.VK_F4:
+                case KeyEvent.VK_ESCAPE:
+                case KeyEvent.VK_Q:
+                    if(null != autoDrawable) {
+                        MiscUtils.destroyWindow(autoDrawable);
                     }
                     break;
             }
