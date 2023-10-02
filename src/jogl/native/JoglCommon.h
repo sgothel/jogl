@@ -38,6 +38,8 @@ jchar* JoglCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str);
 
 void JoglCommon_FatalError(JNIEnv *env, const char* msg, ...);
 void JoglCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
+jboolean JoglCommon_ExceptionCheck0(JNIEnv *env);
+jboolean JoglCommon_ExceptionCheck1_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
 
 /**
  *

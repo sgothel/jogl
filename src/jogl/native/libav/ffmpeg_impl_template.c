@@ -334,7 +334,9 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
 }
 
 static int _isAudioFormatSupported(JNIEnv *env, jobject ffmpegMediaPlayer, enum AVSampleFormat aSampleFmt, int32_t aSampleRate, int32_t aChannels) {
-    return JNI_TRUE == (*env)->CallBooleanMethod(env, ffmpegMediaPlayer, ffmpeg_jni_mid_isAudioFormatSupported, aSampleFmt, aSampleRate, aChannels);
+    int res = JNI_TRUE == (*env)->CallBooleanMethod(env, ffmpegMediaPlayer, ffmpeg_jni_mid_isAudioFormatSupported, aSampleFmt, aSampleRate, aChannels);
+    JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at isAudioFormatSupported(..)");
+    return res;
 }
 static void _updateJavaAttributes(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
     if(NULL!=env) {
@@ -344,6 +346,7 @@ static void _updateJavaAttributes(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
                                pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2],
                                pAV->vWidth, pAV->vHeight,
                                pAV->aid, pAV->aSampleFmtOut, pAV->aSampleRateOut, pAV->aChannelsOut, pAV->aFrameSize);
+        JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at setupFFAttributes(..)");
         (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_updateAttributes,
                                pAV->vid, pAV->aid,
                                pAV->vWidth, pAV->vHeight,
@@ -351,11 +354,13 @@ static void _updateJavaAttributes(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
                                pAV->fps, pAV->frames_video, pAV->frames_audio, pAV->duration,
                                (*env)->NewStringUTF(env, pAV->vcodec),
                                (*env)->NewStringUTF(env, pAV->acodec) );
+        JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at updateAttributes(..)");
     }
 }
 static void _setIsGLOriented(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
     if(NULL!=env) {
         (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_setIsGLOriented, pAV->vFlipped);
+        JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at setIsGLOriented(..)");
     }
 }
 
@@ -1363,6 +1368,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                         }
                     }
                     (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_pushSound, pNIOBufferCurrent->nioRef, data_size, pAV->aPTS);
+                    JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at pushSound(..)");
                 }
             }
         } else if(pAV->packet->stream_index==pAV->vid) {

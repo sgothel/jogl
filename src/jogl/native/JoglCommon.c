@@ -46,24 +46,57 @@ void JoglCommon_FatalError(JNIEnv *env, const char* msg, ...)
     }
 }
 
-void JoglCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
+static void JoglCommon_throwNewRuntimeExceptionVA(JNIEnv *env, const char* msg, va_list ap)
 {
     char buffer[512];
-    va_list ap;
 
     if(NULL==_jvmHandle) {
         JoglCommon_FatalError(env, "JOGL: NULL JVM handle, call JoglCommon_init 1st\n");
         return;
     }
 
+    vsnprintf(buffer, sizeof(buffer), msg, ap);
+
+    if(NULL != env) {
+        (*env)->ThrowNew(env, runtimeExceptionClz, buffer);
+    }
+}
+
+void JoglCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
+{
+    va_list ap;
+
     if( NULL != msg ) {
         va_start(ap, msg);
-        vsnprintf(buffer, sizeof(buffer), msg, ap);
+        JoglCommon_throwNewRuntimeExceptionVA(env, msg, ap);
         va_end(ap);
+    }
+}
 
-        if(NULL != env) {
-            (*env)->ThrowNew(env, runtimeExceptionClz, buffer);
-        }
+jboolean JoglCommon_ExceptionCheck0(JNIEnv *env)
+{
+    if( (*env)->ExceptionCheck(env) ) {
+        (*env)->ExceptionDescribe(env);
+        (*env)->ExceptionClear(env);
+        return JNI_TRUE;
+    } else {
+        return JNI_FALSE;
+    }
+}
+
+jboolean JoglCommon_ExceptionCheck1_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
+{
+    va_list ap;
+
+    if( (*env)->ExceptionCheck(env) ) {
+        (*env)->ExceptionDescribe(env);
+        (*env)->ExceptionClear(env);
+        va_start(ap, msg);
+        JoglCommon_throwNewRuntimeExceptionVA(env, msg, ap);
+        va_end(ap);
+        return JNI_TRUE;
+    } else {
+        return JNI_FALSE;
     }
 }
 
