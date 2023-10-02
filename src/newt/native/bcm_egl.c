@@ -1,4 +1,5 @@
 /*
+ * Copyright 2012-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -144,6 +145,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_egl_WindowDriver_CreateWindo
         return 0;
     }
     (*env)->CallVoidMethod(env, obj, windowCreatedID, (jint) cfgID, (jint)uiWidth, (jint)uiHeight);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "BcmEGLWindow.CreateWindow: Exception occured at windowCreated(..)");
     DBG_PRINT( "[RealizeWindow.Create] ok: win %p, cfgid %d, %ux%u\n", window, cfgID, uiWidth, uiHeight);
 
     // release and destroy already made context ..

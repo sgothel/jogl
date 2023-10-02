@@ -222,6 +222,7 @@ static jmethodID windowRepaintID = NULL;
     (*env)->CallBooleanMethod(env, javaWindowObject, windowRepaintID, JNI_TRUE /* defer */,
         (int)dirtyRect.origin.x, (int)viewFrame.size.height - (int)dirtyRect.origin.y, 
         (int)dirtyRect.size.width, (int)dirtyRect.size.height);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "IOSWindow.drawRect: Exception occured at windowRepaint(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -414,6 +415,7 @@ static jmethodID windowRepaintID = NULL;
     (*env)->CallVoidMethod(env, javaWindowObject, sendTouchScreenEventID,
             (jshort)newtEventType, (jint)newtEventModifiers, 
             jActionIdx, jNames, jTouchTypes, jX, jY, jPressure, (jfloat)2.0f); 
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "IOSWindow.sendTouchEvent: Exception occured at sendTouchScreenEvent(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -606,6 +608,7 @@ static jmethodID windowRepaintID = NULL;
     }
     (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, defer?JNI_TRUE:JNI_FALSE, 
                           (jfloat)oldPixelScaleV, (jfloat)pixelScale, (jfloat)maxPixelScale, (jboolean)changeScale);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "IOSWindow.updatePixelScale: Exception occured at updatePixelScale(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -664,6 +667,7 @@ static jmethodID windowRepaintID = NULL;
     }
     (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, defer?JNI_TRUE:JNI_FALSE, 
                           (jfloat)oldPixelScaleV, (jfloat)pixelScale, (jfloat)maxPixelScale, (jboolean)changeScale);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "IOSWindow.setPixelScale: Exception occured at updatePixelScale(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -692,6 +696,7 @@ static jmethodID windowRepaintID = NULL;
 
     if( NULL != env && NULL != javaWin ) {
         (*env)->CallBooleanMethod(env, javaWin, insetsChangedID, JNI_FALSE, cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "IOSWindow.updateInsets: Exception occured at insetsChanged(..)");
     }
 }
 
@@ -716,6 +721,7 @@ static jmethodID windowRepaintID = NULL;
                                   JNI_FALSE, // force
                                   withinLiveResize
                                  );
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "IOSWindow.updateSizePosInsets: Exception occured at sizeScreenPosInsetsChangedID(..)");
     }
 }
 
@@ -800,6 +806,7 @@ static jmethodID windowRepaintID = NULL;
     }
 
     (*env)->CallBooleanMethod(env, javaWindowObject, focusChangedID, JNI_FALSE, (gained == YES) ? JNI_TRUE : JNI_FALSE);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "IOSWindow.focusChanged: Exception occured at focusChanged(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -824,6 +831,7 @@ static jmethodID windowRepaintID = NULL;
         return;
     }
     (*env)->CallBooleanMethod(env, javaWindowObject, visibleChangedID, (visible == YES) ? JNI_TRUE : JNI_FALSE);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "IOSWindow.visibilityChanged: Exception occured at visibilityChanged(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -923,6 +931,7 @@ static jmethodID windowRepaintID = NULL;
     p0 = [self getLocationOnScreen: p0];
     DBG_PRINT( "windowDidMove: [ x %d, y %d ]\n", (jint) p0.x, (jint) p0.y);
     (*env)->CallBooleanMethod(env, javaWindowObject, screenPositionChangedID, JNI_TRUE, (jint) p0.x, (jint) p0.y);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "IOSWindow.windowDidMove: Exception occured at screenPositionChanged(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -956,6 +965,7 @@ static jmethodID windowRepaintID = NULL;
         }
         [newtView setDestroyNotifySent: true]; // earmark assumption of being closed
         closed = (*env)->CallBooleanMethod(env, javaWindowObject, windowDestroyNotifyID, force ? JNI_TRUE : JNI_FALSE);
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "IOSWindow.windowClosingImpl: Exception occured at windowDestroyNotify(..)");
         if(!force && !closed) {
             // not closed on java side, not force -> clear flag
             [newtView setDestroyNotifySent: false];

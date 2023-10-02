@@ -380,6 +380,7 @@ static jmethodID windowRepaintID = NULL;
     (*env)->CallBooleanMethod(env, javaWindowObject, windowRepaintID, JNI_TRUE /* defer */,
         (int)dirtyRect.origin.x, (int)viewFrame.size.height - (int)dirtyRect.origin.y, 
         (int)dirtyRect.size.width, (int)dirtyRect.size.height);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.drawRect: Exception occured at windowRepaint(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -399,6 +400,7 @@ static jmethodID windowRepaintID = NULL;
     }
 
     (*env)->CallBooleanMethod(env, javaWindowObject, visibleChangedID, JNI_FALSE);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.viewDidHide: Exception occured at visibleChanged(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -420,6 +422,7 @@ static jmethodID windowRepaintID = NULL;
     }
 
     (*env)->CallBooleanMethod(env, javaWindowObject, visibleChangedID, JNI_TRUE);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.viewDidUnhide: Exception occured at visibleChanged(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -723,6 +726,7 @@ static jmethodID windowRepaintID = NULL;
     }
     if (evType == EVENT_MOUSE_PRESSED) {
         (*env)->CallVoidMethod(env, javaWindowObject, requestFocusID, JNI_FALSE);
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.sendMouseEvent: Exception occured at requestFocus(..)");
     }
 
     NSPoint location = [self screenPos2NewtClientWinPos: [NSEvent mouseLocation]];
@@ -731,6 +735,7 @@ static jmethodID windowRepaintID = NULL;
                               evType, javaMods[0],
                               (jint) location.x, (jint) location.y,
                               javaButtonNum, scrollDeltaY);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.sendMouseEvent: Exception occured at enqueueMouseEvent(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -811,6 +816,7 @@ static jmethodID windowRepaintID = NULL;
 
             (*env)->CallBooleanMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
                                       evType, javaMods, keyCode, (jchar)keyChar, (jchar)keySymChar);
+            NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.sendKeyEvent: Exception occured at enqueueKeyEvent(..)");
         }
     } else {
         // non-printable chars
@@ -820,6 +826,7 @@ static jmethodID windowRepaintID = NULL;
 
         (*env)->CallBooleanMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
                                   evType, javaMods, keyCode, keyChar, keyChar);
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.sendKeyEvent: Exception occured at enqueueKeyEvent(..)");
     }
 
     // detaching thread not required - daemon
@@ -863,6 +870,7 @@ NS_ENDHANDLER
     }
     (*env)->CallVoidMethod(env, javaWindowObject, updatePixelScaleID, JNI_TRUE /* defer */, 
                           (jfloat)oldPixelScale, (jfloat)pixelScale, (jfloat)maxPixelScale, (jboolean)changeScale);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.viewDidChangeBackingProperties: Exception occured at updatePixelScale(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -1016,6 +1024,7 @@ NS_ENDHANDLER
 
     if( NULL != env && NULL != javaWin ) {
         (*env)->CallBooleanMethod(env, javaWin, insetsChangedID, JNI_FALSE, cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.updateInsets: Exception occured at insetsChanged(..)");
     }
 }
 
@@ -1042,6 +1051,7 @@ NS_ENDHANDLER
                                   JNI_FALSE, // force
                                   withinLiveResize
                                  );
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.updateSizePosInsets: Exception occured at sizeScreenPosInsetsChanged(..)");
     }
 }
 
@@ -1215,6 +1225,7 @@ NS_ENDHANDLER
     }
 
     (*env)->CallBooleanMethod(env, javaWindowObject, focusChangedID, JNI_FALSE, (gained == YES) ? JNI_TRUE : JNI_FALSE);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.focusChanged: Exception occured at focusChanged(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -1374,6 +1385,7 @@ NS_ENDHANDLER
     p0 = [self getLocationOnScreen: p0];
     DBG_PRINT( "windowDidMove: [ x %d, y %d ]\n", (jint) p0.x, (jint) p0.y);
     (*env)->CallBooleanMethod(env, javaWindowObject, screenPositionChangedID, JNI_TRUE, (jint) p0.x, (jint) p0.y);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.windowDidMove: Exception occured at screenPositionChanged(..)");
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -1417,6 +1429,7 @@ NS_ENDHANDLER
         }
         [newtView setDestroyNotifySent: true]; // earmark assumption of being closed
         closed = (*env)->CallBooleanMethod(env, javaWindowObject, windowDestroyNotifyID, force ? JNI_TRUE : JNI_FALSE);
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "MacWindow.windowClosingImpl: Exception occured at windowDestroyNotify(..)");
         if(!force && !closed) {
             // not closed on java side, not force -> clear flag
             [newtView setDestroyNotifySent: false];

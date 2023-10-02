@@ -597,6 +597,7 @@ static int WmKeyDown(JNIEnv *env, jobject window, USHORT wkey, WORD repCnt, BYTE
     (*env)->CallBooleanMethod(env, window, sendKeyEventID,
                               (jshort) EVENT_KEY_PRESSED,
                               (jint) modifiers, (jshort) javaVKeyUS, (jshort) javaVKeyXX, (jchar) utf16Char);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.WmKeyDown: Exception occured at sendKeyEvent(..)");
 
     return 0;
 }
@@ -615,6 +616,7 @@ static int WmKeyUp(JNIEnv *env, jobject window, USHORT wkey, WORD repCnt, BYTE s
     (*env)->CallBooleanMethod(env, window, sendKeyEventID,
                               (jshort) EVENT_KEY_RELEASED,
                               (jint) modifiers, (jshort) javaVKeyUS, (jshort) javaVKeyXX, (jchar) utf16Char);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.WmKeyUp: Exception occured at sendKeyEvent(..)");
 
     return 0;
 }
@@ -760,8 +762,10 @@ static jboolean UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
         (void*)hwnd, strategy, (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom,
         (int) ( wud->insets.left + wud->insets.right ), (int) (wud->insets.top + wud->insets.bottom), wud->isInCreation);
     if( !wud->isInCreation ) {
-        return (*env)->CallBooleanMethod(env, window, insetsChangedID, 
-                                         JNI_FALSE, (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom);
+        jboolean res =  (*env)->CallBooleanMethod(env, window, insetsChangedID, 
+                                                  JNI_FALSE, (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom);
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.UpdateInsets: Exception occured at insetsChanged(..)");
+        return res;
     }
     return JNI_TRUE;
 }
@@ -815,11 +819,13 @@ static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
                 DBG_PRINT( "WindowsWindow: WmSize.X window %p - Leave J, maximized\n", (void*)wnd); 
                 return;
             }
+            NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.WmSize: Exception occured at maximizedChanged(..)");
         }
         if( JNI_FALSE == (*env)->CallBooleanMethod(env, window, sizeChangedID, JNI_FALSE, JNI_FALSE, wud->width, wud->height, JNI_FALSE) ) {
             DBG_PRINT( "WindowsWindow: WmSize.X window %p - Leave J, sizeChanged\n", (void*)wnd); 
             return;
         }
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.WmSize: Exception occured at sizeChanged(..)");
     }
 }
 
@@ -941,9 +947,11 @@ static jboolean sendTouchScreenEvent(JNIEnv *env, jobject window,
     }
     (*env)->SetFloatArrayRegion(env, jPressure, 0, count, pressure);
 
-    return (*env)->CallBooleanMethod(env, window, sendTouchScreenEventID,
-                                     (jshort)eventType, (jint)modifiers, (jint)actionIdx,
-                                     jNames, jX, jY, jPressure, (jfloat)maxPressure);
+    jboolean res = (*env)->CallBooleanMethod(env, window, sendTouchScreenEventID,
+                                             (jshort)eventType, (jint)modifiers, (jint)actionIdx,
+                                             jNames, jX, jY, jPressure, (jfloat)maxPressure);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at sendTouchScreenEvent(..)");
+    return res;
 }
     
 // #define DO_ERASEBKGND 1
@@ -982,6 +990,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         //     WM_CLOSE -> Java::windowDestroyNotify -> W_DESTROY
         case WM_CLOSE:
             (*env)->CallBooleanMethod(env, window, windowDestroyNotifyID, JNI_FALSE);
+            NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at windowDestroyNotify(..)");
             break;
 
         case WM_DESTROY:
@@ -1073,6 +1082,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             wud->visible = wParam==TRUE;
             if( !wud->isInCreation ) {
                 (*env)->CallBooleanMethod(env, window, visibleChangedID, wParam==TRUE?JNI_TRUE:JNI_FALSE);
+                NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at visibleChanged(..)");
             }
             break;
 
@@ -1082,6 +1092,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             DBG_PRINT("*** WindowsWindow: WM_MOVE window %p, %d/%d, at-init %d\n", wnd, wud->xpos, wud->ypos, wud->isInCreation);
             if( !wud->isInCreation ) {
                 (*env)->CallBooleanMethod(env, window, positionChangedID, JNI_FALSE, JNI_FALSE, (jint)wud->xpos, (jint)wud->ypos);
+                NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at positionChanged(..)");
             }
             useDefWindowProc = 1;
             break;
@@ -1108,6 +1119,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                     // Let NEWT render the whole client area by issueing repaint for it, w/o looping through erase background
                     ValidateRect(wnd, NULL); // clear all!
                     (*env)->CallBooleanMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at windowRepaint(..)");
                 } else {
                     DBG_PRINT("*** WindowsWindow: WM_PAINT.1 (clean)\n");
                     // shall not happen ?
@@ -1142,6 +1154,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                 DBG_PRINT("*** WindowsWindow: WM_ERASEBKGND.1 (repaint)\n");
                 ValidateRect(wnd, NULL); // clear all!
                 (*env)->CallBooleanMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
+                NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at windowRepaint(..)");
                 res = 1; // return 1 == done, OpenGL, etc .. erases the background, hence we claim to have just done this
             }
             break;
@@ -1196,6 +1209,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             wud->focused = TRUE;
             if( !wud->isInCreation ) {
                 (*env)->CallBooleanMethod(env, window, focusChangedID, JNI_FALSE, JNI_TRUE);
+                NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at focusChanged(..)");
             }
             useDefWindowProc = 1;
             break;
@@ -1212,6 +1226,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                 wud->focused = FALSE;
                 if( !wud->isInCreation ) {
                     (*env)->CallBooleanMethod(env, window, focusChangedID, JNI_FALSE, JNI_FALSE);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at focusChanged(..)");
                 }
                 useDefWindowProc = 1;
             } else {
@@ -1273,11 +1288,13 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         NewtWindows_trackPointerLeave(wnd);
                     }
                     (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at requestFocus(..)");
                     (*env)->CallBooleanMethod(env, window, sendMouseEventID,
                                               (jshort) EVENT_MOUSE_PRESSED,
                                               GetModifiers( 0 ),
                                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                               (jshort) 1, (jfloat) 0.0f);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at sendMouseEvent(..)");
                     useDefWindowProc = 1;
                 }
             }
@@ -1305,6 +1322,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                               GetModifiers( 0 ),
                                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                               (jshort) 1, (jfloat) 0.0f);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at sendMouseEvent(..)");
                     useDefWindowProc = 1;
                 }
             }
@@ -1320,11 +1338,13 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         NewtWindows_trackPointerLeave(wnd);
                     }
                     (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at requestFocus(..)");
                     (*env)->CallBooleanMethod(env, window, sendMouseEventID,
                                               (jshort) EVENT_MOUSE_PRESSED,
                                               GetModifiers( 0 ),
                                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                               (jshort) 2, (jfloat) 0.0f);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at sendMouseEvent(..)");
                     useDefWindowProc = 1;
                 }
             }
@@ -1349,6 +1369,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                               GetModifiers( 0 ),
                                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                               (jshort) 2, (jfloat) 0.0f);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at sendMouseEvent(..)");
                     useDefWindowProc = 1;
                 }
             }
@@ -1364,11 +1385,13 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         NewtWindows_trackPointerLeave(wnd);
                     }
                     (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at requestFocus(..)");
                     (*env)->CallBooleanMethod(env, window, sendMouseEventID,
                                               (jshort) EVENT_MOUSE_PRESSED,
                                               GetModifiers( 0 ),
                                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                               (jshort) 3, (jfloat) 0.0f);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at sendMouseEvent(..)");
                     useDefWindowProc = 1;
                 }
             }
@@ -1393,6 +1416,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                               GetModifiers( 0 ),
                                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                               (jshort) 3,  (jfloat) 0.0f);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at sendMouseEvent(..)");
                     useDefWindowProc = 1;
                 }
             }
@@ -1418,6 +1442,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                               modifiers,
                                               (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                               (jshort) 0,  (jfloat) 0.0f);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at sendMouseEvent(..)");
                 }
                 useDefWindowProc = 1;
             }
@@ -1433,6 +1458,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                               0,
                                               (jint) -1, (jint) -1, // fake
                                               (jshort) 0,  (jfloat) 0.0f);
+                    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at sendMouseEvent(..)");
                     useDefWindowProc = 1;
                 }
             }
@@ -1463,6 +1489,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                           modifiers,
                                           (jint) 0, (jint) 0,
                                           (jshort) 1,  (jfloat) rotation);
+                NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at sendMouseEvent(..)");
                 useDefWindowProc = 1;
                 break;
             }
@@ -1492,6 +1519,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                       modifiers,
                                       (jint) eventPt.x, (jint) eventPt.y,
                                       (jshort) 1,  (jfloat) rotationOrTilt);
+            NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at sendMouseEvent(..)");
             useDefWindowProc = 1;
             break;
         }
@@ -1579,6 +1607,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
 
                     if( sendFocus ) {
                         (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
+                        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.wndProc: Exception occured at requestFocus(..)");
                     }
                     int sentCount = 0, updownCount=0, moveCount=0;
                     // Primary first, if available!
@@ -2462,6 +2491,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_InitWindow0
 
     if( wud->isMaximized ) {
         (*env)->CallBooleanMethod(env, wud->jinstance, maximizedChangedID, JNI_TRUE, JNI_TRUE);
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.InitWindow: Exception occured at maximizedChanged(..)");
     }
     (*env)->CallBooleanMethod(env, wud->jinstance, sizePosInsetsFocusVisibleChangedID, JNI_FALSE, JNI_FALSE,
                            (jint)wud->xpos, (jint)wud->ypos,
@@ -2470,6 +2500,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_InitWindow0
                            (jint)(wud->focused ? 1 : 0),
                            (jint)(wud->visible ? 1 : 0),
                            JNI_FALSE);
+    NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "WindowsWindow.InitWindow: Exception occured at sizePosInsetsFocusVisibleChanged(..)");
     DBG_PRINT("*** WindowsWindow: InitWindow JNI callbacks done\n");
 
     if( wud->supportsMTouch ) {

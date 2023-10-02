@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -318,6 +318,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_ScreenDriver_initNative
     if( graphics_get_display_size(0 /* LCD */, &screen_width, &screen_height) >= 0 ) {
         DBG_PRINT( "BCM.Screen initNative ok %dx%d\n", screen_width, screen_height );
         (*env)->CallVoidMethod(env, obj, setScreenSizeID, (jint) screen_width, (jint) screen_height);
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "BcmVcIvWindow.initNative: Exception occured at setScreenSize(..)");
     } else {
         DBG_PRINT( "BCM.Screen initNative failed\n" );
     }
@@ -398,6 +399,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CreateWin
    vc_dispmanx_update_submit_sync( dispman_update );
 
    (*env)->CallBooleanMethod(env, obj, visibleChangedID, JNI_TRUE);
+   NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "BcmVcIvWindow.CreateWindow: Exception occured at visibleChanged(..)");
 
    DBG_PRINT( "BCM.Display Window.Create.X %p, element %p\n", 
     (void*)(intptr_t)dispman_display, (void*)(intptr_t)p->handle);
@@ -451,9 +453,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_reconfigur
     bcm_moveTo( p->handle, p->layer, p->x, p->y, p->width, p->height);
     if( posChanged ) {
         (*env)->CallBooleanMethod(env, obj, positionChangedID, JNI_FALSE, JNI_FALSE, x, y);
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "BcmVcIvWindow.reconfigure: Exception occured at positionChanged(..)");
     }
     if( sizeChanged ) {
         (*env)->CallBooleanMethod(env, obj, sizeChangedID, JNI_FALSE, JNI_FALSE, width, height, JNI_FALSE);
+        NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "BcmVcIvWindow.reconfigure: Exception occured at sizeChanged(..)");
     }
 }
 
