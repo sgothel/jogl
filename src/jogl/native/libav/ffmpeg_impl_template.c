@@ -711,7 +711,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         inFmt = findAVInputFormat(pAV->verbose);
         if( NULL == inFmt ) {
             JoglCommon_throwNewRuntimeException(env, "Couldn't find input format for camera: %s", urlPath);
-            (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
+            (*env)->ReleaseStringUTFChars(env, jURL, (const char *)urlPath);
             return;
         }
         if(pAV->verbose) {
@@ -734,15 +734,17 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
             fprintf(stderr, "Camera: Filename: %s\n", filename);
         }
 
-        const char *sizeS = NULL != jSizeS ? (*env)->GetStringUTFChars(env, jSizeS, &iscopy) : NULL;
         int hasSize = 0;
-        if( NULL != sizeS ) {
-            snprintf(buffer, sizeof(buffer), "%s", sizeS);
-            (*env)->ReleaseStringChars(env, jSizeS, (const jchar *)sizeS);
-            hasSize = 1;
-        } else if( vWidth > 0 && vHeight > 0 ) {
-            snprintf(buffer, sizeof(buffer), "%dx%d", vWidth, vHeight);
-            hasSize = 1;
+        {
+            const char *sizeS = NULL != jSizeS ? (*env)->GetStringUTFChars(env, jSizeS, &iscopy) : NULL;
+            if( NULL != sizeS ) {
+                snprintf(buffer, sizeof(buffer), "%s", sizeS);
+                (*env)->ReleaseStringUTFChars(env, jSizeS, (const char *)sizeS);
+                hasSize = 1;
+            } else if( vWidth > 0 && vHeight > 0 ) {
+                snprintf(buffer, sizeof(buffer), "%dx%d", vWidth, vHeight);
+                hasSize = 1;
+            }
         }
         if( hasSize ) {
             if(pAV->verbose) {
@@ -769,14 +771,14 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         if(res != 0) {
             MY_MUTEX_UNLOCK(env, mutex_avcodec_openclose);
             JoglCommon_throwNewRuntimeException(env, "Couldn't open URI: %s [%dx%d @ %d hz], err %d", filename, vWidth, vHeight, vRate, res);
-            (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
+            (*env)->ReleaseStringUTFChars(env, jURL, (const char *)urlPath);
             return;
         }
 
         // Retrieve detailed stream information
         if(sp_avformat_find_stream_info(pAV->pFormatCtx, NULL)<0) {
             MY_MUTEX_UNLOCK(env, mutex_avcodec_openclose);
-            (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
+            (*env)->ReleaseStringUTFChars(env, jURL, (const char *)urlPath);
             JoglCommon_throwNewRuntimeException(env, "Couldn't find stream information");
             return;
         }
@@ -787,7 +789,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         // Dump information about file onto standard error
         sp_av_dump_format(pAV->pFormatCtx, 0, filename, JNI_FALSE);
     }
-    (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
+    (*env)->ReleaseStringUTFChars(env, jURL, (const char *)urlPath);
 
     // FIXME: Libav Binary compatibility! JAU01
     if (pAV->pFormatCtx->duration != AV_NOPTS_VALUE) {
