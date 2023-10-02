@@ -632,6 +632,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     public final RunnableTask invokeOnNewThread(final ThreadGroup tg, final boolean waitUntilDone, final Runnable runnable) {
         return RunnableTask.invokeOnNewThread(tg, null, waitUntilDone,
                 new Runnable() {
+                    @Override
                     public final void run() {
                         helper.runOutsideOfExclusiveContextThread(context, runnable);
                     } });

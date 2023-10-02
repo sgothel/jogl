@@ -821,6 +821,6 @@ public abstract class DisplayImpl extends Display {
     protected int hashCode;
     protected int refCount; // number of Display references by Screen
     protected boolean exclusive; // do not share this display, uses NullLock!
-    protected AbstractGraphicsDevice aDevice;
+    protected volatile AbstractGraphicsDevice aDevice;
 }
 

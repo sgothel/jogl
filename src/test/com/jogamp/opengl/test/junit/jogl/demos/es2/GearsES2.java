@@ -131,7 +131,7 @@ public class GearsES2 implements StereoGLEventListener, TileRendererBase.TileRen
     public void setIgnoreFocus(final boolean v) { ignoreFocus = v; }
     public void setDoRotation(final boolean rotate) { this.doRotate = rotate; }
     public void setClearBuffers(final boolean v) { clearBuffers = v; }
-    public void setVerbose(final boolean v) { verbose = v; }
+    public GearsES2 setVerbose(final boolean v) { verbose = v; return this; }
     public void setFlipVerticalInGLOrientation(final boolean v) { flipVerticalInGLOrientation=v; }
 
     /** float[4] */

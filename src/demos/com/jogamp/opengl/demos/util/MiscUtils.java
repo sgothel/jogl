@@ -260,6 +260,10 @@ public class MiscUtils {
             System.err.println("Destroying window from thread "+Thread.currentThread());
             // Thread.dumpStack();
             glad.destroy();
+            final GLAnimatorControl animator = glad.getAnimator();
+            if( null != animator ) {
+                animator.stop(); // Avoiding a ThreadDeath of animator at shutdown
+            }
         }
     }
 }

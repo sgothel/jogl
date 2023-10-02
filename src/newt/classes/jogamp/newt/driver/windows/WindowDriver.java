@@ -194,9 +194,9 @@ public class WindowDriver extends WindowImpl {
         if( !cfg.getChosenCapabilities().isBackgroundOpaque() ) {
             GDIUtil.DwmSetupTranslucency(_windowHandle, true);
         }
-        InitWindow0(_windowHandle, flags);
         setWindowHandle(_windowHandle);
         windowHandleClose = _windowHandle;
+        InitWindow0(_windowHandle, flags);
 
         if( 0 == ( STATE_MASK_CHILDWIN & flags ) && 1 <= maxCount ) {
             reconfigureWindowImpl(xy_pix[0], xy_pix[1], sz_pix[0], sz_pix[1], flags);
@@ -411,15 +411,16 @@ public class WindowDriver extends WindowImpl {
      * for details.
      * </p>
      */
-    public final void sendTouchScreenEvent(final short eventType, final int modifiers,
-                                           final int pActionIdx, final short[] pNames,
-                                           final int[] pX, final int[] pY, final float[] pPressure, final float maxPressure) {
+    public final boolean sendTouchScreenEvent(final short eventType, final int modifiers,
+                                              final int pActionIdx, final short[] pNames,
+                                              final int[] pX, final int[] pY, final float[] pPressure, final float maxPressure) {
         final int pCount = pNames.length;
         final MouseEvent.PointerType[] pTypes = new MouseEvent.PointerType[pCount];
         for(int i=pCount-1; i>=0; i--) { pTypes[i] = PointerType.TouchScreen; }
         doPointerEvent(false /*enqueue*/, false /*wait*/,
                        pTypes, eventType, modifiers, pActionIdx, false /*normalPNames*/, pNames,
                        pX, pY, pPressure, maxPressure, new float[] { 0f, 0f, 0f} /*rotationXYZ*/, 1f/*rotationScale*/);
+        return isNativeValid();
     }
 
     //
@@ -447,35 +448,37 @@ public class WindowDriver extends WindowImpl {
     }
 
     @Override
-    public final void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
+    public final boolean sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         final boolean isModifierKey = KeyEvent.isModifierKey(keySym);
         // System.err.println("*** sendKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar+">, mods "+toHexString(modifiers)+
         //                   ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", printableKey "+KeyEvent.isPrintableKey(keyCode, false)+" [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
 
         // Reorder: WINDOWS delivery order is PRESSED (t0), TYPED (t0) and RELEASED (t1) -> NEWT order: PRESSED (t0) and RELEASED (t1)
         // Auto-Repeat: WINDOWS delivers only PRESSED (t0) and TYPED (t0).
+        boolean res = true;
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
                 if( isKeyCodeTracked(keyCode) ) {
                     if( repeatedKey == keyCode && !isModifierKey ) {
                         // AR out - send out missing PRESSED
-                        super.sendKeyEvent(KeyEvent.EVENT_KEY_PRESSED, modifiers | InputEvent.AUTOREPEAT_MASK, keyCode, keySym, keyChar);
+                        res = super.sendKeyEvent(KeyEvent.EVENT_KEY_PRESSED, modifiers | InputEvent.AUTOREPEAT_MASK, keyCode, keySym, keyChar);
                     }
                     setKeyPressed(keyCode, false);
                     repeatedKey = KeyEvent.VK_UNDEFINED;
                 }
-                super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar);
+                res = res && super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar);
                 break;
             case KeyEvent.EVENT_KEY_PRESSED:
                 if( !handlePressTypedAutoRepeat(isModifierKey, modifiers, keyCode, keySym, keyChar) ) {
-                    super.sendKeyEvent(KeyEvent.EVENT_KEY_PRESSED, modifiers, keyCode, keySym, keyChar);
+                    res = super.sendKeyEvent(KeyEvent.EVENT_KEY_PRESSED, modifiers, keyCode, keySym, keyChar);
                 }
                 break;
         }
+        return res;
     }
 
     @Override
-    public final void enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
+    public final boolean enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
     }
 

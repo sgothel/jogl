@@ -480,7 +480,7 @@ public abstract class GLContextImpl extends GLContext {
           final int lockRes = drawable.lockSurface();
           if ( NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes ) {
                 // this would be odd ..
-                throw new GLException("Surface not ready to lock: "+drawable);
+                throw new GLException("Surface not ready to lock: res "+lockRes+", "+drawable+", "+toString());
           }
           Throwable associateDrawableException = null;
           try {

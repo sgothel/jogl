@@ -223,7 +223,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_egl_gbm_WindowDriver_initIDs
 {
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZZIIZ)Z");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZZII)Z");
-    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)Z");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     if (sizeChangedID == NULL ||
         positionChangedID == NULL ||

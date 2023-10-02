@@ -245,6 +245,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         }
         if( enable ) {
             androidView.post(new Runnable() {
+                @Override
                 public void run() {
                     androidView.setClickable(false);
                     androidView.setFocusable(true);
@@ -300,6 +301,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             if( null != viewGroup && !added2StaticViewGroup ) {
                 added2StaticViewGroup = true;
                 viewGroup.post(new Runnable() {
+                    @Override
                     public void run() {
                         if(null == androidView) {
                             setupAndroidView( StaticContext.getContext() );
@@ -324,7 +326,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     }
 
     @Override
-    protected final void createNativeImpl(boolean[] positionModified) {
+    protected final void createNativeImpl(final boolean[] positionModified) {
         // Create own screen/device resource instance allowing independent ownership,
         // while still utilizing shared EGL resources.
         final AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
@@ -412,6 +414,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                 final ViewGroup viewGroup = StaticContext.getContentViewGroup();
                 if( null != viewGroup) {
                     viewGroup.post(new Runnable() {
+                        @Override
                         public void run() {
                             viewGroup.removeView(androidView);
                             Log.d(MD.TAG, "closeNativeImpl: removed from static ViewGroup - on thread "+Thread.currentThread().getName());
@@ -437,8 +440,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
      * {@inheritDoc}
      */
     @Override
-    public final void focusChanged(final boolean defer, final boolean focusGained) {
-        super.focusChanged(defer, focusGained);
+    public final boolean focusChanged(final boolean defer, final boolean focusGained) {
+        return super.focusChanged(defer, focusGained);
     }
 
     @Override
@@ -446,6 +449,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         if(null != androidView) {
             Log.d(MD.TAG, "requestFocusImpl: reparented "+reparented);
             androidView.post(new Runnable() {
+                @Override
                 public void run() {
                     androidView.requestFocus();
                     androidView.bringToFront();

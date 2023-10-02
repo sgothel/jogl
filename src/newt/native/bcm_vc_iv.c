@@ -332,7 +332,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_initID
 {
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZZIIZ)Z");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZZII)Z");
-    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)Z");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     if (sizeChangedID == NULL ||
         positionChangedID == NULL ||
@@ -397,7 +397,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CreateWin
 
    vc_dispmanx_update_submit_sync( dispman_update );
 
-   (*env)->CallVoidMethod(env, obj, visibleChangedID, JNI_TRUE);
+   (*env)->CallBooleanMethod(env, obj, visibleChangedID, JNI_TRUE);
 
    DBG_PRINT( "BCM.Display Window.Create.X %p, element %p\n", 
     (void*)(intptr_t)dispman_display, (void*)(intptr_t)p->handle);

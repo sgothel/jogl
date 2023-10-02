@@ -1029,8 +1029,9 @@ public interface Window extends NativeWindow, WindowClosingProtocol, ScalableSur
      * @param y dirty-region x-pos in pixel units
      * @param width dirty-region width in pixel units
      * @param height dirty-region height in pixel units
+     * @return true if window {@link #isNativeValid()}
      */
-    void windowRepaint(int x, int y, int width, int height);
+    boolean windowRepaint(int x, int y, int width, int height);
 
     /**
      * Enqueues a {@link com.jogamp.newt.event.NEWTEvent NEWT event}.

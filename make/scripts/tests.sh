@@ -331,6 +331,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.NativeWindow"
     #D_ARGS="-Dnativewindow.osx.calayer.bugfree"
     #D_ARGS="-Dnativewindow.debug.ToolkitLock"
+    #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.TraceGL -Djogl.debug.graph.curve"
     #D_ARGS="-Djogl.debug.graph.curve"
     #D_ARGS="-Djogl.debug.graph.curve.Instance -Djogl.debug.graph.curve.Triangulation"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.graph.curve.Instance -Djogl.debug.graph.curve.Triangulation"
@@ -380,6 +381,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.AVSync"
     #D_ARGS="-Djogl.debug.StereoDevice -Djogl.debug.StereoDevice.DumpData"
     #D_ARGS="-Djogl.debug.StereoDevice"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.StereoDevice"
@@ -650,6 +652,7 @@ function testawtswt() {
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSharedExternalContextAWT $*
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.TestSingleGLInJSliderNewtAWT $*
 
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestDestroyGLAutoDrawableNewtAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestPBufferDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT $*
@@ -1015,8 +1018,11 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo10 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo11 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
+testawt com.jogamp.opengl.test.junit.jogl.acore.TestDestroyGLAutoDrawableNewtAWT $*
+#testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
+#testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid00 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testawt com.jogamp.opengl.demos.es2.GearsES2 $*

@@ -382,16 +382,15 @@ static Status NewtWindows_getFrameExtends(Display *dpy, JavaWindow *javaWin, Boo
             }
             if( wait && tD < TIMEOUT_MS && evtCount < MAX_ATTEMPTS ) {
                 // wait for next X event to arrive, then we may try again
+                evtCount++;
                 #if 0
                     XEvent e;
                     XPeekEvent(dpy, &e); // FIXME: Blocks if queue is empty
-                    evtCount++;
                     DBG_PRINT( "NEWT FrameExtends: Waiting: #%d %ldms: evt %d, window %p (this=%d)\n", 
                         evtCount, tD, e.type, (void*)e.xany.window, (javaWin->window == e.xany.window));
                 #else
                     struct timespec req = { .tv_sec = 0, .tv_nsec = 1000000L }; // 1ms
                     nanosleep(&req, NULL);
-                    evtCount++;
                     DBG_PRINT( "NEWT FrameExtends: Waiting: #%d %ldms ...\n", evtCount, tD );
                 #endif
             } else {
@@ -633,6 +632,19 @@ static void NewtWindows_sendNET_WM_DESKTOP(Display *dpy, Window root, JavaWindow
     xev.xclient.data.l[0] = deskNum;
     xev.xclient.data.l[1] = 1; //source indication for normal applications
     XSendEvent ( dpy, root, False, SubstructureNotifyMask | SubstructureRedirectMask, &xev );
+}
+
+static void NewtWindows_sendDeleteAtom(Display *dpy, JavaWindow * w) {
+    XEvent xev;
+    memset ( &xev, 0, sizeof(xev) );
+
+    xev.type = ClientMessage;
+    xev.xclient.window = w->window;
+    xev.xclient.message_type = w->javaObjectAtom;
+    xev.xclient.format = 32;
+    xev.xclient.data.l[0] = w->windowDeleteAtom;
+    xev.xclient.data.l[1] = 1; //source indication for normal applications
+    XSendEvent ( dpy, w->window, False, 0, &xev );
 }
 
 
@@ -1099,7 +1111,7 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_WindowDriver_GetSupportedReco
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
-  (JNIEnv *env, jobject obj, jlong display, jlong javaWindow /*, jlong kbdHandle*/, // XKB disabled for now
+  (JNIEnv *env, jobject obj, jobject displayDriver, jlong display, jlong javaWindow /*, jlong kbdHandle*/, // XKB disabled for now
                              jint randr_event_base, jint randr_error_base, jint xi_opcode)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -1135,8 +1147,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
     XUnmapWindow(dpy, jw->window);
     jw->isMapped=False;
 
-    // Drain all events related to this window ..
-    Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0(env, obj, display, 
+    // Notify potential running dispatcher and drain all events related to this window ..
+    NewtWindows_sendDeleteAtom(dpy, jw);
+    Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0(env, displayDriver, display, 
                                      (jlong)(intptr_t)jw->javaObjectAtom, (jlong)(intptr_t)jw->windowDeleteAtom /*, kbdHandle */, // XKB disabled for now
                                      randr_event_base, randr_error_base, xi_opcode);
 

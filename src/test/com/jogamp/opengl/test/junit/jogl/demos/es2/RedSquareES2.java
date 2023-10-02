@@ -88,7 +88,7 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
     public void setAspect(final float aspect) { this.aspect = aspect; }
     public void setDoRotation(final boolean rotate) { this.doRotate = rotate; }
     public void setClearBuffers(final boolean v) { clearBuffers = v; }
-    public void setVerbose(final boolean v) { verbose = v; }
+    public RedSquareES2 setVerbose(final boolean v) { verbose = v; return this; }
 
     @Override
     public void init(final GLAutoDrawable glad) {
@@ -108,7 +108,7 @@ public class RedSquareES2 implements GLEventListener, TileRendererBase.TileRende
             return;
         }
         st = new ShaderState();
-        st.setVerbose(true);
+        st.setVerbose(verbose);
         final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), "shader",
                 "shader/bin", "RedSquareShader", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), "shader",

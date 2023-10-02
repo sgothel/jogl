@@ -40,6 +40,7 @@ jmethodID insetsVisibleChangedID = NULL;
 static const char * const ClazzNameX11NewtWindow = "jogamp/newt/driver/x11/WindowDriver";
 
 static jmethodID displayCompletedID = NULL;
+static jmethodID isNativeValidID = NULL;
 static jmethodID sendRRScreenChangeNotifyID = NULL;
 
 static jmethodID getCurrentThreadNameID = NULL;
@@ -250,27 +251,29 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
 
     // displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJJIII)V"); // Variant using XKB
     displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJIII)V");
-    sendRRScreenChangeNotifyID = (*env)->GetMethodID(env, clazz, "sendRRScreenChangeNotify", "(J)V");
+    isNativeValidID = (*env)->GetMethodID(env, clazz, "isNativeValidAsync", "()Z");
+    sendRRScreenChangeNotifyID = (*env)->GetMethodID(env, clazz, "sendRRScreenChangeNotify", "(J)Z");
     getCurrentThreadNameID = (*env)->GetStaticMethodID(env, X11NewtWindowClazz, "getCurrentThreadName", "()Ljava/lang/String;");
     dumpStackID = (*env)->GetStaticMethodID(env, X11NewtWindowClazz, "dumpStack", "()V");
-    insetsChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "insetsChanged", "(ZIIII)V");
+    insetsChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "insetsChanged", "(ZIIII)Z");
     sizeChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sizeChanged", "(ZZIIZ)Z");
     positionChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "positionChanged", "(ZZII)Z");
-    focusVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "focusVisibleChanged", "(ZII)V");
-    visibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChanged", "(Z)V");
-    insetsVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "insetsVisibleChanged", "(ZIIIII)V");
-    sizePosMaxInsetsVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sizePosMaxInsetsVisibleChanged", "(ZZIIIIIIIIIIIZ)V");
-    reparentNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "reparentNotify", "(J)V");
+    focusVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "focusVisibleChanged", "(ZII)Z");
+    visibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChanged", "(Z)Z");
+    insetsVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "insetsVisibleChanged", "(ZIIIII)Z");
+    sizePosMaxInsetsVisibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sizePosMaxInsetsVisibleChanged", "(ZZIIIIIIIIIIIZ)Z");
+    reparentNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "reparentNotify", "(J)Z");
     windowDestroyNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowDestroyNotify", "(Z)Z");
-    windowRepaintID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowRepaint", "(ZIIII)V");
-    visibleChangedWindowRepaintID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChangedWindowRepaint", "(ZIIIII)V");
-    sendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEvent", "(SIIISF)V");
-    sendMouseEventRequestFocusID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEventRequestFocus", "(SIIISF)V");
-    visibleChangedSendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChangedSendMouseEvent", "(ZISIIISF)V");
-    sendTouchScreenEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendTouchScreenEvent", "(SII[S[I[I[FF)V");
-    sendKeyEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendKeyEvent", "(SISSCLjava/lang/String;)V");
+    windowRepaintID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowRepaint", "(ZIIII)Z");
+    visibleChangedWindowRepaintID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChangedWindowRepaint", "(ZIIIII)Z");
+    sendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEvent", "(SIIISF)Z");
+    sendMouseEventRequestFocusID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEventRequestFocus", "(SIIISF)Z");
+    visibleChangedSendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChangedSendMouseEvent", "(ZISIIISF)Z");
+    sendTouchScreenEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendTouchScreenEvent", "(SII[S[I[I[FF)Z");
+    sendKeyEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendKeyEvent", "(SISSCLjava/lang/String;)Z");
 
     if (displayCompletedID == NULL ||
+        isNativeValidID == NULL ||
         sendRRScreenChangeNotifyID == NULL ||
         getCurrentThreadNameID == NULL ||
         dumpStackID == NULL ||
@@ -391,10 +394,10 @@ static int NewtWindows_updateVisibility(JNIEnv *env, Display *dpy, JavaWindow *j
     return visibleChange;
 }
 
-static void sendTouchScreenEvent(JNIEnv *env, JavaWindow *jw,
-        short eventType,  // MouseEvent.EVENT_MOUSE_PRESSED, MouseEvent.EVENT_MOUSE_RELEASED, MouseEvent.EVENT_MOUSE_MOVED
-        int modifiers, // 0!
-        int actionId) //  index of multiple-pointer arrays representing the pointer which triggered the event
+static jboolean sendTouchScreenEvent(JNIEnv *env, JavaWindow *jw,
+                                     short eventType,  // MouseEvent.EVENT_MOUSE_PRESSED, MouseEvent.EVENT_MOUSE_RELEASED, MouseEvent.EVENT_MOUSE_MOVED
+                                     int modifiers, // 0!
+                                     int actionId) //  index of multiple-pointer arrays representing the pointer which triggered the event
 {
     jshort pointerNames[XI_TOUCHCOORD_COUNT];
     jint x[XI_TOUCHCOORD_COUNT];
@@ -445,10 +448,11 @@ static void sendTouchScreenEvent(JNIEnv *env, JavaWindow *jw,
     }
     (*env)->SetFloatArrayRegion(env, jPressure, 0, cnt, pressure);
 
-    (*env)->CallVoidMethod(env, jw->jwindow, sendTouchScreenEventID,
-            (jshort)eventType, (jint)modifiers, (jint)actionIdx,
-            jNames, jX, jY, jPressure, (jfloat)1.0f);
+    jboolean res = (*env)->CallBooleanMethod(env, jw->jwindow, sendTouchScreenEventID,
+                                             (jshort)eventType, (jint)modifiers, (jint)actionIdx,
+                                             jNames, jX, jY, jPressure, (jfloat)1.0f);
     NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: XI: Exception occured at sendTouchScreenEvent(..)");
+    return res;
 }
 
 /*
@@ -467,6 +471,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
     int autoRepeatModifiers = 0;
 
     if ( NULL == dpy ) {
+        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 0\n", dpy); 
         return;
     }
 
@@ -489,12 +494,25 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
         jstring keyString = NULL;
         char text[255];
 
+        // Don't use explicit Java callback, we simply break loop if regular Java callback on event returns JNI_FALSE
+        #if 0
+            if( JNIInvalidRefType == (*env)->GetObjectRefType(env, obj) ) {
+                DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 1, invalidated DisplayDriver Object %p\n", dpy, obj); 
+                return;
+            }  
+            if( JNI_FALSE == (*env)->CallBooleanMethod(env, obj, isNativeValidID) ) {
+                DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 2, closed DisplayDriver %p\n", dpy, obj); 
+                return;
+            }
+            NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: Exception occured at isNativeValid()");
+        #endif
+
         // XEventsQueued(dpy, X):
         //   QueuedAlready    == XQLength(): No I/O Flush or system call  doesn't work on some cards (eg ATI) ?) 
         //   QueuedAfterFlush == XPending(): I/O Flush only if no already queued events are available
         //   QueuedAfterReading            : QueuedAlready + if queue==0, attempt to read more ..
         if ( 0 >= XEventsQueued(dpy, QueuedAfterFlush) ) {
-            // DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 1\n", dpy); 
+            DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 3\n", dpy); 
             return;
         }
 
@@ -502,13 +520,17 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
         num_events--;
 
         if(dpy!=evt.xany.display) {
+            DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 4, wrong display\n", dpy); 
             NewtCommon_throwNewRuntimeException(env, "wrong display, bail out!");
             return ;
         }
 
         if( randr_event_base > 0 && RRScreenChangeNotify == ( evt.type - randr_event_base ) ) {
             DBG_PRINT( "X11: DispatchMessages dpy %p, Event RRScreenChangeNotify %p\n", (void*)dpy, (void*)&evt);
-            (*env)->CallVoidMethod(env, obj, sendRRScreenChangeNotifyID, (jlong)(intptr_t)&evt);
+            if( JNI_FALSE == (*env)->CallBooleanMethod(env, obj, sendRRScreenChangeNotifyID, (jlong)(intptr_t)&evt) ) {
+                DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, RRScreen\n", dpy); 
+                num_events = 0; // end loop in case of destroyed display
+            }
             NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: RR: Exception occured at sendRRScreenChangeNotify(..)");
             continue; // next event
         }
@@ -523,13 +545,16 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
         XGenericEventCookie *evtCookie = &evt.xcookie; // hacks: https://keithp.com/blogs/Cursor_tracking/
         int isXiEvent = GenericEvent == evtCookie->type && xi_opcode == evtCookie->extension && XGetEventData(dpy, evtCookie);
         XIDeviceEvent *xiDevEv;
+        int xiDetail;
         Window windowPointer;
         if( !isXiEvent ) {
             xiDevEv = NULL;
+            xiDetail = 0;
             windowPointer = evt.xany.window;
             DBG_PRINT( "X11: DispatchMessages dpy %p, win %p, Event %d\n", (void*)dpy, (void*)windowPointer, (int)evt.type);
         } else {
             xiDevEv = evtCookie->data;
+            xiDetail = xiDevEv->detail; 
             windowPointer = xiDevEv->event;
         }
 
@@ -563,7 +588,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                         }
                         DBG_PRINT( "X11: XI event - XI_TouchBegin Window %p, devid %d, touchid[%d] %d @ %d/%d\n", (void*)windowPointer, xiDevEv->deviceid, 
                             i, jw->xiTouchCoords[i].id, jw->xiTouchCoords[i].x, jw->xiTouchCoords[i].y);
-                        sendTouchScreenEvent(env, jw, EVENT_MOUSE_PRESSED, 0, xiDevEv->detail % 32767);
+                        XFreeEventData(dpy, evtCookie);
+                        if( JNI_FALSE == sendTouchScreenEvent(env, jw, EVENT_MOUSE_PRESSED, 0, xiDetail % 32767) ) {
+                            DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, touch-begin\n", dpy); 
+                            num_events = 0; // end loop in case of destroyed display
+                        }
                         break;
 
                     case XI_TouchUpdate:
@@ -576,7 +605,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                         }
                         DBG_PRINT( "X11: XI event - XI_TouchUpdate: Window %p, devid %d, touchid[%d] %d @ %d/%d\n", (void*)windowPointer, xiDevEv->deviceid, 
                             i, jw->xiTouchCoords[i].id, jw->xiTouchCoords[i].x, jw->xiTouchCoords[i].y);
-                        sendTouchScreenEvent(env, jw, EVENT_MOUSE_MOVED, 0, xiDevEv->detail % 32767);
+                        XFreeEventData(dpy, evtCookie);
+                        if( JNI_FALSE == sendTouchScreenEvent(env, jw, EVENT_MOUSE_MOVED, 0, xiDetail % 32767) ) {
+                            DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, touch-update\n", dpy); 
+                            num_events = 0; // end loop in case of destroyed display
+                        }
                         break;
 
                     case XI_TouchEnd:
@@ -587,14 +620,20 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                         }
                         DBG_PRINT( "X11: XI event - XI_TouchEnd: Window %p, devid %d, touchid[%d] %d @ %d/%d\n", (void*)windowPointer, xiDevEv->deviceid, 
                             i, jw->xiTouchCoords[i].id, jw->xiTouchCoords[i].x, jw->xiTouchCoords[i].y);
-                        sendTouchScreenEvent(env, jw, EVENT_MOUSE_RELEASED, 0, xiDevEv->detail % 32767);
+                        XFreeEventData(dpy, evtCookie);
+                        if( JNI_FALSE == sendTouchScreenEvent(env, jw, EVENT_MOUSE_RELEASED, 0, xiDetail % 32767) ) {
+                            DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, touch-end\n", dpy); 
+                            num_events = 0; // end loop in case of destroyed display
+                        }
                         if ( i < XI_TOUCHCOORD_COUNT ) {
                             jw->xiTouchCoords[i].id = -1;
                         }
                         break;
+
+                    default:
+                        XFreeEventData(dpy, evtCookie);
                 }
             }
-            XFreeEventData(dpy, evtCookie);
             continue; // next event, skip evt.type handling below
         }
         
@@ -686,21 +725,30 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
 
         switch(evt.type) {
             case ButtonPress:
-                (*env)->CallVoidMethod(env, jw->jwindow, sendMouseEventRequestFocusID, (jshort) EVENT_MOUSE_PRESSED, 
-                                      modifiers,
-                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jshort) evt.xbutton.button, 0.0f /*rotation*/);
+                if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, sendMouseEventRequestFocusID, (jshort) EVENT_MOUSE_PRESSED, 
+                                                           modifiers,
+                                                           (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jshort) evt.xbutton.button, 0.0f /*rotation*/) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, press-mouseEvent\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                }
                 NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: ButtonPress: Exception occured at sendMouseEventRequestFocus(..)");
                 break;
             case ButtonRelease:
-                (*env)->CallVoidMethod(env, jw->jwindow, sendMouseEventID, (jshort) EVENT_MOUSE_RELEASED, 
-                                      modifiers,
-                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jshort) evt.xbutton.button, 0.0f /*rotation*/);
+                if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, sendMouseEventID, (jshort) EVENT_MOUSE_RELEASED, 
+                                                           modifiers,
+                                                           (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jshort) evt.xbutton.button, 0.0f /*rotation*/) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, release-mouseEvent\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                }
                 NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: ButtonRelease: Exception occured at sendMouseEvent(..)");
                 break;
             case MotionNotify:
-                (*env)->CallVoidMethod(env, jw->jwindow, sendMouseEventID, (jshort) EVENT_MOUSE_MOVED, 
-                                      modifiers,
-                                      (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jshort) 0, 0.0f /*rotation*/); 
+                if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, sendMouseEventID, (jshort) EVENT_MOUSE_MOVED, 
+                                                           modifiers,
+                                                           (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jshort) 0, 0.0f /*rotation*/) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, motion-mouseEvent\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                }
                 NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: MotionNotify: Exception occured at sendMouseEvent(..)");
                 break;
             case EnterNotify:
@@ -708,9 +756,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 {
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "EnterNotify");
-                    (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedSendMouseEventID, JNI_FALSE, (jint)visibleChange, 
-                                      (jshort) EVENT_MOUSE_ENTERED, modifiers,
-                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jshort) 0, 0.0f /*rotation*/);
+                    if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, visibleChangedSendMouseEventID, JNI_FALSE, (jint)visibleChange, 
+                                                              (jshort) EVENT_MOUSE_ENTERED, modifiers,
+                                                              (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jshort) 0, 0.0f /*rotation*/) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, enter-mouseEvent\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                    }
                     NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: EnterNotify: Exception occured at visibleChangedSendMouseEvent(..)");
                 }
                 break;
@@ -719,9 +770,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 {
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "LeaveNotify");
-                    (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedSendMouseEventID, JNI_FALSE, (jint)visibleChange, 
-                                      (jshort) EVENT_MOUSE_EXITED, modifiers,
-                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jshort) 0, 0.0f /*rotation*/);
+                    if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, visibleChangedSendMouseEventID, JNI_FALSE, (jint)visibleChange, 
+                                                               (jshort) EVENT_MOUSE_EXITED, modifiers,
+                                                               (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jshort) 0, 0.0f /*rotation*/) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, leave-mouseEvent\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                    }
                     NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: LeaveNotify: Exception occured at visibleChangedSendMouseEvent(..)");
                 }
                 break;
@@ -730,13 +784,19 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 XRefreshKeyboardMapping(&evt.xmapping);
                 break;
             case KeyPress:
-                (*env)->CallVoidMethod(env, jw->jwindow, sendKeyEventID, (jshort) EVENT_KEY_PRESSED, 
-                                      modifiers, javaVKeyUS, javaVKeyNN, (jchar) keyChar, keyString);
+                if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, sendKeyEventID, (jshort) EVENT_KEY_PRESSED, 
+                                                           modifiers, javaVKeyUS, javaVKeyNN, (jchar) keyChar, keyString) ) {
+                    DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, press-keyEvent\n", dpy); 
+                    num_events = 0; // end loop in case of destroyed display
+                }
                 NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: KeyPress: Exception occured at sendKeyEvent(..)");
                 break;
             case KeyRelease:
-                (*env)->CallVoidMethod(env, jw->jwindow, sendKeyEventID, (jshort) EVENT_KEY_RELEASED, 
-                                      modifiers, javaVKeyUS, javaVKeyNN, (jchar) keyChar, keyString);
+                if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, sendKeyEventID, (jshort) EVENT_KEY_RELEASED, 
+                                                           modifiers, javaVKeyUS, javaVKeyNN, (jchar) keyChar, keyString) ) {
+                    DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, release-keyEvent\n", dpy); 
+                    num_events = 0; // end loop in case of destroyed display
+                }
                 NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: KeyRelease: Exception occured at sendKeyEvent(..)");
                 break;
             case DestroyNotify:
@@ -787,14 +847,17 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "ConfigureNotify");
                     NewtWindows_updateInsets(dpy, jw, False /* wait */, &left, &right, &top, &bottom);
                     Bool maxChanged = NewtWindows_updateMaximized(dpy, jw, netWMState);
-                    (*env)->CallVoidMethod(env, jw->jwindow, sizePosMaxInsetsVisibleChangedID, JNI_FALSE, JNI_FALSE,
-                                            (jint) x_pos, (jint) y_pos,
-                                            (jint) evt.xconfigure.width, (jint) evt.xconfigure.height,
-                                            (jint)(maxChanged ? ( jw->maxHorz ? 1 : 0 ) : -1), 
-                                            (jint)(maxChanged ? ( jw->maxVert ? 1 : 0 ) : -1),
-                                            (jint)left, (jint)right, (jint)top, (jint)bottom,
-                                            (jint)visibleChange,
-                                            JNI_FALSE);
+                    if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, sizePosMaxInsetsVisibleChangedID, JNI_FALSE, JNI_FALSE,
+                                                               (jint) x_pos, (jint) y_pos,
+                                                               (jint) evt.xconfigure.width, (jint) evt.xconfigure.height,
+                                                               (jint)(maxChanged ? ( jw->maxHorz ? 1 : 0 ) : -1), 
+                                                               (jint)(maxChanged ? ( jw->maxVert ? 1 : 0 ) : -1),
+                                                               (jint)left, (jint)right, (jint)top, (jint)bottom,
+                                                               (jint)visibleChange,
+                                                               JNI_FALSE) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, sizePosMaxInsetsVis\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                    }
                     NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: ConfigureNotify: Exception occured at sizePosMaxInsetsVisibleChanged(..)");
                 }
                 break;
@@ -808,6 +871,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     closed = (*env)->CallBooleanMethod(env, jw->jwindow, windowDestroyNotifyID, JNI_FALSE);
                     DBG_PRINT( "X11: event . ClientMessage call %p type 0x%X, closed: %d\n", 
                         (void*)evt.xclient.window, (unsigned int)evt.xclient.message_type, (int)closed);
+                    DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 5, windowDeleteAtom received\n", dpy); 
                     // Called by Window.java: CloseWindow(); 
                     num_events = 0; // end loop in case of destroyed display
                 }
@@ -818,7 +882,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 {
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "FocusIn");
-                    (*env)->CallVoidMethod(env, jw->jwindow, focusVisibleChangedID, JNI_FALSE, (jint)1, (jint)visibleChange);
+                    if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, focusVisibleChangedID, JNI_FALSE, (jint)1, (jint)visibleChange) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, focus-in\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                    }
                     NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: FocusIn: Exception occured at focusVisibleChanged(..)");
                 }
                 break;
@@ -828,7 +895,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 {
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "FocusOut");
-                    (*env)->CallVoidMethod(env, jw->jwindow, focusVisibleChangedID, JNI_FALSE, (jint)0, (jint)visibleChange);
+                    if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, focusVisibleChangedID, JNI_FALSE, (jint)0, (jint)visibleChange) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, focus-out\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                    }
                     NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: FocusOut: Exception occured at focusVisibleChanged(..)");
                 }
                 break;
@@ -840,7 +910,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "VisibilityNotify");
                     if( 0 <= visibleChange ) {
-                        (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, 0 < visibleChange ? JNI_TRUE : JNI_FALSE);
+                        if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, visibleChangedID, 0 < visibleChange ? JNI_TRUE : JNI_FALSE) ) {
+                            DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, vis-notify\n", dpy); 
+                            num_events = 0; // end loop in case of destroyed display
+                        }
                         NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: VisibilityNotify: Exception occured at visibleChanged(..)");
                     }
                     #endif
@@ -852,14 +925,20 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 DBG_PRINT( "X11: event . Expose call %p %d/%d %dx%d count %d\n", (void*)evt.xexpose.window,
                     evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height, evt.xexpose.count);
                 if (evt.xexpose.count == 0 && evt.xexpose.width > 0 && evt.xexpose.height > 0) {
-                    (*env)->CallVoidMethod(env, jw->jwindow, windowRepaintID, JNI_FALSE,
-                        evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height);
+                    if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, windowRepaintID, JNI_FALSE,
+                                                               evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, expose\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                    }
                     NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: Expose: Exception occured at windowRepaint(..)");
                     #if 0
                     uint32_t netWMState = NewtWindows_getNET_WM_STATE(dpy, jw);
                     int visibleChange = NewtWindows_updateVisibility(env, dpy, jw, netWMState, "Expose");
-                    (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedWindowRepaintID, JNI_FALSE, (jint)visibleChange,
-                        evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height);
+                    if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, visibleChangedWindowRepaintID, JNI_FALSE, (jint)visibleChange,
+                                                               evt.xexpose.x, evt.xexpose.y, evt.xexpose.width, evt.xexpose.height) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, focus-in-vis-repaint\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                    }
                     #endif
                 }
                 break;
@@ -874,10 +953,16 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     // insets: negative values are ignored
                     int left=-1, right=-1, top=-1, bottom=-1;
                     if( NewtWindows_updateInsets(dpy, jw, False /* wait */, &left, &right, &top, &bottom) ) {
-                        (*env)->CallVoidMethod(env, jw->jwindow, insetsVisibleChangedID, JNI_FALSE, left, right, top, bottom, 1);
+                        if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, insetsVisibleChangedID, JNI_FALSE, left, right, top, bottom, 1) ) {
+                            DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, map-insets\n", dpy); 
+                            num_events = 0; // end loop in case of destroyed display
+                        }
                         NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: MapNotify: Exception occured at insetsVisibleChanged(..)");
                     } else {
-                        (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_TRUE);
+                        if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, visibleChangedID, JNI_TRUE) ) {
+                            DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, map\n", dpy); 
+                            num_events = 0; // end loop in case of destroyed display
+                        }
                         NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: MapNotify: Exception occured at visibleChanged(..)");
                     }
                 }
@@ -890,7 +975,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 if( evt.xunmap.event == evt.xunmap.window ) {
                     // ignore child window notification
                     jw->isMapped = False;
-                    (*env)->CallVoidMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE);
+                    if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, visibleChangedID, JNI_FALSE) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, unmap\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                    }
                     NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: UnmapNotify: Exception occured at visibleChanged(..)");
                 }
                 break;
@@ -924,7 +1012,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                             (void*)evt.xreparent.parent, (void*)parentRoot, (void*)parentTopParent,
                             (void*)evt.xreparent.window, (void*)winRoot, (void*)winTopParent);
                     #endif
-                    (*env)->CallVoidMethod(env, jw->jwindow, reparentNotifyID, (jlong)evt.xreparent.parent);
+                    if( JNI_FALSE == (*env)->CallBooleanMethod(env, jw->jwindow, reparentNotifyID, (jlong)evt.xreparent.parent) ) {
+                        DBG_PRINT( "X11: DispatchMessages 0x%X - Leave J, reparent-notify\n", dpy); 
+                        num_events = 0; // end loop in case of destroyed display
+                    }
                     NewtCommon_ExceptionCheck1_throwNewRuntimeException(env, "X11Display.DispatchMessages0: ReparentNotify: Exception occured at reparentNotify(..)");
                 }
                 break;

@@ -844,8 +844,8 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     // Window completion
     //
     @Override
-    public final void windowRepaint(final int x, final int y, final int width, final int height) {
-        window.windowRepaint(x, y, width, height);
+    public final boolean windowRepaint(final int x, final int y, final int width, final int height) {
+        return window.windowRepaint(x, y, width, height);
     }
 
     @Override

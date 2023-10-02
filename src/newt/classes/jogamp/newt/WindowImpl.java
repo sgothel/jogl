@@ -69,7 +69,6 @@ import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.Bitfield;
-import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.locks.LockFactory;
@@ -2363,7 +2362,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return stateMask.get(STATE_BIT_MAXIMIZED_HORZ);
     }
     /** Triggered by implementation's WM events to update maximized window state. */
-    protected final void maximizedChanged(final boolean newMaxHorz, final boolean newMaxVert) {
+    protected final boolean maximizedChanged(final boolean newMaxHorz, final boolean newMaxVert) {
         if( !isFullscreen() ) {
             final String stateMask0 = DEBUG_IMPLEMENTATION ? getStateMaskString() : null;
             final boolean changedHorz = stateMask.put(STATE_BIT_MAXIMIZED_HORZ, newMaxHorz) != newMaxHorz;
@@ -2381,6 +2380,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 System.err.println("Window.maximizedChanged.ignored: "+stateMask0+" -> max["+(newMaxHorz?"":"!")+"h, "+(newMaxVert?"":"!")+"v]");
             }
         }
+        return isNativeValid();
     }
     /**
      * Manually calculate maximized and de-maximized position and size
@@ -3756,14 +3756,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Native MouseEvents pre-processed to be enqueued or consumed directly
     //
 
-    public final void sendMouseEvent(final short eventType, final int modifiers,
-                                     final int x, final int y, final short button, final float rotation) {
+    public final boolean sendMouseEvent(final short eventType, final int modifiers,
+                                        final int x, final int y, final short button, final float rotation) {
         doMouseEvent(false, false, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
+        return isNativeValid();
     }
 
-    public final void enqueueMouseEvent(final boolean wait, final short eventType, final int modifiers,
+    public final boolean enqueueMouseEvent(final boolean wait, final short eventType, final int modifiers,
                                         final int x, final int y, final short button, final float rotation) {
         doMouseEvent(true, wait, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
+        return isNativeValid();
     }
     protected final void doMouseEvent(final boolean enqueue, final boolean wait, final short eventType, final int modifiers,
                                       final int x, final int y, final short button, final float rotation) {
@@ -4543,14 +4545,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return false;
     }
 
-    public void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
+    public boolean sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         // Always add currently pressed mouse buttons to modifier mask
         consumeKeyEvent( KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | pState1.buttonPressedMask, keyCode, keySym, keyChar) );
+        return isNativeValid();
     }
 
-    public void enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
+    public boolean enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         // Always add currently pressed mouse buttons to modifier mask
         enqueueEvent(wait, KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | pState1.buttonPressedMask, keyCode, keySym, keyChar) );
+        return isNativeValid();
     }
 
     @Override
@@ -4779,7 +4783,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
 
     /** Triggered by implementation's WM events to update the focus state. */
-    protected void focusChanged(final boolean defer, final boolean focusGained) {
+    protected boolean focusChanged(final boolean defer, final boolean focusGained) {
         if( stateMask.get(PSTATE_BIT_FOCUS_CHANGE_BROKEN) ||
             stateMask.get(STATE_BIT_FOCUSED) != focusGained )
         {
@@ -4797,15 +4801,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 enqueueWindowEvent(false, evt);
             }
         }
+        return isNativeValid();
     }
 
     /** Triggered by implementation's WM events to update the visibility state. */
-    protected final void visibleChanged(final boolean visible) {
+    protected final boolean visibleChanged(final boolean visible) {
         if( stateMask.put(STATE_BIT_VISIBLE, visible) != visible ) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.visibleChanged ("+getThreadName()+"): visible "+(!visible)+" -> state "+getStateMaskString()+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
         }
+        return isNativeValid();
     }
 
     /** Triggered by implementation's WM events to update the client-area size in window units w/o insets/decorations. */
@@ -4840,10 +4846,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_RESIZED);
                 }
             }
-            return true;
-        } else {
-            return false;
         }
+        return isNativeValid();
     }
 
     /** Triggered by implementation's WM events to update the position. */
@@ -4871,11 +4875,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             } else {
                 enqueueWindowEvent(false, WindowEvent.EVENT_WINDOW_MOVED);
             }
-            return true;
         } else {
             stateMask.clear(STATE_BIT_AUTOPOSITION); // ensure it's off even w/ same position
-            return false;
         }
+        return isNativeValid();
     }
 
     /**
@@ -4888,7 +4891,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @see #getInsets()
      * @see #updateInsetsImpl(Insets)
      */
-    protected final void insetsChanged(final boolean windowUnits, final int leftU, final int rightU, final int topU, final int bottomU) {
+    protected final boolean insetsChanged(final boolean windowUnits, final int leftU, final int rightU, final int topU, final int bottomU) {
         if ( leftU >= 0 && rightU >= 0 && topU >= 0 && bottomU >= 0 ) {
             final int[] tl_win;
             final int[] br_win;
@@ -4915,6 +4918,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 insets.set(tl_win[0], br_win[0], tl_win[1], br_win[1]);
             }
         }
+        return isNativeValid();
     }
 
     /**
@@ -4925,7 +4929,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param width dirty-region width in pixel units
      * @param height dirty-region height in pixel units
      */
-    protected final void windowRepaint(final boolean defer, final int x, final int y, int width, int height) {
+    protected final boolean windowRepaint(final boolean defer, final int x, final int y, int width, int height) {
         width = ( 0 >= width ) ? getSurfaceWidth() : width;
         height = ( 0 >= height ) ? getSurfaceHeight() : height;
         if(DEBUG_IMPLEMENTATION) {
@@ -4936,6 +4940,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             final NEWTEvent e = new WindowUpdateEvent(WindowEvent.EVENT_WINDOW_REPAINT, this, System.currentTimeMillis(),
                                                       new Rectangle(x, y, width, height));
             doEvent(defer, false, e);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -5002,19 +5009,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param button
      * @param rotation
      */
-    protected final void visibleChangedSendMouseEvent(final boolean defer, final int visibleChange,
-                                                      final short eventType, final int modifiers,
-                                                      final int x, final int y, final short button, final float rotation) {
+    protected final boolean visibleChangedSendMouseEvent(final boolean defer, final int visibleChange,
+                                                         final short eventType, final int modifiers,
+                                                         final int x, final int y, final short button, final float rotation) {
+        boolean res = true;
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(0 < visibleChange);
+            res = visibleChanged(0 < visibleChange);
         }
         if( 0 < eventType ) {
             if( defer ) {
-                enqueueMouseEvent(false /* wait */, eventType, modifiers, x, y, button, rotation);
+                res = res && enqueueMouseEvent(false /* wait */, eventType, modifiers, x, y, button, rotation);
             } else {
-                sendMouseEvent(eventType, modifiers, x, y, button, rotation);
+                res = res && sendMouseEvent(eventType, modifiers, x, y, button, rotation);
             }
         }
+        return res;
     }
 
     /**
@@ -5026,12 +5035,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param width dirty-region width in pixel units
      * @param height dirty-region height in pixel units
      */
-    protected final void visibleChangedWindowRepaint(final boolean defer, final int visibleChange,
-                                                     final int x, final int y, final int width, final int height) {
+    protected final boolean visibleChangedWindowRepaint(final boolean defer, final int visibleChange,
+                                                        final int x, final int y, final int width, final int height) {
+        boolean res = true;
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(0 < visibleChange);
+            res = visibleChanged(0 < visibleChange);
         }
-        windowRepaint(defer, x, y, width, height);
+        return res && windowRepaint(defer, x, y, width, height);
     }
 
     /**
@@ -5041,15 +5051,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param focusChange -1 ignored, 0 unfocused, > 0 focused
      * @param visibleChange -1 ignored, 0 invisible, > 0 visible
      */
-    protected final void focusVisibleChanged(final boolean defer,
-                                             final int focusChange,
-                                             final int visibleChange) {
+    protected final boolean focusVisibleChanged(final boolean defer,
+                                                final int focusChange,
+                                                final int visibleChange) {
+        boolean res = true;
         if( 0 <= focusChange ) { // ignore focus < 0
-            focusChanged(defer, 0 < focusChange);
+            res = focusChanged(defer, 0 < focusChange);
         }
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(0 < visibleChange);
+            res = res && visibleChanged(0 < visibleChange);
         }
+        return res && isNativeValid();
     }
 
     /**
@@ -5061,12 +5073,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param bottom insets, -1 ignored
      * @param visibleChange -1 ignored, 0 invisible, > 0 visible
      */
-    protected final void insetsVisibleChanged(final boolean windowUnits,
-                                              final int left, final int right, final int top, final int bottom, final int visibleChange) {
-        insetsChanged(windowUnits, left, right, top, bottom);
+    protected final boolean insetsVisibleChanged(final boolean windowUnits,
+                                                 final int left, final int right, final int top, final int bottom, final int visibleChange) {
+        boolean res = insetsChanged(windowUnits, left, right, top, bottom);
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(0 < visibleChange);
+            res = res && visibleChanged(0 < visibleChange);
         }
+        return res;
     }
 
     /**
@@ -5086,21 +5099,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param visibleChange -1 ignored, 0 invisible, > 0 visible
      * @param force
      */
-    protected final void sizePosInsetsFocusVisibleChanged(final boolean defer,
-                                                          final boolean windowUnits,
-                                                          final int newX, final int newY, final int newWidth, final int newHeight,
-                                                          final int left, final int right, final int top, final int bottom,
-                                                          final int focusChange,
-                                                          final int visibleChange, final boolean force) {
-        sizeChanged(defer, windowUnits, newWidth, newHeight, force);
-        positionChanged(defer, windowUnits, newX, newY);
-        insetsChanged(windowUnits, left, right, top, bottom);
+    protected final boolean sizePosInsetsFocusVisibleChanged(final boolean defer,
+                                                             final boolean windowUnits,
+                                                             final int newX, final int newY, final int newWidth, final int newHeight,
+                                                             final int left, final int right, final int top, final int bottom,
+                                                             final int focusChange,
+                                                             final int visibleChange, final boolean force) {
+        boolean res = sizeChanged(defer, windowUnits, newWidth, newHeight, force);
+        res = res && positionChanged(defer, windowUnits, newX, newY);
+        res = res && insetsChanged(windowUnits, left, right, top, bottom);
         if( 0 <= focusChange ) { // ignore focus < 0
-            focusChanged(defer, 0 < focusChange);
+            res = res && focusChanged(defer, 0 < focusChange);
         }
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(0 < visibleChange);
+            res = res && visibleChanged(0 < visibleChange);
         }
+        return res;
     }
 
     /**
@@ -5122,20 +5136,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @param force
      * @param windowUnits if true, values are given in window units, otherwise in pixel units.
      */
-    protected final void sizePosMaxInsetsVisibleChanged(final boolean defer, final boolean windowUnits,
-                                                        final int newX, final int newY, final int newWidth, final int newHeight,
-                                                        final int maxHorzChange, final int maxVertChange,
-                                                        final int left, final int right, final int top, final int bottom,
-                                                        final int visibleChange, final boolean force) {
-        sizeChanged(defer, windowUnits, newWidth, newHeight, force);
-        positionChanged(defer, windowUnits, newX, newY);
+    protected final boolean sizePosMaxInsetsVisibleChanged(final boolean defer, final boolean windowUnits,
+                                                           final int newX, final int newY, final int newWidth, final int newHeight,
+                                                           final int maxHorzChange, final int maxVertChange,
+                                                           final int left, final int right, final int top, final int bottom,
+                                                           final int visibleChange, final boolean force) {
+        boolean res = sizeChanged(defer, windowUnits, newWidth, newHeight, force);
+        res = res && positionChanged(defer, windowUnits, newX, newY);
         if( 0 <= maxHorzChange && 0 <= maxVertChange ) {
-            maximizedChanged(0 < maxHorzChange, 0 < maxVertChange);
+            res = res && maximizedChanged(0 < maxHorzChange, 0 < maxVertChange);
         }
-        insetsChanged(false, left, right, top, bottom);
+        res = res && insetsChanged(false, left, right, top, bottom);
         if( 0 <= visibleChange ) { // ignore visible < 0
-            visibleChanged(0 < visibleChange);
+            res = res && visibleChanged(0 < visibleChange);
         }
+        return res;
     }
 
     //
@@ -5261,19 +5276,23 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
 
     @Override
-    public final void windowRepaint(final int x, final int y, final int width, final int height) {
-        windowRepaint(false, x, y, width, height);
+    public final boolean windowRepaint(final int x, final int y, final int width, final int height) {
+        return windowRepaint(false, x, y, width, height);
     }
 
     //
     // Accumulated actions
     //
 
-    /** Triggered by implementation. */
-    protected final void sendMouseEventRequestFocus(final short eventType, final int modifiers,
-                                                    final int x, final int y, final short button, final float rotation) {
-        sendMouseEvent(eventType, modifiers, x, y, button, rotation);
-        requestFocus(false /* wait */);
+    /** Triggered by implementation or event dispatcher. */
+    protected final boolean sendMouseEventRequestFocus(final short eventType, final int modifiers,
+                                                       final int x, final int y, final short button, final float rotation) {
+        if( sendMouseEvent(eventType, modifiers, x, y, button, rotation) ) {
+            requestFocus(false /* wait */);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     //

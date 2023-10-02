@@ -204,12 +204,15 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected void closeNativeImpl() {
-        if(0!=javaWindowHandle && null!=getScreen() ) {
+        final long _javaWindowHandle = javaWindowHandle;
+        if(0!=_javaWindowHandle && null!=getScreen() ) {
             final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             final AbstractGraphicsDevice edtDevice = display.getGraphicsDevice();
             edtDevice.lock();
             try {
-                CloseWindow0(edtDevice.getHandle(), javaWindowHandle /* , display.getKbdHandle() */, // XKB disabled for now
+                setWindowHandle(0); // dispose native window handle ASAP
+                javaWindowHandle = 0; // dispose our javaWindow handle ASAP
+                CloseWindow0(display, edtDevice.getHandle(), _javaWindowHandle /* , display.getKbdHandle() */, // XKB disabled for now
                              display.getRandREventBase(), display.getRandRErrorBase(), display.getXiOpcode());
             } catch (final Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
@@ -218,7 +221,6 @@ public class WindowDriver extends WindowImpl {
                 }
             } finally {
                 edtDevice.unlock();
-                javaWindowHandle = 0;
                 last_monitor = null;
             }
         }
@@ -304,7 +306,7 @@ public class WindowDriver extends WindowImpl {
      * {@inheritDoc}
      */
     @Override
-    protected void focusChanged(final boolean defer, final boolean focusGained) {
+    protected boolean focusChanged(final boolean defer, final boolean focusGained) {
         if( isNativeValid() && isFullscreen() && !isAlwaysOnBottom() && tempFSAlwaysOnTop && hasFocus() != focusGained ) {
             final int flags = getReconfigureMask(CHANGE_MASK_ALWAYSONTOP, isVisible()) |
                               ( focusGained ? STATE_MASK_ALWAYSONTOP : 0 );
@@ -320,7 +322,7 @@ public class WindowDriver extends WindowImpl {
                 }
             });
         }
-        super.focusChanged(defer, focusGained);
+        return super.focusChanged(defer, focusGained);
     }
 
     @Override
@@ -349,11 +351,12 @@ public class WindowDriver extends WindowImpl {
         return res;
     }
 
-    protected void reparentNotify(final long newParentWindowHandle) {
+    protected boolean reparentNotify(final long newParentWindowHandle) {
         if(DEBUG_IMPLEMENTATION) {
             final long p0 = getParentWindowHandle();
             System.err.println("Window.reparentNotify ("+getThreadName()+"): "+toHexString(p0)+" -> "+toHexString(newParentWindowHandle));
         }
+        return isNativeValid();
     }
 
     @Override
@@ -490,7 +493,7 @@ public class WindowDriver extends WindowImpl {
     }
 
     /** Called by native TK */
-    protected final void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar0, final String keyString) {
+    protected final boolean sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar0, final String keyString) {
         // handleKeyEvent(true, false, eventType, modifiers, keyCode, keyChar);
         final boolean isModifierKey = KeyEvent.isModifierKey(keyCode);
         final boolean isAutoRepeat = 0 != ( InputEvent.AUTOREPEAT_MASK & modifiers );
@@ -498,22 +501,24 @@ public class WindowDriver extends WindowImpl {
         // System.err.println("*** sendKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar0+">/<"+keyChar+">, keyString "+keyString+", mods "+toHexString(modifiers)+
         //                    ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isAutoRepeat+", [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
 
+        boolean res = true;
         if( !isAutoRepeat || !isModifierKey ) { // ! (  isModifierKey && isAutoRepeat )
             switch(eventType) {
                 case KeyEvent.EVENT_KEY_PRESSED:
-                    super.sendKeyEvent(KeyEvent.EVENT_KEY_PRESSED, modifiers, keyCode, keySym, keyChar);
+                    res = super.sendKeyEvent(KeyEvent.EVENT_KEY_PRESSED, modifiers, keyCode, keySym, keyChar);
                     break;
 
                 case KeyEvent.EVENT_KEY_RELEASED:
-                    super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar);
+                    res = super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar);
                     break;
             }
         }
+        return res;
     }
 
-    public final void sendTouchScreenEvent(final short eventType, final int modifiers,
-                                           final int pActionIdx, final short[] pNames,
-                                           final int[] pX, final int[] pY, final float[] pPressure, final float maxPressure) {
+    public final boolean sendTouchScreenEvent(final short eventType, final int modifiers,
+                                              final int pActionIdx, final short[] pNames,
+                                              final int[] pX, final int[] pY, final float[] pPressure, final float maxPressure) {
         final int pCount = pNames.length;
         final MouseEvent.PointerType[] pTypes = new MouseEvent.PointerType[pCount];
         for(int i=0; i<pCount; i++) {
@@ -522,14 +527,15 @@ public class WindowDriver extends WindowImpl {
         doPointerEvent(false /*enqueue*/, false /*wait*/,
                        pTypes, eventType, modifiers, pActionIdx, true /*normalPNames*/, pNames,
                        pX, pY, pPressure, maxPressure, new float[] { 0f, 0f, 0f} /*rotationXYZ*/, 1f/*rotationScale*/);
+        return isNativeValid();
     }
 
     @Override
-    public final void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
+    public final boolean sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
     }
     @Override
-    public final void enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
+    public final boolean enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
     }
 
@@ -565,7 +571,7 @@ public class WindowDriver extends WindowImpl {
                                         int pixelDataSize, Object pixels, int pixels_byte_offset, boolean pixels_is_direct,
                                         boolean verbose);
     private static native int GetSupportedReconfigMask0(long javaWindowHandle);
-    private native void CloseWindow0(long display, long javaWindowHandle /*, long kbdHandle*/, // XKB disabled for now
+    private native void CloseWindow0(DisplayDriver disbplayDriver, long display, long javaWindowHandle /*, long kbdHandle*/, // XKB disabled for now
                                      final int randr_event_base, final int randr_error_base, final int xi_opcode);
     private static native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long javaWindowHandle,
                                                   int x, int y, int width, int height, int flags);

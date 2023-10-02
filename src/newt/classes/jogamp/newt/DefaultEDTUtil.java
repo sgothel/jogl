@@ -146,10 +146,14 @@ public class DefaultEDTUtil implements EDTUtil {
     @Override
     public final boolean invokeStop(final boolean wait, final Runnable task) {
         if(DEBUG) {
-            System.err.println(Thread.currentThread()+": Default-EDT.invokeStop wait "+wait);
+            System.err.println(Thread.currentThread()+": Default-EDT.invokeStop.0 wait "+wait+" "+this);
             ExceptionUtils.dumpStack(System.err);
         }
-        return invokeImpl(wait, task, true /* stop */, false /* provokeError */);
+        final boolean res = invokeImpl(wait, task, true /* stop */, false /* provokeError */);
+        if(DEBUG) {
+            System.err.println(Thread.currentThread()+": Default-EDT.invokeStop.X wait "+wait+" "+this);
+        }
+        return res;
     }
 
     public final boolean invokeAndWaitError(final Runnable task) {
@@ -202,7 +206,8 @@ public class DefaultEDTUtil implements EDTUtil {
                     if( !edt.isRunning ) {
                         if( null != task ) {
                             if( stop ) {
-                                System.err.println(Thread.currentThread()+": Warning: Default-EDT is about (3) to stop and stopped already, dropping task. Remaining tasks: "+edt.tasks.size()+" - "+edt);
+                                System.err.println(Thread.currentThread()+": Warning: Default-EDT is about (3) to stop and stopped already, executing stop-task. Remaining tasks: "+edt.tasks.size()+" - "+edt);
+                                task.run();
                             } else {
                                 System.err.println(Thread.currentThread()+": Warning: Default-EDT is not running, dropping task. NEDT "+edt);
                             }
@@ -210,7 +215,7 @@ public class DefaultEDTUtil implements EDTUtil {
                                 ExceptionUtils.dumpStack(System.err);
                             }
                         }
-                        return false;
+                        return stop; // OK if invokeStop
                     } else if( stop && null == task ) {
                         task = nullTask; // ensures execution triggering stop
                     }

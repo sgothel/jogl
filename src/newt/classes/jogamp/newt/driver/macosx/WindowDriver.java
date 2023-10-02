@@ -556,16 +556,17 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     /** Callback for native screen position change event of the client area. */
-    protected void screenPositionChanged(final boolean defer, final int newX, final int newY) {
+    protected boolean screenPositionChanged(final boolean defer, final int newX, final int newY) {
         // passed coordinates are in screen position of the client area
         if( isNativeValid() ) {
+            final boolean[] res = { true };
             final NativeWindow parent = getParent();
             final boolean useParentLoc = useParentLocation(parent);
             if( !useParentLoc || isOffscreenInstance ) {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("MacWindow.positionChanged.0 (Screen Pos - TOP): ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> "+newX+"/"+newY);
                 }
-                positionChanged(defer, true, newX, newY);
+                res[0] = positionChanged(defer, true, newX, newY);
             } else if( useParentLoc && !isVisible() ) {
                 // Fake invisible child window: drop fake position update for fake invisibility
                 if(DEBUG_IMPLEMENTATION) {
@@ -590,18 +591,19 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("MacWindow.positionChanged.1 (Screen Pos - CHILD): ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> absPos "+newX+"/"+newY+", parentOnScreen "+parentOnScreen+" -> "+absPos);
                         }
-                        positionChanged(false, true, absPos.getX(), absPos.getY());
+                        res[0] = positionChanged(false, true, absPos.getX(), absPos.getY());
                     } };
                 if( defer ) {
                     new InterruptSource.Thread(null, action).start();
                 } else {
                     action.run();
                 }
-
             }
+            return res[0];
         } else if(DEBUG_IMPLEMENTATION) {
             System.err.println("MacWindow.positionChanged.2 (Screen Pos - IGN): ("+getThreadName()+"): (defer: "+defer+") "+getX()+"/"+getY()+" -> "+newX+"/"+newY);
         }
+        return false;
     }
 
     @Override
@@ -654,25 +656,26 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     //
 
     /** Triggered by implementation's WM events to update the client-area position, size and insets. */
-    protected void sizeScreenPosInsetsChanged(final boolean defer,
-                                              final int newX, final int newY,
-                                              final int newWidth, final int newHeight,
-                                              final int left, final int right, final int top, final int bottom,
-                                              final boolean force,
-                                              final boolean withinLiveResize) {
+    protected boolean sizeScreenPosInsetsChanged(final boolean defer,
+                                                 final int newX, final int newY,
+                                                 final int newWidth, final int newHeight,
+                                                 final int left, final int right, final int top, final int bottom,
+                                                 final boolean force,
+                                                 final boolean withinLiveResize) {
         final LifecycleHook lh = getLifecycleHook();
         if( withinLiveResize && !resizeAnimatorPaused && null!=lh ) {
             resizeAnimatorPaused = lh.pauseRenderingAction();
         }
-        sizeChanged(defer, true /* windowUnits */, newWidth, newHeight, force);
-        screenPositionChanged(defer, newX, newY);
-        insetsChanged(false, left, right, top, bottom);
-        if( !withinLiveResize && resizeAnimatorPaused ) {
+        boolean res = sizeChanged(defer, true /* windowUnits */, newWidth, newHeight, force);
+        res = res && screenPositionChanged(defer, newX, newY);
+        res = res && insetsChanged(false, left, right, top, bottom);
+        if( !withinLiveResize && resizeAnimatorPaused && res ) {
             resizeAnimatorPaused = false;
             if( null!=lh ) {
                 lh.resumeRenderingAction();
             }
         }
+        return res;
     }
 
     @Override
@@ -727,16 +730,16 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     @Override
-    public final void sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
+    public final boolean sendKeyEvent(final short eventType, final int modifiers, final short keyCode, final short keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
     }
 
     @Override
-    public final void enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short _keyCode, final short _keySym, final char keyChar) {
+    public final boolean enqueueKeyEvent(final boolean wait, final short eventType, final int modifiers, final short _keyCode, final short _keySym, final char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
     }
 
-    protected final void enqueueKeyEvent(final boolean wait, final short eventType, int modifiers, final short _keyCode, final char keyChar, final char keySymChar) {
+    protected final boolean enqueueKeyEvent(final boolean wait, final short eventType, int modifiers, final short _keyCode, final char keyChar, final char keySymChar) {
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
         final short keyCode = MacKeyUtil.validateKeyCode(_keyCode, keyChar);
@@ -758,6 +761,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
         // OSX delivery order is PRESSED (t0), RELEASED (t1) and TYPED (t2) -> NEWT order: PRESSED (t0) and RELEASED (t1)
         // Auto-Repeat: OSX delivers only PRESSED, inject auto-repeat RELEASE key _before_ PRESSED
+        boolean res = true;
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
                 if( isKeyCodeTracked(keyCode) ) {
@@ -769,12 +773,12 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     if( setKeyPressed(keyCode, true) ) {
                         // key was already pressed
                         modifiers |= InputEvent.AUTOREPEAT_MASK;
-                        super.enqueueKeyEvent(wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar); // RELEASED
+                        res = super.enqueueKeyEvent(wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar); // RELEASED
                     }
                 }
                 break;
         }
-        super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keySym, keyChar);
+        return res && super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keySym, keyChar);
     }
 
     protected int getDisplayID() {

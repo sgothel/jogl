@@ -154,10 +154,11 @@ public class DisplayDriver extends DisplayImpl {
         this.randr_error_base = randr_error_base;
         this.xi_opcode = xi_opcode;
     }
-    private void sendRRScreenChangeNotify(final long event) {
+    private boolean sendRRScreenChangeNotify(final long event) {
         if( null != rAndR ) {
             rAndR.sendRRScreenChangeNotify(getHandle(), event);
         }
+        return isNativeValidAsync();
     }
     void registerRandR(final RandR rAndR) {
         this.rAndR = rAndR;

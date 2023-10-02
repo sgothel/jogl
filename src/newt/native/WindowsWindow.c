@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -246,7 +246,7 @@ typedef struct {
     int supportsMTouch;
 } WindowUserData;
     
-static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd);
+static jboolean UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd);
 
 typedef struct {
     USHORT javaKey;
@@ -594,9 +594,9 @@ static int WmKeyDown(JNIEnv *env, jobject window, USHORT wkey, WORD repCnt, BYTE
 
     modifiers = GetModifiers( javaVKeyUS );
 
-    (*env)->CallVoidMethod(env, window, sendKeyEventID,
-                           (jshort) EVENT_KEY_PRESSED,
-                           (jint) modifiers, (jshort) javaVKeyUS, (jshort) javaVKeyXX, (jchar) utf16Char);
+    (*env)->CallBooleanMethod(env, window, sendKeyEventID,
+                              (jshort) EVENT_KEY_PRESSED,
+                              (jint) modifiers, (jshort) javaVKeyUS, (jshort) javaVKeyXX, (jchar) utf16Char);
 
     return 0;
 }
@@ -612,9 +612,9 @@ static int WmKeyUp(JNIEnv *env, jobject window, USHORT wkey, WORD repCnt, BYTE s
 
     modifiers = GetModifiers( javaVKeyUS );
 
-    (*env)->CallVoidMethod(env, window, sendKeyEventID,
-                           (jshort) EVENT_KEY_RELEASED,
-                           (jint) modifiers, (jshort) javaVKeyUS, (jshort) javaVKeyXX, (jchar) utf16Char);
+    (*env)->CallBooleanMethod(env, window, sendKeyEventID,
+                              (jshort) EVENT_KEY_RELEASED,
+                              (jint) modifiers, (jshort) javaVKeyUS, (jshort) javaVKeyXX, (jchar) utf16Char);
 
     return 0;
 }
@@ -700,7 +700,7 @@ static jboolean NewtWindows_setFullScreen(jboolean fullscreen)
     return ( DISP_CHANGE_SUCCESSFUL == ChangeDisplaySettings(&dm, flags) ) ? JNI_TRUE : JNI_FALSE;
 }
 
-static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
+static jboolean UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
     jobject window = wud->jinstance;
     RECT outside;
     RECT inside;
@@ -708,7 +708,7 @@ static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
 
     if (IsIconic(hwnd)) {
         wud->insets.left = wud->insets.top = wud->insets.right = wud->insets.bottom = -1;
-        return;
+        return JNI_TRUE;
     }
 
     wud->insets.left = wud->insets.top = wud->insets.right = wud->insets.bottom = 0;
@@ -760,9 +760,10 @@ static void UpdateInsets(JNIEnv *env, WindowUserData *wud, HWND hwnd) {
         (void*)hwnd, strategy, (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom,
         (int) ( wud->insets.left + wud->insets.right ), (int) (wud->insets.top + wud->insets.bottom), wud->isInCreation);
     if( !wud->isInCreation ) {
-        (*env)->CallVoidMethod(env, window, insetsChangedID, 
-                               JNI_FALSE, (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom);
+        return (*env)->CallBooleanMethod(env, window, insetsChangedID, 
+                                         JNI_FALSE, (int)wud->insets.left, (int)wud->insets.right, (int)wud->insets.top, (int)wud->insets.bottom);
     }
+    return JNI_TRUE;
 }
 
 static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
@@ -793,7 +794,10 @@ static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
     }
 
     // make sure insets are up to date
-    UpdateInsets(env, wud, wnd);
+    if( JNI_FALSE == UpdateInsets(env, wud, wnd) ) {
+        DBG_PRINT( "WindowsWindow: WmSize.X window %p - Leave J, UpdateInsets\n", (void*)wnd); 
+        return;
+    }
 
     GetClientRect(wnd, &rc);
     
@@ -807,9 +811,15 @@ static void WmSize(JNIEnv *env, WindowUserData * wud, HWND wnd, UINT type)
     if( !wud->isInCreation ) {
         if( maxChanged ) {
             jboolean v = wud->isMaximized ? JNI_TRUE : JNI_FALSE;
-            (*env)->CallVoidMethod(env, window, maximizedChangedID, v, v);
+            if( JNI_FALSE == (*env)->CallBooleanMethod(env, window, maximizedChangedID, v, v) ) {
+                DBG_PRINT( "WindowsWindow: WmSize.X window %p - Leave J, maximized\n", (void*)wnd); 
+                return;
+            }
         }
-        (*env)->CallBooleanMethod(env, window, sizeChangedID, JNI_FALSE, JNI_FALSE, wud->width, wud->height, JNI_FALSE);
+        if( JNI_FALSE == (*env)->CallBooleanMethod(env, window, sizeChangedID, JNI_FALSE, JNI_FALSE, wud->width, wud->height, JNI_FALSE) ) {
+            DBG_PRINT( "WindowsWindow: WmSize.X window %p - Leave J, sizeChanged\n", (void*)wnd); 
+            return;
+        }
     }
 }
 
@@ -904,9 +914,9 @@ static BOOL SafeShowCursor(BOOL show) {
     return b;
 }
 
-static void sendTouchScreenEvent(JNIEnv *env, jobject window, 
-                                 short eventType, int modifiers, int actionIdx, 
-                                 int count, jshort* pointerNames, jint* x, jint* y, jfloat* pressure, float maxPressure) {
+static jboolean sendTouchScreenEvent(JNIEnv *env, jobject window, 
+                                     short eventType, int modifiers, int actionIdx, 
+                                     int count, jshort* pointerNames, jint* x, jint* y, jfloat* pressure, float maxPressure) {
     jshortArray jNames = (*env)->NewShortArray(env, count);
     if (jNames == NULL) {
         NewtCommon_throwNewRuntimeException(env, "Could not allocate short array (names) of size %d", count);
@@ -931,9 +941,9 @@ static void sendTouchScreenEvent(JNIEnv *env, jobject window,
     }
     (*env)->SetFloatArrayRegion(env, jPressure, 0, count, pressure);
 
-    (*env)->CallVoidMethod(env, window, sendTouchScreenEventID,
-                           (jshort)eventType, (jint)modifiers, (jint)actionIdx,
-                           jNames, jX, jY, jPressure, (jfloat)maxPressure);
+    return (*env)->CallBooleanMethod(env, window, sendTouchScreenEventID,
+                                     (jshort)eventType, (jint)modifiers, (jint)actionIdx,
+                                     jNames, jX, jY, jPressure, (jfloat)maxPressure);
 }
     
 // #define DO_ERASEBKGND 1
@@ -1062,7 +1072,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             DBG_PRINT("*** WindowsWindow: WM_SHOWWINDOW window %p: %d, at-init %d\n", wnd, wParam==TRUE, wud->isInCreation);
             wud->visible = wParam==TRUE;
             if( !wud->isInCreation ) {
-                (*env)->CallVoidMethod(env, window, visibleChangedID, wParam==TRUE?JNI_TRUE:JNI_FALSE);
+                (*env)->CallBooleanMethod(env, window, visibleChangedID, wParam==TRUE?JNI_TRUE:JNI_FALSE);
             }
             break;
 
@@ -1082,12 +1092,14 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                 if (GetUpdateRect(wnd, NULL, TRUE /* erase background */)) {
                     DBG_PRINT("*** WindowsWindow: WM_PAINT.0 (dirty)\n");
                     // WM_ERASEBKGND sent!
+                }
                 #else
                 if (GetUpdateRect(wnd, NULL, FALSE /* do not erase background */)) {
                     DBG_PRINT("*** WindowsWindow: WM_PAINT.0 (dirty)\n");
                     ValidateRect(wnd, NULL); // clear all!
+                }
                 #endif
-                } else {
+                else {
                     DBG_PRINT("*** WindowsWindow: WM_PAINT.0 (clean)\n");
                 }
             } else {
@@ -1095,7 +1107,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                     DBG_PRINT("*** WindowsWindow: WM_PAINT.1 (dirty)\n");
                     // Let NEWT render the whole client area by issueing repaint for it, w/o looping through erase background
                     ValidateRect(wnd, NULL); // clear all!
-                    (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
+                    (*env)->CallBooleanMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
                 } else {
                     DBG_PRINT("*** WindowsWindow: WM_PAINT.1 (clean)\n");
                     // shall not happen ?
@@ -1129,7 +1141,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                 // ignore erase background, but let NEWT render the whole client area
                 DBG_PRINT("*** WindowsWindow: WM_ERASEBKGND.1 (repaint)\n");
                 ValidateRect(wnd, NULL); // clear all!
-                (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
+                (*env)->CallBooleanMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
                 res = 1; // return 1 == done, OpenGL, etc .. erases the background, hence we claim to have just done this
             }
             break;
@@ -1183,7 +1195,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             DBG_PRINT("*** WindowsWindow: WM_SETFOCUS window %p, lost %p, at-init %d\n", wnd, (HWND)wParam, wud->isInCreation);
             wud->focused = TRUE;
             if( !wud->isInCreation ) {
-                (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_TRUE);
+                (*env)->CallBooleanMethod(env, window, focusChangedID, JNI_FALSE, JNI_TRUE);
             }
             useDefWindowProc = 1;
             break;
@@ -1199,7 +1211,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                 }
                 wud->focused = FALSE;
                 if( !wud->isInCreation ) {
-                    (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_FALSE);
+                    (*env)->CallBooleanMethod(env, window, focusChangedID, JNI_FALSE, JNI_FALSE);
                 }
                 useDefWindowProc = 1;
             } else {
@@ -1261,11 +1273,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         NewtWindows_trackPointerLeave(wnd);
                     }
                     (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
-                    (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                                           (jshort) EVENT_MOUSE_PRESSED,
-                                           GetModifiers( 0 ),
-                                           (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                                           (jshort) 1, (jfloat) 0.0f);
+                    (*env)->CallBooleanMethod(env, window, sendMouseEventID,
+                                              (jshort) EVENT_MOUSE_PRESSED,
+                                              GetModifiers( 0 ),
+                                              (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                              (jshort) 1, (jfloat) 0.0f);
                     useDefWindowProc = 1;
                 }
             }
@@ -1288,11 +1300,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         wud->pointerInside = 1;
                         NewtWindows_trackPointerLeave(wnd);
                     }
-                    (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                                           (jshort) EVENT_MOUSE_RELEASED,
-                                           GetModifiers( 0 ),
-                                           (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                                           (jshort) 1, (jfloat) 0.0f);
+                    (*env)->CallBooleanMethod(env, window, sendMouseEventID,
+                                              (jshort) EVENT_MOUSE_RELEASED,
+                                              GetModifiers( 0 ),
+                                              (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                              (jshort) 1, (jfloat) 0.0f);
                     useDefWindowProc = 1;
                 }
             }
@@ -1308,11 +1320,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         NewtWindows_trackPointerLeave(wnd);
                     }
                     (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
-                    (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                                           (jshort) EVENT_MOUSE_PRESSED,
-                                           GetModifiers( 0 ),
-                                           (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                                           (jshort) 2, (jfloat) 0.0f);
+                    (*env)->CallBooleanMethod(env, window, sendMouseEventID,
+                                              (jshort) EVENT_MOUSE_PRESSED,
+                                              GetModifiers( 0 ),
+                                              (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                              (jshort) 2, (jfloat) 0.0f);
                     useDefWindowProc = 1;
                 }
             }
@@ -1332,11 +1344,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         wud->pointerInside = 1;
                         NewtWindows_trackPointerLeave(wnd);
                     }
-                    (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                                           (jshort) EVENT_MOUSE_RELEASED,
-                                           GetModifiers( 0 ),
-                                           (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                                           (jshort) 2, (jfloat) 0.0f);
+                    (*env)->CallBooleanMethod(env, window, sendMouseEventID,
+                                              (jshort) EVENT_MOUSE_RELEASED,
+                                              GetModifiers( 0 ),
+                                              (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                              (jshort) 2, (jfloat) 0.0f);
                     useDefWindowProc = 1;
                 }
             }
@@ -1352,11 +1364,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         NewtWindows_trackPointerLeave(wnd);
                     }
                     (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
-                    (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                                           (jshort) EVENT_MOUSE_PRESSED,
-                                           GetModifiers( 0 ),
-                                           (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                                           (jshort) 3, (jfloat) 0.0f);
+                    (*env)->CallBooleanMethod(env, window, sendMouseEventID,
+                                              (jshort) EVENT_MOUSE_PRESSED,
+                                              GetModifiers( 0 ),
+                                              (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                              (jshort) 3, (jfloat) 0.0f);
                     useDefWindowProc = 1;
                 }
             }
@@ -1376,11 +1388,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         wud->pointerInside = 1;
                         NewtWindows_trackPointerLeave(wnd);
                     }
-                    (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                                           (jshort) EVENT_MOUSE_RELEASED,
-                                           GetModifiers( 0 ),
-                                           (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                                           (jshort) 3,  (jfloat) 0.0f);
+                    (*env)->CallBooleanMethod(env, window, sendMouseEventID,
+                                              (jshort) EVENT_MOUSE_RELEASED,
+                                              GetModifiers( 0 ),
+                                              (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                              (jshort) 3,  (jfloat) 0.0f);
                     useDefWindowProc = 1;
                 }
             }
@@ -1401,11 +1413,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         NewtWindows_trackPointerLeave(wnd);
                         SetCursor(wud->setPointerHandle);
                     }
-                    (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                                           (jshort) EVENT_MOUSE_MOVED,
-                                           modifiers,
-                                           (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                                           (jshort) 0,  (jfloat) 0.0f);
+                    (*env)->CallBooleanMethod(env, window, sendMouseEventID,
+                                              (jshort) EVENT_MOUSE_MOVED,
+                                              modifiers,
+                                              (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
+                                              (jshort) 0,  (jfloat) 0.0f);
                 }
                 useDefWindowProc = 1;
             }
@@ -1416,11 +1428,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                     wud->width, wud->height, wud->pointerInside, wud->pointerCaptured, wud->touchDownCount, wud->touchDownLastUp);
                 if( 0 == wud->touchDownCount ) {
                     wud->pointerInside = 0;
-                    (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                                           (jshort) EVENT_MOUSE_EXITED,
-                                           0,
-                                           (jint) -1, (jint) -1, // fake
-                                           (jshort) 0,  (jfloat) 0.0f);
+                    (*env)->CallBooleanMethod(env, window, sendMouseEventID,
+                                              (jshort) EVENT_MOUSE_EXITED,
+                                              0,
+                                              (jint) -1, (jint) -1, // fake
+                                              (jshort) 0,  (jfloat) 0.0f);
                     useDefWindowProc = 1;
                 }
             }
@@ -1446,11 +1458,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         break;
                 }
                 DBG_PRINT("*** WindowsWindow: WM_HSCROLL 0x%X, rotation %f, mods 0x%X\n", sb, rotation, modifiers);
-                (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                                       (jshort) EVENT_MOUSE_WHEEL_MOVED,
-                                       modifiers,
-                                       (jint) 0, (jint) 0,
-                                       (jshort) 1,  (jfloat) rotation);
+                (*env)->CallBooleanMethod(env, window, sendMouseEventID,
+                                          (jshort) EVENT_MOUSE_WHEEL_MOVED,
+                                          modifiers,
+                                          (jint) 0, (jint) 0,
+                                          (jshort) 1,  (jfloat) rotation);
                 useDefWindowProc = 1;
                 break;
             }
@@ -1475,11 +1487,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                 DBG_PRINT("*** WindowsWindow: WM_MOUSEWHEEL %d/%d, rotation %f, vKeys 0x%X, mods 0x%X\n", 
                     (int)eventPt.x, (int)eventPt.y, rotationOrTilt, vKeys, modifiers);
             }
-            (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                                   (jshort) EVENT_MOUSE_WHEEL_MOVED,
-                                   modifiers,
-                                   (jint) eventPt.x, (jint) eventPt.y,
-                                   (jshort) 1,  (jfloat) rotationOrTilt);
+            (*env)->CallBooleanMethod(env, window, sendMouseEventID,
+                                      (jshort) EVENT_MOUSE_WHEEL_MOVED,
+                                      modifiers,
+                                      (jint) eventPt.x, (jint) eventPt.y,
+                                      (jshort) 1,  (jfloat) rotationOrTilt);
             useDefWindowProc = 1;
             break;
         }
@@ -1563,35 +1575,37 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                         #endif
                     }
                     wud->pointerInside = allPInside;
+                    jboolean winOK = JNI_TRUE;
+
                     if( sendFocus ) {
                         (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
                     }
                     int sentCount = 0, updownCount=0, moveCount=0;
                     // Primary first, if available!
                     if( 0 <= actionIdx ) {
-                        sendTouchScreenEvent(env, window, eventType[actionIdx], modifiers, actionIdx, 
-                                             cInputs, pointerNames, x, y, pressure, maxPressure);
+                        winOK = sendTouchScreenEvent(env, window, eventType[actionIdx], modifiers, actionIdx, 
+                                                     cInputs, pointerNames, x, y, pressure, maxPressure);
                         sentCount++;
                     }
                     // 1 Move second ..
-                    for (i=0; i < cInputs; i++) {
+                    for (i=0; i < cInputs && JNI_TRUE == winOK; i++) {
                         short et = eventType[i];
                         if( (jshort) EVENT_MOUSE_MOVED == et ) {
                             if( i != actionIdx && 0 == moveCount ) {
-                                sendTouchScreenEvent(env, window, et, modifiers, i, 
-                                                     cInputs, pointerNames, x, y, pressure, maxPressure);
+                                winOK = sendTouchScreenEvent(env, window, et, modifiers, i, 
+                                                             cInputs, pointerNames, x, y, pressure, maxPressure);
                                 sentCount++;
                             }
                             moveCount++;
                         }
                     }
                     // Up and downs last
-                    for (i=0; i < cInputs; i++) {
+                    for (i=0; i < cInputs && JNI_TRUE == winOK; i++) {
                         short et = eventType[i];
                         if( (jshort) EVENT_MOUSE_MOVED != et ) {
                             if( i != actionIdx ) {
-                                sendTouchScreenEvent(env, window, et, modifiers, i, 
-                                                     cInputs, pointerNames, x, y, pressure, maxPressure);
+                                winOK = sendTouchScreenEvent(env, window, et, modifiers, i, 
+                                                             cInputs, pointerNames, x, y, pressure, maxPressure);
                                 sentCount++;
                             }
                             updownCount++;
@@ -1613,7 +1627,6 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         default:
             useDefWindowProc = 1;
     }
-
 
     if (useDefWindowProc) {
         return DefWindowProc(wnd, message, wParam, lParam);
@@ -2162,18 +2175,18 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
 {
     NewtCommon_init(env);
 
-    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
+    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)Z");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZZIIZ)Z");
-    maximizedChangedID = (*env)->GetMethodID(env, clazz, "maximizedChanged", "(ZZ)V");
+    maximizedChangedID = (*env)->GetMethodID(env, clazz, "maximizedChanged", "(ZZ)Z");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZZII)Z");
-    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
-    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
-    sizePosInsetsFocusVisibleChangedID = (*env)->GetMethodID(env, clazz, "sizePosInsetsFocusVisibleChanged", "(ZZIIIIIIIIIIZ)V");
+    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)Z");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)Z");
+    sizePosInsetsFocusVisibleChangedID = (*env)->GetMethodID(env, clazz, "sizePosInsetsFocusVisibleChanged", "(ZZIIIIIIIIIIZ)Z");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
-    windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)V");
-    sendTouchScreenEventID = (*env)->GetMethodID(env, clazz, "sendTouchScreenEvent", "(SII[S[I[I[FF)V");
-    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(SISSC)V");
+    windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)Z");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)Z");
+    sendTouchScreenEventID = (*env)->GetMethodID(env, clazz, "sendTouchScreenEvent", "(SII[S[I[I[FF)Z");
+    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(SISSC)Z");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
 
     if (insetsChangedID == NULL ||
@@ -2448,9 +2461,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_InitWindow0
         wud->xpos, wud->ypos, wud->width, wud->height, wud->focused, wud->visible);
 
     if( wud->isMaximized ) {
-        (*env)->CallVoidMethod(env, wud->jinstance, maximizedChangedID, JNI_TRUE, JNI_TRUE);
+        (*env)->CallBooleanMethod(env, wud->jinstance, maximizedChangedID, JNI_TRUE, JNI_TRUE);
     }
-    (*env)->CallVoidMethod(env, wud->jinstance, sizePosInsetsFocusVisibleChangedID, JNI_FALSE, JNI_FALSE,
+    (*env)->CallBooleanMethod(env, wud->jinstance, sizePosInsetsFocusVisibleChangedID, JNI_FALSE, JNI_FALSE,
                            (jint)wud->xpos, (jint)wud->ypos,
                            (jint)wud->width, (jint)wud->height,
                            (jint)wud->insets.left, (jint)wud->insets.right, (jint)wud->insets.top, (jint)wud->insets.bottom,

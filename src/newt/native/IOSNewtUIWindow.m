@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 JogAmp Community. All rights reserved.
+ * Copyright 2019-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -219,7 +219,7 @@ static jmethodID windowRepaintID = NULL;
 
     CGRect viewFrame = [self frame];
 
-    (*env)->CallVoidMethod(env, javaWindowObject, windowRepaintID, JNI_TRUE /* defer */,
+    (*env)->CallBooleanMethod(env, javaWindowObject, windowRepaintID, JNI_TRUE /* defer */,
         (int)dirtyRect.origin.x, (int)viewFrame.size.height - (int)dirtyRect.origin.y, 
         (int)dirtyRect.size.width, (int)dirtyRect.size.height);
 
@@ -440,16 +440,16 @@ static jmethodID windowRepaintID = NULL;
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
 {
-    sendTouchScreenEventID = (*env)->GetMethodID(env, clazz, "sendTouchScreenEvent", "(SI[I[S[I[I[I[FF)V");
+    sendTouchScreenEventID = (*env)->GetMethodID(env, clazz, "sendTouchScreenEvent", "(SI[I[S[I[I[I[FF)Z");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZZIIZ)Z");
     updatePixelScaleID = (*env)->GetMethodID(env, clazz, "updatePixelScale", "(ZFFFZ)V");
-    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)V");
-    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
-    sizeScreenPosInsetsChangedID = (*env)->GetMethodID(env, clazz, "sizeScreenPosInsetsChanged", "(ZIIIIIIIIZZ)V");
-    screenPositionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)V");
-    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
+    visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(Z)Z");
+    insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)Z");
+    sizeScreenPosInsetsChangedID = (*env)->GetMethodID(env, clazz, "sizeScreenPosInsetsChanged", "(ZIIIIIIIIZZ)Z");
+    screenPositionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)Z");
+    focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)Z");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
-    windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
+    windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)Z");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
     if (sendTouchScreenEventID && sizeChangedID && updatePixelScaleID && visibleChangedID && 
         insetsChangedID && sizeScreenPosInsetsChangedID &&
@@ -691,7 +691,7 @@ static jmethodID windowRepaintID = NULL;
     DBG_PRINT( "updateInsets: [ l %d, r %d, t %d, b %d ]\n", cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
 
     if( NULL != env && NULL != javaWin ) {
-        (*env)->CallVoidMethod(env, javaWin, insetsChangedID, JNI_FALSE, cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
+        (*env)->CallBooleanMethod(env, javaWin, insetsChangedID, JNI_FALSE, cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
     }
 }
 
@@ -709,13 +709,13 @@ static jmethodID windowRepaintID = NULL;
     DBG_PRINT( "updatePos: [ x %d, y %d ]\n", (jint) pS.x, (jint) pS.y);
 
     if( NULL != env && NULL != javaWin ) {
-        (*env)->CallVoidMethod(env, javaWin, sizeScreenPosInsetsChangedID, defer,
-                               (jint) pS.x, (jint) pS.y,
-                               (jint) frameRect.size.width, (jint) frameRect.size.height,
-                               cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3],
-                               JNI_FALSE, // force
-                               withinLiveResize
-                              );
+        (*env)->CallBooleanMethod(env, javaWin, sizeScreenPosInsetsChangedID, defer,
+                                  (jint) pS.x, (jint) pS.y,
+                                  (jint) frameRect.size.width, (jint) frameRect.size.height,
+                                  cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3],
+                                  JNI_FALSE, // force
+                                  withinLiveResize
+                                 );
     }
 }
 
@@ -799,7 +799,7 @@ static jmethodID windowRepaintID = NULL;
         return;
     }
 
-    (*env)->CallVoidMethod(env, javaWindowObject, focusChangedID, JNI_FALSE, (gained == YES) ? JNI_TRUE : JNI_FALSE);
+    (*env)->CallBooleanMethod(env, javaWindowObject, focusChangedID, JNI_FALSE, (gained == YES) ? JNI_TRUE : JNI_FALSE);
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -823,7 +823,7 @@ static jmethodID windowRepaintID = NULL;
         DBG_PRINT("visibilityChanged: null JNIEnv\n");
         return;
     }
-    (*env)->CallVoidMethod(env, javaWindowObject, visibleChangedID, (visible == YES) ? JNI_TRUE : JNI_FALSE);
+    (*env)->CallBooleanMethod(env, javaWindowObject, visibleChangedID, (visible == YES) ? JNI_TRUE : JNI_FALSE);
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
@@ -922,7 +922,7 @@ static jmethodID windowRepaintID = NULL;
     CGPoint p0 = { 0, 0 };
     p0 = [self getLocationOnScreen: p0];
     DBG_PRINT( "windowDidMove: [ x %d, y %d ]\n", (jint) p0.x, (jint) p0.y);
-    (*env)->CallVoidMethod(env, javaWindowObject, screenPositionChangedID, JNI_TRUE, (jint) p0.x, (jint) p0.y);
+    (*env)->CallBooleanMethod(env, javaWindowObject, screenPositionChangedID, JNI_TRUE, (jint) p0.x, (jint) p0.y);
 
     // detaching thread not required - daemon
     // NewtCommon_ReleaseJNIEnv(shallBeDetached);
