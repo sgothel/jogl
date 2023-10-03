@@ -275,8 +275,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     // Video
     //
 
-    private boolean usesTexLookupShader = false;
-    private VideoPixelFormat vPixelFmt = null;
+    private VideoPixelFormat vPixelFmt = VideoPixelFormat.RGBA;
     private int vPlanes = 0;
     private int vBitsPerPixel = 0;
     private int vBytesPerPixelPerPlane = 0;
@@ -490,7 +489,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             setIsGLOriented(false);
             if(DEBUG) {
                 System.err.println("initGL: p5: video "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane+
-                                   ", tex "+texWidth+"x"+texHeight+", usesTexLookupShader "+usesTexLookupShader);
+                                   ", tex "+texWidth+"x"+texHeight);
             }
         }
     }
@@ -598,11 +597,10 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                           final int aid, final int audioSampleFmt, final int audioSampleRate,
                           final int audioChannels, final int audioSamplesPerFrameAndChannel) {
         // defaults ..
-        vPixelFmt = null;
+        vPixelFmt = VideoPixelFormat.RGBA;
         vPlanes = 0;
         vBitsPerPixel = 0;
         vBytesPerPixelPerPlane = 0;
-        usesTexLookupShader = false;
         texWidth = 0; texHeight = 0;
 
         final int[] vTexWidth = { 0, 0, 0 }; // per plane
@@ -617,7 +615,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             switch(vPixelFmt) {
                 case YUVJ420P:
                 case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
-                    usesTexLookupShader = true;
                     // YUV420P: Adding U+V on right side of fixed height texture,
                     //          since width is already aligned by decoder.
                     //          Splitting texture to 4 quadrants:
@@ -631,7 +628,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                     break;
                 case YUVJ422P:
                 case YUV422P:
-                    usesTexLookupShader = true;
                     // YUV422P: Adding U+V on right side of fixed height texture,
                     //          since width is already aligned by decoder.
                     //          Splitting texture to 4 columns
@@ -643,7 +639,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 case YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr - stuffed into RGBA half width texture
                 case UYVY422: // < packed YUV 4:2:2, 2x 16bpp, Cb Y0 Cr Y1 - stuffed into RGBA half width texture
                 case BGR24:
-                    usesTexLookupShader = true;
                     texWidth = vTexWidth[0]; texHeight = vH;
                     break;
 
@@ -652,7 +647,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 case RGBA:
                 case ABGR:
                 case BGRA:
-                    usesTexLookupShader = false;
                     texWidth = vTexWidth[0]; texHeight = vH;
                     break;
                 default: // FIXME: Add more formats !
@@ -675,7 +669,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
         if(DEBUG) {
             System.err.println("audio: id "+aid+", fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameSize/fc "+audioSamplesPerFrameAndChannel);
-            System.err.println("video: id "+vid+", fmt "+vW+"x"+vH+", "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane+", usesTexLookupShader "+usesTexLookupShader);
+            System.err.println("video: id "+vid+", fmt "+vW+"x"+vH+", "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane);
             for(int i=0; i<3; i++) {
                 System.err.println("video: p["+i+"]: "+vTexWidth[i]);
             }
@@ -708,15 +702,15 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      */
     @Override
     public String setTextureLookupFunctionName(final String texLookupFuncName) throws IllegalStateException {
-        if( usesTexLookupShader ) {
-            if(null != texLookupFuncName && texLookupFuncName.length()>0) {
-                textureLookupFunctionName = texLookupFuncName;
-            } else {
-                textureLookupFunctionName = "ffmpegTexture2D";
+        if(null != texLookupFuncName && texLookupFuncName.length()>0) {
+            if( texLookupFuncName.equals("texture2D") ) {
+                throw new IllegalArgumentException("Build in 'texture2D' lookup-func-name not allowed!");
             }
-            return textureLookupFunctionName;
+            textureLookupFunctionName = texLookupFuncName;
+        } else {
+            textureLookupFunctionName = "ffmpegTexture2D";
         }
-        return super.getTextureLookupFunctionName();
+        return textureLookupFunctionName;
     }
 
     /**
@@ -727,16 +721,17 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      */
     @Override
     public final String getTextureLookupFragmentShaderImpl() {
-      if( !usesTexLookupShader ) {
-          return super.getTextureLookupFragmentShaderImpl();
-      }
       final float tc_w_1 = (float)getWidth() / (float)texWidth;
+      final String texLookupFuncName = getTextureLookupFunctionName();
+      if( texLookupFuncName.equals("texture2D") ) {
+          throw new IllegalArgumentException("Build in 'texture2D' lookup-func-name not allowed!");
+      }
       switch(vPixelFmt) {
         case YUVJ420P:
         case YUV420P: // < planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)
           return
               "// YUV420P: planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples)\n"+
-              "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  const vec2 u_off = vec2("+tc_w_1+", 0.0);\n"+
               "  const vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
               "  vec2 tc_half = texCoord*0.5;\n"+
@@ -758,7 +753,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case YUV422P: // < planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)
           return
               "// YUV422P: planar YUV 4:2:2, 16bpp, (1 Cr & Cb sample per 2x1 Y samples)\n"+
-              "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  const vec2 u_off = vec2("+tc_w_1+"      , 0.0);\n"+
               "  const vec2 v_off = vec2("+tc_w_1+" * 1.5, 0.0);\n"+
               "  vec2 tc_halfw = vec2(texCoord.x*0.5, texCoord.y);\n"+
@@ -780,7 +775,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                       // Stuffed into RGBA half width texture
           return
               "// YUYV422: packed YUV 4:2:2, 2 x 16bpp, [Y0 Cb] [Y1 Cr]\n"+
-              "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  "+
               "  float y1,u,y2,v,y,r,g,b;\n"+
               "  vec2 tc_halfw = vec2(texCoord.x*0.5, texCoord.y);\n"+
@@ -803,7 +798,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                       // Stuffed into RGBA half width texture
           return
               "// UYVY422: packed YUV 4:2:2, 2 x 16bpp, Cb Y0 Cr Y1\n"+
-              "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  "+
               "  float y1,u,y2,v,y,r,g,b;\n"+
               "  vec2 tc_halfw = vec2(texCoord.x*0.5, texCoord.y);\n"+
@@ -826,7 +821,51 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         case BGR24:
           return
               "// BGR24\n"+
-              "vec4 "+getTextureLookupFunctionName()+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "  "+
+              "  vec3 bgr = texture2D(image, texCoord).rgb;\n"+
+              "  return vec4(bgr.b, bgr.g, bgr.r, 1);\n"+ /* just swizzle */
+              "}\n"
+          ;
+        case RGB24:
+          return
+              "// RGB24\n"+
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "  "+
+              "  vec3 t = texture2D(image, texCoord).rgb;\n"+
+              "  return vec4(t.rgb, 1);\n"+
+              "}\n"
+          ;
+        case ARGB:
+          return
+              "// ARGB\n"+
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "  "+
+              "  vec4 t = texture2D(image, texCoord);\n"+
+              "  return vec4(t.g, t.b, t.a, t.r);\n"+ /* just swizzle */
+              "}\n"
+          ;
+        case RGBA:
+          return
+              "// RGBA\n"+
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "  "+
+              "  return texture2D(image, texCoord);\n"+
+              "}\n"
+          ;
+        case ABGR:
+          return
+              "// ABGR\n"+
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+              "  "+
+              "  vec4 t = texture2D(image, texCoord);\n"+
+              "  return vec4(t.a, t.b, t.g, t.r);\n"+ /* just swizzle */
+              "}\n"
+          ;
+        case BGRA:
+          return
+              "// BGR24\n"+
+              "vec4 "+texLookupFuncName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  "+
               "  vec3 bgr = texture2D(image, texCoord).rgb;\n"+
               "  return vec4(bgr.b, bgr.g, bgr.r, 1);\n"+ /* just swizzle */
@@ -834,7 +873,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
           ;
 
         default: // FIXME: Add more formats !
-          throw new InternalError("Add proper mapping of: vPixelFmt "+vPixelFmt+", usesTexLookupShader "+usesTexLookupShader);
+          throw new InternalError("Add proper mapping of: vPixelFmt "+vPixelFmt);
       }
     }
 
