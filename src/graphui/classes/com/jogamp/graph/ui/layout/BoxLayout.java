@@ -189,7 +189,7 @@ public class BoxLayout implements Group.Layout {
             s.getBounds().transform(pmv.getMv(), sbox);
             pmv.popMv();
 
-            final int x = 0, y = 0;
+            final float x = 0, y = 0;
             if( TRACE_LAYOUT ) {
                 System.err.println("bl("+i+").0: sbox "+sbox+", s "+s);
             }
@@ -245,10 +245,8 @@ public class BoxLayout implements Group.Layout {
             }
             // Position and scale shape
             {
-                // New shape position, relative to previous position
-                final float aX = x + dxh;
-                final float aY = y + dyh;
-                s.moveTo( aX, aY, s.getPosition().z() );
+                // New shape position
+                s.moveTo( x + dxh, y + dyh, s.getPosition().z() );
 
                 // Remove the negative or positive delta on centered axis.
                 // Only remove negative offset of non-centered axis (i.e. underline)

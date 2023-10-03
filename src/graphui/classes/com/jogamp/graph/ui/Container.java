@@ -75,6 +75,10 @@ public interface Container {
 
     boolean contains(Shape s);
 
+    Shape getShapeByIdx(final int id);
+    Shape getShapeByID(final int id);
+    Shape getShapeByName(final String name);
+
     AABBox getBounds(final PMVMatrix4f pmv, Shape shape);
 
     /** Enable or disable {@link PMVMatrix4f#getFrustum()} culling per {@link Shape}. Default is disabled. */

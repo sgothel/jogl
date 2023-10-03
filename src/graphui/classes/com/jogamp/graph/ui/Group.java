@@ -272,12 +272,10 @@ public class Group extends Shape implements Container {
                         firstGS = (GraphShape)s;
                     }
                     layouter.preValidate(s);
-                    if( s.isShapeDirty() ) {
-                        if( null != gl ) {
-                            s.validate(gl);
-                        } else {
-                            s.validate(glp);
-                        }
+                    if( null != gl ) {
+                        s.validate(gl);
+                    } else {
+                        s.validate(glp);
                     }
                 }
                 layouter.layout(this, box, pmv);
@@ -287,12 +285,10 @@ public class Group extends Shape implements Container {
                     if( needsRMs && null == firstGS && s instanceof GraphShape ) {
                         firstGS = (GraphShape)s;
                     }
-                    if( s.isShapeDirty() ) {
-                        if( null != gl ) {
-                            s.validate(gl);
-                        } else {
-                            s.validate(glp);
-                        }
+                    if( null != gl ) {
+                        s.validate(gl);
+                    } else {
+                        s.validate(glp);
                     }
                     pmv.pushMv();
                     s.setTransformMv(pmv);
@@ -338,6 +334,32 @@ public class Group extends Shape implements Container {
             }
         }
         return false;
+    }
+
+    @Override
+    public Shape getShapeByIdx(final int id) {
+        if( 0 > id ) {
+            return null;
+        }
+        return shapes.get(id);
+    }
+    @Override
+    public Shape getShapeByID(final int id) {
+        for(final Shape b : shapes) {
+            if(b.getID() == id ) {
+                return b;
+            }
+        }
+        return null;
+    }
+    @Override
+    public Shape getShapeByName(final String name) {
+        for(final Shape b : shapes) {
+            if( b.getName().equals(name) ) {
+                return b;
+            }
+        }
+        return null;
     }
 
     @Override

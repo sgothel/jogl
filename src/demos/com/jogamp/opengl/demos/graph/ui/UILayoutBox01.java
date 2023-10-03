@@ -430,7 +430,7 @@ public class UILayoutBox01 {
                                final Shape.MouseGestureListener dragZoomRotateListener)
     {
         final String suffix = String.format("%2d", id);
-        g.setName(id);
+        g.setID(id);
         final AABBox sceneBox = scene.getBounds();
         {
             g.addShape( new BaseButton(options.renderModes, 0.70f, 0.70f).setPerp().setColor(0, 1, 0, 1).setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );

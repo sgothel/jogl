@@ -34,6 +34,9 @@ REM set MODULE_ARGS=--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java
 set MODULE_ARGS=--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED
 REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %MODULE_ARGS%
 set X_ARGS="-Dsun.java2d.noddraw=true" %MODULE_ARGS%
+REM set X_ARGS="-Xcheck:jni" "-verbose:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true" %MODULE_ARGS%
+REM set X_ARGS="-Xcheck:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true" %MODULE_ARGS%
+
 
 scripts\tests-win.bat %*
 

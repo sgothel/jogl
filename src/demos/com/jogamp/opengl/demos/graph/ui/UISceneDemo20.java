@@ -380,8 +380,8 @@ public class UISceneDemo20 implements GLEventListener {
     public static final int BUTTON_MOVIE = 200;
     public static final int BUTTON_GLEL = 200;
 
-    public Shape getShapeByName(final int name) {
-        return scene.getShapeByName(name);
+    public Shape getShapeByID(final int name) {
+        return scene.getShapeByID(name);
     }
 
     private void initSound(final Shape shape,
@@ -483,7 +483,7 @@ public class UISceneDemo20 implements GLEventListener {
         BaseButton button;
         button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("fast_forward"), buttonLWidth, buttonLHeight); // next (ffwd)
         ((Button)button).setSpacing(symSpacing, fixedSymSize);
-        button.setName(BUTTON_NEXTTEXT);
+        button.setID(BUTTON_NEXTTEXT);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
@@ -499,7 +499,7 @@ public class UISceneDemo20 implements GLEventListener {
         buttonsLeft.addShape(button);
 
         button = new Button(renderModes, fontButtons, "Show fps", "Hide fps", buttonLWidth, buttonLHeight, Button.DEFAULT_LABEL_ZOFFSET);
-        button.setName(BUTTON_FPS);
+        button.setID(BUTTON_FPS);
         button.setToggleable(true);
         button.setToggle(fpsLabel.isEnabled());
         button.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -515,7 +515,7 @@ public class UISceneDemo20 implements GLEventListener {
         buttonsLeft.addShape(button);
 
         button = new Button(renderModes, fontButtons, " V-Sync ", buttonLWidth, buttonLHeight);
-        button.setName(BUTTON_VSYNC);
+        button.setID(BUTTON_VSYNC);
         button.setToggleable(true);
         button.setToggle(gl.getSwapInterval()>0);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -601,7 +601,7 @@ public class UISceneDemo20 implements GLEventListener {
 
         button = new Button(renderModes, fontSymbols, fontSymbols.getUTF16String("power_settings_new"), buttonLWidth, buttonLHeight); // exit (power_settings_new)
         ((Button)button).setSpacing(symSpacing, fixedSymSize);
-        button.setName(BUTTON_QUIT);
+        button.setID(BUTTON_QUIT);
         button.setColor(0.7f, 0.3f, 0.3f, 1.0f);
         ((Button)button).setLabelColor(1.2f, 1.2f, 1.2f);
         button.setPressedColorMod(1.1f, 0.0f, 0.0f, 1.0f);
@@ -709,7 +709,7 @@ public class UISceneDemo20 implements GLEventListener {
             mPlayer.setTextureUnit(texUnitMediaPlayer);
             mPlayer.setAudioChannelLimit(1); // enforce mono to enjoy spatial 3D position effects
             button = new MediaButton(renderModes, buttonRWidth, buttonRHeight, mPlayer);
-            button.setName(BUTTON_MOVIE);
+            button.setID(BUTTON_MOVIE);
             ((MediaButton)button).setVerbose(false).addDefaultEventListener().setFixedARatioResize(true);
             button.setToggleable(true);
             button.setToggle(true); // toggle == false -> mute audio
@@ -895,7 +895,7 @@ public class UISceneDemo20 implements GLEventListener {
             }).start();
             button = new GLButton(renderModes, buttonRWidth, buttonRHeight,
                                   texUnitGLELButton, gears, false /* useAlpha */);
-            button.setName(BUTTON_GLEL);
+            button.setID(BUTTON_GLEL);
             button.setToggleable(true);
             button.setToggle(false); // toggle == true -> animation
             ((GLButton)button).setAnimate(false);

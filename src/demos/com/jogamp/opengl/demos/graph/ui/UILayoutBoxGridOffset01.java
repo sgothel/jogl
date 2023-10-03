@@ -313,7 +313,7 @@ public class UILayoutBoxGridOffset01 {
                             final Font font, final int id,
                             final GroupMod modImpl, final float offX, final float offY) {
         final String suffix = String.format("%2d", id);
-        g.setName(id);
+        g.setID(id);
         final AABBox sceneBox = scene.getBounds();
         modImpl.mod(g);
         g.setBorder(borderThickness).setBorderColor(groupBorderColor);

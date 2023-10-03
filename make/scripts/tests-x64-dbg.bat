@@ -1,11 +1,11 @@
 
-set TEMP=\\jordan\data\Incoming\windows\temp
-set TMP=\\jordan\data\Incoming\windows\temp
+REM set TEMP=\\jordan\data\Incoming\windows\temp
+REM set TMP=\\jordan\data\Incoming\windows\temp
 REM set TEMP=C:\Documents and Settings\jogamp\temp
 REM set TMP=C:\Documents and Settings\jogamp\temp
 
-set LIBGL_DEBUG=verbose
-set MESA_DEBUG=true
+REM set LIBGL_DEBUG=verbose
+REM set MESA_DEBUG=true
 set LIBGL_ALWAYS_SOFTWARE=true
 REM set INTEL_DEBUG="buf bat"
 REM set INTEL_STRICT_CONFORMANCE=1
@@ -109,7 +109,8 @@ REM set MODULE_ARGS=--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java
 set MODULE_ARGS=--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt.windows=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED
 
 REM set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %MODULE_ARGS%
-set X_ARGS="-Dsun.java2d.noddraw=true" %MODULE_ARGS%
+REM set X_ARGS="-Dsun.java2d.noddraw=true" %MODULE_ARGS%
+set X_ARGS="-Xcheck:jni" "-Dsun.java2d.noddraw=true" "-Djava.awt.headless=true" %MODULE_ARGS%
 
 scripts\tests-win.bat %*
 

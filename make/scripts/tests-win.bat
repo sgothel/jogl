@@ -70,7 +70,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.tile.TestTiledPrintin
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLCapabilities01NEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestDestroyGLAutoDrawableNewtAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestDestroyGLAutoDrawableNewtAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT -time 5000
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT %*
@@ -269,7 +269,7 @@ REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo02 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo03 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo10 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo11 %*
-REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo20 %*
+scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo20 %*
 
 REM scripts\java-win.bat com.jogamp.opengl.demos.av.MovieCube %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.av.MovieSimple %*

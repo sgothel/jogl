@@ -149,7 +149,8 @@ public abstract class Shape {
     private final Vec4f rgba_tmp = new Vec4f(0, 0, 0, 1);
     private final Vec4f cWhite = new Vec4f(1, 1, 1, 1);
 
-    private int name = -1;
+    private int id = -1;
+    private String name = "noname";
 
     private static final int IO_ENABLED            = 1 << 0;
     private static final int IO_INTERACTIVE        = 1 << 1;
@@ -191,10 +192,15 @@ public abstract class Shape {
         this.box = new AABBox();
     }
 
-    /** Set a symbolic name for this shape for identification. Default is -1 for noname. */
-    public final Shape setName(final int name) { this.name = name; return this; }
+    /** Set a symbolic ID for this shape for identification. Default is -1 for noname. */
+    public final Shape setID(final int id) { this.id = id; return this; }
+    /** Return the optional symbolic ID for this shape. */
+    public final int getID() { return this.id; }
+
+    /** Set a symbolic name for this shape for identification. Default is noname. */
+    public final Shape setName(final String name) { this.name = name; return this; }
     /** Return the optional symbolic name for this shape. */
-    public final int getName() { return this.name; }
+    public final String getName() { return this.name; }
 
     /** Returns true if this shape is enabled and hence visible, otherwise false. */
     public final boolean isEnabled() { return isIO(IO_ENABLED); }
@@ -1149,7 +1155,9 @@ public abstract class Shape {
         final String activeS = isIO(IO_ACTIVE) ? ", active" : "";
         final String ps = hasPadding() ? padding.toString()+", " : "";
         final String bs = hasBorder() ? "border[l "+getBorderThickness()+", c "+getBorderColor()+"], " : "";
-        return getDirtyString()+", id "+name+", enabled "+isIO(IO_ENABLED)+activeS+", toggle "+isIO(IO_TOGGLE)+
+        final String idS = -1 != id ? ", id "+id : "";
+        final String nameS = "noname" != name ? ", '"+name+"'" : "";
+        return getDirtyString()+idS+nameS+", enabled "+isIO(IO_ENABLED)+activeS+", toggle "+isIO(IO_TOGGLE)+
                ", able[toggle "+isIO(IO_TOGGLEABLE)+", iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
                "], pos["+position+"], "+pivotS+scaleS+rotateS+
                 ps+bs+"box"+box;
@@ -1167,7 +1175,7 @@ public abstract class Shape {
     public final boolean isPressed() { return isIO(IO_DOWN); }
 
     /**
-     *
+     * Set this shape toggleable, default is off.
      * @param toggleable
      * @see #isInteractive()
      */
@@ -1180,6 +1188,11 @@ public abstract class Shape {
      */
     public boolean isToggleable() { return isIO(IO_TOGGLEABLE); }
 
+    /**
+     * Set this shape's toggle state, default is off.
+     * @param v
+     * @return
+     */
     public final Shape setToggle(final boolean v) {
         setIO(IO_TOGGLE, v);
         toggleNotify(v);
