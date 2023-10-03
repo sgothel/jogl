@@ -307,15 +307,26 @@ public final class Scene implements Container, GLEventListener {
     public boolean contains(final Shape s) {
         return false;
     }
+    @Override
     public Shape getShapeByIdx(final int id) {
         if( 0 > id ) {
             return null;
         }
         return shapes.get(id);
     }
-    public Shape getShapeByName(final int name) {
+    @Override
+    public Shape getShapeByID(final int id) {
         for(final Shape b : shapes) {
-            if(b.getName() == name ) {
+            if(b.getID() == id ) {
+                return b;
+            }
+        }
+        return null;
+    }
+    @Override
+    public Shape getShapeByName(final String name) {
+        for(final Shape b : shapes) {
+            if( b.getName().equals(name) ) {
                 return b;
             }
         }
