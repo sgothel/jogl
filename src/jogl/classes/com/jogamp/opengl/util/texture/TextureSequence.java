@@ -311,9 +311,9 @@ public interface TextureSequence {
      * @param box the {@Link AABBpx} of the destination
      * @param letterBox true to produce letter-box space to match aspect-ratio, otherwise will zoom in
      * @param colorTexBBox destination float[6] array for the following three texture-coordinate tuples: minX/minY, maxX/maxY, texW/texH
+     * @param verbose TODO
      */
-    @SuppressWarnings("unused")
-    public static void setTexCoordBBox(final Texture tex, final AABBox box, final boolean letterBox, final float[] colorTexBBox) {
+    public static void setTexCoordBBox(final Texture tex, final AABBox box, final boolean letterBox, final float[] colorTexBBox, final boolean verbose) {
         final TextureCoords tc = tex.getImageTexCoords();
         final float boxRatio = box.getWidth() / box.getHeight();
         final float imgRatio = tex.getAspectRatio();
@@ -398,14 +398,14 @@ public interface TextureSequence {
         }
         colorTexBBox[4] = tcW;
         colorTexBBox[5] = tcH;
-        if( false ) {
+        if( verbose ) {
             final float texWidthRatio = (float)tex.getImageWidth() / (float)tex.getWidth();
             final float texHeightRatio = (float)tex.getImageHeight() / (float)tex.getHeight();
             final float texRatio = ( tc.right() - tc.left() ) / ( tc.bottom() - tc.top() );
             final float box2TexRatio = boxRatio / texRatio;
             final float colorTexBBoxW = colorTexBBox[2] - colorTexBBox[0];
             final float colorTexBBoxH = colorTexBBox[3] - colorTexBBox[1];
-            System.err.println("XXX");
+            System.err.println("XXX setTexCoordBBox:");
             System.err.println("XXX ColorTex imgRatio "+imgRatio+", texRatio "+texRatio+", texPixelRatio[w "+texWidthRatio+", h "+texHeightRatio+"], "+tex);
             System.err.println("XXX ColorTexBBox lbox "+letterBox+", cut "+boxWidthCut+"/"+boxHeightCut+", ext "+boxWidthExt+"/"+boxHeightExt);
             System.err.println("XXX ColorTexBBox min "+colorTexBBox[0]+"/"+colorTexBBox[1]+", max "+colorTexBBox[2]+" x "+colorTexBBox[3]+
