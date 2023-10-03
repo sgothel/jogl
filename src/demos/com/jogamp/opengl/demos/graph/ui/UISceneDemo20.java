@@ -765,6 +765,10 @@ public class UISceneDemo20 implements GLEventListener {
         }
         if( true ) {
             final SimpleSineSynth sineSound = new SimpleSineSynth();
+            scene.addDisposeAction((final GLAutoDrawable glad) -> {
+                sineSound.stop();
+                return true;
+            } );
             sineSound.setFreq(200f);
             sineSound.setAmplitude(0.1f);
             final Button sineButton = new Button(renderModes, fontButtons, "lala", buttonRWidth, buttonRHeight);

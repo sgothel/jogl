@@ -29,6 +29,7 @@ package com.jogamp.graph.ui;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -522,11 +523,30 @@ public final class Scene implements Container, GLEventListener {
         for(int i=0; i<shapes.size(); i++) {
             shapes.get(i).destroy(gl, renderer);
         }
+        for(int i=0; i<disposeActions.size(); i++) {
+            try {
+                disposeActions.get(i).run(drawable);
+            } catch(final Throwable t) {
+                System.err.println("Scene.dispose: Caught Exception @ User Disposable["+i+"]: "+t.getMessage());
+                t.printStackTrace();
+            }
+        }
         shapes.clear();
         cDrawable = null;
+        disposeActions.clear();
         renderer.destroy(gl);
         screenshot.dispose(gl);
     }
+    private final List<GLRunnable> disposeActions = new ArrayList<GLRunnable>();
+    /**
+     * Add a user one-time {@link GLRunnable} disposal action to an internal list, all invoked at {@Link #dispose(GLAutoDrawable)}
+     * where the list is cleared afterwards similar to all shapes.
+     * <p>
+     * This allows proper take-down of custom user resources at exit.
+     * </p>
+     * @param action the custom {@link GLRunnable} disposal action
+     */
+    public void addDisposeAction(final GLRunnable action) { disposeActions.add(action); }
 
     /**
      * Attempt to pick a {@link Shape} using the window coordinates and contained {@ling Shape}'s {@link AABBox} {@link Shape#getBounds() bounds}
