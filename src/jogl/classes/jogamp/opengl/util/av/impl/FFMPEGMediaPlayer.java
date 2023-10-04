@@ -406,7 +406,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
-        final int audioQueueLimit;
+        final int audioQueueSize;
         if( null != gl && STREAM_ID_NONE != getVID() ) {
             final GLContextImpl ctx = (GLContextImpl)gl.getContext();
             SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
@@ -420,9 +420,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                     natives.setGLFuncs0(moviePtr, procAddrGLTexSubImage2D, procAddrGLGetError, procAddrGLFlush, procAddrGLFinish);
                     return null;
             } } );
-            audioQueueLimit = AudioSink.DefaultQueueLimitWithVideo;
+            audioQueueSize = AudioSink.DefaultQueueSizeWithVideo;
         } else {
-            audioQueueLimit = AudioSink.DefaultQueueLimitAudioOnly;
+            audioQueueSize = AudioSink.DefaultQueueSize;
         }
         if(DEBUG) {
             System.err.println("initGL: p3 aid "+getAID()+", avChosen "+avChosenAudioFormat+" on "+audioSink);
@@ -433,7 +433,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 audioSink.destroy();
             }
             audioSink = AudioSinkFactory.createNull();
-            audioSink.init(AudioSink.DefaultFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
+            audioSink.init(AudioSink.DefaultFormat, 0, audioQueueSize);
         } else {
             final int frameDuration;
             if( audioSamplesPerFrameAndChannel > 0 ) {
@@ -441,12 +441,12 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             } else {
                 frameDuration = AudioSink.DefaultFrameDuration;
             }
-            final boolean audioSinkOK = audioSink.init(avChosenAudioFormat, frameDuration, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
+            final boolean audioSinkOK = audioSink.init(avChosenAudioFormat, frameDuration, audioQueueSize);
             if( !audioSinkOK ) {
                 System.err.println("AudioSink "+audioSink.getClass().getName()+" does not support "+avChosenAudioFormat+", using Null");
                 audioSink.destroy();
                 audioSink = AudioSinkFactory.createNull();
-                audioSink.init(avChosenAudioFormat, 0, AudioSink.DefaultInitialQueueSize, AudioSink.DefaultQueueGrowAmount, audioQueueLimit);
+                audioSink.init(avChosenAudioFormat, 0, audioQueueSize);
             }
         }
         if(DEBUG) {
