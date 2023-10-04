@@ -980,6 +980,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     private TextureFrame cachedFrame = null;
     private long lastTimeMillis = 0;
+    private int repeatedFrame = 0;
 
     private final boolean[] stGotVFrame = { false };
 
@@ -991,7 +992,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 try {
                     do {
                         final boolean droppedFrame;
-                        final boolean repeatedFrame;
                         if( dropFrame ) {
                             presentedFrameCount--;
                             dropFrame = false;
@@ -1009,9 +1009,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             presentedFrameCount--;
                             video_pts = nextFrame.getPTS();
                             hasVideoFrame = true;
-                            repeatedFrame = true;
+                            repeatedFrame++;
                         } else {
-                            repeatedFrame = false;
+                            repeatedFrame = 0;
                             if( null != videoFramesDecoded ) {
                                 // multi-threaded and video available
                                 nextFrame = videoFramesDecoded.get();
@@ -1112,14 +1112,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                         // frame is too late and one decoded frame is already available.
                                         dropFrame = true;
                                         mode_C = 'd';
-                                    } else if( repeatedFrame ) {
+                                    } else if( repeatedFrame > 0 ) {
                                         mode_C = 'r';
                                     } else {
                                         mode_C = '_';
                                     }
                                     video_pts_last = video_pts;
                                     if( DEBUG_AVSYNC ) {
-                                        System.err.println( "AV"+mode_C+": dT "+(currentTimeMillis-lastTimeMillis)+", dt "+dt+", maxD "+maxVideoDelay+", "+
+                                        System.err.println( "AV"+mode_C+": dT "+(currentTimeMillis-lastTimeMillis)+", dt "+dt+"/"+maxVideoDelay+", r"+repeatedFrame+", "+
                                                 getPerfStringImpl( video_scr, video_pts, d_vpts,
                                                                    audio_scr, audio_pts, audio_pts_lb, d_apts,
                                                                    video_dpts_avg_diff ) +
