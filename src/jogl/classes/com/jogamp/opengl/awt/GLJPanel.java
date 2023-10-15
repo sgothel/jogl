@@ -227,7 +227,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       java2DGLPipelineOK = enabled;
       if( DEBUG ) {
           System.err.println("GLJPanel: DEBUG_VIEWPORT "+DEBUG_VIEWPORT);
-          System.err.println("GLJPanel: USE_GLSL_TEXTURE_RASTERIZER "+USE_GLSL_VERTICAL_FLIP);
+          System.err.println("GLJPanel: USE_GLSL_VERTICAL_FLIP "+USE_GLSL_VERTICAL_FLIP);
           System.err.println("GLJPanel: SKIP_VERTICAL_FLIP_DEFAULT "+SKIP_VERTICAL_FLIP_DEFAULT);
           System.err.println("GLJPanel: java2dOGLEnabledByProp "+java2dOGLEnabledByProp);
           System.err.println("GLJPanel: useJava2DGLPipeline "+useJava2DGLPipeline);
