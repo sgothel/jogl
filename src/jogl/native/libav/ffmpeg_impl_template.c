@@ -170,13 +170,15 @@ typedef struct SwrContext *(APIENTRYP SWR_ALLOC)(void);
 typedef int (APIENTRYP SWR_INIT)(struct SwrContext *s);
 typedef void (APIENTRYP SWR_FREE)(struct SwrContext **s);
 typedef int (APIENTRYP SWR_CONVERT)(struct SwrContext *s, uint8_t **out, int out_count, const uint8_t **in , int in_count);
+typedef int (APIENTRYP SWR_GET_OUT_SAMPLES)(struct SwrContext *s, int in_samples);
 
 static AV_OPT_SET_SAMPLE_FMT sp_av_opt_set_sample_fmt;
 static SWR_ALLOC sp_swr_alloc;
 static SWR_INIT sp_swr_init;
 static SWR_FREE sp_swr_free;
 static SWR_CONVERT sp_swr_convert;
-// count: +5 = 59
+static SWR_GET_OUT_SAMPLES sp_swr_get_out_samples;
+// count: +6 = 60
 
 // We use JNI Monitor Locking, since this removes the need 
 // to statically link-in pthreads on window ..
@@ -200,7 +202,7 @@ static SWR_CONVERT sp_swr_convert;
     #define MY_MUTEX_UNLOCK(e,s)
 #endif
 
-#define SYMBOL_COUNT 59
+#define SYMBOL_COUNT 60
 
 JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
   (JNIEnv *env, jobject instance, jobject jmutex_avcodec_openclose, jobject jSymbols, jint count)
@@ -285,6 +287,7 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
     sp_swr_init = (SWR_INIT) (intptr_t) symbols[i++];
     sp_swr_free = (SWR_FREE) (intptr_t) symbols[i++];
     sp_swr_convert = (SWR_CONVERT) (intptr_t) symbols[i++];
+    sp_swr_get_out_samples = (SWR_GET_OUT_SAMPLES) (intptr_t) symbols[i++];
 
     (*env)->ReleasePrimitiveArrayCritical(env, jSymbols, symbols, 0);
 
@@ -1337,7 +1340,7 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                         uint8_t *tmp_out;
                         int out_samples=-1, out_size, out_linesize;
                         int osize      = sp_av_get_bytes_per_sample( pAV->aSampleFmtOut );
-                        int nb_samples = pAFrameCurrent->nb_samples;
+                        int nb_samples = sp_swr_get_out_samples(pAV->swResampleCtx, pAFrameCurrent->nb_samples);
 
                         out_size = sp_av_samples_get_buffer_size(&out_linesize,
                                                                  pAV->aChannelsOut,

@@ -51,7 +51,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
     private static final List<String> glueLibNames = new ArrayList<String>(); // none
 
-    private static final int symbolCount = 59;
+    private static final int symbolCount = 60;
     private static final String[] symbolNames = {
          "avutil_version",
          "avformat_version",
@@ -127,7 +127,8 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "swr_init",
          "swr_free",
          "swr_convert",
-         /* +5  = 59 */
+         "swr_get_out_samples",
+         /* +6  = 60 */
     };
 
     // optional symbol names
@@ -151,6 +152,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "swr_init",
          "swr_free",
          "swr_convert",
+         "swr_get_out_samples",
     };
 
     private static final int LIB_COUNT = 5;
