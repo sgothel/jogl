@@ -196,6 +196,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private int audio_dpts_count = 0;
 
     private int audio_queued_last_ms = 0;
+    private int audio_dequeued_last = 0;
     /** FIXME: Remove or - if helpful - configure max video queue size */
     private static final int video_queue_growth = 0;
 
@@ -1037,6 +1038,16 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         return GLMediaPlayer.STREAM_ID_NONE != aid && !isAudioMuted() && ( 1.0f == getPlaySpeed() || audioSinkPlaySpeedSet );
     }
 
+    private int getAudioDequeued(final int audio_queued_ms) {
+        int res;
+        if( audio_queued_last_ms > audio_queued_ms ) {
+            res = audio_queued_last_ms - audio_queued_ms;
+        } else {
+            res = audio_dequeued_last;
+        }
+        return res;
+    }
+
     @Override
     public final TextureFrame getNextTexture(final GL gl) throws IllegalStateException {
         synchronized( stateLock ) {
@@ -1051,12 +1062,13 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         } else {
                             audio_queued_ms = 100;
                         }
-                        final int audio_dequeued_ms;
-                        if( audio_queued_last_ms > audio_queued_ms ) {
-                            audio_dequeued_ms = audio_queued_last_ms - audio_queued_ms;
-                        } else {
-                            audio_dequeued_ms = 0;
-                        }
+                        final int audio_dequeued_ms = getAudioDequeued(audio_queued_ms);
+                        audio_dequeued_last = audio_dequeued_ms; // update
+
+                        final int min0_audio_queued_ms = Math.max( audio_dequeued_ms, MAX_VIDEO_ASYNC );
+                        final int min1_audio_queued_ms = Math.max( 2*audio_dequeued_ms, 2*MAX_VIDEO_ASYNC );
+                        final int max_adelay = Math.max( 4*audio_dequeued_ms, 4*MAX_VIDEO_ASYNC );
+
                         char syncModeA  = '_', syncModeB  = '_';
                         char resetModeA = '_', resetModeV = '_';
 
@@ -1071,7 +1083,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         final PTS video_pts = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
                         final boolean hasVideoFrame;
                         TextureFrame nextFrame;
-                        if( null != cachedFrame && ( audio_queued_ms >= audio_dequeued_ms || video_queue_growth > 0 ) ) {
+                        if( null != cachedFrame && ( audio_queued_ms > min0_audio_queued_ms || video_queue_growth > 0 ) ) {
                             nextFrame = cachedFrame;
                             cachedFrame = null;
                             presentedFrameCount--;
@@ -1079,7 +1091,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             hasVideoFrame = true;
                             repeatedFrame++;
                             syncModeA = 'r';
-                            if( videoFramesFree.isEmpty() && audio_queued_ms < audio_dequeued_ms ) {
+                            if( videoFramesFree.isEmpty() && audio_queued_ms <= min0_audio_queued_ms ) {
                                 growVideoFrameBuffers(gl, video_queue_growth);
                                 syncModeA = 'z';
                             }
@@ -1124,7 +1136,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 if( audio_scr_reset ) {
                                     audio_scr_reset = false;
                                     resetSCR(apts);
-                                    audio_queued_last_ms = 0;
                                     resetModeA = 'A';
                                 }
                             }
@@ -1206,7 +1217,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                     } else {
                                         dt_a = 0;
                                     }
-                                    if( ( dt_a < -MAX_VIDEO_ASYNC && d_apts < 0 ) || ( dt_a > MAX_VIDEO_ASYNC && d_apts > 0 ) ) {
+                                    if( ( dt_a < -MAX_VIDEO_ASYNC && d_apts < 0 ) || ( dt_a > max_adelay && d_apts > 0 ) ) {
                                         // resync to audio
                                         scr_resynced = true;
                                         syncModeB = '*';
@@ -1234,14 +1245,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                         video_dpts_cum = d_vpts + AV_DPTS_COEFF * video_dpts_cum;
                                     }
                                     final int dt_v = (int) ( getDPTSAvg(video_dpts_cum, video_dpts_count) / playSpeed + 0.5f );
-                                    final TextureFrame _nextFrame = nextFrame;
-                                    if( dt_v > maxVideoDelay && d_vpts >= 0 /** || dt_av > MAXIMUM_AV_ASYNC */ &&
-                                        ( audio_queued_ms >= audio_dequeued_ms || video_queue_growth > 0 ) )
+                                    // final TextureFrame _nextFrame = nextFrame;
+                                    if( dt_v > maxVideoDelay && d_vpts >= 0 &&
+                                        ( audio_queued_ms > min1_audio_queued_ms || video_queue_growth > 0 ) )
                                     {
                                         cachedFrame = nextFrame;
                                         nextFrame = null;
                                         syncModeB = 'c';
-                                        if( videoFramesFree.isEmpty() && audio_queued_ms < audio_dequeued_ms ) {
+                                        if( videoFramesFree.isEmpty() && audio_queued_ms <= min1_audio_queued_ms ) {
                                             growVideoFrameBuffers(gl, video_queue_growth);
                                             syncModeB = 'z';
                                         }
@@ -1359,6 +1370,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private void resetAVPTSAndFlush() {
         resetSCR(av_scr);
         audio_queued_last_ms = 0;
+        audio_dequeued_last = 0;
         resetAVPTS();
         flushAllVideoFrames();
         if( null != audioSink ) {
@@ -1792,12 +1804,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private final String getPerfStringImpl(final long currentMillis, final PTS video_pts, final PTS audio_pts,
                                            final int audio_queued_ms, final int autio_pts_lb) {
         final float tt = getDuration() / 1000.0f;
-        final int audio_dequeued_ms;
-        if( audio_queued_last_ms > audio_queued_ms ) {
-            audio_dequeued_ms = audio_queued_last_ms - audio_queued_ms;
-        } else {
-            audio_dequeued_ms = 0;
-        }
+        final int audio_dequeued_ms = getAudioDequeued(audio_queued_ms);
+
         // d_apts > 0: audio too slow (behind SCR) repeat video frame, < 0: audio too fast (in front of SCR) drop video frame
         final int d_apts;
         if( audio_pts.isValid() ) {
