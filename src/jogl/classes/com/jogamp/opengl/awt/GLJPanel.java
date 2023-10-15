@@ -135,7 +135,7 @@ import com.jogamp.opengl.util.texture.TextureState;
     <p>
     <a name="verticalFlip">A vertical-flip is required</a>, if the drawable {@link #isGLOriented()} and {@link #setSkipGLOrientationVerticalFlip(boolean) vertical flip is not skipped}.<br>
     In this case this component performs the required vertical flip to bring the content from OpenGL's orientation into AWT's orientation.<br>
-    In case <a href="#fboGLSLVerticalFlip">GLSL based vertical-flip</a> is not available,
+    In case <a href="#fboGLSLVerticalFlip">GLSL based vertical-flip</a> is not available or disabled,
     the CPU intensive {@link System#arraycopy(Object, int, Object, int, int) System.arraycopy(..)} is used line by line.
     See details about <a href="#fboGLSLVerticalFlip">FBO and GLSL vertical flipping</a>.
     </p>
@@ -158,7 +158,8 @@ import com.jogamp.opengl.util.texture.TextureState;
     <a name="fboGLSLVerticalFlip"><h5>FBO / GLSL Vertical Flip</h5></a>
     If <a href="#verticalFlip">vertical flip is required</a>,
     FBO is used, GLSL is available and {@link #setSkipGLOrientationVerticalFlip(boolean) vertical flip is not skipped}, a fragment shader is utilized
-    to flip the FBO texture vertically. This hardware-accelerated step can be disabled via system property <code>jogl.gljpanel.noglsl</code>.
+    to flip the FBO texture vertically by default. This hardware-accelerated step can be disabled via system property <code>jogl.gljpanel.noglsl</code>
+    or by {@link #setUseGLSLVerticalFlip(boolean) setUseGLSLVerticalFlip(false)}.
     <p>
     The FBO / GLSL code path uses one texture-unit and binds the FBO texture to it's active texture-target,
     see {@link #setTextureUnit(int)} and {@link #getTextureUnit()}.
@@ -189,7 +190,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private static final boolean DEBUG;
   private static final boolean DEBUG_FRAMES;
   private static final boolean DEBUG_VIEWPORT;
-  private static final boolean USE_GLSL_TEXTURE_RASTERIZER;
+  private static final boolean USE_GLSL_VERTICAL_FLIP;
   private static final boolean SKIP_VERTICAL_FLIP_DEFAULT;
 
   /** Indicates whether the Java 2D OpenGL pipeline is requested by user. */
@@ -206,7 +207,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       DEBUG = Debug.debug("GLJPanel");
       DEBUG_FRAMES = PropertyAccess.isPropertyDefined("jogl.debug.GLJPanel.Frames", true);
       DEBUG_VIEWPORT = PropertyAccess.isPropertyDefined("jogl.debug.GLJPanel.Viewport", true);
-      USE_GLSL_TEXTURE_RASTERIZER = !PropertyAccess.isPropertyDefined("jogl.gljpanel.noglsl", true);
+      USE_GLSL_VERTICAL_FLIP = !PropertyAccess.isPropertyDefined("jogl.gljpanel.noglsl", true);
       SKIP_VERTICAL_FLIP_DEFAULT = PropertyAccess.isPropertyDefined("jogl.gljpanel.noverticalflip", true);
       boolean enabled = PropertyAccess.getBooleanProperty("sun.java2d.opengl", false);
       java2dOGLEnabledByProp = enabled && !PropertyAccess.isPropertyDefined("jogl.gljpanel.noogl", true);
@@ -226,7 +227,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       java2DGLPipelineOK = enabled;
       if( DEBUG ) {
           System.err.println("GLJPanel: DEBUG_VIEWPORT "+DEBUG_VIEWPORT);
-          System.err.println("GLJPanel: USE_GLSL_TEXTURE_RASTERIZER "+USE_GLSL_TEXTURE_RASTERIZER);
+          System.err.println("GLJPanel: USE_GLSL_TEXTURE_RASTERIZER "+USE_GLSL_VERTICAL_FLIP);
           System.err.println("GLJPanel: SKIP_VERTICAL_FLIP_DEFAULT "+SKIP_VERTICAL_FLIP_DEFAULT);
           System.err.println("GLJPanel: java2dOGLEnabledByProp "+java2dOGLEnabledByProp);
           System.err.println("GLJPanel: useJava2DGLPipeline "+useJava2DGLPipeline);
@@ -284,7 +285,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   // The backend in use
   private volatile Backend backend;
-
+  private boolean useGLSLVertFlip = USE_GLSL_VERTICAL_FLIP;
   private boolean skipGLOrientationVerticalFlip = SKIP_VERTICAL_FLIP_DEFAULT;
 
   // Used by all backends either directly or indirectly to hook up callbacks
@@ -1251,13 +1252,24 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
    * See constraints of {@link #isGLOriented()}.
    * </p>
    */
-  public final void setSkipGLOrientationVerticalFlip(final boolean v) {
-      skipGLOrientationVerticalFlip = v;
-  }
+  public final void setSkipGLOrientationVerticalFlip(final boolean v) { skipGLOrientationVerticalFlip = v; }
   /** See {@link #setSkipGLOrientationVerticalFlip(boolean)}. */
-  public final boolean getSkipGLOrientationVerticalFlip() {
-      return skipGLOrientationVerticalFlip;
-  }
+  public final boolean getSkipGLOrientationVerticalFlip() { return skipGLOrientationVerticalFlip; }
+
+  /**
+   * Toggle using GLSL texture renderer for the {@link #isGLOriented()} based vertical flip,
+   * which usually is required by the offscreen backend,
+   * see details about <a href="#verticalFlip">vertical flip</a>
+   * and <a href="#fboGLSLVerticalFlip">FBO / GLSL vertical flip</a>.
+   * <p>
+   * If set to <code>true</code>, user needs to flip the OpenGL rendered scene
+   * <i>if {@link #isGLOriented()} == true</i>, e.g. via the projection matrix.<br/>
+   * See constraints of {@link #isGLOriented()}.
+   * </p>
+   */
+  public final void setUseGLSLVerticalFlip(final boolean v) { useGLSLVertFlip = v; }
+  /** See {@link #setUseGLSLVerticalFlip(boolean)}. */
+  public final boolean getUseGLSLVerticalFlip() { return useGLSLVertFlip; }
 
   @Override
   public GLCapabilitiesImmutable getChosenGLCapabilities() {
@@ -1752,7 +1764,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           //
           flipVertical = !GLJPanel.this.skipGLOrientationVerticalFlip && offscreenDrawable.isGLOriented();
           offscreenIsFBO = offscreenDrawable.getRequestedGLCapabilities().isFBO();
-          final boolean useGLSLFlip_pre = flipVertical && offscreenIsFBO && reqOffscreenCaps.getGLProfile().isGL2ES2() && USE_GLSL_TEXTURE_RASTERIZER;
+          final boolean useGLSLFlip_pre = flipVertical && offscreenIsFBO && reqOffscreenCaps.getGLProfile().isGL2ES2() && useGLSLVertFlip;
           if( offscreenIsFBO && !useGLSLFlip_pre ) {
               // Texture attachment only required for GLSL vertical flip, hence simply use a color-renderbuffer attachment.
               ((GLFBODrawable)offscreenDrawable).setFBOMode(0);
@@ -1776,7 +1788,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               if( DEBUG ) {
                   System.err.println(getThreadName()+": OffscreenBackend.initialize: useGLSLFlip "+useGLSLFlip+
                           " [flip "+flipVertical+", isFBO "+offscreenIsFBO+", isGL2ES2 "+gl.isGL2ES2()+
-                          ", noglsl "+!USE_GLSL_TEXTURE_RASTERIZER+", glslNonCompliant "+!glslCompliant+
+                          ", glslVertFlip "+useGLSLVertFlip+"/"+USE_GLSL_VERTICAL_FLIP+", glslNonCompliant "+!glslCompliant+
                           ", isGL2ES2 " + gl.isGL2ES2()+"\n "+offscreenDrawable+"]");
               }
               if( useGLSLFlip ) {
