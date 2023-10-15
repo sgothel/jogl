@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -51,13 +52,15 @@ import jogamp.opengl.Debug;
 import com.jogamp.common.net.UriQueryProps;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.av.AudioSink;
+import com.jogamp.common.av.PTS;
 import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.common.net.Uri;
-import com.jogamp.common.os.Platform;
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.LFRingbuffer;
 import com.jogamp.common.util.Ringbuffer;
+import com.jogamp.common.util.TSPrinter;
 import com.jogamp.common.util.WorkerThread;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.GLExtensions;
@@ -83,8 +86,16 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
  */
 public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private static final int STREAM_WORKER_DELAY = Debug.getIntProperty("jogl.debug.GLMediaPlayer.StreamWorker.delay", false, 0);
-
+    private static final TSPrinter logout;
     private static final String unknown = "unknown";
+
+    static {
+        if( DEBUG || DEBUG_AVSYNC || DEBUG_NATIVE ) {
+            logout = TSPrinter.stderr();
+        } else {
+            logout = null;
+        }
+    }
 
     private volatile State state;
     private final Object stateLock = new Object();
@@ -150,7 +161,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private volatile int decodedFrameCount = 0;
     private int presentedFrameCount = 0;
     private int displayedFrameCount = 0;
-    private volatile int video_pts_last = 0;
 
     /**
      * Help detect EOS, limit is {@link #MAX_FRAMELESS_MS_UNTIL_EOS}.
@@ -168,26 +178,33 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected AudioSink audioSink = null;
     protected boolean audioSinkPlaySpeedSet = false;
 
-    /** System Clock Reference (SCR) of first audio PTS at start time. */
-    private long audio_scr_t0 = 0;
-    private boolean audioSCR_reset = true;
+    /** AV System Clock Reference (SCR) */
+    private final PTS av_scr = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
+    /** Trigger System Clock Reference (SCR) reset. */
+    private boolean video_scr_reset = false;
+    private boolean audio_scr_reset = false;
 
-    /** System Clock Reference (SCR) of first video frame at start time. */
-    private long video_scr_t0 = 0;
-    /** System Clock Reference (SCR) PTS offset, i.e. first video PTS at start time. */
-    private int video_scr_pts = 0;
+    private final PTS video_pts_last = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
+
     /** Cumulative video pts diff. */
     private float video_dpts_cum = 0;
     /** Cumulative video frames. */
     private int video_dpts_count = 0;
+    /** Cumulative audio pts diff. */
+    private float audio_dpts_cum = 0;
+    /** Cumulative audio frames. */
+    private int audio_dpts_count = 0;
+
+    private int audio_queued_last_ms = 0;
+    /** FIXME: Remove or - if helpful - configure max video queue size */
+    private static final int video_queue_growth = 0;
+
     /** Number of min frame count required for video cumulative sync. */
-    private static final int VIDEO_DPTS_NUM = 20;
+    private static final int AV_DPTS_NUM = 20;
     /** Cumulative coefficient, value {@value}. */
-    private static final float VIDEO_DPTS_COEFF = 0.7943282f; // (float) Math.exp(Math.log(0.01) / VIDEO_DPTS_NUM);
+    private static final float AV_DPTS_COEFF = 0.7943282f; // (float) Math.exp(Math.log(0.01) / VIDEO_DPTS_NUM);
     /** Maximum valid video pts diff. */
-    private static final int VIDEO_DPTS_MAX = 5000; // 5s max diff
-    /** Trigger video PTS reset with given cause as bitfield. */
-    private boolean videoSCR_reset = false;
+    private static final int AV_DPTS_MAX = 5000; // 5s max diff
 
     private TextureFrame[] videoFramesOrig = null;
     private Ringbuffer<TextureFrame> videoFramesFree =  null;
@@ -332,35 +349,45 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public final int getPresentedFrameCount() { return presentedFrameCount; }
 
     @Override
-    public final int getVideoPTS() { return video_pts_last; }
+    public final int getVideoPTS() { return video_pts_last.getLast(); }
 
     @Override
     public final int getAudioPTS() {
-        if( State.Uninitialized != state ) {
-            return getAudioPTSImpl();
+        if( State.Uninitialized != state && null != audioSink ) {
+            return audioSink.getPTS().getLast();
         }
         return 0;
     }
     /** Override if not using audioSink! */
-    protected int getAudioPTSImpl() {
+    protected PTS getAudioPTSImpl() {
         if( null != audioSink ) {
             return audioSink.getPTS();
         } else {
-            return 0;
+            return dummy_audio_pts;
         }
     }
     /** Override if not using audioSink! */
-    protected int getLastBufferedAudioPTSImpl() {
+    protected PTS getUpdatedAudioPTS() {
         if( null != audioSink ) {
-            return audioSink.getLastBufferedPTS();
+            return audioSink.updateQueue();
+        } else {
+            return dummy_audio_pts;
+        }
+    }
+    private final PTS dummy_audio_pts = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
+
+    /** Override if not using audioSink! */
+    protected int getAudioQueuedDuration() {
+        if( null != audioSink ) {
+            return (int)(audioSink.getQueuedDuration()*1000f);
         } else {
             return 0;
         }
     }
     /** Override if not using audioSink! */
-    protected float getQueuedAudioTimeImpl() {
+    protected int getLastBufferedAudioPTS() {
         if( null != audioSink ) {
-            return audioSink.getQueuedTime();
+            return audioSink.getLastBufferedPTS();
         } else {
             return 0;
         }
@@ -389,7 +416,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     }
                 default:
             }
-            if(DEBUG) { System.err.println("Play: "+preState+" -> "+state+", "+toString()); }
+            if(DEBUG) { logout.println("Play: "+preState+" -> "+state+", "+toString()); }
             return state;
         }
     }
@@ -418,7 +445,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     resume();
                 }
             }
-            if(DEBUG) { System.err.println("Pause: "+preState+" -> "+state+", "+toString()); }
+            if(DEBUG) { logout.println("Pause: "+preState+" -> "+state+", "+toString()); }
             return state;
         }
     }
@@ -436,7 +463,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             stopImpl();
             changeState(new GLMediaPlayer.EventMask(), State.Uninitialized);
             // attachedObjects.clear();
-            if(DEBUG) { System.err.println("Stop: "+preState+" -> "+state+", "+toString()); }
+            if(DEBUG) { logout.println("Stop: "+preState+" -> "+state+", "+toString()); }
             return state;
         }
     }
@@ -489,7 +516,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         audioSink.play(); // cont. w/ new data
                     }
                     if(DEBUG) {
-                        System.err.println("Seek("+msec+"): "+getPerfString());
+                        logout.println("Seek("+msec+"): "+getPerfString());
                     }
                     if( null != streamWorker ) {
                         streamWorker.resume();
@@ -499,7 +526,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 default:
                     pts1 = 0;
             }
-            if(DEBUG) { System.err.println("Seek("+msec+"): "+preState+" -> "+state+", "+toString()); }
+            if(DEBUG) { logout.println("Seek("+msec+"): "+preState+" -> "+state+", "+toString()); }
             return pts1;
         }
     }
@@ -525,7 +552,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     }
                 }
             }
-            if(DEBUG) { System.err.println("setPlaySpeed("+rate+"): "+state+", "+preSpeed+" -> "+playSpeed+", "+toString()); }
+            if(DEBUG) { logout.println("setPlaySpeed("+rate+"): "+state+", "+preSpeed+" -> "+playSpeed+", "+toString()); }
             return res;
         }
     }
@@ -590,7 +617,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 audioVolume = v;
                 res = true;
             }
-            if(DEBUG) { System.err.println("setAudioVolume("+v+"): "+state+", "+preVolume+" -> "+audioVolume+", "+toString()); }
+            if(DEBUG) { logout.println("setAudioVolume("+v+"): "+state+", "+preVolume+" -> "+audioVolume+", "+toString()); }
             return res;
         }
     }
@@ -715,7 +742,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 }
             }
             if(DEBUG) {
-                System.err.println("GLMediaPlayer.initGL: "+this);
+                logout.println("GLMediaPlayer.initGL: "+this);
             }
             try {
                 resetAVPTSAndFlush();
@@ -724,7 +751,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     initGLImpl(gl);
                     setAudioVolume( audioVolume ); // update volume
                     if(DEBUG) {
-                        System.err.println("initGLImpl.X "+this);
+                        logout.println("initGLImpl.X "+this);
                     }
                     if( null != gl ) {
                         videoFramesOrig = createTexFrames(gl, textureCount);
@@ -929,7 +956,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 }
             }
             if(DEBUG) {
-                System.err.println("Created TexImage2D RGBA "+tWidth+"x"+tHeight+", target "+toHexString(textureTarget)+
+                logout.println("Created TexImage2D RGBA "+tWidth+"x"+tHeight+", target "+toHexString(textureTarget)+
                                    ", ifmt "+toHexString(textureInternalFormat)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType));
             }
         }
@@ -972,17 +999,43 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     texFrames[i] = null;
                 }
                 if( DEBUG ) {
-                    System.err.println(Thread.currentThread().getName()+"> Clear TexFrame["+i+"]: "+frame+" -> null");
+                    logout.println(Thread.currentThread().getName()+"> Clear TexFrame["+i+"]: "+frame+" -> null");
                 }
             }
         }
     }
 
+    private static TextureFrame[] concat(final TextureFrame[] first, final TextureFrame[] second) {
+        final TextureFrame[] result = Arrays.copyOf(first, first.length + second.length);
+        System.arraycopy(second, 0, result, first.length, second.length);
+        return result;
+    }
+
+    private final boolean growVideoFrameBuffers(final GL gl, final int growAmount) {
+        if( null == gl || videoFramesFree == null || videoFramesOrig == null || videoFramesDecoded == null) {
+            return false;
+        }
+        final TextureFrame[] newElems;
+        try {
+            newElems = createTexFrames(gl, growAmount);
+        } catch(final RuntimeException rex) {
+            return false;
+        }
+        final TextureFrame[] newArray = concat(videoFramesOrig, newElems);
+        videoFramesOrig = newArray;
+        videoFramesFree.growEmptyBuffer(newElems);
+        return true;
+    }
+
     private TextureFrame cachedFrame = null;
-    private long lastTimeMillis = 0;
+    private long lastMillis = 0;
     private int repeatedFrame = 0;
 
     private final boolean[] stGotVFrame = { false };
+
+    protected boolean audioStreamEnabled() {
+        return GLMediaPlayer.STREAM_ID_NONE != aid && !isAudioMuted() && ( 1.0f == getPlaySpeed() || audioSinkPlaySpeedSet );
+    }
 
     @Override
     public final TextureFrame getNextTexture(final GL gl) throws IllegalStateException {
@@ -991,6 +1044,22 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 boolean dropFrame = false;
                 try {
                     do {
+                        final long currentMillis = Clock.currentMillis();
+                        final int audio_queued_ms;
+                        if( audioStreamEnabled() && !audio_scr_reset ) {
+                            audio_queued_ms = getAudioQueuedDuration();
+                        } else {
+                            audio_queued_ms = 100;
+                        }
+                        final int audio_dequeued_ms;
+                        if( audio_queued_last_ms > audio_queued_ms ) {
+                            audio_dequeued_ms = audio_queued_last_ms - audio_queued_ms;
+                        } else {
+                            audio_dequeued_ms = 0;
+                        }
+                        char syncModeA  = '_', syncModeB  = '_';
+                        char resetModeA = '_', resetModeV = '_';
+
                         final boolean droppedFrame;
                         if( dropFrame ) {
                             presentedFrameCount--;
@@ -999,65 +1068,100 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         } else {
                             droppedFrame = false;
                         }
-                        final boolean playCached = null != cachedFrame;
-                        final int video_pts;
+                        final PTS video_pts = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
                         final boolean hasVideoFrame;
                         TextureFrame nextFrame;
-                        if( playCached ) {
+                        if( null != cachedFrame && ( audio_queued_ms >= audio_dequeued_ms || video_queue_growth > 0 ) ) {
                             nextFrame = cachedFrame;
                             cachedFrame = null;
                             presentedFrameCount--;
-                            video_pts = nextFrame.getPTS();
+                            video_pts.set(currentMillis, nextFrame.getPTS());
                             hasVideoFrame = true;
                             repeatedFrame++;
+                            syncModeA = 'r';
+                            if( videoFramesFree.isEmpty() && audio_queued_ms < audio_dequeued_ms ) {
+                                growVideoFrameBuffers(gl, video_queue_growth);
+                                syncModeA = 'z';
+                            }
                         } else {
+                            if( null != cachedFrame && null != videoFramesFree ) {
+                                // Push back skipped repeated frame due to low audio_queued_ms
+                                videoFramesFree.putBlocking(cachedFrame);
+                                syncModeA = 'z';
+                            }
+                            cachedFrame = null;
                             repeatedFrame = 0;
                             if( null != videoFramesDecoded ) {
                                 // multi-threaded and video available
                                 nextFrame = videoFramesDecoded.get();
                                 if( null != nextFrame ) {
-                                    video_pts = nextFrame.getPTS();
+                                    video_pts.set(currentMillis, nextFrame.getPTS());
                                     hasVideoFrame = true;
                                 } else {
-                                    video_pts = TimeFrameI.INVALID_PTS;
+                                    video_pts.set(0, TimeFrameI.INVALID_PTS);
                                     hasVideoFrame = false;
+                                    syncModeA = 'e';
                                 }
                             } else {
                                 // single-threaded or audio-only
-                                video_pts = getNextSingleThreaded(gl, lastFrame, stGotVFrame);
+                                video_pts.set(currentMillis, getNextSingleThreaded(gl, lastFrame, stGotVFrame));
                                 nextFrame = lastFrame;
                                 hasVideoFrame = stGotVFrame[0];
                             }
                         }
-                        final long currentTimeMillis = Platform.currentTimeMillis();
 
-                        if( TimeFrameI.END_OF_STREAM_PTS == video_pts ||
-                            ( duration > 0 && duration <= video_pts ) || maxNullFrameCountUntilEOS <= nullFrameCount )
+                        final PTS audio_pts = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
+                        final int audio_pts_lb;
+                        final boolean use_audio;
+                        if( audioStreamEnabled() ) {
+                            final PTS apts = getUpdatedAudioPTS();
+                            if( !apts.isValid() ) {
+                                audio_pts.set(video_pts);
+                                use_audio = false;
+                            } else {
+                                audio_pts.set(apts);
+                                use_audio = true;
+                                if( audio_scr_reset ) {
+                                    audio_scr_reset = false;
+                                    resetSCR(apts);
+                                    audio_queued_last_ms = 0;
+                                    resetModeA = 'A';
+                                }
+                            }
+                            audio_pts_lb = getLastBufferedAudioPTS();
+                        } else {
+                            audio_pts.set(video_pts);
+                            audio_pts_lb = 0;
+                            use_audio = false;
+                        }
+
+                        if( video_pts.isValid() ) {
+                            final int frame_period_last = video_pts.diffLast(video_pts_last); // rendering loop interrupted ?
+                            if( video_scr_reset || frame_period_last > frame_duration*10 ) {
+                                video_scr_reset = false;
+                                resetSCR( use_audio ? audio_pts : video_pts );
+                                resetModeV = 'V';
+                            }
+                        }
+
+                        if( video_pts.isEOS() ||
+                            ( duration > 0 && duration <= video_pts.get(currentMillis) ) || maxNullFrameCountUntilEOS <= nullFrameCount )
                         {
                             // EOS
                             if( DEBUG || DEBUG_AVSYNC ) {
-                                System.err.println( "AV-EOS (getNextTexture): EOS_PTS "+(TimeFrameI.END_OF_STREAM_PTS == video_pts)+", "+this);
+                                logout.println(currentMillis, "AV-EOS (getNextTexture): EOS_PTS "+(video_pts.isEOS())+", "+this);
                             }
                             pauseImpl(true, new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.EOS));
 
-                        } else if( TimeFrameI.INVALID_PTS == video_pts ) { // no audio or video frame
+                        } else if( !video_pts.isValid() ) { // no audio or video frame
                             if( null == videoFramesDecoded || !videoFramesDecoded.isEmpty() ) {
                                 nullFrameCount++;
                             }
                             if( DEBUG_AVSYNC ) {
-                                final int audio_pts = getAudioPTSImpl();
-                                final int audio_pts_lb = getLastBufferedAudioPTSImpl();
-                                final int audio_scr = (int) ( ( currentTimeMillis - audio_scr_t0 ) * playSpeed );
-                                final int d_apts;
-                                if( audio_pts != TimeFrameI.INVALID_PTS ) {
-                                    d_apts = audio_pts - audio_scr;
-                                } else {
-                                    d_apts = 0;
-                                }
-                                final int video_scr = video_scr_pts + (int) ( ( currentTimeMillis - video_scr_t0 ) * playSpeed );
-                                final int d_vpts = video_pts - video_scr;
-                                System.err.println( "AV?: dT "+(currentTimeMillis-lastTimeMillis)+", nullFrames "+nullFrameCount+
-                                        getPerfStringImpl( video_scr, video_pts, d_vpts, audio_scr, audio_pts, audio_pts_lb, d_apts, 0 ) + ", droppedFrame "+droppedFrame);
+                                syncModeB = '?';
+                                logout.println(currentMillis, "AV"+syncModeA+syncModeB+":"+resetModeA+resetModeV+
+                                        ": dT "+(currentMillis-lastMillis)+", nullFrames "+nullFrameCount+", "+
+                                        getPerfStringImpl(currentMillis, video_pts, audio_pts, audio_queued_ms, audio_pts_lb) + ", droppedFrame "+droppedFrame);
                             }
                         } else { // valid pts: has audio or video frame
                             nullFrameCount=0;
@@ -1065,65 +1169,99 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             if( hasVideoFrame ) { // has video frame
                                 presentedFrameCount++;
 
-                                final int audio_pts = getAudioPTSImpl();
-                                final int audio_pts_lb = getLastBufferedAudioPTSImpl();
-                                final int audio_scr = (int) ( ( currentTimeMillis - audio_scr_t0 ) * playSpeed );
+                                // d_apts > 0: audio too slow (behind SCR) repeat video frame, < 0: audio too fast (in front of SCR) drop video frame
                                 final int d_apts;
-                                if( audio_pts != TimeFrameI.INVALID_PTS ) {
-                                    d_apts = audio_pts - audio_scr;
+                                if( audio_pts.isValid() ) {
+                                    d_apts = av_scr.diff(currentMillis, audio_pts);
                                 } else {
                                     d_apts = 0;
                                 }
+                                // d_vpts > 0: video too fast (in front of SCR) repeat frame, < 0: video too slow (behind SCR) drop frame
+                                int d_vpts = video_pts.diff(currentMillis, av_scr);
 
-                                final int frame_period_last = video_pts - video_pts_last; // rendering loop interrupted ?
-                                if( videoSCR_reset || frame_period_last > frame_duration*10 ) {
-                                    videoSCR_reset = false;
-                                    video_scr_t0 = currentTimeMillis;
-                                    video_scr_pts = video_pts;
-                                }
-                                final int video_scr = video_scr_pts + (int) ( ( currentTimeMillis - video_scr_t0 ) * playSpeed );
-                                final int d_vpts = video_pts - video_scr;
-                                // final int d_avpts = d_vpts - d_apts;
-                                if( -VIDEO_DPTS_MAX > d_vpts || d_vpts > VIDEO_DPTS_MAX ) {
-                                // if( -VIDEO_DPTS_MAX > d_avpts || d_avpts > VIDEO_DPTS_MAX ) {
+                                final boolean d_apts_off = use_audio && ( -AV_DPTS_MAX > d_apts || d_apts > AV_DPTS_MAX );
+                                final boolean d_vpts_off = -AV_DPTS_MAX > d_vpts || d_vpts > AV_DPTS_MAX;
+                                if( d_apts_off || d_vpts_off ) {
+                                    // Extreme rare off audio/video DPTS
+                                    resetSCR( use_audio ? audio_pts : video_pts );
+                                    resetModeA = d_apts_off ? 'A' : 'a';
+                                    resetModeV = d_vpts_off ? 'V' : 'v';
                                     if( DEBUG_AVSYNC ) {
-                                        System.err.println( "AV*: dT "+(currentTimeMillis-lastTimeMillis)+", "+
-                                                getPerfStringImpl( video_scr, video_pts, d_vpts, audio_scr, audio_pts, audio_pts_lb, d_apts, 0 ) + ", "+nextFrame);
+                                        syncModeB = '*';
+                                        logout.println(currentMillis, "AV"+syncModeA+syncModeB+":"+resetModeA+resetModeV+
+                                                ": dT "+(currentMillis-lastMillis)+", "+
+                                                getPerfStringImpl(currentMillis, video_pts, audio_pts, audio_queued_ms, audio_pts_lb)); // + ", "+nextFrame);
                                     }
                                 } else {
-                                    final int dpy_den = displayedFrameCount > 0 ? displayedFrameCount : 1;
-                                    final int avg_dpy_duration = ( (int) ( currentTimeMillis - video_scr_t0 ) ) / dpy_den ; // ms/f
-                                    final int maxVideoDelay = Math.min(avg_dpy_duration, MAXIMUM_VIDEO_ASYNC);
+                                    final int dt_a;
+                                    final boolean scr_resynced;
+                                    if( use_audio ) {
+                                        audio_dpts_count++;
+                                        if( droppedFrame ) {
+                                            audio_dpts_cum = d_apts * AV_DPTS_COEFF + audio_dpts_cum; // weight on current frame's PTS
+                                        } else {
+                                            audio_dpts_cum = d_apts + AV_DPTS_COEFF * audio_dpts_cum;
+                                        }
+                                        dt_a = (int) ( getDPTSAvg(audio_dpts_cum, audio_dpts_count) / playSpeed + 0.5f );
+                                    } else {
+                                        dt_a = 0;
+                                    }
+                                    if( ( dt_a < -MAX_VIDEO_ASYNC && d_apts < 0 ) || ( dt_a > MAX_VIDEO_ASYNC && d_apts > 0 ) ) {
+                                        // resync to audio
+                                        scr_resynced = true;
+                                        syncModeB = '*';
+                                        av_scr.set(audio_pts);
+                                        audio_dpts_cum = d_apts * AV_DPTS_COEFF + d_apts; // total weight on current frame's PTS
+                                        audio_dpts_count = AV_DPTS_NUM - AV_DPTS_NUM/4;
+                                        d_vpts = video_pts.diff(currentMillis, av_scr);
+                                        // video_dpts_cum = 0;
+                                        // video_dpts_count = 0;
+                                        resetModeA = 'A';
+                                        // resetModeV = 'V';
+                                    } else {
+                                        scr_resynced = false;
+                                    }
+                                    final int avg_dpy_duration, maxVideoDelay;
+                                    {
+                                        final int dpy_den = displayedFrameCount > 0 ? displayedFrameCount : 1;
+                                        avg_dpy_duration = ( (int) ( ( currentMillis - av_scr.getSCR() ) * playSpeed + 0.5f ) ) / dpy_den ; // ms/f
+                                        maxVideoDelay = Math.min(Math.max(avg_dpy_duration, MIN_VIDEO_ASYNC), MAX_VIDEO_ASYNC);
+                                    }
                                     video_dpts_count++;
-                                    // video_dpts_cum = d_avpts + VIDEO_DPTS_COEFF * video_dpts_cum;
-                                    video_dpts_cum = d_vpts + VIDEO_DPTS_COEFF * video_dpts_cum;
-                                    final int video_dpts_avg_diff = video_dpts_count >= VIDEO_DPTS_NUM ? getVideoDPTSAvg() : 0;
-                                    final int dt = (int) ( video_dpts_avg_diff / playSpeed + 0.5f );
-                                    // final int dt = (int) ( d_vpts  / playSpeed + 0.5f );
-                                    // final int dt = (int) ( d_avpts / playSpeed + 0.5f );
+                                    if( droppedFrame || scr_resynced ) {
+                                        video_dpts_cum = d_vpts * AV_DPTS_COEFF + video_dpts_cum; // weight on current frame's PTS
+                                    } else {
+                                        video_dpts_cum = d_vpts + AV_DPTS_COEFF * video_dpts_cum;
+                                    }
+                                    final int dt_v = (int) ( getDPTSAvg(video_dpts_cum, video_dpts_count) / playSpeed + 0.5f );
                                     final TextureFrame _nextFrame = nextFrame;
-                                    char mode_C;
-                                    if( dt > maxVideoDelay ) {
+                                    if( dt_v > maxVideoDelay && d_vpts >= 0 /** || dt_av > MAXIMUM_AV_ASYNC */ &&
+                                        ( audio_queued_ms >= audio_dequeued_ms || video_queue_growth > 0 ) )
+                                    {
                                         cachedFrame = nextFrame;
                                         nextFrame = null;
-                                        mode_C = 'c';
-                                    } else if ( !droppedFrame && dt < -maxVideoDelay && null != videoFramesDecoded && videoFramesDecoded.size() > 0 ) {
+                                        syncModeB = 'c';
+                                        if( videoFramesFree.isEmpty() && audio_queued_ms < audio_dequeued_ms ) {
+                                            growVideoFrameBuffers(gl, video_queue_growth);
+                                            syncModeB = 'z';
+                                        }
+                                    } else if ( dt_v < -maxVideoDelay && d_vpts < 0 && null != videoFramesDecoded && videoFramesDecoded.size() > 0 ) {
                                         // only drop if prev. frame has not been dropped and
                                         // frame is too late and one decoded frame is already available.
                                         dropFrame = true;
-                                        mode_C = 'd';
+                                        syncModeB = 'd';
                                     } else if( repeatedFrame > 0 ) {
-                                        mode_C = 'r';
+                                        syncModeB = 'r';
                                     } else {
-                                        mode_C = '_';
+                                        syncModeB = '_';
                                     }
-                                    video_pts_last = video_pts;
+                                    video_pts_last.set(video_pts);
                                     if( DEBUG_AVSYNC ) {
-                                        System.err.println( "AV"+mode_C+": dT "+(currentTimeMillis-lastTimeMillis)+", dt "+dt+"/"+maxVideoDelay+", r"+repeatedFrame+", "+
-                                                getPerfStringImpl( video_scr, video_pts, d_vpts,
-                                                                   audio_scr, audio_pts, audio_pts_lb, d_apts,
-                                                                   video_dpts_avg_diff ) +
-                                                                   ", avg dpy-fps "+avg_dpy_duration+" ms/f, "+_nextFrame);
+                                        logout.println(currentMillis, "AV"+syncModeA+syncModeB+":"+resetModeA+resetModeV+
+                                                ": dT "+(currentMillis-lastMillis)+", dt[v "+dt_v+", a "+dt_a+"]/"+maxVideoDelay+", "+
+                                                getPerfStringImpl(currentMillis, video_pts, audio_pts,
+                                                                   audio_queued_ms, audio_pts_lb) +
+                                                                   ", avg dpy-fps "+avg_dpy_duration+" ms/f"); // , "+_nextFrame);
                                     }
                                 }
                             } // has video frame
@@ -1137,7 +1275,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 videoFramesFree.putBlocking(_lastFrame);
                             }
                         }
-                        lastTimeMillis = currentTimeMillis;
+                        lastMillis = currentMillis;
+                        audio_queued_last_ms = audio_queued_ms;
                     } while( dropFrame );
                 } catch (final InterruptedException e) {
                     e.printStackTrace();
@@ -1180,7 +1319,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             pts = getNextTextureImpl(gl, nextFrame);
             postNextTextureImpl(gl);
             if( TimeFrameI.INVALID_PTS != pts ) {
-                newFrameAvailable(nextFrame, Platform.currentTimeMillis());
+                newFrameAvailable(nextFrame, Clock.currentMillis());
                 gotVFrame[0] = true;
             } else {
                 gotVFrame[0] = false;
@@ -1208,17 +1347,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final AudioSink getAudioSink() { return audioSink; }
 
-    /**
-     * To be called from implementation at 1st PTS after start
-     * w/ current pts value in milliseconds.
-     * @param audio_scr_t0
-     */
-    protected void setFirstAudioPTS2SCR(final int pts) {
-        if( audioSCR_reset ) {
-            audio_scr_t0 = Platform.currentTimeMillis() - pts;
-            audioSCR_reset = false;
-        }
-    }
     private void flushAllVideoFrames() {
         if( null != videoFramesFree ) {
             videoFramesFree.resetFull(videoFramesOrig);
@@ -1229,34 +1357,43 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         cachedFrame = null;
     }
     private void resetAVPTSAndFlush() {
-        video_dpts_cum = 0;
-        video_dpts_count = 0;
+        resetSCR(av_scr);
+        audio_queued_last_ms = 0;
         resetAVPTS();
         flushAllVideoFrames();
         if( null != audioSink ) {
             audioSink.flush();
         }
     }
+    private void resetSCR(final PTS pts) {
+        av_scr.set(pts);
+        audio_dpts_cum = 0;
+        audio_dpts_count = 0;
+        video_dpts_cum = 0;
+        video_dpts_count = 0;
+    }
     private void resetAVPTS() {
         nullFrameCount = 0;
         presentedFrameCount = 0;
         displayedFrameCount = 0;
         decodedFrameCount = 0;
-        audioSCR_reset = true;
-        videoSCR_reset = true;
+        video_scr_reset = true;
+        audio_scr_reset = true;
     }
-    private final int getVideoDPTSAvg() {
-        return (int) ( video_dpts_cum * (1.0f - VIDEO_DPTS_COEFF) + 0.5f );
+    private static final int getDPTSAvg(final float dpts_cum, final int dpts_count) {
+        final int dpts_avg = (int) ( dpts_cum * (1.0f - AV_DPTS_COEFF) + 0.5f );
+        final int dpts_avg_diff = dpts_count >= AV_DPTS_NUM ? dpts_avg : 0;
+        return dpts_avg_diff;
     }
 
-    private final void newFrameAvailable(final TextureFrame frame, final long currentTimeMillis) {
+    private final void newFrameAvailable(final TextureFrame frame, final long currentMillis) {
         decodedFrameCount++; // safe: only written-to either from stream-worker or user thread
         if( 0 == frame.getDuration() ) { // patch frame duration if not set already
             frame.setDuration( (int) frame_duration );
         }
         synchronized(eventListenersLock) {
             for(final Iterator<GLMediaEventListener> i = eventListeners.iterator(); i.hasNext(); ) {
-                i.next().newFrameAvailable(this, frame, currentTimeMillis);
+                i.next().newFrameAvailable(this, frame, currentMillis);
             }
         }
     }
@@ -1337,7 +1474,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             return null;
         }
 
-        WorkerThread.StateCallback stateCB = (final WorkerThread self, final WorkerThread.StateCallback.State cause) -> {
+        private final WorkerThread.StateCallback stateCB = (final WorkerThread self, final WorkerThread.StateCallback.State cause) -> {
             switch( cause ) {
                 case INIT:
                     break;
@@ -1366,7 +1503,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     break;
             }
         };
-        WorkerThread.Callback action = (final WorkerThread self) -> {
+        private final WorkerThread.Callback action = (final WorkerThread self) -> {
             final GL gl;
             TextureFrame nextFrame = null;
             try {
@@ -1384,10 +1521,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         if( STREAM_WORKER_DELAY > 0 ) {
                             java.lang.Thread.sleep(STREAM_WORKER_DELAY);
                         }
+                        final int capacityDelta = videoFramesFree.capacity() - videoFramesDecoded.capacity();
+                        if( videoFramesDecoded.isFull() && capacityDelta > 0 ) {
+                            videoFramesDecoded.growFullBuffer( capacityDelta );
+                        }
                         if( !videoFramesDecoded.put(nextFrame) ) {
                             throw new InternalError("XXX: free "+videoFramesFree+", decoded "+videoFramesDecoded+", "+GLMediaPlayerImpl.this);
                         }
-                        newFrameAvailable(nextFrame, Platform.currentTimeMillis());
+                        newFrameAvailable(nextFrame, Clock.currentMillis());
                         nextFrame = null;
                     } else {
                         // audio only
@@ -1408,7 +1549,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     // state transition incl. notification
                     self.pause(false);
                     if( DEBUG || DEBUG_AVSYNC ) {
-                        System.err.println( "AV-EOS (StreamWorker): EOS_PTS "+(TimeFrameI.END_OF_STREAM_PTS == vPTS)+", "+GLMediaPlayerImpl.this);
+                        logout.println( "AV-EOS (StreamWorker): EOS_PTS "+(TimeFrameI.END_OF_STREAM_PTS == vPTS)+", "+GLMediaPlayerImpl.this);
                     }
                     pauseImpl(true, new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.EOS));
                 }
@@ -1455,9 +1596,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     protected final void attributesUpdated(final GLMediaPlayer.EventMask eventMask) {
         if( !eventMask.isZero() ) {
-            final long now = Platform.currentTimeMillis();
+            final long now = Clock.currentMillis();
             if( DEBUG ) {
-                System.err.println("GLMediaPlayer.AttributesChanged: "+eventMask+", state "+state+", when "+now);
+                logout.println("GLMediaPlayer.AttributesChanged: "+eventMask+", state "+state+", when "+now);
             }
             synchronized(eventListenersLock) {
                 for(final Iterator<GLMediaEventListener> i = eventListeners.iterator(); i.hasNext(); ) {
@@ -1559,7 +1700,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
         if( wasUninitialized ) {
             if( DEBUG ) {
-                System.err.println("XXX Initialize @ updateAttributes: "+this);
+                logout.println("XXX Initialize @ updateAttributes: "+this);
             }
         }
         attributesUpdated(eventMask);
@@ -1568,7 +1709,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected void setIsGLOriented(final boolean isGLOriented) {
         if( isInGLOrientation != isGLOriented ) {
             if( DEBUG ) {
-                System.err.println("XXX gl-orient "+isInGLOrientation+" -> "+isGLOriented);
+                logout.println("XXX gl-orient "+isInGLOrientation+" -> "+isGLOriented);
             }
             isInGLOrientation = isGLOriented;
             if( null != videoFramesOrig ) {
@@ -1631,9 +1772,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         final String loc = ( null != streamLoc ) ? streamLoc.toString() : "<undefined stream>" ;
         final int freeVideoFrames = null != videoFramesFree ? videoFramesFree.size() : 0;
         final int decVideoFrames = null != videoFramesDecoded ? videoFramesDecoded.size() : 0;
-        final int video_scr = video_scr_pts + (int) ( ( Platform.currentTimeMillis() - video_scr_t0 ) * playSpeed );
+        final int video_scr_ms = av_scr.get(Clock.currentMillis());
         final String camPath = null != cameraPath ? ", camera: "+cameraPath : "";
-        return getClass().getSimpleName()+"["+state+", vSCR "+video_scr+", frames[p "+presentedFrameCount+", d "+decodedFrameCount+", t "+videoFrames+" ("+tt+" s), z "+nullFrameCount+" / "+maxNullFrameCountUntilEOS+"], "+
+        return getClass().getSimpleName()+"["+state+", vSCR "+video_scr_ms+", frames[p "+presentedFrameCount+", d "+decodedFrameCount+", t "+videoFrames+" ("+tt+" s), z "+nullFrameCount+" / "+maxNullFrameCountUntilEOS+"], "+
                "speed "+playSpeed+", "+bps_stream+" bps, hasSW "+(null!=streamWorker)+
                ", Texture[count "+textureCount+", free "+freeVideoFrames+", dec "+decVideoFrames+", tagt "+toHexString(textureTarget)+", ifmt "+toHexString(textureInternalFormat)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType)+"], "+
                "Video[id "+vid+", <"+vcodec+">, "+width+"x"+height+", glOrient "+isInGLOrientation+", "+fps+" fps, "+frame_duration+" fdur, "+bps_video+" bps], "+
@@ -1642,48 +1783,44 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public final String getPerfString() {
-        final long currentTimeMillis = Platform.currentTimeMillis();
-        final int video_scr = video_scr_pts + (int) ( ( currentTimeMillis - video_scr_t0 ) * playSpeed );
-        final int d_vpts = video_pts_last - video_scr;
-        final int audio_scr = (int) ( ( currentTimeMillis - audio_scr_t0 ) * playSpeed );
-        final int audio_pts = getAudioPTSImpl();
-        final int audio_pts_lb = getLastBufferedAudioPTSImpl();
-        final int d_apts = audio_pts - audio_scr;
-        return getPerfStringImpl( video_scr, video_pts_last, d_vpts, audio_scr, audio_pts, audio_pts_lb, d_apts, getVideoDPTSAvg() );
+        final long currentMillis = Clock.currentMillis();
+        final PTS audio_pts = getAudioPTSImpl();
+        final int audio_queued_ms = getAudioQueuedDuration();
+        final int audio_pts_lb = getLastBufferedAudioPTS();
+        return getPerfStringImpl(currentMillis, video_pts_last, audio_pts, audio_queued_ms, audio_pts_lb);
     }
-    private final String getPerfStringImpl(final int video_scr, final int video_pts, final int d_vpts,
-                                           final int audio_scr, final int audio_pts, final int autio_pts_lb, final int d_apts,
-                                           final int video_dpts_avg_diff) {
+    private final String getPerfStringImpl(final long currentMillis, final PTS video_pts, final PTS audio_pts,
+                                           final int audio_queued_ms, final int autio_pts_lb) {
         final float tt = getDuration() / 1000.0f;
-        final String audioSinkInfo;
-        final AudioSink audioSink = getAudioSink();
-        if( false && null != audioSink ) {
-            audioSinkInfo = String.format("AudioSink[frames [p %d, q %d, f %d, c %d], dur %.1f ms, bytes %d]",
-                    audioSink.getEnqueuedFrameCount(), audioSink.getQueuedFrameCount(),
-                    audioSink.getFreeFrameCount(), audioSink.getFrameCount(), 1000f*audioSink.getQueuedTime(),
-                    audioSink.getQueuedByteCount()
-                    );
+        final int audio_dequeued_ms;
+        if( audio_queued_last_ms > audio_queued_ms ) {
+            audio_dequeued_ms = audio_queued_last_ms - audio_queued_ms;
         } else {
-            audioSinkInfo = "";
+            audio_dequeued_ms = 0;
         }
-        final int freeVideoFrames, decVideoFrames;
-        if( null != videoFramesFree ) {
-            freeVideoFrames = videoFramesFree.size();
-            decVideoFrames = videoFramesDecoded.size();
+        // d_apts > 0: audio too slow (behind SCR) repeat video frame, < 0: audio too fast (in front of SCR) drop video frame
+        final int d_apts;
+        if( audio_pts.isValid() ) {
+            d_apts = av_scr.diff(currentMillis, audio_pts);
         } else {
-            freeVideoFrames = 0;
-            decVideoFrames = 0;
+            d_apts = 0;
         }
-        if( false ) {
-        return state+", frames[(p "+presentedFrameCount+", d "+decodedFrameCount+") / "+videoFrames+", "+tt+" s, z "+nullFrameCount+" / "+maxNullFrameCountUntilEOS+"], "+
-               "speed " + playSpeed+", dAV "+( d_vpts - d_apts )+", vSCR "+video_scr+", vpts "+video_pts+", dSCR["+d_vpts+", avrg "+video_dpts_avg_diff+"], "+
-               "aSCR "+audio_scr+", apts "+audio_pts+" ( lb "+autio_pts_lb+", d "+d_apts+" ), "+audioSinkInfo+
-               ", Texture[count "+textureCount+", free "+freeVideoFrames+", dec "+decVideoFrames+"]";
-        } else {
-        return "frames[p "+presentedFrameCount+", d "+decodedFrameCount+"], "+
-               "dAV "+( video_pts - audio_pts )+"/"+( d_vpts - d_apts )+", vSCR "+video_scr+", vpts "+video_pts+", dSCR["+d_vpts+", avrg "+video_dpts_avg_diff+"], "+
-               "aSCR "+audio_scr+", apts "+audio_pts+" ( lb "+autio_pts_lb+", d "+d_apts+" )]";
-        }
+        // d_vpts > 0: video too fast (in front of SCR) repeat frame, < 0: video too slow (behind SCR) drop frame
+        final int d_vpts = video_pts.getLast() - av_scr.get(currentMillis); // equals: video_pts.diff(currentMillis, av_scr);
+
+        final int video_dpts_avrg = getDPTSAvg(video_dpts_cum, video_dpts_count);
+        final int audio_dpts_avrg = getDPTSAvg(audio_dpts_cum, audio_dpts_count);
+
+        final int d_avpts0 = video_pts.diff(currentMillis, audio_pts);
+        final int d_avpts1 = video_dpts_avrg - audio_dpts_avrg;
+
+        final int vFramesQueued = this.videoFramesDecoded.size();
+        final int vFramesFree = this.videoFramesFree.size();
+        return "frames[p"+presentedFrameCount+" d"+decodedFrameCount+" q"+vFramesQueued+" r"+repeatedFrame+" f"+vFramesFree+"/"+videoFramesOrig.length+"], "+
+               "dAV[v-a "+d_avpts0+", avg "+d_avpts1+"], SCR "+av_scr.get(currentMillis)+
+               ", vpts "+video_pts.getLast()+", dSCR["+d_vpts+", avg "+video_dpts_avrg+"]"+
+               ", apts "+audio_pts.get(currentMillis)+" dSCR["+d_apts+", avg "+audio_dpts_avrg+
+               "] (deq "+audio_dequeued_ms+"ms, left "+audio_queued_ms+"ms, lb "+autio_pts_lb+")]";
     }
 
     @Override
@@ -1744,7 +1881,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             return Integer.parseInt(val);
         } catch (final NumberFormatException nfe) {
             if(DEBUG) {
-                System.err.println("Not a valid integer for <"+key+">: <"+val+">");
+                logout.println("Not a valid integer for <"+key+">: <"+val+">");
             }
         }
         return 0;

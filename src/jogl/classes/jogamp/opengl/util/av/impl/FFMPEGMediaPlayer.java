@@ -279,7 +279,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private int vPlanes = 0;
     private int vBitsPerPixel = 0;
     private int vBytesPerPixelPerPlane = 0;
-    private int texWidth, texHeight; // overall (stuffing planes in one texture)
+    private int vWidth = 0, vHeight = 0;
+    private int texWidth = 0, texHeight = 0; // overall (stuffing planes in one texture)
     private String singleTexComp = "r";
     private final GLPixelStorageModes psm;
 
@@ -343,6 +344,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
             audioSink = AudioSinkFactory.createNull();
         } else {
+            // audioSink = new jogamp.common.av.JavaSoundAudioSink();
             audioSink = AudioSinkFactory.createDefault(FFMPEGMediaPlayer.class.getClassLoader());
         }
         {
@@ -457,39 +459,50 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if( null != gl && STREAM_ID_NONE != getVID() ) {
             int tf, tif=GL.GL_RGBA; // texture format and internal format
             final int tt = GL.GL_UNSIGNED_BYTE;
+            final int texBytesPerPixel;
             switch(vBytesPerPixelPerPlane) {
-                case 1:
-                    if( gl.isGL3ES3() ) {
-                        // RED is supported on ES3 and >= GL3 [core]; ALPHA is deprecated on core
-                        tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED; singleTexComp = "r";
-                    } else {
-                        // ALPHA is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
-                        tf = GL.GL_ALPHA; tif=GL.GL_ALPHA; singleTexComp = "a";
-                    }
-                    break;
+                case 1: if( gl.isGL3ES3() ) {
+                            // RED is supported on ES3 and >= GL3 [core]; ALPHA is deprecated on core
+                            tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED; singleTexComp = "r";
+                        } else {
+                            // ALPHA is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
+                            tf = GL.GL_ALPHA; tif=GL.GL_ALPHA; singleTexComp = "a";
+                        }
+                        texBytesPerPixel = 1;
+                        break;
 
                 case 2: if( vPixelFmt == VideoPixelFormat.YUYV422 || vPixelFmt == VideoPixelFormat.UYVY422 ) {
                             // YUYV422: // < packed YUV 4:2:2, 2x 16bpp, Y0 Cb Y1 Cr
                             // UYVY422: // < packed YUV 4:2:2, 2x 16bpp, Cb Y0 Cr Y1
                             // Both stuffed into RGBA half width texture
-                            tf = GL.GL_RGBA; tif=GL.GL_RGBA; break;
+                            tf = GL.GL_RGBA; tif=GL.GL_RGBA;
+                            texBytesPerPixel = 4;
                         } else {
-                            tf = GL2ES2.GL_RG;   tif=GL2ES2.GL_RG; break;
+                            tf = GL2ES2.GL_RG;   tif=GL2ES2.GL_RG;
+                            texBytesPerPixel = 2;
                         }
-                case 3: tf = GL.GL_RGB;   tif=GL.GL_RGB;   break;
+                        break;
+
+                case 3: tf = GL.GL_RGB;   tif=GL.GL_RGB; texBytesPerPixel = 3; break;
+
                 case 4: if( vPixelFmt == VideoPixelFormat.BGRA ) {
-                            tf = GL.GL_BGRA;  tif=GL.GL_RGBA;  break;
+                            tf = GL.GL_BGRA;  tif=GL.GL_RGBA;
                         } else {
-                            tf = GL.GL_RGBA;  tif=GL.GL_RGBA;  break;
+                            tf = GL.GL_RGBA;  tif=GL.GL_RGBA;
                         }
+                        texBytesPerPixel = 4;
+                        break;
+
                 default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
             }
             setTextureFormat(tif, tf);
             setTextureType(tt);
             setIsGLOriented(false);
-            if(DEBUG) {
-                System.err.println("initGL: p5: video "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane+
-                                   ", tex "+texWidth+"x"+texHeight);
+            if(DEBUG || true) {
+                final float texSizeMB = ( texWidth * texHeight * (float)texBytesPerPixel ) / 1000000f;
+                System.err.printf("initGL: p5: video %s, bpp %d, %d x %d, %d b/pp, %d planes, tex %d x %d x %d -> %.2fMB%n",
+                        vPixelFmt.toString(), vBitsPerPixel, vWidth, vHeight, vBytesPerPixelPerPlane, vPlanes,
+                        texWidth, texHeight, texBytesPerPixel, texSizeMB);
             }
         }
     }
@@ -601,6 +614,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         vPlanes = 0;
         vBitsPerPixel = 0;
         vBytesPerPixelPerPlane = 0;
+        vWidth = 0; vHeight = 0;
         texWidth = 0; texHeight = 0;
 
         final int[] vTexWidth = { 0, 0, 0 }; // per plane
@@ -610,6 +624,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             vPlanes = planes;
             vBitsPerPixel = bitsPerPixel;
             vBytesPerPixelPerPlane = bytesPerPixelPerPlane;
+            vWidth = vW; vHeight = vH;
             vTexWidth[0] = tWd0; vTexWidth[1] = tWd1; vTexWidth[2] = tWd2;
 
             switch(vPixelFmt) {
@@ -669,7 +684,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
         if(DEBUG) {
             System.err.println("audio: id "+aid+", fmt "+aSampleFmt+", "+avChosenAudioFormat+", aFrameSize/fc "+audioSamplesPerFrameAndChannel);
-            System.err.println("video: id "+vid+", fmt "+vW+"x"+vH+", "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane);
+            System.err.printf("video: id %d, %s, bpp %d, %d x %d, %d b/pp, %d planes, tex %d x %d%n",
+                    vid, vPixelFmt.toString(), vBitsPerPixel, vWidth, vHeight, vBytesPerPixelPerPlane, vPlanes, texWidth, texHeight);
             for(int i=0; i<3; i++) {
                 System.err.println("video: p["+i+"]: "+vTexWidth[i]);
             }
@@ -943,8 +959,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     final void pushSound(final ByteBuffer sampleData, final int data_size, final int audio_pts) {
-        setFirstAudioPTS2SCR( audio_pts );
-        if( !isAudioMuted() && ( 1.0f == getPlaySpeed() || audioSinkPlaySpeedSet ) ) {
+        if( audioStreamEnabled() ) {
             audioSink.enqueueData( audio_pts, sampleData, data_size);
         }
     }

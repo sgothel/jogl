@@ -1145,20 +1145,16 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
             return;
         }
         {
-            const int32_t bytesPerPixel = ( pAV->vBitsPerPixel + 7 ) / 8 ;
-            if(1 == pAV->vBufferPlanes) {
-                pAV->vBytesPerPixelPerPlane = bytesPerPixel;
-            } else {
-                pAV->vBytesPerPixelPerPlane = 1;
-            }
             int32_t vLinesize[4];
             if( pAV->vBufferPlanes > 1 ) {
+                pAV->vBytesPerPixelPerPlane = 1;
                 for(i=0; i<pAV->vBufferPlanes; i++) {
                     // FIXME: Libav Binary compatibility! JAU01
                     vLinesize[i] = pAV->pVFrame->linesize[i];
                     pAV->vTexWidth[i] = vLinesize[i] / pAV->vBytesPerPixelPerPlane ;
                 }
             } else {
+                pAV->vBytesPerPixelPerPlane = ( pAV->vBitsPerPixel + 7 ) / 8 ;
                 vLinesize[0] = pAV->pVFrame->linesize[0];
                 if( pAV->vPixFmt == AV_PIX_FMT_YUYV422 || 
                     pAV->vPixFmt == AV_PIX_FMT_UYVY422 ) 
@@ -1298,21 +1294,42 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                 fprintf(stderr, "data %d \n", pAV->aFrameSize); 
                 #endif
 
-                const AVRational time_base = pAV->pAStream->time_base;
+                // FIXME: Libav Binary compatibility! JAU01
+                const AVRational pts_time_base = pAV->pAStream->time_base;
                 const int64_t pkt_pts = pAFrameCurrent->pts;
-                if( 0 == frameCount && AV_NOPTS_VALUE != pkt_pts ) { // 1st frame only, discard invalid PTS ..
-                    pAV->aPTS = my_av_q2i32( pkt_pts * 1000, time_base);
+                const int64_t pkt_dts = pAFrameCurrent->pkt_dts;
+                const int64_t fix_pts = evalPTS(&pAV->aPTSStats, pkt_pts, pkt_dts);
+                const int64_t best_pts = pAFrameCurrent->best_effort_timestamp;
+                if( AV_NOPTS_VALUE != best_pts ) { 
+                    pAV->aPTS =  my_av_q2i32( best_pts * 1000, pts_time_base);
+                } else if( AV_NOPTS_VALUE != fix_pts ) {
+                    pAV->aPTS =  my_av_q2i32( fix_pts * 1000, pts_time_base);
                 } else { // subsequent frames or invalid PTS ..
                     const int32_t bytesPerSample = sp_av_get_bytes_per_sample( pAV->pACodecCtx->sample_fmt );
                     pAV->aPTS += data_size / ( pAV->aChannels * bytesPerSample * ( pAV->aSampleRate / 1000 ) );
                 }
                 if( pAV->verbose ) {
-                    int32_t aDTS = my_av_q2i32( pAFrameCurrent->pkt_dts * 1000, time_base);
+                    const AVRational dur_time_base = pAV->pACodecCtx->time_base;
+                    const int32_t bPTS = AV_NOPTS_VALUE != best_pts ? my_av_q2i32( best_pts * 1000, pts_time_base) : 0;
+                    const int32_t aPTS = AV_NOPTS_VALUE != pkt_pts ? my_av_q2i32( pkt_pts * 1000, pts_time_base) : 0;
+                    const int32_t aDTS = AV_NOPTS_VALUE != pkt_dts ? my_av_q2i32( pkt_dts * 1000, pts_time_base) : 0;
 
-                    fprintf(stderr, "A pts %d [pkt_pts %"PRId64"], dts %d [pkt_dts %"PRId64"], f# %d, aFrame %d/%d %p, dataPtr %p, dataSize %d\n",
-                        pAV->aPTS, pkt_pts, aDTS, pAFrameCurrent->pkt_dts, frameCount,
-                        pAV->aFrameCurrent, pAV->aFrameCount, pAFrameCurrent, pAFrameCurrent->data[0], data_size);
+                    const double frame_delay_d = av_q2d(dur_time_base) * 1000.0;
+                    const double frame_repeat_d = pAFrameCurrent->repeat_pict * (frame_delay_d * 0.5);
+
+                    const int32_t frame_delay_i = my_av_q2i32(1000, dur_time_base);
+                    const int32_t frame_repeat_i = pAFrameCurrent->repeat_pict * (frame_delay_i / 2);
+
+                    const char * warn = frame_repeat_i > 0 ? "REPEAT" : "NORMAL" ;
+
+                    fprintf(stderr, "A fix_pts %d, best %d [%"PRId64"], pts %d [pkt_pts %"PRId64"], dts %d [pkt_dts %"PRId64"], time d(%lf ms + r %lf = %lf ms), i(%d ms + r %d = %d ms) - %s - f# %d, aFrame %d/%d %p, dataPtr %p, dataSize %d\n",
+                            pAV->aPTS, bPTS, best_pts, aPTS, pkt_pts, aDTS, pkt_dts, 
+                            frame_delay_d, frame_repeat_d, (frame_delay_d + frame_repeat_d),
+                            frame_delay_i, frame_repeat_i, (frame_delay_i + frame_repeat_i), warn, frameCount,
+                            pAV->aFrameCurrent, pAV->aFrameCount, pAFrameCurrent, pAFrameCurrent->data[0], data_size);
+                    // fflush(NULL);
                 }
+
                 if( NULL != env ) {
                     void* data_ptr = pAFrameCurrent->data[0]; // default
 
@@ -1426,27 +1443,32 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                 }
 
                 // FIXME: Libav Binary compatibility! JAU01
-                const AVRational time_base = pAV->pVStream->time_base;
+                const AVRational pts_time_base = pAV->pVStream->time_base;
                 const int64_t pkt_pts = pAV->pVFrame->pts;
                 const int64_t pkt_dts = pAV->pVFrame->pkt_dts;
                 const int64_t fix_pts = evalPTS(&pAV->vPTSStats, pkt_pts, pkt_dts);
-                if( AV_NOPTS_VALUE != fix_pts ) { // discard invalid PTS ..
-                    pAV->vPTS =  my_av_q2i32( fix_pts * 1000, time_base);
+                const int64_t best_pts = pAV->pVFrame->best_effort_timestamp;
+                if( AV_NOPTS_VALUE != best_pts ) { 
+                    pAV->vPTS =  my_av_q2i32( best_pts * 1000, pts_time_base);
+                } else if( AV_NOPTS_VALUE != fix_pts ) { // discard invalid PTS ..
+                    pAV->vPTS =  my_av_q2i32( fix_pts * 1000, pts_time_base);
                 }
                 if( pAV->verbose ) {
-                    const int32_t vPTS = AV_NOPTS_VALUE != pkt_pts ? my_av_q2i32( pkt_pts * 1000, time_base) : 0;
-                    const int32_t vDTS = AV_NOPTS_VALUE != pkt_dts ? my_av_q2i32( pkt_dts * 1000, time_base) : 0;
+                    const AVRational dur_time_base = pAV->pVCodecCtx->time_base;
+                    const int32_t bPTS = AV_NOPTS_VALUE != best_pts ? my_av_q2i32( best_pts * 1000, pts_time_base) : 0;
+                    const int32_t vPTS = AV_NOPTS_VALUE != pkt_pts ? my_av_q2i32( pkt_pts * 1000, pts_time_base) : 0;
+                    const int32_t vDTS = AV_NOPTS_VALUE != pkt_dts ? my_av_q2i32( pkt_dts * 1000, pts_time_base) : 0;
 
-                    const double frame_delay_d = av_q2d(pAV->pVCodecCtx->time_base);
+                    const double frame_delay_d = av_q2d(dur_time_base);
                     const double frame_repeat_d = pAV->pVFrame->repeat_pict * (frame_delay_d * 0.5);
 
-                    const int32_t frame_delay_i = my_av_q2i32(1000, pAV->pVCodecCtx->time_base);
+                    const int32_t frame_delay_i = my_av_q2i32(1000, dur_time_base);
                     const int32_t frame_repeat_i = pAV->pVFrame->repeat_pict * (frame_delay_i / 2);
 
                     const char * warn = frame_repeat_i > 0 ? "REPEAT" : "NORMAL" ;
 
-                    fprintf(stderr, "V fix_pts %d, pts %d [pkt_pts %"PRId64"], dts %d [pkt_dts %"PRId64"], time d(%lf s + r %lf = %lf s), i(%d ms + r %d = %d ms) - %s - f# %d, data %p, lsz %d\n",
-                            pAV->vPTS, vPTS, pkt_pts, vDTS, pkt_dts, 
+                    fprintf(stderr, "V fix_pts %d, best %d [%"PRId64"], pts %d [pkt_pts %"PRId64"], dts %d [pkt_dts %"PRId64"], time d(%lf s + r %lf = %lf s), i(%d ms + r %d = %d ms) - %s - f# %d, data %p, lsz %d\n",
+                            pAV->vPTS, bPTS, best_pts, vPTS, pkt_pts, vDTS, pkt_dts, 
                             frame_delay_d, frame_repeat_d, (frame_delay_d + frame_repeat_d),
                             frame_delay_i, frame_repeat_i, (frame_delay_i + frame_repeat_i), warn, frameCount,
                             pAV->pVFrame->data[0], pAV->pVFrame->linesize[0]);

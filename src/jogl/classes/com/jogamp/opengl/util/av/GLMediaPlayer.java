@@ -137,10 +137,10 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * <p>
  * The class follows a passive A/V synchronization pattern.
  * Audio is being untouched, while {@link #getNextTexture(GL)} delivers a new video frame
- * only, if its timestamp is less than {@link #MAXIMUM_VIDEO_ASYNC} ahead of <i>time</i>.
- * If its timestamp is more than {@link #MAXIMUM_VIDEO_ASYNC} ahead of <i>time</i>,
+ * only, if its timestamp is less than {@link #MAX_VIDEO_ASYNC} ahead of <i>time</i>.
+ * If its timestamp is more than {@link #MAX_VIDEO_ASYNC} ahead of <i>time</i>,
  * the previous frame is returned.
- * If its timestamp is more than {@link #MAXIMUM_VIDEO_ASYNC} after <i>time</i>,
+ * If its timestamp is more than {@link #MAX_VIDEO_ASYNC} after <i>time</i>,
  * the frame is dropped and the next frame is being fetched.
  * </p>
  * <p>
@@ -253,7 +253,8 @@ public interface GLMediaPlayer extends TextureSequence {
     public static final String CameraPropRate = "rate";
 
     /** Maximum video frame async of {@value} milliseconds. */
-    public static final int MAXIMUM_VIDEO_ASYNC = 22;
+    public static final int MAX_VIDEO_ASYNC = 22;
+    public static final int MIN_VIDEO_ASYNC = 11;
 
     /**
      * A StreamException encapsulates a caught exception in the decoder thread, a.k.a <i>StreamWorker</i>,
@@ -612,12 +613,22 @@ public interface GLMediaPlayer extends TextureSequence {
     public int getPresentedFrameCount();
 
     /**
-     * @return current video presentation timestamp (PTS) in milliseconds of {@link #getLastTexture()}
+     * Returns current video presentation timestamp (PTS) in milliseconds of {@link #getLastTexture()}
+     * <p>
+     * The relative millisecond PTS since start of the presentation stored in integer
+     * covers a time span of 2'147'483'647 ms (see {@link Integer#MAX_VALUE}
+     * or 2'147'483 seconds or 24.855 days.
+     * </p>
      **/
     public int getVideoPTS();
 
     /**
-     * @return current audio presentation timestamp (PTS) in milliseconds.
+     * Returns current audio presentation timestamp (PTS) in milliseconds.
+     * <p>
+     * The relative millisecond PTS since start of the presentation stored in integer
+     * covers a time span of 2'147'483'647 ms (see {@link Integer#MAX_VALUE}
+     * or 2'147'483 seconds or 24.855 days.
+     * </p>
      **/
     public int getAudioPTS();
 
@@ -679,7 +690,11 @@ public interface GLMediaPlayer extends TextureSequence {
     public int getAudioFrames();
 
     /**
-     * @return total duration of stream in msec.
+     * Return total duration of stream in msec.
+     * <p>
+     * The duration stored in integer covers 2'147'483'647 ms (see {@link Integer#MAX_VALUE}
+     * or 2'147'483 seconds or 24.855 days.
+     * </p>
      */
     public int getDuration();
 

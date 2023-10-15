@@ -30,10 +30,13 @@ package jogamp.opengl.util.av.impl;
 
 import java.io.IOException;
 
+import com.jogamp.common.av.PTS;
+import com.jogamp.common.os.Clock;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLException;
 
 import com.jogamp.opengl.egl.EGL;
+import com.jogamp.opengl.util.av.GLMediaPlayer.State;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.opengl.util.av.EGLMediaPlayerImpl;
@@ -123,9 +126,21 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected int getAudioPTSImpl() {
-        return 0!=moviePtr ? _getCurrentPosition(moviePtr) : 0;
+    protected PTS getAudioPTSImpl() { return audio_pts; }
+    @Override
+    protected PTS getUpdatedAudioPTS() {
+        if( 0 != moviePtr ) {
+            audio_pts.set(Clock.currentMillis(), _getCurrentPosition(moviePtr));
+        } else {
+            audio_pts.set(Clock.currentMillis(), 0);
+        }
+        return audio_pts;
     }
+    @Override
+    protected int getAudioQueuedDuration() { return 0; }
+    @Override
+    protected int getLastBufferedAudioPTS() { return audio_pts.getLast(); }
+    private final PTS audio_pts = new PTS( () -> { return State.Playing == getState() ? getPlaySpeed() : 0f; } );
 
     @Override
     protected boolean setPlaySpeedImpl(final float rate) {

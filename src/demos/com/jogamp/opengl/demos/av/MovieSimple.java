@@ -34,6 +34,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import com.jogamp.common.net.Uri;
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
@@ -155,6 +156,7 @@ public class MovieSimple implements GLEventListener {
             final float tfps = null != anim ? anim.getTotalFPS() : 0f;
             final boolean hasVideo = GLMediaPlayer.STREAM_ID_NONE != mPlayer.getVID();
             final float pts = ( hasVideo ? mPlayer.getVideoPTS() : mPlayer.getAudioPTS() ) / 1000f;
+            final float scr = ( Clock.currentMillis() - play_t0 ) / 1000f;
 
             // Note: MODELVIEW is from [ 0 .. height ]
 
@@ -163,8 +165,8 @@ public class MovieSimple implements GLEventListener {
             final float aspect = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
 
             final String ptsPrec = null != regionFPS ? "3.1" : "3.0";
-            final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, swap %d",
-                    pts, mPlayer.getDuration() / 1000f,
+            final String text1 = String.format("%0"+ptsPrec+"f/%0"+ptsPrec+"f/%0"+ptsPrec+"f s, %s (%01.2fx, vol %01.2f), a %01.2f, fps %02.1f -> %02.1f / %02.1f, swap %d",
+                    scr, pts, mPlayer.getDuration() / 1000f,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(),
                     aspect, mPlayer.getFramerate(), lfps, tfps, drawable.getGL().getSwapInterval());
             final String text2 = String.format("audio: id %d, kbps %d, codec %s",
@@ -627,6 +629,7 @@ public class MovieSimple implements GLEventListener {
                 }
                 if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                     window.getAnimator().resetFPSCounter();
+                    ms.play_t0 = Clock.currentMillis();
                 }
 
                 boolean destroy = false;
@@ -668,6 +671,7 @@ public class MovieSimple implements GLEventListener {
             }
         };
     public final static MyGLMediaEventListener myGLMediaEventListener = new MyGLMediaEventListener();
+    long play_t0 = 0;
 
     static boolean loopEOS = false;
     static boolean origSize;

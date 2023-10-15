@@ -34,9 +34,12 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLES2;
 import com.jogamp.opengl.GLException;
 import com.jogamp.common.os.AndroidVersion;
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.av.PTS;
 import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayer.State;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -137,7 +140,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     @Override
     protected final boolean resumeImpl() {
-        playStart = Platform.currentTimeMillis();
+        playStart = Platform.currentMillis();
         if(null != mp) {
             try {
                 mp.start();
@@ -209,7 +212,21 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final int getAudioPTSImpl() { return null != mp ? mp.getCurrentPosition() : 0; }
+    protected PTS getAudioPTSImpl() { return audio_pts; }
+    @Override
+    protected PTS getUpdatedAudioPTS() {
+        if( null != mp ) {
+            audio_pts.set(Clock.currentMillis(), mp.getCurrentPosition());
+        } else {
+            audio_pts.set(Clock.currentMillis(), 0);
+        }
+        return audio_pts;
+    }
+    @Override
+    protected int getAudioQueuedDuration() { return 0; }
+    @Override
+    protected int getLastBufferedAudioPTS() { return audio_pts.getLast(); }
+    private final PTS audio_pts = new PTS( () -> { return State.Playing == getState() ? getPlaySpeed() : 0f; } );
 
     @Override
     protected final void destroyImpl() {
@@ -416,7 +433,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                     if( null != mp ) {
                         pts = mp.getCurrentPosition();
                     } else {
-                        pts = (int) ( Platform.currentTimeMillis() - playStart );
+                        pts = (int) ( Platform.currentMillis() - playStart );
                     }
                     // stex.getTransformMatrix(atex.getSTMatrix());
                 }

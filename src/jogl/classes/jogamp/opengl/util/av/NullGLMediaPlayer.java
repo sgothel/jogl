@@ -34,11 +34,13 @@ import java.nio.ByteBuffer;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
-
+import com.jogamp.common.av.PTS;
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayer.State;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
@@ -50,8 +52,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  */
 public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     private TextureData texData = null;
-    private int pos_ms = 0;
-    private long pos_start = 0;
+    private final PTS video_pts = new PTS( () -> { return State.Playing == getState() ? getPlaySpeed() : 0f; } );
 
     public NullGLMediaPlayer() {
         super();
@@ -65,7 +66,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
 
     @Override
     protected final boolean resumeImpl() {
-        pos_start = Platform.currentTimeMillis();
+        video_pts.setSCR(Clock.currentMillis());
         return true;
     }
 
@@ -80,24 +81,29 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
 
     @Override
     protected final int seekImpl(final int msec) {
-        pos_ms = msec;
+        video_pts.setPTS(msec);
         validatePos();
-        return pos_ms;
+        return msec;
     }
 
     @Override
     protected final int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) {
-        final int pts = getAudioPTSImpl();
+        final int pts = getLastBufferedAudioPTS();
         nextFrame.setPTS( pts );
         return pts;
     }
 
     @Override
-    protected final int getAudioPTSImpl() {
-        pos_ms = (int) ( Platform.currentTimeMillis() - pos_start );
+    protected PTS getAudioPTSImpl() { return video_pts; }
+    @Override
+    protected final PTS getUpdatedAudioPTS() {
         validatePos();
-        return pos_ms;
+        return video_pts;
     }
+    @Override
+    protected int getAudioQueuedDuration() { return 0; }
+    @Override
+    protected int getLastBufferedAudioPTS() { return video_pts.getLast(); }
 
     @Override
     protected final void destroyImpl() {
@@ -176,11 +182,11 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
 
     private void validatePos() {
         boolean considerPausing = false;
-        if( 0 > pos_ms) {
-            pos_ms = 0;
+        if( 0 > video_pts.getLast() ) {
+            video_pts.setPTS(0);
             considerPausing = true;
-        } else if ( pos_ms > getDuration() ) {
-            pos_ms = getDuration();
+        } else if ( video_pts.getLast() > getDuration() ) {
+            video_pts.setPTS( getDuration() );
             considerPausing = true;
         }
         if( considerPausing && State.Playing == getState() ) {
