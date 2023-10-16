@@ -37,8 +37,10 @@ import java.util.List;
 
 import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
+import com.jogamp.common.av.PTS;
 import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.common.net.Uri;
+import com.jogamp.common.os.Clock;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -612,23 +614,39 @@ public interface GLMediaPlayer extends TextureSequence {
      */
     public int getPresentedFrameCount();
 
+
     /**
-     * Returns current video presentation timestamp (PTS) in milliseconds of {@link #getLastTexture()}
+     * Returns current System Clock Reference (SCR) presentation timestamp ({@link PTS}).
+     * <p>
+     * To retrieve the current interpolated PTS against the stored System Clock Reference (SCR), use:
+     * <pre>
+     *   int pts = mPlayer.getPTS().get(Clock.currentMillis());
+     * </pre>
+     * </p>
+     **/
+    public PTS getPTS();
+
+    /**
+     * Returns current video presentation timestamp (PTS) in milliseconds of {@link #getLastTexture()},
+     * try using {@link #getPTS()}.
      * <p>
      * The relative millisecond PTS since start of the presentation stored in integer
      * covers a time span of 2'147'483'647 ms (see {@link Integer#MAX_VALUE}
      * or 2'147'483 seconds or 24.855 days.
      * </p>
+     * @see #getPTS()
      **/
     public int getVideoPTS();
 
     /**
-     * Returns current audio presentation timestamp (PTS) in milliseconds.
+     * Returns current audio presentation timestamp (PTS) in milliseconds,
+     * try using {@link #getPTS()}.
      * <p>
      * The relative millisecond PTS since start of the presentation stored in integer
      * covers a time span of 2'147'483'647 ms (see {@link Integer#MAX_VALUE}
      * or 2'147'483 seconds or 24.855 days.
      * </p>
+     * @see #getPTS()
      **/
     public int getAudioPTS();
 

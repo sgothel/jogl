@@ -41,6 +41,7 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLRunnable;
 import com.jogamp.common.net.Uri;
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
@@ -214,8 +215,7 @@ public class MovieCube implements GLEventListener {
             final GLAnimatorControl anim = drawable.getAnimator();
             final float lfps = null != anim ? anim.getLastFPS() : 0f;
             final float tfps = null != anim ? anim.getTotalFPS() : 0f;
-            final boolean hasVideo = GLMediaPlayer.STREAM_ID_NONE != mPlayer.getVID();
-            final float pts = ( hasVideo ? mPlayer.getVideoPTS() : mPlayer.getAudioPTS() ) / 1000f;
+            final float pts = mPlayer.getPTS().get(Clock.currentMillis()) / 1000f;
 
             // Note: MODELVIEW is from [ -1 .. 1 ]
 
@@ -296,7 +296,8 @@ public class MovieCube implements GLEventListener {
                 return;
             }
             System.err.println("MC "+e);
-            final int pts0 = GLMediaPlayer.STREAM_ID_NONE != mPlayer.getVID() ? mPlayer.getVideoPTS() : mPlayer.getAudioPTS();
+            final int pts0 = mPlayer.getPTS().get(Clock.currentMillis());
+
             int pts1 = 0;
             switch(e.getKeySymbol()) {
                 case KeyEvent.VK_V: {

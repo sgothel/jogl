@@ -350,12 +350,15 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public final int getPresentedFrameCount() { return presentedFrameCount; }
 
     @Override
-    public final int getVideoPTS() { return video_pts_last.getLast(); }
+    public final PTS getPTS() { return av_scr; }
+
+    @Override
+    public final int getVideoPTS() { return video_pts_last.get(Clock.currentMillis()); }
 
     @Override
     public final int getAudioPTS() {
         if( State.Uninitialized != state && null != audioSink ) {
-            return audioSink.getPTS().getLast();
+            return audioSink.getPTS().get(Clock.currentMillis());
         }
         return 0;
     }
