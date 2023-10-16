@@ -180,6 +180,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     /** AV System Clock Reference (SCR) */
     private final PTS av_scr = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
+    private final PTS av_scr_cpy = new PTS( av_scr );
     /** Trigger System Clock Reference (SCR) reset. */
     private boolean video_scr_reset = false;
     private boolean audio_scr_reset = false;
@@ -350,7 +351,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public final int getPresentedFrameCount() { return presentedFrameCount; }
 
     @Override
-    public final PTS getPTS() { return av_scr; }
+    public final PTS getPTS() { return av_scr_cpy; }
 
     @Override
     public final int getVideoPTS() { return video_pts_last.get(Clock.currentMillis()); }
@@ -440,7 +441,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     streamWorker.pause(true);
                 }
                 if( flush ) {
-                    resetAVPTSAndFlush();
+                    resetAVPTSAndFlush(false);
                 } else if( null != audioSink ) {
                     audioSink.pause();
                 }
@@ -463,7 +464,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 streamWorker.stop(true);
                 streamWorker = null;
             }
-            resetAVPTSAndFlush();
+            resetAVPTSAndFlush(true);
             stopImpl();
             changeState(new GLMediaPlayer.EventMask(), State.Uninitialized);
             // attachedObjects.clear();
@@ -483,7 +484,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 streamWorker.stop(wait);
                 streamWorker = null;
             }
-            resetAVPTSAndFlush();
+            resetAVPTSAndFlush(true);
             destroyImpl();
             removeAllTextureFrames(gl);
             lastFrame = null;
@@ -515,7 +516,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         msec = 0;
                     }
                     pts1 = seekImpl(msec);
-                    resetAVPTSAndFlush();
+                    resetAVPTSAndFlush(false);
                     if( null != audioSink && State.Playing == _state ) {
                         audioSink.play(); // cont. w/ new data
                     }
@@ -751,7 +752,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 logout.println("GLMediaPlayer.initGL: "+this);
             }
             try {
-                resetAVPTSAndFlush();
+                resetAVPTSAndFlush(true);
                 removeAllTextureFrames(gl);
                 if( State.Uninitialized != state ) {
                     initGLImpl(gl);
@@ -1298,6 +1299,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 }
             }
             displayedFrameCount++;
+            av_scr_cpy.set(av_scr);
             return lastFrame;
         }
     }
@@ -1371,8 +1373,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
         cachedFrame = null;
     }
-    private void resetAVPTSAndFlush() {
+    private void resetAVPTSAndFlush(final boolean set_scr_cpy) {
         resetSCR(av_scr);
+        if( set_scr_cpy ) {
+            av_scr_cpy.set(av_scr);
+        }
         audio_queued_last_ms = 0;
         audio_dequeued_last = 0;
         resetAVPTS();
