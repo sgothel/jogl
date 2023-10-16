@@ -1062,8 +1062,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 try {
                     do {
                         final long currentMillis = Clock.currentMillis();
+                        final boolean audioStreamEnabled = audioStreamEnabled();
                         final int audio_queued_ms;
-                        if( audioStreamEnabled() && !audio_scr_reset ) {
+                        if( audioStreamEnabled && !audio_scr_reset ) {
                             audio_queued_ms = getAudioQueuedDuration();
                         } else {
                             audio_queued_ms = 100;
@@ -1116,7 +1117,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                     video_pts.set(currentMillis, nextFrame.getPTS());
                                     hasVideoFrame = true;
                                 } else {
-                                    video_pts.set(0, TimeFrameI.INVALID_PTS);
+                                    video_pts.set(currentMillis, 0);
                                     hasVideoFrame = false;
                                     syncModeA = 'e';
                                 }
@@ -1131,7 +1132,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         final PTS audio_pts = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
                         final int audio_pts_lb;
                         final boolean use_audio;
-                        if( audioStreamEnabled() ) {
+                        if( audioStreamEnabled ) {
                             final PTS apts = getUpdatedAudioPTS();
                             if( !apts.isValid() ) {
                                 audio_pts.set(video_pts);
@@ -1170,59 +1171,56 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             }
                             pauseImpl(true, new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.EOS));
 
-                        } else if( !video_pts.isValid() ) { // no audio or video frame
+                        } else if( !hasVideoFrame || !video_pts.isValid() ) { // no audio or video frame
                             if( null == videoFramesDecoded || !videoFramesDecoded.isEmpty() ) {
                                 nullFrameCount++;
                             }
                             if( DEBUG_AVSYNC ) {
                                 syncModeB = '?';
+                                final String nullFrameCount_s = nullFrameCount > 0 ? ", nullFrames "+nullFrameCount+", " : ", ";
                                 logout.println(currentMillis, "AV"+syncModeA+syncModeB+":"+resetModeA+resetModeV+
-                                        ": dT "+(currentMillis-lastMillis)+", nullFrames "+nullFrameCount+", "+
+                                        ": dT "+(currentMillis-lastMillis)+nullFrameCount_s+
                                         getPerfStringImpl(currentMillis, video_pts, audio_pts, audio_queued_ms, audio_pts_lb) + ", droppedFrame "+droppedFrame);
                             }
-                        } else { // valid pts: has audio or video frame
+                        } else { // valid pts and has video frames
                             nullFrameCount=0;
 
-                            if( hasVideoFrame ) { // has video frame
-                                presentedFrameCount++;
+                            presentedFrameCount++;
 
-                                // d_apts > 0: audio too slow (behind SCR) repeat video frame, < 0: audio too fast (in front of SCR) drop video frame
-                                final int d_apts;
-                                if( audio_pts.isValid() ) {
-                                    d_apts = av_scr.diff(currentMillis, audio_pts);
-                                } else {
-                                    d_apts = 0;
+                            // d_apts > 0: audio too slow (behind SCR) repeat video frame, < 0: audio too fast (in front of SCR) drop video frame
+                            final int d_apts;
+                            if( use_audio && audio_pts.isValid() ) {
+                                d_apts = av_scr.diff(currentMillis, audio_pts);
+                            } else {
+                                d_apts = 0;
+                            }
+                            // d_vpts > 0: video too fast (in front of SCR) repeat frame, < 0: video too slow (behind SCR) drop frame
+                            int d_vpts = video_pts.diff(currentMillis, av_scr);
+
+                            final boolean d_apts_off = -AV_DPTS_MAX > d_apts || d_apts > AV_DPTS_MAX;
+                            final boolean d_vpts_off = -AV_DPTS_MAX > d_vpts || d_vpts > AV_DPTS_MAX;
+                            if( d_apts_off || d_vpts_off ) {
+                                // Extreme rare off audio/video DPTS
+                                resetSCR( use_audio ? audio_pts : video_pts );
+                                resetModeA = d_apts_off ? 'A' : 'a';
+                                resetModeV = d_vpts_off ? 'V' : 'v';
+                                if( DEBUG_AVSYNC ) {
+                                    syncModeB = '*';
+                                    logout.println(currentMillis, "AV"+syncModeA+syncModeB+":"+resetModeA+resetModeV+
+                                            ": dT "+(currentMillis-lastMillis)+", "+
+                                            getPerfStringImpl(currentMillis, video_pts, audio_pts, audio_queued_ms, audio_pts_lb)); // + ", "+nextFrame);
                                 }
-                                // d_vpts > 0: video too fast (in front of SCR) repeat frame, < 0: video too slow (behind SCR) drop frame
-                                int d_vpts = video_pts.diff(currentMillis, av_scr);
-
-                                final boolean d_apts_off = use_audio && ( -AV_DPTS_MAX > d_apts || d_apts > AV_DPTS_MAX );
-                                final boolean d_vpts_off = -AV_DPTS_MAX > d_vpts || d_vpts > AV_DPTS_MAX;
-                                if( d_apts_off || d_vpts_off ) {
-                                    // Extreme rare off audio/video DPTS
-                                    resetSCR( use_audio ? audio_pts : video_pts );
-                                    resetModeA = d_apts_off ? 'A' : 'a';
-                                    resetModeV = d_vpts_off ? 'V' : 'v';
-                                    if( DEBUG_AVSYNC ) {
-                                        syncModeB = '*';
-                                        logout.println(currentMillis, "AV"+syncModeA+syncModeB+":"+resetModeA+resetModeV+
-                                                ": dT "+(currentMillis-lastMillis)+", "+
-                                                getPerfStringImpl(currentMillis, video_pts, audio_pts, audio_queued_ms, audio_pts_lb)); // + ", "+nextFrame);
-                                    }
-                                } else {
-                                    final int dt_a;
-                                    final boolean scr_resynced;
-                                    if( use_audio ) {
-                                        audio_dpts_count++;
-                                        if( droppedFrame ) {
-                                            audio_dpts_cum = d_apts * AV_DPTS_COEFF + audio_dpts_cum; // weight on current frame's PTS
-                                        } else {
-                                            audio_dpts_cum = d_apts + AV_DPTS_COEFF * audio_dpts_cum;
-                                        }
-                                        dt_a = (int) ( getDPTSAvg(audio_dpts_cum, audio_dpts_count) / playSpeed + 0.5f );
+                            } else {
+                                final int dt_a;
+                                final boolean scr_resynced;
+                                if( use_audio ) {
+                                    audio_dpts_count++;
+                                    if( droppedFrame ) {
+                                        audio_dpts_cum = d_apts * AV_DPTS_COEFF + audio_dpts_cum; // weight on current frame's PTS
                                     } else {
-                                        dt_a = 0;
+                                        audio_dpts_cum = d_apts + AV_DPTS_COEFF * audio_dpts_cum;
                                     }
+                                    dt_a = (int) ( getDPTSAvg(audio_dpts_cum, audio_dpts_count) / playSpeed + 0.5f );
                                     if( ( dt_a < -MAX_VIDEO_ASYNC && d_apts < 0 ) || ( dt_a > max_adelay && d_apts > 0 ) ) {
                                         // resync to audio
                                         scr_resynced = true;
@@ -1231,58 +1229,58 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                         audio_dpts_cum = d_apts * AV_DPTS_COEFF + d_apts; // total weight on current frame's PTS
                                         audio_dpts_count = AV_DPTS_NUM - AV_DPTS_NUM/4;
                                         d_vpts = video_pts.diff(currentMillis, av_scr);
-                                        // video_dpts_cum = 0;
-                                        // video_dpts_count = 0;
                                         resetModeA = 'A';
-                                        // resetModeV = 'V';
                                     } else {
                                         scr_resynced = false;
                                     }
-                                    final int avg_dpy_duration, maxVideoDelay;
-                                    {
-                                        final int dpy_den = displayedFrameCount > 0 ? displayedFrameCount : 1;
-                                        avg_dpy_duration = ( (int) ( ( currentMillis - av_scr.getSCR() ) * playSpeed + 0.5f ) ) / dpy_den ; // ms/f
-                                        maxVideoDelay = Math.min(Math.max(avg_dpy_duration, MIN_VIDEO_ASYNC), MAX_VIDEO_ASYNC);
-                                    }
-                                    video_dpts_count++;
-                                    if( droppedFrame || scr_resynced ) {
-                                        video_dpts_cum = d_vpts * AV_DPTS_COEFF + video_dpts_cum; // weight on current frame's PTS
-                                    } else {
-                                        video_dpts_cum = d_vpts + AV_DPTS_COEFF * video_dpts_cum;
-                                    }
-                                    final int dt_v = (int) ( getDPTSAvg(video_dpts_cum, video_dpts_count) / playSpeed + 0.5f );
-                                    // final TextureFrame _nextFrame = nextFrame;
-                                    if( dt_v > maxVideoDelay && d_vpts >= 0 &&
-                                        ( audio_queued_ms > min1_audio_queued_ms || video_queue_growth > 0 ) )
-                                    {
-                                        cachedFrame = nextFrame;
-                                        nextFrame = null;
-                                        syncModeB = 'c';
-                                        if( videoFramesFree.isEmpty() && audio_queued_ms <= min1_audio_queued_ms ) {
-                                            growVideoFrameBuffers(gl, video_queue_growth);
-                                            syncModeB = 'z';
-                                        }
-                                    } else if ( dt_v < -maxVideoDelay && d_vpts < 0 && null != videoFramesDecoded && videoFramesDecoded.size() > 0 ) {
-                                        // only drop if prev. frame has not been dropped and
-                                        // frame is too late and one decoded frame is already available.
-                                        dropFrame = true;
-                                        syncModeB = 'd';
-                                    } else if( repeatedFrame > 0 ) {
-                                        syncModeB = 'r';
-                                    } else {
-                                        syncModeB = '_';
-                                    }
-                                    video_pts_last.set(video_pts);
-                                    if( DEBUG_AVSYNC ) {
-                                        logout.println(currentMillis, "AV"+syncModeA+syncModeB+":"+resetModeA+resetModeV+
-                                                ": dT "+(currentMillis-lastMillis)+", dt[v "+dt_v+", a "+dt_a+"]/"+maxVideoDelay+", "+
-                                                getPerfStringImpl(currentMillis, video_pts, audio_pts,
-                                                                   audio_queued_ms, audio_pts_lb) +
-                                                                   ", avg dpy-fps "+avg_dpy_duration+" ms/f"); // , "+_nextFrame);
-                                    }
+                                } else {
+                                    dt_a = 0;
+                                    scr_resynced = false;
                                 }
-                            } // has video frame
-                        } // has audio or video frame
+                                final int avg_dpy_duration, maxVideoDelay;
+                                {
+                                    final int dpy_den = displayedFrameCount > 0 ? displayedFrameCount : 1;
+                                    avg_dpy_duration = ( (int) ( ( currentMillis - av_scr.getSCR() ) * playSpeed + 0.5f ) ) / dpy_den ; // ms/f
+                                    maxVideoDelay = Math.min(Math.max(avg_dpy_duration, MIN_VIDEO_ASYNC), MAX_VIDEO_ASYNC);
+                                }
+                                video_dpts_count++;
+                                if( droppedFrame || scr_resynced ) {
+                                    video_dpts_cum = d_vpts * AV_DPTS_COEFF + video_dpts_cum; // weight on current frame's PTS
+                                } else {
+                                    video_dpts_cum = d_vpts + AV_DPTS_COEFF * video_dpts_cum;
+                                }
+                                final int dt_v = (int) ( getDPTSAvg(video_dpts_cum, video_dpts_count) + 0.5f );
+                                // final TextureFrame _nextFrame = nextFrame;
+                                if( dt_v > maxVideoDelay && d_vpts >= 0 &&
+                                    ( audio_queued_ms > min1_audio_queued_ms || video_queue_growth > 0 ) )
+                                {
+                                    cachedFrame = nextFrame;
+                                    nextFrame = null;
+                                    syncModeB = 'c';
+                                    if( videoFramesFree.isEmpty() && audio_queued_ms <= min1_audio_queued_ms ) {
+                                        growVideoFrameBuffers(gl, video_queue_growth);
+                                        syncModeB = 'z';
+                                    }
+                                } else if( dt_v < -maxVideoDelay && d_vpts < 0 &&
+                                           ( null != videoFramesDecoded && videoFramesDecoded.size() > 0 || playSpeed > 2.0f ) ) {
+                                    // frame is too late and one decoded frame is already available (or playSpeed > 2)
+                                    dropFrame = true;
+                                    syncModeB = 'd';
+                                } else if( repeatedFrame > 0 ) {
+                                    syncModeB = 'r';
+                                } else {
+                                    syncModeB = '_';
+                                }
+                                video_pts_last.set(video_pts);
+                                if( DEBUG_AVSYNC ) {
+                                    logout.println(currentMillis, "AV"+syncModeA+syncModeB+":"+resetModeA+resetModeV+
+                                            ": dT "+(currentMillis-lastMillis)+", dt[v "+dt_v+", a "+dt_a+"]/"+maxVideoDelay+", "+
+                                            getPerfStringImpl(currentMillis, video_pts, audio_pts,
+                                                               audio_queued_ms, audio_pts_lb) +
+                                                               ", avg dpy-fps "+avg_dpy_duration+" ms/f"); // , "+_nextFrame);
+                                }
+                            } // sync
+                        } // valid pts and has video frames
 
                         if( null != videoFramesFree && null != nextFrame ) {
                             // Had frame and not single threaded ? (TEXTURE_COUNT_MIN < textureCount)
