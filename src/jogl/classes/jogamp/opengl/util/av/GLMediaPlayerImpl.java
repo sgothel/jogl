@@ -1153,7 +1153,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             use_audio = false;
                         }
 
-                        if( video_pts.isValid() ) {
+                        if( hasVideoFrame && video_pts.isValid() ) {
                             final int frame_period_last = video_pts.diffLast(video_pts_last); // rendering loop interrupted ?
                             if( video_scr_reset || frame_period_last > frame_duration*10 ) {
                                 video_scr_reset = false;
@@ -1171,7 +1171,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             }
                             pauseImpl(true, new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.EOS));
 
-                        } else if( !hasVideoFrame || !video_pts.isValid() ) { // no audio or video frame
+                        } else if( !hasVideoFrame || !video_pts.isValid() ) { // invalid or no video frame
                             if( null == videoFramesDecoded || !videoFramesDecoded.isEmpty() ) {
                                 nullFrameCount++;
                             }
