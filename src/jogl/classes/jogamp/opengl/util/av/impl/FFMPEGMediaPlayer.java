@@ -498,7 +498,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             setTextureFormat(tif, tf);
             setTextureType(tt);
             setIsGLOriented(false);
-            if(DEBUG || true) {
+            if( DEBUG ) {
                 final float texSizeMB = ( texWidth * texHeight * (float)texBytesPerPixel ) / 1000000f;
                 System.err.printf("initGL: p5: video %s, bpp %d, %d x %d, %d b/pp, %d planes, tex %d x %d x %d -> %.2fMB%n",
                         vPixelFmt.toString(), vBitsPerPixel, vWidth, vHeight, vBytesPerPixelPerPlane, vPlanes,
