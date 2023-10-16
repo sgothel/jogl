@@ -680,6 +680,7 @@ public class MovieSimple implements GLEventListener {
 
     public static void main(final String[] args) throws IOException, URISyntaxException {
         int swapInterval = 1;
+        float playSpeed = 1.0f;
         int width = 800;
         int height = 600;
         int textureCount = 3; // default - threaded
@@ -692,6 +693,7 @@ public class MovieSimple implements GLEventListener {
         boolean forceGLDef = false;
         int vid = GLMediaPlayer.STREAM_ID_AUTO;
         int aid = GLMediaPlayer.STREAM_ID_AUTO;
+        float audioVolume = 1.0f;
 
         final int windowCount;
         {
@@ -737,6 +739,11 @@ public class MovieSimple implements GLEventListener {
                 } else if(args[i].equals("-vsync")) {
                     i++;
                     swapInterval = MiscUtils.atoi(args[i], swapInterval);
+                } else if(args[i].equals("-speed")) {
+                    i++;
+                    playSpeed = MiscUtils.atof(args[i], playSpeed);
+                } else if(args[i].equals("-mute")) {
+                    audioVolume = 0.0f;
                 } else if(args[i].equals("-projection")) {
                     ortho=false;
                 } else if(args[i].equals("-orig_scale")) {
@@ -768,6 +775,8 @@ public class MovieSimple implements GLEventListener {
         System.err.println("forceGL3   "+forceGL3);
         System.err.println("forceGLDef "+forceGLDef);
         System.err.println("swapInterval "+swapInterval);
+        System.err.println("playSpeed "+playSpeed);
+        System.err.println("audioVolume "+audioVolume);
 
         final GLProfile glp;
         if(forceGLDef) {
@@ -801,6 +810,8 @@ public class MovieSimple implements GLEventListener {
             mss[i].setSwapInterval(swapInterval);
             mss[i].setUseOriginalScale(useOrigScale);
             mss[i].setOrthoProjection(ortho);
+            mss[i].mPlayer.setPlaySpeed(playSpeed);
+            mss[i].mPlayer.setAudioVolume(audioVolume);
             mss[i].mPlayer.attachObject(WINDOW_KEY, windows[i]);
             mss[i].mPlayer.addEventListener(myGLMediaEventListener);
 

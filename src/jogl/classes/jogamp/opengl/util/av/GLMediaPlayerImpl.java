@@ -539,21 +539,32 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final float getPlaySpeed() { return playSpeed; }
 
+    private static final float clipZeroOneAllowMax(final float v) {
+        if( v < 0.01f ) {
+            return 0.0f;
+        } else if( Math.abs(1.0f - v) < 0.01f ) {
+            return 1.0f;
+        }
+        return v;
+    }
+
     @Override
     public final boolean setPlaySpeed(float rate) {
         synchronized( stateLock ) {
             final float preSpeed = playSpeed;
             boolean res = false;
-            if(State.Uninitialized != state ) {
-                if( rate > 0.01f ) {
-                    if( Math.abs(1.0f - rate) < 0.01f ) {
-                        rate = 1.0f;
-                    }
+            rate = clipZeroOneAllowMax(rate);
+            if( rate > 0.1f ) {
+                if(State.Uninitialized != state ) {
                     if( setPlaySpeedImpl(rate) ) {
                         resetAVPTS();
                         playSpeed = rate;
                         res = true;
                     }
+                } else {
+                    // earmark ..
+                    playSpeed = rate;
+                    res = true;
                 }
             }
             if(DEBUG) { logout.println("setPlaySpeed("+rate+"): "+state+", "+preSpeed+" -> "+playSpeed+", "+toString()); }
@@ -596,21 +607,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
     }
 
-    private static final float clipAudioVolume(final float v) {
-        if( v < 0.01f ) {
-            return 0.0f;
-        } else if( Math.abs(1.0f - v) < 0.01f ) {
-            return 1.0f;
-        }
-        return v;
-    }
-
     @Override
     public boolean setAudioVolume(float v) {
         synchronized( stateLock ) {
             final float preVolume = audioVolume;
             boolean res = false;
-            v = clipAudioVolume(v);
+            v = clipZeroOneAllowMax(v);
             if(State.Uninitialized != state ) {
                 if( setAudioVolumeImpl(v) ) {
                     audioVolume = v;
@@ -754,6 +756,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 if( State.Uninitialized != state ) {
                     initGLImpl(gl);
                     setAudioVolume( audioVolume ); // update volume
+                    setPlaySpeed( playSpeed ); // update playSpeed
                     if(DEBUG) {
                         logout.println("initGLImpl.X "+this);
                     }
