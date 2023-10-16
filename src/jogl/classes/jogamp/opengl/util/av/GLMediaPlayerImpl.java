@@ -407,19 +407,16 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public final State resume() {
         synchronized( stateLock ) {
             final State preState = state;
-            switch( state ) {
-                case Paused:
-                    if( resumeImpl() ) {
-                        resetAVPTS();
-                        if( null != audioSink ) {
-                            audioSink.play(); // cont. w/ new data
-                        }
-                        if( null != streamWorker ) {
-                            streamWorker.resume();
-                        }
-                        changeState(new GLMediaPlayer.EventMask(), State.Playing);
+            if( State.Paused == state ) {
+                if( resumeImpl() ) {
+                    if( null != audioSink ) {
+                        audioSink.play(); // cont. w/ new data
                     }
-                default:
+                    if( null != streamWorker ) {
+                        streamWorker.resume();
+                    }
+                    changeState(new GLMediaPlayer.EventMask(), State.Playing);
+                }
             }
             if(DEBUG) { logout.println("Play: "+preState+" -> "+state+", "+toString()); }
             return state;
@@ -435,7 +432,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         synchronized( stateLock ) {
             final State preState = state;
             if( State.Playing == state ) {
-                eventMask = addStateEventMask(eventMask, GLMediaPlayer.State.Paused);
+                eventMask = addStateEventMask(eventMask, State.Paused);
                 setState( State.Paused );
                 if( null != streamWorker ) {
                     streamWorker.pause(true);
