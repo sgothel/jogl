@@ -1179,7 +1179,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 final String nullFrameCount_s = nullFrameCount > 0 ? ", nullFrames "+nullFrameCount+", " : ", ";
                                 logout.println(currentMillis, "AV"+syncModeA+syncModeB+":"+resetModeA+resetModeV+
                                         ": dT "+(currentMillis-lastMillis)+nullFrameCount_s+
-                                        getPerfStringImpl(currentMillis, video_pts, audio_pts, audio_queued_ms, audio_pts_lb) + ", droppedFrame "+droppedFrame);
+                                        getPerfStringImpl(currentMillis, video_pts, use_audio, audio_pts, audio_queued_ms, audio_pts_lb) + ", droppedFrame "+droppedFrame);
                             }
                         } else { // valid pts and has video frames
                             nullFrameCount=0;
@@ -1207,7 +1207,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                     syncModeB = '*';
                                     logout.println(currentMillis, "AV"+syncModeA+syncModeB+":"+resetModeA+resetModeV+
                                             ": dT "+(currentMillis-lastMillis)+", "+
-                                            getPerfStringImpl(currentMillis, video_pts, audio_pts, audio_queued_ms, audio_pts_lb)); // + ", "+nextFrame);
+                                            getPerfStringImpl(currentMillis, video_pts, use_audio, audio_pts, audio_queued_ms, audio_pts_lb)); // + ", "+nextFrame);
                                 }
                             } else {
                                 final int dt_a;
@@ -1274,8 +1274,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 if( DEBUG_AVSYNC ) {
                                     logout.println(currentMillis, "AV"+syncModeA+syncModeB+":"+resetModeA+resetModeV+
                                             ": dT "+(currentMillis-lastMillis)+", dt[v "+dt_v+", a "+dt_a+"]/"+maxVideoDelay+", "+
-                                            getPerfStringImpl(currentMillis, video_pts, audio_pts,
-                                                               audio_queued_ms, audio_pts_lb) +
+                                            getPerfStringImpl(currentMillis, video_pts, use_audio,
+                                                               audio_pts, audio_queued_ms, audio_pts_lb) +
                                                                ", avg dpy-fps "+avg_dpy_duration+" ms/f"); // , "+_nextFrame);
                                 }
                             } // sync
@@ -1806,28 +1806,30 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         final PTS audio_pts = getAudioPTSImpl();
         final int audio_queued_ms = getAudioQueuedDuration();
         final int audio_pts_lb = getLastBufferedAudioPTS();
-        return getPerfStringImpl(currentMillis, video_pts_last, audio_pts, audio_queued_ms, audio_pts_lb);
+        return getPerfStringImpl(currentMillis, video_pts_last, audioStreamEnabled(), audio_pts, audio_queued_ms, audio_pts_lb);
     }
-    private final String getPerfStringImpl(final long currentMillis, final PTS video_pts, final PTS audio_pts,
-                                           final int audio_queued_ms, final int autio_pts_lb) {
+    private final String getPerfStringImpl(final long currentMillis, final PTS video_pts, final boolean use_audio,
+                                           final PTS audio_pts, final int audio_queued_ms, final int autio_pts_lb) {
         final float tt = getDuration() / 1000.0f;
         final int audio_dequeued_ms = getAudioDequeued(audio_queued_ms);
 
-        // d_apts > 0: audio too slow (behind SCR) repeat video frame, < 0: audio too fast (in front of SCR) drop video frame
-        final int d_apts;
-        if( audio_pts.isValid() ) {
-            d_apts = av_scr.diff(currentMillis, audio_pts);
-        } else {
-            d_apts = 0;
-        }
         // d_vpts > 0: video too fast (in front of SCR) repeat frame, < 0: video too slow (behind SCR) drop frame
         final int d_vpts = video_pts.getLast() - av_scr.get(currentMillis); // equals: video_pts.diff(currentMillis, av_scr);
-
         final int video_dpts_avrg = getDPTSAvg(video_dpts_cum, video_dpts_count);
-        final int audio_dpts_avrg = getDPTSAvg(audio_dpts_cum, audio_dpts_count);
 
-        final int d_avpts0 = video_pts.diff(currentMillis, audio_pts);
-        final int d_avpts1 = video_dpts_avrg - audio_dpts_avrg;
+        // d_apts > 0: audio too slow (behind SCR) repeat video frame, < 0: audio too fast (in front of SCR) drop video frame
+        final int d_apts, audio_dpts_avrg, d_avpts0, d_avpts1;
+        if( use_audio && audio_pts.isValid() ) {
+            d_apts = av_scr.diff(currentMillis, audio_pts);
+            audio_dpts_avrg = getDPTSAvg(audio_dpts_cum, audio_dpts_count);
+            d_avpts0 = video_pts.diff(currentMillis, audio_pts);
+            d_avpts1 = video_dpts_avrg - audio_dpts_avrg;
+        } else {
+            d_apts = 0;
+            audio_dpts_avrg = 0;
+            d_avpts0 = 0;
+            d_avpts1 = 0;
+        }
 
         final int vFramesQueued = this.videoFramesDecoded.size();
         final int vFramesFree = this.videoFramesFree.size();
