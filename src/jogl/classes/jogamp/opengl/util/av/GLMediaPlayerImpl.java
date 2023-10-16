@@ -1080,6 +1080,30 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         char syncModeA  = '_', syncModeB  = '_';
                         char resetModeA = '_', resetModeV = '_';
 
+                        final PTS audio_pts = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
+                        final int audio_pts_lb;
+                        final boolean use_audio;
+                        if( audioStreamEnabled ) {
+                            final PTS apts = getUpdatedAudioPTS();
+                            if( !apts.isValid() ) {
+                                audio_pts.set(currentMillis, 0);
+                                use_audio = false;
+                            } else {
+                                audio_pts.set(apts);
+                                use_audio = true;
+                                if( audio_scr_reset ) {
+                                    audio_scr_reset = false;
+                                    resetSCR(apts);
+                                    resetModeA = 'A';
+                                }
+                            }
+                            audio_pts_lb = getLastBufferedAudioPTS();
+                        } else {
+                            audio_pts.set(currentMillis, 0);
+                            audio_pts_lb = 0;
+                            use_audio = false;
+                        }
+
                         final boolean droppedFrame;
                         if( dropFrame ) {
                             presentedFrameCount--;
@@ -1088,10 +1112,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         } else {
                             droppedFrame = false;
                         }
+
                         final PTS video_pts = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
                         final boolean hasVideoFrame;
                         TextureFrame nextFrame;
-                        if( null != cachedFrame && ( audio_queued_ms > min0_audio_queued_ms || video_queue_growth > 0 ) ) {
+                        if( null != cachedFrame && ( audio_queued_ms > min0_audio_queued_ms || !use_audio || video_queue_growth > 0 ) ) {
                             nextFrame = cachedFrame;
                             cachedFrame = null;
                             presentedFrameCount--;
@@ -1128,30 +1153,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 nextFrame = lastFrame;
                                 hasVideoFrame = stGotVFrame[0];
                             }
-                        }
-
-                        final PTS audio_pts = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
-                        final int audio_pts_lb;
-                        final boolean use_audio;
-                        if( audioStreamEnabled ) {
-                            final PTS apts = getUpdatedAudioPTS();
-                            if( !apts.isValid() ) {
-                                audio_pts.set(video_pts);
-                                use_audio = false;
-                            } else {
-                                audio_pts.set(apts);
-                                use_audio = true;
-                                if( audio_scr_reset ) {
-                                    audio_scr_reset = false;
-                                    resetSCR(apts);
-                                    resetModeA = 'A';
-                                }
-                            }
-                            audio_pts_lb = getLastBufferedAudioPTS();
-                        } else {
-                            audio_pts.set(video_pts);
-                            audio_pts_lb = 0;
-                            use_audio = false;
                         }
 
                         if( hasVideoFrame && video_pts.isValid() ) {
@@ -1253,7 +1254,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 final int dt_v = (int) ( getDPTSAvg(video_dpts_cum, video_dpts_count) + 0.5f );
                                 // final TextureFrame _nextFrame = nextFrame;
                                 if( dt_v > maxVideoDelay && d_vpts >= 0 &&
-                                    ( audio_queued_ms > min1_audio_queued_ms || video_queue_growth > 0 ) )
+                                    ( audio_queued_ms > min1_audio_queued_ms || !use_audio || video_queue_growth > 0 ) )
                                 {
                                     cachedFrame = nextFrame;
                                     nextFrame = null;
