@@ -359,7 +359,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     public final List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
 
-        // 6: util, format, codec, device, avresample, swresample
+        // 5: util, format, codec, device, swresample
 
         final List<String> avutil = new ArrayList<String>();
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
@@ -460,6 +460,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         libsList.add(swresample);
 
         return libsList;
+    }
+    @Override
+    public List<String> getSymbolForToolLibPath() {
+        // 5: util, format, codec, device, swresample
+        return Arrays.asList("av_free", "av_read_frame", "avcodec_close", "avdevice_register_all", "swr_convert");
     }
 
     @Override

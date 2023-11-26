@@ -121,6 +121,8 @@ public final class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInf
 
         return libsList;
     }
+    @Override
+    public List<String> getSymbolForToolLibPath() { return Arrays.asList("cgCreateContext", "cgGLLoadProgram"); }
 
     @Override
     public final List<String> getGlueLibNames() {

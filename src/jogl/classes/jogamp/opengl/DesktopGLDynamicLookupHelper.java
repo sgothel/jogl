@@ -48,10 +48,8 @@ public class DesktopGLDynamicLookupHelper extends GLDynamicLookupHelper {
             gluLibNames.add("libGLU.so"); // unix
             gluLibNames.add("GLU32"); // windows
             gluLibNames.add("GLU"); // generic
-            gluLib = loadFirstAvailable(gluLibNames, true, true, null, true);
-            if(null != gluLib) {
-                nativeLibraries.add(gluLib);
-            }
+            gluLib = loadFirstAvailable(gluLibNames, true, true, null, true, "gluScaleImage");
+            toolLibraries.add(gluLib);
         }
         return null != gluLib ;
     }

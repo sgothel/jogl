@@ -43,6 +43,7 @@ import java.util.*;
     private static final List<String> glueLibNames;
     static {
         SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
                 Platform.initSingleton();
 
@@ -98,6 +99,9 @@ import java.util.*;
     public final List<List<String>> getToolLibNames() {
         return new ArrayList<List<String>>(); // None
     }
+
+    @Override
+    public List<String> getSymbolForToolLibPath() { return null; }
 
     @Override
     public final List<String> getToolGetProcAddressFuncNameList() {

@@ -28,6 +28,9 @@
 
 package jogamp.opengl;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import com.jogamp.common.util.RunnableExecutor;
@@ -35,6 +38,9 @@ import com.jogamp.common.util.RunnableExecutor;
 public abstract class GLDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
     protected GLDynamicLibraryBundleInfo() {
     }
+
+    @Override
+    public List<String> getSymbolForToolLibPath() { return Arrays.asList("glClear"); }
 
     /**
      * Returns <code>true</code>,
