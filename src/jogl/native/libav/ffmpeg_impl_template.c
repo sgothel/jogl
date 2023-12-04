@@ -1563,8 +1563,14 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     DBG_TEXSUBIMG2D_b(pAV);
                 } // FIXME: Add more planar formats !
 
-                pAV->procAddrGLFinish();
-                //pAV->procAddrGLFlush();
+                // We might want a sync here, ensuring the texture data is uploaded?
+                //
+                // No, glTexSubImage2D() shall block until new pixel data are taken, 
+                // i.e. shall be a a synchronous client command
+                //
+                // pAV->procAddrGLFinish(); // No sync required and too expensive for multiple player
+                pAV->procAddrGLFlush(); // No sync required, but be nice
+
                 sp_av_frame_unref(pAV->pVFrame);
             } // draining frames loop
         } // stream_id selection
