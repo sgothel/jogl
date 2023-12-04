@@ -1227,7 +1227,8 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
             fprintf(stderr, "P: ptr %p, size %d\n", pAV->packet->data, pAV->packet->size);
         }
         int send_pkt = 1; // only send pkt once
-        if(pAV->packet->stream_index==pAV->aid) {
+        int32_t stream_id = pAV->packet->stream_index;
+        if(stream_id == pAV->aid) {
             // Decode audio frame
             if(NULL == pAV->pAFrames) { // no audio registered
                 sp_av_packet_unref(pAV->packet);
@@ -1240,23 +1241,27 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                 pAV->aFrameCurrent = ( pAV->aFrameCurrent + 1 ) % pAV->aFrameCount ;
 
                 if( 0 < send_pkt ) { // only send pkt once
-                    send_pkt = 0;
                     res = sp_avcodec_send_packet(pAV->pACodecCtx, pAV->packet);
-                    if ( AVERROR(EAGAIN) == res ) {
-                        // input is not accepted in the current state - user must read output
-                        res = 0; // continue draining frames
+                    if ( 0 == res ) {
+                        // OK
+                        send_pkt = 0;
+                    } else if ( AVERROR(EAGAIN) == res ) {
+                        // input is not accepted in the current state, continue draining frames, then resend package
+                        res = 0;
                         if( pAV->verbose ) {
                             fprintf(stderr, "A-P: EAGAIN @ %d\n", frameCount);
                         }
                     } else if ( AVERROR_EOF == res ) {
-                        // the decoder has been flushed, and no new packets can be sent to it
-                        res = 0; // continue draining frames
+                        // the decoder has been flushed, and no new packets can be sent to it, continue draining frames
+                        send_pkt = 0;
+                        res = 0;
                         if( pAV->verbose ) {
                             fprintf(stderr, "A-P: EOF @ %d\n", frameCount);
                         }
                     } else if ( 0 > res ) {
-                        res = 0; // error, but continue draining frames
-                        res = 0; // continue draining frames
+                        // error, but continue draining frames
+                        send_pkt = 0;
+                        res = 0;
                         if( pAV->verbose ) {
                             fprintf(stderr, "A-P: ERROR %d @ %d\n", res, frameCount);
                         }
@@ -1390,8 +1395,8 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_pushSound, pNIOBufferCurrent->nioRef, data_size, pAV->aPTS);
                     JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at pushSound(..)");
                 }
-            }
-        } else if(pAV->packet->stream_index==pAV->vid) {
+            } // draining frames loop
+        } else if(stream_id == pAV->vid) {
             // Decode video frame
             if(NULL == pAV->pVFrame) {
                 sp_av_packet_unref(pAV->packet);
@@ -1402,22 +1407,27 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                 sp_av_frame_unref(pAV->pVFrame);
 
                 if( 0 < send_pkt ) { // only send pkt once
-                    send_pkt = 0;
                     res = sp_avcodec_send_packet(pAV->pVCodecCtx, pAV->packet);
-                    if ( AVERROR(EAGAIN) == res ) {
-                        // input is not accepted in the current state - user must read output
-                        res = 0; // continue draining frames
+                    if ( 0 == res ) {
+                        // OK
+                        send_pkt = 0;
+                    } else if ( AVERROR(EAGAIN) == res ) {
+                        // input is not accepted in the current state, continue draining frames, then resend package
+                        res = 0;
                         if( pAV->verbose ) {
                             fprintf(stderr, "V-P: EAGAIN @ %d\n", frameCount);
                         }
                     } else if ( AVERROR_EOF == res ) {
-                        // the decoder has been flushed, and no new packets can be sent to it
-                        res = 0; // continue draining frames
+                        // the decoder has been flushed, and no new packets can be sent to it, continue draining frames
+                        send_pkt = 0;
+                        res = 0;
                         if( pAV->verbose ) {
                             fprintf(stderr, "V-P: EOF @ %d\n", frameCount);
                         }
                     } else if ( 0 > res ) {
-                        res = 0; // error, but continue draining frames
+                        // error, but continue draining frames
+                        send_pkt = 0;
+                        res = 0;
                         if( pAV->verbose ) {
                             fprintf(stderr, "V-P: ERROR %d @ %d\n", res, frameCount);
                         }
@@ -1556,9 +1566,8 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                 pAV->procAddrGLFinish();
                 //pAV->procAddrGLFlush();
                 sp_av_frame_unref(pAV->pVFrame);
-            }
-        }
-        // restore orig pointer and size values, we may have moved along within packet
+            } // draining frames loop
+        } // stream_id selection
         sp_av_packet_unref(pAV->packet);
     }
     return resPTS;
