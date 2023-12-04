@@ -222,7 +222,16 @@ public final class Scene implements Container, GLEventListener {
     @Override
     public final boolean isFrustumCullingEnabled() { return doFrustumCulling; }
 
+    public void attachGLAutoDrawable(final GLAutoDrawable drawable) {
+        cDrawable = drawable;
+    }
+    public void detachGLAutoDrawable(final GLAutoDrawable drawable) {
+        if( cDrawable == drawable ) {
+            cDrawable = null;
+        }
+    }
     public void attachInputListenerTo(final GLWindow window) {
+        cDrawable = window;
         if(null == sbcMouseListener) {
             sbcMouseListener = new SBCMouseListener();
             window.addMouseListener(sbcMouseListener);
@@ -382,7 +391,9 @@ public final class Scene implements Container, GLEventListener {
 
     @Override
     public void init(final GLAutoDrawable drawable) {
-        cDrawable = drawable;
+        if( null == cDrawable ) {
+            cDrawable = drawable;
+        }
         renderer.init(drawable.getGL().getGL2ES2());
     }
 
@@ -405,6 +416,17 @@ public final class Scene implements Container, GLEventListener {
             return cDrawable.invoke(wait, glRunnable);
         }
         return false;
+    }
+
+    public void addGLEventListener(final GLEventListener listener) {
+        if( null != cDrawable ) {
+            cDrawable.addGLEventListener(listener);
+        }
+    }
+    public void removeGLEventListener(final GLEventListener listener) {
+        if( null != cDrawable ) {
+            cDrawable.removeGLEventListener(listener);
+        }
     }
 
     /**
@@ -543,8 +565,10 @@ public final class Scene implements Container, GLEventListener {
             }
         }
         shapes.clear();
-        cDrawable = null;
         disposeActions.clear();
+        if( drawable == cDrawable ) {
+            cDrawable = null;
+        }
         renderer.destroy(gl);
         screenshot.dispose(gl);
     }
