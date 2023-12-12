@@ -744,12 +744,12 @@ public class UISceneDemo20 implements GLEventListener {
                 }
 
             });
-            button.onMove( (final Shape shape) -> {
+            button.onMove((final Shape shape, final Vec3f origin, final Vec3f dest) -> {
                 final ALAudioSink aSink = alAudioSink[0];
                 if( null != aSink ) {
                     setSoundPosition(shape, aSink.getContext(), aSink.getSource());
                 }
-            });
+            } );
             button.onInit( (final Shape shape) -> {
                 final ALAudioSink aSink = alAudioSink[0];
                 if( null != aSink ) {
@@ -821,9 +821,9 @@ public class UISceneDemo20 implements GLEventListener {
                     System.err.println("Sine "+sineSound);
                 } } );
 
-            final Shape.Listener setAudioPosition = new Shape.Listener() {
+            final Shape.MoveListener setAudioPosition = new Shape.MoveListener() {
                 @Override
-                public void run(final Shape shape) {
+                public void run(final Shape shape, final Vec3f origin, final Vec3f dest) {
                     setSoundPosition(shape, aSink.getContext(), aSource);
                 }
             };

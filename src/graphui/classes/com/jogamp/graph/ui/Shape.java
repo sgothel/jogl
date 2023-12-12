@@ -108,6 +108,19 @@ public abstract class Shape {
     }
 
     /**
+     * {@link Shape} move listener
+     */
+    public static interface MoveListener {
+        /**
+         * Move callback
+         * @param s the moved shape
+         * @param origin original position
+         * @param dest new position
+         */
+        void run(Shape s, Vec3f origin, Vec3f dest);
+    }
+
+    /**
      * General {@link Shape} listener action
      */
     public static interface Listener {
@@ -176,7 +189,7 @@ public abstract class Shape {
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
 
     private ListenerBool onInitListener = null;
-    private Listener onMoveListener = null;
+    private MoveListener onMoveListener = null;
     private Listener onToggleListener = null;
     private Listener onActivationListener = null;
     private Listener onClickedListener = null;
@@ -306,7 +319,7 @@ public abstract class Shape {
     /**
      * Set user callback to be notified when shape is {@link #move(Vec3f)}'ed.
      */
-    public final void onMove(final Listener l) { onMoveListener = l; }
+    public final void onMove(final MoveListener l) { onMoveListener = l; }
     /**
      * Set user callback to be notified when shape {@link #toggle()}'ed.
      * <p>
@@ -335,38 +348,34 @@ public abstract class Shape {
 
     /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. */
     public final Shape moveTo(final float tx, final float ty, final float tz) {
-        position.set(tx, ty, tz);
-        if( null != onMoveListener ) {
-            onMoveListener.run(this);
-        }
+        forwardMove(position.copy(), position.set(tx, ty, tz));
         return this;
     }
 
     /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. */
     public final Shape moveTo(final Vec3f t) {
-        position.set(t);
-        if( null != onMoveListener ) {
-            onMoveListener.run(this);
-        }
+        forwardMove(position.copy(), position.set(t));
         return this;
     }
 
     /** Move about scaled distance. Position ends up in PMVMatrix4f unmodified. */
     public final Shape move(final float dtx, final float dty, final float dtz) {
-        position.add(dtx, dty, dtz);
-        if( null != onMoveListener ) {
-            onMoveListener.run(this);
-        }
+        forwardMove(position.copy(), position.add(dtx, dty, dtz));
         return this;
     }
 
     /** Move about scaled distance. Position ends up in PMVMatrix4f unmodified. */
     public final Shape move(final Vec3f dt) {
-        position.add(dt);
-        if( null != onMoveListener ) {
-            onMoveListener.run(this);
-        }
+        forwardMove(position.copy(), position.add(dt));
         return this;
+    }
+
+    private final void forwardMove(final Vec3f origin, final Vec3f dest) {
+        if( !origin.isEqual(dest) ) {
+            if( null != onMoveListener ) {
+                onMoveListener.run(this, origin, dest);
+            }
+        }
     }
 
     /** Returns position, i.e. scaled translation as set via {@link #moveTo(float, float, float) or {@link #move(float, float, float)}}. */
