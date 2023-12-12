@@ -154,18 +154,19 @@ public abstract class Shape {
 
     private static final int IO_ENABLED            = 1 << 0;
     private static final int IO_INTERACTIVE        = 1 << 1;
-    private static final int IO_TOGGLEABLE         = 1 << 2;
-    private static final int IO_DRAGGABLE          = 1 << 3;
-    private static final int IO_RESIZABLE          = 1 << 4;
-    private static final int IO_RESIZE_FIXED_RATIO = 1 << 5;
-    private static final int IO_ACTIVE             = 1 << 6;
-    private static final int IO_DOWN               = 1 << 7;
-    private static final int IO_TOGGLE             = 1 << 8;
-    private static final int IO_DRAG_FIRST         = 1 << 9;
-    private static final int IO_IN_MOVE            = 1 << 10;
-    private static final int IO_IN_RESIZE_BR       = 1 << 11;
-    private static final int IO_IN_RESIZE_BL       = 1 << 12;
-    private volatile int ioState = IO_DRAGGABLE | IO_RESIZABLE | IO_INTERACTIVE | IO_ENABLED;
+    private static final int IO_ACTIVABLE          = 1 << 2;
+    private static final int IO_TOGGLEABLE         = 1 << 3;
+    private static final int IO_DRAGGABLE          = 1 << 4;
+    private static final int IO_RESIZABLE          = 1 << 5;
+    private static final int IO_RESIZE_FIXED_RATIO = 1 << 6;
+    private static final int IO_ACTIVE             = 1 << 7;
+    private static final int IO_DOWN               = 1 << 8;
+    private static final int IO_TOGGLE             = 1 << 9;
+    private static final int IO_DRAG_FIRST         = 1 << 10;
+    private static final int IO_IN_MOVE            = 1 << 11;
+    private static final int IO_IN_RESIZE_BR       = 1 << 12;
+    private static final int IO_IN_RESIZE_BL       = 1 << 13;
+    private volatile int ioState = IO_DRAGGABLE | IO_RESIZABLE | IO_INTERACTIVE | IO_ACTIVABLE | IO_ENABLED;
     private final boolean isIO(final int mask) { return mask == ( ioState & mask ); }
     private final Shape setIO(final int mask, final boolean v) { if( v ) { ioState |= mask; } else { ioState &= ~mask; } return this; }
 
@@ -1218,11 +1219,19 @@ public abstract class Shape {
     /** Returns true this shape's toggle state. */
     public final boolean isToggleOn() { return isIO(IO_TOGGLE); }
 
-    protected final void setActive(final boolean v, final float zOffset) {
-        this.zOffset = zOffset;
-        setIO(IO_ACTIVE, v);
-        if( null != onActivationListener ) {
-            onActivationListener.run(this);
+    protected final boolean setActive(final boolean v, final float zOffset) {
+        if( isActivable() ) {
+            this.zOffset = zOffset;
+            setIO(IO_ACTIVE, v);
+            if( DEBUG ) {
+                System.err.println("XXX Activation "+this);
+            }
+            if( null != onActivationListener ) {
+                onActivationListener.run(this);
+            }
+            return true;
+        } else {
+            return false;
         }
     }
     /** Returns true of this shape is active */
@@ -1247,6 +1256,18 @@ public abstract class Shape {
      * @see #setInteractive(boolean)
      */
     public final boolean isInteractive() { return isIO(IO_INTERACTIVE); }
+
+    /**
+     * Set whether this shape is allowed to be activated, i.e become {@link #isActive()}.
+     * <p>
+     * A non activable shape still allows a shape to be dragged or resized,
+     * it just can't gain the main focus.
+     * </p>
+     */
+    public final Shape setActivable(final boolean v) { return setIO(IO_ACTIVABLE, v); }
+
+    /** Returns if this shape is allowed to be activated, i.e become {@link #isActive()}. */
+    public final boolean isActivable() { return isIO(IO_ACTIVABLE); }
 
     /**
      * Set whether this shape is draggable,
