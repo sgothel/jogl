@@ -216,6 +216,9 @@ public abstract class Shape {
     /** Return the optional symbolic name for this shape. */
     public final String getName() { return this.name; }
 
+    /** Returns true if this shape denotes a container, e.g. {@link Group}, otherwise false. */
+    public boolean isContainer() { return false; }
+
     /** Returns true if this shape is enabled and hence visible, otherwise false. */
     public final boolean isEnabled() { return isIO(IO_ENABLED); }
     /** Enable or disable this shape, i.e. its visibility. */
@@ -1244,7 +1247,7 @@ public abstract class Shape {
         }
     }
     /** Returns true of this shape is active */
-    public final boolean isActive() { return isIO(IO_ACTIVE); }
+    public boolean isActive() { return isIO(IO_ACTIVE); }
 
     /**
      * Set whether this shape is interactive,

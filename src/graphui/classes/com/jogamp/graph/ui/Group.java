@@ -101,6 +101,9 @@ public class Group extends Shape implements Container {
         this.setInteractive(false);
     }
 
+    @Override
+    public final boolean isContainer() { return true; }
+
     /** Return current {@link Group.Layout}. */
     public Layout getLayout() { return layouter; }
 
@@ -242,6 +245,11 @@ public class Group extends Shape implements Container {
     private boolean relayoutOnDirtyShapes = true;
     public void setRelayoutOnDirtyShapes(final boolean v) { relayoutOnDirtyShapes = v; }
     public boolean getRelayoutOnDirtyShapes() { return relayoutOnDirtyShapes; }
+
+    @Override
+    public boolean isActive() {
+        return super.isActive() || forAll((final Shape gs) -> { return gs.isActive(); });
+    }
 
     @Override
     protected boolean isShapeDirty() {
