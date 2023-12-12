@@ -167,7 +167,7 @@ public abstract class Shape {
     private static final int IO_IN_RESIZE_BL       = 1 << 12;
     private volatile int ioState = IO_DRAGGABLE | IO_RESIZABLE | IO_INTERACTIVE | IO_ENABLED;
     private final boolean isIO(final int mask) { return mask == ( ioState & mask ); }
-    private final void setIO(final int mask, final boolean v) { if( v ) { ioState |= mask; } else { ioState &= ~mask; }; }
+    private final Shape setIO(final int mask, final boolean v) { if( v ) { ioState |= mask; } else { ioState &= ~mask; } return this; }
 
     private float borderThickness = 0f;
     private Padding padding = null;
@@ -205,7 +205,7 @@ public abstract class Shape {
     /** Returns true if this shape is enabled and hence visible, otherwise false. */
     public final boolean isEnabled() { return isIO(IO_ENABLED); }
     /** Enable or disable this shape, i.e. its visibility. */
-    public final Shape setEnabled(final boolean v) { setIO(IO_ENABLED, v); return this; }
+    public final Shape setEnabled(final boolean v) { return setIO(IO_ENABLED, v); }
 
     /**
      * Sets the padding for this shape, which is included in {@link #getBounds()B} and also includes the border. Default is zero.
@@ -1179,7 +1179,7 @@ public abstract class Shape {
      * @param toggleable
      * @see #isInteractive()
      */
-    public final Shape setToggleable(final boolean toggleable) { setIO(IO_TOGGLEABLE, toggleable); return this; }
+    public final Shape setToggleable(final boolean toggleable) { return setIO(IO_TOGGLEABLE, toggleable); }
 
     /**
      * Returns true if this shape is toggable,
@@ -1241,7 +1241,7 @@ public abstract class Shape {
      * @see #setResizable(boolean)
      * @see #setDragAndResizeable(boolean)
      */
-    public final Shape setInteractive(final boolean v) { setIO(IO_INTERACTIVE, v); return this; }
+    public final Shape setInteractive(final boolean v) { return setIO(IO_INTERACTIVE, v); }
     /**
      * Returns if this shape allows user interaction, see {@link #setInteractive(boolean)}
      * @see #setInteractive(boolean)
@@ -1259,7 +1259,7 @@ public abstract class Shape {
      * @see #setResizable(boolean)
      * @see #setDragAndResizeable(boolean)
      */
-    public final Shape setDraggable(final boolean draggable) { setIO(IO_DRAGGABLE, draggable); return this; }
+    public final Shape setDraggable(final boolean draggable) { return setIO(IO_DRAGGABLE, draggable); }
     /**
      * Returns if this shape is draggable, a user interaction.
      * @see #setDraggable(boolean)
@@ -1277,7 +1277,7 @@ public abstract class Shape {
      * @see #setDraggable(boolean)
      * @see #setDragAndResizeable(boolean)
      */
-    public final Shape setResizable(final boolean resizable) { setIO(IO_RESIZABLE, resizable); return this; }
+    public final Shape setResizable(final boolean resizable) { return setIO(IO_RESIZABLE, resizable); }
 
     /**
      * Returns if this shape is resiable, a user interaction.
@@ -1296,7 +1296,7 @@ public abstract class Shape {
      * @see #isResizable()
      * @see #isFixedARatioResize()
      */
-    public final Shape setFixedARatioResize(final boolean v) { setIO(IO_RESIZE_FIXED_RATIO, v); return this; }
+    public final Shape setFixedARatioResize(final boolean v) { return setIO(IO_RESIZE_FIXED_RATIO, v); }
 
     /**
      * Set whether this shape is draggable and resizable.
