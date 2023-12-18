@@ -69,7 +69,7 @@ public class GlyphShape extends GraphShape {
         this.glyph = glyph;
         this.origPos = new Vec3f(x, y, 0f);
         if( glyph.isNonContour() ) {
-            setEnabled(false);
+            setVisible(false);
         }
         final int[/*2*/] vertIndexCount = Region.countOutlineShape(glyph.getShape(), new int[2]);
         regionVertCount = vertIndexCount[0];

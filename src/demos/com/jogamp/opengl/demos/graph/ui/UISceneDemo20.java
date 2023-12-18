@@ -488,11 +488,11 @@ public class UISceneDemo20 implements GLEventListener {
             @Override
             public void mouseClicked(final MouseEvent e) {
                 if( null != labels[currentText] ) {
-                    labels[currentText].setEnabled(false);
+                    labels[currentText].setVisible(false);
                 }
                 currentText = (currentText+1)%labels.length;
                 if( null != labels[currentText] ) {
-                    labels[currentText].setEnabled(true);
+                    labels[currentText].setVisible(true);
                 }
             } } );
         button.addMouseListener(dragZoomRotateListener);
@@ -501,7 +501,7 @@ public class UISceneDemo20 implements GLEventListener {
         button = new Button(renderModes, fontButtons, "Show fps", "Hide fps", buttonLWidth, buttonLHeight, Button.DEFAULT_LABEL_ZOFFSET);
         button.setID(BUTTON_FPS);
         button.setToggleable(true);
-        button.setToggle(fpsLabel.isEnabled());
+        button.setToggle(fpsLabel.isVisible());
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
@@ -509,7 +509,7 @@ public class UISceneDemo20 implements GLEventListener {
                 if( null != a ) {
                     a.resetFPSCounter();
                 }
-                fpsLabel.setEnabled(!fpsLabel.isEnabled());
+                fpsLabel.setVisible(!fpsLabel.isVisible());
             } } );
         button.addMouseListener(dragZoomRotateListener);
         buttonsLeft.addShape(button);
@@ -952,11 +952,11 @@ public class UISceneDemo20 implements GLEventListener {
     private void initLabels(final GL2ES2 gl) {
         jogampLabel = new Label(renderModes, font, fontSizeFixedNorm, jogamp);
         jogampLabel.addMouseListener(dragZoomRotateListener);
-        jogampLabel.setEnabled(enableOthers);
+        jogampLabel.setVisible(enableOthers);
         scene.addShape(jogampLabel);
 
         truePtSizeLabel = new Label(renderModes, font, truePtSize);
-        truePtSizeLabel.setEnabled(enableOthers);
+        truePtSizeLabel.setVisible(enableOthers);
         truePtSizeLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
         scene.addShape(truePtSizeLabel);
 
@@ -967,7 +967,7 @@ public class UISceneDemo20 implements GLEventListener {
          */
         fpsLabel = new Label(renderModes, fontFPS, "Nothing there yet");
         fpsLabel.addMouseListener(dragZoomRotateListener);
-        fpsLabel.setEnabled(enableOthers);
+        fpsLabel.setVisible(enableOthers);
         fpsLabel.setColor(0.1f, 0.1f, 0.1f, 1.0f);
         scene.addShape(fpsLabel);
     }
@@ -1128,7 +1128,7 @@ public class UISceneDemo20 implements GLEventListener {
             labels[currentText] = new Label(renderModes, font, fontSizeFixedNorm, strings[currentText]);
             labels[currentText].setScale(sceneHeight, sceneHeight, 1f);
             labels[currentText].setColor(0.1f, 0.1f, 0.1f, 1.0f);
-            labels[currentText].setEnabled(enableOthers);
+            labels[currentText].setVisible(enableOthers);
             labels[currentText].setFixedARatioResize(true);
             labels[currentText].validate(gl);
             labels[currentText].move(dxMiddle,
@@ -1140,7 +1140,7 @@ public class UISceneDemo20 implements GLEventListener {
             System.err.println("Label["+currentText+"] CTOR: "+labels[currentText]);
             System.err.println("Label["+currentText+"] CTOR: "+labels[currentText].getPosition());
         }
-        if( fpsLabel.isEnabled() ) {
+        if( fpsLabel.isVisible() ) {
             final String text;
             if( null == actionText ) {
                 text = scene.getStatusText(drawable, renderModes, fpsLabel.getQuality(), dpiV);

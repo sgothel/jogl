@@ -190,7 +190,7 @@ public class UIShapeDemo01 implements GLEventListener {
         System.err.println(button);
         crossHair = new CrossHair(renderModes, sz2, sz2, 1/1000f);
         crossHair.setColor(0f,0f,1f,1f);
-        crossHair.setEnabled(true);
+        crossHair.setVisible(true);
     }
 
     public final RegionRenderer getRegionRenderer() { return rRenderer; }

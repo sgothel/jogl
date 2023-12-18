@@ -198,7 +198,7 @@ public class UITypeDemo01 implements GLEventListener {
 
         crossHair = new CrossHair(renderModes, 1/20f, 1/20f, 1/1000f);
         crossHair.setColor(0f,0f,1f,1f);
-        crossHair.setEnabled(true);
+        crossHair.setVisible(true);
 
         if (false ) {
             final Rectangle o = new Rectangle(renderModes, 1/10f, 1/20f, 1/1000f);
@@ -213,7 +213,7 @@ public class UITypeDemo01 implements GLEventListener {
             testObj = o;
         }
         testObj.setColor(0f,  0f,  0f,  1f);
-        testObj.setEnabled(true);
+        testObj.setVisible(true);
     }
 
     public final RegionRenderer getRegionRenderer() { return rRenderer; }

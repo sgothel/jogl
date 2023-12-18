@@ -165,7 +165,7 @@ public abstract class Shape {
     private int id = -1;
     private String name = "noname";
 
-    private static final int IO_ENABLED            = 1 << 0;
+    private static final int IO_VISIBLE            = 1 << 0;
     private static final int IO_INTERACTIVE        = 1 << 1;
     private static final int IO_ACTIVABLE          = 1 << 2;
     private static final int IO_TOGGLEABLE         = 1 << 3;
@@ -179,7 +179,7 @@ public abstract class Shape {
     private static final int IO_IN_MOVE            = 1 << 11;
     private static final int IO_IN_RESIZE_BR       = 1 << 12;
     private static final int IO_IN_RESIZE_BL       = 1 << 13;
-    private volatile int ioState = IO_DRAGGABLE | IO_RESIZABLE | IO_INTERACTIVE | IO_ACTIVABLE | IO_ENABLED;
+    private volatile int ioState = IO_DRAGGABLE | IO_RESIZABLE | IO_INTERACTIVE | IO_ACTIVABLE | IO_VISIBLE;
     private final boolean isIO(final int mask) { return mask == ( ioState & mask ); }
     private final Shape setIO(final int mask, final boolean v) { if( v ) { ioState |= mask; } else { ioState &= ~mask; } return this; }
 
@@ -219,10 +219,16 @@ public abstract class Shape {
     /** Returns true if this shape denotes a container, e.g. {@link Group}, otherwise false. */
     public boolean isContainer() { return false; }
 
-    /** Returns true if this shape is enabled and hence visible, otherwise false. */
-    public final boolean isEnabled() { return isIO(IO_ENABLED); }
-    /** Enable or disable this shape, i.e. its visibility. */
-    public final Shape setEnabled(final boolean v) { return setIO(IO_ENABLED, v); }
+    /** Returns true if this shape is visible, otherwise false. */
+    public final boolean isVisible() { return isIO(IO_VISIBLE); }
+    /**
+     * Enable or disable this shape's visibility.
+     * <p>
+     * Note that invisible shapes are still considered for picking/activation.
+     * To completely mute the shape, issue {@link #setInteractive(boolean)} as well.
+     * </p>
+     */
+    public final Shape setVisible(final boolean v) { return setIO(IO_VISIBLE, v); }
 
     /**
      * Sets the padding for this shape, which is included in {@link #getBounds()B} and also includes the border. Default is zero.
@@ -1170,7 +1176,7 @@ public abstract class Shape {
         final String bs = hasBorder() ? "border[l "+getBorderThickness()+", c "+getBorderColor()+"], " : "";
         final String idS = -1 != id ? ", id "+id : "";
         final String nameS = "noname" != name ? ", '"+name+"'" : "";
-        return getDirtyString()+idS+nameS+", enabled "+isIO(IO_ENABLED)+activeS+", toggle "+isIO(IO_TOGGLE)+
+        return getDirtyString()+idS+nameS+", visible "+isIO(IO_VISIBLE)+activeS+", toggle "+isIO(IO_TOGGLE)+
                ", able[toggle "+isIO(IO_TOGGLEABLE)+", iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
                "], pos["+position+"], "+pivotS+scaleS+rotateS+
                 ps+bs+"box"+box;

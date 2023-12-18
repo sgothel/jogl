@@ -737,9 +737,9 @@ public class AnimGroup extends Group {
                 pos.add( p_t.normalize().scale( dxy ) );
             }
             if( clip.intersects2DRegion(pos.x(), pos.y(), sd.shape.getScaledWidth(), sd.shape.getScaledHeight()) ) {
-                sd.shape.setEnabled(true);
+                sd.shape.setVisible(true);
             } else {
-                sd.shape.setEnabled(false);
+                sd.shape.setVisible(false);
             }
             sd.shape.moveTo(pos);
             return true;

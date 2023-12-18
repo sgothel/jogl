@@ -219,7 +219,7 @@ public class Group extends Shape implements Container {
         final int shapeCount = shapesS.length;
         for(int i=0; i<shapeCount; i++) {
             final Shape shape = (Shape) shapesS[i];
-            if( shape.isEnabled() ) {
+            if( shape.isVisible() ) {
                 pmv.pushMv();
                 shape.setTransformMv(pmv);
 
@@ -319,12 +319,12 @@ public class Group extends Shape implements Container {
                     final int myRMs = Region.isVBAA(firstRMs) ? Region.VBAA_RENDERING_BIT : 0;
                     border = new Rectangle(myRMs, box, getBorderThickness());
                 } else {
-                    border.setEnabled(true);
+                    border.setVisible(true);
                     border.setBounds(box, getBorderThickness());
                 }
                 border.setColor(getBorderColor());
             } else if( null != border ) {
-                border.setEnabled(false);
+                border.setVisible(false);
             }
         }
     }

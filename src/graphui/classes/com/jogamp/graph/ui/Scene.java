@@ -489,7 +489,7 @@ public final class Scene implements Container, GLEventListener {
             // final Shape shape = shapes.get(i);
             final Shape shape = (Shape)shapes[i];
             // System.err.println("Id "+i+": "+uiShape);
-            if( shape.isEnabled() ) {
+            if( shape.isVisible() ) {
                 pmv.pushMv();
                 shape.setTransformMv(pmv);
 
