@@ -29,6 +29,7 @@
 package jogamp.opengl.util.av.impl;
 
 import java.io.IOException;
+import java.io.PrintStream;
 
 import com.jogamp.common.av.PTS;
 import com.jogamp.common.os.Clock;
@@ -74,6 +75,11 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         if(0==moviePtr) {
             throw new GLException("Couldn't create OMXInstance");
         }
+    }
+
+    @Override
+    public final void printNativeInfo(final PrintStream out) {
+        out.println("NullGLMediaPlayer: available "+available);
     }
 
     @Override
