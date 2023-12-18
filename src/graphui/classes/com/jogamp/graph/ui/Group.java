@@ -125,22 +125,38 @@ public class Group extends Shape implements Container {
     /** Removes given shape, keeps it alive. */
     @Override
     public Shape removeShape(final Shape s) {
-        final Shape r = shapes.remove(s) ? s : null;
-        markShapeDirty();
-        return r;
+        if( shapes.remove(s) ) {
+            markShapeDirty();
+            return s;
+        } else {
+            return null;
+        }
     }
 
     @Override
     public Shape removeShape(final int idx) {
         final Shape r = shapes.remove(idx);
-        markShapeDirty();
+        if( null != r ) {
+            markShapeDirty();
+        }
         return r;
     }
 
-    /** Removes given shape and destroy it. */
-    public void removeShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape s) {
-        shapes.remove(s);
-        s.destroy(gl, renderer);
+    /**
+     * Removes given shape and destroy it, if contained.
+     * @param gl GL2ES2 context
+     * @param renderer
+     * @param s the shape to be removed
+     * @return true if given Shape is removed and destroyed
+     */
+    public boolean removeShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape s) {
+        if( shapes.remove(s) ) {
+            markShapeDirty();
+            s.destroy(gl, renderer);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

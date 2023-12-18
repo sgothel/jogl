@@ -268,19 +268,36 @@ public final class Scene implements Container, GLEventListener {
     }
     @Override
     public Shape removeShape(final Shape s) {
-        s.setBorder(0f);
-        return shapes.remove(s) ? s : null;
+        if( shapes.remove(s) ) {
+            s.setBorder(0f);
+            return s;
+        } else {
+            return null;
+        }
     }
     @Override
     public Shape removeShape(final int idx) {
-        return shapes.remove(idx);
+        final Shape r = shapes.remove(idx);
+        if( null != r ) {
+            r.setBorder(0f);
+        }
+        return r;
     }
 
-    /** Removes given shape and destroy it. */
-    public void removeShape(final GL2ES2 gl, final Shape s) {
-        s.setBorder(0f);
-        shapes.remove(s);
-        s.destroy(gl, renderer);
+    /**
+     * Removes given shape and destroy it, if contained.
+     * @param gl GL2ES2 context
+     * @param s the shape to be removed
+     * @return true if given Shape is removed and destroyed
+     */
+    public boolean removeShape(final GL2ES2 gl, final Shape s) {
+        if( shapes.remove(s) ) {
+            s.setBorder(0f);
+            s.destroy(gl, renderer);
+            return true;
+        } else {
+            return false;
+        }
     }
     @Override
     public void addShapes(final Collection<? extends Shape> shapes) {
@@ -302,7 +319,12 @@ public final class Scene implements Container, GLEventListener {
     }
     @Override
     public void removeAllShapes() {
-        shapes.clear();
+        final int count = shapes.size();
+        for(int i=count-1; i>=0; --i) {
+            final Shape s = shapes.get(i);
+            s.setBorder(0f);
+            shapes.remove(s);
+        }
     }
     /** Removes all given shapes and destroys them. */
     public void removeAllShapes(final GL2ES2 gl) {
