@@ -428,6 +428,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
         final Texture tex;
         try {
             System.out.println("p0 "+mPlayer);
+            mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_NEAREST } );
             if(GLMediaPlayer.State.Initialized == mPlayer.getState() ) {
                 mPlayer.initGL(gl);
             }
@@ -447,7 +448,6 @@ public class MovieSBSStereo implements StereoGLEventListener {
                     throw new InternalError("XXX: "+mPlayer);
                 }
             }
-            mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_NEAREST } );
         } catch (final Exception glex) {
             glex.printStackTrace();
             if(null != mPlayer) {
