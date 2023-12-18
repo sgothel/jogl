@@ -262,9 +262,64 @@ public class Group extends Shape implements Container {
     public void setRelayoutOnDirtyShapes(final boolean v) { relayoutOnDirtyShapes = v; }
     public boolean getRelayoutOnDirtyShapes() { return relayoutOnDirtyShapes; }
 
+    private boolean widgetMode = false;
+    /**
+     * Toggles widget behavior for this group and all its elements, default is disabled.
+     * <p>
+     * Enabled widget behavior for a group causes
+     * <ul>
+     *   <li>the whole group to be shown on top on (mouse over) activation of one of its elements</li>
+     *   <li>this group's {@link #onActivation(Listener)} to handle all it's elements activation events</li>
+     *   <li>{@link #isActive()} of this group and its sub-groups to return true if one of its elements is active</li>
+     * </ul>
+     * </p>
+     * <p>
+     * This method modifies all elements of this group for enabled or disabled widget behavior.
+     * </p>
+     * @param v enable or disable
+     * @return this group for chaining
+     */
+    public final Group setWidgetMode(final boolean v) {
+        widgetMode = v;
+        if( v ) {
+            enableUniActivationImpl(true, forwardActivation);
+        } else {
+            enableUniActivationImpl(false, null);
+        }
+        return this;
+    }
+    protected final void enableUniActivationImpl(final boolean v, final Listener activationListener) {
+        for(final Shape s : shapes ) {
+            if( s.isGroup() ) {
+                final Group sg = (Group)s;
+                sg.setWidgetMode(v);
+            }
+            s.onActivation(activationListener);
+        }
+    }
+
+    /** Returns whether {@link #setWidgetMode(boolean)} is enabled or disabled. */
+    public final boolean getWidgetMode() { return widgetMode; }
+
     @Override
     public boolean isActive() {
-        return super.isActive() || forAll((final Shape gs) -> { return gs.isActive(); });
+        return super.isActive() || ( widgetMode && forAll((final Shape gs) -> { return gs.isActive(); } ) );
+    }
+
+    @Override
+    public float getAdjustedZ() {
+        final float[] v = { getAdjustedZImpl() };
+        if( widgetMode && !super.isActive() ) {
+            forAll((final Shape gs) -> {
+                if( gs.isActive() ) {
+                    v[0] = gs.getAdjustedZImpl();
+                    return true;
+                } else {
+                    return false;
+                }
+            } );
+        }
+        return v[0];
     }
 
     @Override

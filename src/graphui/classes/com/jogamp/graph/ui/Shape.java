@@ -1239,7 +1239,7 @@ public abstract class Shape {
             this.zOffset = zOffset;
             setIO(IO_ACTIVE, v);
             if( DEBUG ) {
-                System.err.println("XXX Activation "+this);
+                System.err.println("XXX "+(v?"  Active":"DeActive")+" "+this);
             }
             if( null != onActivationListener ) {
                 onActivationListener.run(this);
@@ -1251,6 +1251,15 @@ public abstract class Shape {
     }
     /** Returns true of this shape is active */
     public boolean isActive() { return isIO(IO_ACTIVE); }
+
+    protected final Listener forwardActivation = new Listener() {
+        @Override
+        public void run(final Shape shape) {
+            if( null != onActivationListener ) {
+                onActivationListener.run(shape);
+            }
+        }
+    };
 
     public float getAdjustedZ() {
         return getAdjustedZImpl();
