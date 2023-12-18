@@ -119,6 +119,7 @@ public class Group extends Shape implements Container {
     @Override
     public void addShape(final Shape s) {
         shapes.add(s);
+        s.setParent(this);
         markShapeDirty();
     }
 
@@ -126,6 +127,7 @@ public class Group extends Shape implements Container {
     @Override
     public Shape removeShape(final Shape s) {
         if( shapes.remove(s) ) {
+            s.setParent(null);
             markShapeDirty();
             return s;
         } else {
@@ -133,10 +135,32 @@ public class Group extends Shape implements Container {
         }
     }
 
+    /**
+     * Atomic replacement of the given {@link Shape} {@code remove} with {@link Shape} {@code replacement}.
+     * @param remove the shape to be replaced
+     * @param replacement the replacement shape to be inserted at same position
+     * @return true if shape {@code remove} is contained and replaced by {@code replacement}, otherwise false.
+     */
+    public boolean replaceShape(final Shape remove, final Shape replacement) {
+        final int idx = shapes.indexOf(remove);
+        if( 0 > idx ) {
+            return false;
+        }
+        if( null == shapes.remove(idx) ) {
+            return false;
+        }
+        remove.setParent(null);
+        shapes.add(idx, replacement);
+        replacement.setParent(this);
+        markShapeDirty();
+        return true;
+    }
+
     @Override
     public Shape removeShape(final int idx) {
         final Shape r = shapes.remove(idx);
         if( null != r ) {
+            r.setParent(null);
             markShapeDirty();
         }
         return r;
@@ -151,6 +175,7 @@ public class Group extends Shape implements Container {
      */
     public boolean removeShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape s) {
         if( shapes.remove(s) ) {
+            s.setParent(null);
             markShapeDirty();
             s.destroy(gl, renderer);
             return true;
@@ -181,7 +206,10 @@ public class Group extends Shape implements Container {
 
     @Override
     public void removeAllShapes() {
-        shapes.clear();
+        final int count = shapes.size();
+        for(int i=count-1; i>=0; --i) {
+            removeShape(i);
+        }
     }
 
     /** Removes all given shapes and destroys them. */

@@ -138,7 +138,8 @@ public abstract class Shape {
 
     private static final int DIRTY_SHAPE    = 1 << 0 ;
     private static final int DIRTY_STATE    = 1 << 1 ;
-
+    
+    private Group parent;
     protected final AABBox box;
 
     private final Vec3f position = new Vec3f();
@@ -206,6 +207,16 @@ public abstract class Shape {
         this.box = new AABBox();
     }
 
+    /* pp */ void setParent(final Group c) { parent = c; }
+    /**
+     * Returns the last parent container {@link Group} this shape has been added to or {@code null}.
+     * <p>
+     * Since a shape can be added to multiple container (DAG),
+     * usability of this information depends on usage.
+     * </p>
+     */
+    public Group getParent() { return parent; }
+    
     /** Set a symbolic ID for this shape for identification. Default is -1 for noname. */
     public final Shape setID(final int id) { this.id = id; return this; }
     /** Return the optional symbolic ID for this shape. */

@@ -79,6 +79,7 @@ public interface Container {
     Shape getShapeByID(final int id);
     Shape getShapeByName(final String name);
 
+    /** Returns {@link AABBox} dimension of given {@link Shape} from this container's perspective, i.e. world-bounds if performing from the {@link Scene}. */
     AABBox getBounds(final PMVMatrix4f pmv, Shape shape);
 
     /** Enable or disable {@link PMVMatrix4f#getFrustum()} culling per {@link Shape}. Default is disabled. */
