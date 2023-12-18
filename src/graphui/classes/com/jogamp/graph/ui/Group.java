@@ -102,7 +102,7 @@ public class Group extends Shape implements Container {
     }
 
     @Override
-    public final boolean isContainer() { return true; }
+    public final boolean isGroup() { return true; }
 
     /** Return current {@link Group.Layout}. */
     public Layout getLayout() { return layouter; }

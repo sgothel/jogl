@@ -216,8 +216,8 @@ public abstract class Shape {
     /** Return the optional symbolic name for this shape. */
     public final String getName() { return this.name; }
 
-    /** Returns true if this shape denotes a container, e.g. {@link Group}, otherwise false. */
-    public boolean isContainer() { return false; }
+    /** Returns true if this shape denotes a {@link Group}, otherwise false. */
+    public boolean isGroup() { return false; }
 
     /** Returns true if this shape is visible, otherwise false. */
     public final boolean isVisible() { return isIO(IO_VISIBLE); }
