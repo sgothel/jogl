@@ -200,7 +200,7 @@ public interface GLMediaPlayer extends TextureSequence {
     public static final boolean DEBUG_NATIVE = Debug.debug("GLMediaPlayer.Native");
 
     /** Default texture count, value {@value}. */
-    public static final int TEXTURE_COUNT_DEFAULT = 4;
+    public static final int TEXTURE_COUNT_DEFAULT = 3;
 
     /** Minimum texture count, value {@value}. Using the minimum texture count disables multi-threaded decoding. */
     public static final int TEXTURE_COUNT_MIN = 1;
