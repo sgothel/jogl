@@ -30,6 +30,7 @@ package com.jogamp.graph.ui.shapes;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.common.av.AudioSink;
 import com.jogamp.common.util.InterruptSource;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
@@ -66,7 +67,7 @@ public class MediaButton extends TexSeqButton {
      */
     public MediaButton(final int renderModes, final float width,
                        final float height, final GLMediaPlayer mPlayer) {
-        super(renderModes, width, height, mPlayer);
+        super(renderModes & ~Region.AA_RENDERING_MASK, width, height, mPlayer);
 
         setColor(1.0f, 1.0f, 1.0f, 0.0f);
         setPressedColorMod(0.9f, 0.9f, 0.9f, 0.7f);
