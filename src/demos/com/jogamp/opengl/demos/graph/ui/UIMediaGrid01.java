@@ -37,7 +37,6 @@ import java.util.List;
 import com.jogamp.common.net.Uri;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
@@ -164,9 +163,6 @@ public class UIMediaGrid01 {
             System.err.println("Media files: Count "+mediaFiles.size()+", grid "+gridDim);
         }
 
-        // final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        final Font fontInfo = FontFactory.get(FontFactory.UBUNTU).getDefault();
-
         final GLProfile reqGLP = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+reqGLP);
 
@@ -220,7 +216,7 @@ public class UIMediaGrid01 {
             mediaGrid.setRelayoutOnDirtyShapes(false);
         }
         mediaGrid.setName("MediaGrid");
-        addMedia(scene, reqGLP, fontInfo, mediaGrid, mediaFiles, boxRatio);
+        addMedia(scene, reqGLP, mediaGrid, mediaFiles, boxRatio);
         mediaGrid.validate(reqGLP);
         System.err.println("MediaGrid "+mediaGrid);
         System.err.println("MediaGrid "+mediaGrid.getLayout());
@@ -282,7 +278,7 @@ public class UIMediaGrid01 {
         scene.screenshot(true, scene.nextScreenshotFile(null, UIMediaGrid01.class.getSimpleName(), options.renderModes, caps, "media"));
     }
 
-    static void addMedia(final Scene scene, final GLProfile glp, final Font font, final Group grid,
+    static void addMedia(final Scene scene, final GLProfile glp, final Group grid,
                          final List<Uri> mediaFiles, final float defRatio) {
         final float zoomSize = 0.95f;
         for(final Uri medium : mediaFiles) {

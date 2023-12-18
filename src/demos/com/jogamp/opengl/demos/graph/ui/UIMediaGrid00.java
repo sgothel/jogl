@@ -34,7 +34,6 @@ import java.util.List;
 import com.jogamp.common.net.Uri;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
@@ -102,9 +101,6 @@ public class UIMediaGrid00 {
         }
         final Vec2i gridDim = new Vec2i(4, mediaFiles.size());
 
-        // final Font fontStatus = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeMono.ttf", FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
-        final Font fontInfo = FontFactory.get(FontFactory.UBUNTU).getDefault();
-
         final GLProfile reqGLP = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+reqGLP);
 
@@ -158,7 +154,7 @@ public class UIMediaGrid00 {
             mediaGrid.setName("MediaGrid");
             mediaGrid.setRelayoutOnDirtyShapes(false);
         }
-        addMedia(scene, reqGLP, fontInfo, mediaGrid, mediaFiles);
+        addMedia(scene, reqGLP, mediaGrid, mediaFiles);
         mediaGrid.validate(reqGLP);
         System.err.println("MediaGrid "+mediaGrid);
         System.err.println("MediaGrid "+mediaGrid.getLayout());
@@ -206,7 +202,7 @@ public class UIMediaGrid00 {
     }
 
 
-    static void addMedia(final Scene scene, final GLProfile glp, final Font font, final Group grid, final List<Uri> mediaFiles) {
+    static void addMedia(final Scene scene, final GLProfile glp, final Group grid, final List<Uri> mediaFiles) {
         final float zoomSize = 0.95f;
         for(final Uri medium : mediaFiles) {
             final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
