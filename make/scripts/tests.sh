@@ -377,11 +377,11 @@ function jrun() {
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.AudioSink -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.AudioSink"
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.AudioSink -Djoal.openal.lib=system"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.Native"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.AVSync"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.AVSync -Djogl.debug.GLMediaPlayer.Native -Djogamp.debug.AudioSink"
+    #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.Lock -Djogl.debug.GLMediaPlayer.Native -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.StereoDevice -Djogl.debug.StereoDevice.DumpData"
     #D_ARGS="-Djogl.debug.StereoDevice"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.StereoDevice"
@@ -1022,7 +1022,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid00 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testawt com.jogamp.opengl.demos.es2.GearsES2 $*
@@ -1035,7 +1035,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 $*
 
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
-testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
+#testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
 
 #
 # Basic (Demos)

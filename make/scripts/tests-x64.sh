@@ -4,7 +4,7 @@
 
 SDIR=`dirname $0` 
 
-#export LD_LIBRARY_PATH=/opt-linux-x86_64/ffmpeg-4.3/lib:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=/opt-linux-x86_64/ffmpeg-4.4/lib:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/opt-linux-x86_64/ffmpeg-5.1/lib:$LD_LIBRARY_PATH
 #export LD_LIBRARY_PATH=/opt-linux-x86_64/ffmpeg-6.0/lib:$LD_LIBRARY_PATH
 

@@ -45,7 +45,10 @@ import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.layout.Alignment;
 import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
+import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.MediaButton;
+import com.jogamp.graph.ui.shapes.Rectangle;
+import com.jogamp.graph.ui.widgets.MediaUI01;
 import com.jogamp.math.Vec2i;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.KeyAdapter;
@@ -61,6 +64,7 @@ import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 
 /**
  * MediaButtons in a grid, filled by media files from a directory.
@@ -75,6 +79,7 @@ public class UIMediaGrid01 {
 
     public static void main(final String[] args) throws IOException {
         int maxMediaFiles = 12; // Integer.MAX_VALUE;
+        int columns = -1;
         String mediaDir = null;
         if( 0 != args.length ) {
             final int[] idx = { 0 };
@@ -90,13 +95,14 @@ public class UIMediaGrid01 {
                 } else if(args[idx[0]].equals("-aid")) {
                     idx[0]++;
                     aid = MiscUtils.atoi(args[idx[0]], aid);
-                } else if(args[idx[0]].equals("-mute")) {
-                    aid = GLMediaPlayer.STREAM_ID_NONE;
                 } else if(args[idx[0]].equals("-ratio")) {
                     idx[0]++;
                     boxRatio = MiscUtils.atof(args[idx[0]], boxRatio);
                 } else if(args[idx[0]].equals("-zoom")) {
                     letterBox = false;
+                } else if(args[idx[0]].equals("-col")) {
+                    idx[0]++;
+                    columns = MiscUtils.atoi(args[idx[0]], columns);
                 }
             }
         }
@@ -106,6 +112,7 @@ public class UIMediaGrid01 {
         System.err.println("aid "+aid);
         System.err.println("boxRatio "+boxRatio);
         System.err.println("letterBox "+letterBox);
+        System.err.println("columns "+columns);
 
         final List<Uri> mediaFiles = new ArrayList<Uri>();
         if( null != mediaDir && mediaDir.length() > 0 ) {
@@ -128,6 +135,9 @@ public class UIMediaGrid01 {
                 }
                 return true;
             });
+            Arrays.sort(files, (final File f1, final File f2) -> {
+                return f1.getAbsolutePath().compareTo(f2.getAbsolutePath());
+            });
             for(final File f : files) {
                 try {
                     final Uri uri = Uri.valueOf(f);
@@ -148,7 +158,7 @@ public class UIMediaGrid01 {
         {
             // final int w = (int)( Math.round( Math.sqrt( mediaFiles.size() ) ) );
             // final int h = (int)( Math.ceil( mediaFiles.size() / w ) );
-            final int w = (int)( Math.round( Math.sqrt( mediaFiles.size() ) ) );
+            final int w = columns > 0 ? columns : (int)( Math.round( Math.sqrt( mediaFiles.size() ) ) );
             final int h = ( Math.round( mediaFiles.size() / w ) );
             gridDim.set(w, h);
             System.err.println("Media files: Count "+mediaFiles.size()+", grid "+gridDim);
@@ -172,12 +182,12 @@ public class UIMediaGrid01 {
         animator.setUpdateFPSFrames(1*60, null); // System.err);
         final GLWindow window = GLWindow.create(caps);
         window.setSize(options.surface_width, options.surface_height);
-        window.setTitle(UIMediaGrid01.class.getSimpleName());
         window.setVisible(true);
+        window.setTitle(UIMediaGrid01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowResized(final WindowEvent e) {
-                window.setTitle(FontView01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+                window.setTitle(UIMediaGrid01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
             }
             @Override
             public void windowDestroyNotify(final WindowEvent e) {
@@ -209,12 +219,14 @@ public class UIMediaGrid01 {
             mediaGrid = new Group(new GridLayout(gridDim.x(), cellWidth*0.9f, cellHeight*0.9f, Alignment.FillCenter, new Gap(cellHeight*0.1f, cellWidth*0.1f)));
             mediaGrid.setRelayoutOnDirtyShapes(false);
         }
-        addMedia(reqGLP, fontInfo, mediaGrid, gridDim, mediaFiles, boxRatio, null);
+        mediaGrid.setName("MediaGrid");
+        addMedia(scene, reqGLP, fontInfo, mediaGrid, mediaFiles, boxRatio);
         mediaGrid.validate(reqGLP);
         System.err.println("MediaGrid "+mediaGrid);
         System.err.println("MediaGrid "+mediaGrid.getLayout());
 
         final Group mainGrid = new Group(new GridLayout(1, 0f, 0f, Alignment.None));
+        mainGrid.setName("MainGrid");
         mainGrid.addShape(mediaGrid);
         scene.addShape(mainGrid);
 
@@ -238,7 +250,7 @@ public class UIMediaGrid01 {
                         if( GLMediaPlayer.State.Paused == mPlayer.getState() ) {
                             mPlayer.resume();
                         } else if(GLMediaPlayer.State.Uninitialized == mPlayer.getState()) {
-                            mPlayer.playStream(mPlayer.getUri(), GLMediaPlayer.STREAM_ID_AUTO, aid, UIMediaGrid00.MediaTexCount);
+                            mPlayer.playStream(mPlayer.getUri(), GLMediaPlayer.STREAM_ID_AUTO, aid, MediaUI01.MediaTexCount);
                         } else if( e.isShiftDown() ) {
                             mPlayer.stop();
                         } else {
@@ -270,11 +282,53 @@ public class UIMediaGrid01 {
         scene.screenshot(true, scene.nextScreenshotFile(null, UIMediaGrid01.class.getSimpleName(), options.renderModes, caps, "media"));
     }
 
-    static void addMedia(final GLProfile glp, final Font font, final Group grid,
-                         final Vec2i gridDim, final List<Uri> mediaFiles, final float defRatio,
-                         final Shape.MouseGestureListener mouseListener) {
+    static void addMedia(final Scene scene, final GLProfile glp, final Font font, final Group grid,
+                         final List<Uri> mediaFiles, final float defRatio) {
+        final float zoomSize = 0.95f;
         for(final Uri medium : mediaFiles) {
-            grid.addShape( UIMediaGrid00.createMediaButton(medium, defRatio, letterBox, mouseListener) );
+            final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
+            if( printNativeInfoOnce ) {
+                mPlayer.printNativeInfo(System.err);
+                printNativeInfoOnce = false;
+            }
+            // mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_NEAREST } );
+            mPlayer.setTextureMinMagFilter( new int[] { GL.GL_LINEAR, GL.GL_LINEAR } );
+
+            final List<Shape> customCtrls = new ArrayList<Shape>();
+            if( true ) {
+                final Font fontSymbols = MediaUI01.getSymbolsFont();
+                if( null == fontSymbols ) {
+                    grid.addShape( new Rectangle(options.renderModes, defRatio, 1, 0.10f) );
+                    return;
+                }
+                final Button button = new Button(options.renderModes, fontSymbols,
+                        fontSymbols.getUTF16String("reset_tv"), MediaUI01.CtrlButtonWidth, MediaUI01.CtrlButtonHeight, scene.getZEpsilon(16));
+                button.setName("reset");
+                button.setSpacing(MediaUI01.SymSpacing, MediaUI01.FixedSymSize).setPerp().setColor(MediaUI01.CtrlCellCol);
+                button.onClicked((final Shape s0) -> {
+                    scene.forAll((final Shape s1) -> {
+                       System.err.println("- "+s1.getName());
+                       if( s1 instanceof MediaButton ) {
+                           final MediaButton mb = (MediaButton)s1;
+                           final GLMediaPlayer mp = mb.getGLMediaPlayer();
+                           mp.seek(0);
+                           mp.setPlaySpeed(1f);
+                           mp.setAudioVolume( 0f );
+                       }
+                       if( s1.getName().equals("muteLabel") ) {
+                           s1.setVisible(true);
+                       }
+                       if( s1.getName().equals("MediaGrid") ) {
+                           s1.markShapeDirty();
+                           System.err.println("Reset: "+s1);
+                       }
+                       return false;
+                    });
+                });
+                customCtrls.add(button);
+            }
+            grid.addShape( MediaUI01.create(scene, mPlayer, options.renderModes, medium, aid, defRatio, letterBox, zoomSize, customCtrls) );
         }
     }
+    private static boolean printNativeInfoOnce = true;
 }

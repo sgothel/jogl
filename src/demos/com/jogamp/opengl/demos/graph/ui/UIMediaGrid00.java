@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.jogamp.common.net.Uri;
-import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -43,9 +42,11 @@ import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.layout.Alignment;
 import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
+import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.MediaButton;
+import com.jogamp.graph.ui.shapes.Rectangle;
+import com.jogamp.graph.ui.widgets.MediaUI01;
 import com.jogamp.math.Vec2i;
-import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -60,11 +61,7 @@ import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
-import com.jogamp.opengl.util.av.GLMediaPlayer.EventMask;
-import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
-import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
-import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /**
  * MediaButtons in a grid, filled by media files from a directory in different aspect ratios
@@ -90,8 +87,6 @@ public class UIMediaGrid00 {
                 } else if(args[idx[0]].equals("-aid")) {
                     idx[0]++;
                     aid = MiscUtils.atoi(args[idx[0]], aid);
-                } else if(args[idx[0]].equals("-mute")) {
-                    aid = GLMediaPlayer.STREAM_ID_NONE;
                 }
             }
         }
@@ -125,12 +120,12 @@ public class UIMediaGrid00 {
         animator.setUpdateFPSFrames(1*60, null); // System.err);
         final GLWindow window = GLWindow.create(caps);
         window.setSize(options.surface_width, options.surface_height);
-        window.setTitle(UIMediaGrid00.class.getSimpleName());
         window.setVisible(true);
+        window.setTitle(UIMediaGrid00.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowResized(final WindowEvent e) {
-                window.setTitle(FontView01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
+                window.setTitle(UIMediaGrid00.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
             }
             @Override
             public void windowDestroyNotify(final WindowEvent e) {
@@ -160,14 +155,16 @@ public class UIMediaGrid00 {
             final float cellWidth = 1f;
             final float cellHeight = 1f;
             mediaGrid = new Group(new GridLayout(gridDim.x(), cellWidth*0.9f, cellHeight*0.9f, Alignment.FillCenter, new Gap(cellHeight*0.1f, cellWidth*0.1f)));
+            mediaGrid.setName("MediaGrid");
             mediaGrid.setRelayoutOnDirtyShapes(false);
         }
-        addMedia(reqGLP, fontInfo, mediaGrid, gridDim, mediaFiles, null);
+        addMedia(scene, reqGLP, fontInfo, mediaGrid, mediaFiles);
         mediaGrid.validate(reqGLP);
         System.err.println("MediaGrid "+mediaGrid);
         System.err.println("MediaGrid "+mediaGrid.getLayout());
 
         final Group mainGrid = new Group(new GridLayout(1, 0f, 0f, Alignment.None));
+        mainGrid.setName("MainGrid");
         mainGrid.addShape(mediaGrid);
         scene.addShape(mainGrid);
 
@@ -183,21 +180,6 @@ public class UIMediaGrid00 {
                 } else if( keySym == KeyEvent.VK_PAGE_UP ) {
                 } else if( keySym == KeyEvent.VK_F4 || keySym == KeyEvent.VK_ESCAPE || keySym == KeyEvent.VK_Q ) {
                     MiscUtils.destroyWindow(window);
-                } else if( keySym == KeyEvent.VK_SPACE ) {
-                    final Shape a = scene.getActiveShape();
-                    if( a instanceof MediaButton ) {
-                        final MediaButton b = (MediaButton)a;
-                        final GLMediaPlayer mPlayer = b.getGLMediaPlayer();
-                        if( GLMediaPlayer.State.Paused == mPlayer.getState() ) {
-                            mPlayer.resume();
-                        } else if(GLMediaPlayer.State.Uninitialized == mPlayer.getState()) {
-                            mPlayer.playStream(mPlayer.getUri(), GLMediaPlayer.STREAM_ID_AUTO, aid, MediaTexCount);
-                        } else if( e.isShiftDown() ) {
-                            mPlayer.stop();
-                        } else {
-                            mPlayer.pause(false);
-                        }
-                    }
                 }
             }
         });
@@ -223,97 +205,54 @@ public class UIMediaGrid00 {
         scene.screenshot(true, scene.nextScreenshotFile(null, UIMediaGrid00.class.getSimpleName(), options.renderModes, caps, "media"));
     }
 
-    public static final int MediaTexUnitMediaPlayer = 1;
-    public static final int MediaTexCount = 3; // GLMediaPlayer.TEXTURE_COUNT_DEFAULT
 
-    public static MediaButton createMediaButton(final Uri medium, final float aratio, final boolean letterBox, final Shape.MouseGestureListener mouseListener) {
-        final float borderSz = 0.02f;
-        final Vec4f borderToggleOff = new Vec4f(0, 0, 0, 0.7f);
-        final Vec4f borderToggleOn = new Vec4f(0, 0, 1, 0.7f);
-        final Vec4f borderActive = new Vec4f(1, 1, 0, 0.7f);
-
-        final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
-        mPlayer.setTextureUnit(MediaTexUnitMediaPlayer);
-        // mPlayer.setAudioChannelLimit(1); // enforce mono to enjoy spatial 3D position effects
-        final MediaButton button = new MediaButton(options.renderModes, aratio, 1, mPlayer);
-        button.setVerbose(false).addDefaultEventListener().setTextureLetterbox(letterBox).setFixedARatioResize(true);
-        if( aid == GLMediaPlayer.STREAM_ID_NONE ) {
-            button.setToggle( true ); // toggle == false -> mute audio
-        } else {
-            button.setToggleable(true);
-            button.setToggle(false); // toggle == false -> mute audio
-        }
-        mPlayer.setAudioVolume( 0f );
-        if( null != mouseListener ) {
-            button.addMouseListener(mouseListener);
-        }
-        button.onToggle( (final Shape s) -> {
-            mPlayer.setAudioVolume( s.isToggleOn() ? 1f : 0f );
-            if( s.isActive() ) {
-                s.setBorderColor(borderActive);
-            } else {
-                if( s.isToggleOn() ) {
-                    s.setBorderColor(borderToggleOn);
-                } else {
-                    s.setBorderColor(borderToggleOff);
-                }
-            }
-        });
-        button.onActivation( (final Shape s) -> {
-            System.err.println("XXX "+s);
-            if( s.isActive() ) {
-                s.setBorderColor(borderActive);
-            } else {
-                if( s.isToggleOn() ) {
-                    s.setBorderColor(borderToggleOn);
-                } else {
-                    s.setBorderColor(borderToggleOff);
-                }
-            }
-        });
-        mPlayer.addEventListener( new GLMediaEventListener() {
-            @Override
-            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
-
-            @Override
-            public void attributesChanged(final GLMediaPlayer mp, final EventMask eventMask, final long when) {
-                // System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
-                // System.err.println("MediaButton State: "+mp);
-                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
-                    System.err.println(mp.toString());
-                }
-                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
-                    final StreamException err = mp.getStreamException();
-                    if( null != err ) {
-                        System.err.println("MovieSimple State: Exception: "+err.getMessage());
-                    } else {
-                        new InterruptSource.Thread() {
-                            @Override
-                            public void run() {
-                                mp.setPlaySpeed(1f);
-                                mp.seek(0);
-                                mp.resume();
-                            }
-                        }.start();
-                    }
-                }
-            }
-        });
-        button.setToggleOffColorMod(1f, 1f, 1f, 1f);
-        button.setPressedColorMod(1f, 1f, 1f, 0.85f);
-        button.setPerp().setBorderColor(borderToggleOff).setBorder(borderSz);
-        mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, MediaTexCount);
-        return button;
-    }
-
-    static void addMedia(final GLProfile glp, final Font font, final Group grid,
-                         final Vec2i gridDim, final List<Uri> mediaFiles,
-                         final Shape.MouseGestureListener mouseListener) {
+    static void addMedia(final Scene scene, final GLProfile glp, final Font font, final Group grid, final List<Uri> mediaFiles) {
+        final float zoomSize = 0.95f;
         for(final Uri medium : mediaFiles) {
-            grid.addShape( createMediaButton(medium, 16f/9f, false, mouseListener) );
-            grid.addShape( createMediaButton(medium,  4f/3f, false, mouseListener) );
-            grid.addShape( createMediaButton(medium, 16f/9f,  true, mouseListener) );
-            grid.addShape( createMediaButton(medium,  4f/3f,  true, mouseListener) );
+            final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
+            if( printNativeInfoOnce ) {
+                mPlayer.printNativeInfo(System.err);
+                printNativeInfoOnce = false;
+            }
+            // mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_NEAREST } );
+            mPlayer.setTextureMinMagFilter( new int[] { GL.GL_LINEAR, GL.GL_LINEAR } );
+
+            final List<Shape> customCtrls = new ArrayList<Shape>();
+            {
+                final Font fontSymbols = MediaUI01.getSymbolsFont();
+                if( null == fontSymbols ) {
+                    grid.addShape( new Rectangle(options.renderModes, 16f/9f, 1, 0.10f) );
+                    return;
+                }
+                final Button button = new Button(options.renderModes, fontSymbols,
+                        fontSymbols.getUTF16String("reset_tv"), MediaUI01.CtrlButtonWidth, MediaUI01.CtrlButtonHeight, scene.getZEpsilon(16));
+                button.setName("reset");
+                button.setSpacing(MediaUI01.SymSpacing, MediaUI01.FixedSymSize).setPerp().setColor(MediaUI01.CtrlCellCol);
+                button.onClicked((final Shape s0) -> {
+                    scene.forAll((final Shape s1) -> {
+                       System.err.println("- "+s1.getName());
+                       if( s1 instanceof MediaButton ) {
+                           final MediaButton mb = (MediaButton)s1;
+                           final GLMediaPlayer mp = mb.getGLMediaPlayer();
+                           mp.seek(0);
+                           mp.setPlaySpeed(1f);
+                           mp.setAudioVolume( 0f );
+                       }
+                       if( s1.getName().equals("muteLabel") ) {
+                           s1.setVisible(true);
+                       }
+                       if( s1.getName().equals("MediaGrid") ) {
+                           s1.markShapeDirty();
+                           System.err.println("Reset: "+s1);
+                       }
+                       return false;
+                    });
+                });
+                customCtrls.add(button);
+            }
+            grid.addShape( MediaUI01.create(scene, mPlayer, options.renderModes, medium, aid, 16f/9f, false, zoomSize, customCtrls) );
         }
     }
+    private static boolean printNativeInfoOnce = true;
+
 }
