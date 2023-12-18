@@ -62,7 +62,7 @@ public class BoxLayout implements Group.Layout {
     /**
      */
     public BoxLayout() {
-        this(0f, 0f, new Alignment(), new Margin(), null);
+        this(0f, 0f, Alignment.None, new Margin(), null);
     }
 
     /**
@@ -70,11 +70,11 @@ public class BoxLayout implements Group.Layout {
      * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final Padding padding) {
-        this(0f, 0f, new Alignment(), new Margin(), padding);
+        this(0f, 0f, Alignment.None, new Margin(), padding);
     }
 
     public BoxLayout(final float cellWidth, final float cellHeight) {
-        this(cellWidth, cellHeight, new Alignment(), new Margin(), null);
+        this(cellWidth, cellHeight, Alignment.None, new Margin(), null);
     }
 
     /**
@@ -94,7 +94,7 @@ public class BoxLayout implements Group.Layout {
      * @param margin {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Margin margin) {
-        this(cellWidth, cellHeight, new Alignment(), margin, null);
+        this(cellWidth, cellHeight, Alignment.None, margin, null);
     }
 
     /**
@@ -104,7 +104,7 @@ public class BoxLayout implements Group.Layout {
      * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Padding padding) {
-        this(cellWidth, cellHeight, new Alignment(), new Margin(), padding);
+        this(cellWidth, cellHeight, Alignment.None, new Margin(), padding);
     }
 
     /**
@@ -115,7 +115,7 @@ public class BoxLayout implements Group.Layout {
      * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Margin margin, final Padding padding) {
-        this(cellWidth, cellHeight, new Alignment(), margin, padding);
+        this(cellWidth, cellHeight, Alignment.None, margin, padding);
     }
 
     /**

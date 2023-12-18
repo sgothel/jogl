@@ -85,7 +85,7 @@ public final class Alignment {
     public Alignment(final int v) {
         mask = v;
     }
-    public Alignment() {
+    private Alignment() {
         mask = 0;
     }
 
