@@ -1238,6 +1238,9 @@ public abstract class Shape {
         if( isActivable() ) {
             this.zOffset = zOffset;
             setIO(IO_ACTIVE, v);
+            if( !v ) {
+                releaseInteraction();
+            }
             if( DEBUG ) {
                 System.err.println("XXX "+(v?"  Active":"DeActive")+" "+this);
             }
@@ -1441,14 +1444,28 @@ public abstract class Shape {
         }
     }
 
+    private final void releaseInteraction() {
+        setPressed(false);
+        setIO(IO_IN_MOVE, false);
+        setIO(IO_IN_RESIZE_BR, false);
+        setIO(IO_IN_RESIZE_BL, false);
+    }
+
     /**
      * Dispatch given NEWT mouse event to this shape
      * @param e original Newt {@link MouseEvent}
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      * @param objPos object position of mouse event relative to this shape
+     * @return true to signal operation complete and to stop traversal, otherwise false
      */
-    /* pp */ final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY, final Vec3f objPos) {
+    /* pp */ final boolean dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY, final Vec3f objPos) {
+        /**
+         * Checked at caller!
+        if( !isInteractive() ) {
+            return false;
+        } */
+        final boolean resizableOrDraggable = isResizable() || isDraggable();
         final Shape.EventInfo shapeEvent = new EventInfo(glWinX, glWinY, this, objPos);
 
         final short eventType = e.getEventType();
@@ -1461,123 +1478,119 @@ public abstract class Shape {
                     }
                     break;
                 case MouseEvent.EVENT_MOUSE_PRESSED:
-                    setIO(IO_DRAG_FIRST, true);
+                    if( resizableOrDraggable ) {
+                        setIO(IO_DRAG_FIRST, true);
+                    }
                     setPressed(true);
                     break;
                 case MouseEvent.EVENT_MOUSE_RELEASED:
                     // Release active shape: last pointer has been lifted!
-                    setPressed(false);
-                    setIO(IO_IN_MOVE, false);
-                    setIO(IO_IN_RESIZE_BR, false);
-                    setIO(IO_IN_RESIZE_BL, false);
+                    releaseInteraction();
                     break;
             }
         }
-        switch( eventType ) {
-            case MouseEvent.EVENT_MOUSE_DRAGGED: {
-                // adjust for rotation
-                final Vec3f euler = rotation.toEuler(new Vec3f());
-                final boolean x_flip, y_flip;
-                {
-                    final float x_rot = Math.abs(euler.x());
-                    final float y_rot = Math.abs(euler.y());
-                    x_flip = 1f*FloatUtil.HALF_PI <= y_rot && y_rot <= 3f*FloatUtil.HALF_PI;
-                    y_flip = 1f*FloatUtil.HALF_PI <= x_rot && x_rot <= 3f*FloatUtil.HALF_PI;
-                }
-                // 1 pointer drag and potential drag-resize
-                if( isIO(IO_DRAG_FIRST) ) {
-                    objDraggedFirst.set(objPos);
-                    winDraggedLast[0] = glWinX;
-                    winDraggedLast[1] = glWinY;
-                    setIO(IO_DRAG_FIRST, false);
-
-                    final float ix = x_flip ? box.getWidth()  - objPos.x() : objPos.x();
-                    final float iy = y_flip ? box.getHeight() - objPos.y() : objPos.y();
-                    final float minx_br = box.getMaxX() - box.getWidth() * resize_section;
-                    final float miny_br = box.getMinY();
-                    final float maxx_br = box.getMaxX();
-                    final float maxy_br = box.getMinY() + box.getHeight() * resize_section;
-                    if( minx_br <= ix && ix <= maxx_br &&
-                        miny_br <= iy && iy <= maxy_br ) {
-                        if( isInteractive() && isResizable() ) {
-                            setIO(IO_IN_RESIZE_BR, true);
-                        }
-                    } else {
-                        final float minx_bl = box.getMinX();
-                        final float miny_bl = box.getMinY();
-                        final float maxx_bl = box.getMinX() + box.getWidth() * resize_section;
-                        final float maxy_bl = box.getMinY() + box.getHeight() * resize_section;
-                        if( minx_bl <= ix && ix <= maxx_bl &&
-                            miny_bl <= iy && iy <= maxy_bl ) {
-                            if( isInteractive() && isResizable() ) {
-                                setIO(IO_IN_RESIZE_BL, true);
-                            }
-                        } else {
-                            setIO(IO_IN_MOVE, isInteractive() && isDraggable());
-                        }
-                    }
-                    if( DEBUG ) {
-                        System.err.printf("DragFirst: drag %b, resize[br %b, bl %b], obj[%s], flip[x %b, y %b]%n",
-                                isIO(IO_IN_MOVE), isIO(IO_IN_RESIZE_BR), isIO(IO_IN_RESIZE_BL), objPos, x_flip, y_flip);
-                        System.err.printf("DragFirst: %s%n", this);
-                    }
-                    return;
-                }
-                shapeEvent.objDrag.set( objPos.x() - objDraggedFirst.x(),
-                                        objPos.y() - objDraggedFirst.y() );
-                shapeEvent.objDrag.scale(x_flip ? -1f : 1f, y_flip ? -1f : 1f);
-
-                shapeEvent.winDrag[0] = glWinX - winDraggedLast[0];
-                shapeEvent.winDrag[1] = glWinY - winDraggedLast[1];
+        if( resizableOrDraggable && MouseEvent.EVENT_MOUSE_DRAGGED == eventType ) {
+            // adjust for rotation
+            final Vec3f euler = rotation.toEuler(new Vec3f());
+            final boolean x_flip, y_flip;
+            {
+                final float x_rot = Math.abs(euler.x());
+                final float y_rot = Math.abs(euler.y());
+                x_flip = 1f*FloatUtil.HALF_PI <= y_rot && y_rot <= 3f*FloatUtil.HALF_PI;
+                y_flip = 1f*FloatUtil.HALF_PI <= x_rot && x_rot <= 3f*FloatUtil.HALF_PI;
+            }
+            // 1 pointer drag and potential drag-resize
+            if( isIO(IO_DRAG_FIRST) ) {
+                objDraggedFirst.set(objPos);
                 winDraggedLast[0] = glWinX;
                 winDraggedLast[1] = glWinY;
-                if( 1 == e.getPointerCount() ) {
-                    final float sdx = shapeEvent.objDrag.x() * scale.x(); // apply scale, since operation
-                    final float sdy = shapeEvent.objDrag.y() * scale.y(); // is from a scaled-model-viewpoint
-                    if( isIO(IO_IN_RESIZE_BR) || isIO(IO_IN_RESIZE_BL) ) {
-                        final float bw = box.getWidth();
-                        final float bh = box.getHeight();
-                        final float sdy2, sx, sy;
-                        if( isIO(IO_IN_RESIZE_BR) ) {
-                            sx = scale.x() + sdx/bw; // bottom-right
-                        } else {
-                            sx = scale.x() - sdx/bw; // bottom-left
+                setIO(IO_DRAG_FIRST, false);
+
+                final float ix = x_flip ? box.getWidth()  - objPos.x() : objPos.x();
+                final float iy = y_flip ? box.getHeight() - objPos.y() : objPos.y();
+                final float minx_br = box.getMaxX() - box.getWidth() * resize_section;
+                final float miny_br = box.getMinY();
+                final float maxx_br = box.getMaxX();
+                final float maxy_br = box.getMinY() + box.getHeight() * resize_section;
+                if( minx_br <= ix && ix <= maxx_br &&
+                    miny_br <= iy && iy <= maxy_br ) {
+                    if( isResizable() ) {
+                        setIO(IO_IN_RESIZE_BR, true);
+                    }
+                } else {
+                    final float minx_bl = box.getMinX();
+                    final float miny_bl = box.getMinY();
+                    final float maxx_bl = box.getMinX() + box.getWidth() * resize_section;
+                    final float maxy_bl = box.getMinY() + box.getHeight() * resize_section;
+                    if( minx_bl <= ix && ix <= maxx_bl &&
+                        miny_bl <= iy && iy <= maxy_bl ) {
+                        if( isResizable() ) {
+                            setIO(IO_IN_RESIZE_BL, true);
                         }
-                        if( isFixedARatioResize() ) {
-                            sy = sx;
-                            sdy2  = bh * ( scale.y() - sy );
-                        } else {
-                            sdy2 = sdy;
-                            sy = scale.y() - sdy2/bh;
-                        }
-                        if( resize_sxy_min <= sx && resize_sxy_min <= sy ) { // avoid scale flip
-                            if( DEBUG ) {
-                                System.err.printf("DragZoom: resize[br %b, bl %b], win[%4d, %4d], , flip[x %b, y %b], obj[%s], dxy +[%s], sdxy +[%.4f, %.4f], sdxy2 +[%.4f, %.4f], scale [%s] -> [%.4f, %.4f]%n",
-                                        isIO(IO_IN_RESIZE_BR), isIO(IO_IN_RESIZE_BL), glWinX, glWinY, x_flip, y_flip, objPos,
-                                        shapeEvent.objDrag, sdx, sdy, sdx, sdy2,
-                                        scale, sx, sy);
-                            }
-                            if( isIO(IO_IN_RESIZE_BR) ) {
-                                move(   0, sdy2, 0f); // bottom-right, sticky left- and top-edge
-                            } else {
-                                move( sdx, sdy2, 0f); // bottom-left, sticky right- and top-edge
-                            }
-                            setScale(sx, sy, scale.z());
-                        }
-                        return; // FIXME: pass through event? Issue zoom event?
-                    } else if( isIO(IO_IN_MOVE) ) {
-                        if( DEBUG ) {
-                            System.err.printf("DragMove: win[%4d, %4d] +[%2d, %2d], , flip[x %b, y %b], obj[%s] +[%s], rot %s%n",
-                                    glWinX, glWinY, shapeEvent.winDrag[0], shapeEvent.winDrag[1],
-                                    x_flip, y_flip, objPos, shapeEvent.objDrag, euler);
-                        }
-                        move( sdx, sdy, 0f);
-                        // FIXME: Pass through event? Issue move event?
+                    } else {
+                        setIO(IO_IN_MOVE, isDraggable());
                     }
                 }
+                if( DEBUG ) {
+                    System.err.printf("DragFirst: drag %b, resize[br %b, bl %b], obj[%s], flip[x %b, y %b]%n",
+                            isIO(IO_IN_MOVE), isIO(IO_IN_RESIZE_BR), isIO(IO_IN_RESIZE_BL), objPos, x_flip, y_flip);
+                    System.err.printf("DragFirst: %s%n", this);
+                }
+                return true; // end signal traversal at 1st drag
             }
-            break;
-        }
+            shapeEvent.objDrag.set( objPos.x() - objDraggedFirst.x(),
+                                    objPos.y() - objDraggedFirst.y() );
+            shapeEvent.objDrag.scale(x_flip ? -1f : 1f, y_flip ? -1f : 1f);
+
+            shapeEvent.winDrag[0] = glWinX - winDraggedLast[0];
+            shapeEvent.winDrag[1] = glWinY - winDraggedLast[1];
+            winDraggedLast[0] = glWinX;
+            winDraggedLast[1] = glWinY;
+            if( 1 == e.getPointerCount() ) {
+                final float sdx = shapeEvent.objDrag.x() * scale.x(); // apply scale, since operation
+                final float sdy = shapeEvent.objDrag.y() * scale.y(); // is from a scaled-model-viewpoint
+                if( isIO(IO_IN_RESIZE_BR) || isIO(IO_IN_RESIZE_BL) ) {
+                    final float bw = box.getWidth();
+                    final float bh = box.getHeight();
+                    final float sdy2, sx, sy;
+                    if( isIO(IO_IN_RESIZE_BR) ) {
+                        sx = scale.x() + sdx/bw; // bottom-right
+                    } else {
+                        sx = scale.x() - sdx/bw; // bottom-left
+                    }
+                    if( isFixedARatioResize() ) {
+                        sy = sx;
+                        sdy2  = bh * ( scale.y() - sy );
+                    } else {
+                        sdy2 = sdy;
+                        sy = scale.y() - sdy2/bh;
+                    }
+                    if( resize_sxy_min <= sx && resize_sxy_min <= sy ) { // avoid scale flip
+                        if( DEBUG ) {
+                            System.err.printf("DragZoom: resize[br %b, bl %b], win[%4d, %4d], , flip[x %b, y %b], obj[%s], dxy +[%s], sdxy +[%.4f, %.4f], sdxy2 +[%.4f, %.4f], scale [%s] -> [%.4f, %.4f]%n",
+                                    isIO(IO_IN_RESIZE_BR), isIO(IO_IN_RESIZE_BL), glWinX, glWinY, x_flip, y_flip, objPos,
+                                    shapeEvent.objDrag, sdx, sdy, sdx, sdy2,
+                                    scale, sx, sy);
+                        }
+                        if( isIO(IO_IN_RESIZE_BR) ) {
+                            move(   0, sdy2, 0f); // bottom-right, sticky left- and top-edge
+                        } else {
+                            move( sdx, sdy2, 0f); // bottom-left, sticky right- and top-edge
+                        }
+                        setScale(sx, sy, scale.z());
+                    }
+                    return true; // end signal traversal with completed drag
+                } else if( isIO(IO_IN_MOVE) ) {
+                    if( DEBUG ) {
+                        System.err.printf("DragMove: win[%4d, %4d] +[%2d, %2d], , flip[x %b, y %b], obj[%s] +[%s], rot %s%n",
+                                glWinX, glWinY, shapeEvent.winDrag[0], shapeEvent.winDrag[1],
+                                x_flip, y_flip, objPos, shapeEvent.objDrag, euler);
+                    }
+                    move( sdx, sdy, 0f);
+                    return true; // end signal traversal with completed move
+                }
+            }
+        } // resizableOrDraggable && EVENT_MOUSE_DRAGGED
         e.setAttachment(shapeEvent);
 
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
@@ -1611,6 +1624,7 @@ public abstract class Shape {
                     throw new NativeWindowException("Unexpected mouse event type " + e.getEventType());
             }
         }
+        return e.isConsumed(); // end signal traversal if consumed
     }
 
     /**

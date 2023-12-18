@@ -619,11 +619,10 @@ public final class Scene implements Container, GLEventListener {
      * @param glWinX window X coordinate, bottom-left origin
      * @param glWinY window Y coordinate, bottom-left origin
      * @param objPos storage for found object position in model-space of found {@link Shape}
-     * @param shape storage for found {@link Shape} or null
      * @param runnable the action to perform if {@link Shape} was found
-     * @return picked Shape if any or null as stored in {@code shape}
+     * @return last picked (inner) Shape if any or null
      */
-    public Shape pickShape(final PMVMatrix4f pmv, final int glWinX, final int glWinY, final Vec3f objPos, final Shape[] shape, final Runnable runnable) {
+    public Shape pickShape(final PMVMatrix4f pmv, final int glWinX, final int glWinY, final Vec3f objPos, final Shape.Visitor1 visitor) {
         setupMatrix(pmv);
 
         final float winZ0 = 0f;
@@ -635,25 +634,39 @@ public final class Scene implements Container, GLEventListener {
         */
         final Recti viewport = getViewport();
         final Ray ray = new Ray();
-        shape[0] = null;
-
+        final Shape[] shape = { null };
+        final int[] shapeIdx = { -1 };
         forSortedAll(Shape.ZDescendingComparator, pmv, (final Shape s, final PMVMatrix4f pmv2) -> {
+            shapeIdx[0]++;
             final boolean ok = s.isInteractive() && pmv.mapWinToRay(glWinX, glWinY, winZ0, winZ1, viewport, ray);
             if( ok ) {
                 final AABBox sbox = s.getBounds();
                 if( sbox.intersectsRay(ray) ) {
-                    // System.err.printf("Pick.0: shape %d, [%d, %d, %f/%f] -> %s%n", i, glWinX, glWinY, winZ0, winZ1, ray);
+                    if( DEBUG ) {
+                        System.err.printf("Pick.0: shape %d/%s/%s, [%d, %d, %f/%f] -> %s%n", shapeIdx[0], s.getClass().getSimpleName(), s.getName(), glWinX, glWinY, winZ0, winZ1, ray);
+                    }
                     if( null == sbox.getRayIntersection(objPos, ray, FloatUtil.EPSILON, true) ) {
                         throw new InternalError("Ray "+ray+", box "+sbox);
                     }
-                    // System.err.printf("Pick.1: shape %d @ [%f, %f, %f], within %s%n", i, objPos[0], objPos[1], objPos[2], uiShape.getBounds());
-                    shape[0] = s;
-                    runnable.run();
-                    return true;
+                    if( visitor.visit(s) ) {
+                        if( DEBUG ) {
+                            System.err.printf("Pick.S: shape %d/%s/%s @ %s, %s%n", shapeIdx[0], s.getClass().getSimpleName(), s.getName(), objPos, s);
+                        }
+                        shape[0] = s;
+                    } else if( DEBUG ) {
+                        System.err.printf("Pick.1: shape %d/%s/%s @ %s, %s%n", shapeIdx[0], s.getClass().getSimpleName(), s.getName(), objPos, s);
+                    }
                 }
             }
-            return false;
+            return false; // continue traversing for most inner interactive shape
         });
+        if( DEBUG ) {
+            if( null != shape[0] ) {
+                System.err.printf("Pick.X: shape %s/%s%n%n", shape[0].getClass().getSimpleName(), shape[0].getName());
+            } else {
+                System.err.printf("Pick.X: shape null%n%n");
+            }
+        }
         return shape[0];
     }
 
@@ -999,10 +1012,11 @@ public final class Scene implements Container, GLEventListener {
         }
     }
     private void setActiveShape(final Shape shape) {
-        if( activeShape != shape ) {
-            releaseActiveShape();
-            if( null != shape ) {
-                shape.setActive(true, activeZOffsetScale * getZEpsilon(16));
+        if( activeShape != shape && null != shape &&
+            shape.setActive(true, activeZOffsetScale * getZEpsilon(16)) )
+        {
+            if( null != activeShape ) {
+                activeShape.setActive(false, 0);
             }
             activeShape = shape;
         }
@@ -1039,33 +1053,19 @@ public final class Scene implements Container, GLEventListener {
     }
 
     /**
-     * Dispatch mouse event, either directly sending to activeShape or picking one
-     * @param e original Newt {@link MouseEvent}
-     * @param glWinX in GL window coordinates, origin bottom-left
-     * @param glWinY in GL window coordinates, origin bottom-left
-     */
-    final void dispatchMouseEvent(final MouseEvent e, final int glWinX, final int glWinY) {
-        if( null == activeShape ) {
-            dispatchMouseEventPickShape(e, glWinX, glWinY);
-        } else if( activeShape.isInteractive() ) {
-            dispatchMouseEventForShape(activeShape, e, glWinX, glWinY);
-        }
-    }
-    /**
      * Pick the shape using the event coordinates
      * @param e original Newt {@link MouseEvent}
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      */
-    final boolean dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY) {
+    private final boolean dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY) {
         final PMVMatrix4f pmv = new PMVMatrix4f();
         final Vec3f objPos = new Vec3f();
-        final Shape[] shape = { null };
-        if( null != pickShape(pmv, glWinX, glWinY, objPos, shape, () -> {
-               shape[0].dispatchMouseEvent(e, glWinX, glWinY, objPos);
-           } ) )
-        {
-           setActiveShape(shape[0]);
+        final Shape shape = pickShape(pmv, glWinX, glWinY, objPos, (final Shape s) -> {
+               return s.isInteractive() && ( s.dispatchMouseEvent(e, glWinX, glWinY, objPos) || true );
+           });
+        if( null != shape ) {
+           setActiveShape(shape);
            return true;
         } else {
            releaseActiveShape();
@@ -1079,7 +1079,7 @@ public final class Scene implements Container, GLEventListener {
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      */
-    final void dispatchMouseEventForShape(final Shape shape, final MouseEvent e, final int glWinX, final int glWinY) {
+    private final void dispatchMouseEventForShape(final Shape shape, final MouseEvent e, final int glWinX, final int glWinY) {
         final PMVMatrix4f pmv = new PMVMatrix4f();
         final Vec3f objPos = new Vec3f();
         winToShapeCoord(shape, glWinX, glWinY, pmv, objPos, () -> { shape.dispatchMouseEvent(e, glWinX, glWinY, objPos); });
@@ -1106,7 +1106,7 @@ public final class Scene implements Container, GLEventListener {
             // flip to GL window coordinates, origin bottom-left
             final int glWinX = e.getX();
             final int glWinY = getHeight() - e.getY() - 1;
-            dispatchMouseEvent(e, glWinX, glWinY);
+            dispatchMouseEventPickShape(e, glWinX, glWinY);
         }
 
         @Override
@@ -1114,7 +1114,7 @@ public final class Scene implements Container, GLEventListener {
             // flip to GL window coordinates, origin bottom-left
             final int glWinX = e.getX();
             final int glWinY = getHeight() - e.getY() - 1;
-            dispatchMouseEvent(e, glWinX, glWinY);
+            dispatchMouseEventPickShape(e, glWinX, glWinY);
             if( !mouseOver ) {
                 if( 1 == e.getPointerCount() ) {
                     // Release active shape: last pointer has been lifted!
@@ -1130,7 +1130,7 @@ public final class Scene implements Container, GLEventListener {
             final int glWinX = e.getX();
             final int glWinY = getHeight() - e.getY() - 1;
             if( mouseOver ) {
-                dispatchMouseEvent(e, glWinX, glWinY);
+                dispatchMouseEventPickShape(e, glWinX, glWinY);
             } else {
                 // activeId should have been released by mouseRelease() already!
                 dispatchMouseEventPickShape(e, glWinX, glWinY);
@@ -1143,7 +1143,7 @@ public final class Scene implements Container, GLEventListener {
         @Override
         public void mouseDragged(final MouseEvent e) {
             // drag activeShape, if no gesture-activity, only on 1st pointer
-            if( null != activeShape && !pinchToZoomGesture.isWithinGesture() && e.getPointerId(0) == lId ) {
+            if( null != activeShape && activeShape.isInteractive() && !pinchToZoomGesture.isWithinGesture() && e.getPointerId(0) == lId ) {
                 lx = e.getX();
                 ly = e.getY();
 
@@ -1160,7 +1160,7 @@ public final class Scene implements Container, GLEventListener {
             // flip to GL window coordinates
             final int glWinX = lx;
             final int glWinY = getHeight() - ly - 1;
-            dispatchMouseEvent(e, glWinX, glWinY);
+            dispatchMouseEventPickShape(e, glWinX, glWinY);
         }
 
         @Override
