@@ -28,6 +28,7 @@
 package jogamp.opengl.util.av;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
@@ -57,6 +58,11 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     public NullGLMediaPlayer() {
         super();
 
+    }
+
+    @Override
+    public final void printNativeInfo(final PrintStream out) {
+        out.println("NullGLMediaPlayer: available true");
     }
 
     @Override

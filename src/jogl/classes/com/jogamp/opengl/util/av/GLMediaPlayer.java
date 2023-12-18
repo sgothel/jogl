@@ -33,6 +33,7 @@ import com.jogamp.opengl.GLException;
 
 import jogamp.opengl.Debug;
 
+import java.io.PrintStream;
 import java.util.List;
 
 import com.jogamp.common.av.AudioFormat;
@@ -411,6 +412,9 @@ public interface GLMediaPlayer extends TextureSequence {
             this.id = id;
         }
     }
+
+    /** Print native library information of used implementation to given out PrintStream. */
+    public void printNativeInfo(final PrintStream out);
 
     public int getTextureCount();
 

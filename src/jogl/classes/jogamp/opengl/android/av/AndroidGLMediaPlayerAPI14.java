@@ -28,6 +28,7 @@
 package jogamp.opengl.android.av;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.List;
 
 import com.jogamp.opengl.GL;
@@ -115,6 +116,11 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             throw new RuntimeException("AndroidGLMediaPlayerAPI14 not available");
         }
         this.setTextureTarget(GLES2.GL_TEXTURE_EXTERNAL_OES);
+    }
+
+    @Override
+    public final void printNativeInfo(final PrintStream out) {
+        out.println("AndroidGLMediaPlayerAPI14: available "+available);
     }
 
     @Override

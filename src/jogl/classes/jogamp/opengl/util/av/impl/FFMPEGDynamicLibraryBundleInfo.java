@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -39,6 +39,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
+import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.RunnableExecutor;
 import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
@@ -155,6 +156,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "swr_get_out_samples",
     };
 
+    /** 5: util, format, codec, device, swresample */
     private static final int LIB_COUNT = 5;
     private static final int LIB_IDX_UTI = 0;
     private static final int LIB_IDX_FMT = 1;
@@ -167,11 +169,33 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     private static final long[] symbolAddr = new long[symbolCount];
     private static final boolean ready;
     private static final boolean libsCFUSLoaded;
-    static final VersionNumber avCodecVersion;
-    static final VersionNumber avFormatVersion;
-    static final VersionNumber avUtilVersion;
-    static final VersionNumber avDeviceVersion;
-    static final VersionNumber swResampleVersion;
+    public static class VersionedLib {
+        public final NativeLibrary lib;
+        public final VersionNumber version;
+        public VersionedLib(final NativeLibrary lib, final VersionNumber version) {
+            this.lib = lib;
+            this.version = version;
+        }
+        @Override
+        public String toString() {
+            final String ls;
+            if( null != lib ) {
+                if( null != lib.getNativeLibraryPath() ) {
+                    ls = "nlp '"+lib.getNativeLibraryPath()+"'";
+                } else {
+                    ls = "vlp '"+lib.getLibraryPath()+"'";
+                }
+            } else {
+                ls = "n/a";
+            }
+            return ls+", "+version;
+        }
+    }
+    static final VersionedLib avUtil;
+    static final VersionedLib avFormat;
+    static final VersionedLib avCodec;
+    static final VersionedLib avDevice;
+    static final VersionedLib swResample;
     private static final FFMPEGNatives natives;
 
     private static final PrivilegedAction<DynamicLibraryBundle> privInitSymbolsAction = new PrivilegedAction<DynamicLibraryBundle>() {
@@ -198,10 +222,10 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } };
 
     /**
-     * @param versions 5: util, format, codec, swresample
+     * @param versions 5: util, format, codec, device, swresample
      * @return
      */
-    private static final boolean initSymbols(final VersionNumber[] versions) {
+    private static final boolean initSymbols(final VersionNumber[] versions, final List<NativeLibrary> nativeLibs) {
         for(int i=0; i<libLoaded.length; i++) {
             libLoaded[i] = false;
         }
@@ -213,6 +237,8 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         if( null == dl ) {
             return false;
         }
+        nativeLibs.clear();
+        nativeLibs.addAll(dl.getToolLibraries());
 
         // optional symbol name set
         final Set<String> optionalSymbolNameSet = new HashSet<String>();
@@ -250,19 +276,20 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         GLProfile.initSingleton();
 
         boolean _ready = false;
-        /** util, format, codec, swresample */
+        /** 5: util, format, codec, device, swresample */
         final VersionNumber[] _versions = new VersionNumber[LIB_COUNT];
+        final List<NativeLibrary> _nativeLibs = new ArrayList<NativeLibrary>();
         try {
-            _ready = initSymbols(_versions);
+            _ready = initSymbols(_versions, _nativeLibs);
         } catch (final Throwable t) {
             ExceptionUtils.dumpThrowable("", t);
         }
         libsCFUSLoaded = libLoaded[LIB_IDX_COD] && libLoaded[LIB_IDX_FMT] && libLoaded[LIB_IDX_UTI] && libLoaded[LIB_IDX_SWR];
-        avUtilVersion = _versions[LIB_IDX_UTI];
-        avFormatVersion = _versions[LIB_IDX_FMT];
-        avCodecVersion = _versions[LIB_IDX_COD];
-        avDeviceVersion = _versions[LIB_IDX_DEV];
-        swResampleVersion = _versions[LIB_IDX_SWR];
+        avUtil = new VersionedLib(_nativeLibs.get(LIB_IDX_UTI), _versions[LIB_IDX_UTI]);
+        avFormat = new VersionedLib(_nativeLibs.get(LIB_IDX_FMT), _versions[LIB_IDX_FMT]);
+        avCodec = new VersionedLib(_nativeLibs.get(LIB_IDX_COD), _versions[LIB_IDX_COD]);
+        avDevice = new VersionedLib(_nativeLibs.get(LIB_IDX_DEV), _versions[LIB_IDX_DEV]);
+        swResample = new VersionedLib(_nativeLibs.get(LIB_IDX_SWR), _versions[LIB_IDX_SWR]);
         if(!libsCFUSLoaded) {
             String missing = "";
             if( !libLoaded[LIB_IDX_COD] ) {
@@ -285,11 +312,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             natives = null;
             ready = false;
         } else {
-            final int avCodecMajor = avCodecVersion.getMajor();
-            final int avFormatMajor = avFormatVersion.getMajor();
-            final int avUtilMajor = avUtilVersion.getMajor();
-            final int avDeviceMajor = avDeviceVersion.getMajor();
-            final int swResampleMajor = swResampleVersion.getMajor();
+            final int avUtilMajor = avUtil.version.getMajor();
+            final int avFormatMajor = avFormat.version.getMajor();
+            final int avCodecMajor = avCodec.version.getMajor();
+            final int avDeviceMajor = avDevice.version.getMajor();
+            final int swResampleMajor = swResample.version.getMajor();
             if( avCodecMajor == 58 && avFormatMajor == 58 && ( avDeviceMajor == 58 || avDeviceMajor == 0 ) && avUtilMajor == 56 && swResampleMajor == 3) {
                 // Exact match: ffmpeg 4.x.y
                 natives = new FFMPEGv0400Natives();

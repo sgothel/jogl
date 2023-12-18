@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -29,6 +29,7 @@
 package jogamp.opengl.util.av.impl;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.ByteBuffer;
 import java.security.PrivilegedAction;
 
@@ -53,6 +54,7 @@ import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.util.av.AudioSampleFormat;
 import jogamp.opengl.util.av.GLMediaPlayerImpl;
 import jogamp.opengl.util.av.VideoPixelFormat;
+import jogamp.opengl.util.av.impl.FFMPEGDynamicLibraryBundleInfo.VersionedLib;
 
 /***
  * Implementation utilizes <a href="http://ffmpeg.org/">FFmpeg</a> which is ubiquitous
@@ -223,18 +225,18 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 avDeviceMajorVersionCC = 0;
                 swResampleMajorVersionCC = 0;
             }
-            final VersionNumber avCodecVersion = FFMPEGDynamicLibraryBundleInfo.avCodecVersion;
-            final VersionNumber avFormatVersion = FFMPEGDynamicLibraryBundleInfo.avFormatVersion;
-            final VersionNumber avUtilVersion = FFMPEGDynamicLibraryBundleInfo.avUtilVersion;
-            final VersionNumber avDeviceVersion = FFMPEGDynamicLibraryBundleInfo.avDeviceVersion;
-            final VersionNumber swResampleVersion = FFMPEGDynamicLibraryBundleInfo.swResampleVersion;
+            final VersionedLib avCodec = FFMPEGDynamicLibraryBundleInfo.avCodec;
+            final VersionedLib avFormat = FFMPEGDynamicLibraryBundleInfo.avFormat;
+            final VersionedLib avUtil = FFMPEGDynamicLibraryBundleInfo.avUtil;
+            final VersionedLib avDevice = FFMPEGDynamicLibraryBundleInfo.avDevice;
+            final VersionedLib swResample = FFMPEGDynamicLibraryBundleInfo.swResample;
             final boolean avDeviceLoaded = FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded();
             final boolean swResampleLoaded = FFMPEGDynamicLibraryBundleInfo.swResampleLoaded();
-            final int avCodecMajor = avCodecVersion.getMajor();
-            final int avFormatMajor = avFormatVersion.getMajor();
-            final int avUtilMajor = avUtilVersion.getMajor();
-            final int avDeviceMajor = avDeviceVersion.getMajor();
-            final int swResampleMajor = swResampleVersion.getMajor();
+            final int avCodecMajor = avCodec.version.getMajor();
+            final int avFormatMajor = avFormat.version.getMajor();
+            final int avUtilMajor = avUtil.version.getMajor();
+            final int avDeviceMajor = avDevice.version.getMajor();
+            final int swResampleMajor = swResample.version.getMajor();
             libAVVersionGood = avCodecMajorVersionCC  == avCodecMajor &&
                                avFormatMajorVersionCC == avFormatMajor &&
                                avUtilMajorVersionCC == avUtilMajor &&
@@ -244,12 +246,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 System.err.println("FFmpeg Not Matching Compile-Time / Runtime Major-Version");
             }
             if( !libAVVersionGood || DEBUG ) {
-                System.err.println("FFmpeg Codec   : "+avCodecVersion+" [cc "+avCodecMajorVersionCC+"]");
-                System.err.println("FFmpeg Format  : "+avFormatVersion+" [cc "+avFormatMajorVersionCC+"]");
-                System.err.println("FFmpeg Util    : "+avUtilVersion+" [cc "+avUtilMajorVersionCC+"]");
-                System.err.println("FFmpeg Device  : "+avDeviceVersion+" [cc "+avDeviceMajorVersionCC+", loaded "+avDeviceLoaded+"]");
-                System.err.println("FFmpeg Resample: "+swResampleVersion+" [cc "+swResampleMajorVersionCC+", loaded "+swResampleLoaded+"]");
-                System.err.println("FFmpeg Class   : "+(null!= natives ? natives.getClass().getSimpleName() : "n/a"));
+                printNativeInfoImpl(System.err);
             }
         } else {
             natives = null;
@@ -264,6 +261,19 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     public static final boolean isAvailable() { return available; }
+
+    private static final void printNativeInfoImpl(final PrintStream out) {
+        out.println("FFmpeg Codec   : "+FFMPEGDynamicLibraryBundleInfo.avCodec+" [cc "+avCodecMajorVersionCC+"]");
+        out.println("FFmpeg Format  : "+FFMPEGDynamicLibraryBundleInfo.avFormat+" [cc "+avFormatMajorVersionCC+"]");
+        out.println("FFmpeg Util    : "+FFMPEGDynamicLibraryBundleInfo.avUtil+" [cc "+avUtilMajorVersionCC+"]");
+        out.println("FFmpeg Device  : "+FFMPEGDynamicLibraryBundleInfo.avDevice+" [cc "+avDeviceMajorVersionCC+", loaded "+FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded()+"]");
+        out.println("FFmpeg Resample: "+FFMPEGDynamicLibraryBundleInfo.swResample+" [cc "+swResampleMajorVersionCC+", loaded "+FFMPEGDynamicLibraryBundleInfo.swResampleLoaded()+"]");
+        out.println("FFmpeg Class   : "+(null!= natives ? natives.getClass().getSimpleName() : "n/a"));
+    }
+    @Override
+    public final void printNativeInfo(final PrintStream out) {
+        printNativeInfoImpl(out);
+    }
 
     //
     // General

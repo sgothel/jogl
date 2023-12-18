@@ -1810,7 +1810,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     private final String getPerfStringImpl(final long currentMillis, final PTS video_pts, final boolean use_audio,
                                            final PTS audio_pts, final int audio_queued_ms, final int autio_pts_lb) {
-        final float tt = getDuration() / 1000.0f;
         final int audio_dequeued_ms = getAudioDequeued(audio_queued_ms);
 
         // d_vpts > 0: video too fast (in front of SCR) repeat frame, < 0: video too slow (behind SCR) drop frame
