@@ -540,9 +540,6 @@ public abstract class Shape {
     public final float getScaledDepth() {
         return box.getDepth() * getScale().z();
     }
-    private final float getScaledMinZ() {
-        return box.getMinZ() * getScale().z();
-    }
 
     /**
      * Returns the unscaled bounding {@link AABBox} for this shape.
@@ -1255,6 +1252,13 @@ public abstract class Shape {
     /** Returns true of this shape is active */
     public boolean isActive() { return isIO(IO_ACTIVE); }
 
+    public float getAdjustedZ() {
+        return getAdjustedZImpl();
+    }
+    protected final float getAdjustedZImpl() {
+        return position.z() * getScale().z() + zOffset;
+    }
+
     /**
      * Set whether this shape is interactive,
      * i.e. any user interaction like
@@ -1670,14 +1674,8 @@ public abstract class Shape {
      */
     public abstract boolean hasColorChannel();
 
-    public final float getAscendingZ() {
-        return getScaledMinZ() + position.z() + zOffset;
-    }
-    public final float getDescendingZ() {
-        return getScaledMinZ() + position.z() + zOffset;
-    }
-
-    private static int compare0(final float a, final float b) {
+    @SuppressWarnings("unused")
+    private static int compareAsc0(final float a, final float b) {
         if( FloatUtil.isEqual2(a, b) ) {
             return 0;
         } else if( a < b ){
@@ -1686,7 +1684,7 @@ public abstract class Shape {
             return 1;
         }
     }
-    private static int compare1(final float a, final float b) {
+    private static int compareAsc1(final float a, final float b) {
         if (a < b) {
             return -1; // Neither is NaN, a is smaller
         }
@@ -1695,19 +1693,36 @@ public abstract class Shape {
         }
         return 0;
     }
+    @SuppressWarnings("unused")
+    private static int compareDesc0(final float a, final float b) {
+        if( FloatUtil.isEqual2(a, b) ) {
+            return 0;
+        } else if( a < b ){
+            return 1;
+        } else {
+            return -1;
+        }
+    }
+    private static int compareDesc1(final float a, final float b) {
+        if (a < b) {
+            return 1; // Neither is NaN, a is smaller
+        }
+        if (a > b) {
+            return -1;  // Neither is NaN, a is larger
+        }
+        return 0;
+    }
 
     public static Comparator<Shape> ZAscendingComparator = new Comparator<Shape>() {
         @Override
         public int compare(final Shape s1, final Shape s2) {
-            return compare1( s1.getAscendingZ(), s2.getAscendingZ() );
-            // return Float.compare( s1.getAscendingZ(), s2.getAscendingZ() );
+            return compareAsc1( s1.getAdjustedZ(), s2.getAdjustedZ() );
         } };
 
     public static Comparator<Shape> ZDescendingComparator = new Comparator<Shape>() {
         @Override
         public int compare(final Shape s1, final Shape s2) {
-            return compare1( s2.getDescendingZ(), s1.getDescendingZ() );
-            // return Float.compare( s2.getDescendingZ(), s1.getDescendingZ() );
+            return compareDesc1( s2.getAdjustedZ(), s1.getAdjustedZ() );
         } };
 
     //
