@@ -95,7 +95,7 @@ public abstract class Region {
      */
     public static final int VBAA_RENDERING_BIT        = 1 <<  1;
 
-    /** Rendering bit-mask including {@link #MSAA_RENDERING_BIT} and {@link #VBAA_RENDERING_BIT}. */
+    /** 2-pass rendering bit-mask including {@link #MSAA_RENDERING_BIT} and {@link #VBAA_RENDERING_BIT}. */
     public static final int AA_RENDERING_MASK         = MSAA_RENDERING_BIT | VBAA_RENDERING_BIT;
 
     /**
