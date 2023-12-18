@@ -370,7 +370,7 @@ public class UILayoutBox01 {
         ++id;
 
         if( true ) {
-            final Group g = fillDemoGroup(new Group( new BoxLayout( 1f, 1f, Alignment.Center, new Margin(), padding ) ),
+            final Group g = fillDemoGroup(new Group( new BoxLayout( 1f, 1f, Alignment.Center, Margin.None, padding ) ),
                                           reqGLP, scene, zEps, sxy, nextPos, font, id, dragZoomRotateListener);
             groups.add(g);
         }

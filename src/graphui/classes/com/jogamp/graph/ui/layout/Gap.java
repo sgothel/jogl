@@ -36,15 +36,15 @@ import com.jogamp.math.FloatUtil;
  * </p>
  */
 public class Gap {
+    /** Zero gap constant. */
+    public static final Gap None = new Gap();
+
     /** Row gap value, vertical spacing. */
     public final float row;
     /** Column gap value, horizontal spacing. */
     public final float column;
 
-    /**
-     * Ctor w/ zero values
-     */
-    public Gap() {
+    private Gap() {
         row = 0f; column = 0f;
     }
 

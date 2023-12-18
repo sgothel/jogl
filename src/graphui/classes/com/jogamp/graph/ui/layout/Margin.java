@@ -39,6 +39,9 @@ import com.jogamp.math.FloatUtil;
  * </p>
  */
 public class Margin {
+    /** Zero margin constant. */
+    public static final Margin None = new Margin();
+
     /** Top value */
     public final float top;
     /** Right value */
@@ -48,10 +51,7 @@ public class Margin {
     /** Left value */
     public final float left;
 
-    /**
-     * Ctor w/ zero values
-     */
-    public Margin() {
+    private Margin() {
         this(0f);
     }
 

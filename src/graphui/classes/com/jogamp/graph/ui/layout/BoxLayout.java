@@ -62,7 +62,7 @@ public class BoxLayout implements Group.Layout {
     /**
      */
     public BoxLayout() {
-        this(0f, 0f, Alignment.None, new Margin(), null);
+        this(0f, 0f, Alignment.None, Margin.None, null);
     }
 
     /**
@@ -70,11 +70,11 @@ public class BoxLayout implements Group.Layout {
      * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final Padding padding) {
-        this(0f, 0f, Alignment.None, new Margin(), padding);
+        this(0f, 0f, Alignment.None, Margin.None, padding);
     }
 
     public BoxLayout(final float cellWidth, final float cellHeight) {
-        this(cellWidth, cellHeight, Alignment.None, new Margin(), null);
+        this(cellWidth, cellHeight, Alignment.None, Margin.None, null);
     }
 
     /**
@@ -84,7 +84,7 @@ public class BoxLayout implements Group.Layout {
      * @param alignment
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Alignment alignment) {
-        this(cellWidth, cellHeight, alignment, new Margin(), null);
+        this(cellWidth, cellHeight, alignment, Margin.None, null);
     }
 
     /**
@@ -104,7 +104,7 @@ public class BoxLayout implements Group.Layout {
      * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Padding padding) {
-        this(cellWidth, cellHeight, Alignment.None, new Margin(), padding);
+        this(cellWidth, cellHeight, Alignment.None, Margin.None, padding);
     }
 
     /**
@@ -136,7 +136,7 @@ public class BoxLayout implements Group.Layout {
      * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Padding padding) {
-        this(cellWidth, cellHeight, alignment, new Margin(), padding);
+        this(cellWidth, cellHeight, alignment, Margin.None, padding);
     }
 
     /**

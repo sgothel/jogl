@@ -80,7 +80,7 @@ public class GridLayout implements Group.Layout {
      * @param alignment TODO
      */
     public GridLayout(final int column_limit, final float cellWidth, final float cellHeight, final Alignment alignment) {
-        this(alignment, Math.max(1, column_limit), -1, cellWidth, cellHeight, new Gap(), null);
+        this(alignment, Math.max(1, column_limit), -1, cellWidth, cellHeight, Gap.None, null);
     }
 
     /**
@@ -116,7 +116,7 @@ public class GridLayout implements Group.Layout {
      * @param row_limit [1..inf)
      */
     public GridLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final int row_limit) {
-        this(alignment, -1, Math.max(1, row_limit), cellWidth, cellHeight, new Gap(), null);
+        this(alignment, -1, Math.max(1, row_limit), cellWidth, cellHeight, Gap.None, null);
     }
 
     /**

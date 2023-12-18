@@ -257,7 +257,7 @@ public abstract class GraphShape extends Shape {
 
     static protected void addRectangle(final Region region, final float sharpness, final AABBox box, final Padding padding, final float borderThickness, final Vec4f color) {
         final OutlineShape shape = new OutlineShape();
-        final Padding p = null != padding ? padding : new Padding();
+        final Padding p = null != padding ? padding : Padding.None;
         final float x1 = box.getMinX() - p.left;
         final float x2 = box.getMaxX() + p.right;
         final float y1 = box.getMinY() - p.bottom;

@@ -36,6 +36,9 @@ import com.jogamp.math.FloatUtil;
  * </p>
  */
 public class Padding {
+    /** Zero padding constant. */
+    public static final Padding None = new Padding();
+
     /** Top value */
     public final float top;
     /** Right value */
@@ -45,10 +48,7 @@ public class Padding {
     /** Left value */
     public final float left;
 
-    /**
-     * Ctor w/ zero values
-     */
-    public Padding() {
+    private Padding() {
         this(0f);
     }
 
