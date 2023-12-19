@@ -138,7 +138,7 @@ public abstract class Shape {
 
     private static final int DIRTY_SHAPE    = 1 << 0 ;
     private static final int DIRTY_STATE    = 1 << 1 ;
-    
+
     private Group parent;
     protected final AABBox box;
 
@@ -207,7 +207,7 @@ public abstract class Shape {
         this.box = new AABBox();
     }
 
-    /* pp */ void setParent(final Group c) { parent = c; }
+    protected void setParent(final Group c) { parent = c; }
     /**
      * Returns the last parent container {@link Group} this shape has been added to or {@code null}.
      * <p>
@@ -216,15 +216,15 @@ public abstract class Shape {
      * </p>
      */
     public Group getParent() { return parent; }
-    
+
     /** Set a symbolic ID for this shape for identification. Default is -1 for noname. */
     public final Shape setID(final int id) { this.id = id; return this; }
     /** Return the optional symbolic ID for this shape. */
     public final int getID() { return this.id; }
 
-    /** Set a symbolic name for this shape for identification. Default is noname. */
-    public final Shape setName(final String name) { this.name = name; return this; }
-    /** Return the optional symbolic name for this shape. */
+    /** Set a symbolic name for this shape for identification. Default is `noname`. */
+    public Shape setName(final String name) { this.name = name; return this; }
+    /** Return the optional symbolic name for this shape, defaults to `noname`. */
     public final String getName() { return this.name; }
 
     /** Returns true if this shape denotes a {@link Group}, otherwise false. */
