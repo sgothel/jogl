@@ -47,7 +47,7 @@ import com.jogamp.graph.ui.layout.GridLayout;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.graph.ui.shapes.Rectangle;
-import com.jogamp.graph.ui.widgets.MediaUI01;
+import com.jogamp.graph.ui.widgets.MediaPlayer;
 import com.jogamp.math.Vec2i;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.KeyAdapter;
@@ -246,7 +246,7 @@ public class UIMediaGrid01 {
                         if( GLMediaPlayer.State.Paused == mPlayer.getState() ) {
                             mPlayer.resume();
                         } else if(GLMediaPlayer.State.Uninitialized == mPlayer.getState()) {
-                            mPlayer.playStream(mPlayer.getUri(), GLMediaPlayer.STREAM_ID_AUTO, aid, MediaUI01.MediaTexCount);
+                            mPlayer.playStream(mPlayer.getUri(), GLMediaPlayer.STREAM_ID_AUTO, aid, MediaPlayer.TexCount);
                         } else if( e.isShiftDown() ) {
                             mPlayer.stop();
                         } else {
@@ -292,15 +292,15 @@ public class UIMediaGrid01 {
 
             final List<Shape> customCtrls = new ArrayList<Shape>();
             if( true ) {
-                final Font fontSymbols = MediaUI01.getSymbolsFont();
+                final Font fontSymbols = MediaPlayer.getSymbolsFont();
                 if( null == fontSymbols ) {
                     grid.addShape( new Rectangle(options.renderModes, defRatio, 1, 0.10f) );
                     return;
                 }
                 final Button button = new Button(options.renderModes, fontSymbols,
-                        fontSymbols.getUTF16String("reset_tv"), MediaUI01.CtrlButtonWidth, MediaUI01.CtrlButtonHeight, scene.getZEpsilon(16));
+                        fontSymbols.getUTF16String("reset_tv"), MediaPlayer.CtrlButtonWidth, MediaPlayer.CtrlButtonHeight, scene.getZEpsilon(16));
                 button.setName("reset");
-                button.setSpacing(MediaUI01.SymSpacing, MediaUI01.FixedSymSize).setPerp().setColor(MediaUI01.CtrlCellCol);
+                button.setSpacing(MediaPlayer.SymSpacing, MediaPlayer.FixedSymSize).setPerp().setColor(MediaPlayer.CtrlCellCol);
                 button.onClicked((final Shape s0) -> {
                     scene.forAll((final Shape s1) -> {
                        System.err.println("- "+s1.getName());
@@ -323,7 +323,7 @@ public class UIMediaGrid01 {
                 });
                 customCtrls.add(button);
             }
-            grid.addShape( MediaUI01.create(scene, mPlayer, options.renderModes, medium, aid, defRatio, letterBox, zoomSize, customCtrls) );
+            grid.addShape( new MediaPlayer(options.renderModes, scene, mPlayer, medium, aid, defRatio, letterBox, zoomSize, customCtrls) );
         }
     }
     private static boolean printNativeInfoOnce = true;

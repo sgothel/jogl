@@ -50,6 +50,7 @@ import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.graph.ui.shapes.Rectangle;
+import com.jogamp.graph.ui.widgets.RangeSlider.SliderListener;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
@@ -68,14 +69,14 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /**
- * UI Media player factory, embedding a {@link MediaButton} and its controls within a {@link Group}.
- * @see MediaUI01#create(Scene, GLMediaPlayer, int, Uri, int, float, boolean, float, List)
+ * Media player {@link Widget}, embedding a {@link MediaButton} and its controls.
+ * @see #MediaPlayer(int, Scene, GLMediaPlayer, Uri, int, float, boolean, float, List)
  */
-public class MediaUI01 {
-    public static final int MediaTexUnitMediaPlayer = 1;
+public class MediaPlayer extends Widget {
+    public static final int TexUnit = 1;
 
     /** Default texture count, value {@value}, same as {@link GLMediaPlayer#TEXTURE_COUNT_DEFAULT}. */
-    public static final int MediaTexCount = GLMediaPlayer.TEXTURE_COUNT_DEFAULT;
+    public static final int TexCount = GLMediaPlayer.TEXTURE_COUNT_DEFAULT;
 
     public static final Vec2f FixedSymSize = new Vec2f(0.0f, 1.0f);
     public static final Vec2f SymSpacing = new Vec2f(0f, 0.2f);
@@ -83,30 +84,11 @@ public class MediaUI01 {
     public static final float CtrlButtonHeight = 1f;
     public static final Vec4f CtrlCellCol = new Vec4f(0, 0, 0, 0);
 
-    /** Returns the used info font or null if n/a */
-    public static Font getInfoFont() {
-        try {
-            return FontFactory.get(FontFactory.UBUNTU).getDefault();
-        } catch(final IOException ioe) {
-            ioe.printStackTrace();
-            return null;
-        }
-    }
-    /** Returns the used symbols font or null if n/a */
-    public static Font getSymbolsFont() {
-        try {
-            return FontFactory.get(FontFactory.SYMBOLS).getDefault();
-        } catch(final IOException ioe) {
-            ioe.printStackTrace();
-            return null;
-        }
-    }
-
     /**
-     * Returns a {@link Group} containing a {@link MediaButton} and its controls.
+     * Constructs a {@link MediaPlayer}, i.e. its shapes and controls.
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param scene the used {@link Scene} to query parameter and access rendering loop
      * @param mPlayer fresh {@link GLMediaPlayer} instance, maybe customized via e.g. {@link GLMediaPlayer#setTextureMinMagFilter(int[])}.
-     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param medium {@link Uri} stream source, either a file or network source
      * @param aid audio-id to start playing, may use {@link GLMediaPlayer#STREAM_ID_AUTO}
      * @param aratio aspect ratio of the resulting {@link Shape}, usually 16.0f/9.0f or 4.0f/3.0f, which also denotes the width of this shape while using height 1.0.
@@ -114,14 +96,16 @@ public class MediaUI01 {
      * @param zoomSize zoom-size (0..1] for zoom-out control
      * @param customCtrls optional custom controls, maybe an empty list
      */
-    public static Shape create(final Scene scene, final GLMediaPlayer mPlayer, final int renderModes,
-                               final Uri medium, final int aid,
-                               final float aratio, final boolean letterBox, final float zoomSize,
-                               final List<Shape> customCtrls)
+    public MediaPlayer(final int renderModes, final Scene scene, final GLMediaPlayer mPlayer,
+                       final Uri medium, final int aid,
+                       final float aratio, final boolean letterBox, final float zoomSize,
+                       final List<Shape> customCtrls)
     {
+        super( new BoxLayout(aratio, 1, Alignment.None) );
+
         final Font fontInfo = getInfoFont(), fontSymbols = getSymbolsFont();
         if( null == fontInfo || null == fontSymbols ) {
-            return new Rectangle(renderModes, aratio, 1, 0.10f);
+            return;
         }
         final float borderSz = 0.01f;
         final float borderSzS = 0.03f;
@@ -137,23 +121,35 @@ public class MediaUI01 {
 
         final float ctrlCellWidth = (aratio-2*borderSzS)/ctrlCells;
         final float ctrlCellHeight = ctrlCellWidth;
+        final float ctrlSliderHeight = ctrlCellHeight/15f;
 
         final Shape[] zoomReplacement = { null };
         final Vec3f[] zoomOrigScale = { null };
         final Vec3f[] zoomOrigPos = { null };
 
-        final Group container = new Group(new BoxLayout(aratio, 1, Alignment.None));
-        container.setName("container");
-        container.setBorderColor(borderColor).setBorder(borderSz);
-        container.setInteractive(true).setFixedARatioResize(true);
+        this.setName("mp.container");
+        this.setBorderColor(borderColor).setBorder(borderSz);
+        this.setInteractive(true).setFixedARatioResize(true);
 
         final MediaButton mButton = new MediaButton(renderModes, aratio, 1, mPlayer);
-        mButton.setName("mButton").setInteractive(false);
+        mButton.setName("mp.mButton").setInteractive(false);
         mButton.setPerp().setPressedColorMod(1f, 1f, 1f, 0.85f);
+
+        final RangeSlider ctrlSlider = new RangeSlider(renderModes, aratio, ctrlSliderHeight, 4.0f, 0, 100, 0);
+        {
+            final float dy = ( ctrlSlider.getKnobSize() - ctrlSliderHeight ) * 0.5f;
+            ctrlSlider.setPaddding(new Padding(0, 0, ctrlCellHeight-dy, 0));
+        }
+        ctrlSlider.setName("mp.slider");
+
+        final Button playButton = new Button(renderModes, fontSymbols,
+                fontSymbols.getUTF16String("play_arrow"),  fontSymbols.getUTF16String("pause"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
+        playButton.setName("mp.play");
+        playButton.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
 
         // mButton.setBorderColor(borderNormal).setBorder(borderSz);
         {
-            mPlayer.setTextureUnit(MediaTexUnitMediaPlayer);
+            mPlayer.setTextureUnit(TexUnit);
             mButton.setVerbose(false).addDefaultEventListener().setTextureLetterbox(letterBox);
             mPlayer.setAudioVolume( 0f );
             mPlayer.addEventListener( new GLMediaEventListener() {
@@ -166,6 +162,11 @@ public class MediaUI01 {
                     // System.err.println("MediaButton State: "+mp);
                     if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
                         System.err.println(mp.toString());
+                        ctrlSlider.setMinMax(0, mp.getDuration(), 0);
+                    } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
+                        playButton.setToggle(true);
+                    } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Pause) ) {
+                        playButton.setToggle(false);
                     }
                     if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
                         final StreamException err = mp.getStreamException();
@@ -184,8 +185,8 @@ public class MediaUI01 {
                     }
                 }
             });
-            mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, MediaTexCount);
-            container.addShape(mButton);
+            mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, TexCount);
+            this.addShape(mButton);
         }
 
         Group ctrlGroup, infoGroup;
@@ -194,7 +195,7 @@ public class MediaUI01 {
         final Button timeLabel;
         {
             muteLabel = new Label(renderModes, fontSymbols, aratio/6f, fontSymbols.getUTF16String("music_off")); // volume_mute, headset_off
-            muteLabel.setName("muteLabel");
+            muteLabel.setName("mp.mute");
             {
                 final float sz = aratio/6f;
                 muteLabel.setColor(1, 0, 0, 1);
@@ -202,25 +203,25 @@ public class MediaUI01 {
 
                 muteLabel.setInteractive(false);
                 muteLabel.setVisible( mPlayer.isAudioMuted() );
-                container.addShape(muteLabel);
+                this.addShape(muteLabel);
             }
 
             infoGroup = new Group(new BoxLayout());
-            infoGroup.setName("infoGroup").setInteractive(false);
-            container.addShape( infoGroup.setVisible(false) );
+            infoGroup.setName("mp.info").setInteractive(false);
+            this.addShape( infoGroup.setVisible(false) );
             {
                 final float sz = 1/7f;
-                final Rectangle rect = new Rectangle(renderModes, aratio, sz, sz/2f);
-                rect.setName("info.blend").setInteractive(false);
+                final Rectangle rect = new Rectangle(renderModes, aratio, sz, 0);
+                rect.setName("mp.info.blend").setInteractive(false);
                 rect.setColor(0, 0, 0, alphaBlend);
                 rect.setPaddding(new Padding(0, 0, 1f-sz, 0));
                 infoGroup.addShape(rect);
             }
             {
                 final int lines = 3;
-                final String text = getInfo(mPlayer, false);
+                final String text = getInfo(Clock.currentMillis(), mPlayer, false);
                 infoLabel = new Label(renderModes, fontInfo, aratio/40f, text);
-                infoLabel.setName("infoLabel");
+                infoLabel.setName("mp.info.label");
                 final float szw = aratio/40f;
                 infoLabel.setPaddding(new Padding(0, 0, 1f-szw*lines, szw));
                 infoLabel.setInteractive(false);
@@ -229,8 +230,8 @@ public class MediaUI01 {
             }
             {
                 timeLabel = new Button(renderModes, fontInfo,
-                        getMultilineTime(mPlayer), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
-                timeLabel.setName("timeLabel");
+                        getMultilineTime(Clock.currentMillis(), mPlayer), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
+                timeLabel.setName("mp.time");
                 timeLabel.setPerp().setColor(CtrlCellCol);
                 timeLabel.setLabelColor(1, 1, 1);
             }
@@ -240,43 +241,70 @@ public class MediaUI01 {
                 public void display(final GLAutoDrawable drawable) {
                     final GLAnimatorControl anim = drawable.getAnimator();
                     if( ( timeLabel.isVisible() || infoLabel.isVisible() ) &&
-                        mPlayer.getState() != GLMediaPlayer.State.Uninitialized && null != anim )
+                        mPlayer.getState() == GLMediaPlayer.State.Playing && null != anim )
                     {
                         final long t1 = anim.getTotalFPSDuration();
-                        if( t1 - t0 >= 300) {
+                        if( t1 - t0 >= 333) {
                             t0 = t1;
-                            infoLabel.setText(getInfo(mPlayer, false));
-                            timeLabel.setText(getMultilineTime(mPlayer));
+                            final int ptsMS = mPlayer.getPTS().get(Clock.currentMillis());
+                            final int durationMS = mPlayer.getDuration();
+                            infoLabel.setText(getInfo(ptsMS, durationMS, mPlayer, false));
+                            timeLabel.setText(getMultilineTime(ptsMS, durationMS));
+                            ctrlSlider.setValue(ptsMS);
                         }
                     }
                 }
             } );
+            ctrlSlider.onSlider(new SliderListener() {
+                private void seekPlayer(final int ptsMS) {
+                    final int durationMS = mPlayer.getDuration();
+                    timeLabel.setText(getMultilineTime(ptsMS, durationMS));
+                    mPlayer.seek(ptsMS);
+                }
+                @Override
+                public void clicked(final RangeSlider w, final MouseEvent e) {
+                    System.err.println("Clicked "+w.getName()+": "+millisToTimeStr(Math.round(w.getValue()), true)+"ms, "+(w.getValuePct()*100f)+"%");
+                    seekPlayer( Math.round( w.getValue() ) );
+                }
+                @Override
+                public void pressed(final RangeSlider w, final MouseEvent e) {
+                    // mPlayer.pause(false);
+                    // seekPlayer( Math.round( w.getValue() ) );
+                }
 
+                @Override
+                public void released(final RangeSlider w, final MouseEvent e) {
+                    // seekPlayer( Math.round( w.getValue() ) );
+                    // mPlayer.resume();
+                }
 
-            ctrlBlend = new Rectangle(renderModes, aratio, ctrlCellHeight, ctrlCellHeight/2f);
+                @Override
+                public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
+                    System.err.println("Dragged "+w.getName()+": "+millisToTimeStr(Math.round(val), true)+"ms, "+(val_pct*100f)+"%");
+                    seekPlayer( Math.round( val ) );
+                }
+            });
+            this.addShape( ctrlSlider.setVisible(false) );
+
+            ctrlBlend = new Rectangle(renderModes, aratio, ctrlCellHeight, 0);
             ctrlBlend.setName("ctrl.blend").setInteractive(false);
             ctrlBlend.setColor(0, 0, 0, alphaBlend);
-            ctrlBlend.setPaddding(new Padding(0, 0, 0, 0));
-            container.addShape( ctrlBlend.setVisible(false) );
+            this.addShape( ctrlBlend.setVisible(false) );
 
             ctrlGroup = new Group(new GridLayout(ctrlCellWidth, ctrlCellHeight, Alignment.FillCenter, Gap.None, 1));
             ctrlGroup.setName("ctrlGroup").setInteractive(false);
             ctrlGroup.setPaddding(new Padding(0, borderSzS, 0, borderSzS));
-            container.addShape( ctrlGroup.move(0, 0, ctrlZOffset).setVisible(false) );
+            this.addShape( ctrlGroup.move(0, 0, ctrlZOffset).setVisible(false) );
             { // 1
-                final Button button = new Button(renderModes, fontSymbols,
-                        fontSymbols.getUTF16String("play_arrow"),  fontSymbols.getUTF16String("pause"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
-                button.setName("play");
-                button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
-                button.onToggle((final Shape s) -> {
+                playButton.onToggle((final Shape s) -> {
                     if( s.isToggleOn() ) {
                         mPlayer.resume();
                     } else {
                         mPlayer.pause(false);
                     }
                 });
-                button.setToggle(true); // on == play
-                ctrlGroup.addShape(button);
+                playButton.setToggle(true); // on == play
+                ctrlGroup.addShape(playButton);
             }
             { // 2
                 final Button button = new Button(renderModes, fontSymbols,
@@ -384,53 +412,48 @@ public class MediaUI01 {
                 button.onToggle( (final Shape s) -> {
                     if( s.isToggleOn() ) {
                         final AABBox sbox = scene.getBounds();
-                        final Group parent = container.getParent();
+                        final Group parent = this.getParent();
                         if( null != parent ) {
                             zoomReplacement[0] = new Label(renderModes, fontInfo, aratio/40f, "zoomed");
-                            final boolean r = parent.replaceShape(container, zoomReplacement[0]);
+                            final boolean r = parent.replaceShape(this, zoomReplacement[0]);
                             if( r ) {
-                                System.err.println("Zoom1: "+parent);
-                                final float sxy = sbox.getWidth() * zoomSize / container.getScaledWidth();
-                                scene.addShape(container);
-                                System.err.println("cont1 "+container);
-                                System.err.println("cbox1 "+container.getBounds());
-                                System.err.println("sbox1 "+sbox);
-                                System.err.println("sxy1 "+sxy);
-                                container.scale(sxy, sxy, 1f);
-                                container.moveTo(sbox.getLow()).move(sbox.getWidth() * ( 1f - zoomSize )/2.0f, sbox.getHeight() * ( 1f - zoomSize )/2.0f, ctrlZOffset);
+                                // System.err.println("Zoom1: p "+parent);
+                                // System.err.println("Zoom1: t "+this);
+                                final float sxy = sbox.getWidth() * zoomSize / this.getScaledWidth();
+                                scene.addShape(this);
+                                this.scale(sxy, sxy, 1f);
+                                this.moveTo(sbox.getLow()).move(sbox.getWidth() * ( 1f - zoomSize )/2.0f, sbox.getHeight() * ( 1f - zoomSize )/2.0f, ctrlZOffset);
                             } else {
-                                System.err.println("Zoom1: failed");
+                                System.err.println("Zoom1: failed "+this);
                             }
                         } else {
-                            zoomOrigScale[0] = container.getScale().copy();
-                            zoomOrigPos[0] = container.getPosition().copy();
-                            System.err.println("Zoom2: top");
-                            final float sxy = sbox.getWidth() * zoomSize / container.getScaledWidth();
-                            System.err.println("cont2 "+container);
-                            System.err.println("cbox2 "+container.getBounds());
-                            System.err.println("sbox2 "+sbox);
-                            System.err.println("sxy2 "+sxy);
-                            container.scale(sxy, sxy, 1f);
-                            container.moveTo(sbox.getLow()).move(sbox.getWidth() * ( 1f - zoomSize )/2.0f, sbox.getHeight() * ( 1f - zoomSize )/2.0f, ctrlZOffset);
+                            zoomOrigScale[0] = this.getScale().copy();
+                            zoomOrigPos[0] = this.getPosition().copy();
+                            // System.err.println("Zoom2: top");
+                            // System.err.println("Zoom2: t "+this);
+                            final float sxy = sbox.getWidth() * zoomSize / this.getScaledWidth();
+                            this.scale(sxy, sxy, 1f);
+                            this.moveTo(sbox.getLow()).move(sbox.getWidth() * ( 1f - zoomSize )/2.0f, sbox.getHeight() * ( 1f - zoomSize )/2.0f, ctrlZOffset);
                         }
                     } else {
                         if( null != zoomReplacement[0] ) {
                             final Group parent = zoomReplacement[0].getParent();
-                            container.moveTo(0, 0, 0);
-                            parent.replaceShape(zoomReplacement[0], container);
+                            scene.removeShape(this);
+                            this.moveTo(0, 0, 0);
+                            parent.replaceShape(zoomReplacement[0], this);
                             scene.invoke(true, (drawable) -> {
                                 final GL2ES2 gl = drawable.getGL().getGL2ES2();
                                 zoomReplacement[0].destroy(gl, scene.getRenderer());
                                 return true;
                             });
                             zoomReplacement[0] = null;
-                            System.err.println("Reset1: "+parent);
+                            // System.err.println("Reset1: "+parent);
                         } else if( null != zoomOrigScale[0] && null != zoomOrigPos[0] ){
-                            container.scale(zoomOrigScale[0]);
-                            container.moveTo(zoomOrigPos[0]);
+                            this.scale(zoomOrigScale[0]);
+                            this.moveTo(zoomOrigPos[0]);
                             zoomOrigScale[0] = null;
                             zoomOrigPos[0] = null;
-                            System.err.println("Reset2: top");
+                            // System.err.println("Reset2: top");
                         }
                     }
                 });
@@ -441,25 +464,27 @@ public class MediaUI01 {
                 ctrlGroup.addShape(cs);
             }
         }
-        container.setWidgetMode(true);
+        this.setWidgetMode(true);
 
-        container.onActivation( (final Shape s) -> {
-            if( container.isActive() ) {
-                container.setBorderColor(borderColorA);
+        this.onActivation( (final Shape s) -> {
+            if( this.isActive() ) {
+                this.setBorderColor(borderColorA);
             } else {
-                container.setBorderColor(borderColor);
+                this.setBorderColor(borderColor);
             }
-            if( ctrlGroup.isActive() ) {
+            if( ctrlGroup.isActive() || ctrlSlider.isActive() ) {
+                ctrlSlider.setVisible(true);
                 ctrlBlend.setVisible(true);
                 ctrlGroup.setVisible(true);
                 infoGroup.setVisible(true);
             } else {
+                ctrlSlider.setVisible(false);
                 ctrlBlend.setVisible(false);
                 ctrlGroup.setVisible(false);
                 infoGroup.setVisible(false);
             }
         });
-        container.addMouseListener(new Shape.MouseGestureAdapter() {
+        this.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
             public void mouseReleased(final MouseEvent e) {
                 mButton.setPressedColorMod(1f, 1f, 1f, 1f);
@@ -469,8 +494,28 @@ public class MediaUI01 {
                 mButton.setPressedColorMod(1f, 1f, 1f, 0.85f);
             }
         } );
-        container.forAll((final Shape s) -> { s.setDraggable(false).setResizable(false); return false; });
-        return container;
+        this.forAll((final Shape s) -> { s.setDraggable(false).setResizable(false); return false; });
+        ctrlSlider.getKnob().setDraggable(true);
+    }
+
+    /** Returns the used info font or null if n/a */
+    public static Font getInfoFont() {
+        try {
+            return FontFactory.get(FontFactory.UBUNTU).getDefault();
+        } catch(final IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        }
+    }
+
+    /** Returns the used symbols font or null if n/a */
+    public static Font getSymbolsFont() {
+        try {
+            return FontFactory.get(FontFactory.SYMBOLS).getDefault();
+        } catch(final IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        }
     }
 
     public static String millisToTimeStr(final long millis, final boolean addFractions) {
@@ -502,7 +547,10 @@ public class MediaUI01 {
             }
         }
     }
-    public static String getInfo(final GLMediaPlayer mPlayer, final boolean full) {
+    public static String getInfo(final long currentMillis, final GLMediaPlayer mPlayer, final boolean full) {
+        return getInfo(mPlayer.getPTS().get(currentMillis), mPlayer.getDuration(), mPlayer, full);
+    }
+    public static String getInfo(final int ptsMS, final int durationMS, final GLMediaPlayer mPlayer, final boolean full) {
         final String name;
         {
             final String basename;
@@ -521,12 +569,10 @@ public class MediaUI01 {
             }
         }
         final float aspect = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
-        final int pts = mPlayer.getPTS().get(Clock.currentMillis());
-        final long duration = mPlayer.getDuration();
-        final float pct = (float)pts / (float)duration;
+        final float pct = (float)ptsMS / (float)durationMS;
         if( full ) {
             final String text1 = String.format("%s / %s (%.0f %%), %s (%01.1fx, vol %1.2f), A/R %0.2f, fps %02.1f",
-                    millisToTimeStr(pts, false), millisToTimeStr(duration, false), pct*100,
+                    millisToTimeStr(ptsMS, false), millisToTimeStr(durationMS, false), pct*100,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect, mPlayer.getFramerate());
             final String text2 = String.format("audio: id %d, kbps %d, codec %s",
                     mPlayer.getAID(), mPlayer.getAudioBitrate()/1000, mPlayer.getAudioCodec());
@@ -535,17 +581,17 @@ public class MediaUI01 {
             return text1+"\n"+text2+"\n"+text3+"\n"+name;
         } else {
             final String text1 = String.format("%s / %s (%.0f %%), %s (%01.1fx, vol %1.2f), A/R %.2f",
-                    millisToTimeStr(pts, false), millisToTimeStr(duration, false), pct*100,
+                    millisToTimeStr(ptsMS, false), millisToTimeStr(durationMS, false), pct*100,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect);
             return text1+"\n"+name;
         }
     }
-    public static String getMultilineTime(final GLMediaPlayer mPlayer) {
-        final int pts = mPlayer.getPTS().get(Clock.currentMillis());
-        final long duration = mPlayer.getDuration();
-        final float pct = (float)pts / (float)duration;
-        return String.format("%.0f %%%n%s%n%s",
-                    pct*100, millisToTimeStr(pts, false), millisToTimeStr(duration, false));
+    public static String getMultilineTime(final long currentMillis, final GLMediaPlayer mPlayer) {
+        return getMultilineTime(mPlayer.getPTS().get(currentMillis), mPlayer.getDuration());
     }
-
+    public static String getMultilineTime(final int ptsMS, final int durationMS) {
+        final float pct = (float)ptsMS / (float)durationMS;
+        return String.format("%.0f %%%n%s%n%s",
+                    pct*100, millisToTimeStr(ptsMS, false), millisToTimeStr(durationMS, false));
+    }
 }
