@@ -366,27 +366,32 @@ public abstract class Shape {
      */
     public final void onClicked(final Listener l) { onClickedListener = l; }
 
-    /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. */
+    /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. No {@link MoveListener} notification will occur. */
     public final Shape moveTo(final float tx, final float ty, final float tz) {
-        forwardMove(position.copy(), position.set(tx, ty, tz));
+        position.set(tx, ty, tz);
         return this;
     }
 
-    /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. */
+    /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. No {@link MoveListener} notification will occur. */
     public final Shape moveTo(final Vec3f t) {
-        forwardMove(position.copy(), position.set(t));
+        position.set(t);
         return this;
     }
 
-    /** Move about scaled distance. Position ends up in PMVMatrix4f unmodified. */
+    /** Move about scaled distance. Position ends up in PMVMatrix4f unmodified. No {@link MoveListener} notification will occur. */
     public final Shape move(final float dtx, final float dty, final float dtz) {
+        position.add(dtx, dty, dtz);
+        return this;
+    }
+
+    private final Shape moveNotify(final float dtx, final float dty, final float dtz) {
         forwardMove(position.copy(), position.add(dtx, dty, dtz));
         return this;
     }
 
-    /** Move about scaled distance. Position ends up in PMVMatrix4f unmodified. */
+    /** Move about scaled distance. Position ends up in PMVMatrix4f unmodified. No {@link MoveListener} notification will occur. */
     public final Shape move(final Vec3f dt) {
-        forwardMove(position.copy(), position.add(dt));
+        position.add(dt);
         return this;
     }
 
@@ -1584,9 +1589,9 @@ public abstract class Shape {
                                     scale, sx, sy);
                         }
                         if( isIO(IO_IN_RESIZE_BR) ) {
-                            move(   0, sdy2, 0f); // bottom-right, sticky left- and top-edge
+                            moveNotify(   0, sdy2, 0f); // bottom-right, sticky left- and top-edge
                         } else {
-                            move( sdx, sdy2, 0f); // bottom-left, sticky right- and top-edge
+                            moveNotify( sdx, sdy2, 0f); // bottom-left, sticky right- and top-edge
                         }
                         setScale(sx, sy, scale.z());
                     }
@@ -1597,7 +1602,7 @@ public abstract class Shape {
                                 glWinX, glWinY, shapeEvent.winDrag[0], shapeEvent.winDrag[1],
                                 x_flip, y_flip, objPos, shapeEvent.objDrag, euler);
                     }
-                    move( sdx, sdy, 0f);
+                    moveNotify( sdx, sdy, 0f);
                     return true; // end signal traversal with completed move
                 }
             }
@@ -1668,7 +1673,7 @@ public abstract class Shape {
                     System.err.printf("PinchZoom: pixels %f, win %4d/%4d, obj %s, %s + %.3f/%.3f -> %.3f/%.3f%n",
                             pixels, glWinX, glWinY, objPos, position, dx, dy, sx, sy);
                 }
-                // move(dx, dy, 0f);
+                // moveNotify(dx, dy, 0f);
                 setScale(sx, sy, scale.z());
             }
             return; // FIXME: pass through event? Issue zoom event?
