@@ -296,34 +296,38 @@ public abstract class Shape {
 
     /**
      * Clears all data and reset all states as if this instance was newly created
-     * @param gl TODO
-     * @param renderer TODO
+     * @param gl current {@link GL2ES2} instance used to release GPU resources
+     * @param renderer {@link RegionRenderer} used to release GPU resources
      */
     public final void clear(final GL2ES2 gl, final RegionRenderer renderer) {
         synchronized ( dirtySync ) {
             clearImpl0(gl, renderer);
-            position.set(0f, 0f, 0f);
-            rotation.setIdentity();
-            rotPivot = null;
-            scale.set(1f, 1f, 1f);
-            box.reset();
-            markShapeDirty();
+            resetState();
         }
     }
-
-    /**
-     * Destroys all data
-     * @param gl
-     * @param renderer
-     */
-    public final void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
-        destroyImpl0(gl, renderer);
+    private final void resetState() {
         position.set(0f, 0f, 0f);
         rotation.setIdentity();
         rotPivot = null;
         scale.set(1f, 1f, 1f);
         box.reset();
+        mouseListeners.clear();
+        onInitListener = null;
+        onMoveListener = null;
+        onToggleListener = null;
+        onActivationListener = null;
+        onClickedListener = null;
         markShapeDirty();
+    }
+
+    /**
+     * Destroys all data
+     * @param gl current {@link GL2ES2} instance used to release GPU resources
+     * @param renderer {@link RegionRenderer} used to release GPU resources
+     */
+    public final void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
+        destroyImpl0(gl, renderer);
+        resetState();
     }
 
     /**
@@ -1701,8 +1705,10 @@ public abstract class Shape {
      */
     protected abstract void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, Vec4f rgba);
 
+    /** Custom {@link #clear(GL2ES2, RegionRenderer)} task, called 1st. */
     protected abstract void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer);
 
+    /** Custom {@link #destroy(GL2ES2, RegionRenderer)} task, called 1st. */
     protected abstract void destroyImpl0(final GL2ES2 gl, final RegionRenderer renderer);
 
     /**
