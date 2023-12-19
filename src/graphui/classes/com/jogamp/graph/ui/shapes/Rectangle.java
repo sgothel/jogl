@@ -32,6 +32,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.Shape;
+import com.jogamp.math.FloatUtil;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
@@ -57,11 +58,11 @@ public class Rectangle extends GraphShape {
      * @param minY
      * @param width
      * @param height
-     * @param lineWidth
+     * @param lineWidth line thickness, use zero for filled rectangle
      * @param zPos
      */
     public Rectangle(final int renderModes, final float minX, final float minY, final float width, final float height, final float lineWidth, final float zPos) {
-        super(renderModes);
+        super( renderModes & ~Region.AA_RENDERING_MASK );
         this.minX = minX;
         this.minY = minY;
         this.zPos = zPos;
@@ -75,7 +76,7 @@ public class Rectangle extends GraphShape {
      *
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param abox
-     * @param lineWidth
+     * @param lineWidth line thickness, use zero for filled rectangle
      */
     public Rectangle(final int renderModes, final AABBox abox, final float lineWidth) {
         this( renderModes, abox.getMinX(), abox.getMinY(), abox.getWidth(), abox.getHeight(), lineWidth, abox.getCenter().z());
@@ -89,7 +90,7 @@ public class Rectangle extends GraphShape {
      * @param minY
      * @param width
      * @param height
-     * @param lineWidth
+     * @param lineWidth line thickness, use zero for filled rectangle
      */
     public Rectangle(final int renderModes, final float minX, final float minY, final float width, final float height, final float lineWidth) {
         this( renderModes, minX, minY, width, height, lineWidth, 0);
@@ -101,7 +102,7 @@ public class Rectangle extends GraphShape {
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param width
      * @param height
-     * @param lineWidth
+     * @param lineWidth line thickness, use zero for filled rectangle
      */
     public Rectangle(final int renderModes, final float width, final float height, final float lineWidth) {
         this( renderModes, 0, 0, width, height, lineWidth, 0);
@@ -144,9 +145,9 @@ public class Rectangle extends GraphShape {
             shape.lineTo(x1, y2, z);
             shape.lineTo(x1, y1, z);
             shape.closeLastOutline(true);
-            shape.addEmptyOutline();
         }
-        {
+        if( !FloatUtil.isZero(lineWidth) ) {
+            shape.addEmptyOutline();
             // Inner OutlineShape as Winding.CW.
             // final float dxy0 = getWidth() < getHeight() ? getWidth() : getHeight();
             final float dxy = lineWidth; // dxy0 * getDebugBox();
