@@ -226,18 +226,18 @@ public class Group extends Shape implements Container {
     }
 
     @Override
-    protected final void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
         for(final Shape s : shapes) {
-            // s.clearImpl0(gl, renderer);;
-            s.clear(gl, renderer);;
+            // s.clearImpl0(gl, renderer);
+            s.clear(gl, renderer);
         }
     }
 
     @Override
-    protected final void destroyImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
+    protected void destroyImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
         for(final Shape s : shapes) {
             // s.destroyImpl0(gl, renderer);
-            s.destroy(gl, renderer);;
+            s.destroy(gl, renderer);
         }
         if( null != border ) {
             border.destroy(gl, renderer);
