@@ -63,6 +63,8 @@ import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.graph.ui.Shape.Visitor1;
 import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.InputEvent;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.PinchToZoomGesture;
@@ -149,6 +151,7 @@ public final class Scene implements Container, GLEventListener {
     private SBCMouseListener sbcMouseListener = null;
     private SBCGestureListener sbcGestureListener = null;
     private PinchToZoomGesture pinchToZoomGesture = null;
+    private SBCKeyListener sbcKeyListener = null;
 
     final GLReadBufferUtil screenshot;
 
@@ -222,15 +225,15 @@ public final class Scene implements Container, GLEventListener {
     @Override
     public final boolean isFrustumCullingEnabled() { return doFrustumCulling; }
 
-    public void attachGLAutoDrawable(final GLAutoDrawable drawable) {
+    public synchronized void attachGLAutoDrawable(final GLAutoDrawable drawable) {
         cDrawable = drawable;
     }
-    public void detachGLAutoDrawable(final GLAutoDrawable drawable) {
+    public synchronized void detachGLAutoDrawable(final GLAutoDrawable drawable) {
         if( cDrawable == drawable ) {
             cDrawable = null;
         }
     }
-    public void attachInputListenerTo(final GLWindow window) {
+    public synchronized void attachInputListenerTo(final GLWindow window) {
         cDrawable = window;
         if(null == sbcMouseListener) {
             sbcMouseListener = new SBCMouseListener();
@@ -240,9 +243,13 @@ public final class Scene implements Container, GLEventListener {
             pinchToZoomGesture = new PinchToZoomGesture(window.getNativeSurface(), false);
             window.addGestureHandler(pinchToZoomGesture);
         }
+        if(null == sbcKeyListener) {
+            sbcKeyListener = new SBCKeyListener();
+            window.addKeyListener(sbcKeyListener);
+        }
     }
 
-    public void detachInputListenerFrom(final GLWindow window) {
+    public synchronized void detachInputListenerFrom(final GLWindow window) {
         if(null != sbcMouseListener) {
             window.removeMouseListener(sbcMouseListener);
             sbcMouseListener = null;
@@ -250,6 +257,10 @@ public final class Scene implements Container, GLEventListener {
             sbcGestureListener = null;
             window.removeGestureHandler(pinchToZoomGesture);
             pinchToZoomGesture = null;
+        }
+        if(null == sbcKeyListener) {
+            window.removeKeyListener(sbcKeyListener);
+            sbcKeyListener = null;
         }
     }
 
@@ -826,7 +837,20 @@ public final class Scene implements Container, GLEventListener {
      */
     @Override
     public boolean forSortedAll(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
-        return TreeTool.forSortedAll(sortComp, shapes, pmv, v);
+        try {
+            return TreeTool.forSortedAll(sortComp, shapes, pmv, v);
+        } catch (final java.lang.IllegalArgumentException iae) {
+            System.err.println("Caught: "+iae.getMessage());
+            System.err.println("float[] descendingZValues = { ");
+            for(final Shape s : shapes) {
+                final int thisBits = Float.floatToIntBits(s.getAdjustedZ());
+                System.err.println("        Float.intBitsToFloat(0x"+Integer.toHexString(thisBits)+"),");
+            }
+            System.err.println("    };");
+            iae.printStackTrace();
+            throw iae;
+            // return true;
+        }
     }
 
     /**
@@ -1182,6 +1206,21 @@ public final class Scene implements Container, GLEventListener {
             clear();
         }
     }
+    private final class SBCKeyListener implements KeyListener {
+        @Override
+        public void keyPressed(final KeyEvent e) {
+            if( null != activeShape && activeShape.isInteractive() ) {
+                activeShape.dispatchKeyEvent(e);
+            }
+        }
+
+        @Override
+        public void keyReleased(final KeyEvent e) {
+            if( null != activeShape && activeShape.isInteractive() ) {
+                activeShape.dispatchKeyEvent(e);
+            }
+        }
+    }
 
     /**
      * Return a formatted status string containing avg fps and avg frame duration.
@@ -1414,5 +1453,4 @@ public final class Scene implements Container, GLEventListener {
         public float getZFar() { return zFar; }
     };
     private PMVMatrixSetup pmvMatrixSetup = new DefaultPMVMatrixSetup();
-
 }

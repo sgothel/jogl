@@ -47,6 +47,8 @@ import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.event.GestureHandler.GestureEvent;
 import com.jogamp.newt.event.GestureHandler.GestureListener;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.PinchToZoomGesture;
@@ -188,6 +190,7 @@ public abstract class Shape {
     private Padding padding = null;
     private final Vec4f borderColor = new Vec4f(0.0f, 0.0f, 0.0f, 1.0f);
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
+    private ArrayList<KeyListener> keyListeners = new ArrayList<KeyListener>();
 
     private ListenerBool onInitListener = null;
     private MoveListener onMoveListener = null;
@@ -312,6 +315,7 @@ public abstract class Shape {
         scale.set(1f, 1f, 1f);
         box.reset();
         mouseListeners.clear();
+        keyListeners.clear();
         onInitListener = null;
         onMoveListener = null;
         onToggleListener = null;
@@ -1412,6 +1416,28 @@ public abstract class Shape {
         return this;
     }
 
+    public final Shape addKeyListener(final KeyListener l) {
+        if(l == null) {
+            return this;
+        }
+        @SuppressWarnings("unchecked")
+        final ArrayList<KeyListener> clonedListeners = (ArrayList<KeyListener>) keyListeners.clone();
+        clonedListeners.add(l);
+        keyListeners = clonedListeners;
+        return this;
+    }
+
+    public final Shape removeKeyListener(final KeyListener l) {
+        if (l == null) {
+            return this;
+        }
+        @SuppressWarnings("unchecked")
+        final ArrayList<KeyListener> clonedListeners = (ArrayList<KeyListener>) keyListeners.clone();
+        clonedListeners.remove(l);
+        keyListeners = clonedListeners;
+        return this;
+    }
+
     /**
      * Combining {@link MouseListener} and {@link GestureListener}
      */
@@ -1688,6 +1714,34 @@ public abstract class Shape {
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
             mouseListeners.get(i).gestureDetected(e);
         }
+    }
+
+    /**
+     * Dispatch given NEWT key event to this shape
+     * @param e original Newt {@link KeyEvent}
+     * @return true to signal operation complete and to stop traversal, otherwise false
+     */
+    /* pp */ final boolean dispatchKeyEvent(final KeyEvent e) {
+        /**
+         * Checked at caller!
+        if( !isInteractive() ) {
+            return false;
+        } */
+        final short eventType = e.getEventType();
+        for(int i = 0; !e.isConsumed() && i < keyListeners.size(); i++ ) {
+            final KeyListener l = keyListeners.get(i);
+            switch( eventType ) {
+                case KeyEvent.EVENT_KEY_PRESSED:
+                    l.keyPressed(e);
+                    break;
+                case KeyEvent.EVENT_KEY_RELEASED:
+                    l.keyReleased(e);
+                    break;
+                default:
+                    throw new NativeWindowException("Unexpected key event type " + e.getEventType());
+            }
+        }
+        return e.isConsumed(); // end signal traversal if consumed
     }
 
     //
