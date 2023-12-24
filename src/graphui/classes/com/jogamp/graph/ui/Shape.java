@@ -1078,7 +1078,7 @@ public abstract class Shape {
      * Default RGBA value is 0.60f, 0.60f, 0.60f, 1.0f
      * </p>
      */
-    public final Shape setColor(final float r, final float g, final float b, final float a) {
+    public Shape setColor(final float r, final float g, final float b, final float a) {
         this.rgbaColor.set(r, g, b, a);
         return this;
     }
@@ -1092,7 +1092,7 @@ public abstract class Shape {
      * Default RGBA value is 0.60f, 0.60f, 0.60f, 1.0f
      * </p>
      */
-    public final Shape setColor(final Vec4f c) {
+    public Shape setColor(final Vec4f c) {
         this.rgbaColor.set(c);
         return this;
     }
@@ -1106,7 +1106,7 @@ public abstract class Shape {
      * Default RGBA value is 0.70f, 0.70f, 0.70f, 0.8f
      * </p>
      */
-    public final Shape setPressedColorMod(final float r, final float g, final float b, final float a) {
+    public Shape setPressedColorMod(final float r, final float g, final float b, final float a) {
         this.pressedRGBAModulate.set(r, g, b, a);
         return this;
     }
