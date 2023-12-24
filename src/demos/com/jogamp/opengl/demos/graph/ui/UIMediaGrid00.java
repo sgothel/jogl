@@ -212,6 +212,7 @@ public class UIMediaGrid00 {
             }
             // mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_NEAREST } );
             mPlayer.setTextureMinMagFilter( new int[] { GL.GL_LINEAR, GL.GL_LINEAR } );
+            mPlayer.setTextureUnit(1);
 
             final List<Shape> customCtrls = new ArrayList<Shape>();
             {
@@ -246,7 +247,8 @@ public class UIMediaGrid00 {
                 });
                 customCtrls.add(button);
             }
-            grid.addShape( new MediaPlayer(options.renderModes, scene, mPlayer, medium, aid, 16f/9f, false, zoomSize, customCtrls) );
+            grid.addShape( new MediaPlayer(options.renderModes, scene, mPlayer, medium, 16f/9f, false, zoomSize, customCtrls) );
+            mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
         }
     }
     private static boolean printNativeInfoOnce = true;

@@ -246,7 +246,7 @@ public class UIMediaGrid01 {
                         if( GLMediaPlayer.State.Paused == mPlayer.getState() ) {
                             mPlayer.resume();
                         } else if(GLMediaPlayer.State.Uninitialized == mPlayer.getState()) {
-                            mPlayer.playStream(mPlayer.getUri(), GLMediaPlayer.STREAM_ID_AUTO, aid, MediaPlayer.TexCount);
+                            mPlayer.playStream(mPlayer.getUri(), GLMediaPlayer.STREAM_ID_AUTO, aid, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
                         } else if( e.isShiftDown() ) {
                             mPlayer.stop();
                         } else {
@@ -289,6 +289,7 @@ public class UIMediaGrid01 {
             }
             // mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_NEAREST } );
             mPlayer.setTextureMinMagFilter( new int[] { GL.GL_LINEAR, GL.GL_LINEAR } );
+            mPlayer.setTextureUnit(1);
 
             final List<Shape> customCtrls = new ArrayList<Shape>();
             if( true ) {
@@ -323,7 +324,8 @@ public class UIMediaGrid01 {
                 });
                 customCtrls.add(button);
             }
-            grid.addShape( new MediaPlayer(options.renderModes, scene, mPlayer, medium, aid, defRatio, letterBox, zoomSize, customCtrls) );
+            grid.addShape( new MediaPlayer(options.renderModes, scene, mPlayer, medium, defRatio, letterBox, zoomSize, customCtrls) );
+            mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
         }
     }
     private static boolean printNativeInfoOnce = true;

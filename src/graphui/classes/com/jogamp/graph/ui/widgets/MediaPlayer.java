@@ -73,11 +73,6 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
  * @see #MediaPlayer(int, Scene, GLMediaPlayer, Uri, int, float, boolean, float, List)
  */
 public class MediaPlayer extends Widget {
-    public static final int TexUnit = 1;
-
-    /** Default texture count, value {@value}, same as {@link GLMediaPlayer#TEXTURE_COUNT_DEFAULT}. */
-    public static final int TexCount = GLMediaPlayer.TEXTURE_COUNT_DEFAULT;
-
     public static final Vec2f FixedSymSize = new Vec2f(0.0f, 1.0f);
     public static final Vec2f SymSpacing = new Vec2f(0f, 0.2f);
     public static final float CtrlButtonWidth = 1f;
@@ -90,15 +85,13 @@ public class MediaPlayer extends Widget {
      * @param scene the used {@link Scene} to query parameter and access rendering loop
      * @param mPlayer fresh {@link GLMediaPlayer} instance, maybe customized via e.g. {@link GLMediaPlayer#setTextureMinMagFilter(int[])}.
      * @param medium {@link Uri} stream source, either a file or network source
-     * @param aid audio-id to start playing, may use {@link GLMediaPlayer#STREAM_ID_AUTO}
      * @param aratio aspect ratio of the resulting {@link Shape}, usually 16.0f/9.0f or 4.0f/3.0f, which also denotes the width of this shape while using height 1.0.
      * @param letterBox toggles {@link Region#COLORTEXTURE_LETTERBOX_RENDERING_BIT} on or off
      * @param zoomSize zoom-size (0..1] for zoom-out control
      * @param customCtrls optional custom controls, maybe an empty list
      */
     public MediaPlayer(final int renderModes, final Scene scene, final GLMediaPlayer mPlayer,
-                       final Uri medium, final int aid,
-                       final float aratio, final boolean letterBox, final float zoomSize,
+                       final Uri medium, final float aratio, final boolean letterBox, final float zoomSize,
                        final List<Shape> customCtrls)
     {
         super( new BoxLayout(aratio, 1, Alignment.None) );
@@ -147,9 +140,7 @@ public class MediaPlayer extends Widget {
         playButton.setName("mp.play");
         playButton.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
 
-        // mButton.setBorderColor(borderNormal).setBorder(borderSz);
         {
-            mPlayer.setTextureUnit(TexUnit);
             mButton.setVerbose(false).addDefaultEventListener().setTextureLetterbox(letterBox);
             mPlayer.setAudioVolume( 0f );
             mPlayer.addEventListener( new GLMediaEventListener() {
@@ -185,7 +176,6 @@ public class MediaPlayer extends Widget {
                     }
                 }
             });
-            mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, TexCount);
             this.addShape(mButton);
         }
 
