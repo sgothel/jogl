@@ -45,8 +45,8 @@ if [ $MOSX -eq 1 ] ; then
 fi
 
 # We use TempJarCache and JAR files per default now!
-export USE_BUILDDIR=0
-#export USE_BUILDDIR=1
+#export USE_BUILDDIR=0
+export USE_BUILDDIR=1
 
 if [ $USE_BUILDDIR -eq 1 ] ; then
     export LD_LIBRARY_PATH=$JOGAMP_LD_LIBRARY_PATH
@@ -1022,8 +1022,8 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.demos.av.MovieCube $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid00 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testawt com.jogamp.opengl.demos.es2.GearsES2 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIGraphDemoU01a $*

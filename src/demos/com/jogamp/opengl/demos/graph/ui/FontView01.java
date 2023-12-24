@@ -52,11 +52,13 @@ import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.GlyphShape;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.Rectangle;
+import com.jogamp.graph.ui.widgets.RangeSlider;
+import com.jogamp.graph.ui.widgets.RangeSlider.SliderListener;
+import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec2i;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
-import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
@@ -273,7 +275,7 @@ public class FontView01 {
             final float infoCellWidth = 1f - GlyphGridWidth;
             final float infoCellHeight = glyphGrid.getBounds().getHeight() / 2f;
             final Group infoGrid = new Group( new GridLayout(1, infoCellWidth, infoCellHeight * 0.98f, Alignment.FillCenter, new Gap(infoCellHeight*0.02f, 0)) );
-            infoGrid.setPaddding( new Padding(0, 0, 0, 0.02f) );
+            infoGrid.setPaddding( new Padding(0, 0, 0, 0.01f) );
             infoGrid.addShape(glyphShapeBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
             infoGrid.addShape(glyphInfoBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
             if( VERBOSE_UI ) {
@@ -282,8 +284,50 @@ public class FontView01 {
                 System.err.println("InfoGrid "+infoGrid.getLayout());
             }
 
-            final Group glyphInfoGrid = new Group(new GridLayout(2, 0f, 0f, Alignment.None));
+            final Group glyphInfoGrid = new Group(new GridLayout(4, 0f, 0f, Alignment.None));
             glyphInfoGrid.addShape(glyphGrid);
+            final boolean sliderInverted = true;
+            final RangeSlider rs1 = new RangeSlider(options.renderModes,
+                                             new Vec2f((GlyphGridWidth/gridDim.rawSize.x())/5f, glyphGrid.getBounds().getHeight()),
+                                             new Vec2f(0, gridDim.contourChars.size()/gridDim.columns), gridDim.rows, 0).setInverted(sliderInverted);
+            final RangeSlider rs2 = new RangeSlider(options.renderModes,
+                                             new Vec2f((GlyphGridWidth/gridDim.rawSize.x())/5f, glyphGrid.getBounds().getHeight()), 2,
+                                             new Vec2f(0, gridDim.contourChars.size()/gridDim.columns), 0).setInverted(sliderInverted);
+            final SliderListener sliderListener = new SliderListener() {
+                @Override
+                public void clicked(final RangeSlider w, final MouseEvent e) { }
+                @Override
+                public void pressed(final RangeSlider w, final MouseEvent e) { }
+                @Override
+                public void released(final RangeSlider w, final MouseEvent e) { }
+                @Override
+                public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
+                    final int totalRows = gridDim.contourChars.size() / gridDim.columns;
+                    if( w == rs1 ) {
+                        System.err.println("XXX range "+w.getMinMax()+", v "+w.getValue()+"/"+totalRows+" -> "+(w.getValue()*gridDim.columns)+"/"+gridDim.contourChars.size()+", "+(100f*w.getValuePct())+"%");
+                        rs2.setValue(w.getValue());
+                    } else {
+                        System.err.println("YYY range "+w.getMinMax()+", v "+w.getValue()+"/"+totalRows+" -> "+(w.getValue()*gridDim.columns)+"/"+gridDim.contourChars.size()+", "+(100f*w.getValuePct())+"%");
+                        rs1.setValue(w.getValue());
+                    }
+                    gridDim.setStartRow( (int)w.getValue() );
+                    window.invoke(false, new GLRunnable() {
+                        @Override
+                        public boolean run(final GLAutoDrawable drawable) {
+                            glyphGrid.removeAllShapes(drawable.getGL().getGL2ES2(), scene.getRenderer());
+                            addGlyphs(reqGLP, font, glyphGrid, gridDim, showUnderline[0], showLabel[0], fontStatus, fontInfo, glyphMouseListener);
+                            if( VERBOSE_UI ) {
+                                System.err.println("Slider: "+gridDim);
+                            }
+                            return true;
+                        }
+                    });
+                }
+            };
+            rs1.onSlider( sliderListener );
+            rs2.onSlider( sliderListener );
+            glyphInfoGrid.addShape(rs1);
+            glyphInfoGrid.addShape(rs2);
             glyphInfoGrid.addShape(infoGrid);
             if( VERBOSE_UI ) {
                 glyphInfoGrid.validate(reqGLP);
@@ -293,7 +337,7 @@ public class FontView01 {
 
             mainGrid = new Group(new GridLayout(1, 0f, 0f, Alignment.None));
             mainGrid.addShape(glyphInfoGrid);
-            final Label infoText = new Label(options.renderModes, fontInfo, "Key-Up/Down or Mouse-Scroll to move through glyph symbols. Page-Up/Down or Control + Mouse-Scroll to page through glyph symbols fast.");
+            final Label infoText = new Label(options.renderModes, fontInfo, "Slider: Key-Up/Down or Mouse-Scroll to move through glyphs. Page-Up/Down or Control + Mouse-Scroll to page through glyph symbols fast.");
             infoText.setColor(0.1f, 0.1f, 0.1f, 1f);
             {
                 final float h = glyphGrid.getBounds().getHeight() / gridDim.rawSize.y() * 0.6f;
@@ -310,84 +354,12 @@ public class FontView01 {
         }
         scene.addShape(mainGrid);
 
-        window.addMouseListener( new MouseAdapter() {
-            @Override
-            public void mouseWheelMoved(final MouseEvent e) {
-                if( VERBOSE_UI ) {
-                    System.err.println("Scroll.0: "+gridDim);
-                }
-                if( e.getRotation()[1] < 0f ) {
-                    // scroll down
-                    if( e.isControlDown() ) {
-                        gridDim.pageDown();
-                    } else {
-                        gridDim.lineDown();
-                    }
-                } else {
-                    // scroll up
-                    if( e.isControlDown() ) {
-                        gridDim.pageUp();
-                    } else {
-                        gridDim.lineUp();
-                    }
-                }
-                window.invoke(false, new GLRunnable() {
-                    @Override
-                    public boolean run(final GLAutoDrawable drawable) {
-                        glyphGrid.removeAllShapes(drawable.getGL().getGL2ES2(), scene.getRenderer());
-                        addGlyphs(reqGLP, font, glyphGrid, gridDim, showUnderline[0], showLabel[0], fontStatus, fontInfo, glyphMouseListener);
-                        if( VERBOSE_UI ) {
-                            System.err.println("Scroll.X: "+gridDim);
-                        }
-                        return true;
-                    }
-                });
-            }
-        });
         window.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(final KeyEvent e) {
                 final short keySym = e.getKeySymbol();
-                boolean gridScroll = false;
-                if( keySym == KeyEvent.VK_DOWN ) {
-                    if( VERBOSE_UI ) {
-                        System.err.println("Scroll.0: "+gridDim);
-                    }
-                    gridScroll = true;
-                    gridDim.lineDown();
-                } else if( keySym == KeyEvent.VK_PAGE_DOWN ) {
-                    if( VERBOSE_UI ) {
-                        System.err.println("Scroll.0: "+gridDim);
-                    }
-                    gridScroll = true;
-                    gridDim.pageDown();
-                } else if( keySym == KeyEvent.VK_UP ) {
-                    if( VERBOSE_UI ) {
-                        System.err.println("Scroll.0: "+gridDim);
-                    }
-                    gridScroll = true;
-                    gridDim.lineUp();
-                } else if( keySym == KeyEvent.VK_PAGE_UP ) {
-                    if( VERBOSE_UI ) {
-                        System.err.println("Scroll.0: "+gridDim);
-                    }
-                    gridScroll = true;
-                    gridDim.pageUp();
-                } else if( keySym == KeyEvent.VK_F4 || keySym == KeyEvent.VK_ESCAPE || keySym == KeyEvent.VK_Q ) {
+                if( keySym == KeyEvent.VK_F4 || keySym == KeyEvent.VK_ESCAPE || keySym == KeyEvent.VK_Q ) {
                     MiscUtils.destroyWindow(window);
-                }
-                if( gridScroll ) {
-                    window.invoke(false, new GLRunnable() {
-                        @Override
-                        public boolean run(final GLAutoDrawable drawable) {
-                            glyphGrid.removeAllShapes(drawable.getGL().getGL2ES2(), scene.getRenderer());
-                            addGlyphs(reqGLP, font, glyphGrid, gridDim, showUnderline[0], showLabel[0], fontStatus, fontInfo, glyphMouseListener);
-                            if( VERBOSE_UI ) {
-                                System.err.println("Scroll.X: "+gridDim);
-                            }
-                            return true;
-                        }
-                    });
                 }
             }
         });
@@ -447,33 +419,13 @@ public class FontView01 {
             return contourChars.size();
         }
 
-        void pageDown() {
-            if( nextPage < contourChars.size() - elemCount ) {
-                start = nextPage;
-            } else {
-                start = 0;
+        void setStartRow(final int row) {
+            final int old = start;
+            final int np = row * columns;
+            if( np < contourChars.size() - columns ) {
+                start = np;
             }
-        }
-        void pageUp() {
-            if( start >= elemCount ) {
-                start -= elemCount;
-            } else {
-                start = contourChars.size() - 1 - elemCount;
-            }
-        }
-        void lineDown() {
-            if( nextLine < contourChars.size() - columns ) {
-                start = nextLine;
-            } else {
-                start = 0;
-            }
-        }
-        void lineUp() {
-            if( start >= columns ) {
-                start -= columns;
-            } else {
-                start = contourChars.size() - 1 - columns;
-            }
+            // System.err.println("XXX "+columns+"x"+rows+" @ "+old+"/"+contourChars.size()+": r "+row+" -> s "+start);
         }
 
         @Override

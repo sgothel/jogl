@@ -128,10 +128,14 @@ public class MediaPlayer extends Widget {
         mButton.setName("mp.mButton").setInteractive(false);
         mButton.setPerp().setPressedColorMod(1f, 1f, 1f, 0.85f);
 
-        final RangeSlider ctrlSlider = new RangeSlider(renderModes, aratio, ctrlSliderHeight, 4.0f, 0, 100, 0);
+        final RangeSlider ctrlSlider;
         {
-            final float dy = ( ctrlSlider.getKnobSize() - ctrlSliderHeight ) * 0.5f;
-            ctrlSlider.setPaddding(new Padding(0, 0, ctrlCellHeight-dy, 0));
+            final float knobScale = 3f;
+            final float knobHeight = ctrlSliderHeight * knobScale;
+            ctrlSlider = new RangeSlider(renderModes, new Vec2f(aratio - knobHeight, ctrlSliderHeight), knobScale, new Vec2f(0, 100), 0);
+            final float dx = knobHeight / 2f;
+            final float dy = ( knobHeight - ctrlSliderHeight ) * 0.5f;
+            ctrlSlider.setPaddding(new Padding(0, dx, ctrlCellHeight-dy, dx));
         }
         ctrlSlider.setName("mp.slider");
 
@@ -153,7 +157,7 @@ public class MediaPlayer extends Widget {
                     // System.err.println("MediaButton State: "+mp);
                     if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
                         System.err.println(mp.toString());
-                        ctrlSlider.setMinMax(0, mp.getDuration(), 0);
+                        ctrlSlider.setMinMax(new Vec2f(0, mp.getDuration()), 0);
                     } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                         playButton.setToggle(true);
                     } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Pause) ) {
