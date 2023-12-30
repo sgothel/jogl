@@ -125,6 +125,11 @@ public class MediaButton extends TexSeqButton {
 
 
     @Override
+    protected void clearImpl(final GL2ES2 gl, final RegionRenderer renderer) {
+        ((GLMediaPlayer)texSeq).stop();
+        ((GLMediaPlayer)texSeq).seek(0);
+    }
+    @Override
     protected void destroyImpl(final GL2ES2 gl, final RegionRenderer renderer) {
         ((GLMediaPlayer)texSeq).destroy(gl);
     }
