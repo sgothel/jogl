@@ -75,4 +75,15 @@ class FFMPEGv0600Natives extends FFMPEGNatives {
 
     @Override
     native int seek0(long moviePtr, int position);
+
+    @Override
+    native int getChapterCount0(long moviePtr);
+    @Override
+    native int getChapterID0(long moviePtr, int idx);
+    @Override
+    native int getChapterStartPTS0(long moviePtr, int idx);
+    @Override
+    native int getChapterEndPTS0(long moviePtr, int idx);
+    @Override
+    native String getChapterTitle0(long moviePtr, int idx);
 }

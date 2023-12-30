@@ -71,6 +71,12 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
     abstract int getAudioPTS0(long moviePtr);
 
+    abstract int getChapterCount0(long moviePtr);
+    abstract int getChapterID0(long moviePtr, int idx);
+    abstract int getChapterStartPTS0(long moviePtr, int idx);
+    abstract int getChapterEndPTS0(long moviePtr, int idx);
+    abstract String getChapterTitle0(long moviePtr, int idx);
+
     /**
      * @return resulting current video PTS, or {@link TextureFrame#INVALID_PTS}
      */

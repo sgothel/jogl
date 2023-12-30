@@ -100,6 +100,7 @@ typedef int (APIENTRYP AV_GET_BITS_PER_PIXEL)(const AVPixFmtDescriptor *pixdesc)
 typedef int (APIENTRYP AV_SAMPLES_GET_BUFFER_SIZE)(int *linesize, int nb_channels, int nb_samples, enum AVSampleFormat sample_fmt, int align);
 typedef int (APIENTRYP AV_GET_BYTES_PER_SAMPLE)(enum AVSampleFormat sample_fmt);
 typedef int (APIENTRYP AV_OPT_SET_INT)(void *obj, const char *name, int64_t val, int search_flags);
+typedef AVDictionaryEntry* (APIENTRYP AV_DICT_ITERATE)(AVDictionary *m, const AVDictionaryEntry *prev);
 typedef AVDictionaryEntry* (APIENTRYP AV_DICT_GET)(AVDictionary *m, const char *key, const AVDictionaryEntry *prev, int flags);
 typedef int (APIENTRYP AV_DICT_COUNT)(AVDictionary *m);
 typedef int (APIENTRYP AV_DICT_SET)(AVDictionary **pm, const char *key, const char *value, int flags);
@@ -117,6 +118,7 @@ static AV_GET_BITS_PER_PIXEL sp_av_get_bits_per_pixel;
 static AV_SAMPLES_GET_BUFFER_SIZE sp_av_samples_get_buffer_size;
 static AV_GET_BYTES_PER_SAMPLE sp_av_get_bytes_per_sample;
 static AV_OPT_SET_INT sp_av_opt_set_int;
+static AV_DICT_ITERATE sp_av_dict_iterate;
 static AV_DICT_GET sp_av_dict_get;
 static AV_DICT_COUNT sp_av_dict_count;
 static AV_DICT_SET sp_av_dict_set;
@@ -125,7 +127,7 @@ static AV_CHANNEL_LAYOUT_DEFAULT sp_av_channel_layout_default; // >= 59
 static AV_CHANNEL_LAYOUT_UNINIT sp_av_channel_layout_uninit; // >= 59
 static AV_CHANNEL_LAYOUT_DESCRIBE sp_av_channel_layout_describe; // >= 59
 static AV_OPT_SET_CHLAYOUT sp_av_opt_set_chlayout; // >= 59
-// count: +16 = 39
+// count: +17 = 40
 
 // libavformat
 typedef AVFormatContext *(APIENTRYP AVFORMAT_ALLOC_CONTEXT)(void);
@@ -157,12 +159,12 @@ static AV_READ_PAUSE sp_av_read_pause;
 static AVFORMAT_NETWORK_INIT sp_avformat_network_init;            // 53.13.0
 static AVFORMAT_NETWORK_DEINIT sp_avformat_network_deinit;        // 53.13.0
 static AVFORMAT_FIND_STREAM_INFO sp_avformat_find_stream_info;    // 53.3.0
-// count: +14 = 53
+// count: +14 = 54
 
 // libavdevice [53.0.0]
 typedef int (APIENTRYP AVDEVICE_REGISTER_ALL)(void);
 static AVDEVICE_REGISTER_ALL sp_avdevice_register_all;
-// count: +1 = 54
+// count: +1 = 55
 
 // libswresample [1...]
 typedef int (APIENTRYP AV_OPT_SET_SAMPLE_FMT)(void *obj, const char *name, enum AVSampleFormat fmt, int search_flags); // actually lavu .. but exist only w/ swresample!
@@ -178,7 +180,7 @@ static SWR_INIT sp_swr_init;
 static SWR_FREE sp_swr_free;
 static SWR_CONVERT sp_swr_convert;
 static SWR_GET_OUT_SAMPLES sp_swr_get_out_samples;
-// count: +6 = 60
+// count: +6 = 61
 
 // We use JNI Monitor Locking, since this removes the need 
 // to statically link-in pthreads on window ..
@@ -202,7 +204,7 @@ static SWR_GET_OUT_SAMPLES sp_swr_get_out_samples;
     #define MY_MUTEX_UNLOCK(e,s)
 #endif
 
-#define SYMBOL_COUNT 60
+#define SYMBOL_COUNT 61
 
 JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
   (JNIEnv *env, jobject instance, jobject jmutex_avcodec_openclose, jobject jSymbols, jint count)
@@ -256,6 +258,7 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
     sp_av_samples_get_buffer_size = (AV_SAMPLES_GET_BUFFER_SIZE) (intptr_t) symbols[i++];
     sp_av_get_bytes_per_sample = (AV_GET_BYTES_PER_SAMPLE) (intptr_t) symbols[i++];
     sp_av_opt_set_int = (AV_OPT_SET_INT) (intptr_t) symbols[i++];
+    sp_av_dict_iterate = (AV_DICT_ITERATE) (intptr_t) symbols[i++];
     sp_av_dict_get = (AV_DICT_GET) (intptr_t) symbols[i++];
     sp_av_dict_count = (AV_DICT_COUNT) (intptr_t) symbols[i++];
     sp_av_dict_set = (AV_DICT_SET) (intptr_t) symbols[i++];
@@ -1180,8 +1183,8 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
     pAV->aPTS=0;
     initPTSStats(&pAV->vPTSStats);
     initPTSStats(&pAV->aPTSStats);
-    _updateJavaAttributes(env, pAV);
     pAV->ready = 1;
+    _updateJavaAttributes(env, pAV);
 }
 
 JNIEXPORT void JNICALL FF_FUNC(setGLFuncs0)
@@ -1704,5 +1707,76 @@ JNIEXPORT jint JNICALL FF_FUNC(getAudioPTS0)
         return 0;
     }
     return pAV->aPTS;
+}
+
+static inline const char* meta_get_value(AVDictionary *tags, const char* key)
+{
+    // SECTION_ID_CHAPTER_TAGS
+    if (!tags) {
+        return NULL;
+    }
+    const AVDictionaryEntry *entry = NULL;
+    if ((entry = sp_av_dict_get(tags, key, entry, AV_DICT_IGNORE_SUFFIX))) {
+        return entry->value;
+    }
+    return NULL;
+}
+static inline const char* meta_get_chapter_title(AVChapter *chapter)
+{
+    return meta_get_value(chapter->metadata, "title");
+}
+JNIEXPORT jint JNICALL FF_FUNC(getChapterCount0)
+  (JNIEnv *env, jobject instance, jlong ptr)
+{
+    FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    if( 0 == pAV->ready ) {
+        return 0;
+    }
+    return pAV->pFormatCtx->nb_chapters;
+}
+
+JNIEXPORT jint JNICALL FF_FUNC(getChapterID0)
+  (JNIEnv *env, jobject instance, jlong ptr, jint idx)
+{
+    FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    if( 0 == pAV->ready || idx >= pAV->pFormatCtx->nb_chapters ) {
+        return 0;
+    }
+    AVChapter *chapter = pAV->pFormatCtx->chapters[idx];
+    return chapter->id;
+}
+
+JNIEXPORT jint JNICALL FF_FUNC(getChapterStartPTS0)
+  (JNIEnv *env, jobject instance, jlong ptr, jint idx)
+{
+    FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    if( 0 == pAV->ready || idx >= pAV->pFormatCtx->nb_chapters ) {
+        return 0;
+    }
+    AVChapter *chapter = pAV->pFormatCtx->chapters[idx];
+    return my_av_q2i32( chapter->start * 1000, chapter->time_base);
+}
+
+JNIEXPORT jint JNICALL FF_FUNC(getChapterEndPTS0)
+  (JNIEnv *env, jobject instance, jlong ptr, jint idx)
+{
+    FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    if( 0 == pAV->ready || idx >= pAV->pFormatCtx->nb_chapters ) {
+        return 0;
+    }
+    AVChapter *chapter = pAV->pFormatCtx->chapters[idx];
+    return my_av_q2i32( chapter->end * 1000, chapter->time_base);
+}
+
+JNIEXPORT jstring JNICALL FF_FUNC(getChapterTitle0)
+  (JNIEnv *env, jobject instance, jlong ptr, jint idx)
+{
+    FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+    if( 0 == pAV->ready || idx >= pAV->pFormatCtx->nb_chapters ) {
+        return NULL;
+    }
+    AVChapter *chapter = pAV->pFormatCtx->chapters[idx];
+    const char* title = meta_get_chapter_title(chapter);
+    return NULL != title ? (*env)->NewStringUTF(env, title) : NULL;
 }
 

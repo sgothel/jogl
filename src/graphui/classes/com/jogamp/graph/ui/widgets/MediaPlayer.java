@@ -29,8 +29,8 @@ package com.jogamp.graph.ui.widgets;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
+import com.jogamp.common.av.PTS;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.InterruptSource;
@@ -156,8 +156,11 @@ public class MediaPlayer extends Widget {
                     // System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
                     // System.err.println("MediaButton State: "+mp);
                     if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
-                        System.err.println(mp.toString());
                         ctrlSlider.setMinMax(new Vec2f(0, mp.getDuration()), 0);
+                        System.err.println(mp.toString());
+                        for(final GLMediaPlayer.Chapter c : mp.getChapters()) {
+                            System.err.println(c);
+                        }
                     } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                         playButton.setToggle(true);
                     } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Pause) ) {
@@ -257,7 +260,7 @@ public class MediaPlayer extends Widget {
                 }
                 @Override
                 public void clicked(final RangeSlider w, final MouseEvent e) {
-                    System.err.println("Clicked "+w.getName()+": "+millisToTimeStr(Math.round(w.getValue()), true)+"ms, "+(w.getValuePct()*100f)+"%");
+                    System.err.println("Clicked "+w.getName()+": "+PTS.millisToTimeStr(Math.round(w.getValue()), true)+"ms, "+(w.getValuePct()*100f)+"%");
                     seekPlayer( Math.round( w.getValue() ) );
                 }
                 @Override
@@ -274,7 +277,7 @@ public class MediaPlayer extends Widget {
 
                 @Override
                 public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
-                    System.err.println("Dragged "+w.getName()+": "+millisToTimeStr(Math.round(val), true)+"ms, "+(val_pct*100f)+"%");
+                    System.err.println("Dragged "+w.getName()+": "+PTS.millisToTimeStr(Math.round(val), true)+"ms, "+(val_pct*100f)+"%");
                     seekPlayer( Math.round( val ) );
                 }
             });
@@ -512,35 +515,6 @@ public class MediaPlayer extends Widget {
         }
     }
 
-    public static String millisToTimeStr(final long millis, final boolean addFractions) {
-        final long h = TimeUnit.MILLISECONDS.toHours(millis);
-        final long m = TimeUnit.MILLISECONDS.toMinutes(millis);
-        if( addFractions ) {
-            if( 0 < h ) {
-                return String.format("%02d:%02d:%02d.%02d",
-                    h,
-                    m - TimeUnit.HOURS.toMinutes(h),
-                    TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(m),
-                    millis%1000);
-            } else {
-                return String.format("%02d:%02d.%02d",
-                    m,
-                    TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(m),
-                    millis%1000);
-            }
-        } else {
-            if( 0 < h ) {
-                return String.format("%02d:%02d:%02d",
-                    h,
-                    m - TimeUnit.HOURS.toMinutes(h),
-                    TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(m));
-            } else {
-                return String.format("%02d:%02d",
-                    m,
-                    TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(m));
-            }
-        }
-    }
     public static String getInfo(final long currentMillis, final GLMediaPlayer mPlayer, final boolean full) {
         return getInfo(mPlayer.getPTS().get(currentMillis), mPlayer.getDuration(), mPlayer, full);
     }
@@ -566,7 +540,7 @@ public class MediaPlayer extends Widget {
         final float pct = (float)ptsMS / (float)durationMS;
         if( full ) {
             final String text1 = String.format("%s / %s (%.0f %%), %s (%01.1fx, vol %1.2f), A/R %0.2f, fps %02.1f",
-                    millisToTimeStr(ptsMS, false), millisToTimeStr(durationMS, false), pct*100,
+                    PTS.millisToTimeStr(ptsMS, false), PTS.millisToTimeStr(durationMS, false), pct*100,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect, mPlayer.getFramerate());
             final String text2 = String.format("audio: id %d, kbps %d, codec %s",
                     mPlayer.getAID(), mPlayer.getAudioBitrate()/1000, mPlayer.getAudioCodec());
@@ -575,7 +549,7 @@ public class MediaPlayer extends Widget {
             return text1+"\n"+text2+"\n"+text3+"\n"+name;
         } else {
             final String text1 = String.format("%s / %s (%.0f %%), %s (%01.1fx, vol %1.2f), A/R %.2f",
-                    millisToTimeStr(ptsMS, false), millisToTimeStr(durationMS, false), pct*100,
+                    PTS.millisToTimeStr(ptsMS, false), PTS.millisToTimeStr(durationMS, false), pct*100,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect);
             return text1+"\n"+name;
         }
@@ -586,6 +560,6 @@ public class MediaPlayer extends Widget {
     public static String getMultilineTime(final int ptsMS, final int durationMS) {
         final float pct = (float)ptsMS / (float)durationMS;
         return String.format("%.0f %%%n%s%n%s",
-                    pct*100, millisToTimeStr(ptsMS, false), millisToTimeStr(durationMS, false));
+                    pct*100, PTS.millisToTimeStr(ptsMS, false), PTS.millisToTimeStr(durationMS, false));
     }
 }

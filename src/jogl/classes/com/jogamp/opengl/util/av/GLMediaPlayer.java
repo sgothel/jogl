@@ -36,12 +36,10 @@ import jogamp.opengl.Debug;
 import java.io.PrintStream;
 import java.util.List;
 
-import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
 import com.jogamp.common.av.PTS;
 import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.common.net.Uri;
-import com.jogamp.common.os.Clock;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -270,6 +268,25 @@ public interface GLMediaPlayer extends TextureSequence {
         }
         public StreamException(final String message, final Throwable cause) {
             super(message, cause);
+        }
+    }
+
+    /** Chapter meta-data of stream, see {@link GLMediaPlayer#getChapters()}. */
+    public static class Chapter {
+        /** Chapter ID */
+        public final int id;
+        /** Chapter start PTS in ms */
+        public final int start;
+        /** Chapter end PTS in ms */
+        public final int end;
+        /** Chapter title */
+        public final String title;
+        public Chapter(final int i, final int s, final int e, final String t) {
+            id = i; start = s; end = e; title = t;
+        }
+        @Override
+        public String toString() {
+            return String.format("%02d: [%s .. %s] %s", id, PTS.millisToTimeStr(start), PTS.millisToTimeStr(end), title);
         }
     }
 
@@ -770,11 +787,14 @@ public interface GLMediaPlayer extends TextureSequence {
     /** Returns the height of the video. */
     public int getHeight();
 
-    /** Returns a string represantation of this player, incl. state and audio/video details. */
+    /** Returns {@link Chapter} meta-data from stream, available after {@link State#Initialized} is reached after issuing {@link #playStream(Uri, int, int, int)}. */
+    public Chapter[] getChapters();
+
+    /** Returns a string representation of this player, incl. state and audio/video details. */
     @Override
     public String toString();
 
-    /** Returns a string represantation of this player's performance values. */
+    /** Returns a string representation of this player's performance values. */
     public String getPerfString();
 
     /** Adds a {@link GLMediaEventListener} to this player. */

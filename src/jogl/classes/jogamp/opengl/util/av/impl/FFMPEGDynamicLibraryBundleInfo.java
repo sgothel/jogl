@@ -52,7 +52,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
     private static final List<String> glueLibNames = new ArrayList<String>(); // none
 
-    private static final int symbolCount = 60;
+    private static final int symbolCount = 61;
     private static final String[] symbolNames = {
          "avutil_version",
          "avformat_version",
@@ -91,6 +91,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_samples_get_buffer_size",
          "av_get_bytes_per_sample",   // 51.4.0
          "av_opt_set_int",            // 51.12.0
+         "av_dict_iterate",           // 57.42.100
          "av_dict_get",
          "av_dict_count",             // 54.* (opt)
          "av_dict_set",
@@ -99,7 +100,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_channel_layout_uninit", // >= 59 (opt)
          "av_channel_layout_describe", // >= 59 (opt)
          "av_opt_set_chlayout",        // >= 59
-         /* +16 = 39 */
+         /* +16 = 40 */
 
          // libavformat
          "avformat_alloc_context",
@@ -116,11 +117,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
          "avformat_find_stream_info", // 53.3.0    (opt)
-         /* +14 = 53 */
+         /* +14 = 54 */
 
          // libavdevice
          "avdevice_register_all",     // supported in all versions (opt)
-         /* +1  = 54 */
+         /* +1  = 55 */
 
          // libswresample
          "av_opt_set_sample_fmt",     // actually lavu .. but exist only w/ swresample!
@@ -129,7 +130,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "swr_free",
          "swr_convert",
          "swr_get_out_samples",
-         /* +6  = 60 */
+         /* +6  = 61 */
     };
 
     // optional symbol names
@@ -138,6 +139,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_dict_count",             // 54.*   (opt)
 
          // libavutil
+         "av_dict_iterate",           // >= 57.42.100
          "av_channel_layout_default", // >= 59 (opt)
          "av_channel_layout_uninit", // >= 59 (opt)
          "av_channel_layout_describe", // >= 59 (opt)

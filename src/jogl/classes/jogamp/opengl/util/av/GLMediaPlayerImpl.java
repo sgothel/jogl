@@ -1718,6 +1718,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             return;
         }
         if( wasUninitialized ) {
+            updateMetadata();
             if( DEBUG ) {
                 logout.println("XXX Initialize @ updateAttributes: "+this);
             }
@@ -1785,15 +1786,21 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final int getHeight() { return height; }
 
+    /** Implementation shall update metadata, e.g. {@link #getChapters()} if supported. Called after {@link State#Initialized} is reached. */
+    protected void updateMetadata() {}
+
+    @Override
+    public Chapter[] getChapters() { return new Chapter[0]; }
+
     @Override
     public final String toString() {
-        final float tt = getDuration() / 1000.0f;
+        final String tt = PTS.millisToTimeStr(getDuration());
         final String loc = ( null != streamLoc ) ? streamLoc.toString() : "<undefined stream>" ;
         final int freeVideoFrames = null != videoFramesFree ? videoFramesFree.size() : 0;
         final int decVideoFrames = null != videoFramesDecoded ? videoFramesDecoded.size() : 0;
         final int video_scr_ms = av_scr.get(Clock.currentMillis());
         final String camPath = null != cameraPath ? ", camera: "+cameraPath : "";
-        return getClass().getSimpleName()+"["+state+", vSCR "+video_scr_ms+", frames[p "+presentedFrameCount+", d "+decodedFrameCount+", t "+videoFrames+" ("+tt+" s), z "+nullFrameCount+" / "+maxNullFrameCountUntilEOS+"], "+
+        return getClass().getSimpleName()+"["+state+", vSCR "+video_scr_ms+", "+getChapters().length+" chapters, duration "+tt+", frames[p "+presentedFrameCount+", d "+decodedFrameCount+", t "+videoFrames+", z "+nullFrameCount+" / "+maxNullFrameCountUntilEOS+"], "+
                "speed "+playSpeed+", "+bps_stream+" bps, hasSW "+(null!=streamWorker)+
                ", Texture[count "+textureCount+", free "+freeVideoFrames+", dec "+decVideoFrames+", tagt "+toHexString(textureTarget)+", ifmt "+toHexString(textureInternalFormat)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType)+"], "+
                "Video[id "+vid+", <"+vcodec+">, "+width+"x"+height+", glOrient "+isInGLOrientation+", "+fps+" fps, "+frame_duration+" fdur, "+bps_video+" bps], "+

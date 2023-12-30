@@ -43,7 +43,6 @@ import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.SecurityUtil;
-import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
@@ -412,6 +411,21 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, sizes, rw, rh, rr, aid, aMaxChannelCount, aPrefSampleRate);
     }
+
+    @Override
+    protected void updateMetadata() {
+        final Chapter[] chapters = new Chapter[natives.getChapterCount0(moviePtr)];
+        for(int i=0; i<chapters.length; ++i) {
+            chapters[i] = new Chapter(natives.getChapterID0(moviePtr, i),
+                                      natives.getChapterStartPTS0(moviePtr, i), natives.getChapterEndPTS0(moviePtr, i),
+                                      natives.getChapterTitle0(moviePtr, i));
+        }
+        this.chapters = chapters;
+    }
+    private volatile Chapter[] chapters = new Chapter[0];
+
+    @Override
+    public Chapter[] getChapters() { return chapters; }
 
     @Override
     protected final void initGLImpl(final GL gl) throws IOException, GLException {
@@ -973,6 +987,5 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             audioSink.enqueueData( audio_pts, sampleData, data_size);
         }
     }
-
 }
 
