@@ -373,7 +373,9 @@ public class Group extends Shape implements Container {
 
             // box has been reset
             final PMVMatrix4f pmv = new PMVMatrix4f();
-            if( null != layouter ) {
+            if( 0 == shapes.size() ) {
+                box.resize(0, 0, 0);
+            } else if( null != layouter ) {
                 for(final Shape s : shapes) {
                     if( needsRMs && null == firstGS && s instanceof GraphShape ) {
                         firstGS = (GraphShape)s;
