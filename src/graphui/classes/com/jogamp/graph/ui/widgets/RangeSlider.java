@@ -30,6 +30,7 @@ package com.jogamp.graph.ui.widgets;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.layout.Padding;
@@ -79,14 +80,14 @@ public final class RangeSlider extends Widget {
     private static final float pageBarLineScale = 0.25f; // 1/4 * ( barWidth - pageKnobWidth )
     private static final float pageKnobSizePctMin = 5f/100f;
     private final boolean horizontal;
-    /** Width of knob orthogonal to sliding direction */
-    private float knobDiameter;
-    /** Half length of knob in sliding direction */
-    private float knobHalfLen;
+    /** Knob height orthogonal to sliding direction */
+    private float knobHeight;
+    /** Knob length in sliding direction */
+    private float knobLength;
     private final Vec2f size;
-    private final Group barAndKnob;
+    private final Group barAndKnob, marks;
     private final Rectangle bar;
-    private final Shape knob;
+    private final GraphShape knob;
     private SliderListener sliderListener = null;
     private final Vec2f minMax = new Vec2f(0, 100);
     private float pageSize;
@@ -131,43 +132,46 @@ public final class RangeSlider extends Widget {
         this.horizontal = size.x() >= size.y();
         barAndKnob = new Group();
         barAndKnob.setInteractive(true).setToggleable(false).setDraggable(false).setResizable(false);
+        marks = new Group();
+        marks.setInteractive(false).setToggleable(false).setDraggable(false).setResizable(false);
+
         this.size = new Vec2f(size);
         if( Float.isNaN(pageSize) ) {
             if( horizontal ) {
-                knobDiameter = size.y()*knobScale;
-                setPaddding(new Padding(knobHalfLen, 0, knobHalfLen, 0));
+                knobHeight = size.y()*knobScale;
+                setPaddding(new Padding(knobHeight/2f, 0, knobHeight/2f, 0));
             } else {
-                knobDiameter = size.x()*knobScale;
-                setPaddding(new Padding(0, knobHalfLen, 0, knobHalfLen));
+                knobHeight = size.x()*knobScale;
+                setPaddding(new Padding(0, knobHeight/2f, 0, knobHeight/2f));
             }
-            knobHalfLen = knobDiameter * 0.5f;
+            knobLength = knobHeight;
             bar = new Rectangle(renderModes, this.size.x(), this.size.y(), 0);
-            knob = new BaseButton(renderModes , knobDiameter*1.01f, knobDiameter);
+            knob = new BaseButton(renderModes , knobHeight*1.01f, knobHeight);
             setBackgroundBarColor(0.60f, 0.60f, 0.60f, 0.5f);
         } else {
             final float pageSizePct = Math.max(pageKnobSizePctMin, pageSize / getRange(minMax));
             final float barLineWidth;
-            final float knobWidth, knobHeight;
+            final float width, height;
             if( horizontal ) {
-                knobHeight = size.y() * pageKnobScale;
-                knobWidth = pageSizePct * this.size.x();
-                barLineWidth = ( size.y() - knobHeight ) * pageBarLineScale;
-                knobHalfLen = knobWidth * 0.5f;
-                knobDiameter = knobHeight;
+                height = size.y() * pageKnobScale;
+                width = pageSizePct * this.size.x();
+                barLineWidth = ( size.y() - height ) * pageBarLineScale;
+                knobLength = width;
+                knobHeight = height;
                 setPaddding(new Padding(size.y(), 0, size.y(), 0));
             } else {
-                knobWidth = size.x() * pageKnobScale;
-                knobHeight = pageSizePct * this.size.y();
-                barLineWidth = ( size.x() - knobWidth ) * pageBarLineScale;
-                knobHalfLen = knobHeight * 0.5f;
-                knobDiameter = knobWidth;
+                width = size.x() * pageKnobScale;
+                height = pageSizePct * this.size.y();
+                barLineWidth = ( size.x() - width ) * pageBarLineScale;
+                knobLength = height;
+                knobHeight = width;
                 setPaddding(new Padding(0, size.x(), 0, size.x()));
                 // System.err.println("ZZZ minMax "+minMax+", pageSize "+pageSize+" "+(pageSizePct*100f)+"% -> "+knobHeight+"/"+this.size.y());
             }
             bar = new Rectangle(renderModes, this.size.x(), this.size.y(), barLineWidth);
-            knob = new Rectangle(renderModes, knobWidth, knobHeight, 0);
+            knob = new Rectangle(renderModes, width, height, 0);
         }
-        setColor(0.30f, 0.30f, 0.30f, 1.0f);
+        setColor(0.80f, 0.80f, 0.80f, 0.7f);
 
         bar.setToggleable(false).setInteractive(false);
         bar.setDraggable(false).setResizable(false);
@@ -175,6 +179,7 @@ public final class RangeSlider extends Widget {
         knob.setToggleable(false).setResizable(false);
         setName(getName());
         barAndKnob.addShape( bar );
+        barAndKnob.addShape( marks );
         barAndKnob.addShape( knob );
         addShape(barAndKnob);
 
@@ -183,7 +188,7 @@ public final class RangeSlider extends Widget {
         knob.onMove((final Shape s, final Vec3f origin, final Vec3f dest) -> {
             final float old_val = val;
             final float old_val_pct = val_pct;
-            setValuePct( getKnobValuePct( dest.x(), dest.y(), knobHalfLen ) );
+            setValuePct( getKnobValuePct( dest.x(), dest.y(), knobLength/2f ) );
             if( null != sliderListener ) {
                 sliderListener.dragged(this, old_val, val, old_val_pct, val_pct);
             }
@@ -347,14 +352,27 @@ public final class RangeSlider extends Widget {
     }
 
     public Rectangle getBar() { return bar; }
-    public Shape getKnob() { return knob; }
+    public GraphShape getKnob() { return knob; }
+    public Group getMarks() { return marks; }
+    public RangeSlider clearMarks(final GL2ES2 gl, final RegionRenderer renderer) { marks.clear(gl, renderer); return this; }
+    public RangeSlider addMark(final float value, final Vec4f color) {
+        final float sizexy = horizontal ? size.y() : size.x();
+        final GraphShape item = new Rectangle(knob.getRenderModes(), sizexy, sizexy, 0);
+        final Vec2f pos = getItemValuePos(new Vec2f(), value, sizexy, sizexy);
+        item.setInteractive(false).setToggleable(false).setDraggable(false).setResizable(false);
+        item.setColor(color);
+        item.moveTo(pos.x(), pos.y(), 0);
+        marks.addShape(item);
+        return this;
+    }
 
     public final Vec2f getSize() { return size; }
-    /** Height of knob orthogonal to sliding direction */
-    public final float getKnobHeight() { return knobDiameter; }
-    /** Length of knob in sliding direction */
-    public final float getKnobLength() { return knobHalfLen*2f; }
+    /** Knob height orthogonal to sliding direction */
+    public final float getKnobHeight() { return knobHeight; }
+    /** Knob length in sliding direction */
+    public final float getKnobLength() { return knobLength; }
 
+    /** Returns slider value range, see {@link #setMinMax(Vec2f, float)} */
     public Vec2f getMinMax() { return minMax; }
     public float getRange() { return minMax.y() - minMax.x(); }
     private float getRange(final Vec2f minMax) { return minMax.y() - minMax.x(); }
@@ -367,19 +385,19 @@ public final class RangeSlider extends Widget {
         }
         this.pageSize = v;
         final float pageSizePct = Math.max(pageKnobSizePctMin, pageSize / getRange());
-        final float knobWidth, knobHeight;
+        final float width, height;
         if( horizontal ) {
-            knobHeight = size.y() * pageKnobScale;
-            knobWidth = pageSizePct * this.size.x();
-            knobHalfLen = knobWidth * 0.5f;
-            knobDiameter = knobHeight;
+            height = size.y() * pageKnobScale;
+            width = pageSizePct * this.size.x();
+            knobLength = width;
+            knobHeight = height;
         } else {
-            knobWidth = size.x() * pageKnobScale;
-            knobHeight = pageSizePct * this.size.y();
-            knobHalfLen = knobHeight * 0.5f;
-            knobDiameter = knobWidth;
+            width = size.x() * pageKnobScale;
+            height = pageSizePct * this.size.y();
+            knobLength = height;
+            knobHeight = width;
         }
-        ((Rectangle)knob).setDimension(knobWidth, knobHeight, 0);
+        ((Rectangle)knob).setDimension(width, height, 0);
         return this;
     }
     public float getPageSize() { return this.pageSize; }
@@ -410,16 +428,30 @@ public final class RangeSlider extends Widget {
     }
 
     /**
-     * Knob position reflects value on its center and ranges from zero to max.
+     * Returns generic item position reflects value on its center and ranges from zero to max.
+     * @param posRes {@link Vec2f} result storage
+     * @param value value within {@link #getMinMax()}
+     * @param itemLen item length in sliding direction
+     * @param itemHeight item height orthogonal to sliding direction
      */
-    private Vec2f getKnobPos(final Vec2f posRes, final float val_pct) {
+    private Vec2f getItemValuePos(final Vec2f posRes, final float value, final float itemLen, final float itemHeight) {
+        return getItemPctPos(posRes, ( value - minMax.x() ) / getRange(), itemLen, itemHeight);
+    }
+    /**
+     * Returns generic item position reflects value on its center and ranges from zero to max.
+     * @param posRes {@link Vec2f} result storage
+     * @param val_pct value percentage within [0..1]
+     * @param itemLen item length in sliding direction
+     * @param itemHeight item height orthogonal to sliding direction
+     */
+    private Vec2f getItemPctPos(final Vec2f posRes, final float val_pct, final float itemLen, final float itemHeight) {
         final float v = inverted ? 1f - val_pct : val_pct;
         if( horizontal ) {
-            posRes.setX( Math.max(0, Math.min(size.x(), v*size.x() - knobHalfLen)) );
-            posRes.setY( -( knobDiameter - size.y() ) * 0.5f );
+            posRes.setX( Math.max(0, Math.min(size.x(), v*size.x() - itemLen/2f)) );
+            posRes.setY( -( itemHeight - size.y() ) * 0.5f );
         } else {
-            posRes.setX( -( knobDiameter - size.x() ) * 0.5f );
-            posRes.setY( Math.max(0, Math.min(size.y() - 2*knobHalfLen, v*size.y() - knobHalfLen)) );
+            posRes.setX( -( itemHeight - size.x() ) * 0.5f );
+            posRes.setY( Math.max(0, Math.min(size.y() - itemLen, v*size.y() - itemLen/2f)) );
         }
         return posRes;
     }
@@ -434,7 +466,7 @@ public final class RangeSlider extends Widget {
     }
 
     private void setKnob() {
-        final Vec2f pos = getKnobPos(new Vec2f(), val_pct);
+        final Vec2f pos = getItemPctPos(new Vec2f(), val_pct, knobLength, knobHeight);
         knob.moveTo(pos.x(), pos.y(), Button.DEFAULT_LABEL_ZOFFSET);
     }
 
@@ -442,13 +474,13 @@ public final class RangeSlider extends Widget {
      * Sets the slider knob color.
      * <p>
      * If this slider comprises a rectangular page-sized knob,
-     * its rectangular frame also shares the same color.
+     * its rectangular frame also shares the same color with alpha 1.0f.
      * </p>
      * <p>
      * Base color w/o color channel, will be modulated w/ pressed- and toggle color
      * </p>
      * <p>
-     * Default RGBA value is 0.30f, 0.30f, 0.30f, 1.0f
+     * Default RGBA value is 0.80f, 0.80f, 0.80f, 0.7f
      * </p>
      */
     @Override
@@ -456,7 +488,7 @@ public final class RangeSlider extends Widget {
         super.setColor(r, g, b, a);
         knob.setColor(r, g, b, a);
         if( !Float.isNaN(pageSize) ) {
-            bar.setColor(r, g, b, a);
+            bar.setColor(r, g, b, 1.0f);
         }
         return this;
     }
@@ -465,13 +497,13 @@ public final class RangeSlider extends Widget {
      * Sets the slider knob color.
      * <p>
      * If this slider comprises a rectangular page-sized knob,
-     * its rectangular frame also shares the same color.
+     * its rectangular frame also shares the same color with alpha 1.0f.
      * </p>
      * <p>
      * Base color w/o color channel, will be modulated w/ pressed- and toggle color
      * </p>
      * <p>
-     * Default RGBA value is 0.30f, 0.30f, 0.30f, 1.0f
+     * Default RGBA value is 0.80f, 0.80f, 0.80f, 0.7f
      * </p>
      */
     @Override
@@ -479,7 +511,7 @@ public final class RangeSlider extends Widget {
         this.rgbaColor.set(c);
         knob.setColor(c);
         if( !Float.isNaN(pageSize) ) {
-            bar.setColor(c);
+            bar.setColor(c.x(), c.y(), c.z(), 1.0f);
         }
         return this;
     }

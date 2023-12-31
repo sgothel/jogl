@@ -290,9 +290,11 @@ public class FontView01 {
             final RangeSlider rs1 = new RangeSlider(options.renderModes,
                                              new Vec2f((GlyphGridWidth/gridDim.rawSize.x())/5f, glyphGrid.getBounds().getHeight()),
                                              new Vec2f(0, gridDim.contourChars.size()/gridDim.columns), gridDim.rows, 0).setInverted(sliderInverted);
+            rs1.setColor(0.3f, 0.3f, 0.3f, 0.7f);
             final RangeSlider rs2 = new RangeSlider(options.renderModes,
                                              new Vec2f((GlyphGridWidth/gridDim.rawSize.x())/5f, glyphGrid.getBounds().getHeight()), 2,
                                              new Vec2f(0, gridDim.contourChars.size()/gridDim.columns), 0).setInverted(sliderInverted);
+            rs2.setColor(0.3f, 0.3f, 0.3f, 0.7f);
             final SliderListener sliderListener = new SliderListener() {
                 @Override
                 public void clicked(final RangeSlider w, final MouseEvent e) { }

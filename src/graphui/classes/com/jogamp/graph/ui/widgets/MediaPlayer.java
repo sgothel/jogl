@@ -160,6 +160,7 @@ public class MediaPlayer extends Widget {
                         System.err.println(mp.toString());
                         for(final GLMediaPlayer.Chapter c : mp.getChapters()) {
                             System.err.println(c);
+                            ctrlSlider.addMark(c.start, new Vec4f(0.9f, 0.9f, 0.9f, 0.5f));
                         }
                     } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                         playButton.setToggle(true);
