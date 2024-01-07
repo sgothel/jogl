@@ -162,7 +162,7 @@ public class MediaPlayer extends Widget {
                         for(final GLMediaPlayer.Chapter c : mp.getChapters()) {
                             System.err.println(c);
                             final Shape mark = ctrlSlider.addMark(c.start, new Vec4f(0.9f, 0.9f, 0.9f, 0.5f));
-                            mark.setToolTip(c.title+"\n"+PTS.millisToTimeStr(c.start, false), fontInfo, 5, scene);
+                            mark.setToolTip(new TooltipText(c.title+"\n"+PTS.millisToTimeStr(c.start, false), fontInfo, 5));
                         }
                     } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                         playButton.setToggle(true);
@@ -306,7 +306,7 @@ public class MediaPlayer extends Widget {
                 });
                 playButton.setToggle(true); // on == play
                 ctrlGroup.addShape(playButton);
-                playButton.setToolTip("Play", fontInfo, toolTipScaleY, scene);
+                playButton.setToolTip(new TooltipText("Play", fontInfo, toolTipScaleY));
             }
             { // 2
                 final Button button = new Button(renderModes, fontSymbols,
@@ -317,7 +317,7 @@ public class MediaPlayer extends Widget {
                     mPlayer.seek(0);
                 });
                 ctrlGroup.addShape(button);
-                button.setToolTip("Back", fontInfo, toolTipScaleY, scene);
+                button.setToolTip(new TooltipText("Back", fontInfo, toolTipScaleY));
             }
             { // 3
                 final Button button = new Button(renderModes, fontSymbols,
@@ -328,7 +328,7 @@ public class MediaPlayer extends Widget {
                     mPlayer.setPlaySpeed(mPlayer.getPlaySpeed() - 0.5f);
                 });
                 ctrlGroup.addShape(button);
-                button.setToolTip("Fast-Rewind", fontInfo, toolTipScaleY, scene);
+                button.setToolTip(new TooltipText("Fast-Rewind", fontInfo, toolTipScaleY));
             }
             { // 4
                 final Button button = new Button(renderModes, fontSymbols,
@@ -339,7 +339,7 @@ public class MediaPlayer extends Widget {
                     mPlayer.setPlaySpeed(mPlayer.getPlaySpeed() + 0.5f);
                 });
                 ctrlGroup.addShape(button);
-                button.setToolTip("Fast-Forward", fontInfo, toolTipScaleY, scene);
+                button.setToolTip(new TooltipText("Fast-Forward", fontInfo, toolTipScaleY));
             }
             { // 5
                 final Button button = new Button(renderModes, fontSymbols,
@@ -358,7 +358,7 @@ public class MediaPlayer extends Widget {
                         mPlayer.seek(pts1);
                     } } );
                 ctrlGroup.addShape(button);
-                button.setToolTip("Replay 5", fontInfo, toolTipScaleY, scene);
+                button.setToolTip(new TooltipText("Replay-5", fontInfo, toolTipScaleY));
             }
             { // 6
                 final Button button = new Button(renderModes, fontSymbols,
@@ -377,7 +377,7 @@ public class MediaPlayer extends Widget {
                         mPlayer.seek(pts1);
                     } } );
                 ctrlGroup.addShape(button);
-                button.setToolTip("Forward 5", fontInfo, toolTipScaleY, scene);
+                button.setToolTip(new TooltipText("Forward-5", fontInfo, toolTipScaleY));
             }
             { // 7
                 final Button button = new Button(renderModes, fontSymbols,
@@ -401,7 +401,7 @@ public class MediaPlayer extends Widget {
                     } } );
                 button.setToggle( !mPlayer.isAudioMuted() ); // on == volume
                 ctrlGroup.addShape(button);
-                button.setToolTip("Volume", fontInfo, toolTipScaleY, scene);
+                button.setToolTip(new TooltipText("Volume", fontInfo, toolTipScaleY));
             }
             { // 8
                 ctrlGroup.addShape(timeLabel);
@@ -467,7 +467,7 @@ public class MediaPlayer extends Widget {
                 });
                 button.setToggle( false ); // on == zoom
                 ctrlGroup.addShape(button);
-                button.setToolTip("Zoom", fontInfo, toolTipScaleY, scene);
+                button.setToolTip(new TooltipText("Zoom", fontInfo, toolTipScaleY));
             }
             for(final Shape cs : customCtrls ) {
                 ctrlGroup.addShape(cs);

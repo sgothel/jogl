@@ -30,30 +30,37 @@ package com.jogamp.graph.ui;
 import com.jogamp.common.os.Clock;
 import com.jogamp.math.util.PMVMatrix4f;
 
-/** A HUD tooltip for {@link Shape}, see {@link Shape#setToolTip(CharSequence, com.jogamp.graph.font.Font, float, Scene)}. */
+/** A HUD tooltip for {@link Shape}, see {@link Shape#setToolTip(Tooltip)}. */
 public abstract class Tooltip {
 
-    /** Shape belonging to this tooltip's tool. */
-    protected final Shape tool;
-    protected final long delayMS;
-    protected final Scene scene;
-    /** Delay t1, time to show tooltip, i.e. t0 + delayMS */
-    protected volatile long delayT1;
+    /** Default tooltip delay is {@value}ms */
+    public static final long DEFAULT_DELAY = 1000;
 
-    protected Tooltip(final Shape tool, final long delayMS, final Scene scene) {
-        this.tool = tool;
+    private final long delayMS;
+    /** Delay t1, time to show tooltip, i.e. t0 + delayMS */
+    private volatile long delayT1;
+    /** Shape 'tool' owning this tooltip. */
+    private Shape tool;
+
+    protected Tooltip(final long delayMS) {
         this.delayMS = delayMS;
-        this.scene = scene;
         this.delayT1 = 0;
+        this.tool = null;
+    }
+    /* pp */ final void setToolOwner(final Shape owner) { tool = owner; }
+
+    /** Returns {@link Shape} 'tool' owning this tooltip, set after {@link Shape#setToolTip(Tooltip)}. */
+    public final Shape getTool() {
+        return tool;
     }
 
     /** Stops the timer. */
-    public void stop() {
+    public final void stop() {
         this.delayT1 = 0;
     }
 
     /** Starts the timer. */
-    public void start() {
+    public final void start() {
         this.delayT1 = Clock.currentMillis() + delayMS;
     }
 
@@ -61,7 +68,7 @@ public abstract class Tooltip {
      * Send tick to this tooltip
      * @return true if timer has been reached to {@link #createTip(PMVMatrix4f)}, otherwise false
      */
-    public boolean tick() {
+    public final boolean tick() {
         if( 0 == delayT1 ) {
             return false;
         }
@@ -73,10 +80,11 @@ public abstract class Tooltip {
     }
 
     /**
-     * Create a new HUD tip shape
+     * Create a new HUD tip shape, usually called by {@link Scene}
+     * @param scene the {@link Scene} caller for which this HUD tip shape is created
      * @param pmv {@link PMVMatrix4f}, which shall be properly initialized, e.g. via {@link Scene#setupMatrix(PMVMatrix4f)}
      * @return newly created HUD tip shape
      */
-    public abstract GraphShape createTip(final PMVMatrix4f pmv);
+    public abstract Shape createTip(final Scene scene, final PMVMatrix4f pmv);
 
 }

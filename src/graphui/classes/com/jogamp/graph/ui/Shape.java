@@ -205,7 +205,6 @@ public abstract class Shape {
     private static final float resize_sxy_min = 1f/200f; // 1/2% - TODO: Maybe customizable?
     private static final float resize_section = 1f/5f; // resize action in a corner
 
-    private static final long toolTipdelayMS = 1000;
     private volatile Tooltip tooltip = null;
 
     /**
@@ -1333,22 +1332,23 @@ public abstract class Shape {
         return position.z() * getScale().z() + zOffset;
     }
 
-    /** Set's a {@link TooltipText} for this shape using default 1s delay */
-    public Tooltip setToolTip(final CharSequence text, final Font font, final float scaleY, final Scene scene) {
-        final Tooltip oldTT = tooltip;
-        tooltip = null;
-        final Tooltip newTT = new TooltipText(text, font, scaleY, this, toolTipdelayMS, scene, Region.VBAA_RENDERING_BIT);
+    /** Set's a new {@link Tooltip} for this shape. */
+    public Tooltip setToolTip(final Tooltip newTooltip) {
+        final Tooltip oldTT = this.tooltip;
+        this.tooltip = null;
         if( null != oldTT ) {
             oldTT.stop();
         }
-        tooltip = newTT;
-        return newTT;
+        newTooltip.setToolOwner(this);
+        this.tooltip = newTooltip;
+        return newTooltip;
     }
     public void removeToolTip() {
         final Tooltip tt = tooltip;
         tooltip = null;
         if( null != tt ) {
             tt.stop();
+            tt.setToolOwner(null);
         }
     }
     private void stopToolTip() {
