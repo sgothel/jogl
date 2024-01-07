@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2023 JogAmp Community. All rights reserved.
+ * Copyright 2012-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -46,6 +46,7 @@ import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayer.Chapter;
 import com.jogamp.opengl.util.texture.Texture;
 
 import jogamp.common.os.PlatformPropsImpl;

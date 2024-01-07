@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2023 JogAmp Community. All rights reserved.
+ * Copyright 2012-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -65,6 +65,7 @@ import com.jogamp.common.util.WorkerThread;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayer.Chapter;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureData;
@@ -1791,6 +1792,16 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public Chapter[] getChapters() { return new Chapter[0]; }
+
+    @Override
+    public final Chapter getChapter(final int msec) {
+        for(final Chapter c : getChapters()) {
+            if( c.start <= msec && msec <= c.end ) {
+                return c;
+            }
+        }
+        return null;
+    }
 
     @Override
     public final String toString() {

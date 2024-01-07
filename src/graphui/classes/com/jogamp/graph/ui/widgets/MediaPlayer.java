@@ -520,7 +520,7 @@ public class MediaPlayer extends Widget {
         return getInfo(mPlayer.getPTS().get(currentMillis), mPlayer.getDuration(), mPlayer, full);
     }
     public static String getInfo(final int ptsMS, final int durationMS, final GLMediaPlayer mPlayer, final boolean full) {
-        final String name;
+        final String name, chapter;
         {
             final String basename;
             final String s = mPlayer.getUri().path.decode();
@@ -536,6 +536,12 @@ public class MediaPlayer extends Widget {
             } else {
                 name = basename;
             }
+            final GLMediaPlayer.Chapter c = mPlayer.getChapter(ptsMS);
+            if( null != c ) {
+                chapter = " - "+c.title;
+            } else {
+                chapter = "";
+            }
         }
         final float aspect = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
         final float pct = (float)ptsMS / (float)durationMS;
@@ -547,12 +553,12 @@ public class MediaPlayer extends Widget {
                     mPlayer.getAID(), mPlayer.getAudioBitrate()/1000, mPlayer.getAudioCodec());
             final String text3 = String.format("video: id %d, kbps %d, codec %s",
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
-            return text1+"\n"+text2+"\n"+text3+"\n"+name;
+            return text1+"\n"+text2+"\n"+text3+"\n"+name+chapter;
         } else {
             final String text1 = String.format("%s / %s (%.0f %%), %s (%01.1fx, vol %1.2f), A/R %.2f",
                     PTS.millisToTimeStr(ptsMS, false), PTS.millisToTimeStr(durationMS, false), pct*100,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect);
-            return text1+"\n"+name;
+            return text1+"\n"+name+chapter;
         }
     }
     public static String getMultilineTime(final long currentMillis, final GLMediaPlayer mPlayer) {

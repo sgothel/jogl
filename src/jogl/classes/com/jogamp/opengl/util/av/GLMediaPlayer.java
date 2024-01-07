@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -789,6 +789,11 @@ public interface GLMediaPlayer extends TextureSequence {
 
     /** Returns {@link Chapter} meta-data from stream, available after {@link State#Initialized} is reached after issuing {@link #playStream(Uri, int, int, int)}. */
     public Chapter[] getChapters();
+    /**
+     * Returns {@link Chapter} covering given time position in milliseconds or null if none covers given time
+     * @param msec desired chapter covering time position in milliseconds
+     */
+    public Chapter getChapter(int msec);
 
     /** Returns a string representation of this player, incl. state and audio/video details. */
     @Override
