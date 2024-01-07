@@ -133,7 +133,7 @@ public final class Scene implements Container, GLEventListener {
     private static final boolean DEBUG = false;
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
-    /* pp */ final List<Tooltip> toolTips = new CopyOnWriteArrayList<Tooltip>();
+    private final AtomicReference<Tooltip> startedToolTip = new AtomicReference<Tooltip>();
     private final AtomicReference<GraphShape> toolTipHUD = new AtomicReference<GraphShape>();
 
     private boolean doFrustumCulling = false;
@@ -503,13 +503,12 @@ public final class Scene implements Container, GLEventListener {
             displayedOnce = true;
             syncDisplayedOnce.notifyAll();
         }
-        if( null == toolTipHUD.get() ) {
+        final Tooltip tt = startedToolTip.get();
+        if( null != tt && null == toolTipHUD.get() ) {
             final GraphShape[] t = { null };
-            for(final Tooltip tt : toolTips ) {
-                if( tt.tick() && forOne(pmv, tt.tool, () -> { t[0] = tt.createTip(pmv); }) ) {
-                    toolTipHUD.set( t[0] );
-                    break; // done
-                }
+            if( tt.tick() && forOne(pmv, tt.tool, () -> { t[0] = tt.createTip(pmv); }) ) {
+                toolTipHUD.set( t[0] );
+                startedToolTip.set(null);
             }
         }
     }
@@ -1205,7 +1204,7 @@ public final class Scene implements Container, GLEventListener {
             final Shape s = dispatchMouseEventPickShape(e, glWinX, glWinY);
             if( null != s ) {
                 mouseOver = true;
-                s.startToolTip();
+                startedToolTip.set( s.startToolTip() );
             } else {
                 mouseOver = false;
             }
@@ -1243,7 +1242,8 @@ public final class Scene implements Container, GLEventListener {
                 return true;
             });
         }
-        for(final Tooltip tt : toolTips) {
+        final Tooltip tt = startedToolTip.getAndSet(null);
+        if( null != tt ) {
             tt.stop();
         }
     }

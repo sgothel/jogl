@@ -1300,15 +1300,11 @@ public abstract class Shape {
         if( isActivable() ) {
             this.zOffset = zOffset;
             setIO(IO_ACTIVE, v);
-            final Tooltip tt = tooltip;
             if( !v ) {
                 releaseInteraction();
+                final Tooltip tt = tooltip;
                 if( null != tt ) {
                     tt.stop();
-                }
-            } else {
-                if( null != tt ) {
-                    tt.start();
                 }
             }
             if( DEBUG ) {
@@ -1344,10 +1340,8 @@ public abstract class Shape {
         final Tooltip newTT = new TooltipText(text, font, scaleY, this, toolTipdelayMS, scene, Region.VBAA_RENDERING_BIT);
         if( null != oldTT ) {
             oldTT.stop();
-            oldTT.scene.toolTips.remove(oldTT);
         }
         tooltip = newTT;
-        newTT.scene.toolTips.add(newTT);
         return newTT;
     }
     public void removeToolTip() {
@@ -1355,7 +1349,6 @@ public abstract class Shape {
         tooltip = null;
         if( null != tt ) {
             tt.stop();
-            tt.scene.toolTips.remove(tt);
         }
     }
     private void stopToolTip() {
@@ -1364,11 +1357,13 @@ public abstract class Shape {
             tt.stop();
         }
     }
-    /* pp */ void startToolTip() {
+    /* pp */ Tooltip startToolTip() {
         final Tooltip tt = tooltip;
         if( null != tt ) {
             tt.start();
+            return tt;
         }
+        return null;
     }
     public Tooltip getTooltip() { return tooltip; }
 

@@ -54,8 +54,7 @@ public abstract class Tooltip {
 
     /** Starts the timer. */
     public void start() {
-        final long t0 = Clock.currentMillis();
-        this.delayT1 = t0 + delayMS;
+        this.delayT1 = Clock.currentMillis() + delayMS;
     }
 
     /**
@@ -66,8 +65,7 @@ public abstract class Tooltip {
         if( 0 == delayT1 ) {
             return false;
         }
-        final long t1 = Clock.currentMillis();
-        if( t1 < delayT1 ) {
+        if( Clock.currentMillis() < delayT1 ) {
             return false;
         }
         this.delayT1 = 0;
