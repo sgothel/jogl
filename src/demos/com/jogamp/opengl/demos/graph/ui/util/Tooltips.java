@@ -81,7 +81,7 @@ public class Tooltips {
                     .setPerp().scale(l_sxy, l_sxy, 1).move(0, 0, 10*zEps)
                     .setColor(0.97f, 0.97f, 0.97f, 0.92f).setBorder(0.05f).setBorderColor(0, 0, 0, 1)
                     .setInteractive(false);
-            buttonLabel.setLabelColor(0, 0, 0);
+            buttonLabel.setLabelColor(0, 0, 0, 1.0f);
             buttonLabel.setSpacing(Button.DEFAULT_SPACING_X, Button.DEFAULT_SPACING_X);
             final Shape s = buttonLabel;
             scene.invoke(false, (final GLAutoDrawable drawable) -> {

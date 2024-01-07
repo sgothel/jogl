@@ -602,7 +602,7 @@ public class UISceneDemo20 implements GLEventListener {
         ((Button)button).setSpacing(symSpacing, fixedSymSize);
         button.setID(BUTTON_QUIT);
         button.setColor(0.7f, 0.3f, 0.3f, 1.0f);
-        ((Button)button).setLabelColor(1.2f, 1.2f, 1.2f);
+        ((Button)button).setLabelColor(1.2f, 1.2f, 1.2f, 1.0f);
         button.setPressedColorMod(1.1f, 0.0f, 0.0f, 1.0f);
         button.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override

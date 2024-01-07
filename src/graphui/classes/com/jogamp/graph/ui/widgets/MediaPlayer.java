@@ -233,7 +233,7 @@ public class MediaPlayer extends Widget {
                         getMultilineTime(Clock.currentMillis(), mPlayer), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 timeLabel.setName("mp.time");
                 timeLabel.setPerp().setColor(CtrlCellCol);
-                timeLabel.setLabelColor(1, 1, 1);
+                timeLabel.setLabelColor(1, 1, 1, 1.0f);
             }
             scene.addGLEventListener(new GLEventAdapter() {
                 long t0 = 0;

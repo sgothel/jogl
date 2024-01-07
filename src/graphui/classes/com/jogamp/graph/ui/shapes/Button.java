@@ -332,11 +332,21 @@ public class Button extends BaseButton {
         return labelNow.getColor();
     }
 
-    /** Sets the label color. */
-    public final Button setLabelColor(final float r, final float g, final float b) {
-        labelOff.setColor(r, g, b, 1.0f);
+    /** Sets the label color, consider using alpha 1 */
+    public final Button setLabelColor(final Vec4f c) {
+        labelOff.setColor(c);
         if( null != labelOn ) {
-            labelOn.setColor(r, g, b, 1.0f);
+            labelOn.setColor(c);
+        }
+        markShapeDirty();
+        return this;
+    }
+
+    /** Sets the label color, consider using alpha 1 */
+    public final Button setLabelColor(final float r, final float g, final float b, final float a) {
+        labelOff.setColor(r, g, b, a);
+        if( null != labelOn ) {
+            labelOn.setColor(r, g, b, a);
         }
         markShapeDirty();
         return this;

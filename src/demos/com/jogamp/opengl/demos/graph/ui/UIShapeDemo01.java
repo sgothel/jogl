@@ -180,7 +180,7 @@ public class UIShapeDemo01 implements GLEventListener {
         final float sz1_w = 1/8f;
         final float sz2 = 1/20f;
         button = new Button(renderModes, font, "Click me!", sz1_w, sz1_w/2f);
-        button.setLabelColor(0.0f,0.0f,0.0f);
+        button.setLabelColor(0.0f,0.0f,0.0f, 1.0f);
         /** Button defaults !
                 button.setLabelColor(1.0f,1.0f,1.0f);
                 button.setButtonColor(0.6f,0.6f,0.6f);
