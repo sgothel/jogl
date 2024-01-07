@@ -464,7 +464,7 @@ public class MediaPlayer extends Widget {
         }
         this.setWidgetMode(true);
 
-        this.onActivation( (final Shape s) -> {
+        this.addActivationListener( (final Shape s) -> {
             if( this.isActive() ) {
                 this.setBorderColor(borderColorA);
             } else {

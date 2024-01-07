@@ -288,7 +288,7 @@ public class Group extends Shape implements Container {
      * Enabled widget behavior for a group causes
      * <ul>
      *   <li>the whole group to be shown on top on (mouse over) activation of one of its elements</li>
-     *   <li>this group's {@link #onActivation(Listener)} to handle all it's elements activation events</li>
+     *   <li>this group's {@link #addActivationListener(Listener)} to handle all it's elements activation events</li>
      *   <li>{@link #isActive()} of this group and its sub-groups to return true if one of its elements is active</li>
      * </ul>
      * </p>
@@ -313,7 +313,7 @@ public class Group extends Shape implements Container {
                 final Group sg = (Group)s;
                 sg.setWidgetMode(v);
             }
-            s.onActivation(activationListener);
+            s.addActivationListener(activationListener);
         }
     }
 

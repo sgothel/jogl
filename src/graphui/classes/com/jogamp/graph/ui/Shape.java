@@ -195,7 +195,7 @@ public abstract class Shape {
     private ListenerBool onInitListener = null;
     private MoveListener onMoveListener = null;
     private Listener onToggleListener = null;
-    private Listener onActivationListener = null;
+    private ArrayList<Listener> activationListeners = new ArrayList<Listener>();
     private Listener onClickedListener = null;
 
     private final Vec2f objDraggedFirst = new Vec2f(); // b/c its relative to Shape and we stick to it
@@ -319,7 +319,7 @@ public abstract class Shape {
         onInitListener = null;
         onMoveListener = null;
         onToggleListener = null;
-        onActivationListener = null;
+        activationListeners.clear();
         onClickedListener = null;
         markShapeDirty();
     }
@@ -358,13 +358,44 @@ public abstract class Shape {
      * </p>
      */
     public final void onToggle(final Listener l) { onToggleListener = l; }
+
     /**
-     * Set user callback to be notified when shape is activated (pointer-over and/or click) or de-activated (pointer left).
+     * Add user callback to be notified when shape is activated (pointer-over and/or click) or de-activated (pointer left).
      * <p>
      * Use {@link #isActive()} to retrieve the state.
      * </p>
      */
-    public final void onActivation(final Listener l) { onActivationListener = l; }
+    public final Shape addActivationListener(final Listener l) {
+        if(l == null) {
+            return this;
+        }
+        @SuppressWarnings("unchecked")
+        final ArrayList<Listener> clonedListeners = (ArrayList<Listener>) activationListeners.clone();
+        clonedListeners.add(l);
+        activationListeners = clonedListeners;
+        return this;
+    }
+    public final Shape removeActivationListener(final Listener l) {
+        if (l == null) {
+            return this;
+        }
+        @SuppressWarnings("unchecked")
+        final ArrayList<Listener> clonedListeners = (ArrayList<Listener>) activationListeners.clone();
+        clonedListeners.remove(l);
+        activationListeners = clonedListeners;
+        return this;
+    }
+    /**
+     * Dispatch activation event event to this shape
+     * @return true to signal operation complete and to stop traversal, otherwise false
+     */
+    private final void dispatchActivationEvent(final Shape s) {
+        final int sz = activationListeners.size();
+        for(int i = 0; i < sz; i++ ) {
+            activationListeners.get(i).run(s);
+        }
+    }
+
     /**
      * Set user callback to be notified when shape is clicked.
      * <p>
@@ -1268,9 +1299,7 @@ public abstract class Shape {
             if( DEBUG ) {
                 System.err.println("XXX "+(v?"  Active":"DeActive")+" "+this);
             }
-            if( null != onActivationListener ) {
-                onActivationListener.run(this);
-            }
+            dispatchActivationEvent(this);
             return true;
         } else {
             return false;
@@ -1282,9 +1311,7 @@ public abstract class Shape {
     protected final Listener forwardActivation = new Listener() {
         @Override
         public void run(final Shape shape) {
-            if( null != onActivationListener ) {
-                onActivationListener.run(shape);
-            }
+            dispatchActivationEvent(shape);
         }
     };
 
