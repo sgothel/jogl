@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -129,11 +129,10 @@ public final class Scene implements Container, GLEventListener {
     /** Maximum sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
     public static final int MAX_SAMPLE_COUNT = 8;
 
-    @SuppressWarnings("unused")
     private static final boolean DEBUG = false;
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
-    private float dbgBorderThickness = 0f;
+
     private boolean doFrustumCulling = false;
 
     private float[] clearColor = null;
@@ -272,43 +271,38 @@ public final class Scene implements Container, GLEventListener {
 
     @Override
     public void addShape(final Shape s) {
-        if( !s.hasBorder() && !FloatUtil.isZero(dbgBorderThickness) ) {
-            s.setBorder(dbgBorderThickness);
-        }
         shapes.add(s);
     }
+
     @Override
     public Shape removeShape(final Shape s) {
         if( shapes.remove(s) ) {
-            s.setBorder(0f);
             return s;
         } else {
             return null;
         }
     }
+
     @Override
-    public Shape removeShape(final int idx) {
-        final Shape r = shapes.remove(idx);
-        if( null != r ) {
-            r.setBorder(0f);
+    public void removeShapes(final Collection<? extends Shape> shapes) {
+        for(final Shape s : shapes) {
+            removeShape(s);
         }
-        return r;
     }
 
-    /**
-     * Removes given shape and destroy it, if contained.
-     * @param gl GL2ES2 context
-     * @param s the shape to be removed
-     * @return true if given Shape is removed and destroyed
-     */
-    public boolean removeShape(final GL2ES2 gl, final Shape s) {
+    @Override
+    public boolean removeShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape s) {
         if( shapes.remove(s) ) {
-            s.setBorder(0f);
             s.destroy(gl, renderer);
             return true;
         } else {
             return false;
         }
+    }
+
+    /** Removes given shape and destroy it, if contained - convenient call for {@link #removeShape(GL2ES2, RegionRenderer, Shape)}. */
+    public boolean removeShape(final GL2ES2 gl, final Shape s) {
+        return removeShape(gl, renderer, s);
     }
     @Override
     public void addShapes(final Collection<? extends Shape> shapes) {
@@ -317,32 +311,25 @@ public final class Scene implements Container, GLEventListener {
         }
     }
     @Override
-    public void removeShapes(final Collection<? extends Shape> shapes) {
+    public void removeShapes(final GL2ES2 gl, final RegionRenderer renderer, final Collection<? extends Shape> shapes) {
         for(final Shape s : shapes) {
-            removeShape(s);
+            removeShape(gl, renderer, s);
         }
     }
-    /** Removes all given shapes and destroys them. */
+    /** Removes all given shapes and destroys them, convenient call for {@link #removeShape(GL2ES2, RegionRenderer, Shape)} */
     public void removeShapes(final GL2ES2 gl, final Collection<? extends Shape> shapes) {
-        for(final Shape s : shapes) {
-            removeShape(gl, s);
-        }
+        removeShapes(gl, renderer, shapes);
     }
     @Override
-    public void removeAllShapes() {
+    public void removeAllShapes(final GL2ES2 gl, final RegionRenderer renderer) {
         final int count = shapes.size();
         for(int i=count-1; i>=0; --i) {
-            final Shape s = shapes.get(i);
-            s.setBorder(0f);
-            shapes.remove(s);
+            removeShape(gl, renderer, shapes.get(i));
         }
     }
-    /** Removes all given shapes and destroys them. */
+    /** Removes all given shapes and destroys them, convenient call for {@link #removeAllShapes(GL2ES2, RegionRenderer)}. */
     public void removeAllShapes(final GL2ES2 gl) {
-        final int count = shapes.size();
-        for(int i=count-1; i>=0; --i) {
-            removeShape(gl, shapes.get(i));
-        }
+        removeAllShapes(gl, renderer);
     }
 
     @Override
@@ -411,17 +398,6 @@ public final class Scene implements Container, GLEventListener {
         }
     }
 
-    /**
-     * Sets the debug {@link Shape#setBorder(float) border} thickness for all existing or added shapes, zero for no debug border (default).
-     * @param v thickness debug border, zero for no border
-     */
-    public final void setDebugBorderBox(final float v) {
-        dbgBorderThickness = v;
-        for(int i=0; i<shapes.size(); i++) {
-            shapes.get(i).setBorder(v);
-        }
-    }
-
     @Override
     public void init(final GLAutoDrawable drawable) {
         if( null == cDrawable ) {
@@ -487,64 +463,75 @@ public final class Scene implements Container, GLEventListener {
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
 
-        display(drawable, shapesS, false);
+        display(drawable, shapesS);
     }
 
     private static final int[] sampleCountGLSelect = { -1 };
 
-    private void display(final GLAutoDrawable drawable, final Object[] shapes, final boolean glSelect) {
+    private void display(final GLAutoDrawable drawable, final Object[] shapes) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         final int[] sampleCount0;
-        if( glSelect ) {
-            gl.glClearColor(0f, 0f, 0f, 1f);
-            sampleCount0 = sampleCountGLSelect;
-            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        } else {
-            if( null != clearColor ) {
-                gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-                gl.glClear(clearMask);
-            }
-            sampleCount0 = sampleCount;
+        if( null != clearColor ) {
+            gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+            gl.glClear(clearMask);
         }
+        sampleCount0 = sampleCount;
 
         final PMVMatrix4f pmv = renderer.getMatrix();
 
-        if( glSelect ) {
-            renderer.enable(gl, true, RegionRenderer.defaultBlendDisable, RegionRenderer.defaultBlendDisable);
-        } else {
-            renderer.enable(gl, true);
-        }
+        renderer.enable(gl, true);
 
-        //final int shapeCount = shapes.size();
         final int shapeCount = shapes.length;
         for(int i=0; i<shapeCount; i++) {
-            // final Shape shape = shapes.get(i);
             final Shape shape = (Shape)shapes[i];
-            // System.err.println("Id "+i+": "+uiShape);
             if( shape.isVisible() ) {
                 pmv.pushMv();
                 shape.setTransformMv(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
-                    if( glSelect ) {
-                        final float color = ( i + 1f ) / ( shapeCount + 2f );
-                        // FIXME
-                        // System.err.printf("drawGL: color %f, index %d of [0..%d[%n", color, i, shapeCount);
-                        renderer.setColorStatic(color, color, color, 1f);
-                        shape.drawToSelect(gl, renderer, sampleCount0);
-                    } else {
-                        shape.draw(gl, renderer, sampleCount0);
-                    }
+                    shape.draw(gl, renderer, sampleCount0);
                 }
                 pmv.popMv();
             }
         }
-        if( glSelect ) {
-            renderer.enable(gl, false, RegionRenderer.defaultBlendDisable, RegionRenderer.defaultBlendDisable);
-        } else {
-            renderer.enable(gl, false);
+        renderer.enable(gl, false);
+        synchronized ( syncDisplayedOnce ) {
+            displayedOnce = true;
+            syncDisplayedOnce.notifyAll();
         }
+    }
+
+    private void displayGLSelect(final GLAutoDrawable drawable, final Object[] shapes) {
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+
+        final int[] sampleCount0;
+        gl.glClearColor(0f, 0f, 0f, 1f);
+        sampleCount0 = sampleCountGLSelect;
+        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+
+        final PMVMatrix4f pmv = renderer.getMatrix();
+
+        renderer.enable(gl, true, RegionRenderer.defaultBlendDisable, RegionRenderer.defaultBlendDisable);
+
+        final int shapeCount = shapes.length;
+        for(int i=0; i<shapeCount; i++) {
+            final Shape shape = (Shape)shapes[i];
+            if( shape.isVisible() ) {
+                pmv.pushMv();
+                shape.setTransformMv(pmv);
+
+                if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
+                    final float color = ( i + 1f ) / ( shapeCount + 2f );
+                    // FIXME
+                    // System.err.printf("drawGL: color %f, index %d of [0..%d[%n", color, i, shapeCount);
+                    renderer.setColorStatic(color, color, color, 1f);
+                    shape.drawToSelect(gl, renderer, sampleCount0);
+                }
+                pmv.popMv();
+            }
+        }
+        renderer.enable(gl, false, RegionRenderer.defaultBlendDisable, RegionRenderer.defaultBlendDisable);
         synchronized ( syncDisplayedOnce ) {
             displayedOnce = true;
             syncDisplayedOnce.notifyAll();
@@ -727,7 +714,7 @@ public final class Scene implements Container, GLEventListener {
 
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        display(drawable, shapesS, true);
+        displayGLSelect(drawable, shapesS);
 
         psm.setPackAlignment(gl, 4);
         // psm.setUnpackAlignment(gl, 4);

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -583,7 +583,7 @@ public abstract class Shape {
     public void drawToSelect(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
         synchronized ( dirtySync ) {
             validate(gl);
-            drawImpl0(gl, renderer, sampleCount, null);
+            drawToSelectImpl0(gl, renderer, sampleCount);
         }
     }
 
@@ -1751,13 +1751,21 @@ public abstract class Shape {
     protected abstract void validateImpl(final GLProfile glp, final GL2ES2 gl);
 
     /**
-     * Actual draw implementation
+     * Actual draw implementation, called by {@link #draw(GL2ES2, RegionRenderer, int[])}
      * @param gl
      * @param renderer
      * @param sampleCount
-     * @param rgba if null, caller is {@link #drawToSelect(GL2ES2, RegionRenderer, int[])}, otherwise regular {@#link #draw(GL2ES2, RegionRenderer, int[])}
+     * @param rgba
      */
     protected abstract void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, Vec4f rgba);
+
+    /**
+     * Actual draw implementation, called by {@link #drawToSelect(GL2ES2, RegionRenderer, int[])}
+     * @param gl
+     * @param renderer
+     * @param sampleCount
+     */
+    protected abstract void drawToSelectImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount);
 
     /** Custom {@link #clear(GL2ES2, RegionRenderer)} task, called 1st. */
     protected abstract void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer);

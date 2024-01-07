@@ -37,7 +37,6 @@ public class CommandlineOptions {
     public int sceneMSAASamples = 0;
     /** Sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT} */
     public int graphAASamples = 0;
-    public float debugBoxThickness = 0f;
     public boolean exclusiveContext = false;
     public boolean wait_to_start = false;
     public boolean keepRunning = false;
@@ -126,9 +125,6 @@ public class CommandlineOptions {
             graphAASamples = MiscUtils.atoi(args[idx[0]], 4);
             renderModes &= ~Region.AA_RENDERING_MASK;
             renderModes |= Region.VBAA_RENDERING_BIT;
-        } else if (args[idx[0]].equals("-dbgbox")) {
-            ++idx[0];
-            debugBoxThickness = MiscUtils.atof(args[idx[0]], debugBoxThickness);
         } else if(args[idx[0]].equals("-exclusiveContext")) {
             exclusiveContext = true;
         } else if(args[idx[0]].equals("-wait")) {
@@ -150,7 +146,7 @@ public class CommandlineOptions {
     public String toString() {
         return "Options{surface[width "+surface_width+" x "+surface_height+"], glp "+glProfileName+
                ", renderModes "+Region.getRenderModeString(renderModes)+
-               ", smsaa "+sceneMSAASamples+", dbgbox "+debugBoxThickness+
+               ", smsaa "+sceneMSAASamples+
                ", exclusiveContext "+exclusiveContext+", wait "+wait_to_start+", keep "+keepRunning+", stay "+stayOpen+", dur "+total_duration+"s"+
                "}";
     }

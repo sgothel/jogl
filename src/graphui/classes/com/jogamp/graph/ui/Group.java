@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 JogAmp Community. All rights reserved.
+ * Copyright 2023-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -123,18 +123,6 @@ public class Group extends Shape implements Container {
         markShapeDirty();
     }
 
-    /** Removes given shape, keeps it alive. */
-    @Override
-    public Shape removeShape(final Shape s) {
-        if( shapes.remove(s) ) {
-            s.setParent(null);
-            markShapeDirty();
-            return s;
-        } else {
-            return null;
-        }
-    }
-
     /**
      * Atomic replacement of the given {@link Shape} {@code remove} with {@link Shape} {@code replacement}.
      * @param remove the shape to be replaced
@@ -157,22 +145,24 @@ public class Group extends Shape implements Container {
     }
 
     @Override
-    public Shape removeShape(final int idx) {
-        final Shape r = shapes.remove(idx);
-        if( null != r ) {
-            r.setParent(null);
+    public Shape removeShape(final Shape s) {
+        if( shapes.remove(s) ) {
+            s.setParent(null);
             markShapeDirty();
+            return s;
+        } else {
+            return null;
         }
-        return r;
     }
 
-    /**
-     * Removes given shape and destroy it, if contained.
-     * @param gl GL2ES2 context
-     * @param renderer
-     * @param s the shape to be removed
-     * @return true if given Shape is removed and destroyed
-     */
+    @Override
+    public void removeShapes(final Collection<? extends Shape> shapes) {
+        for(final Shape s : shapes) {
+            removeShape(s);
+        }
+    }
+
+    @Override
     public boolean removeShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape s) {
         if( shapes.remove(s) ) {
             s.setParent(null);
@@ -190,14 +180,7 @@ public class Group extends Shape implements Container {
             addShape(s);
         }
     }
-    /** Removes all given shapes, keeps them alive. */
     @Override
-    public void removeShapes(final Collection<? extends Shape> shapes) {
-        for(final Shape s : shapes) {
-            removeShape(s);
-        }
-    }
-    /** Removes all given shapes and destroys them. */
     public void removeShapes(final GL2ES2 gl, final RegionRenderer renderer, final Collection<? extends Shape> shapes) {
         for(final Shape s : shapes) {
             removeShape(gl, renderer, s);
@@ -205,14 +188,6 @@ public class Group extends Shape implements Container {
     }
 
     @Override
-    public void removeAllShapes() {
-        final int count = shapes.size();
-        for(int i=count-1; i>=0; --i) {
-            removeShape(i);
-        }
-    }
-
-    /** Removes all given shapes and destroys them. */
     public void removeAllShapes(final GL2ES2 gl, final RegionRenderer renderer) {
         final int count = shapes.size();
         for(int i=count-1; i>=0; --i) {
@@ -268,21 +243,37 @@ public class Group extends Shape implements Container {
                 shape.setTransformMv(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
-                    if( null == rgba ) {
-                        shape.drawToSelect(gl, renderer, sampleCount);
-                    } else {
-                        shape.draw(gl, renderer, sampleCount);
-                    }
+                    shape.draw(gl, renderer, sampleCount);
                 }
                 pmv.popMv();
             }
         }
         if( null != border ) {
-            if( null == rgba ) {
-                border.drawToSelect(gl, renderer, sampleCount);
-            } else {
-                border.draw(gl, renderer, sampleCount);
+            border.draw(gl, renderer, sampleCount);
+        }
+    }
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    protected final void drawToSelectImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+        final PMVMatrix4f pmv = renderer.getMatrix();
+        final Object[] shapesS = shapes.toArray();
+        Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
+
+        final int shapeCount = shapesS.length;
+        for(int i=0; i<shapeCount; i++) {
+            final Shape shape = (Shape) shapesS[i];
+            if( shape.isVisible() ) {
+                pmv.pushMv();
+                shape.setTransformMv(pmv);
+
+                if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
+                    shape.drawToSelect(gl, renderer, sampleCount);
+                }
+                pmv.popMv();
             }
+        }
+        if( null != border ) {
+            border.drawToSelect(gl, renderer, sampleCount);
         }
     }
 

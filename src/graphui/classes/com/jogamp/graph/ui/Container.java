@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 JogAmp Community. All rights reserved.
+ * Copyright 2023-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -34,6 +34,8 @@ import java.util.List;
 import com.jogamp.graph.ui.Shape.Visitor2;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.Shape.Visitor1;
 
 /**
@@ -53,25 +55,30 @@ public interface Container {
     void addShape(Shape s);
 
     /**
-     * Removes given shape, w/o {@link Shape#destroy(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer) destroying} them.
+     * Removes given shape, w/o {@link Shape#destroy(GL2ES2, RegionRenderer)}.
      * @return the removed shape or null if not contained
      */
-    Shape removeShape(Shape s);
+    Shape removeShape(final Shape s);
+
+    /** Removes all given shapes, w/o {@link Shape#destroy(GL2ES2, RegionRenderer)}. */
+    void removeShapes(Collection<? extends Shape> shapes);
 
     /**
-     * Removes shape at given index, w/o {@link Shape#destroy(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer) destroying} them.
-     * @return the removed shape
-     * @throws IndexOutOfBoundsException if index is out of bounds, i.e. (index < 0 || index >= size())
+     * Removes given shape with {@link Shape#destroy(GL2ES2, RegionRenderer)}, if contained.
+     * @param gl GL2ES2 context
+     * @param renderer
+     * @param s the shape to be removed
+     * @return true if given Shape is removed and destroyed
      */
-    Shape removeShape(final int idx);
+    boolean removeShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape s);
 
     void addShapes(Collection<? extends Shape> shapes);
 
-    /** Removes all given shapes, w/o {@link Shape#destroy(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer) destroying} them. */
-    void removeShapes(Collection<? extends Shape> shapes);
+    /** Removes all given shapes with {@link Shape#destroy(GL2ES2, RegionRenderer)}. */
+    void removeShapes(final GL2ES2 gl, final RegionRenderer renderer, final Collection<? extends Shape> shapes);
 
-    /** Removes all contained shapes, w/o {@link Shape#destroy(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer) destroying} them. */
-    void removeAllShapes();
+    /** Removes all contained shapes with {@link Shape#destroy(GL2ES2, RegionRenderer)}. */
+    void removeAllShapes(final GL2ES2 gl, final RegionRenderer renderer);
 
     boolean contains(Shape s);
 
