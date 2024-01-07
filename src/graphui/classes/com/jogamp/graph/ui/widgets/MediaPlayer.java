@@ -211,7 +211,7 @@ public class MediaPlayer extends Widget {
             this.addShape( infoGroup.setVisible(false) );
             {
                 final float sz = 1/7f;
-                final Rectangle rect = new Rectangle(renderModes, aratio, sz, 0);
+                final Rectangle rect = new Rectangle(renderModes & ~Region.AA_RENDERING_MASK, aratio, sz, 0);
                 rect.setName("mp.info.blend").setInteractive(false);
                 rect.setColor(0, 0, 0, alphaBlend);
                 rect.setPaddding(new Padding(0, 0, 1f-sz, 0));
@@ -286,7 +286,7 @@ public class MediaPlayer extends Widget {
             });
             this.addShape( ctrlSlider.setVisible(false) );
 
-            ctrlBlend = new Rectangle(renderModes, aratio, ctrlCellHeight, 0);
+            ctrlBlend = new Rectangle(renderModes & ~Region.AA_RENDERING_MASK, aratio, ctrlCellHeight, 0);
             ctrlBlend.setName("ctrl.blend").setInteractive(false);
             ctrlBlend.setColor(0, 0, 0, alphaBlend);
             this.addShape( ctrlBlend.setVisible(false) );

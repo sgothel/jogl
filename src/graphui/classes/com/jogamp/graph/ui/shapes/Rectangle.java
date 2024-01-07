@@ -62,7 +62,7 @@ public class Rectangle extends GraphShape {
      * @param zPos
      */
     public Rectangle(final int renderModes, final float minX, final float minY, final float width, final float height, final float lineWidth, final float zPos) {
-        super( renderModes & ~Region.AA_RENDERING_MASK );
+        super( renderModes );
         this.minX = minX;
         this.minY = minY;
         this.zPos = zPos;
