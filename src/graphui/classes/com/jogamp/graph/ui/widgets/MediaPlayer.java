@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -41,6 +41,7 @@ import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
+import com.jogamp.graph.ui.TooltipText;
 import com.jogamp.graph.ui.layout.Alignment;
 import com.jogamp.graph.ui.layout.BoxLayout;
 import com.jogamp.graph.ui.layout.Gap;
@@ -160,7 +161,8 @@ public class MediaPlayer extends Widget {
                         System.err.println(mp.toString());
                         for(final GLMediaPlayer.Chapter c : mp.getChapters()) {
                             System.err.println(c);
-                            ctrlSlider.addMark(c.start, new Vec4f(0.9f, 0.9f, 0.9f, 0.5f));
+                            final Shape mark = ctrlSlider.addMark(c.start, new Vec4f(0.9f, 0.9f, 0.9f, 0.5f));
+                            mark.setToolTip(c.title+"\n"+PTS.millisToTimeStr(c.start, false), fontInfo, 5, scene);
                         }
                     } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                         playButton.setToggle(true);
@@ -289,6 +291,7 @@ public class MediaPlayer extends Widget {
             ctrlBlend.setColor(0, 0, 0, alphaBlend);
             this.addShape( ctrlBlend.setVisible(false) );
 
+            final float toolTipScaleY = 0.6f;
             ctrlGroup = new Group(new GridLayout(ctrlCellWidth, ctrlCellHeight, Alignment.FillCenter, Gap.None, 1));
             ctrlGroup.setName("ctrlGroup").setInteractive(false);
             ctrlGroup.setPaddding(new Padding(0, borderSzS, 0, borderSzS));
@@ -303,6 +306,7 @@ public class MediaPlayer extends Widget {
                 });
                 playButton.setToggle(true); // on == play
                 ctrlGroup.addShape(playButton);
+                playButton.setToolTip("Play", fontInfo, toolTipScaleY, scene);
             }
             { // 2
                 final Button button = new Button(renderModes, fontSymbols,
@@ -313,6 +317,7 @@ public class MediaPlayer extends Widget {
                     mPlayer.seek(0);
                 });
                 ctrlGroup.addShape(button);
+                button.setToolTip("Back", fontInfo, toolTipScaleY, scene);
             }
             { // 3
                 final Button button = new Button(renderModes, fontSymbols,
@@ -323,6 +328,7 @@ public class MediaPlayer extends Widget {
                     mPlayer.setPlaySpeed(mPlayer.getPlaySpeed() - 0.5f);
                 });
                 ctrlGroup.addShape(button);
+                button.setToolTip("Fast-Rewind", fontInfo, toolTipScaleY, scene);
             }
             { // 4
                 final Button button = new Button(renderModes, fontSymbols,
@@ -333,6 +339,7 @@ public class MediaPlayer extends Widget {
                     mPlayer.setPlaySpeed(mPlayer.getPlaySpeed() + 0.5f);
                 });
                 ctrlGroup.addShape(button);
+                button.setToolTip("Fast-Forward", fontInfo, toolTipScaleY, scene);
             }
             { // 5
                 final Button button = new Button(renderModes, fontSymbols,
@@ -351,6 +358,7 @@ public class MediaPlayer extends Widget {
                         mPlayer.seek(pts1);
                     } } );
                 ctrlGroup.addShape(button);
+                button.setToolTip("Replay 5", fontInfo, toolTipScaleY, scene);
             }
             { // 6
                 final Button button = new Button(renderModes, fontSymbols,
@@ -369,6 +377,7 @@ public class MediaPlayer extends Widget {
                         mPlayer.seek(pts1);
                     } } );
                 ctrlGroup.addShape(button);
+                button.setToolTip("Forward 5", fontInfo, toolTipScaleY, scene);
             }
             { // 7
                 final Button button = new Button(renderModes, fontSymbols,
@@ -392,6 +401,7 @@ public class MediaPlayer extends Widget {
                     } } );
                 button.setToggle( !mPlayer.isAudioMuted() ); // on == volume
                 ctrlGroup.addShape(button);
+                button.setToolTip("Volume", fontInfo, toolTipScaleY, scene);
             }
             { // 8
                 ctrlGroup.addShape(timeLabel);
@@ -457,6 +467,7 @@ public class MediaPlayer extends Widget {
                 });
                 button.setToggle( false ); // on == zoom
                 ctrlGroup.addShape(button);
+                button.setToolTip("Zoom", fontInfo, toolTipScaleY, scene);
             }
             for(final Shape cs : customCtrls ) {
                 ctrlGroup.addShape(cs);

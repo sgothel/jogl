@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.jogamp.opengl.FPSCounter;
 import com.jogamp.opengl.GL;
@@ -132,6 +133,8 @@ public final class Scene implements Container, GLEventListener {
     private static final boolean DEBUG = false;
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
+    /* pp */ final List<Tooltip> toolTips = new CopyOnWriteArrayList<Tooltip>();
+    private final AtomicReference<GraphShape> toolTipHUD = new AtomicReference<GraphShape>();
 
     private boolean doFrustumCulling = false;
 
@@ -499,6 +502,15 @@ public final class Scene implements Container, GLEventListener {
         synchronized ( syncDisplayedOnce ) {
             displayedOnce = true;
             syncDisplayedOnce.notifyAll();
+        }
+        if( null == toolTipHUD.get() ) {
+            final GraphShape[] t = { null };
+            for(final Tooltip tt : toolTips ) {
+                if( tt.tick() && forOne(pmv, tt.tool, () -> { t[0] = tt.createTip(pmv); }) ) {
+                    toolTipHUD.set( t[0] );
+                    break; // done
+                }
+            }
         }
     }
 
@@ -1042,6 +1054,7 @@ public final class Scene implements Container, GLEventListener {
     private final class SBCGestureListener implements GestureHandler.GestureListener {
         @Override
         public void gestureDetected(final GestureEvent gh) {
+            clearToolTips();
             if( null != activeShape ) {
                 // gesture .. delegate to active shape!
                 final InputEvent orig = gh.getTrigger();
@@ -1069,7 +1082,7 @@ public final class Scene implements Container, GLEventListener {
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      */
-    private final boolean dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY) {
+    private final Shape dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY) {
         final PMVMatrix4f pmv = new PMVMatrix4f();
         final Vec3f objPos = new Vec3f();
         final Shape shape = pickShape(pmv, glWinX, glWinY, objPos, (final Shape s) -> {
@@ -1077,10 +1090,10 @@ public final class Scene implements Container, GLEventListener {
            });
         if( null != shape ) {
            setActiveShape(shape);
-           return true;
+           return shape;
         } else {
            releaseActiveShape();
-           return false;
+           return null;
         }
     }
     /**
@@ -1109,6 +1122,7 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mousePressed(final MouseEvent e) {
+            clearToolTips();
             if( -1 == lId || e.getPointerId(0) == lId ) {
                 lx = e.getX();
                 ly = e.getY();
@@ -1122,6 +1136,7 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mouseReleased(final MouseEvent e) {
+            clearToolTips();
             // flip to GL window coordinates, origin bottom-left
             final int glWinX = e.getX();
             final int glWinY = getHeight() - e.getY() - 1;
@@ -1137,6 +1152,7 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mouseClicked(final MouseEvent e) {
+            clearToolTips();
             // flip to GL window coordinates
             final int glWinX = e.getX();
             final int glWinY = getHeight() - e.getY() - 1;
@@ -1153,6 +1169,7 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mouseDragged(final MouseEvent e) {
+            clearToolTips();
             // drag activeShape, if no gesture-activity, only on 1st pointer
             if( null != activeShape && activeShape.isInteractive() && !pinchToZoomGesture.isWithinGesture() && e.getPointerId(0) == lId ) {
                 lx = e.getX();
@@ -1168,6 +1185,7 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mouseWheelMoved(final MouseEvent e) {
+            clearToolTips();
             // flip to GL window coordinates
             final int glWinX = lx;
             final int glWinY = getHeight() - ly - 1;
@@ -1176,6 +1194,7 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mouseMoved(final MouseEvent e) {
+            clearToolTips();
             if( -1 == lId || e.getPointerId(0) == lId ) {
                 lx = e.getX();
                 ly = e.getY();
@@ -1183,12 +1202,19 @@ public final class Scene implements Container, GLEventListener {
             }
             final int glWinX = lx;
             final int glWinY = getHeight() - ly - 1;
-            mouseOver = dispatchMouseEventPickShape(e, glWinX, glWinY);
+            final Shape s = dispatchMouseEventPickShape(e, glWinX, glWinY);
+            if( null != s ) {
+                mouseOver = true;
+                s.startToolTip();
+            } else {
+                mouseOver = false;
+            }
         }
         @Override
         public void mouseEntered(final MouseEvent e) { }
         @Override
         public void mouseExited(final MouseEvent e) {
+            clearToolTips();
             releaseActiveShape();
             clear();
         }
@@ -1206,6 +1232,19 @@ public final class Scene implements Container, GLEventListener {
             if( null != activeShape && activeShape.isInteractive() ) {
                 activeShape.dispatchKeyEvent(e);
             }
+        }
+    }
+
+    private void clearToolTips() {
+        final Shape s = toolTipHUD.getAndSet(null);
+        if( null != s ) {
+            invoke(false, (final GLAutoDrawable drawable) -> {
+                removeShape(drawable.getGL().getGL2ES2(), s);
+                return true;
+            });
+        }
+        for(final Tooltip tt : toolTips) {
+            tt.stop();
         }
     }
 

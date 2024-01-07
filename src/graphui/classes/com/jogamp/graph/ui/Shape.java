@@ -34,7 +34,9 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.font.Font;
 import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Matrix4f;
@@ -203,6 +205,9 @@ public abstract class Shape {
     private static final float resize_sxy_min = 1f/200f; // 1/2% - TODO: Maybe customizable?
     private static final float resize_section = 1f/5f; // resize action in a corner
 
+    private static final long toolTipdelayMS = 1000;
+    private volatile Tooltip tooltip = null;
+
     /**
      * Create a generic UI {@link Shape}
      */
@@ -304,6 +309,7 @@ public abstract class Shape {
      */
     public final void clear(final GL2ES2 gl, final RegionRenderer renderer) {
         synchronized ( dirtySync ) {
+            stopToolTip();
             clearImpl0(gl, renderer);
             resetState();
         }
@@ -330,6 +336,7 @@ public abstract class Shape {
      * @param renderer {@link RegionRenderer} used to release GPU resources
      */
     public final void destroy(final GL2ES2 gl, final RegionRenderer renderer) {
+        removeToolTip();
         destroyImpl0(gl, renderer);
         resetState();
     }
@@ -1293,8 +1300,16 @@ public abstract class Shape {
         if( isActivable() ) {
             this.zOffset = zOffset;
             setIO(IO_ACTIVE, v);
+            final Tooltip tt = tooltip;
             if( !v ) {
                 releaseInteraction();
+                if( null != tt ) {
+                    tt.stop();
+                }
+            } else {
+                if( null != tt ) {
+                    tt.start();
+                }
             }
             if( DEBUG ) {
                 System.err.println("XXX "+(v?"  Active":"DeActive")+" "+this);
@@ -1321,6 +1336,41 @@ public abstract class Shape {
     protected final float getAdjustedZImpl() {
         return position.z() * getScale().z() + zOffset;
     }
+
+    /** Set's a {@link TooltipText} for this shape using default 1s delay */
+    public Tooltip setToolTip(final CharSequence text, final Font font, final float scaleY, final Scene scene) {
+        final Tooltip oldTT = tooltip;
+        tooltip = null;
+        final Tooltip newTT = new TooltipText(text, font, scaleY, this, toolTipdelayMS, scene, Region.VBAA_RENDERING_BIT);
+        if( null != oldTT ) {
+            oldTT.stop();
+            oldTT.scene.toolTips.remove(oldTT);
+        }
+        tooltip = newTT;
+        newTT.scene.toolTips.add(newTT);
+        return newTT;
+    }
+    public void removeToolTip() {
+        final Tooltip tt = tooltip;
+        tooltip = null;
+        if( null != tt ) {
+            tt.stop();
+            tt.scene.toolTips.remove(tt);
+        }
+    }
+    private void stopToolTip() {
+        final Tooltip tt = tooltip;
+        if( null != tt ) {
+            tt.stop();
+        }
+    }
+    /* pp */ void startToolTip() {
+        final Tooltip tt = tooltip;
+        if( null != tt ) {
+            tt.start();
+        }
+    }
+    public Tooltip getTooltip() { return tooltip; }
 
     /**
      * Set whether this shape is interactive,
