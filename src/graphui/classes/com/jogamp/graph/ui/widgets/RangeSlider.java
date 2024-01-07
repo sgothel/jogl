@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -355,15 +355,26 @@ public final class RangeSlider extends Widget {
     public GraphShape getKnob() { return knob; }
     public Group getMarks() { return marks; }
     public RangeSlider clearMarks(final GL2ES2 gl, final RegionRenderer renderer) { marks.clear(gl, renderer); return this; }
-    public RangeSlider addMark(final float value, final Vec4f color) {
-        final float sizexy = horizontal ? size.y() : size.x();
-        final GraphShape item = new Rectangle(knob.getRenderModes(), sizexy, sizexy, 0);
-        final Vec2f pos = getItemValuePos(new Vec2f(), value, sizexy, sizexy);
-        item.setInteractive(false).setToggleable(false).setDraggable(false).setResizable(false);
-        item.setColor(color);
-        item.moveTo(pos.x(), pos.y(), 0);
-        marks.addShape(item);
-        return this;
+    public Shape addMark(final float value, final Vec4f color) {
+        final float sizex, sizey, itemLen, itemHeight;
+        if( horizontal ) {
+            sizey = size.y();
+            sizex = 2*sizey;
+            itemLen = sizex;
+            itemHeight = sizey;
+        } else {
+            sizex = size.x();
+            sizey = 2*sizex;
+            itemLen = sizey;
+            itemHeight = sizex;
+        }
+        final GraphShape mark = new Rectangle(knob.getRenderModes(), sizex, sizey, 0);
+        final Vec2f pos = getItemValuePos(new Vec2f(), value, itemLen, itemHeight);
+        mark.setInteractive(true).setToggleable(false).setDraggable(false).setResizable(false);
+        mark.setColor(color);
+        mark.moveTo(pos.x(), pos.y(), 0);
+        marks.addShape(mark);
+        return mark;
     }
 
     public final Vec2f getSize() { return size; }
