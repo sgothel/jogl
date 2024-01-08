@@ -69,6 +69,7 @@ public class UIMediaGrid00 {
     static CommandlineOptions options = new CommandlineOptions(1920, 1080, Region.VBAA_RENDERING_BIT);
 
     public static int aid = GLMediaPlayer.STREAM_ID_AUTO;
+    public static boolean letterBox = true;
 
     public static void main(final String[] args) throws IOException {
         final List<Uri> mediaFiles = new ArrayList<Uri>();
@@ -86,11 +87,14 @@ public class UIMediaGrid00 {
                 } else if(args[idx[0]].equals("-aid")) {
                     idx[0]++;
                     aid = MiscUtils.atoi(args[idx[0]], aid);
+                } else if(args[idx[0]].equals("-zoom")) {
+                    letterBox = false;
                 }
             }
         }
         System.err.println(options);
         System.err.println("aid "+aid);
+        System.err.println("letterBox "+letterBox);
 
         if( 0 == mediaFiles.size() ) {
             System.err.println("No media files, exit.");
@@ -239,7 +243,7 @@ public class UIMediaGrid00 {
                 });
                 customCtrls.add(button);
             }
-            grid.addShape( new MediaPlayer(options.renderModes, scene, mPlayer, medium, 16f/9f, false, zoomSize, customCtrls) );
+            grid.addShape( new MediaPlayer(options.renderModes, scene, mPlayer, medium, 16f/9f, letterBox, zoomSize, customCtrls) );
             mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
         }
     }
