@@ -228,17 +228,10 @@ public class PointsDemoES2 extends PointsDemo {
         System.err.println(VersionUtil.getPlatformInfo());
         // System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(dpy.getGraphicsDevice(), null).toString());
 
-        final GLProfile glp = GLProfile.get(options.glProfileName);
-        System.err.println("GLProfile: "+glp);
-        final GLCapabilities caps = new GLCapabilities(glp);
-        caps.setAlphaBits(4);
-        if( options.sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(options.sceneMSAASamples);
-        }
-        System.out.println("Requested: " + caps);
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
         if( 0 == options.sceneMSAASamples ) {
             window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(false));
         }

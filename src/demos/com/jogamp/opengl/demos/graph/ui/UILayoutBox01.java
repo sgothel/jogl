@@ -88,20 +88,12 @@ public class UILayoutBox01 {
         }
         System.err.println(options);
 
-        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
-        System.err.println("GLProfile: "+reqGLP);
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
         final Animator animator = new Animator(0 /* w/o AWT */);
 
-        final GLCapabilities caps = new GLCapabilities(reqGLP);
-        caps.setAlphaBits(4);
-        if( options.sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(options.sceneMSAASamples);
-        }
-        System.out.println("Requested: " + caps);
-
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UILayoutBox01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.addWindowListener(new WindowAdapter() {
@@ -168,7 +160,7 @@ public class UILayoutBox01 {
         //
         //
         //
-        fillDemoScene(groups, reqGLP, scene, zEps, sxy, nextPos, cellGap,
+        fillDemoScene(groups, reqCaps.getGLProfile(), scene, zEps, sxy, nextPos, cellGap,
                       new Margin(0.04f, 0.04f, 0.10f, 0.10f),
                       new Padding(0.03f, 0.03f, 0.07f, 0.07f), font, dragZoomRotateListener);
 
@@ -179,7 +171,7 @@ public class UILayoutBox01 {
                 System.err.println("Group["+idx+"].2.0 "+g);
                 System.err.println("Group["+idx+"].2.0 "+g.getLayout());
                 g.markShapeDirty();
-                g.validate(reqGLP);
+                g.validate(reqCaps.getGLProfile());
                 System.err.println("Group["+idx+"].2.1 "+g);
                 System.err.println("Group["+idx+"].2.1 "+g.getLayout());
                 ++idx;
@@ -187,7 +179,7 @@ public class UILayoutBox01 {
         }
 
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
-        scene.screenshot(true, scene.nextScreenshotFile(null, UILayoutBox01.class.getSimpleName(), options.renderModes, caps, null));
+        scene.screenshot(true, scene.nextScreenshotFile(null, UILayoutBox01.class.getSimpleName(), options.renderModes, reqCaps, null));
         {
             int idx = 0;
             for(final Group g : groups) {
@@ -207,7 +199,7 @@ public class UILayoutBox01 {
         //
         nextPos.set(0, 0, 0);
 
-        fillDemoScene(groups, reqGLP, scene, zEps, sxy, nextPos, cellGap,
+        fillDemoScene(groups, reqCaps.getGLProfile(), scene, zEps, sxy, nextPos, cellGap,
                       new Margin(0.07f, 0.07f),
                       new Padding(0.10f, 0.10f), font, dragZoomRotateListener);
 
@@ -218,7 +210,7 @@ public class UILayoutBox01 {
                 System.err.println("Group["+idx+"].2.0 "+g);
                 System.err.println("Group["+idx+"].2.0 "+g.getLayout());
                 g.markShapeDirty();
-                g.validate(reqGLP);
+                g.validate(reqCaps.getGLProfile());
                 System.err.println("Group["+idx+"].2.1 "+g);
                 System.err.println("Group["+idx+"].2.1 "+g.getLayout());
                 ++idx;
@@ -226,7 +218,7 @@ public class UILayoutBox01 {
         }
 
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
-        scene.screenshot(true, scene.nextScreenshotFile(null, UILayoutBox01.class.getSimpleName(), options.renderModes, caps, null));
+        scene.screenshot(true, scene.nextScreenshotFile(null, UILayoutBox01.class.getSimpleName(), options.renderModes, reqCaps, null));
         {
             int idx = 0;
             for(final Group g : groups) {

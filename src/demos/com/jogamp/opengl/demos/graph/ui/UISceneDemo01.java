@@ -46,7 +46,6 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
-import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.es2.GearsES2;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.util.Animator;
@@ -68,8 +67,8 @@ public class UISceneDemo01 {
     public static void main(final String[] args) throws IOException {
         options.parse(args);
         System.err.println(options);
-        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
-        System.err.println("GLProfile: "+reqGLP);
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
         //
         // Resolution independent, no screen size
@@ -78,7 +77,7 @@ public class UISceneDemo01 {
         System.err.println("Font: "+font.getFullFamilyName());
 
         final Shape shape = makeShape(font, options.renderModes);
-        System.err.println("Shape bounds "+shape.getBounds(reqGLP));
+        System.err.println("Shape bounds "+shape.getBounds(reqCaps.getGLProfile()));
         System.err.println("Shape "+shape);
 
         final Scene scene = new Scene(options.graphAASamples);
@@ -88,11 +87,7 @@ public class UISceneDemo01 {
 
         final Animator animator = new Animator(0 /* w/o AWT */);
 
-        final GLCapabilities caps = new GLCapabilities(reqGLP);
-        caps.setAlphaBits(4);
-        System.out.println("Requested: " + caps);
-
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UISceneDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);

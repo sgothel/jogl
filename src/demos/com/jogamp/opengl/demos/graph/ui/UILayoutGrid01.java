@@ -87,20 +87,12 @@ public class UILayoutGrid01 {
         }
         System.err.println(options);
 
-        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
-        System.err.println("GLProfile: "+reqGLP);
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
         final Animator animator = new Animator(0 /* w/o AWT */);
 
-        final GLCapabilities caps = new GLCapabilities(reqGLP);
-        caps.setAlphaBits(4);
-        if( options.sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(options.sceneMSAASamples);
-        }
-        System.out.println("Requested: " + caps);
-
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UILayoutGrid01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.addWindowListener(new WindowAdapter() {
@@ -166,7 +158,7 @@ public class UILayoutGrid01 {
 
         if( true ) {
             final Group g = setupGroup(new Group(new GridLayout(1, 1f, 1/2f, Alignment.Fill, new Gap(0.10f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 11,
                 (final Group gp) -> {
@@ -177,7 +169,7 @@ public class UILayoutGrid01 {
 
         if( true ) {
             final Group g = setupGroup(new Group(new GridLayout(1, 1f, 1/2f, Alignment.Fill, new Gap(0.10f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 12,
                 (final Group gp) -> {
@@ -189,7 +181,7 @@ public class UILayoutGrid01 {
 
         if( true ) {
             final Group g = setupGroup(new Group(new GridLayout(1f, 1/2f, Alignment.Fill, new Gap(0.10f), 1)),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 13,
                 (final Group gp) -> {
@@ -201,7 +193,7 @@ public class UILayoutGrid01 {
 
         if( true ) {
             final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 14,
                 (final Group gp) -> {
@@ -215,7 +207,7 @@ public class UILayoutGrid01 {
 
         if( true ) {
             final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 15,
                 (final Group gp) -> {
@@ -230,7 +222,7 @@ public class UILayoutGrid01 {
 
         if( true ) {
             final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f), new Padding(0.05f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 16,
                 (final Group gp) -> {
@@ -250,7 +242,7 @@ public class UILayoutGrid01 {
 
         if( true ) {
             final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 21,
                 (final Group gp) -> {
@@ -265,7 +257,7 @@ public class UILayoutGrid01 {
 
         if( true ) {
             final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.FillCenter, new Gap(0.10f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 22,
                 (final Group gp) -> {
@@ -280,7 +272,7 @@ public class UILayoutGrid01 {
 
         if( true ) {
             final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, Alignment.FillCenter, new Gap(0.10f), new Padding(0.05f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 23,
                 (final Group gp) -> {
@@ -297,7 +289,7 @@ public class UILayoutGrid01 {
             final float bw = 0.5f, bh = bw/2f;
             final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, new Alignment(Alignment.Bit.CenterHoriz.value),
                                                  new Gap(0.10f), new Padding(0.05f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 24,
                 (final Group gp) -> {
@@ -313,7 +305,7 @@ public class UILayoutGrid01 {
             final float bw = 0.5f, bh = bw/2f;
             final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1/2f, new Alignment(Alignment.Bit.CenterVert.value),
                                                  new Gap(0.10f), new Padding(0.05f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 25,
                 (final Group gp) -> {
@@ -331,7 +323,7 @@ public class UILayoutGrid01 {
 
         if( true ) {
             final Group g = setupGroup(new Group(new GridLayout(2, 0, 0, Alignment.Fill, new Gap(0.03f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 2*sxy, nextPos, cellGap,
                 font, 31,
                 (final Group gp) -> {
@@ -362,7 +354,7 @@ public class UILayoutGrid01 {
         if( true ) {
             final float bw = 0.5f, bh = bw/2f;
             final Group g = setupGroup(new Group(new GridLayout(2, 1, 1/2f, Alignment.Center, new Gap(0.10f), new Padding(0.05f))),
-                reqGLP, scene, zEps,
+                reqCaps.getGLProfile(), scene, zEps,
                 sxy, nextPos, cellGap,
                 font, 32,
                 (final Group gp) -> {
@@ -387,7 +379,7 @@ public class UILayoutGrid01 {
         }
 
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
-        scene.screenshot(true, scene.nextScreenshotFile(null, UILayoutGrid01.class.getSimpleName(), options.renderModes, caps, null));
+        scene.screenshot(true, scene.nextScreenshotFile(null, UILayoutGrid01.class.getSimpleName(), options.renderModes, reqCaps, null));
         if( !options.stayOpen ) {
             window.destroy();
         }

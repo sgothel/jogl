@@ -49,7 +49,6 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
-import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.util.Animator;
 
@@ -74,8 +73,8 @@ public class UISceneDemo11 {
         }
         System.err.println(options);
 
-        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
-        System.err.println("GLProfile: "+reqGLP);
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
         //
         // Resolution independent, no screen size
@@ -92,7 +91,7 @@ public class UISceneDemo11 {
         }
         groupA0.setInteractive(true);
         groupA0.scale(1/8f, 1/8f, 1);
-        groupA0.validate(reqGLP);
+        groupA0.validate(reqCaps.getGLProfile());
         System.err.println("Group-A0 "+groupA0);
         System.err.println("Group-A0 Layout "+groupA0.getLayout());
         groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
@@ -105,15 +104,7 @@ public class UISceneDemo11 {
 
         final Animator animator = new Animator(0 /* w/o AWT */);
 
-        final GLCapabilities caps = new GLCapabilities(reqGLP);
-        caps.setAlphaBits(4);
-        if( options.sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(options.sceneMSAASamples);
-        }
-        System.out.println("Requested: " + caps);
-
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UISceneDemo11.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);

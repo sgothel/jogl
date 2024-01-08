@@ -28,6 +28,7 @@
 package com.jogamp.opengl.demos.util;
 
 import com.jogamp.graph.curve.Region;
+import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 
 public class CommandlineOptions {
@@ -142,6 +143,20 @@ public class CommandlineOptions {
         }
         return res;
     }
+    public GLProfile getGLProfile() {
+        return GLProfile.get(glProfileName);
+    }
+    public GLCapabilities getGLCaps() {
+        final GLProfile glp = getGLProfile();
+        final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(4);
+        if( sceneMSAASamples > 0 ) {
+            caps.setSampleBuffers(true);
+            caps.setNumSamples(sceneMSAASamples);
+        }
+        return caps;
+    }
+
     @Override
     public String toString() {
         return "Options{surface[width "+surface_width+" x "+surface_height+"], glp "+glProfileName+

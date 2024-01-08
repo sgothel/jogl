@@ -57,7 +57,6 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
-import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.es2.GearsES2;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.util.Animator;
@@ -98,17 +97,10 @@ public class UISceneDemo10 {
         }
         System.err.println(options);
 
-        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
-        System.err.println("GLProfile: "+reqGLP);
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
-        final GLCapabilities caps = new GLCapabilities(reqGLP);
-        caps.setAlphaBits(4);
-        if( options.sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(options.sceneMSAASamples);
-        }
-        System.out.println("Requested: " + caps);
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
 
         //
         // Resolution independent, no screen size
@@ -118,7 +110,7 @@ public class UISceneDemo10 {
         }
         System.err.println("Font: "+font.getFullFamilyName());
         final Shape shape = makeShape(window, font, options.renderModes);
-        System.err.println("m0 shape bounds "+shape.getBounds(reqGLP));
+        System.err.println("m0 shape bounds "+shape.getBounds(reqCaps.getGLProfile()));
         System.err.println("m0 "+shape);
 
         // Scene for Shape ...
@@ -126,7 +118,7 @@ public class UISceneDemo10 {
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        shape.onMove((final Shape s, final Vec3f origin, Vec3f dest) -> {
+        shape.onMove((final Shape s, final Vec3f origin, final Vec3f dest) -> {
                 final Vec3f p = shape.getPosition();
                 System.err.println("Shape moved: "+origin+" -> "+p);
             } );

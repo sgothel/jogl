@@ -132,20 +132,12 @@ public class FontView01 {
         System.err.println("Status Font "+fontStatus.getFullFamilyName());
         System.err.println("Info Font "+fontInfo.getFullFamilyName());
 
-        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
-        System.err.println("GLProfile: "+reqGLP);
-
-        final GLCapabilities caps = new GLCapabilities(reqGLP);
-        caps.setAlphaBits(4);
-        if( options.sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(options.sceneMSAASamples);
-        }
-        System.out.println("Requested: " + caps);
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
         final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(1*60, null); // System.err);
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(FontView01.class.getSimpleName()+": "+font.getFullFamilyName()+", "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
@@ -267,8 +259,8 @@ public class FontView01 {
                 glyphGrid = new Group(new GridLayout(gridDim.rawSize.x(), cellSize*0.9f, cellSize*0.9f, Alignment.FillCenter, new Gap(cellSize*0.1f)));
             }
 
-            addGlyphs(reqGLP, font, glyphGrid, gridDim, showUnderline[0], showLabel[0], fontStatus, fontInfo, glyphMouseListener);
-            glyphGrid.validate(reqGLP);
+            addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline[0], showLabel[0], fontStatus, fontInfo, glyphMouseListener);
+            glyphGrid.validate(reqCaps.getGLProfile());
             System.err.println("GlyphGrid "+glyphGrid);
             System.err.println("GlyphGrid "+glyphGrid.getLayout());
 
@@ -279,7 +271,7 @@ public class FontView01 {
             infoGrid.addShape(glyphShapeBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
             infoGrid.addShape(glyphInfoBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
             if( VERBOSE_UI ) {
-                infoGrid.validate(reqGLP);
+                infoGrid.validate(reqCaps.getGLProfile());
                 System.err.println("InfoGrid "+infoGrid);
                 System.err.println("InfoGrid "+infoGrid.getLayout());
             }
@@ -317,7 +309,7 @@ public class FontView01 {
                         @Override
                         public boolean run(final GLAutoDrawable drawable) {
                             glyphGrid.removeAllShapes(drawable.getGL().getGL2ES2(), scene.getRenderer());
-                            addGlyphs(reqGLP, font, glyphGrid, gridDim, showUnderline[0], showLabel[0], fontStatus, fontInfo, glyphMouseListener);
+                            addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline[0], showLabel[0], fontStatus, fontInfo, glyphMouseListener);
                             if( VERBOSE_UI ) {
                                 System.err.println("Slider: "+gridDim);
                             }
@@ -332,7 +324,7 @@ public class FontView01 {
             glyphInfoGrid.addShape(rs2);
             glyphInfoGrid.addShape(infoGrid);
             if( VERBOSE_UI ) {
-                glyphInfoGrid.validate(reqGLP);
+                glyphInfoGrid.validate(reqCaps.getGLProfile());
                 System.err.println("GlyphInfoGrid "+glyphInfoGrid);
                 System.err.println("GlyphInfoGrid "+glyphInfoGrid.getLayout());
             }
@@ -349,7 +341,7 @@ public class FontView01 {
                 mainGrid.addShape(labelBox);
             }
             if( VERBOSE_UI ) {
-                mainGrid.validate(reqGLP);
+                mainGrid.validate(reqCaps.getGLProfile());
                 System.err.println("MainGrid "+mainGrid);
                 System.err.println("MainGrid "+mainGrid.getLayout());
             }
@@ -422,7 +414,7 @@ public class FontView01 {
         }
 
         void setStartRow(final int row) {
-            final int old = start;
+            // final int old = start;
             final int np = row * columns;
             if( np < contourChars.size() - columns ) {
                 start = np;
@@ -468,7 +460,7 @@ public class FontView01 {
                 c2.addShape(c1);
                 {
                     final Label l = new Label(options.renderModes, fontInfo, 1f, fg.getName());
-                    final AABBox lbox = l.getUnscaledGlyphBounds();
+                    // final AABBox lbox = l.getUnscaledGlyphBounds();
                     final float sxy = 1f/7f; // gridDim.maxNameLen; // 0.10f; // Math.min(sx, sy);
                     c2.addShape( l.scale(sxy, sxy, 1).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizeable(false) );
                 }

@@ -38,9 +38,7 @@ import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.layout.Alignment;
 import com.jogamp.graph.ui.layout.BoxLayout;
-import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
-import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.FloatUtil;
@@ -48,7 +46,6 @@ import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.geom.plane.AffineTransform;
-import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -89,20 +86,12 @@ public class UILayoutBoxGridOffset01 {
         }
         System.err.println(options);
 
-        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
-        System.err.println("GLProfile: "+reqGLP);
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
         final Animator animator = new Animator(0 /* w/o AWT */);
 
-        final GLCapabilities caps = new GLCapabilities(reqGLP);
-        caps.setAlphaBits(4);
-        if( options.sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(options.sceneMSAASamples);
-        }
-        System.out.println("Requested: " + caps);
-
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UILayoutBoxGridOffset01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.addWindowListener(new WindowAdapter() {
@@ -155,7 +144,7 @@ public class UILayoutBoxGridOffset01 {
             final float minX = 0.00f, minY = 0.00f, width = 0.5f, height = 0.5f, lineWidth = 0.05f;
             if( true ) {
                 final Group g = setupGroup(new Group(new BoxLayout(1f, 1f, Alignment.None)),
-                    reqGLP, scene, zEps,
+                    reqCaps.getGLProfile(), scene, zEps,
                     sxy, nextPos, cellGapX,
                     font, 11,
                     (final Group gp) -> {
@@ -168,7 +157,7 @@ public class UILayoutBoxGridOffset01 {
             final float minX = 0.125f, minY = 0.125f, width = 0.5f, height = 0.5f, lineWidth = 0.05f;
             if( true ) {
                 final Group g = setupGroup(new Group(new BoxLayout(1f, 1f, Alignment.None)),
-                    reqGLP, scene, zEps,
+                    reqCaps.getGLProfile(), scene, zEps,
                     sxy, nextPos, cellGapX,
                     font, 12,
                     (final Group gp) -> {
@@ -178,7 +167,7 @@ public class UILayoutBoxGridOffset01 {
             }
             if( true ) {
                 final Group g = setupGroup(new Group(new BoxLayout(1f, 1f, Alignment.Fill)),
-                    reqGLP, scene, zEps,
+                    reqCaps.getGLProfile(), scene, zEps,
                     sxy, nextPos, cellGapX,
                     font, 13,
                     (final Group gp) -> {
@@ -188,7 +177,7 @@ public class UILayoutBoxGridOffset01 {
             }
             if( true ) {
                 final Group g = setupGroup(new Group(new BoxLayout(1f, 1f, Alignment.Center)),
-                    reqGLP, scene, zEps,
+                    reqCaps.getGLProfile(), scene, zEps,
                     sxy, nextPos, cellGapX,
                     font, 14,
                     (final Group gp) -> {
@@ -198,7 +187,7 @@ public class UILayoutBoxGridOffset01 {
             }
             if( true ) {
                 final Group g = setupGroup(new Group(new BoxLayout(1f, 1f, Alignment.FillCenter)),
-                    reqGLP, scene, zEps,
+                    reqCaps.getGLProfile(), scene, zEps,
                     sxy, nextPos, cellGapX,
                     font, 15,
                     (final Group gp) -> {
@@ -218,7 +207,7 @@ public class UILayoutBoxGridOffset01 {
             final float minX = 0.000f, minY = 0.000f, width = 0.5f, height = 0.5f, lineWidth = 0.05f;
             if( true ) {
                 final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1f, Alignment.None)),
-                    reqGLP, scene, zEps,
+                    reqCaps.getGLProfile(), scene, zEps,
                     sxy, nextPos, cellGapX,
                     font, 21,
                     (final Group gp) -> {
@@ -233,7 +222,7 @@ public class UILayoutBoxGridOffset01 {
             final float minX = 0.125f, minY = 0.125f, width = 0.5f, height = 0.5f, lineWidth = 0.05f;
             if( true ) {
                 final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1f, Alignment.None)),
-                    reqGLP, scene, zEps,
+                    reqCaps.getGLProfile(), scene, zEps,
                     sxy, nextPos, cellGapX,
                     font, 22,
                     (final Group gp) -> {
@@ -245,7 +234,7 @@ public class UILayoutBoxGridOffset01 {
             }
             if( true ) {
                 final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1f, Alignment.Fill)),
-                    reqGLP, scene, zEps,
+                    reqCaps.getGLProfile(), scene, zEps,
                     sxy, nextPos, cellGapX,
                     font, 23,
                     (final Group gp) -> {
@@ -257,7 +246,7 @@ public class UILayoutBoxGridOffset01 {
             }
             if( true ) {
                 final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1f, Alignment.Center)),
-                    reqGLP, scene, zEps,
+                    reqCaps.getGLProfile(), scene, zEps,
                     sxy, nextPos, cellGapX,
                     font, 24,
                     (final Group gp) -> {
@@ -269,7 +258,7 @@ public class UILayoutBoxGridOffset01 {
             }
             if( true ) {
                 final Group g = setupGroup(new Group(new GridLayout(2, 1f, 1f, Alignment.FillCenter)),
-                    reqGLP, scene, zEps,
+                    reqCaps.getGLProfile(), scene, zEps,
                     sxy, nextPos, cellGapX,
                     font, 25,
                     (final Group gp) -> {
@@ -299,7 +288,7 @@ public class UILayoutBoxGridOffset01 {
         }
 
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
-        scene.screenshot(true, scene.nextScreenshotFile(null, UILayoutBoxGridOffset01.class.getSimpleName(), options.renderModes, caps, null));
+        scene.screenshot(true, scene.nextScreenshotFile(null, UILayoutBoxGridOffset01.class.getSimpleName(), options.renderModes, reqCaps, null));
         if( !options.stayOpen ) {
             window.destroy();
         }

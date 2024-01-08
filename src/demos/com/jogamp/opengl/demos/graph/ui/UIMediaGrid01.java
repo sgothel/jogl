@@ -163,20 +163,12 @@ public class UIMediaGrid01 {
             System.err.println("Media files: Count "+mediaFiles.size()+", grid "+gridDim);
         }
 
-        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
-        System.err.println("GLProfile: "+reqGLP);
-
-        final GLCapabilities caps = new GLCapabilities(reqGLP);
-        caps.setAlphaBits(4);
-        if( options.sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(options.sceneMSAASamples);
-        }
-        System.out.println("Requested: " + caps);
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
         final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(1*60, null); // System.err);
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
         window.setSize(options.surface_width, options.surface_height);
         window.setVisible(true);
         window.setTitle(UIMediaGrid01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
@@ -216,8 +208,8 @@ public class UIMediaGrid01 {
             mediaGrid.setRelayoutOnDirtyShapes(false);
         }
         mediaGrid.setName("MediaGrid");
-        addMedia(scene, reqGLP, mediaGrid, mediaFiles, boxRatio);
-        mediaGrid.validate(reqGLP);
+        addMedia(scene, reqCaps.getGLProfile(), mediaGrid, mediaFiles, boxRatio);
+        mediaGrid.validate(reqCaps.getGLProfile());
         System.err.println("MediaGrid "+mediaGrid);
         System.err.println("MediaGrid "+mediaGrid.getLayout());
 

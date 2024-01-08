@@ -39,9 +39,9 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLPipelineFactory;
-import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.demos.graph.MSAATool;
+import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -86,32 +86,33 @@ public class UIShapeDemo01 implements GLEventListener {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
+    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
+
     public static void main(final String[] args) throws IOException {
         Font font = null;
-        final int width = 1280, height = 720;
-        if( 0 != args.length ) {
-            for(int i=0; i<args.length; i++) {
-                if(args[i].equals("-font")) {
-                    i++;
-                    font = FontFactory.get(new File(args[i]));
-                }
+        final int[] idx = { 0 };
+        for (idx[0] = 0; idx[0] < args.length; ++idx[0]) {
+            if( options.parse(args, idx) ) {
+                continue;
+            } else if(args[idx[0]].equals("-font")) {
+                idx[0]++;
+                font = FontFactory.get(new File(args[idx[0]]));
             }
         }
+        System.err.println(options);
         if( null == font ) {
             font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         }
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final GLProfile glp = GLProfile.getGL2ES2();
-        final GLCapabilities caps = new GLCapabilities(glp);
-        caps.setAlphaBits(4);
-        System.out.println("Requested: " + caps);
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
         final int renderModes = Region.VBAA_RENDERING_BIT;
 
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
         // window.setPosition(10, 10);
-        window.setSize(width, height);
+        window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UIShapeDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         final UIShapeDemo01 uiGLListener = new UIShapeDemo01(font, renderModes, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);

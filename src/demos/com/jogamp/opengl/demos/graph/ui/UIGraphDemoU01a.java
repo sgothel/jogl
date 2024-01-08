@@ -57,7 +57,6 @@ import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
-import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
@@ -132,8 +131,9 @@ public class UIGraphDemoU01a {
         System.err.println(options);
         System.err.println("Ortho Projection "+projOrtho+", Ortho-Win "+projOrthoWin);
         System.err.println("pass2TexUnit "+pass2TexUnit);
-        final GLProfile reqGLP = GLProfile.get(options.glProfileName);
-        System.err.println("GLProfile: "+reqGLP);
+
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
         //
         // Resolution independent, no screen size
@@ -143,13 +143,9 @@ public class UIGraphDemoU01a {
 
         final Animator animator = new Animator(0 /* w/o AWT */);
 
-        final GLCapabilities caps = new GLCapabilities(reqGLP);
-        caps.setAlphaBits(4);
-        System.out.println("Requested: " + caps);
-
         final MyRenderer renderer = new MyRenderer();
 
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UIGraphDemoU01a.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);

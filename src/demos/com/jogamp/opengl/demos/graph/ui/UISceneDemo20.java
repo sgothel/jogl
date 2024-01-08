@@ -82,7 +82,6 @@ import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLPipelineFactory;
-import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.demos.es2.GearsES2;
@@ -150,14 +149,7 @@ public class UISceneDemo20 implements GLEventListener {
         System.err.println(VersionUtil.getPlatformInfo());
         // System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(dpy.getGraphicsDevice(), null).toString());
 
-        final GLProfile glp = GLProfile.get(options.glProfileName);
-        System.err.println("GLProfile: "+glp);
-        final GLCapabilities caps = new GLCapabilities(glp);
-        caps.setAlphaBits(4);
-        if( options.sceneMSAASamples > 0 ) {
-            caps.setSampleBuffers(true);
-            caps.setNumSamples(options.sceneMSAASamples);
-        }
+        final GLCapabilities caps = options.getGLCaps();
         System.out.println("Requested: " + caps);
 
         final GLWindow window = GLWindow.create(screen, caps);
