@@ -1,3 +1,4 @@
+// Copyright 2010-2024 JogAmp Community. All rights reserved.
 
 #ifndef attributes_glsl
 #define attributes_glsl

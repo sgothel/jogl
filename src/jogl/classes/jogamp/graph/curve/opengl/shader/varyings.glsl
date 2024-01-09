@@ -1,20 +1,22 @@
+// Copyright 2023-2024 JogAmp Community. All rights reserved.
 
 #ifndef varyings_glsl
 #define varyings_glsl
 
-varying vec3    gcv_CurveParam;
+varying vec3  gcv_CurveParam;
 
-varying vec2    gcv_FboTexCoord;
+varying vec2  gcv_FboTexCoord;
 
 #ifdef USE_COLOR_TEXTURE
-    varying vec2    gcv_ColorTexCoord;
-    varying vec2    gcv_ColorTexExt;    
+    varying vec2  gcv_ColorTexCoord;
 #endif
+#ifdef USE_AABBOX_CLIPPING
+    varying vec3  gcv_ClipBBoxCoord;
+#endif    
 
 #ifdef USE_COLOR_CHANNEL
-    varying vec4    gcv_Color;
+    varying vec4  gcv_Color;
 #endif
-
 
 #endif // varyings_glsl
 
