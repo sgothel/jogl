@@ -40,6 +40,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.math.geom.AABBox;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -51,6 +52,8 @@ public final class VBORegionSPES2 extends GLRegion {
     private final GLUniformData gcu_ColorTexUnit;
     private final float[] colorTexBBox; // minX/minY, maxX/maxY, texW/texH
     private final GLUniformData gcu_ColorTexBBox; // vec2 gcu_ColorTexBBox[3] -> boxMin[2], boxMax[2] and texSize[2]
+    private final float[] clipBBox; // minX/minY/minZ, maxX/maxY/maxZ
+    private final GLUniformData gcu_ClipBBox; // uniform vec3  gcu_ClipBBox[2]; // box-min[3], box-max[3]
     private ShaderProgram spPass1 = null;
 
     public VBORegionSPES2(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq,
@@ -71,6 +74,8 @@ public final class VBORegionSPES2 extends GLRegion {
             colorTexBBox = null;
             gcu_ColorTexBBox = null;
         }
+        clipBBox = new float[6];
+        gcu_ClipBBox = new GLUniformData(UniformNames.gcu_ClipBBox, 3, FloatBuffer.wrap(clipBBox));
     }
 
     @Override
@@ -82,15 +87,15 @@ public final class VBORegionSPES2 extends GLRegion {
     protected final void clearImpl(final GL2ES2 gl) { }
 
     @Override
-    protected void updateImpl(final GL2ES2 gl, final int curRenderModes) {
-        final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
+    protected void updateImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes) {
+        // final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes );
 
         // seal buffers
         vpc_ileave.seal(gl, true);
         vpc_ileave.enableBuffer(gl, false);
         if( hasColorTexture && null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
-            TextureSequence.setTexCoordBBox(colorTexSeq.getLastTexture().getTexture(), box, isColorTextureLetterbox(), colorTexBBox, false);
+            TextureSequence.setTexCoordBBox(colorTexSeq.getLastTexture().getTexture(), box, isColorTextureLetterbox(), colorTexBBox, true);
         }
         indicesBuffer.seal(gl, true);
         indicesBuffer.enableBuffer(gl, false);
@@ -117,6 +122,8 @@ public final class VBORegionSPES2 extends GLRegion {
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes ) && null != colorTexSeq;
 
         final RenderState rs = renderer.getRenderState();
+        final boolean hasAABBoxClipping = null != rs.getClipBBox();
+
         final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, true, quality, 0, colorTexSeq);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
         final boolean updateLocLocal = !sp.equals(spPass1);
@@ -132,6 +139,9 @@ public final class VBORegionSPES2 extends GLRegion {
             if( hasColorChannel && null != gca_ColorsAttr ) {
                 rs.updateAttributeLoc(gl, true, gca_ColorsAttr, throwOnError);
             }
+            if( hasAABBoxClipping ) {
+                rs.updateUniformLoc(gl, true, gcu_ClipBBox, throwOnError);
+            }
         }
         rsLocal.update(gl, rs, updateLocLocal, curRenderModes, true, throwOnError);
         if( hasColorTexture && null != gcu_ColorTexUnit ) {
@@ -143,10 +153,18 @@ public final class VBORegionSPES2 extends GLRegion {
 
     @Override
     protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int[/*1*/] sampleCount) {
-        final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
+        // final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes );
 
         useShaderProgram(gl, renderer, curRenderModes, getQuality());
+        {
+            final AABBox cb = renderer.getClipBBox();
+            if( null != cb ) {
+                clipBBox[0] = cb.getMinX(); clipBBox[1] = cb.getMinY(); clipBBox[2] = cb.getMinZ();
+                clipBBox[3] = cb.getMaxX(); clipBBox[4] = cb.getMaxY(); clipBBox[5] = cb.getMaxZ();
+                gl.glUniform(gcu_ClipBBox); // Always update, since program maybe used by multiple regions
+            }
+        }
 
         if( 0 >= indicesBuffer.getElemCount() ) {
             if(DEBUG_INSTANCE) {

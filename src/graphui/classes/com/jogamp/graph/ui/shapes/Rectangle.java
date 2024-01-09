@@ -108,6 +108,9 @@ public class Rectangle extends GraphShape {
         this( renderModes, 0, 0, width, height, lineWidth, 0);
     }
 
+    public final float getX() { return minX; }
+    public final float getY() { return minY; }
+    public final float getZ() { return zPos; }
     public final float getWidth() { return width; }
     public final float getHeight() { return height; }
     public final float getLineWidth() { return lineWidth; }

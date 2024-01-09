@@ -366,6 +366,7 @@ public abstract class GLRegion extends Region {
         // gca_VerticesAttr.putf(coords, 0, 3);
         // gca_CurveParamsAttr.putf(texParams, 0, 3);
         // gca_VerticesAttr.put3f(coords.x(), coords.y(), coords.z());
+        // System.err.println("GLRegion V: "+coords);
         put3f((FloatBuffer)vpc_ileave.getBuffer(), coords);
         put3f((FloatBuffer)vpc_ileave.getBuffer(), texParams);
         if( hasColorChannel() ) {
@@ -384,6 +385,7 @@ public abstract class GLRegion extends Region {
         if( cc && null == rgba ) {
             throw new IllegalArgumentException("Null color given for COLOR_CHANNEL rendering mode");
         }
+        // System.err.println("GLRegion V: "+coords1+", "+coords2+", "+coords3);
         put3f((FloatBuffer)vpc_ileave.getBuffer(), coords1);
         put3f((FloatBuffer)vpc_ileave.getBuffer(), texParams1);
         if( cc ) {
@@ -531,7 +533,7 @@ public abstract class GLRegion extends Region {
             markStateDirty();
         }
         if( isShapeDirty() ) {
-            updateImpl(gl, curRenderModes);
+            updateImpl(gl, renderer, curRenderModes);
         }
         drawImpl(gl, renderer, curRenderModes, sampleCount);
         clearDirtyBits(DIRTY_SHAPE|DIRTY_STATE);
@@ -544,9 +546,8 @@ public abstract class GLRegion extends Region {
      * objects for use in rendering if {@link #isShapeDirty()}.
      * <p>Allocates the ogl related data and initializes it the 1st time.<p>
      * <p>Called by {@link #draw(GL2ES2, RenderState, int, int, int)}.</p>
-     * @param curRenderModes TODO
      */
-    protected abstract void updateImpl(final GL2ES2 gl, int curRenderModes);
+    protected abstract void updateImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes);
 
-    protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, int curRenderModes, final int[/*1*/] sampleCount);
+    protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int[/*1*/] sampleCount);
 }

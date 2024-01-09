@@ -95,7 +95,8 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
     private final GLUniformData gcu_ColorTexUnit;
     private final float[] colorTexBBox; // minX/minY, maxX/maxY, texW/texH
     private final GLUniformData gcu_ColorTexBBox; // vec2 gcu_ColorTexBBox[3] -> boxMin[2], boxMax[2] and texSize[2]
-
+    private final float[] clipBBox; // minX/minY/minZ, maxX/maxY/maxZ
+    private final GLUniformData gcu_ClipBBox; // uniform vec3  gcu_ClipBBox[2]; // box-min[3], box-max[3]
     private ShaderProgram spPass1 = null;
 
     // Pass-2:
@@ -137,6 +138,8 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes ) && null != colorTexSeq;
 
         final RenderState rs = renderer.getRenderState();
+        final boolean hasAABBoxClipping = null != rs.getClipBBox();
+
         final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, pass1, quality, sampleCount, colorTexSeq);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
         final boolean updateLocLocal;
@@ -153,6 +156,9 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
                 rs.updateAttributeLoc(gl, true, gca_CurveParamsAttr, true);
                 if( hasColorChannel && null != gca_ColorsAttr ) {
                     rs.updateAttributeLoc(gl, true, gca_ColorsAttr, true);
+                }
+                if( hasAABBoxClipping ) {
+                    rs.updateUniformLoc(gl, true, gcu_ClipBBox, true);
                 }
             }
             rsLocal.update(gl, rs, updateLocLocal, curRenderModes, true, true);
@@ -200,6 +206,8 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
             colorTexBBox = null;
             gcu_ColorTexBBox = null;
         }
+        clipBBox = new float[6];
+        gcu_ClipBBox = new GLUniformData(UniformNames.gcu_ClipBBox, 3, FloatBuffer.wrap(clipBBox));
         gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, new SyncMatrices4f16( new Matrix4f[] { matP, matMv } ));
 
         // Pass 2:
@@ -234,9 +242,8 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
     }
 
     @Override
-    protected void updateImpl(final GL2ES2 gl, final int curRenderModes) {
-        @SuppressWarnings("unused")
-        final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
+    protected void updateImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes) {
+        // final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes );
 
         // seal buffers
@@ -284,16 +291,16 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
             }
             return; // inf
         }
+        final RenderState rs = renderer.getRenderState();
         final int vpWidth = renderer.getWidth();
         final int vpHeight = renderer.getHeight();
         if(vpWidth <=0 || vpHeight <= 0 || null==sampleCount || sampleCount[0] <= 0) {
             useShaderProgram(gl, renderer, curRenderModes, true, getQuality(), sampleCount[0]);
-            renderRegion(gl, curRenderModes);
+            renderRegion(gl, rs, curRenderModes);
         } else {
             if(0 > maxTexSize[0]) {
                 gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, maxTexSize, 0);
             }
-            final RenderState rs = renderer.getRenderState();
             final float winWidth, winHeight;
 
             final float ratioObjWinWidth, ratioObjWinHeight;
@@ -388,7 +395,7 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
                     }
                     if( sampleCount[0] <= 0 ) {
                         // Last way out!
-                        renderRegion(gl, curRenderModes);
+                        renderRegion(gl, rs, curRenderModes);
                         return;
                     }
                 }
@@ -555,17 +562,25 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         }
 
-        renderRegion(gl, curRenderModes);
+        renderRegion(gl, rs, curRenderModes);
 
         fbo.unbind(gl);
         fboDirty = false;
     }
 
-    private void renderRegion(final GL2ES2 gl, final int curRenderModes) {
-        final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
+    private void renderRegion(final GL2ES2 gl, final RenderState rs, final int curRenderModes) {
+        // final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes );
 
         gl.glUniform(gcu_PMVMatrix02);
+        {
+            final AABBox cb = rs.getClipBBox();
+            if( null != cb ) {
+                clipBBox[0] = cb.getMinX(); clipBBox[1] = cb.getMinY(); clipBBox[2] = cb.getMinZ();
+                clipBBox[3] = cb.getMaxX(); clipBBox[4] = cb.getMaxY(); clipBBox[5] = cb.getMaxZ();
+                gl.glUniform(gcu_ClipBBox); // Always update, since program maybe used by multiple regions
+            }
+        }
 
         vpc_ileave.enableBuffer(gl, true);
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding

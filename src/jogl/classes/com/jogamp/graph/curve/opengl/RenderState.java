@@ -39,6 +39,7 @@ import jogamp.graph.curve.opengl.shader.UniformNames;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.util.GLArrayDataWrapper;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
@@ -91,15 +92,16 @@ public class RenderState {
         return (RenderState) gl.getContext().getAttachedObject(thisKey);
     }
 
+    private final int id;
     private final PMVMatrix4f pmvMatrix;
     private final float[] weight;
     private final FloatBuffer weightBuffer;
     private final float[] colorStatic;
     private final FloatBuffer colorStaticBuffer;
-    private ShaderProgram sp;
+    private AABBox clipBBox;
     private int hintBitfield;
+    private ShaderProgram sp;
 
-    private final int id;
     private static synchronized int getNextID() {
         return nextID++;
     }
@@ -189,13 +191,14 @@ public class RenderState {
      */
     /* pp */ RenderState(final PMVMatrix4f sharedPMVMatrix) {
         this.id = getNextID();
-        this.sp = null;
         this.pmvMatrix = null != sharedPMVMatrix ? sharedPMVMatrix : new PMVMatrix4f();
         this.weight = new float[1];
         this.weightBuffer = FloatBuffer.wrap(weight);
         this.colorStatic = new float[] { 1, 1, 1, 1 };
         this.colorStaticBuffer = FloatBuffer.wrap(colorStatic);
+        this.clipBBox = null;
         this.hintBitfield = 0;
+        this.sp = null;
     }
 
     public final int id() { return id; }
@@ -259,6 +262,8 @@ public class RenderState {
         colorStatic[3] = a;
     }
 
+    public final void setClipBBox(final AABBox clipBBox) { this.clipBBox = clipBBox; }
+    public final AABBox getClipBBox() { return this.clipBBox; }
 
     /**
      *

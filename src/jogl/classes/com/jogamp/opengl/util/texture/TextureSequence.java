@@ -308,7 +308,7 @@ public interface TextureSequence {
     /**
      * Calculates the texture coordinates bounding box while correcting for aspect-ratio.
      * @param tex the {@link Texture}
-     * @param box the {@Link AABBpx} of the destination
+     * @param box the {@Link AABBox} of the destination
      * @param letterBox true to produce letter-box space to match aspect-ratio, otherwise will zoom in
      * @param colorTexBBox destination float[6] array for the following three texture-coordinate tuples: minX/minY, maxX/maxY, texW/texH
      * @param verbose TODO
@@ -408,7 +408,7 @@ public interface TextureSequence {
             System.err.println("XXX setTexCoordBBox:");
             System.err.println("XXX ColorTex imgRatio "+imgRatio+", texRatio "+texRatio+", texPixelRatio[w "+texWidthRatio+", h "+texHeightRatio+"], "+tex);
             System.err.println("XXX ColorTexBBox lbox "+letterBox+", cut "+boxWidthCut+"/"+boxHeightCut+", ext "+boxWidthExt+"/"+boxHeightExt);
-            System.err.println("XXX ColorTexBBox min "+colorTexBBox[0]+"/"+colorTexBBox[1]+", max "+colorTexBBox[2]+" x "+colorTexBBox[3]+
+            System.err.println("XXX ColorTexBBox min "+colorTexBBox[0]+"/"+colorTexBBox[1]+", max "+colorTexBBox[2]+"/"+colorTexBBox[3]+
                     ", dim "+colorTexBBoxW+" x "+colorTexBBoxH+
                     ", tc-dim "+tcW+" x "+tcH+", tc "+tc+", box2ImgRatio "+box2ImgRatio+", box2TexRatio "+box2TexRatio);
             System.err.println("XXX Box ratio "+boxRatio+", "+box);

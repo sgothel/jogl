@@ -1007,6 +1007,7 @@ function testawtswt() {
 #
 #testnoawt com.jogamp.opengl.demos.graph.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeClippingDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UITypeDemo01 $*
 

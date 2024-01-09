@@ -48,6 +48,7 @@ import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.math.Recti;
 import com.jogamp.math.Vec4f;
+import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
 
 /**
@@ -302,6 +303,9 @@ public final class RegionRenderer {
 
     public final void setColorStatic(final float r, final float g, final float b, final float a){ rs.setColorStatic(r, g, b, a); }
 
+    public final void setClipBBox(final AABBox clipBBox) { rs.setClipBBox(clipBBox); }
+    public final AABBox getClipBBox() { return rs.getClipBBox(); }
+
     public final boolean isHintMaskSet(final int mask) { return rs.isHintMaskSet(mask); }
 
     public final void setHintMask(final int mask) { rs.setHintMask(mask); }
@@ -398,9 +402,9 @@ public final class RegionRenderer {
 
     private static final String SHADER_SRC_SUB = "";
     private static final String SHADER_BIN_SUB = "bin";
-
     private static final String GLSL_USE_COLOR_CHANNEL = "#define USE_COLOR_CHANNEL 1\n";
     private static final String GLSL_USE_COLOR_TEXTURE = "#define USE_COLOR_TEXTURE 1\n";
+    private static final String GLSL_USE_AABBOX_CLIPPING = "#define USE_AABBOX_CLIPPING 1\n";
     private static final String GLSL_DEF_SAMPLE_COUNT = "#define SAMPLE_COUNT ";
     private static final String GLSL_CONST_SAMPLE_COUNT = "const float sample_count = ";
     private static final String GLSL_MAIN_BEGIN = "void main (void)\n{\n";
@@ -530,6 +534,7 @@ public final class RegionRenderer {
                                           final boolean pass1, final int quality, final int sampleCount, final TextureSequence colorTexSeq) {
         final ShaderModeSelector1 sel1 = pass1 ? ShaderModeSelector1.selectPass1(renderModes) :
                                                  ShaderModeSelector1.selectPass2(renderModes, quality, sampleCount);
+        final boolean hasAABBoxClipping = null != getClipBBox();
         final boolean isTwoPass = Region.isTwoPass( renderModes );
         final boolean hasColorChannel = Region.hasColorChannel( renderModes );
         final boolean hasColorTexture = Region.hasColorTexture( renderModes ) && null != colorTexSeq;
@@ -543,8 +548,16 @@ public final class RegionRenderer {
             texLookupFuncName = null;
             colorTexSeqHash = 0;
         }
-        final int shaderKey = ( (colorTexSeqHash << 5) - colorTexSeqHash ) +
-                              ( sel1.ordinal() | ( HIGH_MASK & renderModes ) | ( isTwoPass ? TWO_PASS_BIT : 0 ) );
+        final int shaderKey;
+        {
+            // 31 * x == (x << 5) - x
+            int hash = 31 + colorTexSeqHash;
+            hash = ((hash << 5) - hash) + sel1.ordinal();
+            hash = ((hash << 5) - hash) + ( HIGH_MASK & renderModes );
+            hash = ((hash << 5) - hash) + ( hasAABBoxClipping ? 1 : 0 );
+            hash = ((hash << 5) - hash) + ( isTwoPass ? TWO_PASS_BIT : 0 );
+            shaderKey = hash;
+        }
 
         /**
         if(DEBUG) {
@@ -617,6 +630,11 @@ public final class RegionRenderer {
             posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_DISCARD);
         }
 
+        if( hasAABBoxClipping ) {
+            posVp = rsVp.insertShaderSource(0, posVp, GLSL_USE_AABBOX_CLIPPING);
+            posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_AABBOX_CLIPPING);
+        }
+
         if( hasColorChannel ) {
             posVp = rsVp.insertShaderSource(0, posVp, GLSL_USE_COLOR_CHANNEL);
             posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_COLOR_CHANNEL);
@@ -631,7 +649,9 @@ public final class RegionRenderer {
         }
 
         try {
-            posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "functions.glsl");
+            if( isPass1ColorTexSeq || hasAABBoxClipping ) {
+                posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "functions.glsl");
+            }
             posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "uniforms.glsl");
             posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "varyings.glsl");
         } catch (final IOException ioe) {
