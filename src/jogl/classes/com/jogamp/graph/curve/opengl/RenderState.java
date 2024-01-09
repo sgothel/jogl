@@ -98,6 +98,7 @@ public class RenderState {
     private final FloatBuffer weightBuffer;
     private final float[] colorStatic;
     private final FloatBuffer colorStaticBuffer;
+    /** Optional clipping {@link AABBox}, which shall be pre-multiplied with the Mv-matrix. Null if unused. */
     private AABBox clipBBox;
     private int hintBitfield;
     private ShaderProgram sp;
@@ -262,7 +263,9 @@ public class RenderState {
         colorStatic[3] = a;
     }
 
+    /** Set the optional clipping {@link AABBox}, which shall be pre-multiplied with the Mv-matrix or null to disable. */
     public final void setClipBBox(final AABBox clipBBox) { this.clipBBox = clipBBox; }
+    /** Returns the optional Mv-premultiplied clipping {@link AABBox} or null if unused. */
     public final AABBox getClipBBox() { return this.clipBBox; }
 
     /**

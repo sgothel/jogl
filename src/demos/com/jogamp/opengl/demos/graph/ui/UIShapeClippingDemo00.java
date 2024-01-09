@@ -36,6 +36,7 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.FloatUtil;
+import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.geom.plane.AffineTransform;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.Window;
@@ -62,8 +63,9 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
  * Basic UIShape Clipping demo.
  *
  * Action Cursor-Keys:
- * - With Control: Move Left and Bottom Clipping Edge of AABBox
- * - No Modifiers: Move Right and Top Clipping Edge of AABBox
+ * - With Shift  : Move the clipping-rectangle itself
+ * - With Control: Resize Left and Bottom Clipping Edge of AABBox
+ * - No Modifiers: Resize Right and Top Clipping Edge of AABBox
  */
 public class UIShapeClippingDemo00 implements GLEventListener {
     static final boolean DEBUG = false;
@@ -115,7 +117,10 @@ public class UIShapeClippingDemo00 implements GLEventListener {
                 final float w = clipRect.getWidth();
                 final float h = clipRect.getHeight();
                 if( keySym == KeyEvent.VK_LEFT ) {
-                    if( arg0.isControlDown() ) {
+                    if( arg0.isShiftDown() ) {
+                        final float d = w*more - w;
+                        clipRect.move(-d, 0, 0);
+                    } else if( arg0.isControlDown() ) {
                         final float d = w*more - w;
                         clipRect.setPosition(x-d, y, z);
                         clipRect.setDimension(w*more, h, clipRect.getLineWidth());
@@ -123,7 +128,10 @@ public class UIShapeClippingDemo00 implements GLEventListener {
                         clipRect.setDimension(w*less, h, clipRect.getLineWidth());
                     }
                 } else if( keySym == KeyEvent.VK_RIGHT ) {
-                    if( arg0.isControlDown() ) {
+                    if( arg0.isShiftDown() ) {
+                        final float d = w*more - w;
+                        clipRect.move(d, 0, 0);
+                    } else if( arg0.isControlDown() ) {
                         final float d = w - w*less;
                         clipRect.setPosition(x+d, y, z);
                         clipRect.setDimension(w*less, h, clipRect.getLineWidth());
@@ -131,7 +139,10 @@ public class UIShapeClippingDemo00 implements GLEventListener {
                         clipRect.setDimension(w*more, h, clipRect.getLineWidth());
                     }
                 } else if( keySym == KeyEvent.VK_UP ) {
-                    if( arg0.isControlDown() ) {
+                    if( arg0.isShiftDown() ) {
+                        final float d = h*more - h;
+                        clipRect.move(0, d, 0);
+                    } else if( arg0.isControlDown() ) {
                         final float d = h - h*less;
                         clipRect.setPosition(x, y+d, z);
                         clipRect.setDimension(w, h*less, clipRect.getLineWidth());
@@ -139,7 +150,10 @@ public class UIShapeClippingDemo00 implements GLEventListener {
                         clipRect.setDimension(w, h*more, clipRect.getLineWidth());
                     }
                 } else if( keySym == KeyEvent.VK_DOWN ) {
-                    if( arg0.isControlDown() ) {
+                    if( arg0.isShiftDown() ) {
+                        final float d = h*more - h;
+                        clipRect.move(0, -d, 0);
+                    } else if( arg0.isControlDown() ) {
                         final float d = h*more - h;
                         clipRect.setPosition(x, y-d, z);
                         clipRect.setDimension(w, h*more, clipRect.getLineWidth());
@@ -259,11 +273,21 @@ public class UIShapeClippingDemo00 implements GLEventListener {
         renderer.enable(gl, true);
         {
             drawShape(gl, renderer, clipRect);
-            renderer.setClipBBox(clipRect.getBounds());
-            // System.err.println("Clipping "+renderer.getClipBBox());
-            drawShape(gl, renderer, shape);
-            // System.err.println("draw.0: "+shape);
-            renderer.setClipBBox(null);
+            {
+                final AABBox clipBBox; // Mv pre-multiplied AABBox
+                {
+                    final PMVMatrix4f pmv = renderer.getMatrix();
+                    pmv.pushMv();
+                    clipRect.setTransformMv(pmv);
+                    clipBBox = clipRect.getBounds().transform(pmv.getMv(), new AABBox());
+                    pmv.popMv();
+                }
+                renderer.setClipBBox( clipBBox );
+                // System.err.println("Clipping "+renderer.getClipBBox());
+                drawShape(gl, renderer, shape);
+                // System.err.println("draw.0: "+shape);
+                renderer.setClipBBox(null);
+            }
         }
         renderer.enable(gl, false);
     }

@@ -303,7 +303,9 @@ public final class RegionRenderer {
 
     public final void setColorStatic(final float r, final float g, final float b, final float a){ rs.setColorStatic(r, g, b, a); }
 
+    /** Set the optional clipping {@link AABBox}, which shall be pre-multiplied with the Mv-matrix or null to disable. */
     public final void setClipBBox(final AABBox clipBBox) { rs.setClipBBox(clipBBox); }
+    /** Returns the optional Mv-premultiplied clipping {@link AABBox} or null if unused. */
     public final AABBox getClipBBox() { return rs.getClipBBox(); }
 
     public final boolean isHintMaskSet(final int mask) { return rs.isHintMaskSet(mask); }
