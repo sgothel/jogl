@@ -71,6 +71,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.demos.graph.MSAATool;
 import com.jogamp.opengl.demos.graph.ui.testshapes.Glyph03FreeMonoRegular_M;
+import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -90,25 +91,28 @@ public class UITypeDemo01 implements GLEventListener {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
 
+    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
+
     public static void main(final String[] args) throws IOException {
-        Font font = null;
-        final int width = 1280, height = 720;
         String text = "Hello Origin.";
+        Font font = null;
         int glyph_id = Glyph.ID_UNKNOWN;
-        if( 0 != args.length ) {
-            for(int i=0; i<args.length; i++) {
-                if(args[i].equals("-font")) {
-                    i++;
-                    font = FontFactory.get(new File(args[i]));
-                } else if(args[i].equals("-text")) {
-                    i++;
-                    text = args[i];
-                } else if(args[i].equals("-glyph")) {
-                    i++;
-                    glyph_id = MiscUtils.atoi(args[i], 0);
-                }
+        final int[] idx = { 0 };
+        for (idx[0] = 0; idx[0] < args.length; ++idx[0]) {
+            if( options.parse(args, idx) ) {
+                continue;
+            } else if(args[idx[0]].equals("-font")) {
+                idx[0]++;
+                font = FontFactory.get(new File(args[idx[0]]));
+            } else if(args[idx[0]].equals("-text")) {
+                idx[0]++;
+                text = args[idx[0]];
+            } else if(args[idx[0]].equals("-glyph")) {
+                idx[0]++;
+                glyph_id = MiscUtils.atoi(args[idx[0]], 0);
             }
         }
+        System.err.println(options);
         if( null == font ) {
             font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         }
@@ -120,13 +124,11 @@ public class UITypeDemo01 implements GLEventListener {
         caps.setAlphaBits(4);
         System.out.println("Requested: " + caps);
 
-        final int renderModes = Region.VBAA_RENDERING_BIT;
-
         final GLWindow window = GLWindow.create(caps);
         // window.setPosition(10, 10);
-        window.setSize(width, height);
+        window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UITypeDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
-        final UITypeDemo01 uiGLListener = new UITypeDemo01(font, glyph_id, text, renderModes, DEBUG, TRACE);
+        final UITypeDemo01 uiGLListener = new UITypeDemo01(font, glyph_id, text, options.renderModes, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
         window.setVisible(true);

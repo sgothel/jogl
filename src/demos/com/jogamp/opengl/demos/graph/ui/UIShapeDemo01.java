@@ -108,13 +108,11 @@ public class UIShapeDemo01 implements GLEventListener {
         final GLCapabilities reqCaps = options.getGLCaps();
         System.out.println("Requested: " + reqCaps);
 
-        final int renderModes = Region.VBAA_RENDERING_BIT;
-
         final GLWindow window = GLWindow.create(reqCaps);
         // window.setPosition(10, 10);
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UIShapeDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
-        final UIShapeDemo01 uiGLListener = new UIShapeDemo01(font, renderModes, DEBUG, TRACE);
+        final UIShapeDemo01 uiGLListener = new UIShapeDemo01(font, options.renderModes, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
         window.setVisible(true);
