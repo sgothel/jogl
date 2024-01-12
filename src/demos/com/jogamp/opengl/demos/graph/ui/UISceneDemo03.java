@@ -322,7 +322,7 @@ public class UISceneDemo03 {
                 fontScale2 = g_w / fbox.getWidth();
                 System.err.println("FontScale2: " + fontScale2 + " = " + g_w + " / " + fbox.getWidth());
             }
-            final AABBox clippedBox = new AABBox(animBox).resizeWidth(sceneBoxFrameWidth, -sceneBoxFrameWidth);
+            final AABBox clippedBox = new AABBox(animBox).resizeWidth(-sceneBoxFrameWidth, -sceneBoxFrameWidth);
             y_pos[0] = clippedBox.getMaxY();
             // AnimGroup.Set 1:
             // Circular short scrolling text (right to left) without rotation, no acceleration

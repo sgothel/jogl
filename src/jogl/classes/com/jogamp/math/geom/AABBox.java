@@ -212,14 +212,14 @@ public class AABBox {
 
     /**
      * Resize width of this AABBox with explicit left- and right delta values
-     * @param deltaLeft positive value will shrink width, otherwise expand width
+     * @param deltaLeft positive value will expand width, otherwise shrink width
      * @param deltaRight positive value will expand width, otherwise shrink width
      * @return this AABBox for chaining
      */
     public final AABBox resizeWidth(final float deltaLeft, final float deltaRight) {
         boolean mod = false;
         if( !FloatUtil.isZero(deltaLeft) ) {
-            low.setX( low.x() + deltaLeft );
+            low.setX( low.x() - deltaLeft );
             mod = true;
         }
         if( !FloatUtil.isZero(deltaRight) ) {
@@ -234,14 +234,14 @@ public class AABBox {
 
     /**
      * Resize height of this AABBox with explicit bottom- and top delta values
-     * @param deltaBottom positive value will shrink height, otherwise expand height
+     * @param deltaBottom positive value will expand height, otherwise shrink height
      * @param deltaTop positive value will expand height, otherwise shrink height
      * @return this AABBox for chaining
      */
     public final AABBox resizeHeight(final float deltaBottom, final float deltaTop) {
         boolean mod = false;
         if( !FloatUtil.isZero(deltaBottom) ) {
-            low.setY( low.y() + deltaBottom );
+            low.setY( low.y() - deltaBottom );
             mod = true;
         }
         if( !FloatUtil.isZero(deltaTop) ) {
