@@ -271,8 +271,8 @@ public abstract class Shape {
      */
     public Padding getPadding() { return padding; }
 
-    /** Returns true if {@link #setPaddding(Padding)} added a non {@link Padding#zeroSumSize()} spacing to this shape. */
-    public boolean hasPadding() { return null != padding && !padding.zeroSumSize(); }
+    /** Returns true if {@link #setPaddding(Padding)} added a non {@link Padding#zeroSize()} spacing to this shape. */
+    public boolean hasPadding() { return null != padding && !padding.zeroSize(); }
 
     /**
      * Sets the thickness of the border, which is included in {@link #getBounds()} and is outside of {@link #getPadding()}. Default is zero for no border.

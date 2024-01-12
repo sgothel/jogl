@@ -385,7 +385,7 @@ public class GridLayout implements Group.Layout {
 
     @Override
     public String toString() {
-        final String p_s = ( null == padding || padding.zeroSumSize() ) ? "" : ", "+padding.toString();
+        final String p_s = ( null == padding || padding.zeroSize() ) ? "" : ", "+padding.toString();
         final String g_s = gap.zeroSumSize() ? "" : ", "+gap.toString();
         return "Grid["+col_count+"x"+row_count+", "+order+", cell "+cellSize+", a "+alignment+g_s+p_s+"]";
     }

@@ -96,11 +96,11 @@ public class Padding {
     /** Return height of vertical values bottom + top. */
     public float height() { return bottom + top; }
 
-    public boolean zeroSumWidth() { return FloatUtil.isZero( width() ); };
+    public boolean zeroWidth() { return FloatUtil.isZero( width() ); };
 
-    public boolean zeroSumHeight() { return FloatUtil.isZero( height() ); };
+    public boolean zeroHeight() { return FloatUtil.isZero( height() ); };
 
-    public boolean zeroSumSize() { return zeroSumWidth() && zeroSumHeight(); }
+    public boolean zeroSize() { return zeroWidth() && zeroHeight(); }
 
     @Override
     public String toString() { return "Padding[t "+top+", r "+right+", b "+bottom+", l "+left+"]"; }

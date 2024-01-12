@@ -263,7 +263,7 @@ public class UILayoutBox01 {
 
         if( true ) {
             // 13
-            final Group g = fillDemoGroup(new Group( new BoxLayout(1f, 1f) ),
+            final Group g = fillDemoGroup(new Group( new BoxLayout(1f, 1f, Alignment.None) ),
                                           reqGLP, scene, zEps, sxy, nextPos, font, id, dragZoomRotateListener);
             groups.add(g);
         }
@@ -452,8 +452,8 @@ public class UILayoutBox01 {
             final BoxLayout l = (BoxLayout)g.getLayout();
             final String text = String.format("G %2d, size[total %.1f x %.1f, cell %.1f x %.1f]%n%s%n%s%nAlign %s",
                                     id, g.getBounds().getWidth(), g.getBounds().getHeight(), l.getCellSize().x(), l.getCellSize().y(),
-                                    ( null == l.getPadding() || l.getPadding().zeroSumSize() ) ? "Padding none" : l.getPadding().toString(),
-                                    l.getMargin().zeroSumSize() ? "Margin none" : l.getMargin().toString(),
+                                    ( null == l.getPadding() || l.getPadding().zeroSize() ) ? "Padding none" : l.getPadding().toString(),
+                                    l.getMargin().zeroSize() ? "Margin none" : l.getMargin().toString(),
                                     l.getAlignment() );
             final Shape label = new Label(options.renderModes, font, text).setColor(0, 0, 0, 1).validate(reqGLP);
             label.scale(l_sxy, l_sxy, 1).moveTo(sceneBox.getLow()).move(nextPos).move(l_sxy*X_width, g.getScaledHeight(), 0)

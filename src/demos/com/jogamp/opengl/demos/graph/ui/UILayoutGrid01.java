@@ -418,7 +418,7 @@ public class UILayoutGrid01 {
             final GridLayout l = (GridLayout)g.getLayout();
             final String text = String.format("G %2d, size[total %.1f x %.1f, cell %.1f x %.1f]%n%s%n%s, Align %s",
                                     id, g.getBounds().getWidth(), g.getBounds().getHeight(), l.getCellSize().x(), l.getCellSize().y(),
-                                    ( null == l.getPadding() || l.getPadding().zeroSumSize() ) ? "Padding none" : l.getPadding().toString(),
+                                    ( null == l.getPadding() || l.getPadding().zeroSize() ) ? "Padding none" : l.getPadding().toString(),
                                     l.getGap().zeroSumSize() ? "Gap none" : l.getGap().toString(),
                                     l.getAlignment() );
             final Shape label = new Label(options.renderModes, font, text).setColor(0, 0, 0, 1).validate(reqGLP);

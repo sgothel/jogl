@@ -73,14 +73,10 @@ public class BoxLayout implements Group.Layout {
         this(0f, 0f, Alignment.None, Margin.None, padding);
     }
 
-    public BoxLayout(final float cellWidth, final float cellHeight) {
-        this(cellWidth, cellHeight, Alignment.None, Margin.None, null);
-    }
-
     /**
      *
-     * @param cellWidth
-     * @param cellHeight
+     * @param cellWidth optional cell width, zero for none
+     * @param cellHeight optional cell height, zero for none
      * @param alignment
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Alignment alignment) {
@@ -89,8 +85,8 @@ public class BoxLayout implements Group.Layout {
 
     /**
      *
-     * @param cellWidth
-     * @param cellHeight
+     * @param cellWidth optional cell width, zero for none
+     * @param cellHeight optional cell height, zero for none
      * @param margin {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Margin margin) {
@@ -99,8 +95,8 @@ public class BoxLayout implements Group.Layout {
 
     /**
      *
-     * @param cellWidth
-     * @param cellHeight
+     * @param cellWidth optional cell width, zero for none
+     * @param cellHeight optional cell height, zero for none
      * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Padding padding) {
@@ -109,8 +105,8 @@ public class BoxLayout implements Group.Layout {
 
     /**
      *
-     * @param cellWidth
-     * @param cellHeight
+     * @param cellWidth optional cell width, zero for none
+     * @param cellHeight optional cell height, zero for none
      * @param margin {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale
      * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
@@ -120,8 +116,8 @@ public class BoxLayout implements Group.Layout {
 
     /**
      *
-     * @param cellWidth
-     * @param cellHeight
+     * @param cellWidth optional cell width, zero for none
+     * @param cellHeight optional cell height, zero for none
      * @param margin {@link Margin} is applied unscaled
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Margin margin) {
@@ -130,8 +126,8 @@ public class BoxLayout implements Group.Layout {
 
     /**
      *
-     * @param cellWidth
-     * @param cellHeight
+     * @param cellWidth optional cell width, zero for none
+     * @param cellHeight optional cell height, zero for none
      * @param alignment
      * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
@@ -141,8 +137,8 @@ public class BoxLayout implements Group.Layout {
 
     /**
      *
-     * @param cellWidth
-     * @param cellHeight
+     * @param cellWidth optional cell width, zero for none
+     * @param cellHeight optional cell height, zero for none
      * @param alignment
      * @param margin {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale
      * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
@@ -153,6 +149,7 @@ public class BoxLayout implements Group.Layout {
         this.margin = margin;
         this.padding = padding;
     }
+    // Vec2f totalSize
 
     /** Returns the preset cell size */
     public Vec2f getCellSize() { return cellSize; }
@@ -165,7 +162,7 @@ public class BoxLayout implements Group.Layout {
 
     @Override
     public void preValidate(final Shape s) {
-        if( null != padding ) {
+        if( null != padding && !padding.zeroSize() ) {
             s.setPaddding(padding);
         }
     }
@@ -279,12 +276,15 @@ public class BoxLayout implements Group.Layout {
                 System.err.println("bl("+i+").x: "+box);
             }
         }
+        if( TRACE_LAYOUT ) {
+            System.err.println("bl(X).x: "+box);
+        }
     }
 
     @Override
     public String toString() {
-        final String p_s = ( null == padding || padding.zeroSumSize() ) ? "" : ", "+padding.toString();
-        final String m_s = margin.zeroSumSize() ? "" : ", "+margin.toString();
+        final String p_s = ( null == padding || padding.zeroSize() ) ? "" : ", "+padding.toString();
+        final String m_s = margin.zeroSize() ? "" : ", "+margin.toString();
         return "Box[cell "+cellSize+", a "+alignment+m_s+p_s+"]";
     }
 }

@@ -330,15 +330,15 @@ public class UILayoutBoxGridOffset01 {
                 final GridLayout gl = (GridLayout)l;
                 text = String.format("Grid %2d, off %.3f/%.3f, size[total %.1f x %.1f, cell %.1f x %.1f]%n%s%n%s, Align %s",
                                      id, offX, offY, g.getBounds().getWidth(), g.getBounds().getHeight(), gl.getCellSize().x(), gl.getCellSize().y(),
-                                     ( null == gl.getPadding() || gl.getPadding().zeroSumSize() ) ? "Padding none" : gl.getPadding().toString(),
+                                     ( null == gl.getPadding() || gl.getPadding().zeroSize() ) ? "Padding none" : gl.getPadding().toString(),
                                      gl.getGap().zeroSumSize() ? "Gap none" : gl.getGap().toString(),
                                      gl.getAlignment() );
             } else if( l instanceof BoxLayout ){
                 final BoxLayout bl = (BoxLayout)l;
                 text = String.format("Box %2d, off %.3f/%.3f, size[total %.1f x %.1f, cell %.1f x %.1f]%n%s%n%s, Align %s",
                                      id, offX, offY, g.getBounds().getWidth(), g.getBounds().getHeight(), bl.getCellSize().x(), bl.getCellSize().y(),
-                                     ( null == bl.getPadding() || bl.getPadding().zeroSumSize() ) ? "Padding none" : bl.getPadding().toString(),
-                                     bl.getMargin().zeroSumSize() ? "Margin none" : bl.getMargin().toString(),
+                                     ( null == bl.getPadding() || bl.getPadding().zeroSize() ) ? "Padding none" : bl.getPadding().toString(),
+                                     bl.getMargin().zeroSize() ? "Margin none" : bl.getMargin().toString(),
                                      bl.getAlignment() );
             } else {
                 text = String.format("Layout %2d, off %.3f/%.3f, size[total %.1f x %.1f", id, offX, offY, g.getBounds().getWidth(), g.getBounds().getHeight());
