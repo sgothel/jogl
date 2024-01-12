@@ -385,7 +385,7 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
                     }
                     final float renderFboWidth, renderFboHeight;
                     renderFboWidth = (winWidth+2*border)*sampleCount[0];
-                    renderFboHeight = (winWidth+2*border)*sampleCount[0];
+                    renderFboHeight = (winHeight+2*border)*sampleCount[0];
                     targetFboWidth = (int)Math.ceil(renderFboWidth);
                     targetFboHeight = (int)Math.ceil(renderFboHeight);
                     if( DEBUG_FBO_1 ) {
