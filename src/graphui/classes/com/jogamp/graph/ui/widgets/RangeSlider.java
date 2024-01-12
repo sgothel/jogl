@@ -51,8 +51,8 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 /**
  * RangeSlider {@link Widget} either utilizing a simple positional round knob
  * or a rectangular page-sized knob.
- * @see #RangeSlider(int, Vec2f, float, Vec2f, float)
- * @see #RangeSlider(int, Vec2f, Vec2f, float, float)
+ * @see #RangeSlider(int, Vec2f, float, Vec2f, float, float)
+ * @see #RangeSlider(int, Vec2f, Vec2f, float, float, float)
  */
 public final class RangeSlider extends Widget {
     /**
@@ -93,6 +93,7 @@ public final class RangeSlider extends Widget {
     private float pageSize;
     private float val=0, val_pct=0;
     private boolean inverted=false;
+    private float unitSize = 1;
 
     /**
      * Constructs a {@link RangeSlider}, i.e. its shapes and controls.
@@ -103,11 +104,12 @@ public final class RangeSlider extends Widget {
      * @param size width and height of this slider box. A horizontal slider has width >= height.
      * @param knobScale multiple of slider-bar height for {@link #getKnobHeight()}
      * @param minMax minimum- and maximum-value of slider
+     * @param unitSize size of one unit (element) in sliding direction
      * @param value current value of slider
      */
     public RangeSlider(final int renderModes, final Vec2f size, final float knobScale,
-                       final Vec2f minMax, final float value) {
-        this(renderModes, size, knobScale, minMax, Float.NaN, value);
+                       final Vec2f minMax, final float unitSize, final float value) {
+        this(renderModes, size, knobScale, minMax, unitSize, Float.NaN, value);
     }
     /**
      * Constructs a {@link RangeSlider}, i.e. its shapes and controls.
@@ -117,17 +119,19 @@ public final class RangeSlider extends Widget {
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param size width and height of this slider box. A horizontal slider has width >= height.
      * @param minMax minimum- and maximum-value of slider
+     * @param unitSize size of one unit (element) in sliding direction
      * @param pageSize size of one virtual-page, triggers rendering mode from knob to rectangle
      * @param value current value of slider
      */
     public RangeSlider(final int renderModes, final Vec2f size,
-                       final Vec2f minMax, final float pageSize, final float value) {
-        this(renderModes, size, 0, minMax, pageSize, value);
+                       final Vec2f minMax, final float unitSize, final float pageSize, final float value) {
+        this(renderModes, size, 0, minMax, unitSize, pageSize, value);
     }
     private RangeSlider(final int renderModes_, final Vec2f size, final float knobScale,
-                       final Vec2f minMax, final float pageSz, final float value) {
+                       final Vec2f minMax, final float unitSize, final float pageSz, final float value) {
         // final int renderModes = ( renderModes_ & ~Region.AA_RENDERING_MASK ) | Region.COLORCHANNEL_RENDERING_BIT;
         final int renderModes = renderModes_ & ~(Region.AA_RENDERING_MASK | Region.COLORCHANNEL_RENDERING_BIT);
+        this.unitSize = unitSize;
         this.pageSize = pageSz;
         this.horizontal = size.x() >= size.y();
         barAndKnob = new Group();
@@ -213,15 +217,15 @@ public final class RangeSlider extends Widget {
                 if( !e.isControlDown() ) {
                     if( e.getRotation()[1] < 0f ) {
                         if( inverted ) {
-                            v++;
+                            v+=unitSize;
                         } else {
-                            v--;
+                            v-=unitSize;
                         }
                     } else {
                         if( inverted ) {
-                            v--;
+                            v-=unitSize;
                         } else {
-                            v++;
+                            v+=unitSize;
                         }
                     }
                 } else if( !Float.isNaN(pageSize) ){
@@ -277,32 +281,32 @@ public final class RangeSlider extends Widget {
                     if( keySym == KeyEvent.VK_RIGHT ) {
                         action = true;
                         if( inverted ) {
-                            v--;
+                            v-=unitSize;
                         } else {
-                            v++;
+                            v+=unitSize;
                         }
                     } else if( keySym == KeyEvent.VK_LEFT ) {
                         action = true;
                         if( inverted ) {
-                            v++;
+                            v+=unitSize;
                         } else {
-                            v--;
+                            v-=unitSize;
                         }
                     }
                 } else {
                     if( keySym == KeyEvent.VK_DOWN ) {
                         action = true;
                         if( inverted ) {
-                            v++;
+                            v+=unitSize;
                         } else {
-                            v--;
+                            v-=unitSize;
                         }
                     } else if( keySym == KeyEvent.VK_UP ) {
                         action = true;
                         if( inverted ) {
-                            v--;
+                            v-=unitSize;
                         } else {
-                            v++;
+                            v+=unitSize;
                         }
                     }
                 }
@@ -412,6 +416,9 @@ public final class RangeSlider extends Widget {
         return this;
     }
     public float getPageSize() { return this.pageSize; }
+
+    public void setUnitSize(final float v) { this.unitSize = v; }
+    public float getUnitSize() { return this.unitSize; }
 
     public RangeSlider setInverted(final boolean v) { inverted = v; return setValue(val); }
 

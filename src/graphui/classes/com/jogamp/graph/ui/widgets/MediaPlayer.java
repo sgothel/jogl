@@ -133,7 +133,7 @@ public class MediaPlayer extends Widget {
         {
             final float knobScale = 3f;
             final float knobHeight = ctrlSliderHeight * knobScale;
-            ctrlSlider = new RangeSlider(renderModes, new Vec2f(aratio - knobHeight, ctrlSliderHeight), knobScale, new Vec2f(0, 100), 0);
+            ctrlSlider = new RangeSlider(renderModes, new Vec2f(aratio - knobHeight, ctrlSliderHeight), knobScale, new Vec2f(0, 100), 1, 0);
             final float dx = knobHeight / 2f;
             final float dy = ( knobHeight - ctrlSliderHeight ) * 0.5f;
             ctrlSlider.setPaddding(new Padding(0, dx, ctrlCellHeight-dy, dx));

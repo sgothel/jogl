@@ -253,10 +253,10 @@ public class FontView01 {
                 }
             };
             {
-                final float cellSize = gridDim.rawSize.x() > gridDim.rawSize.y() ? GlyphGridWidth/gridDim.rawSize.x() : GlyphGridWidth/gridDim.rawSize.y();
+                final float cellSize = gridDim.totalSize.x() > gridDim.totalSize.y() ? GlyphGridWidth/gridDim.totalSize.x() : GlyphGridWidth/gridDim.totalSize.y();
                 // final float gapSizeX = ( gridDim.rawSize.x() - 1 ) * cellSize * 0.1f;
                 System.err.println("Grid "+gridDim+", scale "+cellSize);
-                glyphGrid = new Group(new GridLayout(gridDim.rawSize.x(), cellSize*0.9f, cellSize*0.9f, Alignment.FillCenter, new Gap(cellSize*0.1f)));
+                glyphGrid = new Group(new GridLayout(gridDim.totalSize.x(), cellSize*0.9f, cellSize*0.9f, Alignment.FillCenter, new Gap(cellSize*0.1f)));
             }
 
             addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline[0], showLabel[0], fontStatus, fontInfo, glyphMouseListener);
@@ -280,12 +280,12 @@ public class FontView01 {
             glyphInfoGrid.addShape(glyphGrid);
             final boolean sliderInverted = true;
             final RangeSlider rs1 = new RangeSlider(options.renderModes,
-                                             new Vec2f((GlyphGridWidth/gridDim.rawSize.x())/5f, glyphGrid.getBounds().getHeight()),
-                                             new Vec2f(0, gridDim.contourChars.size()/gridDim.columns), gridDim.rows, 0).setInverted(sliderInverted);
+                                             new Vec2f((GlyphGridWidth/gridDim.totalSize.x())/5f, glyphGrid.getBounds().getHeight()),
+                                             new Vec2f(0, gridDim.contourChars.size()/gridDim.columns), 1, gridDim.rows, 0).setInverted(sliderInverted);
             rs1.setColor(0.3f, 0.3f, 0.3f, 0.7f);
             final RangeSlider rs2 = new RangeSlider(options.renderModes,
-                                             new Vec2f((GlyphGridWidth/gridDim.rawSize.x())/5f, glyphGrid.getBounds().getHeight()), 2,
-                                             new Vec2f(0, gridDim.contourChars.size()/gridDim.columns), 0).setInverted(sliderInverted);
+                                             new Vec2f((GlyphGridWidth/gridDim.totalSize.x())/5f, glyphGrid.getBounds().getHeight()), 2,
+                                             new Vec2f(0, gridDim.contourChars.size()/gridDim.columns), 1, 0).setInverted(sliderInverted);
             rs2.setColor(0.3f, 0.3f, 0.3f, 0.7f);
             final SliderListener sliderListener = new SliderListener() {
                 @Override
@@ -334,7 +334,7 @@ public class FontView01 {
             final Label infoText = new Label(options.renderModes, fontInfo, "Slider: Key-Up/Down or Mouse-Scroll to move through glyphs. Page-Up/Down or Control + Mouse-Scroll to page through glyph symbols fast.");
             infoText.setColor(0.1f, 0.1f, 0.1f, 1f);
             {
-                final float h = glyphGrid.getBounds().getHeight() / gridDim.rawSize.y() * 0.6f;
+                final float h = glyphGrid.getBounds().getHeight() / gridDim.totalSize.y() * 0.6f;
                 final Group labelBox = new Group(new BoxLayout(1.0f, h*0.9f, new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.CenterVert.value),
                                                                new Margin(h*0.1f, 0.005f)));
                 labelBox.addShape(infoText);
@@ -371,7 +371,7 @@ public class FontView01 {
             System.err.println("scale sx "+sx+", sy "+sy+", sxy "+sxy);
             mainGrid.scale(sxy, sxy, 1f).moveTo(sceneBox.getLow());
         }
-        printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gridDim.contourChars.get(gridDim.start));
+        printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gridDim.contourChars.get(gridDim.rowStartIndex));
         // stay open ..
     }
 
@@ -381,27 +381,30 @@ public class FontView01 {
     }
 
     static class GridDim {
-        final Vec2i rawSize;
+        /** total grid size including reserved info columns and rows */
+        final Vec2i totalSize;
         final List<Character> contourChars;
+        /** net columns */
         final int columns;
+        /** net rows */
         final int rows;
         final int elemCount;
-        int start;
+        int rowStartIndex;
         int nextLine;
         int nextPage;
         int maxNameLen;
 
-        public GridDim(final Font font, final Vec2i gridSize, final int xReserve, final int yReserve) {
-            this.rawSize = gridSize;
+        public GridDim(final Font font, final Vec2i totalSize, final int xReserve, final int yReserve) {
+            this.totalSize = totalSize;
             contourChars = new ArrayList<Character>();
-            columns = gridSize.x() - xReserve;
-            rows = gridSize.y() - yReserve;
+            columns = totalSize.x() - xReserve;
+            rows = totalSize.y() - yReserve;
             elemCount = columns * rows;
-            start = 0; nextLine = -1; nextPage = -1; maxNameLen=10;
+            rowStartIndex = 0; nextLine = -1; nextPage = -1; maxNameLen=10;
             scanContourGlyphs(font);
         }
 
-        public int scanContourGlyphs(final Font font) {
+        private int scanContourGlyphs(final Font font) {
             contourChars.clear();
             maxNameLen = 1;
             font.forAllGlyphs((final Glyph fg) -> {
@@ -417,22 +420,22 @@ public class FontView01 {
             // final int old = start;
             final int np = row * columns;
             if( np < contourChars.size() - columns ) {
-                start = np;
+                rowStartIndex = np;
             }
             // System.err.println("XXX "+columns+"x"+rows+" @ "+old+"/"+contourChars.size()+": r "+row+" -> s "+start);
         }
 
         @Override
-        public String toString() { return "GridDim[contours "+contourChars.size()+", start "+start+", nextLine "+nextLine+", nextPage "+nextPage+", "+columns+"x"+rows+"="+elemCount+", raw "+rawSize+"]"; }
+        public String toString() { return "GridDim[contours "+contourChars.size()+", start "+rowStartIndex+", nextLine "+nextLine+", nextPage "+nextPage+", "+columns+"x"+rows+"="+elemCount+", total "+totalSize+"]"; }
     }
 
     static void addGlyphs(final GLProfile glp, final Font font, final Group sink,
                           final GridDim gridDim, final boolean showUnderline, final boolean showLabel,
                           final Font fontStatus, final Font fontInfo, final Shape.MouseGestureListener glyphMouseListener) {
-        gridDim.nextLine = Math.min(gridDim.start + gridDim.columns,   gridDim.contourChars.size()-1);
-        gridDim.nextPage = Math.min(gridDim.start + gridDim.elemCount, gridDim.contourChars.size()-1);
+        gridDim.nextLine = Math.min(gridDim.rowStartIndex + gridDim.columns,   gridDim.contourChars.size()-1);
+        gridDim.nextPage = Math.min(gridDim.rowStartIndex + gridDim.elemCount, gridDim.contourChars.size()-1);
         final AABBox tmpBox = new AABBox();
-        for(int idx = gridDim.start; idx < gridDim.nextPage; ++idx) {
+        for(int idx = gridDim.rowStartIndex; idx < gridDim.nextPage; ++idx) {
             final char codepoint = gridDim.contourChars.get(idx);
             final Font.Glyph fg = font.getGlyph(codepoint);
 
@@ -452,7 +455,7 @@ public class FontView01 {
             }
             c1.addShape(g);
             c1.addMouseListener(glyphMouseListener);
-            if( 0 == ( idx - gridDim.start ) % gridDim.columns ) {
+            if( 0 == ( idx - gridDim.rowStartIndex ) % gridDim.columns ) {
                 addLabel(sink, fontStatus, String.format("%04x", (int)codepoint));
             }
             if( showLabel ) {
