@@ -59,6 +59,7 @@ public class GLReadBufferUtil {
     protected boolean hasAlpha;
     protected GLPixelBuffer readPixelBuffer = null;
     protected TextureData readTextureData = null;
+    protected int readBuffer = -1;
 
     /**
      * Using the default {@link GLPixelBuffer}: {@link GLPixelBuffer#defaultProviderNoRowStride}.
@@ -82,6 +83,8 @@ public class GLReadBufferUtil {
         this.alphaRequested = requestAlpha;
         this.hasAlpha = requestAlpha; // preset
     }
+
+    public void setReadBuffer(final int name) { readBuffer = name; }
 
     /** Returns the {@link GLPixelBufferProvider} used by this instance. */
     public GLPixelBufferProvider getPixelBufferProvider() { return pixelBufferProvider; }
@@ -239,7 +242,11 @@ public class GLReadBufferUtil {
             if(gl.isGL2ES3()) {
                 final GL2ES3 gl2es3 = gl.getGL2ES3();
                 psm.setPackRowLength(gl2es3, width);
-                gl2es3.glReadBuffer(gl2es3.getDefaultReadBuffer());
+                if( 0 > readBuffer ) {
+                    gl2es3.glReadBuffer(gl2es3.getDefaultReadBuffer());
+                } else {
+                    gl2es3.glReadBuffer(readBuffer);
+                }
             }
             readPixelBuffer.clear();
             try {
