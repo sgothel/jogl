@@ -179,7 +179,7 @@ public class Matrix4f {
     }
 
     /**
-     * Load the values of the given matrix {@code b} to this matrix.
+     * Load the values of the given matrix {@code src} to this matrix.
      * @param src the source values
      * @return this matrix for chaining
      */
