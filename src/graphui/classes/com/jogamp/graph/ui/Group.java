@@ -37,6 +37,8 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Rectangle;
+import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
@@ -75,8 +77,13 @@ public class Group extends Shape implements Container {
     }
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
+    private final Vec2f fixedSize = new Vec2f();
     private Layout layouter;
     private Rectangle border = null;
+
+    private boolean relayoutOnDirtyShapes = true;
+    private boolean widgetMode = false;
+    boolean clipOnBox = false;
 
     /**
      * Create a group of {@link Shape}s w/o {@link Group.Layout}.
@@ -109,6 +116,14 @@ public class Group extends Shape implements Container {
 
     /** Set {@link Group.Layout}. */
     public Group setLayout(final Layout l) { layouter = l; return this; }
+
+    /** Enforce size of this group to given dimension. */
+    public Group setFixedSize(final Vec2f v) { fixedSize.set(v); return this; }
+    public Vec2f getFixedSize() { return fixedSize; }
+
+    /** Enable {@link AABBox} clipping on {@link #getBounds()} for this group and its shapes. */
+    public Group setClipOnBox(final boolean v) { clipOnBox = v; return this; }
+    public boolean getClipOnBox() { return clipOnBox; }
 
     @Override
     public int getShapeCount() { return shapes.size(); }
@@ -235,6 +250,10 @@ public class Group extends Shape implements Container {
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
 
+        final AABBox origClipBox = renderer.getClipBBox();
+        if( clipOnBox ) {
+            renderer.setClipBBox( box.transform(pmv.getMv(), new AABBox()) ); // Mv pre-multiplied AABBox
+        }
         final int shapeCount = shapesS.length;
         for(int i=0; i<shapeCount; i++) {
             final Shape shape = (Shape) shapesS[i];
@@ -251,7 +270,11 @@ public class Group extends Shape implements Container {
         if( null != border ) {
             border.draw(gl, renderer, sampleCount);
         }
+        if( clipOnBox ) {
+            renderer.setClipBBox(origClipBox);
+        }
     }
+
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     protected final void drawToSelectImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
@@ -277,11 +300,17 @@ public class Group extends Shape implements Container {
         }
     }
 
-    private boolean relayoutOnDirtyShapes = true;
+    /**
+     * Set relayout on dirty shapes mode, defaults to true.
+     * <p>
+     * If relayouting on dirty shape mode is enabler (default),
+     * {@link #isShapeDirty()} traverses through all shapes updating all dirty states of all its groups
+     * provoking a relayout if required.
+     * </p>
+     */
     public void setRelayoutOnDirtyShapes(final boolean v) { relayoutOnDirtyShapes = v; }
     public boolean getRelayoutOnDirtyShapes() { return relayoutOnDirtyShapes; }
 
-    private boolean widgetMode = false;
     /**
      * Toggles widget behavior for this group and all its elements, default is disabled.
      * <p>
@@ -341,6 +370,14 @@ public class Group extends Shape implements Container {
         return v[0];
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * If relayouting on dirty shape mode is enabler, see {@link #setRelayoutOnDirtyShapes(boolean)},
+     * this method traverses through all shapes updating all dirty states of all its groups
+     * provoking a relayout if required.
+     * </p>
+     */
     @Override
     protected boolean isShapeDirty() {
         if( relayoutOnDirtyShapes ) {
@@ -364,21 +401,25 @@ public class Group extends Shape implements Container {
 
             // box has been reset
             final PMVMatrix4f pmv = new PMVMatrix4f();
-            if( 0 == shapes.size() ) {
-                box.resize(0, 0, 0);
-            } else if( null != layouter ) {
-                for(final Shape s : shapes) {
-                    if( needsRMs && null == firstGS && s instanceof GraphShape ) {
-                        firstGS = (GraphShape)s;
-                    }
-                    layouter.preValidate(s);
-                    if( null != gl ) {
-                        s.validate(gl);
-                    } else {
-                        s.validate(glp);
+            if( null != layouter ) {
+                if( 0 == shapes.size() ) {
+                    box.resize(0, 0, 0);
+                } else {
+                    for(final Shape s : shapes) {
+                        if( needsRMs && null == firstGS && s instanceof GraphShape ) {
+                            firstGS = (GraphShape)s;
+                        }
+                        layouter.preValidate(s);
+                        if( null != gl ) {
+                            s.validate(gl);
+                        } else {
+                            s.validate(glp);
+                        }
                     }
                 }
                 layouter.layout(this, box, pmv);
+            } else if( 0 == shapes.size() ) {
+                box.resize(0, 0, 0);
             } else {
                 final AABBox tsbox = new AABBox();
                 for(final Shape s : shapes) {
@@ -404,6 +445,12 @@ public class Group extends Shape implements Container {
                 box.resize(l.x() - p.left, l.y() - p.bottom, l.z());
                 box.resize(h.x() + p.right, h.y() + p.top, l.z());
                 setRotationPivot( box.getCenter() );
+            }
+            if( !FloatUtil.isZero(fixedSize.x()) && !FloatUtil.isZero(fixedSize.y()) ) {
+                final Vec3f low = box.getLow();
+                final Vec3f high = new Vec3f(low);
+                high.add(fixedSize.x(), fixedSize.y(), 0);
+                box.setSize(low, high);
             }
             if( hasBorder() ) {
                 if( null == border ) {

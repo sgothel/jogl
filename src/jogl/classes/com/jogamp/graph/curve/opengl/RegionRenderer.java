@@ -28,6 +28,7 @@
 package com.jogamp.graph.curve.opengl;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import com.jogamp.opengl.GL;
@@ -44,7 +45,6 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.math.Recti;
 import com.jogamp.math.Vec4f;
@@ -67,6 +67,7 @@ public final class RegionRenderer {
     protected static final boolean DEBUG = Region.DEBUG;
     protected static final boolean DEBUG_ALL_EVENT = Region.DEBUG_ALL_EVENT;
     protected static final boolean DEBUG_INSTANCE = Region.DEBUG_INSTANCE;
+    private static final boolean DEBUG_SHADER_MAP = DEBUG;
 
     /**
      * May be passed to
@@ -91,7 +92,7 @@ public final class RegionRenderer {
      * and turning-on the {@link GL#GL_BLEND} state.
      * <p>
      * Implementation also sets {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint},
-     * which will cause {@link GLRegion#draw(GL2ES2, RegionRenderer, int[]) GLRegion's draw-method}
+     * which will cause {@link GLRegion#draw(GL2ES2, RegionRenderer, int, int[]) GLRegion's draw-method}
      * to set the proper {@link GL#glBlendFuncSeparate(int, int, int, int) blend-function}
      * and the clear-color to <i>transparent-black</i> in case of {@link Region#isTwoPass(int) multipass} FBO rendering.
      * </p>
@@ -235,7 +236,7 @@ public final class RegionRenderer {
      * Initialize shader and bindings for GPU based rendering bound to the given GL object's GLContext
      * if not initialized yet.
      * <p>Disables the renderer via {@link #enable(GL2ES2, boolean)} to remove any side-effects, ie ShaderState incl. shader program.</p>
-     * <p>Shall be called once before at initialization before a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, int)}</p>
+     * <p>Shall be called once before at initialization before a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, int, int)}</p>
      *
      * @param gl referencing the current GLContext to which the ShaderState is bound to
      * @throws GLException if initialization failed
@@ -273,8 +274,8 @@ public final class RegionRenderer {
             }
             return;
         }
-        for(final Iterator<IntObjectHashMap.Entry> i = shaderPrograms.iterator(); i.hasNext(); ) {
-            final ShaderProgram sp = (ShaderProgram) i.next().getValue();
+        for(final Iterator<ShaderProgram> i = shaderPrograms.values().iterator(); i.hasNext(); ) {
+            final ShaderProgram sp = i.next();
             sp.destroy(gl);
         }
         shaderPrograms.clear();
@@ -404,6 +405,8 @@ public final class RegionRenderer {
 
     private static final String SHADER_SRC_SUB = "";
     private static final String SHADER_BIN_SUB = "bin";
+    private static final String GLSL_PARAM_COMMENT_START = "\n// JogAmp Graph Parameter Start\n";
+    private static final String GLSL_PARAM_COMMENT_END = "// JogAmp Graph Parameter End\n\n";
     private static final String GLSL_USE_COLOR_CHANNEL = "#define USE_COLOR_CHANNEL 1\n";
     private static final String GLSL_USE_COLOR_TEXTURE = "#define USE_COLOR_TEXTURE 1\n";
     private static final String GLSL_USE_AABBOX_CLIPPING = "#define USE_AABBOX_CLIPPING 1\n";
@@ -478,9 +481,7 @@ public final class RegionRenderer {
         }
 
         public static ShaderModeSelector1 selectPass2(final int renderModes, final int quality, final int sampleCount) {
-            if( Region.isMSAA(renderModes) ) {
-                return PASS2_MSAA;
-            } else if( Region.isVBAA(renderModes) ) {
+            if( Region.isVBAA(renderModes) ) {
                 if( 0 == quality ) {
                     if( sampleCount < 2 ) {
                         return PASS2_VBAA_QUAL0_SAMPLES1;
@@ -505,14 +506,81 @@ public final class RegionRenderer {
                     }
                 }
             } else {
-                return null;
+                return PASS2_MSAA; // Region.isMSAA(renderModes) and default
             }
         }
     }
-    private final IntObjectHashMap shaderPrograms = new IntObjectHashMap();
 
-    private static final int HIGH_MASK = Region.COLORCHANNEL_RENDERING_BIT | Region.COLORTEXTURE_RENDERING_BIT;
-    private static final int TWO_PASS_BIT = 1 <<  31;
+    private static class ShaderKey {
+        final boolean isTwoPass;
+        final boolean pass1;
+        final ShaderModeSelector1 sms;
+        final boolean hasAABBoxClipping; // pass1 or pass2
+        final boolean hasColorChannel; // pass1 only
+        final boolean hasColorTexture; // pass1 only
+        final String colorTexSeqID;
+        final int colorTexSeqHash;
+
+        final String texLookupFuncName;
+        final int hashValue;
+
+        ShaderKey(final int renderModes, final boolean pass1_, final int pass2Quality, final int sampleCount, final TextureSequence colorTexSeq, final boolean hasClipBBox) {
+            isTwoPass = Region.isTwoPass( renderModes );
+            pass1 = pass1_;
+            sms = pass1 ? ShaderModeSelector1.selectPass1(renderModes) :
+                          ShaderModeSelector1.selectPass2(renderModes, pass2Quality, sampleCount);
+            hasAABBoxClipping = hasClipBBox && ( ( !isTwoPass && pass1 ) || ( isTwoPass && !pass1 ) );
+            hasColorChannel = pass1 && Region.hasColorChannel( renderModes );
+            hasColorTexture = pass1 && Region.hasColorTexture( renderModes ) && null != colorTexSeq;
+            if( hasColorTexture ) {
+                texLookupFuncName = colorTexSeq.setTextureLookupFunctionName(gcuTexture2D);
+                colorTexSeqID = colorTexSeq.getTextureFragmentShaderHashID();
+                colorTexSeqHash = colorTexSeq.getTextureFragmentShaderHashCode();
+            } else {
+                texLookupFuncName = null;
+                colorTexSeqID = "";
+                colorTexSeqHash = 0;
+            }
+            {
+                // 31 * x == (x << 5) - x
+                int hash = 31 * ( isTwoPass ? 1 : 0 );
+                hash = ((hash << 5) - hash) + ( pass1 ? 1 : 0 ) ;
+                // hash = ((hash << 5) - hash) + pass2Quality; // included in sms
+                // hash = ((hash << 5) - hash) + sampleCount; // included in sms
+                hash = ((hash << 5) - hash) + sms.ordinal();
+                hash = ((hash << 5) - hash) + ( hasAABBoxClipping ? 1 : 0 );
+                hash = ((hash << 5) - hash) + ( hasColorChannel ? 1 : 0 );
+                hash = ((hash << 5) - hash) + ( hasColorTexture ? 1 : 0 );
+                hash = ((hash << 5) - hash) + colorTexSeqHash;
+                hashValue = hash;
+            }
+        }
+        @Override
+        public final int hashCode() { return hashValue; }
+        @Override
+        public final boolean equals(final Object other) {
+            if( this == other ) { return true; }
+            if( !(other instanceof ShaderKey) ) {
+                return false;
+            }
+            final ShaderKey o = (ShaderKey)other;
+            return isTwoPass == o.isTwoPass &&
+                   pass1 == o.pass1 &&
+                   // pass2Quality == o.pass2Quality && // included in sms
+                   // sampleCount == o.sampleCount && // included in sms
+                   sms.ordinal() == o.sms.ordinal() &&
+                   hasAABBoxClipping == o.hasAABBoxClipping &&
+                   hasColorChannel == o.hasColorChannel &&
+                   hasColorTexture == o.hasColorTexture &&
+                   colorTexSeqID.equals(o.colorTexSeqID);
+        }
+        @Override
+        public String toString() {
+            return "ShaderKey[hash 0x"+Integer.toHexString(hashValue)+", is2Pass "+isTwoPass+", pass1 "+pass1+
+                   ", has[clip "+hasAABBoxClipping+", colChan "+hasColorChannel+", colTex "+hasColorTexture+"], "+sms+"]";
+        }
+    }
+    private final HashMap<ShaderKey, ShaderProgram> shaderPrograms = new HashMap<ShaderKey, ShaderProgram>();
 
     /**
      * Generate, selects and caches the desired Curve-Graph {@link ShaderProgram} according to the given parameters.
@@ -523,7 +591,7 @@ public final class RegionRenderer {
      * @param gl
      * @param renderModes
      * @param pass1
-     * @param quality
+     * @param pass2Quality
      * @param sampleCount
      * @param colorTexSeq
      * @return true if a new shader program is being used and hence external uniform-data and -location,
@@ -533,55 +601,31 @@ public final class RegionRenderer {
      * @see RenderState#getShaderProgram()
      */
     public final boolean useShaderProgram(final GL2ES2 gl, final int renderModes,
-                                          final boolean pass1, final int quality, final int sampleCount, final TextureSequence colorTexSeq) {
-        final ShaderModeSelector1 sel1 = pass1 ? ShaderModeSelector1.selectPass1(renderModes) :
-                                                 ShaderModeSelector1.selectPass2(renderModes, quality, sampleCount);
-        final boolean hasAABBoxClipping = null != getClipBBox();
-        final boolean isTwoPass = Region.isTwoPass( renderModes );
-        final boolean hasColorChannel = Region.hasColorChannel( renderModes );
-        final boolean hasColorTexture = Region.hasColorTexture( renderModes ) && null != colorTexSeq;
-        final boolean isPass1ColorTexSeq = pass1 && hasColorTexture;
-        final int colorTexSeqHash;
-        final String texLookupFuncName;
-        if( isPass1ColorTexSeq ) {
-            texLookupFuncName = colorTexSeq.setTextureLookupFunctionName(gcuTexture2D);
-            colorTexSeqHash = colorTexSeq.getTextureFragmentShaderHashCode();
-        } else {
-            texLookupFuncName = null;
-            colorTexSeqHash = 0;
-        }
-        final int shaderKey;
-        {
-            // 31 * x == (x << 5) - x
-            int hash = 31 + colorTexSeqHash;
-            hash = ((hash << 5) - hash) + sel1.ordinal();
-            hash = ((hash << 5) - hash) + ( HIGH_MASK & renderModes );
-            hash = ((hash << 5) - hash) + ( hasAABBoxClipping ? 1 : 0 );
-            hash = ((hash << 5) - hash) + ( isTwoPass ? TWO_PASS_BIT : 0 );
-            shaderKey = hash;
-        }
+                                          final boolean pass1, final int pass2Quality, final int sampleCount, final TextureSequence colorTexSeq) {
+        final ShaderKey shaderKey = new ShaderKey(renderModes, pass1, pass2Quality, sampleCount, colorTexSeq, null != getClipBBox());
 
         /**
         if(DEBUG) {
-            System.err.printf("RegionRendererImpl01.useShaderProgram.0: renderModes %s, sel1 %s, key 0x%X (pass1 %b, q %d, samples %d) - Thread %s%n",
-                    Region.getRenderModeString(renderModes), sel1, shaderKey, pass1, quality, sampleCount, Thread.currentThread());
+            System.err.println("XXX "+Region.getRenderModeString(renderModes, sampleCount, 0)+", "+shaderKey);
         } */
 
-        ShaderProgram sp = (ShaderProgram) shaderPrograms.get( shaderKey );
+        ShaderProgram sp = shaderPrograms.get( shaderKey );
         if( null != sp ) {
             final boolean spChanged = rs.setShaderProgram(gl, sp);
-            if( DEBUG ) {
+            if( DEBUG_SHADER_MAP ) {
                 if( spChanged ) {
-                    System.err.printf("RegionRendererImpl01.useShaderProgram.X1: GOT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (changed)%n", Region.getRenderModeString(renderModes), sel1, shaderKey, sp.program(), sp.id());
+                    System.err.printf("RegionRenderer.useShaderProgram.X1: GOT renderModes %s, %s -> sp %d / %d (changed)%n",
+                            Region.getRenderModeString(renderModes), shaderKey, sp.program(), sp.id());
                 } else if( DEBUG_ALL_EVENT ) {
-                    System.err.printf("RegionRendererImpl01.useShaderProgram.X1: GOT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (keep)%n", Region.getRenderModeString(renderModes), sel1, shaderKey, sp.program(), sp.id());
+                    System.err.printf("RegionRenderer.useShaderProgram.X1: GOT renderModes %s, %s -> sp %d / %d (keep)%n",
+                            Region.getRenderModeString(renderModes), shaderKey, sp.program(), sp.id());
                 }
             }
             return spChanged;
         }
         final String versionedBaseName = getVersionedShaderName();
         final String vertexShaderName;
-        if( isTwoPass ) {
+        if( shaderKey.isTwoPass ) {
             vertexShaderName = versionedBaseName+"-pass"+(pass1?1:2);
         } else {
             vertexShaderName = versionedBaseName+"-single";
@@ -589,30 +633,30 @@ public final class RegionRenderer {
         final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, AttributeNames.class, SHADER_SRC_SUB, SHADER_BIN_SUB, vertexShaderName, true);
         final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, AttributeNames.class, SHADER_SRC_SUB, SHADER_BIN_SUB, versionedBaseName+"-segment-head", true);
 
-        if( isPass1ColorTexSeq && GLES2.GL_TEXTURE_EXTERNAL_OES == colorTexSeq.getTextureTarget() ) {
+        if( shaderKey.hasColorTexture && GLES2.GL_TEXTURE_EXTERNAL_OES == colorTexSeq.getTextureTarget() ) {
             if( !gl.isExtensionAvailable(GLExtensions.OES_EGL_image_external) ) {
                 throw new GLException(GLExtensions.OES_EGL_image_external+" requested but not available");
             }
         }
-        boolean supressGLSLVersionES30 = false;
-        if( isPass1ColorTexSeq && GLES2.GL_TEXTURE_EXTERNAL_OES == colorTexSeq.getTextureTarget() ) {
+        boolean preludeGLSLVersion = true;
+        if( shaderKey.hasColorTexture && GLES2.GL_TEXTURE_EXTERNAL_OES == colorTexSeq.getTextureTarget() ) {
             if( Platform.OSType.ANDROID == Platform.getOSType() && gl.isGLES3() ) {
                 // Bug on Nexus 10, ES3 - Android 4.3, where
                 // GL_OES_EGL_image_external extension directive leads to a failure _with_ '#version 300 es' !
                 //   P0003: Extension 'GL_OES_EGL_image_external' not supported
-                supressGLSLVersionES30 = true;
+                preludeGLSLVersion = false;
             }
         }
         //
         // GLSL customization at top
         //
-        int posVp = rsVp.defaultShaderCustomization(gl, !supressGLSLVersionES30, true);
+        int posVp = rsVp.defaultShaderCustomization(gl, preludeGLSLVersion, true);
         // rsFp.defaultShaderCustomization(gl, true, true);
-        int posFp = supressGLSLVersionES30 ? 0 : rsFp.addGLSLVersion(gl);
-        if( isPass1ColorTexSeq ) {
+        int posFp = preludeGLSLVersion ? rsFp.addGLSLVersion(gl) : 0;
+        if( shaderKey.hasColorTexture ) {
             posFp = rsFp.insertShaderSource(0, posFp, colorTexSeq.getRequiredExtensionsShaderStub());
         }
-        if( pass1 && supressGLSLVersionES30 || ( gl.isGLES2() && !gl.isGLES3() ) ) {
+        if( pass1 && !preludeGLSLVersion || ( gl.isGLES2() && !gl.isGLES3() ) ) {
             posFp = rsFp.insertShaderSource(0, posFp, ShaderCode.createExtensionDirective(GLExtensions.OES_standard_derivatives, ShaderCode.ENABLE));
         }
         if( false ) {
@@ -628,30 +672,36 @@ public final class RegionRenderer {
         // GLSL append from here on
         posFp = -1;
 
+        posVp = rsVp.insertShaderSource(0, posVp, GLSL_PARAM_COMMENT_START);
+        posFp = rsFp.insertShaderSource(0, posFp, GLSL_PARAM_COMMENT_START);
+
         if( !gl.getContext().hasRendererQuirk(GLRendererQuirks.GLSLBuggyDiscard) ) {
             posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_DISCARD);
         }
 
-        if( hasAABBoxClipping ) {
+        if( shaderKey.hasAABBoxClipping ) {
             posVp = rsVp.insertShaderSource(0, posVp, GLSL_USE_AABBOX_CLIPPING);
             posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_AABBOX_CLIPPING);
         }
 
-        if( hasColorChannel ) {
+        if( shaderKey.hasColorChannel ) {
             posVp = rsVp.insertShaderSource(0, posVp, GLSL_USE_COLOR_CHANNEL);
             posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_COLOR_CHANNEL);
         }
-        if( isPass1ColorTexSeq ) {
+        if( shaderKey.hasColorTexture ) {
                     rsVp.insertShaderSource(0, posVp, GLSL_USE_COLOR_TEXTURE);
             posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_COLOR_TEXTURE);
         }
         if( !pass1 ) {
-            posFp = rsFp.insertShaderSource(0, posFp, GLSL_DEF_SAMPLE_COUNT+sel1.sampleCount+"\n");
-            posFp = rsFp.insertShaderSource(0, posFp, GLSL_CONST_SAMPLE_COUNT+sel1.sampleCount+".0;\n");
+            posFp = rsFp.insertShaderSource(0, posFp, GLSL_DEF_SAMPLE_COUNT+shaderKey.sms.sampleCount+"\n");
+            posFp = rsFp.insertShaderSource(0, posFp, GLSL_CONST_SAMPLE_COUNT+shaderKey.sms.sampleCount+".0;\n");
         }
 
+        posVp = rsVp.insertShaderSource(0, posVp, GLSL_PARAM_COMMENT_END);
+        posFp = rsFp.insertShaderSource(0, posFp, GLSL_PARAM_COMMENT_END);
+
         try {
-            if( isPass1ColorTexSeq || hasAABBoxClipping ) {
+            if( shaderKey.hasColorTexture || shaderKey.hasAABBoxClipping ) {
                 posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "functions.glsl");
             }
             posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "uniforms.glsl");
@@ -663,7 +713,7 @@ public final class RegionRenderer {
             throw new RuntimeException("Failed to read: includes");
         }
 
-        if( isPass1ColorTexSeq ) {
+        if( shaderKey.hasColorTexture ) {
             posFp = rsFp.insertShaderSource(0, posFp, "uniform "+colorTexSeq.getTextureSampler2DType()+" "+UniformNames.gcu_ColorTexUnit+";\n");
             posFp = rsFp.insertShaderSource(0, posFp, colorTexSeq.getTextureLookupFragmentShaderImpl());
         }
@@ -671,7 +721,7 @@ public final class RegionRenderer {
         posFp = rsFp.insertShaderSource(0, posFp, GLSL_MAIN_BEGIN);
 
         final String passS = pass1 ? "-pass1-" : "-pass2-";
-        final String shaderSegment = versionedBaseName+passS+sel1.tech+sel1.sub+".glsl";
+        final String shaderSegment = versionedBaseName+passS+shaderKey.sms.tech+shaderKey.sms.sub+".glsl";
         if(DEBUG) {
             System.err.printf("RegionRendererImpl01.useShaderProgram.1: segment %s%n", shaderSegment);
         }
@@ -685,8 +735,8 @@ public final class RegionRenderer {
         }
         posFp = rsFp.insertShaderSource(0, posFp, "}\n");
 
-        if( isPass1ColorTexSeq ) {
-            rsFp.replaceInShaderSource(gcuTexture2D, texLookupFuncName);
+        if( shaderKey.hasColorTexture ) {
+            rsFp.replaceInShaderSource(gcuTexture2D, shaderKey.texLookupFuncName);
         }
 
         sp = new ShaderProgram();
@@ -703,9 +753,9 @@ public final class RegionRenderer {
         rs.setShaderProgram(gl, sp);
 
         shaderPrograms.put(shaderKey, sp);
-        if( DEBUG ) {
-            System.err.printf("RegionRendererImpl01.useShaderProgram.X1: PUT renderModes %s, sel1 %s, key 0x%X -> sp %d / %d (changed, new)%n",
-                    Region.getRenderModeString(renderModes), sel1, shaderKey, sp.program(), sp.id());
+        if( DEBUG_SHADER_MAP ) {
+            System.err.printf("RegionRenderer.useShaderProgram.X1: PUT renderModes %s, %s -> sp %d / %d (changed, new)%n",
+                    Region.getRenderModeString(renderModes), shaderKey, sp.program(), sp.id());
             // rsFp.dumpShaderSource(System.err);
         }
         return true;

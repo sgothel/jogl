@@ -511,14 +511,15 @@ public abstract class GLRegion extends Region {
      * </p>
      * @param gl current {@link GL2ES2}.
      * @param renderer the {@link RegionRenderer} to be used
-     * @param sampleCount desired multisampling sample count for vbaa- or msaa-rendering.
+     * @param pass2Quality pass2 AA-quality selector in the range [{@link Region#MIN_AA_QUALITY}..{@link Region#MAX_AA_QUALITY}] for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT}
+     * @param sampleCount desired pass2 AA-multisampling sample count in the typical range [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}] for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT}, {@link Region#MSAA_RENDERING_BIT}
      *        Use -1 for glSelect mode, pass1 w/o any color texture nor channel, use static select color only.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @see RegionRenderer#enable(GL2ES2, boolean)
      */
-    public final void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[/*1*/] sampleCount) {
+    public final void draw(final GL2ES2 gl, final RegionRenderer renderer, final int pass2Quality, final int[/*1*/] sampleCount) {
         final int curRenderModes;
-        if( null == sampleCount || 0 == sampleCount[0] ) {
+        if( 0 == sampleCount[0] ) {
             // no sampling, reduce to pass1
             curRenderModes = getRenderModes() & ~( VBAA_RENDERING_BIT | MSAA_RENDERING_BIT );
         } else if( 0 > sampleCount[0] ) {
@@ -528,6 +529,9 @@ public abstract class GLRegion extends Region {
             // normal 2-pass sampling
             curRenderModes = getRenderModes();
         }
+        // System.err.println("XXX.0 "+Region.getRenderModeString(getRenderModes(), sampleCount[0], 0)+": "+
+        //        Region.getRenderModeString(lastRenderModes, sampleCount[0], 0)+" -> "+Region.getRenderModeString(curRenderModes, sampleCount[0], 0));
+
         if( lastRenderModes != curRenderModes ) {
             markShapeDirty();
             markStateDirty();
@@ -535,7 +539,7 @@ public abstract class GLRegion extends Region {
         if( isShapeDirty() ) {
             updateImpl(gl, renderer, curRenderModes);
         }
-        drawImpl(gl, renderer, curRenderModes, sampleCount);
+        drawImpl(gl, renderer, curRenderModes, pass2Quality, sampleCount);
         clearDirtyBits(DIRTY_SHAPE|DIRTY_STATE);
         lastRenderModes = curRenderModes;
     }
@@ -549,5 +553,5 @@ public abstract class GLRegion extends Region {
      */
     protected abstract void updateImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes);
 
-    protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int[/*1*/] sampleCount);
+    protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, int pass2Quality, final int[/*1*/] sampleCount);
 }

@@ -34,6 +34,7 @@ import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.graph.curve.OutlineShape;
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.math.Vec4f;
@@ -126,7 +127,7 @@ public class GPURegionGLListener00 extends GPURendererListenerBase01 {
             regionRenderer.setWeight(weight);
         }
         regionRenderer.enable(gl, true);
-        region.draw(gl, regionRenderer, getSampleCount());
+        region.draw(gl, regionRenderer, Region.MAX_AA_QUALITY, getSampleCount());
         regionRenderer.enable(gl, false);
     }
 }

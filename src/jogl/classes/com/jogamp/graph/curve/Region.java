@@ -72,6 +72,9 @@ public abstract class Region {
      * <p>
      * One pass `norm` rendering either using no AA or underlying full-screen AA (fsaa).
      * </p>
+     * <p>
+     * This mode-bit is a shader-key.
+     * </p>
      */
     public static final int NORM_RENDERING_BIT        = 0;
 
@@ -79,8 +82,14 @@ public abstract class Region {
      * Rendering-Mode bit for {@link #getRenderModes() Region}
      * <p>
      * MSAA based Anti-Aliasing, a two pass region rendering, slower and more
-     * resource hungry (FBO), but providing fast MSAA in case
+     * resource hungry (FBO with sample buffer), but providing fast MSAA in case
      * the whole scene is not rendered with MSAA.
+     * </p>
+     * <p>
+     * In case sample count is 1, no FBO sample buffer is used but a simple bilinear texture filter.
+     * </p>
+     * <p>
+     * This mode-bit is a shader-key.
      * </p>
      */
     public static final int MSAA_RENDERING_BIT        = 1 <<  0;
@@ -91,6 +100,16 @@ public abstract class Region {
      * View based Anti-Aliasing, a two pass region rendering, slower and more
      * resource hungry (FBO), but AA is perfect. Otherwise the default fast one
      * pass MSAA region rendering is being used.
+     * </p>
+     * <p>
+     * In case sample count is 1, no FBO supersampling is performed but a simple bilinear texture filter used.
+     * </p>
+     * <p>
+     * Depending on AA-quality, {@link #MAX_AA_QUALITY} denotes full 4x billinear filtering per sample
+     * and {@code 0} denotes 1x flipquad filtering per sample.
+     * </p>
+     * <p>
+     * This mode-bit is a shader-key.
      * </p>
      */
     public static final int VBAA_RENDERING_BIT        = 1 <<  1;
@@ -105,6 +124,9 @@ public abstract class Region {
      * Otherwise the default weight 1.0 for uniform curve region rendering is
      * being applied.
      * </p>
+     * <p>
+     * This mode-bit is a shader-key.
+     * </p>
      */
     public static final int VARWEIGHT_RENDERING_BIT    = 1 <<  8;
 
@@ -114,6 +136,9 @@ public abstract class Region {
      * If set, a color channel attribute per vertex is added to the stream via {@link #addOutlineShape(OutlineShape, AffineTransform, float[])},
      * otherwise {@link com.jogamp.graph.curve.opengl.RegionRenderer#setColorStatic(com.jogamp.opengl.GL2ES2, float, float, float, float) static color}
      * can being used for a monotonic color.
+     * </p>
+     * <p>
+     * This mode-bit is a shader-key.
      * </p>
      * @see #getRenderModes()
      * @see #hasColorChannel()
@@ -127,6 +152,9 @@ public abstract class Region {
      * <p>
      * If set, a color texture is used to determine the color.
      * </p>
+     * <p>
+     * This mode-bit is a shader-key.
+     * </p>
      * @see #COLORTEXTURE_LETTERBOX_RENDERING_BIT
      */
     public static final int COLORTEXTURE_RENDERING_BIT = 1 <<  10;
@@ -137,13 +165,23 @@ public abstract class Region {
      * If set, a used {@link #COLORTEXTURE_RENDERING_BIT} color texture is added letter-box space to match aspect-ratio, otherwise it will be zoomed in.
      * </p>
      * <p>
+     * This mode-bit is not a shader-key.
+     * </p>
+     * <p>
      * Note that {@link #COLORTEXTURE_RENDERING_BIT} must also be set to even enable color texture.
      * </p>
      */
     public static final int COLORTEXTURE_LETTERBOX_RENDERING_BIT = 1 <<  11;
 
-    /** Default maximum {@link #getQuality() quality}, {@value}. */
-    public static final int MAX_QUALITY  = 1;
+    /** Minimum pass2 AA-quality rendering {@value} (default) for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT}. */
+    public static final int MIN_AA_QUALITY  = 0;
+    /** Maximum pass2 AA-quality rendering {@value} (default) for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT}. */
+    public static final int MAX_AA_QUALITY  = 1;
+
+    /** Minimum pass2 AA sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
+    public static final int MIN_AA_SAMPLE_COUNT  = 1;
+    /** Maximum pass2 AA sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
+    public static final int MAX_AA_SAMPLE_COUNT  = 8;
 
     public static final int DEFAULT_TWO_PASS_TEXTURE_UNIT = 0;
 
@@ -153,7 +191,6 @@ public abstract class Region {
     private final int renderModes;
     private final boolean use_int32_idx;
     private final int max_indices;
-    private int quality;
     private int dirty = DIRTY_SHAPE | DIRTY_STATE;
     private int numVertices = 0;
     protected final AABBox box = new AABBox();
@@ -265,7 +302,6 @@ public abstract class Region {
         } else {
             this.max_indices = GL_UINT16_MAX;
         }
-        this.quality = MAX_QUALITY;
     }
 
     /** Print implementation buffer stats like detailed and total size and capacity in bytes etc */
@@ -315,12 +351,6 @@ public abstract class Region {
      * Returns bit-field of render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      */
     public final int getRenderModes() { return renderModes; }
-
-    /** See {@link #MAX_QUALITY} */
-    public final int getQuality() { return quality; }
-
-    /** See {@link #MAX_QUALITY} */
-    public final void setQuality(final int q) { quality=q; }
 
     protected final void clearImpl() {
         dirty = DIRTY_SHAPE | DIRTY_STATE;
@@ -760,7 +790,7 @@ public abstract class Region {
      * Mark this region's shape dirty,
      * i.e. its vertices, triangles, lines and/or color-texture coordinates changed.
      * <p>
-     * The data will be re-uploaded to the GPU at next {@link GLRegion#draw(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer, int[]) draw(..)}.
+     * The data will be re-uploaded to the GPU at next {@link GLRegion#draw(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer, int, int[]) draw(..)}.
      * </p>
      * <p>
      * In 2-pass mode, this implies updating the FBO itself as well.
@@ -798,6 +828,6 @@ public abstract class Region {
 
     @Override
     public String toString() {
-        return "Region[0x"+Integer.toHexString(hashCode())+", "+getRenderModeString(this.renderModes)+", q "+quality+", dirty "+dirty+", vertices "+numVertices+", box "+box+"]";
+        return "Region[0x"+Integer.toHexString(hashCode())+", "+getRenderModeString(this.renderModes)+", dirty "+dirty+", vertices "+numVertices+", box "+box+"]";
     }
 }

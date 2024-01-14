@@ -58,7 +58,7 @@ public abstract class GraphShape extends Shape {
     protected int pass2TexUnit = GLRegion.DEFAULT_TWO_PASS_TEXTURE_UNIT;
     protected GLRegion region = null;
     protected float oshapeSharpness = OutlineShape.DEFAULT_SHARPNESS;
-    private int regionQuality = Region.MAX_QUALITY;
+    private int regionPass2Quality = Region.MAX_AA_QUALITY;
     private final List<GLRegion> dirtyRegions = new ArrayList<GLRegion>();
 
     /**
@@ -87,15 +87,13 @@ public abstract class GraphShape extends Shape {
     public final int getRenderModes() { return renderModes; }
 
     /**
-     * Sets the shape's Graph {@link Region}'s quality parameter. Default is {@link Region#MAX_QUALITY}.
-     * @param q Graph {@link Region}'s quality parameter, default is {@link Region#MAX_QUALITY}.
+     * Sets the shape's Graph {@link Region}'s pass2 AA-quality parameter. Default is {@link Region#MAX_AA_QUALITY}.
+     * @param q Graph {@link Region}'s pass2 AA-quality parameter, default is {@link Region#MAX_AA_QUALITY}.
      * @return this shape for chaining.
      */
-    public final GraphShape setQuality(final int q) {
-        this.regionQuality = q;
-        if( null != region ) {
-            region.setQuality(q);
-        }
+    public final GraphShape setAAQuality(final int q) {
+        this.regionPass2Quality = q;
+        markStateDirty();
         return this;
     }
 
@@ -109,9 +107,9 @@ public abstract class GraphShape extends Shape {
 
     /**
      * Return the shape's Graph {@link Region}'s quality parameter.
-     * @see #setQuality(int)
+     * @see #setAAQuality(int)
      */
-    public final int getQuality() { return regionQuality; }
+    public final int getAAQuality() { return regionPass2Quality; }
 
     /**
      * Sets the shape's Graph {@link OutlineShape}'s sharpness parameter. Default is {@link OutlineShape#DEFAULT_SHARPNESS}.
@@ -168,12 +166,12 @@ public abstract class GraphShape extends Shape {
     @Override
     protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final Vec4f rgba) {
         renderer.setColorStatic(rgba);
-        region.draw(gl, renderer, sampleCount);
+        region.draw(gl, renderer, regionPass2Quality, sampleCount);
     }
 
     @Override
     protected final void drawToSelectImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
-        region.draw(gl, renderer, sampleCount);
+        region.draw(gl, renderer, 0, sampleCount);
     }
 
     /**
@@ -252,7 +250,6 @@ public abstract class GraphShape extends Shape {
                 box.resize(h.x() + p.right, h.y() + p.top, l.z());
                 setRotationPivot( box.getCenter() );
             }
-            region.setQuality(regionQuality);
         } else if( isStateDirty() ) {
             region.markStateDirty();
         }

@@ -231,7 +231,7 @@ public class TextRegionUtil {
         } else {
             renderer.setColorStatic(1, 1, 1, 1);
         }
-        region.draw(gl, renderer, sampleCount);
+        region.draw(gl, renderer, Region.MAX_AA_QUALITY, sampleCount);
         return res;
     }
 
@@ -293,7 +293,7 @@ public class TextRegionUtil {
         } else {
             renderer.setColorStatic(1, 1, 1, 1);
         }
-        region.draw(gl, renderer, sampleCount);
+        region.draw(gl, renderer, Region.MAX_AA_QUALITY, sampleCount);
         region.destroy(gl);
         return res;
     }
@@ -352,7 +352,7 @@ public class TextRegionUtil {
         } else {
             renderer.setColorStatic(1, 1, 1, 1);
         }
-        region.draw(gl, renderer, sampleCount);
+        region.draw(gl, renderer, Region.MAX_AA_QUALITY, sampleCount);
         return res;
     }
 

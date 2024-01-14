@@ -60,7 +60,7 @@ public class RenderState {
      * Shall be set via {@link #setHintMask(int)} and cleared via {@link #clearHintMask(int)}.
      * </p>
      * <p>
-     * If set, {@link GLRegion#draw(GL2ES2, RegionRenderer, int[]) GLRegion's draw-method}
+     * If set, {@link GLRegion#draw(GL2ES2, RegionRenderer, int, int[]) GLRegion's draw-method}
      * will set the proper {@link GL#glBlendFuncSeparate(int, int, int, int) blend-function}
      * and the clear-color to <i>transparent-black</i> in case of {@link Region#isTwoPass(int) multipass} FBO rendering.
      * </p>
@@ -79,7 +79,7 @@ public class RenderState {
      * Shall be set via {@link #setHintMask(int)} and cleared via {@link #clearHintMask(int)}.
      * </p>
      * <p>
-     * {@link GLRegion#draw(GL2ES2, RegionRenderer, int[]) GLRegion's draw-method}
+     * {@link GLRegion#draw(GL2ES2, RegionRenderer, int, int[]) GLRegion's draw-method}
      * may toggle depth test, and reset it's state according to this hint.
      * </p>
      * <p>
@@ -137,10 +137,12 @@ public class RenderState {
          * @param gl
          * @param updateLocation
          * @param renderModes
+         * @param setPMVMat01 TODO
          * @param throwOnError TODO
          * @return true if no error occurred, i.e. all locations found, otherwise false.
          */
-        public final boolean update(final GL2ES2 gl, final RenderState rs, final boolean updateLocation, final int renderModes, final boolean pass1, final boolean throwOnError) {
+        public final boolean update(final GL2ES2 gl, final RenderState rs, final boolean updateLocation, final int renderModes,
+                                    final boolean setPMVMat01, final boolean pass1, final boolean throwOnError) {
             if( rs.id() != rsId ) {
                 // Assignment of Renderstate buffers to uniforms (no copy, direct reference)
                 gcu_PMVMatrix01.setData(rs.pmvMatrix.getSyncPMv());
@@ -150,7 +152,7 @@ public class RenderState {
             }
             boolean res = true;
             if( null != rs.sp && rs.sp.inUse() ) {
-                if( !Region.isTwoPass(renderModes) || !pass1 ) {
+                if( setPMVMat01 ) {
                     final boolean r0 = rs.updateUniformDataLoc(gl, updateLocation, true, gcu_PMVMatrix01, throwOnError);
                     res = res && r0;
                 }

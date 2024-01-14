@@ -159,6 +159,7 @@ public class ImageSequence implements TextureSequence {
         } else if(null != texLookupFuncName && texLookupFuncName.length()>0) {
             textureLookupFunctionName = texLookupFuncName;
         }
+        textureFragmentShaderHashCode = 0;
         return textureLookupFunctionName;
     }
 
@@ -180,13 +181,22 @@ public class ImageSequence implements TextureSequence {
     }
 
     @Override
+    public String getTextureFragmentShaderHashID() {
+        // return getTextureSampler2DType()+";"+getTextureLookupFunctionName()+";"+getTextureLookupFragmentShaderImpl();
+        if( useBuildInTexLookup ) {
+            return getTextureSampler2DType()+";"+getTextureLookupFunctionName();
+        } else {
+            return getTextureLookupFragmentShaderImpl();
+        }
+    }
+
+    @Override
     public int getTextureFragmentShaderHashCode() {
         if( !isTextureAvailable() ) {
             textureFragmentShaderHashCode = 0;
             return 0;
         } else if( 0 == textureFragmentShaderHashCode ) {
-            int hash = 31 + getTextureLookupFragmentShaderImpl().hashCode();
-            hash = ((hash << 5) - hash) + getTextureSampler2DType().hashCode();
+            final int hash = getTextureFragmentShaderHashID().hashCode();
             textureFragmentShaderHashCode = hash;
         }
         return textureFragmentShaderHashCode;

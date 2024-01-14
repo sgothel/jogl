@@ -115,22 +115,22 @@ public final class VBORegionSPES2 extends GLRegion {
      * @param gl
      * @param renderer
      * @param curRenderModes
-     * @param quality
+     * @param pass2Quality
      */
-    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int quality) {
+    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes) {
         final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes ) && null != colorTexSeq;
 
         final RenderState rs = renderer.getRenderState();
         final boolean hasAABBoxClipping = null != rs.getClipBBox();
 
-        final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, true, quality, 0, colorTexSeq);
+        final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, true, 0 /* pass2Quality */, 0 /* sampleCount */, colorTexSeq);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
         final boolean updateLocLocal = !sp.equals(spPass1);
         spPass1 = sp;
         if( DEBUG ) {
             if( DEBUG_ALL_EVENT || updateLocLocal || updateLocGlobal ) {
-                System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+                System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal+", sp "+sp.program()+" / "+sp.id());
             }
         }
         if( updateLocLocal ) {
@@ -143,7 +143,7 @@ public final class VBORegionSPES2 extends GLRegion {
                 rs.updateUniformLoc(gl, true, gcu_ClipBBox, throwOnError);
             }
         }
-        rsLocal.update(gl, rs, updateLocLocal, curRenderModes, true, throwOnError);
+        rsLocal.update(gl, rs, updateLocLocal, curRenderModes, true, true, throwOnError);
         if( hasColorTexture && null != gcu_ColorTexUnit ) {
             rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexUnit, throwOnError);
             rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexBBox, throwOnError);
@@ -152,11 +152,11 @@ public final class VBORegionSPES2 extends GLRegion {
 
 
     @Override
-    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int[/*1*/] sampleCount) {
+    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int pass2Quality, final int[/*1*/] sampleCount) {
         // final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes );
 
-        useShaderProgram(gl, renderer, curRenderModes, getQuality());
+        useShaderProgram(gl, renderer, curRenderModes);
         {
             final AABBox cb = renderer.getClipBBox();
             if( null != cb ) {

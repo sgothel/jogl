@@ -65,7 +65,6 @@ import com.jogamp.common.util.WorkerThread;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
-import com.jogamp.opengl.util.av.GLMediaPlayer.Chapter;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureData;
@@ -274,7 +273,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected int getAudioChannelLimit() { return userMaxChannels; }
 
     @Override
-    public String getRequiredExtensionsShaderStub() {
+    public final String getRequiredExtensionsShaderStub() {
         if(GLES2.GL_TEXTURE_EXTERNAL_OES == textureTarget) {
             return ShaderCode.createExtensionDirective(GLExtensions.OES_EGL_image_external, ShaderCode.ENABLE);
         }
@@ -282,7 +281,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
-    public String getTextureSampler2DType() {
+    public final String getTextureSampler2DType() {
         switch(textureTarget) {
             case GL.GL_TEXTURE_2D:
             case GL2GL3.GL_TEXTURE_RECTANGLE:
@@ -305,6 +304,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public String setTextureLookupFunctionName(final String texLookupFuncName) throws IllegalStateException {
         textureLookupFunctionName = "texture2D";
+        resetTextureFragmentShaderHashCode();
         return textureLookupFunctionName;
     }
 
@@ -332,18 +332,23 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
+    public String getTextureFragmentShaderHashID() {
+        // return getTextureSampler2DType()+";"+getTextureLookupFunctionName()+";"+getTextureLookupFragmentShaderImpl();
+        return getTextureSampler2DType()+";"+getTextureLookupFunctionName();
+    }
+
+    @Override
     public final int getTextureFragmentShaderHashCode() {
         if( State.Uninitialized == state ) {
-            textureFragmentShaderHashCode = 0;
+            resetTextureFragmentShaderHashCode();
             return 0;
         } else if( 0 == textureFragmentShaderHashCode ) {
-            int hash = 31 + getTextureLookupFunctionName().hashCode();
-            hash = ((hash << 5) - hash) + getTextureLookupFragmentShaderImpl().hashCode();
-            hash = ((hash << 5) - hash) + getTextureSampler2DType().hashCode();
+            final int hash = getTextureFragmentShaderHashID().hashCode();
             textureFragmentShaderHashCode = hash;
         }
         return textureFragmentShaderHashCode;
     }
+    protected final void resetTextureFragmentShaderHashCode() { textureFragmentShaderHashCode = 0; }
 
     @Override
     public final int getDecodedFrameCount() { return decodedFrameCount; }

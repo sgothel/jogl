@@ -297,10 +297,10 @@ public class UIShapeDemo01 implements GLEventListener {
                 System.err.println("XXX: txt_box_em "+txt_box_em);
                 System.err.println("XXX: txt_box_e2 "+txt_box_em2);
                 System.err.println("XXX: txt_box_rg "+txt_box_r);
-                once = false;
             }
             pmv.popMv();
         }
+        once = false;
         renderer.enable(gl, false);
     }
     static boolean once = true;

@@ -536,9 +536,11 @@ public abstract class Shape {
         }
     }
 
+    /** Returns the shape's dirty state, see {@link #markShapeDirty()}. */
     protected boolean isShapeDirty() {
         return 0 != ( dirty & DIRTY_SHAPE ) ;
     }
+    /** Returns the rendering dirty state, see {@link #markStateDirty()}. */
     protected final boolean isStateDirty() {
         return 0 != ( dirty & DIRTY_STATE ) ;
     }

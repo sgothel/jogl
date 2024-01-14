@@ -274,18 +274,30 @@ public interface TextureSequence {
      * @throws IllegalStateException if instance is not initialized
      * @see #getTextureLookupFunctionName()
      * @see #setTextureLookupFunctionName(String)
+     * @see #getTextureFragmentShaderHashID()
      * @see #getTextureFragmentShaderHashCode()
      * @see #getTextureSampler2DType()
      */
     public String getTextureLookupFragmentShaderImpl() throws IllegalStateException;
 
     /**
-     * Returns the hash code of the strings:
+     * Returns the concatenated string representing the following values
+     * utilized for {@link #getTextureFragmentShaderHashCode()}.
      * <ul>
+     *   <li>{@link #getTextureSampler2DType()}</li>
      *   <li>{@link #getTextureLookupFunctionName()}</li>
      *   <li>{@link #getTextureLookupFragmentShaderImpl()}</li>
-     *   <li>{@link #getTextureSampler2DType()}</li>
      * </ul>
+     * <p>
+     * To reduce string concatenating, implementation may simply return {@link #getTextureLookupFragmentShaderImpl()},
+     * if it covers {@link #getTextureSampler2DType()} and {@link #getTextureLookupFunctionName()}.
+     * </p>
+     * @see #getTextureFragmentShaderHashCode()
+     */
+    public String getTextureFragmentShaderHashID();
+
+    /**
+     * Returns the hash code of the string {@link #getTextureFragmentShaderHashID()}.
      * <p>
      * User shall call {@link #setTextureLookupFunctionName(String)} first if intended.
      * </p>
@@ -296,12 +308,13 @@ public interface TextureSequence {
      * <p>
      * </p>
      * <p>
-     * Implementation caches the resulting hash code,
-     * which must be reset to zero if {@link #isTextureAvailable() texture is not available}.
+     * Implementation caches the resulting hash code, which is reset by {@link #setTextureLookupFunctionName(String)}
+     * and this method if {@link #isTextureAvailable() texture is not available}.
      * </p>
      * @see #setTextureLookupFunctionName(String)
      * @see #getTextureLookupFunctionName()
      * @see #getTextureLookupFragmentShaderImpl()
+     * @see #getTextureFragmentShaderHashID()
      */
     public int getTextureFragmentShaderHashCode();
 

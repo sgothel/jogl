@@ -1,6 +1,16 @@
-        // Pass-2: AA on Texture
-        // Note: gcv_FboTexCoord is in center of sample pixels.
+    // Pass-2: AA on Texture
+    // Note: gcv_FboTexCoord is in center of sample pixels.
 
+#ifdef USE_AABBOX_CLIPPING
+    if( is_inside(gcv_ClipBBoxCoord, gcu_ClipBBox[0], gcu_ClipBBox[1]) < 0.5 ) {
+        #if USE_DISCARD
+            discard; // discard freezes NV tegra2 compiler
+        #else
+            mgl_FragColor = vec4(0);
+        #endif
+    } else
+#endif
+    {     
         // float sample_count = gcu_FboTexSize.z;
         vec2 psize = 1.0 / gcu_FboTexSize.xy; // pixel size
 
@@ -97,4 +107,5 @@
         #else
             mgl_FragColor = t;
         #endif
+    }     
 

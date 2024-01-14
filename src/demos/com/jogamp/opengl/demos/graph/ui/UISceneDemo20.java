@@ -570,20 +570,15 @@ public class UISceneDemo20 implements GLEventListener {
                 public void mouseClicked(final MouseEvent e) {
                     final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
                     if( shapeEvent.shape instanceof GraphShape ) {
-                        int quality = ((GraphShape)shapeEvent.shape).getQuality();
-
+                        int quality = ((GraphShape)shapeEvent.shape).getAAQuality();
                         if( shapeEvent.objPos.x() < shapeEvent.shape.getBounds().getCenter().x() ) {
                             // left-half pressed
-                            if( quality > 0 ) {
-                                quality--;
-                            }
+                            quality--;
                         } else {
                             // right-half pressed
-                            if( quality < Region.MAX_QUALITY ) {
-                                quality++;
-                            }
+                            quality++;
                         }
-                        scene.setAllShapesQuality(quality);
+                        scene.setAAQuality(quality); // validated / clipped
                     }
                 } } );
             button.addMouseListener(dragZoomRotateListener);
@@ -1082,7 +1077,7 @@ public class UISceneDemo20 implements GLEventListener {
             truePtSizeLabel.moveTo(dxMiddleAbs, dyTopLabelAbs - jogampLabel.getScaledLineHeight() - truePtSizeLabel.getScaledLineHeight(), dz);
         }
         {
-            final AABBox fbox = fontFPS.getGlyphBounds(scene.getStatusText(drawable, renderModes, fpsLabel.getQuality(), dpiV));
+            final AABBox fbox = fontFPS.getGlyphBounds(scene.getStatusText(drawable, renderModes, fpsLabel.getAAQuality(), dpiV));
             final float scale = sceneWidth / ( 1.4f * fbox.getWidth() ); // add 40% width
             fpsLabel.setScale(scale, scale, 1f);
             fpsLabel.moveTo(sceneBox.getMinX(), sceneBox.getMinY() + scale * ( fontFPS.getMetrics().getLineGap() - fontFPS.getMetrics().getDescent() ), 0f);
@@ -1138,7 +1133,7 @@ public class UISceneDemo20 implements GLEventListener {
         if( fpsLabel.isVisible() ) {
             final String text;
             if( null == actionText ) {
-                text = scene.getStatusText(drawable, renderModes, fpsLabel.getQuality(), dpiV);
+                text = scene.getStatusText(drawable, renderModes, fpsLabel.getAAQuality(), dpiV);
             } else if( null != drawable.getAnimator() ) {
                 text = Scene.getStatusText(drawable.getAnimator())+", "+actionText;
             } else {

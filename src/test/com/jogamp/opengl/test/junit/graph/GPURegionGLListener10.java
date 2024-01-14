@@ -130,7 +130,7 @@ public class GPURegionGLListener10 extends GPURendererListenerBase01 {
             regionRenderer.setWeight(weight);
         }
         regionRenderer.enable(gl, true);
-        region.draw(gl, regionRenderer, getSampleCount());
+        region.draw(gl, regionRenderer, Region.MAX_AA_QUALITY, getSampleCount());
         regionRenderer.enable(gl, false);
 
     }

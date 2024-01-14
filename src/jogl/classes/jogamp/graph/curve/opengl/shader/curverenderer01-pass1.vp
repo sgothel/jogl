@@ -23,10 +23,7 @@ void main(void)
         gcv_CurveParam = gca_CurveParams;
     }
 #endif
-#ifdef USE_AABBOX_CLIPPING
-    gcv_ClipBBoxCoord = (gcu_PMVMatrix02[1] * gca_Vertices).xyz; // Mv
-#endif    
-    
+
 #ifdef USE_COLOR_TEXTURE
     gcv_ColorTexCoord = ( gca_Vertices.xy - gcu_ColorTexBBox[0] ) / ( gcu_ColorTexBBox[1] - gcu_ColorTexBBox[0] );
 #endif

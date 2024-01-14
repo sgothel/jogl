@@ -32,7 +32,7 @@ import java.io.IOException;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
-
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -310,7 +310,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 pmvMatrix.scaleMv(sxy, sxy, 1.0f);
             }
             renderer.enable(gl, true);
-            region.draw(gl, renderer, vbaaSampleCount);
+            region.draw(gl, renderer, Region.MAX_AA_QUALITY, vbaaSampleCount);
             renderer.enable(gl, false);
 
             if( !exclusivePMVMatrix )  {

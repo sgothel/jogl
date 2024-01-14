@@ -124,12 +124,6 @@ public final class Scene implements Container, GLEventListener {
         return FloatUtil.getZBufferEpsilon(zBits, setup.getSceneDist(), setup.getZNear());
     }
 
-    /** Minimum sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
-    public static final int MIN_SAMPLE_COUNT = 1;
-
-    /** Maximum sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
-    public static final int MAX_SAMPLE_COUNT = 8;
-
     private static final boolean DEBUG = false;
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
@@ -175,7 +169,7 @@ public final class Scene implements Container, GLEventListener {
     /**
      * Create a new scene with an internally created {@link RegionRenderer}, using {@link DefaultPMVMatrixSetup#DefaultPMVMatrixSetup()}.
      * @param sampleCount sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT},
-     *                    clipped to [{@link #MIN_SAMPLE_COUNT}..{@link #MAX_SAMPLE_COUNT}]
+     *                    clipped to [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}]
      * @see #Scene(RegionRenderer, int)
      * @see #setSampleCount(int)
      */
@@ -187,7 +181,7 @@ public final class Scene implements Container, GLEventListener {
      * Create a new scene taking ownership of the given RegionRenderer, using {@link DefaultPMVMatrixSetup#DefaultPMVMatrixSetup()}.
      * @param renderer {@link RegionRenderer} to be owned
      * @param sampleCount sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT},
-     *                    clipped to [{@link #MIN_SAMPLE_COUNT}..{@link #MAX_SAMPLE_COUNT}]
+     *                    clipped to [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}]
      * @see #setSampleCount(int)
      */
     public Scene(final RegionRenderer renderer, final int sampleCount) {
@@ -195,7 +189,7 @@ public final class Scene implements Container, GLEventListener {
             throw new IllegalArgumentException("Null RegionRenderer");
         }
         this.renderer = renderer;
-        this.sampleCount[0] = Math.min(MAX_SAMPLE_COUNT, Math.max(sampleCount, MIN_SAMPLE_COUNT)); // clip
+        this.sampleCount[0] = Math.min(Region.MAX_AA_SAMPLE_COUNT, Math.max(sampleCount, Region.MIN_AA_SAMPLE_COUNT)); // clip
         this.screenshot = new GLReadBufferUtil(false, false);
     }
 
@@ -369,36 +363,49 @@ public final class Scene implements Container, GLEventListener {
     public int getSampleCount() { return sampleCount[0]; }
 
     /**
-     * Sets sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}
-     * @param v sample count, clipped to [{@link #MIN_SAMPLE_COUNT}..{@link #MAX_SAMPLE_COUNT}]
+     * Sets pass2 AA sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}
+     * @param v pass2 AA sample count, clipped to [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}]
      * @return clipped and set value
      */
     public int setSampleCount(final int v) {
-        sampleCount[0] = Math.min(MAX_SAMPLE_COUNT, Math.max(v, MIN_SAMPLE_COUNT)); // clip
-        markAllShapesDirty();
+        sampleCount[0] = Math.min(Region.MAX_AA_SAMPLE_COUNT, Math.max(v, Region.MIN_AA_SAMPLE_COUNT)); // clip
+        markStatesDirty();
         return sampleCount[0];
     }
 
-    public void setAllShapesQuality(final int q) {
-        for(int i=0; i<shapes.size(); i++) {
-            final Shape shape = shapes.get(i);
-            if( shape instanceof GraphShape ) {
-                ((GraphShape)shape).setQuality(q);
+    /**
+     * Sets pass2 AA-quality for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT}
+     * @param v pass2 AA-quality, clipped to [{@link Region#MIN_AA_QUALITY}..{@link Region#MAX_AA_QUALITY}]
+     * @return clipped and set value
+     */
+    public void setAAQuality(final int v) {
+        final int q = Math.min(Region.MAX_AA_QUALITY, Math.max(v, Region.MIN_AA_QUALITY)); // clip
+        forAll((final Shape s) -> {
+            if( s instanceof GraphShape ) {
+                ((GraphShape)s).setAAQuality(q);
             }
-        }
+           return false;
+        });
     }
-    public void setAllShapesSharpness(final float sharpness) {
-        for(int i=0; i<shapes.size(); i++) {
-            final Shape shape = shapes.get(i);
-            if( shape instanceof GraphShape ) {
-                ((GraphShape)shape).setSharpness(sharpness);
+    public void setSharpness(final float sharpness) {
+        forAll((final Shape s) -> {
+            if( s instanceof GraphShape ) {
+                ((GraphShape)s).setSharpness(sharpness);
             }
-        }
+           return false;
+        });
     }
-    public void markAllShapesDirty() {
-        for(int i=0; i<shapes.size(); i++) {
-            shapes.get(i).markShapeDirty();
-        }
+    public void markShapesDirty() {
+        forAll((final Shape s) -> {
+           s.markShapeDirty();
+           return false;
+        });
+    }
+    public void markStatesDirty() {
+        forAll((final Shape s) -> {
+           s.markStateDirty();
+           return false;
+        });
     }
 
     @Override

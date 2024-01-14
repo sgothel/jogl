@@ -27,6 +27,7 @@
  */
 package jogamp.graph.curve.opengl;
 
+import java.io.File;
 import java.nio.FloatBuffer;
 
 import com.jogamp.opengl.GL2ES2;
@@ -38,7 +39,6 @@ import jogamp.graph.curve.opengl.shader.AttributeNames;
 import jogamp.graph.curve.opengl.shader.UniformNames;
 import jogamp.opengl.Debug;
 
-import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -51,6 +51,7 @@ import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.FBObject.TextureAttachment;
 import com.jogamp.opengl.util.GLArrayDataServer;
+import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -58,36 +59,11 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 public final class VBORegion2PVBAAES2  extends GLRegion {
     private static final boolean DEBUG_FBO_1 = false;
     private static final boolean DEBUG_FBO_2 = false;
-
-    /**
-     * Boundary triggering FBO resize if
-     * <pre>
-     *      fbo[Width|Height] - targetFbo[Width|Height] > RESIZE_BOUNDARY.
-     * </pre>
-     * <p>
-     * Increasing the FBO will add RESIZE_BOUNDARY/2.
-     * </p>
-     * <p>
-     * Reducing FBO resize to gain performance.
-     * </p>
-     * <p>
-     * Defaults to disabled since:
-     *   - not working properly
-     *   - FBO texture rendered > than desired size
-     *   - FBO resize itself should be fast enough ?!
-     * </p>
-     */
-    private static final int RESIZE_BOUNDARY;
+    private static final boolean SCREENSHOT_FBO = false;
 
     static {
         Debug.initSingleton();
-        final String key = "jogl.debug.graph.curve.vbaa.resizeLowerBoundary";
-        RESIZE_BOUNDARY = Math.max(0, PropertyAccess.getIntProperty(key, true, 0));
-        if( RESIZE_BOUNDARY > 0 ) {
-            System.err.println("key: "+RESIZE_BOUNDARY);
-        }
     }
-
 
     private final RenderState.ProgramLocal rsLocal;
 
@@ -112,6 +88,7 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
 
     private FBObject fbo;
     private TextureAttachment texA;
+    private GLReadBufferUtil screenshot = SCREENSHOT_FBO ? new GLReadBufferUtil(true, false) : null;
 
     private int fboWidth = 0;
     private int fboHeight = 0;
@@ -129,18 +106,18 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
      * @param renderer
      * @param curRenderModes
      * @param pass1
-     * @param quality
+     * @param pass2Quality
      * @param sampleCount
      */
-    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final boolean pass1, final int quality, final int sampleCount) {
+    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final boolean pass1, final int pass2Quality, final int sampleCount) {
         final boolean isTwoPass = Region.isTwoPass( curRenderModes );
         final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes ) && null != colorTexSeq;
 
         final RenderState rs = renderer.getRenderState();
-        final boolean hasAABBoxClipping = null != rs.getClipBBox();
+        final boolean hasAABBoxClipping = null != rs.getClipBBox() && ( ( !isTwoPass && pass1 ) || ( isTwoPass && !pass1 ) );
 
-        final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, pass1, quality, sampleCount, colorTexSeq);
+        final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, pass1, pass2Quality, sampleCount, colorTexSeq);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
         final boolean updateLocLocal;
         if( pass1 ) {
@@ -148,7 +125,7 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
             spPass1 = sp;
             if( DEBUG ) {
                 if( DEBUG_ALL_EVENT || updateLocLocal || updateLocGlobal ) {
-                    System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+                    System.err.println("XXX changedSP.p1 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal+", sp "+sp.program()+" / "+sp.id());
                 }
             }
             if( updateLocLocal ) {
@@ -157,13 +134,12 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
                 if( hasColorChannel && null != gca_ColorsAttr ) {
                     rs.updateAttributeLoc(gl, true, gca_ColorsAttr, true);
                 }
-                if( hasAABBoxClipping ) {
-                    rs.updateUniformLoc(gl, true, gcu_ClipBBox, true);
-                }
             }
-            rsLocal.update(gl, rs, updateLocLocal, curRenderModes, true, true);
             if( isTwoPass ) {
+                rsLocal.update(gl, rs, updateLocLocal, curRenderModes, false, true, true);
                 rs.updateUniformLoc(gl, updateLocLocal, gcu_PMVMatrix02, true);
+            } else {
+                rsLocal.update(gl, rs, updateLocLocal, curRenderModes, true, true, true);
             }
             if( hasColorTexture && null != gcu_ColorTexUnit ) {
                 rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexUnit, true);
@@ -174,16 +150,19 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
             spPass2 = sp;
             if( DEBUG ) {
                 if( DEBUG_ALL_EVENT || updateLocLocal || updateLocGlobal ) {
-                    System.err.println("XXX changedSP.p2 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal);
+                    System.err.println("XXX changedSP.p2 updateLocation loc "+updateLocLocal+" / glob "+updateLocGlobal+", sp "+sp.program()+" / "+sp.id());
                 }
             }
             if( updateLocLocal ) {
                 rs.updateAttributeLoc(gl, true, gca_FboVerticesAttr, true);
                 rs.updateAttributeLoc(gl, true, gca_FboTexCoordsAttr, true);
             }
-            rsLocal.update(gl, rs, updateLocLocal, curRenderModes, false, true);
+            rsLocal.update(gl, rs, updateLocLocal, curRenderModes, true, false, true);
             rs.updateUniformDataLoc(gl, updateLocLocal, false /* updateData */, gcu_FboTexUnit, true); // FIXME always update if changing tex-unit
             rs.updateUniformLoc(gl, updateLocLocal, gcu_FboTexSize, sampleCount > 1); // maybe optimized away for sampleCount <= 1
+        }
+        if( hasAABBoxClipping && updateLocLocal ) {
+            rs.updateUniformLoc(gl, true, gcu_ClipBBox, true);
         }
     }
 
@@ -254,14 +233,6 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
         if( hasColorTexture && null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
             TextureSequence.setTexCoordBBox(colorTexSeq.getLastTexture().getTexture(), box, isColorTextureLetterbox(), colorTexBBox, false);
         }
-        gca_FboVerticesAttr.seal(gl, false);
-        {
-            final FloatBuffer fb = (FloatBuffer)gca_FboVerticesAttr.getBuffer();
-            fb.put( 2, box.getMinZ());
-            fb.put( 5, box.getMinZ());
-            fb.put( 8, box.getMinZ());
-            fb.put(11, box.getMinZ());
-        }
         // Pending gca_FboVerticesAttr-seal and fboPMVMatrix-setup, follow fboDirty
 
         // push data 2 GPU ..
@@ -278,7 +249,7 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
     private static final int border = 2; // surrounding border, i.e. width += 2*border, height +=2*border
 
     @Override
-    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int[/*1*/] sampleCount) {
+    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int pass2Quality, final int[/*1*/] sampleCount) {
         if( 0 >= indicesBuffer.getElemCount() ) {
             if(DEBUG_INSTANCE) {
                 System.err.printf("VBORegion2PVBAAES2.drawImpl: Empty%n");
@@ -294,8 +265,8 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
         final RenderState rs = renderer.getRenderState();
         final int vpWidth = renderer.getWidth();
         final int vpHeight = renderer.getHeight();
-        if(vpWidth <=0 || vpHeight <= 0 || null==sampleCount || sampleCount[0] <= 0) {
-            useShaderProgram(gl, renderer, curRenderModes, true, getQuality(), sampleCount[0]);
+        if(vpWidth <=0 || vpHeight <= 0 || sampleCount[0] < 0) {
+            useShaderProgram(gl, renderer, curRenderModes, true, pass2Quality, sampleCount[0]);
             renderRegion(gl, rs, curRenderModes);
         } else {
             if(0 > maxTexSize[0]) {
@@ -355,8 +326,8 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
                     System.err.printf("XXX.MinMax win %s%n", drawWinBox.toString());
                     System.err.printf("XXX.MinMax view[%s] -> win[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], r[%f, %f]: FBO f[%.3f, %.3f], i[%d x %d], d[%.3f, %.3f], r[%f, %f], samples %d%n",
                             drawView,
-                            winWidth, winHeight, targetWinWidth, targetWinHeight, diffWinWidth,
-                            diffWinHeight, ratioWinWidth, ratioWinHeight,
+                            winWidth, winHeight, targetWinWidth, targetWinHeight,
+                            diffWinWidth, diffWinHeight, ratioWinWidth, ratioWinHeight,
                             renderFboWidth, renderFboHeight, targetFboWidth, targetFboHeight,
                             diffFboWidth, diffFboHeight, ratioFboWidth, ratioFboHeight,
                             sampleCount[0]);
@@ -400,70 +371,35 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
                     }
                 }
 
-                final int newFboWidth, newFboHeight, resizeCase;
-                if( 0 >= RESIZE_BOUNDARY ) {
-                    // Resize w/o optimization
-                    newFboWidth = targetFboWidth;
-                    newFboHeight = targetFboHeight;
-                    resizeCase = 0;
-                } else {
-                    if( 0 >= fboWidth || 0 >= fboHeight || null == fbo ) {
-                        // Case: New FBO
-                        newFboWidth = targetFboWidth;
-                        newFboHeight = targetFboHeight;
-                        resizeCase = 1;
-                    } else if( targetFboWidth > fboWidth || targetFboHeight > fboHeight ) {
-                        // Case: Inscrease FBO Size, add boundary/2 if avail
-                        newFboWidth = ( targetFboWidth + RESIZE_BOUNDARY/2 < maxTexSize[0] ) ? targetFboWidth + RESIZE_BOUNDARY/2 : targetFboWidth;
-                        newFboHeight = ( targetFboHeight+ RESIZE_BOUNDARY/2 < maxTexSize[0] ) ? targetFboHeight + RESIZE_BOUNDARY/2 : targetFboHeight;
-                        resizeCase = 2;
-                    } else if( targetFboWidth < fboWidth && targetFboHeight < fboHeight &&
-                               fboWidth - targetFboWidth < RESIZE_BOUNDARY &&
-                               fboHeight - targetFboHeight < RESIZE_BOUNDARY ) {
-                        // Case: Decreased FBO Size Request within boundary
-                        newFboWidth = fboWidth;
-                        newFboHeight = fboHeight;
-                        resizeCase = 3;
-                    } else {
-                        // Case: Decreased-Size-Beyond-Boundary or No-Resize
-                        newFboWidth = targetFboWidth;
-                        newFboHeight = targetFboHeight;
-                        resizeCase = 4;
-                    }
-                }
-                final int dResizeWidth = newFboWidth - targetFboWidth;
-                final int dResizeHeight = newFboHeight - targetFboHeight;
-                final float diffObjResizeWidth = dResizeWidth*ratioObjWinWidth;
-                final float diffObjResizeHeight = dResizeHeight*ratioObjWinHeight;
-                if( DEBUG_FBO_1 ) {
-                    System.err.printf("XXX.resizeFBO: case %d, has %dx%d > target %dx%d, resize: i[%d x %d], f[%.3f x %.3f] -> %dx%d%n",
-                            resizeCase, fboWidth, fboHeight, targetFboWidth, targetFboHeight,
-                            dResizeWidth, dResizeHeight, diffObjResizeWidth, diffObjResizeHeight,
-                            newFboWidth, newFboHeight);
-                }
-
                 final float minX = box.getMinX()-diffObjBorderWidth;
                 final float minY = box.getMinY()-diffObjBorderHeight;
-                final float maxX = box.getMaxX()+diffObjBorderWidth+diffObjWidth+diffObjResizeWidth;
-                final float maxY = box.getMaxY()+diffObjBorderHeight+diffObjHeight+diffObjResizeHeight;
+                final float maxX = box.getMaxX()+diffObjBorderWidth+diffObjWidth;
+                final float maxY = box.getMaxY()+diffObjBorderHeight+diffObjHeight;
+                final float minZ = box.getMinZ();
                 gca_FboVerticesAttr.seal(false);
                 {
                     final FloatBuffer fb = (FloatBuffer)gca_FboVerticesAttr.getBuffer();
-                    fb.put(0, minX); fb.put( 1, minY);
-                    fb.put(3, minX); fb.put( 4, maxY);
-                    fb.put(6, maxX); fb.put( 7, maxY);
-                    fb.put(9, maxX); fb.put(10, minY);
+                    fb.put(0, minX); fb.put( 1, minY); fb.put( 2, minZ);
+                    fb.put(3, minX); fb.put( 4, maxY); fb.put( 5, minZ);
+                    fb.put(6, maxX); fb.put( 7, maxY); fb.put( 8, minZ);
+                    fb.put(9, maxX); fb.put(10, minY); fb.put(11, minZ);
                     fb.position(12);
                 }
                 gca_FboVerticesAttr.seal(true);
                 matP.setToOrtho(minX, maxX, minY, maxY, -1, 1);
-                useShaderProgram(gl, renderer, curRenderModes, true, getQuality(), sampleCount[0]);
-                renderRegion2FBO(gl, rs, curRenderModes, targetFboWidth, targetFboHeight, newFboWidth, newFboHeight, vpWidth, vpHeight, sampleCount[0]);
+                useShaderProgram(gl, renderer, curRenderModes, true, pass2Quality, sampleCount[0]);
+                renderRegion2FBO(gl, rs, curRenderModes,
+                                 // (int)drawWinBox.getMinX(), (int)drawWinBox.getMinY(), targetFboWidth, targetFboHeight,
+                                 0, 0, targetFboWidth, targetFboHeight,
+                                 vpWidth, vpHeight, sampleCount[0]);
             } else if( isStateDirty() ) {
-                useShaderProgram(gl, renderer, curRenderModes, true, getQuality(), sampleCount[0]);
-                renderRegion2FBO(gl, rs, curRenderModes, targetFboWidth, targetFboHeight, fboWidth, fboHeight, vpWidth, vpHeight, sampleCount[0]);
+                useShaderProgram(gl, renderer, curRenderModes, true, pass2Quality, sampleCount[0]);
+                renderRegion2FBO(gl, rs, curRenderModes,
+                                 // (int)drawWinBox.getMinX(), (int)drawWinBox.getMinY(), targetFboWidth, targetFboHeight,
+                                 0, 0, targetFboWidth, targetFboHeight,
+                                 vpWidth, vpHeight, sampleCount[0]);
             }
-            useShaderProgram(gl, renderer, curRenderModes, false, getQuality(), sampleCount[0]);
+            useShaderProgram(gl, renderer, curRenderModes, false, pass2Quality, sampleCount[0]);
             renderFBO(gl, rs, targetFboWidth, targetFboHeight, vpWidth, vpHeight, sampleCount[0]);
         }
     }
@@ -483,6 +419,14 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
         }
 
         gl.glUniform(gcu_FboTexSize);
+        {
+            final AABBox cb = rs.getClipBBox();
+            if( null != cb ) {
+                clipBBox[0] = cb.getMinX(); clipBBox[1] = cb.getMinY(); clipBBox[2] = cb.getMinZ();
+                clipBBox[3] = cb.getMaxX(); clipBBox[4] = cb.getMaxY(); clipBBox[5] = cb.getMaxZ();
+                gl.glUniform(gcu_ClipBBox); // Always update, since program maybe used by multiple regions
+            }
+        }
 
         gl.glActiveTexture(GL.GL_TEXTURE0 + gcu_FboTexUnit.intValue());
 
@@ -502,54 +446,56 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
     }
 
     private void renderRegion2FBO(final GL2ES2 gl, final RenderState rs, final int curRenderModes,
-                                  final int targetFboWidth, final int targetFboHeight, final int newFboWidth, final int newFboHeight,
+                                  final int fboX, final int fboY, final int targetFboWidth, final int targetFboHeight,
                                   final int vpWidth, final int vpHeight, final int sampleCount) {
         if( 0 >= targetFboWidth || 0 >= targetFboHeight ) {
-            throw new IllegalArgumentException("fboSize must be greater than 0: "+targetFboWidth+"x"+targetFboHeight);
+            throw new IllegalArgumentException("targetFBOSize "+targetFboWidth+"x"+targetFboHeight+" must be greater than 0");
         }
-
         final boolean blendingEnabled = rs.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED);
 
         if(null == fbo) {
-            fboWidth  = newFboWidth;
-            fboHeight  = newFboHeight;
+            fboWidth  = targetFboWidth;
+            fboHeight  = targetFboHeight;
             final FloatBuffer fboTexSize = (FloatBuffer) gcu_FboTexSize.getBuffer();
             {
-                fboTexSize.put(0, fboWidth);
-                fboTexSize.put(1, fboHeight);
+                fboTexSize.put(0, targetFboWidth);
+                fboTexSize.put(1, targetFboHeight);
             }
             fbo = new FBObject();
-            fbo.init(gl, fboWidth, fboHeight, 0);
-            // Shall not use bilinear (GL_LINEAR), due to own VBAA. Result is smooth w/o it now!
-            // FIXME: FXAA requires bilinear filtering!
-            // texA = fbo.attachTexture2D(gl, 0, true, GL.GL_LINEAR, GL.GL_LINEAR, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
-            texA = fbo.attachTexture2D(gl, 0, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
+            fbo.init(gl, targetFboWidth, targetFboHeight, 0);
+            if( sampleCount > 1 ) {
+                // Shall not use bilinear (GL_LINEAR), due to own VBAA. Result is smooth w/o it now!
+                // FIXME: FXAA requires bilinear filtering!
+                texA = fbo.attachTexture2D(gl, 0, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
+            } else {
+                texA = fbo.attachTexture2D(gl, 0, true, GL.GL_LINEAR, GL.GL_LINEAR, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
+            }
             if( !blendingEnabled ) {
                 // no depth-buffer w/ blending
                 fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, FBObject.DEFAULT_BITS);
             }
             if( DEBUG_FBO_1 ) {
-                System.err.printf("XXX.createFBO: %dx%d%n%s%n", fboWidth, fboHeight, fbo.toString());
+                System.err.printf("XXX.createFBO: %dx%d%n%s%n", targetFboWidth, targetFboHeight, fbo.toString());
             }
-        } else if( newFboWidth != fboWidth || newFboHeight != fboHeight ) {
-            fbo.reset(gl, newFboWidth, newFboHeight, 0);
+        } else if( targetFboWidth != fboWidth || targetFboHeight != fboHeight ) {
+            fbo.reset(gl, targetFboWidth, targetFboHeight, 0);
             fbo.bind(gl);
             if( DEBUG_FBO_1 ) {
-                System.err.printf("XXX.resetFBO: %dx%d -> %dx%d, target %dx%d%n", fboWidth, fboHeight, newFboWidth, newFboHeight, targetFboWidth, targetFboHeight);
+                System.err.printf("XXX.resetFBO: %dx%d -> %dx%d%n%s%n", fboWidth, fboHeight, targetFboWidth, targetFboHeight, fbo.toString());
             }
-            fboWidth  = newFboWidth;
-            fboHeight  = newFboHeight;
+            fboWidth  = targetFboWidth;
+            fboHeight  = targetFboHeight;
             final FloatBuffer fboTexSize = (FloatBuffer) gcu_FboTexSize.getBuffer();
             {
-                fboTexSize.put(0, fboWidth);
-                fboTexSize.put(1, fboHeight);
+                fboTexSize.put(0, targetFboWidth);
+                fboTexSize.put(1, targetFboHeight);
             }
         } else {
             fbo.bind(gl);
         }
 
         //render texture
-        gl.glViewport(0, 0, fboWidth, fboHeight);
+        gl.glViewport(fboX, fboY, targetFboWidth, targetFboHeight);
         if( blendingEnabled ) {
             gl.glClearColor(0f, 0f, 0f, 0.0f);
             gl.glClear(GL.GL_COLOR_BUFFER_BIT); // no depth-buffer w/ blending
@@ -564,6 +510,14 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
 
         renderRegion(gl, rs, curRenderModes);
 
+        if( SCREENSHOT_FBO ) {
+            screenshot.setReadBuffer(GL.GL_COLOR_ATTACHMENT0);
+            if(screenshot.readPixels(gl, fboX, fboY, targetFboWidth, targetFboHeight, false)) {
+                final File f = new File("screenshot_vboregion2pvbaa.png");
+                screenshot.write(f);
+            }
+        }
+
         fbo.unbind(gl);
         fboDirty = false;
     }
@@ -573,14 +527,6 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes );
 
         gl.glUniform(gcu_PMVMatrix02);
-        {
-            final AABBox cb = rs.getClipBBox();
-            if( null != cb ) {
-                clipBBox[0] = cb.getMinX(); clipBBox[1] = cb.getMinY(); clipBBox[2] = cb.getMinZ();
-                clipBBox[3] = cb.getMaxX(); clipBBox[4] = cb.getMaxY(); clipBBox[5] = cb.getMaxZ();
-                gl.glUniform(gcu_ClipBBox); // Always update, since program maybe used by multiple regions
-            }
-        }
 
         vpc_ileave.enableBuffer(gl, true);
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
@@ -626,6 +572,10 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
         if(null != indicesFbo) {
             indicesFbo.destroy(gl);
             indicesFbo = null;
+        }
+        if( null != screenshot ) {
+            screenshot.dispose(gl);
+            screenshot = null;
         }
         spPass1 = null; // owned by RegionRenderer
         spPass2 = null; // owned by RegionRenderer
