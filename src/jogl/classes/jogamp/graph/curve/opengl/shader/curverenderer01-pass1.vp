@@ -1,4 +1,4 @@
-// Copyright 2010-2023 JogAmp Community. All rights reserved.
+// Copyright 2010-2024 JogAmp Community. All rights reserved.
 
 #if __VERSION__ >= 130
   #define attribute in
