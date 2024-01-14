@@ -98,7 +98,8 @@ public final class RangeSlider extends Widget {
     /**
      * Constructs a {@link RangeSlider}, i.e. its shapes and controls.
      * <p>
-     * This slider comprises a background bar and a positional round knob.
+     * This slider comprises a background bar and a positional round knob,
+     * with {@link #getValue()} at center position.
      * </p>
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param size width and height of this slider box. A horizontal slider has width >= height.
@@ -114,7 +115,8 @@ public final class RangeSlider extends Widget {
     /**
      * Constructs a {@link RangeSlider}, i.e. its shapes and controls.
      * <p>
-     * This slider comprises a framing bar and a rectangular page-sized knob.
+     * This slider comprises a framing bar and a rectangular page-sized knob,
+     * with {@link #getValue()} at page-start position.
      * </p>
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param size width and height of this slider box. A horizontal slider has width >= height.
@@ -192,7 +194,12 @@ public final class RangeSlider extends Widget {
         knob.onMove((final Shape s, final Vec3f origin, final Vec3f dest) -> {
             final float old_val = val;
             final float old_val_pct = val_pct;
-            setValuePct( getKnobValuePct( dest.x(), dest.y(), knobLength/2f ) );
+            if( Float.isNaN(pageSize) ) {
+                setValuePct( getKnobValuePct( dest.x(), dest.y(), knobLength/2f ) ); // centered
+            } else {
+                final float dy = inverted ? +knobLength: 0; // offset to knob start
+                setValuePct( getKnobValuePct( dest.x(), dest.y(), dy ) );
+            }
             if( null != sliderListener ) {
                 sliderListener.dragged(this, old_val, val, old_val_pct, val_pct);
             }
@@ -464,12 +471,22 @@ public final class RangeSlider extends Widget {
      */
     private Vec2f getItemPctPos(final Vec2f posRes, final float val_pct, final float itemLen, final float itemHeight) {
         final float v = inverted ? 1f - val_pct : val_pct;
+        final float itemAdjust;
+        if( Float.isNaN(pageSize) ) {
+            itemAdjust = itemLen * 0.5f; // centered
+        } else {
+            if( inverted ) {
+                itemAdjust = itemLen; // top-edge
+            } else {
+                itemAdjust = 0; // bottom-edge
+            }
+        }
         if( horizontal ) {
-            posRes.setX( Math.max(0, Math.min(size.x(), v*size.x() - itemLen/2f)) );
+            posRes.setX( Math.max(0, Math.min(size.x() - itemLen, v*size.x() - itemAdjust)) );
             posRes.setY( -( itemHeight - size.y() ) * 0.5f );
         } else {
             posRes.setX( -( itemHeight - size.x() ) * 0.5f );
-            posRes.setY( Math.max(0, Math.min(size.y() - itemLen, v*size.y() - itemLen/2f)) );
+            posRes.setY( Math.max(0, Math.min(size.y() - itemLen, v*size.y() - itemAdjust)) );
         }
         return posRes;
     }
