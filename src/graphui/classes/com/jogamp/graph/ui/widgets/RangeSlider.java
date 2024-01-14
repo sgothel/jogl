@@ -453,7 +453,7 @@ public final class RangeSlider extends Widget {
     }
 
     /**
-     * Returns generic item position reflects value on its center and ranges from zero to max.
+     * Returns generic item position reflects value on its center (round-knob) or page-size start and ranges from zero to max.
      * @param posRes {@link Vec2f} result storage
      * @param value value within {@link #getMinMax()}
      * @param itemLen item length in sliding direction
@@ -463,7 +463,7 @@ public final class RangeSlider extends Widget {
         return getItemPctPos(posRes, ( value - minMax.x() ) / getRange(), itemLen, itemHeight);
     }
     /**
-     * Returns generic item position reflects value on its center and ranges from zero to max.
+     * Returns generic item position reflects value on its center (round-knob) or page-size start and ranges from zero to max.
      * @param posRes {@link Vec2f} result storage
      * @param val_pct value percentage within [0..1]
      * @param itemLen item length in sliding direction
