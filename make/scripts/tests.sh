@@ -123,6 +123,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.TraceGL"
+    #D_ARGS="-Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.quirks.force=NoSurfacelessCtx"
@@ -1008,6 +1009,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.GPUTextNewtDemo $*
 #testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
 testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeClippingDemo00 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UITypeDemo01 $*
 
