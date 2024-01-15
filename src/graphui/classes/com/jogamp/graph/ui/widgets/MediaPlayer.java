@@ -255,7 +255,7 @@ public class MediaPlayer extends Widget {
                     }
                 }
             } );
-            ctrlSlider.addListener(new SliderAdapter() {
+            ctrlSlider.addSliderListener(new SliderAdapter() {
                 private void seekPlayer(final int ptsMS) {
                     final int durationMS = mPlayer.getDuration();
                     timeLabel.setText(getMultilineTime(ptsMS, durationMS));

@@ -34,9 +34,7 @@ import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
-import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.font.Font;
 import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Matrix4f;
@@ -136,6 +134,79 @@ public abstract class Shape {
     public static interface ListenerBool {
         boolean run(final Shape shape);
     }
+
+    /**
+     * Forward {@link KeyListener}, to be attached to a key event source forwarded to the receiver set at constructor.
+     * <p>
+     * This given receiver {@link Shape} must be {@link #setInteractive(boolean)} to have the events forwarded.
+     * </p>
+     * @see Shape#receiveKeyEvents(Shape)
+     */
+    public static class ForwardKeyListener implements KeyListener {
+        public final Shape receiver;
+        /**
+         * {@link ForwardKeyListener} Constructor
+         * @param receiver the {@link KeyListener} receiver
+         */
+        public ForwardKeyListener(final Shape receiver) {
+            this.receiver = receiver;
+        }
+
+        private void dispatch(final KeyEvent e) {
+            if( receiver.isInteractive() ) {
+                receiver.dispatchKeyEvent(e);
+            }
+        }
+        @Override
+        public void keyPressed(final KeyEvent e) { dispatch(e); }
+        @Override
+        public void keyReleased(final KeyEvent e) { dispatch(e); }
+    }
+
+    /**
+     * Forward {@link MouseGestureListener}, to be attached to a mouse event source forwarded to the receiver set at constructor.
+     * <p>
+     * This given receiver {@link Shape} must be {@link #setInteractive(boolean)} to have the events forwarded.
+     * </p>
+     * @see Shape#receiveMouseEvents(Shape)
+     */
+    public static class ForwardMouseListener implements MouseGestureListener {
+        public final Shape receiver;
+        /**
+         * {@link ForwardMouseListener} Constructor
+         * @param receiver the {@link MouseGestureListener} receiver
+         */
+        public ForwardMouseListener(final Shape receiver) {
+            this.receiver = receiver;
+        }
+        private void dispatch(final MouseEvent e) {
+            if( receiver.isInteractive() ) {
+                receiver.dispatchMouseEvent(e);
+            }
+        }
+        @Override
+        public void mouseClicked(final MouseEvent e) { dispatch(e); }
+        @Override
+        public void mouseEntered(final MouseEvent e) { dispatch(e); }
+        @Override
+        public void mouseExited(final MouseEvent e) { dispatch(e); }
+        @Override
+        public void mousePressed(final MouseEvent e) { dispatch(e); }
+        @Override
+        public void mouseReleased(final MouseEvent e) { dispatch(e); }
+        @Override
+        public void mouseMoved(final MouseEvent e) { dispatch(e); }
+        @Override
+        public void mouseDragged(final MouseEvent e) { dispatch(e); }
+        @Override
+        public void mouseWheelMoved(final MouseEvent e) { dispatch(e); }
+        @Override
+        public void gestureDetected(final GestureEvent e) {
+            if( receiver.isInteractive() ) {
+                receiver.dispatchGestureEvent(e);
+            }
+        }
+    };
 
     protected static final boolean DEBUG_DRAW = false;
     private static final boolean DEBUG = false;
@@ -1492,7 +1563,6 @@ public abstract class Shape {
         mouseListeners = clonedListeners;
         return this;
     }
-
     public final Shape removeMouseListener(final MouseGestureListener l) {
         if (l == null) {
             return this;
@@ -1502,6 +1572,19 @@ public abstract class Shape {
         clonedListeners.remove(l);
         mouseListeners = clonedListeners;
         return this;
+    }
+    /**
+     * Forward {@link MouseGestureListener} events to this {@link Shape} from {@code source} using a {@link ForwardMouseListener}.
+     * <p>
+     * This source {@link Shape} must be {@link #setInteractive(boolean)} to receive and forward the events.
+     * </p>
+     * <p>
+     * This receiver {@link Shape} must be {@link #setInteractive(boolean)} to have the events forwarded.
+     * </p>
+     * @see #receiveKeyEvents(Shape)
+     */
+    public void receiveMouseEvents(final Shape source) {
+        source.addMouseListener(new Shape.ForwardMouseListener(this));
     }
 
     public final Shape addKeyListener(final KeyListener l) {
@@ -1514,7 +1597,6 @@ public abstract class Shape {
         keyListeners = clonedListeners;
         return this;
     }
-
     public final Shape removeKeyListener(final KeyListener l) {
         if (l == null) {
             return this;
@@ -1524,6 +1606,19 @@ public abstract class Shape {
         clonedListeners.remove(l);
         keyListeners = clonedListeners;
         return this;
+    }
+    /**
+     * Forward {@link KeyListener} events to this {@link Shape} from {@code source} using a {@link ForwardKeyListener}.
+     * <p>
+     * This source {@link Shape} must be {@link #setInteractive(boolean)} to receive and forward the events.
+     * </p>
+     * <p>
+     * This receiver {@link Shape} must be {@link #setInteractive(boolean)} to have the events forwarded.
+     * </p>
+     * @see #receiveMouseEvents(Shape)
+     */
+    public void receiveKeyEvents(final Shape source) {
+        source.addKeyListener(new Shape.ForwardKeyListener(this));
     }
 
     /**
@@ -1727,6 +1822,16 @@ public abstract class Shape {
         } // resizableOrDraggable && EVENT_MOUSE_DRAGGED
         e.setAttachment(shapeEvent);
 
+        return dispatchMouseEvent(e);
+    }
+
+    /**
+     * Dispatch given NEWT mouse event to this shape
+     * @param e original Newt {@link MouseEvent}
+     * @return true to signal operation complete and to stop traversal, otherwise false
+     */
+    /* pp */ final boolean dispatchMouseEvent(final MouseEvent e) {
+        final short eventType = e.getEventType();
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
             final MouseGestureListener l = mouseListeners.get(i);
             switch( eventType ) {
@@ -1799,9 +1904,19 @@ public abstract class Shape {
         final Shape.EventInfo shapeEvent = new EventInfo(glWinX, glWinY, this, objPos);
         e.setAttachment(shapeEvent);
 
+        dispatchGestureEvent(e);
+    }
+
+    /**
+     * Dispatch given NEWT mouse event to this shape
+     * @param e original Newt {@link MouseEvent}
+     * @return true to signal operation complete and to stop traversal, otherwise false
+     */
+    /* pp */ final boolean dispatchGestureEvent(final GestureEvent e) {
         for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
             mouseListeners.get(i).gestureDetected(e);
         }
+        return e.isConsumed(); // end signal traversal if consumed
     }
 
     /**

@@ -146,7 +146,6 @@ public final class RangeSlider extends Widget {
     }
     private RangeSlider(final int renderModes_, final Vec2f size, final float knobScale,
                        final Vec2f minMax, final float unitSize, final float pageSz, final float value) {
-        // final int renderModes = ( renderModes_ & ~Region.AA_RENDERING_MASK ) | Region.COLORCHANNEL_RENDERING_BIT;
         final int renderModes = renderModes_ & ~(Region.AA_RENDERING_MASK | Region.COLORCHANNEL_RENDERING_BIT);
         this.unitSize = unitSize;
         this.pageSize = pageSz;
@@ -179,14 +178,14 @@ public final class RangeSlider extends Widget {
                 barLineWidth = ( size.y() - height ) * pageBarLineScale;
                 knobLength = width;
                 knobHeight = height;
-                setPaddding(new Padding(size.y(), 0, size.y(), 0));
+                setPaddding(new Padding(size.y()/2f, 0, size.y()/2f, 0));
             } else {
                 width = size.x() * pageKnobScale;
                 height = pageSizePct * this.size.y();
                 barLineWidth = ( size.x() - width ) * pageBarLineScale;
                 knobLength = height;
                 knobHeight = width;
-                setPaddding(new Padding(0, size.x(), 0, size.x()));
+                setPaddding(new Padding(0, size.x()/2f, 0, size.x()/2f));
                 // System.err.println("ZZZ minMax "+minMax+", pageSize "+pageSize+" "+(pageSizePct*100f)+"% -> "+knobHeight+"/"+this.size.y());
             }
             bar = new Rectangle(renderModes, this.size.x(), this.size.y(), barLineWidth);
@@ -359,6 +358,19 @@ public final class RangeSlider extends Widget {
         };
         barAndKnob.addKeyListener(keyListener);
         knob.addKeyListener(keyListener);
+    }
+
+    @Override
+    public void receiveKeyEvents(final Shape source) {
+        source.addKeyListener(new Shape.ForwardKeyListener(barAndKnob));
+        source.addKeyListener(new Shape.ForwardKeyListener(knob));
+    }
+    @Override
+    public void receiveMouseEvents(final Shape source) {
+        source.addMouseListener(new Shape.ForwardMouseListener(barAndKnob) {
+            @Override
+            public void mouseClicked(final MouseEvent e) { /* nop */ }
+        });
     }
 
     @Override
