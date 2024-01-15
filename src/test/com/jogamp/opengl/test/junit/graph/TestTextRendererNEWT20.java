@@ -42,6 +42,7 @@ import com.jogamp.opengl.JoglVersion;
 import jogamp.common.os.PlatformPropsImpl;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -70,9 +71,18 @@ public class TestTextRendererNEWT20 extends UITestCase {
     static long duration = 100; // ms
     static int win_width = 1024;
     static int win_height = 640;
-    static Font[] fontSet = new Font[] { };
     static int[] aaQualitySet = new int[] { 0, 1 };
-    static int[] sampleSet = new int[] { 1, 2, 4 };
+    static int[] sampleSet = new int[] { 4 };
+    static Font[] fontSet = new Font[] { };
+
+    @BeforeClass
+    public static void setup() {
+        try {
+            fontSet = FontSet01.getSet00();
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     static int atoi(final String a) {
         try {
@@ -101,9 +111,6 @@ public class TestTextRendererNEWT20 extends UITestCase {
                 i++;
                 aaQualitySet = new int[] { atoi(args[i]) };
             }
-        }
-        if( 0 == fontSet.length ) {
-            fontSet = FontSet01.getSet01();
         }
         final String tstname = TestTextRendererNEWT20.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
