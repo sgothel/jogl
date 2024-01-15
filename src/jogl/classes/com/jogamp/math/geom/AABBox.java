@@ -422,6 +422,26 @@ public class AABBox {
                   z<bl.z() || z>tr.z() );
     }
 
+    /** Returns whether this AABBox intersects (partially contains) given AABBox. */
+    public final boolean intersects(final AABBox o) {
+        return !( tr.x() < o.bl.x() ||
+                  tr.y() < o.bl.y() ||
+                  tr.z() < o.bl.z() ||
+                  bl.x() > o.tr.x() ||
+                  bl.y() > o.tr.y() ||
+                  bl.z() > o.tr.z());
+    }
+
+    /** Returns whether this AABBox fully contains given AABBox. */
+    public final boolean contains(final AABBox o) {
+        return tr.x() >= o.tr.x() &&
+               tr.y() >= o.tr.y() &&
+               tr.z() >= o.tr.z() &&
+               bl.x() <= o.bl.x() &&
+               bl.y() <= o.bl.y() &&
+               bl.z() <= o.bl.z();
+    }
+
     /**
      * Check if there is a common region between this AABBox and the passed
      * 2D region irrespective of z range
@@ -729,6 +749,27 @@ public class AABBox {
 
         return this;
     }
+    /**
+     * Scale this AABBox by constants around fixed center
+     * <p>
+     * high and low is recomputed by scaling its distance to fixed center.
+     * </p>
+     * @param sX horizontal scale factor
+     * @param sY vertical scale factor
+     * @param sZ Z-axis scale factor
+     * @return this AABBox for chaining
+     * @see #scale2(float, float[])
+     */
+    public final AABBox scale(final float sX, final float sY, final float sZ) {
+        final Vec3f tmp = new Vec3f();
+        tmp.set(tr).sub(center).scale(sX, sY, sZ);
+        tr.set(center).add(tmp);
+
+        tmp.set(bl).sub(center).scale(sX, sY, sZ);
+        bl.set(center).add(tmp);
+
+        return this;
+    }
 
     /**
      * Scale this AABBox by a constant, recomputing center
@@ -742,6 +783,24 @@ public class AABBox {
     public final AABBox scale2(final float s) {
         tr.scale(s);
         bl.scale(s);
+        computeCenter();
+        return this;
+    }
+
+    /**
+     * Scale this AABBox by constants, recomputing center
+     * <p>
+     * high and low is scaled and center recomputed.
+     * </p>
+     * @param sX horizontal scale factor
+     * @param sY vertical scale factor
+     * @param sZ Z-axis scale factor
+     * @return this AABBox for chaining
+     * @see #scale(float, float[])
+     */
+    public final AABBox scale2(final float sX, final float sY, final float sZ) {
+        tr.scale(sX, sY, sZ);
+        bl.scale(sX, sY, sZ);
         computeCenter();
         return this;
     }
