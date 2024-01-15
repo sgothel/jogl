@@ -57,12 +57,23 @@ public class CommandlineOptions {
      * @param renderModes {@link Region#getRenderModes()}, if {@link Region#isGraphAA(int)} {@link #graphAASamples} is set to {@code 4}.
      */
     public CommandlineOptions(final int width, final int height, final int renderModes) {
+        this(width, height, renderModes, Region.DEFAULT_AA_QUALITY, Region.isGraphAA(renderModes) ? 4 : 0);
+    }
+
+    /**
+     * Commandline options
+     * @param width viewport width in pixels
+     * @param height viewport height in pixels
+     * @param renderModes {@link Region#getRenderModes()}
+     * @param graphAAQuality if {@link Region#VBAA_RENDERING_BIT} this is the AA-quality shader selection, clipped via {@link Region#clipAAQuality(int)}
+     * @param graphAASamples if {@link Region#isGraphAA(int)} this is the graph sample count, clipped via {@link Region#clipAASampleCount(int)}
+     */
+    public CommandlineOptions(final int width, final int height, final int renderModes, final int graphAAQuality, final int graphAASamples) {
         this.surface_width = width;
         this.surface_height = height;
         this.renderModes = renderModes;
-        if( Region.isGraphAA(renderModes) ) {
-            this.graphAASamples = 4;
-        }
+        this.graphAASamples = Region.clipAASampleCount(graphAASamples);
+        this.graphAAQuality = Region.clipAAQuality(graphAAQuality);
     }
     public void parse(final String[] args) {
         final int[] idx = { 0 };
@@ -166,7 +177,7 @@ public class CommandlineOptions {
     public String toString() {
         return "Options{surface[width "+surface_width+" x "+surface_height+"], glp "+glProfileName+
                ", renderModes "+Region.getRenderModeString(renderModes)+", aa-q "+graphAAQuality+
-               ", smsaa "+sceneMSAASamples+
+               ", gmsaa "+graphAASamples+", smsaa "+sceneMSAASamples+
                ", exclusiveContext "+exclusiveContext+", wait "+wait_to_start+", keep "+keepRunning+", stay "+stayOpen+", dur "+total_duration+"s"+
                "}";
     }
