@@ -313,8 +313,8 @@ public class FontView01 {
                     });
                 }
             };
-            rs1.addListener( sliderListener );
-            rs2.addListener( sliderListener );
+            rs1.addSliderListener( sliderListener );
+            rs2.addSliderListener( sliderListener );
             glyphInfoGrid.addShape(rs1);
             glyphInfoGrid.addShape(rs2);
             glyphInfoGrid.addShape(infoGrid);

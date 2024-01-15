@@ -372,7 +372,7 @@ public final class RangeSlider extends Widget {
         sliderListeners.clear();
     }
 
-    public final RangeSlider addListener(final SliderListener l) {
+    public final RangeSlider addSliderListener(final SliderListener l) {
         if(l == null) {
             return this;
         }
@@ -382,7 +382,7 @@ public final class RangeSlider extends Widget {
         sliderListeners = clonedListeners;
         return this;
     }
-    public final RangeSlider removeListener(final SliderListener l) {
+    public final RangeSlider removeSliderListener(final SliderListener l) {
         if (l == null) {
             return this;
         }
