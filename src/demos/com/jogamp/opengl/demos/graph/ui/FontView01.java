@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
@@ -52,11 +53,11 @@ import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.GlyphShape;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.Rectangle;
-import com.jogamp.graph.ui.widgets.RangeSlider;
 import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
-import com.jogamp.graph.ui.widgets.RangeSlider.SliderListener;
+import com.jogamp.graph.ui.widgets.RangeSlider;
+import com.jogamp.graph.ui.widgets.RangedGroup;
+import com.jogamp.graph.ui.widgets.RangedGroup.SliderParam;
 import com.jogamp.math.Vec2f;
-import com.jogamp.math.Vec2i;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -69,7 +70,6 @@ import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
@@ -79,9 +79,9 @@ import com.jogamp.opengl.util.Animator;
  * This may become a little font viewer application, having FontForge as its role model.
  */
 public class FontView01 {
-    private static final float GlyphGridWidth = 2/3f;
+    private static final float GlyphGridWidth = 3/4f;
+    // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.MSAA_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 4);
     static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
-    // static CommandlineOptions options = new CommandlineOptions(1920, 1080, Region.VBAA_RENDERING_BIT);
 
     private static boolean VERBOSE_GLYPHS = false;
     private static boolean VERBOSE_UI = false;
@@ -89,9 +89,10 @@ public class FontView01 {
     public static void main(final String[] args) throws IOException {
         float mmPerCell = 8f;
         String fontfilename = null;
-        final Vec2i rawGridSize = new Vec2i(-1, -1);
-        final boolean[] showUnderline = { false };
-        final boolean[] showLabel = { false };
+        int gridColumns = -1;
+        boolean showUnderline = false;
+        boolean showLabel = false;
+        boolean perfanal = false;
 
         if( 0 != args.length ) {
             final int[] idx = { 0 };
@@ -106,14 +107,13 @@ public class FontView01 {
                     mmPerCell = MiscUtils.atof(args[idx[0]], mmPerCell);
                 } else if(args[idx[0]].equals("-gridCols")) {
                     idx[0]++;
-                    rawGridSize.setX( MiscUtils.atoi(args[idx[0]], rawGridSize.x()) );
-                } else if(args[idx[0]].equals("-gridRows")) {
-                    idx[0]++;
-                    rawGridSize.setY( MiscUtils.atoi(args[idx[0]], rawGridSize.y()) );
+                    gridColumns = MiscUtils.atoi(args[idx[0]], gridColumns);
                 } else if(args[idx[0]].equals("-showUnderline")) {
-                    showUnderline[0] = true;
+                    showUnderline = true;
                 } else if(args[idx[0]].equals("-showLabel")) {
-                    showLabel[0] = true;
+                    showLabel = true;
+                } else if(args[idx[0]].equals("-perf")) {
+                    perfanal = true;
                 }
             }
         }
@@ -170,23 +170,30 @@ public class FontView01 {
             System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
             System.err.println("mmPerCell "+mmPerCell);
         }
-        if( 0 >= rawGridSize.x() ) {
-            rawGridSize.setX( (int)( ( window.getSurfaceWidth() * GlyphGridWidth / ppmm[0] ) / mmPerCell ) );
+        if( 0 >= gridColumns ) {
+            gridColumns = (int)( ( window.getSurfaceWidth() * GlyphGridWidth / ppmm[0] ) / mmPerCell );
         }
-        if( 0 >= rawGridSize.y() ) {
-            rawGridSize.setY( (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCell ) );
-        }
-        final GridDim gridDim = new GridDim(font, rawGridSize, 1, 0);
-        System.err.println("GridDim "+gridDim);
+        final int glyphGridRowsPerPage = (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCell );
+        final float glyphGridCellSize = GlyphGridWidth / gridColumns;
+        final Vec2f glyphGridSize = new Vec2f(GlyphGridWidth, glyphGridRowsPerPage * glyphGridCellSize);
 
-        final Group mainGrid;
-        final Group glyphGrid;
+        if( perfanal ) {
+            MiscUtils.waitForKey("Start");
+        }
+        final long t0 = Clock.currentNanos();
+
+        final GridDim gridDim = new GridDim(font, gridColumns, glyphGridRowsPerPage, 1);
+        final Vec2f glyphGridTotalSize = new Vec2f(glyphGridSize.x(), gridDim.rows * glyphGridCellSize);
+        System.err.println(gridDim);
+        System.err.println("GlyphGrid[pgsz "+glyphGridSize+", totsz "+glyphGridTotalSize+", cellSz "+glyphGridCellSize+"]");
+
+        final Group mainView;
         final Shape.MouseGestureListener glyphMouseListener;
         {
-            final Group glyphShapeBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.025f) ) );
+            final Group glyphShapeBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.01f) ) );
             glyphShapeBox.addShape( new GlyphShape(options.renderModes, font.getGlyph( 'A' ), 0, 0) );
 
-            final Group glyphInfoBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.05f, 0.025f, 0.05f, 0.025f) ) );
+            final Group glyphInfoBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.025f, 0.025f, 0.025f, 0.025f) ) );
             final Label glyphInfo = new Label(options.renderModes, fontStatus, "Nothing there yet");
             setGlyphInfo(fontStatus, glyphInfo, font.getGlyph( 'A' ));
             glyphInfo.setColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -253,95 +260,81 @@ public class FontView01 {
                     handleEvent(e);
                 }
             };
+
+            final Group glyphInfoView = new Group(new GridLayout(2, 0f, 0f, Alignment.None));
             {
-                final float cellSize = gridDim.totalSize.x() > gridDim.totalSize.y() ? GlyphGridWidth/gridDim.totalSize.x() : GlyphGridWidth/gridDim.totalSize.y();
                 // final float gapSizeX = ( gridDim.rawSize.x() - 1 ) * cellSize * 0.1f;
-                System.err.println("Grid "+gridDim+", scale "+cellSize);
-                glyphGrid = new Group(new GridLayout(gridDim.totalSize.x(), cellSize*0.9f, cellSize*0.9f, Alignment.FillCenter, new Gap(cellSize*0.1f)));
-            }
-
-            addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline[0], showLabel[0], fontStatus, fontInfo, glyphMouseListener);
-            glyphGrid.validate(reqCaps.getGLProfile());
-            System.err.println("GlyphGrid "+glyphGrid);
-            System.err.println("GlyphGrid "+glyphGrid.getLayout());
-
-            final float infoCellWidth = 1f - GlyphGridWidth;
-            final float infoCellHeight = glyphGrid.getBounds().getHeight() / 2f;
-            final Group infoGrid = new Group( new GridLayout(1, infoCellWidth, infoCellHeight * 0.98f, Alignment.FillCenter, new Gap(infoCellHeight*0.02f, 0)) );
-            infoGrid.setPaddding( new Padding(0, 0, 0, 0.01f) );
-            infoGrid.addShape(glyphShapeBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
-            infoGrid.addShape(glyphInfoBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
-            if( VERBOSE_UI ) {
-                infoGrid.validate(reqCaps.getGLProfile());
-                System.err.println("InfoGrid "+infoGrid);
-                System.err.println("InfoGrid "+infoGrid.getLayout());
-            }
-
-            final Group glyphInfoGrid = new Group(new GridLayout(4, 0f, 0f, Alignment.None));
-            glyphInfoGrid.addShape(glyphGrid);
-            final boolean sliderInverted = true;
-            final RangeSlider rs1 = new RangeSlider(options.renderModes,
-                                             new Vec2f((GlyphGridWidth/gridDim.totalSize.x())/5f, glyphGrid.getBounds().getHeight()),
-                                             new Vec2f(0, gridDim.contourChars.size()/gridDim.columns), 1, gridDim.rows, 0).setInverted(sliderInverted);
-            rs1.setColor(0.3f, 0.3f, 0.3f, 0.7f);
-            final RangeSlider rs2 = new RangeSlider(options.renderModes,
-                                             new Vec2f((GlyphGridWidth/gridDim.totalSize.x())/5f, glyphGrid.getBounds().getHeight()), 2,
-                                             new Vec2f(0, gridDim.contourChars.size()/gridDim.columns), 1, 0).setInverted(sliderInverted);
-            rs2.setColor(0.3f, 0.3f, 0.3f, 0.7f);
-            final SliderListener sliderListener = new SliderAdapter() {
-                @Override
-                public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
-                    final int totalRows = gridDim.contourChars.size() / gridDim.columns;
-                    if( w == rs1 ) {
-                        System.err.println("XXX range "+w.getMinMax()+", v "+w.getValue()+"/"+totalRows+" -> "+(w.getValue()*gridDim.columns)+"/"+gridDim.contourChars.size()+", "+(100f*w.getValuePct())+"%");
-                        rs2.setValue(w.getValue());
-                    } else {
-                        System.err.println("YYY range "+w.getMinMax()+", v "+w.getValue()+"/"+totalRows+" -> "+(w.getValue()*gridDim.columns)+"/"+gridDim.contourChars.size()+", "+(100f*w.getValuePct())+"%");
-                        rs1.setValue(w.getValue());
-                    }
-                    gridDim.setStartRow( (int)w.getValue() );
-                    window.invoke(false, new GLRunnable() {
-                        @Override
-                        public boolean run(final GLAutoDrawable drawable) {
-                            glyphGrid.removeAllShapes(drawable.getGL().getGL2ES2(), scene.getRenderer());
-                            addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline[0], showLabel[0], fontStatus, fontInfo, glyphMouseListener);
-                            if( VERBOSE_UI ) {
-                                System.err.println("Slider: "+gridDim);
-                            }
-                            return true;
-                        }
-                    });
+                final Group glyphGrid = new Group(new GridLayout(gridDim.columns, glyphGridCellSize*0.9f, glyphGridCellSize*0.9f, Alignment.FillCenter, new Gap(glyphGridCellSize*0.1f)));
+                // glyphGrid.setFixedSize(glyphGridSize);
+                addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline, showLabel, fontStatus, fontInfo, glyphMouseListener);
+                if( VERBOSE_UI ) {
+                    glyphGrid.validate(reqCaps.getGLProfile());
+                    System.err.println("GlyphGrid "+glyphGrid);
+                    System.err.println("GlyphGrid "+glyphGrid.getLayout());
                 }
-            };
-            rs1.addSliderListener( sliderListener );
-            rs2.addSliderListener( sliderListener );
-            glyphInfoGrid.addShape(rs1);
-            glyphInfoGrid.addShape(rs2);
-            glyphInfoGrid.addShape(infoGrid);
+                final RangedGroup glyphView = new RangedGroup(options.renderModes, glyphGrid, glyphGridSize,
+                                                              null,
+                                                              new SliderParam(new Vec2f(glyphGridCellSize/4f, glyphGridSize.y()), glyphGridCellSize/10f, true));
+                glyphView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f);
+                glyphView.getVertSlider().addSliderListener(new SliderAdapter() {
+                    @Override
+                    public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
+                        final Vec2f minmax = w.getMinMax();
+                        final float row_f = val / glyphGridCellSize;
+                        if( VERBOSE_UI ) {
+                            System.err.println("VertSlider: row "+row_f+", val["+old_val+" -> "+val+"], pct["+(100*old_val_pct)+"% -> "+(100*val_pct)+"%], minmax "+minmax);
+                        }
+                        gridDim.setStartRow((int)row_f, glyphGrid);
+                    }
+                });
+                glyphGrid.setInteractive(true).setDragAndResizeable(false).setToggleable(false);
+                glyphView.getVertSlider().receiveKeyEvents(glyphGrid);
+                glyphView.getVertSlider().receiveMouseEvents(glyphGrid);
+                if( VERBOSE_UI ) {
+                    glyphView.validate(reqCaps.getGLProfile());
+                    System.err.println("GlyphView "+glyphView);
+                }
+                glyphInfoView.addShape(glyphView);
+            }
+            {
+                final float infoCellWidth = ( 1f - glyphGridSize.x() ) * 1.15f; // FIXME: Layout issues to force 15% more width to use more size?
+                final float infoCellHeight = glyphGridSize.y() * 0.5f;
+                final Group infoGrid = new Group( new GridLayout(1, infoCellWidth, infoCellHeight * 1f, Alignment.FillCenter, new Gap(infoCellHeight*0.001f, 0)) );
+                infoGrid.setPaddding( new Padding(0, 0, 0, 0.01f) );
+                infoGrid.addShape(glyphShapeBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
+                infoGrid.addShape(glyphInfoBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
+                if( VERBOSE_UI ) {
+                    infoGrid.validate(reqCaps.getGLProfile());
+                    System.err.println("InfoGrid "+infoGrid);
+                    System.err.println("InfoGrid "+infoGrid.getLayout());
+                }
+                glyphInfoView.addShape(infoGrid);
+            }
+            glyphInfoView.setPaddding(new Padding(glyphGridCellSize/6f, 0, 0));
             if( VERBOSE_UI ) {
-                glyphInfoGrid.validate(reqCaps.getGLProfile());
-                System.err.println("GlyphInfoGrid "+glyphInfoGrid);
-                System.err.println("GlyphInfoGrid "+glyphInfoGrid.getLayout());
+                glyphInfoView.validate(reqCaps.getGLProfile());
+                System.err.println("GlyphInfoGrid "+glyphInfoView);
+                System.err.println("GlyphInfoGrid "+glyphInfoView.getLayout());
             }
 
-            mainGrid = new Group(new GridLayout(1, 0f, 0f, Alignment.None));
-            mainGrid.addShape(glyphInfoGrid);
-            final Label infoText = new Label(options.renderModes, fontInfo, "Slider: Key-Up/Down or Mouse-Scroll to move through glyphs. Page-Up/Down or Control + Mouse-Scroll to page through glyph symbols fast.");
+            mainView = new Group(new GridLayout(1, 0f, 0f, Alignment.None));
+            mainView.addShape(glyphInfoView);
+            final Label infoText = new Label(options.renderModes, fontInfo, "Key-Up/Down or Mouse-Scroll to move through glyphs. Page-Up/Down or Control + Mouse-Scroll to page through glyph symbols fast.");
             infoText.setColor(0.1f, 0.1f, 0.1f, 1f);
             {
-                final float h = glyphGrid.getBounds().getHeight() / gridDim.totalSize.y() * 0.6f;
-                final Group labelBox = new Group(new BoxLayout(1.0f, h*0.9f, new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.CenterVert.value),
-                                                               new Margin(h*0.1f, 0.005f)));
+                final float h = glyphGridCellSize * 0.5f;
+                final Group labelBox = new Group(new BoxLayout(1.0f, h, new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.CenterVert.value),
+                                                               new Margin(0, 0.005f)));
                 labelBox.addShape(infoText);
-                mainGrid.addShape(labelBox);
+                mainView.addShape(labelBox);
             }
             if( VERBOSE_UI ) {
-                mainGrid.validate(reqCaps.getGLProfile());
-                System.err.println("MainGrid "+mainGrid);
-                System.err.println("MainGrid "+mainGrid.getLayout());
+                mainView.validate(reqCaps.getGLProfile());
+                System.err.println("MainView "+mainView);
+                System.err.println("MainView "+mainView.getLayout());
             }
         }
-        scene.addShape(mainGrid);
+        scene.addShape(mainView);
         scene.setAAQuality(options.graphAAQuality);
 
         window.addKeyListener(new KeyAdapter() {
@@ -358,14 +351,19 @@ public class FontView01 {
         scene.waitUntilDisplayed();
         {
             final AABBox sceneBox = scene.getBounds();
-            final AABBox mainGridBox = mainGrid.getBounds();
-            final float sx = sceneBox.getWidth() / mainGridBox.getWidth();
-            final float sy = sceneBox.getHeight() / mainGridBox.getHeight();
+            final AABBox mainViewBox = mainView.getBounds();
+            final float sx = sceneBox.getWidth() / mainViewBox.getWidth();
+            final float sy = sceneBox.getHeight() / mainViewBox.getHeight();
             final float sxy = Math.min(sx, sy);
             System.err.println("SceneBox "+sceneBox);
-            System.err.println("MainGridBox "+mainGridBox);
+            System.err.println("MainViewBox "+mainViewBox);
             System.err.println("scale sx "+sx+", sy "+sy+", sxy "+sxy);
-            mainGrid.scale(sxy, sxy, 1f).moveTo(sceneBox.getLow());
+            mainView.scale(sxy, sxy, 1f).moveTo(sceneBox.getLow());
+            final long t1 = Clock.currentNanos();
+            final long total = t1 - t0;
+            final float nsPerGlyph = total / gridDim.glyphCount;
+            System.err.println("PERF: Total took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+gridDim.glyphCount);
+            jogamp.graph.curve.opengl.VBORegion2PVBAAES2.printPerf(System.err);
         }
         printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gridDim.contourChars.get(gridDim.rowStartIndex));
         // stay open ..
@@ -377,61 +375,83 @@ public class FontView01 {
     }
 
     static class GridDim {
-        /** total grid size including reserved info columns and rows */
-        final Vec2i totalSize;
         final List<Character> contourChars;
-        /** net columns */
+        final int glyphCount;
         final int columns;
-        /** net rows */
+        final int columnsNet;
         final int rows;
+        final int rowsPerPage;
         final int elemCount;
         int rowStartIndex;
-        int nextLine;
-        int nextPage;
+        int rowPos;
         int maxNameLen;
 
-        public GridDim(final Font font, final Vec2i totalSize, final int xReserve, final int yReserve) {
-            this.totalSize = totalSize;
-            contourChars = new ArrayList<Character>();
-            columns = totalSize.x() - xReserve;
-            rows = totalSize.y() - yReserve;
-            elemCount = columns * rows;
-            rowStartIndex = 0; nextLine = -1; nextPage = -1; maxNameLen=10;
-            scanContourGlyphs(font);
+        public GridDim(final Font font, final int columns, final int rowsPerPage, final int xReserved) {
+            this.contourChars = new ArrayList<Character>();
+            this.glyphCount = scanContourGlyphs(font);
+            this.columns = columns;
+            this.columnsNet = columns - xReserved;
+            this.rows = (int)Math.ceil((double)glyphCount / (double)columnsNet);
+            this.rowsPerPage = rowsPerPage;
+            this.elemCount = glyphCount + ( rows * xReserved );
+            this.rowStartIndex = 0;
+            this.rowPos = 0;
+            this.maxNameLen=10;
         }
 
+        public int reserverColumns() { return columns - columnsNet; }
+
         private int scanContourGlyphs(final Font font) {
+            final long t0 = Clock.currentNanos();
             contourChars.clear();
             maxNameLen = 1;
+            final int[] max = { 10000 };
             font.forAllGlyphs((final Glyph fg) -> {
-                if( !fg.isNonContour() ) {
+                if( !fg.isNonContour() && max[0]-- > 0 ) {
                     contourChars.add( fg.getCodepoint() );
                     maxNameLen = Math.max(maxNameLen, fg.getName().length());
                 }
             });
+            final long t1 = Clock.currentNanos();
+            final long total = t1 - t0;
+            final float nsPerGlyph = total / contourChars.size();
+            System.err.println("PERF: GlyphScan took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+contourChars.size());
+            jogamp.graph.curve.opengl.VBORegion2PVBAAES2.printPerf(System.err);
             return contourChars.size();
         }
 
-        void setStartRow(final int row) {
+        float setStartRow(final int row, final Group glyphGrid) {
+            // GridDim[contours 6399, start 0, row 0, 18x356=6408<=6755, rows/pg 14]
+            // GridDim[contours 6399, start 0, row 0, 18x377=6786<=6776, rows/pg 14]
             // final int old = start;
             final int np = row * columns;
-            if( np < contourChars.size() - columns ) {
+            if( np < elemCount - columns ) {
                 rowStartIndex = np;
+                rowPos = row;
             }
-            // System.err.println("XXX "+columns+"x"+rows+" @ "+old+"/"+contourChars.size()+": r "+row+" -> s "+start);
+            if( null != glyphGrid ) {
+                final int max = Math.min(elemCount, rowStartIndex + ( ( rowsPerPage + 1 ) * columns )); // one extra row
+                for(int idx = rowStartIndex; idx < max; ++idx) {
+                    final Shape s = glyphGrid.getShapeByIdx(idx);
+                    s.setVisible(true);
+                    // System.err.println("Visible["+(startIdx + idx)+"].1: "+s);
+                }
+            }
+            // System.err.println("XXX "+columns+"x"+rows+" @ "+old+"/"+elemCount+": r "+row+" -> s "+start);
+            return rowStartIndex;
         }
 
         @Override
-        public String toString() { return "GridDim[contours "+contourChars.size()+", start "+rowStartIndex+", nextLine "+nextLine+", nextPage "+nextPage+", "+columns+"x"+rows+"="+elemCount+", total "+totalSize+"]"; }
+        public String toString() { return "GridDim[contours "+glyphCount+", start "+rowStartIndex+", row "+rowPos+", "+columns+"x"+rows+"="+(columns*rows)+">="+elemCount+", rows/pg "+rowsPerPage+"]"; }
     }
 
     static void addGlyphs(final GLProfile glp, final Font font, final Group sink,
                           final GridDim gridDim, final boolean showUnderline, final boolean showLabel,
                           final Font fontStatus, final Font fontInfo, final Shape.MouseGestureListener glyphMouseListener) {
-        gridDim.nextLine = Math.min(gridDim.rowStartIndex + gridDim.columns,   gridDim.contourChars.size()-1);
-        gridDim.nextPage = Math.min(gridDim.rowStartIndex + gridDim.elemCount, gridDim.contourChars.size()-1);
         final AABBox tmpBox = new AABBox();
-        for(int idx = gridDim.rowStartIndex; idx < gridDim.nextPage; ++idx) {
+        final long t0 = Clock.currentNanos();
+
+        for(int idx = 0; idx < gridDim.glyphCount; ++idx) {
             final char codepoint = gridDim.contourChars.get(idx);
             final Font.Glyph fg = font.getGlyph(codepoint);
 
@@ -451,7 +471,9 @@ public class FontView01 {
             }
             c1.addShape(g);
             c1.addMouseListener(glyphMouseListener);
-            if( 0 == ( idx - gridDim.rowStartIndex ) % gridDim.columns ) {
+            sink.receiveKeyEvents(c1);
+            sink.receiveMouseEvents(c1);
+            if( 0 < gridDim.reserverColumns() && 0 == idx % gridDim.columnsNet ) {
                 addLabel(sink, fontStatus, String.format("%04x", (int)codepoint));
             }
             if( showLabel ) {
@@ -463,11 +485,19 @@ public class FontView01 {
                     final float sxy = 1f/7f; // gridDim.maxNameLen; // 0.10f; // Math.min(sx, sy);
                     c2.addShape( l.scale(sxy, sxy, 1).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizeable(false) );
                 }
-                sink.addShape(c2);
+                sink.addShape(c2.setVisible(false));
+                // System.err.println("Add.2: "+c2);
             } else {
-                sink.addShape(c1);
+                sink.addShape(c1.setVisible(false));
+                // System.err.println("Add.1: "+c1);
             }
         }
+        gridDim.setStartRow(0, sink);
+        final long t1 = Clock.currentNanos();
+        final long total = t1 - t0;
+        final float nsPerGlyph = total / gridDim.glyphCount;
+        System.err.println("PERF: GlyphAdd took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+gridDim.glyphCount);
+        jogamp.graph.curve.opengl.VBORegion2PVBAAES2.printPerf(System.err);
     }
     static void addLabel(final Group c, final Font font, final String text) {
         c.addShape( new Label(options.renderModes, font, 1f, text).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizeable(false) );
