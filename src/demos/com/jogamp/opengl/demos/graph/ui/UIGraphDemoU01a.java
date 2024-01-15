@@ -211,6 +211,7 @@ public class UIGraphDemoU01a {
                 shape = new CrossHair(options.renderModes, normWidgetSize, normWidgetSize, normWidgetSize/100f); // normalized: 1 is 100% surface size (width and/or height)
                 shape.setTextureUnit(pass2TexUnit);
                 shape.setColor(0, 0, 1, 1);
+                shape.setAAQuality(options.graphAAQuality);
                 System.err.println("Init: Shape bounds "+shape.getBounds(drawable.getGLProfile()));
                 System.err.println("Init: Shape "+shape);
             }
@@ -335,7 +336,7 @@ public class UIGraphDemoU01a {
             final float txt_scale = full_width_s < full_height_s ? full_width_s * normWidgetSize : full_height_s * normWidgetSize;
             pmv.scaleMv(txt_scale, txt_scale, 1f);
             pmv.translateMv(-txt_box_em.getWidth(), 0f, 0f);
-            final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, textRegion.clear(gl), renderer, font, text, text_color, sampleCount, tempT1, tempT2);
+            final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, textRegion.clear(gl), renderer, font, text, text_color, options.graphAAQuality, sampleCount, tempT1, tempT2);
 
             if( onceAtDisplay ) {
                 System.err.println("XXX: full_width: "+worldDim.x()+" / "+txt_box_em.getWidth()+" -> "+full_width_s);

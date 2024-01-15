@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2023 JogAmp Community. All rights reserved.
+ * Copyright 2011-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.graph;
 
+import java.io.File;
 import java.io.IOException;
 
 import com.jogamp.opengl.GL;
@@ -69,6 +70,9 @@ public class TestTextRendererNEWT20 extends UITestCase {
     static long duration = 100; // ms
     static int win_width = 1024;
     static int win_height = 640;
+    static Font[] fontSet = new Font[] { };
+    static int[] aaQualitySet = new int[] { 0, 1 };
+    static int[] sampleSet = new int[] { 1, 2, 4 };
 
     static int atoi(final String a) {
         try {
@@ -87,7 +91,19 @@ public class TestTextRendererNEWT20 extends UITestCase {
             } else if(args[i].equals("-height")) {
                 i++;
                 win_height = atoi(args[i]);
+            } else if(args[i].equals("-font")) {
+                i++;
+                fontSet = new Font[] { FontFactory.get(new File(args[i])) };
+            } else if(args[i].equals("-samples")) {
+                i++;
+                sampleSet = new int[] { atoi(args[i]) };
+            } else if(args[i].equals("-aaq")) {
+                i++;
+                aaQualitySet = new int[] { atoi(args[i]) };
             }
+        }
+        if( 0 == fontSet.length ) {
+            fontSet = FontSet01.getSet01();
         }
         final String tstname = TestTextRendererNEWT20.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
@@ -143,7 +159,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         // System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(window.getScreen().getDisplay().getGraphicsDevice(), null).toString());
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final TextGLListener textGLListener = new TextGLListener(glp, Region.VBAA_RENDERING_BIT, 4 /* sampleCount */, DEBUG, TRACE);
+        final TextGLListener textGLListener = new TextGLListener(glp, Region.VBAA_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 4 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         textGLListener.setHeadBox(2, true);
@@ -155,22 +171,25 @@ public class TestTextRendererNEWT20 extends UITestCase {
             @Override
             public void run() {
                 textGLListener.setHeadBox(1, false);
-                textGLListener.setSampleCount(4);
                 window.display();
                 textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
                 sleep();
 
                 textGLListener.setHeadBox(2, false);
-                textGLListener.setSampleCount(4);
                 window.display();
                 textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
                 sleep();
             } };
 
-        final Font[] fonts = FontSet01.getSet01();
-        for(final Font f : fonts) {
+        for(final Font f : fontSet) {
             if( textGLListener.setFont(f) ) {
-                action_per_font.run();
+                for(final int aaQuality : aaQualitySet ) {
+                    textGLListener.setAAQuality(aaQuality);
+                    for(final int sampleCount : sampleSet ) {
+                        textGLListener.setSampleCount(sampleCount);
+                        action_per_font.run();
+                    }
+                }
             }
         }
         if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
@@ -196,7 +215,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final TextGLListener textGLListener = new TextGLListener(glp, Region.MSAA_RENDERING_BIT, 4 /* sampleCount */, DEBUG, TRACE);
+        final TextGLListener textGLListener = new TextGLListener(glp, Region.MSAA_RENDERING_BIT, -1, 4 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         textGLListener.setHeadBox(2, true);
@@ -208,22 +227,22 @@ public class TestTextRendererNEWT20 extends UITestCase {
             @Override
             public void run() {
                 textGLListener.setHeadBox(1, false);
-                textGLListener.setSampleCount(4);
                 window.display();
                 textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
                 sleep();
 
                 textGLListener.setHeadBox(2, false);
-                textGLListener.setSampleCount(4);
                 window.display();
                 textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
                 sleep();
             } };
 
-        final Font[] fonts = FontSet01.getSet01();
-        for(final Font f : fonts) {
+        for(final Font f : fontSet) {
             if( textGLListener.setFont(f) ) {
-                action_per_font.run();
+                for(final int sampleCount : sampleSet ) {
+                    textGLListener.setSampleCount(sampleCount);
+                    action_per_font.run();
+                }
             }
         }
         if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
@@ -245,7 +264,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final TextGLListener textGLListener = new TextGLListener(glp, 0, 0 /* sampleCount */, DEBUG, TRACE);
+        final TextGLListener textGLListener = new TextGLListener(glp, Region.NORM_RENDERING_BIT, -1, 0 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         textGLListener.setHeadBox(2, true);
@@ -255,28 +274,21 @@ public class TestTextRendererNEWT20 extends UITestCase {
             @Override
             public void run() {
                 textGLListener.setHeadBox(1, false);
-                textGLListener.setSampleCount(0);
                 window.display();
                 textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
                 sleep();
 
                 textGLListener.setHeadBox(2, false);
-                textGLListener.setSampleCount(0);
                 window.display();
                 textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
                 sleep();
             } };
 
-        final Font[] fonts = FontSet01.getSet01();
-        for(final Font f : fonts) {
+        for(final Font f : fontSet) {
             if( textGLListener.setFont(f) ) {
                 action_per_font.run();
             }
         }
-        if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
-            action_per_font.run();
-        }
-
         destroyWindow(window);
     }
 
@@ -291,7 +303,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final TextGLListener textGLListener = new TextGLListener(glp, 0, 0 /* sampleCount */, DEBUG, TRACE);
+        final TextGLListener textGLListener = new TextGLListener(glp, Region.NORM_RENDERING_BIT, -1, 0 /* sampleCount */, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         textGLListener.setHeadBox(2, true);
@@ -301,34 +313,27 @@ public class TestTextRendererNEWT20 extends UITestCase {
             @Override
             public void run() {
                 textGLListener.setHeadBox(1, false);
-                textGLListener.setSampleCount(0);
                 window.display();
                 textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
                 sleep();
 
                 textGLListener.setHeadBox(2, false);
-                textGLListener.setSampleCount(0);
                 window.display();
                 textGLListener.printScreenOnGLThread(window, "./", window.getTitle(), "", false);
                 sleep();
             } };
 
-        final Font[] fonts = FontSet01.getSet01();
-        for(final Font f : fonts) {
+        for(final Font f : fontSet) {
             if( textGLListener.setFont(f) ) {
                 action_per_font.run();
             }
         }
-        if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
-            action_per_font.run();
-        }
-
         destroyWindow(window);
     }
 
     private static class TextGLListener extends GPUTextRendererListenerBase01 {
-        public TextGLListener(final GLProfile glp, final int type, final int sampleCount, final boolean debug, final boolean trace) {
-            super(glp, type, sampleCount, true, debug, trace);
+        public TextGLListener(final GLProfile glp, final int type, final int aaQuality, final int sampleCount, final boolean debug, final boolean trace) {
+            super(glp, type, aaQuality, sampleCount, true, debug, trace);
         }
 
         @Override

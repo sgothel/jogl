@@ -446,6 +446,7 @@ public class UISceneDemo03 {
                 }
                 return true;
             });
+            scene.setAAQuality(options.graphAAQuality);
 
             final long t0_us = Clock.currentNanos() / 1000; // [us]
             while ( ( null == dynAnimSet[0] || dynAnimSet[0].isAnimationActive() || animGroup.getTickPaused() ) && window.isNativeValid() ) {

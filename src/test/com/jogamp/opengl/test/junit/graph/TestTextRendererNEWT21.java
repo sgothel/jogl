@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 JogAmp Community. All rights reserved.
+ * Copyright 2023-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,16 +27,13 @@
  */
 package com.jogamp.opengl.test.junit.graph;
 
+import java.io.File;
 import java.io.IOException;
 
-import com.jogamp.opengl.GL;
-import com.jogamp.opengl.GL2ES2;
-import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
 import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.JoglVersion;
 
 import jogamp.common.os.PlatformPropsImpl;
 
@@ -48,7 +45,6 @@ import org.junit.runners.MethodSorters;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.newt.opengl.GLWindow;
@@ -69,6 +65,9 @@ public class TestTextRendererNEWT21 extends UITestCase {
     static long duration = 100; // ms
     static int win_width = 1280;
     static int win_height = 720;
+    static Font[] fontSet = new Font[] { };
+    static int[] aaQualitySet = new int[] { 0, 1 };
+    static int[] sampleSet = new int[] { 1, 2, 4 };
     static boolean onlyOne = false;
 
     static int atoi(final String a) {
@@ -90,7 +89,19 @@ public class TestTextRendererNEWT21 extends UITestCase {
             } else if(args[i].equals("-height")) {
                 i++;
                 win_height = atoi(args[i]);
+            } else if(args[i].equals("-font")) {
+                i++;
+                fontSet = new Font[] { FontFactory.get(new File(args[i])) };
+            } else if(args[i].equals("-samples")) {
+                i++;
+                sampleSet = new int[] { atoi(args[i]) };
+            } else if(args[i].equals("-aaq")) {
+                i++;
+                aaQualitySet = new int[] { atoi(args[i]) };
             }
+        }
+        if( 0 == fontSet.length ) {
+            fontSet = FontSet01.getSet01();
         }
         final String tstname = TestTextRendererNEWT21.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
@@ -130,13 +141,15 @@ public class TestTextRendererNEWT21 extends UITestCase {
     class TestAction implements Runnable {
         private final GLWindow window;
         private final int renderModes;
+        private final int graphAAQuality;
         private final int graphSampleCount;
         private final Font font;
         private boolean keepAlive = false;
 
-        public TestAction(final GLWindow window, final int renderModes, final int graphSampleCount, final Font font) {
+        public TestAction(final GLWindow window, final int renderModes, final int graphAAQuality, final int graphSampleCount, final Font font) {
             this.window = window;
             this.renderModes = renderModes;
+            this.graphAAQuality = graphAAQuality;
             this.graphSampleCount = graphSampleCount;
             this.font = font;
         }
@@ -147,9 +160,9 @@ public class TestTextRendererNEWT21 extends UITestCase {
             final int fsaaSampleCount = window.getChosenGLCapabilities().getNumSamples();
             if( null != font ) {
                 System.err.printf("Test Run: %s, %s%n",
-                        Region.getRenderModeString(renderModes, graphSampleCount, fsaaSampleCount),
+                        Region.getRenderModeString(renderModes, 0, graphSampleCount, fsaaSampleCount),
                         font.getFullFamilyName());
-                final FontViewListener01 glel = new FontViewListener01(renderModes, graphSampleCount, font, '!' /* startCharSymbol */);
+                final FontViewListener01 glel = new FontViewListener01(renderModes, graphAAQuality, graphSampleCount, font, '!' /* startCharSymbol */);
                 glel.attachInputListenerTo(window);
                 window.addGLEventListener(glel);
                 window.display();
@@ -160,7 +173,7 @@ public class TestTextRendererNEWT21 extends UITestCase {
                 }
             } else {
                 System.err.printf("Test Skipped: %s, %s, font not available%n",
-                        Region.getRenderModeString(renderModes, graphSampleCount, fsaaSampleCount),
+                        Region.getRenderModeString(renderModes, 0, graphSampleCount, fsaaSampleCount),
                         font.getFullFamilyName());
             }
         }
@@ -184,8 +197,7 @@ public class TestTextRendererNEWT21 extends UITestCase {
         // System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(window.getScreen().getDisplay().getGraphicsDevice(), null).toString());
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final int graphSampleCount = 4;
-        final TestAction ta = new TestAction(window, Region.VBAA_RENDERING_BIT, graphSampleCount, FontSet01.getSet01()[0]);
+        final TestAction ta = new TestAction(window, Region.VBAA_RENDERING_BIT, aaQualitySet[0], sampleSet[0], fontSet[0]);
         ta.setKeepAlive(true);
         ta.run();
     }
@@ -209,15 +221,12 @@ public class TestTextRendererNEWT21 extends UITestCase {
         // System.err.println(JoglVersion.getAllAvailableCapabilitiesInfo(window.getScreen().getDisplay().getGraphicsDevice(), null).toString());
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final int graphSampleCount = 4;
-        final Font[] fonts = FontSet01.getSet01();
-        for(final Font f : fonts) {
-            new TestAction(window, Region.VBAA_RENDERING_BIT, graphSampleCount, f).run();
-        }
-        try {
-            new TestAction(window, Region.VBAA_RENDERING_BIT, graphSampleCount, FontFactory.get(FontFactory.JAVA).get(0 /* family */, 0 /* stylebits */)).run();
-        } catch(final IOException ioe) {
-            System.err.println("Caught: "+ioe.getMessage());
+        for(final Font f : fontSet) {
+            for(final int aaQuality : aaQualitySet ) {
+                for(final int sampleCount : sampleSet ) {
+                    new TestAction(window, Region.VBAA_RENDERING_BIT, aaQuality, sampleCount, f).run();
+                }
+            }
         }
         destroyWindow(window);
     }
@@ -239,15 +248,10 @@ public class TestTextRendererNEWT21 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final int graphSampleCount = 4;
-        final Font[] fonts = FontSet01.getSet01();
-        for(final Font f : fonts) {
-            new TestAction(window, Region.MSAA_RENDERING_BIT, graphSampleCount, f).run();
-        }
-        try {
-            new TestAction(window, Region.MSAA_RENDERING_BIT, graphSampleCount, FontFactory.get(FontFactory.JAVA).get(0 /* family */, 0 /* stylebits */)).run();
-        } catch(final IOException ioe) {
-            System.err.println("Caught: "+ioe.getMessage());
+        for(final Font f : fontSet) {
+            for(final int sampleCount : sampleSet ) {
+                new TestAction(window, Region.MSAA_RENDERING_BIT, -1, sampleCount, f).run();
+            }
         }
         destroyWindow(window);
     }
@@ -268,15 +272,8 @@ public class TestTextRendererNEWT21 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final int graphSampleCount = 0;
-        final Font[] fonts = FontSet01.getSet01();
-        for(final Font f : fonts) {
-            new TestAction(window, Region.NORM_RENDERING_BIT, graphSampleCount, f).run();
-        }
-        try {
-            new TestAction(window, Region.NORM_RENDERING_BIT, graphSampleCount, FontFactory.get(FontFactory.JAVA).get(0 /* family */, 0 /* stylebits */)).run();
-        } catch(final IOException ioe) {
-            System.err.println("Caught: "+ioe.getMessage());
+        for(final Font f : fontSet) {
+            new TestAction(window, Region.NORM_RENDERING_BIT, -1, 0, f).run();
         }
         destroyWindow(window);
     }
@@ -295,15 +292,8 @@ public class TestTextRendererNEWT21 extends UITestCase {
         window.display();
         System.err.println("Chosen: "+window.getChosenGLCapabilities());
 
-        final int graphSampleCount = 0;
-        final Font[] fonts = FontSet01.getSet01();
-        for(final Font f : fonts) {
-            new TestAction(window, Region.NORM_RENDERING_BIT, graphSampleCount, f).run();
-        }
-        try {
-            new TestAction(window, Region.NORM_RENDERING_BIT, graphSampleCount, FontFactory.get(FontFactory.JAVA).get(0 /* family */, 0 /* stylebits */)).run();
-        } catch(final IOException ioe) {
-            System.err.println("Caught: "+ioe.getMessage());
+        for(final Font f : fontSet) {
+            new TestAction(window, Region.NORM_RENDERING_BIT, -1, 0, f).run();
         }
         destroyWindow(window);
     }

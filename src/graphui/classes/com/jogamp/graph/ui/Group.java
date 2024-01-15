@@ -394,7 +394,7 @@ public class Group extends Shape implements Container {
     }
 
     @Override
-    protected void validateImpl(final GLProfile glp, final GL2ES2 gl) {
+    protected void validateImpl(final GL2ES2 gl, final GLProfile glp) {
         if( isShapeDirty() ) {
             final boolean needsRMs = hasBorder() && null == border;
             GraphShape firstGS = null;
@@ -410,11 +410,7 @@ public class Group extends Shape implements Container {
                             firstGS = (GraphShape)s;
                         }
                         layouter.preValidate(s);
-                        if( null != gl ) {
-                            s.validate(gl);
-                        } else {
-                            s.validate(glp);
-                        }
+                        s.validate(gl, glp);
                     }
                 }
                 layouter.layout(this, box, pmv);
@@ -426,11 +422,7 @@ public class Group extends Shape implements Container {
                     if( needsRMs && null == firstGS && s instanceof GraphShape ) {
                         firstGS = (GraphShape)s;
                     }
-                    if( null != gl ) {
-                        s.validate(gl);
-                    } else {
-                        s.validate(glp);
-                    }
+                    s.validate(gl, glp);
                     pmv.pushMv();
                     s.setTransformMv(pmv);
                     s.getBounds().transform(pmv.getMv(), tsbox);

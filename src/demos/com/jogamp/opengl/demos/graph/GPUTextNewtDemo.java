@@ -140,7 +140,7 @@ public class GPUTextNewtDemo {
         window.setSize(width, height);
         window.setTitle("GPU Text Newt Demo - graph[vbaa"+GraphVBAASamples+" msaa"+GraphMSAASamples+"], msaa "+SceneMSAASamples);
 
-        final GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(glp, rmode, sampleCount, true, DEBUG, TRACE);
+        final GPUTextGLListener0A textGLListener = new GPUTextGLListener0A(glp, rmode, Region.DEFAULT_AA_QUALITY, sampleCount, true, DEBUG, TRACE);
         textGLListener.setFont(opt_font);
         textGLListener.setFontHeadSize(opt_fontSizeHead);
         // ((TextRenderer)textGLListener.getRenderer()).setCacheLimit(32);

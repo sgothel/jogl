@@ -262,11 +262,11 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             }
             renderer.enable(gl, true);
             if( cacheRegion ) {
-                textRenderUtil.drawString3D(gl, renderer, font, text, null, vbaaSampleCount);
+                textRenderUtil.drawString3D(gl, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, vbaaSampleCount);
             } else if( null != region ) {
-                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, vbaaSampleCount, tempT1, tempT2);
+                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, vbaaSampleCount, tempT1, tempT2);
             } else {
-                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, vbaaSampleCount, tempT1, tempT2);
+                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, vbaaSampleCount, tempT1, tempT2);
             }
             renderer.enable(gl, false);
 
@@ -310,7 +310,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 pmvMatrix.scaleMv(sxy, sxy, 1.0f);
             }
             renderer.enable(gl, true);
-            region.draw(gl, renderer, Region.MAX_AA_QUALITY, vbaaSampleCount);
+            region.draw(gl, renderer, Region.DEFAULT_AA_QUALITY, vbaaSampleCount);
             renderer.enable(gl, false);
 
             if( !exclusivePMVMatrix )  {

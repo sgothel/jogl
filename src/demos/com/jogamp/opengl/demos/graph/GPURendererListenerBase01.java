@@ -90,6 +90,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     private float yTran =  10;
     private float ang = 0f;
     private float zTran = -70f;
+    private int graphAAQuality = Region.DEFAULT_AA_QUALITY;
     private final int[] sampleCount = new int[] { 4 };
 
     protected volatile float weight = 1.0f;
@@ -113,6 +114,9 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public final float getAngleRad() { return FloatUtil.adegToRad(ang); }
     public final int[] getSampleCount() { return sampleCount; }
     public final float[] getPosition() { return position; }
+
+    public final void setAAQuality(final int v) { graphAAQuality = Region.clipAAQuality(v); }
+    public final int getAAQuality() { return graphAAQuality; }
 
     public void setMatrix(final float xtrans, final float ytrans, final float zTran, final float angle, final int sampleCount) {
         this.xTran = xtrans;

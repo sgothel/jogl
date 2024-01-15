@@ -148,7 +148,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     Window upstream_window = null;
     StringBuilder userString = new StringBuilder(textX1);
     boolean userInput = false;
-    public GPUTextRendererListenerBase01(final GLProfile glp, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
+    public GPUTextRendererListenerBase01(final GLProfile glp, final int renderModes, final int aaQuality, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
         // NOTE_ALPHA_BLENDING: We use alpha-blending
         super(RegionRenderer.create(blending ? RegionRenderer.defaultBlendEnable : null, blending ? RegionRenderer.defaultBlendDisable : null),
                                     renderModes, debug, trace);
@@ -159,6 +159,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         this.regionBottom = GLRegion.create(glp, renderModes, null, 0, 0);
         setFontSet(fontSet, FontSet.FAMILY_LIGHT, FontSet.STYLE_NONE);
         setMatrix(0, 0, 0, 0f, sampleCount);
+        setAAQuality(aaQuality);
     }
 
     void switchHeadBox() {
@@ -323,7 +324,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 lfps = 0f;
                 tfps = 0f;
             }
-            final String modeS = Region.getRenderModeString(regionFPS.getRenderModes());
+            final String modeS = Region.getRenderModeString(regionFPS.getRenderModes())+"-q"+getAAQuality();
             final String text = String.format("%03.1f/%03.1f fps, v-sync %d, dpiV %.2f %.2f px/mm, font[head %.1fpt %.2fpx %.2fmm, center %.1fpt %.2fpx %.2fmm], %s-samples[%d, this %d], blend %b, alpha %d",
                     lfps, tfps, gl.getSwapInterval(), dpiV, ppmmV,
                     fontSizeHead, pixelSizeHead, mmSizeHead,
@@ -339,7 +340,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 pmv.scaleMv(sxy, sxy, 1.0f);
             }
             // No cache, keep region alive!
-            TextRegionUtil.drawString3D(gl, regionFPS.clear(gl), renderer, font, text, null, sampleCountFPS, tempT1, tempT2);
+            TextRegionUtil.drawString3D(gl, regionFPS.clear(gl), renderer, font, text, null, getAAQuality(), sampleCountFPS, tempT1, tempT2);
             pmv.popMv();
         }
 
@@ -354,7 +355,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 pmv.scaleMv(sxy, sxy, 1.0f);
             }
             // System.err.printf("FontN: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
-            textRegionUtil.drawString3D(gl, renderer, font, fontName, null, getSampleCount());
+            textRegionUtil.drawString3D(gl, renderer, font, fontName, null, getAAQuality(), getSampleCount());
             pmv.popMv();
         }
 
@@ -370,7 +371,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 pmv.scaleMv(sxy, sxy, 1.0f);
             }
             // pmv.glTranslatef(x0, y1, z0);
-            textRegionUtil.drawString3D(gl, renderer, font, headtext, null, getSampleCount());
+            textRegionUtil.drawString3D(gl, renderer, font, headtext, null, getAAQuality(), getSampleCount());
             pmv.popMv();
         }
 
@@ -393,15 +394,15 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             }
             if(!userInput) {
                 if( bottomTextUseFrustum ) {
-                    TextRegionUtil.drawString3D(gl, regionBottom.clear(gl), renderer, font, text2, null, getSampleCount(), tempT1, tempT2);
+                    TextRegionUtil.drawString3D(gl, regionBottom.clear(gl), renderer, font, text2, null, getAAQuality(), getSampleCount(), tempT1, tempT2);
                 } else {
-                    textRegionUtil.drawString3D(gl, renderer, font, text2, null, getSampleCount());
+                    textRegionUtil.drawString3D(gl, renderer, font, text2, null, getAAQuality(), getSampleCount());
                 }
             } else {
                 if( bottomTextUseFrustum ) {
-                    TextRegionUtil.drawString3D(gl, regionBottom.clear(gl), renderer, font, userString.toString(), null, getSampleCount(), tempT1, tempT2);
+                    TextRegionUtil.drawString3D(gl, regionBottom.clear(gl), renderer, font, userString.toString(), null, getAAQuality(), getSampleCount(), tempT1, tempT2);
                 } else {
-                    textRegionUtil.drawString3D(gl, renderer, font, userString.toString(), null, getSampleCount());
+                    textRegionUtil.drawString3D(gl, renderer, font, userString.toString(), null, getAAQuality(), getSampleCount());
                 }
             }
             pmv.popMv();

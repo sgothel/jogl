@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2023 JogAmp Community. All rights reserved.
+ * Copyright 2012-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -201,7 +201,7 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
             final float sxy = fontSize / font.getMetrics().getUnitsPerEM();
             pmv.scaleMv(sxy, sxy, 1.0f);
         }
-        textRenderUtil.drawString3D(gl, renderer, font, text, null, sampleCount);
+        textRenderUtil.drawString3D(gl, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, sampleCount);
 
         lastRow = row;
     }

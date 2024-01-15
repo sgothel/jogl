@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2023 JogAmp Community. All rights reserved.
+ * Copyright 2011-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -256,7 +256,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
         pmv.loadMvIdentity();
         pmv.translateMv(dx, dy, z0);
         pmv.scaleMv(fontSize, fontSize, 1.0f);
-        textRenderUtil.drawString3D(gl, renderer, font, text, null, sampleCount);
+        textRenderUtil.drawString3D(gl, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, sampleCount);
 
         lastRow = row;
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 JogAmp Community. All rights reserved.
+ * Copyright 2023-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -347,6 +347,7 @@ public class FontView01 {
             }
         }
         scene.addShape(mainGrid);
+        scene.setAAQuality(options.graphAAQuality);
 
         window.addKeyListener(new KeyAdapter() {
             @Override

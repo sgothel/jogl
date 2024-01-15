@@ -32,7 +32,6 @@ import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.fixedfunc.GLMatrixFunc;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
@@ -40,7 +39,6 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.opengl.util.PMVMatrix;
 
 /** Demonstrate the rendering of multiple outlines into one region/OutlineShape
  *  These Outlines are not necessary connected or contained.
@@ -52,10 +50,11 @@ import com.jogamp.opengl.util.PMVMatrix;
 public class GPURegionGLListener00 extends GPURendererListenerBase01 {
     OutlineShape outlineShape = null;
 
-    public GPURegionGLListener00 (final int renderModes, final int sampleCount, final boolean debug, final boolean trace) {
+    public GPURegionGLListener00 (final int renderModes, final int aaQuality, final int sampleCount, final boolean debug, final boolean trace) {
         super(RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
         this.getRenderer().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         setMatrix(-20, 00, -50, 0f, sampleCount);
+        setAAQuality(aaQuality);
     }
 
     private void createTestOutline(final GLProfile glp){
@@ -127,7 +126,7 @@ public class GPURegionGLListener00 extends GPURendererListenerBase01 {
             regionRenderer.setWeight(weight);
         }
         regionRenderer.enable(gl, true);
-        region.draw(gl, regionRenderer, Region.MAX_AA_QUALITY, getSampleCount());
+        region.draw(gl, regionRenderer, getAAQuality(), getSampleCount());
         regionRenderer.enable(gl, false);
     }
 }

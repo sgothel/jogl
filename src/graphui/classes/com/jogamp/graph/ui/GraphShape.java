@@ -58,7 +58,7 @@ public abstract class GraphShape extends Shape {
     protected int pass2TexUnit = GLRegion.DEFAULT_TWO_PASS_TEXTURE_UNIT;
     protected GLRegion region = null;
     protected float oshapeSharpness = OutlineShape.DEFAULT_SHARPNESS;
-    private int regionPass2Quality = Region.MAX_AA_QUALITY;
+    private int regionPass2Quality = Region.DEFAULT_AA_QUALITY;
     private final List<GLRegion> dirtyRegions = new ArrayList<GLRegion>();
 
     /**
@@ -87,15 +87,21 @@ public abstract class GraphShape extends Shape {
     public final int getRenderModes() { return renderModes; }
 
     /**
-     * Sets the shape's Graph {@link Region}'s pass2 AA-quality parameter. Default is {@link Region#MAX_AA_QUALITY}.
-     * @param q Graph {@link Region}'s pass2 AA-quality parameter, default is {@link Region#MAX_AA_QUALITY}.
+     * Sets the shape's Graph {@link Region}'s pass2 AA-quality parameter. Default is {@link Region#DEFAULT_AA_QUALITY}.
+     * @param v Graph {@link Region}'s pass2 AA-quality parameter, default is {@link Region#DEFAULT_AA_QUALITY}.
      * @return this shape for chaining.
      */
-    public final GraphShape setAAQuality(final int q) {
-        this.regionPass2Quality = q;
+    public final GraphShape setAAQuality(final int v) {
+        this.regionPass2Quality = Region.clipAAQuality(v);
         markStateDirty();
         return this;
     }
+
+    /**
+     * Return the shape's Graph {@link Region}'s quality parameter.
+     * @see #setAAQuality(int)
+     */
+    public final int getAAQuality() { return regionPass2Quality; }
 
     /** Set the 2nd pass texture unit. */
     public void setTextureUnit(final int pass2TexUnit) {
@@ -104,12 +110,6 @@ public abstract class GraphShape extends Shape {
             region.setTextureUnit(pass2TexUnit);
         }
     }
-
-    /**
-     * Return the shape's Graph {@link Region}'s quality parameter.
-     * @see #setAAQuality(int)
-     */
-    public final int getAAQuality() { return regionPass2Quality; }
 
     /**
      * Sets the shape's Graph {@link OutlineShape}'s sharpness parameter. Default is {@link OutlineShape#DEFAULT_SHARPNESS}.
@@ -228,7 +228,7 @@ public abstract class GraphShape extends Shape {
     }
 
     @Override
-    protected final void validateImpl(final GLProfile glp, final GL2ES2 gl) {
+    protected final void validateImpl(final GL2ES2 gl, final GLProfile glp) {
         if( null != gl ) {
             clearDirtyRegions(gl);
         }

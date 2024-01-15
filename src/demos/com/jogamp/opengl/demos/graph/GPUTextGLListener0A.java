@@ -37,8 +37,8 @@ import com.jogamp.newt.opengl.GLWindow;
 
 public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
 
-    public GPUTextGLListener0A(final GLProfile glp, final int renderModes, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
-        super(glp, renderModes, sampleCount, blending, debug, trace);
+    public GPUTextGLListener0A(final GLProfile glp, final int renderModes, final int aaQuality, final int sampleCount, final boolean blending, final boolean debug, final boolean trace) {
+        super(glp, renderModes, aaQuality, sampleCount, blending, debug, trace);
     }
 
     @Override

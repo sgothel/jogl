@@ -138,6 +138,7 @@ public final class Scene implements Container, GLEventListener {
     private final RegionRenderer renderer;
 
     private final int[] sampleCount = new int[1];
+    private int globalAAQuality = -1; // undefined
 
     /** Describing the bounding box in shape's object model-coordinates of the near-plane parallel at its scene-distance, post {@link #translate(PMVMatrix4f)} */
     private final AABBox planeBox = new AABBox(0f, 0f, 0f, 0f, 0f, 0f);
@@ -189,7 +190,7 @@ public final class Scene implements Container, GLEventListener {
             throw new IllegalArgumentException("Null RegionRenderer");
         }
         this.renderer = renderer;
-        this.sampleCount[0] = Math.min(Region.MAX_AA_SAMPLE_COUNT, Math.max(sampleCount, Region.MIN_AA_SAMPLE_COUNT)); // clip
+        this.sampleCount[0] = Region.clipAASampleCount(sampleCount);
         this.screenshot = new GLReadBufferUtil(false, false);
     }
 
@@ -368,7 +369,7 @@ public final class Scene implements Container, GLEventListener {
      * @return clipped and set value
      */
     public int setSampleCount(final int v) {
-        sampleCount[0] = Math.min(Region.MAX_AA_SAMPLE_COUNT, Math.max(v, Region.MIN_AA_SAMPLE_COUNT)); // clip
+        sampleCount[0] = Region.clipAASampleCount(v);
         markStatesDirty();
         return sampleCount[0];
     }
@@ -379,7 +380,8 @@ public final class Scene implements Container, GLEventListener {
      * @return clipped and set value
      */
     public void setAAQuality(final int v) {
-        final int q = Math.min(Region.MAX_AA_QUALITY, Math.max(v, Region.MIN_AA_QUALITY)); // clip
+        final int q = Region.clipAAQuality(v);
+        globalAAQuality = q;
         forAll((final Shape s) -> {
             if( s instanceof GraphShape ) {
                 ((GraphShape)s).setAAQuality(q);
@@ -387,6 +389,9 @@ public final class Scene implements Container, GLEventListener {
            return false;
         });
     }
+    /** Returns the global AA quality value if set via {@link #setAAQuality(int)}, otherwise {@code -1}. */
+    public int getAAQuality() { return globalAAQuality; }
+
     public void setSharpness(final float sharpness) {
         forAll((final Shape s) -> {
             if( s instanceof GraphShape ) {
@@ -1263,7 +1268,7 @@ public final class Scene implements Container, GLEventListener {
     /**
      * Return a formatted status string containing avg fps and avg frame duration.
      * @param glad GLAutoDrawable instance for FPSCounter, its chosen GLCapabilities and its GL's swap-interval
-     * @param renderModes render modes for {@link Region#getRenderModeString(int, int, int)}
+     * @param renderModes render modes for {@link Region#getRenderModeString(int, int, int, int)}
      * @param quality the Graph-Curve quality setting or -1 to be ignored
      * @param dpi the monitor's DPI (vertical preferred)
      * @return formatted status string
@@ -1281,20 +1286,25 @@ public final class Scene implements Container, GLEventListener {
                 td = 0f;
             }
             final GLCapabilitiesImmutable caps = glad.getChosenGLCapabilities();
-            final String modeS = Region.getRenderModeString(renderModes, getSampleCount(), caps.getNumSamples());
-            final String qualityStr, blendStr;
-            if( 0 <= quality ) {
-                qualityStr = ", q "+quality;
-            } else {
-                qualityStr = "";
-            }
+            final String modeS = Region.getRenderModeString(renderModes, quality, getSampleCount(), caps.getNumSamples());
+            final String blendStr;
             if( getRenderer().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
                 blendStr = ", blend";
             } else {
                 blendStr = "";
             }
-            return String.format("%03.1f/%03.1f fps, %.1f ms/f, vsync %d, dpi %.1f, %s%s%s, a %d",
-                        lfps, tfps, td, glad.getGL().getSwapInterval(), dpi, modeS, qualityStr, blendStr, caps.getAlphaBits());
+            return String.format("%03.1f/%03.1f fps, %.1f ms/f, vsync %d, dpi %.1f, %s%s, a %d",
+                        lfps, tfps, td, glad.getGL().getSwapInterval(), dpi, modeS, blendStr, caps.getAlphaBits());
+    }
+    /**
+     * Return a formatted status string containing avg fps and avg frame duration using {@link #getAAQuality()}
+     * @param glad GLAutoDrawable instance for FPSCounter, its chosen GLCapabilities and its GL's swap-interval
+     * @param renderModes render modes for {@link Region#getRenderModeString(int, int, int, int)}
+     * @param dpi the monitor's DPI (vertical preferred)
+     * @return formatted status string
+     */
+    public String getStatusText(final GLAutoDrawable glad, final int renderModes, final float dpi) {
+        return getStatusText(glad, renderModes, globalAAQuality, dpi);
     }
 
     /**
@@ -1312,7 +1322,7 @@ public final class Scene implements Container, GLEventListener {
     /**
      * Return the unique next technical screenshot PNG {@link File} instance as follows:
      * <pre>
-     *    filename = [{dir}][{prefix}-]{@link Region#getRenderModeString(int, int, int)}[-{contentDetails}]-snap{screenShotCount}-{resolution}.png
+     *    filename = [{dir}][{prefix}-]{@link Region#getRenderModeString(int, int, int, int)}[-{contentDetails}]-snap{screenShotCount}-{resolution}.png
      * </pre>
      * Implementation increments {@link #getScreenshotCount()}.
      *
@@ -1330,7 +1340,7 @@ public final class Scene implements Container, GLEventListener {
         final String dir2 = ( null != dir && dir.length() > 0 ) ? dir : "";
         final String prefix2 = ( null != prefix && prefix.length() > 0 ) ? prefix+"-" : "";
         final RegionRenderer renderer = getRenderer();
-        final String modeS = Region.getRenderModeString(renderModes, getSampleCount(), caps.getNumSamples());
+        final String modeS = Region.getRenderModeString(renderModes, globalAAQuality, getSampleCount(), caps.getNumSamples());
         final String contentDetail2 = ( null != contentDetail && contentDetail.length() > 0 ) ? contentDetail+"-" : "";
         return new File( String.format((Locale)null, "%s%s%s-%ssnap%02d-%04dx%04d.png",
                                        dir2, prefix2, modeS, contentDetail2,

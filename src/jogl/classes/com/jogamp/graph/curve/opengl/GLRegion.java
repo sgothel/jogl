@@ -539,7 +539,7 @@ public abstract class GLRegion extends Region {
         if( isShapeDirty() ) {
             updateImpl(gl, renderer, curRenderModes);
         }
-        drawImpl(gl, renderer, curRenderModes, pass2Quality, sampleCount);
+        drawImpl(gl, renderer, curRenderModes, Region.clipAAQuality(pass2Quality), sampleCount);
         clearDirtyBits(DIRTY_SHAPE|DIRTY_STATE);
         lastRenderModes = curRenderModes;
     }

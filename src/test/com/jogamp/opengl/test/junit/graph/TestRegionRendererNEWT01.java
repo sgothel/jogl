@@ -1,5 +1,5 @@
 /**
- * Copyright 2011-2023 JogAmp Community. All rights reserved.
+ * Copyright 2011-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -85,7 +85,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
 
         final GLWindow window = createWindow("t00-shape-vbaa0-msaa0", caps, 800, 400);
 
-        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (0, 0, false, false);
+        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (0, Region.DEFAULT_AA_QUALITY, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 
@@ -118,7 +118,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
 
         final GLWindow window = createWindow("t01-shape-vbaa0-msaa0", caps, 800, 400);
 
-        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (Region.VARWEIGHT_RENDERING_BIT, 0, false, false);
+        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (Region.VARWEIGHT_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 
@@ -148,7 +148,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
 
         final GLWindow window = createWindow("t10-shape-vbaa0-msaa1", caps, 800, 400);
 
-        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (0, 0, false, false);
+        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (0, Region.DEFAULT_AA_QUALITY, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 
@@ -183,7 +183,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
 
         final GLWindow window = createWindow("t11-shape-vbaa0-msaa1", caps, 800, 400);
 
-        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (Region.VARWEIGHT_RENDERING_BIT, 0, false, false);
+        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (Region.VARWEIGHT_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 
@@ -216,7 +216,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);
 
         final GLWindow window = createWindow("t20-shape-vbaa1-msaa0", caps, 800,400);
-        final GPURegionGLListener10  demo02Listener = new GPURegionGLListener10 (Region.VBAA_RENDERING_BIT, 4, false, false);
+        final GPURegionGLListener10  demo02Listener = new GPURegionGLListener10 (Region.VBAA_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 4, false, false);
         demo02Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo02Listener);
 
@@ -238,7 +238,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
     private void test30RegionRendererShapesImpl(final GLCapabilities caps, final int shape_ctor_mode) throws InterruptedException {
         final GLWindow window = createWindow("t30-shape0"+shape_ctor_mode+"-vbaa0-msaa1", caps, 800, 400);
 
-        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (shape_ctor_mode, 0, 0, false, false);
+        final GPURegionGLListener01 demo01Listener = new GPURegionGLListener01 (shape_ctor_mode, 0, Region.DEFAULT_AA_QUALITY, 0, false, false);
         demo01Listener.attachInputListenerTo(window);
         window.addGLEventListener(demo01Listener);
 

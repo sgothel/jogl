@@ -85,6 +85,7 @@ public class UISceneDemo01b {
         final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.addShape(shape);
+        scene.setAAQuality(options.graphAAQuality);
 
         final Animator animator = new Animator(0 /* w/o AWT */);
 

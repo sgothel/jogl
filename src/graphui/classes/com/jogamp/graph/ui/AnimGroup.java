@@ -383,7 +383,7 @@ public class AnimGroup extends Group {
             {
                 refShape.setTransformMv(pmv);
                 as = new Set(pixPerMM, refShape.getPixelPerShapeUnit(pmv, viewport, new float[2]), refShape,
-                                 accel, velocity, ang_accel, ang_velo, allShapes, sourceBounds, lerp);
+                             accel, velocity, ang_accel, ang_velo, allShapes, sourceBounds, lerp);
             }
             pmv.popMv();
         }
@@ -448,10 +448,10 @@ public class AnimGroup extends Group {
      * @return newly created and added {@link Set}
      */
     public final Set addGlyphSetRandom01(final float pixPerMM,
-                                             final GLProfile glp, final PMVMatrix4f pmv, final Recti viewport, final int renderModes,
-                                             final Font font, final CharSequence text, final float fontScale, final Vec4f fgCol,
-                                             final float accel, final float velocity, final float ang_accel, final float ang_velo,
-                                             final AABBox animBox, final boolean z_only, final Random random, final LerpFunc lerp)
+                                         final GLProfile glp, final PMVMatrix4f pmv, final Recti viewport, final int renderModes,
+                                         final Font font, final CharSequence text, final float fontScale, final Vec4f fgCol,
+                                         final float accel, final float velocity, final float ang_accel, final float ang_velo,
+                                         final AABBox animBox, final boolean z_only, final Random random, final LerpFunc lerp)
     {
         return addGlyphSet(pixPerMM, glp, pmv, viewport, renderModes, font, 'X', text, fontScale,
                        accel, velocity, ang_accel, ang_velo, lerp, (final Set as, final int idx, final ShapeData sd) -> {

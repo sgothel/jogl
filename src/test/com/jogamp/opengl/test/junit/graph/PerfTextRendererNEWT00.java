@@ -308,7 +308,7 @@ public class PerfTextRendererNEWT00 {
             pmv.loadMvIdentity();
             pmv.translateMv(dx, dy, z0);
             pmv.scaleMv(fontScale, fontScale, 1f);
-            region.draw(gl, renderer, Region.MAX_AA_QUALITY, sampleCountIO);
+            region.draw(gl, renderer, Region.DEFAULT_AA_QUALITY, sampleCountIO);
             final long t5 = Clock.currentNanos(); // text added to region
             if( null != perf ) {
                 final long td_graph = t3 - t2;

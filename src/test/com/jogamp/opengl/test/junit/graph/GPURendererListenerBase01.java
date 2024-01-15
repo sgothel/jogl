@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -90,6 +90,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     private float yTran =  10;
     private float ang = 0f;
     private float zTran = -70f;
+    private int graphAAQuality = Region.DEFAULT_AA_QUALITY;
     private final int[] sampleCount = new int[] { 4 };
 
     protected volatile float weight = 1.0f;
@@ -114,12 +115,15 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public final int[] getSampleCount() { return sampleCount; }
     public final float[] getPosition() { return position; }
 
+    public final void setAAQuality(final int v) { graphAAQuality = Region.clipAAQuality(v); }
+    public final int getAAQuality() { return graphAAQuality; }
+
     public void setMatrix(final float xtrans, final float ytrans, final float zTran, final float angle, final int sampleCount) {
         this.xTran = xtrans;
         this.yTran = ytrans;
         this.zTran = zTran;
         this.ang = angle;
-        this.sampleCount[0] = sampleCount;
+        this.sampleCount[0] = Region.clipAASampleCount(sampleCount);
     }
 
     @Override
@@ -239,7 +243,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     }
 
     public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
-        final String sw = String.format("_s%02d-%s-Z%04d-snap%02d-%03dx%03d", sampleCount[0], objName, (int)Math.abs(zTran), screenshot_num++, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+        final String sw = String.format("_q%01d_s%02d-%s-Z%04d-snap%02d-%03dx%03d", graphAAQuality, sampleCount[0], objName, (int)Math.abs(zTran), screenshot_num++, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         final String filename = dir + tech + sw +".png";
         if(screenshot.readPixels(drawable.getGL(), false)) {
             screenshot.write(new File(filename));

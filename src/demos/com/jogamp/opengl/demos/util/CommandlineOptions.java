@@ -38,6 +38,8 @@ public class CommandlineOptions {
     public int sceneMSAASamples = 0;
     /** Sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT} */
     public int graphAASamples = 0;
+    /** Pass2 AA-quality rendering for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT}. Defaults to {@link Region#DEFAULT_AA_QUALITY}. */
+    public int graphAAQuality = Region.DEFAULT_AA_QUALITY;
     public boolean exclusiveContext = false;
     public boolean wait_to_start = false;
     public boolean keepRunning = false;
@@ -126,6 +128,9 @@ public class CommandlineOptions {
             graphAASamples = MiscUtils.atoi(args[idx[0]], 4);
             renderModes &= ~Region.AA_RENDERING_MASK;
             renderModes |= Region.VBAA_RENDERING_BIT;
+        } else if(args[idx[0]].equals("-gaaq")) {
+            ++idx[0];
+            graphAAQuality = Region.clipAAQuality( MiscUtils.atoi(args[idx[0]], graphAAQuality) );
         } else if(args[idx[0]].equals("-exclusiveContext")) {
             exclusiveContext = true;
         } else if(args[idx[0]].equals("-wait")) {
@@ -160,7 +165,7 @@ public class CommandlineOptions {
     @Override
     public String toString() {
         return "Options{surface[width "+surface_width+" x "+surface_height+"], glp "+glProfileName+
-               ", renderModes "+Region.getRenderModeString(renderModes)+
+               ", renderModes "+Region.getRenderModeString(renderModes)+", aa-q "+graphAAQuality+
                ", smsaa "+sceneMSAASamples+
                ", exclusiveContext "+exclusiveContext+", wait "+wait_to_start+", keep "+keepRunning+", stay "+stayOpen+", dur "+total_duration+"s"+
                "}";

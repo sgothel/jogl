@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.ui.Scene;
-import com.jogamp.graph.ui.Shape;
+import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.math.Recti;
 import com.jogamp.math.geom.AABBox;
@@ -73,13 +73,14 @@ public class UISceneDemo00 {
         final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final Shape shape = new Button(options.renderModes, font, "+", 0.10f, 0.10f/2.5f); // normalized: 1 is 100% surface size (width and/or height)
+        final GraphShape shape = new Button(options.renderModes, font, "+", 0.10f, 0.10f/2.5f); // normalized: 1 is 100% surface size (width and/or height)
         System.err.println("Shape bounds "+shape.getBounds(reqGLP));
 
         final Scene scene = new Scene(options.graphAASamples);
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.addShape(shape);
+        scene.setAAQuality(options.graphAAQuality);
 
         final Animator animator = new Animator(0 /* w/o AWT */);
 

@@ -456,7 +456,7 @@ public abstract class Shape {
     /** Return unscaled rotation origin, aka pivot. Null if not set via {@link #getRotationPivot()}. */
     public final Vec3f getRotationPivot() { return rotPivot; }
     /**
-     * Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}.
+     * Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GL2ES2, GLProfile)}.
      * @return this shape for chaining
      */
     public final Shape setRotationPivot(final float px, final float py, final float pz) {
@@ -464,7 +464,7 @@ public abstract class Shape {
         return this;
     }
     /**
-     * Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GLProfile, GL2ES2)}.
+     * Set unscaled rotation origin, aka pivot. Usually the {@link #getBounds()} center and should be set while {@link #validateImpl(GL2ES2, GLProfile)}.
      * @param pivot rotation origin
      * @return this shape for chaining
      */
@@ -688,7 +688,7 @@ public abstract class Shape {
             if( isShapeDirty() ) {
                 box.reset();
             }
-            validateImpl(gl.getGLProfile(), gl);
+            validateImpl(gl, gl.getGLProfile());
             dirty = 0;
         }
         return this;
@@ -707,10 +707,24 @@ public abstract class Shape {
             if( isShapeDirty() ) {
                 box.reset();
             }
-            validateImpl(glp, null);
+            validateImpl(null, glp);
             dirty = 0;
         }
         return this;
+    }
+
+    /**
+     * Validate the shape via {@link #validate(GL2ES2)} if {@code gl} is not null,
+     * otherwise uses {@link #validate(GLProfile)}.
+     * @see #validate(GL2ES2)
+     * @see #validate(GLProfile)
+     */
+    public final Shape validate(final GL2ES2 gl, final GLProfile glp) {
+        if( null != gl ) {
+            return validate(gl);
+        } else {
+            return validate(glp);
+        }
     }
 
     /**
@@ -1822,7 +1836,7 @@ public abstract class Shape {
     //
     //
 
-    protected abstract void validateImpl(final GLProfile glp, final GL2ES2 gl);
+    protected abstract void validateImpl(final GL2ES2 gl, final GLProfile glp);
 
     /**
      * Actual draw implementation, called by {@link #draw(GL2ES2, RegionRenderer, int[])}

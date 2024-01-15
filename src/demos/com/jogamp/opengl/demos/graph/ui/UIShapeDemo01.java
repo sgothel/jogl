@@ -180,6 +180,7 @@ public class UIShapeDemo01 implements GLEventListener {
         final float sz2 = 1/20f;
         button = new Button(renderModes, font, "Click me!", sz1_w, sz1_w/2f);
         button.setLabelColor(0.0f,0.0f,0.0f, 1.0f);
+        button.setAAQuality(options.graphAAQuality);
         /** Button defaults !
                 button.setLabelColor(1.0f,1.0f,1.0f);
                 button.setButtonColor(0.6f,0.6f,0.6f);
@@ -189,6 +190,7 @@ public class UIShapeDemo01 implements GLEventListener {
         System.err.println(button);
         crossHair = new CrossHair(renderModes, sz2, sz2, 1/1000f);
         crossHair.setColor(0f,0f,1f,1f);
+        crossHair.setAAQuality(options.graphAAQuality);
         crossHair.setVisible(true);
     }
 
@@ -231,7 +233,7 @@ public class UIShapeDemo01 implements GLEventListener {
         }
     }
 
-    final int[] sampleCount = { 4 };
+    final int[] sampleCount = { options.graphAASamples };
 
     private void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape shape) {
         final PMVMatrix4f pmv = renderer.getMatrix();
@@ -290,7 +292,7 @@ public class UIShapeDemo01 implements GLEventListener {
             pmv.pushMv();
             pmv.scaleMv(txt_scale, txt_scale, 1f);
             pmv.translateMv(-txt_box_em.getWidth(), 0f, 0f);
-            final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, new Vec4f( 0, 0, 0, 1 ), sampleCount, tempT1, tempT2);
+            final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, new Vec4f( 0, 0, 0, 1 ), options.graphAAQuality, sampleCount, tempT1, tempT2);
             if( once ) {
                 final AABBox txt_box_em2 = font.getGlyphShapeBounds(null, text);
                 System.err.println("XXX: full_width: "+full_width_o+" / "+txt_box_em.getWidth()+" -> "+full_width_s);

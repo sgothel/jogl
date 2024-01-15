@@ -168,7 +168,7 @@ public class TextRegionUtil {
      * @return the given int[2] storage for chaining
      * @see Region#setBufferCapacity(int, int)
      * @see Region#growBuffer(int, int)
-     * @see #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, Vec4f, int[], AffineTransform, AffineTransform)
+     * @see #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, Vec4f, int, int[], AffineTransform, AffineTransform)
      */
     public static int[] countStringRegion(final Font font, final CharSequence str, final int[/*2*/] vertIndexCount) {
         final Font.GlyphVisitor2 visitor = new Font.GlyphVisitor2() {
@@ -203,6 +203,7 @@ public class TextRegionUtil {
      * @param rgbaColor used to fill the {@link Region#hasColorChannel() region's color-channel} if used
      *                  and set {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} to white.
      *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only, if not {@code null}.
+     * @param aaQuality pass2 AA-quality, clipped to [{@link Region#MIN_AA_QUALITY}..{@link Region#MAX_AA_QUALITY}]
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @return the bounding box of the given string from the produced and rendered GLRegion
@@ -210,7 +211,7 @@ public class TextRegionUtil {
      */
     public AABBox drawString3D(final GL2ES2 gl,
                                final RegionRenderer renderer, final Font font, final CharSequence str,
-                               final Vec4f rgbaColor, final int[/*1*/] sampleCount) {
+                               final Vec4f rgbaColor, final int aaQuality, final int[/*1*/] sampleCount) {
         if( !renderer.isInitialized() ) {
             throw new GLException("TextRendererImpl01: not initialized!");
         }
@@ -231,20 +232,20 @@ public class TextRegionUtil {
         } else {
             renderer.setColorStatic(1, 1, 1, 1);
         }
-        region.draw(gl, renderer, Region.MAX_AA_QUALITY, sampleCount);
+        region.draw(gl, renderer, aaQuality, sampleCount);
         return res;
     }
 
     /**
-     * Try using {@link #drawString3D(GL2ES2, int, RegionRenderer, Font, CharSequence, Vec4f, int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
+     * Try using {@link #drawString3D(GL2ES2, int, RegionRenderer, Font, CharSequence, Vec4f, int, int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
      * <p>
      * The region's buffer size is pre-calculated via {@link GLRegion#create(com.jogamp.opengl.GLProfile, int, com.jogamp.opengl.util.texture.TextureSequence, Font, CharSequence)}
      * </p>
      */
     public static AABBox drawString3D(final GL2ES2 gl, final int renderModes,
                                       final RegionRenderer renderer, final Font font, final CharSequence str,
-                                      final Vec4f rgbaColor, final int[/*1*/] sampleCount) {
-        return drawString3D(gl, renderModes, renderer, font, str, rgbaColor, sampleCount, new AffineTransform(), new AffineTransform());
+                                      final Vec4f rgbaColor, final int aaQuality, final int[/*1*/] sampleCount) {
+        return drawString3D(gl, renderModes, renderer, font, str, rgbaColor, aaQuality, sampleCount, new AffineTransform(), new AffineTransform());
     }
 
     /**
@@ -261,7 +262,7 @@ public class TextRegionUtil {
      * <p>
      * In case of a multisampling region renderer, i.e. {@link Region#VBAA_RENDERING_BIT}, recreating the {@link GLRegion}
      * is a huge performance impact.
-     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, Vec4f, int[], AffineTransform, AffineTransform)}
+     * In such case better use {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, Vec4f, int, int[], AffineTransform, AffineTransform)}
      * instead.
      * </p>
      * @param gl the current GL state
@@ -271,6 +272,7 @@ public class TextRegionUtil {
      * @param rgbaColor used to fill the {@link Region#hasColorChannel() region's color-channel} if used
      *                  and set {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} to white.
      *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only, if not {@code null}.
+     * @param aaQuality pass2 AA-quality, clipped to [{@link Region#MIN_AA_QUALITY}..{@link Region#MAX_AA_QUALITY}]
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @param tmp1 temp {@link AffineTransform} to be reused
@@ -280,7 +282,7 @@ public class TextRegionUtil {
      */
     public static AABBox drawString3D(final GL2ES2 gl, final int renderModes,
                                       final RegionRenderer renderer, final Font font, final CharSequence str,
-                                      final Vec4f rgbaColor, final int[/*1*/] sampleCount, final AffineTransform tmp1, final AffineTransform tmp2) {
+                                      final Vec4f rgbaColor, final int aaQuality, final int[/*1*/] sampleCount, final AffineTransform tmp1, final AffineTransform tmp2) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
@@ -293,20 +295,20 @@ public class TextRegionUtil {
         } else {
             renderer.setColorStatic(1, 1, 1, 1);
         }
-        region.draw(gl, renderer, Region.MAX_AA_QUALITY, sampleCount);
+        region.draw(gl, renderer, aaQuality, sampleCount);
         region.destroy(gl);
         return res;
     }
 
     /**
-     * Try using {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, Vec4f, int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
+     * Try using {@link #drawString3D(GL2ES2, GLRegion, RegionRenderer, Font, CharSequence, Vec4f, int, int[], AffineTransform, AffineTransform)} to reuse {@link AffineTransform} instances.
      * <p>
      * The region buffer's size is grown by pre-calculating required size via {@link #countStringRegion(Font, CharSequence, int[])}.
      * </p>
      */
     public static AABBox drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
-                                      final Font font, final CharSequence str, final Vec4f rgbaColor, final int[/*1*/] sampleCount) {
-        return drawString3D(gl, region, renderer, font, str, rgbaColor, sampleCount, new AffineTransform(), new AffineTransform());
+                                      final Font font, final CharSequence str, final Vec4f rgbaColor, final int aaQuality, final int[/*1*/] sampleCount) {
+        return drawString3D(gl, region, renderer, font, str, rgbaColor, aaQuality, sampleCount, new AffineTransform(), new AffineTransform());
     }
 
     /**
@@ -331,6 +333,7 @@ public class TextRegionUtil {
      * @param rgbaColor used to fill the {@link Region#hasColorChannel() region's color-channel} if used
      *                  and set {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} to white.
      *                  Otherwise used to set the {@link RegionRenderer#setColorStatic(Vec4f) renderer's static-color} only, if not {@code null}.
+     * @param aaQuality pass2 AA-quality, clipped to [{@link Region#MIN_AA_QUALITY}..{@link Region#MAX_AA_QUALITY}]
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @param tmp1 temp {@link AffineTransform} to be reused
@@ -340,7 +343,7 @@ public class TextRegionUtil {
      */
     public static AABBox drawString3D(final GL2ES2 gl, final GLRegion region, final RegionRenderer renderer,
                                       final Font font, final CharSequence str, final Vec4f rgbaColor,
-                                      final int[/*1*/] sampleCount, final AffineTransform tmp1, final AffineTransform tmp2) {
+                                      final int aaQuality, final int[/*1*/] sampleCount, final AffineTransform tmp1, final AffineTransform tmp2) {
         if(!renderer.isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
@@ -352,7 +355,7 @@ public class TextRegionUtil {
         } else {
             renderer.setColorStatic(1, 1, 1, 1);
         }
-        region.draw(gl, renderer, Region.MAX_AA_QUALITY, sampleCount);
+        region.draw(gl, renderer, aaQuality, sampleCount);
         return res;
     }
 

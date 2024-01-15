@@ -173,15 +173,21 @@ public abstract class Region {
      */
     public static final int COLORTEXTURE_LETTERBOX_RENDERING_BIT = 1 <<  11;
 
-    /** Minimum pass2 AA-quality rendering {@value} (default) for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT}. */
+    /** Minimum pass2 AA-quality rendering {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT}. */
     public static final int MIN_AA_QUALITY  = 0;
-    /** Maximum pass2 AA-quality rendering {@value} (default) for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT}. */
+    /** Maximum pass2 AA-quality rendering {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT}. */
     public static final int MAX_AA_QUALITY  = 1;
+    /** Default pass2 AA-quality rendering {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT}. */
+    public static final int DEFAULT_AA_QUALITY  = MAX_AA_QUALITY;
+    /** Returns clipped AA quality value to [{@link Region#MIN_AA_QUALITY}..{@link Region#MAX_AA_QUALITY}] */
+    public static final int clipAAQuality(final int v) { return Math.min(Region.MAX_AA_QUALITY, Math.max(v, Region.MIN_AA_QUALITY)); }
 
     /** Minimum pass2 AA sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
     public static final int MIN_AA_SAMPLE_COUNT  = 1;
     /** Maximum pass2 AA sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
     public static final int MAX_AA_SAMPLE_COUNT  = 8;
+    /** Returns clipped AA sample-count to [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}] */
+    public static final int clipAASampleCount(final int v) { return Math.min(Region.MAX_AA_SAMPLE_COUNT, Math.max(v, Region.MIN_AA_SAMPLE_COUNT)); }
 
     public static final int DEFAULT_TWO_PASS_TEXTURE_UNIT = 0;
 
@@ -283,15 +289,20 @@ public abstract class Region {
     /**
      * Return a unique technical description string for renderModes and sample counts as follows:
      * <pre>
-     *    {@link #getRenderModeString(int)}-s{sampleCount}-fsaa{CapsNumSamples}
+     *    {@link #getRenderModeString(int)}-q{AA-quality}-s{sampleCount}-fsaa{CapsNumSamples}
      * </pre>
      *
      * @param renderModes the used Graph renderModes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}
+     * @param graphAAQuality Graph AA quality, see {@link #DEFAULT_AA_QUALITY}, set to negative value to mark undefined
      * @param graphSampleCount Graph sample count for {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}
      * @param fsaaSampleCount full-screen AA (fsaa) sample count, retrieved e.g. via {@link GLCapabilitiesImmutable#getNumSamples()}
      */
-    public static String getRenderModeString(final int renderModes, final int graphSampleCount, final int fsaaSampleCount) {
-        return String.format((Locale)null, "%s-s%02d-fsaa%d", Region.getRenderModeString(renderModes), graphSampleCount, fsaaSampleCount);
+    public static String getRenderModeString(final int renderModes, final int graphAAQuality, final int graphSampleCount, final int fsaaSampleCount) {
+        if( Region.MIN_AA_QUALITY > graphAAQuality ) {
+            return String.format((Locale)null, "%s-qu-s%02d-fsaa%d", Region.getRenderModeString(renderModes), graphSampleCount, fsaaSampleCount);
+        } else {
+            return String.format((Locale)null, "%s-q%01d-s%02d-fsaa%d", Region.getRenderModeString(renderModes), graphAAQuality, graphSampleCount, fsaaSampleCount);
+        }
     }
 
     protected Region(final int regionRenderModes, final boolean use_int32_idx) {

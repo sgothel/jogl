@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 JogAmp Community. All rights reserved.
+ * Copyright 2023-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.graph;
 
+import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
@@ -54,13 +55,15 @@ public class FontViewListener01 implements GLEventListener {
     private boolean useDPI = false;
 
     private final int renderModes;
+    private final int graphAAQuality;
     private final char startCharSymbol;
     private final Font font;
     private final Scene scene;
     private Group grid;
 
-    public FontViewListener01(final int renderModes, final int graphSampleCount, final Font font, final char startCharSymbol) {
+    public FontViewListener01(final int renderModes, final int graphAAQuality, final int graphSampleCount, final Font font, final char startCharSymbol) {
         this.renderModes = renderModes;
+        this.graphAAQuality = Region.clipAAQuality(graphAAQuality);
         this.startCharSymbol = startCharSymbol;
         this.font = font;
 
@@ -136,6 +139,7 @@ public class FontViewListener01 implements GLEventListener {
 
         grid = new Group(new GridLayout(gridCols, netGridSize, netGridSize, Alignment.FillCenter, new Gap(netGridSize/0.90f*0.10f)));
         scene.addShape(grid);
+        scene.setAAQuality(graphAAQuality);
 
         for(int idx=0; idx<Character.MAX_VALUE && grid.getShapeCount() < cellCount ; ++idx) {
             final char codepoint = (char)(startCharSymbol+idx);

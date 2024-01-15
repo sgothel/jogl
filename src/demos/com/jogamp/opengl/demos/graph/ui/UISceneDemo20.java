@@ -1012,6 +1012,8 @@ public class UISceneDemo20 implements GLEventListener {
         initLabels(gl);
         initButtons(gl);
 
+        scene.setAAQuality(options.graphAAQuality);
+
         scene.init(drawable);
 
         final GLAnimatorControl a = drawable.getAnimator();

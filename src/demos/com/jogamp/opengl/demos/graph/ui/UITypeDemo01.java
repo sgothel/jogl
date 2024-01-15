@@ -39,6 +39,7 @@ import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
+import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.shapes.CrossHair;
 import com.jogamp.graph.ui.shapes.Rectangle;
@@ -167,7 +168,7 @@ public class UITypeDemo01 implements GLEventListener {
     private final boolean trace;
 
     private final CrossHair crossHair;
-    private final Shape testObj;
+    private final GraphShape testObj;
 
     private KeyAction keyAction;
     private MouseAction mouseAction;
@@ -200,6 +201,7 @@ public class UITypeDemo01 implements GLEventListener {
 
         crossHair = new CrossHair(renderModes, 1/20f, 1/20f, 1/1000f);
         crossHair.setColor(0f,0f,1f,1f);
+        crossHair.setAAQuality(options.graphAAQuality);
         crossHair.setVisible(true);
 
         if (false ) {
@@ -209,12 +211,13 @@ public class UITypeDemo01 implements GLEventListener {
         } else {
             final float scale = 0.15312886f;
             final float size_xz = 0.541f;
-            final Shape o = new Glyph03FreeMonoRegular_M(renderModes);
+            final GraphShape o = new Glyph03FreeMonoRegular_M(renderModes);
             o.scale(scale, scale, 1f);
             // o.translate(size_xz, -size_xz, 0f);
             testObj = o;
         }
         testObj.setColor(0f,  0f,  0f,  1f);
+        testObj.setAAQuality(options.graphAAQuality);
         testObj.setVisible(true);
     }
 
@@ -256,7 +259,7 @@ public class UITypeDemo01 implements GLEventListener {
     }
     float lastWidth = 0f, lastHeight = 0f;
 
-    final int[] sampleCount = { 4 };
+    final int[] sampleCount = { options.graphAASamples };
 
     private void drawShape(final GL2ES2 gl, final PMVMatrix4f pmv, final RegionRenderer renderer, final Shape shape) {
         pmv.pushMv();
@@ -330,7 +333,7 @@ public class UITypeDemo01 implements GLEventListener {
                 if( null != glyph.getShape() ) {
                     final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, glyph.getShape());
                     region.addOutlineShape(glyph.getShape(), null, fg_color);
-                    region.draw(gl, renderer, Region.MAX_AA_QUALITY, sampleCount);
+                    region.draw(gl, renderer, options.graphAAQuality, sampleCount);
                     region.destroy(gl);
                 }
                 if( once ) {
@@ -348,7 +351,7 @@ public class UITypeDemo01 implements GLEventListener {
                 final float txt_scale = full_width_s < full_height_s ? full_width_s/2f : full_height_s/2f;
                 pmv.scaleMv(txt_scale, txt_scale, 1f);
                 pmv.translateMv(-txt_box_em.getWidth(), 0f, 0f);
-                final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, fg_color, sampleCount, tempT1, tempT2);
+                final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, fg_color, options.graphAAQuality, sampleCount, tempT1, tempT2);
                 if( once ) {
                     final AABBox txt_box_em2 = font.getGlyphShapeBounds(null, text);
                     System.err.println("XXX: full_width: "+full_width_o+" / "+txt_box_em.getWidth()+" -> "+full_width_s);
