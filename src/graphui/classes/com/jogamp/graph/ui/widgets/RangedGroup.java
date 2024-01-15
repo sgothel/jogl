@@ -29,6 +29,7 @@ package com.jogamp.graph.ui.widgets;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.layout.Alignment;
@@ -36,6 +37,7 @@ import com.jogamp.graph.ui.layout.GridLayout;
 import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
@@ -48,6 +50,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 public class RangedGroup extends Widget {
     private final Group content;
     private final Group clippedContent;
+    private final Vec3f clipCullingScale;
     private final RangeSlider horizSlider, vertSlider;
     private final Vec2f contentPosZero = new Vec2f();
 
@@ -82,10 +85,14 @@ public class RangedGroup extends Widget {
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param content the {@link Group} with content to view
      * @param contentSize the fixed size of the clipped content to view, i.e. page-size
+     * @param cullingScale culling scale factor per axis for the {@code clip-box} to discard
+     *        {@link #draw(GL2ES2, RegionRenderer, int[]) rendering} completely outside of {@code clip-box*cullingScale}.
+     *        Pixel-accurate clipping is applied within [{@code clip-box} .. {@code clip-box*cullingScale}] if any scale-axis of {@code cullingScale} > 1.
+     *        See {@link Group#setClipBBox(AABBox, Vec3f)}.
      * @param horizSliderParam optional horizontal slider parameters, null for none
      * @param vertSliderParam optional vertical slider parameters, null for none
      */
-    public RangedGroup(final int renderModes, final Group content, final Vec2f contentSize,
+    public RangedGroup(final int renderModes, final Group content, final Vec2f contentSize, final Vec3f cullingScale,
                       final SliderParam horizSliderParam, final SliderParam vertSliderParam)
     {
         super( new GridLayout(1 + (null != vertSliderParam ? 1 : 0), 0f, 0f, Alignment.None)); // vertical slider adds to the right column
@@ -93,8 +100,8 @@ public class RangedGroup extends Widget {
         this.clippedContent = new Group( new GridLayout(1, 0f, 0f, Alignment.None));
         this.clippedContent.setFixedSize(contentSize);
         this.clippedContent.addShape(content);
-        this.clippedContent.setClipOnBox(true);
         addShape(clippedContent);
+        clipCullingScale = cullingScale;
 
         if( null != horizSliderParam ) {
             horizSlider = new RangeSlider(renderModes, horizSliderParam.size,
@@ -134,6 +141,7 @@ public class RangedGroup extends Widget {
 
     public Group getContent() { return content; }
     public Vec2f getContentSize() { return clippedContent.getFixedSize(); }
+    public Vec3f getClipCullingScale() { return clipCullingScale; }
     public Group getClippedContent() { return clippedContent; }
     public RangeSlider getHorizSlider() { return horizSlider; }
     public RangeSlider getVertSlider() { return vertSlider; }
@@ -156,5 +164,15 @@ public class RangedGroup extends Widget {
             contentPosZero.setY( null != vertSlider && vertSlider.isInverted() ? contentSize.y() - b.getHeight() : 0 );
         }
     }
-
+    @Override
+    protected void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final Vec4f rgba) {
+        if( content.isVisible() ) {
+            // Mv pre-multiplied AABBox, clippedContent is on same PMV
+            final AABBox clipBBox = clippedContent.getBounds().transform(renderer.getMatrix().getMv(), tempBB);
+            content.setClipBBox(clipBBox, clipCullingScale);
+            super.drawImpl0(gl, renderer, sampleCount, rgba);
+            content.setClipBBox(null, clipCullingScale);
+        }
+    }
+    private final AABBox tempBB = new AABBox(); // OK, synchronized
 }

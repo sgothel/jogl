@@ -58,6 +58,7 @@ import com.jogamp.graph.ui.widgets.RangeSlider;
 import com.jogamp.graph.ui.widgets.RangedGroup;
 import com.jogamp.graph.ui.widgets.RangedGroup.SliderParam;
 import com.jogamp.math.Vec2f;
+import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -272,21 +273,26 @@ public class FontView01 {
                     System.err.println("GlyphGrid "+glyphGrid);
                     System.err.println("GlyphGrid "+glyphGrid.getLayout());
                 }
-                final RangedGroup glyphView = new RangedGroup(options.renderModes, glyphGrid, glyphGridSize,
+                // culling >= 2*cell-size outside of clipping box (vertical only), pixel-accurate clipping in-between until clipping-box
+                final Vec3f clipCullingScale = new Vec3f(1f, 1f+2*glyphGridCellSize/glyphGridSize.y(), 1f);
+                // final Vec3f clipCullingScale = new Vec3f(1f, 1f, 1f); // no pixel-accurate clipping, just culling in Group
+                if( VERBOSE_UI ) {
+                    System.err.println("RangedGroup clipCullingScale "+clipCullingScale);
+                }
+                final RangedGroup glyphView = new RangedGroup(options.renderModes, glyphGrid, glyphGridSize, clipCullingScale,
                                                               null,
                                                               new SliderParam(new Vec2f(glyphGridCellSize/4f, glyphGridSize.y()), glyphGridCellSize/10f, true));
                 glyphView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f);
-                glyphView.getVertSlider().addSliderListener(new SliderAdapter() {
-                    @Override
-                    public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
-                        final Vec2f minmax = w.getMinMax();
-                        final float row_f = val / glyphGridCellSize;
-                        if( VERBOSE_UI ) {
+                if( VERBOSE_UI ) {
+                    glyphView.getVertSlider().addSliderListener(new SliderAdapter() {
+                        @Override
+                        public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
+                            final Vec2f minmax = w.getMinMax();
+                            final float row_f = val / glyphGridCellSize;
                             System.err.println("VertSlider: row "+row_f+", val["+old_val+" -> "+val+"], pct["+(100*old_val_pct)+"% -> "+(100*val_pct)+"%], minmax "+minmax);
                         }
-                        gridDim.setStartRow((int)row_f, glyphGrid);
-                    }
-                });
+                    });
+                }
                 glyphGrid.setInteractive(true).setDragAndResizeable(false).setToggleable(false);
                 glyphView.getVertSlider().receiveKeyEvents(glyphGrid);
                 glyphView.getVertSlider().receiveMouseEvents(glyphGrid);
@@ -364,7 +370,7 @@ public class FontView01 {
             final float nsPerGlyph = total / gridDim.glyphCount;
             System.err.println("PERF: Total took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+gridDim.glyphCount);
         }
-        printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gridDim.contourChars.get(gridDim.rowStartIndex));
+        printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gridDim.contourChars.get(0));
         // stay open ..
     }
 
@@ -381,8 +387,6 @@ public class FontView01 {
         final int rows;
         final int rowsPerPage;
         final int elemCount;
-        int rowStartIndex;
-        int rowPos;
         int maxNameLen;
 
         public GridDim(final Font font, final int columns, final int rowsPerPage, final int xReserved) {
@@ -393,8 +397,6 @@ public class FontView01 {
             this.rows = (int)Math.ceil((double)glyphCount / (double)columnsNet);
             this.rowsPerPage = rowsPerPage;
             this.elemCount = glyphCount + ( rows * xReserved );
-            this.rowStartIndex = 0;
-            this.rowPos = 0;
             this.maxNameLen=10;
         }
 
@@ -417,30 +419,8 @@ public class FontView01 {
             System.err.println("PERF: GlyphScan took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+contourChars.size());
             return contourChars.size();
         }
-
-        float setStartRow(final int row, final Group glyphGrid) {
-            // GridDim[contours 6399, start 0, row 0, 18x356=6408<=6755, rows/pg 14]
-            // GridDim[contours 6399, start 0, row 0, 18x377=6786<=6776, rows/pg 14]
-            // final int old = start;
-            final int np = row * columns;
-            if( np < elemCount - columns ) {
-                rowStartIndex = np;
-                rowPos = row;
-            }
-            if( null != glyphGrid ) {
-                final int max = Math.min(elemCount, rowStartIndex + ( ( rowsPerPage + 1 ) * columns )); // one extra row
-                for(int idx = rowStartIndex; idx < max; ++idx) {
-                    final Shape s = glyphGrid.getShapeByIdx(idx);
-                    s.setVisible(true);
-                    // System.err.println("Visible["+(startIdx + idx)+"].1: "+s);
-                }
-            }
-            // System.err.println("XXX "+columns+"x"+rows+" @ "+old+"/"+elemCount+": r "+row+" -> s "+start);
-            return rowStartIndex;
-        }
-
         @Override
-        public String toString() { return "GridDim[contours "+glyphCount+", start "+rowStartIndex+", row "+rowPos+", "+columns+"x"+rows+"="+(columns*rows)+">="+elemCount+", rows/pg "+rowsPerPage+"]"; }
+        public String toString() { return "GridDim[contours "+glyphCount+", "+columns+"x"+rows+"="+(columns*rows)+">="+elemCount+", rows/pg "+rowsPerPage+"]"; }
     }
 
     static void addGlyphs(final GLProfile glp, final Font font, final Group sink,
@@ -483,14 +463,13 @@ public class FontView01 {
                     final float sxy = 1f/7f; // gridDim.maxNameLen; // 0.10f; // Math.min(sx, sy);
                     c2.addShape( l.scale(sxy, sxy, 1).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizeable(false) );
                 }
-                sink.addShape(c2.setVisible(false));
+                sink.addShape(c2);
                 // System.err.println("Add.2: "+c2);
             } else {
-                sink.addShape(c1.setVisible(false));
+                sink.addShape(c1);
                 // System.err.println("Add.1: "+c1);
             }
         }
-        gridDim.setStartRow(0, sink);
         final long t1 = Clock.currentNanos();
         final long total = t1 - t0;
         final float nsPerGlyph = total / gridDim.glyphCount;
