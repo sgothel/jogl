@@ -363,7 +363,6 @@ public class FontView01 {
             final long total = t1 - t0;
             final float nsPerGlyph = total / gridDim.glyphCount;
             System.err.println("PERF: Total took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+gridDim.glyphCount);
-            jogamp.graph.curve.opengl.VBORegion2PVBAAES2.printPerf(System.err);
         }
         printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gridDim.contourChars.get(gridDim.rowStartIndex));
         // stay open ..
@@ -416,7 +415,6 @@ public class FontView01 {
             final long total = t1 - t0;
             final float nsPerGlyph = total / contourChars.size();
             System.err.println("PERF: GlyphScan took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+contourChars.size());
-            jogamp.graph.curve.opengl.VBORegion2PVBAAES2.printPerf(System.err);
             return contourChars.size();
         }
 
@@ -497,7 +495,6 @@ public class FontView01 {
         final long total = t1 - t0;
         final float nsPerGlyph = total / gridDim.glyphCount;
         System.err.println("PERF: GlyphAdd took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+gridDim.glyphCount);
-        jogamp.graph.curve.opengl.VBORegion2PVBAAES2.printPerf(System.err);
     }
     static void addLabel(final Group c, final Font font, final String text) {
         c.addShape( new Label(options.renderModes, font, 1f, text).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizeable(false) );
