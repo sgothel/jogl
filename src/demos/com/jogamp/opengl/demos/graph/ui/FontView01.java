@@ -53,6 +53,7 @@ import com.jogamp.graph.ui.shapes.GlyphShape;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.graph.ui.widgets.RangeSlider;
+import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
 import com.jogamp.graph.ui.widgets.RangeSlider.SliderListener;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec2i;
@@ -287,13 +288,7 @@ public class FontView01 {
                                              new Vec2f((GlyphGridWidth/gridDim.totalSize.x())/5f, glyphGrid.getBounds().getHeight()), 2,
                                              new Vec2f(0, gridDim.contourChars.size()/gridDim.columns), 1, 0).setInverted(sliderInverted);
             rs2.setColor(0.3f, 0.3f, 0.3f, 0.7f);
-            final SliderListener sliderListener = new SliderListener() {
-                @Override
-                public void clicked(final RangeSlider w, final MouseEvent e) { }
-                @Override
-                public void pressed(final RangeSlider w, final MouseEvent e) { }
-                @Override
-                public void released(final RangeSlider w, final MouseEvent e) { }
+            final SliderListener sliderListener = new SliderAdapter() {
                 @Override
                 public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
                     final int totalRows = gridDim.contourChars.size() / gridDim.columns;
@@ -318,8 +313,8 @@ public class FontView01 {
                     });
                 }
             };
-            rs1.onSlider( sliderListener );
-            rs2.onSlider( sliderListener );
+            rs1.addListener( sliderListener );
+            rs2.addListener( sliderListener );
             glyphInfoGrid.addShape(rs1);
             glyphInfoGrid.addShape(rs2);
             glyphInfoGrid.addShape(infoGrid);

@@ -51,7 +51,7 @@ import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.graph.ui.shapes.Rectangle;
-import com.jogamp.graph.ui.widgets.RangeSlider.SliderListener;
+import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
@@ -255,7 +255,7 @@ public class MediaPlayer extends Widget {
                     }
                 }
             } );
-            ctrlSlider.onSlider(new SliderListener() {
+            ctrlSlider.addListener(new SliderAdapter() {
                 private void seekPlayer(final int ptsMS) {
                     final int durationMS = mPlayer.getDuration();
                     timeLabel.setText(getMultilineTime(ptsMS, durationMS));
@@ -266,18 +266,6 @@ public class MediaPlayer extends Widget {
                     System.err.println("Clicked "+w.getName()+": "+PTS.millisToTimeStr(Math.round(w.getValue()), true)+"ms, "+(w.getValuePct()*100f)+"%");
                     seekPlayer( Math.round( w.getValue() ) );
                 }
-                @Override
-                public void pressed(final RangeSlider w, final MouseEvent e) {
-                    // mPlayer.pause(false);
-                    // seekPlayer( Math.round( w.getValue() ) );
-                }
-
-                @Override
-                public void released(final RangeSlider w, final MouseEvent e) {
-                    // seekPlayer( Math.round( w.getValue() ) );
-                    // mPlayer.resume();
-                }
-
                 @Override
                 public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
                     System.err.println("Dragged "+w.getName()+": "+PTS.millisToTimeStr(Math.round(val), true)+"ms, "+(val_pct*100f)+"%");

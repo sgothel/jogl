@@ -27,6 +27,8 @@
  */
 package com.jogamp.graph.ui.widgets;
 
+import java.util.ArrayList;
+
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -75,6 +77,19 @@ public final class RangeSlider extends Widget {
          */
         void dragged(RangeSlider w, float old_val, float val, float old_val_pct, float val_pct);
     }
+    public static abstract class SliderAdapter implements SliderListener {
+        @Override
+        public void clicked(final RangeSlider w, final MouseEvent e) { }
+        @Override
+        public void pressed(final RangeSlider w, final MouseEvent e) { }
+        @Override
+        public void released(final RangeSlider w, final MouseEvent e) { }
+        @Override
+        public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) { }
+    };
+    private static interface SliderAction {
+        public void run(SliderListener l);
+    }
 
     private static final float pageKnobScale = 0.6f;     // 0.6 * barWidth
     private static final float pageBarLineScale = 0.25f; // 1/4 * ( barWidth - pageKnobWidth )
@@ -88,7 +103,7 @@ public final class RangeSlider extends Widget {
     private final Group barAndKnob, marks;
     private final Rectangle bar;
     private final GraphShape knob;
-    private SliderListener sliderListener = null;
+    private ArrayList<SliderListener> sliderListeners = new ArrayList<SliderListener>();
     private final Vec2f minMax = new Vec2f(0, 100);
     private float pageSize;
     private float val=0, val_pct=0;
@@ -200,9 +215,9 @@ public final class RangeSlider extends Widget {
                 final float dy = inverted ? +knobLength: 0; // offset to knob start
                 setValuePct( getKnobValuePct( dest.x(), dest.y(), dy ) );
             }
-            if( null != sliderListener ) {
-                sliderListener.dragged(this, old_val, val, old_val_pct, val_pct);
-            }
+            dispatchToListener( (final SliderListener l) -> {
+                l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
+            });
         });
         barAndKnob.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
@@ -211,10 +226,10 @@ public final class RangeSlider extends Widget {
                 final float old_val_pct = val_pct;
                 final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
                 setValuePct( getKnobValuePct( shapeEvent.objPos.x(), shapeEvent.objPos.y(), 0 ) );
-                if( null != sliderListener ) {
-                    sliderListener.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
-                    sliderListener.clicked(RangeSlider.this, e);
-                }
+                dispatchToListener( (final SliderListener l) -> {
+                    l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
+                    l.clicked(RangeSlider.this, e);
+                });
             }
             @Override
             public void mouseWheelMoved(final MouseEvent e) {
@@ -251,9 +266,9 @@ public final class RangeSlider extends Widget {
                     }
                 }
                 setValue( v );
-                if( null != sliderListener ) {
-                    sliderListener.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
-                }
+                dispatchToListener( (final SliderListener l) -> {
+                    l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
+                });
             }
         });
         knob.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -265,15 +280,15 @@ public final class RangeSlider extends Widget {
             }
             @Override
             public void mousePressed(final MouseEvent e) {
-                if( null != sliderListener ) {
-                    sliderListener.pressed(RangeSlider.this, e);
-                }
+                dispatchToListener( (final SliderListener l) -> {
+                    l.pressed(RangeSlider.this, e);
+                });
             }
             @Override
             public void mouseReleased(final MouseEvent e) {
-                if( null != sliderListener ) {
-                    sliderListener.released(RangeSlider.this, e);
-                }
+                dispatchToListener( (final SliderListener l) -> {
+                    l.released(RangeSlider.this, e);
+                });
             }
         });
         final KeyListener keyListener = new KeyAdapter() {
@@ -336,9 +351,9 @@ public final class RangeSlider extends Widget {
                 }
                 if( action ) {
                     setValue( v );
-                    if( null != sliderListener ) {
-                        sliderListener.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
-                    }
+                    dispatchToListener( (final SliderListener l) -> {
+                        l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
+                    });
                 }
             }
         };
@@ -349,17 +364,39 @@ public final class RangeSlider extends Widget {
     @Override
     protected void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
         super.clearImpl0(gl, renderer);
-        sliderListener = null;
+        sliderListeners.clear();
     }
     @Override
     protected void destroyImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
         super.destroyImpl0(gl, renderer);
-        sliderListener = null;
+        sliderListeners.clear();
     }
 
-    public RangeSlider onSlider(final SliderListener l) {
-        sliderListener = l;
+    public final RangeSlider addListener(final SliderListener l) {
+        if(l == null) {
+            return this;
+        }
+        @SuppressWarnings("unchecked")
+        final ArrayList<SliderListener> clonedListeners = (ArrayList<SliderListener>) sliderListeners.clone();
+        clonedListeners.add(l);
+        sliderListeners = clonedListeners;
         return this;
+    }
+    public final RangeSlider removeListener(final SliderListener l) {
+        if (l == null) {
+            return this;
+        }
+        @SuppressWarnings("unchecked")
+        final ArrayList<SliderListener> clonedListeners = (ArrayList<SliderListener>) sliderListeners.clone();
+        clonedListeners.remove(l);
+        sliderListeners = clonedListeners;
+        return this;
+    }
+    private final void dispatchToListener(final SliderAction action) {
+        final int sz = sliderListeners.size();
+        for(int i = 0; i < sz; i++ ) {
+            action.run( sliderListeners.get(i) );
+        }
     }
 
     public Rectangle getBar() { return bar; }
@@ -427,7 +464,14 @@ public final class RangeSlider extends Widget {
     public void setUnitSize(final float v) { this.unitSize = v; }
     public float getUnitSize() { return this.unitSize; }
 
+    /**
+     * Sets whether this slider uses an inverted value range,
+     * e.g. top 0% and bottom 100% for an vertical inverted slider
+     * instead of bottom 0% and top 100% for a vertical non-inverted slider.
+     */
     public RangeSlider setInverted(final boolean v) { inverted = v; return setValue(val); }
+    /** See {@link #setInverted(boolean)}. */
+    public boolean isInverted() { return inverted; }
 
     /**
      * Sets slider value range and current value
