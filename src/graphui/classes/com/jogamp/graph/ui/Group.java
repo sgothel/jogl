@@ -83,7 +83,9 @@ public class Group extends Shape implements Container {
 
     private boolean relayoutOnDirtyShapes = true;
     private boolean widgetMode = false;
-    boolean clipOnBox = false;
+    private boolean clipOnBounds = false;
+    private AABBox clipBBox = null;
+    private final Vec3f clipCullingScale = new Vec3f();
 
     /**
      * Create a group of {@link Shape}s w/o {@link Group.Layout}.
@@ -121,9 +123,41 @@ public class Group extends Shape implements Container {
     public Group setFixedSize(final Vec2f v) { fixedSize.set(v); return this; }
     public Vec2f getFixedSize() { return fixedSize; }
 
-    /** Enable {@link AABBox} clipping on {@link #getBounds()} for this group and its shapes. */
-    public Group setClipOnBox(final boolean v) { clipOnBox = v; return this; }
-    public boolean getClipOnBox() { return clipOnBox; }
+    /**
+     * Enable {@link AABBox} clipping on {@link #getBounds()} for this group and its shapes as follows
+     * <ul>
+     *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer, int[]) rendering} if completely outside of the {@code clip-box * cullingScale}.</li>
+     *   <li>Otherwise perform pixel-accurate clipping inside the shader on {@code clip-box}.</li>
+     * </ul>
+     * <p>
+     * {@link #setClipBBox(AABBox)} takes precedence over {@link #setClipOnBounds(boolean)}.
+     * </p>
+     * @param v boolean to toggle clipping
+     * @param cullingScale culling scale factor per axis for the {@code clip-box} to discard {@link #draw(GL2ES2, RegionRenderer, int[]) rendering} completely.
+     * @return this instance for chaining
+     * @see #setClipBBox(AABBox)
+     */
+    public Group setClipOnBounds(final boolean v, final Vec3f cullingScale) { clipOnBounds = v; clipCullingScale.set(cullingScale); return this; }
+    /** Returns {@link #setClipOnBounds(boolean)} value */
+    public boolean getClipOnBounds() { return clipOnBounds; }
+
+    /**
+     * Enable {@link AABBox} clipping on explicit given pre-multiplied Mv-matrix {@code clip-box} as follows
+     * <ul>
+     *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer, int[]) rendering} if completely outside of the {@code clip-box * cullingScale}.</li>
+     *   <li>Otherwise perform pixel-accurate clipping inside the shader on {@code clip-box}.</li>
+     * </ul>
+     * <p>
+     * {@link #setClipBBox(AABBox)} takes precedence over {@link #setClipOnBounds(boolean)}.
+     * </p>
+     * @param v {@link AABBox} pre-multiplied Mv-matrix
+     * @param cullingScale culling scale factor per axis for the {@code clip-box} to discard {@link #draw(GL2ES2, RegionRenderer, int[]) rendering} completely.
+     * @return this instance for chaining
+     * @see #setClipOnBounds(boolean)
+     */
+    public Group setClipBBox(final AABBox v, final Vec3f cullingScale) { clipBBox = v; clipCullingScale.set(cullingScale); return this; }
+    /** Returns {@link #setClipBBox(AABBox)} value */
+    public AABBox getClipBBox() { return clipBBox; }
 
     @Override
     public int getShapeCount() { return shapes.size(); }
@@ -245,35 +279,56 @@ public class Group extends Shape implements Container {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final Vec4f rgba) {
+    protected void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final Vec4f rgba) {
         final PMVMatrix4f pmv = renderer.getMatrix();
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
 
-        final AABBox origClipBox = renderer.getClipBBox();
-        if( clipOnBox ) {
-            renderer.setClipBBox( box.transform(pmv.getMv(), new AABBox()) ); // Mv pre-multiplied AABBox
-        }
-        final int shapeCount = shapesS.length;
-        for(int i=0; i<shapeCount; i++) {
-            final Shape shape = (Shape) shapesS[i];
-            if( shape.isVisible() ) {
-                pmv.pushMv();
-                shape.setTransformMv(pmv);
+        final boolean useClipBBox = null != clipBBox;
+        if( useClipBBox || clipOnBounds ) {
+            final AABBox origClipBox = renderer.getClipBBox();
 
-                if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
-                    shape.draw(gl, renderer, sampleCount);
+            final AABBox clipBox = useClipBBox ? clipBBox : box.transform(pmv.getMv(), tempBB0);
+            renderer.setClipBBox( tempBB1.set(clipBox) ); // Mv pre-multiplied AABBox
+            clipBox.scale(clipCullingScale.x(), clipCullingScale.y(), clipCullingScale.z());
+
+            final int shapeCount = shapesS.length;
+            for(int i=0; i<shapeCount; i++) {
+                final Shape shape = (Shape) shapesS[i];
+                if( shape.isVisible() ) {
+                    pmv.pushMv();
+                    shape.setTransformMv(pmv);
+
+                    final AABBox childBox = shape.getBounds();
+                    if( clipBox.contains( childBox.transform(pmv.getMv(), tempBB0) ) &&
+                        ( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( childBox ) ) )
+                    {
+                        shape.draw(gl, renderer, sampleCount);
+                    }
+                    pmv.popMv();
                 }
-                pmv.popMv();
+            }
+            renderer.setClipBBox(origClipBox);
+        } else {
+            final int shapeCount = shapesS.length;
+            for(int i=0; i<shapeCount; i++) {
+                final Shape shape = (Shape) shapesS[i];
+                if( shape.isVisible() ) {
+                    pmv.pushMv();
+                    shape.setTransformMv(pmv);
+                    if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
+                        shape.draw(gl, renderer, sampleCount);
+                    }
+                    pmv.popMv();
+                }
             }
         }
         if( null != border ) {
             border.draw(gl, renderer, sampleCount);
         }
-        if( clipOnBox ) {
-            renderer.setClipBBox(origClipBox);
-        }
     }
+    private final AABBox tempBB0 = new AABBox(); // OK, synchronized
+    private final AABBox tempBB1 = new AABBox(); // OK, synchronized
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
