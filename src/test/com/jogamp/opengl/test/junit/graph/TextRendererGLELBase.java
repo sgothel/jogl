@@ -32,7 +32,6 @@ import java.io.IOException;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
-import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -258,11 +257,11 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             }
             renderer.enable(gl, true);
             if( cacheRegion ) {
-                textRenderUtil.drawString3D(gl, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, vbaaSampleCount);
+                textRenderUtil.drawString3D(gl, renderer, font, text, null);
             } else if( null != region ) {
-                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, vbaaSampleCount, tempT1, tempT2);
+                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, tempT1, tempT2);
             } else {
-                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, vbaaSampleCount, tempT1, tempT2);
+                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, tempT1, tempT2);
             }
             renderer.enable(gl, false);
 

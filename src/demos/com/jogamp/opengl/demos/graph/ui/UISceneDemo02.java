@@ -252,7 +252,7 @@ public class UISceneDemo02 {
                         final float dx = -1f * velocity_obj * dt_s; // [shapeUnit]
                         movingGlyph.move(dx, 0f, 0f);
                         final String text = String.format("%s, anim-duration %.1f s",
-                                scene.getStatusText(drawable, options.renderModes, 0, dpiV), req_total_dur_s);
+                                scene.getStatusText(drawable, options.renderModes, dpiV), req_total_dur_s);
                         statusLabel.setText(text);
                         return true;
                     });

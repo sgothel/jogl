@@ -108,11 +108,11 @@ public class UIShapeDemo00 {
             public void keyPressed(final KeyEvent arg0) {
                 final short keySym = arg0.getKeySymbol();
                 if( keySym == KeyEvent.VK_RIGHT ) {
-                    scene.setAAQuality( shape.getAAQuality() + 1 );
-                    System.err.println("AA Quality "+shape.getAAQuality());
+                    scene.setAAQuality( scene.getAAQuality() + 1 );
+                    System.err.println("AA Quality "+scene.getAAQuality());
                 } else if( keySym == KeyEvent.VK_LEFT ) {
-                    scene.setAAQuality( shape.getAAQuality() - 1 );
-                    System.err.println("AA Quality "+shape.getAAQuality());
+                    scene.setAAQuality( scene.getAAQuality() - 1 );
+                    System.err.println("AA Quality "+scene.getAAQuality());
                 } else if( keySym == KeyEvent.VK_UP ) {
                     scene.setSampleCount(scene.getSampleCount() + 1); // validated / clipped
                     System.err.println("AA Samples "+scene.getSampleCount());

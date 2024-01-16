@@ -157,8 +157,6 @@ public class MovieCube implements GLEventListener {
         resetGLState = true;
     }
 
-    final int[] textSampleCount = { 4 };
-
     private final class InfoTextRendererGLELBase extends TextRendererGLELBase {
         private static final float z_diff = 0.001f;
         private final Font font = getFont(0, 0, 0);
@@ -169,10 +167,10 @@ public class MovieCube implements GLEventListener {
 
         InfoTextRendererGLELBase(final GLProfile glp, final int rmode) {
             // FIXME: Graph TextRenderer does not AA well w/o MSAA and FBO
-            super(rmode, MovieCube.this.textSampleCount);
+            super(rmode, Region.DEFAULT_AA_SAMPLE_COUNT);
             this.setRendererCallbacks(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
             regionFPS = GLRegion.create(glp, renderModes, null, 0, 0);
-            System.err.println("RegionFPS "+Region.getRenderModeString(renderModes)+", sampleCount "+textSampleCount[0]+", class "+regionFPS.getClass().getName());
+            System.err.println("RegionFPS "+Region.getRenderModeString(renderModes)+", sampleCount "+Region.DEFAULT_AA_SAMPLE_COUNT+", class "+regionFPS.getClass().getName());
             staticRGBAColor[0] = 0.1f;
             staticRGBAColor[1] = 0.1f;
             staticRGBAColor[2] = 0.1f;

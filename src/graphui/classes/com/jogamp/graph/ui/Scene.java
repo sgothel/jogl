@@ -137,9 +137,6 @@ public final class Scene implements Container, GLEventListener {
 
     private final RegionRenderer renderer;
 
-    private final int[] sampleCount = new int[1];
-    private int globalAAQuality = -1; // undefined
-
     /** Describing the bounding box in shape's object model-coordinates of the near-plane parallel at its scene-distance, post {@link #translate(PMVMatrix4f)} */
     private final AABBox planeBox = new AABBox(0f, 0f, 0f, 0f, 0f, 0f);
 
@@ -160,37 +157,38 @@ public final class Scene implements Container, GLEventListener {
 
     /**
      * Create a new scene with an internally created {@link RegionRenderer}, a graph AA sample-count 4 and using {@link DefaultPMVMatrixSetup#DefaultPMVMatrixSetup()}.
-     * @see #Scene(RegionRenderer, int)
+     * @see #Scene(RegionRenderer)
      * @see #setSampleCount(int)
+     * @see #setAAQuality(int)
      */
     public Scene() {
-        this(createRenderer(), 4);
+        this( createRenderer() );
     }
 
     /**
      * Create a new scene with an internally created {@link RegionRenderer}, using {@link DefaultPMVMatrixSetup#DefaultPMVMatrixSetup()}.
      * @param sampleCount sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT},
      *                    clipped to [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}]
-     * @see #Scene(RegionRenderer, int)
+     * @see #Scene(RegionRenderer)
      * @see #setSampleCount(int)
+     * @see #setAAQuality(int)
      */
     public Scene(final int sampleCount) {
-        this(createRenderer(), sampleCount);
+        this( createRenderer() );
+        this.getRenderer().setSampleCount(sampleCount);
     }
 
     /**
      * Create a new scene taking ownership of the given RegionRenderer, using {@link DefaultPMVMatrixSetup#DefaultPMVMatrixSetup()}.
      * @param renderer {@link RegionRenderer} to be owned
-     * @param sampleCount sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT},
-     *                    clipped to [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}]
      * @see #setSampleCount(int)
+     * @see #setAAQuality(int)
      */
-    public Scene(final RegionRenderer renderer, final int sampleCount) {
+    public Scene(final RegionRenderer renderer) {
         if( null == renderer ) {
             throw new IllegalArgumentException("Null RegionRenderer");
         }
         this.renderer = renderer;
-        this.sampleCount[0] = Region.clipAASampleCount(sampleCount);
         this.screenshot = new GLReadBufferUtil(false, false);
     }
 
@@ -360,44 +358,28 @@ public final class Scene implements Container, GLEventListener {
         return null;
     }
 
-    /** Returns sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT} */
-    public int getSampleCount() { return sampleCount[0]; }
-
+    /** Returns {@link RegionRenderer#getSampleCount()}. */
+    public int getSampleCount() { return renderer.getSampleCount(); }
     /**
-     * Sets pass2 AA sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}
-     * @param v pass2 AA sample count, clipped to [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}]
+     * Sets {@link RegionRenderer#setSampleCount(int)}
      * @return clipped and set value
      */
-    public int setSampleCount(final int v) {
-        sampleCount[0] = Region.clipAASampleCount(v);
-        markStatesDirty();
-        return sampleCount[0];
-    }
+    public int setSampleCount(final int v) { return renderer.setSampleCount(v); /* markStatesDirty() -> autodetected within GLRegion.draw(..) */ }
 
+    /** Returns {@link RegionRenderer#getAAQuality()}. */
+    public int getAAQuality() { return renderer.getAAQuality(); }
     /**
-     * Sets pass2 AA-quality for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT}
-     * @param v pass2 AA-quality, clipped to [{@link Region#MIN_AA_QUALITY}..{@link Region#MAX_AA_QUALITY}]
+     * Sets {@link RegionRenderer#setAAQuality(int)}.
      * @return clipped and set value
      */
-    public void setAAQuality(final int v) {
-        final int q = Region.clipAAQuality(v);
-        globalAAQuality = q;
-        forAll((final Shape s) -> {
-            if( s instanceof GraphShape ) {
-                ((GraphShape)s).setAAQuality(q);
-            }
-           return false;
-        });
-    }
-    /** Returns the global AA quality value if set via {@link #setAAQuality(int)}, otherwise {@code -1}. */
-    public int getAAQuality() { return globalAAQuality; }
+    public int setAAQuality(final int v) { return renderer.setAAQuality(v); /* markStatesDirty() -> autodetected within GLRegion.draw(..) */ }
 
     public void setSharpness(final float sharpness) {
         forAll((final Shape s) -> {
             if( s instanceof GraphShape ) {
                 ((GraphShape)s).setSharpness(sharpness);
             }
-           return false;
+            return false;
         });
     }
     public void markShapesDirty() {
@@ -481,18 +463,13 @@ public final class Scene implements Container, GLEventListener {
         display(drawable, shapesS);
     }
 
-    private static final int[] sampleCountGLSelect = { -1 };
-
     private void display(final GLAutoDrawable drawable, final Object[] shapes) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        final int[] sampleCount0;
         if( null != clearColor ) {
             gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
             gl.glClear(clearMask);
         }
-        sampleCount0 = sampleCount;
-
         final PMVMatrix4f pmv = renderer.getMatrix();
 
         renderer.enable(gl, true);
@@ -505,7 +482,7 @@ public final class Scene implements Container, GLEventListener {
                 shape.setTransformMv(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
-                    shape.draw(gl, renderer, sampleCount0);
+                    shape.draw(gl, renderer);
                 }
                 pmv.popMv();
             }
@@ -527,9 +504,7 @@ public final class Scene implements Container, GLEventListener {
     private void displayGLSelect(final GLAutoDrawable drawable, final Object[] shapes) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        final int[] sampleCount0;
         gl.glClearColor(0f, 0f, 0f, 1f);
-        sampleCount0 = sampleCountGLSelect;
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
         final PMVMatrix4f pmv = renderer.getMatrix();
@@ -548,7 +523,7 @@ public final class Scene implements Container, GLEventListener {
                     // FIXME
                     // System.err.printf("drawGL: color %f, index %d of [0..%d[%n", color, i, shapeCount);
                     renderer.setColorStatic(color, color, color, 1f);
-                    shape.drawToSelect(gl, renderer, sampleCount0);
+                    shape.drawToSelect(gl, renderer);
                 }
                 pmv.popMv();
             }
@@ -1269,11 +1244,10 @@ public final class Scene implements Container, GLEventListener {
      * Return a formatted status string containing avg fps and avg frame duration.
      * @param glad GLAutoDrawable instance for FPSCounter, its chosen GLCapabilities and its GL's swap-interval
      * @param renderModes render modes for {@link Region#getRenderModeString(int, int, int, int)}
-     * @param quality the Graph-Curve quality setting or -1 to be ignored
      * @param dpi the monitor's DPI (vertical preferred)
      * @return formatted status string
      */
-    public String getStatusText(final GLAutoDrawable glad, final int renderModes, final int quality, final float dpi) {
+    public String getStatusText(final GLAutoDrawable glad, final int renderModes, final float dpi) {
             final FPSCounter fpsCounter = glad.getAnimator();
             final float lfps, tfps, td;
             if( null != fpsCounter ) {
@@ -1286,7 +1260,7 @@ public final class Scene implements Container, GLEventListener {
                 td = 0f;
             }
             final GLCapabilitiesImmutable caps = glad.getChosenGLCapabilities();
-            final String modeS = Region.getRenderModeString(renderModes, quality, getSampleCount(), caps.getNumSamples());
+            final String modeS = Region.getRenderModeString(renderModes, getAAQuality(), getSampleCount(), caps.getNumSamples());
             final String blendStr;
             if( getRenderer().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
                 blendStr = ", blend";
@@ -1295,16 +1269,6 @@ public final class Scene implements Container, GLEventListener {
             }
             return String.format("%03.1f/%03.1f fps, %.1f ms/f, vsync %d, dpi %.1f, %s%s, a %d",
                         lfps, tfps, td, glad.getGL().getSwapInterval(), dpi, modeS, blendStr, caps.getAlphaBits());
-    }
-    /**
-     * Return a formatted status string containing avg fps and avg frame duration using {@link #getAAQuality()}
-     * @param glad GLAutoDrawable instance for FPSCounter, its chosen GLCapabilities and its GL's swap-interval
-     * @param renderModes render modes for {@link Region#getRenderModeString(int, int, int, int)}
-     * @param dpi the monitor's DPI (vertical preferred)
-     * @return formatted status string
-     */
-    public String getStatusText(final GLAutoDrawable glad, final int renderModes, final float dpi) {
-        return getStatusText(glad, renderModes, globalAAQuality, dpi);
     }
 
     /**
@@ -1340,7 +1304,7 @@ public final class Scene implements Container, GLEventListener {
         final String dir2 = ( null != dir && dir.length() > 0 ) ? dir : "";
         final String prefix2 = ( null != prefix && prefix.length() > 0 ) ? prefix+"-" : "";
         final RegionRenderer renderer = getRenderer();
-        final String modeS = Region.getRenderModeString(renderModes, globalAAQuality, getSampleCount(), caps.getNumSamples());
+        final String modeS = Region.getRenderModeString(renderModes, getAAQuality(), getSampleCount(), caps.getNumSamples());
         final String contentDetail2 = ( null != contentDetail && contentDetail.length() > 0 ) ? contentDetail+"-" : "";
         return new File( String.format((Locale)null, "%s%s%s-%ssnap%02d-%04dx%04d.png",
                                        dir2, prefix2, modeS, contentDetail2,

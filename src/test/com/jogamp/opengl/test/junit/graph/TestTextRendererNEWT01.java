@@ -256,7 +256,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
         pmv.loadMvIdentity();
         pmv.translateMv(dx, dy, z0);
         pmv.scaleMv(fontSize, fontSize, 1.0f);
-        textRenderUtil.drawString3D(gl, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, sampleCount);
+        textRenderUtil.drawString3D(gl, renderer, font, text, null);
 
         lastRow = row;
     }

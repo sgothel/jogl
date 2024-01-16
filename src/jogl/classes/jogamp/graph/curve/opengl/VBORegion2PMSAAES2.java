@@ -176,12 +176,10 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
      *
      * @param gl
      * @param renderer
-     * @param renderModes
      * @param pass1
-     * @param pass2Quality
-     * @param sampleCount
+     * @param renderModes
      */
-    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final boolean pass1, final int pass2Quality, final int sampleCount) {
+    public void useShaderProgram(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final boolean pass1) {
         final boolean isTwoPass = Region.isTwoPass( curRenderModes );
         final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes ) && null != colorTexSeq;
@@ -189,7 +187,7 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
         final RenderState rs = renderer.getRenderState();
         final boolean hasAABBoxClipping = null != rs.getClipBBox() && ( ( !isTwoPass && pass1 ) || ( isTwoPass && !pass1 ) );
 
-        final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, pass1, pass2Quality, sampleCount, colorTexSeq);
+        final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, pass1, colorTexSeq);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
         final boolean updateLocLocal;
         if( pass1 ) {
@@ -243,7 +241,7 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
     private static final int border = 2; // surrounding border, i.e. width += 2*border, height +=2*border
 
     @Override
-    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int pass2Quality, final int[/*1*/] sampleCount) {
+    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes) {
         if( 0 >= indicesBuffer.getElemCount() ) {
             if(DEBUG_INSTANCE) {
                 System.err.printf("VBORegion2PMSAAES2.drawImpl: Empty%n");
@@ -259,8 +257,8 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
         final RenderState rs = renderer.getRenderState();
         final int vpWidth = renderer.getWidth();
         final int vpHeight = renderer.getHeight();
-        if(vpWidth <=0 || vpHeight <= 0 || sampleCount[0] < 0) {
-            useShaderProgram(gl, renderer, curRenderModes, true, pass2Quality, sampleCount[0]);
+        if(vpWidth <=0 || vpHeight <= 0 || rs.getSampleCount() < 0) {
+            useShaderProgram(gl, renderer, curRenderModes, true);
             renderRegion(gl, rs, curRenderModes);
         } else {
             if(0 > maxTexSize[0]) {
@@ -314,7 +312,7 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
                             winWidth, winHeight, targetWinWidth, targetWinHeight,
                             diffWinWidth, diffWinHeight, ratioWinWidth, ratioWinHeight,
                             targetFboWidth, targetFboHeight,
-                            sampleCount[0]);
+                            rs.getSampleCount());
                 }
             }
             if( 0 >= targetFboWidth || 0 >= targetFboHeight ) {
@@ -328,7 +326,7 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
                 System.err.printf("XXX.maxDelta: hasDelta %b: %d / %d,  %.3f, %.3f%n",
                         hasDelta, deltaFboWidth, deltaFboHeight, (float)deltaFboWidth/fboWidth, (float)deltaFboHeight/fboHeight);
                 System.err.printf("XXX.Scale %d * [%f x %f]: %d x %d%n",
-                        sampleCount[0], winWidth, winHeight, targetFboWidth, targetFboHeight);
+                        rs.getSampleCount(), winWidth, winHeight, targetFboWidth, targetFboHeight);
             }
             if( hasDelta || fboDirty || isShapeDirty() || null == fbo ) {
                 // FIXME: rescale
@@ -348,24 +346,24 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
                 }
                 gca_FboVerticesAttr.seal(true);
                 matP.setToOrtho(minX, maxX, minY, maxY, -1, 1);
-                useShaderProgram(gl, renderer, curRenderModes, true, pass2Quality, sampleCount[0]);
+                useShaderProgram(gl, renderer, curRenderModes, true);
                 renderRegion2FBO(gl, rs, curRenderModes,
                                  // (int)drawWinBox.getMinX(), (int)drawWinBox.getMinY(), targetFboWidth, targetFboHeight,
                                  0, 0, targetFboWidth, targetFboHeight,
-                                 vpWidth, vpHeight, sampleCount);
+                                 vpWidth, vpHeight);
             } else if( isStateDirty() ) {
-                useShaderProgram(gl, renderer, curRenderModes, true, pass2Quality, sampleCount[0]);
+                useShaderProgram(gl, renderer, curRenderModes, true);
                 renderRegion2FBO(gl, rs, curRenderModes,
                                  // (int)drawWinBox.getMinX(), (int)drawWinBox.getMinY(), targetFboWidth, targetFboHeight,
                                  0, 0, targetFboWidth, targetFboHeight,
-                                 vpWidth, vpHeight, sampleCount);
+                                 vpWidth, vpHeight);
             }
-            useShaderProgram(gl, renderer, curRenderModes, false, pass2Quality, sampleCount[0]);
-            renderFBO(gl, rs, vpWidth, vpHeight, sampleCount[0]);
+            useShaderProgram(gl, renderer, curRenderModes, false);
+            renderFBO(gl, rs, vpWidth, vpHeight);
         }
     }
 
-    private void renderFBO(final GL2ES2 gl, final RenderState rs, final int width, final int height, final int sampleCount) {
+    private void renderFBO(final GL2ES2 gl, final RenderState rs, final int width, final int height) {
         gl.glViewport(0, 0, width, height);
 
         if( rs.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED | RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
@@ -410,12 +408,12 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
 
     private void renderRegion2FBO(final GL2ES2 gl, final RenderState rs, final int curRenderModes,
                                   final int fboX, final int fboY, final int targetFboWidth, final int targetFboHeight,
-                                  final int vpWidth, final int vpHeight, final int[] sampleCount) {
+                                  final int vpWidth, final int vpHeight) {
         if( 0 >= targetFboWidth || 0 >= targetFboHeight ) {
             throw new IllegalArgumentException("targetFBOSize "+targetFboWidth+"x"+targetFboHeight+" must be greater than 0");
         }
         final boolean blendingEnabled = rs.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED);
-        final int targetFboSamples = sampleCount[0] > 1 ? sampleCount[0] : 0;
+        final int targetFboSamples = rs.getSampleCount() > 1 ? rs.getSampleCount() : 0;
         final boolean fboSampleTypeMatch;
         {
             final int oldSampleCount = null != fbo ? fbo.getNumSamples() : 0;
@@ -430,7 +428,7 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
             fboHeight  = targetFboHeight;
             fbo = new FBObject();
             fbo.init(gl, targetFboWidth, targetFboHeight, targetFboSamples);
-            sampleCount[0] = Math.max(1, fbo.getNumSamples());
+            rs.setSampleCount( Math.max(1, fbo.getNumSamples()) );
             if( 0 == targetFboSamples ) {
                 texA = fbo.attachTexture2D(gl, 0, true, GL.GL_LINEAR, GL.GL_LINEAR, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
                 if( !blendingEnabled ) {
@@ -460,7 +458,7 @@ public final class VBORegion2PMSAAES2  extends GLRegion {
             }
         } else if( targetFboWidth != fboWidth || targetFboHeight != fboHeight || fbo.getNumSamples() != targetFboSamples ) {
             fbo.reset(gl, targetFboWidth, targetFboHeight, targetFboSamples);
-            sampleCount[0] = Math.max(1, fbo.getNumSamples());
+            rs.setSampleCount( Math.max(1, fbo.getNumSamples()) );
             if( DEBUG_FBO_1 ) {
                 System.err.printf("XXX.resetFBO: %dx%d -> %dx%d%n%s%n", fboWidth, fboHeight, targetFboWidth, targetFboHeight, fbo );
             }

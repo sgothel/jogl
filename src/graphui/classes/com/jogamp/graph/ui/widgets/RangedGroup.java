@@ -86,7 +86,7 @@ public class RangedGroup extends Widget {
      * @param content the {@link Group} with content to view
      * @param contentSize the fixed size of the clipped content to view, i.e. page-size
      * @param cullingScale culling scale factor per axis for the {@code clip-box} to discard
-     *        {@link #draw(GL2ES2, RegionRenderer, int[]) rendering} completely outside of {@code clip-box*cullingScale}.
+     *        {@link #draw(GL2ES2, RegionRenderer) rendering} completely outside of {@code clip-box*cullingScale}.
      *        Pixel-accurate clipping is applied within [{@code clip-box} .. {@code clip-box*cullingScale}] if any scale-axis of {@code cullingScale} > 1.
      *        See {@link Group#setClipBBox(AABBox, Vec3f)}.
      * @param horizSliderParam optional horizontal slider parameters, null for none
@@ -169,12 +169,12 @@ public class RangedGroup extends Widget {
         }
     }
     @Override
-    protected void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final Vec4f rgba) {
+    protected void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final Vec4f rgba) {
         if( content.isVisible() ) {
             // Mv pre-multiplied AABBox, clippedContent is on same PMV
             final AABBox clipBBox = clippedContent.getBounds().transform(renderer.getMatrix().getMv(), tempBB);
             content.setClipBBox(clipBBox, clipCullingScale);
-            super.drawImpl0(gl, renderer, sampleCount, rgba);
+            super.drawImpl0(gl, renderer, rgba);
             content.setClipBBox(null, clipCullingScale);
         }
     }

@@ -242,6 +242,8 @@ public class PerfTextRendererNEWT00 {
 
         final RegionRenderer renderer = RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
         renderer.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        renderer.setAAQuality(Region.DEFAULT_AA_QUALITY);
+        renderer.setSampleCount(sampleCount);
 
         final GLRegion region = GLRegion.create(gl.getGLProfile(), renderModes, null, font, text);
         System.err.println("Region post ctor w/ pre-calculated buffer size");
@@ -276,7 +278,6 @@ public class PerfTextRendererNEWT00 {
             renderer.reshapeOrtho(drawable.getSurfaceWidth(), drawable.getSurfaceHeight(), 0.1f, 1000.0f);
             final int z0 = -1000;
 
-            final int[] sampleCountIO = { sampleCount };
             // display
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             region.clear(gl);
@@ -308,7 +309,7 @@ public class PerfTextRendererNEWT00 {
             pmv.loadMvIdentity();
             pmv.translateMv(dx, dy, z0);
             pmv.scaleMv(fontScale, fontScale, 1f);
-            region.draw(gl, renderer, Region.DEFAULT_AA_QUALITY, sampleCountIO);
+            region.draw(gl, renderer);
             final long t5 = Clock.currentNanos(); // text added to region
             if( null != perf ) {
                 final long td_graph = t3 - t2;

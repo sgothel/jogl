@@ -48,7 +48,7 @@ import com.jogamp.newt.Window;
 public abstract class TextRendererGLELBase implements GLEventListener {
     public final int renderModes;
 
-    protected final int[] vbaaSampleCount;
+    protected final int pass2SampleCount;
     protected final float[] staticRGBAColor = new float[] { 1f, 1f, 1f, 1f };
 
     private boolean exclusivePMVMatrix = true;
@@ -88,9 +88,9 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      * @param sampleCount desired multisampling sample count for msaa-rendering.
      * @see #setRendererCallbacks(com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback, com.jogamp.graph.curve.opengl.RegionRenderer.GLCallback)
      */
-    public TextRendererGLELBase(final int renderModes, final int[] sampleCount) {
+    public TextRendererGLELBase(final int renderModes, final int sampleCount) {
         this.renderModes = renderModes;
-        this.vbaaSampleCount = sampleCount;
+        this.pass2SampleCount = sampleCount;
     }
 
     /**
@@ -122,7 +122,6 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     public void setFlipVerticalInGLOrientation(final boolean v) { flipVerticalInGLOrientation=v; }
     public final RegionRenderer getRenderer() { return renderer; }
     public final TextRegionUtil getTextRenderUtil() { return textRenderUtil; }
-    public int[] getVBAASampleCount() { return this.vbaaSampleCount; }
 
     public PMVMatrix4f getMatrix() { return renderer.getMatrix(); };
     public boolean isMatrixShared() { return !exclusivePMVMatrix; };
@@ -131,6 +130,8 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     public void init(final GLAutoDrawable drawable) {
         exclusivePMVMatrix = null == sharedPMVMatrix;
         renderer = RegionRenderer.create(sharedPMVMatrix, enableCallback, disableCallback);
+        renderer.setAAQuality(Region.DEFAULT_AA_QUALITY);
+        renderer.setSampleCount(pass2SampleCount);
         renderer.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRenderUtil = new TextRegionUtil(renderModes);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -262,11 +263,11 @@ public abstract class TextRendererGLELBase implements GLEventListener {
             }
             renderer.enable(gl, true);
             if( cacheRegion ) {
-                textRenderUtil.drawString3D(gl, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, vbaaSampleCount);
+                textRenderUtil.drawString3D(gl, renderer, font, text, null);
             } else if( null != region ) {
-                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, vbaaSampleCount, tempT1, tempT2);
+                TextRegionUtil.drawString3D(gl, region, renderer, font, text, null, tempT1, tempT2);
             } else {
-                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, vbaaSampleCount, tempT1, tempT2);
+                TextRegionUtil.drawString3D(gl, renderModes, renderer, font, text, null, tempT1, tempT2);
             }
             renderer.enable(gl, false);
 
@@ -310,7 +311,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 pmvMatrix.scaleMv(sxy, sxy, 1.0f);
             }
             renderer.enable(gl, true);
-            region.draw(gl, renderer, Region.DEFAULT_AA_QUALITY, vbaaSampleCount);
+            region.draw(gl, renderer);
             renderer.enable(gl, false);
 
             if( !exclusivePMVMatrix )  {

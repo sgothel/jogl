@@ -488,8 +488,7 @@ public abstract class GLRegion extends Region {
 
     /**
      * Renders the associated OGL objects specifying
-     * current width/hight of window for multi pass rendering
-     * of the region.
+     * current width/hight of window for optional multi pass rendering of the region.
      * <p>
      * User shall consider {@link RegionRenderer#enable(GL2ES2, boolean) enabling}
      * the renderer beforehand and {@link RegionRenderer#enable(GL2ES2, boolean) disabling}
@@ -511,18 +510,19 @@ public abstract class GLRegion extends Region {
      * </p>
      * @param gl current {@link GL2ES2}.
      * @param renderer the {@link RegionRenderer} to be used
-     * @param pass2Quality pass2 AA-quality selector in the range [{@link Region#MIN_AA_QUALITY}..{@link Region#MAX_AA_QUALITY}] for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT}
-     * @param sampleCount desired pass2 AA-multisampling sample count in the typical range [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}] for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT}, {@link Region#MSAA_RENDERING_BIT}
-     *        Use -1 for glSelect mode, pass1 w/o any color texture nor channel, use static select color only.
-     *        The actual used scample-count is written back when msaa-rendering is enabled, otherwise the store is untouched.
      * @see RegionRenderer#enable(GL2ES2, boolean)
+     * @see RegionRenderer#setAAQuality(int)
+     * @see RegionRenderer#setSampleCount(int)
+     * @see RegionRenderer#setClipBBox(com.jogamp.math.geom.AABBox)
      */
-    public final void draw(final GL2ES2 gl, final RegionRenderer renderer, final int pass2Quality, final int[/*1*/] sampleCount) {
+    public final void draw(final GL2ES2 gl, final RegionRenderer renderer) {
+        final int pass2Quality = renderer.getAAQuality();
+        final int pass2SampleCount = renderer.getSampleCount();
         final int curRenderModes;
-        if( 0 == sampleCount[0] ) {
+        if( 0 == pass2SampleCount ) {
             // no sampling, reduce to pass1
             curRenderModes = getRenderModes() & ~( VBAA_RENDERING_BIT | MSAA_RENDERING_BIT );
-        } else if( 0 > sampleCount[0] ) {
+        } else if( 0 > pass2SampleCount ) {
             // negative sampling, hint we perform glSelect: pass1 w/o any color texture nor channel, use static select color only
             curRenderModes = getRenderModes() & ~( VBAA_RENDERING_BIT | MSAA_RENDERING_BIT | COLORCHANNEL_RENDERING_BIT | COLORTEXTURE_RENDERING_BIT );
         } else {
@@ -535,15 +535,38 @@ public abstract class GLRegion extends Region {
         if( lastRenderModes != curRenderModes ) {
             markShapeDirty();
             markStateDirty();
+        } else if( Region.isGraphAA(curRenderModes) &&
+                   ( lastPass2Quality != pass2Quality || lastPass2SampleCount != pass2SampleCount ) ) {
+            markStateDirty();
         }
         if( isShapeDirty() ) {
             updateImpl(gl, renderer, curRenderModes);
         }
-        drawImpl(gl, renderer, curRenderModes, Region.clipAAQuality(pass2Quality), sampleCount);
+        drawImpl(gl, renderer, curRenderModes);
+        clearDirtyBits(DIRTY_SHAPE|DIRTY_STATE);
+        lastRenderModes = curRenderModes;
+        lastPass2Quality = pass2Quality;
+        lastPass2SampleCount = pass2SampleCount;
+    }
+
+    /** Perform glSelect false color rendering: pass1 w/o any color texture nor channel, use static select color only */
+    public final void drawToSelect(final GL2ES2 gl, final RegionRenderer renderer) {
+        final int curRenderModes = getRenderModes() & ~( VBAA_RENDERING_BIT | MSAA_RENDERING_BIT | COLORCHANNEL_RENDERING_BIT | COLORTEXTURE_RENDERING_BIT );
+        if( lastRenderModes != curRenderModes ) {
+            markShapeDirty();
+            markStateDirty();
+        }
+        if( isShapeDirty() ) {
+            updateImpl(gl, renderer, curRenderModes);
+        }
+        drawImpl(gl, renderer, curRenderModes);
         clearDirtyBits(DIRTY_SHAPE|DIRTY_STATE);
         lastRenderModes = curRenderModes;
     }
+
     private int lastRenderModes = 0;
+    private int lastPass2Quality = -1;
+    private int lastPass2SampleCount = -1;
 
     /**
      * Updates a graph region by updating the ogl related
@@ -553,5 +576,5 @@ public abstract class GLRegion extends Region {
      */
     protected abstract void updateImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes);
 
-    protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, int pass2Quality, final int[/*1*/] sampleCount);
+    protected abstract void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes);
 }

@@ -279,7 +279,8 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         }
 
         public void setTech(final float xt, final float yt, final int zt, final float angle, final int sampleCount){
-            impl.setMatrix(xt, yt, zt, angle, sampleCount);
+            impl.setMatrix(xt, yt, zt, angle);
+            impl.getRenderer().setSampleCount(sampleCount);
         }
 
         @Override

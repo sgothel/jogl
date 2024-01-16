@@ -415,7 +415,7 @@ public abstract class Shape {
      * Set a user one-shot initializer callback.
      * <p>
      * {@link ListenerBool#run(Shape)} will be called
-     * after each {@link #draw(GL2ES2, RegionRenderer, int[])}
+     * after each {@link #draw(GL2ES2, RegionRenderer)}
      * until it returns true, signaling user initialization is completed.
      * </p>
      * @param l callback, which shall return true signaling user initialization is done
@@ -588,7 +588,7 @@ public abstract class Shape {
     public final Vec3f getScale() { return scale; }
 
     /**
-     * Marks the shape dirty, causing next {@link #draw(GL2ES2, RegionRenderer, int[]) draw()}
+     * Marks the shape dirty, causing next {@link #draw(GL2ES2, RegionRenderer) draw()}
      * to recreate the Graph shape and reset the region.
      */
     public final void markShapeDirty() {
@@ -598,7 +598,7 @@ public abstract class Shape {
     }
 
     /**
-     * Marks the rendering state dirty, causing next {@link #draw(GL2ES2, RegionRenderer, int[]) draw()}
+     * Marks the rendering state dirty, causing next {@link #draw(GL2ES2, RegionRenderer) draw()}
      * to notify the Graph region to reselect shader and repaint potentially used FBOs.
      */
     public final void markStateDirty() {
@@ -634,7 +634,7 @@ public abstract class Shape {
      * The returned {@link AABBox} will cover the unscaled shape
      * as well as its optional {@link #getPadding()} and optional {@link #getBorderThickness()}.
      *
-     * The returned {@link AABBox} is only valid after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
+     * The returned {@link AABBox} is only valid after an initial call to {@link #draw(GL2ES2, RegionRenderer) draw(..)}
      * or {@link #validate(GL2ES2)}.
      *
      * @see #getBounds(GLProfile)
@@ -647,7 +647,7 @@ public abstract class Shape {
      * The returned width will cover the scaled shape
      * as well as its optional scaled {@link #getPadding()} and optional scaled {@link #getBorderThickness()}.
      *
-     * The returned width is only valid after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
+     * The returned width is only valid after an initial call to {@link #draw(GL2ES2, RegionRenderer) draw(..)}
      * or {@link #validate(GL2ES2)}.
      *
      * @see #getBounds()
@@ -662,7 +662,7 @@ public abstract class Shape {
      * The returned height will cover the scaled shape
      * as well as its optional scaled {@link #getPadding()} and optional scaled {@link #getBorderThickness()}.
      *
-     * The returned height is only valid after an initial call to {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
+     * The returned height is only valid after an initial call to {@link #draw(GL2ES2, RegionRenderer) draw(..)}
      * or {@link #validate(GL2ES2)}.
      *
      * @see #getBounds()
@@ -679,7 +679,7 @@ public abstract class Shape {
      * Returns the unscaled bounding {@link AABBox} for this shape.
      *
      * This variant differs from {@link #getBounds()} as it
-     * returns a valid {@link AABBox} even before {@link #draw(GL2ES2, RegionRenderer, int[]) draw(..)}
+     * returns a valid {@link AABBox} even before {@link #draw(GL2ES2, RegionRenderer) draw(..)}
      * and having an OpenGL instance available.
      *
      * @see #getBounds()
@@ -690,10 +690,10 @@ public abstract class Shape {
     }
 
     /** Experimental selection draw command used by {@link Scene}. */
-    public void drawToSelect(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+    public void drawToSelect(final GL2ES2 gl, final RegionRenderer renderer) {
         synchronized ( dirtySync ) {
             validate(gl);
-            drawToSelectImpl0(gl, renderer, sampleCount);
+            drawToSelectImpl0(gl, renderer);
         }
     }
 
@@ -704,9 +704,8 @@ public abstract class Shape {
      * </p>
      * @param gl the current GL object
      * @param renderer {@link RegionRenderer} which might be used for Graph Curve Rendering, also source of {@link RegionRenderer#getMatrix()} and {@link RegionRenderer#getViewport()}.
-     * @param sampleCount sample count if used by Graph renderModes
      */
-    public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+    public void draw(final GL2ES2 gl, final RegionRenderer renderer) {
         final boolean isPressed = isPressed(), isToggleOn = isToggleOn();
         final Vec4f rgba;
         if( hasColorChannel() ) {
@@ -737,7 +736,7 @@ public abstract class Shape {
         }
         synchronized ( dirtySync ) {
             validate(gl);
-            drawImpl0(gl, renderer, sampleCount, rgba);
+            drawImpl0(gl, renderer, rgba);
         }
         if( null != onInitListener ) {
             if( onInitListener.run(this) ) {
@@ -1954,21 +1953,19 @@ public abstract class Shape {
     protected abstract void validateImpl(final GL2ES2 gl, final GLProfile glp);
 
     /**
-     * Actual draw implementation, called by {@link #draw(GL2ES2, RegionRenderer, int[])}
+     * Actual draw implementation, called by {@link #draw(GL2ES2, RegionRenderer)}
      * @param gl
      * @param renderer
-     * @param sampleCount
      * @param rgba
      */
-    protected abstract void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, Vec4f rgba);
+    protected abstract void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final Vec4f rgba);
 
     /**
-     * Actual draw implementation, called by {@link #drawToSelect(GL2ES2, RegionRenderer, int[])}
+     * Actual draw implementation, called by {@link #drawToSelect(GL2ES2, RegionRenderer)}
      * @param gl
      * @param renderer
-     * @param sampleCount
      */
-    protected abstract void drawToSelectImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount);
+    protected abstract void drawToSelectImpl0(final GL2ES2 gl, final RegionRenderer renderer);
 
     /** Custom {@link #clear(GL2ES2, RegionRenderer)} task, called 1st. */
     protected abstract void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer);
@@ -1978,9 +1975,9 @@ public abstract class Shape {
 
     /**
      * Returns true if implementation uses an extra color channel or texture
-     * which will be modulated with the passed rgba color {@link #drawImpl0(GL2ES2, RegionRenderer, int[], float[])}.
+     * which will be modulated with the passed rgba color {@link #drawImpl0(GL2ES2, RegionRenderer, float[])}.
      *
-     * Otherwise the base color will be modulated and passed to {@link #drawImpl0(GL2ES2, RegionRenderer, int[], float[])}.
+     * Otherwise the base color will be modulated and passed to {@link #drawImpl0(GL2ES2, RegionRenderer, float[])}.
      */
     public abstract boolean hasColorChannel();
 

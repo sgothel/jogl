@@ -574,7 +574,7 @@ public class UISceneDemo03 {
                     animGroup.getRotation().rotateByAngleY( frame_velocity * dir );
                 }
                 final String text = String.format("%s, v %.1f mm/s, r %.3f rad/s",
-                        scene.getStatusText(drawable, options.renderModes, 0, dpiV), velocity * 1e3f, ang_velo);
+                        scene.getStatusText(drawable, options.renderModes, dpiV), velocity * 1e3f, ang_velo);
                 statusLabel.setText(text);
             }
             @Override

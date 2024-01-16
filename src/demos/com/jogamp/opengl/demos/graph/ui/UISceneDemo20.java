@@ -570,7 +570,7 @@ public class UISceneDemo20 implements GLEventListener {
                 public void mouseClicked(final MouseEvent e) {
                     final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
                     if( shapeEvent.shape instanceof GraphShape ) {
-                        int quality = ((GraphShape)shapeEvent.shape).getAAQuality();
+                        int quality = scene.getAAQuality();
                         if( shapeEvent.objPos.x() < shapeEvent.shape.getBounds().getCenter().x() ) {
                             // left-half pressed
                             quality--;
@@ -1079,7 +1079,7 @@ public class UISceneDemo20 implements GLEventListener {
             truePtSizeLabel.moveTo(dxMiddleAbs, dyTopLabelAbs - jogampLabel.getScaledLineHeight() - truePtSizeLabel.getScaledLineHeight(), dz);
         }
         {
-            final AABBox fbox = fontFPS.getGlyphBounds(scene.getStatusText(drawable, renderModes, fpsLabel.getAAQuality(), dpiV));
+            final AABBox fbox = fontFPS.getGlyphBounds(scene.getStatusText(drawable, renderModes, dpiV));
             final float scale = sceneWidth / ( 1.4f * fbox.getWidth() ); // add 40% width
             fpsLabel.setScale(scale, scale, 1f);
             fpsLabel.moveTo(sceneBox.getMinX(), sceneBox.getMinY() + scale * ( fontFPS.getMetrics().getLineGap() - fontFPS.getMetrics().getDescent() ), 0f);
@@ -1135,7 +1135,7 @@ public class UISceneDemo20 implements GLEventListener {
         if( fpsLabel.isVisible() ) {
             final String text;
             if( null == actionText ) {
-                text = scene.getStatusText(drawable, renderModes, fpsLabel.getAAQuality(), dpiV);
+                text = scene.getStatusText(drawable, renderModes, dpiV);
             } else if( null != drawable.getAnimator() ) {
                 text = Scene.getStatusText(drawable.getAnimator())+", "+actionText;
             } else {

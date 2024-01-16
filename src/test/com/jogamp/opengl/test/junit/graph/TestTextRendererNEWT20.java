@@ -50,7 +50,6 @@ import org.junit.runners.MethodSorters;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.newt.opengl.GLWindow;
@@ -191,9 +190,9 @@ public class TestTextRendererNEWT20 extends UITestCase {
         for(final Font f : fontSet) {
             if( textGLListener.setFont(f) ) {
                 for(final int aaQuality : aaQualitySet ) {
-                    textGLListener.setAAQuality(aaQuality);
+                    textGLListener.getRenderer().setAAQuality(aaQuality);
                     for(final int sampleCount : sampleSet ) {
-                        textGLListener.setSampleCount(sampleCount);
+                        textGLListener.getRenderer().setSampleCount(sampleCount);
                         action_per_font.run();
                     }
                 }
@@ -247,7 +246,7 @@ public class TestTextRendererNEWT20 extends UITestCase {
         for(final Font f : fontSet) {
             if( textGLListener.setFont(f) ) {
                 for(final int sampleCount : sampleSet ) {
-                    textGLListener.setSampleCount(sampleCount);
+                    textGLListener.getRenderer().setSampleCount(sampleCount);
                     action_per_font.run();
                 }
             }
@@ -346,10 +345,6 @@ public class TestTextRendererNEWT20 extends UITestCase {
         @Override
         public void attachInputListenerTo(final GLWindow window) {
             super.attachInputListenerTo(window);
-        }
-        public void setSampleCount(final int sampleCount){
-            // setMatrix(xt, yt, zoom, angle, sampleCount);
-            setMatrix(0, 0, 0, 0f, sampleCount);
         }
 
         @Override

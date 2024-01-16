@@ -60,8 +60,9 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
         super(RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable), renderModes, debug, trace);
         this.shape_ctor_mode = shape_ctor_mode;
         this.getRenderer().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
-        setMatrix(-20, 00, -50, 0f, sampleCount);
-        setAAQuality(aaQuality);
+        setMatrix(-20, 00, -50, 0f);
+        getRenderer().setAAQuality(aaQuality);
+        getRenderer().setSampleCount(sampleCount);
     }
 
     private void createTestOutline00(){
@@ -291,7 +292,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
             regionRenderer.setWeight(weight);
         }
         regionRenderer.enable(gl, true);
-        region.draw(gl, regionRenderer, getAAQuality(), getSampleCount());
+        region.draw(gl, regionRenderer);
         regionRenderer.enable(gl, false);
     }
 }

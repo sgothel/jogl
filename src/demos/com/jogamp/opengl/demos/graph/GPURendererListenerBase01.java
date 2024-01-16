@@ -90,8 +90,6 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     private float yTran =  10;
     private float ang = 0f;
     private float zTran = -70f;
-    private int graphAAQuality = Region.DEFAULT_AA_QUALITY;
-    private final int[] sampleCount = new int[] { 4 };
 
     protected volatile float weight = 1.0f;
     boolean ignoreInput = false;
@@ -112,18 +110,13 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public final float getYTran() { return yTran; }
     public final float getAngleDeg() { return ang; }
     public final float getAngleRad() { return FloatUtil.adegToRad(ang); }
-    public final int[] getSampleCount() { return sampleCount; }
     public final float[] getPosition() { return position; }
 
-    public final void setAAQuality(final int v) { graphAAQuality = Region.clipAAQuality(v); }
-    public final int getAAQuality() { return graphAAQuality; }
-
-    public void setMatrix(final float xtrans, final float ytrans, final float zTran, final float angle, final int sampleCount) {
+    public void setMatrix(final float xtrans, final float ytrans, final float zTran, final float angle) {
         this.xTran = xtrans;
         this.yTran = ytrans;
         this.zTran = zTran;
         this.ang = angle;
-        this.sampleCount[0] = sampleCount;
     }
 
     @Override
@@ -243,7 +236,8 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     }
 
     public void printScreen(final GLAutoDrawable drawable, final String dir, final String tech, final String objName, final boolean exportAlpha) throws GLException, IOException {
-        final String sw = String.format("_s%02d-%s-Z%04d-snap%02d-%03dx%03d", sampleCount[0], objName, (int)Math.abs(zTran), screenshot_num++, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
+        final String sw = String.format("_s%02d-%s-Z%04d-snap%02d-%03dx%03d", getRenderer().getSampleCount(), objName, (int)Math.abs(zTran),
+                                       screenshot_num++, drawable.getSurfaceWidth(), drawable.getSurfaceHeight());
         final String filename = dir + tech + sw +".png";
         if(screenshot.readPixels(drawable.getGL(), false)) {
             screenshot.write(new File(filename));
@@ -300,12 +294,12 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                 move(1, 0);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_6){
-                sampleCount[0] -= 1;
-                System.err.println("Sample Count: " + sampleCount[0]);
+                getRenderer().setSampleCount( getRenderer().getSampleCount() - 1 );
+                System.err.println("Sample Count: " + getRenderer().getSampleCount());
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_7){
-                sampleCount[0] += 1;
-                System.err.println("Sample Count: " + sampleCount[0]);
+                getRenderer().setSampleCount( getRenderer().getSampleCount() + 1 );
+                System.err.println("Sample Count: " + getRenderer().getSampleCount());
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_0){
                 rotate(1);

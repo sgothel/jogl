@@ -510,7 +510,7 @@ public class AnimGroup extends Group {
                 } );
     }
 
-    /** Sets whether {@link #tick()} shall be automatic issued on {@link #draw(GL2ES2, RegionRenderer, int[])}, default is {@code true}. */
+    /** Sets whether {@link #tick()} shall be automatic issued on {@link #draw(GL2ES2, RegionRenderer)}, default is {@code true}. */
     public final void setTickOnDraw(final boolean v) { tickOnDraw = v; }
     public final boolean getTickOnDraw() { return tickOnDraw; }
 
@@ -539,11 +539,11 @@ public class AnimGroup extends Group {
     public final boolean getTickPaused() { return tickPaused; }
 
     @Override
-    public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+    public void draw(final GL2ES2 gl, final RegionRenderer renderer) {
         if( tickOnDraw && !tickPaused) {
             tickImpl();
         }
-        super.draw(gl, renderer, sampleCount);
+        super.draw(gl, renderer);
     }
 
     public final void resetAnimation() {
@@ -575,7 +575,7 @@ public class AnimGroup extends Group {
     }
 
     /**
-     * Issues an animation tick, usually done at {@link #draw(GL2ES2, RegionRenderer, int[])}.
+     * Issues an animation tick, usually done at {@link #draw(GL2ES2, RegionRenderer)}.
      * @see #setTickOnDraw(boolean)
      * @see #setTickPaused(boolean)
      */

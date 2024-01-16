@@ -60,7 +60,7 @@ public class RenderState {
      * Shall be set via {@link #setHintMask(int)} and cleared via {@link #clearHintMask(int)}.
      * </p>
      * <p>
-     * If set, {@link GLRegion#draw(GL2ES2, RegionRenderer, int, int[]) GLRegion's draw-method}
+     * If set, {@link GLRegion#draw(GL2ES2, RegionRenderer) GLRegion's draw-method}
      * will set the proper {@link GL#glBlendFuncSeparate(int, int, int, int) blend-function}
      * and the clear-color to <i>transparent-black</i> in case of {@link Region#isTwoPass(int) multipass} FBO rendering.
      * </p>
@@ -79,7 +79,7 @@ public class RenderState {
      * Shall be set via {@link #setHintMask(int)} and cleared via {@link #clearHintMask(int)}.
      * </p>
      * <p>
-     * {@link GLRegion#draw(GL2ES2, RegionRenderer, int, int[]) GLRegion's draw-method}
+     * {@link GLRegion#draw(GL2ES2, RegionRenderer) GLRegion's draw-method}
      * may toggle depth test, and reset it's state according to this hint.
      * </p>
      * <p>
@@ -98,6 +98,10 @@ public class RenderState {
     private final FloatBuffer weightBuffer;
     private final float[] colorStatic;
     private final FloatBuffer colorStaticBuffer;
+    /** Pass2 AA-quality rendering {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT}. */
+    private int aaQuality;
+    /** Default pass2 AA sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
+    private int sampleCount;
     /** Optional clipping {@link AABBox}, which shall be pre-multiplied with the Mv-matrix. Null if unused. */
     private AABBox clipBBox;
     private int hintBitfield;
@@ -199,6 +203,8 @@ public class RenderState {
         this.weightBuffer = FloatBuffer.wrap(weight);
         this.colorStatic = new float[] { 1, 1, 1, 1 };
         this.colorStaticBuffer = FloatBuffer.wrap(colorStatic);
+        this.aaQuality = Region.DEFAULT_AA_QUALITY;
+        this.sampleCount = Region.DEFAULT_AA_SAMPLE_COUNT;
         this.clipBBox = null;
         this.hintBitfield = 0;
         this.sp = null;
@@ -264,6 +270,16 @@ public class RenderState {
         colorStatic[2] = b;
         colorStatic[3] = a;
     }
+
+    /** Sets pass2 AA-quality rendering value clipped to the range [{@link Region#MIN_AA_QUALITY}..{@link Region#MAX_AA_QUALITY}] for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT}. */
+    public final int setAAQuality(final int v) { final int q=Region.clipAAQuality(v); this.aaQuality=q; return q;}
+    /** Returns pass2 AA-quality rendering value for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT}. */
+    public final int getAAQuality() { return this.aaQuality; }
+
+    /** Sets pass2 AA sample count clipped to the range [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}] for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
+    public final int setSampleCount(final int v) { final int s=Region.clipAASampleCount(v); this.sampleCount=s; return s;}
+    /** Returns pass2 AA sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
+    public final int getSampleCount() { return this.sampleCount; }
 
     /** Set the optional clipping {@link AABBox}, which shall be pre-multiplied with the Mv-matrix or null to disable. */
     public final void setClipBBox(final AABBox clipBBox) { this.clipBBox = clipBBox; }

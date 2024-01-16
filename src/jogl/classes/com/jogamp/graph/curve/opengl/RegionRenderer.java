@@ -92,7 +92,7 @@ public final class RegionRenderer {
      * and turning-on the {@link GL#GL_BLEND} state.
      * <p>
      * Implementation also sets {@link RegionRenderer#getRenderState() RenderState}'s {@link RenderState#BITHINT_BLENDING_ENABLED blending bit-hint},
-     * which will cause {@link GLRegion#draw(GL2ES2, RegionRenderer, int, int[]) GLRegion's draw-method}
+     * which will cause {@link GLRegion#draw(GL2ES2, RegionRenderer) GLRegion's draw-method}
      * to set the proper {@link GL#glBlendFuncSeparate(int, int, int, int) blend-function}
      * and the clear-color to <i>transparent-black</i> in case of {@link Region#isTwoPass(int) multipass} FBO rendering.
      * </p>
@@ -236,7 +236,7 @@ public final class RegionRenderer {
      * Initialize shader and bindings for GPU based rendering bound to the given GL object's GLContext
      * if not initialized yet.
      * <p>Disables the renderer via {@link #enable(GL2ES2, boolean)} to remove any side-effects, ie ShaderState incl. shader program.</p>
-     * <p>Shall be called once before at initialization before a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region, int, int)}</p>
+     * <p>Shall be called once before at initialization before a {@code draw()} method, e.g. {@link RegionRenderer#draw(GL2ES2, Region)}</p>
      *
      * @param gl referencing the current GLContext to which the ShaderState is bound to
      * @throws GLException if initialization failed
@@ -304,6 +304,16 @@ public final class RegionRenderer {
 
     public final void setColorStatic(final float r, final float g, final float b, final float a){ rs.setColorStatic(r, g, b, a); }
 
+    /** Sets pass2 AA-quality rendering value clipped to the range [{@link Region#MIN_AA_QUALITY}..{@link Region#MAX_AA_QUALITY}] for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT}. */
+    public final int setAAQuality(final int v) { return rs.setAAQuality(v); }
+    /** Returns pass2 AA-quality rendering value for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT}. */
+    public final int getAAQuality() { return rs.getAAQuality(); }
+
+    /** Sets pass2 AA sample count clipped to the range [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}] for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
+    public final int setSampleCount(final int v) { return rs.setSampleCount(v); }
+    /** Returns pass2 AA sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
+    public final int getSampleCount() { return rs.getSampleCount(); }
+
     /** Set the optional clipping {@link AABBox}, which shall be pre-multiplied with the Mv-matrix or null to disable. */
     public final void setClipBBox(final AABBox clipBBox) { rs.setClipBBox(clipBBox); }
     /** Returns the optional Mv-premultiplied clipping {@link AABBox} or null if unused. */
@@ -319,7 +329,7 @@ public final class RegionRenderer {
      * Enabling or disabling the {@link #getRenderState() RenderState}'s
      * current {@link RenderState#getShaderProgram() shader program}.
      * <p>
-     * {@link #useShaderProgram(GL2ES2, int, boolean, int, int, TextureSequence)}
+     * {@link #useShaderProgram(GL2ES2, int, boolean, TextureSequence)}
      * generates, selects and caches the desired Curve-Graph {@link ShaderProgram}
      * and {@link RenderState#setShaderProgram(GL2ES2, ShaderProgram) sets it current} in the {@link RenderState} composition.
      * </p>
@@ -330,7 +340,7 @@ public final class RegionRenderer {
      * @param gl current GL object
      * @param enable if true enable the current {@link ShaderProgram}, otherwise disable.
      * @see #create(Vertex.Factory<? extends Vertex>, RenderState, GLCallback, GLCallback)
-     * @see #useShaderProgram(GL2ES2, int, boolean, int, int, TextureSequence)
+     * @see #useShaderProgram(GL2ES2, int, boolean, TextureSequence)
      * @see RenderState#setShaderProgram(GL2ES2, ShaderProgram)
      * @see RenderState#getShaderProgram()
      */
@@ -591,8 +601,6 @@ public final class RegionRenderer {
      * @param gl
      * @param renderModes
      * @param pass1
-     * @param pass2Quality
-     * @param sampleCount
      * @param colorTexSeq
      * @return true if a new shader program is being used and hence external uniform-data and -location,
      *         as well as the attribute-location must be updated, otherwise false.
@@ -600,9 +608,8 @@ public final class RegionRenderer {
      * @see RenderState#setShaderProgram(GL2ES2, ShaderProgram)
      * @see RenderState#getShaderProgram()
      */
-    public final boolean useShaderProgram(final GL2ES2 gl, final int renderModes,
-                                          final boolean pass1, final int pass2Quality, final int sampleCount, final TextureSequence colorTexSeq) {
-        final ShaderKey shaderKey = new ShaderKey(renderModes, pass1, pass2Quality, sampleCount, colorTexSeq, null != getClipBBox());
+    public final boolean useShaderProgram(final GL2ES2 gl, final int renderModes, final boolean pass1, final TextureSequence colorTexSeq) {
+        final ShaderKey shaderKey = new ShaderKey(renderModes, pass1, getAAQuality(), getSampleCount(), colorTexSeq, null != getClipBBox());
 
         /**
         if(DEBUG) {

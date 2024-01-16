@@ -203,6 +203,8 @@ public class UIShapeClippingDemo00 implements GLEventListener {
     public UIShapeClippingDemo00(final int renderModes, final boolean debug, final boolean trace) {
         this.renderModes = renderModes;
         this.rRenderer = RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+        this.rRenderer.setAAQuality(options.graphAAQuality);
+        this.rRenderer.setSampleCount(options.graphAASamples);
         this.debug = debug;
         this.trace = trace;
         this.screenshot = new GLReadBufferUtil(false, false);
@@ -250,14 +252,12 @@ public class UIShapeClippingDemo00 implements GLEventListener {
         }
     }
 
-    final int[] sampleCount = { 4 };
-
     private void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape shape) {
         final PMVMatrix4f pmv = renderer.getMatrix();
         pmv.pushMv();
         if( null != shape && shape.isVisible() ) {
             shape.setTransformMv(pmv);
-            shape.draw(gl, renderer, sampleCount);
+            shape.draw(gl, renderer);
         }
         pmv.popMv();
     }

@@ -27,7 +27,6 @@
  */
 package com.jogamp.opengl.test.junit.graph;
 
-import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
@@ -38,7 +37,6 @@ import com.jogamp.graph.ui.layout.BoxLayout;
 import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
 import com.jogamp.graph.ui.shapes.GlyphShape;
-import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
@@ -55,7 +53,6 @@ public class FontViewListener01 implements GLEventListener {
     private boolean useDPI = false;
 
     private final int renderModes;
-    private final int graphAAQuality;
     private final char startCharSymbol;
     private final Font font;
     private final Scene scene;
@@ -63,13 +60,13 @@ public class FontViewListener01 implements GLEventListener {
 
     public FontViewListener01(final int renderModes, final int graphAAQuality, final int graphSampleCount, final Font font, final char startCharSymbol) {
         this.renderModes = renderModes;
-        this.graphAAQuality = Region.clipAAQuality(graphAAQuality);
         this.startCharSymbol = startCharSymbol;
         this.font = font;
 
         scene = new Scene(graphSampleCount);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.setFrustumCullingEnabled(true);
+        scene.setAAQuality(graphAAQuality);
     }
 
     public void setMMPerCell(final float mmPerCell) {
@@ -139,7 +136,6 @@ public class FontViewListener01 implements GLEventListener {
 
         grid = new Group(new GridLayout(gridCols, netGridSize, netGridSize, Alignment.FillCenter, new Gap(netGridSize/0.90f*0.10f)));
         scene.addShape(grid);
-        scene.setAAQuality(graphAAQuality);
 
         for(int idx=0; idx<Character.MAX_VALUE && grid.getShapeCount() < cellCount ; ++idx) {
             final char codepoint = (char)(startCharSymbol+idx);

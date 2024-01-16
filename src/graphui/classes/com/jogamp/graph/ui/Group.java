@@ -126,7 +126,7 @@ public class Group extends Shape implements Container {
     /**
      * Enable {@link AABBox} clipping on {@link #getBounds()} for this group and its shapes as follows
      * <ul>
-     *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer, int[]) rendering} if completely outside of {@code clip-box*cullingScale}.</li>
+     *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer) rendering} if completely outside of {@code clip-box*cullingScale}.</li>
      *   <li>Otherwise perform pixel-accurate clipping inside the shader within [{@code clip-box} .. {@code clip-box*cullingScale}].</li>
      *   <li>If {@code clip-box} >= {@code clip-box*cullingScale} for all axis, no pixel-accurate clipping is performed as shapes are culled before.</li>
      * </ul>
@@ -134,7 +134,7 @@ public class Group extends Shape implements Container {
      * {@link #setClipBBox(AABBox)} takes precedence over {@link #setClipOnBounds(boolean)}.
      * </p>
      * @param v boolean to toggle clipping
-     * @param cullingScale culling scale factor per axis for the {@code clip-box} to discard {@link #draw(GL2ES2, RegionRenderer, int[]) rendering} completely,
+     * @param cullingScale culling scale factor per axis for the {@code clip-box} to discard {@link #draw(GL2ES2, RegionRenderer) rendering} completely,
      *        should be {@code >= 1} for each axis.
      * @return this instance for chaining
      * @see #setClipBBox(AABBox)
@@ -146,7 +146,7 @@ public class Group extends Shape implements Container {
     /**
      * Enable {@link AABBox} clipping on explicit given pre-multiplied Mv-matrix {@code clip-box} as follows
      * <ul>
-     *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer, int[]) rendering} if completely outside of {@code clip-box*cullingScale}.</li>
+     *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer) rendering} if completely outside of {@code clip-box*cullingScale}.</li>
      *   <li>Otherwise perform pixel-accurate clipping inside the shader within [{@code clip-box} .. {@code clip-box*cullingScale}].</li>
      *   <li>If {@code clip-box} >= {@code clip-box*cullingScale} for all axis, no pixel-accurate clipping is performed as shapes are culled before.</li>
      * </ul>
@@ -154,7 +154,7 @@ public class Group extends Shape implements Container {
      * {@link #setClipBBox(AABBox)} takes precedence over {@link #setClipOnBounds(boolean)}.
      * </p>
      * @param v {@link AABBox} pre-multiplied Mv-matrix
-     * @param cullingScale culling scale factor per axis for the {@code clip-box} to discard {@link #draw(GL2ES2, RegionRenderer, int[]) rendering} completely,
+     * @param cullingScale culling scale factor per axis for the {@code clip-box} to discard {@link #draw(GL2ES2, RegionRenderer) rendering} completely,
      *        should be {@code >= 1} for each axis.
      * @return this instance for chaining
      * @see #setClipOnBounds(boolean)
@@ -283,7 +283,7 @@ public class Group extends Shape implements Container {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    protected void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final Vec4f rgba) {
+    protected void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final Vec4f rgba) {
         final PMVMatrix4f pmv = renderer.getMatrix();
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
@@ -309,7 +309,7 @@ public class Group extends Shape implements Container {
                     if( clipBox.contains( childBox.transform(pmv.getMv(), tempBB0) ) &&
                         ( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( childBox ) ) )
                     {
-                        shape.draw(gl, renderer, sampleCount);
+                        shape.draw(gl, renderer);
                     }
                     pmv.popMv();
                 }
@@ -323,14 +323,14 @@ public class Group extends Shape implements Container {
                     pmv.pushMv();
                     shape.setTransformMv(pmv);
                     if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
-                        shape.draw(gl, renderer, sampleCount);
+                        shape.draw(gl, renderer);
                     }
                     pmv.popMv();
                 }
             }
         }
         if( null != border ) {
-            border.draw(gl, renderer, sampleCount);
+            border.draw(gl, renderer);
         }
     }
     private final AABBox tempBB0 = new AABBox(); // OK, synchronized
@@ -338,7 +338,7 @@ public class Group extends Shape implements Container {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
-    protected final void drawToSelectImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+    protected final void drawToSelectImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
         final PMVMatrix4f pmv = renderer.getMatrix();
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
@@ -351,13 +351,13 @@ public class Group extends Shape implements Container {
                 shape.setTransformMv(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
-                    shape.drawToSelect(gl, renderer, sampleCount);
+                    shape.drawToSelect(gl, renderer);
                 }
                 pmv.popMv();
             }
         }
         if( null != border ) {
-            border.drawToSelect(gl, renderer, sampleCount);
+            border.drawToSelect(gl, renderer);
         }
     }
 

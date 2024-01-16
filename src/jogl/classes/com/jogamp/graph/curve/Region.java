@@ -186,6 +186,8 @@ public abstract class Region {
     public static final int MIN_AA_SAMPLE_COUNT  = 1;
     /** Maximum pass2 AA sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
     public static final int MAX_AA_SAMPLE_COUNT  = 8;
+    /** Default pass2 AA sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
+    public static final int DEFAULT_AA_SAMPLE_COUNT = 4;
     /** Returns clipped AA sample-count to [{@link Region#MIN_AA_SAMPLE_COUNT}..{@link Region#MAX_AA_SAMPLE_COUNT}] */
     public static final int clipAASampleCount(final int v) { return Math.min(Region.MAX_AA_SAMPLE_COUNT, Math.max(v, Region.MIN_AA_SAMPLE_COUNT)); }
 
@@ -801,7 +803,7 @@ public abstract class Region {
      * Mark this region's shape dirty,
      * i.e. its vertices, triangles, lines and/or color-texture coordinates changed.
      * <p>
-     * The data will be re-uploaded to the GPU at next {@link GLRegion#draw(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer, int, int[]) draw(..)}.
+     * The data will be re-uploaded to the GPU at next {@link GLRegion#draw(com.jogamp.opengl.GL2ES2, com.jogamp.graph.curve.opengl.RegionRenderer) draw(..)}.
      * </p>
      * <p>
      * In 2-pass mode, this implies updating the FBO itself as well.

@@ -58,7 +58,6 @@ public abstract class GraphShape extends Shape {
     protected int pass2TexUnit = GLRegion.DEFAULT_TWO_PASS_TEXTURE_UNIT;
     protected GLRegion region = null;
     protected float oshapeSharpness = OutlineShape.DEFAULT_SHARPNESS;
-    private int regionPass2Quality = Region.DEFAULT_AA_QUALITY;
     private final List<GLRegion> dirtyRegions = new ArrayList<GLRegion>();
 
     /**
@@ -85,23 +84,6 @@ public abstract class GraphShape extends Shape {
      * </p>
      */
     public final int getRenderModes() { return renderModes; }
-
-    /**
-     * Sets the shape's Graph {@link Region}'s pass2 AA-quality parameter. Default is {@link Region#DEFAULT_AA_QUALITY}.
-     * @param v Graph {@link Region}'s pass2 AA-quality parameter, default is {@link Region#DEFAULT_AA_QUALITY}.
-     * @return this shape for chaining.
-     */
-    public final GraphShape setAAQuality(final int v) {
-        this.regionPass2Quality = Region.clipAAQuality(v);
-        markStateDirty();
-        return this;
-    }
-
-    /**
-     * Return the shape's Graph {@link Region}'s quality parameter.
-     * @see #setAAQuality(int)
-     */
-    public final int getAAQuality() { return regionPass2Quality; }
 
     /** Set the 2nd pass texture unit. */
     public void setTextureUnit(final int pass2TexUnit) {
@@ -164,14 +146,14 @@ public abstract class GraphShape extends Shape {
     }
 
     @Override
-    protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount, final Vec4f rgba) {
+    protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final Vec4f rgba) {
         renderer.setColorStatic(rgba);
-        region.draw(gl, renderer, regionPass2Quality, sampleCount);
+        region.draw(gl, renderer);
     }
 
     @Override
-    protected final void drawToSelectImpl0(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
-        region.draw(gl, renderer, 0, sampleCount);
+    protected final void drawToSelectImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
+        region.drawToSelect(gl, renderer);
     }
 
     /**

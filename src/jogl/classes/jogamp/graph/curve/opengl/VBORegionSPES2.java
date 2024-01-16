@@ -124,7 +124,7 @@ public final class VBORegionSPES2 extends GLRegion {
         final RenderState rs = renderer.getRenderState();
         final boolean hasAABBoxClipping = null != rs.getClipBBox();
 
-        final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, true, 0 /* pass2Quality */, 0 /* sampleCount */, colorTexSeq);
+        final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, true, colorTexSeq);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
         final boolean updateLocLocal = !sp.equals(spPass1);
         spPass1 = sp;
@@ -152,7 +152,7 @@ public final class VBORegionSPES2 extends GLRegion {
 
 
     @Override
-    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes, final int pass2Quality, final int[/*1*/] sampleCount) {
+    protected void drawImpl(final GL2ES2 gl, final RegionRenderer renderer, final int curRenderModes) {
         // final boolean hasColorChannel = Region.hasColorChannel( curRenderModes );
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes );
 

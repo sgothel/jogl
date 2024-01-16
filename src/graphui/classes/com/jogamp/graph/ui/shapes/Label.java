@@ -87,7 +87,7 @@ public class Label extends GraphShape {
     }
 
     /**
-     * Set the text to be rendered. Shape update is pending until next {@link #draw(GL2ES2, RegionRenderer, int[])} or {@link #validate(GL2ES2)}.
+     * Set the text to be rendered. Shape update is pending until next {@link #draw(GL2ES2, RegionRenderer)} or {@link #validate(GL2ES2)}.
      * @param text the text to be set.
      * @return true if text has been updated, false if unchanged.
      */

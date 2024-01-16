@@ -178,8 +178,6 @@ public class UIGraphDemoU01a {
         private final Vec2f worldDim = new Vec2f(1f, 1f);
         /** World origin (bottom left) offset.  */
         private final Vec3f worldOrigin = new Vec3f();
-        /** Sample count for Graph-VBAA */
-        private final int[] sampleCount = { options.graphAASamples };
         /** Graph region renderer */
         private final RegionRenderer renderer;
         /** The Graph region for text */
@@ -200,6 +198,8 @@ public class UIGraphDemoU01a {
                 sceneDist = -zNear;
             }
             renderer = RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
+            renderer.setAAQuality(options.graphAAQuality);
+            renderer.setSampleCount(options.graphAASamples);
         }
 
         @Override
@@ -211,7 +211,6 @@ public class UIGraphDemoU01a {
                 shape = new CrossHair(options.renderModes, normWidgetSize, normWidgetSize, normWidgetSize/100f); // normalized: 1 is 100% surface size (width and/or height)
                 shape.setTextureUnit(pass2TexUnit);
                 shape.setColor(0, 0, 1, 1);
-                shape.setAAQuality(options.graphAAQuality);
                 System.err.println("Init: Shape bounds "+shape.getBounds(drawable.getGLProfile()));
                 System.err.println("Init: Shape "+shape);
             }
@@ -310,7 +309,7 @@ public class UIGraphDemoU01a {
                 pmv.pushMv();
                 shape.setTransformMv(pmv);
 
-                shape.draw(gl, renderer, sampleCount);
+                shape.draw(gl, renderer);
                 if( onceAtDisplay ) {
                     final Matrix4f p = pmv.getP();
                     final Matrix4f mv = pmv.getMv();
@@ -336,7 +335,7 @@ public class UIGraphDemoU01a {
             final float txt_scale = full_width_s < full_height_s ? full_width_s * normWidgetSize : full_height_s * normWidgetSize;
             pmv.scaleMv(txt_scale, txt_scale, 1f);
             pmv.translateMv(-txt_box_em.getWidth(), 0f, 0f);
-            final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, textRegion.clear(gl), renderer, font, text, text_color, options.graphAAQuality, sampleCount, tempT1, tempT2);
+            final AABBox txt_box_r = TextRegionUtil.drawString3D(gl, textRegion.clear(gl), renderer, font, text, text_color, tempT1, tempT2);
 
             if( onceAtDisplay ) {
                 System.err.println("XXX: full_width: "+worldDim.x()+" / "+txt_box_em.getWidth()+" -> "+full_width_s);

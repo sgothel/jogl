@@ -169,12 +169,12 @@ public class Button extends BaseButton {
     public CharSequence getText() { return labelNow.getText(); }
 
     @Override
-    public void draw(final GL2ES2 gl, final RegionRenderer renderer, final int[] sampleCount) {
+    public void draw(final GL2ES2 gl, final RegionRenderer renderer) {
         // No need to setup an poly offset for z-fighting, using one region now
         // Setup poly offset for z-fighting
         // gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
         // gl.glPolygonOffset(0f, 1f);
-        super.draw(gl, renderer, sampleCount);
+        super.draw(gl, renderer);
         // gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
     }
 

@@ -201,7 +201,7 @@ public class TestTextRendererNEWTBugXXXX extends UITestCase {
             final float sxy = fontSize / font.getMetrics().getUnitsPerEM();
             pmv.scaleMv(sxy, sxy, 1.0f);
         }
-        textRenderUtil.drawString3D(gl, renderer, font, text, null, Region.DEFAULT_AA_QUALITY, sampleCount);
+        textRenderUtil.drawString3D(gl, renderer, font, text, null);
 
         lastRow = row;
     }
