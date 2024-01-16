@@ -36,6 +36,7 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.geom.plane.AffineTransform;
 import com.jogamp.math.util.PMVMatrix4f;
@@ -43,6 +44,8 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
+import com.jogamp.newt.event.MouseAdapter;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -233,6 +236,19 @@ public class UIShapeClippingDemo00 implements GLEventListener {
         gl.glEnable(GL.GL_DEPTH_TEST);
         // gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
         MSAATool.dump(drawable);
+
+        if( drawable instanceof Window ) {
+            final Window window = (Window)drawable;
+            window.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseWheelMoved(final MouseEvent e) {
+                    final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
+                    // swap axis for onscreen rotation matching natural feel
+                    final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
+                    clipRect.getRotation().rotateByEuler( rot.scale( 2f ) );
+                }
+            });
+        }
     }
 
     @Override
@@ -274,12 +290,16 @@ public class UIShapeClippingDemo00 implements GLEventListener {
         {
             drawShape(gl, renderer, clipRect);
             {
+                final AABBox sbox = shape.getBounds(gl.getGLProfile());
                 final AABBox clipBBox; // Mv pre-multiplied AABBox
                 {
                     final PMVMatrix4f pmv = renderer.getMatrix();
                     pmv.pushMv();
                     clipRect.setTransformMv(pmv);
-                    clipBBox = clipRect.getBounds().transform(pmv.getMv(), new AABBox());
+                    final AABBox cb = new AABBox(clipRect.getBounds());
+                    cb.getLow().setZ(sbox.getLow().z());
+                    cb.getHigh().setZ(sbox.getHigh().z());
+                    clipBBox = cb.transform(pmv.getMv(), new AABBox());
                     pmv.popMv();
                 }
                 renderer.setClipBBox( clipBBox );
