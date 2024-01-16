@@ -58,7 +58,6 @@ import com.jogamp.graph.ui.widgets.RangeSlider;
 import com.jogamp.graph.ui.widgets.RangedGroup;
 import com.jogamp.graph.ui.widgets.RangedGroup.SliderParam;
 import com.jogamp.math.Vec2f;
-import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -273,13 +272,7 @@ public class FontView01 {
                     System.err.println("GlyphGrid "+glyphGrid);
                     System.err.println("GlyphGrid "+glyphGrid.getLayout());
                 }
-                // culling >= 2*cell-size outside of clipping box (vertical only), pixel-accurate clipping in-between until clipping-box
-                final Vec3f clipCullingScale = new Vec3f(1f, 1f+2*glyphGridCellSize/glyphGridSize.y(), 1f);
-                // final Vec3f clipCullingScale = new Vec3f(1f, 1f, 1f); // no pixel-accurate clipping, just culling in Group
-                if( VERBOSE_UI ) {
-                    System.err.println("RangedGroup clipCullingScale "+clipCullingScale);
-                }
-                final RangedGroup glyphView = new RangedGroup(options.renderModes, glyphGrid, glyphGridSize, clipCullingScale,
+                final RangedGroup glyphView = new RangedGroup(options.renderModes, glyphGrid, glyphGridSize,
                                                               null,
                                                               new SliderParam(new Vec2f(glyphGridCellSize/4f, glyphGridSize.y()), glyphGridCellSize/10f, true));
                 glyphView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f);

@@ -50,7 +50,6 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 public class RangedGroup extends Widget {
     private final Group content;
     private final Group clippedContent;
-    private final Vec3f clipCullingScale;
     private final RangeSlider horizSlider, vertSlider;
     private final Vec2f contentPosZero = new Vec2f();
 
@@ -85,14 +84,10 @@ public class RangedGroup extends Widget {
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param content the {@link Group} with content to view
      * @param contentSize the fixed size of the clipped content to view, i.e. page-size
-     * @param cullingScale culling scale factor per axis for the {@code clip-box} to discard
-     *        {@link #draw(GL2ES2, RegionRenderer) rendering} completely outside of {@code clip-box*cullingScale}.
-     *        Pixel-accurate clipping is applied within [{@code clip-box} .. {@code clip-box*cullingScale}] if any scale-axis of {@code cullingScale} > 1.
-     *        See {@link Group#setClipBBox(AABBox, Vec3f)}.
      * @param horizSliderParam optional horizontal slider parameters, null for none
      * @param vertSliderParam optional vertical slider parameters, null for none
      */
-    public RangedGroup(final int renderModes, final Group content, final Vec2f contentSize, final Vec3f cullingScale,
+    public RangedGroup(final int renderModes, final Group content, final Vec2f contentSize,
                       final SliderParam horizSliderParam, final SliderParam vertSliderParam)
     {
         super( new GridLayout(1 + (null != vertSliderParam ? 1 : 0), 0f, 0f, Alignment.None)); // vertical slider adds to the right column
@@ -101,7 +96,6 @@ public class RangedGroup extends Widget {
         this.clippedContent.setFixedSize(contentSize);
         this.clippedContent.addShape(content);
         addShape(clippedContent);
-        clipCullingScale = cullingScale;
 
         if( null != horizSliderParam ) {
             horizSlider = new RangeSlider(renderModes, horizSliderParam.size,
@@ -141,7 +135,6 @@ public class RangedGroup extends Widget {
 
     public Group getContent() { return content; }
     public Vec2f getContentSize() { return clippedContent.getFixedSize(); }
-    public Vec3f getClipCullingScale() { return clipCullingScale; }
     public Group getClippedContent() { return clippedContent; }
     public RangeSlider getHorizSlider() { return horizSlider; }
     public RangeSlider getVertSlider() { return vertSlider; }
@@ -173,9 +166,9 @@ public class RangedGroup extends Widget {
         if( content.isVisible() ) {
             // Mv pre-multiplied AABBox, clippedContent is on same PMV
             final AABBox clipBBox = clippedContent.getBounds().transform(renderer.getMatrix().getMv(), tempBB);
-            content.setClipBBox(clipBBox, clipCullingScale);
+            content.setClipBBox(clipBBox);
             super.drawImpl0(gl, renderer, rgba);
-            content.setClipBBox(null, clipCullingScale);
+            content.setClipBBox(null);
         }
     }
     private final AABBox tempBB = new AABBox(); // OK, synchronized

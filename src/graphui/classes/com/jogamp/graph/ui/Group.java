@@ -85,7 +85,6 @@ public class Group extends Shape implements Container {
     private boolean widgetMode = false;
     private boolean clipOnBounds = false;
     private AABBox clipBBox = null;
-    private final Vec3f clipCullingScale = new Vec3f();
 
     /**
      * Create a group of {@link Shape}s w/o {@link Group.Layout}.
@@ -126,40 +125,34 @@ public class Group extends Shape implements Container {
     /**
      * Enable {@link AABBox} clipping on {@link #getBounds()} for this group and its shapes as follows
      * <ul>
-     *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer) rendering} if completely outside of {@code clip-box*cullingScale}.</li>
-     *   <li>Otherwise perform pixel-accurate clipping inside the shader within [{@code clip-box} .. {@code clip-box*cullingScale}].</li>
-     *   <li>If {@code clip-box} >= {@code clip-box*cullingScale} for all axis, no pixel-accurate clipping is performed as shapes are culled before.</li>
+     *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer) rendering} if not intersecting {@code clip-box}.</li>
+     *   <li>Otherwise perform pixel-accurate clipping inside the shader to {@code clip-box}.</li>
      * </ul>
      * <p>
      * {@link #setClipBBox(AABBox)} takes precedence over {@link #setClipOnBounds(boolean)}.
      * </p>
      * @param v boolean to toggle clipping
-     * @param cullingScale culling scale factor per axis for the {@code clip-box} to discard {@link #draw(GL2ES2, RegionRenderer) rendering} completely,
-     *        should be {@code >= 1} for each axis.
      * @return this instance for chaining
      * @see #setClipBBox(AABBox)
      */
-    public Group setClipOnBounds(final boolean v, final Vec3f cullingScale) { clipOnBounds = v; clipCullingScale.set(cullingScale); return this; }
+    public Group setClipOnBounds(final boolean v) { clipOnBounds = v; return this; }
     /** Returns {@link #setClipOnBounds(boolean)} value */
     public boolean getClipOnBounds() { return clipOnBounds; }
 
     /**
      * Enable {@link AABBox} clipping on explicit given pre-multiplied Mv-matrix {@code clip-box} as follows
      * <ul>
-     *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer) rendering} if completely outside of {@code clip-box*cullingScale}.</li>
-     *   <li>Otherwise perform pixel-accurate clipping inside the shader within [{@code clip-box} .. {@code clip-box*cullingScale}].</li>
-     *   <li>If {@code clip-box} >= {@code clip-box*cullingScale} for all axis, no pixel-accurate clipping is performed as shapes are culled before.</li>
+     *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer) rendering} if not intersecting {@code clip-box}.</li>
+     *   <li>Otherwise perform pixel-accurate clipping inside the shader to {@code clip-box}.</li>
      * </ul>
      * <p>
      * {@link #setClipBBox(AABBox)} takes precedence over {@link #setClipOnBounds(boolean)}.
      * </p>
      * @param v {@link AABBox} pre-multiplied Mv-matrix
-     * @param cullingScale culling scale factor per axis for the {@code clip-box} to discard {@link #draw(GL2ES2, RegionRenderer) rendering} completely,
-     *        should be {@code >= 1} for each axis.
      * @return this instance for chaining
      * @see #setClipOnBounds(boolean)
      */
-    public Group setClipBBox(final AABBox v, final Vec3f cullingScale) { clipBBox = v; clipCullingScale.set(cullingScale); return this; }
+    public Group setClipBBox(final AABBox v) { clipBBox = v; return this; }
     /** Returns {@link #setClipBBox(AABBox)} value */
     public AABBox getClipBBox() { return clipBBox; }
 
@@ -293,10 +286,7 @@ public class Group extends Shape implements Container {
             final AABBox origClipBox = renderer.getClipBBox();
 
             final AABBox clipBox = useClipBBox ? clipBBox : box.transform(pmv.getMv(), tempBB0);
-            if( clipCullingScale.x() > 1f || clipCullingScale.y() > 1f || clipCullingScale.z() > 1f) {
-                renderer.setClipBBox( tempBB1.set(clipBox) ); // Mv pre-multiplied AABBox
-            } // else clip-box >= 'clip-box*cullingScale' for all axis, no pixel-accurate clipping is performed as shapes are culled before
-            clipBox.scale(clipCullingScale.x(), clipCullingScale.y(), clipCullingScale.z());
+            renderer.setClipBBox( tempBB1.set(clipBox) ); // Mv pre-multiplied AABBox
 
             final int shapeCount = shapesS.length;
             for(int i=0; i<shapeCount; i++) {
@@ -306,7 +296,7 @@ public class Group extends Shape implements Container {
                     shape.setTransformMv(pmv);
 
                     final AABBox childBox = shape.getBounds();
-                    if( clipBox.contains( childBox.transform(pmv.getMv(), tempBB0) ) &&
+                    if( clipBox.intersects( childBox.transform(pmv.getMv(), tempBB0) ) &&
                         ( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( childBox ) ) )
                     {
                         shape.draw(gl, renderer);
