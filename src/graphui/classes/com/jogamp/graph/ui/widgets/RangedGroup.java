@@ -149,19 +149,23 @@ public class RangedGroup extends Widget {
     @Override
     protected void validateImpl(final GL2ES2 gl, final GLProfile glp) {
         if( isShapeDirty() ) {
-            // enforcing layout for content to be moved for repositioning
             super.validateImpl(gl, glp);
 
+            final AABBox b = content.getBounds();
+            final Vec2f contentSize = getContentSize();
+            contentPosZero.set(0, 0);
             if( null != horizSlider ) {
                 horizSlider.setMinMax(new Vec2f(0, content.getBounds().getWidth()), 0);
+                if( horizSlider.isInverted() ) {
+                    contentPosZero.setX( contentSize.x() - b.getWidth() );
+                }
             }
             if( null != vertSlider ) {
                 vertSlider.setMinMax(new Vec2f(0, content.getBounds().getHeight()), 0);
+                if( vertSlider.isInverted() ) {
+                    contentPosZero.setY( contentSize.y() - b.getHeight() );
+                }
             }
-            final AABBox b = content.getBounds();
-            final Vec2f contentSize = getContentSize();
-            contentPosZero.setX( null != horizSlider && horizSlider.isInverted() ? contentSize.x() - b.getWidth() : 0 );
-            contentPosZero.setY( null != vertSlider && vertSlider.isInverted() ? contentSize.y() - b.getHeight() : 0 );
         }
     }
     @Override
