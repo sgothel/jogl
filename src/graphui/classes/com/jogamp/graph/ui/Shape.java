@@ -1418,14 +1418,20 @@ public abstract class Shape {
         return position.z() * getScale().z() + zOffset;
     }
 
-    /** Set's a new {@link Tooltip} for this shape. */
+    /**
+     * Set's a new {@link Tooltip} for this shape.
+     * <p>
+     * The {@link Shape} must be set {@link #setInteractive(boolean) interactive}
+     * to receive the mouse-over signal, i.e. being picked.
+     * </p>
+     */
     public Tooltip setToolTip(final Tooltip newTooltip) {
         final Tooltip oldTT = this.tooltip;
         this.tooltip = null;
         if( null != oldTT ) {
             oldTT.stop();
         }
-        newTooltip.setToolOwner(this);
+        newTooltip.setTool(this);
         this.tooltip = newTooltip;
         return newTooltip;
     }
@@ -1434,7 +1440,7 @@ public abstract class Shape {
         tooltip = null;
         if( null != tt ) {
             tt.stop();
-            tt.setToolOwner(null);
+            tt.setTool(null);
         }
     }
     private void stopToolTip() {

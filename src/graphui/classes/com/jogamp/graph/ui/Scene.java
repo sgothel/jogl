@@ -127,7 +127,7 @@ public final class Scene implements Container, GLEventListener {
     private static final boolean DEBUG = false;
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
-    private final AtomicReference<Tooltip> toolTipStarted = new AtomicReference<Tooltip>();
+    private final AtomicReference<Tooltip> toolTipActive = new AtomicReference<Tooltip>();
     private final AtomicReference<Shape> toolTipHUD = new AtomicReference<Shape>();
 
     private boolean doFrustumCulling = false;
@@ -492,10 +492,14 @@ public final class Scene implements Container, GLEventListener {
             displayedOnce = true;
             syncDisplayedOnce.notifyAll();
         }
-        final Tooltip tt = toolTipStarted.get();
+        final Tooltip tt = toolTipActive.get();
         if( null != tt && null == toolTipHUD.get() ) {
             final Shape[] hud = { null };
-            if( tt.tick() && forOne(pmv, tt.getTool(), () -> { hud[0] = tt.createTip(Scene.this, pmv); }) ) {
+            if( tt.tick() && forOne(pmv, tt.getTool(), () -> {
+                    final AABBox toolMvBounds = tt.getToolMvBounds(pmv);
+                    hud[0] = tt.createTip(drawable, Scene.this, pmv, toolMvBounds);
+                }) )
+            {
                 setToolTip( hud[0] );
             }
         }
@@ -1190,7 +1194,7 @@ public final class Scene implements Container, GLEventListener {
             final Shape s = dispatchMouseEventPickShape(e, glWinX, glWinY);
             if( null != s ) {
                 mouseOver = true;
-                toolTipStarted.set( s.startToolTip() );
+                toolTipActive.set( s.startToolTip() );
             } else {
                 mouseOver = false;
             }
@@ -1221,20 +1225,21 @@ public final class Scene implements Container, GLEventListener {
     }
 
     private void setToolTip(final Shape hud) {
-        toolTipStarted.set( null );
         addShape( hud );
         toolTipHUD.set( hud );
     }
 
     private void clearToolTip() {
-        final Tooltip tt = toolTipStarted.getAndSet(null);
+        final Tooltip tt = toolTipActive.getAndSet(null);
         if( null != tt ) {
             tt.stop();
         }
         final Shape s = toolTipHUD.getAndSet(null);
         if( null != s ) {
             invoke(false, (final GLAutoDrawable drawable) -> {
-                removeShape(drawable.getGL().getGL2ES2(), s);
+                if( s == removeShape(s) ) {
+                    tt.destroyTip(drawable.getGL().getGL2ES2(), renderer, s);
+                }
                 return true;
             });
         }
