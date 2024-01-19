@@ -637,13 +637,14 @@ public final class Scene implements Container, GLEventListener {
      * </p>
      * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
      *            {@link Shape#applyMatToMv(PMVMatrix4f) shape-transformed} and can be reused by the caller and runnable.
+     * @param ray temporary {@link Ray} storage, passed for reusage
      * @param glWinX window X coordinate, bottom-left origin
      * @param glWinY window Y coordinate, bottom-left origin
      * @param objPos storage for found object position in model-space of found {@link Shape}
      * @param runnable the action to perform if {@link Shape} was found
      * @return last picked (inner) Shape if any or null
      */
-    public Shape pickShape(final PMVMatrix4f pmv, final int glWinX, final int glWinY, final Vec3f objPos, final Shape.Visitor1 visitor) {
+    public Shape pickShape(final PMVMatrix4f pmv, final Ray ray, final int glWinX, final int glWinY, final Vec3f objPos, final Shape.Visitor1 visitor) {
         setupMatrix(pmv);
 
         final float winZ0 = 0f;
@@ -654,7 +655,6 @@ public final class Scene implements Container, GLEventListener {
             winZ1 = winZRB.get(0); // dir
         */
         final Recti viewport = getViewport();
-        final Ray ray = new Ray();
         final Shape[] shape = { null };
         final int[] shapeIdx = { -1 };
         TreeTool.forAllRendered(this, pmv, (final Shape s, final PMVMatrix4f pmv2) -> {
@@ -1086,10 +1086,8 @@ public final class Scene implements Container, GLEventListener {
      * @param glWinY in GL window coordinates, origin bottom-left
      */
     private final Shape dispatchMouseEventPickShape(final MouseEvent e, final int glWinX, final int glWinY) {
-        final PMVMatrix4f pmv = new PMVMatrix4f();
-        final Vec3f objPos = new Vec3f();
-        final Shape shape = pickShape(pmv, glWinX, glWinY, objPos, (final Shape s) -> {
-               return s.isInteractive() && ( s.dispatchMouseEvent(e, glWinX, glWinY, objPos) || true );
+        final Shape shape = pickShape(dispMEPSPMv, dispMEPSRay, glWinX, glWinY, dispMEPSObjPos, (final Shape s) -> {
+               return s.isInteractive() && ( s.dispatchMouseEvent(e, glWinX, glWinY, dispMEPSObjPos) || true );
            });
         if( null != shape ) {
            setActiveShape(shape);
@@ -1099,6 +1097,10 @@ public final class Scene implements Container, GLEventListener {
            return null;
         }
     }
+    private final PMVMatrix4f dispMEPSPMv = new PMVMatrix4f();
+    private final Ray dispMEPSRay = new Ray();
+    private final Vec3f dispMEPSObjPos = new Vec3f();
+
     /**
      * Dispatch event to shape
      * @param shape target active shape of event
