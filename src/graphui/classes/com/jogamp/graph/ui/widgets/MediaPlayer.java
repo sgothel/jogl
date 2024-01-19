@@ -29,6 +29,7 @@ package com.jogamp.graph.ui.widgets;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.jogamp.common.av.PTS;
 import com.jogamp.common.net.Uri;
@@ -74,6 +75,7 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
  * @see #MediaPlayer(int, Scene, GLMediaPlayer, Uri, int, float, boolean, float, List)
  */
 public class MediaPlayer extends Widget {
+    private static final boolean DEBUG = false;
     public static final Vec2f FixedSymSize = new Vec2f(0.0f, 1.0f);
     public static final Vec2f SymSpacing = new Vec2f(0f, 0.2f);
     public static final float CtrlButtonWidth = 1f;
@@ -119,9 +121,9 @@ public class MediaPlayer extends Widget {
         final float ctrlSliderHeightMax = 3f * ctrlSliderHeightMin; // knob-height
         final float infoGroupHeight = 1/7f;
 
-        final Shape[] zoomReplacement = { null };
-        final Vec3f[] zoomOrigScale = { null };
-        final Vec3f[] zoomOrigPos = { null };
+        final AtomicReference<Shape> zoomReplacement = new AtomicReference<Shape>();
+        final AtomicReference<Vec3f> zoomOrigScale = new AtomicReference<Vec3f>();
+        final AtomicReference<Vec3f> zoomOrigPos = new AtomicReference<Vec3f>();
 
         this.setName("mp.container");
         this.setBorderColor(borderColor).setBorder(borderSz);
@@ -155,13 +157,19 @@ public class MediaPlayer extends Widget {
 
                 @Override
                 public void attributesChanged(final GLMediaPlayer mp, final EventMask eventMask, final long when) {
-                    // System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
-                    // System.err.println("MediaButton State: "+mp);
+                    if( DEBUG ) {
+                        System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
+                        System.err.println("MediaButton State: "+mp);
+                    }
                     if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
                         ctrlSlider.setMinMax(new Vec2f(0, mp.getDuration()), 0);
-                        System.err.println(mp.toString());
+                        if( DEBUG ) {
+                            System.err.println(mp.toString());
+                        }
                         for(final GLMediaPlayer.Chapter c : mp.getChapters()) {
-                            System.err.println(c);
+                            if( DEBUG ) {
+                                System.err.println(c);
+                            }
                             final Shape mark = ctrlSlider.addMark(c.start, new Vec4f(0.9f, 0.9f, 0.9f, 0.5f));
                             mark.setToolTip(new TooltipText(c.title+"\n"+PTS.millisToTimeStr(c.start, false), fontInfo, 5));
                         }
@@ -263,12 +271,18 @@ public class MediaPlayer extends Widget {
                 }
                 @Override
                 public void clicked(final RangeSlider w, final MouseEvent e) {
-                    System.err.println("Clicked "+w.getName()+": "+PTS.millisToTimeStr(Math.round(w.getValue()), true)+"ms, "+(w.getValuePct()*100f)+"%");
+                    if( DEBUG ) {
+                        System.err.println("Clicked "+w.getName()+": "+PTS.millisToTimeStr(Math.round(w.getValue()), true)+"ms, "+(w.getValuePct()*100f)+"%");
+                        System.err.println("Slider.C "+ctrlSlider.getDescription());
+                    }
                     seekPlayer( Math.round( w.getValue() ) );
                 }
                 @Override
                 public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
-                    System.err.println("Dragged "+w.getName()+": "+PTS.millisToTimeStr(Math.round(val), true)+"ms, "+(val_pct*100f)+"%");
+                    if( DEBUG ) {
+                        System.err.println("Dragged "+w.getName()+": "+PTS.millisToTimeStr(Math.round(val), true)+"ms, "+(val_pct*100f)+"%");
+                        System.err.println("Slider.D "+ctrlSlider.getDescription());
+                    }
                     seekPlayer( Math.round( val ) );
                 }
             });
@@ -342,7 +356,9 @@ public class MediaPlayer extends Widget {
                     public void mouseWheelMoved(final MouseEvent e) {
                         final int pts0 = mPlayer.getPTS().get(Clock.currentMillis());
                         final int pts1 = pts0 + (int)(e.getRotation()[1]*1000f);
-                        System.err.println("Seek: "+pts0+" -> "+pts1);
+                        if( DEBUG ) {
+                            System.err.println("Seek: "+pts0+" -> "+pts1);
+                        }
                         mPlayer.seek(pts1);
                     } } );
                 ctrlGroup.addShape(button);
@@ -361,7 +377,9 @@ public class MediaPlayer extends Widget {
                     public void mouseWheelMoved(final MouseEvent e) {
                         final int pts0 = mPlayer.getPTS().get(Clock.currentMillis());
                         final int pts1 = pts0 + (int)(e.getRotation()[1]*1000f);
-                        System.err.println("Seek: "+pts0+" -> "+pts1);
+                        if( DEBUG ) {
+                            System.err.println("Seek: "+pts0+" -> "+pts1);
+                        }
                         mPlayer.seek(pts1);
                     } } );
                 ctrlGroup.addShape(button);
@@ -409,47 +427,63 @@ public class MediaPlayer extends Widget {
                     if( s.isToggleOn() ) {
                         final AABBox sbox = scene.getBounds();
                         final Group parent = this.getParent();
+                        final float sx = sbox.getWidth() * zoomSize / this.getScaledWidth();
+                        final float sy = sbox.getHeight() * zoomSize / this.getScaledHeight();
+                        final float sxy = Math.min(sx, sy);
+                        Shape _zoomReplacement = null;
+                        zoomOrigScale.set( this.getScale().copy() );
+                        zoomOrigPos.set( this.getPosition().copy() );
                         if( null != parent ) {
-                            zoomReplacement[0] = new Label(renderModes, fontInfo, aratio/40f, "zoomed");
-                            final boolean r = parent.replaceShape(this, zoomReplacement[0]);
+                            // System.err.println("Zoom1: rep, sxy "+sx+" x "+sy+" = "+sxy);
+                            _zoomReplacement = new Label(renderModes, fontInfo, aratio/40f, "zoomed");
+                            final boolean r = parent.replaceShape(this, _zoomReplacement);
                             if( r ) {
                                 // System.err.println("Zoom1: p "+parent);
                                 // System.err.println("Zoom1: t "+this);
-                                final float sxy = sbox.getWidth() * zoomSize / this.getScaledWidth();
-                                scene.addShape(this);
                                 this.scale(sxy, sxy, 1f);
                                 this.moveTo(sbox.getLow()).move(sbox.getWidth() * ( 1f - zoomSize )/2.0f, sbox.getHeight() * ( 1f - zoomSize )/2.0f, ctrlZOffset);
+                                scene.addShape(this);
                             } else {
-                                System.err.println("Zoom1: failed "+this);
+                                // System.err.println("Zoom1: failed "+this);
                             }
                         } else {
-                            zoomOrigScale[0] = this.getScale().copy();
-                            zoomOrigPos[0] = this.getPosition().copy();
-                            // System.err.println("Zoom2: top");
+                            // System.err.println("Zoom2: top, sxy "+sx+" x "+sy+" = "+sxy);
                             // System.err.println("Zoom2: t "+this);
-                            final float sxy = sbox.getWidth() * zoomSize / this.getScaledWidth();
                             this.scale(sxy, sxy, 1f);
                             this.moveTo(sbox.getLow()).move(sbox.getWidth() * ( 1f - zoomSize )/2.0f, sbox.getHeight() * ( 1f - zoomSize )/2.0f, ctrlZOffset);
                         }
+                        // System.err.println("Zoom: R "+_zoomReplacement);
+                        zoomReplacement.set( _zoomReplacement );
                     } else {
-                        if( null != zoomReplacement[0] ) {
-                            final Group parent = zoomReplacement[0].getParent();
+                        final Vec3f _zoomOrigScale = zoomOrigScale.getAndSet(null);
+                        final Vec3f _zoomOrigPos = zoomOrigPos.getAndSet(null);
+                        final Shape _zoomReplacement = zoomReplacement.getAndSet(null);
+                        if( null != _zoomReplacement ) {
+                            final Group parent = _zoomReplacement.getParent();
                             scene.removeShape(this);
-                            this.moveTo(0, 0, 0);
-                            parent.replaceShape(zoomReplacement[0], this);
+                            if( null != _zoomOrigScale ) {
+                                this.setScale(_zoomOrigScale);
+                            }
+                            if( null != _zoomOrigPos ) {
+                                this.moveTo(_zoomOrigPos);
+                            }
+                            parent.replaceShape(_zoomReplacement, this);
+                            // System.err.println("Reset1: "+parent);
+                        } else {
+                            if( null != _zoomOrigScale ) {
+                                this.setScale(_zoomOrigScale);
+                            }
+                            if( null != _zoomOrigPos ) {
+                                this.moveTo(_zoomOrigPos);
+                            }
+                            // System.err.println("Reset2: top");
+                        }
+                        if( null != _zoomReplacement ) {
                             scene.invoke(true, (drawable) -> {
                                 final GL2ES2 gl = drawable.getGL().getGL2ES2();
-                                zoomReplacement[0].destroy(gl, scene.getRenderer());
+                                _zoomReplacement .destroy(gl, scene.getRenderer());
                                 return true;
                             });
-                            zoomReplacement[0] = null;
-                            // System.err.println("Reset1: "+parent);
-                        } else if( null != zoomOrigScale[0] && null != zoomOrigPos[0] ){
-                            this.scale(zoomOrigScale[0]);
-                            this.moveTo(zoomOrigPos[0]);
-                            zoomOrigScale[0] = null;
-                            zoomOrigPos[0] = null;
-                            // System.err.println("Reset2: top");
                         }
                     }
                 });
