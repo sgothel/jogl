@@ -255,7 +255,29 @@ public class Frustum {
         pmv.updateFrustumPlanes(this);
     }
 
-	private static final boolean isOutsideImpl(final Plane p, final AABBox box) {
+    /**
+     * Calculate the frustum planes using the given {@link Cube}.
+     * <p>
+     * One useful application is to {@link Cube#transform(Matrix4f) transform}
+     * an {@link AABBox}, see {@link Cube#Cube(AABBox)} from its object-space
+     * into model-view (Mv) and produce the {@link Frustum} planes using this method
+     * for CPU side object culling and GPU shader side fragment clipping.
+     * </p>
+     * <p>
+     * Frustum plane's normals will point to the inside of the viewing frustum,
+     * as required by this class.
+     * </p>
+     * @param c the {@link Cube} source
+     * @return this frustum for chaining
+     * @see Cube#updateFrustumPlanes(Frustum)
+     * @see Cube#Cube(AABBox)
+     * @see Cube#transform(Matrix4f)
+     */
+    public Frustum updateFrustumPlanes(final Cube c) {
+        return c.updateFrustumPlanes(this);
+    }
+
+    private static final boolean isOutsideImpl(final Plane p, final AABBox box) {
 	    final Vec3f lo = box.getLow();
 	    final Vec3f hi = box.getHigh();
 
