@@ -46,9 +46,10 @@ public abstract class Tooltip {
     /** Default tooltip delay is {@value}ms */
     public static final long DEFAULT_DELAY = 1000;
 
+    /** Delay in ms, zero implies no time based alarm */
     private final long delayMS;
-    /** Delay t1, time to show tooltip, i.e. t0 + delayMS */
-    private volatile long delayT1;
+    /** Alarm t1, time to show tooltip, i.e. t0 + delayMS, if delayMS > 0 */
+    private volatile long alarmT1;
     /** Toggle for forced tooltip display */
     private volatile boolean forced;
     /** Shape 'tool' owning this tooltip. */
@@ -60,18 +61,18 @@ public abstract class Tooltip {
 
     @Override
     public String toString() {
-        return "Tooltip[d "+delayMS+", next "+delayT1+", forced "+forced+"]";
+        return "Tooltip[d "+delayMS+", next "+alarmT1+", forced "+forced+"]";
     }
     /**
      *
      * @param backColor optional HUD tip background color
      * @param frontColor optional HUD tip front color
-     * @param delayMS delay until HUD tip is visible after timer start (mouse moved)
+     * @param delayMS delay until HUD tip is visible after timer start (mouse moved), zero implies no time based alarm
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      */
     protected Tooltip(final Vec4f backColor, final Vec4f frontColor, final long delayMS, final int renderModes) {
         this.delayMS = delayMS;
-        this.delayT1 = 0;
+        this.alarmT1 = 0;
         this.forced = false;
         this.tool = null;
         this.renderModes = renderModes;
@@ -96,11 +97,11 @@ public abstract class Tooltip {
      */
     public final boolean stop(final boolean clearForced) {
         if( clearForced ) {
-            this.delayT1 = 0;
+            this.alarmT1 = 0;
             this.forced = false;
             return true;
         } else if( !this.forced ) {
-            this.delayT1 = 0;
+            this.alarmT1 = 0;
             return true;
         } else {
             return false;
@@ -109,15 +110,15 @@ public abstract class Tooltip {
 
     /** Starts the timer. */
     public final void start() {
-        if( !this.forced ) {
-            this.delayT1 = Clock.currentMillis() + delayMS;
+        if( !this.forced && delayMS > 0 ) {
+            this.alarmT1 = Clock.currentMillis() + delayMS;
         }
     }
 
     /** Enforce tooltip display with next {@link #tick()}. */
     public final void now() {
         this.forced = true;
-        this.delayT1 = Clock.currentMillis() - 1;
+        this.alarmT1 = Clock.currentMillis() - 1;
     }
 
     /** Returns true if display is enforced via {@link #now()}. */
@@ -130,13 +131,13 @@ public abstract class Tooltip {
      * @return true if {@link #start() started} timer has been reached or is enforced via {@link #now()} to {@link #createTip(PMVMatrix4f)}, otherwise false
      */
     public final boolean tick() {
-        if( 0 == delayT1 ) {
+        if( 0 == alarmT1 ) {
             return false;
         }
-        if( Clock.currentMillis() < delayT1 ) {
+        if( Clock.currentMillis() < alarmT1 ) {
             return false;
         }
-        this.delayT1 = 0;
+        this.alarmT1 = 0;
         this.forced = false;
         return true;
     }

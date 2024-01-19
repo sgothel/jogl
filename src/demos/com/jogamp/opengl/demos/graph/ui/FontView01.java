@@ -343,7 +343,7 @@ public class FontView01 {
             mainView = new Group(new GridLayout(1, 0f, 0f, Alignment.None));
             mainView.addShape(glyphInfoView);
             final String infoText = "Hover over this label and wait 1s for tooltip help.";
-            final String infoHelp = "Hover over a Glyph and wait 1s for a big tooltip view.\n"+
+            final String infoHelp = "Click on a Glyph for a big tooltip view.\n"+
                                     "Key-Up/Down or Slider-Mouse-Scroll to move through glyphs.\n"+
                                     "Page-Up/Down or Control + Slider-Mouse-Scroll to page faster.\n"+
                                     "Mouse-Scroll over left-half of Window rotates and holding control zooms.";
@@ -526,7 +526,7 @@ public class FontView01 {
             sink.receiveKeyEvents(c1);
             // sink.receiveMouseEvents(c1);
             c1.setToolTip( new TooltipShape(new Vec4f(1, 1, 1, 1), new Vec4f(0, 0, 0, 1), 0.01f,
-                                            new Padding(0.05f), new Vec2f(14,14), 1000, options.renderModes,
+                                            new Padding(0.05f), new Vec2f(14,14), 0, options.renderModes,
                                             g, TooltipShape.NoOpDtor) );
             c1.onClicked((final Shape s) -> {
                 c1.getTooltip().now();
