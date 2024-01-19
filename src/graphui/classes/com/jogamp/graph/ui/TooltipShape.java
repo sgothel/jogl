@@ -168,7 +168,11 @@ public class TooltipShape extends Tooltip {
             final Group tipGroup = (Group)tipGroup_;
             final Group tipWrapper = (Group)tipGroup.getShapeByIdx(1);
             if( null == tipWrapper.removeShape(tip) ) {
-                throw new RuntimeException("Tip "+tip.getName()+" not contained in "+tipWrapper.getName());
+                System.err.println("TooltipShape.destroyTip: Warning: Tip "+tip.getName()+" not contained in "+tipWrapper.getName()+"; Internal Group: ");
+                tipGroup.forAll((final Shape s) -> {
+                    System.err.println("- "+s.getName());
+                    return false;
+                });
             }
             tipGroup.destroy(gl, renderer);
             dtorCallback.destroy(this, gl, renderer, tip);
