@@ -139,7 +139,7 @@ public class FontView01 {
                     showLabel = true;
                 } else if(args[idx[0]].equals("-perf")) {
                     perfanal = true;
-                } else if(args[idx[0]].equals("-maxGlyphs")) {
+                } else if(args[idx[0]].equals("-max")) {
                     idx[0]++;
                     max_glyph_count = MiscUtils.atoi(args[idx[0]], max_glyph_count);
                 }
@@ -190,19 +190,20 @@ public class FontView01 {
         scene.attachInputListenerTo(window);
         window.addGLEventListener(scene);
 
-        final float[] ppmm = window.getPixelsPerMM(new float[2]);
+        final int glyphGridRowsPerPage;
         {
+            final float[] ppmm = window.getPixelsPerMM(new float[2]);
             final float[] dpi = FontScale.ppmmToPPI( new float[] { ppmm[0], ppmm[1] } );
             System.err.println("DPI "+dpi[0]+" x "+dpi[1]+", "+ppmm[0]+" x "+ppmm[1]+" pixel/mm");
 
             final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);
             System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
             System.err.println("mmPerCell "+mmPerCell);
+            glyphGridRowsPerPage = (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCell );
+            if( 0 >= gridColumns ) {
+                gridColumns = (int)( ( window.getSurfaceWidth() * GlyphGridWidth / ppmm[0] ) / mmPerCell );
+            }
         }
-        if( 0 >= gridColumns ) {
-            gridColumns = (int)( ( window.getSurfaceWidth() * GlyphGridWidth / ppmm[0] ) / mmPerCell );
-        }
-        final int glyphGridRowsPerPage = (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCell );
         final float glyphGridCellSize = GlyphGridWidth / gridColumns;
         final Vec2f glyphGridSize = new Vec2f(GlyphGridWidth, glyphGridRowsPerPage * glyphGridCellSize);
 
@@ -296,9 +297,9 @@ public class FontView01 {
                         glyphShapeHolder.addShape(gs);
                     }
                 }
-                final RangedGroup glyphView = new RangedGroup(options.renderModes, glyphGrid, glyphGridSize,
-                                                              null,
-                                                              new SliderParam(new Vec2f(glyphGridCellSize/4f, glyphGridSize.y()), glyphGridCellSize/10f, true));
+                final RangedGroup glyphView = new RangedGroup( options.renderModes, glyphGrid, glyphGridSize,
+                                                               null,
+                                                               new SliderParam( new Vec2f(glyphGridCellSize/4f, glyphGridSize.y()), glyphGridCellSize/10f, true ) );
                 glyphView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f).setName("GlyphView");
                 if( VERBOSE_UI ) {
                     glyphView.getVertSlider().addSliderListener(new SliderAdapter() {
@@ -306,7 +307,9 @@ public class FontView01 {
                         public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
                             final Vec2f minmax = w.getMinMax();
                             final float row_f = val / glyphGridCellSize;
-                            System.err.println("VertSlider: row "+row_f+", val["+old_val+" -> "+val+"], pct["+(100*old_val_pct)+"% -> "+(100*val_pct)+"%], minmax "+minmax);
+                            System.err.println("VertSlider: row["+row_f+".."+(row_f+gridDim.rowsPerPage-1)+"]/"+gridDim.rows+
+                                               ", val["+old_val+" -> "+val+"]/"+minmax.y()+", pct["+(100*old_val_pct)+"% -> "+(100*val_pct)+"%], cellSz "+glyphGridCellSize);
+                            System.err.println("VertSlider: "+w.getDescription());
                         }
                     });
                 }

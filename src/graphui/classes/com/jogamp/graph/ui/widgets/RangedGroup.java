@@ -58,12 +58,12 @@ public class RangedGroup extends Widget {
 
     /** {@link RangeSlider} configuration parameter for {@link RangedGroup}. */
     public static final class SliderParam {
-        /** width and height of this slider box. A horizontal slider has width >= height. */
+        /** spatial dimension of the slider box. A horizontal slider has width >= height. */
         public final Vec2f size;
         /** size of one unit (element) in sliding direction */
         public final float unitSize;
         /**
-         * Toggle whether this slider uses an inverted value range,
+         * Toggle whether the slider uses an inverted value range,
          * e.g. top 0% and bottom 100% for an vertical inverted slider
          * instead of bottom 0% and top 100% for a vertical non-inverted slider.
          */
@@ -71,7 +71,7 @@ public class RangedGroup extends Widget {
 
         /**
          *
-         * @param size width and height of this slider box. A horizontal slider has width >= height.
+         * @param size spatial dimension of this slider box. A horizontal slider has width >= height.
          * @param unitSize size of one unit (element) in sliding direction
          * @param inverted toggle to invert value range, see {@link #inverted}
          */
@@ -86,12 +86,12 @@ public class RangedGroup extends Widget {
      * Construct a {@link RangedGroup}
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param content the {@link Group} with content to view
-     * @param contentSize the fixed size of the clipped content to view, i.e. page-size
-     * @param horizSliderParam optional horizontal slider parameters, null for none
-     * @param vertSliderParam optional vertical slider parameters, null for none
+     * @param contentSize the fixed spatial size of the clipped content to view, i.e. page-size
+     * @param horizSliderParam optional initial horizontal slider parameters, null for none
+     * @param vertSliderParam optional initial vertical slider parameters, null for none
      */
     public RangedGroup(final int renderModes, final Group content, final Vec2f contentSize,
-                      final SliderParam horizSliderParam, final SliderParam vertSliderParam)
+                       final SliderParam horizSliderParam, final SliderParam vertSliderParam)
     {
         super( new GridLayout(1 + (null != vertSliderParam ? 1 : 0), 0f, 0f, Alignment.None)); // vertical slider adds to the right column
         this.content = content;
@@ -108,8 +108,11 @@ public class RangedGroup extends Widget {
                 @Override
                 public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
                     final Vec3f oldPos = content.getPosition();
-                    final float newXPos = w.getValue();
-                    content.moveTo(contentPosZero.x()+newXPos, oldPos.y(), oldPos.z());
+                    if( vertSlider.isInverted() ) {
+                        content.moveTo(contentPosZero.x()-val, oldPos.y(), oldPos.z());
+                    } else {
+                        content.moveTo(contentPosZero.x()+val, oldPos.y(), oldPos.z());
+                    }
                 }
             } );
         } else {
@@ -123,8 +126,11 @@ public class RangedGroup extends Widget {
                 @Override
                 public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
                     final Vec3f oldPos = content.getPosition();
-                    final float newYPos = w.getValue();
-                    content.moveTo(oldPos.x(), contentPosZero.y()+newYPos, oldPos.z());
+                    if( vertSlider.isInverted() ) {
+                        content.moveTo(oldPos.x(), contentPosZero.y()+val, oldPos.z());
+                    } else {
+                        content.moveTo(oldPos.x(), contentPosZero.y()-val, oldPos.z());
+                    }
                 }
             } );
         } else {
@@ -139,7 +145,9 @@ public class RangedGroup extends Widget {
     public Group getContent() { return content; }
     public Vec2f getContentSize(final Vec2f out) { return clippedContent.getFixedSize(out); }
     public Group getClippedContent() { return clippedContent; }
+    /** Returns the used horizontal {@link RangeSlider} or {@code null}. */
     public RangeSlider getHorizSlider() { return horizSlider; }
+    /** Returns the used vertical {@link RangeSlider} or {@code null}. */
     public RangeSlider getVertSlider() { return vertSlider; }
 
     @Override
@@ -147,19 +155,19 @@ public class RangedGroup extends Widget {
         if( isShapeDirty() ) {
             super.validateImpl(gl, glp);
 
-            final AABBox b = content.getBounds();
+            final AABBox cb = content.getBounds();
             final Vec3f contentSize = clippedContent.getFixedSize();
             contentPosZero.set(0, 0);
             if( null != horizSlider ) {
-                horizSlider.setMinMax(new Vec2f(0, content.getBounds().getWidth()), 0);
+                horizSlider.setMinMax(new Vec2f(0, content.getBounds().getWidth()));
                 if( horizSlider.isInverted() ) {
-                    contentPosZero.setX( contentSize.x() - b.getWidth() );
+                    contentPosZero.setX( cb.getWidth() - contentSize.x() );
                 }
             }
             if( null != vertSlider ) {
-                vertSlider.setMinMax(new Vec2f(0, content.getBounds().getHeight()), 0);
+                vertSlider.setMinMax(new Vec2f(0, content.getBounds().getHeight()));
                 if( vertSlider.isInverted() ) {
-                    contentPosZero.setY( contentSize.y() - b.getHeight() );
+                    contentPosZero.setY( contentSize.y() - cb.getHeight() );
                 }
             }
         }

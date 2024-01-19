@@ -39,6 +39,7 @@ import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.BaseButton;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.Rectangle;
+import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
@@ -91,12 +92,13 @@ public final class RangeSlider extends Widget {
         public void run(SliderListener l);
     }
 
+    private static final boolean DEBUG = false;
     private static final float pageKnobScale = 0.6f;     // 0.6 * barWidth
     private static final float pageBarLineScale = 0.25f; // 1/4 * ( barWidth - pageKnobWidth )
     private static final float pageKnobSizePctMin = 5f/100f;
     private final boolean horizontal;
-    /** Knob height orthogonal to sliding direction */
-    private float knobHeight;
+    /** Knob thickness orthogonal to sliding direction */
+    private float knobThickn;
     /** Knob length in sliding direction */
     private float knobLength;
     private final Vec2f size;
@@ -105,6 +107,7 @@ public final class RangeSlider extends Widget {
     private final GraphShape knob;
     private ArrayList<SliderListener> sliderListeners = new ArrayList<SliderListener>();
     private final Vec2f minMax = new Vec2f(0, 100);
+    private final float knobScale;
     private float pageSize;
     private float val=0, val_pct=0;
     private boolean inverted=false;
@@ -116,9 +119,12 @@ public final class RangeSlider extends Widget {
      * This slider comprises a background bar and a positional round knob,
      * with {@link #getValue()} at center position.
      * </p>
+     * <p>
+     * The spatial {@code size} gets automatically updated at {@link #validate(GL2ES2)}
+     * </p>
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
-     * @param size width and height of this slider box. A horizontal slider has width >= height.
-     * @param knobScale multiple of slider-bar height for {@link #getKnobHeight()}
+     * @param size spatial dimension of this slider box. A horizontal slider has width >= height.
+     * @param knobScale multiple of slider-bar height for {@link #getKnobThickness()}
      * @param minMax minimum- and maximum-value of slider
      * @param unitSize size of one unit (element) in sliding direction
      * @param value current value of slider
@@ -133,8 +139,11 @@ public final class RangeSlider extends Widget {
      * This slider comprises a framing bar and a rectangular page-sized knob,
      * with {@link #getValue()} at page-start position.
      * </p>
+     * <p>
+     * The spatial {@code size} and {@code pageSize} gets automatically updated at {@link #validate(GL2ES2)}
+     * </p>
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
-     * @param size width and height of this slider box. A horizontal slider has width >= height.
+     * @param size spatial dimension of this slider box. A horizontal slider has width >= height.
      * @param minMax minimum- and maximum-value of slider
      * @param unitSize size of one unit (element) in sliding direction
      * @param pageSize size of one virtual-page, triggers rendering mode from knob to rectangle
@@ -147,6 +156,7 @@ public final class RangeSlider extends Widget {
     private RangeSlider(final int renderModes_, final Vec2f size, final float knobScale,
                        final Vec2f minMax, final float unitSize, final float pageSz, final float value) {
         final int renderModes = renderModes_ & ~(Region.COLORCHANNEL_RENDERING_BIT);
+        this.knobScale = knobScale;
         this.unitSize = unitSize;
         this.pageSize = pageSz;
         this.horizontal = size.x() >= size.y();
@@ -156,41 +166,26 @@ public final class RangeSlider extends Widget {
         marks.setInteractive(false).setToggleable(false).setDraggable(false).setResizable(false);
 
         this.size = new Vec2f(size);
-        if( Float.isNaN(pageSize) ) {
-            if( horizontal ) {
-                knobHeight = size.y()*knobScale;
-                setPaddding(new Padding(knobHeight/2f, 0, knobHeight/2f, 0));
-            } else {
-                knobHeight = size.x()*knobScale;
-                setPaddding(new Padding(0, knobHeight/2f, 0, knobHeight/2f));
-            }
-            knobLength = knobHeight;
-            bar = new Rectangle(renderModes, this.size.x(), this.size.y(), 0);
-            knob = new BaseButton(renderModes , knobHeight*1.01f, knobHeight);
-            setBackgroundBarColor(0.60f, 0.60f, 0.60f, 0.5f);
-        } else {
-            final float pageSizePct = Math.max(pageKnobSizePctMin, pageSize / getRange(minMax));
+        if( DEBUG ) { System.err.println("RangeSlider.ctor0 "+getDescription()); }
+        setMinMaxImpl(minMax.x(), minMax.y()); // pre-set for setKnobSize()
+        setKnobSize(pageSize, false, false);
+        if( DEBUG ) { System.err.println("RangeSlider.ctor1 "+getDescription()); }
+        if( Float.isFinite(pageSize) ) {
             final float barLineWidth;
-            final float width, height;
             if( horizontal ) {
-                height = size.y() * pageKnobScale;
-                width = pageSizePct * this.size.x();
-                barLineWidth = ( size.y() - height ) * pageBarLineScale;
-                knobLength = width;
-                knobHeight = height;
-                setPaddding(new Padding(size.y()/2f, 0, size.y()/2f, 0));
+                barLineWidth = ( size.y() - knobThickn ) * pageBarLineScale;
+                knob = new Rectangle(renderModes, knobLength, knobThickn, 0);
             } else {
-                width = size.x() * pageKnobScale;
-                height = pageSizePct * this.size.y();
-                barLineWidth = ( size.x() - width ) * pageBarLineScale;
-                knobLength = height;
-                knobHeight = width;
-                setPaddding(new Padding(0, size.x()/2f, 0, size.x()/2f));
-                // System.err.println("ZZZ minMax "+minMax+", pageSize "+pageSize+" "+(pageSizePct*100f)+"% -> "+knobHeight+"/"+this.size.y());
+                barLineWidth = ( size.x() - knobThickn ) * pageBarLineScale;
+                knob = new Rectangle(renderModes, knobThickn, knobLength, 0);
             }
             bar = new Rectangle(renderModes, this.size.x(), this.size.y(), barLineWidth);
-            knob = new Rectangle(renderModes, width, height, 0);
+        } else {
+            bar = new Rectangle(renderModes, this.size.x(), this.size.y(), 0);
+            knob = new BaseButton(renderModes , knobThickn*1.01f, knobThickn);
+            setBackgroundBarColor(0.60f, 0.60f, 0.60f, 0.5f);
         }
+        if( DEBUG ) { System.err.println("RangeSlider.ctor3 "+getDescription()); }
         setColor(0.80f, 0.80f, 0.80f, 0.7f);
 
         bar.setToggleable(false).setInteractive(false);
@@ -203,16 +198,16 @@ public final class RangeSlider extends Widget {
         barAndKnob.addShape( knob );
         addShape(barAndKnob);
 
-        setMinMax(minMax, value);
+        reconfig(minMax, true, value, false, 0);
 
         knob.onMove((final Shape s, final Vec3f origin, final Vec3f dest) -> {
             final float old_val = val;
             final float old_val_pct = val_pct;
-            if( Float.isNaN(pageSize) ) {
-                setValuePct( getKnobValuePct( dest.x(), dest.y(), knobLength/2f ) ); // centered
-            } else {
+            if( Float.isFinite(pageSize) ) {
                 final float dy = inverted ? +knobLength: 0; // offset to knob start
                 setValuePct( getKnobValuePct( dest.x(), dest.y(), dy ) );
+            } else {
+                setValuePct( getKnobValuePct( dest.x(), dest.y(), knobLength/2f ) ); // centered
             }
             dispatchToListener( (final SliderListener l) -> {
                 l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
@@ -249,7 +244,7 @@ public final class RangeSlider extends Widget {
                             v+=unitSize;
                         }
                     }
-                } else if( !Float.isNaN(pageSize) ){
+                } else if( Float.isFinite(pageSize) ){
                     if( e.getRotation()[1] < 0f ) {
                         if( inverted ) {
                             v+=pageSize;
@@ -331,7 +326,7 @@ public final class RangeSlider extends Widget {
                         }
                     }
                 }
-                if( !action && !Float.isNaN(pageSize) ) {
+                if( !action && Float.isFinite(pageSize) ) {
                     if( keySym == KeyEvent.VK_PAGE_DOWN ) {
                         action = true;
                         if( inverted ) {
@@ -437,44 +432,137 @@ public final class RangeSlider extends Widget {
         return mark;
     }
 
+    /** Returns spatial dimension of this slider */
     public final Vec2f getSize() { return size; }
-    /** Knob height orthogonal to sliding direction */
-    public final float getKnobHeight() { return knobHeight; }
-    /** Knob length in sliding direction */
+    /** Returns spatial knob thickness orthogonal to sliding direction */
+    public final float getKnobThickness() { return knobThickn; }
+    /** Returns spatial knob length in sliding direction */
     public final float getKnobLength() { return knobLength; }
 
     /** Returns slider value range, see {@link #setMinMax(Vec2f, float)} */
     public Vec2f getMinMax() { return minMax; }
+    /** Returns {@link #getMinMax()} range. */
     public float getRange() { return minMax.y() - minMax.x(); }
-    private float getRange(final Vec2f minMax) { return minMax.y() - minMax.x(); }
+    private static float getRange(final Vec2f minMax) { return minMax.y() - minMax.x(); }
+    /** Returns current slider value */
     public float getValue() { return val; }
+    /** Returns current slider {@link #getValue() value} in percentage of {@link #getRange()}, */
     public float getValuePct() { return val_pct; }
 
-    public RangeSlider setPageSize(final float v) {
-        if( Float.isNaN(this.pageSize) || Float.isNaN(v) ) {
-            return this;
-        }
-        this.pageSize = v;
-        final float pageSizePct = Math.max(pageKnobSizePctMin, pageSize / getRange());
-        final float width, height;
-        if( horizontal ) {
-            height = size.y() * pageKnobScale;
-            width = pageSizePct * this.size.x();
-            knobLength = width;
-            knobHeight = height;
+    /**
+     * Sets the page-size if a rectangular knob is being used, i.e. {@link #RangeSlider(int, Vec2f, Vec2f, float, float, float)},
+     * otherwise does nothing.
+     * @param pageSz the page-size, which will be clipped to {@link #getMinMax()}.
+     * @return this instance of chaining
+     * @see #getPageSize()
+     * @see #RangeSlider(int, Vec2f, Vec2f, float, float, float)
+     */
+    public RangeSlider setPageSize(final float pageSz) {
+        return setKnobSize(pageSz, true, true);
+    }
+    private RangeSlider setKnobSize(final float pageSz, final boolean adjKnob, final boolean adjValue) {
+        if( Float.isFinite(pageSize) && Float.isFinite(pageSz) ) {
+            final float range = getRange(minMax);
+            if( Float.isFinite(range) && !FloatUtil.isZero(range) ) {
+                pageSize = Math.min(minMax.y(), Math.max(minMax.x(), pageSz));
+            }
+            final float pageSizePct = getPageSizePct(pageKnobSizePctMin);
+            final float width, height;
+            if( horizontal ) {
+                width = pageSizePct * this.size.x();
+                height = size.y() * pageKnobScale;
+                knobLength = width;
+                knobThickn = height;
+                if( !paddingSet ) {
+                    setPaddding(new Padding(size.y()/2f, 0, size.y()/2f, 0));
+                    paddingSet = true;
+                }
+            } else {
+                width = size.x() * pageKnobScale;
+                height = pageSizePct * this.size.y();
+                knobLength = height;
+                knobThickn = width;
+                if( !paddingSet ) {
+                    setPaddding(new Padding(0, size.x()/2f, 0, size.x()/2f));
+                    paddingSet = true;
+                }
+            }
+            if( adjKnob ) {
+                ((Rectangle)knob).setDimension(width, height, 0);
+            }
+            if( adjValue ) {
+                setValue( val );
+            }
+        } else if( Float.isFinite(pageSize) ) {
+            // nop w/ invalid pageSz but valid pageSize
         } else {
-            width = size.x() * pageKnobScale;
-            height = pageSizePct * this.size.y();
-            knobLength = height;
-            knobHeight = width;
+            if( horizontal ) {
+                knobThickn = size.y()*knobScale;
+                if( !paddingSet ) {
+                    setPaddding(new Padding(knobThickn/2f, 0, knobThickn/2f, 0));
+                    paddingSet = true;
+                }
+            } else {
+                knobThickn = size.x()*knobScale;
+                if( !paddingSet ) {
+                    setPaddding(new Padding(0, knobThickn/2f, 0, knobThickn/2f));
+                    paddingSet = true;
+                }
+            }
+            knobLength = knobThickn;
         }
-        ((Rectangle)knob).setDimension(width, height, 0);
         return this;
     }
-    public float getPageSize() { return this.pageSize; }
+    private boolean paddingSet = false;
 
-    public void setUnitSize(final float v) { this.unitSize = v; }
-    public float getUnitSize() { return this.unitSize; }
+    private void setMinMaxImpl(final float min, final float max) {
+        this.minMax.set(Float.isFinite(min) ? min : 0, Float.isFinite(max) ? max : 0);
+    }
+    private RangeSlider reconfig(final Vec2f minMax,
+                                 final boolean modValue, final float value,
+                                 final boolean modKnobSz, final float pageSz)
+    {
+        if( null != minMax ) {
+            setMinMaxImpl(minMax.x(), minMax.y());
+        }
+        if( modKnobSz ) {
+            setKnobSize(pageSz, true, !modValue);
+        }
+        if( modValue ) {
+            setValue( value );
+        }
+        if( DEBUG ) { System.err.println("RangeSlider.cfg "+getDescription()); }
+        return this;
+    }
+
+    /**
+     * Returns the page-size if a rectangular knob is being used, i.e. {@link #RangeSlider(int, Vec2f, Vec2f, float, float, float)},
+     * otherwise returns {@link Float#NaN}.
+     * @see #setPageSize(float)
+     * @see #RangeSlider(int, Vec2f, Vec2f, float, float, float)
+     */
+    public float getPageSize() { return pageSize; }
+
+    /**
+     * Returns the page-size percentage if a rectangular knob is being used, i.e. {@link #RangeSlider(int, Vec2f, Vec2f, float, float, float)},
+     * otherwise returns {@link Float#NaN}.
+     * @param minPct minimum percentage to be returned, should be >= 0
+     * @see #setPageSize(float)
+     * @see #RangeSlider(int, Vec2f, Vec2f, float, float, float)
+     */
+    public float getPageSizePct(final float minPct) {
+        if( Float.isFinite(pageSize) ) {
+            final float range = getRange(minMax);
+            return Float.isFinite(range) && !FloatUtil.isZero(range) ? Math.max(minPct, pageSize / range) : minPct;
+        } else {
+            return Float.NaN;
+        }
+    }
+
+    /** Sets the size of one unit (element) in sliding direction */
+    public RangeSlider setUnitSize(final float v) { unitSize = v; return this; }
+    /** Returns the size of one unit (element) in sliding direction */
+    public float getUnitSize() { return unitSize; }
 
     /**
      * Sets whether this slider uses an inverted value range,
@@ -486,24 +574,71 @@ public final class RangeSlider extends Widget {
     public boolean isInverted() { return inverted; }
 
     /**
-     * Sets slider value range and current value
+     * Sets slider value range and current value, also updates related pageSize parameter if used.
      * @param minMax minimum- and maximum-value of slider
-     * @param value current value of slider
+     * @param value new value of slider, clipped against {@link #getMinMax()}
      * @return this instance of chaining
      */
     public RangeSlider setMinMax(final Vec2f minMax, final float value) {
-        this.minMax.set(minMax);
-        return setValue( value );
+        return reconfig(minMax, true, value, true, pageSize);
+    }
+
+    /**
+     * Sets slider value range, also updates related pageSize parameter if used.
+     * @param minMax minimum- and maximum-value of slider
+     * @return this instance of chaining
+     */
+    public RangeSlider setMinMax(final Vec2f minMax) {
+        return reconfig(minMax, false, 0, true, pageSize);
+    }
+
+    /**
+     * Calls {@link #setMinMax(Vec2f, float)} and {@link #setPageSize(float)}.
+     * @param minMax minimum- and maximum-value of slider
+     * @param value new value of slider, clipped against {@code minMax}
+     * @param pageSz the page-size, which will be clipped to {@code minMax}
+     * @return this instance of chaining
+     */
+    public RangeSlider setMinMaxPgSz(final Vec2f minMax, final float value, final float pageSz) {
+        return reconfig(minMax, true, value, true, pageSz);
+    }
+
+    /**
+     * Calls {@link #setMinMax(Vec2f, float)} and {@link #setPageSize(float)}.
+     * @param minMax minimum- and maximum-value of slider
+     * @param pageSz the page-size, which will be clipped to {@code minMax}
+     * @return this instance of chaining
+     */
+    public RangeSlider setMinMaxPgSz(final Vec2f minMax, final float pageSz) {
+        return reconfig(minMax, false, 0, true, pageSz);
     }
 
     public RangeSlider setValuePct(final float v) {
-        final float pct = Math.max(0.0f, Math.min(1.0f, v));
-        return setValue( minMax.x() + ( pct * getRange() ) );
+        final float range = getRange();
+        if( Float.isFinite(v) && Float.isFinite(range) && !FloatUtil.isZero(range) ) {
+            final float pgsz_pct = Float.isFinite(pageSize) ? pageSize / range : 0f;
+            final float pct = Math.max(0f, Math.min(1f - pgsz_pct, v));
+            return setValue( minMax.x() + ( pct * range ) );
+        } else {
+            return setValue( 0f );
+        }
     }
 
+    /**
+     * Sets slider value
+     * @param v new value of slider, clipped against {@link #getMinMax()}
+     * @return this instance of chaining
+     */
     public RangeSlider setValue(final float v) {
-        val = Math.max(minMax.x(), Math.min(minMax.y(), v));
-        val_pct = ( val - minMax.x() ) / getRange();
+        final float v1 = Float.isFinite(v) ? v : 0f;
+        final float pgsz = Float.isFinite(pageSize) ? pageSize : 0f;
+        final float range = getRange();
+        val = Math.max(minMax.x(), Math.min(minMax.y() - pgsz, v1));
+        if( Float.isFinite(range) && !FloatUtil.isZero(range) ) {
+            val_pct = ( val - minMax.x() ) / range;
+        } else {
+            val_pct = 0f;
+        }
         setKnob();
         return this;
     }
@@ -523,25 +658,25 @@ public final class RangeSlider extends Widget {
      * @param posRes {@link Vec2f} result storage
      * @param val_pct value percentage within [0..1]
      * @param itemLen item length in sliding direction
-     * @param itemHeight item height orthogonal to sliding direction
+     * @param itemThickn item thickness orthogonal to sliding direction
      */
-    private Vec2f getItemPctPos(final Vec2f posRes, final float val_pct, final float itemLen, final float itemHeight) {
+    private Vec2f getItemPctPos(final Vec2f posRes, final float val_pct, final float itemLen, final float itemThickn) {
         final float v = inverted ? 1f - val_pct : val_pct;
         final float itemAdjust;
-        if( Float.isNaN(pageSize) ) {
-            itemAdjust = itemLen * 0.5f; // centered
-        } else {
+        if( Float.isFinite(pageSize) ) {
             if( inverted ) {
                 itemAdjust = itemLen; // top-edge
             } else {
                 itemAdjust = 0; // bottom-edge
             }
+        } else {
+            itemAdjust = itemLen * 0.5f; // centered
         }
         if( horizontal ) {
             posRes.setX( Math.max(0, Math.min(size.x() - itemLen, v*size.x() - itemAdjust)) );
-            posRes.setY( -( itemHeight - size.y() ) * 0.5f );
+            posRes.setY( -( itemThickn - size.y() ) * 0.5f );
         } else {
-            posRes.setX( -( itemHeight - size.x() ) * 0.5f );
+            posRes.setX( -( itemThickn - size.x() ) * 0.5f );
             posRes.setY( Math.max(0, Math.min(size.y() - itemLen, v*size.y() - itemAdjust)) );
         }
         return posRes;
@@ -557,7 +692,7 @@ public final class RangeSlider extends Widget {
     }
 
     private void setKnob() {
-        final Vec2f pos = getItemPctPos(new Vec2f(), val_pct, knobLength, knobHeight);
+        final Vec2f pos = getItemPctPos(new Vec2f(), val_pct, knobLength, knobThickn);
         knob.moveTo(pos.x(), pos.y(), Button.DEFAULT_LABEL_ZOFFSET);
     }
 
@@ -578,7 +713,7 @@ public final class RangeSlider extends Widget {
     public final Shape setColor(final float r, final float g, final float b, final float a) {
         super.setColor(r, g, b, a);
         knob.setColor(r, g, b, a);
-        if( !Float.isNaN(pageSize) ) {
+        if( Float.isFinite(pageSize) ) {
             bar.setColor(r, g, b, 1.0f);
         }
         return this;
@@ -601,7 +736,7 @@ public final class RangeSlider extends Widget {
     public Shape setColor(final Vec4f c) {
         this.rgbaColor.set(c);
         knob.setColor(c);
-        if( !Float.isNaN(pageSize) ) {
+        if( Float.isFinite(pageSize) ) {
             bar.setColor(c.x(), c.y(), c.z(), 1.0f);
         }
         return this;
@@ -614,7 +749,7 @@ public final class RangeSlider extends Widget {
      * </p>
      */
     public Shape setBackgroundBarColor(final float r, final float g, final float b, final float a) {
-        if( Float.isNaN(pageSize) ) {
+        if( !Float.isFinite(pageSize) ) {
             bar.setColor(r, g, b, a);
         }
         return this;
@@ -626,7 +761,7 @@ public final class RangeSlider extends Widget {
      * </p>
      */
     public Shape setBackgroundBarColor(final Vec4f c) {
-        if( Float.isNaN(pageSize) ) {
+        if( !Float.isFinite(pageSize) ) {
             bar.setColor(c);
         }
         return this;
@@ -646,8 +781,36 @@ public final class RangeSlider extends Widget {
         return this;
     }
 
+    /** Return string description of current slider setting. */
+    public String getDescription() {
+        final String pre = "value "+val+" "+(100f*val_pct)+"%, range "+minMax;
+        final String post = ", ssize "+size+", knob[l "+knobLength+", t "+knobThickn+"]";
+        if( Float.isFinite(pageSize) ) {
+            final float pageSizePct = getPageSizePct(pageKnobSizePctMin);
+            final String detail = ", pageSize "+pageSize+" "+(pageSizePct*100f)+"% -> "+knobLength;
+            if( horizontal ) {
+                return "H "+pre+detail+"/"+size.x()+post;
+            } else {
+                return "V "+pre+detail+"/"+size.y()+post;
+            }
+        } else {
+            if( horizontal ) {
+                return "H "+pre+post;
+            } else {
+                return "V "+pre+post;
+            }
+        }
+    }
     @Override
     public String getSubString() {
-        return super.getSubString()+", range["+minMax+"] @ "+val+", "+(100f*val_pct)+"%";
+        return super.getSubString()+", "+getDescription()+" @ "+val+", "+(100f*val_pct)+"%";
+    }
+    @Override
+    protected void validateImpl(final GL2ES2 gl, final GLProfile glp) {
+        if( isShapeDirty() ) {
+            super.validateImpl(gl, glp);
+            setKnobSize(pageSize, true, true);
+            if( DEBUG ) { System.err.println("RangeSlider.val "+getDescription()); }
+        }
     }
 }

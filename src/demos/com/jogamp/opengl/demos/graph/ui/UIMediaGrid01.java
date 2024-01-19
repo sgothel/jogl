@@ -48,6 +48,11 @@ import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.graph.ui.widgets.MediaPlayer;
+import com.jogamp.graph.ui.widgets.RangeSlider;
+import com.jogamp.graph.ui.widgets.RangedGroup;
+import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
+import com.jogamp.graph.ui.widgets.RangedGroup.SliderParam;
+import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec2i;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.KeyAdapter;
@@ -66,19 +71,23 @@ import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 
 /**
- * MediaButtons in a grid, filled by media files from a directory.
+ * MediaButtons in a {@link RangedGroup} w/ vertical slider, filled by media files from a directory.
  */
 public class UIMediaGrid01 {
+    private static final float MediaGridWidth = 1f;
+
     static CommandlineOptions options = new CommandlineOptions(1920, 1080, Region.VBAA_RENDERING_BIT);
 
-    public static final List<String> MEDIA_SUFFIXES = Arrays.asList("mp4", "mkv", "m2v", "avi");
-    public static int aid = GLMediaPlayer.STREAM_ID_AUTO;
-    public static float boxRatio = 16f/9f;
-    public static boolean letterBox = true;
+    private static final boolean VERBOSE_UI = false;
+    private static final List<String> MEDIA_SUFFIXES = Arrays.asList("mp4", "mkv", "m2v", "avi");
+    private static int aid = GLMediaPlayer.STREAM_ID_AUTO;
+    private static float boxRatio = 16f/9f;
+    private static boolean letterBox = true;
 
     public static void main(final String[] args) throws IOException {
-        int maxMediaFiles = 12; // Integer.MAX_VALUE;
-        int columns = -1;
+        float mmPerCellWidth = 75f;
+        int maxMediaFiles = 10000; // Integer.MAX_VALUE;
+        int gridColumns = -1;
         String mediaDir = null;
         if( 0 != args.length ) {
             final int[] idx = { 0 };
@@ -99,9 +108,12 @@ public class UIMediaGrid01 {
                     boxRatio = MiscUtils.atof(args[idx[0]], boxRatio);
                 } else if(args[idx[0]].equals("-zoom")) {
                     letterBox = false;
+                } else if(args[idx[0]].equals("-mmPerCell")) {
+                    idx[0]++;
+                    mmPerCellWidth = MiscUtils.atof(args[idx[0]], mmPerCellWidth);
                 } else if(args[idx[0]].equals("-col")) {
                     idx[0]++;
-                    columns = MiscUtils.atoi(args[idx[0]], columns);
+                    gridColumns = MiscUtils.atoi(args[idx[0]], gridColumns);
                 }
             }
         }
@@ -111,7 +123,7 @@ public class UIMediaGrid01 {
         System.err.println("aid "+aid);
         System.err.println("boxRatio "+boxRatio);
         System.err.println("letterBox "+letterBox);
-        System.err.println("columns "+columns);
+        System.err.println("columns "+gridColumns);
 
         final List<Uri> mediaFiles = new ArrayList<Uri>();
         if( null != mediaDir && mediaDir.length() > 0 ) {
@@ -153,16 +165,7 @@ public class UIMediaGrid01 {
             System.err.println("No media files, exit.");
             return;
         }
-        final Vec2i gridDim = new Vec2i(-1, -1);
-        {
-            // final int w = (int)( Math.round( Math.sqrt( mediaFiles.size() ) ) );
-            // final int h = (int)( Math.ceil( mediaFiles.size() / w ) );
-            final int w = columns > 0 ? columns : (int)( Math.round( Math.sqrt( mediaFiles.size() ) ) );
-            final int h = ( Math.round( mediaFiles.size() / w ) );
-            gridDim.set(w, h);
-            System.err.println("Media files: Count "+mediaFiles.size()+", grid "+gridDim);
-        }
-
+        System.err.println("Media Files Count "+mediaFiles.size());
         final GLCapabilities reqCaps = options.getGLCaps();
         System.out.println("Requested: " + reqCaps);
 
@@ -193,30 +196,70 @@ public class UIMediaGrid01 {
         window.addGLEventListener(scene);
 
 
-        final float[] ppmm = window.getPixelsPerMM(new float[2]);
+        final Vec2i gridDim;
+        final int mediaRowsPerPage;
         {
+            final float[] ppmm = window.getPixelsPerMM(new float[2]);
             final float[] dpi = FontScale.ppmmToPPI( new float[] { ppmm[0], ppmm[1] } );
             System.err.println("DPI "+dpi[0]+" x "+dpi[1]+", "+ppmm[0]+" x "+ppmm[1]+" pixel/mm");
 
             final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);
             System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
+            final float mmPerCellHeight = mmPerCellWidth / boxRatio;
+            int _mediaRowsPerPage = (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCellHeight );
+            if( 0 >= gridColumns ) {
+                gridColumns = (int)( ( window.getSurfaceWidth() * MediaGridWidth / ppmm[0] ) / mmPerCellWidth );
+            }
+            if( mediaFiles.size() < gridColumns * _mediaRowsPerPage ) {
+                gridColumns = (int)Math.floor( Math.sqrt ( mediaFiles.size() ) );
+                _mediaRowsPerPage = gridColumns;
+            }
+            mediaRowsPerPage = _mediaRowsPerPage;
+            gridDim = new Vec2i(gridColumns, mediaRowsPerPage);
         }
-        final Group mediaGrid;
+        final float mediaCellWidth = MediaGridWidth / gridColumns;
+        final float mediaCellHeight = mediaCellWidth/boxRatio;
+        final Vec2f mediaGridSize = new Vec2f(MediaGridWidth, mediaRowsPerPage * mediaCellHeight);
+        System.err.println("GridDim "+gridDim);
+        System.err.println("GridSize "+mediaGridSize);
+        System.err.println("CellSize "+mediaCellWidth+" x "+mediaCellHeight+", boxRatio "+boxRatio);
+
+        final RangedGroup mediaView;
         {
-            final float cellWidth = boxRatio;
-            final float cellHeight = 1f;
-            mediaGrid = new Group(new GridLayout(gridDim.x(), cellWidth*0.9f, cellHeight*0.9f, Alignment.FillCenter, new Gap(cellHeight*0.1f, cellWidth*0.1f)));
-            mediaGrid.setRelayoutOnDirtyShapes(false);
+            final Group mediaGrid = new Group(new GridLayout(gridDim.x(), mediaCellWidth*0.9f, mediaCellHeight*0.9f, Alignment.FillCenter,
+                                              new Gap(mediaCellHeight*0.1f, mediaCellWidth*0.1f)));
+            mediaGrid.setInteractive(true).setDragAndResizeable(false).setToggleable(false).setName("MediaGrid");
+            addMedia(scene, reqCaps.getGLProfile(), mediaGrid, mediaFiles, boxRatio);
+            mediaGrid.setRelayoutOnDirtyShapes(false); // avoid group re-validate to ease load in Group.isShapeDirty() w/ thousands of glyphs
+            if( VERBOSE_UI ) {
+                mediaGrid.validate(reqCaps.getGLProfile());
+                System.err.println("MediaGrid "+mediaGrid);
+                System.err.println("MediaGrid "+mediaGrid.getLayout());
+            }
+            mediaView = new RangedGroup(options.renderModes, mediaGrid, mediaGridSize,
+                                        null,
+                                        new SliderParam(new Vec2f(mediaCellWidth/20f, mediaGridSize.y()), mediaCellHeight/30f, true));
+            mediaView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f).setName("MediaView");
+            // mediaView.setRelayoutOnDirtyShapes(false); // avoid group re-validate to ease load in Group.isShapeDirty() w/ thousands of glyphs
+            if( VERBOSE_UI ) {
+                mediaView.getVertSlider().addSliderListener(new SliderAdapter() {
+                    @Override
+                    public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
+                        final Vec2f minmax = w.getMinMax();
+                        final float row_f = val / mediaCellHeight;
+                        System.err.println("VertSlider: row "+row_f+", val["+old_val+" -> "+val+"], pct["+(100*old_val_pct)+"% -> "+(100*val_pct)+"%], minmax "+minmax);
+                    }
+                });
+            }
+            if( VERBOSE_UI ) {
+                mediaView.validate(reqCaps.getGLProfile());
+                System.err.println("GlyphView "+mediaView);
+            }
         }
-        mediaGrid.setName("MediaGrid");
-        addMedia(scene, reqCaps.getGLProfile(), mediaGrid, mediaFiles, boxRatio);
-        mediaGrid.validate(reqCaps.getGLProfile());
-        System.err.println("MediaGrid "+mediaGrid);
-        System.err.println("MediaGrid "+mediaGrid.getLayout());
 
         final Group mainGrid = new Group(new GridLayout(1, 0f, 0f, Alignment.None));
         mainGrid.setName("MainGrid");
-        mainGrid.addShape(mediaGrid);
+        mainGrid.addShape(mediaView);
         scene.addShape(mainGrid);
 
         window.addKeyListener(new KeyAdapter() {
