@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -53,11 +53,11 @@ import com.jogamp.math.geom.plane.AffineTransform;
  */
 public class AABBox {
     private static final boolean DEBUG = FloatUtil.DEBUG;
-    /** Low bottom-left coordinate */
-    private final Vec3f bl = new Vec3f();
-    /** High top-right coordinate */
-    private final Vec3f tr = new Vec3f();
-    /** Computed center of {@link #bl} and {@link #tr}. */
+    /** Low left-bottom-far (xyz) coordinate */
+    private final Vec3f lo = new Vec3f();
+    /** High right-top-near (xyz) coordinate */
+    private final Vec3f hi = new Vec3f();
+    /** Computed center of {@link #lo} and {@link #hi}. */
     private final Vec3f center = new Vec3f();
 
     /**
@@ -127,26 +127,26 @@ public class AABBox {
         return this;
     }
 
-    /** Returns the maximum top-right coordinate */
+    /** Returns the maximum right-top-near (xyz) coordinate */
     public final Vec3f getHigh() {
-        return tr;
+        return hi;
     }
 
     private final void setHigh(final float hx, final float hy, final float hz) {
-        this.tr.set(hx, hy, hz);
+        this.hi.set(hx, hy, hz);
     }
 
-    /** Returns the minimum bottom-left coordinate */
+    /** Returns the minimum left-bottom-far (xyz) coordinate */
     public final Vec3f getLow() {
-        return bl;
+        return lo;
     }
 
     private final void setLow(final float lx, final float ly, final float lz) {
-        this.bl.set(lx, ly, lz);
+        this.lo.set(lx, ly, lz);
     }
 
     private final void computeCenter() {
-        center.set(tr).add(bl).scale(1f/2f);
+        center.set(hi).add(lo).scale(1f/2f);
     }
 
     /**
@@ -156,8 +156,8 @@ public class AABBox {
      * @return this AABBox for chaining
      */
     public final AABBox copy(final AABBox src) {
-        bl.set(src.bl);
-        tr.set(src.tr);
+        lo.set(src.lo);
+        hi.set(src.hi);
         center.set(src.center);
         return this;
     }
@@ -188,8 +188,8 @@ public class AABBox {
      */
     public final AABBox setSize(final float lx, final float ly, final float lz,
                                 final float hx, final float hy, final float hz) {
-        this.bl.set(lx, ly, lz);
-        this.tr.set(hx, hy, hz);
+        this.lo.set(lx, ly, lz);
+        this.hi.set(hx, hy, hz);
         computeCenter();
         return this;
     }
@@ -203,8 +203,8 @@ public class AABBox {
      * @return this AABBox for chaining
      */
     public final AABBox setSize(final Vec3f low, final Vec3f high) {
-        this.bl.set(low);
-        this.tr.set(high);
+        this.lo.set(low);
+        this.hi.set(high);
         computeCenter();
         return this;
     }
@@ -218,11 +218,11 @@ public class AABBox {
     public final AABBox resizeWidth(final float deltaLeft, final float deltaRight) {
         boolean mod = false;
         if( !FloatUtil.isZero(deltaLeft) ) {
-            bl.setX( bl.x() - deltaLeft );
+            lo.setX( lo.x() - deltaLeft );
             mod = true;
         }
         if( !FloatUtil.isZero(deltaRight) ) {
-            tr.setX( tr.x() + deltaRight );
+            hi.setX( hi.x() + deltaRight );
             mod = true;
         }
         if( mod ) {
@@ -240,11 +240,11 @@ public class AABBox {
     public final AABBox resizeHeight(final float deltaBottom, final float deltaTop) {
         boolean mod = false;
         if( !FloatUtil.isZero(deltaBottom) ) {
-            bl.setY( bl.y() - deltaBottom );
+            lo.setY( lo.y() - deltaBottom );
             mod = true;
         }
         if( !FloatUtil.isZero(deltaTop) ) {
-            tr.setY( tr.y() + deltaTop );
+            hi.setY( hi.y() + deltaTop );
             mod = true;
         }
         if( mod ) {
@@ -260,8 +260,8 @@ public class AABBox {
      * @return this AABBox for chaining
      */
     public final AABBox set(final AABBox o) {
-        this.bl.set(o.bl);
-        this.tr.set(o.tr);
+        this.lo.set(o.lo);
+        this.hi.set(o.hi);
         this.center.set(o.center);
         return this;
     }
@@ -276,25 +276,25 @@ public class AABBox {
         final Vec3f newTR = newBox.getHigh();
 
         /** test low */
-        if (newBL.x() < bl.x()) {
-            bl.setX( newBL.x() );
+        if (newBL.x() < lo.x()) {
+            lo.setX( newBL.x() );
         }
-        if (newBL.y() < bl.y()) {
-            bl.setY( newBL.y() );
+        if (newBL.y() < lo.y()) {
+            lo.setY( newBL.y() );
         }
-        if (newBL.z() < bl.z()) {
-            bl.setZ( newBL.z() );
+        if (newBL.z() < lo.z()) {
+            lo.setZ( newBL.z() );
         }
 
         /** test high */
-        if (newTR.x() > tr.x()) {
-            tr.setX( newTR.x() );
+        if (newTR.x() > hi.x()) {
+            hi.setX( newTR.x() );
         }
-        if (newTR.y() > tr.y()) {
-            tr.setY( newTR.y() );
+        if (newTR.y() > hi.y()) {
+            hi.setY( newTR.y() );
         }
-        if (newTR.z() > tr.z()) {
-            tr.setZ( newTR.z() );
+        if (newTR.z() > hi.z()) {
+            hi.setZ( newTR.z() );
         }
         computeCenter();
         return this;
@@ -311,23 +311,23 @@ public class AABBox {
         /** test low */
         {
             final Vec3f newBL = t.transform(newBox.getLow(), tmpV3);
-            if (newBL.x() < bl.x())
-                bl.setX( newBL.x() );
-            if (newBL.y() < bl.y())
-                bl.setY( newBL.y() );
-            if (newBL.z() < bl.z())
-                bl.setZ( newBL.z() );
+            if (newBL.x() < lo.x())
+                lo.setX( newBL.x() );
+            if (newBL.y() < lo.y())
+                lo.setY( newBL.y() );
+            if (newBL.z() < lo.z())
+                lo.setZ( newBL.z() );
         }
 
         /** test high */
         {
             final Vec3f newTR = t.transform(newBox.getHigh(), tmpV3);
-            if (newTR.x() > tr.x())
-                tr.setX( newTR.x() );
-            if (newTR.y() > tr.y())
-                tr.setY( newTR.y() );
-            if (newTR.z() > tr.z())
-                tr.setZ( newTR.z() );
+            if (newTR.x() > hi.x())
+                hi.setX( newTR.x() );
+            if (newTR.y() > hi.y())
+                hi.setY( newTR.y() );
+            if (newTR.z() > hi.z())
+                hi.setZ( newTR.z() );
         }
 
         computeCenter();
@@ -344,25 +344,25 @@ public class AABBox {
      */
     public final AABBox resize(final float x, final float y, final float z) {
         /** test low */
-        if (x < bl.x()) {
-            bl.setX( x );
+        if (x < lo.x()) {
+            lo.setX( x );
         }
-        if (y < bl.y()) {
-            bl.setY( y );
+        if (y < lo.y()) {
+            lo.setY( y );
         }
-        if (z < bl.z()) {
-            bl.setZ( z );
+        if (z < lo.z()) {
+            lo.setZ( z );
         }
 
         /** test high */
-        if (x > tr.x()) {
-            tr.setX( x );
+        if (x > hi.x()) {
+            hi.setX( x );
         }
-        if (y > tr.y()) {
-            tr.setY( y );
+        if (y > hi.y()) {
+            hi.setY( y );
         }
-        if (z > tr.z()) {
-            tr.setZ( z );
+        if (z > hi.z()) {
+            hi.setZ( z );
         }
 
         computeCenter();
@@ -406,8 +406,8 @@ public class AABBox {
      * @param y  y-axis coordinate value
      */
     public final boolean contains(final float x, final float y) {
-        return !( x<bl.x() || x>tr.x() ||
-                  y<bl.y() || y>tr.y() );
+        return !( x<lo.x() || x>hi.x() ||
+                  y<lo.y() || y>hi.y() );
     }
 
     /**
@@ -417,29 +417,29 @@ public class AABBox {
      * @param z z-axis coordinate value
      */
     public final boolean contains(final float x, final float y, final float z) {
-        return !( x<bl.x() || x>tr.x() ||
-                  y<bl.y() || y>tr.y() ||
-                  z<bl.z() || z>tr.z() );
+        return !( x<lo.x() || x>hi.x() ||
+                  y<lo.y() || y>hi.y() ||
+                  z<lo.z() || z>hi.z() );
     }
 
     /** Returns whether this AABBox intersects (partially contains) given AABBox. */
     public final boolean intersects(final AABBox o) {
-        return !( tr.x() < o.bl.x() ||
-                  tr.y() < o.bl.y() ||
-                  tr.z() < o.bl.z() ||
-                  bl.x() > o.tr.x() ||
-                  bl.y() > o.tr.y() ||
-                  bl.z() > o.tr.z());
+        return !( hi.x() < o.lo.x() ||
+                  hi.y() < o.lo.y() ||
+                  hi.z() < o.lo.z() ||
+                  lo.x() > o.hi.x() ||
+                  lo.y() > o.hi.y() ||
+                  lo.z() > o.hi.z());
     }
 
     /** Returns whether this AABBox fully contains given AABBox. */
     public final boolean contains(final AABBox o) {
-        return tr.x() >= o.tr.x() &&
-               tr.y() >= o.tr.y() &&
-               tr.z() >= o.tr.z() &&
-               bl.x() <= o.bl.x() &&
-               bl.y() <= o.bl.y() &&
-               bl.z() <= o.bl.z();
+        return hi.x() >= o.hi.x() &&
+               hi.y() >= o.hi.y() &&
+               hi.z() >= o.hi.z() &&
+               lo.x() <= o.lo.x() &&
+               lo.y() <= o.lo.y() &&
+               lo.z() <= o.lo.z();
     }
 
     /**
@@ -490,17 +490,17 @@ public class AABBox {
 
         final float dirX  = ray.dir.x();
         final float diffX = ray.orig.x() - center.x();
-        final float extX  = tr.x() - center.x();
+        final float extX  = hi.x() - center.x();
         if( Math.abs(diffX) > extX && diffX*dirX >= 0f ) return false;
 
         final float dirY  = ray.dir.y();
         final float diffY = ray.orig.y() - center.y();
-        final float extY  = tr.y() - center.y();
+        final float extY  = hi.y() - center.y();
         if( Math.abs(diffY) > extY && diffY*dirY >= 0f ) return false;
 
         final float dirZ  = ray.dir.z();
         final float diffZ = ray.orig.z() - center.z();
-        final float extZ  = tr.z() - center.z();
+        final float extZ  = hi.z() - center.z();
         if( Math.abs(diffZ) > extZ && diffZ*dirZ >= 0f ) return false;
 
         final float absDirY = Math.abs(dirY);
@@ -591,59 +591,59 @@ public class AABBox {
         */
         // Find candidate planes, unrolled
         {
-            if(origin.x() < bl.x()) {
-                result.setX(bl.x());
+            if(origin.x() < lo.x()) {
+                result.setX(lo.x());
                 inside    = false;
 
                 // Calculate T distances to candidate planes
                 if( 0 != Float.floatToIntBits(dir.x()) ) {
-                    maxT[0] = (bl.x() - origin.x()) / dir.x();
+                    maxT[0] = (lo.x() - origin.x()) / dir.x();
                 }
-            } else if(origin.x() > tr.x()) {
-                result.setX(tr.x());
+            } else if(origin.x() > hi.x()) {
+                result.setX(hi.x());
                 inside    = false;
 
                 // Calculate T distances to candidate planes
                 if( 0 != Float.floatToIntBits(dir.x()) ) {
-                    maxT[0] = (tr.x() - origin.x()) / dir.x();
+                    maxT[0] = (hi.x() - origin.x()) / dir.x();
                 }
             }
         }
         {
-            if(origin.y() < bl.y()) {
-                result.setX(bl.y());
+            if(origin.y() < lo.y()) {
+                result.setX(lo.y());
                 inside    = false;
 
                 // Calculate T distances to candidate planes
                 if( 0 != Float.floatToIntBits(dir.y()) ) {
-                    maxT[1] = (bl.y() - origin.y()) / dir.y();
+                    maxT[1] = (lo.y() - origin.y()) / dir.y();
                 }
-            } else if(origin.y() > tr.y()) {
-                result.setX(tr.y());
+            } else if(origin.y() > hi.y()) {
+                result.setX(hi.y());
                 inside    = false;
 
                 // Calculate T distances to candidate planes
                 if( 0 != Float.floatToIntBits(dir.y()) ) {
-                    maxT[1] = (tr.y() - origin.y()) / dir.y();
+                    maxT[1] = (hi.y() - origin.y()) / dir.y();
                 }
             }
         }
         {
-            if(origin.z() < bl.z()) {
-                result.setX(bl.z());
+            if(origin.z() < lo.z()) {
+                result.setX(lo.z());
                 inside    = false;
 
                 // Calculate T distances to candidate planes
                 if( 0 != Float.floatToIntBits(dir.z()) ) {
-                    maxT[2] = (bl.z() - origin.z()) / dir.z();
+                    maxT[2] = (lo.z() - origin.z()) / dir.z();
                 }
-            } else if(origin.z() > tr.z()) {
-                result.setX(tr.z());
+            } else if(origin.z() > hi.z()) {
+                result.setX(hi.z());
                 inside    = false;
 
                 // Calculate T distances to candidate planes
                 if( 0 != Float.floatToIntBits(dir.z()) ) {
-                    maxT[2] = (tr.z() - origin.z()) / dir.z();
+                    maxT[2] = (hi.z() - origin.z()) / dir.z();
                 }
             }
         }
@@ -676,21 +676,21 @@ public class AABBox {
             switch( whichPlane ) {
                 case 0:
                     result.setY( origin.y() + maxT[whichPlane] * dir.y() );
-                    if(result.y() < bl.y() - epsilon || result.y() > tr.y() + epsilon) { return null; }
+                    if(result.y() < lo.y() - epsilon || result.y() > hi.y() + epsilon) { return null; }
                     result.setZ( origin.z() + maxT[whichPlane] * dir.z() );
-                    if(result.z() < bl.z() - epsilon || result.z() > tr.z() + epsilon) { return null; }
+                    if(result.z() < lo.z() - epsilon || result.z() > hi.z() + epsilon) { return null; }
                     break;
                 case 1:
                     result.setX( origin.x() + maxT[whichPlane] * dir.x() );
-                    if(result.x() < bl.x() - epsilon || result.x() > tr.x() + epsilon) { return null; }
+                    if(result.x() < lo.x() - epsilon || result.x() > hi.x() + epsilon) { return null; }
                     result.setZ( origin.z() + maxT[whichPlane] * dir.z() );
-                    if(result.z() < bl.z() - epsilon || result.z() > tr.z() + epsilon) { return null; }
+                    if(result.z() < lo.z() - epsilon || result.z() > hi.z() + epsilon) { return null; }
                     break;
                 case 2:
                     result.setX( origin.x() + maxT[whichPlane] * dir.x() );
-                    if(result.x() < bl.x() - epsilon || result.x() > tr.x() + epsilon) { return null; }
+                    if(result.x() < lo.x() - epsilon || result.x() > hi.x() + epsilon) { return null; }
                     result.setY( origin.y() + maxT[whichPlane] * dir.y() );
-                    if(result.y() < bl.y() - epsilon || result.y() > tr.y() + epsilon) { return null; }
+                    if(result.y() < lo.y() - epsilon || result.y() > hi.y() + epsilon) { return null; }
                     break;
                 default:
                     throw new InternalError("XXX");
@@ -722,7 +722,7 @@ public class AABBox {
      * @return a float representing the size of the AABBox
      */
     public final float getSize() {
-        return bl.dist(tr);
+        return lo.dist(hi);
     }
 
     /** Returns computed center of this AABBox of {@link #getLow()} and {@link #getHigh()}. */
@@ -741,11 +741,11 @@ public class AABBox {
      */
     public final AABBox scale(final float s) {
         final Vec3f tmp = new Vec3f();
-        tmp.set(tr).sub(center).scale(s);
-        tr.set(center).add(tmp);
+        tmp.set(hi).sub(center).scale(s);
+        hi.set(center).add(tmp);
 
-        tmp.set(bl).sub(center).scale(s);
-        bl.set(center).add(tmp);
+        tmp.set(lo).sub(center).scale(s);
+        lo.set(center).add(tmp);
 
         return this;
     }
@@ -762,11 +762,11 @@ public class AABBox {
      */
     public final AABBox scale(final float sX, final float sY, final float sZ) {
         final Vec3f tmp = new Vec3f();
-        tmp.set(tr).sub(center).scale(sX, sY, sZ);
-        tr.set(center).add(tmp);
+        tmp.set(hi).sub(center).scale(sX, sY, sZ);
+        hi.set(center).add(tmp);
 
-        tmp.set(bl).sub(center).scale(sX, sY, sZ);
-        bl.set(center).add(tmp);
+        tmp.set(lo).sub(center).scale(sX, sY, sZ);
+        lo.set(center).add(tmp);
 
         return this;
     }
@@ -781,8 +781,8 @@ public class AABBox {
      * @see #scale(float, float[])
      */
     public final AABBox scale2(final float s) {
-        tr.scale(s);
-        bl.scale(s);
+        hi.scale(s);
+        lo.scale(s);
         computeCenter();
         return this;
     }
@@ -799,8 +799,8 @@ public class AABBox {
      * @see #scale(float, float[])
      */
     public final AABBox scale2(final float sX, final float sY, final float sZ) {
-        tr.scale(sX, sY, sZ);
-        bl.scale(sX, sY, sZ);
+        hi.scale(sX, sY, sZ);
+        lo.scale(sX, sY, sZ);
         computeCenter();
         return this;
     }
@@ -814,8 +814,8 @@ public class AABBox {
      * @return this AABBox for chaining
      */
     public final AABBox translate(final float dx, final float dy, final float dz) {
-        bl.add(dx, dy, dz);
-        tr.add(dx, dy, dz);
+        lo.add(dx, dy, dz);
+        hi.add(dx, dy, dz);
         computeCenter();
         return this;
     }
@@ -826,8 +826,8 @@ public class AABBox {
      * @return this AABBox for chaining
      */
     public final AABBox translate(final Vec3f t) {
-        bl.add(t);
-        tr.add(t);
+        lo.add(t);
+        hi.add(t);
         computeCenter();
         return this;
     }
@@ -838,46 +838,46 @@ public class AABBox {
      * @return this AABBox for chaining
      */
     public final AABBox rotate(final Quaternion quat) {
-        quat.rotateVector(bl, bl);
-        quat.rotateVector(tr, tr);
+        quat.rotateVector(lo, lo);
+        quat.rotateVector(hi, hi);
         computeCenter();
         return this;
     }
 
     public final float getMinX() {
-        return bl.x();
+        return lo.x();
     }
 
     public final float getMinY() {
-        return bl.y();
+        return lo.y();
     }
 
     public final float getMinZ() {
-        return bl.z();
+        return lo.z();
     }
 
     public final float getMaxX() {
-        return tr.x();
+        return hi.x();
     }
 
     public final float getMaxY() {
-        return tr.y();
+        return hi.y();
     }
 
     public final float getMaxZ() {
-        return tr.z();
+        return hi.z();
     }
 
     public final float getWidth(){
-        return tr.x() - bl.x();
+        return hi.x() - lo.x();
     }
 
     public final float getHeight() {
-        return tr.y() - bl.y();
+        return hi.y() - lo.y();
     }
 
     public final float getDepth() {
-        return tr.z() - bl.z();
+        return hi.z() - lo.z();
     }
 
     /** Returns the volume, i.e. width * height * depth */
@@ -909,7 +909,7 @@ public class AABBox {
             return false;
         }
         final AABBox other = (AABBox) obj;
-        return bl.isEqual(other.bl) && tr.isEqual(other.tr);
+        return lo.isEqual(other.lo) && hi.isEqual(other.hi);
     }
     @Override
     public final int hashCode() {
@@ -925,8 +925,8 @@ public class AABBox {
     public AABBox transform(final Matrix4f mat, final AABBox out) {
         final Vec3f tmp = new Vec3f();
         out.reset();
-        out.resize( mat.mulVec3f(bl, tmp) );
-        out.resize( mat.mulVec3f(tr, tmp) );
+        out.resize( mat.mulVec3f(lo, tmp) );
+        out.resize( mat.mulVec3f(hi, tmp) );
         out.computeCenter();
         return out;
     }
@@ -999,6 +999,6 @@ public class AABBox {
     @Override
     public final String toString() {
         return "[dim "+getWidth()+" x "+getHeight()+" x "+getDepth()+
-               ", box "+bl+" .. "+tr+", ctr "+center+"]";
+               ", box "+lo+" .. "+hi+", ctr "+center+"]";
     }
 }
