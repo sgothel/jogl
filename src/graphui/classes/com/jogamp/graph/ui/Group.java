@@ -312,7 +312,7 @@ public class Group extends Shape implements Container {
                 if( shape.isVisible() ) {
                     pmv.pushMv();
                     shape.setTransformMv(pmv);
-                    if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
+                    if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                         shape.draw(gl, renderer);
                     }
                     pmv.popMv();
@@ -340,7 +340,7 @@ public class Group extends Shape implements Container {
                 pmv.pushMv();
                 shape.setTransformMv(pmv);
 
-                if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
+                if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                     shape.drawToSelect(gl, renderer);
                 }
                 pmv.popMv();

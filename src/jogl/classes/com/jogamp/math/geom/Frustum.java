@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -30,19 +30,21 @@ package com.jogamp.math.geom;
 import com.jogamp.math.FovHVHalves;
 import com.jogamp.math.Matrix4f;
 import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
 
 /**
  * Providing frustum {@link #getPlanes() planes} derived by different inputs
  * ({@link #updateFrustumPlanes(float[], int) P*MV}, ..) used to classify objects
  * <ul>
- *   <li> {@link #classifyPoint(float[]) point} </li>
- *   <li> {@link #classifySphere(float[], float) sphere} </li>
+ *   <li> {@link #classifyPoint(Vec3f) point} </li>
+ *   <li> {@link #classifySphere(Vec3f, float) sphere} </li>
  * </ul>
  * and to test whether they are outside
  * <ul>
- *   <li> {@link #isPointOutside(float[]) point} </li>
- *   <li> {@link #isSphereOutside(float[], float) sphere} </li>
- *   <li> {@link #isAABBoxOutside(AABBox) bounding-box} </li>
+ *   <li> {@link #isOutside(Vec3f) point} </li>
+ *   <li> {@link #isSphereOutside(Vec3f, float) sphere} </li>
+ *   <li> {@link #isOutside(AABBox) bounding-box} </li>
+ *   <li> {@link #isOutside(Cube) cube} </li>
  * </ul>
  *
  * <p>
@@ -119,13 +121,35 @@ public class Frustum {
 	 * @see #updateFrustumPlanes(float[], int)
 	 */
     public Frustum() {
-        for (int i = 0; i < 6; ++i) {
-            planes[i] = new Plane();
-        }
+        planes[LEFT  ] = new Plane();
+        planes[RIGHT ] = new Plane();
+        planes[BOTTOM] = new Plane();
+        planes[TOP   ] = new Plane();
+        planes[NEAR  ] = new Plane();
+        planes[FAR   ] = new Plane();
+    }
+
+    public Frustum(final Frustum o) {
+        planes[LEFT  ] = new Plane(o.planes[LEFT]);
+        planes[RIGHT ] = new Plane(o.planes[RIGHT]);
+        planes[BOTTOM] = new Plane(o.planes[BOTTOM]);
+        planes[TOP   ] = new Plane(o.planes[TOP]);
+        planes[NEAR  ] = new Plane(o.planes[NEAR]);
+        planes[FAR   ] = new Plane(o.planes[FAR]);
+    }
+
+    public Frustum set(final Frustum o) {
+        planes[LEFT  ].set(o.planes[LEFT]);
+        planes[RIGHT ].set(o.planes[RIGHT]);
+        planes[BOTTOM].set(o.planes[BOTTOM]);
+        planes[TOP   ].set(o.planes[TOP]);
+        planes[NEAR  ].set(o.planes[NEAR]);
+        planes[FAR   ].set(o.planes[FAR]);
+        return this;
     }
 
 	/**
-	 * Plane equation := dot(n, x - p) = 0 ->  ax + bc + cx + d == 0
+	 * Plane equation := dot(n, x - p) = 0 ->  Ax + By + Cz + d == 0
 	 * <p>
 	 * In order to work w/ {@link Frustum#isOutside(AABBox) isOutside(..)} methods,
 	 * the normals have to point to the inside of the frustum.
@@ -133,10 +157,74 @@ public class Frustum {
 	 */
     public static class Plane {
         /** Normal of the plane */
-        public final Vec3f n = new Vec3f();
+        public final Vec3f n;
 
         /** Distance to origin */
         public float d;
+
+        public Plane() {
+            n = new Vec3f();
+            d = 0f;
+        }
+
+        public Plane(final Plane o) {
+            n = new Vec3f(o.n);
+            d = o.d;
+        }
+
+        public Plane set(final Plane o) {
+            n.set(o.n);
+            d = o.d;
+            return this;
+        }
+
+        /**
+         * Setup of plane using 3 points. None of the three points are mutated.
+         * <p>
+         * Since this method may not properly define whether the normal points inside the frustum,
+         * consider using {@link #set(Vec3f, Vec3f)}.
+         * </p>
+         * @param p0 point on plane, used as the shared start-point for vec(p0->p1) and vec(p0->p2)
+         * @param p1 point on plane
+         * @param p2 point on plane
+         * @return this plane for chaining
+         */
+        public Plane set(final Vec3f p0, final Vec3f p1, final Vec3f p2) {
+            final Vec3f v = p1.minus(p0);
+            final Vec3f u = p2.minus(p0);
+            n.cross(v, u).normalize();
+            d = n.copy().scale(-1).dot(p0);
+            return this;
+        }
+
+        /**
+         * Setup of plane using given normal and one point on plane. The given normal is mutated, the point not mutated.
+         * @param n normal to plane pointing to the inside of this frustum
+         * @param p0 point on plane, consider choosing the closest point to origin
+         * @return this plane for chaining
+         */
+        public Plane set(final Vec3f n, final Vec3f p0) {
+            this.n.set(n);
+            d = n.scale(-1).dot(p0);
+            return this;
+        }
+
+        /** Sets the given {@link Vec4f} {@code out} to {@code ( n, d )}. Returns {@code out} for chaining. */
+        public Vec4f toVec4f(final Vec4f out) {
+            out.set(n, d);
+            return out;
+        }
+
+        /**
+         * Sets the given {@code [float[off]..float[off+4])} {@code out} to {@code ( n, d )}.
+         * @param out the {@code float[off+4]} output array
+         */
+        public void toFloats(final float[/* off+4] */] out, final int off) {
+            out[off+0] = n.x();
+            out[off+1] = n.y();
+            out[off+2] = n.z();
+            out[off+3] = d;
+        }
 
         /**
          * Return signed distance of plane to given point.
@@ -159,7 +247,7 @@ public class Frustum {
 
         /** Return distance of plane to given point, see {@link #distanceTo(float, float, float)}. */
         public final float distanceTo(final Vec3f p) {
-            return n.x() * p.x() + n.y() * p.y() + n.z() * p.z() + d;
+            return n.dot(p) + d;
         }
 
         @Override
@@ -199,6 +287,41 @@ public class Frustum {
      * @return array of normalized {@link Plane}s, order see above.
      */
     public final Plane[] getPlanes() { return planes; }
+
+    /**
+     * Sets each of the given {@link Vec4f}[6] {@code out} to {@link Plane#toVec4f(Vec4f)}
+     * in the order {@link #LEFT}, {@link #RIGHT}, {@link #BOTTOM}, {@link #TOP}, {@link #NEAR}, {@link #FAR}.
+     * @param out the {@link Vec4f}[6] output array
+     * @return {@code out} for chaining
+     */
+    public Vec4f[] getPlanes(final Vec4f[] out) {
+        planes[LEFT  ].toVec4f(out[0]);
+        planes[RIGHT ].toVec4f(out[1]);
+        planes[BOTTOM].toVec4f(out[2]);
+        planes[TOP   ].toVec4f(out[3]);
+        planes[NEAR  ].toVec4f(out[4]);
+        planes[FAR   ].toVec4f(out[5]);
+        return out;
+    }
+
+    /** Sets the given {@code [float[off]..float[off+4*6])} {@code out} to {@code ( n, d )}. */
+    /**
+     * Sets each of the given {@code [float[off]..float[off+4*6])} {@code out} to {@link Plane#toFloats(float[], int)},
+     * i.e. [n.x, n.y, n.z, d, ...].
+     * <p>
+     * Plane order is as follows: {@link #LEFT}, {@link #RIGHT}, {@link #BOTTOM}, {@link #TOP}, {@link #NEAR}, {@link #FAR}.
+     * </p>
+     * @param out the {@code float[off+4*6]} output array
+     * @return {@code out} for chaining
+     */
+    public void getPlanes(final float[/* off+4*6] */] out, final int off) {
+        planes[LEFT  ].toFloats(out, off+4*0);
+        planes[RIGHT ].toFloats(out, off+4*1);
+        planes[BOTTOM].toFloats(out, off+4*2);
+        planes[TOP   ].toFloats(out, off+4*3);
+        planes[NEAR  ].toFloats(out, off+4*4);
+        planes[FAR   ].toFloats(out, off+4*5);
+    }
 
     /**
      * Copy the given <code>src</code> planes into this this instance's planes.
@@ -250,9 +373,10 @@ public class Frustum {
      * Frustum plane's normals will point to the inside of the viewing frustum,
      * as required by this class.
      * </p>
+     * @see Matrix4f#updateFrustumPlanes(Frustum)
      */
-    public void updateFrustumPlanes(final Matrix4f pmv) {
-        pmv.updateFrustumPlanes(this);
+    public Frustum updateFrustumPlanes(final Matrix4f pmv) {
+        return pmv.updateFrustumPlanes(this);
     }
 
     /**
@@ -277,45 +401,66 @@ public class Frustum {
         return c.updateFrustumPlanes(this);
     }
 
-    private static final boolean isOutsideImpl(final Plane p, final AABBox box) {
+    private static final boolean intersects(final Plane p, final AABBox box) {
 	    final Vec3f lo = box.getLow();
 	    final Vec3f hi = box.getHigh();
 
-		if ( p.distanceTo(lo.x(), lo.y(), lo.z()) > 0.0f ||
-		     p.distanceTo(hi.x(), lo.y(), lo.z()) > 0.0f ||
-		     p.distanceTo(lo.x(), hi.y(), lo.z()) > 0.0f ||
-		     p.distanceTo(hi.x(), hi.y(), lo.z()) > 0.0f ||
-		     p.distanceTo(lo.x(), lo.y(), hi.z()) > 0.0f ||
-		     p.distanceTo(hi.x(), lo.y(), hi.z()) > 0.0f ||
-		     p.distanceTo(lo.x(), hi.y(), hi.z()) > 0.0f ||
-		     p.distanceTo(hi.x(), hi.y(), hi.z()) > 0.0f ) {
-			return false;
-		}
-		return true;
+		return p.distanceTo(lo.x(), lo.y(), lo.z()) > 0.0f ||
+		       p.distanceTo(hi.x(), lo.y(), lo.z()) > 0.0f ||
+		       p.distanceTo(lo.x(), hi.y(), lo.z()) > 0.0f ||
+		       p.distanceTo(hi.x(), hi.y(), lo.z()) > 0.0f ||
+		       p.distanceTo(lo.x(), lo.y(), hi.z()) > 0.0f ||
+		       p.distanceTo(hi.x(), lo.y(), hi.z()) > 0.0f ||
+		       p.distanceTo(lo.x(), hi.y(), hi.z()) > 0.0f ||
+		       p.distanceTo(hi.x(), hi.y(), hi.z()) > 0.0f;
 	}
 
 	/**
-	 * Check to see if an axis aligned bounding box is completely outside of the frustum.
+	 * Returns whether the given {@link AABBox} is completely outside of this frustum.
 	 * <p>
-	 * Note: If method returns false, the box may only be partially inside.
+	 * Note: If method returns false, the box may only be partially inside, i.e. intersects with this frustum
 	 * </p>
 	 */
-    public final boolean isAABBoxOutside(final AABBox box) {
-        for (int i = 0; i < 6; ++i) {
-            if ( isOutsideImpl(planes[i], box) ) {
-                // fully outside
-                return true;
-            }
-        }
-        // We make no attempt to determine whether it's fully inside or not.
-        return false;
+    public final boolean isOutside(final AABBox box) {
+        return !intersects(planes[0], box) ||
+               !intersects(planes[1], box) ||
+               !intersects(planes[2], box) ||
+               !intersects(planes[3], box) ||
+               !intersects(planes[4], box) ||
+               !intersects(planes[5], box);
+    }
+
+    private static final boolean intersects(final Plane p, final Cube c) {
+        return p.distanceTo(c.lbf) > 0.0f ||
+               p.distanceTo(c.rbf) > 0.0f ||
+               p.distanceTo(c.rtf) > 0.0f ||
+               p.distanceTo(c.ltf) > 0.0f ||
+               p.distanceTo(c.lbn) > 0.0f ||
+               p.distanceTo(c.rbn) > 0.0f ||
+               p.distanceTo(c.rtn) > 0.0f ||
+               p.distanceTo(c.ltn) > 0.0f;
+    }
+
+    /**
+     * Returns whether the given {@link Cube} is completely outside of this frustum.
+     * <p>
+     * Note: If method returns false, the box may only be partially inside, i.e. intersects with this frustum
+     * </p>
+     */
+    public final boolean isOutside(final Cube c) {
+        return !intersects(planes[0], c) ||
+               !intersects(planes[1], c) ||
+               !intersects(planes[2], c) ||
+               !intersects(planes[3], c) ||
+               !intersects(planes[4], c) ||
+               !intersects(planes[5], c);
     }
 
 
     public static enum Location { OUTSIDE, INSIDE, INTERSECT };
 
     /**
-     * Check to see if a point is outside, inside or on a plane of the frustum.
+     * Classifies the given {@link Vec3f} point whether it is outside, inside or on a plane of this frustum.
      *
      * @param p the point
      * @return {@link Location} of point related to frustum planes
@@ -335,17 +480,22 @@ public class Frustum {
     }
 
     /**
-     * Check to see if a point is outside of the frustum.
+     * Returns whether the given {@link Vec3f} point is completely outside of this frustum.
      *
      * @param p the point
      * @return true if outside of the frustum, otherwise inside or on a plane
      */
-    public final boolean isPointOutside(final Vec3f p) {
-        return Location.OUTSIDE == classifyPoint(p);
+    public final boolean isOutside(final Vec3f p) {
+        return planes[0].distanceTo(p) < 0.0f ||
+               planes[1].distanceTo(p) < 0.0f ||
+               planes[2].distanceTo(p) < 0.0f ||
+               planes[3].distanceTo(p) < 0.0f ||
+               planes[4].distanceTo(p) < 0.0f ||
+               planes[5].distanceTo(p) < 0.0f;
     }
 
     /**
-     * Check to see if a sphere is outside, intersecting or inside of the frustum.
+     * Classifies the given sphere whether it is is outside, intersecting or inside of this frustum.
      *
      * @param p center of the sphere
      * @param radius radius of the sphere
@@ -368,7 +518,7 @@ public class Frustum {
     }
 
     /**
-     * Check to see if a sphere is outside of the frustum.
+     * Returns whether the given sphere is completely outside of this frustum.
      *
      * @param p center of the sphere
      * @param radius radius of the sphere

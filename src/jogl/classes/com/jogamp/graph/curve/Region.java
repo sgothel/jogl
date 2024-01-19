@@ -642,7 +642,7 @@ public abstract class Region {
             } else {
                 shapeBoxT = shapeBox;
             }
-            if( frustum.isAABBoxOutside(shapeBoxT) ) {
+            if( frustum.isOutside(shapeBoxT) ) {
                 return;
             }
         }

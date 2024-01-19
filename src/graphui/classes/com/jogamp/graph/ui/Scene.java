@@ -481,7 +481,7 @@ public final class Scene implements Container, GLEventListener {
                 pmv.pushMv();
                 shape.setTransformMv(pmv);
 
-                if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
+                if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                     shape.draw(gl, renderer);
                 }
                 pmv.popMv();
@@ -522,7 +522,7 @@ public final class Scene implements Container, GLEventListener {
                 pmv.pushMv();
                 shape.setTransformMv(pmv);
 
-                if( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( shape.getBounds() ) ) {
+                if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                     final float color = ( i + 1f ) / ( shapeCount + 2f );
                     // FIXME
                     // System.err.printf("drawGL: color %f, index %d of [0..%d[%n", color, i, shapeCount);

@@ -1334,13 +1334,11 @@ public class Matrix4f {
      * using this premultiplied P*MV (column major order) matrix.
      * <p>
      * Frustum plane's normals will point to the inside of the viewing frustum,
-     * as required by this class.
+     * as required by the {@link Frustum} class.
      * </p>
-     * <p>
-     * Usually called by {@link Frustum#updateFrustumPlanes(Matrix4f)}.
-     * </p>
+     * @see Frustum#updateFrustumPlanes(Matrix4f)
      */
-    public void updateFrustumPlanes(final Frustum frustum) {
+    public Frustum updateFrustumPlanes(final Frustum frustum) {
         // Left:   a = m41 + m11, b = m42 + m12, c = m43 + m13, d = m44 + m14  - [1..4] column-major
         // Left:   a = m30 + m00, b = m31 + m01, c = m32 + m02, d = m33 + m03  - [0..3] column-major
         {
@@ -1415,6 +1413,7 @@ public class Matrix4f {
             p_n.scale(invLen);
             p.d *= invLen;
         }
+        return frustum;
     }
 
     /**
