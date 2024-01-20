@@ -210,11 +210,14 @@ public class GridLayout implements Group.Layout {
             pmv.pushMv();
             s.setTransformMv(pmv);
             final AABBox sbox = s.getBounds().transform(pmv.getMv(), new AABBox());
-            sboxes[i] = sbox;
             pmv.popMv();
 
             final float shapeWidthU  = sbox.getWidth();
             final float shapeHeightU = sbox.getHeight();
+            if( FloatUtil.isZero(shapeHeightU) || FloatUtil.isZero(shapeHeightU) ) {
+                continue;
+            }
+            sboxes[i] = sbox;
             final float sxy;
             if( isScaled ) {
                 // scaling to cell size
@@ -276,7 +279,9 @@ public class GridLayout implements Group.Layout {
         for(int i=0; i < shapes.size(); ++i) {
             final Shape s = shapes.get(i);
             final AABBox sbox = sboxes[i];
-
+            if( null == sbox ) {
+                continue;
+            }
             if( TRACE_LAYOUT ) {
                 System.err.println("gl("+i+")["+col_i+"]["+row_i+"].0: sbox "+sbox+", s "+s);
             }
@@ -377,6 +382,9 @@ public class GridLayout implements Group.Layout {
                     }
                 }
             }
+        }
+        if( Float.isInfinite(box.getWidth()) || Float.isInfinite(box.getHeight()) ) {
+            box.resize(0, 0, 0);
         }
         if( TRACE_LAYOUT ) {
             System.err.println("gl.xx: "+box);

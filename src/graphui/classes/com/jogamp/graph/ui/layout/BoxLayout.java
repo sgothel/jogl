@@ -194,6 +194,9 @@ public class BoxLayout implements Group.Layout {
             // IF isScaled: Uniform scale w/ lowest axis scale and center position on lower-scale axis
             final float shapeWidthU  = sbox.getWidth();
             final float shapeHeightU = sbox.getHeight();
+            if( FloatUtil.isZero(shapeHeightU) || FloatUtil.isZero(shapeHeightU) ) {
+                continue;
+            }
             final float sxy;
             float dxh = 0, dyh = 0;
             if( isScaled ) {
@@ -275,6 +278,9 @@ public class BoxLayout implements Group.Layout {
                 System.err.println("bl("+i+").x: "+s);
                 System.err.println("bl("+i+").x: "+box);
             }
+        }
+        if( Float.isInfinite(box.getWidth()) || Float.isInfinite(box.getHeight()) ) {
+            box.resize(0, 0, 0);
         }
         if( TRACE_LAYOUT ) {
             System.err.println("bl(X).x: "+box);

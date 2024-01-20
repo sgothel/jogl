@@ -452,9 +452,9 @@ public class Group extends Shape implements Container {
     /**
      * {@inheritDoc}
      * <p>
-     * If relayouting on dirty shape mode is enabler, see {@link #setRelayoutOnDirtyShapes(boolean)},
+     * If re-layouting on dirty shape mode is enabled (default), see {@link #setRelayoutOnDirtyShapes(boolean)},
      * this method traverses through all shapes updating all dirty states of all its groups
-     * provoking a relayout if required.
+     * provoking a re-layout if required.
      * </p>
      */
     @Override
@@ -491,8 +491,8 @@ public class Group extends Shape implements Container {
                         layouter.preValidate(s);
                         s.validate(gl, glp);
                     }
+                    layouter.layout(this, box, pmv);
                 }
-                layouter.layout(this, box, pmv);
             } else if( 0 == shapes.size() ) {
                 box.resize(0, 0, 0);
             } else {
