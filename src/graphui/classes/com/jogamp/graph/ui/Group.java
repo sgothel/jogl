@@ -96,7 +96,7 @@ public class Group extends Shape implements Container {
      * </p>
      */
     public Group() {
-        this(null);
+        this(null, null, null, null);
     }
 
     /**
@@ -107,9 +107,32 @@ public class Group extends Shape implements Container {
      * @param l optional {@link Layout}, maybe {@code null}
      */
     public Group(final Layout l) {
+        this(null, l, null, null);
+    }
+
+    /**
+     * Create a group of {@link Shape}s w/ given {@link Group.Layout} and {@link Shape}.
+     * <p>
+     * Default is non-interactive, see {@link #setInteractive(boolean)}.
+     * </p>
+     * @param name optional name for {@link #setName(String)}
+     * @param l optional {@link Layout}, maybe {@code null}
+     * @param fixedSize optional fixed size for {@link #setFixedSize(Vec2f)}
+     * @param s optional {@link Shape} for {@link #addShape(Shape)}
+     */
+    public Group(final String name, final Layout l, final Vec2f fixedSize, final Shape s) {
         super();
+        if( null != name ) {
+            this.setName(name);
+        }
         this.layouter = l;
         this.setInteractive(false);
+        if( null != fixedSize ) {
+            this.setFixedSize(fixedSize);
+        }
+        if( null != s ) {
+            addShape(s);
+        }
     }
 
     @Override
