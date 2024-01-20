@@ -485,15 +485,8 @@ public final class Scene implements Container, GLEventListener {
             syncDisplayedOnce.notifyAll();
         }
         final Tooltip tt = toolTipActive.get();
-        if( null != tt && null == toolTipHUD.get() ) {
-            final Shape[] hud = { null };
-            if( tt.tick() && forOne(pmv, tt.getTool(), () -> {
-                    final AABBox toolMvBounds = tt.getToolMvBounds(pmv);
-                    hud[0] = tt.createTip(drawable, Scene.this, pmv, toolMvBounds);
-                }) )
-            {
-                setToolTip( hud[0] );
-            }
+        if( null != tt ) {
+            activateTooltipImpl(drawable, pmv, tt);
         }
     }
 
@@ -1103,7 +1096,7 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mousePressed(final MouseEvent e) {
-            clearToolTip();
+            // clearToolTip();
             if( -1 == lId || e.getPointerId(0) == lId ) {
                 lx = e.getX();
                 ly = e.getY();
@@ -1117,7 +1110,7 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mouseReleased(final MouseEvent e) {
-            clearToolTip();
+            // clearToolTip();
             // flip to GL window coordinates, origin bottom-left
             final int glWinX = e.getX();
             final int glWinY = getHeight() - e.getY() - 1;
@@ -1133,7 +1126,6 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mouseClicked(final MouseEvent e) {
-            clearToolTip();
             // flip to GL window coordinates
             final int glWinX = e.getX();
             final int glWinY = getHeight() - e.getY() - 1;
@@ -1146,6 +1138,7 @@ public final class Scene implements Container, GLEventListener {
                 releaseActiveShape();
                 clear();
             }
+            clearToolTip();
         }
 
         @Override
@@ -1158,8 +1151,8 @@ public final class Scene implements Container, GLEventListener {
 
                 // dragged .. delegate to active shape!
                 // flip to GL window coordinates, origin bottom-left
-                final int glWinX = lx;
-                final int glWinY = getHeight() - ly - 1;
+                final int glWinX = e.getX();
+                final int glWinY = getHeight() - e.getY() - 1;
                 dispatchMouseEventForShape(activeShape, e, glWinX, glWinY);
             }
         }
@@ -1175,7 +1168,6 @@ public final class Scene implements Container, GLEventListener {
 
         @Override
         public void mouseMoved(final MouseEvent e) {
-            clearToolTip();
             if( -1 == lId || e.getPointerId(0) == lId ) {
                 lx = e.getX();
                 ly = e.getY();
@@ -1184,9 +1176,12 @@ public final class Scene implements Container, GLEventListener {
             final int glWinX = lx;
             final int glWinY = getHeight() - ly - 1;
             final Shape s = dispatchMouseEventPickShape(e, glWinX, glWinY);
+            clearToolTip();
             if( null != s ) {
                 mouseOver = true;
-                toolTipActive.set( s.startToolTip() );
+                synchronized( toolTipActive ) {
+                    toolTipActive.set( s.startToolTip(true /* lookupParents */) );
+                }
             } else {
                 mouseOver = false;
             }
@@ -1222,18 +1217,37 @@ public final class Scene implements Container, GLEventListener {
     }
 
     private void clearToolTip() {
-        final Tooltip tt = toolTipActive.getAndSet(null);
-        if( null != tt ) {
-            tt.stop();
+        final Tooltip tt;
+        synchronized( toolTipActive ) {
+            tt = toolTipActive.get();
+            if( null != tt && tt.stop(false) ) {
+                toolTipActive.set(null);
+            }
         }
         final Shape s = toolTipHUD.getAndSet(null);
         if( null != s ) {
             invoke(false, (final GLAutoDrawable drawable) -> {
-                if( s == removeShape(s) ) {
-                    tt.destroyTip(drawable.getGL().getGL2ES2(), renderer, s);
+                if( null != tt ) {
+                    if( s == removeShape(s) ) {
+                        tt.destroyTip(drawable.getGL().getGL2ES2(), renderer, s);
+                    }
+                } else {
+                    removeShape(drawable.getGL().getGL2ES2(), renderer, s);
                 }
                 return true;
             });
+        }
+    }
+    private void activateTooltipImpl(final GLAutoDrawable drawable, final PMVMatrix4f pmv, final Tooltip tt) {
+        if( null == toolTipHUD.get() ) {
+            final Shape[] hud = { null };
+            if( tt.tick() && forOne(pmv, tt.getTool(), () -> {
+                    final AABBox toolMvBounds = tt.getToolMvBounds(pmv);
+                    hud[0] = tt.createTip(drawable, Scene.this, pmv, toolMvBounds);
+                }) )
+            {
+                setToolTip( hud[0] );
+            }
         }
     }
 

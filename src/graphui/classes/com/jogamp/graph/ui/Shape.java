@@ -214,7 +214,7 @@ public abstract class Shape {
     private static final int DIRTY_SHAPE    = 1 << 0 ;
     private static final int DIRTY_STATE    = 1 << 1 ;
 
-    private Group parent;
+    private volatile Group parent = null;
     protected final AABBox box;
 
     private final Vec3f position = new Vec3f();
@@ -286,6 +286,7 @@ public abstract class Shape {
     }
 
     protected void setParent(final Group c) { parent = c; }
+
     /**
      * Returns the last parent container {@link Group} this shape has been added to or {@code null}.
      * <p>
@@ -500,14 +501,14 @@ public abstract class Shape {
         return this;
     }
 
-    private final Shape moveNotify(final float dtx, final float dty, final float dtz) {
-        forwardMove(position.copy(), position.add(dtx, dty, dtz));
-        return this;
-    }
-
     /** Move about scaled distance. Position ends up in PMVMatrix4f unmodified. No {@link MoveListener} notification will occur. */
     public final Shape move(final Vec3f dt) {
         position.add(dt);
+        return this;
+    }
+
+    private final Shape moveNotify(final float dtx, final float dty, final float dtz) {
+        forwardMove(position.copy(), position.add(dtx, dty, dtz));
         return this;
     }
 
@@ -1389,7 +1390,7 @@ public abstract class Shape {
                 releaseInteraction();
                 final Tooltip tt = tooltip;
                 if( null != tt ) {
-                    tt.stop();
+                    tt.stop(false);
                 }
             }
             if( DEBUG ) {
@@ -1429,7 +1430,7 @@ public abstract class Shape {
         final Tooltip oldTT = this.tooltip;
         this.tooltip = null;
         if( null != oldTT ) {
-            oldTT.stop();
+            oldTT.stop(true);
         }
         newTooltip.setTool(this);
         this.tooltip = newTooltip;
@@ -1439,21 +1440,31 @@ public abstract class Shape {
         final Tooltip tt = tooltip;
         tooltip = null;
         if( null != tt ) {
-            tt.stop();
+            tt.stop(true);
             tt.setTool(null);
         }
     }
     private void stopToolTip() {
         final Tooltip tt = tooltip;
         if( null != tt ) {
-            tt.stop();
+            tt.stop(true);
         }
     }
-    /* pp */ Tooltip startToolTip() {
-        final Tooltip tt = tooltip;
+    /* pp */ Tooltip startToolTip(final boolean lookupParents) {
+        Tooltip tt = tooltip;
         if( null != tt ) {
             tt.start();
             return tt;
+        } else if( lookupParents ) {
+            Shape p = getParent();
+            while( null != p ) {
+                tt = p.startToolTip(false);
+                if( null != tt ) {
+                    return tt;
+                } else {
+                    p = p.getParent();
+                }
+            }
         }
         return null;
     }

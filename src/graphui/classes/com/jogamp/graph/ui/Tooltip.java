@@ -47,12 +47,18 @@ public abstract class Tooltip {
     private final long delayMS;
     /** Delay t1, time to show tooltip, i.e. t0 + delayMS */
     private volatile long delayT1;
+    /** Toggle for forced tooltip display */
+    private volatile boolean forced;
     /** Shape 'tool' owning this tooltip. */
     private Shape tool;
     protected final int renderModes;
     protected final Vec4f backColor = new Vec4f(1, 1, 0, 1);
     protected final Vec4f frontColor = new Vec4f(0.1f, 0.1f, 0.1f, 1);
 
+    @Override
+    public String toString() {
+        return "Tooltip[d "+delayMS+", next "+delayT1+", forced "+forced+"]";
+    }
     /**
      *
      * @param backColor optional HUD tip background color
@@ -63,6 +69,7 @@ public abstract class Tooltip {
     protected Tooltip(final Vec4f backColor, final Vec4f frontColor, final long delayMS, final int renderModes) {
         this.delayMS = delayMS;
         this.delayT1 = 0;
+        this.forced = false;
         this.tool = null;
         this.renderModes = renderModes;
         if( null != backColor ) {
@@ -79,19 +86,45 @@ public abstract class Tooltip {
         return tool;
     }
 
-    /** Stops the timer. */
-    public final void stop() {
-        this.delayT1 = 0;
+    /**
+     * Stops the timer if not enforced via {@link #now()} or {@code clearForced} is true.
+     * @param clearForced if true, also clears enforced flag set by {@link #now()}
+     * @return true if timer has been stopped, otherwise false
+     */
+    public final boolean stop(final boolean clearForced) {
+        if( clearForced ) {
+            this.delayT1 = 0;
+            this.forced = false;
+            return true;
+        } else if( !this.forced ) {
+            this.delayT1 = 0;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /** Starts the timer. */
     public final void start() {
-        this.delayT1 = Clock.currentMillis() + delayMS;
+        if( !this.forced ) {
+            this.delayT1 = Clock.currentMillis() + delayMS;
+        }
+    }
+
+    /** Enforce tooltip display with next {@link #tick()}. */
+    public final void now() {
+        this.forced = true;
+        this.delayT1 = Clock.currentMillis() - 1;
+    }
+
+    /** Returns true if display is enforced via {@link #now()}. */
+    public final boolean forced() {
+        return forced;
     }
 
     /**
      * Send tick to this tooltip
-     * @return true if timer has been reached to {@link #createTip(PMVMatrix4f)}, otherwise false
+     * @return true if {@link #start() started} timer has been reached or is enforced via {@link #now()} to {@link #createTip(PMVMatrix4f)}, otherwise false
      */
     public final boolean tick() {
         if( 0 == delayT1 ) {
@@ -101,6 +134,7 @@ public abstract class Tooltip {
             return false;
         }
         this.delayT1 = 0;
+        this.forced = false;
         return true;
     }
 
@@ -136,7 +170,7 @@ public abstract class Tooltip {
      * @param drawable current {@link GLAutoDrawable}
      * @param scene the {@link Scene} caller for which this HUD tip shape is created
      * @param pmv {@link PMVMatrix4f}, which shall be properly initialized, e.g. via {@link Scene#setupMatrix(PMVMatrix4f)}
-     * @param toolMvBounds TODO
+     * @param toolMvBounds {@link AABBox} of the {@link #getTool()} in model-view (Mv) space of the given {@link Scene}
      * @return newly created HUD tip shape
      * @see #destroyTip(GL2ES2, RegionRenderer, Shape)
      */

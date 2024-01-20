@@ -30,7 +30,6 @@ package com.jogamp.graph.ui;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.layout.Alignment;
 import com.jogamp.graph.ui.layout.BoxLayout;
-import com.jogamp.graph.ui.layout.GridLayout;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec4f;
@@ -50,7 +49,7 @@ public class TooltipShape extends Tooltip {
      * </p>
      * @param gl
      * @param renderer
-     * @param tip
+     * @param tip the user provided {@link Shape} as passed via {@link TooltipShape#TooltipShape(Vec4f, Vec4f, float, Vec2f, long, int, Shape, DestroyCallback)}.
      * @see TooltipShape#TooltipShape(Vec2f, long, Shape, DestroyCallback)
      * @see TooltipShape#createTip(GLAutoDrawable, Scene, PMVMatrix4f, AABBox)
      */
@@ -106,8 +105,9 @@ public class TooltipShape extends Tooltip {
         final float h = toolMvBounds.getHeight()*scale.y();
 
         final Group g = new Group(new BoxLayout(w, h, Alignment.FillCenter));
-        g.addShape(new Rectangle(renderModes, 1*w/h, 1, 0).setColor(backColor).setBorder(borderThickness).setBorderColor(frontColor));
-        g.addShape(tip.move(0, 0, zEps)); // above back
+        g.addShape(new Rectangle(renderModes, 1*w/h, 1, 0).setColor(backColor).setBorder(borderThickness).setBorderColor(frontColor).move(0, 0, -zEps));
+        g.setName("TooltipShapeGroup");
+        g.addShape(tip);
         g.setInteractive(false);
 
         final Vec2f pos = getTipMvPosition(scene, toolMvBounds, w, h);
@@ -115,11 +115,15 @@ public class TooltipShape extends Tooltip {
         return g;
     }
     @Override
-    public void destroyTip(final GL2ES2 gl, final RegionRenderer renderer, final Shape tip) {
+    public void destroyTip(final GL2ES2 gl, final RegionRenderer renderer, final Shape tipGroup) {
         if( null != dtorCallback ) {
+            // Remove user tip from our layout group first and dtor our group
+            // This allows the user to receive its own passed tip
+            ((Group)tipGroup).removeShape(tip);
+            tipGroup.destroy(gl, renderer);
             dtorCallback.destroyTip(gl, renderer, tip);
         } else {
-            super.destroyTip(gl, renderer, tip);
+            super.destroyTip(gl, renderer, tipGroup);
         }
     }
 }
