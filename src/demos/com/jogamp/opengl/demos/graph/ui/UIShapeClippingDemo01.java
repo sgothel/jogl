@@ -31,6 +31,7 @@ import java.io.IOException;
 
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontSet;
@@ -38,12 +39,13 @@ import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
-import com.jogamp.graph.ui.shapes.Button;
+import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.FloatUtil;
-import com.jogamp.math.Recti;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.Cube;
+import com.jogamp.math.geom.Frustum;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -52,20 +54,35 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
+import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 
 /**
- * Basic UIShape Clipping demo using a Scene and and Shape within a clipping Group
+ * Basic UIShape Clipping demo using a Scene and Shape within a clipping Group
  */
 public class UIShapeClippingDemo01 {
     static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
 
     public static void main(final String[] args) throws IOException {
-        options.parse(args);
+        boolean _useFixedSize = true;
+        if( 0 != args.length ) {
+            final int[] idx = { 0 };
+            for (idx[0] = 0; idx[0] < args.length; ++idx[0]) {
+                if( options.parse(args, idx) ) {
+                    continue;
+                } else if(args[idx[0]].equals("-NoFixedSize")) {
+                    _useFixedSize = false;
+                }
+            }
+        }
+        final boolean useFixedSize = _useFixedSize;
         System.err.println(options);
+        System.err.println("useFixedSize "+useFixedSize);
         final GLProfile reqGLP = GLProfile.get(options.glProfileName);
         System.err.println("GLProfile: "+reqGLP);
 
@@ -74,33 +91,10 @@ public class UIShapeClippingDemo01 {
         final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
         System.err.println("Font: "+font.getFullFamilyName());
 
-        final GraphShape shape = new Button(options.renderModes, font, "Hello JogAmp", 0.20f, 0.20f/2.5f); // normalized: 1 is 100% surface size (width and/or height)
-
-        final Group contentBox = new Group();
-        contentBox.setBorder(0.005f);
-        contentBox.setInteractive(true);
-        contentBox.setClipOnBounds(true);
-        contentBox.setFixedSize(new Vec2f(0.6f, 0.4f));
-        contentBox.move(-0.6f/2f, -0.4f/2f, 0);
-        contentBox.addShape(shape);
-
-        contentBox.addMouseListener( new Shape.MouseGestureAdapter() {
-            @Override
-            public void mouseWheelMoved(final MouseEvent e) {
-                final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
-                final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
-                // swap axis for onscreen rotation matching natural feel
-                final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
-                shapeEvent.shape.getRotation().rotateByEuler( rot.scale( 2f ) );
-            }
-        });
-
         final Scene scene = new Scene(options.graphAASamples);
-        scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
+        scene.setPMVMatrixSetup(new Scene.DefaultPMVMatrixSetup(-1f)); // better distance for perspective action
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        scene.addShape(contentBox);
         scene.setAAQuality(options.graphAAQuality);
-
         final Animator animator = new Animator(0 /* w/o AWT */);
 
         final GLCapabilities caps = new GLCapabilities(reqGLP);
@@ -112,6 +106,87 @@ public class UIShapeClippingDemo01 {
         window.setTitle(UIShapeClippingDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
         window.addGLEventListener(scene);
+        window.addGLEventListener(new GLEventListener() {
+            GraphShape shape = null;
+            Group contentBox = null;
+
+            @Override
+            public void init(final GLAutoDrawable drawable) {
+                final AABBox sbox = scene.getBounds();
+                System.err.println("Init Scene "+sbox);
+                // shape = new Button(options.renderModes, font, "Hello JogAmp", sbox.getWidth()/8f, sbox.getWidth()/16f);
+                shape = new Rectangle(options.renderModes, sbox.getWidth()/8f, sbox.getWidth()/16f, 0);
+
+                contentBox = new Group();
+                contentBox.setBorder(0.005f);
+                contentBox.setInteractive(true);
+                contentBox.setClipOnBounds(true);
+                contentBox.addShape(shape);
+                {
+                    final float w = sbox.getWidth()*0.6f;
+                    final float h = sbox.getHeight()*0.6f;
+                    if( useFixedSize ) {
+                        contentBox.setFixedSize(new Vec2f(w, h));
+                    }
+                    contentBox.move(-w/2f, -h/2f, 0);
+                    System.err.println("XXX contentBox "+contentBox.getBounds(drawable.getGLProfile()));
+                    System.err.println("XXX shape "+shape.getBounds());
+                }
+
+                contentBox.addMouseListener( new Shape.MouseGestureAdapter() {
+                    @Override
+                    public void mouseWheelMoved(final MouseEvent e) {
+                        final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
+                        final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
+                        // swap axis for onscreen rotation matching natural feel
+                        final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
+                        shapeEvent.shape.getRotation().rotateByEuler( rot.scale( 2f ) );
+                    }
+                });
+                scene.addShape(contentBox);
+            }
+
+            @Override
+            public void dispose(final GLAutoDrawable drawable) { }
+            @Override
+            public void display(final GLAutoDrawable drawable) {
+                final RegionRenderer renderer = scene.getRenderer();
+                final PMVMatrix4f pmv = renderer.getMatrix();
+
+                pmv.pushMv();
+                contentBox.setTransformMv(pmv);
+                {
+                    final AABBox box = contentBox.getBounds();
+                    final Cube cube = tempC00.set(box);
+                    final Frustum frustumCbMv = tempC01.set(cube).transform(pmv.getMv()).updateFrustumPlanes(new Frustum());
+
+                    pmv.pushMv();
+                    shape.setTransformMv(pmv);
+                    {
+                        final AABBox shapeBox = shape.getBounds();
+                        final Cube shapedMv = tempC10.set(shapeBox).transform(pmv.getMv());
+
+                        final boolean isOutMv = frustumCbMv.isOutside( shapedMv );
+
+                        final Frustum frustumPMv = pmv.getPMv().updateFrustumPlanes(new Frustum());
+                        final boolean isOutPMv = frustumPMv.isOutside( shapeBox );
+
+                        System.err.println("ClipBox  "+box);
+                        System.err.println("ShapeBox "+shapeBox);
+                        System.err.println("FrusPMv  "+isOutPMv+", "+frustumPMv);
+                        System.err.println("FsCbMv   1 "+isOutMv+", "+frustumCbMv);
+                    }
+                    pmv.popMv();
+                }
+                pmv.popMv();
+            }
+            @Override
+            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
+            private final Cube tempC00 = new Cube(); // OK, synchronized
+            private final Cube tempC01 = new Cube(); // OK, synchronized
+            private final Cube tempC10 = new Cube(); // OK, synchronized
+        });
+
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowResized(final WindowEvent e) {
@@ -143,20 +218,4 @@ public class UIShapeClippingDemo01 {
         animator.add(window);
         animator.start();
     }
-
-    static class MyPMVMatrixSetup extends Scene.DefaultPMVMatrixSetup {
-        @Override
-        public void set(final PMVMatrix4f pmv, final Recti viewport) {
-            super.set(pmv, viewport);
-
-            // Scale (back) to have normalized plane dimensions, 1 for the greater of width and height.
-            final AABBox planeBox0 = new AABBox();
-            setPlaneBox(planeBox0, pmv, viewport);
-            final float sx = planeBox0.getWidth();
-            final float sy = planeBox0.getHeight();
-            final float sxy = sx > sy ? sx : sy;
-            pmv.scaleP(sxy, sxy, 1f);
-        }
-    };
-
 }

@@ -14,8 +14,8 @@ void main(void)
     // gl_Position = gcu_PMVMatrix01[0] * gcu_PMVMatrix01[1] * vec4(gca_FboVertices, 1);
     gl_Position = gcu_PMVMatrix01[0] * gcu_PMVMatrix01[1] * gca_FboVertices;
     
-#ifdef USE_AABBOX_CLIPPING
-    gcv_ClipBBoxCoord = (gcu_PMVMatrix01[1] * gca_FboVertices).xyz; // Mv
+#ifdef USE_FRUSTUM_CLIPPING
+    gcv_ClipCoord = (gcu_PMVMatrix01[1] * gca_FboVertices).xyz; // Mv
 #endif    
     
     gcv_FboTexCoord = gca_FboTexCoords;

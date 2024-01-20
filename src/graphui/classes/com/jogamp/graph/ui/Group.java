@@ -42,6 +42,8 @@ import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.Cube;
+import com.jogamp.math.geom.Frustum;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
@@ -77,14 +79,15 @@ public class Group extends Shape implements Container {
     }
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
-    private final Vec2f fixedSize = new Vec2f();
+    /** Enforced fixed size. In case z-axis is NaN, its 3D z-axis will be adjusted. */
+    private final Vec3f fixedSize = new Vec3f();
     private Layout layouter;
     private Rectangle border = null;
 
     private boolean relayoutOnDirtyShapes = true;
     private boolean widgetMode = false;
     private boolean clipOnBounds = false;
-    private AABBox clipBBox = null;
+    private Frustum clipFrustum = null;
 
     /**
      * Create a group of {@link Shape}s w/o {@link Group.Layout}.
@@ -118,43 +121,65 @@ public class Group extends Shape implements Container {
     /** Set {@link Group.Layout}. */
     public Group setLayout(final Layout l) { layouter = l; return this; }
 
-    /** Enforce size of this group to given dimension. */
-    public Group setFixedSize(final Vec2f v) { fixedSize.set(v); return this; }
-    public Vec2f getFixedSize() { return fixedSize; }
+    /** Enforce size of this group for all given 3 dimensions {@link #getBounds()} without adjusting 3D z-axis like {@link #setFixedSize(Vec2f)}. */
+    public Group setFixedSize(final Vec3f v) { fixedSize.set(v); return this; }
+    /**
+     * Enforce size of this group to given 2 dimensions,
+     * adjusting the 3D z-axis {@link #getBounds()} giving room for potential clipping via {@link #setClipOnBounds(boolean)} or {@link #setClipFrustum(Frustum)}.
+     * @see #setFixedSize(Vec3f)
+     */
+    public Group setFixedSize(final Vec2f v) { fixedSize.set(v.x(), v.y(), Float.NaN); return this; }
+    /** Returns borrowed fixed size instance, see {@link #setFixedSize(Vec3f)} and {@link #setFixedSize(Vec2f)}. */
+    public Vec3f getFixedSize() { return fixedSize; }
+    /** Returns given {@link Vec2f} instance set with 2 dimensions, see {@link #setFixedSize(Vec2f)}. */
+    public Vec2f getFixedSize(final Vec2f out) { out.set(fixedSize.x(),  fixedSize.y()); return out; }
 
     /**
-     * Enable {@link AABBox} clipping on {@link #getBounds()} for this group and its shapes as follows
+     * Enable {@link Frustum} clipping on {@link #getBounds()} for this group and its shapes as follows
      * <ul>
      *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer) rendering} if not intersecting {@code clip-box}.</li>
      *   <li>Otherwise perform pixel-accurate clipping inside the shader to {@code clip-box}.</li>
      * </ul>
      * <p>
-     * {@link #setClipBBox(AABBox)} takes precedence over {@link #setClipOnBounds(boolean)}.
+     * {@link #setClipFrustum(Frustum)} takes precedence over {@link #setClipOnBounds(boolean)}.
+     * </p>
+     * <p>
+     * With clipping enabled, the 3D z-axis {@link #getBounds()} depth
+     * will be slightly increased for functional {@link Frustum} operation.
      * </p>
      * @param v boolean to toggle clipping
      * @return this instance for chaining
-     * @see #setClipBBox(AABBox)
+     * @see #setClipFrustum(Frustum)
+     * @see #setFixedSize(Vec2f)
+     * @see #setFixedSize(Vec3f)
      */
     public Group setClipOnBounds(final boolean v) { clipOnBounds = v; return this; }
     /** Returns {@link #setClipOnBounds(boolean)} value */
     public boolean getClipOnBounds() { return clipOnBounds; }
 
     /**
-     * Enable {@link AABBox} clipping on explicit given pre-multiplied Mv-matrix {@code clip-box} as follows
+     * Enable {@link Frustum} clipping on explicit given pre-multiplied w/ Mv-matrix {@code clip-box}
+     * for this group and its shapes as follows
      * <ul>
      *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer) rendering} if not intersecting {@code clip-box}.</li>
      *   <li>Otherwise perform pixel-accurate clipping inside the shader to {@code clip-box}.</li>
      * </ul>
      * <p>
-     * {@link #setClipBBox(AABBox)} takes precedence over {@link #setClipOnBounds(boolean)}.
+     * {@link #setClipFrustum(Frustum)} takes precedence over {@link #setClipOnBounds(boolean)}.
      * </p>
-     * @param v {@link AABBox} pre-multiplied Mv-matrix
+     * <p>
+     * With clipping enabled, the 3D z-axis {@link #getBounds()} depth
+     * will be slightly increased for functional {@link Frustum} operation.
+     * </p>
+     * @param v {@link Frustum} pre-multiplied w/ Mv-matrix
      * @return this instance for chaining
      * @see #setClipOnBounds(boolean)
+     * @see #setFixedSize(Vec2f)
+     * @see #setFixedSize(Vec3f)
      */
-    public Group setClipBBox(final AABBox v) { clipBBox = v; return this; }
-    /** Returns {@link #setClipBBox(AABBox)} value */
-    public AABBox getClipBBox() { return clipBBox; }
+    public Group setClipFrustum(final Frustum v) { clipFrustum = v; return this; }
+    /** Returns {@link #setClipFrustum(Frustum)} value */
+    public Frustum getClipFrustum() { return clipFrustum; }
 
     @Override
     public int getShapeCount() { return shapes.size(); }
@@ -281,12 +306,12 @@ public class Group extends Shape implements Container {
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
 
-        final boolean useClipBBox = null != clipBBox;
-        if( useClipBBox || clipOnBounds ) {
-            final AABBox origClipBox = renderer.getClipBBox();
+        final boolean useClipFrustum = null != clipFrustum;
+        if( useClipFrustum || clipOnBounds ) {
+            final Frustum origClipFrustum = renderer.getClipFrustum();
 
-            final AABBox clipBox = useClipBBox ? clipBBox : box.transform(pmv.getMv(), tempBB0);
-            renderer.setClipBBox( tempBB1.set(clipBox) ); // Mv pre-multiplied AABBox
+            final Frustum frustumMv = useClipFrustum ? clipFrustum : tempC00.set( box ).transform( pmv.getMv() ).updateFrustumPlanes(tempF00);
+            renderer.setClipFrustum( frustumMv );
 
             final int shapeCount = shapesS.length;
             for(int i=0; i<shapeCount; i++) {
@@ -295,16 +320,18 @@ public class Group extends Shape implements Container {
                     pmv.pushMv();
                     shape.setTransformMv(pmv);
 
-                    final AABBox childBox = shape.getBounds();
-                    if( clipBox.intersects( childBox.transform(pmv.getMv(), tempBB0) ) &&
-                        ( !doFrustumCulling || !pmv.getFrustum().isAABBoxOutside( childBox ) ) )
+                    final AABBox shapeBox = shape.getBounds();
+                    final Cube shapeMv = tempC01.set( shapeBox ).transform( pmv.getMv() );
+
+                    if( ( !frustumMv.isOutside( shapeMv ) ) &&
+                        ( !doFrustumCulling || !pmv.getFrustum().isOutside( shapeBox ) ) )
                     {
                         shape.draw(gl, renderer);
                     }
                     pmv.popMv();
                 }
             }
-            renderer.setClipBBox(origClipBox);
+            renderer.setClipFrustum(origClipFrustum);
         } else {
             final int shapeCount = shapesS.length;
             for(int i=0; i<shapeCount; i++) {
@@ -323,8 +350,9 @@ public class Group extends Shape implements Container {
             border.draw(gl, renderer);
         }
     }
-    private final AABBox tempBB0 = new AABBox(); // OK, synchronized
-    private final AABBox tempBB1 = new AABBox(); // OK, synchronized
+    private final Frustum tempF00 = new Frustum(); // OK, synchronized
+    private final Cube tempC00 = new Cube(); // OK, synchronized
+    private final Cube tempC01 = new Cube(); // OK, synchronized
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
@@ -489,12 +517,35 @@ public class Group extends Shape implements Container {
                 box.resize(h.x() + p.right, h.y() + p.top, l.z());
                 setRotationPivot( box.getCenter() );
             }
-            if( !FloatUtil.isZero(fixedSize.x()) && !FloatUtil.isZero(fixedSize.y()) ) {
-                final Vec3f low = box.getLow();
-                final Vec3f high = new Vec3f(low);
-                high.add(fixedSize.x(), fixedSize.y(), 0);
-                box.setSize(low, high);
+            final boolean useFixedSize = !FloatUtil.isZero(fixedSize.x()) && !FloatUtil.isZero(fixedSize.y());
+            final boolean useClipping = null != clipFrustum || clipOnBounds;
+            if( useFixedSize || useClipping ) {
+                // final AABBox old = new AABBox(box);
+                final boolean adjustZ = useClipping || ( useFixedSize && Float.isNaN(fixedSize.z()) );
+                final Vec3f lo = box.getLow();
+                if( adjustZ ) {
+                    final float oldDepth = box.getDepth();
+                    final Vec3f hi;
+                    final float zAdjustment = 10f*Scene.DEFAULT_ACTIVE_ZOFFSET_SCALE*Scene.DEFAULT_Z16_EPSILON;
+                    lo.add(                0,             0,         -(1f*zAdjustment));
+                    if( useFixedSize ) {
+                        hi = new Vec3f(lo);
+                        hi.add(fixedSize.x(), fixedSize.y(), oldDepth+(2f*zAdjustment));
+                    } else {
+                        hi = box.getHigh();
+                        hi.add(        0,             0,     oldDepth+(1f*zAdjustment));
+                    }
+                    box.setSize(lo, hi);
+                } else if( useFixedSize ) {
+                    final Vec3f hi = useFixedSize ? new Vec3f(lo) : box.getHigh();
+
+                    hi.add(fixedSize.x(), fixedSize.y(), fixedSize.z());
+                    box.setSize(lo, hi);
+                }
+                // System.err.println("- was "+old);
+                // System.err.println("- has "+box);
             }
+
             if( hasBorder() ) {
                 if( null == border ) {
                     final int firstRMs = null != firstGS ? firstGS.getRenderModes() : 0;

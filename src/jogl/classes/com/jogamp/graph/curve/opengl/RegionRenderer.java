@@ -48,7 +48,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.math.Recti;
 import com.jogamp.math.Vec4f;
-import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.Frustum;
 import com.jogamp.math.util.PMVMatrix4f;
 
 /**
@@ -314,10 +314,10 @@ public final class RegionRenderer {
     /** Returns pass2 AA sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
     public final int getSampleCount() { return rs.getSampleCount(); }
 
-    /** Set the optional clipping {@link AABBox}, which shall be pre-multiplied with the Mv-matrix or null to disable. */
-    public final void setClipBBox(final AABBox clipBBox) { rs.setClipBBox(clipBBox); }
-    /** Returns the optional Mv-premultiplied clipping {@link AABBox} or null if unused. */
-    public final AABBox getClipBBox() { return rs.getClipBBox(); }
+    /** Set the optional clipping {@link Frustum}, which shall be pre-multiplied with the Mv-matrix or null to disable. */
+    public final void setClipFrustum(final Frustum clipFrustum) { rs.setClipFrustum(clipFrustum); }
+    /** Returns the optional Mv-premultiplied clipping {@link Frustum} or null if unused. */
+    public final Frustum getClipFrustum() { return rs.getClipFrustum(); }
 
     public final boolean isHintMaskSet(final int mask) { return rs.isHintMaskSet(mask); }
 
@@ -419,7 +419,7 @@ public final class RegionRenderer {
     private static final String GLSL_PARAM_COMMENT_END = "// JogAmp Graph Parameter End\n\n";
     private static final String GLSL_USE_COLOR_CHANNEL = "#define USE_COLOR_CHANNEL 1\n";
     private static final String GLSL_USE_COLOR_TEXTURE = "#define USE_COLOR_TEXTURE 1\n";
-    private static final String GLSL_USE_AABBOX_CLIPPING = "#define USE_AABBOX_CLIPPING 1\n";
+    private static final String GLSL_USE_FRUSTUM_CLIPPING = "#define USE_FRUSTUM_CLIPPING 1\n";
     private static final String GLSL_DEF_SAMPLE_COUNT = "#define SAMPLE_COUNT ";
     private static final String GLSL_CONST_SAMPLE_COUNT = "const float sample_count = ";
     private static final String GLSL_MAIN_BEGIN = "void main (void)\n{\n";
@@ -525,7 +525,7 @@ public final class RegionRenderer {
         final boolean isTwoPass;
         final boolean pass1;
         final ShaderModeSelector1 sms;
-        final boolean hasAABBoxClipping; // pass1 or pass2
+        final boolean hasFrustumClipping; // pass1 or pass2
         final boolean hasColorChannel; // pass1 only
         final boolean hasColorTexture; // pass1 only
         final String colorTexSeqID;
@@ -534,12 +534,12 @@ public final class RegionRenderer {
         final String texLookupFuncName;
         final int hashValue;
 
-        ShaderKey(final int renderModes, final boolean pass1_, final int pass2Quality, final int sampleCount, final TextureSequence colorTexSeq, final boolean hasClipBBox) {
+        ShaderKey(final int renderModes, final boolean pass1_, final int pass2Quality, final int sampleCount, final TextureSequence colorTexSeq, final boolean hasClipFrustum) {
             isTwoPass = Region.isTwoPass( renderModes );
             pass1 = pass1_;
             sms = pass1 ? ShaderModeSelector1.selectPass1(renderModes) :
                           ShaderModeSelector1.selectPass2(renderModes, pass2Quality, sampleCount);
-            hasAABBoxClipping = hasClipBBox && ( ( !isTwoPass && pass1 ) || ( isTwoPass && !pass1 ) );
+            hasFrustumClipping = hasClipFrustum && ( ( !isTwoPass && pass1 ) || ( isTwoPass && !pass1 ) );
             hasColorChannel = pass1 && Region.hasColorChannel( renderModes );
             hasColorTexture = pass1 && Region.hasColorTexture( renderModes ) && null != colorTexSeq;
             if( hasColorTexture ) {
@@ -558,7 +558,7 @@ public final class RegionRenderer {
                 // hash = ((hash << 5) - hash) + pass2Quality; // included in sms
                 // hash = ((hash << 5) - hash) + sampleCount; // included in sms
                 hash = ((hash << 5) - hash) + sms.ordinal();
-                hash = ((hash << 5) - hash) + ( hasAABBoxClipping ? 1 : 0 );
+                hash = ((hash << 5) - hash) + ( hasFrustumClipping ? 1 : 0 );
                 hash = ((hash << 5) - hash) + ( hasColorChannel ? 1 : 0 );
                 hash = ((hash << 5) - hash) + ( hasColorTexture ? 1 : 0 );
                 hash = ((hash << 5) - hash) + colorTexSeqHash;
@@ -579,7 +579,7 @@ public final class RegionRenderer {
                    // pass2Quality == o.pass2Quality && // included in sms
                    // sampleCount == o.sampleCount && // included in sms
                    sms.ordinal() == o.sms.ordinal() &&
-                   hasAABBoxClipping == o.hasAABBoxClipping &&
+                   hasFrustumClipping == o.hasFrustumClipping &&
                    hasColorChannel == o.hasColorChannel &&
                    hasColorTexture == o.hasColorTexture &&
                    colorTexSeqID.equals(o.colorTexSeqID);
@@ -587,7 +587,7 @@ public final class RegionRenderer {
         @Override
         public String toString() {
             return "ShaderKey[hash 0x"+Integer.toHexString(hashValue)+", is2Pass "+isTwoPass+", pass1 "+pass1+
-                   ", has[clip "+hasAABBoxClipping+", colChan "+hasColorChannel+", colTex "+hasColorTexture+"], "+sms+"]";
+                   ", has[clip "+hasFrustumClipping+", colChan "+hasColorChannel+", colTex "+hasColorTexture+"], "+sms+"]";
         }
     }
     private final HashMap<ShaderKey, ShaderProgram> shaderPrograms = new HashMap<ShaderKey, ShaderProgram>();
@@ -609,7 +609,7 @@ public final class RegionRenderer {
      * @see RenderState#getShaderProgram()
      */
     public final boolean useShaderProgram(final GL2ES2 gl, final int renderModes, final boolean pass1, final TextureSequence colorTexSeq) {
-        final ShaderKey shaderKey = new ShaderKey(renderModes, pass1, getAAQuality(), getSampleCount(), colorTexSeq, null != getClipBBox());
+        final ShaderKey shaderKey = new ShaderKey(renderModes, pass1, getAAQuality(), getSampleCount(), colorTexSeq, null != getClipFrustum());
 
         /**
         if(DEBUG) {
@@ -686,9 +686,9 @@ public final class RegionRenderer {
             posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_DISCARD);
         }
 
-        if( shaderKey.hasAABBoxClipping ) {
-            posVp = rsVp.insertShaderSource(0, posVp, GLSL_USE_AABBOX_CLIPPING);
-            posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_AABBOX_CLIPPING);
+        if( shaderKey.hasFrustumClipping ) {
+            posVp = rsVp.insertShaderSource(0, posVp, GLSL_USE_FRUSTUM_CLIPPING);
+            posFp = rsFp.insertShaderSource(0, posFp, GLSL_USE_FRUSTUM_CLIPPING);
         }
 
         if( shaderKey.hasColorChannel ) {
@@ -708,11 +708,11 @@ public final class RegionRenderer {
         posFp = rsFp.insertShaderSource(0, posFp, GLSL_PARAM_COMMENT_END);
 
         try {
-            if( shaderKey.hasColorTexture || shaderKey.hasAABBoxClipping ) {
-                posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "functions.glsl");
-            }
             posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "uniforms.glsl");
             posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "varyings.glsl");
+            if( shaderKey.hasColorTexture || shaderKey.hasFrustumClipping ) {
+                posFp = rsFp.insertShaderSource(0, posFp, AttributeNames.class, "functions.glsl");
+            }
         } catch (final IOException ioe) {
             throw new RuntimeException("Failed to read: includes", ioe);
         }

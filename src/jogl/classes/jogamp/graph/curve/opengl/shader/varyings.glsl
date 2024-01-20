@@ -10,8 +10,8 @@ varying vec2  gcv_FboTexCoord;
 #ifdef USE_COLOR_TEXTURE
     varying vec2  gcv_ColorTexCoord;
 #endif
-#ifdef USE_AABBOX_CLIPPING
-    varying vec3  gcv_ClipBBoxCoord;
+#ifdef USE_FRUSTUM_CLIPPING
+    varying vec3  gcv_ClipCoord;
 #endif    
 
 #ifdef USE_COLOR_CHANNEL

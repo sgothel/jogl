@@ -1,8 +1,8 @@
     // Pass-2: AA on Texture
     // Note: gcv_FboTexCoord is in center of sample pixels.
 
-#ifdef USE_AABBOX_CLIPPING
-    if( is_inside(gcv_ClipBBoxCoord, gcu_ClipBBox[0], gcu_ClipBBox[1]) < 0.5 ) {
+#ifdef USE_FRUSTUM_CLIPPING
+    if( isOutsideMvFrustum(gcv_ClipCoord) ) {
         #if USE_DISCARD
             discard; // discard freezes NV tegra2 compiler
         #else

@@ -75,12 +75,30 @@ vec4 clip_coord(vec4 col_in, vec4 col_ex, vec3 coord, vec3 low, vec3 high) {
  * </p>
  */
 float is_inside(vec2 coord, vec2 low, vec2 high) {
-    return v_mul( step(low, coord) ) * ( 1 - v_or( step(high+EPSILON, coord) ) );    
+    return v_mul( step(low-EPSILON, coord) ) * ( 1 - v_or( step(high+EPSILON, coord) ) );    
 }
 /** Branch-less clipping test using vec3 coordinates and low/high clipping. */
 float is_inside(vec3 coord, vec3 low, vec3 high) {
-    return v_mul( step(low, coord) ) * ( 1 - v_or( step(high+EPSILON, coord) ) );    
+    return v_mul( step(low-EPSILON, coord) ) * ( 1 - v_or( step(high+EPSILON, coord) ) );
 }
+
+/** Return distance of plane {n, d} to given point p. */
+float planeDistance(vec3 n, float d, vec3 p) {
+    return dot(n, p) + d;
+}
+
+#ifdef USE_FRUSTUM_CLIPPING
+
+bool isOutsideMvFrustum(vec3 p) { 
+    return planeDistance(gcu_ClipFrustum[0].xyz, gcu_ClipFrustum[0].w, p) < 0 ||
+           planeDistance(gcu_ClipFrustum[1].xyz, gcu_ClipFrustum[1].w, p) < 0 ||
+           planeDistance(gcu_ClipFrustum[2].xyz, gcu_ClipFrustum[2].w, p) < 0 ||
+           planeDistance(gcu_ClipFrustum[3].xyz, gcu_ClipFrustum[3].w, p) < 0 ||
+           planeDistance(gcu_ClipFrustum[4].xyz, gcu_ClipFrustum[4].w, p) < 0 ||
+           planeDistance(gcu_ClipFrustum[5].xyz, gcu_ClipFrustum[5].w, p) < 0;    
+}
+
+#endif // USE_FRUSTUM_CLIPPING
 
 #endif // functions_glsl
 

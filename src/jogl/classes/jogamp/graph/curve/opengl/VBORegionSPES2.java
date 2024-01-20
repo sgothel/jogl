@@ -40,7 +40,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.Frustum;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -52,8 +52,8 @@ public final class VBORegionSPES2 extends GLRegion {
     private final GLUniformData gcu_ColorTexUnit;
     private final float[] colorTexBBox; // minX/minY, maxX/maxY, texW/texH
     private final GLUniformData gcu_ColorTexBBox; // vec2 gcu_ColorTexBBox[3] -> boxMin[2], boxMax[2] and texSize[2]
-    private final float[] clipBBox; // minX/minY/minZ, maxX/maxY/maxZ
-    private final GLUniformData gcu_ClipBBox; // uniform vec3  gcu_ClipBBox[2]; // box-min[3], box-max[3]
+    private final float[/* 4*6 */] clipFrustum; // 6 frustum planes, each [n.x, n.y. n.z, d]
+    private final GLUniformData gcu_ClipFrustum; // uniform vec4  gcu_ClipFrustum[6]; // L, R, B, T, N, F
     private ShaderProgram spPass1 = null;
 
     public VBORegionSPES2(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq,
@@ -74,8 +74,8 @@ public final class VBORegionSPES2 extends GLRegion {
             colorTexBBox = null;
             gcu_ColorTexBBox = null;
         }
-        clipBBox = new float[6];
-        gcu_ClipBBox = new GLUniformData(UniformNames.gcu_ClipBBox, 3, FloatBuffer.wrap(clipBBox));
+        clipFrustum = new float[4*6];
+        gcu_ClipFrustum = new GLUniformData(UniformNames.gcu_ClipFrustum, 4, FloatBuffer.wrap(clipFrustum));
     }
 
     @Override
@@ -122,7 +122,7 @@ public final class VBORegionSPES2 extends GLRegion {
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes ) && null != colorTexSeq;
 
         final RenderState rs = renderer.getRenderState();
-        final boolean hasAABBoxClipping = null != rs.getClipBBox();
+        final boolean hasFrustumClipping = null != rs.getClipFrustum();
 
         final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, true, colorTexSeq);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
@@ -139,8 +139,8 @@ public final class VBORegionSPES2 extends GLRegion {
             if( hasColorChannel && null != gca_ColorsAttr ) {
                 rs.updateAttributeLoc(gl, true, gca_ColorsAttr, throwOnError);
             }
-            if( hasAABBoxClipping ) {
-                rs.updateUniformLoc(gl, true, gcu_ClipBBox, throwOnError);
+            if( hasFrustumClipping ) {
+                rs.updateUniformLoc(gl, true, gcu_ClipFrustum, throwOnError);
             }
         }
         rsLocal.update(gl, rs, updateLocLocal, curRenderModes, true, true, throwOnError);
@@ -158,11 +158,10 @@ public final class VBORegionSPES2 extends GLRegion {
 
         useShaderProgram(gl, renderer, curRenderModes);
         {
-            final AABBox cb = renderer.getClipBBox();
-            if( null != cb ) {
-                clipBBox[0] = cb.getMinX(); clipBBox[1] = cb.getMinY(); clipBBox[2] = cb.getMinZ();
-                clipBBox[3] = cb.getMaxX(); clipBBox[4] = cb.getMaxY(); clipBBox[5] = cb.getMaxZ();
-                gl.glUniform(gcu_ClipBBox); // Always update, since program maybe used by multiple regions
+            final Frustum f = renderer.getClipFrustum();
+            if( null != f ) {
+                f.getPlanes(clipFrustum, 0);
+                gl.glUniform(gcu_ClipFrustum); // Always update, since program maybe used by multiple regions
             }
         }
 

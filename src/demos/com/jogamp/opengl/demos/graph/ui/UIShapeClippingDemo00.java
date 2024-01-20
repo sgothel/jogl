@@ -38,6 +38,8 @@ import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.Cube;
+import com.jogamp.math.geom.Frustum;
 import com.jogamp.math.geom.plane.AffineTransform;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.Window;
@@ -291,22 +293,19 @@ public class UIShapeClippingDemo00 implements GLEventListener {
             drawShape(gl, renderer, clipRect);
             {
                 final AABBox sbox = shape.getBounds(gl.getGLProfile());
-                final AABBox clipBBox; // Mv pre-multiplied AABBox
+                final Frustum clipFrustumMv;
                 {
                     final PMVMatrix4f pmv = renderer.getMatrix();
                     pmv.pushMv();
                     clipRect.setTransformMv(pmv);
-                    final AABBox cb = new AABBox(clipRect.getBounds());
-                    cb.getLow().setZ(sbox.getLow().z());
-                    cb.getHigh().setZ(sbox.getHigh().z());
-                    clipBBox = cb.transform(pmv.getMv(), new AABBox());
+                    clipFrustumMv = new Cube( clipRect.getBounds() ).transform( pmv.getMv() ).updateFrustumPlanes(new Frustum());
                     pmv.popMv();
                 }
-                renderer.setClipBBox( clipBBox );
+                renderer.setClipFrustum( clipFrustumMv );
                 // System.err.println("Clipping "+renderer.getClipBBox());
                 drawShape(gl, renderer, shape);
                 // System.err.println("draw.0: "+shape);
-                renderer.setClipBBox(null);
+                renderer.setClipFrustum(null);
             }
         }
         renderer.enable(gl, false);

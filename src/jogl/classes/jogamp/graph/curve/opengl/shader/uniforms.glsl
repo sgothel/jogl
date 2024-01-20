@@ -10,8 +10,8 @@ uniform float   gcu_Weight;
 #ifdef USE_COLOR_TEXTURE
     uniform vec2  gcu_ColorTexBBox[3]; // box-min[2], box-max[2] and tex-size[2] 
 #endif
-#ifdef USE_AABBOX_CLIPPING
-    uniform vec3  gcu_ClipBBox[2]; // box-min[3], box-max[3]
+#ifdef USE_FRUSTUM_CLIPPING
+    uniform vec4  gcu_ClipFrustum[6]; // L, R, B, T, N, F each {n.x, n.y, n.z, d} 
 #endif    
 
 uniform mat4    gcu_PMVMatrix02[3]; // P, Mv, and Mvi

@@ -46,6 +46,7 @@ import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.math.Matrix4f;
 import com.jogamp.math.Recti;
 import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.Frustum;
 import com.jogamp.math.util.SyncMatrices4f16;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
@@ -71,8 +72,8 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
     private final GLUniformData gcu_ColorTexUnit;
     private final float[] colorTexBBox; // minX/minY, maxX/maxY, texW/texH
     private final GLUniformData gcu_ColorTexBBox; // vec2 gcu_ColorTexBBox[3] -> boxMin[2], boxMax[2] and texSize[2]
-    private final float[] clipBBox; // minX/minY/minZ, maxX/maxY/maxZ
-    private final GLUniformData gcu_ClipBBox; // uniform vec3  gcu_ClipBBox[2]; // box-min[3], box-max[3]
+    private final float[/* 4*6 */] clipFrustum; // 6 frustum planes, each [n.x, n.y. n.z, d]
+    private final GLUniformData gcu_ClipFrustum; // uniform vec4  gcu_ClipFrustum[6]; // L, R, B, T, N, F
     private ShaderProgram spPass1 = null;
 
     // Pass-2:
@@ -96,6 +97,50 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
 
     final int[] maxTexSize = new int[] { -1 } ;
 
+    public VBORegion2PVBAAES2(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq, final int pass2TexUnit,
+                              final int initialVerticesCount, final int initialIndicesCount)
+    {
+        super(glp, renderModes, colorTexSeq);
+
+        rsLocal = new RenderState.ProgramLocal();
+
+        // Pass 1:
+        initBuffer(initialVerticesCount, initialIndicesCount);
+
+        if( hasColorTexture() ) {
+            gcu_ColorTexUnit = new GLUniformData(UniformNames.gcu_ColorTexUnit, colorTexSeq.getTextureUnit());
+            colorTexBBox = new float[6];
+            gcu_ColorTexBBox = new GLUniformData(UniformNames.gcu_ColorTexBBox, 2, FloatBuffer.wrap(colorTexBBox));
+        } else {
+            gcu_ColorTexUnit = null;
+            colorTexBBox = null;
+            gcu_ColorTexBBox = null;
+        }
+        clipFrustum = new float[4*6];
+        gcu_ClipFrustum = new GLUniformData(UniformNames.gcu_ClipFrustum, 4, FloatBuffer.wrap(clipFrustum));
+        gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, new SyncMatrices4f16( new Matrix4f[] { matP, matMv } ));
+
+        // Pass 2:
+        gcu_FboTexUnit = new GLUniformData(UniformNames.gcu_FboTexUnit, pass2TexUnit);
+        gcu_FboTexSize = new GLUniformData(UniformNames.gcu_FboTexSize, 2, FloatBuffer.wrap(new float[2]));
+
+        indicesFbo = GLArrayDataServer.createData(3, GL.GL_UNSIGNED_SHORT, 2, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        indicesFbo.puts((short) 0); indicesFbo.puts((short) 1); indicesFbo.puts((short) 3);
+        indicesFbo.puts((short) 1); indicesFbo.puts((short) 2); indicesFbo.puts((short) 3);
+        indicesFbo.seal(true);
+
+        gca_FboTexCoordsAttr = GLArrayDataServer.createGLSL(AttributeNames.FBO_TEXCOORDS_ATTR_NAME, 2, GL.GL_FLOAT,
+                                                           false, 4, GL.GL_STATIC_DRAW);
+        gca_FboTexCoordsAttr.putf(0); gca_FboTexCoordsAttr.putf(0);
+        gca_FboTexCoordsAttr.putf(0); gca_FboTexCoordsAttr.putf(1);
+        gca_FboTexCoordsAttr.putf(1); gca_FboTexCoordsAttr.putf(1);
+        gca_FboTexCoordsAttr.putf(1); gca_FboTexCoordsAttr.putf(0);
+        gca_FboTexCoordsAttr.seal(true);
+
+        gca_FboVerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.FBO_VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
+                                                           false, 4, GL.GL_STATIC_DRAW);
+    }
+
     /**
      * <p>
      * Since multiple {@link Region}s may share one
@@ -113,7 +158,7 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
         final boolean hasColorTexture = Region.hasColorTexture( curRenderModes ) && null != colorTexSeq;
 
         final RenderState rs = renderer.getRenderState();
-        final boolean hasAABBoxClipping = null != rs.getClipBBox() && ( ( !isTwoPass && pass1 ) || ( isTwoPass && !pass1 ) );
+        final boolean hasFrustumClipping = null != rs.getClipFrustum() && ( ( !isTwoPass && pass1 ) || ( isTwoPass && !pass1 ) );
 
         final boolean updateLocGlobal = renderer.useShaderProgram(gl, curRenderModes, pass1, colorTexSeq);
         final ShaderProgram sp = renderer.getRenderState().getShaderProgram();
@@ -159,53 +204,9 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
             rs.updateUniformDataLoc(gl, updateLocLocal, false /* updateData */, gcu_FboTexUnit, true); // FIXME always update if changing tex-unit
             rs.updateUniformLoc(gl, updateLocLocal, gcu_FboTexSize, rs.getSampleCount() > 1); // maybe optimized away for sampleCount <= 1
         }
-        if( hasAABBoxClipping && updateLocLocal ) {
-            rs.updateUniformLoc(gl, true, gcu_ClipBBox, true);
+        if( hasFrustumClipping && updateLocLocal ) {
+            rs.updateUniformLoc(gl, true, gcu_ClipFrustum, true);
         }
-    }
-
-    public VBORegion2PVBAAES2(final GLProfile glp, final int renderModes, final TextureSequence colorTexSeq, final int pass2TexUnit,
-                              final int initialVerticesCount, final int initialIndicesCount)
-    {
-        super(glp, renderModes, colorTexSeq);
-
-        rsLocal = new RenderState.ProgramLocal();
-
-        // Pass 1:
-        initBuffer(initialVerticesCount, initialIndicesCount);
-
-        if( hasColorTexture() ) {
-            gcu_ColorTexUnit = new GLUniformData(UniformNames.gcu_ColorTexUnit, colorTexSeq.getTextureUnit());
-            colorTexBBox = new float[6];
-            gcu_ColorTexBBox = new GLUniformData(UniformNames.gcu_ColorTexBBox, 2, FloatBuffer.wrap(colorTexBBox));
-        } else {
-            gcu_ColorTexUnit = null;
-            colorTexBBox = null;
-            gcu_ColorTexBBox = null;
-        }
-        clipBBox = new float[6];
-        gcu_ClipBBox = new GLUniformData(UniformNames.gcu_ClipBBox, 3, FloatBuffer.wrap(clipBBox));
-        gcu_PMVMatrix02 = new GLUniformData(UniformNames.gcu_PMVMatrix02, 4, 4, new SyncMatrices4f16( new Matrix4f[] { matP, matMv } ));
-
-        // Pass 2:
-        gcu_FboTexUnit = new GLUniformData(UniformNames.gcu_FboTexUnit, pass2TexUnit);
-        gcu_FboTexSize = new GLUniformData(UniformNames.gcu_FboTexSize, 2, FloatBuffer.wrap(new float[2]));
-
-        indicesFbo = GLArrayDataServer.createData(3, GL.GL_UNSIGNED_SHORT, 2, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
-        indicesFbo.puts((short) 0); indicesFbo.puts((short) 1); indicesFbo.puts((short) 3);
-        indicesFbo.puts((short) 1); indicesFbo.puts((short) 2); indicesFbo.puts((short) 3);
-        indicesFbo.seal(true);
-
-        gca_FboTexCoordsAttr = GLArrayDataServer.createGLSL(AttributeNames.FBO_TEXCOORDS_ATTR_NAME, 2, GL.GL_FLOAT,
-                                                           false, 4, GL.GL_STATIC_DRAW);
-        gca_FboTexCoordsAttr.putf(0); gca_FboTexCoordsAttr.putf(0);
-        gca_FboTexCoordsAttr.putf(0); gca_FboTexCoordsAttr.putf(1);
-        gca_FboTexCoordsAttr.putf(1); gca_FboTexCoordsAttr.putf(1);
-        gca_FboTexCoordsAttr.putf(1); gca_FboTexCoordsAttr.putf(0);
-        gca_FboTexCoordsAttr.seal(true);
-
-        gca_FboVerticesAttr = GLArrayDataServer.createGLSL(AttributeNames.FBO_VERTEX_ATTR_NAME, 3, GL.GL_FLOAT,
-                                                           false, 4, GL.GL_STATIC_DRAW);
     }
 
     @Override
@@ -420,11 +421,10 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
 
         gl.glUniform(gcu_FboTexSize);
         {
-            final AABBox cb = rs.getClipBBox();
-            if( null != cb ) {
-                clipBBox[0] = cb.getMinX(); clipBBox[1] = cb.getMinY(); clipBBox[2] = cb.getMinZ();
-                clipBBox[3] = cb.getMaxX(); clipBBox[4] = cb.getMaxY(); clipBBox[5] = cb.getMaxZ();
-                gl.glUniform(gcu_ClipBBox); // Always update, since program maybe used by multiple regions
+            final Frustum f = rs.getClipFrustum();
+            if( null != f ) {
+                f.getPlanes(clipFrustum, 0);
+                gl.glUniform(gcu_ClipFrustum); // Always update, since program maybe used by multiple regions
             }
         }
 

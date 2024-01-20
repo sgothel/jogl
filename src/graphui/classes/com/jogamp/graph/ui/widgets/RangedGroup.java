@@ -39,6 +39,9 @@ import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.Cube;
+import com.jogamp.math.geom.Frustum;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -134,7 +137,7 @@ public class RangedGroup extends Widget {
     }
 
     public Group getContent() { return content; }
-    public Vec2f getContentSize() { return clippedContent.getFixedSize(); }
+    public Vec2f getContentSize(final Vec2f out) { return clippedContent.getFixedSize(out); }
     public Group getClippedContent() { return clippedContent; }
     public RangeSlider getHorizSlider() { return horizSlider; }
     public RangeSlider getVertSlider() { return vertSlider; }
@@ -145,7 +148,7 @@ public class RangedGroup extends Widget {
             super.validateImpl(gl, glp);
 
             final AABBox b = content.getBounds();
-            final Vec2f contentSize = getContentSize();
+            final Vec3f contentSize = clippedContent.getFixedSize();
             contentPosZero.set(0, 0);
             if( null != horizSlider ) {
                 horizSlider.setMinMax(new Vec2f(0, content.getBounds().getWidth()), 0);
@@ -164,12 +167,15 @@ public class RangedGroup extends Widget {
     @Override
     protected void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final Vec4f rgba) {
         if( content.isVisible() ) {
-            // Mv pre-multiplied AABBox, clippedContent is on same PMV
-            final AABBox clipBBox = clippedContent.getBounds().transform(renderer.getMatrix().getMv(), tempBB);
-            content.setClipBBox(clipBBox);
+            final PMVMatrix4f pmv = renderer.getMatrix();
+
+            // Mv pre-multiplied Frustum, clippedContent is on same PMV
+            final Frustum clipFrustum = tempC00.set( clippedContent.getBounds() ).transform( pmv.getMv() ).updateFrustumPlanes(tempF00);
+            content.setClipFrustum(clipFrustum);
             super.drawImpl0(gl, renderer, rgba);
-            content.setClipBBox(null);
+            content.setClipFrustum(null);
         }
     }
-    private final AABBox tempBB = new AABBox(); // OK, synchronized
+    private final Frustum tempF00 = new Frustum(); // OK, synchronized
+    private final Cube tempC00 = new Cube(); // OK, synchronized
 }

@@ -24,8 +24,8 @@ void main(void)
     }
 #endif
 
-#ifdef USE_AABBOX_CLIPPING
-    gcv_ClipBBoxCoord = (gcu_PMVMatrix01[1] * gca_Vertices).xyz; // Mv
+#ifdef USE_FRUSTUM_CLIPPING
+    gcv_ClipCoord = (gcu_PMVMatrix01[1] * gca_Vertices).xyz; // Mv
 #endif    
     
 #ifdef USE_COLOR_TEXTURE

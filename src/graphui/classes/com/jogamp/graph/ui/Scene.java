@@ -111,6 +111,8 @@ public final class Scene implements Container, GLEventListener {
     public static final float DEFAULT_ZFAR = 7000.0f;
     /** Default Z precision on 16-bit depth buffer using {@link #DEFAULT_SCENE_DIST} z-position and {@link #DEFAULT_ZNEAR}. Value is {@code 6.1033297E-6}. */
     public static final float DEFAULT_Z16_EPSILON = FloatUtil.getZBufferEpsilon(16 /* zBits */, DEFAULT_SCENE_DIST, DEFAULT_ZNEAR);
+    /** Default Z precision scale, i.e. multiple of {@link #DEFAULT_Z16_EPSILON} for {@link #setActiveShapeZOffsetScale(float)}. Value is {@value}. */
+    public static final float DEFAULT_ACTIVE_ZOFFSET_SCALE = 10f;
     /** Default Z precision on 16-bit depth buffer using {@code -1} z-position and {@link #DEFAULT_ZNEAR}. Value is {@code 1.5256461E-4}. */
     // public static final float DIST1_Z16_EPSILON = FloatUtil.getZBufferEpsilon(16 /* zBits */, -1, DEFAULT_ZNEAR);
 
@@ -1033,7 +1035,7 @@ public final class Scene implements Container, GLEventListener {
             activeShape = shape;
         }
     }
-    private float activeZOffsetScale = 10f;
+    private float activeZOffsetScale = DEFAULT_ACTIVE_ZOFFSET_SCALE;
 
     /** Returns the active {@link Shape} Z-Offset scale, defaults to {@code 10.0}. */
     public float getActiveShapeZOffsetScale() { return activeZOffsetScale; }

@@ -39,7 +39,7 @@ import jogamp.graph.curve.opengl.shader.UniformNames;
 
 import com.jogamp.graph.curve.Region;
 import com.jogamp.math.Vec4f;
-import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.geom.Frustum;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.util.GLArrayDataWrapper;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
@@ -102,8 +102,9 @@ public class RenderState {
     private int aaQuality;
     /** Default pass2 AA sample count {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link Region#VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
     private int sampleCount;
-    /** Optional clipping {@link AABBox}, which shall be pre-multiplied with the Mv-matrix. Null if unused. */
-    private AABBox clipBBox;
+    /** Optional clipping {@link Frustum}, which shall be pre-multiplied with the Mv-matrix. Null if unused. */
+    private final Frustum clipFrustum;
+    private boolean useClipFrustum;
     private int hintBitfield;
     private ShaderProgram sp;
 
@@ -205,7 +206,9 @@ public class RenderState {
         this.colorStaticBuffer = FloatBuffer.wrap(colorStatic);
         this.aaQuality = Region.DEFAULT_AA_QUALITY;
         this.sampleCount = Region.DEFAULT_AA_SAMPLE_COUNT;
-        this.clipBBox = null;
+        this.clipFrustum = new Frustum();
+        this.useClipFrustum = false;
+
         this.hintBitfield = 0;
         this.sp = null;
     }
@@ -281,10 +284,17 @@ public class RenderState {
     /** Returns pass2 AA sample count for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT} or {@link Region#MSAA_RENDERING_BIT}. */
     public final int getSampleCount() { return this.sampleCount; }
 
-    /** Set the optional clipping {@link AABBox}, which shall be pre-multiplied with the Mv-matrix or null to disable. */
-    public final void setClipBBox(final AABBox clipBBox) { this.clipBBox = clipBBox; }
-    /** Returns the optional Mv-premultiplied clipping {@link AABBox} or null if unused. */
-    public final AABBox getClipBBox() { return this.clipBBox; }
+    /** Set the optional clipping {@link Frustum}, which shall be pre-multiplied with the Mv-matrix or null to disable. */
+    public final void setClipFrustum(final Frustum clipFrustum) {
+        if( null != clipFrustum ) {
+            this.clipFrustum.set(clipFrustum);
+            this.useClipFrustum=true;
+        } else {
+            this.useClipFrustum=false;
+        }
+    }
+    /** Returns the optional Mv-premultiplied clipping {@link Frustum} or null if unused. */
+    public final Frustum getClipFrustum() { return useClipFrustum ? this.clipFrustum : null; }
 
     /**
      *
