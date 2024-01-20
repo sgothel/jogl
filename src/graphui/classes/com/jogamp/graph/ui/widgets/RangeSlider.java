@@ -146,7 +146,7 @@ public final class RangeSlider extends Widget {
     }
     private RangeSlider(final int renderModes_, final Vec2f size, final float knobScale,
                        final Vec2f minMax, final float unitSize, final float pageSz, final float value) {
-        final int renderModes = renderModes_ & ~(Region.AA_RENDERING_MASK | Region.COLORCHANNEL_RENDERING_BIT);
+        final int renderModes = renderModes_ & ~(Region.COLORCHANNEL_RENDERING_BIT);
         this.unitSize = unitSize;
         this.pageSize = pageSz;
         this.horizontal = size.x() >= size.y();
