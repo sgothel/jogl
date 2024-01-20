@@ -37,6 +37,7 @@ import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.font.FontFactory;
@@ -44,6 +45,8 @@ import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
+import com.jogamp.graph.ui.TooltipShape;
+import com.jogamp.graph.ui.TooltipText;
 import com.jogamp.graph.ui.layout.Alignment;
 import com.jogamp.graph.ui.layout.BoxLayout;
 import com.jogamp.graph.ui.layout.Gap;
@@ -57,7 +60,10 @@ import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
 import com.jogamp.graph.ui.widgets.RangeSlider;
 import com.jogamp.graph.ui.widgets.RangedGroup;
 import com.jogamp.graph.ui.widgets.RangedGroup.SliderParam;
+import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Vec2f;
+import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
@@ -66,6 +72,7 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
@@ -77,6 +84,19 @@ import com.jogamp.opengl.util.Animator;
 
 /**
  * This may become a little font viewer application, having FontForge as its role model.
+ * <p>
+ * Notable: The actual {@link GlyphShape} created for the glyph-grid {@link Group}
+ * is reused as-is in the bigger info-grid as well as for the {@link TooltipShape}.
+ * </p>
+ * <p>
+ * This is possible only if not modifying the scale or position of the {@link GlyphShape},
+ * achieved by simply wrapping it in a {@link Group}.
+ * The latter gets scaled and translated when dropped
+ * into a {@link Group} with {@link Group.Layout}.<br/>
+ * </p>
+ * <p>
+ * This is a good example for a Directed Acyclic Graph (DAG).
+ * </p>
  */
 public class FontView01 {
     private static final float GlyphGridWidth = 3/4f;
@@ -191,62 +211,47 @@ public class FontView01 {
         final Shape.MouseGestureListener glyphMouseListener;
         {
             final Group glyphShapeBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.01f) ) );
-            glyphShapeBox.addShape( new GlyphShape(options.renderModes, font.getGlyph( 'A' ), 0, 0) );
+            final Group glyphShapeHolder = new Group();
+            glyphShapeHolder.setName("GlyphShapeHolderInfo");
+            glyphShapeBox.addShape( glyphShapeHolder );
 
             final Group glyphInfoBox = new Group( new BoxLayout( 1f, 1f, Alignment.FillCenter, new Margin(0.025f, 0.025f, 0.025f, 0.025f) ) );
             final Label glyphInfo = new Label(options.renderModes, fontStatus, "Nothing there yet");
             setGlyphInfo(fontStatus, glyphInfo, font.getGlyph( 'A' ));
             glyphInfo.setColor(0.1f, 0.1f, 0.1f, 1.0f);
             glyphInfoBox.addShape(glyphInfo);
+            glyphInfoBox.setRelayoutOnDirtyShapes(false); // avoid group re-validate on info text changes
 
             glyphMouseListener = new Shape.MouseGestureAdapter() {
                 private void handleEvent(final MouseEvent e) {
                     final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
                     // System.err.println("ShapeEvent "+shapeEvent);
-                    final Shape shape = shapeEvent.shape;
-                    if( !( shape instanceof Group ) ) {
-                        return;
-                    }
-                    final Group group = (Group)shape;
-                    final int last = group.getShapeCount()-1;
-                    if( 0 > last ) {
-                        return;
-                    }
-                    final Shape lastShape = group.getShapes().get(last);
-                    if( !( lastShape instanceof GlyphShape ) ) {
-                        return;
-                    }
-                    // Selected Glyph
-                    final GlyphShape g0 = (GlyphShape)lastShape;
+                    final GlyphShape g0 = getGlyphShape(shapeEvent.shape);
+
+                    // Selected Glyph g0
                     final boolean doScreenshot = e.isControlDown() && e.getButtonDownCount() > 0;
                     scene.invoke(false, (final GLAutoDrawable d) -> {
                         // Handle old one
-                        if( 1 == glyphShapeBox.getShapeCount() ) {
-                            final GlyphShape old = (GlyphShape) glyphShapeBox.getShapes().get(0);
+                        if( 1 == glyphShapeHolder.getShapeCount() ) {
+                            final GlyphShape old = (GlyphShape) glyphShapeHolder.getShapeByIdx(0);
                             if( null != old ) {
                                 if( !doScreenshot && old.getGlyph().getCodepoint() == g0.getGlyph().getCodepoint() ) {
                                     // System.err.println("GlyphShape Same: "+old);
                                     return true; // abort - no change
+                                } else {
+                                    glyphShapeHolder.removeShape(old);
                                 }
-                                // System.err.println("GlyphShape Old: "+old);
-                                glyphShapeBox.removeShape(old);
-                                old.destroy(d.getGL().getGL2ES2(), scene.getRenderer());
                             } else {
-                                System.err.println("GlyphShape Old: Null");
+                                // System.err.println("GlyphShape Old: Null");
                             }
                         } else {
-                            System.err.println("GlyphShape Old: None");
+                            // System.err.println("GlyphShape Old: None");
                         }
                         // New Glyph
-                        // System.err.println("GlyphShape New "+g0);
-                        final GlyphShape gs = new GlyphShape( g0 ); // copy GlyphShape
-                        gs.setColor(0, 0, 0, 1);
-                        glyphShapeBox.addShape( gs );
-                        setGlyphInfo(fontStatus, glyphInfo, gs.getGlyph());
-                        glyphInfo.validate(d.getGL().getGL2ES2()); // avoid group re-validate
-                        // System.err.println("GlyphInfo "+glyphInfo.getBounds());
+                        glyphShapeHolder.addShape(g0);
+                        setGlyphInfo(fontStatus, glyphInfo, g0.getGlyph());
                         if( doScreenshot ) {
-                            printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gs.getGlyph().getCodepoint());
+                            printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, g0.getGlyph().getCodepoint());
                         }
                         return true;
                     });
@@ -265,12 +270,18 @@ public class FontView01 {
             {
                 // final float gapSizeX = ( gridDim.rawSize.x() - 1 ) * cellSize * 0.1f;
                 final Group glyphGrid = new Group(new GridLayout(gridDim.columns, glyphGridCellSize*0.9f, glyphGridCellSize*0.9f, Alignment.FillCenter, new Gap(glyphGridCellSize*0.1f)));
-                // glyphGrid.setFixedSize(glyphGridSize);
+                glyphGrid.setInteractive(true).setDragAndResizeable(false).setToggleable(false).setName("GlyphGrid");
                 addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline, showLabel, fontStatus, fontInfo, glyphMouseListener);
                 if( VERBOSE_UI ) {
                     glyphGrid.validate(reqCaps.getGLProfile());
                     System.err.println("GlyphGrid "+glyphGrid);
                     System.err.println("GlyphGrid "+glyphGrid.getLayout());
+                }
+                {
+                    final GlyphShape gs = getGlyphShape( glyphGrid );
+                    if( null != gs ) {
+                        glyphShapeHolder.addShape(gs);
+                    }
                 }
                 final RangedGroup glyphView = new RangedGroup(options.renderModes, glyphGrid, glyphGridSize,
                                                               null,
@@ -286,9 +297,8 @@ public class FontView01 {
                         }
                     });
                 }
-                glyphGrid.setInteractive(true).setDragAndResizeable(false).setToggleable(false);
                 glyphView.getVertSlider().receiveKeyEvents(glyphGrid);
-                glyphView.getVertSlider().receiveMouseEvents(glyphGrid);
+                // glyphView.getVertSlider().receiveMouseEvents(glyphGrid);
                 if( VERBOSE_UI ) {
                     glyphView.validate(reqCaps.getGLProfile());
                     System.err.println("GlyphView "+glyphView);
@@ -302,10 +312,11 @@ public class FontView01 {
                 infoGrid.setPaddding( new Padding(0, 0, 0, 0.01f) );
                 infoGrid.addShape(glyphShapeBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
                 infoGrid.addShape(glyphInfoBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
-                if( VERBOSE_UI ) {
+                if( true || VERBOSE_UI ) {
                     infoGrid.validate(reqCaps.getGLProfile());
                     System.err.println("InfoGrid "+infoGrid);
                     System.err.println("InfoGrid "+infoGrid.getLayout());
+                    System.err.println("GlyphShapeBox "+glyphShapeBox);
                 }
                 glyphInfoView.addShape(infoGrid);
             }
@@ -318,13 +329,48 @@ public class FontView01 {
 
             mainView = new Group(new GridLayout(1, 0f, 0f, Alignment.None));
             mainView.addShape(glyphInfoView);
-            final Label infoText = new Label(options.renderModes, fontInfo, "Key-Up/Down or Mouse-Scroll to move through glyphs. Page-Up/Down or Control + Mouse-Scroll to page through glyph symbols fast.");
-            infoText.setColor(0.1f, 0.1f, 0.1f, 1f);
+            final String infoText = "Hover over this label and wait 1s for tooltip help.";
+            final String infoHelp = "Hover over a Glyph and wait 1s for a big tooltip view.\n"+
+                                    "Key-Up/Down or Slider-Mouse-Scroll to move through glyphs.\n"+
+                                    "Page-Up/Down or Control + Slider-Mouse-Scroll to page faster.\n"+
+                                    "Mouse-Scroll over left-half of Window rotates and holding control zooms.";
+            final Label infoLabel = new Label(options.renderModes, fontInfo, infoText);
+            infoLabel.setColor(0.1f, 0.1f, 0.1f, 1f);
+            infoLabel.setToolTip(new TooltipText(infoHelp, fontInfo, 8f));
+            window.addMouseListener( new Shape.MouseGestureAdapter() {
+                @Override
+                public void mouseWheelMoved(final MouseEvent e) {
+                    if( e.getX() >= window.getSurfaceWidth() / 2f ) {
+                        return;
+                    }
+                    if( e.isControlDown() ) {
+                        // Scale and move back to center
+                        final float[] rot = e.getRotation();
+                        final float r = e.isShiftDown() ? rot[0] : rot[1];
+                        final float s = 1f+r/200f;
+                        final AABBox b0 = mainView.getBounds();
+                        final AABBox bs = new AABBox(b0).scale(s, s, 1);
+                        final float dw = b0.getWidth() - bs.getWidth();
+                        final float dh = b0.getHeight() - bs.getHeight();
+                        mainView.scale(s, s, 1);
+                        final Vec3f s1 = mainView.getScale();
+                        mainView.move(s1.x()*dw/2f, s1.y()*dh/2f, 0);
+                        System.err.println("scale +"+s+" = "+s1);
+                        e.setConsumed(true);
+                    } else {
+                        final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
+                        // swap axis for onscreen rotation matching natural feel
+                        final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
+                        mainView.getRotation().rotateByEuler( rot.scale( 2f ) );
+                        e.setConsumed(true);
+                    }
+                }
+            });
             {
                 final float h = glyphGridCellSize * 0.5f;
                 final Group labelBox = new Group(new BoxLayout(1.0f, h, new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.CenterVert.value),
                                                                new Margin(0, 0.005f)));
-                labelBox.addShape(infoText);
+                labelBox.addShape(infoLabel);
                 mainView.addShape(labelBox);
             }
             if( VERBOSE_UI ) {
@@ -416,6 +462,24 @@ public class FontView01 {
         public String toString() { return "GridDim[contours "+glyphCount+", "+columns+"x"+rows+"="+(columns*rows)+">="+elemCount+", rows/pg "+rowsPerPage+"]"; }
     }
 
+    static Group getGlyphShapeHolder(final Shape shape0) {
+        if( !( shape0 instanceof Group ) ) {
+            return null;
+        }
+        return (Group)((Group)shape0).getShapeByName("GlyphHolder");
+    }
+    static GlyphShape getGlyphShape(final Shape shape0) {
+        final Group gsh = getGlyphShapeHolder(shape0);
+        if( null != gsh && gsh.getShapeCount() > 0 ) {
+            return (GlyphShape) gsh.getShapeByIdx(0);
+        }
+        return null;
+    }
+
+    /**
+     * Fill given Group sink with glyph shapes wrapped as {@code Group2[Group1[GlyphShape]]},
+     * with Group1 having the name 'GlyphHolder'.
+     */
     static void addGlyphs(final GLProfile glp, final Font font, final Group sink,
                           final GridDim gridDim, final boolean showUnderline, final boolean showLabel,
                           final Font fontStatus, final Font fontInfo, final Shape.MouseGestureListener glyphMouseListener) {
@@ -427,29 +491,43 @@ public class FontView01 {
             final Font.Glyph fg = font.getGlyph(codepoint);
 
             final GlyphShape g = new GlyphShape(options.renderModes, fg, 0, 0);
-            g.setColor(0.1f, 0.1f, 0.1f, 1);
-            g.setDragAndResizeable(false);
+            g.setColor(0.1f, 0.1f, 0.1f, 1).setName("GlyphShape");
+            g.setInteractive(false).setDragAndResizeable(false);
 
-            // grid.addShape( g ); // GridLayout handles bottom-left offset and scale
+            final Group c0 = new Group("GlyphHolder", null, null, g);
+            c0.setInteractive(false).setDragAndResizeable(false);
+
             // Group each GlyphShape with its bounding box Rectangle
             final AABBox gbox = fg.getBounds(tmpBox); // g.getBounds(glp);
             final boolean addUnderline = showUnderline && gbox.getMinY() < 0f;
             final Group c1 = new Group( new BoxLayout( 1f, 1f, addUnderline ? Alignment.None : Alignment.Center) );
-            c1.setBorder(0.02f).setBorderColor(0, 0, 0, 1).setInteractive(true).setDragAndResizeable(false);
+            c1.setBorder(0.02f).setBorderColor(0.1f, 0.1f, 0.1f, 1).setInteractive(true).setDragAndResizeable(false).setName("GlyphHolder2");
             if( addUnderline ) {
                 final Shape underline = new Rectangle(options.renderModes, 1f, gbox.getMinY(), 0.01f).setInteractive(false).setColor(0f, 0f, 1f, 0.25f);
                 c1.addShape(underline);
             }
-            c1.addShape(g);
+
+            c1.addShape( c0 );
             c1.addMouseListener(glyphMouseListener);
             sink.receiveKeyEvents(c1);
-            sink.receiveMouseEvents(c1);
+            // sink.receiveMouseEvents(c1);
+            c1.setToolTip( new TooltipShape(new Vec4f(1, 1, 1, 1), new Vec4f(0, 0, 0, 1), 0.01f,
+                                           new Vec2f(14,14), 1000, options.renderModes,
+                                           new Group("GlyphTipGroup", null, null, g).setPaddding(new Padding(0.05f)),
+                                           (final GL2ES2 gl, final RegionRenderer renderer, final Shape ts) -> {
+                                               ((Group)ts).removeShape(g);
+                                               ts.destroy(gl, renderer);
+                                           } ) );
+            c1.onClicked((final Shape s) -> {
+                c1.getTooltip().now();
+            });
+
             if( 0 < gridDim.reserverColumns() && 0 == idx % gridDim.columnsNet ) {
                 addLabel(sink, fontStatus, String.format("%04x", (int)codepoint));
             }
             if( showLabel ) {
                 final Group c2 = new Group( new GridLayout( 1, 0, 0, Alignment.None) ); //  Alignment(Alignment.Bit.CenterHoriz) ) );
-                c2.addShape(c1);
+                c2.addShape(c1.setName("GlyphHolder3"));
                 {
                     final Label l = new Label(options.renderModes, fontInfo, 1f, fg.getName());
                     // final AABBox lbox = l.getUnscaledGlyphBounds();
