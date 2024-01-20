@@ -79,18 +79,16 @@ public class TreeTool {
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor1#visit(Shape)} returned true, otherwise false
      */
     public static boolean forAll(final List<Shape> shapes, final Visitor1 v) {
-        for(int i=0; i<shapes.size(); ++i) {
+        boolean res = false;
+        for(int i=0; !res && i<shapes.size(); ++i) {
             final Shape s = shapes.get(i);
-            boolean res = v.visit(s);
+            res = v.visit(s);
             if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
                 res = c.forAll(v);
             }
-            if( res ) {
-                return true;
-            }
         }
-        return false;
+        return res;
     }
 
     /**
@@ -100,21 +98,19 @@ public class TreeTool {
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
      */
     public static boolean forAll(final List<Shape> shapes, final PMVMatrix4f pmv, final Visitor2 v) {
-        for(int i=0; i<shapes.size(); ++i) {
+        boolean res = false;
+        for(int i=0; !res && i<shapes.size(); ++i) {
             final Shape s = shapes.get(i);
             pmv.pushMv();
             s.setTransformMv(pmv);
-            boolean res = v.visit(s, pmv);
+            res = v.visit(s, pmv);
             if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
                 res = c.forAll(pmv, v);
             }
             pmv.popMv();
-            if( res ) {
-                return true;
-            }
         }
-        return false;
+        return res;
     }
 
     /**
@@ -130,22 +126,58 @@ public class TreeTool {
     public static boolean forSortedAll(final Comparator<Shape> sortComp, final List<Shape> shapes, final PMVMatrix4f pmv, final Visitor2 v) {
         final Object[] shapesS = shapes.toArray();
         Arrays.sort(shapesS, (Comparator)sortComp);
+        boolean res = false;
 
-        for(int i=0; i<shapesS.length; ++i) {
+        for(int i=0; !res && i<shapesS.length; ++i) {
             final Shape s = (Shape)shapesS[i];
             pmv.pushMv();
             s.setTransformMv(pmv);
-            boolean res = v.visit(s, pmv);
+            res = v.visit(s, pmv);
             if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
                 res = c.forSortedAll(sortComp, pmv, v);
             }
             pmv.popMv();
-            if( res ) {
-                return true;
+        }
+        return res;
+    }
+
+    public static boolean contains(final List<Shape> shapes, final Shape s) {
+        if( shapes.contains(s) ) {
+            return true;
+        }
+        for(final Shape shape : shapes) {
+            if( shape instanceof Container ) {
+                if( ((Container)shape).contains(s) ) {
+                    return true;
+                }
             }
         }
         return false;
     }
 
+    public static Shape getShapeByID(final List<Shape> shapes, final int id) {
+        final Shape[] res = { null };
+        forAll(shapes, (final Shape s) -> {
+            if( s.getID() == id ) {
+                res[0] = s;
+                return true;
+            } else {
+                return false;
+            }
+        });
+        return res[0];
+    }
+    public static Shape getShapeByName(final List<Shape> shapes, final String name) {
+        final Shape[] res = { null };
+        forAll(shapes, (final Shape s) -> {
+            if( s.getName().equals(name) ) {
+                res[0] = s;
+                return true;
+            } else {
+                return false;
+            }
+        });
+        return res[0];
+    }
 }

@@ -332,7 +332,7 @@ public final class Scene implements Container, GLEventListener {
 
     @Override
     public boolean contains(final Shape s) {
-        return false;
+        return TreeTool.contains(shapes, s);
     }
     @Override
     public Shape getShapeByIdx(final int id) {
@@ -343,21 +343,11 @@ public final class Scene implements Container, GLEventListener {
     }
     @Override
     public Shape getShapeByID(final int id) {
-        for(final Shape b : shapes) {
-            if(b.getID() == id ) {
-                return b;
-            }
-        }
-        return null;
+        return TreeTool.getShapeByID(shapes, id);
     }
     @Override
     public Shape getShapeByName(final String name) {
-        for(final Shape b : shapes) {
-            if( b.getName().equals(name) ) {
-                return b;
-            }
-        }
-        return null;
+        return TreeTool.getShapeByName(shapes, name);
     }
 
     /** Returns {@link RegionRenderer#getSampleCount()}. */

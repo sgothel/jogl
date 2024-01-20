@@ -564,19 +564,8 @@ public class Group extends Shape implements Container {
 
     @Override
     public boolean contains(final Shape s) {
-        if( shapes.contains(s) ) {
-            return true;
-        }
-        for(final Shape shape : shapes) {
-            if( shape instanceof Container ) {
-                if( ((Container)shape).contains(s) ) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return TreeTool.contains(shapes, s);
     }
-
     @Override
     public Shape getShapeByIdx(final int id) {
         if( 0 > id ) {
@@ -586,21 +575,11 @@ public class Group extends Shape implements Container {
     }
     @Override
     public Shape getShapeByID(final int id) {
-        for(final Shape b : shapes) {
-            if(b.getID() == id ) {
-                return b;
-            }
-        }
-        return null;
+        return TreeTool.getShapeByID(shapes, id);
     }
     @Override
     public Shape getShapeByName(final String name) {
-        for(final Shape b : shapes) {
-            if( b.getName().equals(name) ) {
-                return b;
-            }
-        }
-        return null;
+        return TreeTool.getShapeByName(shapes, name);
     }
 
     @Override
