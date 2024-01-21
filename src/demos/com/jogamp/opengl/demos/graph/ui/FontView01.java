@@ -86,22 +86,27 @@ import com.jogamp.opengl.util.Animator;
  * This may become a little font viewer application, having FontForge as its role model.
  * <p>
  * Notable: The actual {@link GlyphShape} created for the glyph-grid {@link Group}
- * is reused as-is in the bigger info-grid as well as for the {@link TooltipShape}.
+ * is reused as-is in the top-right info-box as well as in the {@link TooltipShape}.
  * </p>
  * <p>
- * This is possible only if not modifying the scale or position of the {@link GlyphShape},
+ * This is possible only when not modifying the scale or position of the {@link GlyphShape},
  * achieved by simply wrapping it in a {@link Group}.
  * The latter gets scaled and translated when dropped
- * into a {@link Group} with {@link Group.Layout}.<br/>
+ * into each target {@link Group} with a {@link Group.Layout}.<br/>
  * </p>
  * <p>
- * This is a good example for a Directed Acyclic Graph (DAG).
+ * This is also good example using GraphUI with a Directed Acyclic Graph (DAG) arrangement.
  * </p>
  */
 public class FontView01 {
-    private static final float GlyphGridWidth = 3/4f;
+    private static final float GlyphGridWidth = 3/4f; // FBO AA: 3/4f = 0.75f dropped fine grid lines @ 0.2f thickness; 0.70f OK
+    private static final float GlyphGridBorderThickness = 0.02f; // thickness 0.2f dropping
+    private static final Vec4f GlyphGridBorderColor = new Vec4f(0.2f, 0.2f, 0.2f, 1);
+
     // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.MSAA_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 4);
     static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
+
+    static int max_glyph_count = 10000;
 
     private static boolean VERBOSE_GLYPHS = false;
     private static boolean VERBOSE_UI = false;
@@ -134,6 +139,9 @@ public class FontView01 {
                     showLabel = true;
                 } else if(args[idx[0]].equals("-perf")) {
                     perfanal = true;
+                } else if(args[idx[0]].equals("-maxGlyphs")) {
+                    idx[0]++;
+                    max_glyph_count = MiscUtils.atoi(args[idx[0]], max_glyph_count);
                 }
             }
         }
@@ -227,6 +235,8 @@ public class FontView01 {
                     final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
                     // System.err.println("ShapeEvent "+shapeEvent);
                     final GlyphShape g0 = getGlyphShape(shapeEvent.shape);
+
+                    e.setConsumed(true);
 
                     // Selected Glyph g0
                     final boolean doScreenshot = e.isControlDown() && e.getButtonDownCount() > 0;
@@ -445,7 +455,7 @@ public class FontView01 {
             final long t0 = Clock.currentNanos();
             contourChars.clear();
             maxNameLen = 1;
-            final int[] max = { 10000 };
+            final int[] max = { max_glyph_count };
             font.forAllGlyphs((final Glyph fg) -> {
                 if( !fg.isNonContour() && max[0]-- > 0 ) {
                     contourChars.add( fg.getCodepoint() );
@@ -501,7 +511,7 @@ public class FontView01 {
             final AABBox gbox = fg.getBounds(tmpBox); // g.getBounds(glp);
             final boolean addUnderline = showUnderline && gbox.getMinY() < 0f;
             final Group c1 = new Group( new BoxLayout( 1f, 1f, addUnderline ? Alignment.None : Alignment.Center) );
-            c1.setBorder(0.02f).setBorderColor(0.1f, 0.1f, 0.1f, 1).setInteractive(true).setDragAndResizeable(false).setName("GlyphHolder2");
+            c1.setBorder(GlyphGridBorderThickness).setBorderColor(GlyphGridBorderColor).setInteractive(true).setDragAndResizeable(false).setName("GlyphHolder2");
             if( addUnderline ) {
                 final Shape underline = new Rectangle(options.renderModes, 1f, gbox.getMinY(), 0.01f).setInteractive(false).setColor(0f, 0f, 1f, 0.25f);
                 c1.addShape(underline);

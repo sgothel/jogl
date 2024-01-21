@@ -97,14 +97,14 @@ public class UIShapeClippingDemo01 {
         scene.setAAQuality(options.graphAAQuality);
         final Animator animator = new Animator(0 /* w/o AWT */);
 
-        final GLCapabilities caps = new GLCapabilities(reqGLP);
-        caps.setAlphaBits(4);
-        System.out.println("Requested: " + caps);
+        final GLCapabilities reqCaps = options.getGLCaps();
+        System.out.println("Requested: " + reqCaps);
 
-        final GLWindow window = GLWindow.create(caps);
+        final GLWindow window = GLWindow.create(reqCaps);
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(UIShapeClippingDemo01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
+        System.out.println("Chosen: " + window.getChosenGLCapabilities());
         window.addGLEventListener(scene);
         window.addGLEventListener(new GLEventListener() {
             GraphShape shape = null;

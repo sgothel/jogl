@@ -113,6 +113,7 @@ public class UIShapeClippingDemo00 implements GLEventListener {
         uiGLListener.attachInputListenerTo(window);
         window.addGLEventListener(uiGLListener);
         window.setVisible(true);
+        System.out.println("Chosen: " + window.getChosenGLCapabilities());
 
         final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(5*60, null);
