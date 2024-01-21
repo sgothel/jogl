@@ -33,6 +33,7 @@ import java.io.IOException;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.FloatUtil;
@@ -65,7 +66,14 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 
 /**
- * Basic UIShape Clipping demo.
+ * Basic UIShape Clipping demo, using manual invocation via GLEventListener w/o a Scene.
+ * <p>
+ * The Clip-Rectangle acts as the clipping area, AABBox transformed into Cube in Mv-space producing the Frustum.
+ * </p>
+ * <p>
+ * The Shape-Rectangle is rendering as a child-node to the Clip-Rectangle,
+ * i.e. using its PMVMatrix4f as parent.
+ * </p>
  *
  * Action Cursor-Keys:
  * - With Shift  : Move the clipping-rectangle itself
@@ -99,7 +107,7 @@ public class UIShapeClippingDemo00 implements GLEventListener {
         window.setTitle(UIShapeClippingDemo00.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
 
         clipRect = new Rectangle(options.renderModes, szw, szh, 1/2000f);
-        clipRect.move(-szw/2f, -szh/2f, 0).setColor(0, 0, 0, 1);
+        clipRect.move(-szw/2f, -szh/2f, Scene.DEFAULT_Z16_EPSILON).setColor(0, 0, 0, 1); // above
 
         final UIShapeClippingDemo00 uiGLListener = new UIShapeClippingDemo00(options.renderModes, DEBUG, TRACE);
         uiGLListener.attachInputListenerTo(window);
@@ -214,8 +222,8 @@ public class UIShapeClippingDemo00 implements GLEventListener {
         this.trace = trace;
         this.screenshot = new GLReadBufferUtil(false, false);
 
-        this.shape = new Rectangle(renderModes, szw, szh, 0);
-        this.shape.move(-szw/2f, -szh/2f, 0);
+        this.shape = new Rectangle(renderModes, szw*0.9f, szh*0.9f, 0);
+        this.shape.move(szw*0.1f*0.5f, szh*0.1f*0.5f, -Scene.DEFAULT_Z16_EPSILON); // below
     }
 
     public final RegionRenderer getRegionRenderer() { return rRenderer; }
@@ -270,16 +278,6 @@ public class UIShapeClippingDemo00 implements GLEventListener {
         }
     }
 
-    private void drawShape(final GL2ES2 gl, final RegionRenderer renderer, final Shape shape) {
-        final PMVMatrix4f pmv = renderer.getMatrix();
-        pmv.pushMv();
-        if( null != shape && shape.isVisible() ) {
-            shape.setTransformMv(pmv);
-            shape.draw(gl, renderer);
-        }
-        pmv.popMv();
-    }
-
     @Override
     public void display(final GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -290,23 +288,24 @@ public class UIShapeClippingDemo00 implements GLEventListener {
         final RegionRenderer renderer = getRegionRenderer();
         renderer.enable(gl, true);
         {
-            drawShape(gl, renderer, clipRect);
+            final PMVMatrix4f pmv = renderer.getMatrix();
+            pmv.pushMv();
             {
-                final AABBox sbox = shape.getBounds(gl.getGLProfile());
-                final Frustum clipFrustumMv;
-                {
-                    final PMVMatrix4f pmv = renderer.getMatrix();
-                    pmv.pushMv();
-                    clipRect.setTransformMv(pmv);
-                    clipFrustumMv = new Cube( clipRect.getBounds() ).transform( pmv.getMv() ).updateFrustumPlanes(new Frustum());
-                    pmv.popMv();
-                }
+                clipRect.setTransformMv(pmv);
+                final Frustum clipFrustumMv = new Cube( clipRect.getBounds() ).transform( pmv.getMv() ).updateFrustumPlanes(new Frustum());
                 renderer.setClipFrustum( clipFrustumMv );
                 // System.err.println("Clipping "+renderer.getClipBBox());
-                drawShape(gl, renderer, shape);
+                if( null != shape && shape.isVisible() ) {
+                    pmv.pushMv();
+                    shape.setTransformMv(pmv);
+                    shape.draw(gl, renderer);
+                    pmv.popMv();
+                }
                 // System.err.println("draw.0: "+shape);
                 renderer.setClipFrustum(null);
+                clipRect.draw(gl, renderer);
             }
+            pmv.popMv();
         }
         renderer.enable(gl, false);
     }
