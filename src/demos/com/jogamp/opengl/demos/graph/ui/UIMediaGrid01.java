@@ -171,6 +171,7 @@ public class UIMediaGrid01 {
         final GLWindow window = GLWindow.create(reqCaps);
         window.setSize(options.surface_width, options.surface_height);
         window.setVisible(true);
+        System.out.println("Chosen: " + window.getChosenGLCapabilities());
         window.setTitle(UIMediaGrid01.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.addWindowListener(new WindowAdapter() {
             @Override
@@ -224,27 +225,8 @@ public class UIMediaGrid01 {
                 final short keySym = e.getKeySymbol();
                 if( keySym == KeyEvent.VK_S ) {
                     printScreenOnGLThread(scene, window.getChosenGLCapabilities());
-                } else if( keySym == KeyEvent.VK_DOWN ) {
-                } else if( keySym == KeyEvent.VK_PAGE_DOWN ) {
-                } else if( keySym == KeyEvent.VK_UP ) {
-                } else if( keySym == KeyEvent.VK_PAGE_UP ) {
                 } else if( keySym == KeyEvent.VK_F4 || keySym == KeyEvent.VK_ESCAPE || keySym == KeyEvent.VK_Q ) {
                     MiscUtils.destroyWindow(window);
-                } else if( keySym == KeyEvent.VK_SPACE ) {
-                    final Shape a = scene.getActiveShape();
-                    if( a instanceof MediaButton ) {
-                        final MediaButton b = (MediaButton)a;
-                        final GLMediaPlayer mPlayer = b.getGLMediaPlayer();
-                        if( GLMediaPlayer.State.Paused == mPlayer.getState() ) {
-                            mPlayer.resume();
-                        } else if(GLMediaPlayer.State.Uninitialized == mPlayer.getState()) {
-                            mPlayer.playStream(mPlayer.getUri(), GLMediaPlayer.STREAM_ID_AUTO, aid, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
-                        } else if( e.isShiftDown() ) {
-                            mPlayer.stop();
-                        } else {
-                            mPlayer.pause(false);
-                        }
-                    }
                 }
             }
         });

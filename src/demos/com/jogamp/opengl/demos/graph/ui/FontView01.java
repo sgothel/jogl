@@ -170,6 +170,7 @@ public class FontView01 {
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(FontView01.class.getSimpleName()+": "+font.getFullFamilyName()+", "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
+        System.out.println("Chosen: " + window.getChosenGLCapabilities());
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowResized(final WindowEvent e) {
@@ -279,7 +280,8 @@ public class FontView01 {
             final Group glyphInfoView = new Group(new GridLayout(2, 0f, 0f, Alignment.None));
             {
                 // final float gapSizeX = ( gridDim.rawSize.x() - 1 ) * cellSize * 0.1f;
-                final Group glyphGrid = new Group(new GridLayout(gridDim.columns, glyphGridCellSize*0.9f, glyphGridCellSize*0.9f, Alignment.FillCenter, new Gap(glyphGridCellSize*0.1f)));
+                final Group glyphGrid = new Group(new GridLayout(gridDim.columns, glyphGridCellSize*0.9f, glyphGridCellSize*0.9f, Alignment.FillCenter,
+                                                  new Gap(glyphGridCellSize*0.1f)));
                 glyphGrid.setInteractive(true).setDragAndResizeable(false).setToggleable(false).setName("GlyphGrid");
                 addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline, showLabel, fontStatus, fontInfo, glyphMouseListener);
                 glyphGrid.setRelayoutOnDirtyShapes(false); // avoid group re-validate to ease load in Group.isShapeDirty() w/ thousands of glyphs
@@ -297,7 +299,7 @@ public class FontView01 {
                 final RangedGroup glyphView = new RangedGroup(options.renderModes, glyphGrid, glyphGridSize,
                                                               null,
                                                               new SliderParam(new Vec2f(glyphGridCellSize/4f, glyphGridSize.y()), glyphGridCellSize/10f, true));
-                glyphView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f);
+                glyphView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f).setName("GlyphView");
                 if( VERBOSE_UI ) {
                     glyphView.getVertSlider().addSliderListener(new SliderAdapter() {
                         @Override

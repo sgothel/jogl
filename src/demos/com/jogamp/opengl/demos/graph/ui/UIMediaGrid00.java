@@ -113,6 +113,7 @@ public class UIMediaGrid00 {
         final GLWindow window = GLWindow.create(reqCaps);
         window.setSize(options.surface_width, options.surface_height);
         window.setVisible(true);
+        System.out.println("Chosen: " + window.getChosenGLCapabilities());
         window.setTitle(UIMediaGrid00.class.getSimpleName()+": "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.addWindowListener(new WindowAdapter() {
             @Override
