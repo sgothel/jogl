@@ -114,7 +114,7 @@ public class UILayoutGrid01 {
         System.err.println("Z16-Precision: zDist -1f, zNear 0.1f "+FloatUtil.getZBufferEpsilon(zBits, -1f, 0.1f));
         System.err.println("Z16-Precision: current               "+scene.getZEpsilon(zBits));
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        scene.setFrustumCullingEnabled(true);
+        scene.setPMvCullingEnabled(true);
         scene.attachInputListenerTo(window);
         window.addGLEventListener(scene);
         window.setVisible(true);

@@ -186,8 +186,8 @@ public class UISceneDemo03 {
         final AnimGroup animGroup = new AnimGroup(null);
         scene.addShape(animGroup);
 
-        scene.setFrustumCullingEnabled(true);
-        animGroup.setFrustumCullingEnabled(true);
+        scene.setPMvCullingEnabled(true);
+        animGroup.setPMvCullingEnabled(true);
 
         final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(1 * 60, null); // System.err);

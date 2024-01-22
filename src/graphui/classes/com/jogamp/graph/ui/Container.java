@@ -32,6 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.jogamp.graph.ui.Shape.Visitor2;
+import com.jogamp.math.Matrix4f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GL2ES2;
@@ -48,8 +49,28 @@ public interface Container {
     /** Returns number of {@link Shape}s, see {@link #getShapes()}. */
     int getShapeCount();
 
-    /** Returns added {@link Shape}s, see {@link #addShape(Shape)}. */
+    /** Returns {@link #addShape(Shape) added} {@link Shape}s. */
     List<Shape> getShapes();
+
+    /**
+     * Returns {@link #addShape(Shape) added shapes} which are rendered and sorted by z-axis in ascending order toward z-near.
+     * <p>
+     * The rendered shapes are {@link Shape#isVisible() visible} and not deemed outside of this container due to {@link #isCullingEnabled() culling}.
+     * </p>
+     * <p>
+     * Only rendered shapes are considered for picking/activation.
+     * </p>
+     * <p>
+     * The returned list is data-race free, i.e. won't be mutated by the rendering thread
+     * as it gets completely replace at each rendering loop using a local volatile reference.<br/>
+     * Only when disposing the container, the list gets cleared, hence {@Link List#size()} shall be used in the loop.
+     * </p>
+     * @see #addShape(Shape)
+     * @see #isCullingEnabled()
+     * @see Shape#isVisible()
+     * @see #isOutside(PMVMatrix4f, Shape)
+     */
+    List<Shape> getRenderedShapes();
 
     /** Adds a {@link Shape}. */
     void addShape(Shape s);
@@ -89,14 +110,46 @@ public interface Container {
     /** Returns {@link AABBox} dimension of given {@link Shape} from this container's perspective, i.e. world-bounds if performing from the {@link Scene}. */
     AABBox getBounds(final PMVMatrix4f pmv, Shape shape);
 
-    /** Enable or disable {@link PMVMatrix4f#getFrustum()} culling per {@link Shape}. Default is disabled. */
-    void setFrustumCullingEnabled(final boolean v);
+    /** Enable or disable {@link PMVMatrix4f#getFrustum() Project-Modelview (PMv) frustum} culling per {@link Shape} for this container. Default is disabled. */
+    void setPMvCullingEnabled(final boolean v);
 
-    /** Return whether {@link #setFrustumCullingEnabled(boolean) frustum culling} is enabled. */
-    boolean isFrustumCullingEnabled();
+    /** Return whether {@link #setPMvCullingEnabled(boolean) Project-Modelview (PMv) frustum culling} is enabled for this container. */
+    boolean isPMvCullingEnabled();
 
     /**
-     * Traverses through the graph up until {@code shape} and apply {@code action} on it.
+     * Return whether {@link #setPMvCullingEnabled(boolean) Project-Modelview (PMv) frustum culling}
+     * or {@link Group#setClipMvFrustum(com.jogamp.math.geom.Frustum) Group's Modelview (Mv) frustum clipping}
+     * is enabled for this container. Default is disabled.
+     */
+    boolean isCullingEnabled();
+
+    /**
+     * Returns whether the given {@link Shape} is completely outside of this container.
+     * <p>
+     * Note: If method returns false, the box may only be partially inside, i.e. intersects with this container
+     * </p>
+     * @param pmv current {@link PMVMatrix4f} of this container
+     * @param shape the {@link Shape} to test
+     * @see #isOutside2(Matrix4f, Shape, PMVMatrix4f)
+     * @see Shape#isOutside()
+     */
+    public boolean isOutside(final PMVMatrix4f pmv, final Shape shape);
+
+    /**
+     * Returns whether the given {@link Shape} is completely outside of this container.
+     * <p>
+     * Note: If method returns false, the box may only be partially inside, i.e. intersects with this container
+     * </p>
+     * @param mvCont copy of the model-view {@link Matrix4f) of this container
+     * @param shape the {@link Shape} to test
+     * @param pmvShape current {@link PMVMatrix4f} of the shape to test
+     * @see #isOutside(PMVMatrix4f, Shape)
+     * @see Shape#isOutside()
+     */
+    public boolean isOutside2(final Matrix4f mvCont, final Shape shape, final PMVMatrix4f pmvShape);
+
+    /**
+     * Traverses through the graph up until {@code shape} of {@link Container#getShapes()} and apply {@code action} on it.
      * @param pmv
      * @param shape
      * @param action
@@ -105,14 +158,16 @@ public interface Container {
     boolean forOne(final PMVMatrix4f pmv, final Shape shape, final Runnable action);
 
     /**
-     * Traverses through the graph and apply {@link Visitor1#visit(Shape)} for each, stop if it returns true.
+     * Traverses through the graph and apply {@link Visitor1#visit(Shape)} for each {@link Shape} of {@link Container#getShapes()},
+     * stops if it returns true.
      * @param v
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor1#visit(Shape)} returned true, otherwise false
      */
     boolean forAll(Visitor1 v);
 
     /**
-     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
+     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each {@link Shape} of {@link Container#getShapes()},
+     * stops if it returns true.
      * @param pmv
      * @param v
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
@@ -120,7 +175,8 @@ public interface Container {
     boolean forAll(final PMVMatrix4f pmv, Visitor2 v);
 
     /**
-     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
+     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each {@link Shape} of {@link Container#getShapes()},
+     * stops if it returns true.
      *
      * Each {@link Container} level is sorted using {@code sortComp}
      * @param sortComp
@@ -129,4 +185,17 @@ public interface Container {
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
      */
     boolean forSortedAll(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v);
+
+    /**
+     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each {@link Shape} of {@link Container#getRenderedShapes()},
+     * stops if it returns true.
+     * <p>
+     * Each {@link Container} level is sorted using {@code sortComp}
+     * </p>
+     * @param sortComp
+     * @param pmv
+     * @param v
+     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
+     */
+    public boolean forAllRendered(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v);
 }

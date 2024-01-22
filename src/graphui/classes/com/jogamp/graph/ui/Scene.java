@@ -131,6 +131,9 @@ public final class Scene implements Container, GLEventListener {
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
     private Shape[] displayShapeArray = new Shape[0]; // reduce memory re-alloc @ display
+    private final List<Shape> renderedShapesB0 = new ArrayList<Shape>();
+    private final List<Shape> renderedShapesB1 = new ArrayList<Shape>();
+    private volatile List<Shape> renderedShapes = renderedShapesB1;
     private final AtomicReference<Tooltip> toolTipActive = new AtomicReference<Tooltip>();
     private final AtomicReference<Shape> toolTipHUD = new AtomicReference<Shape>();
 
@@ -219,10 +222,13 @@ public final class Scene implements Container, GLEventListener {
     public final int getClearMask() { return clearMask; }
 
     @Override
-    public final void setFrustumCullingEnabled(final boolean v) { doFrustumCulling = v; }
+    public final void setPMvCullingEnabled(final boolean v) { doFrustumCulling = v; }
 
     @Override
-    public final boolean isFrustumCullingEnabled() { return doFrustumCulling; }
+    public final boolean isPMvCullingEnabled() { return doFrustumCulling; }
+
+    @Override
+    public final boolean isCullingEnabled() { return doFrustumCulling; }
 
     public synchronized void attachGLAutoDrawable(final GLAutoDrawable drawable) {
         cDrawable = drawable;
@@ -268,6 +274,9 @@ public final class Scene implements Container, GLEventListener {
 
     @Override
     public List<Shape> getShapes() { return shapes; }
+
+    @Override
+    public List<Shape> getRenderedShapes() { return renderedShapes; }
 
     @Override
     public void addShape(final Shape s) {
@@ -334,7 +343,7 @@ public final class Scene implements Container, GLEventListener {
 
     @Override
     public boolean contains(final Shape s) {
-        return TreeTool.contains(shapes, s);
+        return TreeTool.contains(this, s);
     }
     @Override
     public Shape getShapeByIdx(final int id) {
@@ -345,11 +354,11 @@ public final class Scene implements Container, GLEventListener {
     }
     @Override
     public Shape getShapeByID(final int id) {
-        return TreeTool.getShapeByID(shapes, id);
+        return TreeTool.getShapeByID(this, id);
     }
     @Override
     public Shape getShapeByName(final String name) {
-        return TreeTool.getShapeByName(shapes, name);
+        return TreeTool.getShapeByName(this, name);
     }
 
     /** Returns {@link RegionRenderer#getSampleCount()}. */
@@ -448,7 +457,27 @@ public final class Scene implements Container, GLEventListener {
         pmvMatrixSetup.setPlaneBox(planeBox, renderer.getMatrix(), renderer.getViewport());
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Override
+    public final boolean isOutside(final PMVMatrix4f pmv, final Shape shape) {
+        if( doFrustumCulling ){
+            pmv.pushMv();
+            shape.applyMatToMv(pmv);
+            final boolean res = pmv.getFrustum().isOutside( shape.getBounds() );
+            pmv.popMv();
+            return res;
+        } else {
+            return false;
+        }
+    }
+    @Override
+    public boolean isOutside2(final Matrix4f mvCont, final Shape shape, final PMVMatrix4f pmvShape) {
+        if( doFrustumCulling ){
+            return pmvShape.getFrustum().isOutside( shape.getBounds() );
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public void display(final GLAutoDrawable drawable) {
         final int shapeCount = shapes.size();
@@ -457,6 +486,8 @@ public final class Scene implements Container, GLEventListener {
         displayShapeArray = shapeArray; // keep backup
         Arrays.sort(shapeArray, 0, shapeCount, Shape.ZAscendingComparator);
 
+        final List<Shape> iShapes = renderedShapes == renderedShapesB0 ? renderedShapesB1 : renderedShapesB0;
+        iShapes.clear();
 
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -476,10 +507,12 @@ public final class Scene implements Container, GLEventListener {
 
                 if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                     shape.draw(gl, renderer);
+                    iShapes.add(shape);
                 }
                 pmv.popMv();
             }
         }
+        renderedShapes = iShapes;
         renderer.enable(gl, false);
         synchronized ( syncDisplayedOnce ) {
             displayedOnce = true;
@@ -573,6 +606,8 @@ public final class Scene implements Container, GLEventListener {
         }
         shapes.clear();
         displayShapeArray = new Shape[0];
+        renderedShapesB0.clear();
+        renderedShapesB1.clear();
         disposeActions.clear();
         if( drawable == cDrawable ) {
             cDrawable = null;
@@ -622,7 +657,7 @@ public final class Scene implements Container, GLEventListener {
         final Ray ray = new Ray();
         final Shape[] shape = { null };
         final int[] shapeIdx = { -1 };
-        forSortedAll(Shape.ZDescendingComparator, pmv, (final Shape s, final PMVMatrix4f pmv2) -> {
+        TreeTool.forAllRendered(this, pmv, (final Shape s, final PMVMatrix4f pmv2) -> {
             shapeIdx[0]++;
             final boolean ok = s.isInteractive() && pmv.mapWinToRay(glWinX, glWinY, winZ0, winZ1, viewport, ray);
             if( ok ) {
@@ -777,7 +812,7 @@ public final class Scene implements Container, GLEventListener {
      */
     @Override
     public boolean forOne(final PMVMatrix4f pmv, final Shape shape, final Runnable action) {
-        return TreeTool.forOne(shapes, pmv, shape, action);
+        return TreeTool.forOne(this, pmv, shape, action);
     }
 
     /**
@@ -788,7 +823,7 @@ public final class Scene implements Container, GLEventListener {
      */
     @Override
     public boolean forAll(final PMVMatrix4f pmv, final Visitor2 v) {
-        return TreeTool.forAll(shapes, pmv, v);
+        return TreeTool.forAll(this, pmv, v);
     }
 
     /**
@@ -798,7 +833,7 @@ public final class Scene implements Container, GLEventListener {
      */
     @Override
     public boolean forAll(final Visitor1 v) {
-        return TreeTool.forAll(shapes, v);
+        return TreeTool.forAll(this, v);
     }
 
     /**
@@ -812,20 +847,12 @@ public final class Scene implements Container, GLEventListener {
      */
     @Override
     public boolean forSortedAll(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
-        try {
-            return TreeTool.forSortedAll(sortComp, shapes, pmv, v);
-        } catch (final java.lang.IllegalArgumentException iae) {
-            System.err.println("Caught: "+iae.getMessage());
-            System.err.println("float[] descendingZValues = { ");
-            for(final Shape s : shapes) {
-                final int thisBits = Float.floatToIntBits(s.getAdjustedZ());
-                System.err.println("        Float.intBitsToFloat(0x"+Integer.toHexString(thisBits)+"),");
-            }
-            System.err.println("    };");
-            iae.printStackTrace();
-            throw iae;
-            // return true;
-        }
+        return TreeTool.forSortedAll(this, sortComp, pmv, v);
+    }
+
+    @Override
+    public boolean forAllRendered(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
+        return TreeTool.forAllRendered(this, pmv, v);
     }
 
     /**

@@ -65,7 +65,7 @@ public class FontViewListener01 implements GLEventListener {
 
         scene = new Scene(graphSampleCount);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        scene.setFrustumCullingEnabled(true);
+        scene.setPMvCullingEnabled(true);
         scene.setAAQuality(graphAAQuality);
     }
 

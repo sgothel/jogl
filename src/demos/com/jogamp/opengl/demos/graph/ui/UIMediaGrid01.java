@@ -186,7 +186,7 @@ public class UIMediaGrid01 {
 
         final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        scene.setFrustumCullingEnabled(true);
+        scene.setPMvCullingEnabled(true);
 
         scene.attachInputListenerTo(window);
         window.addGLEventListener(scene);

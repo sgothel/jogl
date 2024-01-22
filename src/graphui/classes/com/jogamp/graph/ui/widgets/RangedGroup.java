@@ -171,9 +171,9 @@ public class RangedGroup extends Widget {
 
             // Mv pre-multiplied Frustum, clippedContent is on same PMV
             final Frustum clipFrustum = tempC00.set( clippedContent.getBounds() ).transform( pmv.getMv() ).updateFrustumPlanes(tempF00);
-            content.setClipFrustum(clipFrustum);
+            content.setClipMvFrustum(clipFrustum);
             super.drawImpl0(gl, renderer, rgba);
-            content.setClipFrustum(null);
+            content.setClipMvFrustum(null);
         }
     }
     private final Frustum tempF00 = new Frustum(); // OK, synchronized

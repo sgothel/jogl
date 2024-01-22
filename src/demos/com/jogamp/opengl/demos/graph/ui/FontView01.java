@@ -184,7 +184,7 @@ public class FontView01 {
 
         final Scene scene = new Scene(options.graphAASamples);
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        scene.setFrustumCullingEnabled(true);
+        scene.setPMvCullingEnabled(true);
 
         scene.attachInputListenerTo(window);
         window.addGLEventListener(scene);
@@ -282,6 +282,7 @@ public class FontView01 {
                 final Group glyphGrid = new Group(new GridLayout(gridDim.columns, glyphGridCellSize*0.9f, glyphGridCellSize*0.9f, Alignment.FillCenter, new Gap(glyphGridCellSize*0.1f)));
                 glyphGrid.setInteractive(true).setDragAndResizeable(false).setToggleable(false).setName("GlyphGrid");
                 addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline, showLabel, fontStatus, fontInfo, glyphMouseListener);
+                glyphGrid.setRelayoutOnDirtyShapes(false); // avoid group re-validate to ease load in Group.isShapeDirty() w/ thousands of glyphs
                 if( VERBOSE_UI ) {
                     glyphGrid.validate(reqCaps.getGLProfile());
                     System.err.println("GlyphGrid "+glyphGrid);

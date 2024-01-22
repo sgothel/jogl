@@ -82,6 +82,9 @@ public class Group extends Shape implements Container {
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
     private Shape[] drawShapeArray = new Shape[0]; // reduce memory re-alloc @ display
+    private final List<Shape> renderedShapesB0 = new ArrayList<Shape>();
+    private final List<Shape> renderedShapesB1 = new ArrayList<Shape>();
+    private volatile List<Shape> renderedShapes = renderedShapesB1;
     /** Enforced fixed size. In case z-axis is NaN, its 3D z-axis will be adjusted. */
     private final Vec3f fixedSize = new Vec3f();
     private Layout layouter;
@@ -151,7 +154,7 @@ public class Group extends Shape implements Container {
     public Group setFixedSize(final Vec3f v) { fixedSize.set(v); return this; }
     /**
      * Enforce size of this group to given 2 dimensions,
-     * adjusting the 3D z-axis {@link #getBounds()} giving room for potential clipping via {@link #setClipOnBounds(boolean)} or {@link #setClipFrustum(Frustum)}.
+     * adjusting the 3D z-axis {@link #getBounds()} giving room for potential clipping via {@link #setClipOnBounds(boolean)} or {@link #setClipMvFrustum(Frustum)}.
      * @see #setFixedSize(Vec3f)
      */
     public Group setFixedSize(final Vec2f v) { fixedSize.set(v.x(), v.y(), Float.NaN); return this; }
@@ -161,13 +164,13 @@ public class Group extends Shape implements Container {
     public Vec2f getFixedSize(final Vec2f out) { out.set(fixedSize.x(),  fixedSize.y()); return out; }
 
     /**
-     * Enable {@link Frustum} clipping on {@link #getBounds()} for this group and its shapes as follows
+     * Enable Modelview (Mv) {@link Frustum} clipping on {@link #getBounds()} for this group and its shapes as follows
      * <ul>
      *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer) rendering} if not intersecting {@code clip-box}.</li>
      *   <li>Otherwise perform pixel-accurate clipping inside the shader to {@code clip-box}.</li>
      * </ul>
      * <p>
-     * {@link #setClipFrustum(Frustum)} takes precedence over {@link #setClipOnBounds(boolean)}.
+     * {@link #setClipMvFrustum(Frustum)} takes precedence over {@link #setClipOnBounds(boolean)}.
      * </p>
      * <p>
      * With clipping enabled, the 3D z-axis {@link #getBounds()} depth
@@ -175,7 +178,7 @@ public class Group extends Shape implements Container {
      * </p>
      * @param v boolean to toggle clipping
      * @return this instance for chaining
-     * @see #setClipFrustum(Frustum)
+     * @see #setClipMvFrustum(Frustum)
      * @see #setFixedSize(Vec2f)
      * @see #setFixedSize(Vec3f)
      */
@@ -184,14 +187,14 @@ public class Group extends Shape implements Container {
     public boolean getClipOnBounds() { return clipOnBounds; }
 
     /**
-     * Enable {@link Frustum} clipping on explicit given pre-multiplied w/ Mv-matrix {@code clip-box}
+     * Enable Modelview (Mv) {@link Frustum} clipping on explicit given pre-multiplied w/ Mv-matrix {@code clip-box}
      * for this group and its shapes as follows
      * <ul>
      *   <li>Discard {@link Shape} {@link #draw(GL2ES2, RegionRenderer) rendering} if not intersecting {@code clip-box}.</li>
      *   <li>Otherwise perform pixel-accurate clipping inside the shader to {@code clip-box}.</li>
      * </ul>
      * <p>
-     * {@link #setClipFrustum(Frustum)} takes precedence over {@link #setClipOnBounds(boolean)}.
+     * {@link #setClipMvFrustum(Frustum)} takes precedence over {@link #setClipOnBounds(boolean)}.
      * </p>
      * <p>
      * With clipping enabled, the 3D z-axis {@link #getBounds()} depth
@@ -203,15 +206,18 @@ public class Group extends Shape implements Container {
      * @see #setFixedSize(Vec2f)
      * @see #setFixedSize(Vec3f)
      */
-    public Group setClipFrustum(final Frustum v) { clipFrustum = v; return this; }
-    /** Returns {@link #setClipFrustum(Frustum)} value */
-    public Frustum getClipFrustum() { return clipFrustum; }
+    public Group setClipMvFrustum(final Frustum v) { clipFrustum = v; return this; }
+    /** Returns {@link #setClipMvFrustum(Frustum)} value */
+    public Frustum getClipMvFrustum() { return clipFrustum; }
 
     @Override
     public int getShapeCount() { return shapes.size(); }
 
     @Override
     public List<Shape> getShapes() { return shapes; }
+
+    @Override
+    public List<Shape> getRenderedShapes() { return renderedShapes; }
 
     @Override
     public void addShape(final Shape s) {
@@ -305,6 +311,8 @@ public class Group extends Shape implements Container {
         }
         shapes.clear();
         drawShapeArray = new Shape[0];
+        renderedShapesB0.clear();
+        renderedShapesB1.clear();
     }
 
     @Override
@@ -315,6 +323,8 @@ public class Group extends Shape implements Container {
         }
         shapes.clear();
         drawShapeArray = new Shape[0];
+        renderedShapesB0.clear();
+        renderedShapesB1.clear();
         if( null != border ) {
             border.destroy(gl, renderer);
             border = null;
@@ -324,10 +334,61 @@ public class Group extends Shape implements Container {
     private boolean doFrustumCulling = false;
 
     @Override
-    public final void setFrustumCullingEnabled(final boolean v) { doFrustumCulling = v; }
+    public final void setPMvCullingEnabled(final boolean v) { doFrustumCulling = v; }
 
     @Override
-    public final boolean isFrustumCullingEnabled() { return doFrustumCulling; }
+    public final boolean isPMvCullingEnabled() { return doFrustumCulling; }
+
+    @Override
+    public final boolean isCullingEnabled() { return doFrustumCulling || clipOnBounds || null != clipFrustum; }
+
+    @Override
+    public final boolean isOutside(final PMVMatrix4f pmv, final Shape shape) {
+        final AABBox shapeBox = shape.getBounds();
+        final boolean useClipFrustum = null != clipFrustum;
+        if( useClipFrustum || clipOnBounds ) {
+            final Frustum frustumMv = useClipFrustum ? clipFrustum : tempC00.set( box ).transform( pmv.getMv() ).updateFrustumPlanes(tempF00);
+            pmv.pushMv();
+            shape.applyMatToMv(pmv);
+            final boolean res;
+            if( doFrustumCulling && pmv.getFrustum().isOutside( shapeBox ) ) {
+                res = true;
+            } else {
+                final Cube shapeMv = tempC01.set( shapeBox ).transform( pmv.getMv() );
+                res = frustumMv.isOutside( shapeMv );
+            }
+            pmv.popMv();
+            return res;
+        } else if( doFrustumCulling ){
+            pmv.pushMv();
+            shape.applyMatToMv(pmv);
+            final boolean res = pmv.getFrustum().isOutside( shapeBox );
+            pmv.popMv();
+            return res;
+        } else {
+            return false;
+        }
+    }
+    @Override
+    public boolean isOutside2(final Matrix4f mvCont, final Shape shape, final PMVMatrix4f pmvShape) {
+        final AABBox shapeBox = shape.getBounds();
+        final boolean useClipFrustum = null != clipFrustum;
+        if( useClipFrustum || clipOnBounds ) {
+            final Frustum frustumMv = useClipFrustum ? clipFrustum : tempC00.set( box ).transform( mvCont ).updateFrustumPlanes(tempF00);
+            final boolean res;
+            if( doFrustumCulling && pmvShape.getFrustum().isOutside( shapeBox ) ) {
+                res = true;
+            } else {
+                final Cube shapeMv = tempC01.set( shapeBox ).transform( pmvShape.getMv() );
+                res = frustumMv.isOutside( shapeMv );
+            }
+            return res;
+        } else if( doFrustumCulling ){
+            return pmvShape.getFrustum().isOutside( shapeBox );
+        } else {
+            return false;
+        }
+    }
 
     @Override
     protected void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final Vec4f rgba) {
@@ -337,6 +398,9 @@ public class Group extends Shape implements Container {
         final Shape[] shapeArray = shapes.toArray(drawShapeArray); // local-backup
         drawShapeArray = shapeArray; // keep backup
         Arrays.sort(shapeArray, 0, shapeCount, Shape.ZAscendingComparator);
+
+        final List<Shape> iShapes = renderedShapes == renderedShapesB0 ? renderedShapesB1 : renderedShapesB0;
+        iShapes.clear();
 
         final boolean useClipFrustum = null != clipFrustum;
         if( useClipFrustum || clipOnBounds ) {
@@ -358,6 +422,7 @@ public class Group extends Shape implements Container {
                         ( !doFrustumCulling || !pmv.getFrustum().isOutside( shapeBox ) ) )
                     {
                         shape.draw(gl, renderer);
+                        iShapes.add(shape);
                     }
                     pmv.popMv();
                 }
@@ -371,11 +436,13 @@ public class Group extends Shape implements Container {
                     shape.applyMatToMv(pmv);
                     if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                         shape.draw(gl, renderer);
+                        iShapes.add(shape);
                     }
                     pmv.popMv();
                 }
             }
         }
+        renderedShapes = iShapes;
         if( null != border ) {
             border.draw(gl, renderer);
         }
@@ -594,7 +661,7 @@ public class Group extends Shape implements Container {
 
     @Override
     public boolean contains(final Shape s) {
-        return TreeTool.contains(shapes, s);
+        return TreeTool.contains(this, s);
     }
     @Override
     public Shape getShapeByIdx(final int id) {
@@ -605,11 +672,11 @@ public class Group extends Shape implements Container {
     }
     @Override
     public Shape getShapeByID(final int id) {
-        return TreeTool.getShapeByID(shapes, id);
+        return TreeTool.getShapeByID(this, id);
     }
     @Override
     public Shape getShapeByName(final String name) {
-        return TreeTool.getShapeByName(shapes, name);
+        return TreeTool.getShapeByName(this, name);
     }
 
     @Override
@@ -633,22 +700,27 @@ public class Group extends Shape implements Container {
 
     @Override
     public boolean forOne(final PMVMatrix4f pmv, final Shape shape, final Runnable action) {
-        return TreeTool.forOne(shapes, pmv, shape, action);
+        return TreeTool.forOne(this, pmv, shape, action);
     }
 
     @Override
     public boolean forAll(final Visitor1 v) {
-        return TreeTool.forAll(shapes, v);
+        return TreeTool.forAll(this, v);
     }
 
     @Override
     public boolean forAll(final PMVMatrix4f pmv, final Visitor2 v) {
-        return TreeTool.forAll(shapes, pmv, v);
+        return TreeTool.forAll(this, pmv, v);
     }
 
     @Override
     public boolean forSortedAll(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
-        return TreeTool.forSortedAll(sortComp, shapes, pmv, v);
+        return TreeTool.forSortedAll(this, sortComp, pmv, v);
+    }
+
+    @Override
+    public boolean forAllRendered(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
+        return TreeTool.forAllRendered(this, pmv, v);
     }
 }
 

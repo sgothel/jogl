@@ -36,24 +36,27 @@ import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.Shape.Visitor1;
 import com.jogamp.graph.ui.Shape.Visitor2;
+import com.jogamp.math.Matrix4f;
 import com.jogamp.math.util.PMVMatrix4f;
 
 /** Generic static {@link Shape} tree traversal tools, utilized by {@link Scene} and {@link Container} implementations. */
 public class TreeTool {
 
     /**
-     * Traverses through the graph up until {@code shape} and apply {@code action} on it.
+     * Traverses through the graph up until {@code shape} of {@link Container#getShapes()} and apply {@code action} on it.
      * @param pmv
      * @param shape
      * @param action
      * @return true to signal operation complete, i.e. {@code shape} found, otherwise false
      */
-    public static boolean forOne(final List<Shape> shapes, final PMVMatrix4f pmv, final Shape shape, final Runnable action) {
-        for(int i=0; i<shapes.size(); ++i) {
+    public static boolean forOne(final Container cont, final PMVMatrix4f pmv, final Shape shape, final Runnable action) {
+        final List<Shape> shapes = cont.getShapes();
+        final int shapeCount = shapes.size();
+        for(int i=0; i<shapeCount; ++i) {
             final Shape s = shapes.get(i);
             if( s.equals(shape) ) {
                 pmv.pushMv();
-                s.setTransformMv(pmv);
+                s.applyMatToMv(pmv);
                 action.run();
                 pmv.popMv();
                 return true;
@@ -63,8 +66,8 @@ public class TreeTool {
                     continue;
                 }
                 pmv.pushMv();
-                s.setTransformMv(pmv);
-                final boolean res = c.forOne(pmv, shape, action);
+                s.applyMatToMv(pmv);
+                final boolean res = forOne(c, pmv, shape, action);
                 pmv.popMv();
                 if( !res ) { throw new InternalError("Not found "+shape+" in "+c+", but contained"); }
                 return true;
@@ -74,39 +77,43 @@ public class TreeTool {
     }
 
     /**
-     * Traverses through the graph and apply {@link Visitor1#visit(Shape)} for each, stop if it returns true.
+     * Traverses through the graph and apply {@link Visitor1#visit(Shape)} for each {@link Shape} of {@link Container#getShapes()}, stop if it returns true.
      * @param v
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor1#visit(Shape)} returned true, otherwise false
      */
-    public static boolean forAll(final List<Shape> shapes, final Visitor1 v) {
+    public static boolean forAll(final Container cont, final Visitor1 v) {
+        final List<Shape> shapes = cont.getShapes();
+        final int shapeCount = shapes.size();
         boolean res = false;
-        for(int i=0; !res && i<shapes.size(); ++i) {
+        for(int i=0; !res && i<shapeCount; ++i) {
             final Shape s = shapes.get(i);
             res = v.visit(s);
             if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
-                res = c.forAll(v);
+                res = forAll(c, v);
             }
         }
         return res;
     }
 
     /**
-     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
+     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each {@link Shape} of {@link Container#getShapes()}, stop if it returns true.
      * @param pmv
      * @param v
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
      */
-    public static boolean forAll(final List<Shape> shapes, final PMVMatrix4f pmv, final Visitor2 v) {
+    public static boolean forAll(final Container cont, final PMVMatrix4f pmv, final Visitor2 v) {
+        final List<Shape> shapes = cont.getShapes();
+        final int shapeCount = shapes.size();
         boolean res = false;
-        for(int i=0; !res && i<shapes.size(); ++i) {
+        for(int i=0; !res && i<shapeCount; ++i) {
             final Shape s = shapes.get(i);
             pmv.pushMv();
-            s.setTransformMv(pmv);
+            s.applyMatToMv(pmv);
             res = v.visit(s, pmv);
             if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
-                res = c.forAll(pmv, v);
+                res = forAll(c, pmv, v);
             }
             pmv.popMv();
         }
@@ -114,41 +121,75 @@ public class TreeTool {
     }
 
     /**
-     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
-     *
+     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each {@link Shape} of {@link Container#getShapes()},
+     * stops if it returns true.
+     * <p>
      * Each {@link Container} level is sorted using {@code sortComp}
+     * </p>
+     * @param cont container of the shapes
      * @param sortComp
      * @param pmv
      * @param v
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public static boolean forSortedAll(final Comparator<Shape> sortComp, final List<Shape> shapes, final PMVMatrix4f pmv, final Visitor2 v) {
-        final Object[] shapesS = shapes.toArray();
-        Arrays.sort(shapesS, (Comparator)sortComp);
+    public static boolean forSortedAll(final Container cont, final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
+        final List<Shape> shapes = cont.getShapes();
+        final int shapeCount = shapes.size();
+        final Shape[] shapesS = shapes.toArray(new Shape[shapeCount]);
+        Arrays.sort(shapesS, sortComp);
         boolean res = false;
 
-        for(int i=0; !res && i<shapesS.length; ++i) {
-            final Shape s = (Shape)shapesS[i];
+        for(int i=0; !res && i<shapeCount; ++i) {
+            final Shape s = shapesS[i];
             pmv.pushMv();
-            s.setTransformMv(pmv);
+            s.applyMatToMv(pmv);
             res = v.visit(s, pmv);
             if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
-                res = c.forSortedAll(sortComp, pmv, v);
+                res = forSortedAll(c, sortComp, pmv, v);
             }
             pmv.popMv();
         }
         return res;
     }
 
-    public static boolean contains(final List<Shape> shapes, final Shape s) {
+    /**
+     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each {@link Shape} of {@link Container#getRenderedShapes()},
+     * stops if it returns true.
+     * <p>
+     * Each {@link Container} level is sorted using {@code sortComp}
+     * </p>
+     * @param cont container of the shapes
+     * @param pmv
+     * @param v
+     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
+     */
+    public static boolean forAllRendered(final Container cont, final PMVMatrix4f pmv, final Visitor2 v) {
+        final List<Shape> shapes = cont.getRenderedShapes();
+        boolean res = false;
+
+        for(int i=0; !res && i<shapes.size(); ++i) {
+            final Shape s = shapes.get(i);
+            pmv.pushMv();
+            s.applyMatToMv(pmv);
+            res = v.visit(s, pmv);
+            if( !res && s instanceof Container ) {
+                final Container c = (Container)s;
+                res = forAllRendered(c, pmv, v);
+            }
+            pmv.popMv();
+        }
+        return res;
+    }
+
+    public static boolean contains(final Container cont, final Shape s) {
+        final List<Shape> shapes = cont.getShapes();
         if( shapes.contains(s) ) {
             return true;
         }
         for(final Shape shape : shapes) {
             if( shape instanceof Container ) {
-                if( ((Container)shape).contains(s) ) {
+                if( contains((Container)shape, s) ) {
                     return true;
                 }
             }
@@ -156,9 +197,9 @@ public class TreeTool {
         return false;
     }
 
-    public static Shape getShapeByID(final List<Shape> shapes, final int id) {
+    public static Shape getShapeByID(final Container cont, final int id) {
         final Shape[] res = { null };
-        forAll(shapes, (final Shape s) -> {
+        forAll(cont, (final Shape s) -> {
             if( s.getID() == id ) {
                 res[0] = s;
                 return true;
@@ -168,9 +209,9 @@ public class TreeTool {
         });
         return res[0];
     }
-    public static Shape getShapeByName(final List<Shape> shapes, final String name) {
+    public static Shape getShapeByName(final Container cont, final String name) {
         final Shape[] res = { null };
-        forAll(shapes, (final Shape s) -> {
+        forAll(cont, (final Shape s) -> {
             if( s.getName().equals(name) ) {
                 res[0] = s;
                 return true;

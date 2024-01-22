@@ -100,7 +100,7 @@ public class UISceneDemo11 {
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         scene.addShape(groupA0);
-        scene.setFrustumCullingEnabled(true);
+        scene.setPMvCullingEnabled(true);
 
         final Animator animator = new Animator(0 /* w/o AWT */);
 

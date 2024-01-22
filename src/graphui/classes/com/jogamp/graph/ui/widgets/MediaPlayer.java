@@ -115,7 +115,9 @@ public class MediaPlayer extends Widget {
 
         final float ctrlCellWidth = (aratio-2*borderSzS)/ctrlCells;
         final float ctrlCellHeight = ctrlCellWidth;
-        final float ctrlSliderHeight = ctrlCellHeight/15f;
+        final float ctrlSliderHeightMin = ctrlCellHeight/15f;       // bar-height
+        final float ctrlSliderHeightMax = 3f * ctrlSliderHeightMin; // knob-height
+        final float infoGroupHeight = 1/7f;
 
         final Shape[] zoomReplacement = { null };
         final Vec3f[] zoomOrigScale = { null };
@@ -131,11 +133,10 @@ public class MediaPlayer extends Widget {
 
         final RangeSlider ctrlSlider;
         {
-            final float knobScale = 3f;
-            final float knobHeight = ctrlSliderHeight * knobScale;
-            ctrlSlider = new RangeSlider(renderModes, new Vec2f(aratio - knobHeight, ctrlSliderHeight), knobScale, new Vec2f(0, 100), 1, 0);
-            final float dx = knobHeight / 2f;
-            final float dy = ( knobHeight - ctrlSliderHeight ) * 0.5f;
+            final float knobScale = ctrlSliderHeightMax / ctrlSliderHeightMin;
+            ctrlSlider = new RangeSlider(renderModes, new Vec2f(aratio - ctrlSliderHeightMax, ctrlSliderHeightMin), knobScale, new Vec2f(0, 100), 1, 0);
+            final float dx = ctrlSliderHeightMax / 2f;
+            final float dy = ( ctrlSliderHeightMax - ctrlSliderHeightMin ) * 0.5f;
             ctrlSlider.setPaddding(new Padding(0, dx, ctrlCellHeight-dy, dx));
         }
         ctrlSlider.setName("mp.slider");
@@ -210,11 +211,10 @@ public class MediaPlayer extends Widget {
             infoGroup.setName("mp.info").setInteractive(false);
             this.addShape( infoGroup.setVisible(false) );
             {
-                final float sz = 1/7f;
-                final Rectangle rect = new Rectangle(renderModes & ~Region.AA_RENDERING_MASK, aratio, sz, 0);
+                final Rectangle rect = new Rectangle(renderModes & ~Region.AA_RENDERING_MASK, aratio, infoGroupHeight, 0);
                 rect.setName("mp.info.blend").setInteractive(false);
                 rect.setColor(0, 0, 0, alphaBlend);
-                rect.setPaddding(new Padding(0, 0, 1f-sz, 0));
+                rect.setPaddding(new Padding(0, 0, 1f-infoGroupHeight, 0));
                 infoGroup.addShape(rect);
             }
             {
@@ -468,13 +468,6 @@ public class MediaPlayer extends Widget {
                 this.setBorderColor(borderColorA);
             } else {
                 this.setBorderColor(borderColor);
-            }
-            if( ctrlGroup.isActive() || ctrlSlider.isActive() ) {
-                ctrlSlider.setVisible(true);
-                ctrlBlend.setVisible(true);
-                ctrlGroup.setVisible(true);
-                infoGroup.setVisible(true);
-            } else {
                 ctrlSlider.setVisible(false);
                 ctrlBlend.setVisible(false);
                 ctrlGroup.setVisible(false);
@@ -482,6 +475,16 @@ public class MediaPlayer extends Widget {
             }
         });
         this.addMouseListener(new Shape.MouseGestureAdapter() {
+            @Override
+            public void mouseMoved(final MouseEvent e) {
+                final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
+                final Vec3f p = shapeEvent.objPos;
+                final boolean c = ( ctrlCellHeight + ctrlSliderHeightMax ) > p.y() || p.y() > ( 1f - infoGroupHeight );
+                ctrlSlider.setVisible(c);
+                ctrlBlend.setVisible(c);
+                ctrlGroup.setVisible(c);
+                infoGroup.setVisible(c);
+            }
             @Override
             public void mouseReleased(final MouseEvent e) {
                 mButton.setPressedColorMod(1f, 1f, 1f, 1f);

@@ -310,13 +310,21 @@ public abstract class Shape {
     /** Returns true if this shape denotes a {@link Group}, otherwise false. */
     public boolean isGroup() { return false; }
 
-    /** Returns true if this shape is visible, otherwise false. */
+    /**
+     * Returns true if this shape is set {@link #setVisible(boolean) visible} by the user, otherwise false. Defaults to true.
+     * <p>
+     * Note that invisible shapes are not considered for picking/activation.
+     * </p>
+     * @see #isInteractive()
+     */
     public final boolean isVisible() { return isIO(IO_VISIBLE); }
     /**
-     * Enable or disable this shape's visibility.
+     * Enable (default) or disable this shape's visibility.
      * <p>
-     * Note that invisible shapes are still considered for picking/activation.
-     * To completely mute the shape, issue {@link #setInteractive(boolean)} as well.
+     * Note that invisible shapes are not considered for picking/activation.
+     * </p>
+     * <p>
+     * This visibility flag is toggled by the user only.
      * </p>
      */
     public final Shape setVisible(final boolean v) { return setIO(IO_VISIBLE, v); }
@@ -1567,7 +1575,7 @@ public abstract class Shape {
     public Tooltip getTooltip() { return tooltip; }
 
     /**
-     * Set whether this shape is interactive,
+     * Set whether this shape is interactive in general,
      * i.e. any user interaction like
      * - {@link #isToggleable()}
      * - {@link #isDraggable()}
@@ -1575,14 +1583,16 @@ public abstract class Shape {
      * but excluding programmatic changes.
      * @param v new value for {@link #isInteractive()}
      * @see #isInteractive()
+     * @see #isVisible()
      * @see #setDraggable(boolean)
      * @see #setResizable(boolean)
      * @see #setDragAndResizeable(boolean)
      */
     public final Shape setInteractive(final boolean v) { return setIO(IO_INTERACTIVE, v); }
     /**
-     * Returns if this shape allows user interaction, see {@link #setInteractive(boolean)}
+     * Returns if this shape allows user interaction in general, see {@link #setInteractive(boolean)}
      * @see #setInteractive(boolean)
+     * @see #isVisible()
      */
     public final boolean isInteractive() { return isIO(IO_INTERACTIVE); }
 
