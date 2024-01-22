@@ -282,11 +282,13 @@ public final class RegionRenderer {
         }
         shaderPrograms0.clear();
 
-        for(final Iterator<ShaderProgram> i = shaderPrograms1.values().iterator(); i.hasNext(); ) {
-            final ShaderProgram sp = i.next();
-            sp.destroy(gl);
+        if( !useShaderPrograms0 ) {
+            for(final Iterator<ShaderProgram> i = shaderPrograms1.values().iterator(); i.hasNext(); ) {
+                final ShaderProgram sp = i.next();
+                sp.destroy(gl);
+            }
+            shaderPrograms1.clear();
         }
-        shaderPrograms1.clear();
         rs.detachFrom(gl);
         rs.destroy();
         initialized = false;
@@ -582,8 +584,8 @@ public final class RegionRenderer {
         }
     }
     private final IntObjectHashMap shaderPrograms0 = new IntObjectHashMap();
-    private final HashMap<ShaderKey, ShaderProgram> shaderPrograms1 = new HashMap<ShaderKey, ShaderProgram>();
-    private final boolean useShaderPrograms0 = true;
+    private final HashMap<ShaderKey, ShaderProgram> shaderPrograms1 = null; // new HashMap<ShaderKey, ShaderProgram>();
+    private static final boolean useShaderPrograms0 = true;
 
     private static String shaderKeyToString(final int hashCode, final boolean isTwoPass, final boolean pass1,
                                    final boolean hasFrustumClipping, final boolean hasColorChannel, final boolean hasColorTexture,
