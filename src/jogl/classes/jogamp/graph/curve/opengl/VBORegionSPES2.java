@@ -95,7 +95,7 @@ public final class VBORegionSPES2 extends GLRegion {
         vpc_ileave.seal(gl, true);
         vpc_ileave.enableBuffer(gl, false);
         if( hasColorTexture && null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
-            TextureSequence.setTexCoordBBox(colorTexSeq.getLastTexture().getTexture(), box, isColorTextureLetterbox(), colorTexBBox, true);
+            TextureSequence.setTexCoordBBox(colorTexSeq.getLastTexture().getTexture(), box, isColorTextureLetterbox(), colorTexBBox, false);
         }
         indicesBuffer.seal(gl, true);
         indicesBuffer.enableBuffer(gl, false);
