@@ -763,10 +763,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      */
     @Override
     public final String getTextureLookupFragmentShaderImpl() {
-        final float tc_w_1 = (float)getWidth() / (float)texWidth;
-        return getTextureLookupFragmentShaderImpl(tc_w_1);
-    }
-    private final String getTextureLookupFragmentShaderImpl(final float tc_w_1) {
+      final float tc_w_1 = (float)getWidth() / (float)texWidth;
       final String texLookupFuncName = getTextureLookupFunctionName();
       if( texLookupFuncName.equals("texture2D") ) {
           throw new IllegalArgumentException("Build in 'texture2D' lookup-func-name not allowed!");
@@ -924,8 +921,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
     @Override
     public final String getTextureFragmentShaderHashID() {
-        // return getTextureSampler2DType()+";"+getTextureLookupFunctionName()+";"+getTextureLookupFragmentShaderImpl(1.0f);
-        return getTextureLookupFragmentShaderImpl(1.0f); // state-less shader code required using 1.0
+        // return getTextureSampler2DType()+";"+getTextureLookupFunctionName()+";"+getTextureLookupFragmentShaderImpl();
+        return getTextureLookupFragmentShaderImpl();
     }
 
     @Override
