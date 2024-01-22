@@ -316,7 +316,7 @@ public class UISceneDemo20 implements GLEventListener {
         sl.addAll(buttonsLeft.getShapes());
         sl.addAll(buttonsRight.getShapes());
         for(final Shape s : sl) {
-            s.getRotation().rotateByEuler( angdeg );
+            s.setRotation( s.getRotation().rotateByEuler( angdeg ) );
         }
     }
 
@@ -355,7 +355,7 @@ public class UISceneDemo20 implements GLEventListener {
         for(final Shape s : sl) {
             if( s instanceof BaseButton ) {
                 final BaseButton b = (BaseButton)s;
-                b.getRotation().setIdentity();
+                b.setRotation( b.getRotation().setIdentity() );
                 b.setCorner(BaseButton.ROUND_CORNER);
                 if( b instanceof Button ) {
                     ((Button)b).setSpacing(Button.DEFAULT_SPACING_X, Button.DEFAULT_SPACING_Y);
@@ -1177,7 +1177,7 @@ public class UISceneDemo20 implements GLEventListener {
             final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
             // swap axis for onscreen rotation matching natural feel
             final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
-            shapeEvent.shape.getRotation().rotateByEuler( rot.scale( 2f ) );
+            shapeEvent.shape.setRotation( shapeEvent.shape.getRotation().rotateByEuler( rot.scale( 2f ) ) );
         }
     };
 }

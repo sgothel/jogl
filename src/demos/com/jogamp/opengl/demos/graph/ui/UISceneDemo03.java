@@ -244,7 +244,7 @@ public class UISceneDemo03 {
         if( showAnimBox ) {
             animGroup.scale(0.85f, 0.85f, 1f);
             animGroup.move(-sceneBox.getWidth()/2f*0.075f, 0f, 0f);
-            animGroup.getRotation().rotateByAngleY(0.1325f);
+            animGroup.setRotation( animGroup.getRotation().rotateByAngleY(0.1325f) );
         } else {
             animGroup.scale(1.0f, 1.0f, 1f);
         }
@@ -428,7 +428,7 @@ public class UISceneDemo03 {
                             sd.shape.moveTo( sd.startPos );
                         };
                     refShape.setColor(1.0f, 0.0f, 0.0f, 0.9f);
-                    refShape.getRotation().rotateByAngleZ(FloatUtil.QUARTER_PI);
+                    refShape.setRotation( refShape.getRotation().rotateByAngleZ(FloatUtil.QUARTER_PI) );
                     dynAnimSet[2].addShape(animGroup, refShape, shapeSetup);
                     {
                         final Shape s = new Rectangle(options.renderModes, size2, size2*yscale, sceneBox.getWidth() * 0.0025f ).validate(hasGLP);
@@ -571,7 +571,8 @@ public class UISceneDemo03 {
                     } else if( euler.y() <= -FloatUtil.HALF_PI ) {
                         dir = 1f;
                     }
-                    animGroup.getRotation().rotateByAngleY( frame_velocity * dir );
+                    rot.rotateByAngleY( frame_velocity * dir );
+                    animGroup.setRotation(rot);
                 }
                 final String text = String.format("%s, v %.1f mm/s, r %.3f rad/s",
                         scene.getStatusText(drawable, options.renderModes, dpiV), velocity * 1e3f, ang_velo);
@@ -732,7 +733,7 @@ public class UISceneDemo03 {
      * @param axis 0 for X-, 1 for Y- and 2 for Z-axis
      */
     public static void rotateShape(final Shape shape, float angle, final int axis) {
-        final Quaternion rot = shape.getRotation();
+        final Quaternion rot = shape.getRotation().copy();
         final Vec3f euler = rot.toEuler(new Vec3f());
         final Vec3f eulerOld = euler.copy();
 
@@ -756,7 +757,7 @@ public class UISceneDemo03 {
             case 2: euler.add(0, 0, angle); break;
         }
         System.err.println("Rot: angleDelta "+angle+" (eps "+eps+"): "+eulerOld+" -> "+euler);
-        rot.setFromEuler(euler);
+        shape.setRotation( rot.setFromEuler(euler) );
     }
 
     static class MyGLMediaEventListener implements GLMediaEventListener {

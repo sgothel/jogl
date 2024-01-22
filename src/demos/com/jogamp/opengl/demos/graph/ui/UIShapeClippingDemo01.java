@@ -140,7 +140,7 @@ public class UIShapeClippingDemo01 {
                         final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
                         // swap axis for onscreen rotation matching natural feel
                         final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
-                        shapeEvent.shape.getRotation().rotateByEuler( rot.scale( 2f ) );
+                        shapeEvent.shape.setRotation( shapeEvent.shape.getRotation().rotateByEuler( rot.scale( 2f ) ) );
                     }
                 });
                 scene.addShape(contentBox);
@@ -154,14 +154,14 @@ public class UIShapeClippingDemo01 {
                 final PMVMatrix4f pmv = renderer.getMatrix();
 
                 pmv.pushMv();
-                contentBox.setTransformMv(pmv);
+                contentBox.applyMatToMv(pmv);
                 {
                     final AABBox box = contentBox.getBounds();
                     final Cube cube = tempC00.set(box);
                     final Frustum frustumCbMv = tempC01.set(cube).transform(pmv.getMv()).updateFrustumPlanes(new Frustum());
 
                     pmv.pushMv();
-                    shape.setTransformMv(pmv);
+                    shape.applyMatToMv(pmv);
                     {
                         final AABBox shapeBox = shape.getBounds();
                         final Cube shapedMv = tempC10.set(shapeBox).transform(pmv.getMv());

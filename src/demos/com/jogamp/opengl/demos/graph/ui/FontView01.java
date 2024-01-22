@@ -371,7 +371,7 @@ public class FontView01 {
                         final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
                         // swap axis for onscreen rotation matching natural feel
                         final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
-                        mainView.getRotation().rotateByEuler( rot.scale( 2f ) );
+                        mainView.setRotation( mainView.getRotation().rotateByEuler( rot.scale( 2f ) ) );
                         e.setConsumed(true);
                     }
                 }

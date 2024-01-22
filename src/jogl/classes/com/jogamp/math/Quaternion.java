@@ -65,6 +65,8 @@ public class Quaternion {
         set(x, y, z, w);
     }
 
+    public Quaternion copy() { return new Quaternion(this); }
+
     /**
      * See {@link #magnitude()} for special handling of {@link FloatUtil#EPSILON epsilon},
      * which is not applied here.

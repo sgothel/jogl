@@ -136,7 +136,7 @@ public class UILayoutGrid01 {
                 final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
                 // swap axis for onscreen rotation matching natural feel
                 final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
-                shape.getRotation().rotateByEuler( rot.scale( 2f ) );
+                shape.setRotation( shape.getRotation().rotateByEuler( rot.scale( 2f ) ) );
             }
         };
 

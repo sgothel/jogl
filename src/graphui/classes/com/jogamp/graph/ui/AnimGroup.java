@@ -306,7 +306,7 @@ public class AnimGroup extends Group {
      * <p>
      * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setTransformMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
+     * only, without a shape's {@link #applyMatToMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}
@@ -331,7 +331,7 @@ public class AnimGroup extends Group {
         refShape.validate(glp);
         pmv.pushMv();
         {
-            refShape.setTransformMv(pmv);
+            refShape.applyMatToMv(pmv);
             as = new Set(pixPerMM, refShape.getPixelPerShapeUnit(pmv, viewport, new float[2]), refShape,
                               accel, velocity, ang_accel, ang_velo,
                               new ArrayList<ShapeData>(), new AABBox(), lerp);
@@ -347,7 +347,7 @@ public class AnimGroup extends Group {
      * <p>
      * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setTransformMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
+     * only, without a shape's {@link #applyMatToMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}
@@ -381,7 +381,7 @@ public class AnimGroup extends Group {
             refShape.validate(glp);
             pmv.pushMv();
             {
-                refShape.setTransformMv(pmv);
+                refShape.applyMatToMv(pmv);
                 as = new Set(pixPerMM, refShape.getPixelPerShapeUnit(pmv, viewport, new float[2]), refShape,
                              accel, velocity, ang_accel, ang_velo, allShapes, sourceBounds, lerp);
             }
@@ -426,7 +426,7 @@ public class AnimGroup extends Group {
      * <p>
      * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setTransformMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
+     * only, without a shape's {@link #applyMatToMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}
@@ -475,7 +475,7 @@ public class AnimGroup extends Group {
      * <p>
      * The given {@link PMVMatrix4f} has to be setup properly for this object,
      * i.e. its {@link GLMatrixFunc#GL_PROJECTION} and {@link GLMatrixFunc#GL_MODELVIEW} for the surrounding scene
-     * only, without a shape's {@link #setTransformMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
+     * only, without a shape's {@link #applyMatToMv(PMVMatrix4f)}. See {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti)}.
      * </p>
      * @param pixPerMM monitor pixel per millimeter for accurate animation
      * @param glp used {@link GLProfile}
@@ -633,9 +633,8 @@ public class AnimGroup extends Group {
             final Vec3f pos = sd.shape.getPosition().copy();
             final Vec3f p_t = sd.targetPos.minus(pos);
             final float p_t_diff = p_t.length();
-            final Quaternion q = sd.shape.getRotation();
-            final Vec3f euler = q.toEuler(new Vec3f());
-            final float rotAng = euler.length();
+            final Quaternion q = sd.shape.getRotation().copy();
+            final float rotAng = q.toEuler(new Vec3f()).length();
             final float rotAngDiff = Math.min(Math.abs(rotAng), FloatUtil.TWO_PI - Math.abs(rotAng));
             final boolean pos_ok = p_t_diff <= AnimGroup.POS_EPS;
             final boolean pos_near = pos_ok || p_t_diff <= sd.shape.getBounds().getSize() * shapeScale * 2f;
@@ -649,6 +648,7 @@ public class AnimGroup extends Group {
                 }
                 sd.shape.moveTo(sd.targetPos);
                 q.setIdentity();
+                sd.shape.setRotation(q);
                 sd.shape.setInteractive(false);
                 return false;
             }
@@ -670,6 +670,7 @@ public class AnimGroup extends Group {
                     } else {
                         q.rotateByAngleNormalAxis( rot_step, rotAxis );
                     }
+                    sd.shape.setRotation(q);
                 }
             } else {
                 if( DEBUG ) {
@@ -682,6 +683,7 @@ public class AnimGroup extends Group {
                 } else {
                     q.rotateByAngleNormalAxis( rot_step * 3f, rotAxis );
                 }
+                sd.shape.setRotation(q);
             }
             return true;
         }

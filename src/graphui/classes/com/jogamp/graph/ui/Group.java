@@ -341,7 +341,7 @@ public class Group extends Shape implements Container {
                 final Shape shape = (Shape) shapesS[i];
                 if( shape.isVisible() ) {
                     pmv.pushMv();
-                    shape.setTransformMv(pmv);
+                    shape.applyMatToMv(pmv);
 
                     final AABBox shapeBox = shape.getBounds();
                     final Cube shapeMv = tempC01.set( shapeBox ).transform( pmv.getMv() );
@@ -361,7 +361,7 @@ public class Group extends Shape implements Container {
                 final Shape shape = (Shape) shapesS[i];
                 if( shape.isVisible() ) {
                     pmv.pushMv();
-                    shape.setTransformMv(pmv);
+                    shape.applyMatToMv(pmv);
                     if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                         shape.draw(gl, renderer);
                     }
@@ -389,7 +389,7 @@ public class Group extends Shape implements Container {
             final Shape shape = (Shape) shapesS[i];
             if( shape.isVisible() ) {
                 pmv.pushMv();
-                shape.setTransformMv(pmv);
+                shape.applyMatToMv(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                     shape.drawToSelect(gl, renderer);
@@ -526,7 +526,7 @@ public class Group extends Shape implements Container {
                     }
                     s.validate(gl, glp);
                     pmv.pushMv();
-                    s.setTransformMv(pmv);
+                    s.applyMatToMv(pmv);
                     s.getBounds().transform(pmv.getMv(), tsbox);
                     pmv.popMv();
                     box.resize(tsbox);
@@ -608,7 +608,7 @@ public class Group extends Shape implements Container {
     @Override
     public AABBox getBounds(final PMVMatrix4f pmv, final Shape shape) {
         pmv.reset();
-        setTransformMv(pmv);
+        applyMatToMv(pmv);
         final AABBox res = new AABBox();
         if( null == shape ) {
             return res;

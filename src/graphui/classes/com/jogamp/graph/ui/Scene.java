@@ -471,7 +471,7 @@ public final class Scene implements Container, GLEventListener {
             final Shape shape = (Shape)shapes[i];
             if( shape.isVisible() ) {
                 pmv.pushMv();
-                shape.setTransformMv(pmv);
+                shape.applyMatToMv(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                     shape.draw(gl, renderer);
@@ -505,7 +505,7 @@ public final class Scene implements Container, GLEventListener {
             final Shape shape = (Shape)shapes[i];
             if( shape.isVisible() ) {
                 pmv.pushMv();
-                shape.setTransformMv(pmv);
+                shape.applyMatToMv(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                     final float color = ( i + 1f ) / ( shapeCount + 2f );
@@ -680,7 +680,7 @@ public final class Scene implements Container, GLEventListener {
                 if( null != s ) {
                     final PMVMatrix4f pmv = renderer.getMatrix();
                     pmv.pushMv();
-                    s.setTransformMv(pmv);
+                    s.applyMatToMv(pmv);
                     final boolean ok = null != shape[0].winToShapeCoord(getMatrix(), getViewport(), glWinX, glWinY, objPos);
                     pmv.popMv();
                     if( ok ) {

@@ -39,6 +39,7 @@ import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.GLButton;
 import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Quaternion;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.event.MouseEvent;
@@ -77,8 +78,12 @@ public class UISceneDemo01b {
         System.err.println("Font: "+font.getFullFamilyName());
 
         final Shape shape = new Button(options.renderModes, font, "L", 1/8f, 1/8f/2.5f).setPerp(); // normalized: 1 is 100% surface size (width and/or height)
-        shape.getRotation().rotateByAngleX(FloatUtil.PI);
-        shape.getRotation().rotateByAngleY(FloatUtil.PI);
+        {
+            final Quaternion q = shape.getRotation().copy();
+            q.rotateByAngleX(FloatUtil.PI);
+            q.rotateByAngleY(FloatUtil.PI);
+            shape.setRotation(q);
+        }
         System.err.println("Shape bounds "+shape.getBounds(reqCaps.getGLProfile()));
         System.err.println("Shape "+shape);
 
@@ -168,9 +173,10 @@ public class UISceneDemo01b {
                     } else {
                         shape.getRotation().rotateByAngleY(rad);
                     }
+                    shape.updateMat();
                     System.err.println("Shape "+shape);
                     final PMVMatrix4f pmv = new PMVMatrix4f();
-                    shape.setTransformMv(pmv);
+                    shape.applyMatToMv(pmv);
                     System.err.println("Shape "+pmv);
                 }
             }

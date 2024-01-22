@@ -307,7 +307,7 @@ public class UIGraphDemoU01a {
             }
             if( !textOnly ) {
                 pmv.pushMv();
-                shape.setTransformMv(pmv);
+                shape.applyMatToMv(pmv);
 
                 shape.draw(gl, renderer);
                 if( onceAtDisplay ) {

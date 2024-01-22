@@ -208,7 +208,7 @@ public class GridLayout implements Group.Layout {
             final Shape s = shapes.get(i);
             // measure size
             pmv.pushMv();
-            s.setTransformMv(pmv);
+            s.applyMatToMv(pmv);
             final AABBox sbox = s.getBounds().transform(pmv.getMv(), new AABBox());
             pmv.popMv();
 

@@ -256,7 +256,7 @@ public class UIShapeClippingDemo00 implements GLEventListener {
                     final Vec3f rot = new Vec3f(e.getRotation()).scale( FloatUtil.PI / 180.0f );
                     // swap axis for onscreen rotation matching natural feel
                     final float tmp = rot.x(); rot.setX( rot.y() ); rot.setY( tmp );
-                    clipRect.getRotation().rotateByEuler( rot.scale( 2f ) );
+                    clipRect.setRotation( clipRect.getRotation().rotateByEuler( rot.scale( 2f ) ) );
                 }
             });
         }
@@ -292,13 +292,13 @@ public class UIShapeClippingDemo00 implements GLEventListener {
             final PMVMatrix4f pmv = renderer.getMatrix();
             pmv.pushMv();
             {
-                clipRect.setTransformMv(pmv);
+                clipRect.applyMatToMv(pmv);
                 final Frustum clipFrustumMv = new Cube( clipRect.getBounds() ).transform( pmv.getMv() ).updateFrustumPlanes(new Frustum());
                 renderer.setClipFrustum( clipFrustumMv );
                 // System.err.println("Clipping "+renderer.getClipBBox());
                 if( null != shape && shape.isVisible() ) {
                     pmv.pushMv();
-                    shape.setTransformMv(pmv);
+                    shape.applyMatToMv(pmv);
                     shape.draw(gl, renderer);
                     pmv.popMv();
                 }
