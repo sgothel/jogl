@@ -27,6 +27,7 @@
  */
 package com.jogamp.graph.ui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -38,6 +39,7 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Matrix4f;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
@@ -79,6 +81,7 @@ public class Group extends Shape implements Container {
     }
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
+    private Shape[] drawShapeArray = new Shape[0]; // reduce memory re-alloc @ display
     /** Enforced fixed size. In case z-axis is NaN, its 3D z-axis will be adjusted. */
     private final Vec3f fixedSize = new Vec3f();
     private Layout layouter;
@@ -300,6 +303,8 @@ public class Group extends Shape implements Container {
             // s.clearImpl0(gl, renderer);
             s.clear(gl, renderer);
         }
+        shapes.clear();
+        drawShapeArray = new Shape[0];
     }
 
     @Override
@@ -308,6 +313,8 @@ public class Group extends Shape implements Container {
             // s.destroyImpl0(gl, renderer);
             s.destroy(gl, renderer);
         }
+        shapes.clear();
+        drawShapeArray = new Shape[0];
         if( null != border ) {
             border.destroy(gl, renderer);
             border = null;
@@ -322,12 +329,14 @@ public class Group extends Shape implements Container {
     @Override
     public final boolean isFrustumCullingEnabled() { return doFrustumCulling; }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     protected void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final Vec4f rgba) {
         final PMVMatrix4f pmv = renderer.getMatrix();
-        final Object[] shapesS = shapes.toArray();
-        Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
+        final int shapeCount = shapes.size();
+        Arrays.fill(drawShapeArray, null); // flush old refs
+        final Shape[] shapeArray = shapes.toArray(drawShapeArray); // local-backup
+        drawShapeArray = shapeArray; // keep backup
+        Arrays.sort(shapeArray, 0, shapeCount, Shape.ZAscendingComparator);
 
         final boolean useClipFrustum = null != clipFrustum;
         if( useClipFrustum || clipOnBounds ) {
@@ -336,9 +345,8 @@ public class Group extends Shape implements Container {
             final Frustum frustumMv = useClipFrustum ? clipFrustum : tempC00.set( box ).transform( pmv.getMv() ).updateFrustumPlanes(tempF00);
             renderer.setClipFrustum( frustumMv );
 
-            final int shapeCount = shapesS.length;
             for(int i=0; i<shapeCount; i++) {
-                final Shape shape = (Shape) shapesS[i];
+                final Shape shape = shapeArray[i];
                 if( shape.isVisible() ) {
                     pmv.pushMv();
                     shape.applyMatToMv(pmv);
@@ -356,9 +364,8 @@ public class Group extends Shape implements Container {
             }
             renderer.setClipFrustum(origClipFrustum);
         } else {
-            final int shapeCount = shapesS.length;
             for(int i=0; i<shapeCount; i++) {
-                final Shape shape = (Shape) shapesS[i];
+                final Shape shape = shapeArray[i];
                 if( shape.isVisible() ) {
                     pmv.pushMv();
                     shape.applyMatToMv(pmv);

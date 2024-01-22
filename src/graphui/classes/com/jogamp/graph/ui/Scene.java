@@ -55,6 +55,7 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.ui.Shape.Visitor2;
 import com.jogamp.math.FloatUtil;
+import com.jogamp.math.Matrix4f;
 import com.jogamp.math.Ray;
 import com.jogamp.math.Recti;
 import com.jogamp.math.Vec2f;
@@ -129,6 +130,7 @@ public final class Scene implements Container, GLEventListener {
     private static final boolean DEBUG = false;
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
+    private Shape[] displayShapeArray = new Shape[0]; // reduce memory re-alloc @ display
     private final AtomicReference<Tooltip> toolTipActive = new AtomicReference<Tooltip>();
     private final AtomicReference<Shape> toolTipHUD = new AtomicReference<Shape>();
 
@@ -449,13 +451,13 @@ public final class Scene implements Container, GLEventListener {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     @Override
     public void display(final GLAutoDrawable drawable) {
-        final Object[] shapesS = shapes.toArray();
-        Arrays.sort(shapesS, (Comparator)Shape.ZAscendingComparator);
+        final int shapeCount = shapes.size();
+        Arrays.fill(displayShapeArray, null); // flush old refs
+        final Shape[] shapeArray = shapes.toArray(displayShapeArray); // local-backup
+        displayShapeArray = shapeArray; // keep backup
+        Arrays.sort(shapeArray, 0, shapeCount, Shape.ZAscendingComparator);
 
-        display(drawable, shapesS);
-    }
 
-    private void display(final GLAutoDrawable drawable, final Object[] shapes) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         if( null != clearColor ) {
@@ -466,9 +468,8 @@ public final class Scene implements Container, GLEventListener {
 
         renderer.enable(gl, true);
 
-        final int shapeCount = shapes.length;
         for(int i=0; i<shapeCount; i++) {
-            final Shape shape = (Shape)shapes[i];
+            final Shape shape = shapeArray[i];
             if( shape.isVisible() ) {
                 pmv.pushMv();
                 shape.applyMatToMv(pmv);
@@ -571,6 +572,7 @@ public final class Scene implements Container, GLEventListener {
             }
         }
         shapes.clear();
+        displayShapeArray = new Shape[0];
         disposeActions.clear();
         if( drawable == cDrawable ) {
             cDrawable = null;
@@ -599,7 +601,7 @@ public final class Scene implements Container, GLEventListener {
      * Method performs on current thread and returns after probing every {@link Shape}.
      * </p>
      * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
-     *            {@link Shape#setTransformMv(PMVMatrix4f) shape-transformed} and can be reused by the caller and runnable.
+     *            {@link Shape#applyMatToMv(PMVMatrix4f) shape-transformed} and can be reused by the caller and runnable.
      * @param glWinX window X coordinate, bottom-left origin
      * @param glWinY window Y coordinate, bottom-left origin
      * @param objPos storage for found object position in model-space of found {@link Shape}
@@ -736,7 +738,7 @@ public final class Scene implements Container, GLEventListener {
      * @param glWinX in GL window coordinates, origin bottom-left
      * @param glWinY in GL window coordinates, origin bottom-left
      * @param pmv a new {@link PMVMatrix4f} which will {@link Scene.PMVMatrixSetup#set(PMVMatrix4f, Recti) be setup},
-     *            {@link Shape#setTransformMv(PMVMatrix4f) shape-transformed} and can be reused by the caller and runnable.
+     *            {@link Shape#applyMatToMv(PMVMatrix4f) shape-transformed} and can be reused by the caller and runnable.
      * @param objPos resulting object position
      * @param runnable action
      */
