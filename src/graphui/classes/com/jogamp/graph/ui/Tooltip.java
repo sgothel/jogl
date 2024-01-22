@@ -37,6 +37,8 @@ import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
+import com.jogamp.opengl.GLProfile;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 /** A HUD tooltip for {@link Shape}, see {@link Shape#setToolTip(Tooltip)}. */
 public abstract class Tooltip {
@@ -51,6 +53,7 @@ public abstract class Tooltip {
     private volatile boolean forced;
     /** Shape 'tool' owning this tooltip. */
     private Shape tool;
+    /** Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}. */
     protected final int renderModes;
     protected final Vec4f backColor = new Vec4f(1, 1, 0, 1);
     protected final Vec4f frontColor = new Vec4f(0.1f, 0.1f, 0.1f, 1);
@@ -185,8 +188,8 @@ public abstract class Tooltip {
      * <p>
      * This default implementation simply calls {@link Shape#destroy(GL2ES2, RegionRenderer)}.
      * </p>
-     * @param gl
-     * @param renderer
+     * @param gl current {@link GL2ES2}
+     * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param tip
      * @see #createTip(GLAutoDrawable, Scene, PMVMatrix4f, AABBox)
      */

@@ -504,6 +504,7 @@ public class FontView01 {
             final GlyphShape g = new GlyphShape(options.renderModes, fg, 0, 0);
             g.setColor(0.1f, 0.1f, 0.1f, 1).setName("GlyphShape");
             g.setInteractive(false).setDragAndResizeable(false);
+            g.setName( "cp_0x"+Integer.toHexString(fg.getCodepoint()) );
 
             final Group c0 = new Group("GlyphHolder", null, null, g);
             c0.setInteractive(false).setDragAndResizeable(false);
@@ -523,12 +524,8 @@ public class FontView01 {
             sink.receiveKeyEvents(c1);
             // sink.receiveMouseEvents(c1);
             c1.setToolTip( new TooltipShape(new Vec4f(1, 1, 1, 1), new Vec4f(0, 0, 0, 1), 0.01f,
-                                           new Vec2f(14,14), 1000, options.renderModes,
-                                           new Group("GlyphTipGroup", null, null, g).setPaddding(new Padding(0.05f)),
-                                           (final GL2ES2 gl, final RegionRenderer renderer, final Shape ts) -> {
-                                               ((Group)ts).removeShape(g);
-                                               ts.destroy(gl, renderer);
-                                           } ) );
+                                            new Padding(0.05f), new Vec2f(14,14), 1000, options.renderModes,
+                                            g, TooltipShape.NoOpDtor) );
             c1.onClicked((final Shape s) -> {
                 c1.getTooltip().now();
             });
