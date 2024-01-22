@@ -46,7 +46,7 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.IntObjectHashMap;
+import com.jogamp.common.util.LongObjectHashMap;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.math.Recti;
 import com.jogamp.math.Vec4f;
@@ -230,6 +230,13 @@ public final class RegionRenderer {
         this.rs = new RenderState(sharedPMVMatrix);
         this.enableCallback = enableCallback;
         this.disableCallback = disableCallback;
+        if( UseShaderPrograms0 ) {
+            shaderPrograms0 = new LongObjectHashMap();
+            shaderPrograms1 = null;
+        } else {
+            shaderPrograms0 = null;
+            shaderPrograms1 = new HashMap<ShaderKey, ShaderProgram>();
+        }
     }
 
     public final boolean isVBOSupported() { return vboSupported; }
@@ -276,13 +283,13 @@ public final class RegionRenderer {
             }
             return;
         }
-        for(final Iterator<IntObjectHashMap.Entry> i = shaderPrograms0.iterator(); i.hasNext(); ) {
-            final ShaderProgram sp = (ShaderProgram) i.next().getValue();
-            sp.destroy(gl);
-        }
-        shaderPrograms0.clear();
-
-        if( !useShaderPrograms0 ) {
+        if( UseShaderPrograms0 ) {
+            for(final Iterator<LongObjectHashMap.Entry> i = shaderPrograms0.iterator(); i.hasNext(); ) {
+                final ShaderProgram sp = (ShaderProgram) i.next().getValue();
+                sp.destroy(gl);
+            }
+            shaderPrograms0.clear();
+        } else {
             for(final Iterator<ShaderProgram> i = shaderPrograms1.values().iterator(); i.hasNext(); ) {
                 final ShaderProgram sp = i.next();
                 sp.destroy(gl);
@@ -557,7 +564,7 @@ public final class RegionRenderer {
             } else {
                 this.colorTexSeqID = "";
             }
-            hashValue = shaderKeyHash(isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms, colorTexSeqHash);
+            hashValue = getShaderKey1(isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms, colorTexSeqHash);
         }
         @Override
         public final int hashCode() { return hashValue; }
@@ -580,20 +587,47 @@ public final class RegionRenderer {
         }
         @Override
         public String toString() {
-            return shaderKeyToString(hashValue, isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms);
+            return shaderHashToString(hashValue, isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms);
         }
     }
-    private final IntObjectHashMap shaderPrograms0 = new IntObjectHashMap();
-    private final HashMap<ShaderKey, ShaderProgram> shaderPrograms1 = null; // new HashMap<ShaderKey, ShaderProgram>();
-    private static final boolean useShaderPrograms0 = true;
+    private static final boolean UseShaderPrograms0 = true;
+    private final LongObjectHashMap shaderPrograms0;
+    private final HashMap<ShaderKey, ShaderProgram> shaderPrograms1;
 
-    private static String shaderKeyToString(final int hashCode, final boolean isTwoPass, final boolean pass1,
+    private static String shaderHashToString(final int hashCode, final boolean isTwoPass, final boolean pass1,
                                    final boolean hasFrustumClipping, final boolean hasColorChannel, final boolean hasColorTexture,
                                    final ShaderModeSelector1 sms) {
-            return "ShaderKey[hash 0x"+Integer.toHexString(hashCode)+", is2Pass "+isTwoPass+", pass1 "+pass1+
+            return "ShaderHash[hash 0x"+Integer.toHexString(hashCode)+", is2Pass "+isTwoPass+", pass1 "+pass1+
                    ", has[clip "+hasFrustumClipping+", colChan "+hasColorChannel+", colTex "+hasColorTexture+"], "+sms+"]";
     }
-    private static int shaderKeyHash(final boolean isTwoPass, final boolean pass1,
+    private static String shaderKeyToString(final long key, final boolean isTwoPass, final boolean pass1,
+                                   final boolean hasFrustumClipping, final boolean hasColorChannel, final boolean hasColorTexture,
+                                   final ShaderModeSelector1 sms) {
+            return "ShaderKey[key 0x"+Long.toHexString(key)+", is2Pass "+isTwoPass+", pass1 "+pass1+
+                   ", has[clip "+hasFrustumClipping+", colChan "+hasColorChannel+", colTex "+hasColorTexture+"], "+sms+"]";
+    }
+
+    private static long getShaderKey0(final boolean isTwoPass, final boolean pass1,
+                                      final boolean hasFrustumClipping, final boolean hasColorChannel, final boolean hasColorTexture,
+                                      final ShaderModeSelector1 sms, final long colorTexSeqHash) {
+        //  # |  s |
+        //  0 |  1 | isTwoPass
+        //  1 |  1 | pass1
+        //  2 |  5 | ShaderModeSelector1
+        //  7 |  1 | hasFrustumClipping
+        //  8 |  1 | hasColorChannel
+        //  9 |  1 | hasColorTexture
+        // 32 | 32 | colorTexSeqHash
+        long hash =             ( isTwoPass ? 1 : 0 );
+        hash = ( hash << 1 ) | ( pass1 ? 1 : 0 ) ;
+        hash = ( hash << 1 ) | sms.ordinal(); // incl. pass2Quality + sampleCount
+        hash = ( hash << 5 ) | ( hasFrustumClipping ? 1 : 0 );
+        hash = ( hash << 1 ) | ( hasColorChannel ? 1 : 0 );
+        hash = ( hash << 1 ) | ( hasColorTexture ? 1 : 0 );
+        hash = ( hash << 1 ) | ( ( colorTexSeqHash & 0xFFFFFFL ) << 32 );
+        return hash;
+    }
+    private static int getShaderKey1(final boolean isTwoPass, final boolean pass1,
                                      final boolean hasFrustumClipping, final boolean hasColorChannel, final boolean hasColorTexture,
                                      final ShaderModeSelector1 sms, final int colorTexSeqHash) {
         // 31 * x == (x << 5) - x
@@ -642,11 +676,10 @@ public final class RegionRenderer {
             colorTexSeqHash = 0;
         }
 
-        if( useShaderPrograms0 ) {
+        if( UseShaderPrograms0 ) {
             return useShaderProgram0(gl, renderModes, isTwoPass, pass1, sms, hasFrustumClipping, hasColorChannel,
                                      hasColorTexture, colorTexSeq, colTexLookupFuncName, colorTexSeqHash);
         } else {
-            // FIXME
             return useShaderProgram1(gl, renderModes, isTwoPass, pass1, sms, hasFrustumClipping, hasColorChannel,
                                      hasColorTexture, colorTexSeq, colTexLookupFuncName, colorTexSeqHash);
         }
@@ -657,27 +690,27 @@ public final class RegionRenderer {
                                             final boolean hasColorTexture, final TextureSequence colorTexSeq,
                                             final String colTexLookupFuncName, final int colorTexSeqHash)
     {
-        final int shaderHashCode = shaderKeyHash(isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms, colorTexSeqHash);
+        final long shaderKey = getShaderKey0(isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms, colorTexSeqHash);
         /**
         if(DEBUG) {
             System.err.println("XXX "+Region.getRenderModeString(renderModes, getAAQuality(), getSampleCount(), 0)+", "+
                 shaderKeyToString(shaderHashCode, isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms));
         } */
 
-        ShaderProgram sp = (ShaderProgram) shaderPrograms0.get( shaderHashCode );
+        ShaderProgram sp = (ShaderProgram) shaderPrograms0.get( shaderKey );
         if( null != sp ) {
             final boolean spChanged = rs.setShaderProgram(gl, sp);
             if( DEBUG_SHADER_MAP ) {
                 if( spChanged ) {
                     System.err.printf("RegionRenderer.useShaderProgram0.X1: GOT renderModes %s, %s -> sp %d / %d (changed)%n",
                             Region.getRenderModeString(renderModes),
-                            shaderKeyToString(shaderHashCode, isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms),
-                            sp.program(), sp.id());
+                            shaderKeyToString(shaderKey, isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms),
+                                              sp.program(), sp.id());
                 } else if( DEBUG_ALL_EVENT ) {
                     System.err.printf("RegionRenderer.useShaderProgram0.X1: GOT renderModes %s, %s -> sp %d / %d (keep)%n",
                             Region.getRenderModeString(renderModes),
-                            shaderKeyToString(shaderHashCode, isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms),
-                            sp.program(), sp.id());
+                            shaderKeyToString(shaderKey, isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms),
+                                              sp.program(), sp.id());
                 }
             }
             return spChanged;
@@ -689,16 +722,14 @@ public final class RegionRenderer {
 
         {
             // shaderPrograms0.containsKey(shaderHashCode);
-            final ShaderProgram spOld = (ShaderProgram) shaderPrograms0.put(shaderHashCode, sp);
+            final ShaderProgram spOld = (ShaderProgram) shaderPrograms0.put(shaderKey, sp);
             if( null != spOld ) {
-                // COLLISION! FIXME
-                // shaderPrograms0.put(shaderHashCode, spOld); // move back old value
-                // useShaderPrograms0 = false;
+                // COLLISION!
                 final String msg = String.format((Locale)null,
                         "RegionRenderer.useShaderProgram0: WARNING Shader-HashCode Collision: hash 0x%s: %s, %s -> sp %d / %d (changed, new)%n",
-                        Integer.toHexString(shaderHashCode),
+                        Long.toHexString(shaderKey),
                         Region.getRenderModeString(renderModes),
-                        shaderKeyToString(shaderHashCode, isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms),
+                        shaderKeyToString(shaderKey, isTwoPass, pass1, hasFrustumClipping, hasColorChannel, hasColorTexture, sms),
                         sp.program(), sp.id());
                 throw new RuntimeException(msg);
             }
@@ -706,7 +737,7 @@ public final class RegionRenderer {
 
         if( DEBUG_SHADER_MAP ) {
             System.err.printf("RegionRenderer.useShaderProgram0.X1: PUT renderModes %s, %s -> sp %d / %d (changed, new)%n",
-                    Region.getRenderModeString(renderModes), shaderHashCode, sp.program(), sp.id());
+                    Region.getRenderModeString(renderModes), shaderKey, sp.program(), sp.id());
             // rsFp.dumpShaderSource(System.err);
         }
         return true;
