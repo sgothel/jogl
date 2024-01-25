@@ -440,7 +440,7 @@ public class GLEventListenerState {
                         System.err.println("GLEventListenerState.moveTo.0a: orig 0x"+Integer.toHexString(aDevice1.hashCode())+", "+aDevice1);
                         System.err.println("GLEventListenerState.moveTo.0b: pres 0x"+Integer.toHexString(aDevice2.hashCode())+", "+aDevice2);
                     }
-                    DefaultGraphicsDevice.swapDeviceHandleAndOwnership(aDevice1, aDevice2);
+                    DefaultGraphicsDevice.swapHandleAndOwnership(aDevice1, aDevice2);
                     aDevice2.close();
                     if( DEBUG ) {
                         System.err.println("GLEventListenerState.moveTo.1a: orig 0x"+Integer.toHexString(aDevice1.hashCode())+", "+aDevice1);
@@ -462,7 +462,7 @@ public class GLEventListenerState {
                             System.err.println("GLEventListenerState.moveTo.2b: up-pres 0x"+Integer.toHexString(aUpDevice2.hashCode())+", "+aUpDevice2);
                             System.err.println("GLEventListenerState.moveTo.2c:  "+aUpSurface.getClass().getName()/*+", "+aUpSurface+", "*/+aProxy.getUpstreamOptionBits(null).toString());
                         }
-                        DefaultGraphicsDevice.swapDeviceHandleAndOwnership(aUpDevice1, aUpDevice2);
+                        DefaultGraphicsDevice.swapHandleAndOwnership(aUpDevice1, aUpDevice2);
                         aUpDevice2.close();
                         if( proxyOwnsUpstreamDevice ) {
                             aProxy.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
