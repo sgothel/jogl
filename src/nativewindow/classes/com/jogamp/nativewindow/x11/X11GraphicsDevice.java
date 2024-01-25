@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
+ * Copyright (c) 2010-2024 JogAmp Community. All rights reserved.
+ * Copyright (c) 2008-2009 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -45,7 +45,6 @@ import com.jogamp.nativewindow.ToolkitLock;
  */
 
 public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-    /* final */ boolean handleOwner;
     final boolean isXineramaEnabled;
 
     /** Constructs a new X11GraphicsDevice corresponding to the given connection and default
@@ -56,7 +55,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      */
     public X11GraphicsDevice(final String connection, final int unitID) {
         super(NativeWindowFactory.TYPE_X11, connection, unitID);
-        handleOwner = false;
+        setHandleOwnership(false);
         isXineramaEnabled = false;
     }
 
@@ -78,7 +77,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         if(0==display) {
             throw new NativeWindowException("null display");
         }
-        handleOwner = owner;
+        setHandleOwnership(owner);
         isXineramaEnabled = X11Util.XineramaIsEnabled(this);
     }
 
@@ -93,7 +92,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      */
     public X11GraphicsDevice(final String displayConnection, final int unitID, final ToolkitLock locker) {
         super(NativeWindowFactory.TYPE_X11, displayConnection, unitID, 0, locker);
-        handleOwner = true;
+        setHandleOwnership(true);
         open();
         isXineramaEnabled = X11Util.XineramaIsEnabled(this);
     }
@@ -139,7 +138,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
 
     @Override
     public boolean open() {
-        if(handleOwner && 0 == handle) {
+        if(isHandleOwner() && 0 == handle) {
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName() + " - X11GraphicsDevice.open(): "+this);
             }
@@ -154,7 +153,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
 
     @Override
     public boolean close() {
-        if(handleOwner && 0 != handle) {
+        if(isHandleOwner() && 0 != handle) {
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName() + " - X11GraphicsDevice.close(): "+this);
             }
@@ -163,22 +162,9 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         return super.close();
     }
 
-    @Override
-    public boolean isHandleOwner() {
-        return handleOwner;
-    }
-    @Override
-    public void clearHandleOwner() {
-        handleOwner = false;
-    }
-    @Override
-    protected Object getHandleOwnership() {
-        return Boolean.valueOf(handleOwner);
-    }
-    @Override
-    protected Object setHandleOwnership(final Object newOwnership) {
-        final Boolean oldOwnership = Boolean.valueOf(handleOwner);
-        handleOwner = ((Boolean) newOwnership).booleanValue();
-        return oldOwnership;
+    private boolean setHandleOwnership(final boolean v) {
+        final Boolean o = (Boolean)getHandleOwnership();
+        super.setHandleOwnership(v ? Boolean.valueOf(true) : null);
+        return null != o ? o.booleanValue() : false;
     }
 }

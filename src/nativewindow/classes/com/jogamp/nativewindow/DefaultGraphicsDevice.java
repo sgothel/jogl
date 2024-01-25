@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
+ * Copyright (c) 2010-2024 JogAmp Community. All rights reserved.
+ * Copyright (c) 2008-2009 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -42,6 +42,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     protected final int unitID;
     protected final String uniqueID;
     protected long handle;
+    private Object handleOwner;
     protected ToolkitLock toolkitLock;
 
     /**
@@ -92,6 +93,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         this.unitID = unitID;
         this.uniqueID = getUniqueID(type, connection, unitID);
         this.handle = handle;
+        this.handleOwner = null;
         this.toolkitLock = null != locker ? locker : NativeWindowFactoryImpl.getNullToolkitLock();
     }
 
@@ -178,17 +180,19 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     }
 
     @Override
-    public boolean isHandleOwner() {
-        return false;
+    public final boolean isHandleOwner() {
+        return null != handleOwner;
     }
 
     @Override
-    public void clearHandleOwner() {
+    public final void clearHandleOwner() {
+        handleOwner = null;
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", owner "+isHandleOwner()+", "+toolkitLock+"]";
+        return getClass().getSimpleName()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+
+               ", handle 0x"+Long.toHexString(getHandle())+", owner "+isHandleOwner()+", "+toolkitLock+", obj 0x"+Integer.toHexString(hashCode())+"]";
     }
 
     /**
@@ -201,29 +205,31 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         return oldHandle;
     }
 
-    protected Object getHandleOwnership() {
-        return null;
+    protected final Object getHandleOwnership() {
+        return handleOwner;
     }
-    protected Object setHandleOwnership(final Object newOwnership) {
-        return null;
+    protected final Object setHandleOwnership(final Object newOwnership) {
+        final Object old = handleOwner;
+        handleOwner = newOwnership;
+        return old;
     }
 
-    public static final void swapDeviceHandleAndOwnership(final DefaultGraphicsDevice aDevice1, final DefaultGraphicsDevice aDevice2) {
-        aDevice1.lock();
+    public static final void swapHandleAndOwnership(final DefaultGraphicsDevice a, final DefaultGraphicsDevice b) {
+        a.lock();
         try {
-            aDevice2.lock();
+            b.lock();
             try {
-                final long aDevice1Handle = aDevice1.getHandle();
-                final long aDevice2Handle = aDevice2.setHandle(aDevice1Handle);
-                aDevice1.setHandle(aDevice2Handle);
-                final Object aOwnership1 = aDevice1.getHandleOwnership();
-                final Object aOwnership2 = aDevice2.setHandleOwnership(aOwnership1);
-                aDevice1.setHandleOwnership(aOwnership2);
+                final long aHandle = a.getHandle();
+                final long bHandle = b.setHandle(aHandle);
+                a.setHandle(bHandle);
+                final Object aOwnership = a.getHandleOwnership();
+                final Object bOwnership = b.setHandleOwnership(aOwnership);
+                a.setHandleOwnership(bOwnership);
             } finally {
-                aDevice2.unlock();
+                b.unlock();
             }
         } finally {
-            aDevice1.unlock();
+            a.unlock();
         }
     }
 

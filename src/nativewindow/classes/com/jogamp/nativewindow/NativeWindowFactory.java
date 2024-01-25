@@ -711,27 +711,40 @@ public abstract class NativeWindowFactory {
      * </p>
      */
     public static AbstractGraphicsDevice createDevice(final String nwt, final String displayConnection, final boolean own) {
+        return createDevice(nwt, displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT, own);
+    }
+
+    /**
+     * Creates a native device type, following the given {@link #getNativeWindowType(boolean) native-window-type}.
+     * <p>
+     * The device will be opened if <code>own</code> is true, otherwise no native handle will ever be acquired.
+     * </p>
+     * <p>
+     * FIXME: Bug 973 Needs service provider interface (SPI) for TK dependent implementation
+     * </p>
+     */
+    public static AbstractGraphicsDevice createDevice(final String nwt, final String displayConnection, final int unitID, final boolean own) {
         if( NativeWindowFactory.TYPE_X11 == nwt ) {
             if( own ) {
-                return new com.jogamp.nativewindow.x11.X11GraphicsDevice(displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT, null /* ToolkitLock */);
+                return new com.jogamp.nativewindow.x11.X11GraphicsDevice(displayConnection, unitID, null /* ToolkitLock */);
             } else {
-                return new com.jogamp.nativewindow.x11.X11GraphicsDevice(displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT);
+                return new com.jogamp.nativewindow.x11.X11GraphicsDevice(displayConnection, unitID);
             }
         } else if( NativeWindowFactory.TYPE_WINDOWS == nwt ) {
-            return new com.jogamp.nativewindow.windows.WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+            return new com.jogamp.nativewindow.windows.WindowsGraphicsDevice(unitID);
         } else if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
-            return new com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+            return new com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice(unitID);
         } else if( NativeWindowFactory.TYPE_IOS == nwt ) {
-            return new com.jogamp.nativewindow.ios.IOSGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+            return new com.jogamp.nativewindow.ios.IOSGraphicsDevice(unitID);
         } else if( NativeWindowFactory.TYPE_EGL == nwt ) {
             final com.jogamp.nativewindow.egl.EGLGraphicsDevice device;
             if( own ) {
                 Object odev = null;
                 try {
-                    // EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+                    // EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, unitID);
                     odev = ReflectionUtil.callStaticMethod("jogamp.opengl.egl.EGLDisplayUtil", "eglCreateEGLGraphicsDevice",
                             new Class<?>[] { Long.class, String.class, Integer.class},
-                            new Object[] { 0L /* EGL.EGL_DEFAULT_DISPLAY */, DefaultGraphicsDevice.getDefaultDisplayConnection(nwt), AbstractGraphicsDevice.DEFAULT_UNIT },
+                            new Object[] { 0L /* EGL.EGL_DEFAULT_DISPLAY */, DefaultGraphicsDevice.getDefaultDisplayConnection(nwt), unitID },
                             NativeWindowFactory.class.getClassLoader());
                 } catch (final Exception e) {
                     throw new NativeWindowException("EGLDisplayUtil.eglCreateEGLGraphicsDevice failed", e);
@@ -743,13 +756,13 @@ public abstract class NativeWindowFactory {
                     throw new NativeWindowException("EGLDisplayUtil.eglCreateEGLGraphicsDevice failed");
                 }
             } else {
-                device = new com.jogamp.nativewindow.egl.EGLGraphicsDevice(0 /* EGL.EGL_DEFAULT_DISPLAY */, displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT);
+                device = new com.jogamp.nativewindow.egl.EGLGraphicsDevice(0 /* EGL.EGL_DEFAULT_DISPLAY */, displayConnection, unitID);
             }
             return device;
         } else if( NativeWindowFactory.TYPE_AWT == nwt ) {
             throw new UnsupportedOperationException("n/a for windowing system: "+nwt);
         } else {
-            return new DefaultGraphicsDevice(nwt, displayConnection, AbstractGraphicsDevice.DEFAULT_UNIT);
+            return new DefaultGraphicsDevice(nwt, displayConnection, unitID);
         }
     }
 

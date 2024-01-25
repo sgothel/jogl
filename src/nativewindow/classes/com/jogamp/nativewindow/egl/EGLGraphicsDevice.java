@@ -49,7 +49,6 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     public static final int EGL_NO_DISPLAY = 0;
 
     private final long[] nativeDisplayID = new long[1];
-    private /* final */ EGLDisplayLifecycleCallback eglLifecycleCallback;
     private VersionNumber eglVersion = VersionNumber.zeroVersion;
 
     /**
@@ -102,7 +101,7 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     {
         super(NativeWindowFactory.TYPE_EGL, connection, unitID, handle);
         this.nativeDisplayID[0] = nativeDisplayID;
-        this.eglLifecycleCallback = eglLifecycleCallback;
+        setHandleOwnership(eglLifecycleCallback);
     }
 
     /**
@@ -219,13 +218,13 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      */
     @Override
     public boolean open() {
-        if(null != eglLifecycleCallback && 0 == handle) {
+        if(isHandleOwner() && 0 == handle) {
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName() + " - EGLGraphicsDevice.open(): "+this);
             }
             final int[] major = { 0 };
             final int[] minor = { 0 };
-            handle = eglLifecycleCallback.eglGetAndInitDisplay(nativeDisplayID, major, minor);
+            handle = getEGLLifecycleCallback().eglGetAndInitDisplay(nativeDisplayID, major, minor);
             if(0 == handle) {
                 eglVersion = VersionNumber.zeroVersion;
                 throw new NativeWindowException("EGLGraphicsDevice.open() failed: "+this);
@@ -245,32 +244,17 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      */
     @Override
     public boolean close() {
-        if(null != eglLifecycleCallback && 0 != handle) {
+        if(isHandleOwner() && 0 != handle) {
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName() + " - EGLGraphicsDevice.close(): "+this);
             }
-            eglLifecycleCallback.eglTerminate(handle);
+            getEGLLifecycleCallback().eglTerminate(handle);
         }
         return super.close();
     }
 
-    @Override
-    public boolean isHandleOwner() {
-        return null != eglLifecycleCallback;
-    }
-    @Override
-    public void clearHandleOwner() {
-        eglLifecycleCallback = null;
-    }
-    @Override
-    protected Object getHandleOwnership() {
-        return eglLifecycleCallback;
-    }
-    @Override
-    protected Object setHandleOwnership(final Object newOwnership) {
-        final EGLDisplayLifecycleCallback oldOwnership = eglLifecycleCallback;
-        eglLifecycleCallback = (EGLDisplayLifecycleCallback) newOwnership;
-        return oldOwnership;
+    private EGLDisplayLifecycleCallback getEGLLifecycleCallback() {
+        return (EGLDisplayLifecycleCallback) getHandleOwnership();
     }
 
     @Override

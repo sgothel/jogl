@@ -206,9 +206,13 @@ public class X11GLXContext extends GLContextImpl {
   @Override
   protected void destroyContextARBImpl(final long ctx) {
     final long display = drawable.getNativeSurface().getDisplayHandle();
-
-    glXReleaseContext(display);
-    GLX.glXDestroyContext(display, ctx);
+    if( 0 != display ) {
+        glXReleaseContext(display);
+        GLX.glXDestroyContext(display, ctx);
+    } else {
+        final AbstractGraphicsDevice adev = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+        throw new GLException("null display handle from device "+adev);
+    }
   }
   private static final int ctx_arb_attribs_idx_major = 0;
   private static final int ctx_arb_attribs_idx_minor = 2;
