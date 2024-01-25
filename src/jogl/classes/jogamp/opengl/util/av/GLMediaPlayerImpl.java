@@ -38,6 +38,8 @@ import java.util.Iterator;
 import java.util.Map;
 
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
+import com.jogamp.nativewindow.DefaultGraphicsDevice;
+import com.jogamp.nativewindow.NativeWindowFactory;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2GL3;
 import com.jogamp.opengl.GLContext;
@@ -1457,7 +1459,17 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 final AbstractGraphicsDevice device = dummyDrawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
                 dummyDrawable.setRealized(false);
                 dummyDrawable = null;
-                device.close();
+                synchronized( singleLock ) {
+                    if( singleDEBUG ) { System.err.println("ZZZ:       device "+singleCount+": "+device.getClass()+", "+device); }
+                    if( device == singleDevice && 0 == --singleCount ) {
+                        DefaultGraphicsDevice.swapHandleAndOwnership(singleOwner, singleDevice);
+                        if( singleDEBUG ) {
+                            System.err.println("ZZZ: singleOwner   "+singleOwner.getClass()+", "+singleOwner);
+                            System.err.println("ZZZ: singleDevice "+singleDevice.getClass()+", "+singleDevice);
+                        }
+                        device.close();
+                    }
+                }
             }
         }
 
@@ -1469,8 +1481,29 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             final boolean glCtxCurrent = glCtx.isCurrent();
             final GLProfile glp = gl.getGLProfile();
             final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-            final AbstractGraphicsDevice device = glCtx.getGLDrawable().getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
-            dummyDrawable = factory.createDummyDrawable(device, true, glCtx.getGLDrawable().getChosenGLCapabilities(), null); // own device!
+            boolean createNewDevice = true;
+            AbstractGraphicsDevice device = glCtx.getGLDrawable().getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+            synchronized( singleLock ) {
+                if( null == singleOwner || singleOwner.getUniqueID().equals(device.getUniqueID()) ) {
+                    if( null == singleOwner ) {
+                        singleDevice = (DefaultGraphicsDevice) NativeWindowFactory.createDevice(device.getType(), device.getConnection(), device.getUnitID(), true);
+                        singleOwner = new DefaultGraphicsDevice(singleDevice.getType(), singleDevice.getConnection(), singleDevice.getUnitID(), singleDevice.getHandle(), null);
+                        DefaultGraphicsDevice.swapHandleAndOwnership(singleOwner, singleDevice);
+                        if( singleDEBUG ) {
+                            System.err.println("XXX: origDevice "+device.getClass()+", "+device);
+                            System.err.println("XXX: singleOwner  "+singleOwner.getClass()+", "+singleOwner);
+                            System.err.println("XXX: singleDevice "+singleDevice.getClass()+", "+singleDevice);
+                        }
+                    }
+                    createNewDevice = false;
+                    device = singleDevice;
+                    ++singleCount;
+                    if( singleDEBUG ) { System.err.println("XXX: singleDevice "+singleCount+": "+device.getClass()+", "+device); }
+                } else {
+                    if( singleDEBUG ) { System.err.println("XXX: createDevice from "+device.getClass()+", "+device); }
+                }
+            }
+            dummyDrawable = factory.createDummyDrawable(device, createNewDevice, glCtx.getGLDrawable().getChosenGLCapabilities(), null);
             dummyDrawable.setRealized(true);
             sharedGLCtx = dummyDrawable.createContext(glCtx);
             hasSharedGLCtx = null != sharedGLCtx;
@@ -1598,6 +1631,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     private volatile StreamWorker streamWorker = null;
     private StreamException streamErr = null;
+    private static final boolean singleDEBUG = false;
+    private static final Object singleLock = new Object();
+    private static DefaultGraphicsDevice singleDevice = null;
+    private static DefaultGraphicsDevice singleOwner = null;
+    private static int singleCount = 0;
 
     protected final GLMediaPlayer.EventMask addStateEventMask(final GLMediaPlayer.EventMask eventMask, final State newState) {
         if( state != newState ) {
