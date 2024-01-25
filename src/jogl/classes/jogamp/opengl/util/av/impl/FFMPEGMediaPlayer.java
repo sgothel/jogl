@@ -46,7 +46,6 @@ import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
-import com.jogamp.opengl.util.av.GLMediaPlayer.Chapter;
 import com.jogamp.opengl.util.texture.Texture;
 
 import jogamp.common.os.PlatformPropsImpl;
@@ -230,8 +229,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             final VersionedLib avUtil = FFMPEGDynamicLibraryBundleInfo.avUtil;
             final VersionedLib avDevice = FFMPEGDynamicLibraryBundleInfo.avDevice;
             final VersionedLib swResample = FFMPEGDynamicLibraryBundleInfo.swResample;
-            final boolean avDeviceLoaded = FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded();
-            final boolean swResampleLoaded = FFMPEGDynamicLibraryBundleInfo.swResampleLoaded();
+            // final boolean avDeviceLoaded = FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded();
+            // final boolean swResampleLoaded = FFMPEGDynamicLibraryBundleInfo.swResampleLoaded();
             final int avCodecMajor = avCodec.version.getMajor();
             final int avFormatMajor = avFormat.version.getMajor();
             final int avUtilMajor = avUtil.version.getMajor();
@@ -279,6 +278,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     // General
     //
 
+    private final Object moviePtrLock = new Object();
     private long moviePtr = 0;
 
     //
@@ -318,9 +318,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
     @Override
     protected final void destroyImpl() {
-        if (moviePtr != 0) {
-            natives.destroyInstance0(moviePtr);
-            moviePtr = 0;
+        synchronized( moviePtrLock ) {
+            if (moviePtr != 0) {
+                natives.destroyInstance0(moviePtr);
+                moviePtr = 0;
+            }
         }
         destroyAudioSink();
     }
@@ -342,75 +344,77 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
     @Override
     protected final void initStreamImpl(final int vid, final int aid) throws IOException {
-        if(0==moviePtr) {
-            throw new GLException("FFMPEG native instance null");
-        }
-        if(DEBUG) {
-            System.err.println("initStream: p1 "+this);
-        }
+        synchronized( moviePtrLock ) {
+            if(0==moviePtr) {
+                throw new GLException("FFMPEG native instance null");
+            }
+            if(DEBUG) {
+                System.err.println("initStream: p1 "+this);
+            }
 
-        final String streamLocS = IOUtil.getUriFilePathOrASCII(getUri());
-        destroyAudioSink();
-        if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
-            audioSink = AudioSinkFactory.createNull();
-        } else {
-            // audioSink = new jogamp.common.av.JavaSoundAudioSink();
-            audioSink = AudioSinkFactory.createDefault(FFMPEGMediaPlayer.class.getClassLoader());
-        }
-        {
-            final int audioChannelLimit = getAudioChannelLimit();
-            if( audioChannelLimit >= 1 ) {
-                audioSink.setChannelLimit(audioChannelLimit);
+            final String streamLocS = IOUtil.getUriFilePathOrASCII(getUri());
+            destroyAudioSink();
+            if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
+                audioSink = AudioSinkFactory.createNull();
+            } else {
+                // audioSink = new jogamp.common.av.JavaSoundAudioSink();
+                audioSink = AudioSinkFactory.createDefault(FFMPEGMediaPlayer.class.getClassLoader());
             }
-        }
-        final AudioFormat preferredAudioFormat = audioSink.getPreferredFormat();
-        if(DEBUG) {
-            System.err.println("initStream: p2 aid "+aid+", preferred "+preferredAudioFormat+" on "+audioSink+", "+this);
-        }
+            {
+                final int audioChannelLimit = getAudioChannelLimit();
+                if( audioChannelLimit >= 1 ) {
+                    audioSink.setChannelLimit(audioChannelLimit);
+                }
+            }
+            final AudioFormat preferredAudioFormat = audioSink.getPreferredFormat();
+            if(DEBUG) {
+                System.err.println("initStream: p2 aid "+aid+", preferred "+preferredAudioFormat+" on "+audioSink+", "+this);
+            }
 
-        final boolean isCameraInput = null != cameraPath;
-        final String resStreamLocS;
-        // int rw=640, rh=480, rr=15;
-        int rw=-1, rh=-1, rr=-1;
-        String sizes = null;
-        if( isCameraInput ) {
-            switch(PlatformPropsImpl.OS_TYPE) {
-                case ANDROID:
-                    // ??
-                case FREEBSD:
-                case HPUX:
-                case LINUX:
-                case SUNOS:
-                    resStreamLocS = dev_video_linux + cameraPath.decode();
-                    break;
-                case WINDOWS:
-                case MACOS:
-                case OPENKODE:
-                default:
-                    resStreamLocS = cameraPath.decode();
-                    break;
+            final boolean isCameraInput = null != cameraPath;
+            final String resStreamLocS;
+            // int rw=640, rh=480, rr=15;
+            int rw=-1, rh=-1, rr=-1;
+            String sizes = null;
+            if( isCameraInput ) {
+                switch(PlatformPropsImpl.OS_TYPE) {
+                    case ANDROID:
+                        // ??
+                    case FREEBSD:
+                    case HPUX:
+                    case LINUX:
+                    case SUNOS:
+                        resStreamLocS = dev_video_linux + cameraPath.decode();
+                        break;
+                    case WINDOWS:
+                    case MACOS:
+                    case OPENKODE:
+                    default:
+                        resStreamLocS = cameraPath.decode();
+                        break;
+                }
+                if( null != cameraProps ) {
+                    sizes = cameraProps.get(CameraPropSizeS);
+                    int v = getPropIntVal(cameraProps, CameraPropWidth);
+                    if( v > 0 ) { rw = v; }
+                    v = getPropIntVal(cameraProps, CameraPropHeight);
+                    if( v > 0 ) { rh = v; }
+                    v = getPropIntVal(cameraProps, CameraPropRate);
+                    if( v > 0 ) { rr = v; }
+                }
+            } else {
+                resStreamLocS = streamLocS;
             }
-            if( null != cameraProps ) {
-                sizes = cameraProps.get(CameraPropSizeS);
-                int v = getPropIntVal(cameraProps, CameraPropWidth);
-                if( v > 0 ) { rw = v; }
-                v = getPropIntVal(cameraProps, CameraPropHeight);
-                if( v > 0 ) { rh = v; }
-                v = getPropIntVal(cameraProps, CameraPropRate);
-                if( v > 0 ) { rr = v; }
+            final int aMaxChannelCount = preferredAudioFormat.channelCount;
+            final int aPrefSampleRate = preferredAudioFormat.sampleRate;
+             // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
+            if(DEBUG) {
+                System.err.println("initStream: p3 cameraPath "+cameraPath+", isCameraInput "+isCameraInput);
+                System.err.println("initStream: p3 stream "+getUri()+" -> "+streamLocS+" -> "+resStreamLocS);
+                System.err.println("initStream: p3 vid "+vid+", sizes "+sizes+", reqVideo "+rw+"x"+rh+"@"+rr+", aid "+aid+", aMaxChannelCount "+aMaxChannelCount+", aPrefSampleRate "+aPrefSampleRate);
             }
-        } else {
-            resStreamLocS = streamLocS;
+            natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, sizes, rw, rh, rr, aid, aMaxChannelCount, aPrefSampleRate);
         }
-        final int aMaxChannelCount = preferredAudioFormat.channelCount;
-        final int aPrefSampleRate = preferredAudioFormat.sampleRate;
-         // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
-        if(DEBUG) {
-            System.err.println("initStream: p3 cameraPath "+cameraPath+", isCameraInput "+isCameraInput);
-            System.err.println("initStream: p3 stream "+getUri()+" -> "+streamLocS+" -> "+resStreamLocS);
-            System.err.println("initStream: p3 vid "+vid+", sizes "+sizes+", reqVideo "+rw+"x"+rh+"@"+rr+", aid "+aid+", aMaxChannelCount "+aMaxChannelCount+", aPrefSampleRate "+aPrefSampleRate);
-        }
-        natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, sizes, rw, rh, rr, aid, aMaxChannelCount, aPrefSampleRate);
     }
 
     @Override
