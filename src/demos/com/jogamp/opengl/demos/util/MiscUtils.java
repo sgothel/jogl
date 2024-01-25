@@ -43,6 +43,8 @@ import com.jogamp.opengl.GLContext;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.InterruptSource;
+import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontFactory;
 
 public class MiscUtils {
     public static boolean atob(final String str, final boolean def) {
@@ -169,6 +171,15 @@ public class MiscUtils {
         } catch (final IOException e) { e.printStackTrace(); }
     }
 
+    public static Font getInfoFont() {
+        try {
+            return FontFactory.get(FontFactory.UBUNTU).getDefault();
+            // return FontFactory.get(FontFactory.SERIF).getDefault();
+        } catch(final IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        }
+    }
 
     public static class StreamDump extends InterruptSource.Thread {
         final InputStream is;

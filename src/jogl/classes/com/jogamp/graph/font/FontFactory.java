@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -42,7 +42,6 @@ import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.graph.font.FontConstructor;
-import jogamp.graph.font.JavaFontLoader;
 import jogamp.graph.font.SymbolsFontLoader;
 import jogamp.graph.font.UbuntuFontLoader;
 
@@ -63,9 +62,6 @@ public class FontFactory {
 
     /** Symbols is the default symbol font family and contains rounded material symbol fonts, {@value} */
     public static final int SYMBOLS = 10;
-
-    /** Java fonts are optional, {@value} */
-    public static final int JAVA = 1;
 
     private static final FontConstructor fontConstr;
 
@@ -88,8 +84,6 @@ public class FontFactory {
 
     public static final FontSet get(final int font) {
         switch (font) {
-            case JAVA:
-                return JavaFontLoader.get();
             case SYMBOLS:
                 return SymbolsFontLoader.get();
             default:

@@ -198,9 +198,6 @@ public class TestTextRendererNEWT20 extends UITestCase {
                 }
             }
         }
-        if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
-            action_per_font.run();
-        }
         destroyWindow(window);
     }
 
@@ -250,9 +247,6 @@ public class TestTextRendererNEWT20 extends UITestCase {
                     action_per_font.run();
                 }
             }
-        }
-        if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
-            action_per_font.run();
         }
         destroyWindow(window);
     }

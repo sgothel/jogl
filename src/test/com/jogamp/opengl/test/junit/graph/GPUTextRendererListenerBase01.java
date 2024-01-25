@@ -442,7 +442,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
 
     public boolean nextFontSet() {
         try {
-            final int set = ( fontSet == FontFactory.UBUNTU ) ? FontFactory.JAVA : FontFactory.UBUNTU ;
+            final int set = ( fontSet == FontFactory.UBUNTU ) ? FontFactory.UBUNTU : FontFactory.UBUNTU ;
             final Font _font = FontFactory.get(set).getDefault();
             if(null != _font) {
                 fontSet = set;
