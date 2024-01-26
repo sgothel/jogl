@@ -762,10 +762,10 @@ public class AABBox {
      */
     public final AABBox scale(final float sX, final float sY, final float sZ) {
         final Vec3f tmp = new Vec3f();
-        tmp.set(hi).sub(center).scale(sX, sY, sZ);
+        tmp.set(hi).sub(center).mul(sX, sY, sZ);
         hi.set(center).add(tmp);
 
-        tmp.set(lo).sub(center).scale(sX, sY, sZ);
+        tmp.set(lo).sub(center).mul(sX, sY, sZ);
         lo.set(center).add(tmp);
 
         return this;
@@ -799,8 +799,8 @@ public class AABBox {
      * @see #scale(float, float[])
      */
     public final AABBox scale2(final float sX, final float sY, final float sZ) {
-        hi.scale(sX, sY, sZ);
-        lo.scale(sX, sY, sZ);
+        hi.mul(sX, sY, sZ);
+        lo.mul(sX, sY, sZ);
         computeCenter();
         return this;
     }

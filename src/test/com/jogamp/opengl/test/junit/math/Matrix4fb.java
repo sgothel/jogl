@@ -1594,10 +1594,10 @@ public class Matrix4fb {
         final Vec4f winPos = new Vec4f(winx, winy, winz, 1f);
 
         // Map x and y from window coordinates
-        winPos.add(-viewport[0], -viewport[1], 0f, 0f).scale(1f/viewport[2], 1f/viewport[3], 1f, 1f);
+        winPos.add(-viewport[0], -viewport[1], 0f, 0f).mul(1f/viewport[2], 1f/viewport[3], 1f, 1f);
 
         // Map to range -1 to 1
-        winPos.scale(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
+        winPos.mul(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
 
         // rawObjPos = Inv(P x Mv) *  winPos
         final Vec4f rawObjPos = invPMv.mulVec4f(winPos, new Vec4f());
@@ -1634,10 +1634,10 @@ public class Matrix4fb {
         final Vec4f winPos = new Vec4f(winx, winy, winz, 1f);
 
         // Map x and y from window coordinates
-        winPos.add(-viewport[0], -viewport[1], 0f, 0f).scale(1f/viewport[2], 1f/viewport[3], 1f, 1f);
+        winPos.add(-viewport[0], -viewport[1], 0f, 0f).mul(1f/viewport[2], 1f/viewport[3], 1f, 1f);
 
         // Map to range -1 to 1
-        winPos.scale(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
+        winPos.mul(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
 
         // rawObjPos = Inv(P x Mv) *  winPos
         final Vec4f rawObjPos = invPMv.mulVec4f(winPos, new Vec4f());
@@ -1676,10 +1676,10 @@ public class Matrix4fb {
         final Vec4f winPos = new Vec4f(winx, winy, winz1, 1f);
 
         // Map x and y from window coordinates
-        winPos.add(-viewport[0], -viewport[1], 0f, 0f).scale(1f/viewport[2], 1f/viewport[3], 1f, 1f);
+        winPos.add(-viewport[0], -viewport[1], 0f, 0f).mul(1f/viewport[2], 1f/viewport[3], 1f, 1f);
 
         // Map to range -1 to 1
-        winPos.scale(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
+        winPos.mul(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
 
         // rawObjPos = Inv(P x Mv) *  winPos1
         final Vec4f rawObjPos = invPMv.mulVec4f(winPos, new Vec4f());
@@ -1741,10 +1741,10 @@ public class Matrix4fb {
         final Vec4f winPos = new Vec4f(winx, winy, winz, clipw);
 
         // Map x and y from window coordinates
-        winPos.add(-viewport[0], -viewport[1], -near, 0f).scale(1f/viewport[2], 1f/viewport[3], 1f/(far-near), 1f);
+        winPos.add(-viewport[0], -viewport[1], -near, 0f).mul(1f/viewport[2], 1f/viewport[3], 1f/(far-near), 1f);
 
         // Map to range -1 to 1
-        winPos.scale(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
+        winPos.mul(2f, 2f, 2f, 1f).add(-1f, -1f, -1f, 0f);
 
         // objPos = Inv(P x Mv) *  winPos
         invPMv.mulVec4f(winPos, objPos);

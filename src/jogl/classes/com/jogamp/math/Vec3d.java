@@ -173,23 +173,39 @@ public final class Vec3d {
     }
 
     /** this = this * s, returns this. */
-    public Vec3d scale(final double s) {
-        x *= s;
-        y *= s;
-        z *= s;
-        return this;
-    }
+    public Vec3d mul(final Vec3d s) { return mul(s.x, s.y, s.z); }
 
     /** this = this * { sx, sy, sz }, returns this. */
-    public Vec3d scale(final double sx, final double sy, final double sz) {
+    public Vec3d mul(final double sx, final double sy, final double sz) {
         x *= sx;
         y *= sy;
         z *= sz;
         return this;
     }
 
-    /** this = this * { s.x, s.y, s.z }, returns this. */
-    public Vec3d scale(final Vec3d s) { return scale(s.x, s.y, s.z); }
+    /** this = a / b, returns this. */
+    public Vec3d div(final Vec3d a, final Vec3d b) {
+        x = a.x / b.x;
+        y = a.y / b.y;
+        z = a.z / b.z;
+        return this;
+    }
+
+    /** this = this / a, returns this. */
+    public Vec3d div(final Vec3d a) {
+        x /= a.x;
+        y /= a.y;
+        z /= a.z;
+        return this;
+    }
+
+    /** this = this * s, returns this. */
+    public Vec3d scale(final double s) {
+        x *= s;
+        y *= s;
+        z *= s;
+        return this;
+    }
 
     /** Returns this + arg; creates new vector */
     public Vec3d plus(final Vec3d arg) {

@@ -258,9 +258,9 @@ public class BoxLayout implements Group.Layout {
                     } else if( !isCenteredHoriz && diffBL.x() > 0 ) {
                         diffBL.setX(0); // only adjust negative if !center-horiz
                     }
-                    diffBL.scale(s.getScale()).scale(-1f);
+                    diffBL.mul(s.getScale()).scale(-1f);
                 } else {
-                    diffBL.min(new Vec3f()).scale(s.getScale()).scale(-1f);
+                    diffBL.min(new Vec3f()).mul(s.getScale()).scale(-1f);
                 }
                 s.move( diffBL.scale(sxy) );
                 if( TRACE_LAYOUT ) {

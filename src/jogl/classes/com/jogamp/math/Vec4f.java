@@ -172,16 +172,10 @@ public final class Vec4f {
     }
 
     /** this = this * s, returns this. */
-    public Vec4f scale(final float s) {
-        x *= s;
-        y *= s;
-        z *= s;
-        w *= s;
-        return this;
-    }
+    public Vec4f mul(final Vec4f s) { return mul(s.x, s.y, s.z, s.w); }
 
     /** this = this * { sx, sy, sz, sw }, returns this. */
-    public Vec4f scale(final float sx, final float sy, final float sz, final float sw) {
+    public Vec4f mul(final float sx, final float sy, final float sz, final float sw) {
         x *= sx;
         y *= sy;
         z *= sz;
@@ -189,8 +183,32 @@ public final class Vec4f {
         return this;
     }
 
-    /** this = this * { s.x, s.y, s.z, s.w }, returns this. */
-    public Vec4f scale(final Vec4f s) { return scale(s.x, s.y, s.z, s.w); }
+    /** this = a / b, returns this. */
+    public Vec4f div(final Vec4f a, final Vec4f b) {
+        x = a.x / b.x;
+        y = a.y / b.y;
+        z = a.z / b.z;
+        w = a.w / b.w;
+        return this;
+    }
+
+    /** this = this / a, returns this. */
+    public Vec4f div(final Vec4f a) {
+        x /= a.x;
+        y /= a.y;
+        z /= a.z;
+        w /= a.w;
+        return this;
+    }
+
+    /** this = this * s, returns this. */
+    public Vec4f scale(final float s) {
+        x *= s;
+        y *= s;
+        z *= s;
+        w *= s;
+        return this;
+    }
 
     /** Returns this + arg; creates new vector */
     public Vec4f plus(final Vec4f arg) {

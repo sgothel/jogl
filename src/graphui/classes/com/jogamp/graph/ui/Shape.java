@@ -330,7 +330,7 @@ public abstract class Shape {
     public final Shape setVisible(final boolean v) { return setIO(IO_VISIBLE, v); }
 
     /**
-     * Sets the padding for this shape, which is included in {@link #getBounds()B} and also includes the border. Default is zero.
+     * Sets the padding for this shape, which is included in {@link #getBounds()} and also includes the border. Default is zero.
      *
      * Method issues {@link #markShapeDirty()}.
      *
@@ -610,7 +610,7 @@ public abstract class Shape {
      * @see #getScale()
      */
     public final Shape scale(final Vec3f s) {
-        scale.scale(s);
+        scale.mul(s);
         updateMat();
         return this;
     }
@@ -620,7 +620,7 @@ public abstract class Shape {
      * @see #getScale()
      */
     public final Shape scale(final float sx, final float sy, final float sz) {
-        scale.scale(sx, sy, sz);
+        scale.mul(sx, sy, sz);
         updateMat();
         return this;
     }
@@ -1891,7 +1891,7 @@ public abstract class Shape {
             }
             shapeEvent.objDrag.set( objPos.x() - objDraggedFirst.x(),
                                     objPos.y() - objDraggedFirst.y() );
-            shapeEvent.objDrag.scale(x_flip ? -1f : 1f, y_flip ? -1f : 1f);
+            shapeEvent.objDrag.mul(x_flip ? -1f : 1f, y_flip ? -1f : 1f);
 
             shapeEvent.winDrag[0] = glWinX - winDraggedLast[0];
             shapeEvent.winDrag[1] = glWinY - winDraggedLast[1];

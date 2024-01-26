@@ -180,23 +180,39 @@ public final class Vec3f {
     }
 
     /** this = this * s, returns this. */
-    public Vec3f scale(final float s) {
-        x *= s;
-        y *= s;
-        z *= s;
-        return this;
-    }
+    public Vec3f mul(final Vec3f s) { return mul(s.x, s.y, s.z); }
 
     /** this = this * { sx, sy, sz }, returns this. */
-    public Vec3f scale(final float sx, final float sy, final float sz) {
+    public Vec3f mul(final float sx, final float sy, final float sz) {
         x *= sx;
         y *= sy;
         z *= sz;
         return this;
     }
 
-    /** this = this * { s.x, s.y, s.z }, returns this. */
-    public Vec3f scale(final Vec3f s) { return scale(s.x, s.y, s.z); }
+    /** this = a / b, returns this. */
+    public Vec3f div(final Vec3f a, final Vec3f b) {
+        x = a.x / b.x;
+        y = a.y / b.y;
+        z = a.z / b.z;
+        return this;
+    }
+
+    /** this = this / a, returns this. */
+    public Vec3f div(final Vec3f a) {
+        x /= a.x;
+        y /= a.y;
+        z /= a.z;
+        return this;
+    }
+
+    /** this = this * s, returns this. */
+    public Vec3f scale(final float s) {
+        x *= s;
+        y *= s;
+        z *= s;
+        return this;
+    }
 
     /** Returns this + arg; creates new vector */
     public Vec3f plus(final Vec3f arg) {

@@ -147,21 +147,35 @@ public final class Vec2f {
     }
 
     /** this = this * s, returns this. */
-    public Vec2f scale(final float s) {
-        x *= s;
-        y *= s;
-        return this;
-    }
+    public Vec2f mul(final Vec2f s) { return mul(s.x, s.y); }
 
     /** this = this * { sx, sy }, returns this. */
-    public Vec2f scale(final float sx, final float sy) {
+    public Vec2f mul(final float sx, final float sy) {
         x *= sx;
         y *= sy;
         return this;
     }
 
-    /** this = this * { s.x, s.y }, returns this. */
-    public Vec2f scale(final Vec2f s) { return scale(s.x, s.y); }
+    /** this = a / b, returns this. */
+    public Vec2f div(final Vec2f a, final Vec2f b) {
+        x = a.x / b.x;
+        y = a.y / b.y;
+        return this;
+    }
+
+    /** this = this / a, returns this. */
+    public Vec2f div(final Vec2f a) {
+        x /= a.x;
+        y /= a.y;
+        return this;
+    }
+
+    /** this = this * s, returns this. */
+    public Vec2f scale(final float s) {
+        x *= s;
+        y *= s;
+        return this;
+    }
 
     /** Returns this + arg; creates new vector */
     public Vec2f plus(final Vec2f arg) {
