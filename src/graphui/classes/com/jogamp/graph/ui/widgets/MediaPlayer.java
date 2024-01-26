@@ -81,6 +81,12 @@ public class MediaPlayer extends Widget {
     public static final float CtrlButtonWidth = 1f;
     public static final float CtrlButtonHeight = 1f;
     public static final Vec4f CtrlCellCol = new Vec4f(0, 0, 0, 0);
+    private static final float BorderSz = 0.01f;
+    private static final float BorderSzS = 0.03f;
+    private static final Vec4f BorderColor = new Vec4f(0, 0, 0, 0.5f);
+    private static final Vec4f BorderColorA = new Vec4f(0, 0, 0.5f, 0.5f);
+    private static final float AlphaBlend = 0.3f;
+    private static final float KnobScale = 3f;
 
     /**
      * Constructs a {@link MediaPlayer}, i.e. its shapes and controls.
@@ -103,30 +109,23 @@ public class MediaPlayer extends Widget {
         if( null == fontInfo || null == fontSymbols ) {
             return;
         }
-        final float borderSz = 0.01f;
-        final float borderSzS = 0.03f;
-        final Vec4f borderColor = new Vec4f(0, 0, 0, 0.5f);
-        final Vec4f borderColorA = new Vec4f(0, 0, 0.5f, 0.5f);
-        final float alphaBlend = 0.3f;
-
         final float zEpsilon = scene.getZEpsilon(16);
         final float ctrlZOffset = zEpsilon * 20f;
 
         final int ctrlCellsInt = 9;
         final int ctrlCells = Math.max(customCtrls.size() + ctrlCellsInt, 13);
 
-        final float ctrlCellWidth = (aratio-2*borderSzS)/ctrlCells;
+        final float ctrlCellWidth = (aratio-2*BorderSzS)/ctrlCells;
         final float ctrlCellHeight = ctrlCellWidth;
         final float ctrlSliderHeightMin = ctrlCellHeight/15f;       // bar-height
-        final float ctrlSliderHeightMax = 3f * ctrlSliderHeightMin; // knob-height
-        final float infoGroupHeight = 1/7f;
+        final float ctrlSliderHeightMax = KnobScale * ctrlSliderHeightMin; // knob-height
 
         final AtomicReference<Shape> zoomReplacement = new AtomicReference<Shape>();
         final AtomicReference<Vec3f> zoomOrigScale = new AtomicReference<Vec3f>();
         final AtomicReference<Vec3f> zoomOrigPos = new AtomicReference<Vec3f>();
 
         this.setName("mp.container");
-        this.setBorderColor(borderColor).setBorder(borderSz);
+        this.setBorderColor(BorderColor).setBorder(BorderSz);
         this.setInteractive(true).setFixedARatioResize(true);
 
         final MediaButton mButton = new MediaButton(renderModes, aratio, 1, mPlayer);
@@ -202,6 +201,8 @@ public class MediaPlayer extends Widget {
         Shape ctrlBlend;
         final Label muteLabel, infoLabel;
         final Button timeLabel;
+        final float infoGroupHeight;
+        final boolean[] hud_sticky = { false };
         {
             muteLabel = new Label(renderModes, fontSymbols, aratio/6f, fontSymbols.getUTF16String("music_off")); // volume_mute, headset_off
             muteLabel.setName("mp.mute");
@@ -219,21 +220,33 @@ public class MediaPlayer extends Widget {
             infoGroup.setName("mp.info").setInteractive(false);
             this.addShape( infoGroup.setVisible(false) );
             {
+                final String text = "88:88 / 88:88 (88 %), playing (8.88x, vol 8.88), A/R 8.88\n"+
+                                    "JogAmp's GraphUI Full-Feature Media Player Widget Rocks!";
+                final AABBox textBounds = fontInfo.getGlyphBounds(text);
+                final float lineHeight = textBounds.getHeight()/2f; // fontInfo.getLineHeight();
+                final float sxy = aratio/(2f*textBounds.getWidth()); // add 100%
+                infoLabel = new Label(renderModes, fontInfo, text);
+                infoLabel.setName("mp.info.label");
+                infoLabel.setInteractive(false);
+                infoLabel.setColor(1, 1, 1, 0.9f);
+                infoLabel.scale(sxy, sxy, 1f);
+
+                final float dy = 0.5f*lineHeight*sxy;
+                infoGroupHeight = 2.5f*dy + textBounds.getHeight()*sxy;
+                if( DEBUG ) {
+                    System.err.println("XXX: sxy "+sxy+", b "+textBounds);
+                    System.err.println("XXX: GroupHeight "+infoGroupHeight+", dy "+dy+", lineHeight*sxy "+(lineHeight*sxy));
+                    System.err.println("XXX: b.getHeight() * sxy "+(textBounds.getHeight() * sxy));
+                    System.err.println("XXX: (1f-GroupHeight+dy)/sxy "+((1f-infoGroupHeight+dy)/sxy));
+                }
+                infoLabel.setPaddding(new Padding(0, 0, (1f-infoGroupHeight+dy)/sxy, 0.5f));
+
                 final Rectangle rect = new Rectangle(renderModes & ~Region.AA_RENDERING_MASK, aratio, infoGroupHeight, 0);
                 rect.setName("mp.info.blend").setInteractive(false);
-                rect.setColor(0, 0, 0, alphaBlend);
+                rect.setColor(0, 0, 0, AlphaBlend);
                 rect.setPaddding(new Padding(0, 0, 1f-infoGroupHeight, 0));
+
                 infoGroup.addShape(rect);
-            }
-            {
-                final int lines = 3;
-                final String text = getInfo(Clock.currentMillis(), mPlayer, false);
-                infoLabel = new Label(renderModes, fontInfo, aratio/40f, text);
-                infoLabel.setName("mp.info.label");
-                final float szw = aratio/40f;
-                infoLabel.setPaddding(new Padding(0, 0, 1f-szw*lines, szw));
-                infoLabel.setInteractive(false);
-                infoLabel.setColor(1, 1, 1, 1);
                 infoGroup.addShape(infoLabel);
             }
             {
@@ -290,17 +303,18 @@ public class MediaPlayer extends Widget {
 
             ctrlBlend = new Rectangle(renderModes & ~Region.AA_RENDERING_MASK, aratio, ctrlCellHeight, 0);
             ctrlBlend.setName("ctrl.blend").setInteractive(false);
-            ctrlBlend.setColor(0, 0, 0, alphaBlend);
+            ctrlBlend.setColor(0, 0, 0, AlphaBlend);
             this.addShape( ctrlBlend.setVisible(false) );
 
             final float toolTipScaleY = 0.6f;
             ctrlGroup = new Group(new GridLayout(ctrlCellWidth, ctrlCellHeight, Alignment.FillCenter, Gap.None, 1));
             ctrlGroup.setName("ctrlGroup").setInteractive(false);
-            ctrlGroup.setPaddding(new Padding(0, borderSzS, 0, borderSzS));
+            ctrlGroup.setPaddding(new Padding(0, BorderSzS, 0, BorderSzS));
             this.addShape( ctrlGroup.move(0, 0, ctrlZOffset).setVisible(false) );
             { // 1
                 playButton.onToggle((final Shape s) -> {
                     if( s.isToggleOn() ) {
+                        mPlayer.setPlaySpeed(1);
                         mPlayer.resume();
                     } else {
                         mPlayer.pause(false);
@@ -308,7 +322,7 @@ public class MediaPlayer extends Widget {
                 });
                 playButton.setToggle(true); // on == play
                 ctrlGroup.addShape(playButton);
-                playButton.setToolTip(new TooltipText("Play", fontInfo, toolTipScaleY));
+                playButton.setToolTip(new TooltipText("Play/Pause", fontInfo, toolTipScaleY));
             }
             { // 2
                 final Button button = new Button(renderModes, fontSymbols,
@@ -324,24 +338,34 @@ public class MediaPlayer extends Widget {
             { // 3
                 final Button button = new Button(renderModes, fontSymbols,
                         fontSymbols.getUTF16String("fast_rewind"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
-                button.setName("frev");
+                button.setName("rv-");
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
                 button.onClicked((final Shape s) -> {
-                    mPlayer.setPlaySpeed(mPlayer.getPlaySpeed() - 0.5f);
+                    final float v = mPlayer.getPlaySpeed();
+                    if( v <= 1.0f ) {
+                        mPlayer.setPlaySpeed(v / 2.0f);
+                    } else {
+                        mPlayer.setPlaySpeed(v - 0.5f);
+                    }
                 });
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("Fast-Rewind", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("replay speed: v <= 1 ? v/2 : v-0.5", fontInfo, toolTipScaleY));
             }
             { // 4
                 final Button button = new Button(renderModes, fontSymbols,
                         fontSymbols.getUTF16String("fast_forward"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
-                button.setName("ffwd");
+                button.setName("rv+");
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
                 button.onClicked((final Shape s) -> {
-                    mPlayer.setPlaySpeed(mPlayer.getPlaySpeed() + 0.5f);
+                    final float v = mPlayer.getPlaySpeed();
+                    if( 1f > v && v + 0.5f > 1f ) {
+                        mPlayer.setPlaySpeed(1); // reset while crossing over 1
+                    } else {
+                        mPlayer.setPlaySpeed(v + 0.5f);
+                    }
                 });
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("Fast-Forward", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("replay speed: v+0.5", fontInfo, toolTipScaleY));
             }
             { // 5
                 final Button button = new Button(renderModes, fontSymbols,
@@ -412,13 +436,25 @@ public class MediaPlayer extends Widget {
             { // 8
                 ctrlGroup.addShape(timeLabel);
             }
-            for(int i=8; i<ctrlCells-1-customCtrls.size(); ++i) {
+            for(int i=8; i<ctrlCells-2-customCtrls.size(); ++i) {
                 final Button button = new Button(renderModes, fontInfo, " ", CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("ctrl_"+i);
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
                 ctrlGroup.addShape(button);
             }
             { // -1
+                final Button button = new Button(renderModes, fontSymbols,
+                        fontSymbols.getUTF16String("visibility"), fontSymbols.getUTF16String("visibility_off"),  CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
+                button.setName("hud");
+                button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
+                button.onToggle( (final Shape s) -> {
+                    hud_sticky[0] = s.isToggleOn();
+                });
+                button.setToggle( false );
+                ctrlGroup.addShape(button);
+                button.setToolTip(new TooltipText("HUD", fontInfo, toolTipScaleY));
+            }
+            { // -2
                 final Button button = new Button(renderModes, fontSymbols,
                         fontSymbols.getUTF16String("zoom_out_map"), fontSymbols.getUTF16String("zoom_in_map"),  CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("zoom");
@@ -499,13 +535,14 @@ public class MediaPlayer extends Widget {
 
         this.addActivationListener( (final Shape s) -> {
             if( this.isActive() ) {
-                this.setBorderColor(borderColorA);
+                this.setBorderColor(BorderColorA);
             } else {
-                this.setBorderColor(borderColor);
-                ctrlSlider.setVisible(false);
-                ctrlBlend.setVisible(false);
-                ctrlGroup.setVisible(false);
-                infoGroup.setVisible(false);
+                final boolean hud_on = hud_sticky[0];
+                this.setBorderColor(BorderColor);
+                ctrlSlider.setVisible(hud_on);
+                ctrlBlend.setVisible(hud_on);
+                ctrlGroup.setVisible(hud_on);
+                infoGroup.setVisible(hud_on);
             }
         });
         this.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -513,7 +550,7 @@ public class MediaPlayer extends Widget {
             public void mouseMoved(final MouseEvent e) {
                 final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
                 final Vec3f p = shapeEvent.objPos;
-                final boolean c = ( ctrlCellHeight + ctrlSliderHeightMax ) > p.y() || p.y() > ( 1f - infoGroupHeight );
+                final boolean c = hud_sticky[0] || ( ctrlCellHeight + ctrlSliderHeightMax ) > p.y() || p.y() > ( 1f - infoGroupHeight );
                 ctrlSlider.setVisible(c);
                 ctrlBlend.setVisible(c);
                 ctrlGroup.setVisible(c);
@@ -582,7 +619,7 @@ public class MediaPlayer extends Widget {
         final float aspect = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
         final float pct = (float)ptsMS / (float)durationMS;
         if( full ) {
-            final String text1 = String.format("%s / %s (%.0f %%), %s (%01.1fx, vol %1.2f), A/R %0.2f, fps %02.1f",
+            final String text1 = String.format("%s / %s (%.0f %%), %s (%01.2fx, vol %1.2f), A/R %0.2f, fps %02.1f",
                     PTS.millisToTimeStr(ptsMS, false), PTS.millisToTimeStr(durationMS, false), pct*100,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect, mPlayer.getFramerate());
             final String text2 = String.format("audio: id %d, kbps %d, codec %s",
@@ -591,7 +628,7 @@ public class MediaPlayer extends Widget {
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
             return text1+"\n"+text2+"\n"+text3+"\n"+name+chapter;
         } else {
-            final String text1 = String.format("%s / %s (%.0f %%), %s (%01.1fx, vol %1.2f), A/R %.2f",
+            final String text1 = String.format("%s / %s (%.0f %%), %s (%01.2fx, vol %1.2f), A/R %.2f",
                     PTS.millisToTimeStr(ptsMS, false), PTS.millisToTimeStr(durationMS, false), pct*100,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect);
             return text1+"\n"+name+chapter;
