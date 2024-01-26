@@ -231,12 +231,15 @@ public abstract class Shape {
 
     /** Default base-color w/o color channel, will be modulated w/ pressed- and toggle color */
     protected final Vec4f rgbaColor             = new Vec4f(0.60f, 0.60f, 0.60f, 1.0f);
-    /** Default pressed color-factor (darker and slightly transparent), modulated base-color. ~0.65 (due to alpha) */
+    /** Default pressed color-factor (darker and slightly transparent), modulates base-color. ~0.65 (due to alpha) */
     protected final Vec4f pressedRGBAModulate   = new Vec4f(0.70f, 0.70f, 0.70f, 0.8f);
-    /** Default toggle color-factor (darkest), modulated base-color.  0.60 * 0.83 ~= 0.50 */
+    /** Default toggle color-factor (darker), modulates base-color.  0.60 * 0.83 ~= 0.50 */
     protected final Vec4f toggleOnRGBAModulate  = new Vec4f(0.83f, 0.83f, 0.83f, 1.0f);
-    /** Default toggle color-factor, modulated base-color.  0.60 * 1.00 ~= 0.60 */
+    /** Default toggle color-factor (original), modulates base-color.  0.60 * 1.00 ~= 0.60 */
     protected final Vec4f toggleOffRGBAModulate = new Vec4f(1.00f, 1.00f, 1.00f, 1.0f);
+    /** Default active color-factor (dark), modulates base-color.  0.60 * 0.25 ~= 0.15 */
+    protected final Vec4f activeRGBAModulate = new Vec4f(0.25f, 0.25f, 0.25f, 1.0f);
+    protected boolean activeRGBAModulateOn = false;
 
     private final Vec4f rgba_tmp = new Vec4f(0, 0, 0, 1);
     private final Vec4f cWhite = new Vec4f(1, 1, 1, 1);
@@ -338,6 +341,7 @@ public abstract class Shape {
      * @return this shape for chaining
      * @see #getPadding()
      * @see #hasPadding()
+     * @see #markShapeDirty()
      */
     public final Shape setPaddding(final Padding padding) {
         this.padding = padding;
@@ -357,12 +361,13 @@ public abstract class Shape {
 
     /**
      * Sets the thickness of the border, which is included in {@link #getBounds()} and is outside of {@link #getPadding()}. Default is zero for no border.
-     *
+     * <p>
      * Method issues {@link #markShapeDirty()}.
-     *
+     * </p>
      * @param thickness border thickness, zero for no border
      * @return this shape for chaining
      * @see #setBorderColor(Vec4f)
+     * @see #markShapeDirty()
      */
     public final Shape setBorder(final float thickness) {
         borderThickness = Math.max(0f, thickness);
@@ -762,6 +767,8 @@ public abstract class Shape {
                 } else {
                     rgba = toggleOffRGBAModulate;
                 }
+            } else if( activeRGBAModulateOn && isActive() ) {
+                rgba = activeRGBAModulate;
             } else {
                 rgba = cWhite;
             }
@@ -775,6 +782,8 @@ public abstract class Shape {
                 } else {
                     rgba.mul(rgbaColor, toggleOffRGBAModulate);
                 }
+            } else if( activeRGBAModulateOn && isActive() ) {
+                rgba.mul(rgbaColor, activeRGBAModulate);
             } else {
                 rgba.set(rgbaColor);
             }
@@ -1295,7 +1304,19 @@ public abstract class Shape {
         return this.winToShapeCoord(scene.getPMVMatrixSetup(), scene.getViewport(), glWinX, glWinY, pmv, objPos);
     }
 
+    /**
+     * Returns base-color w/o color channel, will be modulated w/ {@link #getPressedColorMod()},
+     * {@link #getToggleOnColorMod()}, {@link #getToggleOffColorMod()} and {@link #getActiveColorMod()}.
+     **/
     public final Vec4f getColor() { return rgbaColor; }
+    /** Returns modulation color when {@link #isPressed()}. */
+    public final Vec4f getPressedColorMod() { return pressedRGBAModulate; }
+    /** Returns modulation color when {@link #isToggleOn()}. */
+    public final Vec4f getToggleOnColorMod() { return toggleOnRGBAModulate; }
+    /** Returns modulation color when not {@link #isToggleOn()}. */
+    public final Vec4f getToggleOffColorMod() { return toggleOffRGBAModulate; }
+    /** Returns modulation color when {@link #isActive()}. */
+    public final Vec4f getActiveColorMod() { return activeRGBAModulate; }
 
     /**
      * Set base color.
@@ -1305,9 +1326,14 @@ public abstract class Shape {
      * <p>
      * Default RGBA value is 0.60f, 0.60f, 0.60f, 1.0f
      * </p>
+     * <p>
+     * Method issues {@link #markShapeDirty()}.
+     * </p>
+     * @see #markShapeDirty()
      */
     public Shape setColor(final float r, final float g, final float b, final float a) {
         this.rgbaColor.set(r, g, b, a);
+        markShapeDirty();
         return this;
     }
 
@@ -1319,16 +1345,21 @@ public abstract class Shape {
      * <p>
      * Default RGBA value is 0.60f, 0.60f, 0.60f, 1.0f
      * </p>
+     * <p>
+     * Method issues {@link #markShapeDirty()}.
+     * </p>
+     * @see #markShapeDirty()
      */
     public Shape setColor(final Vec4f c) {
         this.rgbaColor.set(c);
+        markShapeDirty();
         return this;
     }
 
     /**
-     * Set pressed color.
+     * Set pressed color, modulating {@link #getColor()} if {@link #isPressed()}.
      * <p>
-     * Default pressed color-factor w/o color channel, modulated base-color. ~0.65 (due to alpha)
+     * Default pressed color, modulation -factor w/o color channel, modulated base-color. ~0.65 (due to alpha)
      * </p>
      * <p>
      * Default RGBA value is 0.70f, 0.70f, 0.70f, 0.8f
@@ -1340,7 +1371,7 @@ public abstract class Shape {
     }
 
     /**
-     * Set toggle-on color.
+     * Set toggle-on color, modulating {@link #getColor()} if {@link #isToggleOn()} and {@link #setToggleable(boolean)}
      * <p>
      * Default toggle-on color-factor w/o color channel, modulated base-color.  0.60 * 0.83 ~= 0.50
      * </p>
@@ -1354,7 +1385,7 @@ public abstract class Shape {
     }
 
     /**
-     * Set toggle-off color.
+     * Set toggle-off color, modulating {@link #getColor()} if !{@link #isToggleOn()} and {@link #setToggleable(boolean)}
      * <p>
      * Default toggle-off color-factor w/o color channel, modulated base-color.  0.60 * 1.00 ~= 0.60
      * </p>
@@ -1367,6 +1398,26 @@ public abstract class Shape {
         return this;
     }
 
+    /**
+     * Enable active color, modulation {@link #getColor()} if {@link #isActive()} with passing {@code c != null},
+     * disable with passing {@code c == null}.
+     * <p>
+     * Default active color-factor w/o color channel, modulated base-color.  0.60 * 0.25 ~= 0.15
+     * </p>
+     * <p>
+     * Default is disabled.
+     * </p>
+     */
+    public final Shape setActiveColorMod(final Vec4f c) {
+        if( null == c ) {
+            activeRGBAModulateOn = false;
+        } else {
+            activeRGBAModulateOn = true;
+            this.activeRGBAModulate.set(c);
+        }
+        return this;
+    }
+
     public final Vec4f getBorderColor() { return borderColor; }
 
     /**
@@ -1374,7 +1425,11 @@ public abstract class Shape {
      * <p>
      * Default RGBA value is 0.00f, 0.00f, 0.00f, 1.0f
      * </p>
+     * <p>
+     * Method issues {@link #markShapeDirty()}.
+     * </p>
      * @see #setBorder(float)
+     * @see #markShapeDirty()
      */
     public final Shape setBorderColor(final float r, final float g, final float b, final float a) {
         this.borderColor.set(r, g, b, a);
@@ -1387,7 +1442,11 @@ public abstract class Shape {
      * <p>
      * Default RGBA value is 0.00f, 0.00f, 0.00f, 1.0f
      * </p>
+     * <p>
+     * Method issues {@link #markShapeDirty()}.
+     * </p>
      * @see #setBorder(float)
+     * @see #markShapeDirty()
      */
     public final Shape setBorderColor(final Vec4f c) {
         this.borderColor.set(c);
