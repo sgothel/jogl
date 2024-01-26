@@ -481,8 +481,9 @@ public interface GLMediaPlayer extends TextureSequence {
      * @param vid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
      * @param aid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
      * @param textureCount desired number of buffered textures to be decoded off-thread, will be validated by implementation.
-     *        The minimum value is {@link #TEXTURE_COUNT_DEFAULT}.
-     *        Ignored if video is muted.
+     *        The minimum value is {@link #TEXTURE_COUNT_MIN} (single-threaded) or above to enable multi-threaded stream decoding.
+     *        Default is {@link #TEXTURE_COUNT_DEFAULT}.
+     *        Value is ignored if video is muted.
      * @throws IllegalStateException if not invoked in {@link State#Uninitialized}
      * @throws IllegalArgumentException if arguments are invalid
      * @since 2.3.0

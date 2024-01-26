@@ -791,9 +791,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     if( null != streamWorker ) {
                         streamWorker.initGL(gl);
                         streamWorker.resume();
-                        changeState(new GLMediaPlayer.EventMask(), State.Paused);
-                        resume();
                     }
+                    changeState(new GLMediaPlayer.EventMask(), State.Paused);
+                    resume();
                 } else if( null == gl ) {
                     width = 0;
                     height = 0;
@@ -1129,7 +1129,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             hasVideoFrame = true;
                             repeatedFrame++;
                             syncModeA = 'r';
-                            if( videoFramesFree.isEmpty() && audio_queued_ms <= min0_audio_queued_ms ) {
+                            if( null != videoFramesDecoded && videoFramesFree.isEmpty() && audio_queued_ms <= min0_audio_queued_ms ) {
                                 growVideoFrameBuffers(gl, video_queue_growth);
                                 syncModeA = 'z';
                             }
@@ -1264,7 +1264,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                     cachedFrame = nextFrame;
                                     nextFrame = null;
                                     syncModeB = 'c';
-                                    if( videoFramesFree.isEmpty() && audio_queued_ms <= min1_audio_queued_ms ) {
+                                    if( null != videoFramesDecoded && videoFramesFree.isEmpty() && audio_queued_ms <= min1_audio_queued_ms ) {
                                         growVideoFrameBuffers(gl, video_queue_growth);
                                         syncModeB = 'z';
                                     }
@@ -1891,8 +1891,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             d_avpts1 = 0;
         }
 
-        final int vFramesQueued = this.videoFramesDecoded.size();
-        final int vFramesFree = this.videoFramesFree.size();
+        final int vFramesQueued, vFramesFree;
+        if( null != videoFramesDecoded ) {
+            vFramesQueued = this.videoFramesDecoded.size();
+            vFramesFree = this.videoFramesFree.size();
+        } else {
+            vFramesQueued = 0;
+            vFramesFree = 1;
+        }
         return "frames[p"+presentedFrameCount+" d"+decodedFrameCount+" q"+vFramesQueued+" r"+repeatedFrame+" f"+vFramesFree+"/"+videoFramesOrig.length+"], "+
                "dAV[v-a "+d_avpts0+", avg "+d_avpts1+"], SCR "+av_scr.get(currentMillis)+
                ", vpts "+video_pts.getLast()+", dSCR["+d_vpts+", avg "+video_dpts_avrg+"]"+
