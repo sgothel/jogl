@@ -42,9 +42,13 @@ import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.layout.Alignment;
+import com.jogamp.graph.ui.layout.BoxLayout;
 import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
+import com.jogamp.graph.ui.layout.Margin;
+import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Button;
+import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.graph.ui.widgets.MediaPlayer;
@@ -61,8 +65,10 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLEventAdapter;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.demos.util.MiscUtils;
@@ -76,16 +82,16 @@ import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 public class UIMediaGrid01 {
     private static final float MediaGridWidth = 1f;
 
-    static CommandlineOptions options = new CommandlineOptions(1920, 1080, Region.VBAA_RENDERING_BIT);
+    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
 
-    private static final boolean VERBOSE_UI = false;
+    private static final boolean VERBOSE_UI = true;
     private static final List<String> MEDIA_SUFFIXES = Arrays.asList("mp4", "mkv", "m2v", "avi");
     private static int aid = GLMediaPlayer.STREAM_ID_AUTO;
-    private static float boxRatio = 16f/9f;
+    private static float videoAspectRatio = 16f/9f;
     private static boolean letterBox = true;
 
     public static void main(final String[] args) throws IOException {
-        float mmPerCellWidth = 75f;
+        float mmPerCellWidth = 50f;
         int maxMediaFiles = 10000; // Integer.MAX_VALUE;
         int gridColumns = -1;
         String mediaDir = null;
@@ -105,7 +111,7 @@ public class UIMediaGrid01 {
                     aid = MiscUtils.atoi(args[idx[0]], aid);
                 } else if(args[idx[0]].equals("-ratio")) {
                     idx[0]++;
-                    boxRatio = MiscUtils.atof(args[idx[0]], boxRatio);
+                    videoAspectRatio = MiscUtils.atof(args[idx[0]], videoAspectRatio);
                 } else if(args[idx[0]].equals("-zoom")) {
                     letterBox = false;
                 } else if(args[idx[0]].equals("-mmPerCell")) {
@@ -121,7 +127,7 @@ public class UIMediaGrid01 {
         System.err.println("mediaDir "+mediaDir);
         System.err.println("maxMediaFiles "+maxMediaFiles);
         System.err.println("aid "+aid);
-        System.err.println("boxRatio "+boxRatio);
+        System.err.println("boxRatio "+videoAspectRatio);
         System.err.println("letterBox "+letterBox);
         System.err.println("columns "+gridColumns);
 
@@ -196,16 +202,19 @@ public class UIMediaGrid01 {
         window.addGLEventListener(scene);
 
 
+        final float winAspectRatio, dpiV;
         final Vec2i gridDim;
         final int mediaRowsPerPage;
         {
+            winAspectRatio = (float)window.getSurfaceWidth() / (float)window.getSurfaceHeight();
             final float[] ppmm = window.getPixelsPerMM(new float[2]);
             final float[] dpi = FontScale.ppmmToPPI( new float[] { ppmm[0], ppmm[1] } );
             System.err.println("DPI "+dpi[0]+" x "+dpi[1]+", "+ppmm[0]+" x "+ppmm[1]+" pixel/mm");
+            dpiV = dpi[1];
 
             final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);
             System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
-            final float mmPerCellHeight = mmPerCellWidth / boxRatio;
+            final float mmPerCellHeight = mmPerCellWidth / videoAspectRatio;
             int _mediaRowsPerPage = (int)( ( window.getSurfaceHeight() / ppmm[1] ) / mmPerCellHeight );
             if( 0 >= gridColumns ) {
                 gridColumns = (int)( ( window.getSurfaceWidth() * MediaGridWidth / ppmm[0] ) / mmPerCellWidth );
@@ -217,19 +226,20 @@ public class UIMediaGrid01 {
             mediaRowsPerPage = _mediaRowsPerPage;
             gridDim = new Vec2i(gridColumns, mediaRowsPerPage);
         }
-        final float mediaCellWidth = MediaGridWidth / gridColumns;
-        final float mediaCellHeight = mediaCellWidth/boxRatio;
-        final Vec2f mediaGridSize = new Vec2f(MediaGridWidth, mediaRowsPerPage * mediaCellHeight);
+        final float mediaCellWidth = videoAspectRatio;
+        final float mediaCellHeight = 1;
+        final Vec2f mediaGridSize = new Vec2f(gridDim.x() * mediaCellWidth, mediaRowsPerPage * mediaCellHeight);
         System.err.println("GridDim "+gridDim);
         System.err.println("GridSize "+mediaGridSize);
-        System.err.println("CellSize "+mediaCellWidth+" x "+mediaCellHeight+", boxRatio "+boxRatio);
+        System.err.println("CellSize "+mediaCellWidth+" x "+mediaCellHeight+", vAspectRatio "+videoAspectRatio);
+        System.err.println("Window "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight()+", wAspectRatio "+winAspectRatio);
 
         final RangedGroup mediaView;
         {
             final Group mediaGrid = new Group(new GridLayout(gridDim.x(), mediaCellWidth*0.9f, mediaCellHeight*0.9f, Alignment.FillCenter,
                                               new Gap(mediaCellHeight*0.1f, mediaCellWidth*0.1f)));
             mediaGrid.setInteractive(true).setDragAndResizeable(false).setToggleable(false).setName("MediaGrid");
-            addMedia(scene, reqCaps.getGLProfile(), mediaGrid, mediaFiles, boxRatio);
+            addMedia(scene, reqCaps.getGLProfile(), mediaGrid, mediaFiles, videoAspectRatio);
             mediaGrid.setRelayoutOnDirtyShapes(false); // avoid group re-validate to ease load in Group.isShapeDirty() w/ thousands of glyphs
             if( VERBOSE_UI ) {
                 mediaGrid.validate(reqCaps.getGLProfile());
@@ -239,6 +249,7 @@ public class UIMediaGrid01 {
             mediaView = new RangedGroup(options.renderModes, mediaGrid, mediaGridSize,
                                         null,
                                         new SliderParam(new Vec2f(mediaCellWidth/20f, mediaGridSize.y()), mediaCellHeight/30f, true));
+            mediaView.setPaddding(new Padding(mediaCellHeight/16));
             mediaView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f).setName("MediaView");
             // mediaView.setRelayoutOnDirtyShapes(false); // avoid group re-validate to ease load in Group.isShapeDirty() w/ thousands of glyphs
             if( VERBOSE_UI ) {
@@ -256,10 +267,24 @@ public class UIMediaGrid01 {
                 System.err.println("GlyphView "+mediaView);
             }
         }
-
-        final Group mainGrid = new Group(new GridLayout(1, 0f, 0f, Alignment.None));
+        final Group mainGrid = new Group(new GridLayout(1, 0, 0, Alignment.None));
         mainGrid.setName("MainGrid");
         mainGrid.addShape(mediaView);
+        {
+            final Font fontInfo = MiscUtils.getInfoFont();
+            final Label infoLabel = new Label(options.renderModes, fontInfo, "Not yet");
+            infoLabel.setColor(0.1f, 0.1f, 0.1f, 1f);
+            final Group labelBox = new Group(new BoxLayout(mediaGridSize.x(), mediaCellHeight / 10, new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.CenterVert.value),
+                                                           new Margin(0, 0.005f)));
+            labelBox.addShape(infoLabel);
+            scene.addGLEventListener(new GLEventAdapter() {
+                @Override
+                public void display(final GLAutoDrawable drawable) {
+                    infoLabel.setText( scene.getStatusText(drawable, options.renderModes, dpiV) );
+                }
+            });
+            mainGrid.addShape(labelBox);
+        }
         scene.addShape(mainGrid);
 
         window.addKeyListener(new KeyAdapter() {

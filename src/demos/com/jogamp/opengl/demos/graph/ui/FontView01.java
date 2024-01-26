@@ -37,7 +37,6 @@ import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
-import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.font.FontFactory;
@@ -56,8 +55,8 @@ import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.GlyphShape;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.Rectangle;
-import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
 import com.jogamp.graph.ui.widgets.RangeSlider;
+import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
 import com.jogamp.graph.ui.widgets.RangedGroup;
 import com.jogamp.graph.ui.widgets.RangedGroup.SliderParam;
 import com.jogamp.math.FloatUtil;
@@ -72,10 +71,10 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
-import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLCapabilitiesImmutable;
+import com.jogamp.opengl.GLEventAdapter;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
@@ -190,11 +189,13 @@ public class FontView01 {
         scene.attachInputListenerTo(window);
         window.addGLEventListener(scene);
 
+        final float dpiV;
         final int glyphGridRowsPerPage;
         {
             final float[] ppmm = window.getPixelsPerMM(new float[2]);
             final float[] dpi = FontScale.ppmmToPPI( new float[] { ppmm[0], ppmm[1] } );
             System.err.println("DPI "+dpi[0]+" x "+dpi[1]+", "+ppmm[0]+" x "+ppmm[1]+" pixel/mm");
+            dpiV = dpi[1];
 
             final float[] hasSurfacePixelScale1 = window.getCurrentSurfaceScale(new float[2]);
             System.err.println("HiDPI PixelScale: "+hasSurfacePixelScale1[0]+"x"+hasSurfacePixelScale1[1]+" (has)");
@@ -301,7 +302,7 @@ public class FontView01 {
                                                                null,
                                                                new SliderParam( new Vec2f(glyphGridCellSize/4f, glyphGridSize.y()), glyphGridCellSize/10f, true ) );
                 glyphView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f).setName("GlyphView");
-                if( VERBOSE_UI ) {
+                if( VERBOSE_UI || true ) {
                     glyphView.getVertSlider().addSliderListener(new SliderAdapter() {
                         @Override
                         public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
@@ -328,7 +329,7 @@ public class FontView01 {
                 infoGrid.setPaddding( new Padding(0, 0, 0, 0.01f) );
                 infoGrid.addShape(glyphShapeBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
                 infoGrid.addShape(glyphInfoBox.setBorder(0.005f).setBorderColor(0, 0, 0, 1));
-                if( true || VERBOSE_UI ) {
+                if( VERBOSE_UI ) {
                     infoGrid.validate(reqCaps.getGLProfile());
                     System.err.println("InfoGrid "+infoGrid);
                     System.err.println("InfoGrid "+infoGrid.getLayout());
@@ -345,14 +346,27 @@ public class FontView01 {
 
             mainView = new Group(new GridLayout(1, 0f, 0f, Alignment.None));
             mainView.addShape(glyphInfoView);
-            final String infoText = "Hover over this label and wait 1s for tooltip help.";
-            final String infoHelp = "Click on a Glyph for a big tooltip view.\n"+
-                                    "Key-Up/Down or Slider-Mouse-Scroll to move through glyphs.\n"+
-                                    "Page-Up/Down or Control + Slider-Mouse-Scroll to page faster.\n"+
-                                    "Mouse-Scroll over left-half of Window rotates and holding control zooms.";
-            final Label infoLabel = new Label(options.renderModes, fontInfo, infoText);
-            infoLabel.setColor(0.1f, 0.1f, 0.1f, 1f);
-            infoLabel.setToolTip(new TooltipText(infoHelp, fontInfo, 8f));
+            {
+                final String infoHelp = "Click on a Glyph for a big tooltip view.\n"+
+                                        "Key-Up/Down or Slider-Mouse-Scroll to move through glyphs.\n"+
+                                        "Page-Up/Down or Control + Slider-Mouse-Scroll to page faster.\n"+
+                                        "Mouse-Scroll over left-half of Window rotates and holding control zooms.";
+                final Label infoLabel = new Label(options.renderModes, fontInfo, "Not yet");
+                infoLabel.setColor(0.1f, 0.1f, 0.1f, 1f);
+                infoLabel.setToolTip(new TooltipText(infoHelp, fontInfo, 8f));
+
+                final float h = glyphGridCellSize * 0.4f;
+                final Group labelBox = new Group(new BoxLayout(1.0f, h, new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.CenterVert.value),
+                                                               new Margin(0, 0.005f)));
+                labelBox.addShape(infoLabel);
+                scene.addGLEventListener(new GLEventAdapter() {
+                    @Override
+                    public void display(final GLAutoDrawable drawable) {
+                        infoLabel.setText( scene.getStatusText(drawable, options.renderModes, dpiV) + " (Hover over 1s for help)" );
+                    }
+                });
+                mainView.addShape(labelBox);
+            }
             window.addMouseListener( new Shape.MouseGestureAdapter() {
                 @Override
                 public void mouseWheelMoved(final MouseEvent e) {
@@ -382,13 +396,6 @@ public class FontView01 {
                     }
                 }
             });
-            {
-                final float h = glyphGridCellSize * 0.5f;
-                final Group labelBox = new Group(new BoxLayout(1.0f, h, new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.CenterVert.value),
-                                                               new Margin(0, 0.005f)));
-                labelBox.addShape(infoLabel);
-                mainView.addShape(labelBox);
-            }
             if( VERBOSE_UI ) {
                 mainView.validate(reqCaps.getGLProfile());
                 System.err.println("MainView "+mainView);
