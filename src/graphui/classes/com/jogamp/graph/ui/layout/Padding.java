@@ -30,7 +30,7 @@ package com.jogamp.graph.ui.layout;
 import com.jogamp.math.FloatUtil;
 
 /**
- * GraphUI CSS property Padding, space belonging to the element and included in the element's size.
+ * GraphUI CSS property Padding, unscaled space belonging to the element and included in the element's size.
  * <p>
  * The CSS padding properties are used to generate space around an element's content, inside of any defined borders.
  * </p>
@@ -39,13 +39,13 @@ public class Padding {
     /** Zero padding constant. */
     public static final Padding None = new Padding();
 
-    /** Top value */
+    /** Top value (unscaled) */
     public final float top;
-    /** Right value */
+    /** Right value (unscaled) */
     public final float right;
-    /** Bottom value */
+    /** Bottom value (unscaled) */
     public final float bottom;
-    /** Left value */
+    /** Left value (unscaled) */
     public final float left;
 
     private Padding() {
@@ -54,10 +54,10 @@ public class Padding {
 
     /**
      * Ctor
-     * @param top top value
-     * @param right right value
-     * @param bottom bottom value
-     * @param left left value
+     * @param top unscaled top value
+     * @param right unscaled right value
+     * @param bottom unscaled bottom value
+     * @param left unscaled left value
      */
     public Padding(final float top, final float right, final float bottom, final float left) {
         this.top = top; this.right = right; this.bottom = bottom; this.left = left;
@@ -65,9 +65,9 @@ public class Padding {
 
     /**
      * Ctor
-     * @param top top value
-     * @param rl right and left value
-     * @param bottom bottom value
+     * @param top unscaled top value
+     * @param rl unscaled right and left value
+     * @param bottom unscaled bottom value
      */
     public Padding(final float top, final float rl, final float bottom) {
         this.top = top; this.right = rl; this.bottom = bottom; this.left = rl;
@@ -75,8 +75,8 @@ public class Padding {
 
     /**
      * Ctor
-     * @param tb top and bottom value
-     * @param rl right and left value
+     * @param tb unscaled top and bottom value
+     * @param rl unscaled right and left value
      */
     public Padding(final float tb, final float rl) {
         this.top = tb; this.right = rl; this.bottom = tb; this.left = rl;
@@ -84,16 +84,16 @@ public class Padding {
 
     /**
      * Ctor
-     * @param trbl top, right, bottom and left value
+     * @param trbl unscaled top, right, bottom and left value
      */
     public Padding(final float trbl) {
         this.top = trbl; this.right = trbl; this.bottom = trbl; this.left = trbl;
     }
 
-    /** Return width of horizontal values top + right. */
+    /** Return unscaled width of horizontal values top + right. */
     public float width() { return left + right; }
 
-    /** Return height of vertical values bottom + top. */
+    /** Return unscaled height of vertical values bottom + top. */
     public float height() { return bottom + top; }
 
     public boolean zeroWidth() { return FloatUtil.isZero( width() ); };

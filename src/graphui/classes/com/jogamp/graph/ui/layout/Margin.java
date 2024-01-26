@@ -30,7 +30,7 @@ package com.jogamp.graph.ui.layout;
 import com.jogamp.math.FloatUtil;
 
 /**
- * GraphUI CSS property Margin, space between or around elements and not included in the element's size.
+ * GraphUI CSS property Margin, scaled space between or around elements and not included in the element's size.
  * <p>
  * The CSS margin properties are used to create space around elements, outside of any defined borders.
  * </p>
@@ -42,13 +42,13 @@ public class Margin {
     /** Zero margin constant. */
     public static final Margin None = new Margin();
 
-    /** Top value */
+    /** Scaled top value */
     public final float top;
-    /** Right value */
+    /** Scaled right value */
     public final float right;
-    /** Bottom value */
+    /** Scaled bottom value */
     public final float bottom;
-    /** Left value */
+    /** Scaled left value */
     public final float left;
 
     private Margin() {
@@ -57,10 +57,10 @@ public class Margin {
 
     /**
      * Ctor
-     * @param top top value
-     * @param right right value
-     * @param bottom bottom value
-     * @param left left value
+     * @param top scaled top value
+     * @param right scaled right value
+     * @param bottom scaled bottom value
+     * @param left scaled left value
      */
     public Margin(final float top, final float right, final float bottom, final float left) {
         this.top = top;
@@ -71,9 +71,9 @@ public class Margin {
 
     /**
      * Ctor
-     * @param top top value
-     * @param rl right and left value
-     * @param bottom bottom value
+     * @param top scaled top value
+     * @param rl scaled right and left value
+     * @param bottom scaled bottom value
      */
     public Margin(final float top, final float rl, final float bottom) {
         this.top = top;
@@ -84,8 +84,8 @@ public class Margin {
 
     /**
      * Ctor
-     * @param tb top and bottom value
-     * @param rl right and left value
+     * @param tb scaled top and bottom value
+     * @param rl scaled right and left value
      */
     public Margin(final float tb, final float rl) {
         this.top = tb;
@@ -96,7 +96,7 @@ public class Margin {
 
     /**
      * Ctor
-     * @param trbl top, right, bottom and left value
+     * @param trbl scaled top, right, bottom and left value
      */
     public Margin(final float trbl) {
         this.top = trbl;
@@ -105,10 +105,10 @@ public class Margin {
         this.left = trbl;
     }
 
-    /** Return width of horizontal values top + right. Zero if {@link #isCenteredHoriz()}. */
+    /** Return scaled width of horizontal values top + right. Zero if {@link #isCenteredHoriz()}. */
     public float width() { return left + right; }
 
-    /** Return height of vertical values bottom + top. Zero if {@link #isCenteredVert()}. */
+    /** Return scaled height of vertical values bottom + top. Zero if {@link #isCenteredVert()}. */
     public float height() { return bottom + top; }
 
     public boolean zeroWidth() { return FloatUtil.isZero( width() ); };

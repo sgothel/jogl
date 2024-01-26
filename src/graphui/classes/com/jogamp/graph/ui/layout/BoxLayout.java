@@ -44,8 +44,8 @@ import com.jogamp.math.util.PMVMatrix4f;
  * <ul>
  *   <li>Optionally centered {@link Alignment.Bit#CenterHoriz horizontally}, {@link Alignment.Bit#CenterVert vertically} or {@link Alignment#Center both}.</li>
  *   <li>Optionally scaled to cell-size if given and {@link Alignment#Fill}</li>
- *   <li>{@link Padding} is applied to each {@Shape} via {@link Shape#setPaddding(Padding)} if passed in constructor and is scaled if {@link Alignment.Bit#Fill}</li>
- *   <li>{@link Margin} is applied unscaled if used and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale</li>
+ *   <li>Unscaled {@link Padding} is applied to each {@Shape} via {@link Shape#setPaddding(Padding)} if passed in constructor and is scaled if {@link Alignment.Bit#Fill}</li>
+ *   <li>Scaled {@link Margin} is applied unscaled if used and ignored with only center {@link Alignment} w/o additional scaling</li>
  *   <li>Not implemented {@link Alignment}: {@link Alignment.Bit#Top Top}, {@link Alignment.Bit#Right Right}, {@link Alignment.Bit#Bottom Bottom}, {@link Alignment.Bit#Left Left}</li>
  * </ul>
  * </p>
@@ -53,8 +53,10 @@ import com.jogamp.math.util.PMVMatrix4f;
 public class BoxLayout implements Group.Layout {
     private final Vec2f cellSize;
     private final Alignment alignment;
-    private final Margin margin; // unscaled
-    private final Padding padding; // scaled
+    /** Scaled {@link Margin} value is applied w/o additional scaling. */
+    private final Margin margin;
+    /** Unscaled {@link Padding} value. */
+    private final Padding padding;
 
     private static final boolean TRACE_LAYOUT = false;
 
@@ -67,7 +69,7 @@ public class BoxLayout implements Group.Layout {
 
     /**
      *
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
+     * @param padding unscaled {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final Padding padding) {
         this(0f, 0f, Alignment.None, Margin.None, padding);
@@ -87,7 +89,7 @@ public class BoxLayout implements Group.Layout {
      *
      * @param cellWidth optional cell width, zero for none
      * @param cellHeight optional cell height, zero for none
-     * @param margin {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale
+     * @param margin scaled {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o additional scaling
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Margin margin) {
         this(cellWidth, cellHeight, Alignment.None, margin, null);
@@ -97,7 +99,7 @@ public class BoxLayout implements Group.Layout {
      *
      * @param cellWidth optional cell width, zero for none
      * @param cellHeight optional cell height, zero for none
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
+     * @param padding unscaled {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Padding padding) {
         this(cellWidth, cellHeight, Alignment.None, Margin.None, padding);
@@ -107,8 +109,8 @@ public class BoxLayout implements Group.Layout {
      *
      * @param cellWidth optional cell width, zero for none
      * @param cellHeight optional cell height, zero for none
-     * @param margin {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
+     * @param margin scaled {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o additional scaling
+     * @param padding unscaled {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Margin margin, final Padding padding) {
         this(cellWidth, cellHeight, Alignment.None, margin, padding);
@@ -118,7 +120,7 @@ public class BoxLayout implements Group.Layout {
      *
      * @param cellWidth optional cell width, zero for none
      * @param cellHeight optional cell height, zero for none
-     * @param margin {@link Margin} is applied unscaled
+     * @param margin scaled {@link Margin} is applied unscaled
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Margin margin) {
         this(cellWidth, cellHeight, alignment, margin, null);
@@ -129,7 +131,7 @@ public class BoxLayout implements Group.Layout {
      * @param cellWidth optional cell width, zero for none
      * @param cellHeight optional cell height, zero for none
      * @param alignment
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
+     * @param padding unscaled {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Padding padding) {
         this(cellWidth, cellHeight, alignment, Margin.None, padding);
@@ -140,8 +142,8 @@ public class BoxLayout implements Group.Layout {
      * @param cellWidth optional cell width, zero for none
      * @param cellHeight optional cell height, zero for none
      * @param alignment
-     * @param margin {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o {@link Alignment.Bit#Fill} scale
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
+     * @param margin scaled {@link Margin} is applied unscaled and ignored with only center {@link Alignment} w/o additional scaling
+     * @param padding unscaled {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public BoxLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Margin margin, final Padding padding) {
         this.cellSize = new Vec2f(Math.max(0f, cellWidth), Math.max(0f, cellHeight));
@@ -155,9 +157,9 @@ public class BoxLayout implements Group.Layout {
     public Vec2f getCellSize() { return cellSize; }
     /** Returns given {@link Alignment}. */
     public Alignment getAlignment() { return alignment; }
-    /** Returns given {@link Margin}. */
+    /** Returns given scaled {@link Margin}. */
     public Margin getMargin() { return margin; }
-    /** Returns given {@link Padding}, may be {@code null} if not given via constructor. */
+    /** Returns given unscaled {@link Padding}, may be {@code null} if not given via constructor. */
     public Padding getPadding() { return padding; }
 
     @Override

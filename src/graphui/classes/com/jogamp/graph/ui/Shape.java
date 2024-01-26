@@ -330,10 +330,10 @@ public abstract class Shape {
     public final Shape setVisible(final boolean v) { return setIO(IO_VISIBLE, v); }
 
     /**
-     * Sets the padding for this shape, which is included in {@link #getBounds()} and also includes the border. Default is zero.
-     *
+     * Sets the unscaled padding for this shape, which is included in unscaled {@link #getBounds()} and also includes the border. Default is zero.
+     * <p>
      * Method issues {@link #markShapeDirty()}.
-     *
+     * </p>
      * @param padding distance of shape to the border, i.e. padding
      * @return this shape for chaining
      * @see #getPadding()
@@ -346,7 +346,7 @@ public abstract class Shape {
     }
 
     /**
-     * Returns {@link Padding} of this shape, which is included in {@link #getBounds()B} and also includes the border. Default is zero.
+     * Returns unscaled {@link Padding} of this shape, which is included in unscaled {@link #getBounds()} and also includes the border. Default is zero.
      * @see #setPaddding(Padding)
      * @see #hasPadding()
      */

@@ -30,7 +30,7 @@ package com.jogamp.graph.ui.layout;
 import com.jogamp.math.FloatUtil;
 
 /**
- * GraphUI CSS property Gap, spacing between (grid) cells not belonging to the element.
+ * GraphUI CSS property Gap, scaled spacing between (grid) cells not belonging to the cell element.
  * <p>
  * The CSS gap property defines the size of the gap between the rows and columns in a grid layout.
  * </p>
@@ -39,9 +39,9 @@ public class Gap {
     /** Zero gap constant. */
     public static final Gap None = new Gap();
 
-    /** Row gap value, vertical spacing. */
+    /** Scaled row gap value, vertical spacing. */
     public final float row;
-    /** Column gap value, horizontal spacing. */
+    /** Scaled column gap value, horizontal spacing. */
     public final float column;
 
     private Gap() {
@@ -50,8 +50,8 @@ public class Gap {
 
     /**
      * Ctor
-     * @param row vertical row value
-     * @param column horizontal column value
+     * @param row scaled vertical row value
+     * @param column scaled horizontal column value
      */
     public Gap(final float row, final float column) {
         this.row = row; this.column = column;
@@ -59,16 +59,16 @@ public class Gap {
 
     /**
      * Ctor
-     * @param rc vertical row and horizontal column value
+     * @param rc scaled vertical row and horizontal column value
      */
     public Gap(final float rc) {
         this.row = rc; this.column = rc;
     }
 
-    /** Return width of horizontal value, i.e. 1 * column. */
+    /** Return scaled width of horizontal value, i.e. 1 * column. */
     public float width() { return column; }
 
-    /** Return height of vertical value, i.e. 1 * row. */
+    /** Return scaled height of vertical value, i.e. 1 * row. */
     public float height() { return row; }
 
     public boolean zeroSumWidth() { return FloatUtil.isZero( width() ); };

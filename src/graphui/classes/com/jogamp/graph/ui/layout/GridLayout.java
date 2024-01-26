@@ -44,9 +44,9 @@ import com.jogamp.math.util.PMVMatrix4f;
  * <ul>
  *   <li>Optionally centered {@link Alignment.Bit#CenterHoriz horizontally}, {@link Alignment.Bit#CenterVert vertically} or {@link Alignment#Center both}.</li>
  *   <li>Optionally scaled to cell-size if given and {@link Alignment#Fill}</li>
- *   <li>{@link Padding} is applied to each {@Shape} via {@link Shape#setPaddding(Padding)} if passed in constructor and is scaled if {@link Alignment.Bit#Fill}</li>
+ *   <li>Unscaled {@link Padding} is applied to each {@Shape} via {@link Shape#setPaddding(Padding)} if passed in constructor and is scaled if {@link Alignment.Bit#Fill}</li>
  *   <li>Without cell-size behaves like a grid bag using individual shape sizes including {@link Padding}</li>
- *   <li>{@link Gap} is applied unscaled if used.</li>
+ *   <li>Scaled {@link Gap} is applied unscaled if used.</li>
  *   <li>Can be filled in {@link Order#COLUMN} or {@link Order#ROW} major-order.</li>
  *   <li>Not implemented {@link Alignment}: {@link Alignment.Bit#Top Top}, {@link Alignment.Bit#Right Right}, {@link Alignment.Bit#Bottom Bottom}, {@link Alignment.Bit#Left Left}</li>
  *   <li>..</li>
@@ -66,8 +66,10 @@ public class GridLayout implements Group.Layout {
     private final int row_limit;
     private final Vec2f cellSize;
     private final Alignment alignment;
+    /** Scaled {@link Gap} value is applied w/o additional scaling. */
     private final Gap gap;
-    private final Padding padding; // scaled!
+    /** Unscaled {@link Padding} value. */
+    private final Padding padding;
     private int row_count, col_count;
 
     private static final boolean TRACE_LAYOUT = false;
@@ -89,7 +91,7 @@ public class GridLayout implements Group.Layout {
      * @param cellWidth
      * @param cellHeight
      * @param alignment TODO
-     * @param gap {@link Gap} is applied unscaled
+     * @param gap scaled {@link Gap} value is applied w/o additional scaling
      */
     public GridLayout(final int column_limit, final float cellWidth, final float cellHeight, final Alignment alignment, final Gap gap) {
         this(alignment, Math.max(1, column_limit), -1, cellWidth, cellHeight, gap, null);
@@ -101,8 +103,8 @@ public class GridLayout implements Group.Layout {
      * @param cellWidth
      * @param cellHeight
      * @param alignment TODO
-     * @param gap {@link Gap} is applied unscaled
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
+     * @param gap scaled {@link Gap} value is applied w/o additional scaling
+     * @param padding unscaled {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      */
     public GridLayout(final int column_limit, final float cellWidth, final float cellHeight, final Alignment alignment, final Gap gap, final Padding padding) {
         this(alignment, Math.max(1, column_limit), -1, cellWidth, cellHeight, gap, padding);
@@ -124,7 +126,7 @@ public class GridLayout implements Group.Layout {
      * @param cellWidth
      * @param cellHeight
      * @param alignment TODO
-     * @param gap {@link Gap} is applied unscaled
+     * @param gap scaled {@link Gap} value is applied w/o additional scaling
      * @param row_limit [1..inf)
      */
     public GridLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Gap gap, final int row_limit) {
@@ -136,8 +138,8 @@ public class GridLayout implements Group.Layout {
      * @param cellWidth
      * @param cellHeight
      * @param alignment TODO
-     * @param gap {@link Gap} is applied unscaled
-     * @param padding {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
+     * @param gap scaled {@link Gap} value is applied w/o additional scaling
+     * @param padding unscaled {@link Padding} applied to each {@Shape} via {@link Shape#setPaddding(Padding)} and is scaled if {@link Alignment.Bit#Fill}
      * @param row_limit [1..inf)
      */
     public GridLayout(final float cellWidth, final float cellHeight, final Alignment alignment, final Gap gap, final Padding padding, final int row_limit) {
@@ -167,9 +169,9 @@ public class GridLayout implements Group.Layout {
     public Vec2f getCellSize() { return cellSize; }
     /** Returns given {@link Alignment}. */
     public Alignment getAlignment() { return alignment; }
-    /** Returns given {@link Gap}. */
+    /** Returns given scaled {@link Gap}. */
     public Gap getGap() { return gap; }
-    /** Returns given {@link Padding}, may be {@code null} if not given via constructor. */
+    /** Returns given unscaled {@link Padding}, may be {@code null} if not given via constructor. */
     public Padding getPadding() { return padding; }
 
     @Override
