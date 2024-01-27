@@ -29,6 +29,7 @@ package com.jogamp.graph.ui.widgets;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.jogamp.common.av.PTS;
@@ -112,7 +113,7 @@ public class MediaPlayer extends Widget {
         final float zEpsilon = scene.getZEpsilon(16);
         final float ctrlZOffset = zEpsilon * 20f;
 
-        final int ctrlCellsInt = 9;
+        final int ctrlCellsInt = 10+2;
         final int ctrlCells = Math.max(customCtrls.size() + ctrlCellsInt, 13);
 
         final float ctrlCellWidth = (aratio-2*BorderSzS)/ctrlCells;
@@ -147,6 +148,13 @@ public class MediaPlayer extends Widget {
         playButton.setName("mp.play");
         playButton.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
 
+        final Button audioLabel = new Button(renderModes, fontInfo, "audio\nund", CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
+        audioLabel.setName("mp.audio_lang").setToggleable(false);
+        audioLabel.setPerp().setColor(CtrlCellCol);
+        final Button subLabel = new Button(renderModes, fontInfo, "sub\nund", CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
+        subLabel.setName("mp.sub_lang").setToggleable(false);
+        subLabel.setPerp().setColor(CtrlCellCol);
+
         {
             mButton.setVerbose(false).addDefaultEventListener().setTextureLetterbox(letterBox);
             mPlayer.setAudioVolume( 0f );
@@ -156,11 +164,13 @@ public class MediaPlayer extends Widget {
 
                 @Override
                 public void attributesChanged(final GLMediaPlayer mp, final EventMask eventMask, final long when) {
-                    if( DEBUG ) {
+                    if( DEBUG || true ) {
                         System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
                         System.err.println("MediaButton State: "+mp);
                     }
                     if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
+                        audioLabel.setText("audio\n"+mp.getLang(mp.getAID()));
+                        subLabel.setText("sub\n"+mp.getLang(mp.getSID()));
                         ctrlSlider.setMinMax(new Vec2f(0, mp.getDuration()), 0);
                         if( DEBUG ) {
                             System.err.println(mp.toString());
@@ -429,9 +439,29 @@ public class MediaPlayer extends Widget {
                 button.setToolTip(new TooltipText("Volume", fontInfo, toolTipScaleY));
             }
             { // 8
+                audioLabel.onClicked((final Shape s) -> {
+                    final int next_aid = mPlayer.getNextAID();
+                    if( mPlayer.getAID() != next_aid ) {
+                        mPlayer.switchStream(mPlayer.getVID(), next_aid, mPlayer.getSID());
+                    }
+                });
+                ctrlGroup.addShape(audioLabel);
+                audioLabel.setToolTip(new TooltipText("Audio Language", fontInfo, toolTipScaleY));
+            }
+            { // 9
+                subLabel.onClicked((final Shape s) -> {
+                    final int next_sid = mPlayer.getNextSID();
+                    if( mPlayer.getSID() != next_sid ) {
+                        mPlayer.switchStream(mPlayer.getVID(), mPlayer.getAID(), next_sid);
+                    }
+                });
+                ctrlGroup.addShape(subLabel);
+                subLabel.setToolTip(new TooltipText("Subtitle Language", fontInfo, toolTipScaleY));
+            }
+            { // 10
                 ctrlGroup.addShape(timeLabel);
             }
-            for(int i=8; i<ctrlCells-2-customCtrls.size(); ++i) {
+            for(int i=10; i<ctrlCells-2-customCtrls.size(); ++i) {
                 final Button button = new Button(renderModes, fontInfo, " ", CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("ctrl_"+i);
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
@@ -617,15 +647,32 @@ public class MediaPlayer extends Widget {
             final String text1 = String.format("%s / %s (%.0f %%), %s (%01.2fx, vol %1.2f), A/R %0.2f, fps %02.1f",
                     PTS.millisToTimeStr(ptsMS, false), PTS.millisToTimeStr(durationMS, false), pct*100,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect, mPlayer.getFramerate());
-            final String text2 = String.format("audio: id %d, kbps %d, codec %s",
-                    mPlayer.getAID(), mPlayer.getAudioBitrate()/1000, mPlayer.getAudioCodec());
+            final String text2 = String.format("audio: id %d (%s), kbps %d, codec %s; sid %d (%s)",
+                    mPlayer.getAID(), mPlayer.getLang(mPlayer.getAID()), mPlayer.getAudioBitrate()/1000, mPlayer.getAudioCodec(),
+                    mPlayer.getSID(), mPlayer.getLang(mPlayer.getSID()) );
             final String text3 = String.format("video: id %d, kbps %d, codec %s",
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
             return text1+"\n"+text2+"\n"+text3+"\n"+name+chapter;
         } else {
-            final String text1 = String.format("%s / %s (%.0f %%), %s (%01.2fx, vol %1.2f), A/R %.2f",
+            final String vinfo, ainfo, sinfo;
+            if( mPlayer.getVID() != GLMediaPlayer.STREAM_ID_NONE ) {
+                vinfo = String.format((Locale)null, ", vid %d", mPlayer.getVID());
+            } else {
+                vinfo = "";
+            }
+            if( mPlayer.getAID() != GLMediaPlayer.STREAM_ID_NONE ) {
+                ainfo = String.format((Locale)null, ", aid %d (%s)", mPlayer.getAID(), mPlayer.getLang(mPlayer.getAID()));
+            } else {
+                ainfo = "";
+            }
+            if( mPlayer.getSID() != GLMediaPlayer.STREAM_ID_NONE ) {
+                sinfo = String.format((Locale)null, ", sid %d (%s)", mPlayer.getSID(), mPlayer.getLang(mPlayer.getSID()));
+            } else {
+                sinfo = "";
+            }
+            final String text1 = String.format("%s / %s (%.0f %%), %s (%01.2fx, vol %1.2f), A/R %.2f%s%s%s",
                     PTS.millisToTimeStr(ptsMS, false), PTS.millisToTimeStr(durationMS, false), pct*100,
-                    mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect);
+                    mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect, vinfo, ainfo, sinfo);
             return text1+"\n"+name+chapter;
         }
     }
