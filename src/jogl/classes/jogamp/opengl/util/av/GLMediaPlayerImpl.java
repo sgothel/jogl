@@ -32,7 +32,6 @@ import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -200,8 +199,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     private int audio_queued_last_ms = 0;
     private int audio_dequeued_last = 0;
-    /** FIXME: Remove or - if helpful - configure max video queue size */
-    private static final int video_queue_growth = 0;
 
     /** Number of min frame count required for video cumulative sync. */
     private static final int AV_DPTS_NUM = 20;
@@ -1018,28 +1015,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
     }
 
-    private static TextureFrame[] concat(final TextureFrame[] first, final TextureFrame[] second) {
-        final TextureFrame[] result = Arrays.copyOf(first, first.length + second.length);
-        System.arraycopy(second, 0, result, first.length, second.length);
-        return result;
-    }
-
-    private final boolean growVideoFrameBuffers(final GL gl, final int growAmount) {
-        if( null == gl || videoFramesFree == null || videoFramesOrig == null || videoFramesDecoded == null) {
-            return false;
-        }
-        final TextureFrame[] newElems;
-        try {
-            newElems = createTexFrames(gl, growAmount);
-        } catch(final RuntimeException rex) {
-            return false;
-        }
-        final TextureFrame[] newArray = concat(videoFramesOrig, newElems);
-        videoFramesOrig = newArray;
-        videoFramesFree.growEmptyBuffer(newElems);
-        return true;
-    }
-
     private TextureFrame cachedFrame = null;
     private long lastMillis = 0;
     private int repeatedFrame = 0;
@@ -1121,7 +1096,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         final PTS video_pts = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
                         final boolean hasVideoFrame;
                         TextureFrame nextFrame;
-                        if( null != cachedFrame && ( audio_queued_ms > min0_audio_queued_ms || !use_audio || video_queue_growth > 0 ) ) {
+                        if( null != cachedFrame && ( audio_queued_ms > min0_audio_queued_ms || !use_audio ) ) {
                             nextFrame = cachedFrame;
                             cachedFrame = null;
                             presentedFrameCount--;
@@ -1129,10 +1104,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             hasVideoFrame = true;
                             repeatedFrame++;
                             syncModeA = 'r';
-                            if( null != videoFramesDecoded && videoFramesFree.isEmpty() && audio_queued_ms <= min0_audio_queued_ms ) {
-                                growVideoFrameBuffers(gl, video_queue_growth);
-                                syncModeA = 'z';
-                            }
                         } else {
                             if( null != cachedFrame && null != videoFramesFree ) {
                                 // Push back skipped repeated frame due to low audio_queued_ms
@@ -1259,15 +1230,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 final int dt_v = (int) ( getDPTSAvg(video_dpts_cum, video_dpts_count) + 0.5f );
                                 // final TextureFrame _nextFrame = nextFrame;
                                 if( dt_v > maxVideoDelay && d_vpts >= 0 &&
-                                    ( audio_queued_ms > min1_audio_queued_ms || !use_audio || video_queue_growth > 0 ) )
+                                    ( audio_queued_ms > min1_audio_queued_ms || !use_audio ) )
                                 {
                                     cachedFrame = nextFrame;
                                     nextFrame = null;
                                     syncModeB = 'c';
-                                    if( null != videoFramesDecoded && videoFramesFree.isEmpty() && audio_queued_ms <= min1_audio_queued_ms ) {
-                                        growVideoFrameBuffers(gl, video_queue_growth);
-                                        syncModeB = 'z';
-                                    }
                                 } else if( dt_v < -maxVideoDelay && d_vpts < 0 &&
                                            ( null != videoFramesDecoded && videoFramesDecoded.size() > 0 || playSpeed > 2.0f ) ) {
                                     // frame is too late and one decoded frame is already available (or playSpeed > 2)
