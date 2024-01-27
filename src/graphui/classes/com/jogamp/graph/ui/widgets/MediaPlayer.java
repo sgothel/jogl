@@ -164,7 +164,7 @@ public class MediaPlayer extends Widget {
 
                 @Override
                 public void attributesChanged(final GLMediaPlayer mp, final EventMask eventMask, final long when) {
-                    if( DEBUG || true ) {
+                    if( DEBUG ) {
                         System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
                         System.err.println("MediaButton State: "+mp);
                     }
