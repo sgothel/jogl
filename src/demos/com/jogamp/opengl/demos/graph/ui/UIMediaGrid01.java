@@ -89,6 +89,7 @@ public class UIMediaGrid01 {
     private static int aid = GLMediaPlayer.STREAM_ID_AUTO;
     private static float videoAspectRatio = 16f/9f;
     private static boolean letterBox = true;
+    private static int texCount = GLMediaPlayer.TEXTURE_COUNT_DEFAULT;
 
     public static void main(final String[] args) throws IOException {
         float mmPerCellWidth = 50f;
@@ -120,6 +121,9 @@ public class UIMediaGrid01 {
                 } else if(args[idx[0]].equals("-col")) {
                     idx[0]++;
                     gridColumns = MiscUtils.atoi(args[idx[0]], gridColumns);
+                } else if(args[idx[0]].equals("-texCount")) {
+                    idx[0]++;
+                    texCount = MiscUtils.atoi(args[idx[0]], texCount);
                 }
             }
         }
@@ -127,6 +131,7 @@ public class UIMediaGrid01 {
         System.err.println("mediaDir "+mediaDir);
         System.err.println("maxMediaFiles "+maxMediaFiles);
         System.err.println("aid "+aid);
+        System.err.println("texCount "+texCount);
         System.err.println("boxRatio "+videoAspectRatio);
         System.err.println("letterBox "+letterBox);
         System.err.println("columns "+gridColumns);
@@ -367,7 +372,7 @@ public class UIMediaGrid01 {
                 customCtrls.add(button);
             }
             grid.addShape( new MediaPlayer(options.renderModes, scene, mPlayer, medium, defRatio, letterBox, zoomSize, customCtrls) );
-            mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
+            mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, texCount);
         }
     }
     private static boolean printNativeInfoOnce = true;

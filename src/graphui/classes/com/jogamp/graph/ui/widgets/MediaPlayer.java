@@ -135,7 +135,7 @@ public class MediaPlayer extends Widget {
         final RangeSlider ctrlSlider;
         {
             final float knobScale = ctrlSliderHeightMax / ctrlSliderHeightMin;
-            ctrlSlider = new RangeSlider(renderModes, new Vec2f(aratio - ctrlSliderHeightMax, ctrlSliderHeightMin), knobScale, new Vec2f(0, 100), 1, 0);
+            ctrlSlider = new RangeSlider(renderModes, new Vec2f(aratio - ctrlSliderHeightMax, ctrlSliderHeightMin), knobScale, new Vec2f(0, 100), 1000, 0);
             final float dx = ctrlSliderHeightMax / 2f;
             final float dy = ( ctrlSliderHeightMax - ctrlSliderHeightMin ) * 0.5f;
             ctrlSlider.setPaddding(new Padding(0, dx, ctrlCellHeight-dy, dx));
@@ -278,17 +278,12 @@ public class MediaPlayer extends Widget {
             } );
             ctrlSlider.addSliderListener(new SliderAdapter() {
                 private void seekPlayer(final int ptsMS) {
-                    final int durationMS = mPlayer.getDuration();
-                    timeLabel.setText(getMultilineTime(ptsMS, durationMS));
-                    mPlayer.seek(ptsMS);
-                }
-                @Override
-                public void clicked(final RangeSlider w, final MouseEvent e) {
-                    if( DEBUG ) {
-                        System.err.println("Clicked "+w.getName()+": "+PTS.millisToTimeStr(Math.round(w.getValue()), true)+"ms, "+(w.getValuePct()*100f)+"%");
-                        System.err.println("Slider.C "+ctrlSlider.getDescription());
-                    }
-                    seekPlayer( Math.round( w.getValue() ) );
+                    scene.invoke(false,  (final GLAutoDrawable d) -> {
+                        final int durationMS = mPlayer.getDuration();
+                        timeLabel.setText(getMultilineTime(ptsMS, durationMS));
+                        mPlayer.seek(ptsMS);
+                        return true;
+                    } );
                 }
                 @Override
                 public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
@@ -306,7 +301,7 @@ public class MediaPlayer extends Widget {
             ctrlBlend.setColor(0, 0, 0, AlphaBlend);
             this.addShape( ctrlBlend.setVisible(false) );
 
-            final float toolTipScaleY = 0.6f;
+            final float toolTipScaleY = 0.4f;
             ctrlGroup = new Group(new GridLayout(ctrlCellWidth, ctrlCellHeight, Alignment.FillCenter, Gap.None, 1));
             ctrlGroup.setName("ctrlGroup").setInteractive(false);
             ctrlGroup.setPaddding(new Padding(0, BorderSzS, 0, BorderSzS));

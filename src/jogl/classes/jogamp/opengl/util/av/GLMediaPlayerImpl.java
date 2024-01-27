@@ -508,14 +508,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 case Paused:
                     final State _state = state;
                     setState( State.Paused );
-                    if( null != streamWorker ) {
-                        streamWorker.pause(true);
-                    }
                     // Adjust target ..
                     if( msec >= duration ) {
                         msec = duration - (int)Math.floor(frame_duration);
                     } else if( msec < 0 ) {
                         msec = 0;
+                    }
+                    if( null != streamWorker ) {
+                        streamWorker.pause(true);
                     }
                     pts1 = seekImpl(msec);
                     resetAVPTSAndFlush(false);
