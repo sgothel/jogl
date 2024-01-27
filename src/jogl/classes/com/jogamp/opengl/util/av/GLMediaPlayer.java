@@ -862,6 +862,14 @@ public interface GLMediaPlayer extends TextureSequence {
     /** Returns the height of the video. */
     public int getHeight();
 
+    /**
+     * Returns title meta-data from stream, available after {@link State#Initialized} is reached after issuing {@link #playStream(Uri, int, int, int, int)}.
+     * <p>
+     * In case no title meta-data is being used, the {@link #getUri()} basename w/o suffix is being returned.
+     * </p>
+     */
+    public String getTitle();
+
     /** Returns {@link Chapter} meta-data from stream, available after {@link State#Initialized} is reached after issuing {@link #playStream(Uri, int, int, int, int)}. */
     public Chapter[] getChapters();
     /**

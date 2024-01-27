@@ -353,9 +353,9 @@ static inline const char* meta_get_value(AVDictionary *tags, const char* key)
     }
     return NULL;
 }
-static inline const char* meta_get_chapter_title(AVChapter *chapter)
+static inline const char* meta_get_title(AVDictionary *tags)
 {
-    return meta_get_value(chapter->metadata, "title");
+    return meta_get_value(tags, "title");
 }
 static inline const char* meta_get_language(AVDictionary *tags)
 {
@@ -431,6 +431,15 @@ static void _updateJavaAttributes(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
                 (*env)->SetObjectArrayElement(env, s_langs, i, (*env)->NewStringUTF(env, lang1));
             }
         }
+        jstring jtitle;
+        {
+            const char* title = meta_get_title(pAV->pFormatCtx->metadata);
+            if( NULL != title ) {
+               jtitle = (*env)->NewStringUTF(env, title);
+            } else {
+               jtitle = NULL;
+            }
+        }
 
         (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_setupFFAttributes,
                                pAV->vid, pAV->vPixFmt, pAV->vBufferPlanes, 
@@ -441,6 +450,7 @@ static void _updateJavaAttributes(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
         JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at setupFFAttributes(..)");
 
         (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_updateAttributes,
+                               jtitle,
                                v_streams, v_langs, pAV->vid, 
                                a_streams, a_langs, pAV->aid,
                                s_streams, s_langs, pAV->sid,
@@ -1885,7 +1895,7 @@ JNIEXPORT jstring JNICALL FF_FUNC(getChapterTitle0)
         return NULL;
     }
     AVChapter *chapter = pAV->pFormatCtx->chapters[idx];
-    const char* title = meta_get_chapter_title(chapter);
+    const char* title = meta_get_title(chapter->metadata);
     return NULL != title ? (*env)->NewStringUTF(env, title) : NULL;
 }
 

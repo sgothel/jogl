@@ -618,22 +618,8 @@ public class MediaPlayer extends Widget {
         return getInfo(mPlayer.getPTS().get(currentMillis), mPlayer.getDuration(), mPlayer, full);
     }
     public static String getInfo(final int ptsMS, final int durationMS, final GLMediaPlayer mPlayer, final boolean full) {
-        final String name, chapter;
+        final String chapter;
         {
-            final String basename;
-            final String s = mPlayer.getUri().path.decode();
-            final int li = s.lastIndexOf('/');
-            if( 0 < li ) {
-                basename = s.substring(li+1);
-            } else {
-                basename = s;
-            }
-            final int di = basename.lastIndexOf('.');
-            if( 0 < di ) {
-                name = basename.substring(0, di);
-            } else {
-                name = basename;
-            }
             final GLMediaPlayer.Chapter c = mPlayer.getChapter(ptsMS);
             if( null != c ) {
                 chapter = " - "+c.title;
@@ -652,7 +638,7 @@ public class MediaPlayer extends Widget {
                     mPlayer.getSID(), mPlayer.getLang(mPlayer.getSID()) );
             final String text3 = String.format("video: id %d, kbps %d, codec %s",
                     mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
-            return text1+"\n"+text2+"\n"+text3+"\n"+name+chapter;
+            return text1+"\n"+text2+"\n"+text3+"\n"+mPlayer.getTitle()+chapter;
         } else {
             final String vinfo, ainfo, sinfo;
             if( mPlayer.getVID() != GLMediaPlayer.STREAM_ID_NONE ) {
@@ -673,7 +659,7 @@ public class MediaPlayer extends Widget {
             final String text1 = String.format("%s / %s (%.0f %%), %s (%01.2fx, vol %1.2f), A/R %.2f%s%s%s",
                     PTS.millisToTimeStr(ptsMS, false), PTS.millisToTimeStr(durationMS, false), pct*100,
                     mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect, vinfo, ainfo, sinfo);
-            return text1+"\n"+name+chapter;
+            return text1+"\n"+mPlayer.getTitle()+chapter;
         }
     }
     public static String getMultilineTime(final long currentMillis, final GLMediaPlayer mPlayer) {

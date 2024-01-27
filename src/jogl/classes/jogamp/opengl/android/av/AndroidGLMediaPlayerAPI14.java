@@ -336,10 +336,10 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                 r_alangs = new String[] { "n/a" };
             }
             final String icodec = "android";
-            updateAttributes(new int[] { 0 }, new String[] { "und" }, 0 /* fake */,
-                             r_aids, r_alangs, r_aid,
-                             new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
-                             mp.getVideoWidth(), mp.getVideoHeight(), 0, 0, 0, 0f, 0, 0, mp.getDuration(), icodec, icodec);
+            updateAttributes(null, new int[] { 0 }, new String[] { "und" },
+                             0 /* fake */, r_aids, r_alangs,
+                             r_aid, new int[0], new String[0],
+                             GLMediaPlayer.STREAM_ID_NONE, mp.getVideoWidth(), mp.getVideoHeight(), 0, 0, 0, 0f, 0, 0, mp.getDuration(), icodec, icodec);
             /**
                 mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                     @Override
@@ -372,10 +372,10 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                     }
                 }
             }
-            updateAttributes(new int[]{0}, new String[] { "und" }, 0 /* fake */,
-                             new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
-                             new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
-                             size.width, size.height, 0, 0, 0, fpsRange[1]/1000f, 0, 0, 0, icodec, icodec);
+            updateAttributes(null, new int[]{0}, new String[] { "und" },
+                             0 /* fake */, new int[0], new String[0],
+                             GLMediaPlayer.STREAM_ID_NONE, new int[0], new String[0],
+                             GLMediaPlayer.STREAM_ID_NONE, size.width, size.height, 0, 0, 0, fpsRange[1]/1000f, 0, 0, 0, icodec, icodec);
         }
     }
     private static String camSz2Str(final Camera.Size csize) {

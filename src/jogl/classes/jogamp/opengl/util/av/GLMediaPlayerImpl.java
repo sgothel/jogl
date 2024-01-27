@@ -132,6 +132,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private float audioVolume = 1.0f;
 
     /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    private String title = "undef";
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private int[] v_streams = new int[0];
     /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private String[] v_langs = new String[0];
@@ -749,9 +751,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public void switchStream(final int vid, final int aid, final int sid) throws IllegalStateException, IllegalArgumentException {
-        System.err.println("XXX VID "+getVID()+" -> "+vid);
-        System.err.println("XXX AID "+getAID()+" -> "+aid);
-        System.err.println("XXX SID "+getSID()+" -> "+sid);
         final int v_pts = getVideoPTS();
         stop();
         seek(v_pts);
@@ -953,11 +952,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         final float _fps = 24f;
         final int _duration = 10*60*1000; // msec
         final int _totalFrames = (int) ( (_duration/1000)*_fps );
-        updateAttributes(new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
-                         new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE, // audio
-                         new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE, // subs
-                         TestTexture.singleton.getWidth(),
-                         TestTexture.singleton.getHeight(), 0, 0, 0, _fps, _totalFrames, 0, _duration, "png-static", null);
+        updateAttributes("test", new int[0], new String[0],
+                         GLMediaPlayer.STREAM_ID_NONE, new int[0], new String[0], // audio
+                         GLMediaPlayer.STREAM_ID_NONE, new int[0], new String[0], // subs
+                         GLMediaPlayer.STREAM_ID_NONE,
+                         TestTexture.singleton.getWidth(), TestTexture.singleton.getHeight(), 0, 0, 0, _fps, _totalFrames, 0, _duration, "png-static", null);
     }
 
     protected abstract TextureFrame createTexImage(GL gl, int texName);
@@ -1700,11 +1699,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * Further calls are issues off-thread by the decoder implementation.
      * </p>
      */
-    protected final void updateAttributes(final int[] v_streams, final String[] v_langs, int vid,
-                                          final int[] a_streams, final String[] a_langs, int aid,
-                                          final int[] s_streams, final String[] s_langs, int sid,
-                                          final int width, final int height, final int bps_stream,
-                                          final int bps_video, final int bps_audio, final float fps, final int videoFrames, final int audioFrames, final int duration, final String vcodec, final String acodec) {
+    protected final void updateAttributes(final String title,
+                                          final int[] v_streams, final String[] v_langs,
+                                          int vid, final int[] a_streams, final String[] a_langs,
+                                          int aid, final int[] s_streams, final String[] s_langs,
+                                          int sid, final int width, final int height,
+                                          final int bps_stream, final int bps_video, final int bps_audio, final float fps, final int videoFrames, final int audioFrames, final int duration, final String vcodec, final String acodec) {
         final GLMediaPlayer.EventMask eventMask = new GLMediaPlayer.EventMask();
         final boolean wasUninitialized = state == State.Uninitialized;
 
@@ -1712,6 +1712,25 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             eventMask.setBit(GLMediaPlayer.EventMask.Bit.Init);
             setState( State.Initialized );
         }
+        if( null == title ) {
+            final String basename;
+            final String s = getUri().path.decode();
+            final int li = s.lastIndexOf('/');
+            if( 0 < li ) {
+                basename = s.substring(li+1);
+            } else {
+                basename = s;
+            }
+            final int di = basename.lastIndexOf('.');
+            if( 0 < di ) {
+                this.title = basename.substring(0, di);
+            } else {
+                this.title = basename;
+            }
+        } else {
+            this.title = title;
+        }
+
         this.v_streams = v_streams;
         this.v_langs = v_langs;
         this.a_streams = a_streams;
@@ -1940,6 +1959,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     /** Implementation shall update metadata, e.g. {@link #getChapters()} if supported. Called after {@link State#Initialized} is reached. */
     protected void updateMetadata() {}
+
+    @Override
+    public String getTitle() { return this.title; }
 
     @Override
     public Chapter[] getChapters() { return new Chapter[0]; }
