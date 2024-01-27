@@ -281,7 +281,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final void initStreamImpl(final int vid, final int aid) throws IOException {
+    protected final void initStreamImpl(final int vid, final int aid, int sid) throws IOException {
         if( null == getUri() ) {
             return;
         }
@@ -323,12 +323,23 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } catch (final IOException ioe) {
                 throw new IOException("MediaPlayer failed to process stream <"+getUri().toString()+">: "+ioe.getMessage(), ioe);
             }
-            final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : 1 /* fake */;
+            final int r_aid;
+            final int[] r_aids;
+            final String[] r_alangs;
+            if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
+                r_aid = GLMediaPlayer.STREAM_ID_NONE;
+                r_aids = new int[0];
+                r_alangs = new String[0];
+            } else {
+                r_aid = 1; // fake
+                r_aids = new int[] { 1 }; // fake
+                r_alangs = new String[] { "n/a" };
+            }
             final String icodec = "android";
-            updateAttributes(0 /* fake */, r_aid,
-                             mp.getVideoWidth(), mp.getVideoHeight(), 0,
-                             0, 0, 0f,
-                             0, 0, mp.getDuration(), icodec, icodec);
+            updateAttributes(new int[] { 0 }, new String[] { "und" }, 0 /* fake */,
+                             r_aids, r_alangs, r_aid,
+                             new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
+                             mp.getVideoWidth(), mp.getVideoHeight(), 0, 0, 0, 0f, 0, 0, mp.getDuration(), icodec, icodec);
             /**
                 mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                     @Override
@@ -361,11 +372,10 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                     }
                 }
             }
-            updateAttributes(0 /* fake */, GLMediaPlayer.STREAM_ID_NONE,
-                             size.width, size.height,
-                             0, 0, 0,
-                             fpsRange[1]/1000f,
-                             0, 0, 0, icodec, icodec);
+            updateAttributes(new int[]{0}, new String[] { "und" }, 0 /* fake */,
+                             new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
+                             new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
+                             size.width, size.height, 0, 0, 0, fpsRange[1]/1000f, 0, 0, 0, icodec, icodec);
         }
     }
     private static String camSz2Str(final Camera.Size csize) {

@@ -426,7 +426,7 @@ public class MovieSimple implements GLEventListener {
     }
 
     public void playStream(final Uri streamLoc, final int vid, final int aid, final int textureCount) {
-        mPlayer.playStream(streamLoc, vid, aid, textureCount);
+        mPlayer.playStream(streamLoc, vid, aid, GLMediaPlayer.STREAM_ID_NONE, textureCount);
         System.out.println("pC.1b "+mPlayer);
     }
 

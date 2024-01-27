@@ -97,7 +97,7 @@ public class MovieCube implements GLEventListener {
     }
 
     /**
-     * Default constructor which also issues {@link #playStream(URI, int, int, int)} w/ default values
+     * Default constructor which also issues {@link #playStream(URI, int, int, int, int)} w/ default values
      * and polls until the {@link GLMediaPlayer} is {@link GLMediaPlayer.State#Initialized}.
      * If {@link GLMediaEventListener#EVENT_CHANGE_EOS} is reached, the stream is started over again.
      * <p>
@@ -133,7 +133,7 @@ public class MovieCube implements GLEventListener {
     }
 
     /**
-     * Custom constructor, user needs to issue {@link #playStream(URI, int, int, int)} afterwards.
+     * Custom constructor, user needs to issue {@link #playStream(URI, int, int, int, int)} afterwards.
      */
     public MovieCube(final float zoom0, final float rotx, final float roty, final boolean showText) throws IOException {
         this.zoom0 = zoom0;
@@ -145,7 +145,7 @@ public class MovieCube implements GLEventListener {
     }
 
     public void playStream(final Uri streamLoc, final int vid, final int aid, final int textureCount) {
-        mPlayer.playStream(streamLoc, vid, aid, textureCount);
+        mPlayer.playStream(streamLoc, vid, aid, GLMediaPlayer.STREAM_ID_NONE, textureCount);
         System.out.println("pC.1b "+mPlayer);
     }
 

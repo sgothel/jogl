@@ -325,7 +325,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
             }
         } };
 
-    /** user needs to issue {@link #playStream(URI, int, int, int)} afterwards. */
+    /** user needs to issue {@link #playStream(URI, int, int, int, int)} afterwards. */
     public MovieSBSStereo() throws IllegalStateException {
         mPlayerScaleOrig = false;
         mPlayer = GLMediaPlayerFactory.createDefault();
@@ -334,7 +334,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
     }
 
     public void initStream(final Uri streamLoc, final int vid, final int aid, final int textureCount) {
-        mPlayer.playStream(streamLoc, vid, aid, textureCount);
+        mPlayer.playStream(streamLoc, vid, aid, GLMediaPlayer.STREAM_ID_NONE, textureCount);
         System.out.println("pC.1b "+mPlayer);
     }
 

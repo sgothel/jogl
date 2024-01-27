@@ -351,7 +351,7 @@ public class UISceneDemo03 {
         if( null != audioUri ) {
             mPlayer = GLMediaPlayerFactory.createDefault();
             mPlayer.addEventListener( new MyGLMediaEventListener() );
-            mPlayer.playStream(audioUri, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
+            mPlayer.playStream(audioUri, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
         } else {
             mPlayer = null;
         }

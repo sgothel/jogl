@@ -372,7 +372,7 @@ public class UIMediaGrid01 {
                 customCtrls.add(button);
             }
             grid.addShape( new MediaPlayer(options.renderModes, scene, mPlayer, medium, defRatio, letterBox, zoomSize, customCtrls) );
-            mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, texCount);
+            mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, GLMediaPlayer.STREAM_ID_NONE, texCount);
         }
     }
     private static boolean printNativeInfoOnce = true;

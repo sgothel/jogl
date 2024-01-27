@@ -134,6 +134,8 @@ typedef struct {
     int64_t dtsLast;  // DTS of the last frame
 } PTSStats;
 
+#define MAX_STREAM_COUNT 64
+
 typedef struct {
     jobject          ffmpegMediaPlayer;
     int32_t          verbose;
@@ -151,6 +153,8 @@ typedef struct {
 
     AVPacket*        packet;
     AVFormatContext* pFormatCtx;
+    uint32_t         v_stream_count;
+    int32_t          v_streams[MAX_STREAM_COUNT];
     int32_t          vid;
     AVStream*        pVStream;
     AVCodecParameters* pVCodecPar;
@@ -168,6 +172,8 @@ typedef struct {
     int32_t          vHeight;
     jboolean         vFlipped;      // false: !GL-Orientation, true: GL-Orientation
 
+    uint32_t         a_stream_count;
+    int32_t          a_streams[MAX_STREAM_COUNT];
     int32_t          aid;
     AVStream*        pAStream;
     AVCodecParameters* pACodecPar;
@@ -189,6 +195,11 @@ typedef struct {
     int32_t          aSampleRateOut;
     int32_t          aPTS;       // msec - overall last audio PTS
     PTSStats         aPTSStats;
+
+    uint32_t         s_stream_count;
+    int32_t          s_streams[MAX_STREAM_COUNT];
+    int32_t          sid;
+    AVStream*        pSStream;
 
     float            fps;        // frames per seconds
     int32_t          bps_stream; // bits per seconds

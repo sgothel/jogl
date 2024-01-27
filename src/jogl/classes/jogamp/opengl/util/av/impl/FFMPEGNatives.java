@@ -60,10 +60,12 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
      * @param aid
      * @param aPrefSampleRate
      * @param aPrefChannelCount
+     * @param sid subtitle id
      */
     abstract void setStream0(long moviePtr, String url, boolean isCameraInput,
-                             int vid, String sizes, int vWidth, int vHeight,
-                             int vRate, int aid, int aMaxChannelCount, int aPrefSampleRate);
+                             int vid, String sizes, int vWidth, int vHeight, int vRate,
+                             int aid, int aMaxChannelCount, int aPrefSampleRate,
+                             int sid);
 
     abstract void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
 

@@ -343,7 +343,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     public static final String dev_video_linux = "/dev/video";
 
     @Override
-    protected final void initStreamImpl(final int vid, final int aid) throws IOException {
+    protected final void initStreamImpl(final int vid, final int aid, final int sid) throws IOException {
         synchronized( moviePtrLock ) {
             if(0==moviePtr) {
                 throw new GLException("FFMPEG native instance null");
@@ -413,7 +413,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 System.err.println("initStream: p3 stream "+getUri()+" -> "+streamLocS+" -> "+resStreamLocS);
                 System.err.println("initStream: p3 vid "+vid+", sizes "+sizes+", reqVideo "+rw+"x"+rh+"@"+rr+", aid "+aid+", aMaxChannelCount "+aMaxChannelCount+", aPrefSampleRate "+aPrefSampleRate);
             }
-            natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, sizes, rw, rh, rr, aid, aMaxChannelCount, aPrefSampleRate);
+            natives.setStream0(moviePtr, resStreamLocS, isCameraInput, vid, sizes, rw, rh, rr, aid, aMaxChannelCount, aPrefSampleRate, sid);
         }
     }
 

@@ -50,7 +50,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * Audio maybe supported and played back internally or via an {@link AudioSink} implementation.
  * </p>
  * <p>
- * Audio and video streams can be selected or muted via {@link #playStream(Uri, int, int, int)}
+ * Audio and video streams can be selected or muted via {@link #playStream(Uri, int, int, int, int)}
  * using the appropriate <a href="#streamIDs">stream id</a>'s.
  * </p>
  * <p>
@@ -61,7 +61,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * <p>
  * Most of the stream processing is performed on the decoding thread, a.k.a. <i>StreamWorker</i>:
  * <ul>
- *   <li>Stream initialization triggered by {@link #playStream(Uri, int, int, int) playStream(..)} - User gets notified whether the stream has been initialized or not via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long) attributesChanges(..)}.</li>
+ *   <li>Stream initialization triggered by {@link #playStream(Uri, int, int, int, int) playStream(..)} - User gets notified whether the stream has been initialized or not via {@link GLMediaEventListener#attributesChanged(GLMediaPlayer, int, long) attributesChanges(..)}.</li>
  *   <li>Stream decoding - User gets notified of a new frame via {@link GLMediaEventListener#newFrameAvailable(GLMediaPlayer, com.jogamp.opengl.util.texture.TextureSequence.TextureFrame, long) newFrameAvailable(...)}.</li>
  *   <li>Caught <a href="#streamerror">exceptions on the decoding thread</a> are delivered as {@link StreamException}s.</li>
  * </ul>
@@ -87,7 +87,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * <p>
  * <table border="1">
  *   <tr><th>Action</th>                                               <th>{@link State} Before</th>                                        <th>{@link State} After</th>                                                                                                       <th>{@link EventMask#Bit Event}</th></tr>
- *   <tr><td>{@link #playStream(Uri, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td>  <td>{@link EventMask.Bit#Init Init} or ( {@link EventMask.Bit#Error Error} + {@link EventMask.Bit#Uninit Uninit} )</td></tr>
+ *   <tr><td>{@link #playStream(Uri, int, int, int, int)}</td>              <td>{@link State#Uninitialized Uninitialized}</td>                   <td>{@link State#Initialized Initialized}<sup><a href="#streamworker">1</a></sup>, {@link State#Uninitialized Uninitialized}</td>  <td>{@link EventMask.Bit#Init Init} or ( {@link EventMask.Bit#Error Error} + {@link EventMask.Bit#Uninit Uninit} )</td></tr>
  *   <tr><td>{@link #initGL(GL)}</td>                                  <td>{@link State#Initialized Initialized}, {@link State#Uninitialized Uninitialized} </td>    <td>{@link State#Playing Playing}, {@link State#Uninitialized Uninitialized}</td>                         <td>{@link EventMask.Bit#Play Play} or ( {@link EventMask.Bit#Error Error} + {@link EventMask.Bit#Uninit Uninit} )</td></tr>
  *   <tr><td>{@link #pause(boolean)}</td>                              <td>{@link State#Playing Playing}</td>                               <td>{@link State#Paused Paused}</td>                                                                                               <td>{@link EventMask.Bit#Pause Pause}</td></tr>
  *   <tr><td>{@link #resume()}</td>                                    <td>{@link State#Paused Paused}</td>                                 <td>{@link State#Playing Playing}</td>                                                                                             <td>{@link EventMask.Bit#Play Play}</td></tr>
@@ -332,16 +332,18 @@ public interface GLMediaPlayer extends TextureSequence {
             VID    ( 1<<16 ),
             /** Stream audio id change. */
             AID    ( 1<<17 ),
+            /** Stream subtitle id change. */
+            SID    ( 1<<18 ),
             /** TextureFrame size or vertical flip change. */
-            Size   ( 1<<18 ),
+            Size   ( 1<<19 ),
             /** Stream fps change. */
-            FPS    ( 1<<19 ),
+            FPS    ( 1<<20 ),
             /** Stream bps change. */
-            BPS ( 1<<20 ),
+            BPS ( 1<<21 ),
             /** Stream length change. */
-            Length ( 1<<21 ),
+            Length ( 1<<22 ),
             /** Stream codec change. */
-            Codec  ( 1<<22 );
+            Codec  ( 1<<23 );
 
             Bit(final int v) { value = v; }
             public final int value;
@@ -446,14 +448,14 @@ public interface GLMediaPlayer extends TextureSequence {
     /**
      * Limit maximum supported audio channels by user.
      * <p>
-     * Must be set before {@link #playStream(Uri, int, int, int)}
+     * Must be set before {@link #playStream(Uri, int, int, int, int)}
      * </p>
      * <p>
      * May be utilized to enforce 1 channel (mono) downsampling
      * in combination with JOAL/OpenAL to experience spatial 3D position effects.
      * </p>
      * @param cc maximum supported audio channels, will be clipped [1..x], with x being the underlying audio subsystem's maximum
-     * @see #playStream(Uri, int, int, int)
+     * @see #playStream(Uri, int, int, int, int)
      */
     public void setAudioChannelLimit(final int cc);
 
@@ -479,16 +481,31 @@ public interface GLMediaPlayer extends TextureSequence {
      * </p>
      * @param streamLoc the stream location
      * @param vid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
-     * @param aid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
+     * @param aid audio stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
+     * @param sid subtitle stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
      * @param textureCount desired number of buffered textures to be decoded off-thread, will be validated by implementation.
      *        The minimum value is {@link #TEXTURE_COUNT_MIN} (single-threaded) or above to enable multi-threaded stream decoding.
      *        Default is {@link #TEXTURE_COUNT_DEFAULT}.
      *        Value is ignored if video is muted.
      * @throws IllegalStateException if not invoked in {@link State#Uninitialized}
      * @throws IllegalArgumentException if arguments are invalid
-     * @since 2.3.0
+     * @since 2.6.0
      */
-    public void playStream(Uri streamLoc, int vid, int aid, int textureCount) throws IllegalStateException, IllegalArgumentException;
+    public void playStream(Uri streamLoc, int vid, int aid, int sid, int textureCount) throws IllegalStateException, IllegalArgumentException;
+
+    /**
+     * Switches current {@link #playStream(Uri, int, int, int, int)} to given stream IDs and continues at same {@link #getVideoPTS()}.
+     * <p>
+     * Implementation just issues {@link #stop()}, {@link #seek(int)} and {@link #playStream(Uri, int, int, int, int)}.
+     * </p>
+     * @param vid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
+     * @param aid audio stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
+     * @param sid subtitle stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
+     * @throws IllegalStateException
+     * @throws IllegalArgumentException
+     * @since 2.6.0
+     */
+    public void switchStream(final int vid, final int aid, final int sid) throws IllegalStateException, IllegalArgumentException;
 
     /**
      * Returns the {@link StreamException} caught in the decoder thread, or <code>null</code> if none occured.
@@ -505,7 +522,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * <p>
      * <a href="#lifecycle">Lifecycle</a>: {@link State#Initialized} -> {@link State#Paused} or {@link State#Initialized}
      * </p>
-     * Argument <code>gl</code> is ignored if video is muted, see {@link #playStream(Uri, int, int, int)}.
+     * Argument <code>gl</code> is ignored if video is muted, see {@link #playStream(Uri, int, int, int, int)}.
      *
      * @param gl current GL object. Maybe <code>null</code>, for audio only.
      * @throws IllegalStateException if not invoked in {@link State#Initialized}.
@@ -517,7 +534,7 @@ public interface GLMediaPlayer extends TextureSequence {
     /**
      * If implementation uses a {@link AudioSink}, it's instance will be returned.
      * <p>
-     * The {@link AudioSink} instance is available after {@link #playStream(Uri, int, int, int)},
+     * The {@link AudioSink} instance is available after {@link #playStream(Uri, int, int, int, int)},
      * if used by implementation.
      * </p>
      */
@@ -615,14 +632,71 @@ public interface GLMediaPlayer extends TextureSequence {
     public State getState();
 
     /**
+     * Return an array of detected video stream IDs.
+     */
+    public int[] getVStreams();
+
+    /**
+     * Return an array of detected video stream languages, matching {@link #getVStreams()} array and its indices.
+     */
+    public String[] getVLangs();
+
+    /**
      * Return the video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>.
      */
     public int getVID();
+
+    /** Returns the next video stream id, rotates. */
+    public int getNextVID();
+
+    /**
+     * Return an array of detected audio stream IDs.
+     */
+    public int[] getAStreams();
+
+    /**
+     * Return an array of detected audio stream languages, matching {@link #getAStreams()} array and its indices.
+     */
+    public String[] getALangs();
 
     /**
      * Return the audio stream id, see <a href="#streamIDs">audio and video Stream IDs</a>.
      */
     public int getAID();
+
+    /** Returns the next audio stream id, rotates. */
+    public int getNextAID();
+
+    /**
+     * Return an array of detected subtitle stream IDs.
+     */
+    public int[] getSStreams();
+
+    /**
+     * Return an array of detected subtitle stream languages, matching {@link #getSStreams()} array and its indices.
+     */
+    public String[] getSLangs();
+
+    /**
+     * Return the subtitle stream id, see <a href="#streamIDs">audio and video Stream IDs</a>.
+     */
+    public int getSID();
+
+    /** Returns the next subtitle stream id, rotates including no-stream*/
+    public int getNextSID();
+
+    /**
+     * Return whether the given stream ID is available, i.e. matching one of the stream IDs in {@link #getVStreams()}, {@link #getAStreams()} or {@link #getSStreams()}.
+     */
+    public boolean hasStreamID(int id);
+
+    /**
+     * Return the matching language of given stream ID, matching one of the stream IDs in {@link #getVStreams()}, {@link #getAStreams()} or {@link #getSStreams()}.
+     * <p>
+     * If the stream ID is not available, {@code "und"} is returned
+     * </p>
+     */
+    public String getLang(int id);
 
     /**
      * @return the current decoded frame count since {@link #resume()} and {@link #seek(int)}
@@ -700,7 +774,7 @@ public interface GLMediaPlayer extends TextureSequence {
     public TextureSequence.TextureFrame getNextTexture(GL gl) throws IllegalStateException;
 
     /**
-     * Return the stream location, as set by {@link #playStream(Uri, int, int, int)}.
+     * Return the stream location, as set by {@link #playStream(Uri, int, int, int, int)}.
      * @since 2.3.0
      */
     public Uri getUri();
@@ -788,13 +862,18 @@ public interface GLMediaPlayer extends TextureSequence {
     /** Returns the height of the video. */
     public int getHeight();
 
-    /** Returns {@link Chapter} meta-data from stream, available after {@link State#Initialized} is reached after issuing {@link #playStream(Uri, int, int, int)}. */
+    /** Returns {@link Chapter} meta-data from stream, available after {@link State#Initialized} is reached after issuing {@link #playStream(Uri, int, int, int, int)}. */
     public Chapter[] getChapters();
     /**
      * Returns {@link Chapter} covering given time position in milliseconds or null if none covers given time
      * @param msec desired chapter covering time position in milliseconds
      */
     public Chapter getChapter(int msec);
+
+    /**
+     * Returns the stream language metadata for the given stream id if available, otherwise {@code null}.
+     */
+    public String getStreamLang(int id);
 
     /** Returns a string representation of this player, incl. state and audio/video details. */
     @Override

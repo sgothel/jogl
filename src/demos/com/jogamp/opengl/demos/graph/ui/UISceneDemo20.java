@@ -747,7 +747,7 @@ public class UISceneDemo20 implements GLEventListener {
                 }
             });
             buttonsRight.addShape(button);
-            mPlayer.playStream(filmURL, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
+            mPlayer.playStream(filmURL, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
         }
         if( true ) {
             final SimpleSineSynth sineSound = new SimpleSineSynth();

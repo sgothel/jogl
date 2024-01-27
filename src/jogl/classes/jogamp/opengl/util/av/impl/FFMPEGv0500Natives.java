@@ -53,7 +53,7 @@ class FFMPEGv0500Natives extends FFMPEGNatives {
     native void destroyInstance0(long moviePtr);
 
     @Override
-    native void setStream0(long moviePtr, String url, boolean isCameraInput, int vid, String sizes, int vWidth, int vHeight, int vRate, int aid, int aMaxChannelCount, int aPrefSampleRate);
+    native void setStream0(long moviePtr, String url, boolean isCameraInput, int vid, String sizes, int vWidth, int vHeight, int vRate, int aid, int aMaxChannelCount, int aPrefSampleRate, int sid);
 
     @Override
     native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);

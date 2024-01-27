@@ -224,7 +224,7 @@ public class UISceneDemo10 {
                 public void mouseClicked(final MouseEvent e) {
                     mPlayer.setAudioVolume( b.isToggleOn() ? 1f : 0f );
                 } } );
-            mPlayer.playStream(filmUri, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
+            mPlayer.playStream(filmUri, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.TEXTURE_COUNT_DEFAULT);
             return b;
         } else if( true ) {
             final GLEventListener glel;

@@ -182,6 +182,8 @@ static SWR_CONVERT sp_swr_convert;
 static SWR_GET_OUT_SAMPLES sp_swr_get_out_samples;
 // count: +6 = 61
 
+static const char * const ClazzNameString = "java/lang/String";
+
 // We use JNI Monitor Locking, since this removes the need 
 // to statically link-in pthreads on window ..
 // #define USE_PTHREAD_LOCKING 1
@@ -339,6 +341,27 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
     return JNI_TRUE;
 }
 
+static inline const char* meta_get_value(AVDictionary *tags, const char* key)
+{
+    // SECTION_ID_CHAPTER_TAGS
+    if (!tags) {
+        return NULL;
+    }
+    const AVDictionaryEntry *entry = NULL;
+    if ((entry = sp_av_dict_get(tags, key, entry, AV_DICT_IGNORE_SUFFIX))) {
+        return entry->value;
+    }
+    return NULL;
+}
+static inline const char* meta_get_chapter_title(AVChapter *chapter)
+{
+    return meta_get_value(chapter->metadata, "title");
+}
+static inline const char* meta_get_language(AVDictionary *tags)
+{
+    return meta_get_value(tags, "language");
+}
+
 static int _isAudioFormatSupported(JNIEnv *env, jobject ffmpegMediaPlayer, enum AVSampleFormat aSampleFmt, int32_t aSampleRate, int32_t aChannels) {
     int res = JNI_TRUE == (*env)->CallBooleanMethod(env, ffmpegMediaPlayer, ffmpeg_jni_mid_isAudioFormatSupported, aSampleFmt, aSampleRate, aChannels);
     JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at isAudioFormatSupported(..)");
@@ -346,6 +369,69 @@ static int _isAudioFormatSupported(JNIEnv *env, jobject ffmpegMediaPlayer, enum 
 }
 static void _updateJavaAttributes(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
     if(NULL!=env) {
+        jclass strclazz = (*env)->FindClass(env, ClazzNameString);
+        if( strclazz == NULL ) {
+            JoglCommon_throwNewRuntimeException(env, "FFmpeg: No Java String Class");
+            return;
+        }
+        jintArray a_streams = (*env)->NewIntArray(env, pAV->a_stream_count);
+        if (a_streams == NULL) {
+            JoglCommon_throwNewRuntimeException(env, "FFmpeg: Out of memory (a_streams %u)", pAV->a_stream_count);
+            return;
+        }
+        jintArray v_streams = (*env)->NewIntArray(env, pAV->v_stream_count);
+        if (v_streams == NULL) {
+            JoglCommon_throwNewRuntimeException(env, "FFmpeg: Out of memory (v_streams %u)", pAV->v_stream_count);
+            return;
+        }
+        jintArray s_streams = (*env)->NewIntArray(env, pAV->s_stream_count);
+        if (s_streams == NULL) {
+            JoglCommon_throwNewRuntimeException(env, "FFmpeg: Out of memory (s_streams %u)", pAV->s_stream_count);
+            return;
+        }
+        jobjectArray a_langs = (*env)->NewObjectArray(env, pAV->a_stream_count, strclazz, NULL);
+        if (a_langs == NULL) {
+            JoglCommon_throwNewRuntimeException(env, "FFmpeg: Out of memory (a_langs %u)", pAV->a_stream_count);
+            return;
+        }
+        jobjectArray v_langs = (*env)->NewObjectArray(env, pAV->v_stream_count, strclazz, NULL);
+        if (v_langs == NULL) {
+            JoglCommon_throwNewRuntimeException(env, "FFmpeg: Out of memory (v_langs %u)", pAV->v_stream_count);
+            return;
+        }
+        jobjectArray s_langs = (*env)->NewObjectArray(env, pAV->s_stream_count, strclazz, NULL);
+        if (s_langs == NULL) {
+            JoglCommon_throwNewRuntimeException(env, "FFmpeg: Out of memory (s_langs %u)", pAV->s_stream_count);
+            return;
+        }
+        if( 0 < pAV->a_stream_count ) {
+            (*env)->SetIntArrayRegion(env, a_streams, 0, pAV->a_stream_count, pAV->a_streams);
+            for(int i=0; i<pAV->a_stream_count; ++i) {
+                AVStream *st = pAV->pFormatCtx->streams[pAV->a_streams[i]];
+                const char* lang0 = meta_get_language(st->metadata);
+                const char* lang1 = NULL != lang0 ? lang0 : "und";
+                (*env)->SetObjectArrayElement(env, a_langs, i, (*env)->NewStringUTF(env, lang1));
+            }
+        }
+        if( 0 < pAV->v_stream_count ) {
+            (*env)->SetIntArrayRegion(env, v_streams, 0, pAV->v_stream_count, pAV->v_streams);
+            for(int i=0; i<pAV->v_stream_count; ++i) {
+                AVStream *st = pAV->pFormatCtx->streams[pAV->v_streams[i]];
+                const char* lang0 = meta_get_language(st->metadata);
+                const char* lang1 = NULL != lang0 ? lang0 : "und";
+                (*env)->SetObjectArrayElement(env, v_langs, i, (*env)->NewStringUTF(env, lang1));
+            }
+        }
+        if( 0 < pAV->s_stream_count ) {
+            (*env)->SetIntArrayRegion(env, s_streams, 0, pAV->s_stream_count, pAV->s_streams);
+            for(int i=0; i<pAV->s_stream_count; ++i) {
+                AVStream *st = pAV->pFormatCtx->streams[pAV->s_streams[i]];
+                const char* lang0 = meta_get_language(st->metadata);
+                const char* lang1 = NULL != lang0 ? lang0 : "und";
+                (*env)->SetObjectArrayElement(env, s_langs, i, (*env)->NewStringUTF(env, lang1));
+            }
+        }
+
         (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_setupFFAttributes,
                                pAV->vid, pAV->vPixFmt, pAV->vBufferPlanes, 
                                pAV->vBitsPerPixel, pAV->vBytesPerPixelPerPlane,
@@ -353,8 +439,11 @@ static void _updateJavaAttributes(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
                                pAV->vWidth, pAV->vHeight,
                                pAV->aid, pAV->aSampleFmtOut, pAV->aSampleRateOut, pAV->aChannelsOut, pAV->aFrameSize);
         JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at setupFFAttributes(..)");
+
         (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_updateAttributes,
-                               pAV->vid, pAV->aid,
+                               v_streams, v_langs, pAV->vid, 
+                               a_streams, a_langs, pAV->aid,
+                               s_streams, s_langs, pAV->sid,
                                pAV->vWidth, pAV->vHeight,
                                pAV->bps_stream, pAV->bps_video, pAV->bps_audio,
                                pAV->fps, pAV->frames_video, pAV->frames_audio, pAV->duration,
@@ -547,6 +636,15 @@ JNIEXPORT jlong JNICALL FF_FUNC(createInstance0)
     pAV->verbose = verbose;
     pAV->vid=AV_STREAM_ID_AUTO;
     pAV->aid=AV_STREAM_ID_AUTO;
+    pAV->sid=AV_STREAM_ID_AUTO;
+    pAV->a_stream_count=0;
+    pAV->v_stream_count=0;
+    pAV->s_stream_count=0;
+    for(int i=0; i<MAX_STREAM_COUNT; ++i) {
+        pAV->a_streams[i]=AV_STREAM_ID_NONE;
+        pAV->v_streams[i]=AV_STREAM_ID_NONE;
+        pAV->s_streams[i]=AV_STREAM_ID_NONE;
+    }
 
     if(pAV->verbose) {
         fprintf(stderr, "Info: Has swresample %d, device %d\n",
@@ -683,7 +781,8 @@ static int64_t getFrameNum(const AVCodecContext *avctx) {
 JNIEXPORT void JNICALL FF_FUNC(setStream0)
   (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jboolean jIsCameraInput, 
    jint vid, jstring jSizeS, jint vWidth, jint vHeight, jint vRate,
-   jint aid, jint aMaxChannelCount, jint aPrefSampleRate)
+   jint aid, jint aMaxChannelCount, jint aPrefSampleRate,
+   jint sid)
 {
     char cameraName[256];
     int res, i;
@@ -819,20 +918,46 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
 
     // Find the first audio and video stream, or the one matching vid
     // FIXME: Libav Binary compatibility! JAU01
-    for(i=0; ( AV_STREAM_ID_AUTO==pAV->aid || AV_STREAM_ID_AUTO==pAV->vid ) && i<pAV->pFormatCtx->nb_streams; i++) {
+    pAV->a_stream_count=0;
+    pAV->v_stream_count=0;
+    pAV->s_stream_count=0;
+    for(int i=0; i<MAX_STREAM_COUNT; ++i) {
+        pAV->a_streams[i]=AV_STREAM_ID_NONE;
+        pAV->v_streams[i]=AV_STREAM_ID_NONE;
+        pAV->s_streams[i]=AV_STREAM_ID_NONE;
+    }
+    for(i=0; i<pAV->pFormatCtx->nb_streams; i++) {
         AVStream *st = pAV->pFormatCtx->streams[i];
         if(pAV->verbose) {
-            fprintf(stderr, "Stream: %d: is-video %d, is-audio %d\n", i, (AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type), AVMEDIA_TYPE_AUDIO == st->codecpar->codec_type);
+            const char* lang0 = meta_get_language(st->metadata);
+            const char* lang1 = NULL != lang0 ? lang0 : "n/a";
+            fprintf(stderr, "Stream: %d: is-video %d, is-audio %d, is-sub %d, lang %s\n", i, 
+                AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type, AVMEDIA_TYPE_AUDIO == st->codecpar->codec_type, 
+                AVMEDIA_TYPE_SUBTITLE == st->codecpar->codec_type, lang1);
         }
         if(AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type) {
+            if( pAV->v_stream_count < MAX_STREAM_COUNT-1 ) {
+                pAV->v_streams[pAV->v_stream_count++] = i;
+            }
             if(AV_STREAM_ID_AUTO==pAV->vid && (AV_STREAM_ID_AUTO==vid || vid == i) ) {
                 pAV->pVStream = st;
                 pAV->vid=i;
             }
         } else if(AVMEDIA_TYPE_AUDIO == st->codecpar->codec_type) {
+            if( pAV->a_stream_count < MAX_STREAM_COUNT-1 ) {
+                pAV->a_streams[pAV->a_stream_count++] = i;
+            }
             if(AV_STREAM_ID_AUTO==pAV->aid && (AV_STREAM_ID_AUTO==aid || aid == i) ) {
                 pAV->pAStream = st;
                 pAV->aid=i;
+            }
+        } else if(AVMEDIA_TYPE_SUBTITLE == st->codecpar->codec_type) {
+            if( pAV->s_stream_count < MAX_STREAM_COUNT-1 ) {
+                pAV->s_streams[pAV->s_stream_count++] = i;
+            }
+            if(AV_STREAM_ID_AUTO==pAV->sid && (AV_STREAM_ID_AUTO==sid || sid == i) ) {
+                pAV->pSStream = st;
+                pAV->sid=i;
             }
         }
     }
@@ -844,7 +969,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
     }
 
     if( pAV->verbose ) {
-        fprintf(stderr, "Found vid %d, aid %d\n", pAV->vid, pAV->aid);
+        fprintf(stderr, "Found vid %d, aid %d, sid %d\n", pAV->vid, pAV->aid, pAV->sid);
     }
 
     if(0<=pAV->aid) {
@@ -1709,22 +1834,6 @@ JNIEXPORT jint JNICALL FF_FUNC(getAudioPTS0)
     return pAV->aPTS;
 }
 
-static inline const char* meta_get_value(AVDictionary *tags, const char* key)
-{
-    // SECTION_ID_CHAPTER_TAGS
-    if (!tags) {
-        return NULL;
-    }
-    const AVDictionaryEntry *entry = NULL;
-    if ((entry = sp_av_dict_get(tags, key, entry, AV_DICT_IGNORE_SUFFIX))) {
-        return entry->value;
-    }
-    return NULL;
-}
-static inline const char* meta_get_chapter_title(AVChapter *chapter)
-{
-    return meta_get_value(chapter->metadata, "title");
-}
 JNIEXPORT jint JNICALL FF_FUNC(getChapterCount0)
   (JNIEnv *env, jobject instance, jlong ptr)
 {

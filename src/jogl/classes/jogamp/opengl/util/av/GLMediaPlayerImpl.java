@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -120,7 +121,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     /**
      * In case {@link #streamLoc} is a {@link GLMediaPlayer#CameraInputScheme},
      * {@link #cameraPath} holds the URI's path portion
-     * as parsed in {@link #playStream(Uri, int, int, int)}.
+     * as parsed in {@link #playStream(Uri, int, int, int, int)}.
      * @see #cameraProps
      */
     protected Uri.Encoded cameraPath = null;
@@ -130,33 +131,47 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private volatile float playSpeed = 1.0f;
     private float audioVolume = 1.0f;
 
-    /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    private int[] v_streams = new int[0];
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    private String[] v_langs = new String[0];
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private int vid = GLMediaPlayer.STREAM_ID_NONE;
-    /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    private int[] a_streams = new int[0];
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    private String[] a_langs = new String[0];
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private int aid = GLMediaPlayer.STREAM_ID_NONE;
-    /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    private int[] s_streams = new int[0];
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    private String[] s_langs = new String[0];
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    private int sid = GLMediaPlayer.STREAM_ID_NONE;
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private int width = 0;
-    /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private int height = 0;
-    /** Video avg. fps. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** Video avg. fps. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private float fps = 0;
-    /** Video avg. frame duration in ms. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** Video avg. frame duration in ms. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private float frame_duration = 0f;
-    /** Stream bps. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** Stream bps. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private int bps_stream = 0;
-    /** Video bps. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** Video bps. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private int bps_video = 0;
-    /** Audio bps. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** Audio bps. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private int bps_audio = 0;
-    /** In frames. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** In frames. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private int videoFrames = 0;
-    /** In frames. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** In frames. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private int audioFrames = 0;
-    /** In ms. Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** In ms. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private int duration = 0;
-    /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private String acodec = unknown;
-    /** Shall be set by the {@link #initStreamImpl(int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private String vcodec = unknown;
 
     private volatile int decodedFrameCount = 0;
@@ -175,7 +190,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private static final int MAX_FRAMELESS_MS_UNTIL_EOS = 5000;
     private static final int MAX_FRAMELESS_UNTIL_EOS_DEFAULT =  MAX_FRAMELESS_MS_UNTIL_EOS / 30; // default value assuming 30fps
 
-    /** See {@link #getAudioSink()}. Set by implementation if used from within {@link #initStreamImpl(int, int)}! */
+    /** See {@link #getAudioSink()}. Set by implementation if used from within {@link #initStreamImpl(int, int, int)}! */
     protected AudioSink audioSink = null;
     protected boolean audioSinkPlaySpeedSet = false;
 
@@ -421,6 +436,13 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         streamWorker.resume();
                     }
                     changeState(new GLMediaPlayer.EventMask(), State.Playing);
+                    {
+                        final int _pending_seek = pending_seek;
+                        pending_seek = -1;
+                        if( 0 <= _pending_seek ) {
+                            this.seek(_pending_seek);
+                        }
+                    }
                 }
             }
             if(DEBUG) { logout.println("Play: "+preState+" -> "+state+", "+toString()); }
@@ -531,12 +553,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     setState( _state );
                     break;
                 default:
+                    pending_seek = msec;
                     pts1 = 0;
             }
             if(DEBUG) { logout.println("Seek("+msec+"): "+preState+" -> "+state+", "+toString()); }
             return pts1;
         }
     }
+    protected int pending_seek = -1;
     protected abstract int seekImpl(int msec);
 
     @Override
@@ -650,7 +674,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
-    public final void playStream(final Uri streamLoc, final int vid, final int aid, final int reqTextureCount) throws IllegalStateException, IllegalArgumentException {
+    public final void playStream(final Uri streamLoc, final int vid, final int aid, final int sid, final int reqTextureCount) throws IllegalStateException, IllegalArgumentException {
         synchronized( stateLock ) {
             if(State.Uninitialized != state) {
                 throw new IllegalStateException("Instance not in state unintialized: "+this);
@@ -692,12 +716,13 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
             this.vid = vid;
             this.aid = aid;
+            this.sid = sid;
             new InterruptSource.Thread() {
                 @Override
                 public void run() {
                     try {
                         // StreamWorker may be used, see API-doc of StreamWorker
-                        initStreamImpl(vid, aid);
+                        initStreamImpl(vid, aid, sid);
                     } catch (final Throwable t) {
                         streamErr = new StreamException(t.getClass().getSimpleName()+" while initializing: "+GLMediaPlayerImpl.this.toString(), t);
                         changeState(new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.Error), GLMediaPlayer.State.Uninitialized);
@@ -708,6 +733,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     /**
      * Implementation shall set the following set of data here
+     * @param sid TODO
      * @see #vid
      * @see #aid
      * @see #width
@@ -719,7 +745,18 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * @see #acodec
      * @see #vcodec
     */
-    protected abstract void initStreamImpl(int vid, int aid) throws Exception;
+    protected abstract void initStreamImpl(int vid, int aid, int sid) throws Exception;
+
+    @Override
+    public void switchStream(final int vid, final int aid, final int sid) throws IllegalStateException, IllegalArgumentException {
+        System.err.println("XXX VID "+getVID()+" -> "+vid);
+        System.err.println("XXX AID "+getAID()+" -> "+aid);
+        System.err.println("XXX SID "+getSID()+" -> "+sid);
+        final int v_pts = getVideoPTS();
+        stop();
+        seek(v_pts);
+        playStream(getUri(), vid, aid, sid, getTextureCount());
+    }
 
     @Override
     public final StreamException getStreamException() {
@@ -916,10 +953,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         final float _fps = 24f;
         final int _duration = 10*60*1000; // msec
         final int _totalFrames = (int) ( (_duration/1000)*_fps );
-        updateAttributes(GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.STREAM_ID_NONE,
-                         TestTexture.singleton.getWidth(), TestTexture.singleton.getHeight(), 0,
-                         0, 0, _fps,
-                         _totalFrames, 0, _duration, "png-static", null);
+        updateAttributes(new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
+                         new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE, // audio
+                         new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE, // subs
+                         TestTexture.singleton.getWidth(),
+                         TestTexture.singleton.getHeight(), 0, 0, 0, _fps, _totalFrames, 0, _duration, "png-static", null);
     }
 
     protected abstract TextureFrame createTexImage(GL gl, int texName);
@@ -1331,7 +1369,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * </p>
      * <p>
      * Implementations using an {@link AudioSink} shall write it's instance to {@link #audioSink}
-     * from within their {@link #initStreamImpl(int, int)} implementation.
+     * from within their {@link #initStreamImpl(int, int, int)} implementation.
      * </p>
      */
     @Override
@@ -1393,8 +1431,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     /**
-     * After {@link GLMediaPlayerImpl#initStreamImpl(int, int) initStreamImpl(..)} is completed via
-     * {@link GLMediaPlayerImpl#updateAttributes(int, int, int, int, int, int, int, float, int, int, int, String, String) updateAttributes(..)},
+     * After {@link GLMediaPlayerImpl#initStreamImpl(int, int, int) initStreamImpl(..)} is completed via
+     * {@link GLMediaPlayerImpl#updateAttributes(int, int, int, int, int, int, int, int, int, float, int, int, int, String, String) updateAttributes(..)},
      * the latter decides whether StreamWorker is being used.
      */
     private final class StreamWorker {
@@ -1435,6 +1473,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             System.err.println("ZZZ: singleDevice "+singleDevice.getClass()+", "+singleDevice);
                         }
                         device.close();
+                        singleOwner = null;
+                        singleDevice = null;
                     }
                 }
             }
@@ -1651,8 +1691,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     /**
-     * Called initially by {@link #initStreamImpl(int, int)}, which
-     * is called off-thread by {@link #playStream(Uri, int, int, int)}.
+     * Called initially by {@link #initStreamImpl(int, int, int)}, which
+     * is called off-thread by {@link #playStream(Uri, int, int, int, int)}.
      * <p>
      * The latter catches an occurring exception and set the state delivers the error events.
      * </p>
@@ -1660,9 +1700,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * Further calls are issues off-thread by the decoder implementation.
      * </p>
      */
-    protected final void updateAttributes(int vid, final int aid, final int width, final int height, final int bps_stream,
-                                          final int bps_video, final int bps_audio, final float fps,
-                                          final int videoFrames, final int audioFrames, final int duration, final String vcodec, final String acodec) {
+    protected final void updateAttributes(final int[] v_streams, final String[] v_langs, int vid,
+                                          final int[] a_streams, final String[] a_langs, int aid,
+                                          final int[] s_streams, final String[] s_langs, int sid,
+                                          final int width, final int height, final int bps_stream,
+                                          final int bps_video, final int bps_audio, final float fps, final int videoFrames, final int audioFrames, final int duration, final String vcodec, final String acodec) {
         final GLMediaPlayer.EventMask eventMask = new GLMediaPlayer.EventMask();
         final boolean wasUninitialized = state == State.Uninitialized;
 
@@ -1670,20 +1712,37 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             eventMask.setBit(GLMediaPlayer.EventMask.Bit.Init);
             setState( State.Initialized );
         }
-        if( STREAM_ID_AUTO == vid ) {
+        this.v_streams = v_streams;
+        this.v_langs = v_langs;
+        this.a_streams = a_streams;
+        this.a_langs = a_langs;
+        this.s_streams = s_streams;
+        this.s_langs = s_langs;
+
+        if( STREAM_ID_AUTO == vid || 0 == v_streams.length ) {
             vid = STREAM_ID_NONE;
         }
         if( this.vid != vid ) {
             eventMask.setBit(GLMediaPlayer.EventMask.Bit.VID);
             this.vid = vid;
         }
-        if( STREAM_ID_AUTO == vid ) {
-            vid = STREAM_ID_NONE;
+
+        if( STREAM_ID_AUTO == aid || 0 == a_streams.length ) {
+            aid = STREAM_ID_NONE;
         }
         if( this.aid != aid ) {
             eventMask.setBit(GLMediaPlayer.EventMask.Bit.AID);
             this.aid = aid;
         }
+
+        if( STREAM_ID_AUTO == sid || 0 == s_streams.length ) {
+            sid = STREAM_ID_NONE;
+        }
+        if( this.sid != sid ) {
+            eventMask.setBit(GLMediaPlayer.EventMask.Bit.SID);
+            this.sid = sid;
+        }
+
         if( this.width != width || this.height != height ) {
             eventMask.setBit(GLMediaPlayer.EventMask.Bit.Size);
             this.width = width;
@@ -1755,11 +1814,93 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final Uri getUri() { return streamLoc; }
 
+    private static int getNextImpl(final int[] array, final int current, final boolean use_no_stream) {
+        final int alt = array.length > 0 ? array[0] : STREAM_ID_NONE;
+        if( STREAM_ID_NONE == current ) {
+            return alt;
+        }
+        if( array.length > 1 ) {
+            for(int i=0; i<array.length; ++i) {
+                if( current == array[i] ) {
+                    if( i+1 < array.length ) {
+                        return array[i+1];
+                    } else {
+                        return use_no_stream ? STREAM_ID_NONE : array[0];
+                    }
+                }
+            }
+        }
+        return alt;
+    }
+
+    @Override
+    public final int[] getVStreams() { return v_streams; }
+
+    @Override
+    public String[] getVLangs() { return v_langs; }
+
     @Override
     public final int getVID() { return vid; }
 
     @Override
+    public int getNextVID() {
+        return getNextImpl(v_streams, vid, false);
+    }
+
+    @Override
+    public final int[] getAStreams() { return a_streams; }
+
+    @Override
+    public String[] getALangs() { return a_langs; }
+
+    @Override
     public final int getAID() { return aid; }
+
+    @Override
+    public final int getNextAID() {
+        return getNextImpl(a_streams, aid, false);
+    }
+    @Override
+    public final int[] getSStreams() { return s_streams; }
+
+    @Override
+    public String[] getSLangs() { return s_langs; }
+
+    @Override
+    public final int getSID() { return sid; }
+
+    @Override
+    public int getNextSID() {
+        return getNextImpl(s_streams, sid, true);
+    }
+
+    @Override
+    public final boolean hasStreamID(final int id) {
+        for(int i = v_streams.length-1; i>=0; --i) {
+            if( v_streams[i] == id ) { return true; }
+        }
+        for(int i = a_streams.length-1; i>=0; --i) {
+            if( a_streams[i] == id ) { return true; }
+        }
+        for(int i = s_streams.length-1; i>=0; --i) {
+            if( s_streams[i] == id ) { return true; }
+        }
+        return false;
+    }
+
+    @Override
+    public String getLang(final int id) {
+        for(int i = v_streams.length-1; i>=0; --i) {
+            if( v_streams[i] == id ) { return v_langs[i]; }
+        }
+        for(int i = a_streams.length-1; i>=0; --i) {
+            if( a_streams[i] == id ) { return a_langs[i]; }
+        }
+        for(int i = s_streams.length-1; i>=0; --i) {
+            if( s_streams[i] == id ) { return s_langs[i]; }
+        }
+        return "undef";
+    }
 
     @Override
     public final String getVideoCodec() { return vcodec; }
@@ -1814,6 +1955,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
+    public String getStreamLang(final int id) { return "n/a"; }
+
+    @Override
     public final String toString() {
         final String tt = PTS.millisToTimeStr(getDuration());
         final String loc = ( null != streamLoc ) ? streamLoc.toString() : "<undefined stream>" ;
@@ -1824,8 +1968,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         return getClass().getSimpleName()+"["+state+", vSCR "+video_scr_ms+", "+getChapters().length+" chapters, duration "+tt+", frames[p "+presentedFrameCount+", d "+decodedFrameCount+", t "+videoFrames+", z "+nullFrameCount+" / "+maxNullFrameCountUntilEOS+"], "+
                "speed "+playSpeed+", "+bps_stream+" bps, hasSW "+(null!=streamWorker)+
                ", Texture[count "+textureCount+", free "+freeVideoFrames+", dec "+decVideoFrames+", tagt "+toHexString(textureTarget)+", ifmt "+toHexString(textureInternalFormat)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType)+"], "+
-               "Video[id "+vid+", <"+vcodec+">, "+width+"x"+height+", glOrient "+isInGLOrientation+", "+fps+" fps, "+frame_duration+" fdur, "+bps_video+" bps], "+
-               "Audio[id "+aid+", <"+acodec+">, "+bps_audio+" bps, "+audioFrames+" frames], uri "+loc+camPath+"]";
+               "Video[id "+vid+"/"+Arrays.toString(v_streams)+"/"+Arrays.toString(v_langs)+", <"+vcodec+">, "+width+"x"+height+", glOrient "+isInGLOrientation+", "+fps+" fps, "+frame_duration+" fdur, "+bps_video+" bps], "+
+               "Audio[id "+aid+"/"+Arrays.toString(a_streams)+"/"+Arrays.toString(a_langs)+", <"+acodec+">, "+bps_audio+" bps, "+audioFrames+" frames], "+
+               "Subs[id "+sid+"/"+Arrays.toString(s_streams)+"/"+Arrays.toString(s_langs)+"], uri "+loc+camPath+"]";
     }
 
     @Override
