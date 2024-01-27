@@ -180,7 +180,7 @@ public class MediaPlayer extends Widget {
                                 System.err.println(c);
                             }
                             final Shape mark = ctrlSlider.addMark(c.start, new Vec4f(0.9f, 0.9f, 0.9f, 0.5f));
-                            mark.setToolTip(new TooltipText(c.title+"\n"+PTS.millisToTimeStr(c.start, false), fontInfo, 5));
+                            mark.setToolTip(new TooltipText(c.title+"\n"+PTS.millisToTimeStr(c.start, false), fontInfo, 10));
                         }
                     } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                         playButton.setToggle(true);
