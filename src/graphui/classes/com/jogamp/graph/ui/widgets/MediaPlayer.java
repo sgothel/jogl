@@ -493,7 +493,6 @@ public class MediaPlayer extends Widget {
                     if( s.isToggleOn() ) {
                         if( toggleBorder ) {
                             MediaPlayer.this.setBorder(0f);
-                            System.err.println("ZOOM: border off");
                         }
                         final AABBox sbox = scene.getBounds();
                         final Group parent = this.getParent();
