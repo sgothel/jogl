@@ -171,8 +171,7 @@ public class MediaButton extends TexSeqButton {
                 }
                 if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Uninit) ) {
                     clearSubtitleCache();
-                }
-                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
+                } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
                     resetGL = true;
                     clearSubtitleCache();
                 }

@@ -842,8 +842,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                     anim.setUpdateFPSFrames(60, null);
                     anim.resetFPSCounter();
                     ms.setStereoClientRenderer(stereoClientRenderer);
-                }
-                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
+                } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                     window.getAnimator().resetFPSCounter();
                 }
 

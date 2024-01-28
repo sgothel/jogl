@@ -114,8 +114,7 @@ public class MovieCubeActivity0b extends NewtBaseActivity {
                         glWindowMain.addGLEventListener(demoMain);
                         anim.setUpdateFPSFrames(60*5, null);
                         anim.resetFPSCounter();
-                    }
-                    if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
+                    } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                         anim.resetFPSCounter();
                     }
                     if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Error) || eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {

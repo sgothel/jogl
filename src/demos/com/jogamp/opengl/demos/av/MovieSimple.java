@@ -628,8 +628,7 @@ public class MovieSimple implements GLEventListener {
                             }
                         }.start();
                     */
-                }
-                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
+                } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                     window.getAnimator().resetFPSCounter();
                 }
 

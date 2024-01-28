@@ -615,8 +615,7 @@ public class MovieCube implements GLEventListener {
                     anim.setUpdateFPSFrames(60, null);
                     anim.resetFPSCounter();
                     mc.resetGLState();
-                }
-                if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
+                } else if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                     anim.resetFPSCounter();
                 }
                 if( event_mask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
