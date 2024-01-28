@@ -106,7 +106,7 @@ public class MediaPlayer extends Widget {
     {
         super( new BoxLayout(aratio, 1, Alignment.None) );
 
-        final Font fontInfo = getInfoFont(), fontSymbols = getSymbolsFont();
+        final Font fontInfo = Scene.getDefaultFont(), fontSymbols = Scene.getSymbolsFont();
         if( null == fontInfo || null == fontSymbols ) {
             return;
         }
@@ -594,23 +594,6 @@ public class MediaPlayer extends Widget {
         ctrlSlider.getKnob().setDraggable(true);
     }
 
-    /** Returns the used info font or null if n/a */
-    public static Font getInfoFont() {
-        try {
-            return FontFactory.get(FontFactory.UBUNTU).getDefault();
-        } catch(final IOException ioe) {
-            ioe.printStackTrace();
-            return null;
-        }
-    }
-
-    /** Returns the used symbols font or null if n/a */
-    public static Font getSymbolsFont() {
-        try {
-            return FontFactory.get(FontFactory.SYMBOLS).getDefault();
-        } catch(final IOException ioe) {
-            ioe.printStackTrace();
-            return null;
         }
     }
 

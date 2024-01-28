@@ -146,7 +146,7 @@ public abstract class GraphShape extends Shape {
     }
 
     @Override
-    protected final void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final Vec4f rgba) {
+    protected void drawImpl0(final GL2ES2 gl, final RegionRenderer renderer, final Vec4f rgba) {
         renderer.setColorStatic(rgba);
         region.draw(gl, renderer);
     }

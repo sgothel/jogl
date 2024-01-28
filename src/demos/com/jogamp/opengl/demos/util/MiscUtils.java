@@ -40,8 +40,9 @@ import java.util.List;
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLContext;
-
+import com.jogamp.opengl.demos.graph.FontSetDemos;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -171,10 +172,10 @@ public class MiscUtils {
         } catch (final IOException e) { e.printStackTrace(); }
     }
 
-    public static Font getInfoFont() {
+    public static Font getSerifFont() {
         try {
-            return FontFactory.get(FontFactory.UBUNTU).getDefault();
-            // return FontFactory.get(FontFactory.SERIF).getDefault();
+            return FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerif.ttf",
+                                   FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
         } catch(final IOException ioe) {
             ioe.printStackTrace();
             return null;

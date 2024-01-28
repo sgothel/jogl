@@ -276,7 +276,7 @@ public class UIMediaGrid01 {
         mainGrid.setName("MainGrid");
         mainGrid.addShape(mediaView);
         {
-            final Font fontInfo = MiscUtils.getInfoFont();
+            final Font fontInfo = Scene.getDefaultFont();
             final Label infoLabel = new Label(options.renderModes, fontInfo, "Not yet");
             infoLabel.setColor(0.1f, 0.1f, 0.1f, 1f);
             final Group labelBox = new Group(new BoxLayout(mediaGridSize.x(), mediaCellHeight / 10, new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.CenterVert.value),
