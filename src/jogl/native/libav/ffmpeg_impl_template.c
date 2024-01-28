@@ -1804,8 +1804,8 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
               int32_t sPTS=-1, sStart=-1, sEnd=-1;
               if( AV_NOPTS_VALUE != sub.pts ) {
                   sPTS = my_av_q2i32( sub.pts * 1000, AV_TIME_BASE_Q);
-                  sStart = my_av_q2i32( ( sub.pts + sub.start_display_time ) * 1000, AV_TIME_BASE_Q);
-                  sEnd = my_av_q2i32( ( sub.pts + sub.end_display_time ) * 1000, AV_TIME_BASE_Q);
+                  sStart = sPTS + sub.start_display_time;
+                  sEnd = sPTS + sub.end_display_time;
               }
               for(unsigned int i=0; i<sub.num_rects; ++i) {
                 AVSubtitleRect* r = sub.rects[i];

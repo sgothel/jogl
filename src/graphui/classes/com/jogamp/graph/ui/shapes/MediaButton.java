@@ -69,7 +69,7 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
  * </p>
  */
 public class MediaButton extends TexSeqButton {
-    private final boolean DEBUG = false;
+    private final boolean DEBUG_SUB = false;
     private boolean verbose = false;
 
     private final Label subLabel;
@@ -136,7 +136,7 @@ public class MediaButton extends TexSeqButton {
         public void run(final ASSEventLine e) {
             synchronized( assEventLock ) {
                 assEventQueue.add(e);
-                if( DEBUG ) {
+                if( DEBUG_SUB ) {
                     System.err.println("MediaButton: GOT #"+assEventQueue.size()+": "+e);
                 }
             }
@@ -238,20 +238,46 @@ public class MediaButton extends TexSeqButton {
             assEventQueue.clear();
         }
     }
+    private static final int SUB_MIN_DURATION = 5; // min duration 1s, broken ASS have <= 3ms
     private final void drawSubtitle(final GL2ES2 gl, final RegionRenderer renderer) {
-        // dequeue and earmark new subtitle
+        final GLMediaPlayer mPlayer = (GLMediaPlayer)texSeq;
+        final int pts = mPlayer.getPTS().get(Clock.currentMillis());
+
+        // Validate draw_lastASS timeout
+        ASSEventLine lastASS = draw_lastASS;
+        {
+            if( null != lastASS && lastASS.pts_end < pts && lastASS.getDuration() > SUB_MIN_DURATION ) {
+                if( DEBUG_SUB ) {
+                    System.err.println("MediaButton: Drop.0: pts "+pts+", "+lastASS);
+                }
+                draw_lastASS = null;
+                lastASS = null;
+            }
+        }
+        // dequeue and earmark new subtitle in time
         final ASSEventLine ass;
         final boolean newASS;
         {
             final ASSEventLine gotASS;
             synchronized( assEventLock ) {
                 if( assEventQueue.size() > 0 ) {
-                    gotASS = assEventQueue.remove(0);
+                    final ASSEventLine e = assEventQueue.get(0);
+                    if( e.getDuration() <= SUB_MIN_DURATION || ( e.pts_start <= pts && pts <= e.pts_end ) ) {
+                        gotASS = e;
+                        assEventQueue.remove(0);
+                    } else if( e.pts_end < pts ) {
+                        gotASS = null;
+                        assEventQueue.remove(0);
+                        if( DEBUG_SUB ) {
+                            System.err.println("MediaButton: Drop.1: pts "+pts+", "+e);
+                        }
+                    } else {
+                        gotASS = null;
+                    }
                 } else {
                     gotASS = null;
                 }
             }
-            final ASSEventLine lastASS = draw_lastASS;
             if( null == gotASS || gotASS == lastASS ) {
                 ass = lastASS;
                 newASS = false;
@@ -262,22 +288,8 @@ public class MediaButton extends TexSeqButton {
             }
         }
         // drop or draw (update label for new subtitle)
-        final GLMediaPlayer mPlayer = (GLMediaPlayer)texSeq;
-        final int pts;
-        {
-            // Well .. which one? So pick the lowest PTS to be more tolerant.
-            final int ptsS = mPlayer.getPTS().get(Clock.currentMillis());
-            final int ptsV = mPlayer.getVideoPTS();
-            pts = Math.min(ptsS, ptsV);
-        }
         final boolean drawASS;
         if( null == ass ) {
-            draw_lastASS = null;
-            drawASS = false;
-        } else if( ass.pts_end < pts && ass.getDuration() > 1000 ) { // min duration 1s, broken ASS have <= 3ms
-            if( DEBUG ) {
-                System.err.println("MediaButton: Drop: pts "+pts+", "+ass);
-            }
             draw_lastASS = null;
             drawASS = false;
         } else {
@@ -295,7 +307,7 @@ public class MediaButton extends TexSeqButton {
                 final float dx = ( this.box.getWidth() - maxWidth ) * 0.5f;
                 final float dy = subLineHeight * scale * 0.25f;
                 this.subLabel.moveTo(dx, dy, subZOffset);
-                if( DEBUG ) {
+                if( DEBUG_SUB ) {
                     System.err.println("MediaButton: NEXT pts "+pts+", "+ass);
                 }
             }
