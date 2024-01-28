@@ -84,7 +84,7 @@ public class UIMediaGrid01 {
 
     static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
 
-    private static final boolean VERBOSE_UI = true;
+    private static final boolean VERBOSE_UI = false;
     private static final List<String> MEDIA_SUFFIXES = Arrays.asList("mp4", "mkv", "m2v", "avi");
     private static int aid = GLMediaPlayer.STREAM_ID_AUTO;
     private static float videoAspectRatio = 16f/9f;

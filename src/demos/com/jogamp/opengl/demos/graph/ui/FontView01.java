@@ -302,7 +302,7 @@ public class FontView01 {
                                                                null,
                                                                new SliderParam( new Vec2f(glyphGridCellSize/4f, glyphGridSize.y()), glyphGridCellSize/10f, true ) );
                 glyphView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f).setName("GlyphView");
-                if( VERBOSE_UI || true ) {
+                if( VERBOSE_UI ) {
                     glyphView.getVertSlider().addSliderListener(new SliderAdapter() {
                         @Override
                         public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
