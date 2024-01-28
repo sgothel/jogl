@@ -54,6 +54,7 @@ import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
+import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
@@ -89,6 +90,8 @@ public class MediaPlayer extends Widget {
     private static final float AlphaBlend = 0.3f;
     private static final float KnobScale = 3f;
 
+    private final MediaButton mButton;
+
     /**
      * Constructs a {@link MediaPlayer}, i.e. its shapes and controls.
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
@@ -108,6 +111,7 @@ public class MediaPlayer extends Widget {
 
         final Font fontInfo = Scene.getDefaultFont(), fontSymbols = Scene.getSymbolsFont();
         if( null == fontInfo || null == fontSymbols ) {
+            mButton = null;
             return;
         }
         final float zEpsilon = scene.getZEpsilon(16);
@@ -129,7 +133,7 @@ public class MediaPlayer extends Widget {
         this.setBorderColor(BorderColor).setBorder(BorderSz);
         this.setInteractive(true).setFixedARatioResize(true);
 
-        final MediaButton mButton = new MediaButton(renderModes, aratio, 1, mPlayer);
+        mButton = new MediaButton(renderModes, aratio, 1, mPlayer, fontInfo, 0.1f);
         mButton.setName("mp.mButton").setInteractive(false);
         mButton.setPerp().setPressedColorMod(1f, 1f, 1f, 0.85f);
 
@@ -484,8 +488,13 @@ public class MediaPlayer extends Widget {
                         fontSymbols.getUTF16String("zoom_out_map"), fontSymbols.getUTF16String("zoom_in_map"),  CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("zoom");
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
+                final boolean toggleBorder = FloatUtil.isEqual(1f, zoomSize);
                 button.onToggle( (final Shape s) -> {
                     if( s.isToggleOn() ) {
+                        if( toggleBorder ) {
+                            MediaPlayer.this.setBorder(0f);
+                            System.err.println("ZOOM: border off");
+                        }
                         final AABBox sbox = scene.getBounds();
                         final Group parent = this.getParent();
                         final float sx = sbox.getWidth() * zoomSize / this.getScaledWidth();
@@ -516,6 +525,9 @@ public class MediaPlayer extends Widget {
                         // System.err.println("Zoom: R "+_zoomReplacement);
                         zoomReplacement.set( _zoomReplacement );
                     } else {
+                        if( toggleBorder ) {
+                            MediaPlayer.this.setBorder(BorderSz);
+                        }
                         final Vec3f _zoomOrigScale = zoomOrigScale.getAndSet(null);
                         final Vec3f _zoomOrigPos = zoomOrigPos.getAndSet(null);
                         final Shape _zoomReplacement = zoomReplacement.getAndSet(null);
@@ -594,6 +606,14 @@ public class MediaPlayer extends Widget {
         ctrlSlider.getKnob().setDraggable(true);
     }
 
+    /**
+     * Sets subtitle parameter
+     * @param subFont subtitle font
+     * @param subLineHeightPct one subtitle line height percentage of this shape, default is 0.1f
+     */
+    public void setSubtitleParams(final Font subFont, final float subLineHeightPct) {
+        if( null != mButton ) {
+            mButton.setSubtitleParams(subFont, subLineHeightPct);
         }
     }
 

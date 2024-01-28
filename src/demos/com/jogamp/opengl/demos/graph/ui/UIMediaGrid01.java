@@ -327,20 +327,20 @@ public class UIMediaGrid01 {
 
     static void addMedia(final Scene scene, final GLProfile glp, final Group grid,
                          final List<Uri> mediaFiles, final float defRatio) {
-        final float zoomSize = 0.95f;
+        final float zoomSize = 1; // 0.95f;
         for(final Uri medium : mediaFiles) {
-            final GLMediaPlayer mPlayer = GLMediaPlayerFactory.createDefault();
+            final GLMediaPlayer glMPlayer = GLMediaPlayerFactory.createDefault();
             if( printNativeInfoOnce ) {
-                mPlayer.printNativeInfo(System.err);
+                glMPlayer.printNativeInfo(System.err);
                 printNativeInfoOnce = false;
             }
             // mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_NEAREST } );
-            mPlayer.setTextureMinMagFilter( new int[] { GL.GL_LINEAR, GL.GL_LINEAR } );
-            mPlayer.setTextureUnit(1);
+            glMPlayer.setTextureMinMagFilter( new int[] { GL.GL_LINEAR, GL.GL_LINEAR } );
+            glMPlayer.setTextureUnit(1);
 
             final List<Shape> customCtrls = new ArrayList<Shape>();
             if( true ) {
-                final Font fontSymbols = MediaPlayer.getSymbolsFont();
+                final Font fontSymbols = Scene.getSymbolsFont();
                 if( null == fontSymbols ) {
                     grid.addShape( new Rectangle(options.renderModes, defRatio, 1, 0.10f) );
                     return;
@@ -371,8 +371,10 @@ public class UIMediaGrid01 {
                 });
                 customCtrls.add(button);
             }
-            grid.addShape( new MediaPlayer(options.renderModes, scene, mPlayer, medium, defRatio, letterBox, zoomSize, customCtrls) );
-            mPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, GLMediaPlayer.STREAM_ID_NONE, texCount);
+            final MediaPlayer graphMPlayer = new MediaPlayer(options.renderModes, scene, glMPlayer, medium, defRatio, letterBox, zoomSize, customCtrls);
+            // graphMPlayer.setSubtitleParams(MiscUtils.getSerifFont(), 0.1f);
+            grid.addShape( graphMPlayer );
+            glMPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, GLMediaPlayer.STREAM_ID_NONE, texCount);
         }
     }
     private static boolean printNativeInfoOnce = true;
