@@ -213,7 +213,7 @@ public class UIMediaGrid00 {
 
             final List<Shape> customCtrls = new ArrayList<Shape>();
             {
-                final Font fontSymbols = MediaPlayer.getSymbolsFont();
+                final Font fontSymbols = Scene.getSymbolsFont();
                 if( null == fontSymbols ) {
                     grid.addShape( new Rectangle(options.renderModes, 16f/9f, 1, 0.10f) );
                     return;
