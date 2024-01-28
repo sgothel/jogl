@@ -56,7 +56,7 @@ class FFMPEGv0600Natives extends FFMPEGNatives {
     native void setStream0(long moviePtr, String url, boolean isCameraInput, int vid, String sizes, int vWidth, int vHeight, int vRate, int aid, int aMaxChannelCount, int aPrefSampleRate, int sid);
 
     @Override
-    native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
+    native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish, long procAddrGLEnable, long procAddrGLBindTexture);
 
     @Override
     native int getVideoPTS0(long moviePtr);
@@ -65,7 +65,7 @@ class FFMPEGv0600Natives extends FFMPEGNatives {
     native int getAudioPTS0(long moviePtr);
 
     @Override
-    native int readNextPacket0(long moviePtr, int texTarget, int texFmt, int texType);
+    native int readNextPacket0(long moviePtr, int vTexTarget, int vTexID, int vTexFmt, int vTexType, int sTexTarget, int sTexID);
 
     @Override
     native int play0(long moviePtr);

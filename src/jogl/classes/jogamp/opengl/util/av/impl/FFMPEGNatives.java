@@ -67,7 +67,8 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
                              int aid, int aMaxChannelCount, int aPrefSampleRate,
                              int sid);
 
-    abstract void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish);
+    abstract void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish,
+                              long procAddrGLEnable, long procAddrGLBindTexture);
 
     abstract int getVideoPTS0(long moviePtr);
 
@@ -80,9 +81,17 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
     abstract String getChapterTitle0(long moviePtr, int idx);
 
     /**
+     *
+     * @param moviePtr
+     * @param vTexTarget video texture target
+     * @param vTexID video texture ID/name
+     * @param vTexFmt video texture format
+     * @param vTexType video texture data type
+     * @param sTexTarget subtitle texture target
+     * @param sTexID subtitle texture ID/name
      * @return resulting current video PTS, or {@link TextureFrame#INVALID_PTS}
      */
-    abstract int readNextPacket0(long moviePtr, int texTarget, int texFmt, int texType);
+    abstract int readNextPacket0(long moviePtr, int vTexTarget, int vTexID, int vTexFmt, int vTexType, int sTexTarget, int sTexID);
 
     abstract int play0(long moviePtr);
     abstract int pause0(long moviePtr);

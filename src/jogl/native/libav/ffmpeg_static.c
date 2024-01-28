@@ -38,6 +38,7 @@ static jclass ffmpegMediaPlayerClazz = NULL;
 jmethodID ffmpeg_jni_mid_pushSound = NULL;
 jmethodID ffmpeg_jni_mid_pushSubtitleText = NULL;
 jmethodID ffmpeg_jni_mid_pushSubtitleASS = NULL;
+jmethodID ffmpeg_jni_mid_pushSubtitleTex = NULL;
 jmethodID ffmpeg_jni_mid_updateAttributes = NULL;
 jmethodID ffmpeg_jni_mid_setIsGLOriented = NULL;
 jmethodID ffmpeg_jni_mid_setupFFAttributes = NULL;
@@ -69,6 +70,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_i
     ffmpeg_jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
     ffmpeg_jni_mid_pushSubtitleText = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSubtitleText", "(Ljava/lang/String;III)V");
     ffmpeg_jni_mid_pushSubtitleASS = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSubtitleASS", "(Ljava/lang/String;III)V");
+    ffmpeg_jni_mid_pushSubtitleTex = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSubtitleTex", "(IIIIIIII)V");
     ffmpeg_jni_mid_updateAttributes = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", 
         "(Ljava/lang/String;[I[Ljava/lang/String;I[I[Ljava/lang/String;I[I[Ljava/lang/String;IIIIIIFIIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
     ffmpeg_jni_mid_setIsGLOriented = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "setIsGLOriented", "(Z)V");
@@ -78,6 +80,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_i
     if(ffmpeg_jni_mid_pushSound == NULL ||
        ffmpeg_jni_mid_pushSubtitleText == NULL ||
        ffmpeg_jni_mid_pushSubtitleASS == NULL ||
+       ffmpeg_jni_mid_pushSubtitleTex == NULL ||
        ffmpeg_jni_mid_updateAttributes == NULL ||
        ffmpeg_jni_mid_setIsGLOriented == NULL ||
        ffmpeg_jni_mid_setupFFAttributes == NULL ||

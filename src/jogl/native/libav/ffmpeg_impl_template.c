@@ -1390,13 +1390,16 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
 }
 
 JNIEXPORT void JNICALL FF_FUNC(setGLFuncs0)
-  (JNIEnv *env, jobject instance, jlong ptr, jlong jProcAddrGLTexSubImage2D, jlong jProcAddrGLGetError, jlong jProcAddrGLFlush, jlong jProcAddrGLFinish)
+  (JNIEnv *env, jobject instance, jlong ptr, jlong jProcAddrGLTexSubImage2D, jlong jProcAddrGLGetError, jlong jProcAddrGLFlush, jlong jProcAddrGLFinish,
+                                             jlong jProcAddrGLEnable, jlong jProcAddrGLBindTexture)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
     pAV->procAddrGLTexSubImage2D = (PFNGLTEXSUBIMAGE2DPROC) (intptr_t)jProcAddrGLTexSubImage2D;
     pAV->procAddrGLGetError = (PFNGLGETERRORPROC) (intptr_t)jProcAddrGLGetError;
     pAV->procAddrGLFlush = (PFNGLFLUSH) (intptr_t)jProcAddrGLFlush;
     pAV->procAddrGLFinish = (PFNGLFINISH) (intptr_t)jProcAddrGLFinish;
+    pAV->procAddrGLEnable = (PFNGLENABLE) (intptr_t)jProcAddrGLEnable;
+    pAV->procAddrGLBindTexture = (PFNGLBINDTEXTURE) (intptr_t)jProcAddrGLBindTexture;
 }
 
 #if 0
@@ -1408,7 +1411,8 @@ JNIEXPORT void JNICALL FF_FUNC(setGLFuncs0)
 #endif
 
 JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
-  (JNIEnv *env, jobject instance, jlong ptr, jint texTarget, jint texFmt, jint texType)
+  (JNIEnv *env, jobject instance, jlong ptr, jint vTexTarget, jint vTexID, jint vTexFmt, jint vTexType, 
+                                             jint sTexTarget, jint sTexID)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
     if( 0 == pAV->ready ) {
@@ -1723,58 +1727,65 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     _setIsGLOriented(env, pAV);
                 }
 
-                // 1st plane or complete packed frame
-                // FIXME: Libav Binary compatibility! JAU01
-                DBG_TEXSUBIMG2D_a('Y',pAV,1,1,1,0);
-                pAV->procAddrGLTexSubImage2D(texTarget, 0, 
-                                        0,                 0, 
-                                        pAV->vTexWidth[0], pAV->pVCodecCtx->height, 
-                                        texFmt, texType, pAV->pVFrame->data[0] + p_offset[0]);
-                DBG_TEXSUBIMG2D_b(pAV);
+                if( 0 != vTexID ) {
+                    if( NULL != pAV->procAddrGLEnable ) {
+                        pAV->procAddrGLEnable(vTexTarget);
+                    }
+                    pAV->procAddrGLBindTexture(vTexTarget, vTexID);
 
-                if( pAV->vPixFmt == AV_PIX_FMT_YUV420P || pAV->vPixFmt == AV_PIX_FMT_YUVJ420P ) {
-                    // U plane
+                    // 1st plane or complete packed frame
                     // FIXME: Libav Binary compatibility! JAU01
-                    DBG_TEXSUBIMG2D_a('U',pAV,1,1,2,1);
-                    pAV->procAddrGLTexSubImage2D(texTarget, 0, 
-                                            pAV->pVCodecCtx->width, 0,
-                                            pAV->vTexWidth[1],      pAV->pVCodecCtx->height/2, 
-                                            texFmt, texType, pAV->pVFrame->data[1] + p_offset[1]);
+                    DBG_TEXSUBIMG2D_a('Y',pAV,1,1,1,0);
+                    pAV->procAddrGLTexSubImage2D(vTexTarget, 0, 
+                                            0,                 0, 
+                                            pAV->vTexWidth[0], pAV->pVCodecCtx->height, 
+                                            vTexFmt, vTexType, pAV->pVFrame->data[0] + p_offset[0]);
                     DBG_TEXSUBIMG2D_b(pAV);
-                    // V plane
-                    // FIXME: Libav Binary compatibility! JAU01
-                    DBG_TEXSUBIMG2D_a('V',pAV,1,1,2,2);
-                    pAV->procAddrGLTexSubImage2D(texTarget, 0, 
-                                            pAV->pVCodecCtx->width, pAV->pVCodecCtx->height/2,
-                                            pAV->vTexWidth[2],      pAV->pVCodecCtx->height/2, 
-                                            texFmt, texType, pAV->pVFrame->data[2] + p_offset[2]);
-                    DBG_TEXSUBIMG2D_b(pAV);
-                } else if( pAV->vPixFmt == AV_PIX_FMT_YUV422P || pAV->vPixFmt == AV_PIX_FMT_YUVJ422P ) {
-                    // U plane
-                    // FIXME: Libav Binary compatibility! JAU01
-                    DBG_TEXSUBIMG2D_a('U',pAV,1,1,1,1);
-                    pAV->procAddrGLTexSubImage2D(texTarget, 0, 
-                                            pAV->pVCodecCtx->width, 0,
-                                            pAV->vTexWidth[1],      pAV->pVCodecCtx->height, 
-                                            texFmt, texType, pAV->pVFrame->data[1] + p_offset[1]);
-                    DBG_TEXSUBIMG2D_b(pAV);
-                    // V plane
-                    // FIXME: Libav Binary compatibility! JAU01
-                    DBG_TEXSUBIMG2D_a('V',pAV,3,2,1,1);
-                    pAV->procAddrGLTexSubImage2D(texTarget, 0, 
-                                            pAV->pVCodecCtx->width+pAV->pVCodecCtx->width/2, 0,
-                                            pAV->vTexWidth[2],      pAV->pVCodecCtx->height, 
-                                            texFmt, texType, pAV->pVFrame->data[2] + p_offset[2]);
-                    DBG_TEXSUBIMG2D_b(pAV);
-                } // FIXME: Add more planar formats !
 
-                // We might want a sync here, ensuring the texture data is uploaded?
-                //
-                // No, glTexSubImage2D() shall block until new pixel data are taken, 
-                // i.e. shall be a a synchronous client command
-                //
-                // pAV->procAddrGLFinish(); // No sync required and too expensive for multiple player
-                pAV->procAddrGLFlush(); // No sync required, but be nice
+                    if( pAV->vPixFmt == AV_PIX_FMT_YUV420P || pAV->vPixFmt == AV_PIX_FMT_YUVJ420P ) {
+                        // U plane
+                        // FIXME: Libav Binary compatibility! JAU01
+                        DBG_TEXSUBIMG2D_a('U',pAV,1,1,2,1);
+                        pAV->procAddrGLTexSubImage2D(vTexTarget, 0, 
+                                                pAV->pVCodecCtx->width, 0,
+                                                pAV->vTexWidth[1],      pAV->pVCodecCtx->height/2, 
+                                                vTexFmt, vTexType, pAV->pVFrame->data[1] + p_offset[1]);
+                        DBG_TEXSUBIMG2D_b(pAV);
+                        // V plane
+                        // FIXME: Libav Binary compatibility! JAU01
+                        DBG_TEXSUBIMG2D_a('V',pAV,1,1,2,2);
+                        pAV->procAddrGLTexSubImage2D(vTexTarget, 0, 
+                                                pAV->pVCodecCtx->width, pAV->pVCodecCtx->height/2,
+                                                pAV->vTexWidth[2],      pAV->pVCodecCtx->height/2, 
+                                                vTexFmt, vTexType, pAV->pVFrame->data[2] + p_offset[2]);
+                        DBG_TEXSUBIMG2D_b(pAV);
+                    } else if( pAV->vPixFmt == AV_PIX_FMT_YUV422P || pAV->vPixFmt == AV_PIX_FMT_YUVJ422P ) {
+                        // U plane
+                        // FIXME: Libav Binary compatibility! JAU01
+                        DBG_TEXSUBIMG2D_a('U',pAV,1,1,1,1);
+                        pAV->procAddrGLTexSubImage2D(vTexTarget, 0, 
+                                                pAV->pVCodecCtx->width, 0,
+                                                pAV->vTexWidth[1],      pAV->pVCodecCtx->height, 
+                                                vTexFmt, vTexType, pAV->pVFrame->data[1] + p_offset[1]);
+                        DBG_TEXSUBIMG2D_b(pAV);
+                        // V plane
+                        // FIXME: Libav Binary compatibility! JAU01
+                        DBG_TEXSUBIMG2D_a('V',pAV,3,2,1,1);
+                        pAV->procAddrGLTexSubImage2D(vTexTarget, 0, 
+                                                pAV->pVCodecCtx->width+pAV->pVCodecCtx->width/2, 0,
+                                                pAV->vTexWidth[2],      pAV->pVCodecCtx->height, 
+                                                vTexFmt, vTexType, pAV->pVFrame->data[2] + p_offset[2]);
+                        DBG_TEXSUBIMG2D_b(pAV);
+                    } // FIXME: Add more planar formats !
+
+                    // We might want a sync here, ensuring the texture data is uploaded?
+                    //
+                    // No, glTexSubImage2D() shall block until new pixel data are taken, 
+                    // i.e. shall be a a synchronous client command
+                    //
+                    // pAV->procAddrGLFinish(); // No sync required and too expensive for multiple player
+                    pAV->procAddrGLFlush(); // No sync required, but be nice
+                }
 
                 sp_av_frame_unref(pAV->pVFrame);
             } // draining frames loop
@@ -1822,9 +1833,43 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
                     (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_pushSubtitleASS, (*env)->NewStringUTF(env, r->ass), sPTS, sStart, sEnd);
                     JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at pushSubtitleASS(..)");
                 } else {
+                    /**
+                     *
+                     * - AV_PIX_FMT_PAL8 8 bits with AV_PIX_FMT_RGB32 palette
+                     *
+                     * - SUBTITLE_BITMAP images are special in the sense that they
+                     *   are like PAL8 images. first pointer to data, second to
+                     *   palette. This makes the size calculation match this.
+                     *   size_t buf_size = src_rect->type == SUBTITLE_BITMAP && j == 1 ?  AVPALETTE_SIZE : src_rect->h * src_rect->linesize[j];
+                     *   - linesize[0] > 0
+                     *   - linesize[1] == 0 -> AVPALETTE_SIZE
+                     */
                     if( pAV->verbose ) {
-                        fprintf(stderr, "S[f %d, i %d]: null\n", (int)r->type, i);
+                        int hasText = NULL != r->text;
+                        int hasASS = NULL != r->ass;
+                        fprintf(stderr, "S[f %d, i %d, pts[%d [%d..%d]]: text %d, ass %d, %d/%d %dx%d c %d, lsz[%d, %d, %d, %d], data[%d, %d, %d, %d]\n", 
+                            (int)r->type, i, sPTS, sStart, sEnd, hasText, hasASS,
+                            r->x, r->y, r->w, r->h, r->nb_colors,
+                            r->linesize[0], r->linesize[1], r->linesize[2], r->linesize[3], 
+                            NULL != r->data[0], NULL != r->data[1], NULL != r->data[2], NULL != r->data[3]);
                     }
+                    if( 0 != sTexID ) {
+                        if( NULL != pAV->procAddrGLEnable ) {
+                            pAV->procAddrGLEnable(sTexTarget);
+                        }
+                        pAV->procAddrGLBindTexture(sTexTarget, sTexID);
+
+                        const GLenum texIFmt = GL_RGBA;
+                        const GLenum texType = GL_UNSIGNED_BYTE;
+
+                        // pAV->procAddrGLTexSubImage2D(sTexTarget, 0,
+                        //                         0,                 0, 
+                        //                         pAV->vTexWidth[0], pAV->pVCodecCtx->height, 
+                        //                         texIFmt, texType, pAV->pVFrame->data[0] + p_offset[0]);
+                    }
+                    (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_pushSubtitleTex, 
+                                           sTexID, r->x, r->y, r->w, r->h, sPTS, sStart, sEnd);
+                    JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at pushSubtitleTex(..)");
                 }
               }
               pAV->sPTS = sPTS;

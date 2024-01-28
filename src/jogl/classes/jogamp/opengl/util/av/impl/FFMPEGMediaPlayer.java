@@ -35,6 +35,7 @@ import java.security.PrivilegedAction;
 
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLES2;
 import com.jogamp.opengl.GLException;
 import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
@@ -450,7 +451,14 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                     final long procAddrGLGetError = pt.getAddressFor("glGetError");
                     final long procAddrGLFlush = pt.getAddressFor("glFlush");
                     final long procAddrGLFinish = pt.getAddressFor("glFinish");
-                    natives.setGLFuncs0(moviePtr, procAddrGLTexSubImage2D, procAddrGLGetError, procAddrGLFlush, procAddrGLFinish);
+                    final long procAddrGLEnable;
+                    if( !gl.isGLcore() && GLES2.GL_TEXTURE_EXTERNAL_OES != getTextureTarget() ) {
+                        procAddrGLEnable = pt.getAddressFor("glEnable");
+                    } else {
+                        procAddrGLEnable = 0;
+                    }
+                    final long procAddrGLBindTexture = pt.getAddressFor("glBindTexture");
+                    natives.setGLFuncs0(moviePtr, procAddrGLTexSubImage2D, procAddrGLGetError, procAddrGLFlush, procAddrGLFinish, procAddrGLEnable, procAddrGLBindTexture);
                     return null;
             } } );
             audioQueueSize = AudioSink.DefaultQueueSizeWithVideo;
@@ -980,15 +988,18 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             throw new GLException("FFMPEG native instance null");
         }
         int vPTS = TimeFrameI.INVALID_PTS;
+        int vTexID = 0; // invalid
         if( null != gl ) {
-            final Texture tex = nextFrame.getTexture();
-            tex.enable(gl);
-            tex.bind(gl);
+            // glEnable() and glBindTexture() are performed in native readNextPacket0()
+            // final Texture tex = nextFrame.getTexture();
+            // tex.enable(gl);
+            // tex.bind(gl);
+            vTexID = nextFrame.getTexture().getTextureObject();
         }
 
         /** Try decode up to 10 packets to find one containing video. */
         for(int i=0; TimeFrameI.INVALID_PTS == vPTS && 10 > i; i++) {
-           vPTS = natives.readNextPacket0(moviePtr, getTextureTarget(), getTextureFormat(), getTextureType());
+           vPTS = natives.readNextPacket0(moviePtr, getTextureTarget(), vTexID, getTextureFormat(), getTextureType(), GL.GL_TEXTURE_2D, 0);
         }
         if( null != nextFrame ) {
             nextFrame.setPTS(vPTS);
@@ -1012,6 +1023,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if( null != assEventListener ) {
             assEventListener.run( new ASSEventLine(ASSEventLine.Format.FFMPEG, ass, start_display_pts, end_display_pts) );
         }
+    }
+    final void pushSubtitleTex(final int texID, final int x, final int y, final int width, final int height, final int pts, final int start_display_pts, final int end_display_pts) {
+        // System.err.println("SubTex["+texID+"]: "+x+"/"+y+" "+width+"x"+height+", pts "+pts+" ["+start_display_pts+".."+end_display_pts+"] "+(end_display_pts-start_display_pts+1));
     }
 }
 

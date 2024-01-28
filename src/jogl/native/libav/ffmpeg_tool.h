@@ -65,6 +65,9 @@ typedef void (APIENTRYP PFNGLTEXSUBIMAGE2DPROC) (GLenum target, GLint level, GLi
 typedef GLenum (APIENTRYP PFNGLGETERRORPROC) (void);
 typedef void (APIENTRYP PFNGLFLUSH) (void);
 typedef void (APIENTRYP PFNGLFINISH) (void);
+typedef void (APIENTRYP PFNGLENABLE) (GLenum cap);
+typedef void (APIENTRYP PFNGLBINDTEXTURE) (GLenum target, GLuint texture);
+typedef void (APIENTRYP PFNGLACTIVETEXTURE) (GLenum texture);
 
 /**
  *  AV_TIME_BASE   1000000
@@ -150,6 +153,8 @@ typedef struct {
     PFNGLGETERRORPROC procAddrGLGetError;
     PFNGLFLUSH procAddrGLFlush;
     PFNGLFINISH procAddrGLFinish;
+    PFNGLENABLE procAddrGLEnable;
+    PFNGLBINDTEXTURE procAddrGLBindTexture;
 
     AVPacket*        packet;
     AVFormatContext* pFormatCtx;
