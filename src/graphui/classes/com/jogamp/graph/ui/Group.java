@@ -443,7 +443,7 @@ public class Group extends Shape implements Container {
             }
         }
         renderedShapes = iShapes;
-        if( null != border ) {
+        if( null != border && border.isVisible() ) {
             border.draw(gl, renderer);
         }
     }
@@ -471,7 +471,7 @@ public class Group extends Shape implements Container {
                 pmv.popMv();
             }
         }
-        if( null != border ) {
+        if( null != border && border.isVisible() ) {
             border.drawToSelect(gl, renderer);
         }
     }
