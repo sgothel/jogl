@@ -40,11 +40,13 @@ import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
 import com.jogamp.common.av.AudioSinkFactory;
 import com.jogamp.common.av.TimeFrameI;
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.GLPixelStorageModes;
+import com.jogamp.opengl.util.av.ASSEventLine;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 
@@ -997,6 +999,18 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     final void pushSound(final ByteBuffer sampleData, final int data_size, final int audio_pts) {
         if( audioStreamEnabled() ) {
             audioSink.enqueueData( audio_pts, sampleData, data_size);
+        }
+    }
+    final void pushSubtitleText(final String text, final int pts, final int start_display_pts, final int end_display_pts) {
+        if( null != assEventListener ) {
+            if( start_display_pts > getPTS().get(Clock.currentMillis()) ) {
+                assEventListener.run( new ASSEventLine(ASSEventLine.Format.TEXT, text, start_display_pts, end_display_pts) );
+            }
+        }
+    }
+    final void pushSubtitleASS(final String ass, final int pts, final int start_display_pts, final int end_display_pts) {
+        if( null != assEventListener ) {
+            assEventListener.run( new ASSEventLine(ASSEventLine.Format.FFMPEG, ass, start_display_pts, end_display_pts) );
         }
     }
 }

@@ -899,6 +899,11 @@ public interface GLMediaPlayer extends TextureSequence {
     /** Return all {@link GLMediaEventListener} of this player. */
     public GLMediaEventListener[] getEventListeners();
 
+    /** Sets the {@link ASSEventListener} for this player. */
+    public void setASSEventListener(ASSEventListener l);
+    /** Returns the {@link #setASSEventListener(ASSEventListener)} of this player. */
+    public ASSEventListener getASSEventListener();
+
     /**
      * Returns the attached user object for the given name.
      */

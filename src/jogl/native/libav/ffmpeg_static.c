@@ -36,6 +36,8 @@ static const char * const ClazzNameFFMPEGMediaPlayer = "jogamp/opengl/util/av/im
 
 static jclass ffmpegMediaPlayerClazz = NULL;
 jmethodID ffmpeg_jni_mid_pushSound = NULL;
+jmethodID ffmpeg_jni_mid_pushSubtitleText = NULL;
+jmethodID ffmpeg_jni_mid_pushSubtitleASS = NULL;
 jmethodID ffmpeg_jni_mid_updateAttributes = NULL;
 jmethodID ffmpeg_jni_mid_setIsGLOriented = NULL;
 jmethodID ffmpeg_jni_mid_setupFFAttributes = NULL;
@@ -65,13 +67,17 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_i
     }
 
     ffmpeg_jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
+    ffmpeg_jni_mid_pushSubtitleText = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSubtitleText", "(Ljava/lang/String;III)V");
+    ffmpeg_jni_mid_pushSubtitleASS = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSubtitleASS", "(Ljava/lang/String;III)V");
     ffmpeg_jni_mid_updateAttributes = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", 
-        "(Ljava/lang/String;[I[Ljava/lang/String;I[I[Ljava/lang/String;I[I[Ljava/lang/String;IIIIIIFIIILjava/lang/String;Ljava/lang/String;)V");
+        "(Ljava/lang/String;[I[Ljava/lang/String;I[I[Ljava/lang/String;I[I[Ljava/lang/String;IIIIIIFIIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
     ffmpeg_jni_mid_setIsGLOriented = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "setIsGLOriented", "(Z)V");
     ffmpeg_jni_mid_setupFFAttributes = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "setupFFAttributes", "(IIIIIIIIIIIIIII)V");
     ffmpeg_jni_mid_isAudioFormatSupported = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "isAudioFormatSupported", "(III)Z");
 
     if(ffmpeg_jni_mid_pushSound == NULL ||
+       ffmpeg_jni_mid_pushSubtitleText == NULL ||
+       ffmpeg_jni_mid_pushSubtitleASS == NULL ||
        ffmpeg_jni_mid_updateAttributes == NULL ||
        ffmpeg_jni_mid_setIsGLOriented == NULL ||
        ffmpeg_jni_mid_setupFFAttributes == NULL ||

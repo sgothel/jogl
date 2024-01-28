@@ -66,6 +66,7 @@ import com.jogamp.common.util.TSPrinter;
 import com.jogamp.common.util.WorkerThread;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.GLExtensions;
+import com.jogamp.opengl.util.av.ASSEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.texture.Texture;
@@ -175,6 +176,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private String acodec = unknown;
     /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
     private String vcodec = unknown;
+    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    private String scodec = unknown;
 
     private volatile int decodedFrameCount = 0;
     private int presentedFrameCount = 0;
@@ -195,6 +198,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     /** See {@link #getAudioSink()}. Set by implementation if used from within {@link #initStreamImpl(int, int, int)}! */
     protected AudioSink audioSink = null;
     protected boolean audioSinkPlaySpeedSet = false;
+
+    protected volatile ASSEventListener assEventListener = null;
 
     /** AV System Clock Reference (SCR) */
     private final PTS av_scr = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
@@ -952,11 +957,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         final float _fps = 24f;
         final int _duration = 10*60*1000; // msec
         final int _totalFrames = (int) ( (_duration/1000)*_fps );
-        updateAttributes("test", new int[0], new String[0],
-                         GLMediaPlayer.STREAM_ID_NONE, new int[0], new String[0], // audio
-                         GLMediaPlayer.STREAM_ID_NONE, new int[0], new String[0], // subs
-                         GLMediaPlayer.STREAM_ID_NONE,
-                         TestTexture.singleton.getWidth(), TestTexture.singleton.getHeight(), 0, 0, 0, _fps, _totalFrames, 0, _duration, "png-static", null);
+        updateAttributes("test",
+                         new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
+                         new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
+                         new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
+                         TestTexture.singleton.getWidth(), TestTexture.singleton.getHeight(), 0, 0, 0, _fps, _totalFrames, 0, _duration,
+                         "png-static", null, null);
     }
 
     protected abstract TextureFrame createTexImage(GL gl, int texName);
@@ -1704,7 +1710,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                           int vid, final int[] a_streams, final String[] a_langs,
                                           int aid, final int[] s_streams, final String[] s_langs,
                                           int sid, final int width, final int height,
-                                          final int bps_stream, final int bps_video, final int bps_audio, final float fps, final int videoFrames, final int audioFrames, final int duration, final String vcodec, final String acodec) {
+                                          final int bps_stream, final int bps_video, final int bps_audio,
+                                          final float fps, final int videoFrames, final int audioFrames, final int duration,
+                                          final String vcodec, final String acodec, final String scodec) {
         final GLMediaPlayer.EventMask eventMask = new GLMediaPlayer.EventMask();
         final boolean wasUninitialized = state == State.Uninitialized;
 
@@ -1802,6 +1810,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         if( (null!=vcodec && vcodec.length()>0 && !this.vcodec.equals(vcodec)) ) {
             eventMask.setBit(GLMediaPlayer.EventMask.Bit.Codec);
             this.vcodec = vcodec;
+        }
+        if( (null!=scodec && scodec.length()>0 && !this.scodec.equals(scodec)) ) {
+            eventMask.setBit(GLMediaPlayer.EventMask.Bit.Codec);
+            this.scodec = scodec;
         }
         if( eventMask.isZero() ) {
             return;
@@ -1992,7 +2004,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                ", Texture[count "+textureCount+", free "+freeVideoFrames+", dec "+decVideoFrames+", tagt "+toHexString(textureTarget)+", ifmt "+toHexString(textureInternalFormat)+", fmt "+toHexString(textureFormat)+", type "+toHexString(textureType)+"], "+
                "Video[id "+vid+"/"+Arrays.toString(v_streams)+"/"+Arrays.toString(v_langs)+", <"+vcodec+">, "+width+"x"+height+", glOrient "+isInGLOrientation+", "+fps+" fps, "+frame_duration+" fdur, "+bps_video+" bps], "+
                "Audio[id "+aid+"/"+Arrays.toString(a_streams)+"/"+Arrays.toString(a_langs)+", <"+acodec+">, "+bps_audio+" bps, "+audioFrames+" frames], "+
-               "Subs[id "+sid+"/"+Arrays.toString(s_streams)+"/"+Arrays.toString(s_langs)+"], uri "+loc+camPath+"]";
+               "Subs[id "+sid+"/"+Arrays.toString(s_streams)+"/"+Arrays.toString(s_langs)+", <"+scodec+">], uri "+loc+camPath+"]";
     }
 
     @Override
@@ -2066,8 +2078,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             return eventListeners.toArray(new GLMediaEventListener[eventListeners.size()]);
         }
     }
-
     private final Object eventListenersLock = new Object();
+
+    @Override
+    public final void setASSEventListener(final ASSEventListener l) {
+        this.assEventListener = l;
+    }
+    @Override
+    public final ASSEventListener getASSEventListener() { return assEventListener; }
 
     @Override
     public final Object getAttachedObject(final String name) {

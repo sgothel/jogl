@@ -69,6 +69,8 @@ typedef int (APIENTRYP AV_NEW_PACKET)(AVPacket *pkt, int size);
 typedef void (APIENTRYP AV_PACKET_UNREF)(AVPacket *pkt);
 typedef int (APIENTRYP AVCODEC_SEND_PACKET)(AVCodecContext *avctx, AVPacket *avpkt); // 57
 typedef int (APIENTRYP AVCODEC_RECEIVE_FRAME)(AVCodecContext *avctx, AVFrame *picture); // 57
+typedef int (APIENTRYP AVCODEC_DECODE_SUBTITLE2)(AVCodecContext *avctx, AVSubtitle *sub, int *got_sub_ptr, const AVPacket *avpkt); // 52.23
+typedef int (APIENTRYP AV_SUBTITLE_FREE)(AVSubtitle *sub); // 52.82
 
 static AVCODEC_CLOSE sp_avcodec_close;
 static AVCODEC_STRING sp_avcodec_string;
@@ -89,7 +91,9 @@ static AV_PACKET_UNREF sp_av_packet_unref;
 
 static AVCODEC_SEND_PACKET sp_avcodec_send_packet;    // 57
 static AVCODEC_RECEIVE_FRAME sp_avcodec_receive_frame;    // 57
-// count: +18 = 23
+static AVCODEC_DECODE_SUBTITLE2 sp_avcodec_decode_subtitle2; // 52.23
+static AV_SUBTITLE_FREE sp_avsubtitle_free; // 52.82
+// count: +20 = 25
 
 // libavutil
 typedef AVPixFmtDescriptor* (APIENTRYP AV_PIX_FMT_DESC_GET)(enum AVPixelFormat pix_fmt); // lavu >= 51.45;  lavu 51: 'enum PixelFormat pix_fmt', lavu 53: 'enum AVPixelFormat pix_fmt'
@@ -127,7 +131,7 @@ static AV_CHANNEL_LAYOUT_DEFAULT sp_av_channel_layout_default; // >= 59
 static AV_CHANNEL_LAYOUT_UNINIT sp_av_channel_layout_uninit; // >= 59
 static AV_CHANNEL_LAYOUT_DESCRIBE sp_av_channel_layout_describe; // >= 59
 static AV_OPT_SET_CHLAYOUT sp_av_opt_set_chlayout; // >= 59
-// count: +17 = 40
+// count: +17 = 42
 
 // libavformat
 typedef AVFormatContext *(APIENTRYP AVFORMAT_ALLOC_CONTEXT)(void);
@@ -159,12 +163,12 @@ static AV_READ_PAUSE sp_av_read_pause;
 static AVFORMAT_NETWORK_INIT sp_avformat_network_init;            // 53.13.0
 static AVFORMAT_NETWORK_DEINIT sp_avformat_network_deinit;        // 53.13.0
 static AVFORMAT_FIND_STREAM_INFO sp_avformat_find_stream_info;    // 53.3.0
-// count: +14 = 54
+// count: +14 = 56
 
 // libavdevice [53.0.0]
 typedef int (APIENTRYP AVDEVICE_REGISTER_ALL)(void);
 static AVDEVICE_REGISTER_ALL sp_avdevice_register_all;
-// count: +1 = 55
+// count: +1 = 57
 
 // libswresample [1...]
 typedef int (APIENTRYP AV_OPT_SET_SAMPLE_FMT)(void *obj, const char *name, enum AVSampleFormat fmt, int search_flags); // actually lavu .. but exist only w/ swresample!
@@ -180,7 +184,7 @@ static SWR_INIT sp_swr_init;
 static SWR_FREE sp_swr_free;
 static SWR_CONVERT sp_swr_convert;
 static SWR_GET_OUT_SAMPLES sp_swr_get_out_samples;
-// count: +6 = 61
+// count: +6 = 66
 
 static const char * const ClazzNameString = "java/lang/String";
 
@@ -206,7 +210,7 @@ static const char * const ClazzNameString = "java/lang/String";
     #define MY_MUTEX_UNLOCK(e,s)
 #endif
 
-#define SYMBOL_COUNT 61
+#define SYMBOL_COUNT 63
 
 JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
   (JNIEnv *env, jobject instance, jobject jmutex_avcodec_openclose, jobject jSymbols, jint count)
@@ -251,6 +255,8 @@ JNIEXPORT jboolean JNICALL FF_FUNC(initSymbols0)
     sp_av_packet_unref = (AV_PACKET_UNREF) (intptr_t) symbols[i++];
     sp_avcodec_send_packet = (AVCODEC_SEND_PACKET) (intptr_t) symbols[i++];
     sp_avcodec_receive_frame = (AVCODEC_RECEIVE_FRAME) (intptr_t) symbols[i++];
+    sp_avcodec_decode_subtitle2 = (AVCODEC_DECODE_SUBTITLE2) (intptr_t) symbols[i++];
+    sp_avsubtitle_free = (AV_SUBTITLE_FREE) (intptr_t) symbols[i++];
 
     sp_av_pix_fmt_desc_get = (AV_PIX_FMT_DESC_GET) (intptr_t) symbols[i++];
     sp_av_frame_unref = (AV_FRAME_UNREF) (intptr_t) symbols[i++];
@@ -458,7 +464,8 @@ static void _updateJavaAttributes(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
                                pAV->bps_stream, pAV->bps_video, pAV->bps_audio,
                                pAV->fps, pAV->frames_video, pAV->frames_audio, pAV->duration,
                                (*env)->NewStringUTF(env, pAV->vcodec),
-                               (*env)->NewStringUTF(env, pAV->acodec) );
+                               (*env)->NewStringUTF(env, pAV->acodec),
+                               (*env)->NewStringUTF(env, pAV->scodec));
         JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at updateAttributes(..)");
     }
 }
@@ -490,6 +497,14 @@ static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
                 pAV->pACodecCtx = NULL;
             }
             pAV->pACodec=NULL;
+
+            // Close the S codec
+            if(NULL != pAV->pSCodecCtx) {
+                sp_avcodec_close(pAV->pSCodecCtx);
+                sp_avcodec_free_context(&pAV->pSCodecCtx);
+                pAV->pSCodecCtx = NULL;
+            }
+            pAV->pSCodec=NULL;
 
             // Close the video file
             if(NULL != pAV->pFormatCtx) {
@@ -1018,6 +1033,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         }
 
         // Customize ..
+        pAV->pACodecCtx->pkt_timebase = pAV->pAStream->time_base;
         // pAV->pACodecCtx->thread_count=2;
         // pAV->pACodecCtx->thread_type=FF_THREAD_FRAME|FF_THREAD_SLICE; // Decode more than one frame at once
         pAV->pACodecCtx->thread_count=0;
@@ -1028,7 +1044,6 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         // Note: OpenAL well supports n-channel by now (SOFT),
         //       however - AFAIK AV_SAMPLE_FMT_S16 would allow no conversion!
         pAV->pACodecCtx->request_sample_fmt=AV_SAMPLE_FMT_S16;
-        pAV->pACodecCtx->skip_frame=AVDISCARD_DEFAULT;
 
         sp_avcodec_string(pAV->acodec, sizeof(pAV->acodec), pAV->pACodecCtx, 0);
 
@@ -1209,6 +1224,7 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
             return;
         }
         // Customize ..
+        pAV->pVCodecCtx->pkt_timebase = pAV->pVStream->time_base;
         // pAV->pVCodecCtx->thread_count=2;
         // pAV->pVCodecCtx->thread_type=FF_THREAD_FRAME|FF_THREAD_SLICE; // Decode more than one frame at once
         pAV->pVCodecCtx->thread_count=0;
@@ -1314,8 +1330,56 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         }
         sp_av_frame_unref(pAV->pVFrame);
     }
+
+    if(0<=pAV->sid) {
+        // Get a pointer to the codec context for the video stream
+        // FIXME: Libav Binary compatibility! JAU01
+        pAV->pSCodecPar = pAV->pSStream->codecpar;
+        #if 0
+        pAV->pSCodecCtx->get_format = my_get_format;
+        #endif
+
+        // Find the decoder for the video stream
+        pAV->pSCodec=sp_avcodec_find_decoder(pAV->pSCodecPar->codec_id);
+        if(pAV->pSCodec==NULL) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't find subtitle codec for codec_id %d", pAV->pSCodecPar->codec_id);
+            return;
+        }
+
+        // Allocate the decoder context for the video stream
+        pAV->pSCodecCtx = sp_avcodec_alloc_context3(pAV->pSCodec);
+        if(pAV->pSCodecCtx==NULL) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't allocate subtitle decoder context for codec_id %d", pAV->pSCodecPar->codec_id);
+            return;
+        }
+        res = sp_avcodec_parameters_to_context(pAV->pSCodecCtx, pAV->pSCodecPar);
+        if(res<0) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't copy video codec-par to context");
+            return;
+        }
+        // Customize ..
+        pAV->pSCodecCtx->pkt_timebase = pAV->pSStream->time_base;
+        pAV->pVCodecCtx->thread_count=0;
+        pAV->pVCodecCtx->thread_type=0;
+        pAV->pVCodecCtx->workaround_bugs=FF_BUG_AUTODETECT;
+        pAV->pVCodecCtx->skip_frame=AVDISCARD_DEFAULT;
+
+        sp_avcodec_string(pAV->scodec, sizeof(pAV->scodec), pAV->pSCodecCtx, 0);
+
+        // Open codec
+        MY_MUTEX_LOCK(env, mutex_avcodec_openclose);
+        {
+            res = sp_avcodec_open2(pAV->pSCodecCtx, pAV->pSCodec, NULL);
+        }
+        MY_MUTEX_UNLOCK(env, mutex_avcodec_openclose);
+        if(res<0) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't open subtitle codec %d, %s", pAV->pSCodecCtx->codec_id, pAV->scodec);
+            return;
+        }
+    }
     pAV->vPTS=0;
     pAV->aPTS=0;
+    pAV->sPTS=0;
     initPTSStats(&pAV->vPTSStats);
     initPTSStats(&pAV->aPTSStats);
     pAV->ready = 1;
@@ -1711,6 +1775,76 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
 
                 sp_av_frame_unref(pAV->pVFrame);
             } // draining frames loop
+        } else if(stream_id == pAV->sid) {
+            // Decode Subtitle package
+            int res = 0;
+            int got_sub = 0, got_sub2 = 0;
+            AVSubtitle sub;
+
+            res = sp_avcodec_decode_subtitle2(pAV->pSCodecCtx, &sub, &got_sub, pAV->packet);
+            if (0 > res) {
+                res = 0;
+                if( pAV->verbose ) {
+                    fprintf(stderr, "S-P: EOF.0\n");
+                }
+            } else {
+                // OK
+                if( !got_sub ) {
+                    if( pAV->packet->data ) {
+                        // EAGAIN
+                    } else {
+                        // EOF
+                        if( pAV->verbose ) {
+                            fprintf(stderr, "S-P: EOF.1\n");
+                        }
+                    }
+                } else {
+                    if (!pAV->packet->data) {
+                        // .. pending ..
+                        if( pAV->verbose ) {
+                            fprintf(stderr, "S-P: Pending\n");
+                        }
+                    } else {
+                        got_sub2 = 1;
+                    }
+                }
+            }
+            if( got_sub2 ) {
+              int32_t sPTS, sStart, sEnd;
+              if( AV_NOPTS_VALUE == sub.pts ) {
+                  sPTS = -1;
+                  sStart = -1;
+                  sEnd = -1;
+              } else {
+                  sPTS = my_av_q2i32( sub.pts * 1000, AV_TIME_BASE_Q);
+                  sStart = my_av_q2i32( ( sub.pts + sub.start_display_time ) * 1000, AV_TIME_BASE_Q);
+                  sEnd = my_av_q2i32( ( sub.pts + sub.end_display_time ) * 1000, AV_TIME_BASE_Q);
+              }
+              for(unsigned int i=0; i<sub.num_rects; ++i) {
+                AVSubtitleRect* r = sub.rects[i];
+                if( SUBTITLE_TEXT == r->type && NULL != r->text ) {
+                    if( pAV->verbose ) {
+                        fprintf(stderr, "S[f %d, i %d, pts %d[%d..%d]]: %s\n", (int)r->type, i, r->text, sPTS, sStart, sEnd);
+                    }
+                    (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_pushSubtitleText, (*env)->NewStringUTF(env, r->text), sPTS, sStart, sEnd);
+                    JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at pushSubtitleText(..)");
+                } else if( SUBTITLE_ASS == r->type && NULL != r->ass ) {
+                    if( pAV->verbose ) {
+                        fprintf(stderr, "S[f %d, i %d, pts %d[%d..%d]]: %s\n", (int)r->type, i, r->ass, sPTS, sStart, sEnd);
+                    }
+                    (*env)->CallVoidMethod(env, pAV->ffmpegMediaPlayer, ffmpeg_jni_mid_pushSubtitleASS, (*env)->NewStringUTF(env, r->ass), sPTS, sStart, sEnd);
+                    JoglCommon_ExceptionCheck1_throwNewRuntimeException(env, "FFmpeg: Exception occured at pushSubtitleASS(..)");
+                } else {
+                    if( pAV->verbose ) {
+                        fprintf(stderr, "S[f %d, i %d]: null\n", (int)r->type, i);
+                    }
+                }
+              }
+              pAV->sPTS = sPTS;
+            }
+            if( got_sub ) {
+                sp_avsubtitle_free(&sub);
+            }
         } // stream_id selection
         sp_av_packet_unref(pAV->packet);
     }
@@ -1816,6 +1950,9 @@ JNIEXPORT jint JNICALL FF_FUNC(seek0)
     }
     if(NULL != pAV->pACodecCtx) {
         sp_avcodec_flush_buffers( pAV->pACodecCtx );
+    }
+    if(NULL != pAV->pSCodecCtx) {
+        sp_avcodec_flush_buffers( pAV->pSCodecCtx );
     }
     const jint rPTS =  my_av_q2i32( ( pAV->vid >= 0 ? pAV->pVFrame->pts : pAV->pAFrames[pAV->aFrameCurrent]->pts ) * 1000, time_base);
     if(pAV->verbose) {

@@ -52,7 +52,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
     private static final List<String> glueLibNames = new ArrayList<String>(); // none
 
-    private static final int symbolCount = 61;
+    private static final int symbolCount = 63;
     private static final String[] symbolNames = {
          "avutil_version",
          "avformat_version",
@@ -80,7 +80,9 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_packet_unref",
          "avcodec_send_packet",       // 57
          "avcodec_receive_frame",     // 57
-         /* +18 = 23 */
+         "avcodec_decode_subtitle2",  // 52.23.0
+         "avsubtitle_free",           // 52.82.0
+         /* +20 = 25 */
 
          // libavutil
          "av_pix_fmt_desc_get",       // >= lavu 51.45
@@ -100,7 +102,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_channel_layout_uninit", // >= 59 (opt)
          "av_channel_layout_describe", // >= 59 (opt)
          "av_opt_set_chlayout",        // >= 59
-         /* +16 = 40 */
+         /* +17 = 42 */
 
          // libavformat
          "avformat_alloc_context",
@@ -117,11 +119,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
          "avformat_find_stream_info", // 53.3.0    (opt)
-         /* +14 = 54 */
+         /* +14 = 56 */
 
          // libavdevice
          "avdevice_register_all",     // supported in all versions (opt)
-         /* +1  = 55 */
+         /* +1  = 57 */
 
          // libswresample
          "av_opt_set_sample_fmt",     // actually lavu .. but exist only w/ swresample!
@@ -130,7 +132,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "swr_free",
          "swr_convert",
          "swr_get_out_samples",
-         /* +6  = 61 */
+         /* +6  = 63 */
     };
 
     // optional symbol names

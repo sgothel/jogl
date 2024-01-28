@@ -149,10 +149,12 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
         final float _fps = 24f;
         final int _duration = 10*60*1000; // msec
         final int _totalFrames = (int) ( (_duration/1000)*_fps );
-        updateAttributes("null", new int[] { 0 }, new String[] { "und" },
-                         0 /* fake */, new int[0], new String[0],
-                         GLMediaPlayer.STREAM_ID_NONE, new int[0], new String[0],
-                         GLMediaPlayer.STREAM_ID_NONE, texData.getWidth(), texData.getHeight(), 0, 0, 0, _fps, _totalFrames, 0, _duration, "png-static", null);
+        updateAttributes("null",
+                         new int[] { 0 }, new String[] { "und" }, 0 /* fake */,
+                         new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
+                         new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
+                         texData.getWidth(), texData.getHeight(), 0, 0, 0, _fps, _totalFrames, 0, _duration,
+                         "png-static", null, null);
     }
     @Override
     protected final void initGLImpl(final GL gl) throws IOException, GLException {

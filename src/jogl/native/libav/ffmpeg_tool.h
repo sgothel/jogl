@@ -200,6 +200,10 @@ typedef struct {
     int32_t          s_streams[MAX_STREAM_COUNT];
     int32_t          sid;
     AVStream*        pSStream;
+    AVCodecParameters* pSCodecPar;
+    AVCodecContext*  pSCodecCtx;
+    AVCodec*         pSCodec;
+    int32_t          sPTS;       // msec - overall last subtitle PTS
 
     float            fps;        // frames per seconds
     int32_t          bps_stream; // bits per seconds
@@ -212,6 +216,7 @@ typedef struct {
 
     char             acodec[64];
     char             vcodec[64];
+    char             scodec[64];
 
     int32_t          ready;
 
