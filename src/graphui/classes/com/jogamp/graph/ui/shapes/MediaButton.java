@@ -169,8 +169,12 @@ public class MediaButton extends TexSeqButton {
                     System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
                     System.err.println("MediaButton State: "+mp);
                 }
+                if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Uninit) ) {
+                    clearSubtitleCache();
+                }
                 if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
                     resetGL = true;
+                    clearSubtitleCache();
                 }
                 if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Size) ) {
                     // FIXME: mPlayer.resetGLState();
@@ -229,7 +233,13 @@ public class MediaButton extends TexSeqButton {
         }
         markStateDirty(); // keep on going
     };
-    protected final void drawSubtitle(final GL2ES2 gl, final RegionRenderer renderer) {
+    private final void clearSubtitleCache() {
+        draw_lastASS = null;
+        synchronized( assEventLock ) {
+            assEventQueue.clear();
+        }
+    }
+    private final void drawSubtitle(final GL2ES2 gl, final RegionRenderer renderer) {
         // dequeue and earmark new subtitle
         final ASSEventLine ass;
         final boolean newASS;
@@ -300,6 +310,6 @@ public class MediaButton extends TexSeqButton {
         }
 
     }
-    private ASSEventLine draw_lastASS;
+    private volatile ASSEventLine draw_lastASS;
 
 }
