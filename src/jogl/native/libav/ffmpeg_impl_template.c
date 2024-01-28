@@ -992,6 +992,9 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
     if( AV_STREAM_ID_AUTO == pAV->vid ) {
         pAV->vid = AV_STREAM_ID_NONE;
     }
+    if( AV_STREAM_ID_AUTO == pAV->sid ) {
+        pAV->sid = AV_STREAM_ID_NONE;
+    }
 
     if( pAV->verbose ) {
         fprintf(stderr, "Found vid %d, aid %d, sid %d\n", pAV->vid, pAV->aid, pAV->sid);
