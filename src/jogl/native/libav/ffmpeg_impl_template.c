@@ -1780,45 +1780,29 @@ JNIEXPORT jint JNICALL FF_FUNC(readNextPacket0)
             } // draining frames loop
         } else if(stream_id == pAV->sid) {
             // Decode Subtitle package
-            int res = 0;
             int got_sub = 0, got_sub2 = 0;
             AVSubtitle sub;
 
-            res = sp_avcodec_decode_subtitle2(pAV->pSCodecCtx, &sub, &got_sub, pAV->packet);
+            int res = sp_avcodec_decode_subtitle2(pAV->pSCodecCtx, &sub, &got_sub, pAV->packet);
             if (0 > res) {
-                res = 0;
                 if( pAV->verbose ) {
                     fprintf(stderr, "S-P: EOF.0\n");
                 }
             } else {
-                // OK
-                if( !got_sub ) {
-                    if( pAV->packet->data ) {
-                        // EAGAIN
-                    } else {
-                        // EOF
-                        if( pAV->verbose ) {
-                            fprintf(stderr, "S-P: EOF.1\n");
-                        }
-                    }
+                if( got_sub && pAV->packet->data ) {
+                    got_sub2 = 1; // OK
                 } else {
-                    if (!pAV->packet->data) {
-                        // .. pending ..
-                        if( pAV->verbose ) {
-                            fprintf(stderr, "S-P: Pending\n");
-                        }
-                    } else {
-                        got_sub2 = 1;
+                    // !got_sub &&  data: EAGAIN
+                    // !got_sub && !data: EOF
+                    //  got_sub && !data: pending
+                    if( pAV->verbose ) {
+                        fprintf(stderr, "S-P: EAGAIN, EOF or Pending\n");
                     }
                 }
             }
             if( got_sub2 ) {
-              int32_t sPTS, sStart, sEnd;
-              if( AV_NOPTS_VALUE == sub.pts ) {
-                  sPTS = -1;
-                  sStart = -1;
-                  sEnd = -1;
-              } else {
+              int32_t sPTS=-1, sStart=-1, sEnd=-1;
+              if( AV_NOPTS_VALUE != sub.pts ) {
                   sPTS = my_av_q2i32( sub.pts * 1000, AV_TIME_BASE_Q);
                   sStart = my_av_q2i32( ( sub.pts + sub.start_display_time ) * 1000, AV_TIME_BASE_Q);
                   sEnd = my_av_q2i32( ( sub.pts + sub.end_display_time ) * 1000, AV_TIME_BASE_Q);
