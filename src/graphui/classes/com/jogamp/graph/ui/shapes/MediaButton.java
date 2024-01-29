@@ -76,6 +76,8 @@ public class MediaButton extends TexSeqButton {
     private final float subZOffset;
     private boolean subEnabled;
     private float subLineHeightPct;
+    private float subLineDY = 0.25f;
+    private final Rectangle subBlend;
     private final List<ASSEventLine> assEventQueue = new ArrayList<ASSEventLine>();
     private final Object assEventLock = new Object();
 
@@ -115,19 +117,32 @@ public class MediaButton extends TexSeqButton {
         this.subZOffset = Button.DEFAULT_LABEL_ZOFFSET;
         this.subLineHeightPct = subLineHeightPct;
         this.subLabel = new Label(renderModes, f, "");
-        this.subLabel.setColor( new Vec4f( 1f, 1, 0f, 1.0f ) );
+        this.subLabel.setColor( new Vec4f( 1, 1, 0, 1 ) );
         this.subLabel.moveTo(0, 0, subZOffset);
+        this.subBlend = new Rectangle(renderModes, 1f, 1f, 0f);
+        this.subBlend.setColor( new Vec4f( 0, 0, 0, 0.2f ) );
     }
 
     /**
      * Sets subtitle parameter
      * @param subFont subtitle font
-     * @param subLineHeightPct one subtitle line height percentage of this shape, default is 0.1f
+     * @param subLineHeightPct one subtitle line height percentage of this shape, default is 1/10 (0.1f)
+     * @param subLineDY y-axis offset to bottom in line-height, defaults to 1/4 (0.25f)
      */
-    public void setSubtitleParams(final Font subFont, final float subLineHeightPct) {
+    public void setSubtitleParams(final Font subFont, final float subLineHeightPct, final float subLineDY) {
         this.subLabel.setFont(subFont);
         this.subLineHeightPct = subLineHeightPct;
+        this.subLineDY = subLineDY;
         this.subEnabled = true;
+    }
+    /**
+     * Sets subtitle colors
+     * @param color color for the text, defaults to RGBA {@code 1, 1, 0, 1}
+     * @param blend blending alpha (darkness), defaults to 0.2f
+     */
+    public void setSubtitleColor(final Vec4f color, final float blend) {
+        this.subLabel.setColor( color );
+        this.subBlend.setColor( 0, 0, 0, blend );
     }
 
     public final ASSEventListener getASSEventListener() { return assEventListener; }
@@ -298,21 +313,24 @@ public class MediaButton extends TexSeqButton {
                 subLabel.setText(ass.text);
                 final AABBox subBox = subLabel.getBounds(gl.getGLProfile());
                 final float subLineHeight = subBox.getHeight() / ass.lines;
-                final float maxWidth = this.box.getWidth() * 0.95f;
-                float scale = ( this.box.getHeight() * subLineHeightPct ) / subLineHeight;
+                final float maxWidth = box.getWidth() * 0.95f;
+                float scale = ( box.getHeight() * subLineHeightPct ) / subLineHeight;
                 if( scale * subBox.getWidth() > maxWidth ) {
                     scale = maxWidth / subBox.getWidth();
                 }
                 subLabel.setScale(scale, scale, 1);
-                final float dx = ( this.box.getWidth() - maxWidth ) * 0.5f;
-                final float dy = subLineHeight * scale * 0.25f;
-                this.subLabel.moveTo(dx, dy, subZOffset);
+                final float dx_s = ( box.getWidth() - maxWidth ) * 0.5f;
+                final float dy_s = subLineHeight * subLineDY * scale;
+                subLabel.moveTo(dx_s, dy_s, 2*subZOffset);
+                subBlend.setDimension(box.getWidth(), box.getHeight() * subLineHeightPct * ass.lines, 0f);
+                subBlend.setPosition(0, dy_s, 1*subZOffset);
                 if( DEBUG_SUB ) {
                     System.err.println("MediaButton: NEXT pts "+pts+", "+ass);
                 }
             }
         }
         if( drawASS ) {
+            subBlend.draw(gl, renderer);
             final PMVMatrix4f pmv = renderer.getMatrix();
             pmv.pushMv();
             subLabel.applyMatToMv(pmv);

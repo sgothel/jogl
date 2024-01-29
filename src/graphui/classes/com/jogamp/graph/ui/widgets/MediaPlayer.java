@@ -217,6 +217,7 @@ public class MediaPlayer extends Widget {
         final Button timeLabel;
         final float infoGroupHeight;
         final boolean[] hud_sticky = { false };
+        final boolean[] info_full = { false };
         {
             muteLabel = new Label(renderModes, fontSymbols, aratio/6f, fontSymbols.getUTF16String("music_off")); // volume_mute, headset_off
             muteLabel.setName("mp.mute");
@@ -283,7 +284,7 @@ public class MediaPlayer extends Widget {
                             t0 = t1;
                             final int ptsMS = mPlayer.getPTS().get(Clock.currentMillis());
                             final int durationMS = mPlayer.getDuration();
-                            infoLabel.setText(getInfo(ptsMS, durationMS, mPlayer, false));
+                            infoLabel.setText(getInfo(ptsMS, durationMS, mPlayer, info_full[0]));
                             timeLabel.setText(getMultilineTime(ptsMS, durationMS));
                             ctrlSlider.setValue(ptsMS);
                         }
@@ -583,6 +584,24 @@ public class MediaPlayer extends Widget {
         });
         this.addMouseListener(new Shape.MouseGestureAdapter() {
             @Override
+            public void mouseClicked(final MouseEvent e) {
+                final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
+                final Vec3f p = shapeEvent.objPos;
+                if( p.y() > ( 1f - infoGroupHeight ) ) {
+                    info_full[0] = !info_full[0];
+                    final float sxy = infoLabel.getScale().x();
+                    final float p_bottom_s = infoLabel.getPadding().bottom * sxy;
+                    final float sxy2;
+                    if( info_full[0] ) {
+                        sxy2 = sxy * 0.5f;
+                    } else {
+                        sxy2 = sxy * 2f;
+                    }
+                    infoLabel.setScale(sxy2,  sxy2,  1f);
+                    infoLabel.setPaddding(new Padding(0, 0, p_bottom_s/sxy2, 0.5f));
+                }
+            }
+            @Override
             public void mouseMoved(final MouseEvent e) {
                 final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
                 final Vec3f p = shapeEvent.objPos;
@@ -609,10 +628,21 @@ public class MediaPlayer extends Widget {
      * Sets subtitle parameter
      * @param subFont subtitle font
      * @param subLineHeightPct one subtitle line height percentage of this shape, default is 0.1f
+     * @param subLineDY y-axis offset to bottom in line-height, defaults to 1/4 (0.25f)
      */
-    public void setSubtitleParams(final Font subFont, final float subLineHeightPct) {
+    public void setSubtitleParams(final Font subFont, final float subLineHeightPct, final float subLineDY) {
         if( null != mButton ) {
-            mButton.setSubtitleParams(subFont, subLineHeightPct);
+            mButton.setSubtitleParams(subFont, subLineHeightPct, subLineDY);
+        }
+    }
+    /**
+     * Sets subtitle colors
+     * @param color color for the text, defaults to RGBA {@code 1, 1, 0, 1}
+     * @param blend blending alpha (darkness), defaults to 0.2f
+     */
+    public void setSubtitleColor(final Vec4f color, final float blend) {
+        if( null != mButton ) {
+            mButton.setSubtitleColor(color, blend);
         }
     }
 
@@ -632,15 +662,18 @@ public class MediaPlayer extends Widget {
         final float aspect = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
         final float pct = (float)ptsMS / (float)durationMS;
         if( full ) {
-            final String text1 = String.format("%s / %s (%.0f %%), %s (%01.2fx, vol %1.2f), A/R %0.2f, fps %02.1f",
+            final String text1 = String.format("%s / %s (%.0f %%), %s (%01.2fx, vol %1.2f), A/R %.2f, fps %02.1f, kbps %.2f",
                     PTS.millisToTimeStr(ptsMS, false), PTS.millisToTimeStr(durationMS, false), pct*100,
-                    mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect, mPlayer.getFramerate());
-            final String text2 = String.format("audio: id %d (%s), kbps %d, codec %s; sid %d (%s)",
-                    mPlayer.getAID(), mPlayer.getLang(mPlayer.getAID()), mPlayer.getAudioBitrate()/1000, mPlayer.getAudioCodec(),
+                    mPlayer.getState().toString().toLowerCase(), mPlayer.getPlaySpeed(), mPlayer.getAudioVolume(), aspect,
+                    mPlayer.getFramerate(), mPlayer.getStreamBitrate()/1000.0f);
+            final String text2 = String.format("video: id %d (%s), kbps %.2f, codec %s",
+                    mPlayer.getVID(), mPlayer.getLang(mPlayer.getVID()), mPlayer.getVideoBitrate()/1000.0f, mPlayer.getVideoCodec());
+            final String text3 = String.format("audio: id %d (%s), kbps %.2f, codec %s; sid %d (%s)",
+                    mPlayer.getAID(), mPlayer.getLang(mPlayer.getAID()), mPlayer.getAudioBitrate()/1000.0f, mPlayer.getAudioCodec(),
                     mPlayer.getSID(), mPlayer.getLang(mPlayer.getSID()) );
-            final String text3 = String.format("video: id %d, kbps %d, codec %s",
-                    mPlayer.getVID(), mPlayer.getVideoBitrate()/1000, mPlayer.getVideoCodec());
-            return text1+"\n"+text2+"\n"+text3+"\n"+mPlayer.getTitle()+chapter;
+            final String text4 = String.format("sub  : id %d (%s), codec %s",
+                    mPlayer.getSID(), mPlayer.getLang(mPlayer.getSID()), mPlayer.getSubtitleCodec());
+            return text1+"\n"+text2+"\n"+text3+"\n"+text4+"\n"+mPlayer.getTitle()+chapter;
         } else {
             final String vinfo, ainfo, sinfo;
             if( mPlayer.getVID() != GLMediaPlayer.STREAM_ID_NONE ) {
