@@ -1940,6 +1940,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public final String getAudioCodec() { return acodec; }
 
     @Override
+    public String getSubtitleCodec() { return scodec; }
+
+    @Override
     public final int getVideoFrames() { return videoFrames; }
 
     @Override

@@ -781,15 +781,21 @@ public interface GLMediaPlayer extends TextureSequence {
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
-     * @return the code of the video stream, if available
+     * @return the codec of the video stream, if available
      */
     public String getVideoCodec();
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
-     * @return the code of the audio stream, if available
+     * @return the codec of the audio stream, if available
      */
     public String getAudioCodec();
+
+    /**
+     * <i>Warning:</i> Optional information, may not be supported by implementation.
+     * @return the codec of the subtitle stream, if available
+     */
+    public String getSubtitleCodec();
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
