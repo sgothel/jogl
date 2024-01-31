@@ -918,11 +918,10 @@ public abstract class Shape {
      * Sets {@link #isMatIdentity()} to {@code true} if neither position, scale or rotate is performed, otherwise to {@code false}.
      * </p>
      * <p>
-     * Called within {@link #applyMatToMv(PMVMatrix4f)} if internal matrix is dirty.
+     * Called by {@link #applyMatToMv(PMVMatrix4f)}, {@link #getMat()} and {@link #getMat(Matrix4f)} if internal matrix is dirty.
      * </p>
      * <p>
-     * After any mutating operation or borrowing values via {@link #getPosition()}, {@link #getScale()}, {@link #getRotation()} or {@link #getRotationPivot()},
-     * the internal matrix is marked dirty.
+     * After any mutating operations, .e.g {@link #move(float, float, float)} etc, the internal matrix is marked dirty.
      * </p>
      * @see #isMatIdentity()
      * @see #getMat()
