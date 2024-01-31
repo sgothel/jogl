@@ -29,6 +29,7 @@ package com.jogamp.graph.ui;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.jogamp.nativewindow.NativeWindowException;
 import com.jogamp.opengl.GL2ES2;
@@ -227,7 +228,7 @@ public abstract class Shape {
     private volatile boolean iMatIdent = true;
     private volatile boolean iMatDirty = false;
 
-    private volatile int dirty = DIRTY_SHAPE | DIRTY_STATE;
+    private final AtomicInteger dirty = new AtomicInteger(DIRTY_SHAPE | DIRTY_STATE);
     private final Object dirtySync = new Object();
 
     /** Default base-color w/o color channel, will be modulated w/ pressed- and toggle color */
@@ -648,9 +649,7 @@ public abstract class Shape {
      * to recreate the Graph shape and reset the region.
      */
     public final void markShapeDirty() {
-        synchronized ( dirtySync ) {
-            dirty |= DIRTY_SHAPE;
-        }
+        dirty.updateAndGet((final int pre) -> { return pre | DIRTY_SHAPE; } );
     }
 
     /**
@@ -658,18 +657,16 @@ public abstract class Shape {
      * to notify the Graph region to reselect shader and repaint potentially used FBOs.
      */
     public final void markStateDirty() {
-        synchronized ( dirtySync ) {
-            dirty |= DIRTY_STATE;
-        }
+        dirty.updateAndGet((final int pre) -> { return pre | DIRTY_STATE; } );
     }
 
     /** Returns the shape's dirty state, see {@link #markShapeDirty()}. */
     protected boolean isShapeDirty() {
-        return 0 != ( dirty & DIRTY_SHAPE ) ;
+        return 0 != ( dirty.get() & DIRTY_SHAPE ) ;
     }
     /** Returns the rendering dirty state, see {@link #markStateDirty()}. */
     protected final boolean isStateDirty() {
-        return 0 != ( dirty & DIRTY_STATE ) ;
+        return 0 != ( dirty.get() & DIRTY_STATE ) ;
     }
 
     protected final String getDirtyString() {
@@ -819,7 +816,7 @@ public abstract class Shape {
                 box.reset();
             }
             validateImpl(gl, gl.getGLProfile());
-            dirty = 0;
+            dirty.set(0);
         }
         return this;
     }
@@ -838,7 +835,7 @@ public abstract class Shape {
                 box.reset();
             }
             validateImpl(null, glp);
-            dirty = 0;
+            dirty.set(0);
         }
         return this;
     }
