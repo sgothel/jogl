@@ -28,28 +28,13 @@
 package com.jogamp.opengl.util.av;
 
 /**
- * ASS/SAA Event Line of subtitles
+ * ASS/SAA Event Line of {@link SubtitleEvent}
  * <p>
  * See http://www.tcax.org/docs/ass-specs.htm
  * </p>
  */
-public class ASSEventLine {
-    public enum Format {
-        UNKNOWN,
-        /** FFMpeg output w/o start, end:
-         * <pre>
-           0    1      2      3     4        5        6        7       8
-           Seq, Layer, Style, Name, MarginL, MarginR, MarginV, Effect, TEXT
-         * </pre>
-         */
-        FFMPEG,
-        /** Just the plain text part */
-        TEXT
-    };
-    public final Format source;
+public class SubASSEventLine extends SubtitleEvent {
     public final int seqnr;
-    public final int pts_start;
-    public final int pts_end;
     public final int layer;
     public final String style;
     public final String name;
@@ -60,19 +45,19 @@ public class ASSEventLine {
 
     /**
      * ASS/SAA Event Line ctor
-     * @param fmt input format of {@code ass}, currently only {@link ASSEventLine.Format#FFMPEG} and {@link ASSEventLine.Format#TEXT} is supported
+     * @param fmt input format of {@code ass}, currently only {@link SubASSEventLine.Format#ASS_FFMPEG} and {@link SubASSEventLine.Format#ASS_TEXT} is supported
      * @param ass ASS/SAA compatible event line according to {@code fmt}
-     * @param pts_start pts start in ms, provided for {@link ASSEventLine.Format#FFMPEG} and {@link ASSEventLine.Format#TEXT}
-     * @param pts_end pts end in ms, provided for {@link ASSEventLine.Format#FFMPEG} and {@link ASSEventLine.Format#TEXT}
+     * @param pts_start pts start in ms, provided for {@link SubASSEventLine.Format#ASS_FFMPEG} and {@link SubASSEventLine.Format#ASS_TEXT}
+     * @param pts_end pts end in ms, provided for {@link SubASSEventLine.Format#ASS_FFMPEG} and {@link SubASSEventLine.Format#ASS_TEXT}
      */
-    public ASSEventLine(final Format fmt, final String ass, final int pts_start, final int pts_end) {
-        this.source = fmt;
+    public SubASSEventLine(final Format fmt, final String ass, final int pts_start, final int pts_end) {
+        super(fmt, pts_start, pts_end);
         int seqnr = 0;
         int layer = 0;
         String style = "Default";
         String name = "";
         String text = "";
-        if( Format.FFMPEG == fmt ) {
+        if( Format.ASS_FFMPEG == fmt ) {
             final int len = null != ass ? ass.length() : 0;
             int part = 0;
             for(int i=0; 9 > part && len > i; ) {
@@ -102,12 +87,10 @@ public class ASSEventLine {
                 }
                 ++part;
             }
-        } else if( Format.TEXT == fmt ) {
+        } else if( Format.ASS_TEXT == fmt ) {
             text = ass;
         }
         this.seqnr = seqnr;
-        this.pts_start = pts_start;
-        this.pts_end = pts_end;
         this.layer = layer;
         this.style = style;
         this.name = name;
@@ -126,10 +109,12 @@ public class ASSEventLine {
             this.lines = lc;
         }
     }
-    public int getDuration() { return pts_end - pts_start + 1; }
+
+    @Override
+    public void release() {} // nothing to be released back to the owner
 
     @Override
     public String toString() {
-        return "ASS["+source+", #"+seqnr+", l_"+layer+", ["+pts_start+".."+pts_end+"] "+getDuration()+" ms, style "+style+", name '"+name+"': '"+text+"' ("+lines+")]";
+        return getStartString()+", #"+seqnr+", l_"+layer+", style "+style+", name '"+name+"': '"+text+"' ("+lines+")]";
     }
 }

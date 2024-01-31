@@ -28,8 +28,13 @@
 package com.jogamp.opengl.util.av;
 
 /**
- * {@link ASSEventLine} Listener
+ * {@link SubtitleEvent} Listener
+ * <p>
+ * It is mandatory that the receiver {@link SubtitleEvent#release()} the instance
+ * after processing, allowing the resource owner to free or reuse it.
+ * </p>
  */
-public interface ASSEventListener {
-    void run(ASSEventLine e);
+public interface SubtitleEventListener {
+    /** Performing custom tasks with given {@link SubtitleEvent}. */
+    void run(SubtitleEvent e);
 }
