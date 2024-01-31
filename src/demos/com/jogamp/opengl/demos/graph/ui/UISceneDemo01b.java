@@ -173,7 +173,6 @@ public class UISceneDemo01b {
                     } else {
                         shape.getRotation().rotateByAngleY(rad);
                     }
-                    shape.updateMat();
                     System.err.println("Shape "+shape);
                     final PMVMatrix4f pmv = new PMVMatrix4f();
                     shape.applyMatToMv(pmv);

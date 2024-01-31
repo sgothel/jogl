@@ -549,7 +549,7 @@ public class FontView01 {
                 final Group c2 = new Group( new GridLayout( 1, 0, 0, Alignment.None) ); //  Alignment(Alignment.Bit.CenterHoriz) ) );
                 c2.addShape(c1.setName("GlyphHolder3"));
                 {
-                    final Label l = new Label(options.renderModes, fontInfo, 1f, fg.getName());
+                    final Label l = new Label(options.renderModes, fontInfo, fg.getName());
                     // final AABBox lbox = l.getUnscaledGlyphBounds();
                     final float sxy = 1f/7f; // gridDim.maxNameLen; // 0.10f; // Math.min(sx, sy);
                     c2.addShape( l.scale(sxy, sxy, 1).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizeable(false) );
@@ -567,7 +567,7 @@ public class FontView01 {
         System.err.println("PERF: GlyphAdd took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+gridDim.glyphCount);
     }
     static void addLabel(final Group c, final Font font, final String text) {
-        c.addShape( new Label(options.renderModes, font, 1f, text).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizeable(false) );
+        c.addShape( new Label(options.renderModes, font, text).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizeable(false) );
     }
 
     static void setGlyphInfo(final Font font, final Label label, final Font.Glyph g) {
