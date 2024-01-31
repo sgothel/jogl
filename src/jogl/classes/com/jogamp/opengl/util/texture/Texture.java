@@ -285,6 +285,26 @@ public class Texture {
             throw new GLException("External texture ID invalid: texID "+textureID);
         }
     }
+    /**
+     * Pending setup or update of texture and image dimensions
+     * @param texWidth the width of the texture in pixels
+     * @param texHeight the height of the texture in pixels
+     * @param imgWidth the width of the image within the texture in
+     *          pixels (if the content is a sub-rectangle in the upper
+     *          left corner); otherwise, pass in texWidth
+     * @param imgHeight the height of the image within the texture in
+     *          pixels (if the content is a sub-rectangle in the upper
+     *          left corner); otherwise, pass in texHeight
+     */
+    public void set(final int texWidth, final int texHeight,
+                    final int imgWidth, final int imgHeight) {
+        this.texWidth = texWidth;
+        this.texHeight = texHeight;
+        this.aspectRatio = (float) imgWidth / (float) imgHeight;
+        this.imgWidth = imgWidth;
+        this.imgHeight = imgHeight;
+        this.updateTexCoords();
+    }
 
     /**
      * Enables this texture's target (e.g., GL_TEXTURE_2D) in the

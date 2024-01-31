@@ -48,6 +48,10 @@ public final class Vec2f {
         set(o);
     }
 
+    public Vec2f(final Vec2i o) {
+        set(o);
+    }
+
     /** Creating new Vec2f using Vec3f, dropping z. */
     public Vec2f(final Vec3f o) {
         set(o);
@@ -69,6 +73,12 @@ public final class Vec2f {
     public void set(final Vec2f o) {
         this.x = o.x;
         this.y = o.y;
+    }
+
+    /** this = o (int -> float), returns this. */
+    public void set(final Vec2i o) {
+        this.x = o.x();
+        this.y = o.y();
     }
 
     /** this = o while dropping z, returns this. */
