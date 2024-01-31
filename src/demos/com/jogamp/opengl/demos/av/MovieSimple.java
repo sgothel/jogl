@@ -259,7 +259,7 @@ public class MovieSimple implements GLEventListener {
 
             if(y>surfHeight/2) {
                 final float dp  = (float)(x-prevMouseX)/(float)surfWidth;
-                final int pts0 = mPlayer.getPTS().get(Clock.currentMillis());
+                final int pts0 = mPlayer.getPTS().getCurrent();
                 mPlayer.seek(pts0 + (int) (mPlayer.getDuration() * dp));
             } else {
                 mPlayer.resume();
@@ -291,7 +291,7 @@ public class MovieSimple implements GLEventListener {
                 return;
             }
             System.err.println("MC "+e);
-            final int pts0 = mPlayer.getPTS().get(Clock.currentMillis());
+            final int pts0 = mPlayer.getPTS().getCurrent();
             int pts1 = 0;
             switch(e.getKeySymbol()) {
                 case KeyEvent.VK_V: {

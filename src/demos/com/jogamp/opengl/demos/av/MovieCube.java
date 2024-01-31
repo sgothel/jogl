@@ -210,7 +210,7 @@ public class MovieCube implements GLEventListener {
             final GLAnimatorControl anim = drawable.getAnimator();
             final float lfps = null != anim ? anim.getLastFPS() : 0f;
             final float tfps = null != anim ? anim.getTotalFPS() : 0f;
-            final float pts = mPlayer.getPTS().get(Clock.currentMillis()) / 1000f;
+            final float pts = mPlayer.getPTS().getCurrent() / 1000f;
 
             // Note: MODELVIEW is from [ -1 .. 1 ]
 
@@ -291,7 +291,7 @@ public class MovieCube implements GLEventListener {
                 return;
             }
             System.err.println("MC "+e);
-            final int pts0 = mPlayer.getPTS().get(Clock.currentMillis());
+            final int pts0 = mPlayer.getPTS().getCurrent();
 
             int pts1 = 0;
             switch(e.getKeySymbol()) {

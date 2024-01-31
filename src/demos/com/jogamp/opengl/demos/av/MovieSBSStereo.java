@@ -171,7 +171,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
             final GLAnimatorControl anim = drawable.getAnimator();
             final float lfps = null != anim ? anim.getLastFPS() : 0f;
             final float tfps = null != anim ? anim.getTotalFPS() : 0f;
-            final float pts = mPlayer.getPTS().get(Clock.currentMillis()) / 1000f;
+            final float pts = mPlayer.getPTS().getCurrent() / 1000f;
 
             // Note: MODELVIEW is from [ 0 .. height ]
 
@@ -238,7 +238,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
 
             if(y>surfHeight/2) {
                 final float dp  = (float)(x-prevMouseX)/(float)surfWidth;
-                final int pts0 = mPlayer.getPTS().get(Clock.currentMillis());
+                final int pts0 = mPlayer.getPTS().getCurrent();
                 mPlayer.seek(pts0 + (int) (mPlayer.getDuration() * dp));
             } else {
                 mPlayer.resume();
@@ -264,7 +264,7 @@ public class MovieSBSStereo implements StereoGLEventListener {
                 return;
             }
             System.err.println("MC "+e);
-            final int pts0 = mPlayer.getPTS().get(Clock.currentMillis());
+            final int pts0 = mPlayer.getPTS().getCurrent();
             int pts1 = 0;
             switch(e.getKeySymbol()) {
                 case KeyEvent.VK_O:          displayOSD = !displayOSD; break;

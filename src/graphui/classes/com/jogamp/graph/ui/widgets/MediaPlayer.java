@@ -278,7 +278,7 @@ public class MediaPlayer extends Widget {
                         final long t1 = anim.getTotalFPSDuration();
                         if( t1 - t0 >= 333) {
                             t0 = t1;
-                            final int ptsMS = mPlayer.getPTS().get(Clock.currentMillis());
+                            final int ptsMS = mPlayer.getPTS().getCurrent();
                             final int durationMS = mPlayer.getDuration();
                             infoLabel.setText(getInfo(ptsMS, durationMS, mPlayer, info_full[0]));
                             timeLabel.setText(getMultilineTime(ptsMS, durationMS));
@@ -379,12 +379,12 @@ public class MediaPlayer extends Widget {
                 button.setName("rew5");
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
                 button.onClicked((final Shape s) -> {
-                    mPlayer.seek(mPlayer.getPTS().get(Clock.currentMillis()) - 5000);
+                    mPlayer.seek(mPlayer.getPTS().getCurrent() - 5000);
                 });
                 button.addMouseListener(new Shape.MouseGestureAdapter() {
                     @Override
                     public void mouseWheelMoved(final MouseEvent e) {
-                        final int pts0 = mPlayer.getPTS().get(Clock.currentMillis());
+                        final int pts0 = mPlayer.getPTS().getCurrent();
                         final int pts1 = pts0 + (int)(e.getRotation()[1]*1000f);
                         if( DEBUG ) {
                             System.err.println("Seek: "+pts0+" -> "+pts1);
@@ -400,12 +400,12 @@ public class MediaPlayer extends Widget {
                 button.setName("fwd5");
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
                 button.onClicked((final Shape s) -> {
-                    mPlayer.seek(mPlayer.getPTS().get(Clock.currentMillis()) + 5000);
+                    mPlayer.seek(mPlayer.getPTS().getCurrent() + 5000);
                 });
                 button.addMouseListener(new Shape.MouseGestureAdapter() {
                     @Override
                     public void mouseWheelMoved(final MouseEvent e) {
-                        final int pts0 = mPlayer.getPTS().get(Clock.currentMillis());
+                        final int pts0 = mPlayer.getPTS().getCurrent();
                         final int pts1 = pts0 + (int)(e.getRotation()[1]*1000f);
                         if( DEBUG ) {
                             System.err.println("Seek: "+pts0+" -> "+pts1);

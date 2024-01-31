@@ -251,7 +251,7 @@ public class MediaButton extends TexSeqButton {
     private static final int SUB_MIN_DURATION = 5; // min duration 1s, broken ASS have <= 3ms
     private final void drawSubtitle(final GL2ES2 gl, final RegionRenderer renderer) {
         final GLMediaPlayer mPlayer = (GLMediaPlayer)texSeq;
-        final int pts = mPlayer.getPTS().get(Clock.currentMillis());
+        final int pts = mPlayer.getPTS().getCurrent();
 
         // Validate draw_lastASS timeout
         ASSEventLine lastASS = draw_lastASS;
