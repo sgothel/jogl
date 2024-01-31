@@ -291,6 +291,22 @@ public interface GLMediaPlayer extends TextureSequence {
     }
 
     /**
+     * As the contract of {@link GLMediaFrameListener} and {@link TexSeqEventListener} requests,
+     * implementations of {@link GLMediaEventListener} shall:
+     * <ul>
+     *   <li>off-load complex or {@link GLMediaPlayer} commands on another thread, or</li>
+     *   <li>simply changing a volatile state of their {@link GLEventListener} implementation.</li>
+     * </ul>
+     */
+    public interface GLMediaEventListener {
+        /**
+         * @param mp the event source
+         * @param event_mask the changes attributes
+         * @param when system time in msec.
+         */
+        public void attributesChanged(GLMediaPlayer mp, EventMask event_mask, long when);
+    }
+    /**
      * {@inheritDoc}
      * <p>
      * As the contract of {@link TexSeqEventListener} requests,
@@ -301,13 +317,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * </ul>
      * </p>
      */
-    public interface GLMediaEventListener extends TexSeqEventListener<GLMediaPlayer> {
-        /**
-         * @param mp the event source
-         * @param event_mask the changes attributes
-         * @param when system time in msec.
-         */
-        public void attributesChanged(GLMediaPlayer mp, EventMask event_mask, long when);
+    public interface GLMediaFrameListener extends TexSeqEventListener<GLMediaPlayer> {
     }
 
     /** Changes attributes event mask */
@@ -905,10 +915,19 @@ public interface GLMediaPlayer extends TextureSequence {
     /** Return all {@link GLMediaEventListener} of this player. */
     public GLMediaEventListener[] getEventListeners();
 
-    /** Sets the {@link ASSEventListener} for this player. */
-    public void setASSEventListener(ASSEventListener l);
-    /** Returns the {@link #setASSEventListener(ASSEventListener)} of this player. */
-    public ASSEventListener getASSEventListener();
+    /** Adds a {@link GLMediaFrameListener} to this player. */
+    public void addFrameListener(GLMediaFrameListener l);
+
+    /** Removes a {@link GLMediaFrameListener} to this player. */
+    public void removeFrameListener(GLMediaFrameListener l);
+
+    /** Return all {@link GLMediaFrameListener} of this player. */
+    public GLMediaFrameListener[] getFrameListeners();
+
+    /** Sets the {@link SubtitleEventListener} for this player. */
+    public void setSubtitleEventListener(SubtitleEventListener l);
+    /** Returns the {@link #setSubtitleEventListener(SubtitleEventListener)} of this player. */
+    public SubtitleEventListener getSubtitleEventListener();
 
     /**
      * Returns the attached user object for the given name.

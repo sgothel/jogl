@@ -1006,26 +1006,5 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         return vPTS;
     }
-
-    final void pushSound(final ByteBuffer sampleData, final int data_size, final int audio_pts) {
-        if( audioStreamEnabled() ) {
-            audioSink.enqueueData( audio_pts, sampleData, data_size);
-        }
-    }
-    final void pushSubtitleText(final String text, final int pts, final int start_display_pts, final int end_display_pts) {
-        if( null != assEventListener ) {
-            if( start_display_pts > getPTS().get(Clock.currentMillis()) ) {
-                assEventListener.run( new ASSEventLine(ASSEventLine.Format.TEXT, text, start_display_pts, end_display_pts) );
-            }
-        }
-    }
-    final void pushSubtitleASS(final String ass, final int pts, final int start_display_pts, final int end_display_pts) {
-        if( null != assEventListener ) {
-            assEventListener.run( new ASSEventLine(ASSEventLine.Format.FFMPEG, ass, start_display_pts, end_display_pts) );
-        }
-    }
-    final void pushSubtitleTex(final int texID, final int x, final int y, final int width, final int height, final int pts, final int start_display_pts, final int end_display_pts) {
-        // System.err.println("SubTex["+texID+"]: "+x+"/"+y+" "+width+"x"+height+", pts "+pts+" ["+start_display_pts+".."+end_display_pts+"] "+(end_display_pts-start_display_pts+1));
-    }
 }
 

@@ -70,7 +70,6 @@ import com.jogamp.opengl.util.av.GLMediaPlayer.EventMask;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
 import com.jogamp.opengl.util.texture.TextureSequence;
-import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /**
  * Media player {@link Widget}, embedding a {@link MediaButton} and its controls.
@@ -163,9 +162,6 @@ public class MediaPlayer extends Widget {
             mButton.setVerbose(false).addDefaultEventListener().setTextureLetterbox(letterBox);
             mPlayer.setAudioVolume( 0f );
             mPlayer.addEventListener( new GLMediaEventListener() {
-                @Override
-                public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
-
                 @Override
                 public void attributesChanged(final GLMediaPlayer mp, final EventMask eventMask, final long when) {
                     if( DEBUG ) {

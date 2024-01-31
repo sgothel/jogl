@@ -34,7 +34,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
@@ -66,8 +65,12 @@ import com.jogamp.common.util.TSPrinter;
 import com.jogamp.common.util.WorkerThread;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.opengl.GLExtensions;
-import com.jogamp.opengl.util.av.ASSEventListener;
+import com.jogamp.opengl.util.av.SubtitleEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.SubASSEventLine;
+import com.jogamp.opengl.util.av.SubEmptyEvent;
+import com.jogamp.opengl.util.av.SubTextureEvent;
+import com.jogamp.opengl.util.av.SubtitleEvent;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureData;
@@ -199,7 +202,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected AudioSink audioSink = null;
     protected boolean audioSinkPlaySpeedSet = false;
 
-    protected volatile ASSEventListener assEventListener = null;
+    protected volatile SubtitleEventListener subEventListener = null;
 
     /** AV System Clock Reference (SCR) */
     private final PTS av_scr = new PTS( () -> { return State.Playing == state ? playSpeed : 0f; } );
@@ -238,7 +241,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      */
     private boolean isInGLOrientation = false;
 
-    private final ArrayList<GLMediaEventListener> eventListeners = new ArrayList<GLMediaEventListener>();
+    private final ArrayList<GLMediaEventListener> eventListener = new ArrayList<GLMediaEventListener>();
+    private final ArrayList<GLMediaFrameListener> frameListener = new ArrayList<GLMediaFrameListener>();
 
     protected GLMediaPlayerImpl() {
         this.textureCount=0;
@@ -813,7 +817,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         } else {
                             videoFramesFree = new LFRingbuffer<TextureFrame>(videoFramesOrig);
                             videoFramesDecoded = new LFRingbuffer<TextureFrame>(TextureFrame[].class, textureCount);
-                            lastFrame = videoFramesFree.getBlocking( );
+                            lastFrame = videoFramesFree.getBlocking();
                         }
                     } else {
                         videoFramesOrig = null;
@@ -1428,9 +1432,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         if( 0 == frame.getDuration() ) { // patch frame duration if not set already
             frame.setDuration( (int) frame_duration );
         }
-        synchronized(eventListenersLock) {
-            for(final Iterator<GLMediaEventListener> i = eventListeners.iterator(); i.hasNext(); ) {
-                i.next().newFrameAvailable(this, frame, currentMillis);
+        synchronized(frameListenerLock) {
+            final int sz = frameListener.size();
+            for(int i=0; i<sz; ++i) {
+                frameListener.get(i).newFrameAvailable(this, frame, currentMillis);
             }
         }
     }
@@ -1649,6 +1654,51 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private static DefaultGraphicsDevice singleOwner = null;
     private static int singleCount = 0;
 
+    protected final void pushSound(final ByteBuffer sampleData, final int data_size, final int audio_pts) {
+        if( audioStreamEnabled() ) {
+            audioSink.enqueueData( audio_pts, sampleData, data_size);
+        }
+    }
+    protected final void pushSubtitleEmpty(final int start_display_pts, final int end_display_pts) {
+        if( null != subEventListener ) {
+            subEventListener.run( new SubEmptyEvent(start_display_pts, end_display_pts) );
+        }
+    }
+    protected final void pushSubtitleText(final String text, final int start_display_pts, final int end_display_pts) {
+        if( null != subEventListener ) {
+            subEventListener.run( new SubASSEventLine(SubtitleEvent.Format.ASS_TEXT, text, start_display_pts, end_display_pts) );
+        }
+    }
+    protected final void pushSubtitleASS(final String ass, final int start_display_pts, final int end_display_pts) {
+        if( null != subEventListener ) {
+            subEventListener.run( new SubASSEventLine(SubtitleEvent.Format.ASS_FFMPEG, ass, start_display_pts, end_display_pts) );
+        }
+    }
+    private final SubTextureEvent.TextureOwner subTexRelease = new SubTextureEvent.TextureOwner() {
+        @Override
+        public void release(final Texture tex) {
+            if( null != subTexFree && null != tex ) { // put back
+                subTexFree.put(tex);
+            }
+        }
+
+    };
+    protected final void pushSubtitleTex(final Object texObj, final int texID, final int texWidth, final int texHeight,
+                                         final int x, final int y, final int width, final int height,
+                                         final int start_display_pts, final int end_display_pts)
+    {
+        if( null != subEventListener ) {
+            final Texture tex = (Texture)texObj;
+            if( null != tex ) {
+                tex.set(texWidth, texHeight, width, height);
+            }
+            subEventListener.run( new SubTextureEvent(new Vec2i(x, y), new Vec2i(width, height), tex,
+                                                      start_display_pts, end_display_pts, subTexRelease) );
+        } else {
+            subTexRelease.release((Texture)texObj); // release right away
+        }
+    }
+
     protected final GLMediaPlayer.EventMask addStateEventMask(final GLMediaPlayer.EventMask eventMask, final State newState) {
         if( state != newState ) {
             switch( newState ) {
@@ -1675,9 +1725,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             if( DEBUG ) {
                 logout.println("GLMediaPlayer.AttributesChanged: "+eventMask+", state "+state+", when "+now);
             }
-            synchronized(eventListenersLock) {
-                for(final Iterator<GLMediaEventListener> i = eventListeners.iterator(); i.hasNext(); ) {
-                    i.next().attributesChanged(this, eventMask, now);
+            synchronized(eventListenerLock) {
+                final int sz = eventListener.size();
+                for(int i=0; i<sz; ++i) {
+                    eventListener.get(i).attributesChanged(this, eventMask, now);
                 }
             }
         }
@@ -2060,8 +2111,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         if(l == null) {
             return;
         }
-        synchronized(eventListenersLock) {
-            eventListeners.add(l);
+        synchronized(eventListenerLock) {
+            eventListener.add(l);
         }
     }
 
@@ -2070,25 +2121,53 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         if (l == null) {
             return;
         }
-        synchronized(eventListenersLock) {
-            eventListeners.remove(l);
+        synchronized(eventListenerLock) {
+            eventListener.remove(l);
         }
     }
 
     @Override
     public final GLMediaEventListener[] getEventListeners() {
-        synchronized(eventListenersLock) {
-            return eventListeners.toArray(new GLMediaEventListener[eventListeners.size()]);
+        synchronized(eventListenerLock) {
+            return eventListener.toArray(new GLMediaEventListener[eventListener.size()]);
         }
     }
-    private final Object eventListenersLock = new Object();
+    private final Object eventListenerLock = new Object();
 
     @Override
-    public final void setASSEventListener(final ASSEventListener l) {
-        this.assEventListener = l;
+    public final void addFrameListener(final GLMediaFrameListener l) {
+        if(l == null) {
+            return;
+        }
+        synchronized(frameListenerLock) {
+            frameListener.add(l);
+        }
+    }
+
+    @Override
+    public final void removeFrameListener(final GLMediaFrameListener l) {
+        if (l == null) {
+            return;
+        }
+        synchronized(frameListenerLock) {
+            frameListener.remove(l);
+        }
+    }
+
+    @Override
+    public final GLMediaFrameListener[] getFrameListeners() {
+        synchronized(frameListenerLock) {
+            return frameListener.toArray(new GLMediaFrameListener[frameListener.size()]);
+        }
+    }
+    private final Object frameListenerLock = new Object();
+
+    @Override
+    public final void setSubtitleEventListener(final SubtitleEventListener l) {
+        this.subEventListener = l;
     }
     @Override
-    public final ASSEventListener getASSEventListener() { return assEventListener; }
+    public final SubtitleEventListener getSubtitleEventListener() { return subEventListener; }
 
     @Override
     public final Object getAttachedObject(final String name) {

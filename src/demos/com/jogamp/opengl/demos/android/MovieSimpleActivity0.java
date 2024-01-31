@@ -101,9 +101,6 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
        final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
        mPlayer.addEventListener( new GLMediaPlayer.GLMediaEventListener() {
            @Override
-           public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
-
-           @Override
            public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                System.err.println("MovieSimpleActivity0 AttributesChanges: "+eventMask+", when "+when);
                System.err.println("MovieSimpleActivity0 State: "+mp);

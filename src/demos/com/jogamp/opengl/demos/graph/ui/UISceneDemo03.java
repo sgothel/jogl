@@ -762,10 +762,6 @@ public class UISceneDemo03 {
 
     static class MyGLMediaEventListener implements GLMediaEventListener {
             @Override
-            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
-            }
-
-            @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                 System.err.println("MediaPlayer.1 AttributesChanges: "+eventMask+", when "+when);
                 System.err.println("MediaPlayer.1 State: "+mp);

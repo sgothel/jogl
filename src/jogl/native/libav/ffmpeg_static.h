@@ -44,6 +44,7 @@ extern jmethodID ffmpeg_jni_mid_pushSound;
 extern jmethodID ffmpeg_jni_mid_pushSubtitleText;
 extern jmethodID ffmpeg_jni_mid_pushSubtitleASS;
 extern jmethodID ffmpeg_jni_mid_pushSubtitleTex;
+extern jmethodID ffmpeg_jni_mid_pushSubtitleEmpty;
 extern jmethodID ffmpeg_jni_mid_updateAttributes;
 extern jmethodID ffmpeg_jni_mid_setIsGLOriented;
 extern jmethodID ffmpeg_jni_mid_setupFFAttributes;

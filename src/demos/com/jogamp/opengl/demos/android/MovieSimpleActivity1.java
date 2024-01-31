@@ -51,7 +51,6 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
-import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -138,9 +137,6 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
        demoMain.setUseOriginalScale(mPlayerNoZoom);
        mPlayerMain.addEventListener( new GLMediaPlayer.GLMediaEventListener() {
            @Override
-           public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
-
-           @Override
            public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                System.err.println("MovieSimpleActivity1 AttributesChanges: "+eventMask+", when "+when);
                System.err.println("MovieSimpleActivity1 State: "+mp);
@@ -188,9 +184,6 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                        mPlayerSub = demoHUD.getGLMediaPlayer();
                     }
                     mPlayerSub.addEventListener( new GLMediaPlayer.GLMediaEventListener() {
-                       @Override
-                       public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
-
                        @Override
                        public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                            if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {

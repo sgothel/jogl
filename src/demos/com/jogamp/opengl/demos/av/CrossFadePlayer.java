@@ -61,9 +61,6 @@ public class CrossFadePlayer
 		final GLMediaEventListener mediaEventListener = new GLMediaEventListener()
 		{
 			@Override
-			public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
-
-			@Override
 			public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when)
 			{
 				System.out.println("\n***\nAttributesChanges: "+eventMask+", when "+when);

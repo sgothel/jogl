@@ -818,11 +818,6 @@ public class MovieSBSStereo implements StereoGLEventListener {
             void destroyWindow(final Window window) {
                 new InterruptSource.Thread( () -> { window.destroy(); } ).start();
             }
-
-            @Override
-            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
-            }
-
             @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                 System.err.println("MovieSimple AttributesChanges: "+eventMask+", when "+when);

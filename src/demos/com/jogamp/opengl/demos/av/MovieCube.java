@@ -109,9 +109,6 @@ public class MovieCube implements GLEventListener {
 
         mPlayer.addEventListener(new GLMediaEventListener() {
             @Override
-            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
-
-            @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                 System.err.println("MovieCube.0 AttributesChanges: "+eventMask+", when "+when);
                 System.err.println("MovieCube.0 State: "+mp);
@@ -597,10 +594,6 @@ public class MovieCube implements GLEventListener {
         anim.start();
 
         mc.mPlayer.addEventListener(new GLMediaEventListener() {
-            @Override
-            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
-            }
-
             @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask event_mask, final long when) {
                 System.err.println("MovieCube.1 AttributesChanges: events_mask "+event_mask+", when "+when);

@@ -174,11 +174,6 @@ public class MediaButton extends TexSeqButton {
 
     private final GLMediaEventListener defGLMediaEventListener = new GLMediaEventListener() {
             @Override
-            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
-                // texButton.markStateDirty();
-            }
-
-            @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                 if( verbose ) {
                     System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);

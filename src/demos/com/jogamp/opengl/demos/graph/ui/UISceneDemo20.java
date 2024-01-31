@@ -97,7 +97,6 @@ import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 import com.jogamp.opengl.util.texture.ImageSequence;
 import com.jogamp.opengl.util.texture.TextureIO;
-import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 /**
  * Complex interactive GraphUI Scene demo with different Button and Label Shapes layout on the screen.
@@ -708,10 +707,6 @@ public class UISceneDemo20 implements GLEventListener {
                 mPlayer.setAudioVolume( s.isToggleOn() ? 1f : 0f );
             });
             mPlayer.addEventListener( new GLMediaEventListener() {
-                @Override
-                public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
-                }
-
                 @Override
                 public void attributesChanged(final GLMediaPlayer mp, final EventMask eventMask, final long when) {
                     System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);

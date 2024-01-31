@@ -101,10 +101,6 @@ public class MovieCubeActivity0a extends NewtBaseActivity {
            final GLMediaPlayer mPlayer = demoMain.getGLMediaPlayer();
            mPlayer.addEventListener(new GLMediaEventListener() {
                 @Override
-                public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
-                }
-
-                @Override
                 public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                     System.err.println("MovieCubeActivity0 AttributesChanges: "+eventMask+", when "+when);
                     System.err.println("MovieCubeActivity0 State: "+mp);

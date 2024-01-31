@@ -392,9 +392,6 @@ public class MovieSimple implements GLEventListener {
 
         mPlayer.addEventListener(new GLMediaEventListener() {
             @Override
-            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) { }
-
-            @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                 System.err.println("MovieSimple.0 AttributesChanges: "+eventMask+", when "+when);
                 System.err.println("MovieSimple.0 State: "+mp);
@@ -584,11 +581,6 @@ public class MovieSimple implements GLEventListener {
             void destroyWindow(final Window window) {
                 new InterruptSource.Thread( () -> { window.destroy(); } ).start();
             }
-
-            @Override
-            public void newFrameAvailable(final GLMediaPlayer ts, final TextureFrame newFrame, final long when) {
-            }
-
             @Override
             public void attributesChanged(final GLMediaPlayer mp, final GLMediaPlayer.EventMask eventMask, final long when) {
                 System.err.println("MovieSimple.1 AttributesChanges: "+eventMask+", when "+when);
