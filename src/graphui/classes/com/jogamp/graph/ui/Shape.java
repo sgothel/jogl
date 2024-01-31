@@ -224,7 +224,8 @@ public abstract class Shape {
     private final Vec3f scale = new Vec3f(1f, 1f, 1f);
     private final Matrix4f iMat = new Matrix4f();
     private final Matrix4f tmpMat = new Matrix4f();
-    private boolean iMatIdent = true;
+    private volatile boolean iMatIdent = true;
+    private volatile boolean iMatDirty = false;
 
     private volatile int dirty = DIRTY_SHAPE | DIRTY_STATE;
     private final Object dirtySync = new Object();
@@ -406,6 +407,7 @@ public abstract class Shape {
         scale.set(1f, 1f, 1f);
         iMat.loadIdentity();
         iMatIdent = true;
+        iMatDirty = false;
         box.reset();
         mouseListeners.clear();
         keyListeners.clear();
@@ -502,28 +504,28 @@ public abstract class Shape {
     /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. No {@link MoveListener} notification will occur. */
     public final Shape moveTo(final float tx, final float ty, final float tz) {
         position.set(tx, ty, tz);
-        updateMat();
+        iMatDirty = true;
         return this;
     }
 
     /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. No {@link MoveListener} notification will occur. */
     public final Shape moveTo(final Vec3f t) {
         position.set(t);
-        updateMat();
+        iMatDirty = true;
         return this;
     }
 
     /** Move about scaled distance. Position ends up in PMVMatrix4f unmodified. No {@link MoveListener} notification will occur. */
     public final Shape move(final float dtx, final float dty, final float dtz) {
         position.add(dtx, dty, dtz);
-        updateMat();
+        iMatDirty = true;
         return this;
     }
 
     /** Move about scaled distance. Position ends up in PMVMatrix4f unmodified. No {@link MoveListener} notification will occur. */
     public final Shape move(final Vec3f dt) {
         position.add(dt);
-        updateMat();
+        iMatDirty = true;
         return this;
     }
 
@@ -534,7 +536,7 @@ public abstract class Shape {
 
     private final void forwardMove(final Vec3f origin, final Vec3f dest) {
         if( !origin.isEqual(dest) ) {
-            updateMat();
+            iMatDirty = true;
             if( null != onMoveListener ) {
                 onMoveListener.run(this, origin, dest);
             }
@@ -543,15 +545,19 @@ public abstract class Shape {
 
     /**
      * Returns position {@link Vec3f} reference, i.e. scaled translation as set via {@link #moveTo(float, float, float) or {@link #move(float, float, float)}}.
-     * @see #updateMat()
      */
-    public final Vec3f getPosition() { return position; }
+    public final Vec3f getPosition() {
+        iMatDirty = true;
+        return position;
+    }
 
     /**
      * Returns {@link Quaternion} for rotation.
-     * @see #updateMat()
      */
-    public final Quaternion getRotation() { return rotation; }
+    public final Quaternion getRotation() {
+        iMatDirty = true;
+        return rotation;
+    }
 
     /**
      * Sets the rotation {@link Quaternion}.
@@ -559,7 +565,7 @@ public abstract class Shape {
      */
     public final Shape setRotation(final Quaternion q) {
         rotation.set(q);
-        updateMat();
+        iMatDirty = true;
         return this;
     }
 
@@ -575,7 +581,7 @@ public abstract class Shape {
      */
     public final Shape setRotationPivot(final float px, final float py, final float pz) {
         rotPivot = new Vec3f(px, py, pz);
-        updateMat();
+        iMatDirty = true;
         return this;
     }
     /**
@@ -585,7 +591,7 @@ public abstract class Shape {
      */
     public final Shape setRotationPivot(final Vec3f pivot) {
         rotPivot = new Vec3f(pivot);
-        updateMat();
+        iMatDirty = true;
         return this;
     }
 
@@ -596,7 +602,7 @@ public abstract class Shape {
      */
     public final Shape setScale(final Vec3f s) {
         scale.set(s);
-        updateMat();
+        iMatDirty = true;
         return this;
     }
     /**
@@ -606,7 +612,7 @@ public abstract class Shape {
      */
     public final Shape setScale(final float sx, final float sy, final float sz) {
         scale.set(sx, sy, sz);
-        updateMat();
+        iMatDirty = true;
         return this;
     }
     /**
@@ -616,7 +622,7 @@ public abstract class Shape {
      */
     public final Shape scale(final Vec3f s) {
         scale.mul(s);
-        updateMat();
+        iMatDirty = true;
         return this;
     }
     /**
@@ -626,7 +632,7 @@ public abstract class Shape {
      */
     public final Shape scale(final float sx, final float sy, final float sz) {
         scale.mul(sx, sy, sz);
-        updateMat();
+        iMatDirty = true;
         return this;
     }
     /**
@@ -855,6 +861,8 @@ public abstract class Shape {
      * Applies the internal {@link Matrix4f} to the given {@link PMVMatrix4f#getMv() modelview matrix},
      * i.e. {@code pmv.mulMv( getMat() )}.
      * <p>
+     * Calls {@link #updateMat()} if dirty.
+     * </p>
      * In case {@link #isMatIdentity()} is {@code true}, implementation is a no-operation.
      * </p>
      * @param pmv the matrix
@@ -864,36 +872,38 @@ public abstract class Shape {
      * @see PMVMatrix4f#mulMv(Matrix4f)
      */
     public final void applyMatToMv(final PMVMatrix4f pmv) {
+        if( iMatDirty ) {
+            updateMat();
+        }
         if( !iMatIdent ) {
             pmv.mulMv(iMat);
         }
     }
 
     /**
-     * Returns the internal {@link Matrix4f} reference, see {@link #updateMat()}.
+     * Returns the internal {@link Matrix4f} reference.
      * <p>
-     * Using this method renders {@link #isMatIdentity()} {@code false},
-     * since its content is mutable. Use {@link #getMat(Matrix4f) instead if suitable.
+     * Calls {@link #updateMat()} if dirty.
      * </p>
      * @see #getMat(Matrix4f)
-     * @see #isMatIdentity()
      * @see #applyMatToMv(PMVMatrix4f)
      * @see #updateMat()
      */
-    public final Matrix4f getMat() { iMatIdent = false; return iMat; }
+    public final Matrix4f getMat() { if( iMatDirty ) { updateMat(); } return iMat; }
 
     /**
-     * Returns a copy of the internal {@link Matrix4f} to {@code out} see {@link #updateMat()}.
+     * Returns a copy of the internal {@link Matrix4f} to {@code out}.
+     * <p>
+     * Calls {@link #updateMat()} if dirty.
+     * </p>
      * @see #getMat()
-     * @see #isMatIdentity()
      * @see #applyMatToMv(PMVMatrix4f)
      * @see #updateMat()
      */
-    public final Matrix4f getMat(final Matrix4f out) { out.load(iMat); return out; }
+    public final Matrix4f getMat(final Matrix4f out) { if( iMatDirty ) { updateMat(); } out.load(iMat); return out; }
 
     /**
      * Returns true if {@link #getMat()} has not been mutated, i.e. contains identity.
-     * @see #getMat()
      * @see #updateMat()
      */
     public final boolean isMatIdentity() { return iMatIdent; }
@@ -907,12 +917,15 @@ public abstract class Shape {
      * <p>
      * Shape's origin should be bottom-left @ 0/0 to have build-in drag-zoom work properly.
      * </p>
-     * <p>
-     * Usually only used internally after modifying position, scale or rotation.
+     * </p>
+     * Sets {@link #isMatIdentity()} to {@code true} if neither position, scale or rotate is performed, otherwise to {@code false}.
      * </p>
      * <p>
-     * However, after modifying borrowed values via {@link #getPosition()}, {@link #getScale()}, {@link #getRotation()} or {@link #getRotationPivot()}
-     * without any other change thereafter, e.g. {@link #move(Vec3f)}, this method must be called!
+     * Called within {@link #applyMatToMv(PMVMatrix4f)} if internal matrix is dirty.
+     * </p>
+     * <p>
+     * After any mutating operation or borrowing values via {@link #getPosition()}, {@link #getScale()}, {@link #getRotation()} or {@link #getRotationPivot()},
+     * the internal matrix is marked dirty.
      * </p>
      * @see #isMatIdentity()
      * @see #getMat()
@@ -923,23 +936,24 @@ public abstract class Shape {
      * @see #applyMatToMv(PMVMatrix4f)
      */
     public final void updateMat() {
+        final boolean hasPos = !position.isZero();
         final boolean hasScale = !scale.isEqual(Vec3f.ONE);
         final boolean hasRotate = !rotation.isIdentity();
         final boolean hasRotPivot = null != rotPivot;
         final Vec3f ctr = box.getCenter();
         final boolean sameScaleRotatePivot = hasScale && hasRotate && ( !hasRotPivot || rotPivot.isEqual(ctr) );
 
-        iMatIdent = false;
-
-        iMat.setToTranslation(position); // identify + translate, scaled
-
         if( sameScaleRotatePivot ) {
+            iMatIdent = false;
+            iMat.setToTranslation(position); // identity + translate, scaled
             // Scale shape from its center position and rotate around its center
             iMat.translate(ctr.x()*scale.x(), ctr.y()*scale.y(), ctr.z()*scale.z(), tmpMat); // add-back center, scaled
             iMat.rotate(rotation, tmpMat);
             iMat.scale(scale.x(), scale.y(), scale.z(), tmpMat);
             iMat.translate(-ctr.x(), -ctr.y(), -ctr.z(), tmpMat); // move to center
         } else if( hasRotate || hasScale ) {
+            iMatIdent = false;
+            iMat.setToTranslation(position); // identity + translate, scaled
             if( hasRotate ) {
                 if( hasRotPivot ) {
                     // Rotate shape around its scaled pivot
@@ -959,7 +973,15 @@ public abstract class Shape {
                 iMat.scale(scale.x(), scale.y(), scale.z(), tmpMat);
                 iMat.translate(-ctr.x(), -ctr.y(), -ctr.z(), tmpMat); // move to center
             }
+        } else if( hasPos ) {
+            iMatIdent = false;
+            iMat.setToTranslation(position); // identity + translate, scaled
+
+        } else {
+            iMatIdent = true;
+            iMat.loadIdentity();
         }
+        iMatDirty = false;
     }
 
     /**
@@ -1460,6 +1482,14 @@ public abstract class Shape {
     }
 
     public String getSubString() {
+        final String iMatS;
+        if( iMatDirty ) {
+            iMatS = "mat-dirty, ";
+        } else if( iMatIdent ) {
+            iMatS = "mat-ident, ";
+        } else {
+            iMatS = "";
+        }
         final String pivotS;
         if( null != rotPivot ) {
             pivotS = "pivot["+rotPivot+"], ";
@@ -1486,7 +1516,7 @@ public abstract class Shape {
         final String nameS = "noname" != name ? ", '"+name+"'" : "";
         return getDirtyString()+idS+nameS+", visible "+isIO(IO_VISIBLE)+activeS+", toggle "+isIO(IO_TOGGLE)+
                ", able[toggle "+isIO(IO_TOGGLEABLE)+", iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
-               "], pos["+position+"], "+pivotS+scaleS+rotateS+
+               "], pos["+position+"], "+pivotS+scaleS+rotateS+iMatS+
                 ps+bs+"box"+box;
     }
 
