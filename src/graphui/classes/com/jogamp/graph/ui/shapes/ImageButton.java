@@ -61,6 +61,8 @@ public class ImageButton extends TexSeqButton {
         setToggleOnColorMod(0.8f, 0.8f, 0.8f, 1f);
     }
 
+    public ImageSequence getImageSequence() { return (ImageSequence)texSeq; }
+
     public final void setCurrentIdx(final int idx) {
         ((ImageSequence)texSeq).setCurrentIdx(idx);
         markStateDirty();
@@ -69,7 +71,7 @@ public class ImageButton extends TexSeqButton {
     @Override
     public void draw(final GL2ES2 gl, final RegionRenderer renderer) {
         super.draw(gl, renderer);
-        if( !((ImageSequence)texSeq).getManualStepping() ) {
+        if( ((ImageSequence)texSeq).isSequenceAnimating() ) {
             markStateDirty(); // keep on going
         }
     };

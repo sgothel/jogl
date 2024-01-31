@@ -66,14 +66,23 @@ public class ImageSequence implements TextureSequence {
         texWrapST[1] = wrapT;
     }
 
-    public final void addFrame(final GL gl, final Texture tex) {
-        final TextureSequence.TextureFrame frame = new TextureSequence.TextureFrame(tex);
+    public final TextureSequence.TextureFrame addFrame(final GL gl, final Texture tex) {
+        return addFrame(gl, new TextureSequence.TextureFrame(tex));
+    }
+    public final TextureSequence.TextureFrame addFrame(final GL gl, final TextureSequence.TextureFrame frame) {
         frames.add(frame);
-        tex.bind(gl);
+        frame.texture.bind(gl);
         gl.glTexParameteri(getTextureTarget(), GL.GL_TEXTURE_MIN_FILTER, texMinMagFilter[0]);
         gl.glTexParameteri(getTextureTarget(), GL.GL_TEXTURE_MAG_FILTER, texMinMagFilter[1]);
         gl.glTexParameteri(getTextureTarget(), GL.GL_TEXTURE_WRAP_S, texWrapST[0]);
         gl.glTexParameteri(getTextureTarget(), GL.GL_TEXTURE_WRAP_T, texWrapST[1]);
+        return frame;
+    }
+    public boolean removeFrame(final TextureFrame tex) {
+        return frames.remove(tex);
+    }
+    public void removeAllFrames() {
+        frames.clear();
     }
 
     public final void addFrame(final GL gl, final Class<?> context, final String imageResourcePath, final String imageSuffix) throws IOException {
@@ -94,7 +103,10 @@ public class ImageSequence implements TextureSequence {
         frameIdx=idx;
     }
     public final void setManualStepping(final boolean v) { manualStepping = v; }
-    public final boolean getManualStepping() { return manualStepping; }
+    public final boolean isManualStepping() { return manualStepping; }
+
+    /** Returns {@code true} if not {@link #isManualStepping()} and {@link #getFrameCount()} > 1 */
+    public final boolean isSequenceAnimating() { return !manualStepping && frames.size() > 1; }
     public final TextureSequence.TextureFrame getFrame(final int idx) { return frames.get(idx); }
 
     public void destroy(final GL gl) throws GLException {

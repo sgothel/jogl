@@ -115,9 +115,11 @@ public class BaseButton extends GraphShape {
     }
 
     public BaseButton setSize(final float width, final float height) {
-        this.width = width;
-        this.height = height;
-        markShapeDirty();
+        if( this.width != width || this.height != height ) {
+            this.width = width;
+            this.height = height;
+            markShapeDirty();
+        }
         return this;
     }
 

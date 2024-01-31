@@ -122,10 +122,12 @@ public class Rectangle extends GraphShape {
         markShapeDirty();
     }
     public void setDimension(final float width, final float height, final float lineWidth) {
-        this.width = width;
-        this.height = height;
-        this.lineWidth = lineWidth;
-        markShapeDirty();
+        if( this.width != width || this.height != height || this.lineWidth != lineWidth ) {
+            this.width = width;
+            this.height = height;
+            this.lineWidth = lineWidth;
+            markShapeDirty();
+        }
     }
     public void setBounds(final AABBox abox, final float lineWidth) {
         setPosition(abox.getMinX(), abox.getMinY(), abox.getCenter().z());
