@@ -72,6 +72,13 @@ public final class Vec2i {
         return this;
     }
 
+    /** xy[0..1] = this.{x, y}, returns this. */
+    public Vec2i toArray(final int[/*2*/] xy) {
+        xy[0] = this.x;
+        xy[1] = this.y;
+        return this;
+    }
+
     /** xy = this, returns xy. */
     public int[] get(final int[/*2*/] xy) {
         xy[0] = this.x;

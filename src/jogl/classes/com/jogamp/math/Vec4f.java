@@ -99,6 +99,15 @@ public final class Vec4f {
         return this;
     }
 
+    /** xyzw[0..3] = this.{x, y, z, w}, returns this. */
+    public Vec4f toArray(final float[/*4*/] xyzw) {
+        xyzw[0] = this.x;
+        xyzw[1] = this.y;
+        xyzw[2] = this.z;
+        xyzw[3] = this.w;
+        return this;
+    }
+
     /** Sets the ith component, 0 <= i < 4 */
     public void set(final int i, final float val) {
         switch (i) {

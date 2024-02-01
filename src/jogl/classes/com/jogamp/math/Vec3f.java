@@ -115,6 +115,14 @@ public final class Vec3f {
         return this;
     }
 
+    /** xyz[0..2] = this.{x, y, z}, returns this. */
+    public Vec3f toArray(final float[/*3*/] xyz) {
+        xyz[0] = this.x;
+        xyz[1] = this.y;
+        xyz[2] = this.z;
+        return this;
+    }
+
     /** Sets the ith component, 0 <= i < 3 */
     public void set(final int i, final float val) {
         switch (i) {

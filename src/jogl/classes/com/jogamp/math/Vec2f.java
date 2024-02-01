@@ -100,6 +100,13 @@ public final class Vec2f {
         return this;
     }
 
+    /** xy[0..1] = this.{x, y}, returns this. */
+    public Vec2f toArray(final float[/*2*/] xy) {
+        xy[0] = this.x;
+        xy[1] = this.y;
+        return this;
+    }
+
     /** Sets the ith component, 0 <= i < 2 */
     public void set(final int i, final float val) {
         switch (i) {
