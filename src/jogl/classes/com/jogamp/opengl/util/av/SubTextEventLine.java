@@ -28,12 +28,25 @@
 package com.jogamp.opengl.util.av;
 
 /**
- * ASS/SAA Event Line of {@link SubtitleEvent}
+ * Text Event Line including ASS/SAA of {@link SubtitleEvent}
  * <p>
  * See http://www.tcax.org/docs/ass-specs.htm
  * </p>
  */
-public class SubASSEventLine extends SubtitleEvent {
+public class SubTextEventLine extends SubtitleEvent {
+    public enum Format {
+        /** Denoting {@link SubASSEventLine} using FFMpeg output w/o start, end:
+         * <pre>
+           0    1      2      3     4        5        6        7       8
+           Seq, Layer, Style, Name, MarginL, MarginR, MarginV, Effect, TEXT
+         * </pre>
+         */
+        ASS_FFMPEG,
+        /** Denoting {@link SubASSEventLine}, just the plain text part */
+        TEXT,
+    };
+    /** {@link Format} of this text subtitle event. */
+    public final Format format;
     public final int seqnr;
     public final int layer;
     public final String style;
@@ -45,13 +58,15 @@ public class SubASSEventLine extends SubtitleEvent {
 
     /**
      * ASS/SAA Event Line ctor
-     * @param fmt input format of {@code ass}, currently only {@link SubASSEventLine.Format#ASS_FFMPEG} and {@link SubASSEventLine.Format#ASS_TEXT} is supported
+     * @param codec the {@link CodecID}
+     * @param fmt input format of {@code ass}, currently only {@link SubTextEventLine.Format#ASS_FFMPEG} and {@link SubTextEventLine.Format#TEXT} is supported
      * @param ass ASS/SAA compatible event line according to {@code fmt}
-     * @param pts_start pts start in ms, provided for {@link SubASSEventLine.Format#ASS_FFMPEG} and {@link SubASSEventLine.Format#ASS_TEXT}
-     * @param pts_end pts end in ms, provided for {@link SubASSEventLine.Format#ASS_FFMPEG} and {@link SubASSEventLine.Format#ASS_TEXT}
+     * @param pts_start pts start in ms, provided for {@link SubTextEventLine.Format#ASS_FFMPEG} and {@link SubTextEventLine.Format#TEXT}
+     * @param pts_end pts end in ms, provided for {@link SubTextEventLine.Format#ASS_FFMPEG} and {@link SubTextEventLine.Format#TEXT}
      */
-    public SubASSEventLine(final Format fmt, final String ass, final int pts_start, final int pts_end) {
-        super(fmt, pts_start, pts_end);
+    public SubTextEventLine(final CodecID codec, final Format fmt, final String ass, final int pts_start, final int pts_end) {
+        super(codec, pts_start, pts_end);
+        this.format = fmt;
         int seqnr = 0;
         int layer = 0;
         String style = "Default";
@@ -87,7 +102,7 @@ public class SubASSEventLine extends SubtitleEvent {
                 }
                 ++part;
             }
-        } else if( Format.ASS_TEXT == fmt ) {
+        } else if( Format.TEXT == fmt ) {
             text = ass;
         }
         this.seqnr = seqnr;
@@ -111,10 +126,17 @@ public class SubASSEventLine extends SubtitleEvent {
     }
 
     @Override
+    public final boolean isTextASS() { return true; }
+    @Override
+    public final boolean isBitmap() { return false; }
+    @Override
+    public final boolean isEmpty() { return false; }
+
+    @Override
     public void release() {} // nothing to be released back to the owner
 
     @Override
     public String toString() {
-        return getStartString()+", #"+seqnr+", l_"+layer+", style "+style+", name '"+name+"': '"+text+"' ("+lines+")]";
+        return getStartString()+", "+format+", #"+seqnr+", l_"+layer+", style "+style+", name '"+name+"': '"+text+"' ("+lines+")]";
     }
 }

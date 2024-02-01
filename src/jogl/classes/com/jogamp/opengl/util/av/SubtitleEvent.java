@@ -8,38 +8,22 @@ package com.jogamp.opengl.util.av;
  * </p>
  */
 public abstract class SubtitleEvent {
-    public enum Format {
-        /** Denoting an {@link SubEmptyEvent}, usually used for PGS bitmap subtitle signaling end of previous {@link SubTextureEvent}. */
-        EMPTY,
-        /** Denoting {@link SubASSEventLine} using FFMpeg output w/o start, end:
-         * <pre>
-           0    1      2      3     4        5        6        7       8
-           Seq, Layer, Style, Name, MarginL, MarginR, MarginV, Effect, TEXT
-         * </pre>
-         */
-        ASS_FFMPEG,
-        /** Denoting {@link SubASSEventLine}, just the plain text part */
-        ASS_TEXT,
-        /** Denoting {@link SubTextureEvent}, a bitmap'ed subtitle requiring a texture */
-        TEXTURE
-    };
-
-    /** {@link Format} of this subtitle event. */
-    public final Format type;
+    /** {@link CodecID} of this subtitle event. */
+    public final CodecID codec;
     /** PTS start time to start showing this subtitle event. */
     public final int pts_start;
     /**
      * PTS start time to end showing this subtitle event.
      * <p>
-     * PGS {@link SubTextureEvent} have an infinite end-time, i.e. ({@link Integer#MAX_VALUE},
+     * {@link SubBitmapEvent} often (e.g. {@link CodecID#HDMV_PGS}) have an infinite end-time, i.e. ({@link Integer#MAX_VALUE},
      * and shall be overwritten by the next one or {@link SubEmptyEvent}.
      * </p>
      * @see #isEndDefined()
      */
     public final int pts_end;
 
-    public SubtitleEvent(final Format fmt, final int pts_start, final int pts_end) {
-        this.type = fmt;
+    public SubtitleEvent(final CodecID codec, final int pts_start, final int pts_end) {
+        this.codec = codec;
         this.pts_start = pts_start;
         this.pts_end = pts_end;
     }
@@ -52,13 +36,16 @@ public abstract class SubtitleEvent {
     /** See {@link #pts_end}. */
     public final boolean isEndDefined() { return pts_end < Integer.MAX_VALUE; }
 
-    public final boolean isASS() { return Format.ASS_FFMPEG == type || Format.ASS_TEXT == type; }
-    public final boolean isTexture() { return Format.TEXTURE == type; }
-    public final boolean isEmpty() { return Format.EMPTY == type; }
+    /** Returns {@code true} if Text/ASS/SAA subtitle type, o.e. {@link SubTextEvent}. */
+    public abstract boolean isTextASS();
+    /** Returns {@code true} if bitmap subtitle type, o.e. {@link SubBitmapEvent}. */
+    public abstract boolean isBitmap();
+    /** Returns {@code true} if empty subtitle type, o.e. {@link SubEmptyEvent}. */
+    public abstract boolean isEmpty();
 
     public final String getStartString() {
         final boolean ied = isEndDefined();
-        return "Sub["+type+", ["+pts_start+".."+(ied?pts_end:"undef")+"] "+(ied?getDuration():"undef")+" ms";
+        return "Sub["+codec+", ["+pts_start+".."+(ied?pts_end:"undef")+"] "+(ied?getDuration():"undef")+" ms";
     }
 
 

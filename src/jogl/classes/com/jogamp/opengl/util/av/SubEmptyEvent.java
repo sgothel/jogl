@@ -27,15 +27,22 @@
  */
 package com.jogamp.opengl.util.av;
 
-/** Empty {@link SubtitleEvent}, used for PGS bitmap subtitle signaling end of previous {@link SubTextureEvent}. */
+/** Empty {@link SubtitleEvent}, used for bitmap subtitle signaling end of previous {@link SubBitmapEvent}, e.g. {@link CodecID#HDMV_PGS}. */
 public class SubEmptyEvent extends SubtitleEvent {
 
     /**
      * Empty event ctor
      */
     public SubEmptyEvent(final int pts_start, final int pts_end) {
-        super(Format.EMPTY, pts_start, pts_end);
+        super(CodecID.NONE, pts_start, pts_end);
     }
+
+    @Override
+    public final boolean isTextASS() { return false; }
+    @Override
+    public final boolean isBitmap() { return false; }
+    @Override
+    public final boolean isEmpty() { return true; }
 
     @Override
     public void release() {} // nothing to be released back to the owner

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 JogAmp Community. All rights reserved.
+ * Copyright 2013-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,9 +25,9 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.util.av;
+package com.jogamp.opengl.util.av;
 
-/** FFMPEG/libAV compatible video pixel format */
+/** FFmpeg/libAV compatible video pixel format */
 public enum VideoPixelFormat {
     // NONE= -1,
     /** planar YUV 4:2:0, 12bpp, (1 Cr & Cb sample per 2x2 Y samples) */

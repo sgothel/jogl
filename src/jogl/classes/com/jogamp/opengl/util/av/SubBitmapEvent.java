@@ -31,12 +31,12 @@ import com.jogamp.math.Vec2i;
 import com.jogamp.opengl.util.texture.Texture;
 
 /**
- * {@link Texture} event of {@link SubtitleEvent}
+ * Bitmap {@link Texture} event of {@link SubtitleEvent}
  * <p>
  * Consider {@link SubtitleEvent#pts_end} and {@link SubEmptyEvent}.
  * </p>
  */
-public class SubTextureEvent extends SubtitleEvent {
+public class SubBitmapEvent extends SubtitleEvent {
     /** To be implemented by the {@link Texture} owner to release the texture. */
     public static interface TextureOwner {
         /** The given {@link Texture} is to be released by the owner. */
@@ -52,20 +52,29 @@ public class SubTextureEvent extends SubtitleEvent {
 
     /**
      * Texture Event ctor
+     * @param codec the {@link CodecID}
      * @param pos texture position
      * @param dim texture dimension
      * @param tex the {@link Texture} or {@code null} if unused
-     * @param pts_start pts start in ms, provided for {@link SubTextureEvent.Format#ASS_FFMPEG} and {@link SubTextureEvent.Format#ASS_TEXT}
-     * @param pts_end pts end in ms, provided for {@link SubTextureEvent.Format#ASS_FFMPEG} and {@link SubTextureEvent.Format#ASS_TEXT}
+     * @param pts_start pts start in ms
+     * @param pts_end pts end in ms, often {@link #isEndDefined()} for bitmap'ed types see {@link #pts_end}
      * @param owner {@link Texture} owner code-stub to release the texture
      */
-    public SubTextureEvent(final Vec2i pos, final Vec2i dim, final Texture tex, final int pts_start, final int pts_end, final TextureOwner owner) {
-        super(Format.TEXTURE, pts_start, pts_end);
+    public SubBitmapEvent(final CodecID codec, final Vec2i pos, final Vec2i dim, final Texture tex, final int pts_start, final int pts_end, final TextureOwner owner) {
+        super(codec, pts_start, pts_end);
         position = pos;
         dimension = dim;
         texture = tex;
         this.owner = owner;
     }
+
+    @Override
+    public final boolean isTextASS() { return false; }
+    @Override
+    public final boolean isBitmap() { return true; }
+    @Override
+    public final boolean isEmpty() { return false; }
+
     /**
      * {@inheritDoc}
      * <p>
