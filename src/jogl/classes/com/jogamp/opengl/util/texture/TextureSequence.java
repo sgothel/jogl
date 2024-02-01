@@ -33,6 +33,8 @@ import com.jogamp.opengl.GLRunnable;
 import com.jogamp.opengl.GLEventListener;
 
 import com.jogamp.common.av.TimeFrameI;
+import com.jogamp.graph.curve.Region;
+import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
 
 /**
@@ -173,6 +175,66 @@ public interface TextureSequence {
     public int[] getTextureMinMagFilter();
 
     public int[] getTextureWrapST();
+
+    /**
+     * Returning {@code true} indicates texture correction for aspect-ratio in the shader.
+     * Graph's {@link Region} shader will utilize {@link #setTexCoordBBox(Texture, AABBox, boolean, float[], boolean)}
+     * for texture-coordinate bounding-box calculation.
+     * <p>
+     * Returning {@code false} indicates no correction for aspect-ratio in the shader.
+     * Graph's {@link Region} shader will utilize {@link #setTexCoordBBoxSimple(Texture, AABBox, float[], boolean)}
+     * for texture-coordinate bounding-box calculation.
+     * </p>
+     * <p>
+     * Default value is implementation specific
+     * and toggling is optional.
+     * </p>
+     * @see #setTexCoordBBox(Texture, AABBox, boolean, float[], boolean)
+     * @see #setTexCoordBBoxSimple(Texture, AABBox, float[], boolean)
+     * @see #useARatioLetterbox()
+     */
+    public boolean useARatioAdjustment();
+
+    /**
+     * Toggles {@link #useARatioLetterbox()}.
+     * <p>
+     * Default value is implementation specific
+     * and toggling is optional.
+     * </p>
+     * @see #useARatioLetterbox()
+     * @see #useARatioAdjustment()
+     */
+    public void setARatioAdjustment(final boolean v);
+
+    /**
+     * Returns whether {@link #useARatioAdjustment()} shall add letter-box space to match aspect-ratio, otherwise it will be zoomed in.
+     * <p>
+     * Default value is implementation specific
+     * and toggling is optional.
+     * </p>
+     * @see #useARatioAdjustment()
+     * @see #setARatioLetterbox(boolean, Vec4f)
+     */
+    public boolean useARatioLetterbox();
+
+    /** Returns {@link #useARatioLetterbox()} background color for added letter-box space, defaults to transparent zero. */
+    public Vec4f getARatioLetterboxBackColor();
+
+    /**
+     * Toggles {@link #useARatioLetterbox()}.
+     * <p>
+     * Default value is implementation specific
+     * and toggling is optional.
+     * </p>
+     * <p>
+     * Impacts only if {@link #useARatioAdjustment()} returns {@code true}.
+     * </p>
+     * @param v new value for {@link #useARatioLetterbox()}
+     * @param backColor optional background color for added letter-box space, defaults to transparent zero
+     * @see #useARatioLetterbox()
+     * @see #useARatioAdjustment()
+     */
+    public void setARatioLetterbox(final boolean v, Vec4f backColor);
 
     /**
      * Returns true if texture source is ready <i>and</i> a texture is available
@@ -319,12 +381,50 @@ public interface TextureSequence {
     public int getTextureFragmentShaderHashCode();
 
     /**
+     * Calculates the texture coordinates bounding box w/o correcting aspect-ratio.
+     * @param tex the {@link Texture}
+     * @param box the {@Link AABBox} of the destination
+     * @param colorTexBBox destination float[6] array for the following three texture-coordinate tuples: minX/minY, maxX/maxY, texW/texH
+     * @param verbose TODO
+     * @see #useARatioAdjustment()
+     */
+    public static void setTexCoordBBoxSimple(final Texture tex, final AABBox box, final float[] colorTexBBox, final boolean verbose) {
+        final TextureCoords tc = tex.getImageTexCoords();
+        final float tcW = tc.right() - tc.left();
+        final float tcH;
+        colorTexBBox[0] = box.getMinX() / tcW;
+        colorTexBBox[2] = box.getMaxX() / tcW;
+        if( tex.getMustFlipVertically() ) {
+            tcH = tc.bottom() - tc.top();
+            colorTexBBox[1] = box.getMaxY() / tcH;
+            colorTexBBox[3] = box.getMinY() / tcH;
+        } else {
+            tcH = tc.top() - tc.bottom();
+            colorTexBBox[1] = box.getMinY() / tcH;
+            colorTexBBox[3] = box.getMaxY() / tcH;
+        }
+        colorTexBBox[4] = tcW;
+        colorTexBBox[5] = tcH;
+        if( verbose ) {
+            final float colorTexBBoxW = colorTexBBox[2] - colorTexBBox[0];
+            final float colorTexBBoxH = colorTexBBox[3] - colorTexBBox[1];
+            System.err.println("XXX setTexCoordBBoxSimple:");
+            System.err.println("XXX ColorTex "+tex);
+            System.err.println("XXX ColorTexBBox min "+colorTexBBox[0]+"/"+colorTexBBox[1]+", max "+colorTexBBox[2]+"/"+colorTexBBox[3]+
+                    ", dim "+colorTexBBoxW+" x "+colorTexBBoxH+
+                    ", tc-dim "+tcW+" x "+tcH+", tc "+tc);
+        }
+
+    }
+
+    /**
      * Calculates the texture coordinates bounding box while correcting for aspect-ratio.
      * @param tex the {@link Texture}
      * @param box the {@Link AABBox} of the destination
      * @param letterBox true to produce letter-box space to match aspect-ratio, otherwise will zoom in
      * @param colorTexBBox destination float[6] array for the following three texture-coordinate tuples: minX/minY, maxX/maxY, texW/texH
      * @param verbose TODO
+     * @see #useARatioAdjustment()
      */
     public static void setTexCoordBBox(final Texture tex, final AABBox box, final boolean letterBox, final float[] colorTexBBox, final boolean verbose) {
         final TextureCoords tc = tex.getImageTexCoords();
@@ -334,6 +434,7 @@ public interface TextureSequence {
         final float tcW = tc.right() - tc.left();
         final float tcH;
         float boxWidthCut=0, boxHeightCut=0, boxWidthExt=0, boxHeightExt=0;
+
         if( box2ImgRatio >= 1.0f ) {
             if( letterBox ) {
                 boxWidthCut = box.getWidth() * ( 1f - 1f / box2ImgRatio );

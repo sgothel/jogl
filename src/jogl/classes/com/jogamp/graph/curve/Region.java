@@ -150,28 +150,15 @@ public abstract class Region {
     /**
      * Rendering-Mode bit for {@link #getRenderModes() Region}
      * <p>
-     * If set, a color texture is used to determine the color.
+     * If set, a color texture is used to determine the color via {#link TextureSequence} passed to implementation, e.g. GLRegion.
      * </p>
      * <p>
      * This mode-bit is a shader-key.
      * </p>
-     * @see #COLORTEXTURE_LETTERBOX_RENDERING_BIT
+     * @see TextureSequence#useARatioAdjustment()
+     * @see TextureSequence#useARatioLetterbox()
      */
     public static final int COLORTEXTURE_RENDERING_BIT = 1 <<  10;
-
-    /**
-     * Rendering-Mode bit for {@link #getRenderModes() Region}
-     * <p>
-     * If set, a used {@link #COLORTEXTURE_RENDERING_BIT} color texture is added letter-box space to match aspect-ratio, otherwise it will be zoomed in.
-     * </p>
-     * <p>
-     * This mode-bit is not a shader-key.
-     * </p>
-     * <p>
-     * Note that {@link #COLORTEXTURE_RENDERING_BIT} must also be set to even enable color texture.
-     * </p>
-     */
-    public static final int COLORTEXTURE_LETTERBOX_RENDERING_BIT = 1 <<  11;
 
     /** Minimum pass2 AA-quality rendering {@value} for Graph Region AA {@link Region#getRenderModes() render-modes}: {@link #VBAA_RENDERING_BIT}. */
     public static final int MIN_AA_QUALITY  = 0;
@@ -254,11 +241,6 @@ public abstract class Region {
         return 0 != (renderModes & Region.COLORTEXTURE_RENDERING_BIT);
     }
 
-    /** Returns true if given {@code renderModes} has {@link Region#COLORTEXTURE_LETTERBOX_RENDERING_BIT} set. */
-    public static boolean isColorTextureLetterbox(final int renderModes) {
-        return 0 != ( renderModes & Region.COLORTEXTURE_LETTERBOX_RENDERING_BIT );
-    }
-
     /**
      * Returns a unique technical description string for renderModes as follows:
      * <pre>
@@ -271,11 +253,7 @@ public abstract class Region {
         final String cChanS = hasColorChannel(renderModes) ? "-cols" : "";
         final String cTexS;
         if( hasColorTexture(renderModes) ) {
-            if( Region.isColorTextureLetterbox(renderModes) ) {
-                cTexS = "-ctex_lbox";
-            } else {
-                cTexS = "-ctex_zoom";
-            }
+            cTexS = "-ctex";
         } else {
             cTexS = "";
         }
@@ -418,11 +396,6 @@ public abstract class Region {
      */
     public final boolean hasColorTexture() {
         return Region.hasColorTexture(renderModes);
-    }
-
-    /** Returns true if given {@code renderModes} has {@link Region#COLORTEXTURE_LETTERBOX_RENDERING_BIT} set. */
-    public final boolean isColorTextureLetterbox() {
-        return Region.isColorTextureLetterbox(renderModes);
     }
 
     /** See {@link #setFrustum(Frustum)} */

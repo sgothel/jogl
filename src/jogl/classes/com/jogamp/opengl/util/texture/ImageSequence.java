@@ -37,6 +37,7 @@ import com.jogamp.opengl.GLException;
 import com.jogamp.opengl.GLProfile;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.math.Vec4f;
 
 /**
  * Simple {@link TextureSequence} implementation
@@ -53,6 +54,9 @@ public class ImageSequence implements TextureSequence {
     private volatile int frameIdx = 0;
     private volatile boolean manualStepping = false;
     private int textureFragmentShaderHashCode = 0;
+    private boolean aRatioAdjustment = true;
+    private boolean aRatioLbox = false;
+    private final Vec4f aRatioLboxBackColor = new Vec4f();
 
     public ImageSequence(final int textureUnit, final boolean useBuildInTexLookup) {
         this.textureUnit = textureUnit;
@@ -135,6 +139,50 @@ public class ImageSequence implements TextureSequence {
     public int[] getTextureWrapST() {
         return texWrapST;
     }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Defaults to {@code true} and toggling is supported via {@link #setARatioAdjustment(boolean)}
+     * </p>
+     */
+    @Override
+    public boolean useARatioAdjustment() { return aRatioAdjustment; }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Defaults to {@code true}.
+     * </p>
+     */
+    @Override
+    public void setARatioAdjustment(final boolean v) { aRatioAdjustment = v; }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Defaults to {@code false} and toggling is supported via {@link #setARatioLetterbox(boolean, Vec4f)}
+     * </p>
+     */
+    @Override
+    public boolean useARatioLetterbox() { return aRatioLbox; }
+
+    @Override
+    public Vec4f getARatioLetterboxBackColor() { return aRatioLboxBackColor; }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Defaults to {@code false}.
+     * </p>
+     */
+    @Override
+    public void setARatioLetterbox(final boolean v, final Vec4f backColor) {
+        aRatioLbox = v;
+        if( null != backColor ) {
+            aRatioLboxBackColor.set(backColor);
+        }
+    };
 
     @Override
     public boolean isTextureAvailable() { return frames.size() > 0; }

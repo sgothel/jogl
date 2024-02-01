@@ -6,6 +6,7 @@ public class UniformNames {
     public static final String gcu_Weight = "gcu_Weight";
     public static final String gcu_ColorTexUnit = "gcu_ColorTexUnit";
     public static final String gcu_ColorTexBBox = "gcu_ColorTexBBox";
+    public static final String gcu_ColorTexClearCol = "gcu_ColorTexClearCol";
     public static final String gcu_ClipFrustum = "gcu_ClipFrustum";
 
     public static final String gcu_PMVMatrix02 = "gcu_PMVMatrix02"; // gcu_PMVMatrix[3]; // P, Mv, and Mvi

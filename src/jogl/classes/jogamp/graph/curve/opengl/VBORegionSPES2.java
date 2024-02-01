@@ -40,6 +40,7 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.Frustum;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.texture.Texture;
@@ -52,6 +53,8 @@ public final class VBORegionSPES2 extends GLRegion {
     private final GLUniformData gcu_ColorTexUnit;
     private final float[] colorTexBBox; // minX/minY, maxX/maxY, texW/texH
     private final GLUniformData gcu_ColorTexBBox; // vec2 gcu_ColorTexBBox[3] -> boxMin[2], boxMax[2] and texSize[2]
+    private final float[] colorTexClearCol;
+    private final GLUniformData gcu_ColorTexClearCol; // vec4 gcu_ColorTexClearCol
     private final float[/* 4*6 */] clipFrustum; // 6 frustum planes, each [n.x, n.y. n.z, d]
     private final GLUniformData gcu_ClipFrustum; // uniform vec4  gcu_ClipFrustum[6]; // L, R, B, T, N, F
     private ShaderProgram spPass1 = null;
@@ -69,10 +72,14 @@ public final class VBORegionSPES2 extends GLRegion {
             gcu_ColorTexUnit = new GLUniformData(UniformNames.gcu_ColorTexUnit, colorTexSeq.getTextureUnit());
             colorTexBBox = new float[6];
             gcu_ColorTexBBox = new GLUniformData(UniformNames.gcu_ColorTexBBox, 2, FloatBuffer.wrap(colorTexBBox));
+            colorTexClearCol = new float[4];
+            gcu_ColorTexClearCol = new GLUniformData(UniformNames.gcu_ColorTexClearCol, 4, FloatBuffer.wrap(colorTexClearCol));
         } else {
             gcu_ColorTexUnit = null;
             colorTexBBox = null;
             gcu_ColorTexBBox = null;
+            colorTexClearCol = null;
+            gcu_ColorTexClearCol = null;
         }
         clipFrustum = new float[4*6];
         gcu_ClipFrustum = new GLUniformData(UniformNames.gcu_ClipFrustum, 4, FloatBuffer.wrap(clipFrustum));
@@ -95,7 +102,12 @@ public final class VBORegionSPES2 extends GLRegion {
         vpc_ileave.seal(gl, true);
         vpc_ileave.enableBuffer(gl, false);
         if( hasColorTexture && null != gcu_ColorTexUnit && colorTexSeq.isTextureAvailable() ) {
-            TextureSequence.setTexCoordBBox(colorTexSeq.getLastTexture().getTexture(), box, isColorTextureLetterbox(), colorTexBBox, false);
+            if( colorTexSeq.useARatioAdjustment() ) {
+                TextureSequence.setTexCoordBBox(colorTexSeq.getLastTexture().getTexture(), box, colorTexSeq.useARatioLetterbox(), colorTexBBox, false);
+            } else {
+                TextureSequence.setTexCoordBBoxSimple(colorTexSeq.getLastTexture().getTexture(), box, colorTexBBox, false);
+            }
+            colorTexSeq.getARatioLetterboxBackColor().toArray(colorTexClearCol);
         }
         indicesBuffer.seal(gl, true);
         indicesBuffer.enableBuffer(gl, false);
@@ -147,6 +159,7 @@ public final class VBORegionSPES2 extends GLRegion {
         if( hasColorTexture && null != gcu_ColorTexUnit ) {
             rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexUnit, throwOnError);
             rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexBBox, throwOnError);
+            rs.updateUniformLoc(gl, updateLocLocal, gcu_ColorTexClearCol, throwOnError);
         }
     }
 
@@ -187,6 +200,7 @@ public final class VBORegionSPES2 extends GLRegion {
             gcu_ColorTexUnit.setData(colorTexSeq.getTextureUnit());
             gl.glUniform(gcu_ColorTexUnit); // Always update, since program maybe used by multiple regions
             gl.glUniform(gcu_ColorTexBBox); // Always update, since program maybe used by multiple regions
+            gl.glUniform(gcu_ColorTexClearCol); // Always update, since program maybe used by multiple regions
             gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
             // gl.glDrawElements(GL.GL_LINE_STRIP, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), gl_idx_type, 0);
             tex.disable(gl); // nop on core

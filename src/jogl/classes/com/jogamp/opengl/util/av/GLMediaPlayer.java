@@ -456,6 +456,48 @@ public interface GLMediaPlayer extends TextureSequence {
     public void setTextureWrapST(int[] wrapST);
 
     /**
+     * {@inheritDoc}
+     * <p>
+     * Defaults to {@code true} and toggling not supported.
+     * </p>
+     */
+    @Override
+    public boolean useARatioAdjustment();
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Defaults to {@code true} and toggling is not supported.
+     * </p>
+     */
+    @Override
+    public void setARatioAdjustment(final boolean v);
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Defaults to {@code false} and toggling is supported via {@link #setARatioLetterbox(boolean, Vec4f)}
+     * </p>
+     */
+    @Override
+    public boolean useARatioLetterbox();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Vec4f getARatioLetterboxBackColor();
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Defaults to {@code false}.
+     * </p>
+     */
+    @Override
+    public void setARatioLetterbox(final boolean v, Vec4f backColor);
+
+    /**
      * Limit maximum supported audio channels by user.
      * <p>
      * Must be set before {@link #playStream(Uri, int, int, int, int)}

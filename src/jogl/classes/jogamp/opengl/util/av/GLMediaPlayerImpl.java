@@ -118,6 +118,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     private final int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
     private final int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
+    private boolean aRatioLbox = false;
+    private final Vec4f aRatioLboxBackColor = new Vec4f();
 
     /** User requested URI stream location. */
     private Uri streamLoc;
@@ -1030,6 +1032,26 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected void destroyTexFrame(final GL gl, final TextureFrame frame) {
         frame.getTexture().destroy(gl);
     }
+
+    @Override
+    public final boolean useARatioAdjustment() { return true; }
+
+    @Override
+    public void setARatioAdjustment(final boolean v) { } // intentionally not supported
+
+    @Override
+    public final boolean useARatioLetterbox() { return aRatioLbox; }
+
+    @Override
+    public Vec4f getARatioLetterboxBackColor() { return aRatioLboxBackColor; }
+
+    @Override
+    public void setARatioLetterbox(final boolean v, final Vec4f backColor) {
+        aRatioLbox = v;
+        if( null != backColor ) {
+            aRatioLboxBackColor.set(backColor);
+        }
+    };
 
     @Override
     public final boolean isTextureAvailable() {

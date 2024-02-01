@@ -9,6 +9,7 @@ uniform float   gcu_Weight;
 
 #ifdef USE_COLOR_TEXTURE
     uniform vec2  gcu_ColorTexBBox[3]; // box-min[2], box-max[2] and tex-size[2] 
+    uniform vec4  gcu_ColorTexClearCol; // clear color for gcu_ColorTexBBox clipping 
 #endif
 #ifdef USE_FRUSTUM_CLIPPING
     uniform vec4  gcu_ClipFrustum[6]; // L, R, B, T, N, F each {n.x, n.y, n.z, d} 

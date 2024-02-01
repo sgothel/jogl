@@ -32,6 +32,7 @@ import com.jogamp.opengl.GLProfile;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.ui.GraphShape;
+import com.jogamp.math.Vec4f;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
@@ -56,17 +57,41 @@ public abstract class TexSeqButton extends BaseButton {
     public final TextureSequence getTextureSequence() { return this.texSeq; }
 
     /**
-     * Sets a renderMode {@link Region#COLORTEXTURE_LETTERBOX_RENDERING_BIT} on or off.
+     * See {@link TextureSequence#setARatioAdjustment(boolean)}.
      * @return this instance for chaining
      */
-    public TexSeqButton setTextureLetterbox(final boolean v) {
-        if( getTextureLetterbox() != v ) {
-            renderModes = Region.setRenderMode(renderModes, Region.COLORTEXTURE_LETTERBOX_RENDERING_BIT, v);
+    public TexSeqButton setARatioAdjustment(final boolean v) {
+        if( useARatioAdjustment() != v ) {
+            texSeq.setARatioAdjustment(v);
             markShapeDirty();
         }
         return this;
     }
-    public boolean getTextureLetterbox() { return Region.isColorTextureLetterbox(renderModes); }
+    /**
+     * See {@link TextureSequence#useARatioAdjustment()}.
+     */
+    public boolean useARatioAdjustment() { return texSeq.useARatioAdjustment(); }
+
+    /**
+     * See {@link TextureSequence#setARatioLetterbox(boolean, Vec4f)}.
+     * @param v new value for {@link #useARatioLetterbox()}
+     * @param backColor optional background color for added letter-box space, defaults to transparent zero
+     * @return this instance for chaining
+     */
+    public TexSeqButton setARatioLetterbox(final boolean v, final Vec4f backColor) {
+        if( useAspectRatioLetterbox() != v ) {
+            texSeq.setARatioLetterbox(v, backColor);
+            markShapeDirty();
+        }
+        return this;
+    }
+    /**
+     * See {@link TextureSequence#useARatioLetterbox()}.
+     */
+    public boolean useAspectRatioLetterbox() { return texSeq.useARatioLetterbox(); }
+
+    /** See {@link TextureSequence#getARatioLetterboxBackColor()}. */
+    public Vec4f getARatioLetterboxBackColor() { return texSeq.getARatioLetterboxBackColor(); }
 
     @Override
     protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
