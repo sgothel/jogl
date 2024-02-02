@@ -37,6 +37,8 @@ public final class Alignment {
     public static final Alignment None = new Alignment();
     /** {@link Bit#CenterHoriz} and {@link Bit#CenterVert} alignment constant. */
     public static final Alignment Center = new Alignment(Alignment.Bit.CenterHoriz.value | Alignment.Bit.CenterVert.value );
+    /** {@link Bit#CenterHoriz} alignment constant. */
+    public static final Alignment CenterHoriz = new Alignment(Alignment.Bit.CenterHoriz.value );
     /** {@link Bit#Fill} alignment constant. */
     public static final Alignment Fill = new Alignment(Alignment.Bit.Fill.value);
     /** {@link Bit#Fill}, {@link Bit#CenterHoriz} and {@link Bit#CenterVert} alignment constant. */

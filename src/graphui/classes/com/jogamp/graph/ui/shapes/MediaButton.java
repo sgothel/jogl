@@ -41,6 +41,7 @@ import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.Scene;
+import com.jogamp.graph.ui.layout.Alignment;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
@@ -81,7 +82,8 @@ public class MediaButton extends TexSeqButton {
     private final float subZOffset;
     private boolean subEnabled;
     private float subLineHeightPct;
-    private float subLineDY = 0.25f;
+    private float subLineDY;
+    private Alignment subAlignment;
     private final Rectangle subBlend;
     private final ImageButton subTexImg;
 
@@ -93,6 +95,8 @@ public class MediaButton extends TexSeqButton {
     public static final Vec4f DEFAULT_ASS_SUB_COLOR = new Vec4f( 1, 1, 1, 1 );
     /** Default blending alpha (darkness) for the text/ASS subtitles, defaults to {@value}. */
     public static final float DEFAULT_ASS_SUB_BLEND = 0.3f;
+    /** Default text/ASS subtitle alignment, defaults to {@link Alignment#CenterHoriz}. */
+    public static final Alignment DEFAULT_ASS_SUB_ALIGNMENT = Alignment.CenterHoriz;
 
     private static final float ASS_SUB_USED_WIDTH = 0.90f;
     private static final float ASS_SUB_BLEND_ADDED_HEIGHT = 0.25f;
@@ -114,7 +118,7 @@ public class MediaButton extends TexSeqButton {
      * @param height
      * @param mPlayer
      * @param subFont text/ASS subtitle font
-     * @see #setSubtitleParams(Font, float, float)
+     * @see #setSubtitleParams(Font, float, float, Alignment)
      * @see #setSubtitleColor(Vec4f, float)
      */
     public MediaButton(final int renderModes, final float width, final float height, final GLMediaPlayer mPlayer, final Font subFont)
@@ -138,6 +142,8 @@ public class MediaButton extends TexSeqButton {
         }
         this.subZOffset = Button.DEFAULT_LABEL_ZOFFSET;
         this.subLineHeightPct = DEFAULT_ASS_SUB_HEIGHT;
+        this.subLineDY = DEFAULT_ASS_SUB_POS;
+        this.subAlignment = DEFAULT_ASS_SUB_ALIGNMENT;
         this.subLabel = new Label(renderModes, f, "");
         this.subLabel.setColor( DEFAULT_ASS_SUB_COLOR );
         this.subLabel.moveTo(0, 0, subZOffset);
@@ -156,11 +162,13 @@ public class MediaButton extends TexSeqButton {
      * @param subFont text/ASS subtitle font
      * @param subLineHeightPct text/ASS subtitle line height percentage, defaults to {@link #DEFAULT_ASS_SUB_HEIGHT}
      * @param subLineDY text/ASS y-axis offset to bottom in line-height, defaults to {@link #DEFAULT_ASS_SUB_POS}
+     * @param subAlignment text/ASS subtitle alignment, defaults to {@link #DEFAULT_ASS_SUB_ALIGNMENT}
      */
-    public void setSubtitleParams(final Font subFont, final float subLineHeightPct, final float subLineDY) {
+    public void setSubtitleParams(final Font subFont, final float subLineHeightPct, final float subLineDY, final Alignment subAlignment) {
         this.subLabel.setFont(subFont);
         this.subLineHeightPct = subLineHeightPct;
         this.subLineDY = subLineDY;
+        this.subAlignment = subAlignment;
         this.subEnabled = true;
     }
     /**
@@ -395,23 +403,34 @@ public class MediaButton extends TexSeqButton {
                 final float subLineHeight = subBox.getHeight() / assSub.lines;
                 final float maxWidth = box.getWidth() * ASS_SUB_USED_WIDTH;
                 final float lineHeight = box.getHeight() * subLineHeightPct;
-                float scale = lineHeight / subLineHeight;
-                if( scale * subBox.getWidth() > maxWidth ) {
-                    scale = maxWidth / subBox.getWidth();
+                float s_s = lineHeight / subLineHeight;
+                if( s_s * subBox.getWidth() > maxWidth ) {
+                    s_s = maxWidth / subBox.getWidth();
                 }
-                subLabel.setScale(scale, scale, 1);
+                subLabel.setScale(s_s, s_s, 1);
 
                 final float labelHeight = lineHeight * assSub.lines;
                 final float blendHeight = labelHeight + lineHeight * ASS_SUB_BLEND_ADDED_HEIGHT;
                 final Vec2f v_sz = new Vec2f(mPlayer.getWidth(), mPlayer.getHeight());
-                final Vec2f s = new Vec2f( box.getWidth(), box.getHeight() ).div( v_sz );
-                final float sxy = Math.min( s.x(), s.y() );
+                final Vec2f v_sxy = new Vec2f( box.getWidth(), box.getHeight() ).div( v_sz );
+                final float v_s = Math.min( v_sxy.x(), v_sxy.y() );
                 final Vec2f v_ctr = new Vec2f(v_sz).scale(0.5f); // original video size center
-                final Vec2f b_ctr = new Vec2f(box.getCenter()).scale(1/sxy);
+                final Vec2f b_ctr = new Vec2f(box.getCenter()).scale(1/v_s);
                 final float d_bl = ( blendHeight - labelHeight ) * 0.5f;
-                final Vec2f s_p0 = new Vec2f( mPlayer.getWidth() * ( 1f - ASS_SUB_USED_WIDTH )*0.5f,
-                                              ( subLineHeight * subLineDY * scale ) / sxy);
-                final Vec2f s_p0_s = s_p0.sub( v_ctr ).add(b_ctr).scale( sxy ).add(0, d_bl);
+                final float v_maxWidth = v_sz.x() * ASS_SUB_USED_WIDTH;
+                final float d_vmw = v_sz.x() - v_maxWidth;
+                final Vec2f s_p0_s;
+                if( subAlignment.isSet( Alignment.Bit.Left) ) {
+                    // Alignment.Bit.Left
+                    final Vec2f s_p0 = new Vec2f( d_vmw*0.5f,
+                                                  ( subLineHeight * subLineDY * s_s ) / v_s);
+                    s_p0_s = s_p0.sub( v_ctr ).add(b_ctr).scale( v_s ).add(0, d_bl);
+                } else {
+                    // Alignment.Bit.CenterHoriz
+                    final Vec2f s_p0 = new Vec2f( d_vmw*0.5f + ( v_maxWidth - subBox.getWidth()*s_s/v_s )*0.5f,
+                                                  ( subLineHeight * subLineDY * s_s ) / v_s);
+                    s_p0_s = s_p0.sub( v_ctr ).add(b_ctr).scale( v_s ).add(0, d_bl);
+                }
                 subLabel.moveTo(s_p0_s.x(), s_p0_s.y(), 2*subZOffset);
 
                 subBlend.setDimension(box.getWidth(), blendHeight, 0f);
@@ -437,9 +456,9 @@ public class MediaButton extends TexSeqButton {
                     imgSeq.removeAllFrames();
                     imgSeq.addFrame(gl, texSub.texture);
                     final Vec2f v_sz = new Vec2f(mPlayer.getWidth(), mPlayer.getHeight());
-                    final Vec2f s = new Vec2f( box.getWidth(), box.getHeight() ).div( v_sz );
-                    final float sxy = Math.min(s.x(), s.y());
-                    final Vec2f s_sz_s = new Vec2f(texSub.dimension).scale(sxy);
+                    final Vec2f v_sxy = new Vec2f( box.getWidth(), box.getHeight() ).div( v_sz );
+                    final float v_s = Math.min(v_sxy.x(), v_sxy.y());
+                    final Vec2f s_sz_s = new Vec2f(texSub.dimension).scale(v_s);
                     subTexImg.setSize(s_sz_s.x(), s_sz_s.y());
 
                     final Vec2f v_ctr;
@@ -450,10 +469,10 @@ public class MediaButton extends TexSeqButton {
                     } else {
                         v_ctr = new Vec2f(v_sz).scale(0.5f); // original video size center
                     }
-                    final Vec2f b_ctr = new Vec2f(box.getCenter()).scale(1/sxy);
+                    final Vec2f b_ctr = new Vec2f(box.getCenter()).scale(1/v_s);
                     final Vec2f s_p0 = new Vec2f(texSub.position.x(),
                                                  v_sz.y() - texSub.position.y() - texSub.dimension.y() ); // y-flip + texSub.position is top-left
-                    final Vec2f s_p0_s = s_p0.minus( v_ctr ).add( b_ctr ).scale( sxy );
+                    final Vec2f s_p0_s = s_p0.minus( v_ctr ).add( b_ctr ).scale( v_s );
                     subTexImg.moveTo(s_p0_s.x(), s_p0_s.y(), 2*subZOffset);
 
                     if( DEBUG_PGS_POSSZ ) {
@@ -472,7 +491,7 @@ public class MediaButton extends TexSeqButton {
                         System.err.println("XX   video "+v_sz+" (ar "+v_ar+"), ( v_ctr "+v_ctr_o+", v_ctr_1080p "+v_ctr_1080p+" ) -> v_ctr "+v_ctr);
                         System.err.println("XX   sub s_sz "+s_sz+", s_sz_s "+s_sz_s+" (ar "+s_ar+")");
                         System.err.println("XX   box "+b_sz+" (ar "+b_ar+"), b_ctr "+b_ctr+", b_ctr_s "+b_ctr_s);
-                        System.err.println("XXX s "+s+" -> "+sxy+": sz "+s_sz_s);
+                        System.err.println("XXX v_s "+v_sxy+" -> "+v_s+": sz "+s_sz_s);
                         System.err.println("XXX p0 "+s_p0+", v_p0_ctr "+v_p0_ctr+", s_p1 "+s_p1+" -> s_p1_s "+s_p0_s+"; sxs_2 "+s_x_centered);
                     }
                 }

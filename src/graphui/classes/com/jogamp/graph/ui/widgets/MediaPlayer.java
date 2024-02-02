@@ -628,10 +628,11 @@ public class MediaPlayer extends Widget {
      * @param subFont text/ASS subtitle font
      * @param subLineHeightPct text/ASS subtitle line height percentage, defaults to {@link MediaButton#DEFAULT_ASS_SUB_HEIGHT}
      * @param subLineDY text/ASS y-axis offset to bottom in line-height, defaults to {@link MediaButton#DEFAULT_ASS_SUB_POS}
+     * @param subAlignment text/ASS subtitle alignment, defaults to {@link #DEFAULT_ASS_SUB_ALIGNMENT}
      */
-    public void setSubtitleParams(final Font subFont, final float subLineHeightPct, final float subLineDY) {
+    public void setSubtitleParams(final Font subFont, final float subLineHeightPct, final float subLineDY, final Alignment subAlignment) {
         if( null != mButton ) {
-            mButton.setSubtitleParams(subFont, subLineHeightPct, subLineDY);
+            mButton.setSubtitleParams(subFont, subLineHeightPct, subLineDY, subAlignment);
         }
     }
     /**
