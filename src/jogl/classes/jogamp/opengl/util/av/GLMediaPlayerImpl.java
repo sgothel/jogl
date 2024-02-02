@@ -1717,10 +1717,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         if( STREAM_WORKER_DELAY > 0 ) {
                             java.lang.Thread.sleep(STREAM_WORKER_DELAY);
                         }
-                        final int capacityDelta = videoFramesFree.capacity() - videoFramesDecoded.capacity();
-                        if( videoFramesDecoded.isFull() && capacityDelta > 0 ) {
-                            videoFramesDecoded.growFullBuffer( capacityDelta );
-                        }
                         if( !videoFramesDecoded.put(nextFrame) ) {
                             throw new InternalError("XXX: free "+videoFramesFree+", decoded "+videoFramesDecoded+", "+GLMediaPlayerImpl.this);
                         }
