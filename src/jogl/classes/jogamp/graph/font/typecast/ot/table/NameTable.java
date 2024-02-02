@@ -123,7 +123,7 @@ public class NameTable implements Table {
     public short getNumberOfNameRecords() {
         return _numberOfNameRecords;
     }
-    
+
     /**
      * Offset16     stringOffset    Offset to start of string storage (from start of table).
      */

@@ -55,7 +55,7 @@ import java.io.IOException;
 
 /**
  * Glyph description.
- * 
+ *
  * <p>
  * Note: The glyph descriptions do not include side bearing information.
  * {@link HmtxTable#getLeftSideBearing(int) Left side bearings} are provided in
@@ -72,9 +72,9 @@ import java.io.IOException;
  * by glyph instructions. See the chapter Instructing TrueType Glyphs for more
  * background on phantom points.
  * </p>
- * 
+ *
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
- * 
+ *
  * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/glyf"
  */
 public abstract class GlyfDescript extends Program implements GlyphDescription {
@@ -83,21 +83,21 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
      * Bit 0: If set, the point is on the curve; otherwise, it is off the curve.
      */
     public static final byte ON_CURVE_POINT = 0x01;
-    
+
     /**
      * Bit 1: If set, the corresponding x-coordinate is 1 byte long. If not set,
      * it is two bytes long. For the sign of this value, see the description of
      * the {@link #X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR} flag.
      */
     public static final byte X_SHORT_VECTOR = 0x02;
-    
+
     /**
      * Bit 2: If set, the corresponding y-coordinate is 1 byte long. If not set,
      * it is two bytes long. For the sign of this value, see the description of
      * the {@link #Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR} flag.
      */
     public static final byte Y_SHORT_VECTOR = 0x04;
-    
+
     /**
      * Bit 3: If set, the next byte (read as unsigned) specifies the number of
      * additional times this flag byte is to be repeated in the logical flags
@@ -107,7 +107,7 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
      * points in the glyph description.
      */
     public static final byte REPEAT_FLAG = 0x08;
-    
+
     /**
      * Bit 4: This flag has two meanings, depending on how the
      * {@link #X_SHORT_VECTOR} flag is set. If {@link #X_SHORT_VECTOR} is set,
@@ -118,7 +118,7 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
      * current x-coordinate is a signed 16-bit delta vector.
      */
     public static final byte X_IS_SAME_OR_POSITIVE_X_SHORT_VECTOR = 0x10;
-    
+
     /**
      * Bit 5: This flag has two meanings, depending on how the
      * {@link #Y_SHORT_VECTOR} flag is set. If {@link #Y_SHORT_VECTOR} is set,
@@ -129,7 +129,7 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
      * current y-coordinate is a signed 16-bit delta vector.
      */
     public static final byte Y_IS_SAME_OR_POSITIVE_Y_SHORT_VECTOR = 0x20;
-    
+
     /**
      * Bit 6: If set, contours in the glyph description may overlap. Use of this
      * flag is not required in OpenType — that is, it is valid to have contours
@@ -138,7 +138,7 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
      * Apple’s specification for details regarding behavior in Apple platforms.)
      * When used, it must be set on the first flag byte for the glyph. See
      * additional details below.
-     * 
+     *
      * <p>
      * A non-zero-fill algorithm is needed to avoid dropouts when contours
      * overlap. The {@link #OVERLAP_SIMPLE} flag is used by some rasterizer
@@ -150,7 +150,7 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
      * can be used in order to provide broad interoperability of fonts —
      * particularly non-variable fonts — when glyphs have overlapping contours.
      * </p>
-     * 
+     *
      * <p>
      * Note that variable fonts often make use of overlapping contours. This has
      * implications for tools that generate static-font data for a specific
@@ -160,7 +160,7 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
      * data, or else should merge contours to remove overlap of separate
      * contours.
      * </p>
-     * 
+     *
      * <p>
      * Note: The OVERLAP_COMPOUND flag, described below, has a similar purpose
      * in relation to composite glyphs. The same considerations described for
@@ -190,7 +190,7 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
         _xMax = di.readShort();
         _yMax = di.readShort();
     }
-    
+
     /**
      * The {@link GlyfTable} this {@link GlyfDescript} belongs to.
      */

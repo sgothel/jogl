@@ -28,13 +28,13 @@ import java.io.IOException;
 public class VdmxTable implements Table {
 
     private static class Ratio {
-        
-        private byte _bCharSet;
-        private byte _xRatio;
-        private byte _yStartRatio;
-        private byte _yEndRatio;
-        
-        Ratio(DataInput di) throws IOException {
+
+        private final byte _bCharSet;
+        private final byte _xRatio;
+        private final byte _yStartRatio;
+        private final byte _yEndRatio;
+
+        Ratio(final DataInput di) throws IOException {
             _bCharSet = di.readByte();
             _xRatio = di.readByte();
             _yStartRatio = di.readByte();
@@ -44,27 +44,27 @@ public class VdmxTable implements Table {
         byte getBCharSet() {
             return _bCharSet;
         }
-        
+
         byte getXRatio() {
             return _xRatio;
         }
-        
+
         byte getYStartRatio() {
             return _yStartRatio;
         }
-        
+
         byte getYEndRatio() {
             return _yEndRatio;
         }
     }
-    
+
     private static class VTableRecord {
-        
-        private int _yPelHeight;
-        private short _yMax;
-        private short _yMin;
-        
-        VTableRecord(DataInput di) throws IOException {
+
+        private final int _yPelHeight;
+        private final short _yMax;
+        private final short _yMin;
+
+        VTableRecord(final DataInput di) throws IOException {
             _yPelHeight = di.readUnsignedShort();
             _yMax = di.readShort();
             _yMin = di.readShort();
@@ -73,24 +73,24 @@ public class VdmxTable implements Table {
         int getYPelHeight() {
             return _yPelHeight;
         }
-        
+
         short getYMax() {
             return _yMax;
         }
-        
+
         short getYMin() {
             return _yMin;
         }
     }
-    
+
     private static class Group {
-        
-        private int _recs;
-        private int _startsz;
-        private int _endsz;
-        private VTableRecord[] _entry;
-        
-        Group(DataInput di) throws IOException {
+
+        private final int _recs;
+        private final int _startsz;
+        private final int _endsz;
+        private final VTableRecord[] _entry;
+
+        Group(final DataInput di) throws IOException {
             _recs = di.readUnsignedShort();
             _startsz = di.readUnsignedByte();
             _endsz = di.readUnsignedByte();
@@ -103,29 +103,29 @@ public class VdmxTable implements Table {
         int getRecs() {
             return _recs;
         }
-        
+
         int getStartSZ() {
             return _startsz;
         }
-        
+
         int getEndSZ() {
             return _endsz;
         }
-        
+
         VTableRecord[] getEntry() {
             return _entry;
         }
     }
-    
-    private int _version;
-    private int _numRecs;
-    private int _numRatios;
-    private Ratio[] _ratRange;
-    private int[] _offset;
-    private Group[] _groups;
-    
+
+    private final int _version;
+    private final int _numRecs;
+    private final int _numRatios;
+    private final Ratio[] _ratRange;
+    private final int[] _offset;
+    private final Group[] _groups;
+
     /** Creates a new instance of VdmxTable */
-    public VdmxTable(DataInput di) throws IOException {
+    public VdmxTable(final DataInput di) throws IOException {
         _version = di.readUnsignedShort();
         _numRecs = di.readUnsignedShort();
         _numRatios = di.readUnsignedShort();
@@ -142,14 +142,15 @@ public class VdmxTable implements Table {
             _groups[i] = new Group(di);
         }
     }
-    
+
     @Override
     public int getType() {
         return VDMX;
     }
 
+    @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'VDMX' Table - Precomputed Vertical Device Metrics\n")
             .append("--------------------------------------------------\n")
             .append("  Version:                 ").append(_version).append("\n")
@@ -166,7 +167,7 @@ public class VdmxTable implements Table {
         sb.append("\n   VDMX Height Record Groups\n")
             .append("   -------------------------\n");
         for (int i = 0; i < _numRecs; ++i) {
-            Group group = _groups[i];
+            final Group group = _groups[i];
             sb.append("   ").append(i + 1)
                 .append(".   Number of Hgt Records  ").append(group.getRecs()).append("\n")
                 .append("        Starting Y Pel Height  ").append(group.getStartSZ()).append("\n")

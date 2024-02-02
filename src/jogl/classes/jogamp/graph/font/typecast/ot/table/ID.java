@@ -38,7 +38,7 @@ public abstract class ID {
     private static final short encodingUnicode20Semantics = 4;
     private static final short encodingUnicodeVariationSequences = 5;
     private static final short encodingFullUnicodeCoverage = 6;
-    
+
     // Microsoft Encoding IDs
 //    public static final short encodingUndefined = 0;
 //    public static final short encodingUGL = 1;
@@ -190,7 +190,7 @@ public abstract class ID {
     private static final short nameSampleText = 19;
     private static final short namePostScriptCIDFindfontName = 20;
 
-    public static String getPlatformName(short platformId) {
+    public static String getPlatformName(final short platformId) {
         switch (platformId) {
             case platformUnicode:   return "Unicode";
             case platformMacintosh: return "Macintosh";
@@ -200,10 +200,10 @@ public abstract class ID {
         }
     }
 
-    public static String getEncodingName(short platformId, short encodingId) {
+    public static String getEncodingName(final short platformId, final short encodingId) {
 
         if (platformId == platformUnicode) {
-            
+
             // Unicode specific encodings
             switch (encodingId) {
                 case encodingUnicode10Semantics:        return "Unicode 1.0 semantics";
@@ -287,7 +287,7 @@ public abstract class ID {
         return "";
     }
 
-    public static String getLanguageName(short platformId, short languageId) {
+    public static String getLanguageName(final short platformId, final short languageId) {
 
         if (platformId == platformMacintosh) {
             switch (languageId) {
@@ -374,7 +374,7 @@ public abstract class ID {
         return "";
     }
 
-    public static String getNameName(short nameId) {
+    public static String getNameName(final short nameId) {
         switch (nameId) {
             case nameCopyrightNotice: return "Copyright notice";
             case nameFontFamilyName: return "Font Family name";

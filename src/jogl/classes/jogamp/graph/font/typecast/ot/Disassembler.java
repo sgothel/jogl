@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot;
@@ -21,7 +21,7 @@ public class Disassembler {
      * @param ip The current instruction pointer
      * @return The new instruction pointer
      */
-    private static int advanceIP(short[] instructions, int ip) {
+    private static int advanceIP(final short[] instructions, int ip) {
 
         // The high word specifies font, cvt, or glyph program
         int i = ip & 0xffff;
@@ -45,8 +45,8 @@ public class Disassembler {
         return ip;
     }
 
-    private static short getPushCount(short[] instructions, int ip) {
-        short instr = instructions[ip & 0xffff];
+    private static short getPushCount(final short[] instructions, final int ip) {
+        final short instr = instructions[ip & 0xffff];
         if ((Mnemonic.NPUSHB == instr) || (Mnemonic.NPUSHW == instr)) {
             return instructions[(ip & 0xffff) + 1];
         } else if ((Mnemonic.PUSHB == (instr & 0xf8)) || (Mnemonic.PUSHW == (instr & 0xf8))) {
@@ -55,11 +55,11 @@ public class Disassembler {
         return 0;
     }
 
-    private static int[] getPushData(short[] instructions, int ip) {
-        int count = getPushCount(instructions, ip);
-        int[] data = new int[count];
-        int i = ip & 0xffff;
-        short instr = instructions[i];
+    private static int[] getPushData(final short[] instructions, final int ip) {
+        final int count = getPushCount(instructions, ip);
+        final int[] data = new int[count];
+        final int i = ip & 0xffff;
+        final short instr = instructions[i];
         if (Mnemonic.NPUSHB == instr) {
             for (int j = 0; j < count; j++) {
                 data[j] = instructions[i + j + 2];
@@ -80,8 +80,8 @@ public class Disassembler {
         return data;
     }
 
-     public static String disassemble(short[] instructions, int leadingSpaces) {
-        StringBuilder sb = new StringBuilder();
+     public static String disassemble(final short[] instructions, final int leadingSpaces) {
+        final StringBuilder sb = new StringBuilder();
         int ip = 0;
         while (ip < instructions.length) {
             for (int i = 0; i < leadingSpaces; i++) {
@@ -90,8 +90,8 @@ public class Disassembler {
             sb.append(Fmt.pad(3, ip)).append(": ");
             sb.append(Mnemonic.getMnemonic(instructions[ip]));
             if (getPushCount(instructions, ip) > 0) {
-                int[] data = getPushData(instructions, ip);
-                for (int datum : data) {
+                final int[] data = getPushData(instructions, ip);
+                for (final int datum : data) {
                     if ((instructions[ip] == Mnemonic.PUSHW) ||
                             (instructions[ip] == Mnemonic.NPUSHW)) {
                         sb.append(" ").append((short) datum);

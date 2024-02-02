@@ -57,7 +57,7 @@ import jogamp.graph.font.typecast.ot.Fmt;
 
 /**
  * Horizontal Metrics Table
- * 
+ *
  * <p>
  * Glyph metrics used for horizontal text layout include glyph advance widths,
  * side bearings and X-direction min and max values (xMin, xMax). These are
@@ -65,7 +65,7 @@ import jogamp.graph.font.typecast.ot.Fmt;
  * CFF2) and the horizontal metrics table. The horizontal metrics ('hmtx') table
  * provides glyph advance widths and left side bearings.
  * </p>
- * 
+ *
  * <p>
  * In a font with TrueType outline data, the 'glyf' table provides xMin and xMax
  * values, but not advance widths or side bearings. The advance width is always
@@ -78,7 +78,7 @@ import jogamp.graph.font.typecast.ot.Fmt;
  * side bearing values from the 'hmtx' table, plus bounding-box information in
  * the glyph description — see below for more details.
  * </p>
- * 
+ *
  * <p>
  * In a variable font with TrueType outline data, the left side bearing value in
  * the 'hmtx' table must always be equal to xMin (bit 1 of the 'head'
@@ -90,7 +90,7 @@ import jogamp.graph.font.typecast.ot.Fmt;
  * for additional details), or by applying variation data in the HVAR table to
  * default-instance values from the 'glyf' or 'hmtx' table.
  * </p>
- * 
+ *
  * <p>
  * In a font with CFF version 1 outline data, the 'CFF ' table does include
  * advance widths. These values are used by PostScript processors, but are not
@@ -108,7 +108,7 @@ import jogamp.graph.font.typecast.ot.Fmt;
  * left side bearing and advance width values for non-default instances should
  * be obtained by combining information from the 'hmtx' and HVAR tables.
  * </p>
- * 
+ *
  * <p>
  * The table uses a longHorMetric record to give the advance width and left side
  * bearing of a glyph. Records are indexed by glyph ID. As an optimization, the
@@ -119,23 +119,23 @@ import jogamp.graph.font.typecast.ot.Fmt;
  * appropriately). The number of longHorMetric records is determined by the
  * numberOfHMetrics field in the 'hhea' table.
  * </p>
- * 
+ *
  * <p>
  * If the longHorMetric array is less than the total number of glyphs, then that
  * array is followed by an array for the left side bearing values of the
  * remaining glyphs. The number of elements in the left side bearing will be
  * derived from numberOfHMetrics plus the numGlyphs field in the 'maxp' table.
  * </p>
- * 
+ *
  * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/hmtx"
- * 
+ *
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class HmtxTable implements Table {
 
-    private int[] _hMetrics;
-    private short[] _leftSideBearing;
-    private int _length;
+    private final int[] _hMetrics;
+    private final short[] _leftSideBearing;
+    private final int _length;
 
     /**
      * Creates a {@link HmtxTable}.
@@ -150,11 +150,11 @@ public class HmtxTable implements Table {
      *        The corresponding {@link MaxpTable}.
      */
     public HmtxTable(
-            DataInput di,
-            int length,
-            HheaTable hhea,
-            MaxpTable maxp) throws IOException {
-        
+            final DataInput di,
+            final int length,
+            final HheaTable hhea,
+            final MaxpTable maxp) throws IOException {
+
         // Paired advance width and left side bearing values for each glyph.
         // Records are indexed by glyph ID.
         _hMetrics = new int[hhea.getNumberOfHMetrics()];
@@ -165,10 +165,10 @@ public class HmtxTable implements Table {
                     | di.readUnsignedByte()<<8
                     | di.readUnsignedByte();
         }
-        
+
         // Left side bearings for glyph IDs greater than or equal to
         // numberOfHMetrics.
-        int lsbCount = maxp.getNumGlyphs() - hhea.getNumberOfHMetrics();
+        final int lsbCount = maxp.getNumGlyphs() - hhea.getNumberOfHMetrics();
         _leftSideBearing = new short[lsbCount];
         for (int i = 0; i < lsbCount; ++i) {
             _leftSideBearing[i] = di.readShort();
@@ -183,9 +183,9 @@ public class HmtxTable implements Table {
 
     /**
      * uint16
-     * 
+     *
      * Advance width, in font design units.
-     * 
+     *
      * <p>
      * The baseline is an imaginary line that is used to ‘guide’ glyphs when
      * rendering text. It can be horizontal (e.g., Latin, Cyrillic, Arabic) or
@@ -193,20 +193,20 @@ public class HmtxTable implements Table {
      * a virtual point, located on the baseline, called the pen position or
      * origin, is used to locate glyphs.
      * </p>
-     * 
+     *
      * <p>
      * The distance between two successive pen positions is glyph-specific and
      * is called the advance width. Note that its value is always positive, even
      * for right-to-left oriented scripts like Arabic. This introduces some
      * differences in the way text is rendered.
      * </p>
-     * 
+     *
      * @param i
      *        The glyph index, see {@link GlyfTable#getNumGlyphs()}.
-     * 
+     *
      * @see "https://www.freetype.org/freetype2/docs/glyphs/glyphs-3.html"
      */
-    public int getAdvanceWidth(int i) {
+    public int getAdvanceWidth(final int i) {
         if (_hMetrics == null) {
             return 0;
         }
@@ -219,9 +219,9 @@ public class HmtxTable implements Table {
 
     /**
      * int16
-     * 
+     *
      * Glyph left side bearing, in font design units.
-     * 
+     *
      * <p>
      * The horizontal distance from the current pen position to the glyph's left
      * bbox edge. It is positive for horizontal layouts, and in most cases
@@ -230,10 +230,10 @@ public class HmtxTable implements Table {
      *
      * @param i
      *        The glyph index, see {@link GlyfTable#getNumGlyphs()}.
-     * 
+     *
      * @see "https://www.freetype.org/freetype2/docs/glyphs/glyphs-3.html"
      */
-    public short getLeftSideBearing(int i) {
+    public short getLeftSideBearing(final int i) {
         if (_hMetrics == null) {
             return 0;
         }
@@ -246,7 +246,7 @@ public class HmtxTable implements Table {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'hmtx' Table - Horizontal Metrics\n");
         sb.append("---------------------------------\n");
         sb.append("        Size:   ").append(_length).append(" bytes\n");

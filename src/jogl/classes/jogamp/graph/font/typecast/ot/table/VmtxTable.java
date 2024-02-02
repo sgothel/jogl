@@ -27,13 +27,13 @@ import java.io.IOException;
  */
 class VmtxTable implements Table {
 
-    private int[] _vMetrics;
-    private short[] _topSideBearing;
+    private final int[] _vMetrics;
+    private final short[] _topSideBearing;
 
     protected VmtxTable(
-            DataInput di,
-            VheaTable vhea,
-            MaxpTable maxp) throws IOException {
+            final DataInput di,
+            final VheaTable vhea,
+            final MaxpTable maxp) throws IOException {
         _vMetrics = new int[vhea.getNumberOfLongVerMetrics()];
         for (int i = 0; i < vhea.getNumberOfLongVerMetrics(); ++i) {
             _vMetrics[i] =
@@ -42,7 +42,7 @@ class VmtxTable implements Table {
                     | di.readUnsignedByte()<<8
                     | di.readUnsignedByte();
         }
-        int tsbCount = maxp.getNumGlyphs() - vhea.getNumberOfLongVerMetrics();
+        final int tsbCount = maxp.getNumGlyphs() - vhea.getNumberOfLongVerMetrics();
         _topSideBearing = new short[tsbCount];
         for (int i = 0; i < tsbCount; ++i) {
             _topSideBearing[i] = di.readShort();
@@ -54,7 +54,7 @@ class VmtxTable implements Table {
         return vmtx;
     }
 
-    private int getAdvanceHeight(int i) {
+    public int getAdvanceHeight(final int i) {
         if (_vMetrics == null) {
             return 0;
         }
@@ -65,7 +65,7 @@ class VmtxTable implements Table {
         }
     }
 
-    public short getTopSideBearing(int i) {
+    public short getTopSideBearing(final int i) {
         if (_vMetrics == null) {
             return 0;
         }
@@ -76,8 +76,9 @@ class VmtxTable implements Table {
         }
     }
 
+    @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'vmtx' Table - Vertical Metrics\n-------------------------------\n");
 //        sb.append("Size = ").append(_de.getLength()).append(" bytes, ")
             sb.append(_vMetrics.length).append(" entries\n");

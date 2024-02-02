@@ -120,8 +120,8 @@ public class TTFont extends OTFont {
         // 'loca' is required by 'glyf'
         int length = seekTable(tableDirectory, dis, tablesOrigin, Table.loca);
         if (length > 0) {
-            LocaTable loca = new LocaTable(dis, length, this.getHeadTable(), this.getMaxpTable());
-            
+            final LocaTable loca = new LocaTable(dis, length, this.getHeadTable(), this.getMaxpTable());
+
             // If this is a TrueType outline, then we'll have at least the
             // 'glyf' table (along with the 'loca' table)
             length = seekTable(tableDirectory, dis, tablesOrigin, Table.glyf);
@@ -129,7 +129,7 @@ public class TTFont extends OTFont {
         } else {
             _glyf = null;
         }
-        
+
         length = seekTable(tableDirectory, dis, tablesOrigin, Table.svg);
         if (length > 0) {
             _svg = new SVGTable(dis);
@@ -169,7 +169,7 @@ public class TTFont extends OTFont {
     public GlyfTable getGlyfTable() {
         return _glyf;
     }
-    
+
     /**
      * Optional {@link SVGTable}.
      */
@@ -210,7 +210,7 @@ public class TTFont extends OTFont {
     }
 
     @Override
-    public void dumpTo(Writer out) throws IOException {
+    public void dumpTo(final Writer out) throws IOException {
         super.dumpTo(out);
         dump(out, getGlyfTable());
         dump(out, getSvgTable());

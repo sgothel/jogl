@@ -58,15 +58,15 @@ import java.io.IOException;
  */
 public class NameRecord {
 
-    private short _platformId;
-    private short _encodingId;
-    private short _languageId;
-    private short _nameId;
-    private short _stringLength;
-    private short _stringOffset;
+    private final short _platformId;
+    private final short _encodingId;
+    private final short _languageId;
+    private final short _nameId;
+    private final short _stringLength;
+    private final short _stringOffset;
     private String _record;
 
-    NameRecord(DataInput di) throws IOException {
+    NameRecord(final DataInput di) throws IOException {
         _platformId = di.readShort();
         _encodingId = di.readShort();
         _languageId = di.readShort();
@@ -74,19 +74,19 @@ public class NameRecord {
         _stringLength = di.readShort();
         _stringOffset = di.readShort();
     }
-    
+
     public short getEncodingId() {
         return _encodingId;
     }
-    
+
     public short getLanguageId() {
         return _languageId;
     }
-    
+
     public short getNameId() {
         return _nameId;
     }
-    
+
     public short getPlatformId() {
         return _platformId;
     }
@@ -95,11 +95,11 @@ public class NameRecord {
         return _record;
     }
 
-    void loadString(DataInput di) throws IOException {
-        StringBuilder sb = new StringBuilder();
+    void loadString(final DataInput di) throws IOException {
+        final StringBuilder sb = new StringBuilder();
         di.skipBytes(_stringOffset);
         if (_platformId == ID.platformUnicode) {
-            
+
             // Unicode (big-endian)
             for (int i = 0; i < _stringLength/2; i++) {
                 sb.append(di.readChar());
@@ -111,13 +111,13 @@ public class NameRecord {
                 sb.append((char) di.readByte());
             }
         } else if (_platformId == ID.platformISO) {
-            
+
             // ISO encoding, ASCII
             for (int i = 0; i < _stringLength; i++) {
                 sb.append((char) di.readByte());
             }
         } else if (_platformId == ID.platformMicrosoft) {
-            
+
             // Microsoft encoding, Unicode
             char c;
             for (int i = 0; i < _stringLength/2; i++) {
@@ -128,9 +128,10 @@ public class NameRecord {
         _record = sb.toString();
     }
 
+    @Override
     public String toString() {
 
-        String sb = "             Platform ID:       " + _platformId +
+        final String sb = "             Platform ID:       " + _platformId +
                 "\n             Specific ID:       " + _encodingId +
                 "\n             Language ID:       " + _languageId +
                 "\n             Name ID:           " + _nameId +

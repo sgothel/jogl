@@ -28,20 +28,20 @@ import jogamp.graph.font.typecast.ot.Fixed;
  */
 public class VheaTable implements Table {
 
-    private int _version;
-    private short _ascent;
-    private short _descent;
-    private short _lineGap;
-    private short _advanceHeightMax;
-    private short _minTopSideBearing;
-    private short _minBottomSideBearing;
-    private short _yMaxExtent;
-    private short _caretSlopeRise;
-    private short _caretSlopeRun;
-    private short _metricDataFormat;
-    private int _numberOfLongVerMetrics;
+    private final int _version;
+    private final short _ascent;
+    private final short _descent;
+    private final short _lineGap;
+    private final short _advanceHeightMax;
+    private final short _minTopSideBearing;
+    private final short _minBottomSideBearing;
+    private final short _yMaxExtent;
+    private final short _caretSlopeRise;
+    private final short _caretSlopeRun;
+    private final short _metricDataFormat;
+    private final int _numberOfLongVerMetrics;
 
-    public VheaTable(DataInput di) throws IOException {
+    public VheaTable(final DataInput di) throws IOException {
         _version = di.readInt();
         _ascent = di.readShort();
         _descent = di.readShort();
@@ -108,6 +108,7 @@ public class VheaTable implements Table {
         return _yMaxExtent;
     }
 
+    @Override
     public String toString() {
         return "'vhea' Table - Vertical Header\n------------------------------" +
                 "\n        'vhea' version:       " + Fixed.floatValue(_version) +
@@ -128,5 +129,5 @@ public class VheaTable implements Table {
                 "\n        metricDataFormat:     " + _metricDataFormat +
                 "\n        numOf_LongVerMetrics: " + _numberOfLongVerMetrics;
     }
-    
+
 }

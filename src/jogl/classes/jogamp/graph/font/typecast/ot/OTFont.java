@@ -68,7 +68,7 @@ public abstract class OTFont {
      */
     OTFont(final DataInputStream dis, final TableDirectory tableDirectory, final int tablesOrigin) throws IOException {
         _tableDirectory = tableDirectory;
-        
+
         // Load some prerequisite tables
         // (These are tables that are referenced by other tables, so we need to load
         // them first)
@@ -107,7 +107,7 @@ public abstract class OTFont {
 
         _gsub = null; // FIXME: delete?
     }
-    
+
     /**
      * {@link TableDirectory} with all font tables.
      */
@@ -210,14 +210,14 @@ public abstract class OTFont {
     public String toString() {
         return _head.toString();
     }
-    
+
     /**
      * Dumps information of all tables to the given {@link Writer}.
      */
-    public void dumpTo(Writer out) throws IOException {
+    public void dumpTo(final Writer out) throws IOException {
         out.write(getTableDirectory().toString());
         out.write("\n");
-        
+
         dump(out, getHeadTable());
         dump(out, getOS2Table());
         dump(out, getCmapTable());
@@ -230,16 +230,16 @@ public abstract class OTFont {
         dump(out, getGsubTable());
     }
 
-    /** 
+    /**
      * Writes the toString() representation of the given table to the given {@link Writer}.
      */
-    protected static void dump(Writer out, Table table) throws IOException {
+    protected static void dump(final Writer out, final Table table) throws IOException {
         if (table != null) {
             table.dump(out);
             out.write("\n");
             out.write("\n");
         }
     }
-    
-    
+
+
 }

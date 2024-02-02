@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -17,7 +17,7 @@ import jogamp.graph.font.typecast.ot.Fixed;
  */
 public class MaxpTable implements Table {
 
-    private int versionNumber;
+    private final int versionNumber;
     private int numGlyphs;
     private int maxPoints;
     private int maxContours;
@@ -33,9 +33,9 @@ public class MaxpTable implements Table {
     private int maxComponentElements;
     private int maxComponentDepth;
 
-    public MaxpTable(DataInput di) throws IOException {
+    public MaxpTable(final DataInput di) throws IOException {
         versionNumber = di.readInt();
-        
+
         // CFF fonts use version 0.5, TrueType fonts use version 1.0
         if (versionNumber == 0x00005000) {
             numGlyphs = di.readUnsignedShort();
@@ -122,8 +122,9 @@ public class MaxpTable implements Table {
         return numGlyphs;
     }
 
+    @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
         sb.append("'maxp' Table - Maximum Profile\n------------------------------")
             .append("\n        'maxp' version:         ").append(Fixed.floatValue(versionNumber))
             .append("\n        numGlyphs:              ").append(numGlyphs);

@@ -1,9 +1,9 @@
 /*****************************************************************************
  * Copyright (C) The Apache Software Foundation. All rights reserved.        *
- * ------------------------------------------------------------------------- * 
- * This software is published under the terms of the Apache Software License * 
- * version 1.1, a copy of which has been included with this distribution in  * 
- * the LICENSE file.                                                         * 
+ * ------------------------------------------------------------------------- *
+ * This software is published under the terms of the Apache Software License *
+ * version 1.1, a copy of which has been included with this distribution in  *
+ * the LICENSE file.                                                         *
  *****************************************************************************/
 
 package jogamp.graph.font.typecast.ot.table;
@@ -17,20 +17,20 @@ import jogamp.graph.font.typecast.ot.Fixed;
  */
 public class HheaTable implements Table {
 
-    private int version;
-    private short ascender;
-    private short descender;
-    private short lineGap;
-    private short advanceWidthMax;
-    private short minLeftSideBearing;
-    private short minRightSideBearing;
-    private short xMaxExtent;
-    private short caretSlopeRise;
-    private short caretSlopeRun;
-    private short metricDataFormat;
-    private int numberOfHMetrics;
+    private final int version;
+    private final short ascender;
+    private final short descender;
+    private final short lineGap;
+    private final short advanceWidthMax;
+    private final short minLeftSideBearing;
+    private final short minRightSideBearing;
+    private final short xMaxExtent;
+    private final short caretSlopeRise;
+    private final short caretSlopeRun;
+    private final short metricDataFormat;
+    private final int numberOfHMetrics;
 
-    public HheaTable(DataInput di) throws IOException {
+    public HheaTable(final DataInput di) throws IOException {
         version = di.readInt();
         ascender = di.readShort();
         descender = di.readShort();
@@ -97,6 +97,7 @@ public class HheaTable implements Table {
         return xMaxExtent;
     }
 
+    @Override
     public String toString() {
         return "'hhea' Table - Horizontal Header\n--------------------------------" +
                 "\n        'hhea' version:       " + Fixed.floatValue(version) +

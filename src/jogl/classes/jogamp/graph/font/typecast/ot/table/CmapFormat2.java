@@ -25,28 +25,28 @@ import java.util.Arrays;
 
 /**
  * Format 2: High-byte mapping through table.
- * 
+ *
  * @see "https://docs.microsoft.com/en-us/typography/opentype/spec/cmap#format-2-high-byte-mapping-through-table"
- * 
+ *
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
 public class CmapFormat2 extends CmapFormat {
 
-    static class SubHeader {
+    private static class SubHeader {
         /**
          * uint16
-         * 
+         *
          * First valid low byte for this SubHeader.
-         * 
+         *
          * @see #_entryCount
          */
         int _firstCode;
-        
+
         /**
          * uint16
-         * 
+         *
          * Number of valid low bytes for this SubHeader.
-         * 
+         *
          * <p>
          * The {@link #_firstCode} and {@link #_entryCount} values specify a
          * subrange that begins at {@link #_firstCode} and has a length equal to
@@ -69,7 +69,7 @@ public class CmapFormat2 extends CmapFormat {
          * </p>
          */
         int _entryCount;
-        
+
         /**
          * @see #_entryCount
          */
@@ -82,47 +82,47 @@ public class CmapFormat2 extends CmapFormat {
 
         int _arrayIndex;
     }
-    
+
     /**
      * uint16
-     * 
+     *
      * @see #getLength()
      */
     private final int _length;
 
     /**
      * uint16
-     * 
+     *
      * @see #getLanguage()
      */
     private final int _language;
-    
+
     /**
      * uint16[256]
-     * 
+     *
      * Array that maps high bytes to subHeaders: value is subHeader index × 8.
      */
     private final int[] _subHeaderKeys = new int[256];
-    
+
     /**
      * Variable-length array of SubHeader records.
      */
     private final SubHeader[] _subHeaders;
-    
+
     /**
      * uint16
-     * 
+     *
      * Variable-length array containing subarrays used for mapping the low byte
      * of 2-byte characters.
      */
     private final int[] _glyphIndexArray;
 
-    CmapFormat2(DataInput di) throws IOException {
+    CmapFormat2(final DataInput di) throws IOException {
         _length = di.readUnsignedShort();
         _language = di.readUnsignedShort();
-        
+
         int pos = 6;
-        
+
         // Read the subheader keys, noting the highest value, as this will
         // determine the number of subheaders to read.
         int highest = 0;
@@ -131,31 +131,31 @@ public class CmapFormat2 extends CmapFormat {
             highest = Math.max(highest, _subHeaderKeys[i]);
             pos += 2;
         }
-        int subHeaderCount = highest / 8 + 1;
+        final int subHeaderCount = highest / 8 + 1;
         _subHeaders = new SubHeader[subHeaderCount];
-        
+
         // Read the subheaders, once again noting the highest glyphIndexArray
         // index range.
-        int indexArrayOffset = 8 * subHeaderCount + 518;
+        final int indexArrayOffset = 8 * subHeaderCount + 518;
         highest = 0;
         for (int i = 0; i < _subHeaders.length; ++i) {
-            SubHeader sh = new SubHeader();
+            final SubHeader sh = new SubHeader();
             sh._firstCode = di.readUnsignedShort();
             sh._entryCount = di.readUnsignedShort();
             sh._idDelta = di.readShort();
             sh._idRangeOffset = di.readUnsignedShort();
-            
+
             // Calculate the offset into the _glyphIndexArray
             pos += 8;
             sh._arrayIndex =
                     (pos - 2 + sh._idRangeOffset - indexArrayOffset) / 2;
-            
+
             // What is the highest range within the glyphIndexArray?
             highest = Math.max(highest, sh._arrayIndex + sh._entryCount);
-            
+
             _subHeaders[i] = sh;
         }
-        
+
         // Read the glyphIndexArray
         _glyphIndexArray = new int[highest];
         for (int i = 0; i < _glyphIndexArray.length; ++i) {
@@ -182,13 +182,13 @@ public class CmapFormat2 extends CmapFormat {
     public int getRangeCount() {
         return _subHeaders.length;
     }
-    
+
     @Override
-    public Range getRange(int index) throws ArrayIndexOutOfBoundsException {
+    public Range getRange(final int index) throws ArrayIndexOutOfBoundsException {
         if (index < 0 || index >= _subHeaders.length) {
             throw new ArrayIndexOutOfBoundsException();
         }
-        
+
         // Find the high-byte (if any)
         int highByte = 0;
         if (index != 0) {
@@ -199,7 +199,7 @@ public class CmapFormat2 extends CmapFormat {
                 }
             }
         }
-        
+
         return new Range(
                 highByte | _subHeaders[index]._firstCode,
                 highByte | (_subHeaders[index]._firstCode +
@@ -207,23 +207,23 @@ public class CmapFormat2 extends CmapFormat {
     }
 
     @Override
-    public int mapCharCode(int charCode) {
-        
+    public int mapCharCode(final int charCode) {
+
         // Get the appropriate subheader
         int index = 0;
-        int highByte = charCode >> 8;
+        final int highByte = charCode >> 8;
         if (highByte != 0) {
             index = _subHeaderKeys[highByte] / 8;
         }
-        SubHeader sh = _subHeaders[index];
-        
+        final SubHeader sh = _subHeaders[index];
+
         // Is the charCode out-of-range?
-        int lowByte = charCode & 0xff;
+        final int lowByte = charCode & 0xff;
         if (lowByte < sh._firstCode ||
                 lowByte >= (sh._firstCode + sh._entryCount)) {
             return 0;
         }
-        
+
         // Now calculate the glyph index
         int glyphIndex =
                 _glyphIndexArray[sh._arrayIndex + (lowByte - sh._firstCode)];
