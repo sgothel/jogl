@@ -1783,12 +1783,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     protected final void pushSubtitleText(final String text, final int start_display_pts, final int end_display_pts) {
         if( null != subEventListener ) {
-            subEventListener.run( new SubTextEvent(this.scodecID, SubTextEvent.TextFormat.TEXT, text, start_display_pts, end_display_pts) );
+            subEventListener.run( new SubTextEvent(this.scodecID, getLang(getSID()), SubTextEvent.TextFormat.TEXT, text, start_display_pts, end_display_pts) );
         }
     }
     protected final void pushSubtitleASS(final String ass, final int start_display_pts, final int end_display_pts) {
         if( null != subEventListener ) {
-            subEventListener.run( new SubTextEvent(this.scodecID, SubTextEvent.TextFormat.ASS, ass, start_display_pts, end_display_pts) );
+            subEventListener.run( new SubTextEvent(this.scodecID, getLang(getSID()), SubTextEvent.TextFormat.ASS, ass, start_display_pts, end_display_pts) );
         }
     }
     /** {@link GLMediaPlayerImpl#pushSubtitleTex(Object, int, int, int, int, int, int, int, int, int)} */
@@ -1818,7 +1818,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             subTex.set(texWidth, texHeight, width, height);
         }
         if( null != subEventListener ) {
-            subEventListener.run( new SubBitmapEvent(this.scodecID, new Vec2i(x, y), new Vec2i(width, height),
+            subEventListener.run( new SubBitmapEvent(this.scodecID, getLang(getSID()), new Vec2i(x, y), new Vec2i(width, height),
                                                      subTex, start_display_pts, end_display_pts, subTexRelease) );
         } else {
             subTexRelease.release(subTex); // release right away
@@ -2199,9 +2199,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
         return null;
     }
-
-    @Override
-    public String getStreamLang(final int id) { return "n/a"; }
 
     @Override
     public final String toString() {

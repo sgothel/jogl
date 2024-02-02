@@ -704,7 +704,10 @@ public interface GLMediaPlayer extends TextureSequence {
     public int[] getVStreams();
 
     /**
-     * Return an array of detected video stream languages, matching {@link #getVStreams()} array and its indices.
+     * Return an array of detected video stream language codes, matching {@link #getVStreams()} array and its indices.
+     * <p>
+     * The language code is supposed to be 3-letters of `ISO 639-2 language codes`.
+     * </p>
      */
     public String[] getVLangs();
 
@@ -722,7 +725,10 @@ public interface GLMediaPlayer extends TextureSequence {
     public int[] getAStreams();
 
     /**
-     * Return an array of detected audio stream languages, matching {@link #getAStreams()} array and its indices.
+     * Return an array of detected audio stream language codes, matching {@link #getAStreams()} array and its indices.
+     * <p>
+     * The language code is supposed to be 3-letters of `ISO 639-2 language codes`.
+     * </p>
      */
     public String[] getALangs();
 
@@ -740,7 +746,10 @@ public interface GLMediaPlayer extends TextureSequence {
     public int[] getSStreams();
 
     /**
-     * Return an array of detected subtitle stream languages, matching {@link #getSStreams()} array and its indices.
+     * Return an array of detected subtitle stream language codes, matching {@link #getSStreams()} array and its indices.
+     * <p>
+     * The language code is supposed to be 3-letters of `ISO 639-2 language codes`.
+     * </p>
      */
     public String[] getSLangs();
 
@@ -758,9 +767,12 @@ public interface GLMediaPlayer extends TextureSequence {
     public boolean hasStreamID(int id);
 
     /**
-     * Return the matching language of given stream ID, matching one of the stream IDs in {@link #getVStreams()}, {@link #getAStreams()} or {@link #getSStreams()}.
+     * Return the matching language code of given stream ID, matching one of the stream IDs in {@link #getVStreams()}, {@link #getAStreams()} or {@link #getSStreams()}.
      * <p>
-     * If the stream ID is not available, {@code "und"} is returned
+     * The language code is supposed to be 3-letters of `ISO 639-2 language codes`.
+     * </p>
+     * <p>
+     * If the stream ID is not available, {@code und} is returned
      * </p>
      */
     public String getLang(int id);
@@ -974,11 +986,6 @@ public interface GLMediaPlayer extends TextureSequence {
      * @param msec desired chapter covering time position in milliseconds
      */
     public Chapter getChapter(int msec);
-
-    /**
-     * Returns the stream language metadata for the given stream id if available, otherwise {@code null}.
-     */
-    public String getStreamLang(int id);
 
     /** Returns a string representation of this player, incl. state and audio/video details. */
     @Override

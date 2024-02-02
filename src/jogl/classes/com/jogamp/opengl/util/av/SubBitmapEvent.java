@@ -53,6 +53,7 @@ public class SubBitmapEvent extends SubtitleEvent {
     /**
      * Texture Event ctor
      * @param codec the {@link CodecID}
+     * @param lang language code, supposed to be 3-letters of `ISO 639-2 language codes`
      * @param pos texture position
      * @param dim texture dimension
      * @param tex the {@link Texture} or {@code null} if unused
@@ -60,8 +61,8 @@ public class SubBitmapEvent extends SubtitleEvent {
      * @param pts_end pts end in ms, often {@link #isEndDefined()} for bitmap'ed types see {@link #pts_end}
      * @param owner {@link Texture} owner code-stub to release the texture
      */
-    public SubBitmapEvent(final CodecID codec, final Vec2i pos, final Vec2i dim, final Texture tex, final int pts_start, final int pts_end, final TextureOwner owner) {
-        super(SubtitleEvent.Type.Bitmap, codec, pts_start, pts_end);
+    public SubBitmapEvent(final CodecID codec, final String lang, final Vec2i pos, final Vec2i dim, final Texture tex, final int pts_start, final int pts_end, final TextureOwner owner) {
+        super(SubtitleEvent.Type.Bitmap, codec, lang, pts_start, pts_end);
         position = pos;
         dimension = dim;
         texture = tex;

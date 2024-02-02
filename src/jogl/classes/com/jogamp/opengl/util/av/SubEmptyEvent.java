@@ -34,7 +34,7 @@ public class SubEmptyEvent extends SubtitleEvent {
      * Empty event ctor
      */
     public SubEmptyEvent(final int pts_start, final int pts_end) {
-        super(SubtitleEvent.Type.Empty, CodecID.NONE, pts_start, pts_end);
+        super(SubtitleEvent.Type.Empty, CodecID.NONE, "und", pts_start, pts_end);
     }
 
     @Override

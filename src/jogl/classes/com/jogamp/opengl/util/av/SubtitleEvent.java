@@ -23,6 +23,8 @@ public abstract class SubtitleEvent {
     public final Type type;
     /** {@link CodecID} of this subtitle event. */
     public final CodecID codec;
+    /** Language code, supposed to be 3-letters of `ISO 639-2 language codes` */
+    public final String lang;
     /** PTS start time in milliseconds to start showing this subtitle event. */
     public final int pts_start;
     /**
@@ -35,9 +37,18 @@ public abstract class SubtitleEvent {
      */
     public final int pts_end;
 
-    public SubtitleEvent(final Type type, final CodecID codec, final int pts_start, final int pts_end) {
+    /**
+     *
+     * @param type
+     * @param codec the {@link CodecID}
+     * @param lang language code, supposed to be 3-letters of `ISO 639-2 language codes`
+     * @param pts_start pts start in ms, see {@link #pts_start}
+     * @param pts_end pts end in ms, see {@link #pts_end}
+     */
+    public SubtitleEvent(final Type type, final CodecID codec, final String lang, final int pts_start, final int pts_end) {
         this.type = type;
         this.codec = codec;
+        this.lang = lang;
         this.pts_start = pts_start;
         this.pts_end = pts_end;
     }
@@ -54,8 +65,6 @@ public abstract class SubtitleEvent {
         final boolean ied = isEndDefined();
         final String pts_start_s = 0 <= pts_start ? PTS.toTimeStr(pts_start, true) : "undef";
         final String pts_end_s = 0 <= pts_end && ied ? PTS.toTimeStr(pts_end, true) : "undef";
-        return "Sub[codec "+codec+", type "+type+", ["+pts_start_s+".."+pts_end_s+"] "+(ied?getDuration():"undef")+" ms";
+        return "Sub[codec "+codec+", lang '"+lang+"', type "+type+", ["+pts_start_s+".."+pts_end_s+"] "+(ied?getDuration():"undef")+" ms";
     }
-
-
 }

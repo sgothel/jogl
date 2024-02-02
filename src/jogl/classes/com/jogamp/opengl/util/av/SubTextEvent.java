@@ -93,13 +93,14 @@ public class SubTextEvent extends SubtitleEvent {
     /**
      * ASS/SAA Event Line ctor
      * @param codec the {@link CodecID}
-     * @param fmt input format of {@code ass}, currently only {@link SubTextEvent.TextFormat#ASS} and {@link SubTextEvent.TextFormat#TEXT} is supported
+     * @param lang language code, supposed to be 3-letters of `ISO 639-2 language codes`
+     * @param fmt input format of {@code ass}
      * @param ass ASS/SAA compatible event line according to {@link ASSType}
-     * @param pts_start pts start in ms, provided for {@link SubTextEvent.TextFormat#ASS} and {@link SubTextEvent.TextFormat#TEXT}
-     * @param pts_end pts end in ms, provided for {@link SubTextEvent.TextFormat#ASS} and {@link SubTextEvent.TextFormat#TEXT}
+     * @param pts_start pts start in ms
+     * @param pts_end pts end in ms
      */
-    public SubTextEvent(final CodecID codec, final TextFormat fmt, final String ass, final int pts_start, final int pts_end) {
-        super(SubtitleEvent.Type.Text, codec, pts_start, pts_end);
+    public SubTextEvent(final CodecID codec, final String lang, final TextFormat fmt, final String ass, final int pts_start, final int pts_end) {
+        super(SubtitleEvent.Type.Text, codec, lang, pts_start, pts_end);
         this.textFormat = fmt;
         ASSType assType = ASSType.TEXT;
         int start = -1;
