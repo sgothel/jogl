@@ -251,7 +251,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private Texture[] subTexOrig = null;
     private Ringbuffer<Texture> subTexFree =  null;
     private static final int SUB_TEX_IMAGES_MIN = TEXTURE_COUNT_MIN + 1;
-    private static final boolean subDEBUG = true;
+    private static final boolean subDEBUG = false;
 
     /**
      * @see #isGLOriented()
