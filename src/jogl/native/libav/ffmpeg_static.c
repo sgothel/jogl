@@ -74,7 +74,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGStaticNatives_i
     ffmpeg_jni_mid_pushSubtitleTex = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSubtitleTex", "(Ljava/lang/Object;IIIIIIIII)V");
     ffmpeg_jni_mid_pushSubtitleEmpty = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSubtitleEmpty", "(II)V");
     ffmpeg_jni_mid_updateAttributes = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", 
-        "(Ljava/lang/String;[I[Ljava/lang/String;I[I[Ljava/lang/String;I[I[Ljava/lang/String;IIIIIIFIIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+        "(Ljava/lang/String;[I[Ljava/lang/String;I[I[Ljava/lang/String;I[I[Ljava/lang/String;IIIIIIFIIILjava/lang/String;Ljava/lang/String;Ljava/lang/String;III)V");
     ffmpeg_jni_mid_setIsGLOriented = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "setIsGLOriented", "(Z)V");
     ffmpeg_jni_mid_setupFFAttributes = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "setupFFAttributes", "(IIIIIIIIIIIIIII)V");
     ffmpeg_jni_mid_isAudioFormatSupported = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "isAudioFormatSupported", "(III)Z");

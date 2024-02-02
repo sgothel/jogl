@@ -1,5 +1,5 @@
 /**
- * Copyright 2015-2023 JogAmp Community. All rights reserved.
+ * Copyright 2015-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -47,6 +47,9 @@ class FFMPEGv0600Natives extends FFMPEGNatives {
     native int getSwResampleMajorVersionCC0();
 
     @Override
+    native int getSwScaleMajorVersionCC0();
+
+    @Override
     native long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
 
     @Override
@@ -56,7 +59,7 @@ class FFMPEGv0600Natives extends FFMPEGNatives {
     native void setStream0(long moviePtr, String url, boolean isCameraInput, int vid, String sizes, int vWidth, int vHeight, int vRate, int aid, int aMaxChannelCount, int aPrefSampleRate, int sid);
 
     @Override
-    native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish, long procAddrGLEnable, long procAddrGLBindTexture);
+    native void setGLFuncs0(long moviePtr, long procAddrGLTexImage2D, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish, long procAddrGLEnable, long procAddrGLBindTexture, boolean hasNPOT);
 
     @Override
     native int getVideoPTS0(long moviePtr);
@@ -65,7 +68,7 @@ class FFMPEGv0600Natives extends FFMPEGNatives {
     native int getAudioPTS0(long moviePtr);
 
     @Override
-    native int readNextPacket0(long moviePtr, int vTexTarget, int vTexID, int vTexFmt, int vTexType, int sTexTarget, int sTexID);
+    native int readNextPacket0(long moviePtr, int vTexTarget, int vTexID, int vTexFmt, int vTexType, int sTexTarget, int sTexID, int sTexWidthPre, int sTexHeightPre, Object sTexObj, boolean[] sTexUsed);
 
     @Override
     native int play0(long moviePtr);

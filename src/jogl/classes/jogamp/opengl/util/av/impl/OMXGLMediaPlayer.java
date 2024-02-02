@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2012-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -38,6 +38,7 @@ import com.jogamp.opengl.GLException;
 
 import com.jogamp.opengl.egl.EGL;
 import com.jogamp.opengl.util.av.GLMediaPlayer.State;
+import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.opengl.util.av.EGLMediaPlayerImpl;
@@ -105,7 +106,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected void initStreamImpl(final int vid, final int aid, int sid) throws IOException {
+    protected void initStreamImpl(final int vid, final int aid, final int sid) throws IOException {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
@@ -192,7 +193,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) {
+    protected int getNextTextureImpl(final GL gl, final TextureFrame vFrame, final Texture sTex, final boolean[] sTexUsed) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }

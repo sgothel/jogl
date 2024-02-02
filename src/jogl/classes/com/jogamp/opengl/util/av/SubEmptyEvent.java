@@ -34,15 +34,8 @@ public class SubEmptyEvent extends SubtitleEvent {
      * Empty event ctor
      */
     public SubEmptyEvent(final int pts_start, final int pts_end) {
-        super(CodecID.NONE, pts_start, pts_end);
+        super(SubtitleEvent.Type.Empty, CodecID.NONE, pts_start, pts_end);
     }
-
-    @Override
-    public final boolean isTextASS() { return false; }
-    @Override
-    public final boolean isBitmap() { return false; }
-    @Override
-    public final boolean isEmpty() { return true; }
 
     @Override
     public void release() {} // nothing to be released back to the owner

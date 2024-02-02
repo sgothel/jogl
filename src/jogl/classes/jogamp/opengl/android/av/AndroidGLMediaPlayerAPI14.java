@@ -341,7 +341,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                              r_aids, r_alangs, r_aid,
                              new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
                              mp.getVideoWidth(), mp.getVideoHeight(), 0, 0, 0, 0f, 0, 0, mp.getDuration(),
-                             icodec, icodec, null);
+                             icodec, icodec, null, -1, -1, -1);
             /**
                 mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                     @Override
@@ -379,7 +379,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                              new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
                              new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
                              size.width, size.height, 0, 0, 0, fpsRange[1]/1000f, 0, 0, 0,
-                             icodec, icodec, null);
+                             icodec, icodec, null, -1, -1, -1);
         }
     }
     private static String camSz2Str(final Camera.Size csize) {
@@ -406,10 +406,10 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) throws InterruptedException {
+    protected final int getNextTextureImpl(final GL gl, final TextureFrame vFrame, Texture sTex, boolean[] sTexUsed) throws InterruptedException {
         int pts = TimeFrameI.INVALID_PTS;
         if(null != mp || null != cam) {
-            final SurfaceTextureFrame sTexFrame = null != nextFrame ? (SurfaceTextureFrame) nextFrame : singleSTexFrame;
+            final SurfaceTextureFrame sTexFrame = null != vFrame ? (SurfaceTextureFrame) vFrame : singleSTexFrame;
             final SurfaceTexture surfTex = sTexFrame.surfaceTex;
             if( !sTexFrameAttached ) {
                 sTexFrameAttached = true;

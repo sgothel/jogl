@@ -61,19 +61,12 @@ public class SubBitmapEvent extends SubtitleEvent {
      * @param owner {@link Texture} owner code-stub to release the texture
      */
     public SubBitmapEvent(final CodecID codec, final Vec2i pos, final Vec2i dim, final Texture tex, final int pts_start, final int pts_end, final TextureOwner owner) {
-        super(codec, pts_start, pts_end);
+        super(SubtitleEvent.Type.Bitmap, codec, pts_start, pts_end);
         position = pos;
         dimension = dim;
         texture = tex;
         this.owner = owner;
     }
-
-    @Override
-    public final boolean isTextASS() { return false; }
-    @Override
-    public final boolean isBitmap() { return true; }
-    @Override
-    public final boolean isEmpty() { return false; }
 
     /**
      * {@inheritDoc}

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2023 JogAmp Community. All rights reserved.
+ * Copyright 2013-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -28,6 +28,7 @@
 package jogamp.opengl.util.av.impl;
 
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
+import jogamp.opengl.util.av.GLMediaPlayerImpl;
 
 /* pp */ abstract class FFMPEGNatives {
 
@@ -42,6 +43,7 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
     abstract int getAvCodecMajorVersionCC0();
     abstract int getAvDeviceMajorVersionCC0();
     abstract int getSwResampleMajorVersionCC0();
+    abstract int getSwScaleMajorVersionCC0();
 
     abstract long createInstance0(FFMPEGMediaPlayer upstream, boolean verbose);
     abstract void destroyInstance0(long moviePtr);
@@ -67,8 +69,8 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
                              int aid, int aMaxChannelCount, int aPrefSampleRate,
                              int sid);
 
-    abstract void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush, long procAddrGLFinish,
-                              long procAddrGLEnable, long procAddrGLBindTexture);
+    abstract void setGLFuncs0(long moviePtr, long procAddrGLTexImage2D, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush,
+                              long procAddrGLFinish, long procAddrGLEnable, long procAddrGLBindTexture, boolean hasNPOT);
 
     abstract int getVideoPTS0(long moviePtr);
 
@@ -89,9 +91,13 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
      * @param vTexType video texture data type
      * @param sTexTarget subtitle texture target
      * @param sTexID subtitle texture ID/name
+     * @param sTexWidthPre current texture size, may be increased and notified via {@link GLMediaPlayerImpl#pushSubtitleTex(Object, int, int, int, int, int, int, int, int, int)}
+     * @param sTexHeightPre current texture size, may be increased and notified via {@link GLMediaPlayerImpl#pushSubtitleTex(Object, int, int, int, int, int, int, int, int, int)}
+     * @param sTexObj subtitle texture Object to be passed to caller
+     * @param sTexUsed result value, if {@code sTexObj} is being used {@code true} must be written into it
      * @return resulting current video PTS, or {@link TextureFrame#INVALID_PTS}
      */
-    abstract int readNextPacket0(long moviePtr, int vTexTarget, int vTexID, int vTexFmt, int vTexType, int sTexTarget, int sTexID);
+    abstract int readNextPacket0(long moviePtr, int vTexTarget, int vTexID, int vTexFmt, int vTexType, int sTexTarget, int sTexID, int sTexWidthPre, int sTexHeightPre, Object sTexObj, boolean[] sTexUsed);
 
     abstract int play0(long moviePtr);
     abstract int pause0(long moviePtr);

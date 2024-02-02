@@ -40,6 +40,7 @@ import com.jogamp.common.av.AudioSink;
 import com.jogamp.common.av.PTS;
 import com.jogamp.common.av.TimeFrameI;
 import com.jogamp.common.net.Uri;
+import com.jogamp.math.Vec4f;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -286,7 +287,7 @@ public interface GLMediaPlayer extends TextureSequence {
         }
         @Override
         public String toString() {
-            return String.format("%02d: [%s .. %s] %s", id, PTS.millisToTimeStr(start), PTS.millisToTimeStr(end), title);
+            return String.format("%02d: [%s .. %s] %s", id, PTS.toTimeStr(start), PTS.toTimeStr(end), title);
         }
     }
 
@@ -326,17 +327,19 @@ public interface GLMediaPlayer extends TextureSequence {
         /** Attribute change bits */
         public static enum Bit {
             /** State changed to {@link State#Initialized}. See <a href="#lifecycle">Lifecycle</a>.*/
-            Init  ( 1<<0 ),
+            Init   ( 1<<0 ),
             /** State changed to {@link State#Uninitialized}. See <a href="#lifecycle">Lifecycle</a>.*/
             Uninit ( 1<<1 ),
             /** State changed to {@link State#Playing}. See <a href="#lifecycle">Lifecycle</a>.*/
-            Play ( 1<<2 ),
+            Play   ( 1<<2 ),
             /** State changed to {@link State#Paused}. See <a href="#lifecycle">Lifecycle</a>.*/
             Pause  ( 1<<3 ),
+            /** Time position has changed, e.g. via {@link GLMediaPlayer#seek(int)}.*/
+            Seek   ( 1<<4 ),
             /** End of stream reached. See <a href("#lifecycle">Lifecycle</a>.*/
-            EOS    ( 1<<4 ),
+            EOS    ( 1<<5 ),
             /** An error occurred, e.g. during off-thread initialization. See {@link StreamException} and <a href("#lifecycle">Lifecycle</a>. */
-            Error  ( 1<<5 ),
+            Error  ( 1<<6 ),
 
             /** Stream video id change. */
             VID    ( 1<<16 ),
@@ -352,8 +355,14 @@ public interface GLMediaPlayer extends TextureSequence {
             BPS ( 1<<21 ),
             /** Stream length change. */
             Length ( 1<<22 ),
-            /** Stream codec change. */
-            Codec  ( 1<<23 );
+            /** Audio, video or subtitle stream codec change. */
+            Codec  ( 1<<23 ),
+            /** Audio stream codec change. */
+            ACodec  ( 1<<24 ),
+            /** Video stream codec change. */
+            VCodec  ( 1<<25 ),
+            /** Subtitle stream codec change. */
+            SCodec  ( 1<<26 );
 
             Bit(final int v) { value = v; }
             public final int value;
@@ -833,15 +842,33 @@ public interface GLMediaPlayer extends TextureSequence {
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
+     * @return the {@link CodecID} of the video stream, if available
+     */
+    public CodecID getVideoCodecID();
+
+    /**
+     * <i>Warning:</i> Optional information, may not be supported by implementation.
      * @return the codec of the video stream, if available
      */
     public String getVideoCodec();
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
+     * @return the {@link CodecID} of the audio stream, if available
+     */
+    public CodecID getAudioCodecID();
+
+    /**
+     * <i>Warning:</i> Optional information, may not be supported by implementation.
      * @return the codec of the audio stream, if available
      */
     public String getAudioCodec();
+
+    /**
+     * <i>Warning:</i> Optional information, may not be supported by implementation.
+     * @return the {@link CodecID} of the subtitle stream, if available
+     */
+    public CodecID getSubtitleCodecID();
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.

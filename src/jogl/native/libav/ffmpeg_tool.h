@@ -48,6 +48,7 @@
 #include "libavutil/pixdesc.h"
 #include "libavutil/samplefmt.h"
 #include "libswresample/swresample.h"
+#include "libswscale/swscale.h"
 
 #ifndef LIBSWRESAMPLE_VERSION_MAJOR
 #define LIBSWRESAMPLE_VERSION_MAJOR -1
@@ -62,6 +63,7 @@ typedef struct SwrContext SwrContext;
 #include <GL/gl.h>
 
 typedef void (APIENTRYP PFNGLTEXSUBIMAGE2DPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
+typedef void (APIENTRYP PFNGLTEXIMAGE2DPROC) (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
 typedef GLenum (APIENTRYP PFNGLGETERRORPROC) (void);
 typedef void (APIENTRYP PFNGLFLUSH) (void);
 typedef void (APIENTRYP PFNGLFINISH) (void);
@@ -102,8 +104,25 @@ typedef void (APIENTRYP PFNGLACTIVETEXTURE) (GLenum texture);
 /** Since 55.0.0.1 */
 #define AV_HAS_API_SWRESAMPLE(pAV) ( ( LIBSWRESAMPLE_VERSION_MAJOR >= 0 ) && ( pAV->swresampleVersion != 0 ) )
 
+#define AV_HAS_API_SWSCALE(pAV) ( ( LIBSWSCALE_VERSION_MAJOR >= 0 ) && ( pAV->swscaleVersion != 0 ) )
+
 #define MAX_INT(a,b) ( (a >= b) ? a : b )
 #define MIN_INT(a,b) ( (a <= b) ? a : b )
+
+static inline int isPowerOf2(uint32_t n) { return n && !(n & (n - 1)); }
+static inline int nextPowerOf2(uint32_t n) { 
+    n--;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    n++;
+    return (n == 0) ? 1 : n; // avoid edge case where n is 0, it would return 0, which isn't a power of 2
+}
+static inline int roundToPowerOf2(uint32_t n) {
+    return isPowerOf2(n) ? n : nextPowerOf2(n);
+}
 
 static inline float my_av_q2f(AVRational a){
     return (float)a.num / (float)a.den;
@@ -116,6 +135,12 @@ static inline int32_t my_av_q2i32(int64_t snum, AVRational a){
 }
 static inline int my_align(int v, int a){
     return ( v + a - 1 ) & ~( a - 1 );
+}
+
+static inline int32_t my_min(int a, int b) { return a < b ? a : b; }
+static inline int32_t my_max(int a, int b) { return a > b ? a : b; }
+static inline int32_t my_clip(int a, int min, int max) {
+    return my_min(max, my_max(min, a));
 }
 
 #if LIBAVCODEC_VERSION_MAJOR < 59
@@ -148,19 +173,24 @@ typedef struct {
     uint32_t         avutilVersion;
     uint32_t         avdeviceVersion;
     uint32_t         swresampleVersion;
+    uint32_t         swscaleVersion;
 
     PFNGLTEXSUBIMAGE2DPROC procAddrGLTexSubImage2D;
+    PFNGLTEXIMAGE2DPROC procAddrGLTexImage2D;
     PFNGLGETERRORPROC procAddrGLGetError;
     PFNGLFLUSH procAddrGLFlush;
     PFNGLFINISH procAddrGLFinish;
     PFNGLENABLE procAddrGLEnable;
     PFNGLBINDTEXTURE procAddrGLBindTexture;
+    int32_t          hasNPOT;
 
     AVPacket*        packet;
     AVFormatContext* pFormatCtx;
     uint32_t         v_stream_count;
     int32_t          v_streams[MAX_STREAM_COUNT];
     int32_t          vid;
+    int32_t          vCodecID;
+    char             vCodecStr[64];
     AVStream*        pVStream;
     AVCodecParameters* pVCodecPar;
     AVCodecContext*  pVCodecCtx;
@@ -180,6 +210,8 @@ typedef struct {
     uint32_t         a_stream_count;
     int32_t          a_streams[MAX_STREAM_COUNT];
     int32_t          aid;
+    int32_t          aCodecID;
+    char             aCodecStr[64];
     AVStream*        pAStream;
     AVCodecParameters* pACodecPar;
     AVCodecContext*  pACodecCtx;
@@ -204,11 +236,16 @@ typedef struct {
     uint32_t         s_stream_count;
     int32_t          s_streams[MAX_STREAM_COUNT];
     int32_t          sid;
+    int32_t          sCodecID;
+    char             sCodecStr[64];
     AVStream*        pSStream;
     AVCodecParameters* pSCodecPar;
     AVCodecContext*  pSCodecCtx;
     AVCodec*         pSCodec;
     int32_t          sPTS;       // msec - overall last subtitle PTS
+    struct SwsContext *sScaleCtx;
+    void*            sPixels;
+    size_t           sPixelsSize;
 
     float            fps;        // frames per seconds
     int32_t          bps_stream; // bits per seconds
@@ -218,10 +255,6 @@ typedef struct {
     int32_t          frames_audio;
     int32_t          duration;   // msec
     int32_t          start_time; // msec
-
-    char             acodec[64];
-    char             vcodec[64];
-    char             scodec[64];
 
     int32_t          ready;
 

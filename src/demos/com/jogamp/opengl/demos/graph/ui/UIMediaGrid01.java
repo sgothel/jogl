@@ -87,6 +87,8 @@ public class UIMediaGrid01 {
     private static final boolean VERBOSE_UI = false;
     private static final List<String> MEDIA_SUFFIXES = Arrays.asList("mp4", "mkv", "m2v", "avi");
     private static int aid = GLMediaPlayer.STREAM_ID_AUTO;
+    private static int sid = GLMediaPlayer.STREAM_ID_NONE;
+    private static int start_pos = 0;
     private static float videoAspectRatio = 16f/9f;
     private static boolean letterBox = true;
     private static int texCount = GLMediaPlayer.TEXTURE_COUNT_DEFAULT;
@@ -110,6 +112,12 @@ public class UIMediaGrid01 {
                 } else if(args[idx[0]].equals("-aid")) {
                     idx[0]++;
                     aid = MiscUtils.atoi(args[idx[0]], aid);
+                } else if(args[idx[0]].equals("-sid")) {
+                    idx[0]++;
+                    sid = MiscUtils.atoi(args[idx[0]], sid);
+                } else if(args[idx[0]].equals("-start")) {
+                    idx[0]++;
+                    start_pos = MiscUtils.atoi(args[idx[0]], start_pos);
                 } else if(args[idx[0]].equals("-ratio")) {
                     idx[0]++;
                     videoAspectRatio = MiscUtils.atof(args[idx[0]], videoAspectRatio);
@@ -374,7 +382,10 @@ public class UIMediaGrid01 {
             final MediaPlayer graphMPlayer = new MediaPlayer(options.renderModes, scene, glMPlayer, medium, defRatio, letterBox, zoomSize, customCtrls);
             // graphMPlayer.setSubtitleParams(MiscUtils.getSerifFont(), 0.1f);
             grid.addShape( graphMPlayer );
-            glMPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, GLMediaPlayer.STREAM_ID_NONE, texCount);
+            glMPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, sid, texCount);
+            if( start_pos > 0 ) {
+                glMPlayer.seek(start_pos * 1000);
+            }
         }
     }
     private static boolean printNativeInfoOnce = true;

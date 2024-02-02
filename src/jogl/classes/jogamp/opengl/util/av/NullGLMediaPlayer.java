@@ -39,6 +39,7 @@ import com.jogamp.common.av.PTS;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.util.av.CodecID;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureData;
@@ -91,9 +92,9 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) {
+    protected final int getNextTextureImpl(final GL gl, final TextureFrame vFrame, final Texture sTex, final boolean[] sTexUsed) {
         final int pts = getLastBufferedAudioPTS();
-        nextFrame.setPTS( pts );
+        vFrame.setPTS( pts );
         return pts;
     }
 
@@ -154,7 +155,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
                          new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
                          new int[0], new String[0], GLMediaPlayer.STREAM_ID_NONE,
                          texData.getWidth(), texData.getHeight(), 0, 0, 0, _fps, _totalFrames, 0, _duration,
-                         "png-static", null, null);
+                         "png-static", null, null, CodecID.toFFmpeg(CodecID.PNG), -1, -1);
     }
     @Override
     protected final void initGLImpl(final GL gl) throws IOException, GLException {

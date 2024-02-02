@@ -52,14 +52,15 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
     private static final List<String> glueLibNames = new ArrayList<String>(); // none
 
-    private static final int symbolCount = 63;
+    private static final int symbolCount = 67;
     private static final String[] symbolNames = {
          "avutil_version",
          "avformat_version",
          "avcodec_version",
          "avdevice_version",   // (opt)
          "swresample_version",
-         /* 5 */
+         "swscale_version", // (opt)
+         /* 6 */
 
          // libavcodec
          "avcodec_close",
@@ -82,7 +83,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avcodec_receive_frame",     // 57
          "avcodec_decode_subtitle2",  // 52.23.0
          "avsubtitle_free",           // 52.82.0
-         /* +20 = 25 */
+         /* +20 = 26 */
 
          // libavutil
          "av_pix_fmt_desc_get",       // >= lavu 51.45
@@ -102,7 +103,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "av_channel_layout_uninit", // >= 59 (opt)
          "av_channel_layout_describe", // >= 59 (opt)
          "av_opt_set_chlayout",        // >= 59
-         /* +17 = 42 */
+         /* +17 = 43 */
 
          // libavformat
          "avformat_alloc_context",
@@ -119,11 +120,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
          "avformat_find_stream_info", // 53.3.0    (opt)
-         /* +14 = 56 */
+         /* +14 = 57 */
 
          // libavdevice
          "avdevice_register_all",     // supported in all versions (opt)
-         /* +1  = 57 */
+         /* +1  = 58 */
 
          // libswresample
          "av_opt_set_sample_fmt",     // actually lavu .. but exist only w/ swresample!
@@ -132,7 +133,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "swr_free",
          "swr_convert",
          "swr_get_out_samples",
-         /* +6  = 63 */
+         /* +6  = 64 */
+
+         // libswscale
+         "sws_getCachedContext",      // opt
+         "sws_scale",                 // opt
+         "sws_freeContext",           // opt
+         /* +3  = 67 */
     };
 
     // optional symbol names
@@ -158,15 +165,22 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "swr_free",
          "swr_convert",
          "swr_get_out_samples",
+
+         // libswscale
+         "swscale_version",           // opt
+         "sws_getCachedContext",      // opt
+         "sws_scale",                 // opt
+         "sws_freeContext",           // opt
     };
 
-    /** 5: util, format, codec, device, swresample */
-    private static final int LIB_COUNT = 5;
+    /** 6: util, format, codec, device, swresample, swscale */
+    private static final int LIB_COUNT = 6;
     private static final int LIB_IDX_UTI = 0;
     private static final int LIB_IDX_FMT = 1;
     private static final int LIB_IDX_COD = 2;
     private static final int LIB_IDX_DEV = 3;
     private static final int LIB_IDX_SWR = 4;
+    private static final int LIB_IDX_SWS = 5;
 
     /** util, format, codec, device, swresample */
     private static final boolean[] libLoaded = new boolean[LIB_COUNT];
@@ -200,6 +214,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     static final VersionedLib avCodec;
     static final VersionedLib avDevice;
     static final VersionedLib swResample;
+    static final VersionedLib swScale;
     private static final FFMPEGNatives natives;
 
     private static final PrivilegedAction<DynamicLibraryBundle> privInitSymbolsAction = new PrivilegedAction<DynamicLibraryBundle>() {
@@ -226,7 +241,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         } };
 
     /**
-     * @param versions 5: util, format, codec, device, swresample
+     * @param versions 6: util, format, codec, device, swresample, swscale
      * @return
      */
     private static final boolean initSymbols(final VersionNumber[] versions, final List<NativeLibrary> nativeLibs) {
@@ -271,7 +286,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             versions[LIB_IDX_DEV] = new VersionNumber(0, 0, 0);
         }
         versions[LIB_IDX_SWR] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[LIB_IDX_SWR]));
-
+        if( 0 != symbolAddr[LIB_IDX_SWS] ) {
+            versions[LIB_IDX_SWS] = FFMPEGStaticNatives.getAVVersion(FFMPEGStaticNatives.getAvVersion0(symbolAddr[LIB_IDX_SWS]));
+        } else {
+            versions[LIB_IDX_SWS] = new VersionNumber(0, 0, 0);
+        }
         return res;
     }
 
@@ -280,7 +299,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         GLProfile.initSingleton();
 
         boolean _ready = false;
-        /** 5: util, format, codec, device, swresample */
+        /** 6: util, format, codec, device, swresample, swscale */
         final VersionNumber[] _versions = new VersionNumber[LIB_COUNT];
         final List<NativeLibrary> _nativeLibs = new ArrayList<NativeLibrary>();
         try {
@@ -294,6 +313,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         avCodec = new VersionedLib(_nativeLibs.get(LIB_IDX_COD), _versions[LIB_IDX_COD]);
         avDevice = new VersionedLib(_nativeLibs.get(LIB_IDX_DEV), _versions[LIB_IDX_DEV]);
         swResample = new VersionedLib(_nativeLibs.get(LIB_IDX_SWR), _versions[LIB_IDX_SWR]);
+        swScale = new VersionedLib(_nativeLibs.get(LIB_IDX_SWS), _versions[LIB_IDX_SWS]);
         if(!libsCFUSLoaded) {
             String missing = "";
             if( !libLoaded[LIB_IDX_COD] ) {
@@ -321,13 +341,20 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
             final int avCodecMajor = avCodec.version.getMajor();
             final int avDeviceMajor = avDevice.version.getMajor();
             final int swResampleMajor = swResample.version.getMajor();
-            if( avCodecMajor == 58 && avFormatMajor == 58 && ( avDeviceMajor == 58 || avDeviceMajor == 0 ) && avUtilMajor == 56 && swResampleMajor == 3) {
+            final int swScaleMajor = swScale.version.getMajor();
+            if( avCodecMajor == 58 && avFormatMajor == 58 && ( avDeviceMajor == 58 || avDeviceMajor == 0 ) && avUtilMajor == 56 &&
+                swResampleMajor == 3 && ( swScaleMajor == 5 || swScaleMajor == 0 ) )
+            {
                 // Exact match: ffmpeg 4.x.y
                 natives = new FFMPEGv0400Natives();
-            } else if( avCodecMajor == 59 && avFormatMajor == 59 && ( avDeviceMajor == 59 || avDeviceMajor == 0 ) && avUtilMajor == 57 && swResampleMajor == 4) {
+            } else if( avCodecMajor == 59 && avFormatMajor == 59 && ( avDeviceMajor == 59 || avDeviceMajor == 0 ) && avUtilMajor == 57 &&
+                       swResampleMajor == 4 && ( swScaleMajor == 6 || swScaleMajor == 0 ) )
+            {
                 // Exact match: ffmpeg 5.x.y
                 natives = new FFMPEGv0500Natives();
-            } else if( avCodecMajor == 60 && avFormatMajor == 60 && ( avDeviceMajor == 60 || avDeviceMajor == 0 ) && avUtilMajor == 58 && swResampleMajor == 4) {
+            } else if( avCodecMajor == 60 && avFormatMajor == 60 && ( avDeviceMajor == 60 || avDeviceMajor == 0 ) && avUtilMajor == 58 &&
+                       swResampleMajor == 4 && ( swScaleMajor == 7 || swScaleMajor == 0 ) )
+            {
                 // Exact match: ffmpeg 6.x.y
                 natives = new FFMPEGv0600Natives();
             } else {
@@ -351,6 +378,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     static boolean libsLoaded() { return libsCFUSLoaded; }
     static boolean avDeviceLoaded() { return libLoaded[LIB_IDX_DEV]; }
     static boolean swResampleLoaded() { return libLoaded[LIB_IDX_SWR]; }
+    static boolean swScaleLoaded() { return libLoaded[LIB_IDX_SWS]; }
     static FFMPEGNatives getNatives() { return natives; }
     static boolean initSingleton() { return ready; }
 
@@ -390,7 +418,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     public final List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
 
-        // 5: util, format, codec, device, swresample
+        // 6: util, format, codec, device, swresample, swscale
 
         final List<String> avutil = new ArrayList<String>();
         if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
@@ -490,12 +518,31 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         }
         libsList.add(swresample);
 
+        final List<String> swscale = new ArrayList<String>();
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            swscale.add("swscale");         // system default
+        } else {
+            swscale.add("internal_swscale");// internal
+        }
+        swscale.add("libswscale.so.7");     // ffmpeg 6.[0-x]
+        swscale.add("libswscale.so.6");     // ffmpeg 5.[0-x]
+        swscale.add("libswscale.so.5");     // ffmpeg 4.[0-x] (Debian-11)
+
+        swscale.add("swscale-7");           // ffmpeg 6.[0-x]
+        swscale.add("swscale-6");           // ffmpeg 5.[0-x]
+        swscale.add("swscale-5");           // ffmpeg 4.[0-x]
+        if( FFMPEGMediaPlayer.PREFER_SYSTEM_LIBS ) {
+            swscale.add("internal_swscale");// internal
+        } else {
+            swscale.add("swscale");         // system default
+        }
+        libsList.add(swscale);
         return libsList;
     }
     @Override
     public List<String> getSymbolForToolLibPath() {
-        // 5: util, format, codec, device, swresample
-        return Arrays.asList("av_free", "av_read_frame", "avcodec_close", "avdevice_register_all", "swr_convert");
+        // 6: util, format, codec, device, swresample, swscale
+        return Arrays.asList("av_free", "av_read_frame", "avcodec_close", "avdevice_register_all", "swr_convert", "swscale_version");
     }
 
     @Override

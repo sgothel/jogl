@@ -30,7 +30,6 @@ package jogamp.opengl.util.av.impl;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.ByteBuffer;
 import java.security.PrivilegedAction;
 
 import com.jogamp.opengl.GL;
@@ -41,21 +40,19 @@ import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
 import com.jogamp.common.av.AudioSinkFactory;
 import com.jogamp.common.av.TimeFrameI;
-import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.GLPixelStorageModes;
-import com.jogamp.opengl.util.av.ASSEventLine;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.VideoPixelFormat;
 import com.jogamp.opengl.util.texture.Texture;
 
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.util.av.AudioSampleFormat;
 import jogamp.opengl.util.av.GLMediaPlayerImpl;
-import jogamp.opengl.util.av.VideoPixelFormat;
 import jogamp.opengl.util.av.impl.FFMPEGDynamicLibraryBundleInfo.VersionedLib;
 
 /***
@@ -98,6 +95,7 @@ import jogamp.opengl.util.av.impl.FFMPEGDynamicLibraryBundleInfo.VersionedLib;
  *   <li>avutil</li>
  *   <li>avdevice (optional for video input devices)</li>
  *   <li>swresample</li>
+ *   <li>swscale (optional for bitmap'ed subtitles)</li>
  * </ul>
  * </p>
  *
@@ -105,10 +103,10 @@ import jogamp.opengl.util.av.impl.FFMPEGDynamicLibraryBundleInfo.VersionedLib;
  * <p>
  * Currently we are binary compatible with the following major versions:
  * <table border="1">
- * <tr><th>ffmpeg</th><th>avcodec</th><th>avformat</th><th>avdevice</th><th>avutil</th><th>swresample</th>  <th>FFMPEG* class</th></tr>
- * <tr><td>4</td>     <td>58</td>     <td>58</td>      <td>58</td>      <td>56</td>    <td>03</td>          <td>FFMPEGv0400</td></tr>
- * <tr><td>5</td>     <td>59</td>     <td>59</td>      <td>59</td>      <td>57</td>    <td>04</td>          <td>FFMPEGv0500</td></tr>
- * <tr><td>6</td>     <td>60</td>     <td>60</td>      <td>60</td>      <td>58</td>    <td>04</td>          <td>FFMPEGv0600</td></tr>
+ * <tr><th>ffmpeg</th><th>avcodec</th><th>avformat</th><th>avdevice</th><th>avutil</th><th>swresample</th><th>swscale</th>  <th>FFMPEG* class</th></tr>
+ * <tr><td>4</td>     <td>58</td>     <td>58</td>      <td>58</td>      <td>56</td>    <td>03</td>        <td>05</td>       <td>FFMPEGv0400</td></tr>
+ * <tr><td>5</td>     <td>59</td>     <td>59</td>      <td>59</td>      <td>57</td>    <td>04</td>        <td>06</td>       <td>FFMPEGv0500</td></tr>
+ * <tr><td>6</td>     <td>60</td>     <td>60</td>      <td>60</td>      <td>58</td>    <td>04</td>        <td>07</td>       <td>FFMPEGv0600</td></tr>
  * </table>
  * </p>
  * <p>
@@ -203,6 +201,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private static final int avCodecMajorVersionCC;
     private static final int avDeviceMajorVersionCC;
     private static final int swResampleMajorVersionCC;
+    private static final int swScaleMajorVersionCC;
     private static final boolean available;
 
     static {
@@ -220,18 +219,21 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 avUtilMajorVersionCC = natives.getAvUtilMajorVersionCC0();
                 avDeviceMajorVersionCC = natives.getAvDeviceMajorVersionCC0();
                 swResampleMajorVersionCC = natives.getSwResampleMajorVersionCC0();
+                swScaleMajorVersionCC = natives.getSwScaleMajorVersionCC0();
             } else {
                 avUtilMajorVersionCC = 0;
                 avFormatMajorVersionCC = 0;
                 avCodecMajorVersionCC = 0;
                 avDeviceMajorVersionCC = 0;
                 swResampleMajorVersionCC = 0;
+                swScaleMajorVersionCC = 0;
             }
             final VersionedLib avCodec = FFMPEGDynamicLibraryBundleInfo.avCodec;
             final VersionedLib avFormat = FFMPEGDynamicLibraryBundleInfo.avFormat;
             final VersionedLib avUtil = FFMPEGDynamicLibraryBundleInfo.avUtil;
             final VersionedLib avDevice = FFMPEGDynamicLibraryBundleInfo.avDevice;
             final VersionedLib swResample = FFMPEGDynamicLibraryBundleInfo.swResample;
+            final VersionedLib swScale = FFMPEGDynamicLibraryBundleInfo.swScale;
             // final boolean avDeviceLoaded = FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded();
             // final boolean swResampleLoaded = FFMPEGDynamicLibraryBundleInfo.swResampleLoaded();
             final int avCodecMajor = avCodec.version.getMajor();
@@ -239,11 +241,13 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             final int avUtilMajor = avUtil.version.getMajor();
             final int avDeviceMajor = avDevice.version.getMajor();
             final int swResampleMajor = swResample.version.getMajor();
+            final int swScaleMajor = swScale.version.getMajor();
             libAVVersionGood = avCodecMajorVersionCC  == avCodecMajor &&
                                avFormatMajorVersionCC == avFormatMajor &&
                                avUtilMajorVersionCC == avUtilMajor &&
                                ( avDeviceMajorVersionCC == avDeviceMajor || 0 == avDeviceMajor ) &&
-                               swResampleMajorVersionCC == swResampleMajor;
+                               swResampleMajorVersionCC == swResampleMajor &&
+                               ( swScaleMajorVersionCC == swScaleMajor || 0 == swScaleMajor );
             if( !libAVVersionGood ) {
                 System.err.println("FFmpeg Not Matching Compile-Time / Runtime Major-Version");
             }
@@ -257,6 +261,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             avCodecMajorVersionCC = 0;
             avDeviceMajorVersionCC = 0;
             swResampleMajorVersionCC = 0;
+            swScaleMajorVersionCC = 0;
             libAVVersionGood = false;
         }
         available = libAVGood && libAVVersionGood && null != natives;
@@ -270,6 +275,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         out.println("FFmpeg Util    : "+FFMPEGDynamicLibraryBundleInfo.avUtil+" [cc "+avUtilMajorVersionCC+"]");
         out.println("FFmpeg Device  : "+FFMPEGDynamicLibraryBundleInfo.avDevice+" [cc "+avDeviceMajorVersionCC+", loaded "+FFMPEGDynamicLibraryBundleInfo.avDeviceLoaded()+"]");
         out.println("FFmpeg Resample: "+FFMPEGDynamicLibraryBundleInfo.swResample+" [cc "+swResampleMajorVersionCC+", loaded "+FFMPEGDynamicLibraryBundleInfo.swResampleLoaded()+"]");
+        out.println("FFmpeg Scale   : "+FFMPEGDynamicLibraryBundleInfo.swScale+" [cc "+swScaleMajorVersionCC+", loaded "+FFMPEGDynamicLibraryBundleInfo.swScaleLoaded()+"]");
         out.println("FFmpeg Class   : "+(null!= natives ? natives.getClass().getSimpleName() : "n/a"));
     }
     @Override
@@ -447,6 +453,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 @Override
                 public Object run() {
                     final ProcAddressTable pt = ctx.getGLProcAddressTable();
+                    final long procAddrGLTexImage2D = pt.getAddressFor("glTexImage2D");
                     final long procAddrGLTexSubImage2D = pt.getAddressFor("glTexSubImage2D");
                     final long procAddrGLGetError = pt.getAddressFor("glGetError");
                     final long procAddrGLFlush = pt.getAddressFor("glFlush");
@@ -458,7 +465,9 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                         procAddrGLEnable = 0;
                     }
                     final long procAddrGLBindTexture = pt.getAddressFor("glBindTexture");
-                    natives.setGLFuncs0(moviePtr, procAddrGLTexSubImage2D, procAddrGLGetError, procAddrGLFlush, procAddrGLFinish, procAddrGLEnable, procAddrGLBindTexture);
+                    natives.setGLFuncs0(moviePtr, procAddrGLTexImage2D, procAddrGLTexSubImage2D,
+                                        procAddrGLGetError, procAddrGLFlush, procAddrGLFinish,
+                                        procAddrGLEnable, procAddrGLBindTexture, gl.isNPOTTextureAvailable());
                     return null;
             } } );
             audioQueueSize = AudioSink.DefaultQueueSizeWithVideo;
@@ -983,7 +992,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final int getNextTextureImpl(final GL gl, final TextureFrame nextFrame) {
+    protected final int getNextTextureImpl(final GL gl, final TextureFrame vFrame, final Texture sTex, final boolean[] sTexUsed) {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
@@ -994,15 +1003,32 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             // final Texture tex = nextFrame.getTexture();
             // tex.enable(gl);
             // tex.bind(gl);
-            vTexID = nextFrame.getTexture().getTextureObject();
+            vTexID = vFrame.getTexture().getTextureObject();
         }
 
         /** Try decode up to 10 packets to find one containing video. */
         for(int i=0; TimeFrameI.INVALID_PTS == vPTS && 10 > i; i++) {
-           vPTS = natives.readNextPacket0(moviePtr, getTextureTarget(), vTexID, getTextureFormat(), getTextureType(), GL.GL_TEXTURE_2D, 0);
+            int sTexID = 0; // invalid
+            int sTexWidth = 0;
+            int sTexHeight = 0;
+            if( null != gl && !sTexUsed[0] ) {
+                // glEnable() and glBindTexture() are performed in native readNextPacket0()
+                // final Texture tex = nextFrame.getTexture();
+                // tex.enable(gl);
+                // tex.bind(gl);
+                vTexID = vFrame.getTexture().getTextureObject();
+                if( null != sTex ) {
+                    sTexID = sTex.getTextureObject();
+                    // FIXME: Disabled in native code, buggy on AMD GPU corrupting texture content
+                    sTexWidth = sTex.getWidth();
+                    sTexHeight = sTex.getHeight();
+                }
+            }
+            vPTS = natives.readNextPacket0(moviePtr, getTextureTarget(), vTexID, getTextureFormat(), getTextureType(),
+                    GL.GL_TEXTURE_2D, sTexID, sTexWidth, sTexHeight, sTex, sTexUsed);
         }
-        if( null != nextFrame ) {
-            nextFrame.setPTS(vPTS);
+        if( null != vFrame ) {
+            vFrame.setPTS(vPTS);
         }
         return vPTS;
     }
