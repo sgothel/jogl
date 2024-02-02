@@ -502,11 +502,11 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * Closes the last outline in the shape.
      * <p>
      * Checks whether the last vertex equals to the first of the last outline.
-     * If not equal, it either appends a clone of the first vertex
-     * or prepends a clone of the last vertex, depending on <code>closeTail</code>.
+     * If not equal, it either appends a copy of the first vertex
+     * or prepends a copy of the last vertex, depending on <code>closeTail</code>.
      * </p>
-     * @param closeTail if true, a clone of the first vertex will be appended,
-     *                  otherwise a clone of the last vertex will be prepended.
+     * @param closeTail if true, a copy of the first vertex will be appended,
+     *                  otherwise a copy of the last vertex will be prepended.
      */
     public final void closeLastOutline(final boolean closeTail) {
         if( getLastOutline().setClosed( closeTail ) ) {

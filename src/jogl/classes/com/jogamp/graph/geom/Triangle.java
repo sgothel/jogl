@@ -46,9 +46,9 @@ public class Triangle {
 
     public Triangle(final Triangle src) {
         id = src.id;
-        vertices[0] = src.vertices[0].clone();
-        vertices[1] = src.vertices[1].clone();
-        vertices[2] = src.vertices[2].clone();
+        vertices[0] = src.vertices[0].copy();
+        vertices[1] = src.vertices[1].copy();
+        vertices[2] = src.vertices[2].copy();
         System.arraycopy(src.boundaryEdges, 0, boundaryEdges, 0, 3);
         boundaryVertices = new boolean[3];
         System.arraycopy(src.boundaryVertices, 0, boundaryVertices, 0, 3);
@@ -62,7 +62,7 @@ public class Triangle {
     }
 
     /**
-     * Returns a transformed a clone of this instance using the given AffineTransform.
+     * Returns a transformed copy of this instance using the given AffineTransform.
      */
     public Triangle transform(final AffineTransform t) {
         final Triangle tri = new Triangle(id, boundaryEdges, boundaryVertices);

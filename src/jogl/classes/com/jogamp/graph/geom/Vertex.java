@@ -34,7 +34,7 @@ import com.jogamp.math.Vert3fImmutable;
 /**
  * A Vertex exposing Vec3f vertex- and texture-coordinates.
  */
-public final class Vertex implements Vert3fImmutable, Cloneable {
+public final class Vertex implements Vert3fImmutable {
     private int id;
     private boolean onCurve;
     private final Vec3f coord = new Vec3f();
@@ -44,6 +44,7 @@ public final class Vertex implements Vert3fImmutable, Cloneable {
         this.id = Integer.MAX_VALUE;
     }
 
+    /** Copy ctor */
     public Vertex(final Vertex src) {
         this.id = Integer.MAX_VALUE;
         coord.set(src.getCoord());
@@ -195,11 +196,10 @@ public final class Vertex implements Vert3fImmutable, Cloneable {
     }
 
     /**
-     * @return deep clone of this Vertex elements
+     * @return deep copy of this Vertex element via {@link Vertex#Vertex(Vertex)}
      */
-    @Override
-    public Vertex clone(){
-        return new Vertex(this); // OK to not call super.clone(), using own copy-ctor
+    public Vertex copy(){
+        return new Vertex(this);
     }
 
     @Override

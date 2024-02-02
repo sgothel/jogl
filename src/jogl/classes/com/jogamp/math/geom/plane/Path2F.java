@@ -28,7 +28,7 @@ import com.jogamp.math.geom.AABBox;
 /**
  * Path2F represents and provides construction method for a 2D shape using float[2] points.
  */
-public final class Path2F implements Cloneable {
+public final class Path2F {
     static final String invalidWindingRuleValue = "Invalid winding rule value";
     static final String iteratorOutOfBounds = "Iterator out of bounds";
 
@@ -507,7 +507,7 @@ public final class Path2F implements Cloneable {
     }
 
     public Path2F createTransformedShape(final AffineTransform t) {
-        final Path2F p = (Path2F)clone();
+        final Path2F p = new Path2F(this);
         if (t != null) {
             p.transform(t);
         }
@@ -587,17 +587,5 @@ public final class Path2F implements Cloneable {
     /* public Path2F.Iterator getPathIterator(AffineTransform t, float flatness) {
         return new FlatteningPathIterator(getPathIterator(t), flatness);
     } */
-
-    @Override
-    public Object clone() {
-        try {
-            final Path2F p = (Path2F) super.clone();
-            p.m_types = m_types.clone();
-            p.m_points = m_points.clone();
-            return p;
-        } catch (final CloneNotSupportedException e) {
-            throw new InternalError();
-        }
-    }
 }
 

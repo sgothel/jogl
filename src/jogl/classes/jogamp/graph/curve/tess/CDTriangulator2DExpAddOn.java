@@ -95,17 +95,17 @@ public class CDTriangulator2DExpAddOn {
                 }
             } else {
                 if( v0IsLS ) {
-                    final Vertex v = v0.clone();
+                    final Vertex v = v0.copy();
                     v.setTexCoord(0f, 0f, texZTag);
                     triVs[0] = v;
                 }
                 if( v1IsLS ) {
-                    final Vertex v = v1.clone();
+                    final Vertex v = v1.copy();
                     v.setTexCoord(0f, 0f, texZTag);
                     triVs[1] = v;
                 }
                 if( v2IsLS ) {
-                    final Vertex v = v2.clone();
+                    final Vertex v = v2.copy();
                     v.setTexCoord(0f, 0f, texZTag);
                     triVs[2] = v;
                 }
@@ -252,16 +252,16 @@ public class CDTriangulator2DExpAddOn {
                 vOA = verts1[otherIdxA];
                 vOB = verts2[otherIdxB];
             } else {
-                // Fetch and clone, write-back to triangles
-                vC0A = verts1[commonIdxA[0]].clone();
+                // Fetch and copy, write-back to triangles
+                vC0A = verts1[commonIdxA[0]].copy();
                 verts1[commonIdxA[0]] = vC0A;
                 verts2[commonIdxB[0]] = vC0A;
-                vC1A = verts1[commonIdxA[1]].clone();
+                vC1A = verts1[commonIdxA[1]].copy();
                 verts1[commonIdxA[1]] = vC1A;
                 verts2[commonIdxB[1]] = vC1A;
-                vOA = verts1[otherIdxA].clone();
+                vOA = verts1[otherIdxA].copy();
                 verts1[otherIdxA] = vOA;
-                vOB = verts2[otherIdxB].clone();
+                vOB = verts2[otherIdxB].copy();
                 verts2[otherIdxB] = vOB;
             }
 

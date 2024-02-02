@@ -80,7 +80,7 @@ public class Outline implements Comparable<Outline> {
         winding = src.getWinding();
         dirtyWinding = false;
         for(int i=0; i<count; i++) {
-            vertices.add( src.vertices.get(i).clone() );
+            vertices.add( src.vertices.get(i).copy() );
         }
         closed = src.closed;
         bbox = new AABBox(src.bbox);
@@ -103,12 +103,12 @@ public class Outline implements Comparable<Outline> {
         dirtyWinding = false;
         if( enforce != had_winding ) {
             for(int i=count-1; i>=0; --i) {
-                vertices.add( src.vertices.get(i).clone() );
+                vertices.add( src.vertices.get(i).copy() );
             }
             winding = enforce;
         } else {
             for(int i=0; i<count; ++i) {
-                vertices.add( src.vertices.get(i).clone() );
+                vertices.add( src.vertices.get(i).copy() );
             }
         }
         closed = src.closed;
@@ -256,11 +256,11 @@ public class Outline implements Comparable<Outline> {
      * Ensure this outline is closed.
      * <p>
      * Checks whether the last vertex equals to the first.
-     * If not equal, it either appends a clone of the first vertex
-     * or prepends a clone of the last vertex, depending on <code>closeTail</code>.
+     * If not equal, it either appends a copy of the first vertex
+     * or prepends a copy of the last vertex, depending on <code>closeTail</code>.
      * </p>
-     * @param closeTail if true, a clone of the first vertex will be appended,
-     *                  otherwise a clone of the last vertex will be prepended.
+     * @param closeTail if true, a copy of the first vertex will be appended,
+     *                  otherwise a copy of the last vertex will be prepended.
      * @return true if closing performed, otherwise false for NOP
      */
     public final boolean setClosed(final boolean closeTail) {
@@ -270,9 +270,9 @@ public class Outline implements Comparable<Outline> {
             final Vertex last = getLastVertex();
             if( !first.getCoord().isEqual( last.getCoord() ) ) {
                 if( closeTail ) {
-                    vertices.add(first.clone());
+                    vertices.add(first.copy());
                 } else {
-                    vertices.add(0, last.clone());
+                    vertices.add(0, last.copy());
                 }
                 return true;
             }

@@ -28,7 +28,7 @@ import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
 
-public class AffineTransform implements Cloneable {
+public class AffineTransform {
 
     static final String determinantIsZero = "Determinant is zero";
 
@@ -560,35 +560,12 @@ public class AffineTransform implements Cloneable {
         }
     }
 
-    public final Path2F createTransformedShape(final Path2F src) {
-        if (src == null) {
-            return null;
-        }
-        return src.createTransformedShape(this);
-        /**
-         * If !(src instanceof Path2D): (but here it always is)
-            final PathIterator path = src.iterator(this);
-            final Path2D dst = new Path2D(path.getWindingRule());
-            dst.append(path, false);
-            return dst;
-         */
-    }
-
     @Override
     public final String toString() {
         return
             getClass().getName() +
             "[[" + m00 + ", " + m01 + ", " + m02 + "], [" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
                 + m10 + ", " + m11 + ", " + m12 + "]]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    }
-
-    @Override
-    public final AffineTransform clone() {
-        try {
-            return (AffineTransform) super.clone();
-        } catch (final CloneNotSupportedException e) {
-            throw new InternalError();
-        }
     }
 
     /** @Override

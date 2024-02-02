@@ -204,9 +204,9 @@ public class CDTriangulator2D implements Triangulator {
             final GraphVertex gv2 = outVertices.get((i+1)%size);      // +1
 
             if( !gv1.getPoint().isOnCurve() ) {
-                final Vertex v0 = gv0.getPoint().clone();
-                final Vertex v2 = gv2.getPoint().clone();
-                final Vertex v1 = gv1.getPoint().clone();
+                final Vertex v0 = gv0.getPoint().copy();
+                final Vertex v2 = gv2.getPoint().copy();
+                final Vertex v1 = gv1.getPoint().copy();
                 addedVerticeCount += 3;
                 final boolean[] boundaryVertices = { true, true, true };
 
