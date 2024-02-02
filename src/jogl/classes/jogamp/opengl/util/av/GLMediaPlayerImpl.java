@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.jogamp.nativewindow.AbstractGraphicsDevice;
 import com.jogamp.nativewindow.DefaultGraphicsDevice;
@@ -107,6 +108,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     private volatile State state;
     private final Object stateLock = new Object();
+    private final AtomicBoolean oneVideoFrameOnce = new AtomicBoolean(false);
 
     private int textureCount;
     private int textureTarget;
@@ -548,9 +550,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public final int seek(int msec) {
+        final int pts1;
+        final State preState;
         synchronized( stateLock ) {
-            final State preState = state;
-            final int pts1;
+            preState = state;
             switch(state) {
                 case Playing:
                 case Paused:
@@ -577,14 +580,16 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                         streamWorker.resume();
                     }
                     setState( _state );
+                    attributesUpdated(new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.Seek));
                     break;
                 default:
                     pending_seek = msec;
                     pts1 = 0;
             }
-            if(DEBUG) { logout.println("Seek("+msec+"): "+preState+" -> "+state+", "+toString()); }
-            return pts1;
         }
+        oneVideoFrameOnce.set(true);
+        if(DEBUG) { logout.println("Seek("+msec+"): "+preState+" -> "+state+", "+toString()); }
+        return pts1;
     }
     protected int pending_seek = -1;
     protected abstract int seekImpl(int msec);
@@ -1173,7 +1178,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final TextureFrame getNextTexture(final GL gl) throws IllegalStateException {
         synchronized( stateLock ) {
-            if(State.Playing == state) {
+            final boolean oneVideoFrame = oneVideoFrameOnce.compareAndSet(true, false);
+            if( oneVideoFrame || State.Playing == state ) {
                 boolean dropFrame = false;
                 try {
                     do {
@@ -1264,6 +1270,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 nextFrame = lastFrame;
                                 hasVideoFrame = stGotVFrame[0];
                             }
+                        }
+                        if( !hasVideoFrame && oneVideoFrame ) {
+                            oneVideoFrameOnce.set(true);
                         }
 
                         if( hasVideoFrame && video_pts.isValid() ) {
