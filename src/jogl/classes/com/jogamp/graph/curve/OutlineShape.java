@@ -163,6 +163,10 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     private final Vec3f tmpV1 = new Vec3f();
     private final Vec3f tmpV2 = new Vec3f();
     private final Vec3f tmpV3 = new Vec3f();
+    // COLOR
+    // private final Vec4f tmpC1 = new Vec4f();
+    // private final Vec4f tmpC2 = new Vec4f();
+    // private final Vec4f tmpC3 = new Vec4f();
 
     /**
      * Create a new Outline based Shape
@@ -771,6 +775,11 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         VectorUtil.midVec3(tmpV3, b.getCoord(), c.getCoord());
         VectorUtil.midVec3(tmpV2, tmpV1, tmpV3);
 
+        // COLOR
+        // tmpC1.set(a.getColor()).add(b.getColor()).scale(0.5f);
+        // tmpC3.set(b.getColor()).add(b.getColor()).scale(0.5f);
+        // tmpC2.set(tmpC1).add(tmpC1).scale(0.5f);
+
         //drop off-curve vertex to image on the curve
         b.setCoord(tmpV2);
         b.setOnCurve(true);
@@ -917,6 +926,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
                         VectorUtil.midVec3(tmpV1, currentVertex.getCoord(), nextVertex.getCoord());
                         System.err.println("XXX: Cubic: "+i+": "+currentVertex+", "+j+": "+nextVertex);
                         final Vertex v = new Vertex(tmpV1, true);
+                        // COLOR: tmpC1.set(currentVertex.getColor()).add(nextVertex.getColor()).scale(0.5f)
                         i++;
                         vertexCount++;
                         addedVerticeCount++;
