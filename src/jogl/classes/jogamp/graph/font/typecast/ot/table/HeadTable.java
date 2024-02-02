@@ -150,12 +150,12 @@ public class HeadTable implements Table {
     /**
      * @see #getFlags()
      */
-    private short _flags;
+    private int _flags;
     
     /**
      * @see #getUnitsPerEm()
      */
-    private short _unitsPerEm;
+    private int _unitsPerEm;
     
     /**
      * @see #getCreated()
@@ -221,7 +221,7 @@ public class HeadTable implements Table {
         _fontRevision = di.readInt();
         _checkSumAdjustment = di.readInt();
         _magicNumber = di.readInt();
-        _flags = di.readShort();
+        _flags = di.readUnsignedShort();
         _unitsPerEm = di.readUnsignedShort();
         _created = di.readLong();
         _modified = di.readLong();
@@ -270,14 +270,6 @@ public class HeadTable implements Table {
      */
     public String getVersion() {
         return _majorVersion + "." + _minorVersion;
-    }
-
-    public long getCreated() {
-        return _created;
-    }
-
-    public short getFlags() {
-        return _flags;
     }
 
     /**
@@ -369,7 +361,7 @@ public class HeadTable implements Table {
      * general information on OpenType Font Variations, see the chapter,
      * OpenType Font Variations Overview.
      */
-    public short getFlags() {
+    public int getFlags() {
         return _flags;
     }
     
@@ -396,7 +388,7 @@ public class HeadTable implements Table {
      * fonts that have TrueType outlines, a power of 2 is recommended as this
      * allows performance optimizations in some rasterizers.
      */
-    public short getUnitsPerEm() {
+    public int getUnitsPerEm() {
         return _unitsPerEm;
     }
 

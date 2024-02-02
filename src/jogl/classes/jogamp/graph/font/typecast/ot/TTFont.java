@@ -34,16 +34,17 @@ import jogamp.graph.font.typecast.ot.table.KernTable;
 import jogamp.graph.font.typecast.ot.table.LocaTable;
 import jogamp.graph.font.typecast.ot.table.SVGTable;
 import jogamp.graph.font.typecast.ot.table.Table;
+import jogamp.graph.font.typecast.ot.table.TableDirectory;
 import jogamp.graph.font.typecast.ot.table.VdmxTable;
 
 public class TTFont extends OTFont {
 
     private final GlyfTable _glyf;
-    private GaspTable _gasp;
-    private KernTable _kern;
-    private HdmxTable _hdmx;
-    private VdmxTable _vdmx;
-    private SVGTable _svg;
+    private final GaspTable _gasp;
+    private final KernTable _kern;
+    private final HdmxTable _hdmx;
+    private final VdmxTable _vdmx;
+    private final SVGTable _svg;
 
     private static TableDirectory readTableDir(final DataInputStream dis, final int directoryOffset) throws IOException {
         // Load the table directory
@@ -118,42 +119,50 @@ public class TTFont extends OTFont {
 
         // 'loca' is required by 'glyf'
         int length = seekTable(tableDirectory, dis, tablesOrigin, Table.loca);
-        final LocaTable loca = new LocaTable(dis, length, this.getHeadTable(), this.getMaxpTable());
-
-        // 'loca' is required by 'glyf'
-        int length = seekTable(dis, tablesOrigin, Table.loca);
         if (length > 0) {
             LocaTable loca = new LocaTable(dis, length, this.getHeadTable(), this.getMaxpTable());
             
             // If this is a TrueType outline, then we'll have at least the
             // 'glyf' table (along with the 'loca' table)
-            length = seekTable(dis, tablesOrigin, Table.glyf);
+            length = seekTable(tableDirectory, dis, tablesOrigin, Table.glyf);
             _glyf = new GlyfTable(dis, length, this.getMaxpTable(), loca);
+        } else {
+            _glyf = null;
         }
         
-        length = seekTable(dis, tablesOrigin, Table.svg);
+        length = seekTable(tableDirectory, dis, tablesOrigin, Table.svg);
         if (length > 0) {
             _svg = new SVGTable(dis);
+        } else {
+            _svg = null;
         }
 
-        length = seekTable(dis, tablesOrigin, Table.gasp);
+        length = seekTable(tableDirectory, dis, tablesOrigin, Table.gasp);
         if (length > 0) {
             _gasp = new GaspTable(dis);
+        } else {
+            _gasp = null;
         }
 
-        length = seekTable(dis, tablesOrigin, Table.kern);
+        length = seekTable(tableDirectory, dis, tablesOrigin, Table.kern);
         if (length > 0) {
             _kern = new KernTable(dis);
+        } else {
+            _kern = null;
         }
 
-        length = seekTable(dis, tablesOrigin, Table.hdmx);
+        length = seekTable(tableDirectory, dis, tablesOrigin, Table.hdmx);
         if (length > 0) {
             _hdmx = new HdmxTable(dis, length, this.getMaxpTable());
+        } else {
+            _hdmx = null;
         }
 
-        length = seekTable(dis, tablesOrigin, Table.VDMX);
+        length = seekTable(tableDirectory, dis, tablesOrigin, Table.VDMX);
         if (length > 0) {
             _vdmx = new VdmxTable(dis);
+        } else {
+            _vdmx = null;
         }
     }
 

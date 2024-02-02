@@ -52,6 +52,7 @@ public abstract class OTFont {
     private final PostTable _post;
     private final VheaTable _vhea;
     private final GsubTable _gsub;
+    private final TableDirectory _tableDirectory;
 
     /**
      * @param dis input stream marked at start with read-ahead set to known stream length
@@ -66,6 +67,8 @@ public abstract class OTFont {
      * @throws java.io.IOException
      */
     OTFont(final DataInputStream dis, final TableDirectory tableDirectory, final int tablesOrigin) throws IOException {
+        _tableDirectory = tableDirectory;
+        
         // Load some prerequisite tables
         // (These are tables that are referenced by other tables, so we need to load
         // them first)
