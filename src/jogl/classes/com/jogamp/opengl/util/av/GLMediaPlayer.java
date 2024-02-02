@@ -310,6 +310,12 @@ public interface GLMediaPlayer extends TextureSequence {
     /**
      * {@inheritDoc}
      * <p>
+     * Optional Video {@link TextureFrame} listener.
+     * Usually one wants to use {@link GLMediaPlayer#getNextTexture(GL)} is used to retrieve the next frame and keep
+     * decoding going, while {@link GLMediaPlayer#getLastTexture(GL)} is used to simply retrieve the
+     * last decoded frame.
+     * </p>
+     * <p>
      * As the contract of {@link TexSeqEventListener} requests,
      * implementations of {@link GLMediaEventListener} shall also:
      * <ul>
@@ -760,13 +766,13 @@ public interface GLMediaPlayer extends TextureSequence {
     public String getLang(int id);
 
     /**
-     * @return the current decoded frame count since {@link #resume()} and {@link #seek(int)}
+     * @return the current decoded video frame count since {@link #resume()} and {@link #seek(int)}
      *         as increased by {@link #getNextTexture(GL)} or the decoding thread.
      */
     public int getDecodedFrameCount();
 
     /**
-     * @return the current presented frame count since {@link #resume()} and {@link #seek(int)}
+     * @return the current presented video frame count since {@link #resume()} and {@link #seek(int)}
      *         as increased by {@link #getNextTexture(GL)} for new frames.
      */
     public int getPresentedFrameCount();
@@ -810,6 +816,9 @@ public interface GLMediaPlayer extends TextureSequence {
     /**
      * {@inheritDoc}
      * <p>
+     * Returns the last decoded Video {@link TextureSequence.TextureFrame}.
+     * </p>
+     * <p>
      * See <a href="#synchronization">audio and video synchronization</a>.
      * </p>
      * @throws IllegalStateException if not invoked in {@link State#Paused} or {@link State#Playing}
@@ -819,7 +828,10 @@ public interface GLMediaPlayer extends TextureSequence {
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
+     * Returns the next Video {@link TextureSequence.TextureFrame} to be rendered in sync with {@link #getPTS()}
+     * and keeps decoding going.
+     * </p>
      * <p>
      * In case the current state is not {@link State#Playing}, {@link #getLastTexture()} is returned.
      * </p>
