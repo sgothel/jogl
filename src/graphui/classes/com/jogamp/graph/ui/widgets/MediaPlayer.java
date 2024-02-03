@@ -38,6 +38,7 @@ import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
@@ -106,7 +107,7 @@ public class MediaPlayer extends Widget {
     {
         super( new BoxLayout(aratio, 1, Alignment.None) );
 
-        final Font fontInfo = Scene.getDefaultFont(), fontSymbols = Scene.getSymbolsFont();
+        final Font fontInfo = FontFactory.getDefaultFont(), fontSymbols = FontFactory.getSymbolsFont();
         if( null == fontInfo || null == fontSymbols ) {
             mButton = null;
             return;
@@ -130,7 +131,7 @@ public class MediaPlayer extends Widget {
         this.setBorderColor(BorderColor).setBorder(BorderSz);
         this.setInteractive(true).setFixedARatioResize(true);
 
-        mButton = new MediaButton(renderModes, aratio, 1, mPlayer, fontInfo);
+        mButton = new MediaButton(renderModes, aratio, 1, mPlayer);
         mButton.setName("mp.mButton").setInteractive(false);
         mButton.setPerp().setPressedColorMod(1f, 1f, 1f, 0.85f);
 
@@ -170,7 +171,7 @@ public class MediaPlayer extends Widget {
                         audioLabel.setText("audio\n"+mp.getLang(mp.getAID()));
                         subLabel.setText("sub\n"+mp.getLang(mp.getSID()));
                         ctrlSlider.setMinMax(new Vec2f(0, mp.getDuration()), 0);
-                        System.err.println("Init +"+mp.toString());
+                        System.err.println("Init "+mp.toString());
 
                         for(final GLMediaPlayer.Chapter c : mp.getChapters()) {
                             if( DEBUG ) {
@@ -623,9 +624,17 @@ public class MediaPlayer extends Widget {
         ctrlSlider.getKnob().setDraggable(true);
     }
 
+    /** Toggle enabling subtitle rendering */
+    public void setSubtitlesEnabled(final boolean v) {
+        if( null != mButton ) {
+            mButton.setSubtitlesEnabled(v);
+        }
+    }
+
     /**
-     * Sets text/ASS subtitle parameter
-     * @param subFont text/ASS subtitle font
+     * Sets text/ASS subtitle parameter, enabling subtitle rendering
+     * @param subFont text/ASS subtitle font, pass {@code null} for {@link FontFactory#getDefaultFont()}
+     *                {@link FontFactory#getFallbackFont()} is used {@link Font#getBestCoverage(Font, Font, CharSequence) if providing a better coverage} of a Text/ASS subtitle line.
      * @param subLineHeightPct text/ASS subtitle line height percentage, defaults to {@link MediaButton#DEFAULT_ASS_SUB_HEIGHT}
      * @param subLineDY text/ASS y-axis offset to bottom in line-height, defaults to {@link MediaButton#DEFAULT_ASS_SUB_POS}
      * @param subAlignment text/ASS subtitle alignment, defaults to {@link #DEFAULT_ASS_SUB_ALIGNMENT}

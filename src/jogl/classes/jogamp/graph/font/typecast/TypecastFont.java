@@ -224,6 +224,17 @@ class TypecastFont implements Font {
     public int getGlyphCount() { return font.getGlyphCount(); }
 
     @Override
+    public int getDefinedCount(final CharSequence text) {
+        int res = 0;
+        for(int i=text.length()-1; i>=0; --i) {
+            if( !getGlyph(text.charAt(i)).isUndefined() ) {
+                ++res;
+            }
+        }
+        return res;
+    }
+
+    @Override
     public char getGlyphCodepoint(final String name) {
         final SymAndID value = nameToGlyph.get(name);
         if( null != value ) {

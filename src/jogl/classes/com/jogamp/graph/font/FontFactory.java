@@ -217,4 +217,32 @@ public class FontFactory {
         final Character.UnicodeBlock block = Character.UnicodeBlock.of( c );
         return block != null && block != Character.UnicodeBlock.SPECIALS;
     }
+
+    /** Returns {@link FontSet#getDefault() default} {@link Font} of {@link #getDefault() default} {@link FontSet} or {@code null} if n/a */
+    public static Font getDefaultFont() {
+        try {
+            return getDefault().getDefault();
+        } catch(final IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        }
+    }
+
+    /** Returns the default symbols {@link Font} or {@code null} if n/a */
+    public static Font getSymbolsFont() {
+        try {
+            return get(SYMBOLS).getDefault();
+        } catch(final IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        }
+    }
+
+    /** Returns registered fallback {@link Font}, maybe {@code null}. See {@link #setFallbackFont(Font)}. */
+    public static synchronized Font getFallbackFont() {
+        return fallbackFont;
+    }
+    /** Registers given {@link Font} as the default fallback font. */
+    public static synchronized void setFallbackFont(final Font f) { fallbackFont = f; }
+    private static Font fallbackFont = null;
 }

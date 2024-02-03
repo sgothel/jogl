@@ -112,7 +112,7 @@ public class FontView01 {
 
     public static void main(final String[] args) throws IOException {
         float mmPerCell = 8f;
-        String fontfilename = null;
+        String fontFilename = null;
         int gridColumns = -1;
         boolean showUnderline = false;
         boolean showLabel = false;
@@ -125,7 +125,7 @@ public class FontView01 {
                     continue;
                 } else if(args[idx[0]].equals("-font")) {
                     idx[0]++;
-                    fontfilename = args[idx[0]];
+                    fontFilename = args[idx[0]];
                 } else if(args[idx[0]].equals("-mmPerCell")) {
                     idx[0]++;
                     mmPerCell = MiscUtils.atof(args[idx[0]], mmPerCell);
@@ -147,11 +147,11 @@ public class FontView01 {
         System.err.println(options);
 
         Font font;
-        if( null == fontfilename ) {
+        if( null == fontFilename ) {
             font = FontFactory.get(IOUtil.getResource("fonts/freefont/FreeSerif.ttf",
                                    FontSetDemos.class.getClassLoader(), FontSetDemos.class).getInputStream(), true);
         } else {
-            font = FontFactory.get( new File( fontfilename ) );
+            font = FontFactory.get( new File( fontFilename ) );
         }
         System.err.println("Font "+font.getFullFamilyName());
 

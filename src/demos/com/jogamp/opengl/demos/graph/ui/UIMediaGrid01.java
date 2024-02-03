@@ -37,6 +37,7 @@ import java.util.List;
 import com.jogamp.common.net.Uri;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
@@ -53,8 +54,8 @@ import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.graph.ui.widgets.MediaPlayer;
 import com.jogamp.graph.ui.widgets.RangeSlider;
-import com.jogamp.graph.ui.widgets.RangedGroup;
 import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
+import com.jogamp.graph.ui.widgets.RangedGroup;
 import com.jogamp.graph.ui.widgets.RangedGroup.SliderParam;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec2i;
@@ -97,6 +98,7 @@ public class UIMediaGrid01 {
         float mmPerCellWidth = 50f;
         int maxMediaFiles = 10000; // Integer.MAX_VALUE;
         int gridColumns = -1;
+        String subFallbackFontFilename = null;
         String mediaDir = null;
         if( 0 != args.length ) {
             final int[] idx = { 0 };
@@ -129,11 +131,17 @@ public class UIMediaGrid01 {
                 } else if(args[idx[0]].equals("-col")) {
                     idx[0]++;
                     gridColumns = MiscUtils.atoi(args[idx[0]], gridColumns);
+                } else if(args[idx[0]].equals("-fallbackFont")) {
+                    idx[0]++;
+                    subFallbackFontFilename = args[idx[0]];
                 } else if(args[idx[0]].equals("-texCount")) {
                     idx[0]++;
                     texCount = MiscUtils.atoi(args[idx[0]], texCount);
                 }
             }
+        }
+        if( null != subFallbackFontFilename ) {
+            FontFactory.setFallbackFont( FontFactory.get( new File( subFallbackFontFilename ) ) );
         }
         System.err.println(options);
         System.err.println("mediaDir "+mediaDir);
@@ -143,6 +151,7 @@ public class UIMediaGrid01 {
         System.err.println("boxRatio "+videoAspectRatio);
         System.err.println("letterBox "+letterBox);
         System.err.println("columns "+gridColumns);
+        System.err.println("FallbackFont "+FontFactory.getFallbackFont());
 
         final List<Uri> mediaFiles = new ArrayList<Uri>();
         if( null != mediaDir && mediaDir.length() > 0 ) {
@@ -284,7 +293,7 @@ public class UIMediaGrid01 {
         mainGrid.setName("MainGrid");
         mainGrid.addShape(mediaView);
         {
-            final Font fontInfo = Scene.getDefaultFont();
+            final Font fontInfo = FontFactory.getDefaultFont();
             final Label infoLabel = new Label(options.renderModes, fontInfo, "Not yet");
             infoLabel.setColor(0.1f, 0.1f, 0.1f, 1f);
             final Group labelBox = new Group(new BoxLayout(mediaGridSize.x(), mediaCellHeight / 10, new Alignment(Alignment.Bit.Fill.value | Alignment.Bit.CenterVert.value),
@@ -348,7 +357,7 @@ public class UIMediaGrid01 {
 
             final List<Shape> customCtrls = new ArrayList<Shape>();
             if( true ) {
-                final Font fontSymbols = Scene.getSymbolsFont();
+                final Font fontSymbols = FontFactory.getSymbolsFont();
                 if( null == fontSymbols ) {
                     grid.addShape( new Rectangle(options.renderModes, defRatio, 1, 0.10f) );
                     return;
@@ -380,7 +389,6 @@ public class UIMediaGrid01 {
                 customCtrls.add(button);
             }
             final MediaPlayer graphMPlayer = new MediaPlayer(options.renderModes, scene, glMPlayer, medium, defRatio, letterBox, zoomSize, customCtrls);
-            // graphMPlayer.setSubtitleParams(MiscUtils.getSerifFont(), 0.1f);
             grid.addShape( graphMPlayer );
             glMPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, sid, texCount);
             if( start_pos > 0 ) {

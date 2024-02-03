@@ -28,7 +28,6 @@
 package com.jogamp.graph.ui;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,8 +53,6 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.ui.Shape.Visitor2;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Matrix4f;
@@ -128,25 +125,6 @@ public final class Scene implements Container, GLEventListener {
      */
     public static float getZEpsilon(final int zBits, final PMVMatrixSetup setup) {
         return FloatUtil.getZBufferEpsilon(zBits, setup.getSceneDist(), setup.getZNear());
-    }
-
-    /** Returns {@link FontFactory#getDefault()} font or null if n/a */
-    public static Font getDefaultFont() {
-        try {
-            return FontFactory.getDefault().getDefault();
-        } catch(final IOException ioe) {
-            ioe.printStackTrace();
-            return null;
-        }
-    }
-    /** Returns the default symbols font or null if n/a */
-    public static Font getSymbolsFont() {
-        try {
-            return FontFactory.get(FontFactory.SYMBOLS).getDefault();
-        } catch(final IOException ioe) {
-            ioe.printStackTrace();
-            return null;
-        }
     }
 
     private static final boolean DEBUG = false;

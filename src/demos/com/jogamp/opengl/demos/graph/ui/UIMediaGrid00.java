@@ -34,6 +34,7 @@ import java.util.List;
 import com.jogamp.common.net.Uri;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.font.FontScale;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
@@ -213,7 +214,7 @@ public class UIMediaGrid00 {
 
             final List<Shape> customCtrls = new ArrayList<Shape>();
             {
-                final Font fontSymbols = Scene.getSymbolsFont();
+                final Font fontSymbols = FontFactory.getSymbolsFont();
                 if( null == fontSymbols ) {
                     grid.addShape( new Rectangle(options.renderModes, 16f/9f, 1, 0.10f) );
                     return;

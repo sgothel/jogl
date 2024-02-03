@@ -39,8 +39,8 @@ import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.ui.GraphShape;
-import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.layout.Alignment;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec4f;
@@ -78,6 +78,8 @@ public class MediaButton extends TexSeqButton {
     private static final boolean DEBUG_PGS_POSSZ = false;
     private boolean verbose = false;
 
+    private Font subFont;
+    private Font subFallbackFont;
     private final Label subLabel;
     private final float subZOffset;
     private boolean subEnabled;
@@ -106,18 +108,19 @@ public class MediaButton extends TexSeqButton {
     private final List<SubtitleEvent> subEventQueue = new ArrayList<SubtitleEvent>();
     private final Object subEventLock = new Object();
 
-    /** Constructs a {@link MediaButton} with subtitles disabled. */
+    /** Constructs a {@link MediaButton} with {@link FontFactory#getDefaultFont()} for subtitles. */
     public MediaButton(final int renderModes, final float width, final float height, final GLMediaPlayer mPlayer) {
         this(renderModes, width, height, mPlayer, null);
     }
 
     /**
-     * Constructs a {@link MediaButton} prepared for using subtitles.
+     * Constructs a {@link MediaButton} prepared for using subtitles
      * @param renderModes
      * @param width
      * @param height
      * @param mPlayer
-     * @param subFont text/ASS subtitle font
+     * @param subFont text/ASS subtitle font, pass {@code null} for {@link FontFactory#getDefaultFont()}.
+     *                {@link FontFactory#getFallbackFont()} is used {@link Font#getBestCoverage(Font, Font, CharSequence) if providing a better coverage} of a Text/ASS subtitle line.
      * @see #setSubtitleParams(Font, float, float, Alignment)
      * @see #setSubtitleColor(Vec4f, float)
      */
@@ -132,23 +135,13 @@ public class MediaButton extends TexSeqButton {
 
         mPlayer.setSubtitleEventListener(subEventListener);
 
-        final Font f;
-        if( null != subFont ) {
-            f = subFont;
-            subEnabled = true;
-        } else {
-            f = Scene.getDefaultFont();
-            subEnabled = false;
-        }
+        setSubtitleParams(subFont, DEFAULT_ASS_SUB_HEIGHT, DEFAULT_ASS_SUB_POS, DEFAULT_ASS_SUB_ALIGNMENT);
+        this.subLabel = new Label(renderModes, this.subFont, "");
         this.subZOffset = Button.DEFAULT_LABEL_ZOFFSET;
-        this.subLineHeightPct = DEFAULT_ASS_SUB_HEIGHT;
-        this.subLineDY = DEFAULT_ASS_SUB_POS;
-        this.subAlignment = DEFAULT_ASS_SUB_ALIGNMENT;
-        this.subLabel = new Label(renderModes, f, "");
-        this.subLabel.setColor( DEFAULT_ASS_SUB_COLOR );
         this.subLabel.moveTo(0, 0, subZOffset);
         this.subBlend = new Rectangle(renderModes, 1f, 1f, 0f);
-        this.subBlend.setColor( new Vec4f( 0, 0, 0, DEFAULT_ASS_SUB_BLEND ) );
+        setSubtitleColor(DEFAULT_ASS_SUB_COLOR, DEFAULT_ASS_SUB_BLEND);
+
         this.subTexImg = new ImageButton(renderModes, width, height, new ImageSequence(mPlayer.getTextureUnit(), true /* useBuildInTexLookup */));
         this.subTexImg.setPerp().setToggleable(false).setDragAndResizeable(false).setInteractive(false);
         // this.subTexImg.setBorder(0.001f).setBorderColor(1, 1, 0, 1);
@@ -157,15 +150,26 @@ public class MediaButton extends TexSeqButton {
         this.drawLastSub = null;
     }
 
+    /** Toggle enabling subtitle rendering */
+    public void setSubtitlesEnabled(final boolean v) {
+        subEnabled = v;
+    }
+
     /**
-     * Sets text/ASS subtitle parameter
-     * @param subFont text/ASS subtitle font
+     * Sets text/ASS subtitle parameter, enabling subtitle rendering
+     * @param subFont text/ASS subtitle font, pass {@code null} for {@link FontFactory#getDefaultFont()}
+     *                {@link FontFactory#getFallbackFont()} is used {@link Font#getBestCoverage(Font, Font, CharSequence) if providing a better coverage} of a Text/ASS subtitle line.
      * @param subLineHeightPct text/ASS subtitle line height percentage, defaults to {@link #DEFAULT_ASS_SUB_HEIGHT}
      * @param subLineDY text/ASS y-axis offset to bottom in line-height, defaults to {@link #DEFAULT_ASS_SUB_POS}
      * @param subAlignment text/ASS subtitle alignment, defaults to {@link #DEFAULT_ASS_SUB_ALIGNMENT}
      */
     public void setSubtitleParams(final Font subFont, final float subLineHeightPct, final float subLineDY, final Alignment subAlignment) {
-        this.subLabel.setFont(subFont);
+        if( null != subFont ) {
+            this.subFont = subFont;
+        } else {
+            this.subFont = FontFactory.getDefaultFont();
+        }
+        this.subFallbackFont = FontFactory.getFallbackFont();
         this.subLineHeightPct = subLineHeightPct;
         this.subLineDY = subLineDY;
         this.subAlignment = subAlignment;
@@ -398,6 +402,7 @@ public class MediaButton extends TexSeqButton {
         } else if( SubtitleEvent.Type.Text == sub.type ) {
             final SubTextEvent assSub = (SubTextEvent)sub;
             if( newSub ) {
+                subLabel.setFont( Font.getBestCoverage(subFont, subFallbackFont, assSub.text) );
                 subLabel.setText(assSub.text);
                 final AABBox subBox = subLabel.getBounds(gl.getGLProfile());
                 final float subLineHeight = subBox.getHeight() / assSub.lines;
@@ -503,5 +508,4 @@ public class MediaButton extends TexSeqButton {
             pmv.popMv();
         }
     }
-
 }

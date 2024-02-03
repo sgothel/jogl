@@ -384,6 +384,25 @@ public interface Font {
     /** Returns number of {@link Glyph} IDs available, i.e. retrievable via {@link #getGlyph(int)} [0..count). */
     int getGlyphCount();
 
+    /** Returns the number of defined {@link Glyph}s (coverage), i.e. not {@link Glyph#isUndefined()}, of given text. */
+    int getDefinedCount(final CharSequence text);
+
+    /**
+     * Returns {@link Font} with best coverage for given text while favoring {@code a}. See {@link #getDefinedCount(CharSequence)}.
+     * <pre>
+     * return a.getDefinedCount(text) >= b.getDefinedCount(text) ? a : b;
+     * </pre>
+     */
+    public static Font getBestCoverage(final Font a, final Font b, final CharSequence text) {
+        if( null != a && null != b ) {
+            return a.getDefinedCount(text) >= b.getDefinedCount(text) ? a : b;
+        } else if( null != a ) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+
     /** Returns the {@link Glyph} (unicode) `codepoint` symbol mapped to given {@link Glyph} `name`. */
     char getGlyphCodepoint(final String name);
 
