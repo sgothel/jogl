@@ -176,7 +176,8 @@ public class GlyfCompositeDescript extends GlyfDescript {
     @Override
     public int getContourCount() {
         final GlyfCompositeComp last = lastComponent();
-        return last.getFirstContour() + getReferencedGlyph(last).getContourCount();
+        final GlyfDescript lastD = getReferencedGlyph(last);
+        return last.getFirstContour() + ( null != lastD ? lastD.getContourCount() : 0 );
     }
 
     private GlyfCompositeComp lastComponent() {
@@ -206,24 +207,24 @@ public class GlyfCompositeDescript extends GlyfDescript {
     }
 
     private GlyfCompositeComp getCompositeComp(final int i) {
-        GlyfCompositeComp c;
-        for (final GlyfCompositeComp component : _components) {
-            c = component;
+        for (final GlyfCompositeComp c : _components) {
             final GlyphDescription gd = getReferencedGlyph(c);
-            if (c.getFirstIndex() <= i && i < (c.getFirstIndex() + gd.getPointCount())) {
-                return c;
+            if( null != gd ) {
+                if (c.getFirstIndex() <= i && i < (c.getFirstIndex() + gd.getPointCount())) {
+                    return c;
+                }
             }
         }
         return null;
     }
 
     private GlyfCompositeComp getCompositeCompEndPt(final int i) {
-        GlyfCompositeComp c;
-        for (final GlyfCompositeComp component : _components) {
-            c = component;
+        for (final GlyfCompositeComp c : _components) {
             final GlyphDescription gd = getReferencedGlyph(c);
-            if (c.getFirstContour() <= i && i < (c.getFirstContour() + gd.getContourCount())) {
-                return c;
+            if( null != gd ) {
+                if (c.getFirstContour() <= i && i < (c.getFirstContour() + gd.getContourCount())) {
+                    return c;
+                }
             }
         }
         return null;
