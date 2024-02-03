@@ -57,6 +57,11 @@ public class MaxpTable implements Table {
         }
     }
 
+    @Override
+    public int getType() {
+        return maxp;
+    }
+
     public int getVersionNumber() {
         return versionNumber;
     }

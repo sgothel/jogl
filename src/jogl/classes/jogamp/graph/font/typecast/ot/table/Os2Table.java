@@ -142,6 +142,11 @@ public class Os2Table implements Table {
         }
     }
 
+    @Override
+    public int getType() {
+        return OS_2;
+    }
+
     public int getVersion() {
         return _version;
     }

@@ -61,4 +61,8 @@ public interface Table {
     static final int vhea = 0x76686561; // Vertical Metrics header
     static final int vmtx = 0x766d7478; // Vertical Metrics
 
+    /**
+     * The type code of this {@link Table}.
+     */
+    int getType();
 }

@@ -31,6 +31,11 @@ class LtshTable implements Table {
         }
     }
 
+    @Override
+    public int getType() {
+        return LTSH;
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'LTSH' Table - Linear Threshold Table\n-------------------------------------")

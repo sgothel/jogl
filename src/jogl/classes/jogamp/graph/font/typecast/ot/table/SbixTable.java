@@ -144,6 +144,11 @@ public class SbixTable implements Table {
                 buf.length - offset);
     }
     
+    @Override
+    public int getType() {
+        return sbix;
+    }
+
     public Strike[] getStrikes() {
         return _strikes;
     }

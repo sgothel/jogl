@@ -49,6 +49,11 @@ class VmtxTable implements Table {
         }
     }
 
+    @Override
+    public int getType() {
+        return vmtx;
+    }
+
     private int getAdvanceHeight(int i) {
         if (_vMetrics == null) {
             return 0;

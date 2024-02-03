@@ -88,6 +88,10 @@ public class HdmxTable implements Table {
     }
 
     @Override
+    public int getType() {
+        return hdmx;
+    }
+
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append("'hdmx' Table - Horizontal Device Metrics\n----------------------------------------\n");

@@ -838,6 +838,9 @@ public class Fixed {
         return n;
     }
     
+    /**
+     * Converts a 32-bit signed fixed-point number (16.16) to <code>float</code>.
+     */
     public static float floatValue(long fixed) {
         return (fixed >> 16) + (float)(fixed & 0xffff) / 0x10000;
     }

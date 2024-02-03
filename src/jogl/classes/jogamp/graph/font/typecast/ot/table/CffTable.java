@@ -102,6 +102,11 @@ public class CffTable implements Table {
                 _buf, offset,
                 _buf.length - offset));
     }
+    
+    @Override
+    public int getType() {
+        return CFF;
+    }
 
     public NameIndex getNameIndex() {
         return _nameIndex;

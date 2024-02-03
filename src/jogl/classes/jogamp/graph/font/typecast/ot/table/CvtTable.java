@@ -26,6 +26,11 @@ class CvtTable implements Table {
         }
     }
 
+    @Override
+    public int getType() {
+        return cvt;
+    }
+
     public short[] getValues() {
         return values;
     }

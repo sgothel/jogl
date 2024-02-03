@@ -36,6 +36,11 @@ class GposTable implements Table {
         int lookupList = di.readInt();
     }
 
+    @Override
+    public int getType() {
+        return GPOS;
+    }
+
     public String toString() {
         return "GPOS";
     }

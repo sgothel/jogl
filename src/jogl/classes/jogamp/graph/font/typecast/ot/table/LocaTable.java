@@ -26,7 +26,8 @@ public class LocaTable implements Table {
             HeadTable head,
             MaxpTable maxp) throws IOException {
         _offsets = new int[maxp.getNumGlyphs() + 1];
-        boolean shortEntries = head.getIndexToLocFormat() == 0;
+        boolean shortEntries = head.useShortEntries();
+        // FIXME boolean shortEntries = head.getIndexToLocFormat() == 0;
         if (shortEntries) {
             _factor = 2;
             for (int i = 0; i <= maxp.getNumGlyphs(); i++) {
@@ -50,6 +51,11 @@ public class LocaTable implements Table {
             ++index;
         }
         _length = length;
+    }
+    
+    @Override
+    public int getType() {
+        return loca;
     }
 
     public int getOffset(int i) {

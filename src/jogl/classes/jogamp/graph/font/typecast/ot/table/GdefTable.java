@@ -12,4 +12,9 @@ class GdefTable implements Table {
     protected GdefTable(DataInput di) throws IOException {
     }
 
+    @Override
+    public int getType() {
+        return GDEF;
+    }
+
 }

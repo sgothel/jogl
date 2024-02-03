@@ -124,6 +124,11 @@ public class GsubTable implements Table, LookupSubtableFactory {
         return s;
     }
 
+    @Override
+    public int getType() {
+        return GSUB;
+    }
+
     public ScriptList getScriptList() {
         return _scriptList;
     }

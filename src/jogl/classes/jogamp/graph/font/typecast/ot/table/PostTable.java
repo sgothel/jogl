@@ -328,6 +328,11 @@ public class PostTable implements Table {
         }
     }
 
+    @Override
+    public int getType() {
+        return post;
+    }
+
     public int getVersion() {
         return version;
     }

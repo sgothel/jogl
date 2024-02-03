@@ -27,7 +27,7 @@ import java.io.IOException;
  * Baseline Table
  * @author <a href="mailto:david.schweinsberg@gmail.com">David Schweinsberg</a>
  */
-public class BaseTable implements Table {
+public abstract class BaseTable implements Table {
     
     private abstract static class BaseCoord {
 

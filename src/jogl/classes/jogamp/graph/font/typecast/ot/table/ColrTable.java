@@ -104,6 +104,11 @@ class ColrTable implements Table {
     }
 
     @Override
+    public int getType() {
+        return COLR;
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'COLR' Table\n------------\nBase Glyph Records\n");

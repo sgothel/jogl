@@ -107,6 +107,11 @@ public class GlyfTable implements Table {
 
     public int getSize() { return _descript.length; }
 
+    @Override
+    public int getType() {
+        return glyf;
+    }
+
     public GlyfDescript getDescription(final int i) {
         if (i < _descript.length) {
             return _descript[i];

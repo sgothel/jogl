@@ -21,6 +21,11 @@ class PrepTable extends Program implements Table {
         readInstructions(di, length);
     }
 
+    @Override
+    public int getType() {
+        return prep;
+    }
+
     public String toString() {
         return Disassembler.disassemble(getInstructions(), 0);
     }

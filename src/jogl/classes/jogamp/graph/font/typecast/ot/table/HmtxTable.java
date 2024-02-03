@@ -83,6 +83,11 @@ public class HmtxTable implements Table {
         _length = length;
     }
 
+    @Override
+    public int getType() {
+        return hmtx;
+    }
+
     public int getAdvanceWidth(int i) {
         if (_hMetrics == null) {
             return 0;

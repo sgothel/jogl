@@ -21,6 +21,11 @@ class FpgmTable extends Program implements Table {
         readInstructions(di, length);
     }
 
+    @Override
+    public int getType() {
+        return fpgm;
+    }
+
     public String toString() {
         return Disassembler.disassemble(getInstructions(), 0);
     }

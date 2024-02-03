@@ -52,7 +52,6 @@ package jogamp.graph.font.typecast.ot.table;
 
 import java.io.DataInput;
 import java.io.IOException;
-
 import java.util.Arrays;
 
 /**
@@ -101,6 +100,11 @@ public class CmapTable implements Table {
             _entries[i].setFormat(lastFormat);
             bytesRead += lastFormat.getLength();
         }
+    }
+
+    @Override
+    public int getType() {
+        return cmap;
     }
 
     public int getVersion() {

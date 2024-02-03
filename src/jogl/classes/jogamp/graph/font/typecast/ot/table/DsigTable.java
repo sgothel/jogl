@@ -8,8 +8,8 @@
 
 package jogamp.graph.font.typecast.ot.table;
 
-import java.io.IOException;
 import java.io.DataInput;
+import java.io.IOException;
 
 /**
  *
@@ -36,6 +36,11 @@ class DsigTable implements Table {
         for (int i = 0; i < numSigs; i++) {
             sigBlocks[i] = new SignatureBlock(di);
         }
+    }
+
+    @Override
+    public int getType() {
+        return DSIG;
     }
 
     public String toString() {

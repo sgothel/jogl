@@ -103,6 +103,11 @@ class CpalTable implements Table {
         }
     }
 
+    @Override
+    public int getType() {
+        return CPAL;
+    }
+
     public int getNumPalettesEntries() {
         return _numPalettesEntries;
     }

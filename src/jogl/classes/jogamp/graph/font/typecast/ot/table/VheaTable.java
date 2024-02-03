@@ -59,6 +59,11 @@ public class VheaTable implements Table {
         _numberOfLongVerMetrics = di.readUnsignedShort();
     }
 
+    @Override
+    public int getType() {
+        return vhea;
+    }
+
     public short getAdvanceHeightMax() {
         return _advanceHeightMax;
     }

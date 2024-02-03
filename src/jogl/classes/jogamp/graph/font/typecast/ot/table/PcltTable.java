@@ -58,6 +58,11 @@ class PcltTable implements Table {
         reserved = di.readByte();
     }
 
+    @Override
+    public int getType() {
+        return PCLT;
+    }
+
     public String toString() {
         return "'PCLT' Table - Printer Command Language Table\n---------------------------------------------" +
                 "\n        version:             0x" + Integer.toHexString(version).toUpperCase() +

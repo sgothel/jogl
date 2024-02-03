@@ -48,6 +48,11 @@ public class HheaTable implements Table {
         numberOfHMetrics = di.readUnsignedShort();
     }
 
+    @Override
+    public int getType() {
+        return hhea;
+    }
+
     public short getAdvanceWidthMax() {
         return advanceWidthMax;
     }

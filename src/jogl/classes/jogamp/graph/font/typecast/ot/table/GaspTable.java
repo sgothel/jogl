@@ -31,6 +31,11 @@ public class GaspTable implements Table {
         }
     }
 
+    @Override
+    public int getType() {
+        return gasp;
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("'gasp' Table - Grid-fitting And Scan-conversion Procedure\n---------------------------------------------------------");
