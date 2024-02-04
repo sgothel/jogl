@@ -285,6 +285,8 @@ public interface GLMediaPlayer extends TextureSequence {
         public Chapter(final int i, final int s, final int e, final String t) {
             id = i; start = s; end = e; title = t;
         }
+        /** Returns chapter duration, i.e. {@code end - start + 1}. */
+        public int duration() { return end - start + 1; }
         @Override
         public String toString() {
             return String.format("%02d: [%s .. %s] %s", id, PTS.toTimeStr(start), PTS.toTimeStr(end), title);
