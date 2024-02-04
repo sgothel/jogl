@@ -122,7 +122,7 @@ public class Button extends BaseButton {
      * Create a text labeled button Graph based {@link GLRegion} UI {@link Shape}.
      * <p>
      * If {@code labelTextOn} is not {@code null}, constructor enables {@link #setToggleable(boolean) toggle-able} mode
-     * to automatically switch the labels depending on {@Link #isToggleOn()}.
+     * to automatically switch the labels depending on {@link #isToggleOn()}.
      * </p>
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param labelFont {@link Font} for the label
