@@ -56,7 +56,7 @@ import com.jogamp.graph.ui.shapes.GlyphShape;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.graph.ui.widgets.RangeSlider;
-import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
+import com.jogamp.graph.ui.widgets.RangeSlider.SliderListener;
 import com.jogamp.graph.ui.widgets.RangedGroup;
 import com.jogamp.graph.ui.widgets.RangedGroup.SliderParam;
 import com.jogamp.math.FloatUtil;
@@ -284,7 +284,7 @@ public class FontView01 {
                 // final float gapSizeX = ( gridDim.rawSize.x() - 1 ) * cellSize * 0.1f;
                 final Group glyphGrid = new Group(new GridLayout(gridDim.columns, glyphGridCellSize*0.9f, glyphGridCellSize*0.9f, Alignment.FillCenter,
                                                   new Gap(glyphGridCellSize*0.1f)));
-                glyphGrid.setInteractive(true).setDragAndResizeable(false).setToggleable(false).setName("GlyphGrid");
+                glyphGrid.setInteractive(true).setDragAndResizable(false).setToggleable(false).setName("GlyphGrid");
                 addGlyphs(reqCaps.getGLProfile(), font, glyphGrid, gridDim, showUnderline, showLabel, fontStatus, fontInfo, glyphMouseListener);
                 glyphGrid.setRelayoutOnDirtyShapes(false); // avoid group re-validate to ease load in Group.isShapeDirty() w/ thousands of glyphs
                 if( VERBOSE_UI ) {
@@ -303,7 +303,7 @@ public class FontView01 {
                                                                new SliderParam( new Vec2f(glyphGridCellSize/4f, glyphGridSize.y()), glyphGridCellSize/10f, true ) );
                 glyphView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f).setName("GlyphView");
                 if( VERBOSE_UI ) {
-                    glyphView.getVertSlider().addSliderListener(new SliderAdapter() {
+                    glyphView.getVertSlider().addSliderListener(new SliderListener() {
                         @Override
                         public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
                             final Vec2f minmax = w.getMinMax();
@@ -515,17 +515,17 @@ public class FontView01 {
 
             final GlyphShape g = new GlyphShape(options.renderModes, fg, 0, 0);
             g.setColor(0.1f, 0.1f, 0.1f, 1).setName("GlyphShape");
-            g.setInteractive(false).setDragAndResizeable(false);
+            g.setInteractive(false).setDragAndResizable(false);
             g.setName( "cp_0x"+Integer.toHexString(fg.getCodepoint()) );
 
             final Group c0 = new Group("GlyphHolder", null, null, g);
-            c0.setInteractive(false).setDragAndResizeable(false);
+            c0.setInteractive(false).setDragAndResizable(false);
 
             // Group each GlyphShape with its bounding box Rectangle
             final AABBox gbox = fg.getBounds(tmpBox); // g.getBounds(glp);
             final boolean addUnderline = showUnderline && gbox.getMinY() < 0f;
             final Group c1 = new Group( new BoxLayout( 1f, 1f, addUnderline ? Alignment.None : Alignment.Center) );
-            c1.setBorder(GlyphGridBorderThickness).setBorderColor(GlyphGridBorderColor).setInteractive(true).setDragAndResizeable(false).setName("GlyphHolder2");
+            c1.setBorder(GlyphGridBorderThickness).setBorderColor(GlyphGridBorderColor).setInteractive(true).setDragAndResizable(false).setName("GlyphHolder2");
             if( addUnderline ) {
                 final Shape underline = new Rectangle(options.renderModes, 1f, gbox.getMinY(), 0.01f).setInteractive(false).setColor(0f, 0f, 1f, 0.25f);
                 c1.addShape(underline);
@@ -538,7 +538,7 @@ public class FontView01 {
             c1.setToolTip( new TooltipShape(new Vec4f(1, 1, 1, 1), new Vec4f(0, 0, 0, 1), 0.01f,
                                             new Padding(0.05f), new Vec2f(14,14), 0, options.renderModes,
                                             g, TooltipShape.NoOpDtor) );
-            c1.onClicked((final Shape s) -> {
+            c1.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
                 c1.getTooltip().now();
             });
 
@@ -552,7 +552,7 @@ public class FontView01 {
                     final Label l = new Label(options.renderModes, fontInfo, fg.getName());
                     // final AABBox lbox = l.getUnscaledGlyphBounds();
                     final float sxy = 1f/7f; // gridDim.maxNameLen; // 0.10f; // Math.min(sx, sy);
-                    c2.addShape( l.scale(sxy, sxy, 1).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizeable(false) );
+                    c2.addShape( l.scale(sxy, sxy, 1).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizable(false) );
                 }
                 sink.addShape(c2);
                 // System.err.println("Add.2: "+c2);
@@ -567,7 +567,7 @@ public class FontView01 {
         System.err.println("PERF: GlyphAdd took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+gridDim.glyphCount);
     }
     static void addLabel(final Group c, final Font font, final String text) {
-        c.addShape( new Label(options.renderModes, font, text).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizeable(false) );
+        c.addShape( new Label(options.renderModes, font, text).setColor(0, 0, 0, 1).setInteractive(false).setDragAndResizable(false) );
     }
 
     static void setGlyphInfo(final Font font, final Label label, final Font.Glyph g) {

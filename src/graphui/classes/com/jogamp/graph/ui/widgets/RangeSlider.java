@@ -62,12 +62,6 @@ public final class RangeSlider extends Widget {
      * {@link RangeSlider} slider listener
      */
     public static interface SliderListener {
-        /** Slider clicked by user (after completing pressed + released). */
-        void clicked(RangeSlider w, final MouseEvent e);
-        /** Slider pressed down by user. */
-        void pressed(RangeSlider w, final MouseEvent e);
-        /** Slider released down by user. */
-        void released(RangeSlider w, final MouseEvent e);
         /**
          * Slide dragged by user (including clicked position)
          * @param w the {@link RangeSlider} widget owning the slider
@@ -78,16 +72,6 @@ public final class RangeSlider extends Widget {
          */
         void dragged(RangeSlider w, float old_val, float val, float old_val_pct, float val_pct);
     }
-    public static abstract class SliderAdapter implements SliderListener {
-        @Override
-        public void clicked(final RangeSlider w, final MouseEvent e) { }
-        @Override
-        public void pressed(final RangeSlider w, final MouseEvent e) { }
-        @Override
-        public void released(final RangeSlider w, final MouseEvent e) { }
-        @Override
-        public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) { }
-    };
     private static interface SliderAction {
         public void run(SliderListener l);
     }

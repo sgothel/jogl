@@ -160,11 +160,19 @@ public class TreeTool {
      * Each {@link Container} level is sorted using {@code sortComp}
      * </p>
      * @param cont container of the shapes
+     * @param ascnZOrder if {@code true}, traverse through {@link Container#getRenderedShapes()} in ascending z-axis order (bottom-up), otherwise descending (top-down)
      * @param pmv
      * @param v
      * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
      */
-    public static boolean forAllRendered(final Container cont, final PMVMatrix4f pmv, final Visitor2 v) {
+    public static boolean forAllRendered(final Container cont, final boolean ascnZOrder, final PMVMatrix4f pmv, final Visitor2 v) {
+        if( ascnZOrder ) {
+            return forAllRenderedAscn(cont, pmv, v);
+        } else {
+            return forAllRenderedDesc(cont, pmv, v);
+        }
+    }
+    private static boolean forAllRenderedAscn(final Container cont, final PMVMatrix4f pmv, final Visitor2 v) {
         final List<Shape> shapes = cont.getRenderedShapes();
         boolean res = false;
 
@@ -175,7 +183,24 @@ public class TreeTool {
             res = v.visit(s, pmv);
             if( !res && s instanceof Container ) {
                 final Container c = (Container)s;
-                res = forAllRendered(c, pmv, v);
+                res = forAllRenderedAscn(c, pmv, v);
+            }
+            pmv.popMv();
+        }
+        return res;
+    }
+    private static boolean forAllRenderedDesc(final Container cont, final PMVMatrix4f pmv, final Visitor2 v) {
+        final List<Shape> shapes = cont.getRenderedShapes();
+        boolean res = false;
+
+        for(int i=shapes.size()-1; !res && i>=0; --i) {
+            final Shape s = shapes.get(i);
+            pmv.pushMv();
+            s.applyMatToMv(pmv);
+            res = v.visit(s, pmv);
+            if( !res && s instanceof Container ) {
+                final Container c = (Container)s;
+                res = forAllRenderedDesc(c, pmv, v);
             }
             pmv.popMv();
         }

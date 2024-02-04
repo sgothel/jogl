@@ -146,7 +146,7 @@ public class MediaButton extends TexSeqButton {
         setSubtitleColor(DEFAULT_ASS_SUB_COLOR, DEFAULT_ASS_SUB_BLEND);
 
         this.subTexImg = new ImageButton(renderModes, width, height, new ImageSequence(mPlayer.getTextureUnit(), true /* useBuildInTexLookup */));
-        this.subTexImg.setPerp().setToggleable(false).setDragAndResizeable(false).setInteractive(false);
+        this.subTexImg.setPerp().setToggleable(false).setDragAndResizable(false).setInteractive(false);
         // this.subTexImg.setBorder(0.001f).setBorderColor(1, 1, 0, 1);
         this.subTexImg.getImageSequence().setParams(GL.GL_LINEAR, GL.GL_LINEAR, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
         this.subTexImg.setARatioAdjustment(false);

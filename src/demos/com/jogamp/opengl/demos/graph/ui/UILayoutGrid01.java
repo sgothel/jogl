@@ -58,6 +58,8 @@ import com.jogamp.opengl.demos.graph.ui.util.Tooltips;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.util.Animator;
 
+import jogamp.graph.ui.TreeTool;
+
 /**
  * Res independent {@link Shape}s in a {@link Group} using a {@link GridLayout}, contained within a Scene attached to GLWindow.
  * <p>
@@ -173,8 +175,8 @@ public class UILayoutGrid01 {
                 sxy, nextPos, cellGap,
                 font, 12,
                 (final Group gp) -> {
-                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 r1", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 r1", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
@@ -185,8 +187,8 @@ public class UILayoutGrid01 {
                 sxy, nextPos, cellGap,
                 font, 13,
                 (final Group gp) -> {
-                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
@@ -198,8 +200,8 @@ public class UILayoutGrid01 {
                 font, 14,
                 (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
@@ -212,10 +214,10 @@ public class UILayoutGrid01 {
                 font, 15,
                 (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
@@ -227,10 +229,10 @@ public class UILayoutGrid01 {
                 font, 16,
                 (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
@@ -247,10 +249,10 @@ public class UILayoutGrid01 {
                 font, 21,
                 (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
@@ -262,10 +264,10 @@ public class UILayoutGrid01 {
                 font, 22,
                 (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
@@ -277,10 +279,10 @@ public class UILayoutGrid01 {
                 font, 23,
                 (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", 1f, 1f/2f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
@@ -294,10 +296,10 @@ public class UILayoutGrid01 {
                 font, 24,
                 (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", bw, bh, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c2", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c2", bw, bh, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r3 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
@@ -310,10 +312,10 @@ public class UILayoutGrid01 {
                 font, 25,
                 (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", bw, bh, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c2", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c2", bw, bh, zEps).setPerp().setBorder(borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r3 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r3 c1", bw, bh, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                 } );
             nextPos.setX( nextPos.x() + g.getScaledWidth() * cellGap );
         }
@@ -328,10 +330,10 @@ public class UILayoutGrid01 {
                 font, 31,
                 (final Group gp) -> {
                     final Group glyphGrid = new Group(new GridLayout(2, 0.3f, 0.3f, Alignment.Fill, new Gap(0.3f * 0.10f)));
-                    glyphGrid.addShape( new Button(options.renderModes, font, "0.0", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    glyphGrid.addShape( new Button(options.renderModes, font, "0.1", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    glyphGrid.addShape( new Button(options.renderModes, font, "1.0", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
-                    glyphGrid.addShape( new Button(options.renderModes, font, "1.1", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    glyphGrid.addShape( new Button(options.renderModes, font, "0.0", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    glyphGrid.addShape( new Button(options.renderModes, font, "0.1", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    glyphGrid.addShape( new Button(options.renderModes, font, "1.0", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
+                    glyphGrid.addShape( new Button(options.renderModes, font, "1.1", 1f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                     gp.addShape(glyphGrid.setBorder(borderThickness));
 
                     final Group infoGrid = new Group(new GridLayout(1, 1/4f, 1/2.2f, Alignment.Fill, new Gap(0.02f)));
@@ -339,12 +341,12 @@ public class UILayoutGrid01 {
                     // glyphView.addShape(new Rectangle(options.renderModes, 1f, 1f, 0.005f).setInteractive(false));
                     // glyphView.addShape(new Button(options.renderModes, font, "S", 1f, 1f).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                     // infoGrid.addShape(glyphView.setBorder(borderThickness));
-                    infoGrid.addShape(new Button(options.renderModes, font, " S ", 1/2f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    infoGrid.addShape(new Button(options.renderModes, font, " S ", 1/2f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
 
                     // final Group infoView = new Group();
                     // infoView.addShape(new Button(options.renderModes, font, "Info", 1f, 1f).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                     // infoGrid.addShape(infoView.setBorder(borderThickness));
-                    infoGrid.addShape(new Button(options.renderModes, font, " Info ", 1/2f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
+                    infoGrid.addShape(new Button(options.renderModes, font, " Info ", 1/2f, 1f, zEps).setPerp().setBorder(borderThickness).setDragAndResizable(false) );
                     gp.addShape(infoGrid.setBorder(borderThickness));
                     // groupC0.addShape(new Button(options.renderModes, font, "S", 1/4f, 0.5f).setPerp().setBorder(borderThickness).setDragAndResizeable(false) );
                 } );
@@ -359,8 +361,8 @@ public class UILayoutGrid01 {
                 font, 32,
                 (final Group gp) -> {
                     gp.addShape( new Button(options.renderModes, font, "ro co", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
-                    gp.addShape( new Button(options.renderModes, font, "r1 c2", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).setDragAndResizeable(false) );
-                    gp.addShape( new Button(options.renderModes, font, "r2 c1", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).setDragAndResizeable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r1 c2", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).setDragAndResizable(false) );
+                    gp.addShape( new Button(options.renderModes, font, "r2 c1", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).setDragAndResizable(false) );
                     gp.addShape( new Button(options.renderModes, font, "r2 c2", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
                     gp.addShape( new Button(options.renderModes, font, "r3 c1", bw, bh, zEps).setPerp().setBorder(sxy*borderThickness).addMouseListener(dragZoomRotateListener) );
                 } );
@@ -403,7 +405,7 @@ public class UILayoutGrid01 {
         g.moveTo(sceneBox.getLow()).move(nextPos);
         System.err.println("Group-"+suffix+" "+g);
         System.err.println("Group-"+suffix+" Layout "+g.getLayout());
-        g.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        TreeTool.forAll(g, (shape) -> { System.err.println("Shape... "+shape); return false; });
         scene.addShape(g);
         {
             final float X_width = font.getGlyph( ' ' ).getAdvanceWidth();
@@ -423,7 +425,7 @@ public class UILayoutGrid01 {
                                     l.getAlignment() );
             final Shape label = new Label(options.renderModes, font, text).setColor(0, 0, 0, 1).validate(reqGLP);
             label.scale(l_sxy, l_sxy, 1).moveTo(sceneBox.getLow()).move(nextPos).move(l_sxy*X_width, g.getScaledHeight(), 0)
-                .addMouseListener(new Tooltips.ZoomLabelOnClickListener(scene, options.renderModes, 1/6f)).setDragAndResizeable(false);
+                .addMouseListener(new Tooltips.ZoomLabelOnClickListener(scene, options.renderModes, 1/6f)).setDragAndResizable(false);
             scene.addShape(label);
         }
         if( reLayout ) {
@@ -432,7 +434,7 @@ public class UILayoutGrid01 {
             g.validate(reqGLP);
             System.err.println("Group-"+suffix+".2 "+g);
             System.err.println("Group-"+suffix+" Layout.2 "+g.getLayout());
-            g.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+            TreeTool.forAll(g, (shape) -> { System.err.println("Shape... "+shape); return false; });
         }
         return g;
     }

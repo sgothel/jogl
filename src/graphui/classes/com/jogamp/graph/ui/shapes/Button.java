@@ -149,14 +149,11 @@ public class Button extends BaseButton {
 
     @Override
     protected void toggleNotify(final boolean on) {
-        int i=0;
         if( null != labelOn ) {
             if( on ) {
                 labelNow = labelOn;
-                i = 1;
             } else {
                 labelNow = labelOff;
-                i = -1;
             }
             markShapeDirty();
         }

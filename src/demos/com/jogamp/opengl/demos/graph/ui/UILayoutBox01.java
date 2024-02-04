@@ -62,6 +62,8 @@ import com.jogamp.opengl.demos.graph.ui.util.Tooltips;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.util.Animator;
 
+import jogamp.graph.ui.TreeTool;
+
 /**
  * Res independent {@link Shape}s in a {@link Group} using a {@link BoxLayout}, contained within a Scene attached to GLWindow.
  * <p>
@@ -435,7 +437,7 @@ public class UILayoutBox01 {
         g.validate(reqGLP);
         System.err.println("Group-A"+suffix+" "+g);
         System.err.println("Group-A"+suffix+" Layout "+g.getLayout());
-        g.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        TreeTool.forAll(g, (shape) -> { System.err.println("Shape... "+shape); return false; });
         scene.addShape(g);
         {
             final float X_width = font.getGlyph( ' ' ).getAdvanceWidth();
@@ -457,7 +459,7 @@ public class UILayoutBox01 {
                                     l.getAlignment() );
             final Shape label = new Label(options.renderModes, font, text).setColor(0, 0, 0, 1).validate(reqGLP);
             label.scale(l_sxy, l_sxy, 1).moveTo(sceneBox.getLow()).move(nextPos).move(l_sxy*X_width, g.getScaledHeight(), 0)
-                .addMouseListener(new Tooltips.ZoomLabelOnClickListener(scene, options.renderModes, 1/4f)).setDragAndResizeable(false);
+                .addMouseListener(new Tooltips.ZoomLabelOnClickListener(scene, options.renderModes, 1/4f)).setDragAndResizable(false);
             scene.addShape(label);
             System.err.println("ID "+id+": "+label);
         }

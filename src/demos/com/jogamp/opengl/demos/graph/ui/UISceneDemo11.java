@@ -52,6 +52,8 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.util.Animator;
 
+import jogamp.graph.ui.TreeTool;
+
 /**
  * Res independent {@link Shape}s in a {@link Group} using a {@link GridLayout}, contained within a Scene attached to GLWindow.
  * <p>
@@ -84,17 +86,17 @@ public class UISceneDemo11 {
 
         final Group groupA0 = new Group(new GridLayout(2, 1f, 1/2f, Alignment.Fill, new Gap(0.10f)));
         {
-            groupA0.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1f/2f).setPerp().setDragAndResizeable(false) );
-            groupA0.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f).setPerp().setDragAndResizeable(false) );
-            groupA0.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f).setPerp().setDragAndResizeable(false) );
-            groupA0.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f).setPerp().setDragAndResizeable(false) );
+            groupA0.addShape( new Button(options.renderModes, font, "r1 c1", 1f, 1f/2f).setPerp().setDragAndResizable(false) );
+            groupA0.addShape( new Button(options.renderModes, font, "r1 c2", 1f, 1f/2f).setPerp().setDragAndResizable(false) );
+            groupA0.addShape( new Button(options.renderModes, font, "r2 c1", 1f, 1f/2f).setPerp().setDragAndResizable(false) );
+            groupA0.addShape( new Button(options.renderModes, font, "r2 c2", 1f, 1f/2f).setPerp().setDragAndResizable(false) );
         }
         groupA0.setInteractive(true);
         groupA0.scale(1/8f, 1/8f, 1);
         groupA0.validate(reqCaps.getGLProfile());
         System.err.println("Group-A0 "+groupA0);
         System.err.println("Group-A0 Layout "+groupA0.getLayout());
-        groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        TreeTool.forAll(groupA0, (shape) -> { System.err.println("Shape... "+shape); return false; });
 
         final Scene scene = new Scene(options.graphAASamples);
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
@@ -135,7 +137,7 @@ public class UISceneDemo11 {
         final AABBox sceneBox = scene.getBounds();
         System.err.println("SceneBox "+sceneBox);
         System.err.println("Group-A0 "+groupA0);
-        groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        TreeTool.forAll(groupA0, (shape) -> { System.err.println("Shape... "+shape); return false; });
         groupA0.moveTo(0, sceneBox.getMinY(), 0f); // move shape to min start position
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
 
@@ -189,7 +191,7 @@ public class UISceneDemo11 {
         final float has_dur_s = ( ( Clock.currentNanos() / 1000 ) - t0_us ) / 1e6f; // [us]
         System.err.printf("Actual travel-duration %.3f s, delay %.3f s%n", has_dur_s, has_dur_s-exp_dur_s);
         System.err.println("Group-A0 bounds "+groupA0);
-        groupA0.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        TreeTool.forAll(groupA0, (shape) -> { System.err.println("Shape... "+shape); return false; });
         try { Thread.sleep(1000); } catch (final InterruptedException e1) { }
         }
         if( !options.stayOpen ) {

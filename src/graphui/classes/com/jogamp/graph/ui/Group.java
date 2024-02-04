@@ -98,7 +98,7 @@ public class Group extends Shape implements Container {
     /**
      * Create a group of {@link Shape}s w/o {@link Group.Layout}.
      * <p>
-     * Default is non-interactive, see {@link #setInteractive(boolean)}.
+     * Default is {@link #setInteractive(boolean) non-interactive}.
      * </p>
      */
     public Group() {
@@ -108,7 +108,7 @@ public class Group extends Shape implements Container {
     /**
      * Create a group of {@link Shape}s w/ given {@link Group.Layout}.
      * <p>
-     * Default is non-interactive, see {@link #setInteractive(boolean)}.
+     * Default is {@link #setInteractive(boolean) non-interactive}.
      * </p>
      * @param l optional {@link Layout}, maybe {@code null}
      */
@@ -119,7 +119,7 @@ public class Group extends Shape implements Container {
     /**
      * Create a group of {@link Shape}s w/ given {@link Group.Layout} and {@link Shape}.
      * <p>
-     * Default is non-interactive, see {@link #setInteractive(boolean)}.
+     * Default is {@link #setInteractive(boolean) non-interactive}.
      * </p>
      * @param name optional name for {@link #setName(String)}
      * @param l optional {@link Layout}, maybe {@code null}
@@ -488,7 +488,7 @@ public class Group extends Shape implements Container {
     public boolean getRelayoutOnDirtyShapes() { return relayoutOnDirtyShapes; }
 
     /**
-     * Toggles widget behavior for this group and all its elements, default is disabled.
+     * Toggles widget behavior for this group, default is disabled.
      * <p>
      * Enabled widget behavior for a group causes
      * <ul>
@@ -515,8 +515,8 @@ public class Group extends Shape implements Container {
     protected final void enableUniActivationImpl(final boolean v, final Listener activationListener) {
         for(final Shape s : shapes ) {
             if( s.isGroup() ) {
-                final Group sg = (Group)s;
-                sg.setWidgetMode(v);
+                // ((Group)s).enableUniActivationImpl(v, activationListener);
+                ((Group)s).setWidgetMode(v);
             }
             s.addActivationListener(activationListener);
         }
@@ -527,14 +527,14 @@ public class Group extends Shape implements Container {
 
     @Override
     public boolean isActive() {
-        return super.isActive() || ( widgetMode && forAll((final Shape gs) -> { return gs.isActive(); } ) );
+        return super.isActive() || ( widgetMode && TreeTool.forAll(this, (final Shape gs) -> { return gs.isActive(); } ) );
     }
 
     @Override
     public float getAdjustedZ() {
         final float[] v = { getAdjustedZImpl() };
         if( widgetMode && !super.isActive() ) {
-            forAll((final Shape gs) -> {
+            TreeTool.forAll(this, (final Shape gs) -> {
                 if( gs.isActive() ) {
                     v[0] = gs.getAdjustedZImpl();
                     return true;
@@ -687,7 +687,7 @@ public class Group extends Shape implements Container {
         if( null == shape ) {
             return res;
         }
-        forOne(pmv, shape, () -> {
+        TreeTool.forOne(this, pmv, shape, () -> {
             shape.getBounds().transform(pmv.getMv(), res);
         });
         return res;
@@ -696,31 +696,6 @@ public class Group extends Shape implements Container {
     @Override
     public String getSubString() {
         return super.getSubString()+", shapes "+shapes.size();
-    }
-
-    @Override
-    public boolean forOne(final PMVMatrix4f pmv, final Shape shape, final Runnable action) {
-        return TreeTool.forOne(this, pmv, shape, action);
-    }
-
-    @Override
-    public boolean forAll(final Visitor1 v) {
-        return TreeTool.forAll(this, v);
-    }
-
-    @Override
-    public boolean forAll(final PMVMatrix4f pmv, final Visitor2 v) {
-        return TreeTool.forAll(this, pmv, v);
-    }
-
-    @Override
-    public boolean forSortedAll(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
-        return TreeTool.forSortedAll(this, sortComp, pmv, v);
-    }
-
-    @Override
-    public boolean forAllRendered(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
-        return TreeTool.forAllRendered(this, pmv, v);
     }
 }
 

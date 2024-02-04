@@ -98,6 +98,8 @@ import com.jogamp.opengl.util.caps.NonFSAAGLCapsChooser;
 import com.jogamp.opengl.util.texture.ImageSequence;
 import com.jogamp.opengl.util.texture.TextureIO;
 
+import jogamp.graph.ui.TreeTool;
+
 /**
  * Complex interactive GraphUI Scene demo with different Button and Label Shapes layout on the screen.
  * <p>
@@ -1040,8 +1042,8 @@ public class UISceneDemo20 implements GLEventListener {
         final float sceneHeight = sceneBox.getHeight();
         final float button_sxy = sceneWidth > sceneHeight ? sceneWidth : sceneHeight;
 
-        buttonsLeft.forAll((final Shape s) -> { if( s instanceof Button) { ((Button)s).setLabelZOffset(zEpsilon); } return false; } );
-        buttonsRight.forAll((final Shape s) -> { if( s instanceof Button) { ((Button)s).setLabelZOffset(zEpsilon); } return false; } );
+        TreeTool.forAll(buttonsLeft, (final Shape s) -> { if( s instanceof Button) { ((Button)s).setLabelZOffset(zEpsilon); } return false; } );
+        TreeTool.forAll(buttonsRight, (final Shape s) -> { if( s instanceof Button) { ((Button)s).setLabelZOffset(zEpsilon); } return false; } );
         buttonsLeft.validate(drawable.getGL().getGL2ES2());
         buttonsRight.validate(drawable.getGL().getGL2ES2());
 

@@ -27,6 +27,7 @@
  */
 package com.jogamp.graph.ui.widgets;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
@@ -52,7 +53,7 @@ import com.jogamp.graph.ui.shapes.Button;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.graph.ui.shapes.Rectangle;
-import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
+import com.jogamp.graph.ui.widgets.RangeSlider.SliderListener;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
@@ -69,6 +70,8 @@ import com.jogamp.opengl.util.av.GLMediaPlayer.EventMask;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
 import com.jogamp.opengl.util.texture.TextureSequence;
+
+import jogamp.graph.ui.TreeTool;
 
 /**
  * Media player {@link Widget}, embedding a {@link MediaButton} and its controls.
@@ -620,7 +623,7 @@ public class MediaPlayer extends Widget {
                 mButton.setPressedColorMod(1f, 1f, 1f, 0.85f);
             }
         } );
-        this.forAll((final Shape s) -> { s.setDraggable(false).setResizable(false); return false; });
+        TreeTool.forAll(this, (final Shape s) -> { s.setDraggable(false).setResizable(false); return false; });
         ctrlSlider.getKnob().setDraggable(true);
     }
 

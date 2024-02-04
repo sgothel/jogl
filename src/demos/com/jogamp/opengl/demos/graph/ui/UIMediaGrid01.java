@@ -54,14 +54,17 @@ import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.graph.ui.widgets.MediaPlayer;
 import com.jogamp.graph.ui.widgets.RangeSlider;
-import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
+import com.jogamp.graph.ui.widgets.RangeSlider.SliderListener;
 import com.jogamp.graph.ui.widgets.RangedGroup;
 import com.jogamp.graph.ui.widgets.RangedGroup.SliderParam;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec2i;
+import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
+import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -76,6 +79,8 @@ import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
+
+import jogamp.graph.ui.TreeTool;
 
 /**
  * MediaButtons in a {@link RangedGroup} w/ vertical slider, filled by media files from a directory.
@@ -260,7 +265,7 @@ public class UIMediaGrid01 {
         {
             final Group mediaGrid = new Group(new GridLayout(gridDim.x(), mediaCellWidth*0.9f, mediaCellHeight*0.9f, Alignment.FillCenter,
                                               new Gap(mediaCellHeight*0.1f, mediaCellWidth*0.1f)));
-            mediaGrid.setInteractive(true).setDragAndResizeable(false).setToggleable(false).setName("MediaGrid");
+            mediaGrid.setInteractive(false).setDragAndResizable(false).setToggleable(false).setName("MediaGrid");
             addMedia(scene, reqCaps.getGLProfile(), mediaGrid, mediaFiles, videoAspectRatio);
             mediaGrid.setRelayoutOnDirtyShapes(false); // avoid group re-validate to ease load in Group.isShapeDirty() w/ thousands of glyphs
             if( VERBOSE_UI ) {
@@ -275,7 +280,7 @@ public class UIMediaGrid01 {
             mediaView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f).setName("MediaView");
             // mediaView.setRelayoutOnDirtyShapes(false); // avoid group re-validate to ease load in Group.isShapeDirty() w/ thousands of glyphs
             if( VERBOSE_UI ) {
-                mediaView.getVertSlider().addSliderListener(new SliderAdapter() {
+                mediaView.getVertSlider().addSliderListener(new SliderListener() {
                     @Override
                     public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
                         final Vec2f minmax = w.getMinMax();
@@ -317,6 +322,15 @@ public class UIMediaGrid01 {
                     printScreenOnGLThread(scene, window.getChosenGLCapabilities());
                 } else if( keySym == KeyEvent.VK_F4 || keySym == KeyEvent.VK_ESCAPE || keySym == KeyEvent.VK_Q ) {
                     MiscUtils.destroyWindow(window);
+                } else if( keySym == KeyEvent.VK_D ) {
+                    final PMVMatrix4f pmv = new PMVMatrix4f();
+                    scene.setupMatrix(pmv);
+                    final int[] shapeIdx = { 0 };
+                    TreeTool.forAllRendered(scene, false, pmv, (final Shape s, final PMVMatrix4f pmv_) -> {
+                       ++shapeIdx[0];
+                       System.err.printf("%03d: shape %s/%s, %s%n", shapeIdx[0], s.getClass().getSimpleName(), s.getName(), s);
+                       return false;
+                    });
                 }
             }
         });
@@ -366,8 +380,8 @@ public class UIMediaGrid01 {
                         fontSymbols.getUTF16String("reset_tv"), MediaPlayer.CtrlButtonWidth, MediaPlayer.CtrlButtonHeight, scene.getZEpsilon(16));
                 button.setName("reset");
                 button.setSpacing(MediaPlayer.SymSpacing, MediaPlayer.FixedSymSize).setPerp().setColor(MediaPlayer.CtrlCellCol);
-                button.onClicked((final Shape s0) -> {
-                    scene.forAll((final Shape s1) -> {
+                button.onClicked((final Shape s0, final Vec3f pos, final MouseEvent e) -> {
+                    TreeTool.forAll(scene, (final Shape s1) -> {
                        System.err.println("- "+s1.getName());
                        if( s1 instanceof MediaButton ) {
                            final MediaButton mb = (MediaButton)s1;

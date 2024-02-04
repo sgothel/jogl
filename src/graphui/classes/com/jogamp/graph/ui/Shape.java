@@ -124,6 +124,19 @@ public abstract class Shape {
     }
 
     /**
+     * {@link Shape} pointer listener, e.g. for {@link Shape#onClicked(PointerListener)}
+     */
+    public static interface PointerListener {
+        /**
+         * Event callback
+         * @param s the associated {@link Shape} for this event
+         * @param pos relative object coordinates to the associated {@link Shape}
+         * @param e original Newt {@link MouseEvent}
+         */
+        void run(Shape s, final Vec3f pos, MouseEvent e);
+    }
+
+    /**
      * General {@link Shape} listener action
      */
     public static interface Listener {
@@ -257,12 +270,12 @@ public abstract class Shape {
     private static final int IO_RESIZABLE          = 1 << 5;
     private static final int IO_RESIZE_FIXED_RATIO = 1 << 6;
     private static final int IO_ACTIVE             = 1 << 7;
-    private static final int IO_DOWN               = 1 << 8;
-    private static final int IO_TOGGLE             = 1 << 9;
-    private static final int IO_DRAG_FIRST         = 1 << 10;
-    private static final int IO_IN_MOVE            = 1 << 11;
-    private static final int IO_IN_RESIZE_BR       = 1 << 12;
-    private static final int IO_IN_RESIZE_BL       = 1 << 13;
+    private static final int IO_DOWN               = 1 << 26;
+    private static final int IO_TOGGLE             = 1 << 27;
+    private static final int IO_DRAG_FIRST         = 1 << 28;
+    private static final int IO_IN_MOVE            = 1 << 29;
+    private static final int IO_IN_RESIZE_BR       = 1 << 30;
+    private static final int IO_IN_RESIZE_BL       = 1 << 31;
     private volatile int ioState = IO_DRAGGABLE | IO_RESIZABLE | IO_INTERACTIVE | IO_ACTIVABLE | IO_VISIBLE;
     private final boolean isIO(final int mask) { return mask == ( ioState & mask ); }
     private final Shape setIO(final int mask, final boolean v) { if( v ) { ioState |= mask; } else { ioState &= ~mask; } return this; }
@@ -274,10 +287,11 @@ public abstract class Shape {
     private ArrayList<KeyListener> keyListeners = new ArrayList<KeyListener>();
 
     private ListenerBool onInitListener = null;
+    private PointerListener onHoverListener  = null;
     private MoveListener onMoveListener = null;
     private Listener onToggleListener = null;
     private ArrayList<Listener> activationListeners = new ArrayList<Listener>();
-    private Listener onClickedListener = null;
+    private PointerListener onClickedListener = null;
 
     private final Vec2f objDraggedFirst = new Vec2f(); // b/c its relative to Shape and we stick to it
     private final int[] winDraggedLast = { 0, 0 }; // b/c its absolute window pos
@@ -417,6 +431,7 @@ public abstract class Shape {
         onToggleListener = null;
         activationListeners.clear();
         onClickedListener = null;
+        onHoverListener = null;
         markShapeDirty();
     }
 
@@ -442,19 +457,31 @@ public abstract class Shape {
      */
     public final void onInit(final ListenerBool l) { onInitListener = l; }
     /**
+     * Set user callback to be notified when a pointer/mouse is moving over this shape
+     */
+    public final void onHover(final PointerListener l) { onHoverListener = l; }
+    /**
      * Set user callback to be notified when shape is {@link #move(Vec3f)}'ed.
      */
     public final void onMove(final MoveListener l) { onMoveListener = l; }
     /**
      * Set user callback to be notified when shape {@link #toggle()}'ed.
      * <p>
-     * This is usually the case when clicked, see {@link #onClicked(Listener)}.
+     * This is usually the case when clicked, see {@link #onClicked(PointerListener)}.
      * </p>
      * <p>
      * Use {@link #isToggleOn()} to retrieve the state.
      * </p>
      */
     public final void onToggle(final Listener l) { onToggleListener = l; }
+    /**
+     * Set user callback to be notified when shape is clicked.
+     * <p>
+     * Usually shape is {@link #toggle()}'ed when clicked, see {@link #onToggle(Listener)}.
+     * However, in case shape is not {@link #isToggleable()} this is the last resort.
+     * </p>
+     */
+    public final void onClicked(final PointerListener l) { onClickedListener = l; }
 
     /**
      * Add user callback to be notified when shape is activated (pointer-over and/or click) or de-activated (pointer left).
@@ -492,15 +519,6 @@ public abstract class Shape {
             activationListeners.get(i).run(s);
         }
     }
-
-    /**
-     * Set user callback to be notified when shape is clicked.
-     * <p>
-     * Usually shape is {@link #toggle()}'ed when clicked, see {@link #onToggle(Listener)}.
-     * However, in case shape is not {@link #isToggleable()} this is the last resort.
-     * </p>
-     */
-    public final void onClicked(final Listener l) { onClickedListener = l; }
 
     /** Move to scaled position. Position ends up in PMVMatrix4f unmodified. No {@link MoveListener} notification will occur. */
     public final Shape moveTo(final float tx, final float ty, final float tz) {
@@ -1505,13 +1523,13 @@ public abstract class Shape {
         } else {
             rotateS = "";
         }
-        final String activeS = isIO(IO_ACTIVE) ? ", active" : "";
+        final String activeS = ", active["+(isIO(IO_ACTIVE) ? "SELF," : "")+(isGroup() && isActive()?"GROUP":"")+"]";
         final String ps = hasPadding() ? padding.toString()+", " : "";
         final String bs = hasBorder() ? "border[l "+getBorderThickness()+", c "+getBorderColor()+"], " : "";
         final String idS = -1 != id ? ", id "+id : "";
         final String nameS = "noname" != name ? ", '"+name+"'" : "";
         return getDirtyString()+idS+nameS+", visible "+isIO(IO_VISIBLE)+activeS+", toggle "+isIO(IO_TOGGLE)+
-               ", able[toggle "+isIO(IO_TOGGLEABLE)+", iactive "+isInteractive()+", resize "+isResizable()+", move "+this.isDraggable()+
+               ", able[toggle "+isIO(IO_TOGGLEABLE)+", iactive "+isInteractive()+", resize "+isResizable()+", drag "+this.isDraggable()+
                "], pos["+position+"], "+pivotS+scaleS+rotateS+iMatS+
                 ps+bs+"box"+box;
     }
@@ -1671,7 +1689,7 @@ public abstract class Shape {
      * @see #isVisible()
      * @see #setDraggable(boolean)
      * @see #setResizable(boolean)
-     * @see #setDragAndResizeable(boolean)
+     * @see #setDragAndResizable(boolean)
      */
     public final Shape setInteractive(final boolean v) { return setIO(IO_INTERACTIVE, v); }
     /**
@@ -1702,7 +1720,7 @@ public abstract class Shape {
      * @see #isDraggable()
      * @see #setInteractive(boolean)
      * @see #setResizable(boolean)
-     * @see #setDragAndResizeable(boolean)
+     * @see #setDragAndResizable(boolean)
      */
     public final Shape setDraggable(final boolean draggable) { return setIO(IO_DRAGGABLE, draggable); }
     /**
@@ -1720,12 +1738,12 @@ public abstract class Shape {
      * @see #isResizable()
      * @see #setInteractive(boolean)
      * @see #setDraggable(boolean)
-     * @see #setDragAndResizeable(boolean)
+     * @see #setDragAndResizable(boolean)
      */
     public final Shape setResizable(final boolean resizable) { return setIO(IO_RESIZABLE, resizable); }
 
     /**
-     * Returns if this shape is resiable, a user interaction.
+     * Returns if this shape is resizable, a user interaction.
      * @see #setResizable(boolean)
      */
     public final boolean isResizable() { return isIO(IO_RESIZABLE); }
@@ -1754,7 +1772,7 @@ public abstract class Shape {
      * @see #setDraggable(boolean)
      * @see #setResizable(boolean)
      */
-    public final Shape setDragAndResizeable(final boolean v) {
+    public final Shape setDragAndResizable(final boolean v) {
         setDraggable(v);
         setResizable(v);
         return this;

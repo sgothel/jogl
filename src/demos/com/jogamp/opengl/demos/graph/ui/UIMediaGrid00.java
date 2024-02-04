@@ -47,9 +47,11 @@ import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.graph.ui.widgets.MediaPlayer;
 import com.jogamp.math.Vec2i;
+import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -62,6 +64,8 @@ import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
+
+import jogamp.graph.ui.TreeTool;
 
 /**
  * MediaButtons in a grid, filled by media files from a directory in different aspect ratios
@@ -223,8 +227,8 @@ public class UIMediaGrid00 {
                         fontSymbols.getUTF16String("reset_tv"), MediaPlayer.CtrlButtonWidth, MediaPlayer.CtrlButtonHeight, scene.getZEpsilon(16));
                 button.setName("reset");
                 button.setSpacing(MediaPlayer.SymSpacing, MediaPlayer.FixedSymSize).setPerp().setColor(MediaPlayer.CtrlCellCol);
-                button.onClicked((final Shape s0) -> {
-                    scene.forAll((final Shape s1) -> {
+                button.onClicked((final Shape s0, final Vec3f pos, final MouseEvent e) -> {
+                    TreeTool.forAll(scene, (final Shape s1) -> {
                        System.err.println("- "+s1.getName());
                        if( s1 instanceof MediaButton ) {
                            final MediaButton mb = (MediaButton)s1;

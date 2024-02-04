@@ -81,6 +81,8 @@ import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
+import jogamp.graph.ui.TreeTool;
+
 /**
  * Res independent Shape, Scene attached to GLWindow showing multiple animated shape movements.
  * <p>
@@ -712,7 +714,7 @@ public class UISceneDemo03 {
                 } } );
             buttonsRight.addShape(button);
         }
-        buttonsRight.forAll((final Shape s) -> { s.setDragAndResizeable(false); return false; });
+        TreeTool.forAll(buttonsRight, (final Shape s) -> { s.setDragAndResizable(false); return false; });
         buttonsRight.validate(window.getChosenGLCapabilities().getGLProfile());
         buttonsRight.moveTo(sceneBox.getWidth()/2f  - buttonsRight.getScaledWidth()*1.02f,
                             sceneBox.getHeight()/2f - buttonsRight.getScaledHeight()*1.02f, 0f);

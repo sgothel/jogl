@@ -378,7 +378,7 @@ public final class Scene implements Container, GLEventListener {
     public int setAAQuality(final int v) { return renderer.setAAQuality(v); /* markStatesDirty() -> autodetected within GLRegion.draw(..) */ }
 
     public void setSharpness(final float sharpness) {
-        forAll((final Shape s) -> {
+        TreeTool.forAll(this, (final Shape s) -> {
             if( s instanceof GraphShape ) {
                 ((GraphShape)s).setSharpness(sharpness);
             }
@@ -386,13 +386,13 @@ public final class Scene implements Container, GLEventListener {
         });
     }
     public void markShapesDirty() {
-        forAll((final Shape s) -> {
+        TreeTool.forAll(this, (final Shape s) -> {
            s.markShapeDirty();
            return false;
         });
     }
     public void markStatesDirty() {
-        forAll((final Shape s) -> {
+        TreeTool.forAll(this, (final Shape s) -> {
            s.markStateDirty();
            return false;
         });
@@ -783,7 +783,7 @@ public final class Scene implements Container, GLEventListener {
         }
         final Recti viewport = getViewport();
         setupMatrix(pmv);
-        forOne(pmv, shape, () -> {
+        TreeTool.forOne(this, pmv, shape, () -> {
             if( null != shape.winToShapeCoord(pmv, viewport, glWinX, glWinY, objPos) ) {
                 runnable.run();
             }
@@ -797,62 +797,10 @@ public final class Scene implements Container, GLEventListener {
             return res;
         }
         setupMatrix(pmv);
-        forOne(pmv, shape, () -> {
+        TreeTool.forOne(this, pmv, shape, () -> {
             shape.getBounds().transform(pmv.getMv(), res);
         });
         return res;
-    }
-
-    /**
-     * Traverses through the graph up until {@code shape} and apply {@code action} on it.
-     * @param pmv {@link PMVMatrix4f}, which shall be properly initialized, e.g. via {@link Scene#setupMatrix(PMVMatrix4f)}
-     * @param shape
-     * @param action
-     * @return true to signal operation complete, i.e. {@code shape} found, otherwise false
-     */
-    @Override
-    public boolean forOne(final PMVMatrix4f pmv, final Shape shape, final Runnable action) {
-        return TreeTool.forOne(this, pmv, shape, action);
-    }
-
-    /**
-     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
-     * @param pmv {@link PMVMatrix4f}, which shall be properly initialized, e.g. via {@link Scene#setupMatrix(PMVMatrix4f)}
-     * @param v
-     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
-     */
-    @Override
-    public boolean forAll(final PMVMatrix4f pmv, final Visitor2 v) {
-        return TreeTool.forAll(this, pmv, v);
-    }
-
-    /**
-     * Traverses through the graph and apply {@link Visitor1#visit(Shape)} for each, stop if it returns true.
-     * @param v
-     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor1#visit(Shape)} returned true, otherwise false
-     */
-    @Override
-    public boolean forAll(final Visitor1 v) {
-        return TreeTool.forAll(this, v);
-    }
-
-    /**
-     * Traverses through the graph and apply {@link Visitor2#visit(Shape, PMVMatrix4f)} for each, stop if it returns true.
-     *
-     * Each {@link Container} level is sorted using {@code sortComp}
-     * @param sortComp
-     * @param pmv
-     * @param v
-     * @return true to signal operation complete and to stop traversal, i.e. {@link Visitor2#visit(Shape, PMVMatrix4f)} returned true, otherwise false
-     */
-    @Override
-    public boolean forSortedAll(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
-        return TreeTool.forSortedAll(this, sortComp, pmv, v);
-    }
-
-    @Override
-    public boolean forAllRendered(final Comparator<Shape> sortComp, final PMVMatrix4f pmv, final Visitor2 v) {
-        return TreeTool.forAllRendered(this, pmv, v);
     }
 
     /**
@@ -1272,7 +1220,7 @@ public final class Scene implements Container, GLEventListener {
     private void activateTooltipImpl(final GLAutoDrawable drawable, final PMVMatrix4f pmv, final Tooltip tt) {
         if( null == toolTipHUD.get() ) {
             final Shape[] hud = { null };
-            if( tt.tick() && forOne(pmv, tt.getTool(), () -> {
+            if( tt.tick() && TreeTool.forOne(this, pmv, tt.getTool(), () -> {
                     final AABBox toolMvBounds = tt.getToolMvBounds(pmv);
                     hud[0] = tt.createTip(drawable, Scene.this, pmv, toolMvBounds);
                 }) )

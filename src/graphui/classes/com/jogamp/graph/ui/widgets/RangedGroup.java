@@ -34,7 +34,7 @@ import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.layout.Alignment;
 import com.jogamp.graph.ui.layout.GridLayout;
-import com.jogamp.graph.ui.widgets.RangeSlider.SliderAdapter;
+import com.jogamp.graph.ui.widgets.RangeSlider.SliderListener;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
@@ -104,7 +104,7 @@ public class RangedGroup extends Widget {
             horizSlider = new RangeSlider(renderModes, horizSliderParam.size,
                                           new Vec2f(0, content.getBounds().getWidth()), horizSliderParam.unitSize, contentSize.x(), 0).setInverted(horizSliderParam.inverted);
             addShape(horizSlider);
-            horizSlider.addSliderListener( new SliderAdapter() {
+            horizSlider.addSliderListener( new SliderListener() {
                 @Override
                 public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
                     final Vec3f oldPos = content.getPosition();
@@ -122,7 +122,7 @@ public class RangedGroup extends Widget {
             vertSlider = new RangeSlider(renderModes, vertSliderParam.size,
                                          new Vec2f(0, content.getBounds().getHeight()), vertSliderParam.unitSize, contentSize.y(), 0).setInverted(vertSliderParam.inverted);
             addShape(vertSlider);
-            vertSlider.addSliderListener( new SliderAdapter() {
+            vertSlider.addSliderListener( new SliderListener() {
                 @Override
                 public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
                     final Vec3f oldPos = content.getPosition();

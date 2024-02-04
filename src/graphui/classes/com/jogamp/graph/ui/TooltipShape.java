@@ -43,6 +43,8 @@ import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
+import jogamp.graph.ui.TreeTool;
+
 /** A HUD {@link Shape} {@link Tooltip} for {@link Shape}, see {@link Shape#setToolTip(Tooltip)}. */
 public class TooltipShape extends Tooltip {
     /**
@@ -169,7 +171,7 @@ public class TooltipShape extends Tooltip {
             final Group tipWrapper = (Group)tipGroup.getShapeByIdx(1);
             if( null == tipWrapper.removeShape(tip) ) {
                 System.err.println("TooltipShape.destroyTip: Warning: Tip "+tip.getName()+" not contained in "+tipWrapper.getName()+"; Internal Group: ");
-                tipGroup.forAll((final Shape s) -> {
+                TreeTool.forAll(tipGroup, (final Shape s) -> {
                     System.err.println("- "+s.getName());
                     return false;
                 });

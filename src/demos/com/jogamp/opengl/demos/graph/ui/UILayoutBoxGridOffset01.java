@@ -56,6 +56,8 @@ import com.jogamp.opengl.demos.graph.ui.util.Tooltips;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
 import com.jogamp.opengl.util.Animator;
 
+import jogamp.graph.ui.TreeTool;
+
 /**
  * Res independent {@link Shape}s with offset (not starting at origin)
  * in a {@link Group} using {@link BoxLayout} and {@link GridLayout}, contained within a Scene attached to GLWindow.
@@ -148,7 +150,7 @@ public class UILayoutBoxGridOffset01 {
                     sxy, nextPos, cellGapX,
                     font, 11,
                     (final Group gp) -> {
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
                     }, minX, minY );
                 nextPos.setX( nextPos.x() + cellGapX );
             }
@@ -161,7 +163,7 @@ public class UILayoutBoxGridOffset01 {
                     sxy, nextPos, cellGapX,
                     font, 12,
                     (final Group gp) -> {
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
                     }, minX, minY );
                 nextPos.setX( nextPos.x() + cellGapX );
             }
@@ -171,7 +173,7 @@ public class UILayoutBoxGridOffset01 {
                     sxy, nextPos, cellGapX,
                     font, 13,
                     (final Group gp) -> {
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
                     }, minX, minY );
                 nextPos.setX( nextPos.x() + cellGapX );
             }
@@ -181,7 +183,7 @@ public class UILayoutBoxGridOffset01 {
                     sxy, nextPos, cellGapX,
                     font, 14,
                     (final Group gp) -> {
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
                     }, minX, minY );
                 nextPos.setX( nextPos.x() + cellGapX );
             }
@@ -191,7 +193,7 @@ public class UILayoutBoxGridOffset01 {
                     sxy, nextPos, cellGapX,
                     font, 15,
                     (final Group gp) -> {
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
                     }, minX, minY );
                 nextPos.setX( nextPos.x() + cellGapX );
             }
@@ -211,9 +213,9 @@ public class UILayoutBoxGridOffset01 {
                     sxy, nextPos, cellGapX,
                     font, 21,
                     (final Group gp) -> {
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
                     }, minX, minY );
                 nextPos.setX( nextPos.x() + cellGapX );
             }
@@ -226,9 +228,9 @@ public class UILayoutBoxGridOffset01 {
                     sxy, nextPos, cellGapX,
                     font, 22,
                     (final Group gp) -> {
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
                     }, minX, minY );
                 nextPos.setX( nextPos.x() + cellGapX );
             }
@@ -238,9 +240,9 @@ public class UILayoutBoxGridOffset01 {
                     sxy, nextPos, cellGapX,
                     font, 23,
                     (final Group gp) -> {
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
                     }, minX, minY );
                 nextPos.setX( nextPos.x() + cellGapX );
             }
@@ -250,9 +252,9 @@ public class UILayoutBoxGridOffset01 {
                     sxy, nextPos, cellGapX,
                     font, 24,
                     (final Group gp) -> {
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
                     }, minX, minY );
                 nextPos.setX( nextPos.x() + cellGapX );
             }
@@ -262,9 +264,9 @@ public class UILayoutBoxGridOffset01 {
                     sxy, nextPos, cellGapX,
                     font, 25,
                     (final Group gp) -> {
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
-                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizeable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
+                        gp.addShape( new Rectangle(options.renderModes, minX, minY, width, height, lineWidth, 0).setDragAndResizable(false) );
                     }, minX, minY );
                 nextPos.setX( nextPos.x() + cellGapX );
             }
@@ -312,7 +314,7 @@ public class UILayoutBoxGridOffset01 {
         g.moveTo(sceneBox.getLow()).move(nextPos);
         System.err.println("Group-"+suffix+" "+g);
         System.err.println("Group-"+suffix+" Layout "+g.getLayout());
-        g.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+        TreeTool.forAll(g, (shape) -> { System.err.println("Shape... "+shape); return false; });
         scene.addShape(g);
         {
             final float X_width = font.getGlyph( ' ' ).getAdvanceWidth();
@@ -345,7 +347,7 @@ public class UILayoutBoxGridOffset01 {
             }
             final Shape label = new Label(options.renderModes, font, text).setColor(0, 0, 0, 1).validate(reqGLP);
             label.scale(l_sxy, l_sxy, 1).moveTo(sceneBox.getLow()).move(nextPos).move(l_sxy*X_width, g.getScaledHeight(), 0)
-                .addMouseListener(new Tooltips.ZoomLabelOnClickListener(scene, options.renderModes, 1/6f)).setDragAndResizeable(false);
+                .addMouseListener(new Tooltips.ZoomLabelOnClickListener(scene, options.renderModes, 1/6f)).setDragAndResizable(false);
             scene.addShape(label);
         }
         if( reLayout ) {
@@ -354,7 +356,7 @@ public class UILayoutBoxGridOffset01 {
             g.validate(reqGLP);
             System.err.println("Group-"+suffix+".2 "+g);
             System.err.println("Group-"+suffix+" Layout.2 "+g.getLayout());
-            g.forAll( (shape) -> { System.err.println("Shape... "+shape); return false; });
+            TreeTool.forAll(g, (shape) -> { System.err.println("Shape... "+shape); return false; });
         }
         return g;
     }
