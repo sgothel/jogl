@@ -112,7 +112,7 @@ public final class RangeSlider extends Widget {
     private float val=0, val_pct=0;
     private boolean inverted=false;
     private float unitSize = 1;
-    private static final Vec4f activeBarColMod = new Vec4f(0.1f, 0.1f, 0.1f, 1f);
+    private static final Vec4f activeColMod = new Vec4f(0.1f, 0.1f, 0.1f, 1f);
 
     /**
      * Constructs a {@link RangeSlider}, i.e. its shapes and controls.
@@ -355,28 +355,26 @@ public final class RangeSlider extends Widget {
         bar.addKeyListener(keyListener);
         knob.addKeyListener(keyListener);
 
-        if( Float.isFinite(pageSize) ) {
-            final Shape.Listener onActivation = new Shape.Listener() {
-                private final Vec4f origCol = new Vec4f();
-                private boolean oriColSet = false;
-                private final Vec4f tmp = new Vec4f();
-                @Override
-                public void run(final Shape s) {
-                    if( bar.isActive() || knob.isActive() ) {
-                        if( !oriColSet ) {
-                            origCol.set( bar.getColor() );
-                            oriColSet = true;
-                        }
-                        bar.setColor( tmp.mul(origCol, activeBarColMod) );
-                    } else {
-                        oriColSet = false;
-                        bar.setColor( origCol );
+        final Shape.Listener onActivation = new Shape.Listener() {
+            private final Vec4f origCol = new Vec4f();
+            private boolean oriColSet = false;
+            private final Vec4f tmp = new Vec4f();
+            @Override
+            public void run(final Shape s) {
+                if( bar.isActive() || knob.isActive() ) {
+                    if( !oriColSet ) {
+                        origCol.set( knob.getColor() );
+                        oriColSet = true;
                     }
+                    knob.setColor( tmp.mul(origCol, activeColMod) );
+                } else {
+                    oriColSet = false;
+                    knob.setColor( origCol );
                 }
-            };
-            bar.addActivationListener(onActivation);
-            knob.addActivationListener(onActivation);
-        }
+            }
+        };
+        bar.addActivationListener(onActivation);
+        knob.addActivationListener(onActivation);
     }
 
     @Override
@@ -767,14 +765,14 @@ public final class RangeSlider extends Widget {
     }
 
     /**
-     * Sets the rectangular page frame active modulation color, if this slider comprises only a rectangular page knob.
+     * Sets the knob active modulation color
      * <p>
      * Default RGBA value is 0.1f, 0.1f, 0.1f, 1f
      * </p>
      */
-    public Shape setActivePageFrameColor(final Vec4f c) {
+    public Shape setActiveKnobColorMod(final Vec4f c) {
         if( !Float.isFinite(pageSize) ) {
-            activeBarColMod.set(c);
+            activeColMod.set(c);
         }
         return this;
     }
