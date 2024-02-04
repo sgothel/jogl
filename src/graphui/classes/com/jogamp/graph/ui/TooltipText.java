@@ -27,6 +27,7 @@
  */
 package com.jogamp.graph.ui;
 
+import com.jogamp.common.util.StringUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.font.Font;
@@ -39,7 +40,7 @@ import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLProfile;
 
-/** A HUD text {@link Tooltip} for {@link Shape}, see {@link Shape#setToolTip(Tooltip)}. */
+/** A round {@link Button HUD text} {@link Tooltip} for {@link Shape}, see {@link Shape#setToolTip(Tooltip)}. */
 public class TooltipText extends Tooltip {
     /** Text of this tooltip */
     private final CharSequence tipText;
@@ -67,7 +68,7 @@ public class TooltipText extends Tooltip {
     }
     /**
      * Ctor of {@link TooltipText} using {@link Tooltip#DEFAULT_DELAY}, {@link Region#VBAA_RENDERING_BIT}
-     * and a slightly transparent yellow background with an almost black opaque text color.
+     * and a slightly transparent light-grey background with an slightly transparent almost-black text color.
      * @param tipText HUD tip text
      * @param tipFont HUD tip font
      * @param scaleY HUD tip vertical scale against tool height
@@ -86,9 +87,14 @@ public class TooltipText extends Tooltip {
         final AffineTransform tempT1 = new AffineTransform();
         final AffineTransform tempT2 = new AffineTransform();
         final AABBox tipBox_em = tipFont.getGlyphBounds(tipText, tempT1, tempT2);
-
-        float h = toolMvBounds.getHeight() * scaleY;
-        float w = tipBox_em.getWidth() * h / tipBox_em.getHeight();
+        final float dys;
+        {
+            // lineHeight = tipBox_em.getHeight() / StringUtil.getLineCount(tipText);
+            final float totalH = tipBox_em.getHeight() * ( 1 + 0.5f/StringUtil.getLineCount(tipText) );
+            dys = totalH / tipBox_em.getHeight() - 1;
+        }
+        float h = toolMvBounds.getHeight() * scaleY * ( 1 + dys );
+        float w = ( tipBox_em.getWidth() * h / tipBox_em.getHeight() ) * ( 1 - dys );
         if( w > sceneAABox.getWidth() * 0.9f) {
             w = sceneAABox.getWidth() * 0.9f;
             h = tipBox_em.getHeight() * w / tipBox_em.getWidth();
@@ -99,13 +105,13 @@ public class TooltipText extends Tooltip {
         final Vec2f pos = getTipMvPosition(scene, toolMvBounds, w, h);
 
         final Button ntip = (Button) new Button(renderModes, tipFont, tipText, w, h, zEps)
-                .setPerp()
                 .moveTo(pos.x(), pos.y(), 100*zEps)
                 .setColor(backColor)
-                // .setBorder(0.05f).setBorderColor(0, 0, 0, 1)
+                // .setBorder(0.05f).setBorderColor(0, 0, 0, 0.5f)
                 .setInteractive(false);
         ntip.setLabelColor(frontColor);
-        ntip.setSpacing(0.10f, 0.10f);
+        ntip.setSpacing(0.075f, dys);
+        ntip.setCorner(0.75f);
         return ntip;
     }
 }

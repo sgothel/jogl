@@ -56,8 +56,8 @@ public abstract class Tooltip {
     private Shape tool;
     /** Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}. */
     protected final int renderModes;
-    protected final Vec4f backColor = new Vec4f(1, 1, 0, 1);
-    protected final Vec4f frontColor = new Vec4f(0.1f, 0.1f, 0.1f, 1);
+    protected final Vec4f backColor = new Vec4f(0.9f, 0.9f, 0.9f, 0.9f);
+    protected final Vec4f frontColor = new Vec4f(0.1f, 0.1f, 0.1f, 0.9f);
 
     @Override
     public String toString() {
@@ -65,8 +65,8 @@ public abstract class Tooltip {
     }
     /**
      *
-     * @param backColor optional HUD tip background color
-     * @param frontColor optional HUD tip front color
+     * @param backColor optional HUD tip background color, if null a slightly transparent light-grey background is used
+     * @param frontColor optional HUD tip front color, if null an slightly transparent almost-black is used
      * @param delayMS delay until HUD tip is visible after timer start (mouse moved), zero implies no time based alarm
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      */
@@ -159,8 +159,8 @@ public abstract class Tooltip {
         } else {
             pos.setX( sceneAABox.getLow().x() );
         }
-        if( toolMvBounds.getHigh().y() + tipHeight <= sceneAABox.getHigh().y()  ) {
-            pos.setY( toolMvBounds.getHigh().y() );
+        if( toolMvBounds.getCenter().y() + tipHeight <= sceneAABox.getHigh().y()  ) {
+            pos.setY( toolMvBounds.getCenter().y() );
         } else if( toolMvBounds.getHigh().y() >= tipHeight ) {
             pos.setY( toolMvBounds.getHigh().y() - tipHeight );
         } else {
