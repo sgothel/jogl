@@ -146,9 +146,9 @@ public final class RangeSlider extends Widget {
         this.pageSize = pageSz;
         this.horizontal = size.x() >= size.y();
         barAndKnob = new Group();
-        barAndKnob.setInteractive(true).setToggleable(false).setDragAndResizeable(false);
+        barAndKnob.setInteractive(false);
         marks = new Group();
-        marks.setInteractive(false).setToggleable(false).setDragAndResizeable(false);
+        marks.setInteractive(false);
 
         this.size = new Vec2f(size);
         if( DEBUG ) { System.err.println("RangeSlider.ctor0 "+getDescription()); }
@@ -173,10 +173,8 @@ public final class RangeSlider extends Widget {
         if( DEBUG ) { System.err.println("RangeSlider.ctor3 "+getDescription()); }
         setColor(0.80f, 0.80f, 0.80f, 0.7f);
 
-        bar.setToggleable(false).setInteractive(true).setDragAndResizeable(false);
-
-        knob.setToggleable(false).setResizable(false);
-        setName(getName());
+        bar.setToggleable(false).setInteractive(true).setDragAndResizable(false).setName("RangeSlider.bar");
+        knob.setToggleable(false).setInteractive(true).setResizable(false).setName("RangeSlider.knob");
         barAndKnob.addShape( bar );
         barAndKnob.addShape( marks );
         barAndKnob.addShape( knob );
@@ -197,18 +195,15 @@ public final class RangeSlider extends Widget {
                 l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
             });
         });
-        barAndKnob.addMouseListener(new Shape.MouseGestureAdapter() {
-            @Override
-            public void mouseClicked(final MouseEvent e) {
-                final float old_val = val;
-                final float old_val_pct = val_pct;
-                final Shape.EventInfo shapeEvent = (Shape.EventInfo) e.getAttachment();
-                setValuePct( getKnobValuePct( shapeEvent.objPos.x(), shapeEvent.objPos.y(), 0 ) );
-                dispatchToListener( (final SliderListener l) -> {
-                    l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
-                    l.clicked(RangeSlider.this, e);
-                });
-            }
+        bar.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
+            final float old_val = val;
+            final float old_val_pct = val_pct;
+            setValuePct( getKnobValuePct( pos.x(), pos.y(), 0 ) );
+            dispatchToListener( (final SliderListener l) -> {
+                l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
+            });
+        });
+        final Shape.MouseGestureListener mouseListener = new Shape.MouseGestureAdapter() {
             @Override
             public void mouseWheelMoved(final MouseEvent e) {
                 final float old_val = val;
@@ -248,27 +243,7 @@ public final class RangeSlider extends Widget {
                     l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
                 });
             }
-        });
-        knob.addMouseListener(new Shape.MouseGestureAdapter() {
-            @Override
-            public void mouseClicked(final MouseEvent e) {
-                // if( null != sliderListener ) {
-                //    sliderListener.clicked(RangeSlider.this, e);
-                // }
-            }
-            @Override
-            public void mousePressed(final MouseEvent e) {
-                dispatchToListener( (final SliderListener l) -> {
-                    l.pressed(RangeSlider.this, e);
-                });
-            }
-            @Override
-            public void mouseReleased(final MouseEvent e) {
-                dispatchToListener( (final SliderListener l) -> {
-                    l.released(RangeSlider.this, e);
-                });
-            }
-        });
+        };
         final KeyListener keyListener = new KeyAdapter() {
             @Override
             public void keyReleased(final KeyEvent e) {
@@ -335,9 +310,10 @@ public final class RangeSlider extends Widget {
                 }
             }
         };
-        barAndKnob.addKeyListener(keyListener);
         bar.addKeyListener(keyListener);
         knob.addKeyListener(keyListener);
+        bar.addMouseListener(mouseListener);
+        knob.addMouseListener(mouseListener);
 
         final Shape.Listener onActivation = new Shape.Listener() {
             private final Vec4f origCol = new Vec4f();

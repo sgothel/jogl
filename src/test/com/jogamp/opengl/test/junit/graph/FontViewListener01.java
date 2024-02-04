@@ -37,7 +37,9 @@ import com.jogamp.graph.ui.layout.BoxLayout;
 import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
 import com.jogamp.graph.ui.shapes.GlyphShape;
+import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
@@ -145,12 +147,9 @@ public class FontViewListener01 implements GLEventListener {
             }
             final GlyphShape glyphShape = new GlyphShape(renderModes, glyph, 0, 0);
             glyphShape.setColor(0.1f, 0.1f, 0.1f, 1);
-            glyphShape.setDragAndResizeable(false);
-            glyphShape.onClicked( new Shape.Listener() {
-                @Override
-                public void run(final Shape shape) {
-                    System.err.println( ((GlyphShape)shape).getGlyph().toString() );
-                }
+            glyphShape.setDragAndResizable(false);
+            glyphShape.onClicked( (final Shape shape, final Vec3f pos, final MouseEvent e) -> {
+                System.err.println( ((GlyphShape)shape).getGlyph().toString() );
             });
             glyphShape.validate(gl);
 
