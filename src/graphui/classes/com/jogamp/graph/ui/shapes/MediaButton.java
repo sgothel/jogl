@@ -36,6 +36,7 @@ import java.util.List;
 
 import com.jogamp.common.av.AudioSink;
 import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.StringUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
@@ -75,7 +76,7 @@ import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
  */
 public class MediaButton extends TexSeqButton {
     private static final boolean DEBUG_SUB = false;
-    private static final boolean DEBUG_PGS_POSSZ = false;
+    private static final boolean DEBUG_SUB_LAYOUT = false;
     private boolean verbose = false;
 
     private Font subFont;
@@ -102,6 +103,8 @@ public class MediaButton extends TexSeqButton {
 
     private static final float ASS_SUB_USED_WIDTH = 0.90f;
     private static final float ASS_SUB_BLEND_ADDED_HEIGHT = 0.25f;
+    private static final int ASS_SUB_MAX_SPLIT_LINES = 4;
+
 
     private SubtitleEvent drawLastSub;
 
@@ -402,19 +405,44 @@ public class MediaButton extends TexSeqButton {
         } else if( SubtitleEvent.Type.Text == sub.type ) {
             final SubTextEvent assSub = (SubTextEvent)sub;
             if( newSub ) {
+                final float maxWidth = box.getWidth() * ASS_SUB_USED_WIDTH;
                 subLabel.setFont( Font.getBestCoverage(subFont, subFallbackFont, assSub.text) );
                 subLabel.setText(assSub.text);
-                final AABBox subBox = subLabel.getBounds(gl.getGLProfile());
-                final float subLineHeight = subBox.getHeight() / assSub.lines;
-                final float maxWidth = box.getWidth() * ASS_SUB_USED_WIDTH;
-                final float lineHeight = box.getHeight() * subLineHeightPct;
+                int lines = assSub.lines;
+                AABBox subBox = subLabel.getBounds(gl.getGLProfile());
+                float subLineHeight = subBox.getHeight() / lines;
+                float lineHeight = box.getHeight() * subLineHeightPct;
                 float s_s = lineHeight / subLineHeight;
                 if( s_s * subBox.getWidth() > maxWidth ) {
-                    s_s = maxWidth / subBox.getWidth();
+                    // Split too wide text into multiple lines (max 4) fitting into box
+                    // while trimming it beforehand.
+                    if( DEBUG_SUB_LAYOUT ) {
+                        System.err.println("XXX split.0 has lines "+lines+", s "+s_s+", width "+(s_s * subBox.getWidth())+" > "+maxWidth+": "+assSub.text);
+                    }
+                    final String trimmed = StringUtil.trim(assSub.text, StringUtil.WHITESPACE, " ");
+                    lines = Math.min(ASS_SUB_MAX_SPLIT_LINES, (int)Math.ceil( s_s * subBox.getWidth() / maxWidth ));
+                    final String text = StringUtil.split(trimmed, lines, " ", String.valueOf(StringUtil.LF));
+                    lines = StringUtil.getLineCount(text);
+                    subLabel.setText(text);
+                    subBox = subLabel.getBounds(gl.getGLProfile());
+                    subLineHeight = subBox.getHeight() / lines;
+                    lineHeight = box.getHeight() * subLineHeightPct;
+                    s_s = lineHeight / subLineHeight;
+                    if( DEBUG_SUB_LAYOUT ) {
+                        System.err.println("XXX split.X to lines "+lines+", s "+s_s+", width "+(s_s * subBox.getWidth())+" <=?= "+maxWidth+": "+text);
+                    }
+                    if( s_s * subBox.getWidth() > maxWidth ) {
+                        // scale down remaining diff
+                        s_s = maxWidth / subBox.getWidth();
+                        lineHeight *= s_s / ( lineHeight / subLineHeight );
+                        if( DEBUG_SUB_LAYOUT ) {
+                            System.err.println("XXX scale-down scale "+s_s+", width "+(s_s * subBox.getWidth())+" <= "+maxWidth+": "+text);
+                        }
+                    }
                 }
                 subLabel.setScale(s_s, s_s, 1);
 
-                final float labelHeight = lineHeight * assSub.lines;
+                final float labelHeight = lineHeight * lines;
                 final float blendHeight = labelHeight + lineHeight * ASS_SUB_BLEND_ADDED_HEIGHT;
                 final Vec2f v_sz = new Vec2f(mPlayer.getWidth(), mPlayer.getHeight());
                 final Vec2f v_sxy = new Vec2f( box.getWidth(), box.getHeight() ).div( v_sz );
@@ -480,7 +508,7 @@ public class MediaButton extends TexSeqButton {
                     final Vec2f s_p0_s = s_p0.minus( v_ctr ).add( b_ctr ).scale( v_s );
                     subTexImg.moveTo(s_p0_s.x(), s_p0_s.y(), 2*subZOffset);
 
-                    if( DEBUG_PGS_POSSZ ) {
+                    if( DEBUG_SUB_LAYOUT ) {
                         // Keep this to ease later adjustments due to specifications like PGS
                         final Vec2f b_sz = new Vec2f(box.getWidth(), box.getHeight());
                         final float v_ar = v_sz.x()/v_sz.y();
