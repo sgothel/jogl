@@ -137,7 +137,7 @@ public class RangedGroup extends Widget {
             vertSlider = null;
         }
         this.onInit( (final Shape shape) -> {
-            content.move(contentPosZero.x(), contentPosZero.y(), 0);
+            content.moveTo(contentPosZero.x(), contentPosZero.y(), 0);
             return true;
         });
     }
@@ -153,6 +153,7 @@ public class RangedGroup extends Widget {
     @Override
     protected void validateImpl(final GL2ES2 gl, final GLProfile glp) {
         if( isShapeDirty() ) {
+            final Vec3f pos = content.getPosition().copy(); // preserve content position
             super.validateImpl(gl, glp);
 
             final AABBox cb = content.getBounds();
@@ -170,6 +171,7 @@ public class RangedGroup extends Widget {
                     contentPosZero.setY( contentSize.y() - cb.getHeight() );
                 }
             }
+            content.moveTo( pos );
         }
     }
     @Override
