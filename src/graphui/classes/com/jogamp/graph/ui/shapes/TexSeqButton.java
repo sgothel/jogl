@@ -79,7 +79,7 @@ public abstract class TexSeqButton extends BaseButton {
      * @return this instance for chaining
      */
     public TexSeqButton setARatioLetterbox(final boolean v, final Vec4f backColor) {
-        if( useAspectRatioLetterbox() != v ) {
+        if( useARatioLetterbox() != v ) {
             texSeq.setARatioLetterbox(v, backColor);
             markShapeDirty();
         }
@@ -88,7 +88,7 @@ public abstract class TexSeqButton extends BaseButton {
     /**
      * See {@link TextureSequence#useARatioLetterbox()}.
      */
-    public boolean useAspectRatioLetterbox() { return texSeq.useARatioLetterbox(); }
+    public boolean useARatioLetterbox() { return texSeq.useARatioLetterbox(); }
 
     /** See {@link TextureSequence#getARatioLetterboxBackColor()}. */
     public Vec4f getARatioLetterboxBackColor() { return texSeq.getARatioLetterboxBackColor(); }

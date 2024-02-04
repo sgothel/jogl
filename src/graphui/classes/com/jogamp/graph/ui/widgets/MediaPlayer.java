@@ -97,7 +97,7 @@ public class MediaPlayer extends Widget {
      * @param mPlayer fresh {@link GLMediaPlayer} instance, maybe customized via e.g. {@link GLMediaPlayer#setTextureMinMagFilter(int[])}.
      * @param medium {@link Uri} stream source, either a file or network source
      * @param aratio aspect ratio of the resulting {@link Shape}, usually 16.0f/9.0f or 4.0f/3.0f, which also denotes the width of this shape while using height 1.0.
-     * @param letterBox toggles {@link Region#COLORTEXTURE_LETTERBOX_RENDERING_BIT} on or off
+     * @param letterBox toggles {@link GLMediaPlayer#setARatioLetterbox(boolean, Vec4f)} on or off
      * @param zoomSize zoom-size (0..1] for zoom-out control
      * @param customCtrls optional custom controls, maybe an empty list
      */
