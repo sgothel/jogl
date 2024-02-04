@@ -55,17 +55,6 @@ public class TextRegionUtil {
         this.renderModes = renderModes;
     }
 
-    public static int getCharCount(final String s, final char c) {
-        final int sz = s.length();
-        int count = 0;
-        for(int i=0; i<sz; i++) {
-            if( s.charAt(i) == c ) {
-                count++;
-            }
-        }
-        return count;
-    }
-
     /**
      * Add the string in 3D space w.r.t. the font in font em-size [0..1] at the end of the {@link GLRegion}
      * while passing the progressed {@link AffineTransform}.

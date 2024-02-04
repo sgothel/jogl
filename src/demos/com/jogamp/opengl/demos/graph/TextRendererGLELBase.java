@@ -32,6 +32,7 @@ import java.io.IOException;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
+import com.jogamp.common.util.StringUtil;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
@@ -187,14 +188,14 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      * @param cacheRegion
      */
     public void renderString(final GLAutoDrawable drawable,
-                             final Font font, final float pixelSize, final String text,
+                             final Font font, final float pixelSize, final CharSequence text,
                              final int column, final float tx, final float ty, final float tz, final boolean cacheRegion) {
         final int row = lastRow + 1;
         renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, cacheRegion, null);
     }
 
     public void renderString(final GLAutoDrawable drawable,
-                             final Font font, final float pixelSize, final String text,
+                             final Font font, final float pixelSize, final CharSequence text,
                              final int column, final float tx, final float ty, final float tz, final GLRegion region) {
         final int row = lastRow + 1;
         renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, false, region);
@@ -214,21 +215,21 @@ public abstract class TextRendererGLELBase implements GLEventListener {
      * @param cacheRegion
      */
     public void renderString(final GLAutoDrawable drawable,
-                             final Font font, final float pixelSize, final String text,
+                             final Font font, final float pixelSize, final CharSequence text,
                              final int column, final int row,
                              final float tx, final float ty, final float tz, final boolean cacheRegion) {
         renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, cacheRegion, null);
     }
 
     public void renderString(final GLAutoDrawable drawable,
-                             final Font font, final float pixelSize, final String text,
+                             final Font font, final float pixelSize, final CharSequence text,
                              final int column, final int row,
                              final float tx, final float ty, final float tz, final GLRegion region) {
         renderStringImpl(drawable, font, pixelSize, text, column, row, tx, ty, tz, false, region);
     }
 
     private void renderStringImpl(final GLAutoDrawable drawable,
-                                  final Font font, final float pixelSize, final String text,
+                                  final Font font, final float pixelSize, final CharSequence text,
                                   final int column, final int row,
                                   final float tx, final float ty, final float tz, final boolean cacheRegion, final GLRegion region) {
         if( null != renderer ) {
@@ -244,7 +245,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 dy = height-ty;
             }
             final float sxy = pixelScale * pixelSize;
-            final int newLineCount = TextRegionUtil.getCharCount(text, '\n');
+            final int newLineCount = StringUtil.getLineCount(text);
             final float lineHeight = font.getLineHeight();
             dx += sxy * font.getAdvanceWidth( font.getGlyphID( 'X' ) ) * column;
             dy -= sxy * lineHeight * ( row + 1 );
@@ -278,9 +279,9 @@ public abstract class TextRendererGLELBase implements GLEventListener {
         }
     }
     public void renderRegion(final GLAutoDrawable drawable,
-                                  final Font font, final float pixelSize,
-                                  final int column, final int row,
-                                  final float tx, final float ty, final float tz, final GLRegion region) {
+                             final Font font, final float pixelSize,
+                             final int column, final int row,
+                             final float tx, final float ty, final float tz, final GLRegion region) {
         if( null != renderer ) {
             final GL2ES2 gl = drawable.getGL().getGL2ES2();
 

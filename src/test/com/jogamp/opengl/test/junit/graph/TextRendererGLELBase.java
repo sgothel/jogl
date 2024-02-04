@@ -32,6 +32,7 @@ import java.io.IOException;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
+import com.jogamp.common.util.StringUtil;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
@@ -222,7 +223,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
     }
 
     private void renderStringImpl(final GLAutoDrawable drawable,
-                                  final Font font, final float pixelSize, final String text,
+                                  final Font font, final float pixelSize, final CharSequence text,
                                   final int column, final int row,
                                   final float tx, final float ty, final float tz, final boolean cacheRegion, final GLRegion region) {
         if( null != renderer ) {
@@ -238,7 +239,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
                 dy = height-ty;
             }
             final float sxy = pixelScale * pixelSize;
-            final int newLineCount = TextRegionUtil.getCharCount(text, '\n');
+            final int newLineCount = StringUtil.getLineCount(text);
             final float lineHeight = font.getLineHeight();
             dx += sxy * font.getAdvanceWidth( font.getGlyphID( 'X' ) ) * column;
             dy -= sxy * lineHeight * ( row + 1 );

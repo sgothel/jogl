@@ -30,6 +30,7 @@ package com.jogamp.opengl.util.av;
 import java.time.format.DateTimeParseException;
 
 import com.jogamp.common.av.PTS;
+import com.jogamp.common.util.StringUtil;
 
 /**
  * Text Event Line including ASS/SAA of {@link SubtitleEvent}
@@ -215,19 +216,7 @@ public class SubTextEvent extends SubtitleEvent {
         this.name = name;
         this.effect = effect;
         this.text = text.replace("\\N", "\n");
-        {
-            final int len = this.text.length();
-            int lc = 1;
-            for(int i=0; len > i; ) {
-                final int j = this.text.indexOf("\n", i);
-                if( 0 > j ) {
-                    break;
-                }
-                ++lc;
-                i = j + 1;
-            }
-            this.lines = lc;
-        }
+        this.lines = StringUtil.getLineCount(this.text);
     }
 
     @Override
