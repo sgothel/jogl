@@ -112,7 +112,7 @@ public final class Scene implements Container, GLEventListener {
     public static final float DEFAULT_Z16_EPSILON = FloatUtil.getZBufferEpsilon(16 /* zBits */, DEFAULT_SCENE_DIST, DEFAULT_ZNEAR);
     /** Default Z precision scale, i.e. multiple of {@link #DEFAULT_Z16_EPSILON} for {@link #setActiveShapeZOffsetScale(float)}. Value is {@value}. */
     public static final float DEFAULT_ACTIVE_ZOFFSET_SCALE = 10f;
-    /** Default Z precision scale, i.e. multiple of {@link #DEFAULT_Z16_EPSILON} for {@link #setActiveShapeZOffsetScale(float)}. Value is {@value}. */
+    /** Default Z precision scale, i.e. multiple of {@link #DEFAULT_Z16_EPSILON} for {@link #setActiveTopLevelZOffsetScale(float)}. Value is {@value}. */
     public static final float DEFAULT_ACTIVE_TOPLEVEL_ZOFFSET_SCALE = 100f;
     /** Default Z precision on 16-bit depth buffer using {@code -1} z-position and {@link #DEFAULT_ZNEAR}. Value is {@code 1.5256461E-4}. */
     // public static final float DIST1_Z16_EPSILON = FloatUtil.getZBufferEpsilon(16 /* zBits */, -1, DEFAULT_ZNEAR);
@@ -843,17 +843,20 @@ public final class Scene implements Container, GLEventListener {
     }
 
     public void releaseActiveShape() {
-        if( null != activeShape ) {
-            if( DEBUG_PICKING ) {
-                System.err.println("ACTIVE-RELEASE: "+activeShape);
-            }
-            activeShape.setActive(false, 0);
+        final Shape lastShape = activeShape;
+        if( null != lastShape ) {
+            final Group lastTL = activeTopLevel;
+            lastShape.setActive(false, 0);
             activeShape = null;
 
-            final Group lastTL = activeTopLevel;
             activeTopLevel = null;
             if( null != lastTL ) {
-                lastTL.setZOffset(0);
+                lastTL.setActiveTopLevel(false, 0);
+            }
+            if( DEBUG_PICKING ) {
+                System.err.println("ACTIVE-RELEASE: s 0x"+Integer.toHexString(System.identityHashCode(lastShape))+", "+lastShape);
+                System.err.println("ACTIVE-RELEASE: g 0x"+Integer.toHexString(System.identityHashCode(lastTL))+", "+lastTL);
+                dumpTopLevelParent();
             }
         }
     }
@@ -867,19 +870,19 @@ public final class Scene implements Container, GLEventListener {
                 final Group lastTL = activeTopLevel;
                 final Group thisTL = isTopLevel ? (Group)shape : getTopLevelParent(shape);
                 int mode = 0;
-                if( null != lastShape && lastTL != lastShape ) {
+                if( null != lastShape && thisTL != lastShape ) {
                     lastShape.setActive(false, 0);
                     mode += 10;
                 }
                 if( lastTL != thisTL ) {
                     mode += 100;
                     if( null!=lastTL) {
-                        lastTL.setZOffset(0);
+                        lastTL.setActiveTopLevel(false, 0);
                         mode += 1000;
                     }
                     if( null!=thisTL && !isTopLevel ) {
-                        thisTL.setZOffset(activeTopLevelZOffsetScale * zEpsilon);
-                        mode += 2000;
+                        thisTL.setActiveTopLevel(true, activeTopLevelZOffsetScale * zEpsilon);
+                        mode += 10000;
                     }
                     activeTopLevel = thisTL;
                 }
@@ -897,15 +900,20 @@ public final class Scene implements Container, GLEventListener {
         }
     }
     private float activeZOffsetScale = DEFAULT_ACTIVE_ZOFFSET_SCALE;
-    private final float activeTopLevelZOffsetScale = DEFAULT_ACTIVE_TOPLEVEL_ZOFFSET_SCALE;
+    private float activeTopLevelZOffsetScale = DEFAULT_ACTIVE_TOPLEVEL_ZOFFSET_SCALE;
 
     /** Returns the active {@link Shape} Z-Offset scale, defaults to {@code 10.0}. */
     public float getActiveShapeZOffsetScale() { return activeZOffsetScale; }
     /** Sets the active {@link Shape} Z-Offset scale, defaults to {@code 10.0}. */
     public void setActiveShapeZOffsetScale(final float v) { activeZOffsetScale = v; }
 
-    protected void addTopLevel(final Group g) { topLevel.add(g); }
-    protected void removeTopLevel(final Group g) { topLevel.add(g); }
+    /** Returns the general {@link Group#enableTopLevelWidget(Scene) top-level widget} Z-Offset scale, defaults to {@link #DEFAULT_ACTIVE_ZOFFSET_SCALE}. */
+    public float getActiveTopLevelZOffsetScale() { return activeTopLevelZOffsetScale; }
+    /** Sets the general {@link Group#enableTopLevelWidget(Scene) top-level widget} Z-Offset scale, defaults to {@link #DEFAULT_ACTIVE_TOPLEVEL_ZOFFSET_SCALE}. */
+    public void setActiveTopLevelZOffsetScale(final float v) { activeTopLevelZOffsetScale = v; }
+
+    /* pp */ void addTopLevel(final Group g) { topLevel.add(g); }
+    /* pp */ void removeTopLevel(final Group g) { topLevel.add(g); }
     private Group getTopLevelParent(final Shape s) {
         for(final Group g : topLevel) {
             if(g.contains(s)) {
@@ -914,10 +922,20 @@ public final class Scene implements Container, GLEventListener {
         }
         return null;
     }
-    @SuppressWarnings("unused")
     private void dumpTopLevelParent() {
+        int idx = 0;
         for(final Group g : topLevel) {
-            System.err.printf("TL: %s/%s, %s%n", g.getClass().getSimpleName(), g.getName(), g);
+            final boolean a0 = g.isActive();
+            System.err.printf("- %02d: 0x%08x %s %s/%s, %s%n", idx++, System.identityHashCode(g), (a0?"****":"____"), g.getClass().getSimpleName(), g.getName(), g);
+            if( g.isActive() ) {
+                final int idx1 = idx-1;
+                final int[] idx2 = { 0 };
+                TreeTool.forAll(g, (final Shape s) -> {
+                    final boolean a1 = s.isActive();
+                    System.err.printf("- %02d:%02d: 0x%08x %s %s/%s, %s%n", idx1, idx2[0]++, System.identityHashCode(s), (a1?"****":"____"), s.getClass().getSimpleName(), s.getName(), s);
+                    return false;
+                });
+            }
         }
     }
 

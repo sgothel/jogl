@@ -495,14 +495,11 @@ public class Group extends Shape implements Container {
      * <ul>
      *   <li>the whole group to be shown on top on (mouse over) activation of one of its elements</li>
      *   <li>this group's {@link #addActivationListener(Listener)} to handle all it's elements activation events</li>
-     *   <li>{@link #isActive()} of this group and its sub-groups to return true if one of its elements is active</li>
+     *   <li>{@link #isActive()} of this group to return true if one of its elements is active</li>
      * </ul>
      * </p>
      * <p>
-     * This method modifies all elements of this group for enabled or disabled top-level widget behavior.
-     * </p>
-     * <p>
-     * Disable this behavior via {@link #disableTopLevelWidget()}, otherwise done per-default
+     * Disable this behavior via {@link #disableTopLevelWidget()}, otherwise done
      * at {@link #clear(GL2ES2, RegionRenderer)} or {@link #destroy(GL2ES2, RegionRenderer)}.
      * </p>
      * @param scene the top-level widget holder where this {@link Group} gets registered
@@ -511,7 +508,6 @@ public class Group extends Shape implements Container {
      */
     public final Group enableTopLevelWidget(final Scene scene) {
         topLevelHolder = scene;
-        setWidgetChilds(true, forwardActivation);
         scene.addTopLevel(this);
         return this;
     }
@@ -521,28 +517,11 @@ public class Group extends Shape implements Container {
         topLevelHolder = null;
         if( null != tlh ) {
             tlh.removeTopLevel(this);
-            setWidgetChilds(false, forwardActivation);
         }
         return this;
     }
-    private final void setWidgetChilds(final boolean enable, final Listener fwdActivationListener) {
-        TreeTool.forAll(this, (final Shape s) -> {
-            if( enable ) {
-                s.addActivationListener(fwdActivationListener);
-            } else {
-                s.removeActivationListener(fwdActivationListener);
-            }
-            return false;
-        });
-    }
-
     /** Returns whether {@link #setTopLevelWidget(boolean)} is enabled or disabled. */
     public final boolean isTopLevelWidget() { return null != topLevelHolder; }
-
-    @Override
-    public boolean isActive() {
-        return super.isActive() || ( isTopLevelWidget() && TreeTool.forAll(this, (final Shape gs) -> { return gs.isActive(); } ) );
-    }
 
     /**
      * {@inheritDoc}

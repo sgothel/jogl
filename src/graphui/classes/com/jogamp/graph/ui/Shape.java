@@ -1610,14 +1610,13 @@ public abstract class Shape {
         }
     }
     /** Returns true of this shape is active */
-    public boolean isActive() { return isIO(IO_ACTIVE); }
+    public final boolean isActive() { return isIO(IO_ACTIVE); }
 
-    protected final Listener forwardActivation = new Listener() {
-        @Override
-        public void run(final Shape shape) {
-            dispatchActivationEvent(shape);
-        }
-    };
+    /* pp */ void setActiveTopLevel(final boolean v, final float zOffset) {
+        setZOffset(zOffset);
+        setIO(IO_ACTIVE, v);
+        dispatchActivationEvent(this);
+    }
 
     public final float getAdjustedZ() {
         return position.z() * getScale().z() + zOffset;
