@@ -27,6 +27,7 @@
  */
 package jogamp.graph.ui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -36,6 +37,7 @@ import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.Shape.Visitor1;
 import com.jogamp.graph.ui.Shape.Visitor2;
+import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
 
 /** Generic static {@link Shape} tree traversal tools, utilized by {@link Scene} and {@link Container} implementations. */
@@ -244,5 +246,33 @@ public class TreeTool {
             }
         });
         return res[0];
+    }
+
+    public static boolean isCovered(final List<AABBox> coverage, final AABBox box) {
+        for(final AABBox b : coverage) {
+            if( b.contains(box) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void cullShapes(final Shape[] shapesZAsc, final int shapeCount) {
+        final List<AABBox> coverage = new ArrayList<AABBox>();
+        for(int i=shapeCount-1; i>=0; --i) {
+            final Shape s = shapesZAsc[i];
+            if( coverage.size() == 0 ) {
+                coverage.add(s.getBounds());
+                s.setDiscarded(false);
+            } else {
+                final AABBox b = s.getBounds();
+                if( isCovered(coverage, b) ) {
+                    s.setDiscarded(true);
+                } else {
+                    coverage.add(b);
+                    s.setDiscarded(false);
+                }
+            }
+        }
     }
 }

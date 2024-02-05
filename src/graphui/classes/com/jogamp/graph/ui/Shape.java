@@ -270,6 +270,7 @@ public abstract class Shape {
     private static final int IO_RESIZABLE          = 1 << 5;
     private static final int IO_RESIZE_FIXED_RATIO = 1 << 6;
     private static final int IO_ACTIVE             = 1 << 7;
+    private static final int IO_DISCARDED          = 1 << 25;
     private static final int IO_DOWN               = 1 << 26;
     private static final int IO_TOGGLE             = 1 << 27;
     private static final int IO_DRAG_FIRST         = 1 << 28;
@@ -1523,12 +1524,13 @@ public abstract class Shape {
         } else {
             rotateS = "";
         }
-        final String activeS = ", active["+(isIO(IO_ACTIVE) ? "SELF," : "")+(isGroup() && isActive()?"GROUP":"")+", adjZ "+getAdjustedZ()+"]";
+        final String discS = isDiscarded()?", DISCARDED":"";
+        final String activeS = isActive()?", ACTIVE[adjZ "+getAdjustedZ()+"]":"";
         final String ps = hasPadding() ? padding.toString()+", " : "";
         final String bs = hasBorder() ? "border[l "+getBorderThickness()+", c "+getBorderColor()+"], " : "";
         final String idS = -1 != id ? ", id "+id : "";
         final String nameS = "noname" != name ? ", '"+name+"'" : "";
-        return getDirtyString()+idS+nameS+", visible "+isIO(IO_VISIBLE)+activeS+", toggle "+isIO(IO_TOGGLE)+
+        return getDirtyString()+idS+nameS+", visible "+isIO(IO_VISIBLE)+discS+activeS+", toggle "+isIO(IO_TOGGLE)+
                ", able[toggle "+isIO(IO_TOGGLEABLE)+", iactive "+isInteractive()+", resize "+isResizable()+", drag "+this.isDraggable()+
                "], pos["+position+"], "+pivotS+scaleS+rotateS+iMatS+
                 ps+bs+"box"+box;
@@ -1707,6 +1709,15 @@ public abstract class Shape {
 
     /** Returns if this shape is allowed to be activated, i.e become {@link #isActive()}. */
     public final boolean isActivable() { return isIO(IO_ACTIVABLE); }
+
+    /**
+     * Set whether this shape is discarded in last {@link #draw(GL2ES2, RegionRenderer)},
+     * i.e. culled via frustum or occlusion criteria.
+     */
+    public final Shape setDiscarded(final boolean v) { return setIO(IO_DISCARDED, v); }
+
+    /** Returns whether this shape is discarded in last {@link #draw(GL2ES2, RegionRenderer)}, i.e. culled via frustum or occlusion criteria.*/
+    public final boolean isDiscarded() { return isIO(IO_DISCARDED); }
 
     /**
      * Set whether this shape is draggable,

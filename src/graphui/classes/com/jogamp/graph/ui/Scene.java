@@ -488,6 +488,7 @@ public final class Scene implements Container, GLEventListener {
         final Shape[] shapeArray = shapes.toArray(displayShapeArray); // local-backup
         displayShapeArray = shapeArray; // keep backup
         Arrays.sort(shapeArray, 0, shapeCount, Shape.ZAscendingComparator);
+        // TreeTool.cullShapes(shapeArray, shapeCount);
 
         final List<Shape> iShapes = renderedShapes == renderedShapesB0 ? renderedShapesB1 : renderedShapesB0;
         iShapes.clear();
@@ -504,13 +505,16 @@ public final class Scene implements Container, GLEventListener {
 
         for(int i=0; i<shapeCount; i++) {
             final Shape shape = shapeArray[i];
-            if( shape.isVisible() ) {
+            if( shape.isVisible() ) { // && !shape.isDiscarded() ) {
                 pmv.pushMv();
                 shape.applyMatToMv(pmv);
 
                 if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                     shape.draw(gl, renderer);
                     iShapes.add(shape);
+                    shape.setDiscarded(false);
+                } else {
+                    shape.setDiscarded(true);
                 }
                 pmv.popMv();
             }

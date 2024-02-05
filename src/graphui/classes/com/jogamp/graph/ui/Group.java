@@ -399,6 +399,7 @@ public class Group extends Shape implements Container {
         final Shape[] shapeArray = shapes.toArray(drawShapeArray); // local-backup
         drawShapeArray = shapeArray; // keep backup
         Arrays.sort(shapeArray, 0, shapeCount, Shape.ZAscendingComparator);
+        // TreeTool.cullShapes(shapeArray, shapeCount);
 
         final List<Shape> iShapes = renderedShapes == renderedShapesB0 ? renderedShapesB1 : renderedShapesB0;
         iShapes.clear();
@@ -412,7 +413,7 @@ public class Group extends Shape implements Container {
 
             for(int i=0; i<shapeCount; i++) {
                 final Shape shape = shapeArray[i];
-                if( shape.isVisible() ) {
+                if( shape.isVisible() ) { // && !shape.isDiscarded() ) {
                     pmv.pushMv();
                     shape.applyMatToMv(pmv);
 
@@ -424,6 +425,9 @@ public class Group extends Shape implements Container {
                     {
                         shape.draw(gl, renderer);
                         iShapes.add(shape);
+                        shape.setDiscarded(false);
+                    } else {
+                        shape.setDiscarded(true);
                     }
                     pmv.popMv();
                 }
@@ -432,12 +436,15 @@ public class Group extends Shape implements Container {
         } else {
             for(int i=0; i<shapeCount; i++) {
                 final Shape shape = shapeArray[i];
-                if( shape.isVisible() ) {
+                if( shape.isVisible() ) { // && !shape.isDiscarded() ) {
                     pmv.pushMv();
                     shape.applyMatToMv(pmv);
                     if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
                         shape.draw(gl, renderer);
                         iShapes.add(shape);
+                        shape.setDiscarded(false);
+                    } else {
+                        shape.setDiscarded(true);
                     }
                     pmv.popMv();
                 }
