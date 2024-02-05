@@ -571,7 +571,7 @@ public class MediaPlayer extends Widget {
                 ctrlGroup.addShape(cs);
             }
         }
-        this.setWidgetMode(true);
+        this.enableTopLevelWidget(scene);
 
         this.addActivationListener( (final Shape s) -> {
             if( this.isActive() ) {

@@ -91,7 +91,7 @@ public class Group extends Shape implements Container {
     private Rectangle border = null;
 
     private boolean relayoutOnDirtyShapes = true;
-    private boolean widgetMode = false;
+    private Scene topLevelHolder = null;
     private boolean clipOnBounds = false;
     private Frustum clipFrustum = null;
 
@@ -305,8 +305,8 @@ public class Group extends Shape implements Container {
 
     @Override
     protected void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
+        disableTopLevelWidget();
         for(final Shape s : shapes) {
-            // s.clearImpl0(gl, renderer);
             s.clear(gl, renderer);
         }
         shapes.clear();
@@ -317,6 +317,7 @@ public class Group extends Shape implements Container {
 
     @Override
     protected void destroyImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
+        disableTopLevelWidget();
         for(final Shape s : shapes) {
             // s.destroyImpl0(gl, renderer);
             s.destroy(gl, renderer);
@@ -488,9 +489,9 @@ public class Group extends Shape implements Container {
     public boolean getRelayoutOnDirtyShapes() { return relayoutOnDirtyShapes; }
 
     /**
-     * Toggles widget behavior for this group, default is disabled.
+     * Enables top-level widget behavior for this group, default is disabled.
      * <p>
-     * Enabled widget behavior for a group causes
+     * Enabled top-level widget behavior for a group causes
      * <ul>
      *   <li>the whole group to be shown on top on (mouse over) activation of one of its elements</li>
      *   <li>this group's {@link #addActivationListener(Listener)} to handle all it's elements activation events</li>
@@ -498,52 +499,49 @@ public class Group extends Shape implements Container {
      * </ul>
      * </p>
      * <p>
-     * This method modifies all elements of this group for enabled or disabled widget behavior.
+     * This method modifies all elements of this group for enabled or disabled top-level widget behavior.
      * </p>
-     * @param v enable or disable
+     * <p>
+     * Disable this behavior via {@link #disableTopLevelWidget()}, otherwise done per-default
+     * at {@link #clear(GL2ES2, RegionRenderer)} or {@link #destroy(GL2ES2, RegionRenderer)}.
+     * </p>
+     * @param scene the top-level widget holder where this {@link Group} gets registered
      * @return this group for chaining
+     * @see #disableTopLevelWidget()
      */
-    public final Group setWidgetMode(final boolean v) {
-        widgetMode = v;
-        if( v ) {
-            enableUniActivationImpl(true, forwardActivation);
-        } else {
-            enableUniActivationImpl(false, null);
+    public final Group enableTopLevelWidget(final Scene scene) {
+        topLevelHolder = scene;
+        setWidgetChilds(true, forwardActivation);
+        scene.addTopLevel(this);
+        return this;
+    }
+    /** Disables top-level widget behavior as potentially set via {@link #enableTopLevelWidget(Scene)}. NOP if not enabled. */
+    public final Group disableTopLevelWidget() {
+        final Scene tlh = topLevelHolder;
+        topLevelHolder = null;
+        if( null != tlh ) {
+            tlh.removeTopLevel(this);
+            setWidgetChilds(false, forwardActivation);
         }
         return this;
     }
-    protected final void enableUniActivationImpl(final boolean v, final Listener activationListener) {
-        for(final Shape s : shapes ) {
-            if( s.isGroup() ) {
-                // ((Group)s).enableUniActivationImpl(v, activationListener);
-                ((Group)s).setWidgetMode(v);
+    private final void setWidgetChilds(final boolean enable, final Listener fwdActivationListener) {
+        TreeTool.forAll(this, (final Shape s) -> {
+            if( enable ) {
+                s.addActivationListener(fwdActivationListener);
+            } else {
+                s.removeActivationListener(fwdActivationListener);
             }
-            s.addActivationListener(activationListener);
-        }
+            return false;
+        });
     }
 
-    /** Returns whether {@link #setWidgetMode(boolean)} is enabled or disabled. */
-    public final boolean getWidgetMode() { return widgetMode; }
+    /** Returns whether {@link #setTopLevelWidget(boolean)} is enabled or disabled. */
+    public final boolean isTopLevelWidget() { return null != topLevelHolder; }
 
     @Override
     public boolean isActive() {
-        return super.isActive() || ( widgetMode && TreeTool.forAll(this, (final Shape gs) -> { return gs.isActive(); } ) );
-    }
-
-    @Override
-    public float getAdjustedZ() {
-        final float[] v = { getAdjustedZImpl() };
-        if( widgetMode && !super.isActive() ) {
-            TreeTool.forAll(this, (final Shape gs) -> {
-                if( gs.isActive() ) {
-                    v[0] = gs.getAdjustedZImpl();
-                    return true;
-                } else {
-                    return false;
-                }
-            } );
-        }
-        return v[0];
+        return super.isActive() || ( isTopLevelWidget() && TreeTool.forAll(this, (final Shape gs) -> { return gs.isActive(); } ) );
     }
 
     /**

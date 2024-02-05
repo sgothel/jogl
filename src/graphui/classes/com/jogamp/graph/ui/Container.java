@@ -28,16 +28,13 @@
 package com.jogamp.graph.ui;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
-import com.jogamp.graph.ui.Shape.Visitor2;
 import com.jogamp.math.Matrix4f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.ui.Shape.Visitor1;
 
 /**
  * Container interface of UI {@link Shape}s

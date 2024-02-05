@@ -36,7 +36,6 @@ import com.jogamp.graph.ui.Scene;
 import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.Shape.Visitor1;
 import com.jogamp.graph.ui.Shape.Visitor2;
-import com.jogamp.math.Matrix4f;
 import com.jogamp.math.util.PMVMatrix4f;
 
 /** Generic static {@link Shape} tree traversal tools, utilized by {@link Scene} and {@link Container} implementations. */

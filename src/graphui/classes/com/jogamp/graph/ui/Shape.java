@@ -1523,7 +1523,7 @@ public abstract class Shape {
         } else {
             rotateS = "";
         }
-        final String activeS = ", active["+(isIO(IO_ACTIVE) ? "SELF," : "")+(isGroup() && isActive()?"GROUP":"")+"]";
+        final String activeS = ", active["+(isIO(IO_ACTIVE) ? "SELF," : "")+(isGroup() && isActive()?"GROUP":"")+", adjZ "+getAdjustedZ()+"]";
         final String ps = hasPadding() ? padding.toString()+", " : "";
         final String bs = hasBorder() ? "border[l "+getBorderThickness()+", c "+getBorderColor()+"], " : "";
         final String idS = -1 != id ? ", id "+id : "";
@@ -1591,7 +1591,7 @@ public abstract class Shape {
 
     protected final boolean setActive(final boolean v, final float zOffset) {
         if( isActivable() ) {
-            this.zOffset = zOffset;
+            setZOffset(zOffset);
             setIO(IO_ACTIVE, v);
             if( !v ) {
                 releaseInteraction();
@@ -1619,12 +1619,10 @@ public abstract class Shape {
         }
     };
 
-    public float getAdjustedZ() {
-        return getAdjustedZImpl();
-    }
-    protected final float getAdjustedZImpl() {
+    public final float getAdjustedZ() {
         return position.z() * getScale().z() + zOffset;
     }
+    /* pp */ final void setZOffset(final float v) { zOffset = v; }
 
     /**
      * Set's a new {@link Tooltip} for this shape.

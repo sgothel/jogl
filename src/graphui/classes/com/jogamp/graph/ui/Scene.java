@@ -53,7 +53,6 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.graph.ui.Shape.Visitor2;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Matrix4f;
 import com.jogamp.math.Ray;
@@ -62,7 +61,6 @@ import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
-import com.jogamp.graph.ui.Shape.Visitor1;
 import com.jogamp.newt.event.GestureHandler;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
@@ -114,6 +112,8 @@ public final class Scene implements Container, GLEventListener {
     public static final float DEFAULT_Z16_EPSILON = FloatUtil.getZBufferEpsilon(16 /* zBits */, DEFAULT_SCENE_DIST, DEFAULT_ZNEAR);
     /** Default Z precision scale, i.e. multiple of {@link #DEFAULT_Z16_EPSILON} for {@link #setActiveShapeZOffsetScale(float)}. Value is {@value}. */
     public static final float DEFAULT_ACTIVE_ZOFFSET_SCALE = 10f;
+    /** Default Z precision scale, i.e. multiple of {@link #DEFAULT_Z16_EPSILON} for {@link #setActiveShapeZOffsetScale(float)}. Value is {@value}. */
+    public static final float DEFAULT_ACTIVE_TOPLEVEL_ZOFFSET_SCALE = 100f;
     /** Default Z precision on 16-bit depth buffer using {@code -1} z-position and {@link #DEFAULT_ZNEAR}. Value is {@code 1.5256461E-4}. */
     // public static final float DIST1_Z16_EPSILON = FloatUtil.getZBufferEpsilon(16 /* zBits */, -1, DEFAULT_ZNEAR);
 
@@ -128,6 +128,7 @@ public final class Scene implements Container, GLEventListener {
     }
 
     private static final boolean DEBUG = false;
+    private static final boolean DEBUG_PICKING = DEBUG;
 
     private final List<Shape> shapes = new CopyOnWriteArrayList<Shape>();
     private Shape[] displayShapeArray = new Shape[0]; // reduce memory re-alloc @ display
@@ -136,6 +137,7 @@ public final class Scene implements Container, GLEventListener {
     private volatile List<Shape> renderedShapes = renderedShapesB1;
     private final AtomicReference<Tooltip> toolTipActive = new AtomicReference<Tooltip>();
     private final AtomicReference<Shape> toolTipHUD = new AtomicReference<Shape>();
+    private final List<Group> topLevel = new ArrayList<Group>();
 
     private boolean doFrustumCulling = false;
 
@@ -148,6 +150,7 @@ public final class Scene implements Container, GLEventListener {
     private final AABBox planeBox = new AABBox(0f, 0f, 0f, 0f, 0f, 0f);
 
     private volatile Shape activeShape = null;
+    private volatile Group activeTopLevel = null;
 
     private SBCMouseListener sbcMouseListener = null;
     private SBCGestureListener sbcGestureListener = null;
@@ -605,6 +608,7 @@ public final class Scene implements Container, GLEventListener {
             }
         }
         shapes.clear();
+        topLevel.clear();
         displayShapeArray = new Shape[0];
         renderedShapesB0.clear();
         renderedShapesB1.clear();
@@ -981,26 +985,82 @@ public final class Scene implements Container, GLEventListener {
 
     public void releaseActiveShape() {
         if( null != activeShape ) {
+            if( DEBUG_PICKING ) {
+                System.err.println("ACTIVE-RELEASE: "+activeShape);
+            }
             activeShape.setActive(false, 0);
             activeShape = null;
+
+            final Group lastTL = activeTopLevel;
+            activeTopLevel = null;
+            if( null != lastTL ) {
+                lastTL.setZOffset(0);
+            }
         }
     }
     private void setActiveShape(final Shape shape) {
-        if( activeShape != shape && null != shape &&
-            shape.setActive(true, activeZOffsetScale * getZEpsilon(16)) )
-        {
-            if( null != activeShape ) {
-                activeShape.setActive(false, 0);
+        final Shape lastShape = activeShape;
+        if( lastShape != shape && null != shape ) {
+            final float zEpsilon = getZEpsilon(16);
+            final boolean isTopLevel = topLevel.contains(shape);
+            final float newZOffset = ( isTopLevel ? activeZOffsetScale : activeTopLevelZOffsetScale ) * zEpsilon;
+            if( shape.setActive(true, newZOffset) ) {
+                final Group lastTL = activeTopLevel;
+                final Group thisTL = isTopLevel ? (Group)shape : getTopLevelParent(shape);
+                int mode = 0;
+                if( null != lastShape && lastTL != lastShape ) {
+                    lastShape.setActive(false, 0);
+                    mode += 10;
+                }
+                if( lastTL != thisTL ) {
+                    mode += 100;
+                    if( null!=lastTL) {
+                        lastTL.setZOffset(0);
+                        mode += 1000;
+                    }
+                    if( null!=thisTL && !isTopLevel ) {
+                        thisTL.setZOffset(activeTopLevelZOffsetScale * zEpsilon);
+                        mode += 2000;
+                    }
+                    activeTopLevel = thisTL;
+                }
+
+                if( DEBUG_PICKING ) {
+                    System.err.println("ACTIVE-SHAPE: NEW mode "+mode+", isTopLevel "+isTopLevel+", s 0x"+Integer.toHexString(System.identityHashCode(shape))+", "+shape);
+                    System.err.println("ACTIVE-SHAPE: NEW g 0x"+Integer.toHexString(System.identityHashCode(thisTL))+", "+thisTL);
+                    System.err.println("ACTIVE-SHAPE: PRE s 0x"+Integer.toHexString(System.identityHashCode(lastShape))+", "+lastShape);
+                    System.err.println("ACTIVE-SHAPE: PRE g 0x"+Integer.toHexString(System.identityHashCode(lastTL))+", "+lastTL);
+                    // dumpTopLevelParent();
+                }
+                mode = mode + 0; // (void)mode ;-)
+                activeShape = shape;
             }
-            activeShape = shape;
         }
     }
     private float activeZOffsetScale = DEFAULT_ACTIVE_ZOFFSET_SCALE;
+    private final float activeTopLevelZOffsetScale = DEFAULT_ACTIVE_TOPLEVEL_ZOFFSET_SCALE;
 
     /** Returns the active {@link Shape} Z-Offset scale, defaults to {@code 10.0}. */
     public float getActiveShapeZOffsetScale() { return activeZOffsetScale; }
     /** Sets the active {@link Shape} Z-Offset scale, defaults to {@code 10.0}. */
     public void setActiveShapeZOffsetScale(final float v) { activeZOffsetScale = v; }
+
+    protected void addTopLevel(final Group g) { topLevel.add(g); }
+    protected void removeTopLevel(final Group g) { topLevel.add(g); }
+    private Group getTopLevelParent(final Shape s) {
+        for(final Group g : topLevel) {
+            if(g.contains(s)) {
+                return g;
+            }
+        }
+        return null;
+    }
+    @SuppressWarnings("unused")
+    private void dumpTopLevelParent() {
+        for(final Group g : topLevel) {
+            System.err.printf("TL: %s/%s, %s%n", g.getClass().getSimpleName(), g.getName(), g);
+        }
+    }
 
     private final class SBCGestureListener implements GestureHandler.GestureListener {
         @Override
