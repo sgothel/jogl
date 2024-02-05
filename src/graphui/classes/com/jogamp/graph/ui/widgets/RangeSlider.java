@@ -96,7 +96,7 @@ public final class RangeSlider extends Widget {
     private float val=0, val_pct=0;
     private boolean inverted=false;
     private float unitSize = 1;
-    private static final Vec4f activeColMod = new Vec4f(0.1f, 0.1f, 0.1f, 1f);
+    private final Vec4f activeColMod = new Vec4f(0.1f, 0.1f, 0.1f, 1f);
 
     /**
      * Constructs a {@link RangeSlider}, i.e. its shapes and controls.
