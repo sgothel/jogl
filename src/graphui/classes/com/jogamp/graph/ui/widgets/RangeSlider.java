@@ -173,6 +173,7 @@ public final class RangeSlider extends Widget {
         if( DEBUG ) { System.err.println("RangeSlider.ctor3 "+getDescription()); }
         setColor(0.80f, 0.80f, 0.80f, 0.7f);
 
+        setName("RangeSlider.container");
         bar.setToggleable(false).setInteractive(true).setDragAndResizable(false).setName("RangeSlider.bar");
         knob.setToggleable(false).setInteractive(true).setResizable(false).setName("RangeSlider.knob");
         barAndKnob.addShape( bar );

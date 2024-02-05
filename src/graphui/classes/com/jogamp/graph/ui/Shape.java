@@ -1920,24 +1920,36 @@ public abstract class Shape {
         final boolean resizableOrDraggable = isResizable() || isDraggable();
         final Shape.EventInfo shapeEvent = new EventInfo(glWinX, glWinY, this, objPos);
 
+        boolean ires = false;
         final short eventType = e.getEventType();
         if( 1 == e.getPointerCount() ) {
             switch( eventType ) {
-                case MouseEvent.EVENT_MOUSE_CLICKED:
-                    toggle();
-                    if( null != onClickedListener ) {
-                        onClickedListener.run(this);
+                case MouseEvent.EVENT_MOUSE_MOVED:
+                    if( null != onHoverListener ) {
+                        onHoverListener.run(this, objPos, e);
                     }
+                    ires = true;
                     break;
                 case MouseEvent.EVENT_MOUSE_PRESSED:
                     if( resizableOrDraggable ) {
                         setIO(IO_DRAG_FIRST, true);
+                        ires = true;
                     }
                     setPressed(true);
                     break;
                 case MouseEvent.EVENT_MOUSE_RELEASED:
-                    // Release active shape: last pointer has been lifted!
+                    // Release interactions: last pointer has been lifted!
                     releaseInteraction();
+                    ires = true;
+                    break;
+                case MouseEvent.EVENT_MOUSE_CLICKED:
+                    if( isToggleable() ) {
+                        toggle();
+                    }
+                    if( null != onClickedListener ) {
+                        onClickedListener.run(this, objPos, e);
+                    }
+                    ires = true;
                     break;
             }
         }
@@ -2045,7 +2057,7 @@ public abstract class Shape {
         } // resizableOrDraggable && EVENT_MOUSE_DRAGGED
         e.setAttachment(shapeEvent);
 
-        return dispatchMouseEvent(e);
+        return dispatchMouseEvent(e) || ires;
     }
 
     /**
