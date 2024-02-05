@@ -141,57 +141,57 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private volatile float playSpeed = 1.0f;
     private float audioVolume = 1.0f;
 
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private String title = "undef";
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int[] v_streams = new int[0];
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private String[] v_langs = new String[0];
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int vid = GLMediaPlayer.STREAM_ID_NONE;
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int[] a_streams = new int[0];
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private String[] a_langs = new String[0];
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int aid = GLMediaPlayer.STREAM_ID_NONE;
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int[] s_streams = new int[0];
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private String[] s_langs = new String[0];
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int sid = GLMediaPlayer.STREAM_ID_NONE;
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int width = 0;
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int height = 0;
-    /** Video avg. fps. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Video avg. fps. Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private float fps = 0;
-    /** Video avg. frame duration in ms. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Video avg. frame duration in ms. Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private float frame_duration = 0f;
-    /** Stream bps. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Stream bps. Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int bps_stream = 0;
-    /** Video bps. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Video bps. Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int bps_video = 0;
-    /** Audio bps. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Audio bps. Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int bps_audio = 0;
-    /** In frames. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** In frames. Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int videoFrames = 0;
-    /** In frames. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** In frames. Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int audioFrames = 0;
-    /** In ms. Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** In ms. Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private int duration = 0;
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private CodecID acodecID = CodecID.NONE;
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private CodecID vcodecID = CodecID.NONE;
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private CodecID scodecID = CodecID.NONE;
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private String acodec = unknown;
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private String vcodec = unknown;
-    /** Shall be set by the {@link #initStreamImpl(int, int, int)} method implementation. */
+    /** Shall be set by the {@link #initStreamImpl(int, String, int, String, int)} method implementation. */
     private String scodec = unknown;
 
     private volatile int decodedFrameCount = 0;
@@ -210,7 +210,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     private static final int MAX_FRAMELESS_MS_UNTIL_EOS = 5000;
     private static final int MAX_FRAMELESS_UNTIL_EOS_DEFAULT =  MAX_FRAMELESS_MS_UNTIL_EOS / 30; // default value assuming 30fps
 
-    /** See {@link #getAudioSink()}. Set by implementation if used from within {@link #initStreamImpl(int, int, int)}! */
+    /** See {@link #getAudioSink()}. Set by implementation if used from within {@link #initStreamImpl(int, String, int, String, int)}! */
     protected AudioSink audioSink = null;
     protected boolean audioSinkPlaySpeedSet = false;
 
@@ -705,7 +705,13 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
-    public final void playStream(final Uri streamLoc, final int vid, final int aid, final int sid, final int reqTextureCount) throws IllegalStateException, IllegalArgumentException {
+    public void playStream(final Uri streamLoc, final int vid, final int aid, final int sid, final int textureCount) throws IllegalStateException, IllegalArgumentException {
+        playStream(streamLoc, vid, null, aid, null, sid, textureCount);
+    }
+    @Override
+    public void playStream(final Uri streamLoc, final int vid,
+                           final String alang, final int aid, final String slang, final int sid, final int reqTextureCount) throws IllegalStateException, IllegalArgumentException
+    {
         synchronized( stateLock ) {
             if(State.Uninitialized != state) {
                 throw new IllegalStateException("Instance not in state unintialized: "+this);
@@ -753,7 +759,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 public void run() {
                     try {
                         // StreamWorker may be used, see API-doc of StreamWorker
-                        initStreamImpl(vid, aid, sid);
+                        initStreamImpl(vid, alang, aid, slang, sid);
                     } catch (final Throwable t) {
                         streamErr = new StreamException(t.getClass().getSimpleName()+" while initializing: "+GLMediaPlayerImpl.this.toString(), t);
                         changeState(new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.Error), GLMediaPlayer.State.Uninitialized);
@@ -764,6 +770,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     /**
      * Implementation shall set the following set of data here
+     * @param vid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
+     * @param alang desired audio language, pass {@code null} to use {@code aid}
+     * @param aid fallback audio stream id in case {@code alang} is {@code null}, see <a href="#streamIDs">audio and video Stream IDs</a>
+     * @param slang desired subtitle language, pass {@code null} to use {@code sid}
+     * @param sid fallback subtitle stream id in case {@code alang} is {@code null}, see <a href="#streamIDs">audio and video Stream IDs</a>
      * @see #vid
      * @see #aid
      * @see #sid
@@ -776,7 +787,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * @see #acodec
      * @see #vcodec
     */
-    protected abstract void initStreamImpl(int vid, int aid, int sid) throws Exception;
+    protected abstract void initStreamImpl(int vid, String alang, int aid, String slang, int sid) throws Exception;
 
     @Override
     public void switchStream(final int vid, final int aid, final int sid) throws IllegalStateException, IllegalArgumentException {
@@ -1487,7 +1498,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * </p>
      * <p>
      * Implementations using an {@link AudioSink} shall write it's instance to {@link #audioSink}
-     * from within their {@link #initStreamImpl(int, int, int)} implementation.
+     * from within their {@link #initStreamImpl(int, String, int, String, int)} implementation.
      * </p>
      */
     @Override
@@ -1550,7 +1561,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     /**
-     * After {@link GLMediaPlayerImpl#initStreamImpl(int, int, int) initStreamImpl(..)} is completed via
+     * After {@link GLMediaPlayerImpl#initStreamImpl(int, String, int, String, int) initStreamImpl(..)} is completed via
      * {@link GLMediaPlayerImpl#updateAttributes(int, int, int, int, int, int, int, int, int, float, int, int, int, String, String) updateAttributes(..)},
      * the latter decides whether StreamWorker is being used.
      */
@@ -1873,7 +1884,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     /**
-     * Called initially by {@link #initStreamImpl(int, int, int)}, which
+     * Called initially by {@link #initStreamImpl(int, String, int, String, int)}, which
      * is called off-thread by {@link #playStream(Uri, int, int, int, int)}.
      * <p>
      * The latter catches an occurring exception and set the state delivers the error events.

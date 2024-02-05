@@ -93,6 +93,8 @@ public class UIMediaGrid01 {
     private static final List<String> MEDIA_SUFFIXES = Arrays.asList("mp4", "mkv", "m2v", "avi");
     private static int aid = GLMediaPlayer.STREAM_ID_AUTO;
     private static int sid = GLMediaPlayer.STREAM_ID_NONE;
+    private static String alang = null;
+    private static String slang = null;
     private static int start_pos = 0;
     private static float videoAspectRatio = 16f/9f;
     private static boolean letterBox = true;
@@ -121,6 +123,12 @@ public class UIMediaGrid01 {
                 } else if(args[idx[0]].equals("-sid")) {
                     idx[0]++;
                     sid = MiscUtils.atoi(args[idx[0]], sid);
+                } else if(args[idx[0]].equals("-alang")) {
+                    idx[0]++;
+                    alang = args[idx[0]];
+                } else if(args[idx[0]].equals("-slang")) {
+                    idx[0]++;
+                    slang = args[idx[0]];
                 } else if(args[idx[0]].equals("-start")) {
                     idx[0]++;
                     start_pos = MiscUtils.atoi(args[idx[0]], start_pos);
@@ -150,7 +158,7 @@ public class UIMediaGrid01 {
         System.err.println(options);
         System.err.println("mediaDir "+mediaDir);
         System.err.println("maxMediaFiles "+maxMediaFiles);
-        System.err.println("aid "+aid);
+        System.err.println("aid "+aid+", alang "+alang+"; sid "+sid+", slang "+slang);
         System.err.println("texCount "+texCount);
         System.err.println("boxRatio "+videoAspectRatio);
         System.err.println("letterBox "+letterBox);
@@ -400,7 +408,7 @@ public class UIMediaGrid01 {
             }
             final MediaPlayer graphMPlayer = new MediaPlayer(options.renderModes, scene, glMPlayer, medium, defRatio, letterBox, zoomSize, customCtrls);
             grid.addShape( graphMPlayer );
-            glMPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, aid, sid, texCount);
+            glMPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, alang, aid, slang, sid, texCount);
             if( start_pos > 0 ) {
                 glMPlayer.seek(start_pos * 1000);
             }

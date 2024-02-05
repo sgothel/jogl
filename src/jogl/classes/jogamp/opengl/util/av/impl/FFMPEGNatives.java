@@ -54,20 +54,21 @@ import jogamp.opengl.util.av.GLMediaPlayerImpl;
      *
      * @param moviePtr
      * @param url
-     * @param vid
+     * @param vid video stream id
      * @param sizes requested video size as string, i.e. 'hd720'. May be null to favor vWidth and vHeight.
      * @param vWidth requested video width (for camera mode)
      * @param vHeight requested video width (for camera mode)
      * @param vRate requested video framerate (for camera mode)
-     * @param aid
+     * @param alang desired audio language, pass {@code null} to use {@code aid}
+     * @param aid fallback audio stream id in case {@code alang} is {@code null}
      * @param aPrefSampleRate
+     * @param slang desired subtitle language, pass {@code null} to use {@code sid}
+     * @param sid fallback subtitle stream id in case {@code alang} is {@code null}
      * @param aPrefChannelCount
-     * @param sid subtitle id
      */
     abstract void setStream0(long moviePtr, String url, boolean isCameraInput,
                              int vid, String sizes, int vWidth, int vHeight, int vRate,
-                             int aid, int aMaxChannelCount, int aPrefSampleRate,
-                             int sid);
+                             String alang, int aid, int aMaxChannelCount, int aPrefSampleRate, String slang, int sid);
 
     abstract void setGLFuncs0(long moviePtr, long procAddrGLTexImage2D, long procAddrGLTexSubImage2D, long procAddrGLGetError, long procAddrGLFlush,
                               long procAddrGLFinish, long procAddrGLEnable, long procAddrGLBindTexture, boolean hasNPOT);

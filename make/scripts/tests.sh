@@ -378,7 +378,6 @@ function jrun() {
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup -Djogamp.debug.JNILibLoader -Djogamp.debug.AudioSink -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.AudioSink"
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.AudioSink -Djoal.openal.lib=system"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.AVSync -Djogl.debug.GLMediaPlayer.Native -Djogamp.debug.AudioSink"

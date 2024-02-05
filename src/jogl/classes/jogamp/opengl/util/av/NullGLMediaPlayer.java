@@ -145,7 +145,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final void initStreamImpl(final int vid, final int aid, final int sid) throws IOException {
+    protected final void initStreamImpl(final int vid, String alang, final int aid, String slang, final int sid) throws IOException {
         texData = createTestTextureData();
         final float _fps = 24f;
         final int _duration = 10*60*1000; // msec

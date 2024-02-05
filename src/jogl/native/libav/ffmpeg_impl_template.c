@@ -934,8 +934,8 @@ static int createOpenedAVCodecContext(JNIEnv* env, FFMPEGToolBasicAV_t *pAV, int
 JNIEXPORT void JNICALL FF_FUNC(setStream0)
   (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jboolean jIsCameraInput, 
    jint vid, jstring jSizeS, jint vWidth, jint vHeight, jint vRate,
-   jint aid, jint aMaxChannelCount, jint aPrefSampleRate,
-   jint sid)
+   jstring jALang, jint aid, jint aMaxChannelCount, jint aPrefSampleRate,
+   jstring jSLang, jint sid)
 {
     char cameraName[256];
     int res, i;
@@ -1065,10 +1065,6 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         pAV->bps_stream = pAV->pFormatCtx->bit_rate;
     }
 
-    if(pAV->verbose) {
-        fprintf(stderr, "Streams: %d, req vid %d aid %d\n", pAV->pFormatCtx->nb_streams, vid, aid);
-    }
-
     // Find the first audio and video stream, or the one matching vid
     // FIXME: Libav Binary compatibility! JAU01
     pAV->a_stream_count=0;
@@ -1079,53 +1075,102 @@ JNIEXPORT void JNICALL FF_FUNC(setStream0)
         pAV->v_streams[i]=AV_STREAM_ID_NONE;
         pAV->s_streams[i]=AV_STREAM_ID_NONE;
     }
-    for(i=0; i<pAV->pFormatCtx->nb_streams; i++) {
-        AVStream *st = pAV->pFormatCtx->streams[i];
+    {
+        const char *alang = NULL != jALang ? (*env)->GetStringUTFChars(env, jALang, &iscopy) : NULL;
+        const char *slang = NULL != jSLang ? (*env)->GetStringUTFChars(env, jSLang, &iscopy) : NULL;
+        const int hasALang = NULL != alang;
+        const int hasSLang = NULL != slang;
         if(pAV->verbose) {
+            fprintf(stderr, "Streams: %d, req vid %d, aid %d (%s), sid %d (%s)\n", 
+                pAV->pFormatCtx->nb_streams, vid, aid, hasALang?alang:"null", sid, hasSLang?slang:"null");
+        }
+        int32_t s_aid1 = AV_STREAM_ID_AUTO;
+        int32_t s_aidL = AV_STREAM_ID_AUTO;
+        AVStream* pAStream1 = NULL;
+        AVStream* pAStreamL = NULL;
+        int32_t s_sid1 = AV_STREAM_ID_AUTO;
+        int32_t s_sidL = AV_STREAM_ID_AUTO;
+        AVStream* pSStream1 = NULL;
+        AVStream* pSStreamL = NULL;
+
+        for(i=0; i<pAV->pFormatCtx->nb_streams; i++) {
+            AVStream *st = pAV->pFormatCtx->streams[i];
             const char* lang0 = meta_get_language(st->metadata);
             const char* lang1 = NULL != lang0 ? lang0 : "n/a";
-            fprintf(stderr, "Stream: %d: is-video %d, is-audio %d, is-sub %d, lang %s\n", i, 
-                AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type, AVMEDIA_TYPE_AUDIO == st->codecpar->codec_type, 
-                AVMEDIA_TYPE_SUBTITLE == st->codecpar->codec_type, lang1);
+            if(pAV->verbose) {
+                fprintf(stderr, "Stream: %d: is-video %d, is-audio %d, is-sub %d, lang %s\n", i, 
+                    AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type, AVMEDIA_TYPE_AUDIO == st->codecpar->codec_type, 
+                    AVMEDIA_TYPE_SUBTITLE == st->codecpar->codec_type, lang1);
+            }
+            if(AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type) {
+                if( pAV->v_stream_count < MAX_STREAM_COUNT-1 ) {
+                    pAV->v_streams[pAV->v_stream_count++] = i;
+                    if( AV_STREAM_ID_AUTO==pAV->vid && ( AV_STREAM_ID_AUTO==vid || vid == i ) ) {
+                        pAV->pVStream = st;
+                        pAV->vid=i;
+                    }
+                }
+            } else if(AVMEDIA_TYPE_AUDIO == st->codecpar->codec_type) {
+                if( pAV->a_stream_count < MAX_STREAM_COUNT-1 ) {
+                    pAV->a_streams[pAV->a_stream_count++] = i;
+                    if( AV_STREAM_ID_AUTO==s_aidL && AV_STREAM_ID_AUTO==aid && NULL != lang0 && hasALang && 0==strcmp(alang, lang0) ) {
+                        pAStreamL = st;
+                        s_aidL = i;
+                    } 
+                    if( AV_STREAM_ID_AUTO==s_aid1 && ( AV_STREAM_ID_AUTO==aid || aid == i ) ) {
+                        pAStream1 = st;
+                        s_aid1 = i;
+                    }
+                }
+            } else if(AVMEDIA_TYPE_SUBTITLE == st->codecpar->codec_type) {
+                if( pAV->s_stream_count < MAX_STREAM_COUNT-1 ) {
+                    pAV->s_streams[pAV->s_stream_count++] = i;
+                    if( AV_STREAM_ID_AUTO==s_sidL && AV_STREAM_ID_AUTO==sid && NULL != lang0 && hasSLang && 0==strcmp(slang, lang0) ) {
+                        pSStreamL = st;
+                        s_sidL = i;
+                    } 
+                    if( AV_STREAM_ID_AUTO==s_sid1 && ( AV_STREAM_ID_AUTO==sid || sid == i ) ) {
+                        pSStream1 = st;
+                        s_sid1 = i;
+                    }
+                }
+            }
         }
-        if(AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type) {
-            if( pAV->v_stream_count < MAX_STREAM_COUNT-1 ) {
-                pAV->v_streams[pAV->v_stream_count++] = i;
-            }
-            if(AV_STREAM_ID_AUTO==pAV->vid && (AV_STREAM_ID_AUTO==vid || vid == i) ) {
-                pAV->pVStream = st;
-                pAV->vid=i;
-            }
-        } else if(AVMEDIA_TYPE_AUDIO == st->codecpar->codec_type) {
-            if( pAV->a_stream_count < MAX_STREAM_COUNT-1 ) {
-                pAV->a_streams[pAV->a_stream_count++] = i;
-            }
-            if(AV_STREAM_ID_AUTO==pAV->aid && (AV_STREAM_ID_AUTO==aid || aid == i) ) {
-                pAV->pAStream = st;
-                pAV->aid=i;
-            }
-        } else if(AVMEDIA_TYPE_SUBTITLE == st->codecpar->codec_type) {
-            if( pAV->s_stream_count < MAX_STREAM_COUNT-1 ) {
-                pAV->s_streams[pAV->s_stream_count++] = i;
-            }
-            if(AV_STREAM_ID_AUTO==pAV->sid && (AV_STREAM_ID_AUTO==sid || sid == i) ) {
-                pAV->pSStream = st;
-                pAV->sid=i;
+        if( AV_STREAM_ID_AUTO == pAV->vid ) {
+            pAV->vid = AV_STREAM_ID_NONE;
+        }
+        if( AV_STREAM_ID_AUTO == pAV->aid ) {
+            if( AV_STREAM_ID_AUTO != s_aidL ) {
+                pAV->pAStream = pAStreamL;
+                pAV->aid = s_aidL;
+            } else if( AV_STREAM_ID_AUTO != s_aid1 ) {
+                pAV->pAStream = pAStream1;
+                pAV->aid = s_aid1;
+            } else {
+                pAV->aid = AV_STREAM_ID_NONE;
             }
         }
-    }
-    if( AV_STREAM_ID_AUTO == pAV->aid ) {
-        pAV->aid = AV_STREAM_ID_NONE;
-    }
-    if( AV_STREAM_ID_AUTO == pAV->vid ) {
-        pAV->vid = AV_STREAM_ID_NONE;
-    }
-    if( AV_STREAM_ID_AUTO == pAV->sid ) {
-        pAV->sid = AV_STREAM_ID_NONE;
-    }
+        if( AV_STREAM_ID_AUTO == pAV->sid ) {
+            if( AV_STREAM_ID_AUTO != s_sidL ) {
+                pAV->pSStream = pSStreamL;
+                pAV->sid = s_sidL;
+            } else if( AV_STREAM_ID_AUTO != s_sid1 ) {
+                pAV->pSStream = pSStream1;
+                pAV->sid = s_sid1;
+            } else {
+                pAV->sid = AV_STREAM_ID_NONE;
+            }
+        }
 
-    if( pAV->verbose ) {
-        fprintf(stderr, "Found vid %d, aid %d, sid %d\n", pAV->vid, pAV->aid, pAV->sid);
+        if( pAV->verbose ) {
+            fprintf(stderr, "Found vid %d, aid %d, sid %d\n", pAV->vid, pAV->aid, pAV->sid);
+        }
+        if( hasALang ) {
+            (*env)->ReleaseStringUTFChars(env, jALang, (const char *)alang);
+        }
+        if( hasSLang ) {
+            (*env)->ReleaseStringUTFChars(env, jSLang, (const char *)slang);
+        }
     }
 
     if(0<=pAV->aid) {

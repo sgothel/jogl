@@ -52,6 +52,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * </p>
  * <p>
  * Audio and video streams can be selected or muted via {@link #playStream(Uri, int, int, int, int)}
+ * or {@link #playStream(Uri, int, String, int, String, int, int)}
  * using the appropriate <a href="#streamIDs">stream id</a>'s.
  * </p>
  * <p>
@@ -558,9 +559,31 @@ public interface GLMediaPlayer extends TextureSequence {
      *        Value is ignored if video is muted.
      * @throws IllegalStateException if not invoked in {@link State#Uninitialized}
      * @throws IllegalArgumentException if arguments are invalid
+     * @see #playStream(Uri, int, String, int, String, int, int)
      * @since 2.6.0
      */
     public void playStream(Uri streamLoc, int vid, int aid, int sid, int textureCount) throws IllegalStateException, IllegalArgumentException;
+
+    /**
+     * Same as {@link #playStream(Uri, int, int, int, int)}, but providing desired audio- and subtile languages to be selected.
+     * @param streamLoc the stream location
+     * @param vid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
+     * @param alang desired audio language, pass {@code null} to use {@code aid}
+     * @param aid fallback audio stream id in case {@code alang} is {@code null}, see <a href="#streamIDs">audio and video Stream IDs</a>
+     * @param slang desired subtitle language, pass {@code null} to use {@code sid}
+     * @param sid fallback subtitle stream id in case {@code alang} is {@code null}, see <a href="#streamIDs">audio and video Stream IDs</a>
+     * @param textureCount desired number of buffered textures to be decoded off-thread, will be validated by implementation.
+     *        The minimum value is {@link #TEXTURE_COUNT_MIN} (single-threaded) or above to enable multi-threaded stream decoding.
+     *        Default is {@link #TEXTURE_COUNT_DEFAULT}.
+     *        Value is ignored if video is muted.
+     * @throws IllegalStateException if not invoked in {@link State#Uninitialized}
+     * @throws IllegalArgumentException if arguments are invalid
+     * @see #playStream(Uri, int, int, int, int)
+     * @since 2.6.0
+     */
+    public void playStream(final Uri streamLoc, final int vid,
+                           final String alang, final int aid, final String slang, final int sid,
+                           final int reqTextureCount) throws IllegalStateException, IllegalArgumentException;
 
     /**
      * Switches current {@link #playStream(Uri, int, int, int, int)} to given stream IDs and continues at same {@link #getVideoPTS()}.
@@ -710,6 +733,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * <p>
      * The language code is supposed to be 3-letters of `ISO 639-2 language codes`.
      * </p>
+     * @see #getLang(int)
      */
     public String[] getVLangs();
 
@@ -731,6 +755,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * <p>
      * The language code is supposed to be 3-letters of `ISO 639-2 language codes`.
      * </p>
+     * @see #getLang(int)
      */
     public String[] getALangs();
 
@@ -752,6 +777,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * <p>
      * The language code is supposed to be 3-letters of `ISO 639-2 language codes`.
      * </p>
+     * @see #getLang(int)
      */
     public String[] getSLangs();
 
@@ -776,6 +802,12 @@ public interface GLMediaPlayer extends TextureSequence {
      * <p>
      * If the stream ID is not available, {@code und} is returned
      * </p>
+     * @see #getVStreams()
+     * @see #getAStreams()
+     * @see #getSStreams()
+     * @see #getVLangs()
+     * @see #getALangs()
+     * @see #getSLangs()
      */
     public String getLang(int id);
 

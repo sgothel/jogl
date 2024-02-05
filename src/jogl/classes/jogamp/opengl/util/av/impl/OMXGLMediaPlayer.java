@@ -106,7 +106,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected void initStreamImpl(final int vid, final int aid, final int sid) throws IOException {
+    protected void initStreamImpl(final int vid, String alang, final int aid, String slang, final int sid) throws IOException {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }

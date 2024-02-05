@@ -281,7 +281,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final void initStreamImpl(final int vid, final int aid, final int sid) throws IOException {
+    protected final void initStreamImpl(final int vid, String alang, final int aid, String slang, final int sid) throws IOException {
         if( null == getUri() ) {
             return;
         }
