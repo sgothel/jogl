@@ -148,6 +148,7 @@ public class MediaPlayer extends Widget {
             ctrlSlider.getBar().setColor(0.3f, 0.3f, 0.3f, 0.7f);
             ctrlSlider.getKnob().setColor(0.6f, 0.6f, 1f, 1f);
             ctrlSlider.setActiveKnobColorMod(new Vec4f(0.1f, 0.1f, 1, 1));
+            ctrlSlider.move(0, 0, zEpsilon);
         }
         ctrlSlider.setName("mp.slider");
 
@@ -321,12 +322,13 @@ public class MediaPlayer extends Widget {
                     } );
                 }
             });
-            this.addShape( ctrlSlider.setVisible(false) );
 
             ctrlBlend = new Rectangle(renderModes & ~Region.AA_RENDERING_MASK, aratio, ctrlCellHeight, 0);
             ctrlBlend.setName("ctrl.blend").setInteractive(false);
             ctrlBlend.setColor(0, 0, 0, AlphaBlend);
             this.addShape( ctrlBlend.setVisible(false) );
+
+            this.addShape( ctrlSlider.setVisible(false) );
 
             final float toolTipScaleY = 0.4f;
             ctrlGroup = new Group(new GridLayout(ctrlCellWidth, ctrlCellHeight, Alignment.FillCenter, Gap.None, 1));
