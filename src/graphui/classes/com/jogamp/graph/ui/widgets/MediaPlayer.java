@@ -116,10 +116,10 @@ public class MediaPlayer extends Widget {
             return;
         }
         final float zEpsilon = scene.getZEpsilon(16);
-        final float ctrlZOffset = zEpsilon * 20f;
+        final float superZOffset = zEpsilon * 20f;
 
-        final int ctrlCellsInt = 10+2;
-        final int ctrlCells = Math.max(customCtrls.size() + ctrlCellsInt, 13);
+        final int ctrlCellsInt = 11+3;
+        final int ctrlCells = Math.max(customCtrls.size() + ctrlCellsInt, 16);
 
         final float ctrlCellWidth = (aratio-2*BorderSzS)/ctrlCells;
         final float ctrlCellHeight = ctrlCellWidth;
@@ -145,6 +145,9 @@ public class MediaPlayer extends Widget {
             final float dx = ctrlSliderHeightMax / 2f;
             final float dy = ( ctrlSliderHeightMax - ctrlSliderHeightMin ) * 0.5f;
             ctrlSlider.setPaddding(new Padding(0, dx, ctrlCellHeight-dy, dx));
+            ctrlSlider.getBar().setColor(0.3f, 0.3f, 0.3f, 0.7f);
+            ctrlSlider.getKnob().setColor(0.6f, 0.6f, 1f, 1f);
+            ctrlSlider.setActiveKnobColorMod(new Vec4f(0.1f, 0.1f, 1, 1));
         }
         ctrlSlider.setName("mp.slider");
 
@@ -159,6 +162,9 @@ public class MediaPlayer extends Widget {
         final Button subLabel = new Button(renderModes, fontInfo, "sub\nund", CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
         subLabel.setName("mp.sub_lang").setToggleable(false);
         subLabel.setPerp().setColor(CtrlCellCol);
+        final Button cropButton = new Button(renderModes, fontSymbols,
+                fontSymbols.getUTF16String("crop"), fontSymbols.getUTF16String("crop_free"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
+        cropButton.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol).setName("ar crop");
 
         {
             mButton.setVerbose(false).addDefaultEventListener().setARatioLetterbox(letterBox, new Vec4f(1, 1, 1, 1));
@@ -181,7 +187,14 @@ public class MediaPlayer extends Widget {
                                 System.err.println(c);
                             }
                             final Shape mark = ctrlSlider.addMark(c.start, new Vec4f(0.9f, 0.9f, 0.9f, 0.5f));
-                            mark.setToolTip(new TooltipText(c.title+"\n"+PTS.toTimeStr(c.start, false), fontInfo, 10));
+                            mark.setToolTip(new TooltipText(c.title+"\n@ "+PTS.toTimeStr(c.start, false)+", duration "+PTS.toTimeStr(c.duration(), false), fontInfo, 10));
+                        }
+                        final float aratioVideo = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
+                        if( FloatUtil.isZero(Math.abs(aratio - aratioVideo), 0.1f) ) {
+                            cropButton.setVisible(false);
+                            System.err.println("AR Crop disabled: aratioPlayer "+aratio+", aratioVideo "+aratioVideo+": "+mPlayer.getTitle());
+                        } else {
+                            System.err.println("AR Crop  enabled: aratioPlayer "+aratio+", aratioVideo "+aratioVideo+": "+mPlayer.getTitle());
                         }
                     } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
                         playButton.setToggle(true);
@@ -290,26 +303,22 @@ public class MediaPlayer extends Widget {
                     }
                 }
             } );
-            ctrlSlider.addSliderListener(new SliderAdapter() {
-                private void seekPlayer(final int ptsMS) {
+            ctrlSlider.addSliderListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) -> {
+                if( DEBUG ) {
+                    System.err.println("Dragged "+w.getName()+": "+PTS.toTimeStr(Math.round(val), true)+"ms, "+(val_pct*100f)+"%");
+                    System.err.println("Slider.D "+ctrlSlider.getDescription());
+                }
+                final int dir_val = (int)Math.signum(val - old_val);
+                final int currentPTS = mPlayer.getPTS().getCurrent();
+                final int nextPTS = Math.round( val );
+                final int dir_pts = (int)Math.signum(nextPTS - currentPTS);
+                if( dir_val == dir_pts ) {
                     scene.invoke(false,  (final GLAutoDrawable d) -> {
                         final int durationMS = mPlayer.getDuration();
-                        timeLabel.setText(getMultilineTime(ptsMS, durationMS));
-                        mPlayer.seek(ptsMS);
+                        timeLabel.setText(getMultilineTime(nextPTS, durationMS));
+                        mPlayer.seek(nextPTS);
                         return true;
                     } );
-                }
-                @Override
-                public void dragged(final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) {
-                    if( DEBUG ) {
-                        System.err.println("Dragged "+w.getName()+": "+PTS.toTimeStr(Math.round(val), true)+"ms, "+(val_pct*100f)+"%");
-                        System.err.println("Slider.D "+ctrlSlider.getDescription());
-                    }
-                    final int currentPTS = mPlayer.getPTS().getCurrent();
-                    final int nextPTS = Math.round( val );
-                    if( Math.abs(currentPTS - nextPTS) > 10000 ) { // FIXME: 10s
-                        seekPlayer( nextPTS );
-                    }
                 }
             });
             this.addShape( ctrlSlider.setVisible(false) );
@@ -323,7 +332,7 @@ public class MediaPlayer extends Widget {
             ctrlGroup = new Group(new GridLayout(ctrlCellWidth, ctrlCellHeight, Alignment.FillCenter, Gap.None, 1));
             ctrlGroup.setName("ctrlGroup").setInteractive(false);
             ctrlGroup.setPaddding(new Padding(0, BorderSzS, 0, BorderSzS));
-            this.addShape( ctrlGroup.move(0, 0, ctrlZOffset).setVisible(false) );
+            this.addShape( ctrlGroup.setVisible(false) );
             { // 1
                 playButton.onToggle((final Shape s) -> {
                     if( s.isToggleOn() ) {
@@ -342,18 +351,58 @@ public class MediaPlayer extends Widget {
                         fontSymbols.getUTF16String("skip_previous"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("back");
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
-                button.onClicked((final Shape s) -> {
-                    mPlayer.seek(0);
+                button.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
+                    final int pts = mPlayer.getPTS().getCurrent();
+                    int targetMS = 0;
+                    final GLMediaPlayer.Chapter c0 = mPlayer.getChapter(mPlayer.getPTS().getCurrent());
+                    if( null != c0 ) {
+                        if( pts > c0.start + 5000 ) {
+                            targetMS = c0.start;
+                        } else {
+                            final GLMediaPlayer.Chapter c1 = mPlayer.getChapter(c0.start - 1);
+                            if( null != c1 ) {
+                                targetMS = c1.start;
+                            } else {
+                                targetMS = 0;
+                            }
+                        }
+                    }
+                    mPlayer.seek(targetMS);
                 });
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("Back", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("Prev Chapter", fontInfo, toolTipScaleY));
             }
             { // 3
+                final Button button = new Button(renderModes, fontSymbols,
+                        fontSymbols.getUTF16String("skip_next"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
+                button.setName("next");
+                button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
+                button.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
+                    int targetMS = 0;
+                    final GLMediaPlayer.Chapter c0 = mPlayer.getChapter(mPlayer.getPTS().getCurrent());
+                    if( null != c0 ) {
+                        final GLMediaPlayer.Chapter c1 = mPlayer.getChapter(c0.end + 1);
+                        if( null != c1 ) {
+                            targetMS = c1.start;
+                        } else {
+                            targetMS = c0.end;
+                        }
+                    } else if( mPlayer.getChapters().length > 0 ) {
+                        targetMS = 0;
+                    } else {
+                        targetMS = mPlayer.getPTS().getCurrent() * ( 1 + 1 / ( 60000 * 10 ) );
+                    }
+                    mPlayer.seek(targetMS);
+                });
+                ctrlGroup.addShape(button);
+                button.setToolTip(new TooltipText("Next Chapter", fontInfo, toolTipScaleY));
+            }
+            { // 4
                 final Button button = new Button(renderModes, fontSymbols,
                         fontSymbols.getUTF16String("fast_rewind"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("rv-");
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
-                button.onClicked((final Shape s) -> {
+                button.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
                     final float v = mPlayer.getPlaySpeed();
                     if( v <= 1.0f ) {
                         mPlayer.setPlaySpeed(v / 2.0f);
@@ -364,12 +413,12 @@ public class MediaPlayer extends Widget {
                 ctrlGroup.addShape(button);
                 button.setToolTip(new TooltipText("replay speed: v <= 1 ? v/2 : v-0.5", fontInfo, toolTipScaleY));
             }
-            { // 4
+            { // 5
                 final Button button = new Button(renderModes, fontSymbols,
                         fontSymbols.getUTF16String("fast_forward"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("rv+");
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
-                button.onClicked((final Shape s) -> {
+                button.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
                     final float v = mPlayer.getPlaySpeed();
                     if( 1f > v && v + 0.5f > 1f ) {
                         mPlayer.setPlaySpeed(1); // reset while crossing over 1
@@ -380,12 +429,12 @@ public class MediaPlayer extends Widget {
                 ctrlGroup.addShape(button);
                 button.setToolTip(new TooltipText("replay speed: v+0.5", fontInfo, toolTipScaleY));
             }
-            { // 5
+            { // 6
                 final Button button = new Button(renderModes, fontSymbols,
                         fontSymbols.getUTF16String("replay_10"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("rew5");
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
-                button.onClicked((final Shape s) -> {
+                button.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
                     mPlayer.seek(mPlayer.getPTS().getCurrent() - 10000);
                 });
                 button.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -401,12 +450,12 @@ public class MediaPlayer extends Widget {
                 ctrlGroup.addShape(button);
                 button.setToolTip(new TooltipText("Replay 10s (+scroll)", fontInfo, toolTipScaleY));
             }
-            { // 6
+            { // 7
                 final Button button = new Button(renderModes, fontSymbols,
                         fontSymbols.getUTF16String("forward_10"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("fwd5");
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
-                button.onClicked((final Shape s) -> {
+                button.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
                     mPlayer.seek(mPlayer.getPTS().getCurrent() + 10000);
                 });
                 button.addMouseListener(new Shape.MouseGestureAdapter() {
@@ -422,7 +471,7 @@ public class MediaPlayer extends Widget {
                 ctrlGroup.addShape(button);
                 button.setToolTip(new TooltipText("Forward 10s (+scroll)", fontInfo, toolTipScaleY));
             }
-            { // 7
+            { // 8
                 final Button button = new Button(renderModes, fontSymbols,
                         fontSymbols.getUTF16String("volume_up"), fontSymbols.getUTF16String("volume_mute"),  CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("mute");
@@ -446,8 +495,8 @@ public class MediaPlayer extends Widget {
                 ctrlGroup.addShape(button);
                 button.setToolTip(new TooltipText("Volume (+scroll)", fontInfo, toolTipScaleY));
             }
-            { // 8
-                audioLabel.onClicked((final Shape s) -> {
+            { // 9
+                audioLabel.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
                     final int next_aid = mPlayer.getNextAID();
                     if( mPlayer.getAID() != next_aid ) {
                         mPlayer.switchStream(mPlayer.getVID(), next_aid, mPlayer.getSID());
@@ -456,8 +505,8 @@ public class MediaPlayer extends Widget {
                 ctrlGroup.addShape(audioLabel);
                 audioLabel.setToolTip(new TooltipText("Audio Language", fontInfo, toolTipScaleY));
             }
-            { // 9
-                subLabel.onClicked((final Shape s) -> {
+            { // 10
+                subLabel.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
                     final int next_sid = mPlayer.getNextSID();
                     if( mPlayer.getSID() != next_sid ) {
                         mPlayer.switchStream(mPlayer.getVID(), mPlayer.getAID(), next_sid);
@@ -466,10 +515,10 @@ public class MediaPlayer extends Widget {
                 ctrlGroup.addShape(subLabel);
                 subLabel.setToolTip(new TooltipText("Subtitle Language", fontInfo, toolTipScaleY));
             }
-            { // 10
+            { // 11
                 ctrlGroup.addShape(timeLabel);
             }
-            for(int i=10; i<ctrlCells-2-customCtrls.size(); ++i) {
+            for(int i=11; i<ctrlCells-3-customCtrls.size(); ++i) {
                 final Button button = new Button(renderModes, fontInfo, " ", CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("ctrl_"+i);
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
@@ -485,9 +534,18 @@ public class MediaPlayer extends Widget {
                 });
                 button.setToggle( false );
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("HUD", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("Sticky HUD", fontInfo, toolTipScaleY));
             }
             { // -2
+                final boolean[] value = { !letterBox };
+                cropButton.onToggle( (final Shape s) -> {
+                    value[0] = !value[0];
+                    mButton.setARatioLetterbox(!value[0], mButton.getARatioLetterboxBackColor());
+                });
+                ctrlGroup.addShape(cropButton);
+                cropButton.setToolTip(new TooltipText("Letterbox Crop", fontInfo, toolTipScaleY));
+            }
+            { // -3
                 final Button button = new Button(renderModes, fontSymbols,
                         fontSymbols.getUTF16String("zoom_out_map"), fontSymbols.getUTF16String("zoom_in_map"),  CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("zoom");
@@ -495,6 +553,7 @@ public class MediaPlayer extends Widget {
                 final boolean toggleBorder = FloatUtil.isEqual(1f, zoomSize);
                 button.onToggle( (final Shape s) -> {
                     if( s.isToggleOn() ) {
+                        // Zoom in
                         if( toggleBorder ) {
                             MediaPlayer.this.setBorder(0f);
                         }
@@ -514,7 +573,7 @@ public class MediaPlayer extends Widget {
                                 // System.err.println("Zoom1: p "+parent);
                                 // System.err.println("Zoom1: t "+this);
                                 this.scale(sxy, sxy, 1f);
-                                this.moveTo(sbox.getLow()).move(sbox.getWidth() * ( 1f - zoomSize )/2.0f, sbox.getHeight() * ( 1f - zoomSize )/2.0f, ctrlZOffset);
+                                this.moveTo(sbox.getLow()).move(sbox.getWidth() * ( 1f - zoomSize )/2.0f, sbox.getHeight() * ( 1f - zoomSize )/2.0f, superZOffset);
                                 scene.addShape(this);
                             } else {
                                 // System.err.println("Zoom1: failed "+this);
@@ -523,11 +582,12 @@ public class MediaPlayer extends Widget {
                             // System.err.println("Zoom2: top, sxy "+sx+" x "+sy+" = "+sxy);
                             // System.err.println("Zoom2: t "+this);
                             this.scale(sxy, sxy, 1f);
-                            this.moveTo(sbox.getLow()).move(sbox.getWidth() * ( 1f - zoomSize )/2.0f, sbox.getHeight() * ( 1f - zoomSize )/2.0f, ctrlZOffset);
+                            this.moveTo(sbox.getLow()).move(sbox.getWidth() * ( 1f - zoomSize )/2.0f, sbox.getHeight() * ( 1f - zoomSize )/2.0f, superZOffset);
                         }
                         // System.err.println("Zoom: R "+_zoomReplacement);
                         zoomReplacement.set( _zoomReplacement );
                     } else {
+                        // Zoom out
                         if( toggleBorder ) {
                             MediaPlayer.this.setBorder(BorderSz);
                         }
@@ -680,10 +740,14 @@ public class MediaPlayer extends Widget {
                     mPlayer.getFramerate(), mPlayer.getStreamBitrate()/1000.0f);
             final String text2 = String.format("video: id %d (%s), kbps %.2f, codec %s/'%s'",
                     mPlayer.getVID(), mPlayer.getLang(mPlayer.getVID()), mPlayer.getVideoBitrate()/1000.0f, mPlayer.getVideoCodecID(), mPlayer.getVideoCodec());
-            final String text3 = String.format("audio: id %d (%s), kbps %.2f, codec %s/'%s'",
-                    mPlayer.getAID(), mPlayer.getLang(mPlayer.getAID()), mPlayer.getAudioBitrate()/1000.0f, mPlayer.getAudioCodecID(), mPlayer.getAudioCodec());
-            final String text4 = String.format("sub  : id %d (%s), codec %s/'%s'",
-                    mPlayer.getSID(), mPlayer.getLang(mPlayer.getSID()), mPlayer.getSubtitleCodecID(), mPlayer.getSubtitleCodec());
+            final String text3 = String.format("audio: id %d/%s (%s/%s), kbps %.2f, codec %s/'%s'",
+                    mPlayer.getAID(), Arrays.toString(mPlayer.getAStreams()),
+                    mPlayer.getLang(mPlayer.getAID()), Arrays.toString(mPlayer.getALangs()),
+                    mPlayer.getAudioBitrate()/1000.0f, mPlayer.getAudioCodecID(), mPlayer.getAudioCodec());
+            final String text4 = String.format("sub  : id %d/%s (%s/%s), codec %s/'%s'",
+                    mPlayer.getSID(), Arrays.toString(mPlayer.getSStreams()),
+                    mPlayer.getLang(mPlayer.getSID()), Arrays.toString(mPlayer.getSLangs()),
+                    mPlayer.getSubtitleCodecID(), mPlayer.getSubtitleCodec());
             return text1+"\n"+text2+"\n"+text3+"\n"+text4+"\n"+mPlayer.getTitle()+chapter;
         } else {
             final String vinfo, ainfo, sinfo;
