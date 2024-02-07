@@ -102,7 +102,8 @@ public class FontView01 {
     private static final Vec4f GlyphGridBorderColor = new Vec4f(0.2f, 0.2f, 0.2f, 1);
 
     // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.MSAA_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 4);
-    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
+    // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
+    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.NORM_RENDERING_BIT, 0, 0, 8);
 
     static int max_glyph_count = 10000;
 
@@ -291,7 +292,7 @@ public class FontView01 {
                                                                new SliderParam( new Vec2f(glyphGridCellSize/4f, glyphGridSize.y()), glyphGridCellSize/10f, true ) );
                 glyphView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f).setName("GlyphView");
                 if( VERBOSE_UI ) {
-                    glyphView.getVertSlider().addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, Vec3f pos, MouseEvent e) -> {
+                    glyphView.getVertSlider().addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, final Vec3f pos, final MouseEvent e) -> {
                         final Vec2f minmax = w.getMinMax();
                         final float row_f = val / glyphGridCellSize;
                         System.err.println("VertSlider: row["+row_f+".."+(row_f+gridDim.rowsPerPage-1)+"]/"+gridDim.rows+

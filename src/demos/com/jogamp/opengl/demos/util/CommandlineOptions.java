@@ -57,7 +57,7 @@ public class CommandlineOptions {
      * @param renderModes {@link Region#getRenderModes()}, if {@link Region#isGraphAA(int)} {@link #graphAASamples} is set to {@code 4}.
      */
     public CommandlineOptions(final int width, final int height, final int renderModes) {
-        this(width, height, renderModes, Region.DEFAULT_AA_QUALITY, Region.isGraphAA(renderModes) ? 4 : 0);
+        this(width, height, renderModes, Region.DEFAULT_AA_QUALITY, Region.isGraphAA(renderModes) ? 4 : 0, 0);
     }
 
     /**
@@ -67,13 +67,15 @@ public class CommandlineOptions {
      * @param renderModes {@link Region#getRenderModes()}
      * @param graphAAQuality if {@link Region#VBAA_RENDERING_BIT} this is the AA-quality shader selection, clipped via {@link Region#clipAAQuality(int)}
      * @param graphAASamples if {@link Region#isGraphAA(int)} this is the graph sample count, clipped via {@link Region#clipAASampleCount(int)}
+     * @param sceneMSAASamples if !{@link Region#isGraphAA(int)} and this value is > 0, it enables scene (fullscreen) MSAA mode by the GPU, usually 4 and 8 is good.
      */
-    public CommandlineOptions(final int width, final int height, final int renderModes, final int graphAAQuality, final int graphAASamples) {
+    public CommandlineOptions(final int width, final int height, final int renderModes, final int graphAAQuality, final int graphAASamples, final int sceneMSAASamples) {
         this.surface_width = width;
         this.surface_height = height;
         this.renderModes = renderModes;
         this.graphAASamples = Region.clipAASampleCount(graphAASamples);
         this.graphAAQuality = Region.clipAAQuality(graphAAQuality);
+        this.sceneMSAASamples = !Region.isGraphAA(renderModes) ? sceneMSAASamples : 0;
     }
     public void parse(final String[] args) {
         final int[] idx = { 0 };

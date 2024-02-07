@@ -87,7 +87,8 @@ import jogamp.graph.ui.TreeTool;
 public class UIMediaGrid01 {
     private static final float MediaGridWidth = 1f;
 
-    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
+    // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
+    static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.NORM_RENDERING_BIT, 0, 0, 8);
 
     private static final boolean VERBOSE_UI = false;
     private static final List<String> MEDIA_SUFFIXES = Arrays.asList("mp4", "mkv", "m2v", "avi");
@@ -290,7 +291,7 @@ public class UIMediaGrid01 {
             mediaView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f).setName("MediaView");
             // mediaView.setRelayoutOnDirtyShapes(false); // avoid group re-validate to ease load in Group.isShapeDirty() w/ thousands of glyphs
             if( VERBOSE_UI ) {
-                mediaView.getVertSlider().addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, Vec3f pos, MouseEvent e) -> {
+                mediaView.getVertSlider().addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, final Vec3f pos, final MouseEvent e) -> {
                     final Vec2f minmax = w.getMinMax();
                     final float row_f = val / mediaCellHeight;
                     System.err.println("VertSlider: row "+row_f+", val["+old_val+" -> "+val+"], pct["+(100*old_val_pct)+"% -> "+(100*val_pct)+"%], minmax "+minmax);
