@@ -108,7 +108,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     private volatile State state;
     private final Object stateLock = new Object();
-    private final AtomicBoolean oneVideoFrameOnce = new AtomicBoolean(false);
+    private final AtomicBoolean oneVideoFrameAtPause = new AtomicBoolean(false);
 
     private int textureCount;
     private int textureTarget;
@@ -587,7 +587,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                     pts1 = 0;
             }
         }
-        oneVideoFrameOnce.set(true);
+        oneVideoFrameAtPause.set(true);
         if(DEBUG) { logout.println("Seek("+msec+"): "+preState+" -> "+state+", "+toString()); }
         return pts1;
     }
@@ -1189,7 +1189,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final TextureFrame getNextTexture(final GL gl) throws IllegalStateException {
         synchronized( stateLock ) {
-            final boolean oneVideoFrame = oneVideoFrameOnce.compareAndSet(true, false);
+            final boolean oneVideoFrame = State.Paused == state && oneVideoFrameAtPause.compareAndSet(true, false);
             if( oneVideoFrame || State.Playing == state ) {
                 boolean dropFrame = false;
                 try {
@@ -1283,7 +1283,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                             }
                         }
                         if( !hasVideoFrame && oneVideoFrame ) {
-                            oneVideoFrameOnce.set(true);
+                            oneVideoFrameAtPause.set(true);
                         }
 
                         if( hasVideoFrame && video_pts.isValid() ) {
