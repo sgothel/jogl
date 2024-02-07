@@ -751,15 +751,17 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                 }
             }
 
+            final int aid2 = alang != null && alang.length() > 0 ? STREAM_ID_AUTO : aid;
+            final int sid2 = slang != null && slang.length() > 0 ? STREAM_ID_AUTO : sid;
             this.vid = vid;
-            this.aid = aid;
-            this.sid = sid;
+            this.aid = aid2;
+            this.sid = sid2;
             new InterruptSource.Thread() {
                 @Override
                 public void run() {
                     try {
                         // StreamWorker may be used, see API-doc of StreamWorker
-                        initStreamImpl(vid, alang, aid, slang, sid);
+                        initStreamImpl(vid, alang, aid2, slang, sid2);
                     } catch (final Throwable t) {
                         streamErr = new StreamException(t.getClass().getSimpleName()+" while initializing: "+GLMediaPlayerImpl.this.toString(), t);
                         changeState(new GLMediaPlayer.EventMask(GLMediaPlayer.EventMask.Bit.Error), GLMediaPlayer.State.Uninitialized);
