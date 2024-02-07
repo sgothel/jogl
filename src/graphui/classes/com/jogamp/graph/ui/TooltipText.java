@@ -36,8 +36,6 @@ import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.geom.plane.AffineTransform;
-import com.jogamp.math.util.PMVMatrix4f;
-import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLProfile;
 
 /** A round {@link Button HUD text} {@link Tooltip} for {@link Shape}, see {@link Shape#setToolTip(Tooltip)}. */
@@ -52,8 +50,8 @@ public class TooltipText extends Tooltip {
      * Ctor of {@link TooltipText}.
      * @param tipText HUD tip text
      * @param tipFont HUD tip font
-     * @param backColor HUD tip background color
-     * @param labelColor HUD tip label color
+     * @param backColor optional HUD tip background color, if null a slightly transparent white background is used
+     * @param labelColor optional HUD tip front color, if null an opaque almost-black is used
      * @param scaleY HUD tip vertical scale against tool height
      * @param delayMS delay until HUD tip is visible after timer start (mouse moved)
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
@@ -68,7 +66,7 @@ public class TooltipText extends Tooltip {
     }
     /**
      * Ctor of {@link TooltipText} using {@link Tooltip#DEFAULT_DELAY}, {@link Region#VBAA_RENDERING_BIT}
-     * and a slightly transparent light-grey background with an slightly transparent almost-black text color.
+     * and a slightly transparent white background with an opaque almost-black text color.
      * @param tipText HUD tip text
      * @param tipFont HUD tip font
      * @param scaleY HUD tip vertical scale against tool height
@@ -79,7 +77,7 @@ public class TooltipText extends Tooltip {
     }
 
     @Override
-    public Shape createTip(final GLAutoDrawable gl, final Scene scene, final PMVMatrix4f pmv, final AABBox toolMvBounds) {
+    public Shape createTip(final Scene scene, final AABBox toolMvBounds) {
         final float zEps = scene.getZEpsilon(16);
 
         // Precompute text-box size .. guessing pixelSize

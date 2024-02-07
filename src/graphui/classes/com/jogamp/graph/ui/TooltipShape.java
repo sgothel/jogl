@@ -37,15 +37,13 @@ import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
-import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GL2ES2;
-import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.graph.ui.TreeTool;
 
-/** A HUD {@link Shape} {@link Tooltip} for {@link Shape}, see {@link Shape#setToolTip(Tooltip)}. */
+/** A HUD {@link Shape} {@link Tooltip} for client {@link Shape}, see {@link Shape#setToolTip(Tooltip)}. */
 public class TooltipShape extends Tooltip {
     /**
      * Optional HUD tip {@link #destroy(TooltipShape, GL2ES2, RegionRenderer, Shape) destroy callback}
@@ -60,7 +58,7 @@ public class TooltipShape extends Tooltip {
      * the provided implementation shall do nothing, i.e. use {@link TooltipShape#NoOpDtor}.
      * </p>
      * @see TooltipShape#TooltipShape(Vec2f, long, Shape, DestroyCallback)
-     * @see TooltipShape#createTip(GLAutoDrawable, Scene, PMVMatrix4f, AABBox)
+     * @see TooltipShape#createTip(Scene, AABBox)
      */
     public static interface DestroyCallback {
         /**
@@ -79,7 +77,7 @@ public class TooltipShape extends Tooltip {
     };
 
     /** Shape of this tooltip */
-    private volatile Shape tip;
+    private final Shape clientShape;
     private final Vec2f scale;
     private final float borderThickness;
     private final Padding padding;
@@ -88,73 +86,73 @@ public class TooltipShape extends Tooltip {
     /**
      * Ctor of {@link TooltipShape}.
      * <p>
-     * The {@link Shape} is destroyed via {@link #destroyTip(GL2ES2, RegionRenderer, Shape)},
+     * The tip {@link Shape} including the user provided {@code clientShape} will be destroyed via {@link #destroyTip(GL2ES2, RegionRenderer, Shape)},
      * since no {@link DestroyCallback} is being provided via {@link TooltipShape#TooltipShape(Vec2f, long, Shape, DestroyCallback)}.
      * </p>
      * @param scale HUD tip scale for the tip shape
      * @param delayMS delay until HUD tip is visible after timer start (mouse moved)
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
-     * @param tip HUD tip shape
+     * @param clientShape user/client {@link Shape} to be presented in the HUD tip
      */
-    public TooltipShape(final Vec2f scale, final long delayMS, final int renderModes, final Shape tip) {
-        this(null, null, 0, null, scale, delayMS, renderModes, tip, null);
+    public TooltipShape(final Vec2f scale, final long delayMS, final int renderModes, final Shape clientShape) {
+        this(null, null, 0, null, scale, delayMS, renderModes, clientShape, null);
     }
 
     /**
      * Ctor of {@link TooltipShape}.
      * <p>
-     * The {@link Shape} is destroyed via provided {@link DestroyCallback} {@code dtor} if not {@code null},
+     * The tip {@link Shape} will be destroyed via provided {@link DestroyCallback} {@code dtor} if not {@code null},
      * otherwise the default {@link Tooltip#destroyTip(GL2ES2, RegionRenderer, Shape)} gets called.
      * </p>
      * <p>
-     * In case {@link DestroyCallback} {@code dtor} is being used, the user {@code tip}
-     * is removed from internal layout shapes before they get destroyed and the single {@code tip}
+     * In case {@link DestroyCallback} {@code dtor} is being used, the user {@code clientShape}
+     * is removed from internal layout shapes before they get destroyed and the single {@code clientShape}
      * gets passed to {@link DestroyCallback#destroy(TooltipShape, GL2ES2, RegionRenderer, Shape)}.
      * </p>
      * <p>
-     * In case user provided {@code tip} is reused within a DAG,
+     * In case user provided {@code clientShape} is reused within a DAG,
      * the provided implementation shall do nothing, i.e. use {@link TooltipShape#NoOpDtor}.
      * </p>
      * @param backColor optional background color
      * @param borderColor optional border color
      * @param borderThickness border thickness
-     * @param padding optional padding for the given {@code tip} for the internal wrapper group
-     * @param scale HUD tip scale for the tip shape
+     * @param padding optional padding for the given {@code clientShape} for the internal wrapper group
+     * @param scale scale for the HUD tip
      * @param delayMS delay until HUD tip is visible after timer start (mouse moved)
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
-     * @param tip HUD tip shape
+     * @param clientShape user/client {@link Shape} to be presented in the HUD tip
      * @param dtor optional {@link DestroyCallback}
      */
     public TooltipShape(final Vec4f backColor, final Vec4f borderColor, final float borderThickness,
                         final Padding padding, final Vec2f scale,
-                        final long delayMS, final int renderModes, final Shape tip, final DestroyCallback dtor) {
+                        final long delayMS, final int renderModes, final Shape clientShape, final DestroyCallback dtor) {
         super(backColor, borderColor, delayMS, renderModes);
-        this.tip = tip;
+        this.clientShape = clientShape;
         this.scale = scale;
         this.borderThickness = borderThickness;
         this.padding = padding;
         this.dtorCallback = dtor;
     }
 
-    public void setTip(final Shape tip) {
-        this.tip = tip;
-    }
+    public Shape getClientShape() { return this.clientShape; }
 
     @Override
-    public Shape createTip(final GLAutoDrawable drawable, final Scene scene, final PMVMatrix4f pmv, final AABBox toolMvBounds) {
+    public Shape createTip(final Scene scene, final AABBox toolMvBounds) {
         final float zEps = scene.getZEpsilon(16);
 
         final float w = toolMvBounds.getWidth()*scale.x();
         final float h = toolMvBounds.getHeight()*scale.y();
 
-        // tipWrapper ensures user 'tip' shape won't get mutated (scale, move) for DAG
-        final Group tipWrapper = new Group("TTSWrapper", null, null, tip);
+        // tipWrapper ensures user 'clientShape' won't get mutated (scale, move) for DAG
+        final Group tipWrapper = new Group("TTS.wrapper", null, null, clientShape);
         if( null != padding ) {
             tipWrapper.setPaddding(padding);
         }
         final Group tipGroup = new Group(new BoxLayout(w, h, Alignment.FillCenter));
-        tipGroup.addShape(new Rectangle(renderModes, 1*w/h, 1, 0).setColor(backColor).setBorder(borderThickness).setBorderColor(frontColor).move(0, 0, -zEps));
-        tipGroup.setName("TTSGroup");
+        tipGroup.addShape(new Rectangle(renderModes, 1*w/h, 1, 0).setColor(backColor)
+                          .setBorder(borderThickness).setBorderColor(frontColor)
+                          .setName("TTS.frame").move(0, 0, -zEps));
+        tipGroup.setName("TTS.group");
         tipGroup.addShape(tipWrapper);
         tipGroup.setInteractive(false);
 
@@ -162,24 +160,41 @@ public class TooltipShape extends Tooltip {
         tipGroup.moveTo(pos.x(), pos.y(), 100*zEps);
         return tipGroup;
     }
-    @Override
-    public void destroyTip(final GL2ES2 gl, final RegionRenderer renderer, final Shape tipGroup_) {
-        if( null != dtorCallback ) {
-            // Remove user tip from our layout group first and dtor our group
-            // This allows the user to receive its own passed tip
-            final Group tipGroup = (Group)tipGroup_;
+
+    /**
+     * Removed the user provided client {@link Shape} from the {@link #createTip(Scene, AABBox) created} HUD {@code tipGroup},
+     * i.e. {@link TooltipShape}'s layout {@link Group}.
+     * <p>
+     * This allows the user to release its own passed tip back, e.g. before destruction.
+     * </p>
+     * @param tip created tip {@link Shape} via {@link #createTip(Scene, AABBox)}
+     * @return the user provided client {@link Shape}
+     * @see #createTip(Scene, AABBox)
+     */
+    public Shape removeTip(final Shape tip) {
+        final Shape cs = clientShape;
+        if( null != cs ) {
+            final Group tipGroup = (Group)tip;
             final Group tipWrapper = (Group)tipGroup.getShapeByIdx(1);
-            if( null == tipWrapper.removeShape(tip) ) {
-                System.err.println("TooltipShape.destroyTip: Warning: Tip "+tip.getName()+" not contained in "+tipWrapper.getName()+"; Internal Group: ");
+            if( null == tipWrapper.removeShape(cs) ) {
+                System.err.println("TooltipShape.destroyTip: Warning: ClientShape "+cs.getName()+" not contained in "+tipWrapper.getName()+"; Internal Group: ");
                 TreeTool.forAll(tipGroup, (final Shape s) -> {
                     System.err.println("- "+s.getName());
                     return false;
                 });
             }
-            tipGroup.destroy(gl, renderer);
-            dtorCallback.destroy(this, gl, renderer, tip);
+        }
+        return cs;
+    }
+
+    @Override
+    public void destroyTip(final GL2ES2 gl, final RegionRenderer renderer, final Shape tip) {
+        if( null != dtorCallback ) {
+            final Shape cs = removeTip(tip);
+            tip.destroy(gl, renderer);
+            dtorCallback.destroy(this, gl, renderer, cs);
         } else {
-            super.destroyTip(gl, renderer, tipGroup_);
+            super.destroyTip(gl, renderer, tip);
         }
     }
 }

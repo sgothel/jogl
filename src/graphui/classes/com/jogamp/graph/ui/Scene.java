@@ -906,9 +906,9 @@ public final class Scene implements Container, GLEventListener {
     private float activeZOffsetScale = DEFAULT_ACTIVE_ZOFFSET_SCALE;
     private float activeTopLevelZOffsetScale = DEFAULT_ACTIVE_TOPLEVEL_ZOFFSET_SCALE;
 
-    /** Returns the active {@link Shape} Z-Offset scale, defaults to {@code 10.0}. */
+    /** Returns the active {@link Shape} Z-Offset scale, defaults to {@link #DEFAULT_ACTIVE_ZOFFSET_SCALE}. */
     public float getActiveShapeZOffsetScale() { return activeZOffsetScale; }
-    /** Sets the active {@link Shape} Z-Offset scale, defaults to {@code 10.0}. */
+    /** Sets the active {@link Shape} Z-Offset scale, defaults to {@link #DEFAULT_ACTIVE_ZOFFSET_SCALE}. */
     public void setActiveShapeZOffsetScale(final float v) { activeZOffsetScale = v; }
 
     /** Returns the general {@link Group#enableTopLevelWidget(Scene) top-level widget} Z-Offset scale, defaults to {@link #DEFAULT_ACTIVE_ZOFFSET_SCALE}. */
@@ -1347,7 +1347,7 @@ public final class Scene implements Container, GLEventListener {
             final Shape[] hud = { null };
             if( tt.tick() && TreeTool.forOne(this, pmv, tt.getTool(), () -> {
                     final AABBox toolMvBounds = tt.getToolMvBounds(pmv);
-                    hud[0] = tt.createTip(drawable, Scene.this, pmv, toolMvBounds);
+                    hud[0] = tt.createTip(Scene.this, toolMvBounds);
                 }) )
             {
                 setToolTip( hud[0] );

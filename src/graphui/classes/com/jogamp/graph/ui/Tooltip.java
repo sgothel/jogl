@@ -32,11 +32,11 @@ import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.math.Vec2f;
+import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.opengl.GL2ES2;
-import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -56,8 +56,8 @@ public abstract class Tooltip {
     private Shape tool;
     /** Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}. */
     protected final int renderModes;
-    protected final Vec4f backColor = new Vec4f(0.9f, 0.9f, 0.9f, 0.9f);
-    protected final Vec4f frontColor = new Vec4f(0.1f, 0.1f, 0.1f, 0.9f);
+    protected final Vec4f backColor = new Vec4f(1, 1, 1, 0.9f);
+    protected final Vec4f frontColor = new Vec4f(0.2f, 0.2f, 0.2f, 1);
 
     @Override
     public String toString() {
@@ -65,8 +65,8 @@ public abstract class Tooltip {
     }
     /**
      *
-     * @param backColor optional HUD tip background color, if null a slightly transparent light-grey background is used
-     * @param frontColor optional HUD tip front color, if null an slightly transparent almost-black is used
+     * @param backColor optional HUD tip background color, if null a slightly transparent white background is used
+     * @param frontColor optional HUD tip front color, if null an opaque almost-black is used
      * @param delayMS delay until HUD tip is visible after timer start (mouse moved), zero implies no time based alarm
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      */
@@ -142,22 +142,32 @@ public abstract class Tooltip {
         return true;
     }
 
-    /** Little helper for {@link #createTip(GLAutoDrawable, Scene, PMVMatrix4f, AABBox)} returning the Mv {@link AABBox} of the tool within {@link Scene} Mv space. */
+    /**
+     * Little helper for {@link #createTip(Scene, AABBox)} returning the Mv {@link AABBox} of the tool within {@link Scene} Mv space.
+     * <p>
+     * Method uses {@link #getTool()}
+     * <pre>
+     *   return getTool().getBounds().transform(pmv.getMv(), new AABBox());
+     * </pre>
+     * </p>
+     */
     public AABBox getToolMvBounds(final PMVMatrix4f pmv) {
         return getTool().getBounds().transform(pmv.getMv(), new AABBox());
     }
-    /** Little helper for {@link #createTip(GLAutoDrawable, Scene, PMVMatrix4f, AABBox)} returning the Mv position of the tip within {@link Scene} Mv space. */
+    /** Little helper for {@link #createTip(Scene, AABBox)} returning the Mv position of the tip within {@link Scene} Mv space. */
     public Vec2f getTipMvPosition(final Scene scene, final PMVMatrix4f pmv, final float tipWidth, final float tipHeight) {
         return getTipMvPosition(scene, getToolMvBounds(pmv), tipWidth, tipHeight);
     }
-    /** Little helper for {@link #createTip(GLAutoDrawable, Scene, PMVMatrix4f, AABBox)} returning the Mv position of the tip within {@link Scene} Mv space. */
+    /** Little helper for {@link #createTip(Scene, AABBox)} returning the Mv position of the tip @ center within {@link Scene} Mv space. */
     public Vec2f getTipMvPosition(final Scene scene, final AABBox toolMvBounds, final float tipWidth, final float tipHeight) {
         final AABBox sceneAABox = scene.getBounds();
         final Vec2f pos = new Vec2f();
-        if( toolMvBounds.getCenter().x() - tipWidth/2 >= sceneAABox.getLow().x() ) {
-            pos.setX( toolMvBounds.getCenter().x()-tipWidth/2 );
-        } else {
+        if( toolMvBounds.getCenter().x() - tipWidth/2 < sceneAABox.getLow().x() ) {
             pos.setX( sceneAABox.getLow().x() );
+        } else if( toolMvBounds.getCenter().x() + tipWidth/2 > sceneAABox.getHigh().x() ) {
+            pos.setX( sceneAABox.getHigh().x() - tipWidth);
+        } else {
+            pos.setX( toolMvBounds.getCenter().x()-tipWidth/2 );
         }
         if( toolMvBounds.getCenter().y() + tipHeight <= sceneAABox.getHigh().y()  ) {
             pos.setY( toolMvBounds.getCenter().y() );
@@ -168,20 +178,36 @@ public abstract class Tooltip {
         }
         return pos;
     }
+    /** Little helper for {@link #createTip(Scene, AABBox)} returning the Mv position of the tip @ center within {@link Scene} Mv space. */
+    public Vec2f getTipMvPosition(final Scene scene, final Vec3f toolMvPos, final float tipWidth, final float tipHeight) {
+        final AABBox sceneAABox = scene.getBounds();
+        final Vec2f pos = new Vec2f();
+        if( toolMvPos.x() - tipWidth/2 < sceneAABox.getLow().x() ) {
+            pos.setX( sceneAABox.getLow().x() );
+        } else if( toolMvPos.x() + tipWidth/2 > sceneAABox.getHigh().x() ) {
+            pos.setX( sceneAABox.getHigh().x() - tipWidth);
+        } else {
+            pos.setX( toolMvPos.x()-tipWidth/2 );
+        }
+        if( toolMvPos.y() + tipHeight <= sceneAABox.getHigh().y()  ) {
+            pos.setY( toolMvPos.y() );
+        } else {
+            pos.setY( sceneAABox.getHigh().y() - tipHeight );
+        }
+        return pos;
+    }
 
     /**
      * Create a new HUD tip shape, usually called by {@link Scene}
-     * @param drawable current {@link GLAutoDrawable}
      * @param scene the {@link Scene} caller for which this HUD tip shape is created
-     * @param pmv {@link PMVMatrix4f}, which shall be properly initialized, e.g. via {@link Scene#setupMatrix(PMVMatrix4f)}
      * @param toolMvBounds {@link AABBox} of the {@link #getTool()} in model-view (Mv) space of the given {@link Scene}
      * @return newly created HUD tip shape
      * @see #destroyTip(GL2ES2, RegionRenderer, Shape)
      */
-    public abstract Shape createTip(final GLAutoDrawable drawable, final Scene scene, final PMVMatrix4f pmv, AABBox toolMvBounds);
+    public abstract Shape createTip(final Scene scene, AABBox toolMvBounds);
 
     /**
-     * Destroy a {@link #createTip(GLAutoDrawable, Scene, PMVMatrix4f, AABBox) created} HUD tip.
+     * Destroy a {@link #createTip(Scene, AABBox) created} HUD tip.
      * <p>
      * Called after {@link Scene#removeShape(Shape)}, allowing implementation to perform certain
      * resource cleanup tasks. Even keeping the {@link Shape} tip alive is possible.
@@ -191,8 +217,8 @@ public abstract class Tooltip {
      * </p>
      * @param gl current {@link GL2ES2}
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
-     * @param tip
-     * @see #createTip(GLAutoDrawable, Scene, PMVMatrix4f, AABBox)
+     * @param tip created tip {@link Shape} via {@link #createTip(Scene, AABBox)}
+     * @see #createTip(Scene, AABBox)
      */
     public void destroyTip(final GL2ES2 gl, final RegionRenderer renderer, final Shape tip) {
         tip.destroy(gl, renderer);
