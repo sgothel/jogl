@@ -291,7 +291,7 @@ public class FontView01 {
                                                                new SliderParam( new Vec2f(glyphGridCellSize/4f, glyphGridSize.y()), glyphGridCellSize/10f, true ) );
                 glyphView.getVertSlider().setColor(0.3f, 0.3f, 0.3f, 0.7f).setName("GlyphView");
                 if( VERBOSE_UI ) {
-                    glyphView.getVertSlider().addSliderListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) -> {
+                    glyphView.getVertSlider().addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, Vec3f pos, MouseEvent e) -> {
                         final Vec2f minmax = w.getMinMax();
                         final float row_f = val / glyphGridCellSize;
                         System.err.println("VertSlider: row["+row_f+".."+(row_f+gridDim.rowsPerPage-1)+"]/"+gridDim.rows+

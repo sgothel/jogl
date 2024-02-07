@@ -59,9 +59,9 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  */
 public final class RangeSlider extends Widget {
     /**
-     * {@link RangeSlider} slider listener
+     * {@link RangeSlider} slider value changed listener
      */
-    public static interface SliderListener {
+    public static interface ChangeListener {
         /**
          * Slide dragged by user (including clicked position)
          * @param w the {@link RangeSlider} widget owning the slider
@@ -69,11 +69,30 @@ public final class RangeSlider extends Widget {
          * @param val the absolute value position of the slider
          * @param old_val_pct previous percentage value position of the slider
          * @param val_pct the percentage value position of the slider
+         * @param pos object position relative to the slider's bar
+         * @param e NEWT original event or {@code null} if sourced from non-mouse, e.g. key-event
          */
-        void dragged(RangeSlider w, float old_val, float val, float old_val_pct, float val_pct);
+        void dragged(RangeSlider w, float old_val, float val, float old_val_pct, float val_pct, Vec3f pos, MouseEvent e);
     }
-    private static interface SliderAction {
-        public void run(SliderListener l);
+    private static interface ChangedAction {
+        public void run(ChangeListener l);
+    }
+    /**
+     * {@link RangeSlider} slider value peek listener
+     */
+    public static interface PeekListener {
+        /**
+         * Slide position/value peeked by user (mouse over/hover)
+         * @param w the {@link RangeSlider} widget owning the slider
+         * @param val the absolute value peeked at the slider
+         * @param val_pct the percentage value position peeked at the slider
+         * @param pos object position relative to the slider's bar
+         * @param e NEWT original event
+         */
+        void peeked(RangeSlider w, float val, float val_pct, Vec3f pos, MouseEvent e);
+    }
+    private static interface PeekAction {
+        public void run(PeekListener l);
     }
 
     private static final boolean DEBUG = false;
@@ -89,7 +108,8 @@ public final class RangeSlider extends Widget {
     private final Group barAndKnob, marks;
     private final Rectangle bar;
     private final GraphShape knob;
-    private ArrayList<SliderListener> sliderListeners = new ArrayList<SliderListener>();
+    private ArrayList<ChangeListener> changeListeners = new ArrayList<ChangeListener>();
+    private ArrayList<PeekListener> peekListeners = new ArrayList<PeekListener>();
     private final Vec2f minMax = new Vec2f(0, 100);
     private final float knobScale;
     private float pageSize;
@@ -183,26 +203,36 @@ public final class RangeSlider extends Widget {
 
         reconfig(minMax, true, value, false, 0);
 
-        knob.onMove((final Shape s, final Vec3f origin, final Vec3f dest) -> {
+        knob.onMove((final Shape s, final Vec3f origin, final Vec3f dest, final MouseEvent e) -> {
             final float old_val = val;
             final float old_val_pct = val_pct;
             if( Float.isFinite(pageSize) ) {
                 final float dy = inverted ? +knobLength: 0; // offset to knob start
-                setValuePct( getKnobValuePct( dest.x(), dest.y(), dy ) );
+                setValue(dest.x(), dest.y(), dy);
             } else {
-                setValuePct( getKnobValuePct( dest.x(), dest.y(), knobLength/2f ) ); // centered
+                setValue(dest.x(), dest.y(), knobLength/2f); // centered
             }
-            dispatchToListener( (final SliderListener l) -> {
-                l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
+            dispatchToListener( (final ChangeListener l) -> {
+                l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct, dest, e);
             });
         });
         bar.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
             final float old_val = val;
             final float old_val_pct = val_pct;
-            setValuePct( getKnobValuePct( pos.x(), pos.y(), 0 ) );
-            dispatchToListener( (final SliderListener l) -> {
-                l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
+            setValue(pos.x(), pos.y(), 0);
+            dispatchToListener( (final ChangeListener l) -> {
+                l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct, pos, e);
             });
+        });
+        bar.onHover((final Shape s, final Vec3f pos, final MouseEvent e) -> {
+            final float pval_pct = getKnobValuePct( pos.x(), pos.y(), 0 );
+            final float pval = valuePctToValue( pval_pct );
+            dispatchToListener( (final PeekListener l) -> {
+                l.peeked(this, pval, pval_pct, pos, e);
+            });
+        });
+        bar.addActivationListener((final Shape s) -> {
+           dispatchActivationEvent(s);
         });
         final Shape.MouseGestureListener mouseListener = new Shape.MouseGestureAdapter() {
             @Override
@@ -240,8 +270,8 @@ public final class RangeSlider extends Widget {
                     }
                 }
                 setValue( v );
-                dispatchToListener( (final SliderListener l) -> {
-                    l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
+                dispatchToListener( (final ChangeListener l) -> {
+                    l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct, knob.getPosition().minus(bar.getPosition()), e);
                 });
             }
         };
@@ -305,8 +335,8 @@ public final class RangeSlider extends Widget {
                 }
                 if( action ) {
                     setValue( v );
-                    dispatchToListener( (final SliderListener l) -> {
-                        l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct);
+                    dispatchToListener( (final ChangeListener l) -> {
+                        l.dragged(RangeSlider.this, old_val, val, old_val_pct, val_pct, knob.getPosition().minus(bar.getPosition()), null);
                     });
                 }
             }
@@ -354,38 +384,67 @@ public final class RangeSlider extends Widget {
     @Override
     protected void clearImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
         super.clearImpl0(gl, renderer);
-        sliderListeners.clear();
+        changeListeners.clear();
+        peekListeners.clear();
     }
     @Override
     protected void destroyImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
         super.destroyImpl0(gl, renderer);
-        sliderListeners.clear();
+        changeListeners.clear();
+        peekListeners.clear();
     }
 
-    public final RangeSlider addSliderListener(final SliderListener l) {
+    public final RangeSlider addChangeListener(final ChangeListener l) {
         if(l == null) {
             return this;
         }
         @SuppressWarnings("unchecked")
-        final ArrayList<SliderListener> clonedListeners = (ArrayList<SliderListener>) sliderListeners.clone();
+        final ArrayList<ChangeListener> clonedListeners = (ArrayList<ChangeListener>) changeListeners.clone();
         clonedListeners.add(l);
-        sliderListeners = clonedListeners;
+        changeListeners = clonedListeners;
         return this;
     }
-    public final RangeSlider removeSliderListener(final SliderListener l) {
+    public final RangeSlider removeChangeListener(final ChangeListener l) {
         if (l == null) {
             return this;
         }
         @SuppressWarnings("unchecked")
-        final ArrayList<SliderListener> clonedListeners = (ArrayList<SliderListener>) sliderListeners.clone();
+        final ArrayList<ChangeListener> clonedListeners = (ArrayList<ChangeListener>) changeListeners.clone();
         clonedListeners.remove(l);
-        sliderListeners = clonedListeners;
+        changeListeners = clonedListeners;
         return this;
     }
-    private final void dispatchToListener(final SliderAction action) {
-        final int sz = sliderListeners.size();
+    private final void dispatchToListener(final ChangedAction action) {
+        final int sz = changeListeners.size();
         for(int i = 0; i < sz; i++ ) {
-            action.run( sliderListeners.get(i) );
+            action.run( changeListeners.get(i) );
+        }
+    }
+
+    public final RangeSlider addPeekListener(final PeekListener l) {
+        if(l == null) {
+            return this;
+        }
+        @SuppressWarnings("unchecked")
+        final ArrayList<PeekListener> clonedListeners = (ArrayList<PeekListener>) peekListeners.clone();
+        clonedListeners.add(l);
+        peekListeners = clonedListeners;
+        return this;
+    }
+    public final RangeSlider removePeekListener(final PeekListener l) {
+        if (l == null) {
+            return this;
+        }
+        @SuppressWarnings("unchecked")
+        final ArrayList<PeekListener> clonedListeners = (ArrayList<PeekListener>) peekListeners.clone();
+        clonedListeners.remove(l);
+        peekListeners = clonedListeners;
+        return this;
+    }
+    private final void dispatchToListener(final PeekAction action) {
+        final int sz = peekListeners.size();
+        for(int i = 0; i < sz; i++ ) {
+            action.run( peekListeners.get(i) );
         }
     }
 
@@ -596,17 +655,11 @@ public final class RangeSlider extends Widget {
         return reconfig(minMax, false, 0, true, pageSz);
     }
 
-    public RangeSlider setValuePct(final float v) {
-        final float range = getRange();
-        if( Float.isFinite(v) && Float.isFinite(range) && !FloatUtil.isZero(range) ) {
-            final float pgsz_pct = Float.isFinite(pageSize) ? pageSize / range : 0f;
-            final float pct = Math.max(0f, Math.min(1f - pgsz_pct, v));
-            return setValue( minMax.x() + ( pct * range ) );
-        } else {
-            return setValue( 0f );
-        }
+    private RangeSlider setValue(final float pos_x, final float pos_y, final float adjustment) {
+        return setValue( valuePctToValue( getKnobValuePct(pos_x, pos_y, adjustment) ) );
     }
 
+    // private float getKnobValuePct(final float pos_x, final float pos_y, final float adjustment) {
     /**
      * Sets slider value
      * @param v new value of slider, clipped against {@link #getMinMax()}
@@ -672,6 +725,16 @@ public final class RangeSlider extends Widget {
             v = ( pos_y + adjustment ) / size.y();
         }
         return Math.max(0.0f, Math.min(1.0f, inverted ? 1f - v : v));
+    }
+    private float valuePctToValue(final float v) {
+        final float range = getRange();
+        if( Float.isFinite(v) && Float.isFinite(range) && !FloatUtil.isZero(range) ) {
+            final float pgsz_pct = Float.isFinite(pageSize) ? pageSize / range : 0f;
+            final float pct = Math.max(0f, Math.min(1f - pgsz_pct, v));
+            return minMax.x() + ( pct * range );
+        } else {
+            return 0f;
+        }
     }
 
     private void setKnob() {

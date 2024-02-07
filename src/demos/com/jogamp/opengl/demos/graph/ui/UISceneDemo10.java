@@ -118,7 +118,7 @@ public class UISceneDemo10 {
         scene.setPMVMatrixSetup(new MyPMVMatrixSetup());
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        shape.onMove((final Shape s, final Vec3f origin, final Vec3f dest) -> {
+        shape.onMove((final Shape s, final Vec3f origin, final Vec3f dest, MouseEvent e) -> {
                 final Vec3f p = shape.getPosition();
                 System.err.println("Shape moved: "+origin+" -> "+p);
             } );

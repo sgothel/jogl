@@ -117,10 +117,11 @@ public abstract class Shape {
         /**
          * Move callback
          * @param s the moved shape
-         * @param origin original position
-         * @param dest new position
+         * @param origin original position, relative object coordinates to the associated {@link Shape}
+         * @param dest new position, relative object coordinates to the associated {@link Shape}
+         * @param e original Newt {@link MouseEvent}
          */
-        void run(Shape s, Vec3f origin, Vec3f dest);
+        void run(Shape s, Vec3f origin, Vec3f dest, MouseEvent e);
     }
 
     /**
@@ -514,7 +515,7 @@ public abstract class Shape {
      * Dispatch activation event event to this shape
      * @return true to signal operation complete and to stop traversal, otherwise false
      */
-    private final void dispatchActivationEvent(final Shape s) {
+    protected final void dispatchActivationEvent(final Shape s) {
         final int sz = activationListeners.size();
         for(int i = 0; i < sz; i++ ) {
             activationListeners.get(i).run(s);
@@ -549,16 +550,16 @@ public abstract class Shape {
         return this;
     }
 
-    private final Shape moveNotify(final float dtx, final float dty, final float dtz) {
-        forwardMove(position.copy(), position.add(dtx, dty, dtz));
+    private final Shape moveNotify(final float dtx, final float dty, final float dtz, final MouseEvent e) {
+        forwardMove(position.copy(), position.add(dtx, dty, dtz), e);
         return this;
     }
 
-    private final void forwardMove(final Vec3f origin, final Vec3f dest) {
+    private final void forwardMove(final Vec3f origin, final Vec3f dest, final MouseEvent e) {
         if( !origin.isEqual(dest) ) {
             iMatDirty = true;
             if( null != onMoveListener ) {
-                onMoveListener.run(this, origin, dest);
+                onMoveListener.run(this, origin, dest, e);
             }
         }
     }
@@ -2047,9 +2048,9 @@ public abstract class Shape {
                                     scale, sx, sy);
                         }
                         if( isIO(IO_IN_RESIZE_BR) ) {
-                            moveNotify(   0, sdy2, 0f); // bottom-right, sticky left- and top-edge
+                            moveNotify(   0, sdy2, 0f, e); // bottom-right, sticky left- and top-edge
                         } else {
-                            moveNotify( sdx, sdy2, 0f); // bottom-left, sticky right- and top-edge
+                            moveNotify( sdx, sdy2, 0f, e); // bottom-left, sticky right- and top-edge
                         }
                         setScale(sx, sy, scale.z());
                     }
@@ -2060,7 +2061,7 @@ public abstract class Shape {
                                 glWinX, glWinY, shapeEvent.winDrag[0], shapeEvent.winDrag[1],
                                 x_flip, y_flip, objPos, shapeEvent.objDrag, euler);
                     }
-                    moveNotify( sdx, sdy, 0f);
+                    moveNotify( sdx, sdy, 0f, e);
                     return true; // end signal traversal with completed move
                 }
             }

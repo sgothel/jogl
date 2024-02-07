@@ -304,7 +304,7 @@ public class MediaPlayer extends Widget {
                     }
                 }
             } );
-            ctrlSlider.addSliderListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) -> {
+            ctrlSlider.addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, final Vec3f pos, final MouseEvent e) -> {
                 if( DEBUG ) {
                     System.err.println("Dragged "+w.getName()+": "+PTS.toTimeStr(Math.round(val), true)+"ms, "+(val_pct*100f)+"%");
                     System.err.println("Slider.D "+ctrlSlider.getDescription());

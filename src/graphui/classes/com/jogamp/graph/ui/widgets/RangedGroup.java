@@ -41,6 +41,7 @@ import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.geom.Cube;
 import com.jogamp.math.geom.Frustum;
 import com.jogamp.math.util.PMVMatrix4f;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.texture.TextureSequence;
@@ -103,7 +104,7 @@ public class RangedGroup extends Widget {
             horizSlider = new RangeSlider(renderModes, horizSliderParam.size,
                                           new Vec2f(0, content.getBounds().getWidth()), horizSliderParam.unitSize, contentSize.x(), 0).setInverted(horizSliderParam.inverted);
             addShape(horizSlider);
-            horizSlider.addSliderListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) -> {
+            horizSlider.addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, Vec3f pos, MouseEvent e) -> {
                 final Vec3f oldPos = content.getPosition();
                 if( horizSlider.isInverted() ) {
                     content.moveTo(contentPosZero.x()-val, oldPos.y(), oldPos.z());
@@ -118,7 +119,7 @@ public class RangedGroup extends Widget {
             vertSlider = new RangeSlider(renderModes, vertSliderParam.size,
                                          new Vec2f(0, content.getBounds().getHeight()), vertSliderParam.unitSize, contentSize.y(), 0).setInverted(vertSliderParam.inverted);
             addShape(vertSlider);
-            vertSlider.addSliderListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct) -> {
+            vertSlider.addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, Vec3f pos, MouseEvent e) -> {
                 final Vec3f oldPos = content.getPosition();
                 if( vertSlider.isInverted() ) {
                     content.moveTo(oldPos.x(), contentPosZero.y()+val, oldPos.z());
