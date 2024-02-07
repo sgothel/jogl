@@ -38,6 +38,7 @@ import com.jogamp.common.os.Clock;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.ui.Group;
@@ -50,24 +51,25 @@ import com.jogamp.graph.ui.layout.Gap;
 import com.jogamp.graph.ui.layout.GridLayout;
 import com.jogamp.graph.ui.layout.Padding;
 import com.jogamp.graph.ui.shapes.Button;
+import com.jogamp.graph.ui.shapes.HUDShape;
 import com.jogamp.graph.ui.shapes.Label;
 import com.jogamp.graph.ui.shapes.MediaButton;
 import com.jogamp.graph.ui.shapes.Rectangle;
-import com.jogamp.graph.ui.widgets.RangeSlider.SliderListener;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.opengl.GL;
 import com.jogamp.opengl.GL2ES2;
 import com.jogamp.opengl.GLAnimatorControl;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventAdapter;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
+import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.av.GLMediaPlayer.EventMask;
-import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayer.StreamException;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -89,7 +91,10 @@ public class MediaPlayer extends Widget {
     private static final Vec4f BorderColor = new Vec4f(0, 0, 0, 0.5f);
     private static final Vec4f BorderColorA = new Vec4f(0, 0, 0.5f, 0.5f);
     private static final float AlphaBlend = 0.3f;
-    private static final float KnobScale = 3f;
+    private static final float KnobScale = 2f;
+    private static final float StillPlayerScale = 1/3f;
+    private static final float ChapterTipScaleY = 5f;
+    private static final float ToolTipScaleY = 0.6f;
 
     private final MediaButton mButton;
 
@@ -97,16 +102,17 @@ public class MediaPlayer extends Widget {
      * Constructs a {@link MediaPlayer}, i.e. its shapes and controls.
      * @param renderModes Graph's {@link Region} render modes, see {@link GLRegion#create(GLProfile, int, TextureSequence) create(..)}.
      * @param scene the used {@link Scene} to query parameter and access rendering loop
-     * @param mPlayer fresh {@link GLMediaPlayer} instance, maybe customized via e.g. {@link GLMediaPlayer#setTextureMinMagFilter(int[])}.
+     * @param mPlayer fresh {@link GLMediaPlayer} instance owned by this {@link MediaPlayer}, may be customized via e.g. {@link GLMediaPlayer#setTextureMinMagFilter(int[])}.
      * @param medium {@link Uri} stream source, either a file or network source
      * @param aratio aspect ratio of the resulting {@link Shape}, usually 16.0f/9.0f or 4.0f/3.0f, which also denotes the width of this shape while using height 1.0.
      * @param letterBox toggles {@link GLMediaPlayer#setARatioLetterbox(boolean, Vec4f)} on or off
      * @param zoomSize zoom-size (0..1] for zoom-out control
+     * @param enableStills pass {@code true} to enable still images on the time slider on mouse-over, involves a 2nd internal {@link GLMediaPlayer} instance
      * @param customCtrls optional custom controls, maybe an empty list
      */
     public MediaPlayer(final int renderModes, final Scene scene, final GLMediaPlayer mPlayer,
                        final Uri medium, final float aratio, final boolean letterBox, final float zoomSize,
-                       final List<Shape> customCtrls)
+                       final boolean enableStills, final List<Shape> customCtrls)
     {
         super( new BoxLayout(aratio, 1, Alignment.None) );
 
@@ -119,11 +125,11 @@ public class MediaPlayer extends Widget {
         final float superZOffset = zEpsilon * 20f;
 
         final int ctrlCellsInt = 11+3;
-        final int ctrlCells = Math.max(customCtrls.size() + ctrlCellsInt, 16);
+        final int ctrlCells = Math.max(customCtrls.size() + ctrlCellsInt, 20);
 
         final float ctrlCellWidth = (aratio-2*BorderSzS)/ctrlCells;
         final float ctrlCellHeight = ctrlCellWidth;
-        final float ctrlSliderHeightMin = ctrlCellHeight/15f;       // bar-height
+        final float ctrlSliderHeightMin = ctrlCellHeight/6f;       // bar-height
         final float ctrlSliderHeightMax = KnobScale * ctrlSliderHeightMin; // knob-height
 
         final AtomicReference<Shape> zoomReplacement = new AtomicReference<Shape>();
@@ -137,6 +143,8 @@ public class MediaPlayer extends Widget {
         mButton = new MediaButton(renderModes, aratio, 1, mPlayer);
         mButton.setName("mp.mButton").setInteractive(false);
         mButton.setPerp().setPressedColorMod(1f, 1f, 1f, 0.85f);
+        mButton.setVerbose(false).addDefaultEventListener().setARatioLetterbox(letterBox, new Vec4f(1, 1, 1, 1));
+        mPlayer.setAudioVolume( 0f );
 
         final RangeSlider ctrlSlider;
         {
@@ -151,6 +159,61 @@ public class MediaPlayer extends Widget {
             ctrlSlider.move(0, 0, zEpsilon);
         }
         ctrlSlider.setName("mp.slider");
+
+        final GLMediaPlayer stillPlayer;
+        final Button stillTime;
+        final HUDShape stillHUD;
+        final Runnable reshapeStillHUD;
+        {
+            final Group stillGroup = new Group();
+            final float labelW = aratio/4f;
+            final float labelH = 1f/10f;
+            stillTime = new Button(renderModes, fontInfo, PTS.toTimeStr(0), labelW, labelH, 0);
+            stillTime.setName("mp.stillTime").setInteractive(false);
+            stillTime.setLabelColor(0.2f, 0.2f, 0.2f, 1f);
+            stillTime.setColor(1f, 1f, 1f, 1f);
+            stillTime.setSpacing(0.1f, 0.3f);
+            stillTime.setCorner(0.75f);
+            stillTime.moveTo(aratio/2f-labelW/2f, 0, 0); // center to stillMedia
+            stillGroup.addShape(stillTime);
+
+            final MediaButton stillMedia;
+            if( enableStills ) {
+                stillPlayer = GLMediaPlayerFactory.createDefault();
+                // stillPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_NEAREST } );
+                stillPlayer.setTextureMinMagFilter( new int[] { GL.GL_LINEAR, GL.GL_LINEAR } );
+                stillPlayer.setTextureUnit(2);
+                stillPlayer.addEventListener((final GLMediaPlayer mp, final EventMask eventMask, final long when) -> {
+                    if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
+                        mp.pause(true);
+                    }
+                });
+                stillMedia = new MediaButton(renderModes, aratio, 1.0f, stillPlayer);
+                stillMedia.setName("mp.stillMedia").setInteractive(false);
+                stillMedia.setPerp().setPressedColorMod(1f, 1f, 1f, 0.85f);
+                stillMedia.setVerbose(false).addDefaultEventListener().setARatioLetterbox(true, mButton.getARatioLetterboxBackColor());
+                stillMedia.moveTo(0, labelH*1.2f, 0); // above stillTime
+                stillGroup.addShape(stillMedia);
+            } else {
+                stillPlayer = null;
+                stillMedia = null;
+            }
+            stillHUD = new HUDShape(scene,
+                                    enableStills ? aratio*StillPlayerScale : labelW*StillPlayerScale,
+                                    enableStills ? 1f*StillPlayerScale : labelH*StillPlayerScale,
+                                    renderModes, ctrlSlider, stillGroup);
+            stillHUD.setVisible(false);
+            scene.addShape(stillHUD);
+            reshapeStillHUD = () -> {
+                final float ar = (float)mPlayer.getWidth()/(float)mPlayer.getHeight();
+                final float labelW2 = ar/4f;
+                final float labelH2 = 1f/10f;
+                stillMedia.setSize(ar, 1f);
+                stillMedia.moveTo(0, labelH2*1.2f, 0); // above stillTime
+                stillTime.moveTo(ar/2f-labelW2/2f, 0, 0); // center to stillMedia
+                stillHUD.setClientSize(ar*StillPlayerScale, 1f*StillPlayerScale);
+            };
+        }
 
         final Button playButton = new Button(renderModes, fontSymbols,
                 fontSymbols.getUTF16String("play_arrow"),  fontSymbols.getUTF16String("pause"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
@@ -167,60 +230,61 @@ public class MediaPlayer extends Widget {
                 fontSymbols.getUTF16String("crop"), fontSymbols.getUTF16String("crop_free"), CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
         cropButton.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol).setName("ar crop");
 
-        {
-            mButton.setVerbose(false).addDefaultEventListener().setARatioLetterbox(letterBox, new Vec4f(1, 1, 1, 1));
-            mPlayer.setAudioVolume( 0f );
-            mPlayer.addEventListener( new GLMediaEventListener() {
-                @Override
-                public void attributesChanged(final GLMediaPlayer mp, final EventMask eventMask, final long when) {
-                    if( DEBUG ) {
-                        System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
-                        System.err.println("MediaButton State: "+mp);
-                    }
-                    if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
-                        audioLabel.setText("audio\n"+mp.getLang(mp.getAID()));
-                        subLabel.setText("sub\n"+mp.getLang(mp.getSID()));
-                        ctrlSlider.setMinMax(new Vec2f(0, mp.getDuration()), 0);
-                        System.err.println("Init "+mp.toString());
+        mPlayer.addEventListener((final GLMediaPlayer mp, final EventMask eventMask, final long when) -> {
+            if( DEBUG ) {
+                System.err.println("MediaButton AttributesChanges: "+eventMask+", when "+when);
+                System.err.println("MediaButton State: "+mp);
+            }
+            if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Init) ) {
+                audioLabel.setText("audio\n"+mp.getLang(mp.getAID()));
+                subLabel.setText("sub\n"+mp.getLang(mp.getSID()));
+                ctrlSlider.setMinMax(new Vec2f(0, mp.getDuration()), 0);
+                System.err.println("Init "+mp.toString());
 
-                        for(final GLMediaPlayer.Chapter c : mp.getChapters()) {
-                            if( DEBUG ) {
-                                System.err.println(c);
-                            }
-                            final Shape mark = ctrlSlider.addMark(c.start, new Vec4f(0.9f, 0.9f, 0.9f, 0.5f));
-                            mark.setToolTip(new TooltipText(c.title+"\n@ "+PTS.toTimeStr(c.start, false)+", duration "+PTS.toTimeStr(c.duration(), false), fontInfo, 10));
-                        }
-                        final float aratioVideo = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
-                        if( FloatUtil.isZero(Math.abs(aratio - aratioVideo), 0.1f) ) {
-                            cropButton.setVisible(false);
-                            System.err.println("AR Crop disabled: aratioPlayer "+aratio+", aratioVideo "+aratioVideo+": "+mPlayer.getTitle());
-                        } else {
-                            System.err.println("AR Crop  enabled: aratioPlayer "+aratio+", aratioVideo "+aratioVideo+": "+mPlayer.getTitle());
-                        }
-                    } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
-                        playButton.setToggle(true);
-                    } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Pause) ) {
-                        playButton.setToggle(false);
+                for(final GLMediaPlayer.Chapter c : mp.getChapters()) {
+                    if( DEBUG ) {
+                        System.err.println(c);
                     }
-                    if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
-                        final StreamException err = mp.getStreamException();
-                        if( null != err ) {
-                            System.err.println("MovieSimple State: Exception: "+err.getMessage());
-                        } else {
-                            new InterruptSource.Thread() {
-                                @Override
-                                public void run() {
-                                    mp.setPlaySpeed(1f);
-                                    mp.seek(0);
-                                    mp.resume();
-                                }
-                            }.start();
-                        }
-                    }
+                    final Shape mark = ctrlSlider.addMark(c.start, new Vec4f(0.9f, 0.9f, 0.9f, 0.5f));
+                    mark.setToolTip(new TooltipText(c.title+"\n@ "+PTS.toTimeStr(c.start, false)+", duration "+PTS.toTimeStr(c.duration(), false), fontInfo, ChapterTipScaleY));
                 }
-            });
-            this.addShape(mButton);
-        }
+                final float aratioVideo = (float)mPlayer.getWidth() / (float)mPlayer.getHeight();
+                if( FloatUtil.isZero(Math.abs(aratio - aratioVideo), 0.1f) ) {
+                    cropButton.setVisible(false);
+                    System.err.println("AR Crop disabled: aratioPlayer "+aratio+", aratioVideo "+aratioVideo+": "+mPlayer.getTitle());
+                } else {
+                    System.err.println("AR Crop  enabled: aratioPlayer "+aratio+", aratioVideo "+aratioVideo+": "+mPlayer.getTitle());
+                }
+                if( enableStills ) {
+                    scene.invoke(false,  (final GLAutoDrawable d) -> {
+                        stillPlayer.stop();
+                        stillPlayer.playStream(mPlayer.getUri(), mPlayer.getVID(), GLMediaPlayer.STREAM_ID_NONE, GLMediaPlayer.STREAM_ID_NONE, 1);
+                        reshapeStillHUD.run();
+                        return true;
+                    });
+                }
+            } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Play) ) {
+                playButton.setToggle(true);
+            } else if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.Pause) ) {
+                playButton.setToggle(false);
+            }
+            if( eventMask.isSet(GLMediaPlayer.EventMask.Bit.EOS) ) {
+                final StreamException err = mp.getStreamException();
+                if( null != err ) {
+                    System.err.println("MovieSimple State: Exception: "+err.getMessage());
+                } else {
+                    new InterruptSource.Thread() {
+                        @Override
+                        public void run() {
+                            mp.setPlaySpeed(1f);
+                            mp.seek(0);
+                            mp.resume();
+                        }
+                    }.start();
+                }
+            }
+        } );
+        this.addShape(mButton);
 
         Group ctrlGroup, infoGroup;
         Shape ctrlBlend;
@@ -323,6 +387,33 @@ public class MediaPlayer extends Widget {
                 }
             });
 
+            final int[] lastPeekPTS = { 0 };
+            ctrlSlider.addPeekListener((final RangeSlider w, final float val, final float val_pct, final Vec3f pos, final MouseEvent e) -> {
+                final float res = Math.max(1000, w.getRange() / 300f); // ~300dpi alike less jittery
+                final int nextPTS = Math.round( val/1000f ) * 1000;
+                final Vec3f pos2 = new Vec3f(pos.x()-stillHUD.getClientSize().x()/2f, ctrlSliderHeightMax, pos.z() + ctrlSlider.getPosition().z());
+                stillHUD.moveToHUDPos(pos2);
+                // stillMedia.setARatioLetterbox(mButton.useARatioAdjustment(), mButton.getARatioLetterboxBackColor());
+                stillTime.setText(PTS.toTimeStr(nextPTS, false));
+                stillHUD.setVisible(true);
+                if( enableStills && Math.abs(lastPeekPTS[0] - nextPTS ) >= res ) {
+                    scene.invoke(false,  (final GLAutoDrawable d) -> {
+                        stillPlayer.seek(nextPTS);
+                        return true;
+                    } );
+                    lastPeekPTS[0] = nextPTS;
+                }
+            });
+            ctrlSlider.addActivationListener((final Shape s) -> {
+                if( s.isActive() ) {
+                    // stillMedia.setARatioLetterbox(mButton.useARatioAdjustment(), mButton.getARatioLetterboxBackColor());
+                    stillTime.setText(PTS.toTimeStr(mPlayer.getPTS().getCurrent(), false));
+                    stillHUD.setVisible(true);
+                } else {
+                    stillHUD.setVisible(false);
+                }
+            });
+
             ctrlBlend = new Rectangle(renderModes & ~Region.AA_RENDERING_MASK, aratio, ctrlCellHeight, 0);
             ctrlBlend.setName("ctrl.blend").setInteractive(false);
             ctrlBlend.setColor(0, 0, 0, AlphaBlend);
@@ -330,7 +421,6 @@ public class MediaPlayer extends Widget {
 
             this.addShape( ctrlSlider.setVisible(false) );
 
-            final float toolTipScaleY = 0.4f;
             ctrlGroup = new Group(new GridLayout(ctrlCellWidth, ctrlCellHeight, Alignment.FillCenter, Gap.None, 1));
             ctrlGroup.setName("ctrlGroup").setInteractive(false);
             ctrlGroup.setPaddding(new Padding(0, BorderSzS, 0, BorderSzS));
@@ -346,7 +436,7 @@ public class MediaPlayer extends Widget {
                 });
                 playButton.setToggle(true); // on == play
                 ctrlGroup.addShape(playButton);
-                playButton.setToolTip(new TooltipText("Play/Pause", fontInfo, toolTipScaleY));
+                playButton.setToolTip(new TooltipText("Play/Pause", fontInfo, ToolTipScaleY));
             }
             { // 2
                 final Button button = new Button(renderModes, fontSymbols,
@@ -372,7 +462,7 @@ public class MediaPlayer extends Widget {
                     mPlayer.seek(targetMS);
                 });
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("Prev Chapter", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("Prev Chapter", fontInfo, ToolTipScaleY));
             }
             { // 3
                 final Button button = new Button(renderModes, fontSymbols,
@@ -397,7 +487,7 @@ public class MediaPlayer extends Widget {
                     mPlayer.seek(targetMS);
                 });
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("Next Chapter", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("Next Chapter", fontInfo, ToolTipScaleY));
             }
             { // 4
                 final Button button = new Button(renderModes, fontSymbols,
@@ -413,7 +503,7 @@ public class MediaPlayer extends Widget {
                     }
                 });
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("replay speed: v <= 1 ? v/2 : v-0.5", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("replay speed: v <= 1 ? v/2 : v-0.5", fontInfo, ToolTipScaleY));
             }
             { // 5
                 final Button button = new Button(renderModes, fontSymbols,
@@ -429,7 +519,7 @@ public class MediaPlayer extends Widget {
                     }
                 });
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("replay speed: v+0.5", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("replay speed: v+0.5", fontInfo, ToolTipScaleY));
             }
             { // 6
                 final Button button = new Button(renderModes, fontSymbols,
@@ -450,7 +540,7 @@ public class MediaPlayer extends Widget {
                         mPlayer.seek(pts1);
                     } } );
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("Replay 10s (+scroll)", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("Replay 10s (+scroll)", fontInfo, ToolTipScaleY));
             }
             { // 7
                 final Button button = new Button(renderModes, fontSymbols,
@@ -471,7 +561,7 @@ public class MediaPlayer extends Widget {
                         mPlayer.seek(pts1);
                     } } );
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("Forward 10s (+scroll)", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("Forward 10s (+scroll)", fontInfo, ToolTipScaleY));
             }
             { // 8
                 final Button button = new Button(renderModes, fontSymbols,
@@ -495,7 +585,7 @@ public class MediaPlayer extends Widget {
                     } } );
                 button.setToggle( !mPlayer.isAudioMuted() ); // on == volume
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("Volume (+scroll)", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("Volume (+scroll)", fontInfo, ToolTipScaleY));
             }
             { // 9
                 audioLabel.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
@@ -505,7 +595,7 @@ public class MediaPlayer extends Widget {
                     }
                 });
                 ctrlGroup.addShape(audioLabel);
-                audioLabel.setToolTip(new TooltipText("Audio Language", fontInfo, toolTipScaleY));
+                audioLabel.setToolTip(new TooltipText("Audio Language", fontInfo, ToolTipScaleY));
             }
             { // 10
                 subLabel.onClicked((final Shape s, final Vec3f pos, final MouseEvent e) -> {
@@ -515,7 +605,7 @@ public class MediaPlayer extends Widget {
                     }
                 });
                 ctrlGroup.addShape(subLabel);
-                subLabel.setToolTip(new TooltipText("Subtitle Language", fontInfo, toolTipScaleY));
+                subLabel.setToolTip(new TooltipText("Subtitle Language", fontInfo, ToolTipScaleY));
             }
             { // 11
                 ctrlGroup.addShape(timeLabel);
@@ -536,7 +626,7 @@ public class MediaPlayer extends Widget {
                 });
                 button.setToggle( false );
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("Sticky HUD", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("Sticky HUD", fontInfo, ToolTipScaleY));
             }
             { // -2
                 final boolean[] value = { !letterBox };
@@ -545,19 +635,21 @@ public class MediaPlayer extends Widget {
                     mButton.setARatioLetterbox(!value[0], mButton.getARatioLetterboxBackColor());
                 });
                 ctrlGroup.addShape(cropButton);
-                cropButton.setToolTip(new TooltipText("Letterbox Crop", fontInfo, toolTipScaleY));
+                cropButton.setToolTip(new TooltipText("Letterbox Crop", fontInfo, ToolTipScaleY));
             }
             { // -3
                 final Button button = new Button(renderModes, fontSymbols,
                         fontSymbols.getUTF16String("zoom_out_map"), fontSymbols.getUTF16String("zoom_in_map"),  CtrlButtonWidth, CtrlButtonHeight, zEpsilon);
                 button.setName("zoom");
                 button.setSpacing(SymSpacing, FixedSymSize).setPerp().setColor(CtrlCellCol);
-                final boolean toggleBorder = FloatUtil.isEqual(1f, zoomSize);
+                final boolean fullScene = FloatUtil.isEqual(1f, zoomSize);
+                final boolean wasDraggable = isDraggable();
                 button.onToggle( (final Shape s) -> {
                     if( s.isToggleOn() ) {
                         // Zoom in
-                        if( toggleBorder ) {
+                        if( fullScene ) {
                             MediaPlayer.this.setBorder(0f);
+                            MediaPlayer.this.setDraggable(false);
                         }
                         final AABBox sbox = scene.getBounds();
                         final Group parent = this.getParent();
@@ -590,8 +682,9 @@ public class MediaPlayer extends Widget {
                         zoomReplacement.set( _zoomReplacement );
                     } else {
                         // Zoom out
-                        if( toggleBorder ) {
+                        if( fullScene ) {
                             MediaPlayer.this.setBorder(BorderSz);
+                            MediaPlayer.this.setDraggable(wasDraggable);
                         }
                         final Vec3f _zoomOrigScale = zoomOrigScale.getAndSet(null);
                         final Vec3f _zoomOrigPos = zoomOrigPos.getAndSet(null);
@@ -627,7 +720,7 @@ public class MediaPlayer extends Widget {
                 });
                 button.setToggle( false ); // on == zoom
                 ctrlGroup.addShape(button);
-                button.setToolTip(new TooltipText("Zoom", fontInfo, toolTipScaleY));
+                button.setToolTip(new TooltipText("Zoom", fontInfo, ToolTipScaleY));
             }
             for(final Shape cs : customCtrls ) {
                 ctrlGroup.addShape(cs);

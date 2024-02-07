@@ -98,6 +98,7 @@ public class UIMediaGrid01 {
     private static int start_pos = 0;
     private static float videoAspectRatio = 16f/9f;
     private static boolean letterBox = true;
+    private static boolean enableStills = true;
     private static int texCount = GLMediaPlayer.TEXTURE_COUNT_DEFAULT;
 
     public static void main(final String[] args) throws IOException {
@@ -149,6 +150,8 @@ public class UIMediaGrid01 {
                 } else if(args[idx[0]].equals("-texCount")) {
                     idx[0]++;
                     texCount = MiscUtils.atoi(args[idx[0]], texCount);
+                } else if(args[idx[0]].equals("-noStills")) {
+                    enableStills = false;
                 }
             }
         }
@@ -406,7 +409,7 @@ public class UIMediaGrid01 {
                 });
                 customCtrls.add(button);
             }
-            final MediaPlayer graphMPlayer = new MediaPlayer(options.renderModes, scene, glMPlayer, medium, defRatio, letterBox, zoomSize, customCtrls);
+            final MediaPlayer graphMPlayer = new MediaPlayer(options.renderModes, scene, glMPlayer, medium, defRatio, letterBox, zoomSize, enableStills, customCtrls);
             grid.addShape( graphMPlayer );
             glMPlayer.playStream(medium, GLMediaPlayer.STREAM_ID_AUTO, alang, aid, slang, sid, texCount);
             if( start_pos > 0 ) {
