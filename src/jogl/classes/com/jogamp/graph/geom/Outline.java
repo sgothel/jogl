@@ -27,6 +27,7 @@
  */
 package com.jogamp.graph.geom;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 import com.jogamp.math.FloatUtil;
@@ -362,4 +363,14 @@ public class Outline implements Comparable<Outline> {
         // Avoid calling this.hashCode() !
         return getClass().getName() + "@" + Integer.toHexString(super.hashCode());
     }
+
+    public void print(final PrintStream out) {
+        final int vc = getVertexCount();
+        out.printf("Outline: %d, %s%n", vc, getWinding());
+        for(int vi=0; vi < vc; vi++) {
+            final Vertex v = getVertex(vi);
+            out.printf("- OL[%d]: %s%n", vi, v);
+        }
+    }
+
 }

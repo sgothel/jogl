@@ -27,6 +27,7 @@
  */
 package com.jogamp.graph.curve;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -1135,4 +1136,18 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         // Avoid calling this.hashCode() !
         return getClass().getName() + "@" + Integer.toHexString(super.hashCode());
     }
+
+    public void print(final PrintStream out) {
+        final int oc = getOutlineCount();
+        for (int oi = 0; oi < oc; oi++) {
+            final Outline outline = getOutline(oi);
+            final int vc = outline.getVertexCount();
+            out.printf("- OL[%d]: %s%n", vc, outline.getWinding());
+            for(int vi=0; vi < vc; vi++) {
+                final Vertex v = outline.getVertex(vi);
+                out.printf("-- OS[%d][%d]: %s%n", oi, vi, v);
+            }
+        }
+    }
+
 }
