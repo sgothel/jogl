@@ -79,7 +79,6 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
-import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 import jogamp.graph.ui.TreeTool;
 

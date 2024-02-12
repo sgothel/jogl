@@ -38,7 +38,6 @@ import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.FloatUtil;
 import com.jogamp.math.Vec3f;
-import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.geom.Cube;
 import com.jogamp.math.geom.Frustum;
 import com.jogamp.math.geom.plane.AffineTransform;

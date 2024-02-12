@@ -32,9 +32,6 @@ import java.io.IOException;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RegionRenderer;
-import com.jogamp.graph.font.Font;
-import com.jogamp.graph.font.FontFactory;
-import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.Group;
 import com.jogamp.graph.ui.Scene;
@@ -59,7 +56,6 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
-import com.jogamp.opengl.demos.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 
 /**
@@ -88,9 +84,6 @@ public class UIShapeClippingDemo01 {
 
         // Resolution independent, no screen size
         //
-        final Font font = FontFactory.get(FontFactory.UBUNTU).get(FontSet.FAMILY_LIGHT, FontSet.STYLE_SERIF);
-        System.err.println("Font: "+font.getFullFamilyName());
-
         final Scene scene = new Scene(options.graphAASamples);
         scene.setPMVMatrixSetup(new Scene.DefaultPMVMatrixSetup(-1f)); // better distance for perspective action
         scene.setClearParams(new float[] { 1f, 1f, 1f, 1f}, GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
