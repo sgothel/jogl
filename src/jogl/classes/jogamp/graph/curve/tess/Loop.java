@@ -315,16 +315,12 @@ public class Loop {
                 final double v = VectorUtil.inCircleVec2dVal(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
                                                              candPoint, egp.getPoint());
                 if( v > VectorUtil.InCircleDThreshold ) {
-                    if( CDTriangulator2D.DEBUG ) {
-                        System.err.printf("Loop.isInCircle.1: %30.30f: %s, of%n- %s%n- %s%n- %s%n",
-                                v, candPoint, root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(), egp.getPoint());
-                    }
+                    System.err.printf("Loop.isInCircle.1: %30.30f: %s, of%n- %s%n- %s%n- %s%n",
+                            v, candPoint, root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(), egp.getPoint());
                     return null;
                 }
-                if( CDTriangulator2D.DEBUG ) {
-                    System.err.printf("Loop.isInCircle.0: %30.30f: %s, of%n- %s%n- %s%n- %s%n",
-                            v, candPoint, root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(), egp.getPoint());
-                }
+                System.err.printf("Loop.isInCircle.0: %30.30f: %s, of%n- %s%n- %s%n- %s%n",
+                        v, candPoint, root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(), egp.getPoint());
             }
             e = e.getNext();
         }
