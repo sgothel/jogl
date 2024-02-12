@@ -61,15 +61,16 @@ import com.jogamp.math.geom.plane.Winding;
  * <a name="windingrules">
  * Outline shape general {@link Winding} rules
  * <ul>
- *   <li>Outer boundary shapes are required as {@link Winding#CCW}, if unsure
+ *   <li>Outer boundary-shapes are required as {@link Winding#CCW}</li>
+ *   <li>Inner hole-shapes should be {@link Winding#CW}</li>
+ *   <li>If unsure
  *   <ul>
- *     <li>You may check {@link Winding} via {@link #getWindingOfLastOutline()} or {@link Outline#getWinding()} (optional)</li>
+ *     <li>You may check {@link Winding} via {@link #getWindingOfLastOutline()} or {@link Outline#getWinding()} (optional, might be incorrect)</li>
  *     <li>Use {@link #setWindingOfLastOutline(Winding)} before {@link #closeLastOutline(boolean)} or {@link #closePath()} } to enforce {@link Winding#CCW}, or</li>
  *     <li>use {@link Outline#setWinding(Winding)} on a specific {@link Outline} to enforce {@link Winding#CCW}.</li>
  *     <li>If e.g. the {@link Winding} has changed for an {@link Outline} by above operations, its vertices have been reversed.</li>
  *   </ul></li>
- *   <li>Inner shapes or holes are adjusted to be {@link Winding#CW}, no user consideration is required here.</li>
- *   <li>Safe path: Simply create all shapes with {@link Winding#CCW} or apply {@link Outline#setWinding(Winding)}.</li>
+ *   <li>Safe path: Simply create all outer boundary-shapes with {@link Winding#CCW} and inner hole-shapes with {@link Winding#CW}.</li>
  * </ul>
  * </p>
  * Example to creating an Outline Shape:
@@ -238,7 +239,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     }
 
     /**
-     * Compute the {@link Winding} of the {@link #getLastOutline()} using the {@link #area(ArrayList)} function over all of its vertices.
+     * Compute the {@link Winding} of the {@link #getLastOutline()} using the {@link VectorUtil#area2d(ArrayList)} function over all of its vertices.
      * @return {@link Winding#CCW} or {@link Winding#CW}
      */
     public final Winding getWindingOfLastOutline() {

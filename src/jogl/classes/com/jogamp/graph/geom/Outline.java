@@ -78,8 +78,8 @@ public class Outline implements Comparable<Outline> {
     public Outline(final Outline src) {
         final int count = src.vertices.size();
         vertices = new ArrayList<Vertex>(count);
-        winding = src.getWinding();
-        dirtyWinding = false;
+        winding = Winding.CCW;
+        dirtyWinding = true;
         for(int i=0; i<count; i++) {
             vertices.add( src.vertices.get(i).copy() );
         }
@@ -138,7 +138,7 @@ public class Outline implements Comparable<Outline> {
     }
 
     /**
-     * Compute the winding of the {@link #getLastOutline()} using the {@link #area(ArrayList)} function over all of its vertices.
+     * Compute the winding of the {@link #getLastOutline()} using the {@link VectorUtil#area2d(ArrayList)} function over all of its vertices.
      * @return {@link Winding#CCW} or {@link Winding#CW}
      */
     public final Winding getWinding() {
@@ -149,7 +149,7 @@ public class Outline implements Comparable<Outline> {
         if( 3 > count ) {
             winding = Winding.CCW;
         } else {
-            winding = VectorUtil.getWinding( getVertices() );
+            winding = VectorUtil.getWinding2d( getVertices() );
         }
         dirtyWinding = false;
         return winding;

@@ -537,7 +537,7 @@ public final class VectorUtil {
     /**
      * Check if points are in ccw order
      * <p>
-     * Consider using {@link #getWinding(ArrayList)} using the {@link #area(ArrayList)} function over all points
+     * Consider using {@link #getWinding2f(ArrayList)} using the {@link #area2f(ArrayList)} function over all points
      * on complex shapes for a reliable result!
      * </p>
      * @param a first vertex
@@ -552,29 +552,29 @@ public final class VectorUtil {
     /**
      * Compute the winding of the 3 given points
      * <p>
-     * Consider using {@link #getWinding(ArrayList)} using the {@link #area(ArrayList)} function over all points
+     * Consider using {@link #getWinding2f(ArrayList)} using the {@link #area2f(ArrayList)} function over all points
      * on complex shapes for a reliable result!
      * </p>
      * @param a first vertex
      * @param b second vertex
      * @param c third vertex
      * @return {@link Winding#CCW} or {@link Winding#CW}
-     * @see #getWinding(ArrayList)
+     * @see #getWinding2f(ArrayList)
      */
     public static Winding getWinding(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c) {
         return triAreaVec2d(a,b,c) > InCircleDThreshold ? Winding.CCW : Winding.CW ;
     }
 
     /**
-     * Computes the area of a list of vertices.
+     * Computes the area of a list of vertices via shoelace formula.
      * <p>
      * This method is utilized e.g. to reliably compute the {@link Winding} of complex shapes.
      * </p>
      * @param vertices
      * @return positive area if ccw else negative area value
-     * @see #getWinding(ArrayList)
+     * @see #getWinding2f(ArrayList)
      */
-    public static float area(final ArrayList<? extends Vert2fImmutable> vertices) {
+    public static float area2f(final ArrayList<? extends Vert2fImmutable> vertices) {
         final int n = vertices.size();
         float area = 0.0f;
         for (int p = n - 1, q = 0; q < n; p = q++) {
@@ -586,17 +586,51 @@ public final class VectorUtil {
     }
 
     /**
-     * Compute the winding using the {@link #area(ArrayList)} function over all vertices for complex shapes.
+     * Compute the winding using the {@link #area2f(ArrayList)} function over all vertices for complex shapes.
      * <p>
-     * Uses the {@link #area(ArrayList)} function over all points
+     * Uses the {@link #area2f(ArrayList)} function over all points
      * on complex shapes for a reliable result!
      * </p>
      * @param vertices array of Vertices
      * @return {@link Winding#CCW} or {@link Winding#CW}
-     * @see #area(ArrayList)
+     * @see #area2f(ArrayList)
      */
-    public static Winding getWinding(final ArrayList<? extends Vert2fImmutable> vertices) {
-        return area(vertices) >= 0 ? Winding.CCW : Winding.CW ;
+    public static Winding getWinding2f(final ArrayList<? extends Vert2fImmutable> vertices) {
+        return area2f(vertices) >= 0 ? Winding.CCW : Winding.CW ;
+    }
+
+    /**
+     * Computes the area of a list of vertices via shoelace formula.
+     * <p>
+     * This method is utilized e.g. to reliably compute the {@link Winding} of complex shapes.
+     * </p>
+     * @param vertices
+     * @return positive area if ccw else negative area value
+     * @see #getWinding2d(ArrayList)
+     */
+    public static double area2d(final ArrayList<? extends Vert2fImmutable> vertices) {
+        final int n = vertices.size();
+        double area = 0.0;
+        for (int p = n - 1, q = 0; q < n; p = q++) {
+            final Vert2fImmutable pCoord = vertices.get(p);
+            final Vert2fImmutable qCoord = vertices.get(q);
+            area += (double)pCoord.x() * (double)qCoord.y() - (double)qCoord.x() * (double)pCoord.y();
+        }
+        return area;
+    }
+
+    /**
+     * Compute the winding using the {@link #area2f(ArrayList)} function over all vertices for complex shapes.
+     * <p>
+     * Uses the {@link #area2f(ArrayList)} function over all points
+     * on complex shapes for a reliable result!
+     * </p>
+     * @param vertices array of Vertices
+     * @return {@link Winding#CCW} or {@link Winding#CW}
+     * @see #area2d(ArrayList)
+     */
+    public static Winding getWinding2d(final ArrayList<? extends Vert2fImmutable> vertices) {
+        return area2d(vertices) >= 0 ? Winding.CCW : Winding.CW ;
     }
 
     /**

@@ -122,8 +122,8 @@ public class Loop {
             }
             return null;
         }
-        final Winding winding = outline.getOutline().getWinding();
         final Winding edgeWinding = HEdge.BOUNDARY == edgeType ? Winding.CCW : Winding.CW;
+        final Winding winding = CDTriangulator2D.FixedWindingRule ?  edgeWinding : outline.getOutline().getWinding();
 
         if( HEdge.BOUNDARY == edgeType && Winding.CCW != winding ) {
             // XXXX
@@ -135,7 +135,7 @@ public class Loop {
         HEdge lastEdge = null;
 
         if( winding == edgeWinding || HEdge.BOUNDARY == edgeType ) {
-            // Correct Winding or skipped CW -> CCW (no inversion possible here, too late ??)
+            // Correct Winding or skipped CW -> CCW (no inversion possible here, too late)
             final int max = vertices.size() - 1;
             for(int index = 0; index <= max; ++index) {
                 final GraphVertex v1 = vertices.get(index);
@@ -156,7 +156,7 @@ public class Loop {
                 }
                 lastEdge = edge;
             }
-        } else { // if( hasWinding == Winding.CW ) {
+        } else { // if( winding == Winding.CW ) {
             // CCW <-> CW
             for(int index = vertices.size() - 1; index >= 0; --index) {
                 final GraphVertex v1 = vertices.get(index);
@@ -182,13 +182,15 @@ public class Loop {
         return firstEdge;
     }
 
-    public void addConstraintCurve(final GraphOutline polyline) {
+    public void addConstraintCurve(final GraphOutline polyline, final int edgeType) {
         //        GraphOutline outline = new GraphOutline(polyline);
         /**needed to generate vertex references.*/
-        if( null == initFromPolyline(polyline, HEdge.HOLE) ) {
+        if( null == initFromPolyline(polyline, edgeType) ) { // 'usually' HEdge.HOLE
             return;
         }
-        addConstraintCurveImpl(polyline);
+        if( HEdge.HOLE == edgeType ) {
+            addConstraintCurveImpl(polyline);
+        }
     }
     private void addConstraintCurveImpl(final GraphOutline polyline) {
         final GraphVertex v3 = locateClosestVertex(polyline);
