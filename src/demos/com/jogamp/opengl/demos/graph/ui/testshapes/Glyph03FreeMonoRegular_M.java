@@ -782,6 +782,7 @@ public class Glyph03FreeMonoRegular_M extends GraphShape {
 
         shape.setIsQuadraticNurbs();
         shape.setSharpness(oshapeSharpness);
+        shape.print(System.err);
 
         resetGLRegion(glp, gl, null, shape);
         region.addOutlineShape(shape, null, rgbaColor);
