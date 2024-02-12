@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -286,6 +286,7 @@ public final class VectorUtil {
         return FloatUtil.isZero( determinantVec3(v1, v2, v3), FloatUtil.EPSILON );
     }
 
+    public static final double InCircleDThreshold = DoubleUtil.EPSILON;
     /**
      * Check if vertices in triangle circumcircle given {@code d} vertex, from paper by Guibas and Stolfi (1985).
      * @param a triangle vertex 1
@@ -294,27 +295,6 @@ public final class VectorUtil {
      * @param d vertex in question
      * @return true if the vertex d is inside the circle defined by the vertices a, b, c.
      */
-    public static boolean isInCircleVec2f(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
-        // Operation costs:
-        // - 4x (triAreaVec2: 5+, 2*) -> 20+, 8*
-        // - plus 7+, 12*             -> 27+, 20*
-        return (a.x() * a.x() + a.y() * a.y()) * triAreaVec2f(b, c, d) -
-               (b.x() * b.x() + b.y() * b.y()) * triAreaVec2f(a, c, d) +
-               (c.x() * c.x() + c.y() * c.y()) * triAreaVec2f(a, b, d) -
-               (d.x() * d.x() + d.y() * d.y()) * triAreaVec2f(a, b, c) > InCircleFThreshold;
-    }
-    public static final float InCircleFThreshold = FloatUtil.EPSILON;
-    public static float inCircleVec2fVal(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
-        // Operation costs:
-        // - 4x (triAreaVec2: 5+, 2*) -> 20+, 8*
-        // - plus 7+, 12*             -> 27+, 20*
-        return (a.x() * a.x() + a.y() * a.y()) * triAreaVec2f(b, c, d) -
-               (b.x() * b.x() + b.y() * b.y()) * triAreaVec2f(a, c, d) +
-               (c.x() * c.x() + c.y() * c.y()) * triAreaVec2f(a, b, d) -
-               (d.x() * d.x() + d.y() * d.y()) * triAreaVec2f(a, b, c);
-    }
-
-    public static final double InCircleDThreshold = DoubleUtil.EPSILON;
     public static boolean isInCircleVec2d(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
         return inCircleVec2dVal(a, b, c, d) > InCircleDThreshold;
     }
@@ -322,14 +302,12 @@ public final class VectorUtil {
         // Operation costs:
         // - 4x (triAreaVec2: 5+, 2*) -> 20+, 8*
         // - plus 7+, 12*             -> 27+, 20*
-        return sqlend(a) * triAreaVec2d(b, c, d) -
-               sqlend(b) * triAreaVec2d(a, c, d) +
-               sqlend(c) * triAreaVec2d(a, b, d) -
-               sqlend(d) * triAreaVec2d(a, b, c);
+        return sqlend(a.x(), a.y()) * triAreaVec2d(b, c, d) -
+               sqlend(b.x(), b.y()) * triAreaVec2d(a, c, d) +
+               sqlend(c.x(), c.y()) * triAreaVec2d(a, b, d) -
+               sqlend(d.x(), d.y()) * triAreaVec2d(a, b, c);
     }
-    private static double sqlend(final Vert2fImmutable a) {
-        final double x = a.x();
-        final double y = a.y();
+    private static double sqlend(final double x, final double y) {
         return x*x + y*y;
     }
 
@@ -345,10 +323,6 @@ public final class VectorUtil {
      * @param c third vertex
      * @return area > 0 CCW, ..
      */
-    public static float triAreaVec2f(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
-        return (b.x() - a.x()) * (c.y() - a.y()) - (b.y() - a.y()) * (c.x() - a.x());
-    }
-
     public static double triAreaVec2d(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
         return triAreaVec2d(a.x(), a.y(), b.x(), b.y(), c.x(), c.y());
     }
