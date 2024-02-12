@@ -287,31 +287,73 @@ public final class VectorUtil {
     }
 
     /**
-     * Check if vertices in triangle circumcircle
+     * Check if vertices in triangle circumcircle given {@code d} vertex, from paper by Guibas and Stolfi (1985).
      * @param a triangle vertex 1
      * @param b triangle vertex 2
      * @param c triangle vertex 3
      * @param d vertex in question
-     * @return true if the vertex d is inside the circle defined by the
-     * vertices a, b, c. from paper by Guibas and Stolfi (1985).
+     * @return true if the vertex d is inside the circle defined by the vertices a, b, c.
      */
-    public static boolean isInCircleVec2(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
-        return (a.x() * a.x() + a.y() * a.y()) * triAreaVec2(b, c, d) -
-               (b.x() * b.x() + b.y() * b.y()) * triAreaVec2(a, c, d) +
-               (c.x() * c.x() + c.y() * c.y()) * triAreaVec2(a, b, d) -
-               (d.x() * d.x() + d.y() * d.y()) * triAreaVec2(a, b, c) > 0;
+    public static boolean isInCircleVec2f(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
+        // Operation costs:
+        // - 4x (triAreaVec2: 5+, 2*) -> 20+, 8*
+        // - plus 7+, 12*             -> 27+, 20*
+        return (a.x() * a.x() + a.y() * a.y()) * triAreaVec2f(b, c, d) -
+               (b.x() * b.x() + b.y() * b.y()) * triAreaVec2f(a, c, d) +
+               (c.x() * c.x() + c.y() * c.y()) * triAreaVec2f(a, b, d) -
+               (d.x() * d.x() + d.y() * d.y()) * triAreaVec2f(a, b, c) > InCircleFThreshold;
+    }
+    public static final float InCircleFThreshold = FloatUtil.EPSILON;
+    public static float inCircleVec2fVal(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
+        // Operation costs:
+        // - 4x (triAreaVec2: 5+, 2*) -> 20+, 8*
+        // - plus 7+, 12*             -> 27+, 20*
+        return (a.x() * a.x() + a.y() * a.y()) * triAreaVec2f(b, c, d) -
+               (b.x() * b.x() + b.y() * b.y()) * triAreaVec2f(a, c, d) +
+               (c.x() * c.x() + c.y() * c.y()) * triAreaVec2f(a, b, d) -
+               (d.x() * d.x() + d.y() * d.y()) * triAreaVec2f(a, b, c);
+    }
+
+    public static final double InCircleDThreshold = DoubleUtil.EPSILON;
+    public static boolean isInCircleVec2d(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
+        return inCircleVec2dVal(a, b, c, d) > InCircleDThreshold;
+    }
+    public static double inCircleVec2dVal(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
+        // Operation costs:
+        // - 4x (triAreaVec2: 5+, 2*) -> 20+, 8*
+        // - plus 7+, 12*             -> 27+, 20*
+        return sqlend(a) * triAreaVec2d(b, c, d) -
+               sqlend(b) * triAreaVec2d(a, c, d) +
+               sqlend(c) * triAreaVec2d(a, b, d) -
+               sqlend(d) * triAreaVec2d(a, b, c);
+    }
+    private static double sqlend(final Vert2fImmutable a) {
+        final double x = a.x();
+        final double y = a.y();
+        return x*x + y*y;
     }
 
     /**
-     * Computes oriented area of a triangle
+     * Computes oriented double area of a triangle,
+     * i.e. the 2x2 determinant with b-a and c-a per column.
+     * <pre>
+     *       | bx-ax, cx-ax |
+     * det = | by-ay, cy-ay |
+     * </pre>
      * @param a first vertex
      * @param b second vertex
      * @param c third vertex
-     * @return compute twice the area of the oriented triangle (a,b,c), the area
-     * is positive if the triangle is oriented counterclockwise.
+     * @return area > 0 CCW, ..
      */
-    public static float triAreaVec2(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
+    public static float triAreaVec2f(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
         return (b.x() - a.x()) * (c.y() - a.y()) - (b.y() - a.y()) * (c.x() - a.x());
+    }
+
+    public static double triAreaVec2d(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
+        return triAreaVec2d(a.x(), a.y(), b.x(), b.y(), c.x(), c.y());
+    }
+    private static double triAreaVec2d(final double ax, final double ay, final double bx, final double by, final double cx, final double cy){
+        return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
     }
 
     /**
@@ -494,13 +536,17 @@ public final class VectorUtil {
 
     /**
      * Check if points are in ccw order
+     * <p>
+     * Consider using {@link #getWinding(ArrayList)} using the {@link #area(ArrayList)} function over all points
+     * on complex shapes for a reliable result!
+     * </p>
      * @param a first vertex
      * @param b second vertex
      * @param c third vertex
      * @return true if the points a,b,c are in a ccw order
      */
     public static boolean isCCW(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
-        return triAreaVec2(a,b,c) > 0;
+        return triAreaVec2d(a,b,c) > InCircleDThreshold;
     }
 
     /**
@@ -516,7 +562,7 @@ public final class VectorUtil {
      * @see #getWinding(ArrayList)
      */
     public static Winding getWinding(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c) {
-        return triAreaVec2(a,b,c) > 0 ? Winding.CCW : Winding.CW ;
+        return triAreaVec2d(a,b,c) > InCircleDThreshold ? Winding.CCW : Winding.CW ;
     }
 
     /**
@@ -767,4 +813,5 @@ public final class VectorUtil {
                testSeg2SegIntersection(b, c, d, e, epsilon) ||
                testSeg2SegIntersection(a, c, d, e, epsilon) ;
     }
+
 }

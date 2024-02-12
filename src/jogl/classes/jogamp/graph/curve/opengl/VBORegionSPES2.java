@@ -202,11 +202,11 @@ public final class VBORegionSPES2 extends GLRegion {
             gl.glUniform(gcu_ColorTexBBox); // Always update, since program maybe used by multiple regions
             gl.glUniform(gcu_ColorTexClearCol); // Always update, since program maybe used by multiple regions
             gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
-            // gl.glDrawElements(GL.GL_LINE_STRIP, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), gl_idx_type, 0);
+            // gl.glDrawElements(GL.GL_LINE_STRIP, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
             tex.disable(gl); // nop on core
         } else {
             gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
-            // gl.glDrawElements(GL.GL_LINE_STRIP, indicesBuffer.getElementCount() * indicesBuffer.getComponentCount(), gl_idx_type, 0);
+            // gl.glDrawElements(GL.GL_LINE_STRIP, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
         }
 
         indicesBuffer.bindBuffer(gl, false);

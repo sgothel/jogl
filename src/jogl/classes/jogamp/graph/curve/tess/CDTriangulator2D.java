@@ -83,14 +83,32 @@ public class CDTriangulator2D implements Triangulator {
     public final void addCurve(final List<Triangle> sink, final Outline polyline, final float sharpness) {
         Loop loop = getContainerLoop(polyline);
 
+        final Winding winding = polyline.getWinding();
         if( null == loop ) {
-            final Winding winding = Winding.CCW; // -> HEdge.BOUNDARY
+            // HEdge.BOUNDARY -> Winding.CCW
+            int edgeType;
+            boolean hole;
+            if( Winding.CCW != winding ) {
+                System.err.println("CDT2.add.xx.BOUNDARY: !CCW but "+winding);
+                // polyline.print(System.err);
+                if( false ) {
+                    edgeType = HEdge.HOLE;
+                    hole = true;
+                } else {
+                    edgeType = HEdge.BOUNDARY;
+                    hole = false;
+                    polyline.setWinding(Winding.CCW);
+                }
+            } else {
+                edgeType = HEdge.BOUNDARY;
+                hole = false;
+            }
             // Too late: polyline.setWinding(winding);
-            final GraphOutline outline = new GraphOutline(polyline); // , winding);
-            final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, false, sharpness);
+            final GraphOutline outline = new GraphOutline(polyline);
+            final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, hole, sharpness);
             // vertices.addAll(polyline.getVertices());
             if( innerPoly.getGraphPoint().size() >= 3 ) {
-                loop = Loop.create(innerPoly, winding);
+                loop = Loop.create(innerPoly, edgeType);
                 if( null != loop ) {
                     loops.add(loop);
                 }
@@ -122,9 +140,9 @@ public class CDTriangulator2D implements Triangulator {
                 Thread.dumpStack();
             }
         } else {
-            // final Winding winding = Winding.CW; // -> HEdge.HOLE
-            // Not required, handled in Loop.initFromPolyline(): polyline.setWinding(winding);
-            final GraphOutline outline = new GraphOutline(polyline); // , winding);
+            // HEdge.HOLE -> Winding.CW, but Winding.CCW is also accepted!
+            // Winding.CW not required, handled in Loop.initFromPolyline(): polyline.setWinding(winding);
+            final GraphOutline outline = new GraphOutline(polyline);
             final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, true, sharpness);
             // vertices.addAll(innerPoly.getVertices());
             loop.addConstraintCurve(innerPoly);
@@ -140,14 +158,13 @@ public class CDTriangulator2D implements Triangulator {
             int size = loop.computeLoopSize();
             while(!loop.isSimplex()){
                 final Triangle tri;
-                final boolean delauny;
-                if(numTries > size){
+                final boolean delaunay;
+                if(numTries > size) {
                     tri = loop.cut(false);
-                    delauny = false;
-                }
-                else{
+                    delaunay = false;
+                } else {
                     tri = loop.cut(true);
-                    delauny = true;
+                    delaunay = true;
                 }
                 numTries++;
 
@@ -155,7 +172,7 @@ public class CDTriangulator2D implements Triangulator {
                     tri.setId(maxTriID++);
                     sink.add(tri);
                     if(DEBUG){
-                        System.err.println("CDTri.gen["+i+"].0: delauny "+delauny+", tries "+numTries+", size "+size+", "+tri);
+                        System.err.println("CDTri.gen["+i+"].0: delaunay "+delaunay+", tries "+numTries+", size "+size+", "+tri);
                     }
                     numTries = 0;
                     size--;

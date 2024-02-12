@@ -42,14 +42,19 @@ public class Loop {
     private final AABBox box = new AABBox();
     private GraphOutline initialOutline = null;
 
-    private Loop(final GraphOutline polyline, final Winding winding){
+    private Loop(final GraphOutline polyline, final int edgeType){
         initialOutline = polyline;
-        this.root = initFromPolyline(initialOutline, winding);
+        this.root = initFromPolyline(initialOutline, edgeType);
     }
 
-    public static Loop create(final GraphOutline polyline, final Winding winding) {
-        final Loop res = new Loop(polyline, winding);
-        return null != res.root ? res : null;
+    public static Loop create(final GraphOutline polyline, final int edgeType) {
+        final Loop res = new Loop(polyline, edgeType);
+        if( null == res.root ) {
+            return null;
+        } else if( HEdge.HOLE == edgeType ) {
+            res.addConstraintCurveImpl(polyline);
+        }
+        return res;
     }
 
     public HEdge getHEdge(){
@@ -64,7 +69,12 @@ public class Loop {
         final HEdge prev = root.getPrev();
         final HEdge next1 = root.getNext();
 
-        final HEdge next2 = findClosestValidNeighbor(next1.getNext(), delaunay);
+        final HEdge next2;
+        if( CDTriangulator2D.DEBUG ) {
+            next2 = isValidNeighborDbg(next1.getNext(), delaunay);
+        } else {
+            next2 = isValidNeighbor(next1.getNext(), delaunay);
+        }
         if(next2 == null){
             root = root.getNext();
             return null;
@@ -97,26 +107,12 @@ public class Loop {
         return (root.getNext().getNext().getNext() == root);
     }
 
-    private static float area(final ArrayList<GraphVertex> vertices) {
-        final int n = vertices.size();
-        float area = 0.0f;
-        for (int p = n - 1, q = 0; q < n; p = q++) {
-            final Vec3f pCoord = vertices.get(p).getCoord();
-            final Vec3f qCoord = vertices.get(q).getCoord();
-            area += pCoord.x() * qCoord.y() - qCoord.x() * pCoord.y();
-        }
-        return area;
-    }
-    private static Winding getWinding(final ArrayList<GraphVertex> vertices) {
-        return area(vertices) >= 0 ? Winding.CCW : Winding.CW ;
-    }
-
     /**
      * Create a connected list of half edges (loop)
      * from the boundary profile
-     * @param reqWinding requested winding of edges, either {@link Winding#CCW} for {@link HEdge#BOUNDARY} or {@link Winding#CW} for {@link HEdge#HOLE}
+     * @param edgeType either {@link HEdge#BOUNDARY} requiring {@link Winding#CCW} or {@link HEdge#HOLE} using {@link Winding#CW} or even {@link Winding#CCW}
      */
-    private HEdge initFromPolyline(final GraphOutline outline, final Winding reqWinding){
+    private HEdge initFromPolyline(final GraphOutline outline, final int edgeType) {
         final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
 
         if(vertices.size()<3) {
@@ -126,21 +122,19 @@ public class Loop {
             }
             return null;
         }
-        final Winding hasWinding = getWinding( vertices ); // requires area-winding detection
+        final Winding winding = outline.getOutline().getWinding();
+        final Winding edgeWinding = HEdge.BOUNDARY == edgeType ? Winding.CCW : Winding.CW;
 
-        final int edgeType = reqWinding == Winding.CCW ? HEdge.BOUNDARY : HEdge.HOLE ;
+        if( HEdge.BOUNDARY == edgeType && Winding.CCW != winding ) {
+            // XXXX
+            System.err.println("Loop.init.xx.01: BOUNDARY req CCW but has "+winding);
+            // outline.getOutline().print(System.err);
+            Thread.dumpStack();
+        }
         HEdge firstEdge = null;
         HEdge lastEdge = null;
 
-        /**
-         * The winding conversion CW -> CCW can't be resolved here (-> Rami?)
-         * Therefore we require outline boundaries to be in CCW, see API-doc comment in OutlineShape.
-         *
-         * Original comment:
-         * FIXME: handle case when vertices come inverted - Rami
-         * Skips inversion CW -> CCW
-         */
-        if( hasWinding == reqWinding || reqWinding == Winding.CCW ) {
+        if( winding == edgeWinding || HEdge.BOUNDARY == edgeType ) {
             // Correct Winding or skipped CW -> CCW (no inversion possible here, too late ??)
             final int max = vertices.size() - 1;
             for(int index = 0; index <= max; ++index) {
@@ -162,8 +156,8 @@ public class Loop {
                 }
                 lastEdge = edge;
             }
-        } else { // if( reqWinding == Winding.CW ) {
-            // CCW -> CW
+        } else { // if( hasWinding == Winding.CW ) {
+            // CCW <-> CW
             for(int index = vertices.size() - 1; index >= 0; --index) {
                 final GraphVertex v1 = vertices.get(index);
                 box.resize(v1.x(), v1.y(), v1.z());
@@ -191,10 +185,12 @@ public class Loop {
     public void addConstraintCurve(final GraphOutline polyline) {
         //        GraphOutline outline = new GraphOutline(polyline);
         /**needed to generate vertex references.*/
-        if( null == initFromPolyline(polyline, Winding.CW) ) { // -> HEdge.HOLE
+        if( null == initFromPolyline(polyline, HEdge.HOLE) ) {
             return;
         }
-
+        addConstraintCurveImpl(polyline);
+    }
+    private void addConstraintCurveImpl(final GraphOutline polyline) {
         final GraphVertex v3 = locateClosestVertex(polyline);
         if( null == v3 ) {
             System.err.println( "Graph: Loop.locateClosestVertex returns null; root valid? "+(null!=root));
@@ -220,18 +216,20 @@ public class Loop {
         HEdge.connect(crossEdgeSib, root);
     }
 
-    /** Locates the vertex and update the loops root
+    /**
+     * Locates the vertex and update the loops root
      * to have (root + vertex) as closest pair
-     * @param polyline the control polyline
-     * to search for closestvertices
+     * @param polyline the control polyline to search for closestvertices in CW
      * @return the vertex that is closest to the newly set root Hedge.
      */
     private GraphVertex locateClosestVertex(final GraphOutline polyline) {
         HEdge closestE = null;
         GraphVertex closestV = null;
 
+        // final Winding winding = polyline.getOutline().getWinding();
+        // final Winding winding = getWinding( vertices ); // requires area-winding detection
+
         float minDistance = Float.MAX_VALUE;
-        boolean inValid = false;
         final ArrayList<GraphVertex> initVertices = initialOutline.getGraphPoint();
         final ArrayList<GraphVertex> vertices = polyline.getGraphPoint();
 
@@ -242,16 +240,17 @@ public class Loop {
                 final GraphVertex cand = vertices.get(pos);
                 final float distance = v.getCoord().dist( cand.getCoord() );
                 if(distance < minDistance){
+                    boolean inside = false;
                     for (final GraphVertex vert:vertices){
-                        if(vert == v || vert == nextV || vert == cand)
+                        if(vert == v || vert == nextV || vert == cand) {
                             continue;
-                        inValid = VectorUtil.isInCircleVec2(v.getPoint(), nextV.getPoint(),
-                                cand.getPoint(), vert.getPoint());
-                        if(inValid){
+                        }
+                        inside = VectorUtil.isInCircleVec2d(v.getPoint(), nextV.getPoint(), cand.getPoint(), vert.getPoint());
+                        if(inside){
                             break;
                         }
                     }
-                    if(!inValid){
+                    if(!inside){
                         closestV = cand;
                         minDistance = distance;
                         closestE = v.findBoundEdge();
@@ -268,39 +267,67 @@ public class Loop {
         return closestV;
     }
 
-    private HEdge findClosestValidNeighbor(final HEdge edge, final boolean delaunay) {
+    private HEdge isValidNeighbor(final HEdge candEdge, final boolean delaunay) {
         final HEdge next = root.getNext();
-
-        if(!VectorUtil.isCCW(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
-                edge.getGraphPoint().getPoint())){
+        if( !VectorUtil.isCCW( root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
+                               candEdge.getGraphPoint().getPoint()) ) {
             return null;
         }
-
-        final HEdge candEdge = edge;
-        boolean inValid = false;
-
-        if(delaunay){
-            final Vertex cand = candEdge.getGraphPoint().getPoint();
-            HEdge e = candEdge.getNext();
-            while (e != candEdge){
-                if(e.getGraphPoint() == root.getGraphPoint()
-                        || e.getGraphPoint() == next.getGraphPoint()
-                        || e.getGraphPoint().getPoint() == cand){
-                    e = e.getNext();
-                    continue;
-                }
-                inValid = VectorUtil.isInCircleVec2(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
-                                              cand, e.getGraphPoint().getPoint());
-                if(inValid){
-                    break;
-                }
-                e = e.getNext();
-            }
-        }
-        if(!inValid){
+        if( !delaunay ) {
             return candEdge;
         }
-        return null;
+        final Vertex candPoint = candEdge.getGraphPoint().getPoint();
+        HEdge e = candEdge.getNext();
+        while (e != candEdge){
+            final GraphVertex egp = e.getGraphPoint();
+            if(egp != root.getGraphPoint() &&
+               egp != next.getGraphPoint() &&
+               egp.getPoint() != candPoint )
+            {
+                if( VectorUtil.isInCircleVec2d(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
+                                               candPoint, egp.getPoint()) ) {
+                    return null;
+                }
+            }
+            e = e.getNext();
+        }
+        return candEdge;
+    }
+    private HEdge isValidNeighborDbg(final HEdge candEdge, final boolean delaunay) {
+        final HEdge next = root.getNext();
+        if( !VectorUtil.isCCW( root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
+                               candEdge.getGraphPoint().getPoint()) ) {
+            return null;
+        }
+        if( !delaunay ) {
+            return candEdge;
+        }
+        final Vertex candPoint = candEdge.getGraphPoint().getPoint();
+        HEdge e = candEdge.getNext();
+        while (e != candEdge){
+            final GraphVertex egp = e.getGraphPoint();
+            if(egp != root.getGraphPoint() &&
+               egp != next.getGraphPoint() &&
+               egp.getPoint() != candPoint )
+            {
+                final double v = VectorUtil.inCircleVec2dVal(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
+                                                             candPoint, egp.getPoint());
+                if( v > VectorUtil.InCircleDThreshold ) {
+                    if( CDTriangulator2D.DEBUG ) {
+                        System.err.printf("Loop.isInCircle.1: %30.30f: %s, of%n- %s%n- %s%n- %s%n",
+                                v, candPoint, root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(), egp.getPoint());
+                    }
+                    return null;
+                }
+                if( CDTriangulator2D.DEBUG ) {
+                    System.err.printf("Loop.isInCircle.0: %30.30f: %s, of%n- %s%n- %s%n- %s%n",
+                            v, candPoint, root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(), egp.getPoint());
+                }
+            }
+            e = e.getNext();
+        }
+        System.err.printf("Loop.isInCircle.0: %s%n", candPoint);
+        return candEdge;
     }
 
     /** Create a triangle from the param vertices only if
