@@ -219,6 +219,7 @@ public class FontView01 {
         System.err.println(gridDim);
         System.err.println("GlyphGrid[pgsz "+glyphGridSize+", totsz "+glyphGridTotalSize+", cellSz "+glyphGridCellSize+"]");
 
+        final int[] lastCodepoint = { gridDim.contourChars.get(0) };
         final Group mainView;
         final Shape.PointerListener glyphPointerListener;
         {
@@ -241,13 +242,12 @@ public class FontView01 {
                 e.setConsumed(true);
 
                 // Selected Glyph g0
-                final boolean doScreenshot = e.isControlDown() && e.getButtonDownCount() > 0;
                 scene.invoke(false, (final GLAutoDrawable d) -> {
                     // Handle old one
                     if( 1 == glyphShapeHolder.getShapeCount() ) {
                         final GlyphShape old = (GlyphShape) glyphShapeHolder.getShapeByIdx(0);
                         if( null != old ) {
-                            if( !doScreenshot && old.getGlyph().getCodepoint() == g0.getGlyph().getCodepoint() ) {
+                            if( old.getGlyph().getCodepoint() == g0.getGlyph().getCodepoint() ) {
                                 // System.err.println("GlyphShape Same: "+old);
                                 return true; // abort - no change
                             } else {
@@ -262,9 +262,7 @@ public class FontView01 {
                     // New Glyph
                     glyphShapeHolder.addShape(g0);
                     setGlyphInfo(fontStatus, glyphInfo, g0.getGlyph());
-                    if( doScreenshot ) {
-                        printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, g0.getGlyph().getCodepoint());
-                    }
+                    lastCodepoint[0] = g0.getGlyph().getCodepoint();
                     return true;
                 });
             };
@@ -398,6 +396,8 @@ public class FontView01 {
                 final short keySym = e.getKeySymbol();
                 if( keySym == KeyEvent.VK_F4 || keySym == KeyEvent.VK_ESCAPE || keySym == KeyEvent.VK_Q ) {
                     MiscUtils.destroyWindow(window);
+                } else if( keySym == KeyEvent.VK_S ) {
+                    printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, lastCodepoint[0]);
                 }
             }
         });
@@ -419,7 +419,7 @@ public class FontView01 {
             final float nsPerGlyph = total / gridDim.glyphCount;
             System.err.println("PERF: Total took "+(total/1000000.0)+"ms, per-glyph "+(nsPerGlyph/1000000.0)+"ms, glyphs "+gridDim.glyphCount);
         }
-        printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, gridDim.contourChars.get(0));
+        printScreenOnGLThread(scene, window.getChosenGLCapabilities(), font, lastCodepoint[0]);
         // stay open ..
         OutlineShape.printPerf(System.err);
     }
