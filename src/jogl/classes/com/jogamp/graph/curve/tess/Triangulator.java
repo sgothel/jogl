@@ -49,6 +49,9 @@ import com.jogamp.graph.geom.Triangle;
  */
 public interface Triangulator {
 
+    /** Mark the to be triangulated shape convex or non-convex, causing further processing costs if non-convex like intersection tests. Default is assuming a convex shape. */
+    public void setConvexShape(boolean convex);
+
     /**
      * Add a curve to the list of Outlines
      * describing the shape

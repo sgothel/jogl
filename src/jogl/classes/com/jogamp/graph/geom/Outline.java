@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -57,7 +57,11 @@ public class Outline implements Comparable<Outline> {
     private final AABBox bbox;
     private boolean dirtyBBox;
     private Winding winding;
-    private boolean dirtyWinding;
+    private boolean convexFlag;
+    private int dirtyBits;
+
+    private static final int DIRTY_WINDING = 1 << 0;
+    private static final int DIRTY_CONVEX  = 1 << 0;
 
     /**Create an outline defined by control vertices.
      * An outline can contain off Curve vertices which define curved
@@ -69,7 +73,8 @@ public class Outline implements Comparable<Outline> {
         bbox = new AABBox();
         dirtyBBox = false;
         winding = Winding.CCW;
-        dirtyWinding = false;
+        convexFlag = false;
+        dirtyBits = 0;
     }
 
     /**
@@ -79,7 +84,8 @@ public class Outline implements Comparable<Outline> {
         final int count = src.vertices.size();
         vertices = new ArrayList<Vertex>(count);
         winding = Winding.CCW;
-        dirtyWinding = true;
+        convexFlag = false;
+        dirtyBits = DIRTY_WINDING | DIRTY_CONVEX;
         for(int i=0; i<count; i++) {
             vertices.add( src.vertices.get(i).copy() );
         }
@@ -99,9 +105,15 @@ public class Outline implements Comparable<Outline> {
     public Outline(final Outline src, final Winding enforce) {
         final int count = src.vertices.size();
         vertices = new ArrayList<Vertex>(count);
-        final Winding had_winding = src.getWinding();;
+        final Winding had_winding = src.getWinding();
         winding = had_winding;
-        dirtyWinding = false;
+        if( 0 == ( src.dirtyBits & DIRTY_CONVEX ) ) {
+            convexFlag = src.convexFlag;
+            dirtyBits = 0;
+        } else {
+            convexFlag = false;
+            dirtyBits = DIRTY_CONVEX;
+        }
         if( enforce != had_winding ) {
             for(int i=count-1; i>=0; --i) {
                 vertices.add( src.vertices.get(i).copy() );
@@ -138,11 +150,14 @@ public class Outline implements Comparable<Outline> {
     }
 
     /**
-     * Compute the winding of the {@link #getLastOutline()} using the {@link VectorUtil#area2d(ArrayList)} function over all of its vertices.
+     * Returns the cached or computed winding of this {@link Outline}s {@code polyline} using {@link VectorUtil#area(ArrayList)}.
+     * <p>
+     * The result is cached.
+     * </p>
      * @return {@link Winding#CCW} or {@link Winding#CW}
      */
     public final Winding getWinding() {
-        if( !dirtyWinding ) {
+        if( 0 == ( dirtyBits & DIRTY_WINDING ) ) {
             return winding;
         }
         final int count = getVertexCount();
@@ -151,8 +166,27 @@ public class Outline implements Comparable<Outline> {
         } else {
             winding = VectorUtil.getWinding( getVertices() );
         }
-        dirtyWinding = false;
+        dirtyBits &= ~DIRTY_WINDING;
         return winding;
+    }
+
+    /**
+     * Returns the cached or computed result whether this {@link Outline}s {@code polyline} has a convex shape using {@link VectorUtil#isConvex(ArrayList, boolean)}.
+     * <p>
+     * A polyline with less than 3 elements is marked convex for simplicity,
+     * since a non-convex complex shape may need to pass intersection testing within triangulation.
+     * </p>
+     * <p>
+     * The result is cached.
+     * </p>
+     */
+    public boolean isConvex() {
+        if( 0 == ( dirtyBits & DIRTY_CONVEX ) ) {
+            return convexFlag;
+        }
+        convexFlag = VectorUtil.isConvex1( getVertices(), true );
+        dirtyBits &= ~DIRTY_CONVEX;
+        return convexFlag;
     }
 
     public final int getVertexCount() {
@@ -183,7 +217,7 @@ public class Outline implements Comparable<Outline> {
         if(!dirtyBBox) {
             bbox.resize(vertex.getCoord());
         }
-        dirtyWinding = true;
+        dirtyBits |= DIRTY_WINDING | DIRTY_CONVEX;
     }
 
     /** Replaces the {@link Vertex} element at the given {@code position}.
@@ -200,7 +234,7 @@ public class Outline implements Comparable<Outline> {
         }
         vertices.set(position, vertex);
         dirtyBBox = true;
-        dirtyWinding = true;
+        dirtyBits |= DIRTY_WINDING | DIRTY_CONVEX;
     }
 
     public final Vertex getVertex(final int index){
@@ -219,7 +253,7 @@ public class Outline implements Comparable<Outline> {
      */
     public final Vertex removeVertex(final int position) throws IndexOutOfBoundsException {
         dirtyBBox = true;
-        dirtyWinding = true;
+        dirtyBits |= DIRTY_WINDING | DIRTY_CONVEX;
         return vertices.remove(position);
     }
 
@@ -372,5 +406,4 @@ public class Outline implements Comparable<Outline> {
             out.printf("- OL[%d]: %s%n", vi, v);
         }
     }
-
 }

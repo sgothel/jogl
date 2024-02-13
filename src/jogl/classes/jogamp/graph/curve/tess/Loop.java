@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -28,79 +28,37 @@
 package jogamp.graph.curve.tess;
 
 import java.util.ArrayList;
-
+import java.util.List;
 
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.math.Vec3f;
 import com.jogamp.math.VectorUtil;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.geom.plane.Winding;
 import com.jogamp.graph.geom.Triangle;
 
 public class Loop {
-    private HEdge root = null;
     private final AABBox box = new AABBox();
-    private GraphOutline initialOutline = null;
+    private final GraphOutline initialOutline;
+    private final boolean isConvex;
+    private HEdge root;
+    private final List<GraphOutline> outlines = new ArrayList<GraphOutline>();
 
-    private Loop(final GraphOutline polyline, final int edgeType){
-        initialOutline = polyline;
+    private Loop(final GraphOutline polyline, final int edgeType, final boolean isConvex){
+        this.initialOutline = polyline;
+        this.isConvex = isConvex;
         this.root = initFromPolyline(initialOutline, edgeType);
     }
 
-    public static Loop create(final GraphOutline polyline, final int edgeType) {
-        final Loop res = new Loop(polyline, edgeType);
+    public static Loop createBoundary(final GraphOutline polyline, final boolean isConvex) {
+        final Loop res = new Loop(polyline, HEdge.BOUNDARY, isConvex);
         if( null == res.root ) {
             return null;
-        } else if( HEdge.HOLE == edgeType ) {
-            res.addConstraintCurveImpl(polyline);
         }
         return res;
     }
 
     public HEdge getHEdge(){
         return root;
-    }
-
-    public Triangle cut(final boolean delaunay){
-        if(isSimplex()){
-            return new Triangle(root.getGraphPoint().getPoint(), root.getNext().getGraphPoint().getPoint(),
-                                root.getNext().getNext().getGraphPoint().getPoint(), checkVerticesBoundary(root));
-        }
-        final HEdge prev = root.getPrev();
-        final HEdge next1 = root.getNext();
-
-        final HEdge next2;
-        if( CDTriangulator2D.DEBUG ) {
-            next2 = isValidNeighborDbg(next1.getNext(), delaunay);
-        } else {
-            next2 = isValidNeighbor(next1.getNext(), delaunay);
-        }
-        if(next2 == null){
-            root = root.getNext();
-            return null;
-        }
-
-        final GraphVertex v1 = root.getGraphPoint();
-        final GraphVertex v2 = next1.getGraphPoint();
-        final GraphVertex v3 = next2.getGraphPoint();
-
-        final HEdge v3Edge = new HEdge(v3, HEdge.INNER);
-
-        HEdge.connect(v3Edge, root);
-        HEdge.connect(next1, v3Edge);
-
-        HEdge v3EdgeSib = v3Edge.getSibling();
-        if(v3EdgeSib == null){
-            v3EdgeSib = new HEdge(v3Edge.getNext().getGraphPoint(), HEdge.INNER);
-            HEdge.makeSiblings(v3Edge, v3EdgeSib);
-        }
-
-        HEdge.connect(prev, v3EdgeSib);
-        HEdge.connect(v3EdgeSib, next2);
-
-        final Triangle t = createTriangle(v1.getPoint(), v2.getPoint(), v3.getPoint(), root);
-        this.root = next2;
-        return t;
     }
 
     public boolean isSimplex(){
@@ -113,6 +71,7 @@ public class Loop {
      * @param edgeType either {@link HEdge#BOUNDARY} requiring {@link Winding#CCW} or {@link HEdge#HOLE} using {@link Winding#CW} or even {@link Winding#CCW}
      */
     private HEdge initFromPolyline(final GraphOutline outline, final int edgeType) {
+        outlines.add(outline);
         final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
 
         if(vertices.size()<3) {
@@ -182,17 +141,12 @@ public class Loop {
         return firstEdge;
     }
 
-    public void addConstraintCurve(final GraphOutline polyline, final int edgeType) {
+    public void addConstraintCurveHole(final GraphOutline polyline) {
         //        GraphOutline outline = new GraphOutline(polyline);
         /**needed to generate vertex references.*/
-        if( null == initFromPolyline(polyline, edgeType) ) { // 'usually' HEdge.HOLE
+        if( null == initFromPolyline(polyline, HEdge.HOLE) ) {
             return;
         }
-        if( HEdge.HOLE == edgeType ) {
-            addConstraintCurveImpl(polyline);
-        }
-    }
-    private void addConstraintCurveImpl(final GraphOutline polyline) {
         final GraphVertex v3 = locateClosestVertex(polyline);
         if( null == v3 ) {
             System.err.println( "Graph: Loop.locateClosestVertex returns null; root valid? "+(null!=root));
@@ -225,60 +179,240 @@ public class Loop {
      * @return the vertex that is closest to the newly set root Hedge.
      */
     private GraphVertex locateClosestVertex(final GraphOutline polyline) {
+        float minDistance = Float.MAX_VALUE;
+        final ArrayList<GraphVertex> initVertices = initialOutline.getGraphPoint();
+        if( initVertices.size() < 2 ) {
+            return null;
+        }
+        final ArrayList<GraphVertex> vertices = polyline.getGraphPoint();
         HEdge closestE = null;
         GraphVertex closestV = null;
 
-        // final Winding winding = polyline.getOutline().getWinding();
-        // final Winding winding = getWinding( vertices ); // requires area-winding detection
-
-        float minDistance = Float.MAX_VALUE;
-        final ArrayList<GraphVertex> initVertices = initialOutline.getGraphPoint();
-        final ArrayList<GraphVertex> vertices = polyline.getGraphPoint();
-
-        for(int i=0; i< initVertices.size()-1; i++){
-            final GraphVertex v = initVertices.get(i);
-            final GraphVertex nextV = initVertices.get(i+1);
+        final int initSz = initVertices.size();
+        GraphVertex v0 = initVertices.get(0);
+        for(int i=1; i< initSz; i++){
+            final GraphVertex v1 = initVertices.get(i);
             for(int pos=0; pos<vertices.size(); pos++) {
                 final GraphVertex cand = vertices.get(pos);
-                final float distance = v.getCoord().dist( cand.getCoord() );
+                final float distance = v0.getCoord().dist( cand.getCoord() );
                 if(distance < minDistance){
                     boolean inside = false;
                     for (final GraphVertex vert:vertices){
-                        if(vert == v || vert == nextV || vert == cand) {
-                            continue;
-                        }
-                        inside = VectorUtil.isInCircleVec2d(v.getPoint(), nextV.getPoint(), cand.getPoint(), vert.getPoint());
-                        if(inside){
-                            break;
+                        if( !( vert == v0 || vert == v1 || vert == cand) ) {
+                            inside = VectorUtil.isInCircle(v0.getPoint(), v1.getPoint(), cand.getPoint(), vert.getPoint());
+                            if(inside){
+                                break;
+                            }
                         }
                     }
                     if(!inside){
                         closestV = cand;
                         minDistance = distance;
-                        closestE = v.findBoundEdge();
+                        closestE = v0.findBoundEdge();
                     }
                 }
-
             }
+            v0 = v1;
         }
-
         if(closestE != null){
             root = closestE;
         }
-
         return closestV;
+    }
+
+    /**
+    public static void printPerf(final PrintStream out) {
+        out.printf("Graph.Intersection: cut[count %,d, td %,f ms], isect[count %,d, td %,f ms], isec/cut[count %f, td %f]%n",
+                   perf_cut_count, perf_cut_td_ns/1000000.0, perf_isect_count, perf_isect_td_ns/1000000.0,
+                   (double)perf_isect_count/(double)perf_cut_count, (double)perf_isect_td_ns/(double)perf_cut_td_ns);
+    }
+    private static long perf_isect_td_ns = 0;
+    private static long perf_isect_count = 0;
+    private static long perf_cut_td_ns = 0;
+    private static long perf_cut_count = 0;
+    */
+    public final Triangle cut(final boolean delaunay){
+        if( !CDTriangulator2D.DEBUG ) {
+            // final long t0 = Clock.currentNanos();
+            return cut0(delaunay);
+            // perf_cut_td_ns += Clock.currentNanos() - t0;
+            // perf_cut_count++;
+        } else {
+            return cutDbg(delaunay);
+        }
+    }
+    private final Triangle cut0(final boolean delaunay){
+        final HEdge next1 = root.getNext();
+        if(isSimplex()){
+            final Vertex rootPoint = root.getGraphPoint().getPoint();
+            final Vertex nextPoint = next1.getGraphPoint().getPoint();
+            final Vertex candPoint = next1.getNext().getGraphPoint().getPoint();
+            if( !isConvex && intersectsOutline(rootPoint, nextPoint, candPoint) ) {
+                return null;
+            }
+            return new Triangle(rootPoint, nextPoint, candPoint, checkVerticesBoundary(root));
+        }
+        final HEdge prev = root.getPrev();
+
+        final HEdge next2 = isValidNeighbor(next1.getNext(), delaunay);
+        if(next2 == null){
+            root = root.getNext();
+            return null;
+        }
+
+        final GraphVertex v1 = root.getGraphPoint();
+        final GraphVertex v2 = next1.getGraphPoint();
+        final GraphVertex v3 = next2.getGraphPoint();
+
+        final HEdge v3Edge = new HEdge(v3, HEdge.INNER);
+
+        HEdge.connect(v3Edge, root);
+        HEdge.connect(next1, v3Edge);
+
+        HEdge v3EdgeSib = v3Edge.getSibling();
+        if(v3EdgeSib == null){
+            v3EdgeSib = new HEdge(v3Edge.getNext().getGraphPoint(), HEdge.INNER);
+            HEdge.makeSiblings(v3Edge, v3EdgeSib);
+        }
+
+        HEdge.connect(prev, v3EdgeSib);
+        HEdge.connect(v3EdgeSib, next2);
+
+        final Triangle t = createTriangle(v1.getPoint(), v2.getPoint(), v3.getPoint(), root);
+        this.root = next2;
+        return t;
+    }
+    private final Triangle cutDbg(final boolean delaunay){
+        final HEdge next1 = root.getNext();
+        if(isSimplex()){
+            final Vertex rootPoint = root.getGraphPoint().getPoint();
+            final Vertex nextPoint = next1.getGraphPoint().getPoint();
+            final Vertex candPoint = next1.getNext().getGraphPoint().getPoint();
+            if( !isConvex && intersectsOutlineDbg(rootPoint, nextPoint, candPoint) ) {
+                System.err.printf("Loop.cut.X0: last-simplex intersects%n");
+                return null;
+            }
+            final Triangle tri = new Triangle(rootPoint, nextPoint, candPoint, checkVerticesBoundary(root));
+            System.err.printf("Loop.cut.X1: last-simplex %s%n", tri);
+            return tri;
+        }
+        final HEdge prev = root.getPrev();
+
+        final HEdge next2 = isValidNeighborDbg(next1.getNext(), delaunay);
+        if(next2 == null){
+            root = root.getNext();
+            System.err.printf("Loop.cut.0: null-cut %s%n", next1.getNext().getGraphPoint());
+            return null;
+        }
+
+        final GraphVertex v1 = root.getGraphPoint();
+        final GraphVertex v2 = next1.getGraphPoint();
+        final GraphVertex v3 = next2.getGraphPoint();
+
+        final HEdge v3Edge = new HEdge(v3, HEdge.INNER);
+
+        HEdge.connect(v3Edge, root);
+        HEdge.connect(next1, v3Edge);
+
+        HEdge v3EdgeSib = v3Edge.getSibling();
+        if(v3EdgeSib == null){
+            v3EdgeSib = new HEdge(v3Edge.getNext().getGraphPoint(), HEdge.INNER);
+            HEdge.makeSiblings(v3Edge, v3EdgeSib);
+        }
+
+        HEdge.connect(prev, v3EdgeSib);
+        HEdge.connect(v3EdgeSib, next2);
+
+        final Triangle t = createTriangle(v1.getPoint(), v2.getPoint(), v3.getPoint(), root);
+        this.root = next2;
+        System.err.printf("Loop.cut.1: new-cut %s -> %s%n", next2.getGraphPoint(), t);
+        return t;
+    }
+
+    private boolean intersectsOutline(final Vertex a1, final Vertex a2, final Vertex b) {
+        // final long t0 = Clock.currentNanos();
+        for(final GraphOutline outline : outlines) {
+            if( intersectsOutline(outline, a1, a2, b) ) {
+                // perf_isect_td_ns += Clock.currentNanos() - t0;
+                // perf_isect_count++;
+                return true;
+            }
+        }
+        // perf_isect_td_ns += Clock.currentNanos() - t0;
+        // perf_isect_count++;
+        return false;
+    }
+    private boolean intersectsOutline(final GraphOutline outline, final Vertex a1, final Vertex a2, final Vertex b) {
+        final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
+        if( vertices.size() < 2 ) {
+            return false;
+        }
+        final int sz = vertices.size();
+        Vertex v0 = vertices.get(0).getPoint();
+        for(int i=1; i< sz; i++){
+            final Vertex v1 = vertices.get(i).getPoint();
+            if( !( v0 == b || v1 == b ) ) {
+                if( !( v0 == a1 || v1 == a1 ) &&
+                    VectorUtil.testSeg2SegIntersection(a1, b, v0, v1) ) {
+                    return true;
+                }
+                if( !( v0 == a2 || v1 == a2 ) &&
+                    VectorUtil.testSeg2SegIntersection(a2, b, v0, v1) ) {
+                    return true;
+                }
+            }
+            v0 = v1;
+        }
+        return false;
+    }
+    private boolean intersectsOutlineDbg(final Vertex a1, final Vertex a2, final Vertex b) {
+        for(final GraphOutline outline : outlines) {
+            if( intersectsOutlineDbg(outline, a1, a2, b) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+    private boolean intersectsOutlineDbg(final GraphOutline outline, final Vertex a1, final Vertex a2, final Vertex b) {
+        final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
+        if( vertices.size() < 2 ) {
+            return false;
+        }
+        final int sz = vertices.size();
+        Vertex v0 = vertices.get(0).getPoint();
+        for(int i=1; i< sz; i++){
+            final Vertex v1 = vertices.get(i).getPoint();
+            if( !( v0 == b || v1 == b ) ) {
+                if( !( v0 == a1 || v1 == a1 ) &&
+                    VectorUtil.testSeg2SegIntersection(a1, b, v0, v1) ) {
+                    System.err.printf("Loop.intersection.b-a1.1: %d/%d %s to%n-a1 %s, with%n-v0 %s%n-v1 %s%n", i, sz-1, b, a1, v0, v1);
+                    return true;
+                }
+                if( !( v0 == a2 || v1 == a2 ) &&
+                    VectorUtil.testSeg2SegIntersection(a2, b, v0, v1) ) {
+                    System.err.printf("Loop.intersection.b-a2.1: %d/%d %s to%n-a2 %s, with%n-v0 %s%n-v1 %s%n", i, sz-1, b, a2, v0, v1);
+                    return true;
+                }
+            }
+            v0 = v1;
+        }
+        return false;
     }
 
     private HEdge isValidNeighbor(final HEdge candEdge, final boolean delaunay) {
         final HEdge next = root.getNext();
-        if( !VectorUtil.isCCW( root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
-                               candEdge.getGraphPoint().getPoint()) ) {
+        final Vertex rootPoint = root.getGraphPoint().getPoint();
+        final Vertex nextPoint = next.getGraphPoint().getPoint();
+        final Vertex candPoint = candEdge.getGraphPoint().getPoint();
+        if( !VectorUtil.isCCW( rootPoint, nextPoint, candPoint) ) {
+            return null;
+        }
+        if( !isConvex && intersectsOutline(rootPoint, nextPoint, candPoint) ) {
             return null;
         }
         if( !delaunay ) {
             return candEdge;
         }
-        final Vertex candPoint = candEdge.getGraphPoint().getPoint();
         HEdge e = candEdge.getNext();
         while (e != candEdge){
             final GraphVertex egp = e.getGraphPoint();
@@ -286,8 +420,7 @@ public class Loop {
                egp != next.getGraphPoint() &&
                egp.getPoint() != candPoint )
             {
-                if( VectorUtil.isInCircleVec2d(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
-                                               candPoint, egp.getPoint()) ) {
+                if( VectorUtil.isInCircle(rootPoint, nextPoint, candPoint, egp.getPoint()) ) {
                     return null;
                 }
             }
@@ -297,14 +430,20 @@ public class Loop {
     }
     private HEdge isValidNeighborDbg(final HEdge candEdge, final boolean delaunay) {
         final HEdge next = root.getNext();
-        if( !VectorUtil.isCCW( root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
-                               candEdge.getGraphPoint().getPoint()) ) {
+        final Vertex rootPoint = root.getGraphPoint().getPoint();
+        final Vertex nextPoint = next.getGraphPoint().getPoint();
+        final Vertex candPoint = candEdge.getGraphPoint().getPoint();
+        if( !VectorUtil.isCCW( rootPoint, nextPoint, candPoint) ) {
+            System.err.printf("Loop.isInCircle.X: !CCW %s, of%n- %s%n- %s%n- %s%n",
+                    candPoint, rootPoint, nextPoint, candPoint);
+            return null;
+        }
+        if( !isConvex && intersectsOutlineDbg(rootPoint, nextPoint, candPoint) ) {
             return null;
         }
         if( !delaunay ) {
             return candEdge;
         }
-        final Vertex candPoint = candEdge.getGraphPoint().getPoint();
         HEdge e = candEdge.getNext();
         while (e != candEdge){
             final GraphVertex egp = e.getGraphPoint();
@@ -312,11 +451,10 @@ public class Loop {
                egp != next.getGraphPoint() &&
                egp.getPoint() != candPoint )
             {
-                final double v = VectorUtil.inCircleVec2dVal(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
-                                                             candPoint, egp.getPoint());
+                final double v = VectorUtil.inCircleVal(rootPoint, nextPoint, candPoint, egp.getPoint());
                 if( v > VectorUtil.InCircleDThreshold ) {
                     System.err.printf("Loop.isInCircle.1: %30.30f: %s, of%n- %s%n- %s%n- %s%n",
-                            v, candPoint, root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(), egp.getPoint());
+                            v, candPoint, rootPoint, nextPoint, egp.getPoint());
                     return null;
                 }
                 System.err.printf("Loop.isInCircle.0: %30.30f: %s, of%n- %s%n- %s%n- %s%n",

@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2023 JogAmp Community. All rights reserved.
+ * Copyright 2010-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -135,15 +135,20 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     /** Initial {@link #getSharpness()} value, which can be modified via {@link #setSharpness(float)}. */
     public static final float DEFAULT_SHARPNESS = 0.5f;
 
-    public static final int DIRTY_BOUNDS = 1 << 0;
+    private static final int DIRTY_BOUNDS = 1 << 0;
     /**
      * Modified shape, requires to update the vertices and triangles, here: vertices.
      */
-    public static final int DIRTY_VERTICES  = 1 << 1;
+    private static final int DIRTY_VERTICES  = 1 << 1;
     /**
      * Modified shape, requires to update the vertices and triangles, here: triangulation.
      */
-    public static final int DIRTY_TRIANGLES  = 1 << 2;
+    private static final int DIRTY_TRIANGLES  = 1 << 2;
+    /**
+     * Modified shape, requires to update the convex determination
+     */
+    private static final int DIRTY_CONVEX  = 1 << 3;
+    private static final int OVERRIDE_CONVEX  = 1 << 4;
 
     /** The list of {@link Outline}s that are part of this
      *  outline shape.
@@ -154,6 +159,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     private final ArrayList<Triangle> triangles;
     private final ArrayList<Vertex> vertices;
     private int addedVerticeCount;
+    private boolean convexFlag;
 
     private VerticesState outlineState;
 
@@ -181,6 +187,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         this.triangles = new ArrayList<Triangle>();
         this.vertices = new ArrayList<Vertex>();
         this.addedVerticeCount = 0;
+        this.convexFlag = true;
         this.dirtyBits = 0;
         this.sharpness = DEFAULT_SHARPNESS;
     }
@@ -214,6 +221,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         vertices.clear();
         triangles.clear();
         addedVerticeCount = 0;
+        convexFlag = true;
         dirtyBits = 0;
     }
 
@@ -221,7 +229,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     public final void clearCache() {
         vertices.clear();
         triangles.clear();
-        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
+        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES | DIRTY_CONVEX;
     }
 
     /** Returns the number of {@link Outline}s. */
@@ -251,6 +259,50 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      */
     public final void setWindingOfLastOutline(final Winding enforced) {
         getLastOutline().setWinding(enforced);
+    }
+
+    /**
+     * Returns cached or computed result whether all {@code polyline}s of {@link #getOutline(int)} are of convex shape, see {@link Outline#isConvex()}.
+     * <p>
+     * A polyline with less than 3 elements is marked convex for simplicity,
+     * since a non-convex complex shape may need to pass intersection testing within triangulation.
+     * </p>
+     * <p>
+     * The result is cached.
+     * </p>
+     * @see #setOverrideConvex(boolean)
+     * @see #clearOverrideConvex()
+     */
+    public boolean isConvex() {
+        if( 0 == ( OVERRIDE_CONVEX & dirtyBits ) ) {
+            if( 0 != ( DIRTY_CONVEX & dirtyBits ) ) {
+                convexFlag = true;
+                final int sz = this.getOutlineCount();
+                for(int i=0; i<sz && convexFlag; ++i) {
+                    convexFlag = getOutline(i).isConvex();
+                }
+                dirtyBits &= ~DIRTY_CONVEX;
+            }
+        }
+        return convexFlag;
+    }
+    /**
+     * Overrides {@link #isConvex()} using the given value instead of computing via {@link Outline#isConvex()}.
+     * @see #clearOverrideConvex()
+     * @see #isConvex()
+     */
+    public void setOverrideConvex(final boolean convex) {
+        dirtyBits |= OVERRIDE_CONVEX;
+        convexFlag = convex;
+    }
+    /**
+     * Clears the {@link #isConvex()} override done by {@link #setOverrideConvex(boolean)}
+     * @see #setOverrideConvex(boolean)
+     * @see #isConvex()
+     */
+    public void clearOverrideConvex() {
+        dirtyBits &= ~OVERRIDE_CONVEX;
+        dirtyBits |= DIRTY_CONVEX;
     }
 
     /**
@@ -308,7 +360,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
                     bbox.resize(outline.getBounds());
                 }
                 // vertices.addAll(outline.getVertices()); // FIXME: can do and remove DIRTY_VERTICES ?
-                dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
+                dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES | DIRTY_CONVEX;
                 return;
             }
         }
@@ -316,7 +368,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
             bbox.resize(outline.getBounds());
         }
-        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
+        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES | DIRTY_CONVEX;
     }
 
     /**
@@ -351,7 +403,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
             throw new NullPointerException("outline is null");
         }
         outlines.set(position, outline);
-        dirtyBits |= DIRTY_BOUNDS | DIRTY_TRIANGLES | DIRTY_VERTICES;
+        dirtyBits |= DIRTY_BOUNDS | DIRTY_TRIANGLES | DIRTY_VERTICES | DIRTY_CONVEX;
     }
 
     /**
@@ -362,7 +414,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @throws IndexOutOfBoundsException if position is out of range (position < 0 || position >= getOutlineNumber())
      */
     public final Outline removeOutline(final int position) throws IndexOutOfBoundsException {
-        dirtyBits |= DIRTY_BOUNDS | DIRTY_TRIANGLES | DIRTY_VERTICES;
+        dirtyBits |= DIRTY_BOUNDS | DIRTY_TRIANGLES | DIRTY_VERTICES | DIRTY_CONVEX;
         return outlines.remove(position);
     }
 
@@ -396,7 +448,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
             bbox.resize(v.getCoord());
         }
         // vertices.add(v); // FIXME: can do and remove DIRTY_VERTICES ?
-        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
+        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES | DIRTY_CONVEX;
     }
 
     /**
@@ -412,7 +464,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
             bbox.resize(v.getCoord());
         }
-        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
+        dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES | DIRTY_CONVEX;
     }
 
     /**
@@ -516,7 +568,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      */
     public final void closeLastOutline(final boolean closeTail) {
         if( getLastOutline().setClosed( closeTail ) ) {
-            dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES;
+            dirtyBits |= DIRTY_TRIANGLES | DIRTY_VERTICES | DIRTY_CONVEX;
         }
     }
 
@@ -956,6 +1008,9 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         return vertices;
     }
 
+    public static void printPerf(final PrintStream out) {
+        // jogamp.graph.curve.tess.Loop.printPerf(out);
+    }
     private void triangulateImpl() {
         if( 0 < outlines.size() ) {
             sortOutlines();
@@ -963,6 +1018,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
             triangles.clear();
             final Triangulator triangulator2d = Triangulation.create();
+            triangulator2d.setConvexShape( isConvex() );
             for(int index = 0; index<outlines.size(); index++) {
                 triangulator2d.addCurve(triangles, outlines.get(index), sharpness);
             }
@@ -997,6 +1053,12 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         }
         if(Region.DEBUG_INSTANCE) {
             System.err.println("OutlineShape.getTriangles().X: "+triangles.size()+", updated "+updated);
+            if( updated ) {
+                int i=0;
+                for(final Triangle t : triangles) {
+                    System.err.printf("- [%d]: %s%n", i++, t);
+                }
+            }
         }
         return triangles;
     }
@@ -1117,5 +1179,4 @@ public final class OutlineShape implements Comparable<OutlineShape> {
             }
         }
     }
-
 }
