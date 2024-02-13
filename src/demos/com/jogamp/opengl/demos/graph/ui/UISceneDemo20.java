@@ -305,7 +305,7 @@ public class UISceneDemo20 implements GLEventListener {
         }
         scene = new Scene(options.graphAASamples);
         scene.setPMVMatrixSetup(new Scene.DefaultPMVMatrixSetup(-1f));
-        scene.getRenderer().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        scene.getRenderer().setHintBits(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         // scene.setSampleCount(3); // easy on embedded devices w/ just 3 samples (default is 4)?
         scene.addShape(buttonsLeft);
         scene.addShape(buttonsRight);

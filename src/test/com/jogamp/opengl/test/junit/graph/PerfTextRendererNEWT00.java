@@ -241,7 +241,7 @@ public class PerfTextRendererNEWT00 {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
 
         final RegionRenderer renderer = RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-        renderer.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        renderer.setHintBits(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         renderer.setAAQuality(Region.DEFAULT_AA_QUALITY);
         renderer.setSampleCount(sampleCount);
 

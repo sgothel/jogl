@@ -104,14 +104,14 @@ public final class RegionRenderer {
     public static final GLCallback defaultBlendEnable = new GLCallback() {
         @Override
         public void run(final GL gl, final RegionRenderer renderer) {
-            if( renderer.isHintMaskSet(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
+            if( renderer.hintBitsSet(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
                 gl.glDepthMask(false);
                 // gl.glDisable(GL.GL_DEPTH_TEST);
                 // gl.glDepthFunc(GL.GL_ALWAYS);
             }
             gl.glEnable(GL.GL_BLEND);
             gl.glBlendEquation(GL.GL_FUNC_ADD); // default
-            renderer.setHintMask(RenderState.BITHINT_BLENDING_ENABLED);
+            renderer.setHintBits(RenderState.BITHINT_BLENDING_ENABLED);
         }
     };
 
@@ -128,9 +128,9 @@ public final class RegionRenderer {
     public static final GLCallback defaultBlendDisable = new GLCallback() {
         @Override
         public void run(final GL gl, final RegionRenderer renderer) {
-            renderer.clearHintMask(RenderState.BITHINT_BLENDING_ENABLED);
+            renderer.clearHintBits(RenderState.BITHINT_BLENDING_ENABLED);
             gl.glDisable(GL.GL_BLEND);
-            if( renderer.isHintMaskSet(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
+            if( renderer.hintBitsSet(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED) ) {
                 // gl.glEnable(GL.GL_DEPTH_TEST);
                 // gl.glDepthFunc(GL.GL_LESS);
                 gl.glDepthMask(true);
@@ -336,11 +336,11 @@ public final class RegionRenderer {
     /** Returns the optional Mv-premultiplied clipping {@link Frustum} or null if unused. */
     public final Frustum getClipFrustum() { return rs.getClipFrustum(); }
 
-    public final boolean isHintMaskSet(final int mask) { return rs.isHintMaskSet(mask); }
+    public final boolean hintBitsSet(final int mask) { return rs.hintBitsSet(mask); }
 
-    public final void setHintMask(final int mask) { rs.setHintMask(mask); }
+    public final void setHintBits(final int mask) { rs.setHintBits(mask); }
 
-    public final void clearHintMask(final int mask) { rs.clearHintMask(mask); }
+    public final void clearHintBits(final int mask) { rs.clearHintBits(mask); }
 
     /**
      * Enabling or disabling the {@link #getRenderState() RenderState}'s

@@ -178,7 +178,7 @@ public class TestTextRendererNEWT01 extends UITestCase {
         System.err.println("Chosen: "+winctx.window.getChosenCapabilities());
 
         final RegionRenderer renderer = RegionRenderer.create(RegionRenderer.defaultBlendEnable, RegionRenderer.defaultBlendDisable);
-        renderer.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        renderer.setHintBits(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         final TextRegionUtil textRenderUtil = new TextRegionUtil(renderModes);
 
         // init

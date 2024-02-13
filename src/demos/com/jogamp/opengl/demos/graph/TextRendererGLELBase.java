@@ -133,7 +133,7 @@ public abstract class TextRendererGLELBase implements GLEventListener {
         renderer = RegionRenderer.create(sharedPMVMatrix, enableCallback, disableCallback);
         renderer.setAAQuality(Region.DEFAULT_AA_QUALITY);
         renderer.setSampleCount(pass2SampleCount);
-        renderer.setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        renderer.setHintBits(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRenderUtil = new TextRegionUtil(renderModes);
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
         renderer.init(gl);

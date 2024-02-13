@@ -151,7 +151,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         // NOTE_ALPHA_BLENDING: We use alpha-blending
         super(RegionRenderer.create(blending ? RegionRenderer.defaultBlendEnable : null, blending ? RegionRenderer.defaultBlendDisable : null),
                                     renderModes, debug, trace);
-        this.getRenderer().setHintMask(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
+        this.getRenderer().setHintBits(RenderState.BITHINT_GLOBAL_DEPTH_TEST_ENABLED);
         this.textRegionUtil = new TextRegionUtil(renderModes);
         this.regionFPS = GLRegion.create(glp, renderModes, null, 0, 0);
         this.regionHead = GLRegion.create(glp, renderModes, null, 0, 0);
@@ -332,7 +332,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                     fontSizeHead, pixelSizeHead, mmSizeHead,
                     fontSizeCenter, pixelSizeCenter, mmSizeCenter,
                     modeS, pass2Samples,
-                    renderer.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED),
+                    renderer.hintBitsSet(RenderState.BITHINT_BLENDING_ENABLED),
                     drawable.getChosenGLCapabilities().getAlphaBits());
 
             // bottom, half line up

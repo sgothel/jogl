@@ -187,7 +187,8 @@ public final class VBORegionSPES2 extends GLRegion {
         vpc_ileave.enableBuffer(gl, true);
         indicesBuffer.bindBuffer(gl, true); // keeps VBO binding
 
-        if( renderer.getRenderState().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+        final RenderState rs = renderer.getRenderState();
+        if( rs.hintBitsSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
         }
 

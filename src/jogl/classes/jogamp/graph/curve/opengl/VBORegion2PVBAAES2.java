@@ -426,7 +426,7 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
         // but not here -> investigate if required for working MSAA:
         // - "VBORegion2PMSAAES2 enables/disables GL_DEPTH_TEST, otherwise MSAA is corrupt"
         //
-        if( rs.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+        if( rs.hintBitsSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
             // RGB is already multiplied w/ alpha via renderRegion2FBO(..)
             gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
         }
@@ -463,7 +463,7 @@ public final class VBORegion2PVBAAES2  extends GLRegion {
         if( 0 >= targetFboWidth || 0 >= targetFboHeight ) {
             throw new IllegalArgumentException("targetFBOSize "+targetFboWidth+"x"+targetFboHeight+" must be greater than 0");
         }
-        final boolean blendingEnabled = rs.isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED);
+        final boolean blendingEnabled = rs.hintBitsSet(RenderState.BITHINT_BLENDING_ENABLED);
 
         if(null == fbo) {
             fboWidth  = targetFboWidth;

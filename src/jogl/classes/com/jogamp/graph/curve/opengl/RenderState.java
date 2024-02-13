@@ -54,10 +54,10 @@ public class RenderState {
     private static final String thisKey = "jogamp.graph.curve.RenderState" ;
 
     /**
-     * Bitfield hint, {@link #isHintMaskSet(int) if set}
+     * Bitfield hint, {@link #hintBitsSet(int) if set}
      * stating <i>enabled</i> {@link GL#GL_BLEND}, otherwise <i>disabled</i>.
      * <p>
-     * Shall be set via {@link #setHintMask(int)} and cleared via {@link #clearHintMask(int)}.
+     * Shall be set via {@link #setHintBits(int)} and cleared via {@link #clearHintBits(int)}.
      * </p>
      * <p>
      * If set, {@link GLRegion#draw(GL2ES2, RegionRenderer) GLRegion's draw-method}
@@ -73,10 +73,10 @@ public class RenderState {
     public static final int BITHINT_BLENDING_ENABLED = 1 << 0 ;
 
     /**
-     * Bitfield hint, {@link #isHintMaskSet(int) if set}
+     * Bitfield hint, {@link #hintBitsSet(int) if set}
      * stating globally <i>enabled</i> {@link GL#GL_DEPTH_TEST}, otherwise <i>disabled</i>.
      * <p>
-     * Shall be set via {@link #setHintMask(int)} and cleared via {@link #clearHintMask(int)}.
+     * Shall be set via {@link #setHintBits(int)} and cleared via {@link #clearHintBits(int)}.
      * </p>
      * <p>
      * {@link GLRegion#draw(GL2ES2, RegionRenderer) GLRegion's draw-method}
@@ -105,7 +105,7 @@ public class RenderState {
     /** Optional clipping {@link Frustum}, which shall be pre-multiplied with the Mv-matrix. Null if unused. */
     private final Frustum clipFrustum;
     private boolean useClipFrustum;
-    private int hintBitfield;
+    private int hintBits;
     private ShaderProgram sp;
 
     private static synchronized int getNextID() {
@@ -209,7 +209,7 @@ public class RenderState {
         this.clipFrustum = new Frustum();
         this.useClipFrustum = false;
 
-        this.hintBitfield = 0;
+        this.hintBits = 0;
         this.sp = null;
     }
 
@@ -296,6 +296,17 @@ public class RenderState {
     /** Returns the optional Mv-premultiplied clipping {@link Frustum} or null if unused. */
     public final Frustum getClipFrustum() { return useClipFrustum ? this.clipFrustum : null; }
 
+    public final int getHintBits() { return this.hintBits; }
+    public final boolean hintBitsSet(final int mask) {
+        return mask == ( hintBits & mask );
+    }
+    public final void setHintBits(final int mask) {
+        hintBits |= mask;
+    }
+    public final void clearHintBits(final int mask) {
+        hintBits &= ~mask;
+    }
+
     /**
      *
      * @param gl
@@ -360,17 +371,6 @@ public class RenderState {
         } else {
             return true;
         }
-    }
-
-
-    public final boolean isHintMaskSet(final int mask) {
-        return mask == ( hintBitfield & mask );
-    }
-    public final void setHintMask(final int mask) {
-        hintBitfield |= mask;
-    }
-    public final void clearHintMask(final int mask) {
-        hintBitfield &= ~mask;
     }
 
     /**
