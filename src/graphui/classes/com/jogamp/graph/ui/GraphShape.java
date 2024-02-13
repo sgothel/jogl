@@ -151,6 +151,8 @@ public abstract class GraphShape extends Shape {
         region.draw(gl, renderer);
     }
 
+    public GLRegion getRegion() { return region; }
+
     @Override
     protected final void drawToSelectImpl0(final GL2ES2 gl, final RegionRenderer renderer) {
         region.drawToSelect(gl, renderer);

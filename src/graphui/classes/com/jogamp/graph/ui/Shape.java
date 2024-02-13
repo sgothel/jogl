@@ -144,10 +144,22 @@ public abstract class Shape {
         void run(final Shape shape);
     }
     /**
-     * {@link Shape} listener action returning a boolean value
+     * {@link Shape} draw listener action returning a boolean value
+     * <p>
+     * If {@link #run(Shape, GL2ES2, RegionRenderer)} returns {@code true},
+     * the listener will be removed at {@link Shape#draw(GL2ES2, RegionRenderer)}
+     * otherwise kept calling.
+     * </p>
      */
-    public static interface ListenerBool {
-        boolean run(final Shape shape);
+    public static interface DrawListener {
+        /**
+         * Return {@code true} to remove this {@link DrawListener} at {@link Shape#draw(GL2ES2, RegionRenderer)},
+         * otherwise it is being kept and called.
+         * @param shape The shape
+         * @param gl the current {@link GL2ES2} object
+         * @param renderer the {@link RegionRenderer}
+         */
+        boolean run(final Shape shape, GL2ES2 gl, RegionRenderer renderer);
     }
 
     /**
@@ -288,7 +300,7 @@ public abstract class Shape {
     private ArrayList<MouseGestureListener> mouseListeners = new ArrayList<MouseGestureListener>();
     private ArrayList<KeyListener> keyListeners = new ArrayList<KeyListener>();
 
-    private ListenerBool onInitListener = null;
+    private DrawListener onDrawListener = null;
     private PointerListener onHoverListener  = null;
     private MoveListener onMoveListener = null;
     private Listener onToggleListener = null;
@@ -428,7 +440,7 @@ public abstract class Shape {
         box.reset();
         mouseListeners.clear();
         keyListeners.clear();
-        onInitListener = null;
+        onDrawListener = null;
         onMoveListener = null;
         onToggleListener = null;
         activationListeners.clear();
@@ -449,15 +461,20 @@ public abstract class Shape {
     }
 
     /**
-     * Set a user one-shot initializer callback.
+     * Set a user one-shot initializer callback or custom {@link #draw(GL2ES2, RegionRenderer)} hook.
      * <p>
-     * {@link ListenerBool#run(Shape)} will be called
-     * after each {@link #draw(GL2ES2, RegionRenderer)}
-     * until it returns true, signaling user initialization is completed.
+     * {@link #run(Shape, GL2ES2, RegionRenderer)} is called at {@link Shape#draw(GL2ES2, RegionRenderer)}
+     * and if returning {@code true}, the listener will be removed.
+     * Otherwise kept calling.
      * </p>
-     * @param l callback, which shall return true signaling user initialization is done
+     * <p>
+     * This instrument allows the user either to be signaled when initialization
+     * of this {@link Shape} is completed, or just too hook-up custom {@link #draw(GL2ES2, RegionRenderer)}
+     * actions.
+     * </p>
+     * @param l callback, which shall return true to be removed, i.e. user initialization is done.
      */
-    public final void onInit(final ListenerBool l) { onInitListener = l; }
+    public final void onDraw(final DrawListener l) { onDrawListener = l; }
     /**
      * Set user callback to be notified when a pointer/mouse is moving over this shape
      */
@@ -815,9 +832,9 @@ public abstract class Shape {
             validate(gl);
             drawImpl0(gl, renderer, rgba);
         }
-        if( null != onInitListener ) {
-            if( onInitListener.run(this) ) {
-                onInitListener = null;
+        if( null != onDrawListener ) {
+            if( onDrawListener.run(this, gl, renderer) ) {
+                onDrawListener = null;
             }
         }
     }

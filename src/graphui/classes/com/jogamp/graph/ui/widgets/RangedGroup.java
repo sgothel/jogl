@@ -104,7 +104,7 @@ public class RangedGroup extends Widget {
             horizSlider = new RangeSlider(renderModes, horizSliderParam.size,
                                           new Vec2f(0, content.getBounds().getWidth()), horizSliderParam.unitSize, contentSize.x(), 0).setInverted(horizSliderParam.inverted);
             addShape(horizSlider);
-            horizSlider.addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, Vec3f pos, MouseEvent e) -> {
+            horizSlider.addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, final Vec3f pos, final MouseEvent e) -> {
                 final Vec3f oldPos = content.getPosition();
                 if( horizSlider.isInverted() ) {
                     content.moveTo(contentPosZero.x()-val, oldPos.y(), oldPos.z());
@@ -119,7 +119,7 @@ public class RangedGroup extends Widget {
             vertSlider = new RangeSlider(renderModes, vertSliderParam.size,
                                          new Vec2f(0, content.getBounds().getHeight()), vertSliderParam.unitSize, contentSize.y(), 0).setInverted(vertSliderParam.inverted);
             addShape(vertSlider);
-            vertSlider.addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, Vec3f pos, MouseEvent e) -> {
+            vertSlider.addChangeListener((final RangeSlider w, final float old_val, final float val, final float old_val_pct, final float val_pct, final Vec3f pos, final MouseEvent e) -> {
                 final Vec3f oldPos = content.getPosition();
                 if( vertSlider.isInverted() ) {
                     content.moveTo(oldPos.x(), contentPosZero.y()+val, oldPos.z());
@@ -130,7 +130,7 @@ public class RangedGroup extends Widget {
         } else {
             vertSlider = null;
         }
-        this.onInit( (final Shape shape) -> {
+        this.onDraw( (final Shape shape, final GL2ES2 gl_, final RegionRenderer renderer_) -> {
             content.moveTo(contentPosZero.x(), contentPosZero.y(), 0);
             return true;
         });

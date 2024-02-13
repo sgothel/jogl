@@ -1377,7 +1377,7 @@ public final class Scene implements Container, GLEventListener {
             final GLCapabilitiesImmutable caps = glad.getChosenGLCapabilities();
             final String modeS = Region.getRenderModeString(renderModes, getAAQuality(), getSampleCount(), caps.getNumSamples());
             final String blendStr;
-            if( getRenderer().isHintMaskSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
+            if( getRenderer().hintBitsSet(RenderState.BITHINT_BLENDING_ENABLED) ) {
                 blendStr = ", blend";
             } else {
                 blendStr = "";

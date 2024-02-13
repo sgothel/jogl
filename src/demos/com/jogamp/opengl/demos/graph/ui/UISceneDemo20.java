@@ -40,6 +40,7 @@ import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
@@ -733,7 +734,7 @@ public class UISceneDemo20 implements GLEventListener {
                     setSoundPosition(shape, aSink.getContext(), aSink.getSource());
                 }
             } );
-            button.onInit( (final Shape shape) -> {
+            button.onDraw( (final Shape shape, final GL2ES2 gl_, final RegionRenderer renderer_) -> {
                 final ALAudioSink aSink = alAudioSink[0];
                 if( null != aSink && aSink.getContext().isValid() ) {
                     initSound(shape, aSink.getContext(), aSink.getSource());
@@ -804,7 +805,7 @@ public class UISceneDemo20 implements GLEventListener {
                     System.err.println("Sine "+sineSound);
                 } } );
 
-            button.onInit( (final Shape shape) -> {
+            button.onDraw( (final Shape shape, final GL2ES2 gl_, final RegionRenderer renderer_) -> {
                 if( null != aSink && aSink.getContext().isValid() ) {
                     initSound(shape, aSink.getContext(), aSource);
                     System.err.println("Sine Audio: "+aSink);
