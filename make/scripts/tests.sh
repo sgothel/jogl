@@ -1015,6 +1015,7 @@ testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo02a $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UITypeDemo01 $*
 
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo00 $*
