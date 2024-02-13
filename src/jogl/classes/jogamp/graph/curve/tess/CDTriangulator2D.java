@@ -50,6 +50,8 @@ public class CDTriangulator2D implements Triangulator {
 
     protected static final boolean DEBUG = Debug.debug("graph.curve.Triangulation");
 
+    private static final boolean FORCE_NONCONVEX = Debug.debug("graph.curve.triangulation.force.non-convex");
+    private static final boolean FORCE_CONVEX = Debug.debug("graph.curve.triangulation.force.convex");
     private static final boolean TEST_LINE_AA = Debug.debug("graph.curve.triangulation.LINE_AA");
     private static final boolean TEST_MARK_LINE = Debug.debug("graph.curve.triangulation.MARK_AA");
     private static final boolean TEST_ENABLED = TEST_LINE_AA || TEST_MARK_LINE;
@@ -64,13 +66,19 @@ public class CDTriangulator2D implements Triangulator {
     /** Constructor for a new Delaunay triangulator
      */
     public CDTriangulator2D() {
-        convexFlag = true;
+        if( FORCE_NONCONVEX ) {
+            convexFlag = false;
+        } else {
+            convexFlag = true;
+        }
         reset();
     }
 
     @Override
     public void setConvexShape(final boolean convex) {
-        convexFlag = convex;
+        if( !FORCE_NONCONVEX && !FORCE_CONVEX ) {
+            convexFlag = convex;
+        }
     }
 
     @Override
