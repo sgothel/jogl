@@ -205,9 +205,10 @@ public final class VBORegionSPES2 extends GLRegion {
             gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
             // gl.glDrawElements(GL.GL_LINE_STRIP, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
             tex.disable(gl); // nop on core
+        } else if( rs.debugBitsSet(RenderState.DEBUG_LINESTRIP) ) {
+            gl.glDrawElements(GL.GL_LINE_STRIP, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
         } else {
             gl.glDrawElements(GL.GL_TRIANGLES, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
-            // gl.glDrawElements(GL.GL_LINE_STRIP, indicesBuffer.getElemCount() * indicesBuffer.getCompsPerElem(), glIdxType(), 0);
         }
 
         indicesBuffer.bindBuffer(gl, false);

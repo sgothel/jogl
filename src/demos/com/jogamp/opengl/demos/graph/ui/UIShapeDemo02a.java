@@ -31,11 +31,16 @@ import java.io.IOException;
 
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.graph.curve.Region;
+import com.jogamp.graph.curve.opengl.GLRegion;
+import com.jogamp.graph.curve.opengl.RegionRenderer;
+import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.ui.GraphShape;
 import com.jogamp.graph.ui.Scene;
+import com.jogamp.graph.ui.Shape;
 import com.jogamp.graph.ui.shapes.Rectangle;
 import com.jogamp.math.Recti;
 import com.jogamp.math.Vec3f;
+import com.jogamp.math.Vec4f;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.util.PMVMatrix4f;
 import com.jogamp.newt.event.KeyAdapter;
@@ -44,7 +49,10 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GL;
+import com.jogamp.opengl.GL2ES2;
+import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLEventAdapter;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.demos.graph.ui.testshapes.Glyph03FreeMonoRegular_M;
 import com.jogamp.opengl.demos.util.CommandlineOptions;
@@ -112,11 +120,23 @@ public class UIShapeDemo02a {
         final Rectangle rectShape;
         if( use_glyph ) {
             testShape = new Glyph03FreeMonoRegular_M(options.renderModes);
+            testShape.setColor(0.8f, 0.8f, 0.8f, 1);
             testShape.scale(1000, 1000, 1);
             rectShape = null;
+            testShape.onDraw((final Shape s, final GL2ES2 gl, final RegionRenderer renderer) -> {
+                final GLRegion region = ((GraphShape)s).getRegion();
+                renderer.getRenderState().setDebugBits(RenderState.DEBUG_LINESTRIP);
+                renderer.setColorStatic(new Vec4f(0, 0, 1, 1));
+                region.draw(gl, renderer);
+                renderer.getRenderState().clearDebugBits(RenderState.DEBUG_LINESTRIP);
+                return false;
+            });
+            scene.addShape(testShape);
         } else {
             testShape = null;
             rectShape = new Rectangle(options.renderModes, 1, 1, 0);
+            rectShape.setColor(0, 0, 1, 1);
+            scene.addShape(rectShape);
         }
 
         scene.attachInputListenerTo(window);
@@ -141,9 +161,6 @@ public class UIShapeDemo02a {
         scene.waitUntilDisplayed();
         final AABBox sbox = scene.getBounds();
         System.err.println("Scene "+sbox);
-        if( null != testShape ) {
-            scene.addShape(testShape);;
-        }
         if( null != rectShape ) {
             final float sw = sbox.getWidth();
             final float sh = sbox.getHeight();
@@ -156,8 +173,6 @@ public class UIShapeDemo02a {
                 w2 = w-14*delta;
             }
             rectShape.setDimension(w2, h, lineWidth);
-            rectShape.setColor(0, 0, 1, 1);
-            scene.addShape(rectShape);
             System.err.printf("R_0: w %30.30f x %30.30f%n", w2, h);
             Thread.sleep(500);
             if( false ) {
@@ -172,6 +187,7 @@ public class UIShapeDemo02a {
                 }
             }
         }
+        scene.screenshot(true, scene.nextScreenshotFile(null, UIShapeDemo02a.class.getSimpleName(), options.renderModes, reqCaps, null));
     }
 
     private static final class MyMatrixSetup implements Scene.PMVMatrixSetup {

@@ -88,6 +88,8 @@ public class RenderState {
      */
     public static final int BITHINT_GLOBAL_DEPTH_TEST_ENABLED = 1 << 1 ;
 
+    public static final int DEBUG_LINESTRIP = 1 << 0 ;
+
     public static final RenderState getRenderState(final GL2ES2 gl) {
         return (RenderState) gl.getContext().getAttachedObject(thisKey);
     }
@@ -106,6 +108,7 @@ public class RenderState {
     private final Frustum clipFrustum;
     private boolean useClipFrustum;
     private int hintBits;
+    private int debugBits;
     private ShaderProgram sp;
 
     private static synchronized int getNextID() {
@@ -210,6 +213,7 @@ public class RenderState {
         this.useClipFrustum = false;
 
         this.hintBits = 0;
+        this.debugBits = 0;
         this.sp = null;
     }
 
@@ -305,6 +309,17 @@ public class RenderState {
     }
     public final void clearHintBits(final int mask) {
         hintBits &= ~mask;
+    }
+
+    public final int getDebugBits() { return this.debugBits; }
+    public final boolean debugBitsSet(final int mask) {
+        return mask == ( debugBits & mask );
+    }
+    public final void setDebugBits(final int mask) {
+        debugBits |= mask;
+    }
+    public final void clearDebugBits(final int mask) {
+        debugBits &= ~mask;
     }
 
     /**

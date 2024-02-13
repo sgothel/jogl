@@ -48,7 +48,7 @@ public class Glyph03FreeMonoRegular_M extends GraphShape {
     protected void addShapeToRegion(final GLProfile glp, final GL2ES2 gl) {
         final OutlineShape shape = new OutlineShape();
 
-        if( false ) {
+        if( true ) {
             // Start TTF Shape for Glyph 48
             // GlyphShape<48>: offset 0 of 45/45 points
             //  pM[044] P[483/522, on true, end true]
@@ -622,7 +622,7 @@ public class Glyph03FreeMonoRegular_M extends GraphShape {
             shape.closeLastOutline(false);
         } else {
             final boolean with_left_leg = true; // ERROR
-            final boolean with_right_leg = false; // OK
+            final boolean with_right_leg = true; // OK
 
             // Start TTF Shape for Glyph 48
             // GlyphShape<48>: offset 0 of 45/45 points
