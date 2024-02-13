@@ -27,8 +27,9 @@
  */
 package com.jogamp.math;
 
-import java.util.ArrayList;
+import java.util.List;
 
+import com.jogamp.graph.geom.Vertex;
 import com.jogamp.math.geom.plane.Winding;
 
 public final class VectorUtil {
@@ -649,14 +650,42 @@ public final class VectorUtil {
         return result.scale( -( ray.orig.dot(plane3) + plane.w() ) / tmp ).add(ray.orig);
     }
 
+    /**
+     * Compute intersection between two lines
+     * @param a vertex 1 of first line
+     * @param b vertex 2 of first line
+     * @param c vertex 1 of second line
+     * @param d vertex 2 of second line
+     * @return the intersection coordinates if the lines intersect, otherwise
+     * returns null
+     * @deprecated analyze correctness
+     */
+    @Deprecated
+    public static Vec3f line2lineIntersection0(final Vec3f result,
+                                               final Vert2fImmutable a, final Vert2fImmutable b,
+                                               final Vert2fImmutable c, final Vert2fImmutable d) {
+        final float determinant = (a.x()-b.x())*(c.y()-d.y()) - (a.y()-b.y())*(c.x()-d.x());
+
+        if (determinant == 0)
+            return null;
+
+        final float alpha = (a.x()*b.y()-a.y()*b.x());
+        final float beta = (c.x()*d.y()-c.y()*d.y());
+        final float xi = ((c.x()-d.x())*alpha-(a.x()-b.x())*beta)/determinant;
+        final float yi = ((c.y()-d.y())*alpha-(a.y()-b.y())*beta)/determinant;
+
+        return result.set(xi, yi, 0);
+    }
     /** Compute intersection between two segments
      * @param a vertex 1 of first segment
      * @param b vertex 2 of first segment
      * @param c vertex 1 of second segment
      * @param d vertex 2 of second segment
      * @return the intersection coordinates if the segments intersect, otherwise returns null
+     * @deprecated use {@link #seg2SegIntersection(Vec3f, Vec2f, Vec2f, Vec2f, Vec2f, boolean)
      */
-    public static Vec3f seg2SegIntersection(final Vec3f result, final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
+    @Deprecated
+    public static Vec3f seg2SegIntersection0(final Vec3f result, final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
         final float determinant = (a.x()-b.x())*(c.y()-d.y()) - (a.y()-b.y())*(c.x()-d.x());
 
         if (determinant == 0)
@@ -674,7 +703,6 @@ public final class VectorUtil {
 
         return result.set(xi, yi, 0);
     }
-
     /**
      * Compute intersection between two segments
      * @param a vertex 1 of first segment
@@ -682,9 +710,12 @@ public final class VectorUtil {
      * @param c vertex 1 of second segment
      * @param d vertex 2 of second segment
      * @return true if the segments intersect, otherwise returns false
+     * @deprecated use {@link #testSeg2SegIntersection(Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable)}
      */
-    public static boolean testSeg2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b,
-                                                  final Vert2fImmutable c, final Vert2fImmutable d) {
+    @Deprecated
+    public static boolean testSeg2SegIntersection0(final Vert2fImmutable a, final Vert2fImmutable b,
+                                                   final Vert2fImmutable c, final Vert2fImmutable d) {
+        // Operations: 14+, 11*, 2 branches
         final float determinant = (a.x()-b.x())*(c.y()-d.y()) - (a.y()-b.y())*(c.x()-d.x());
 
         if (determinant == 0) {
@@ -704,69 +735,6 @@ public final class VectorUtil {
         return true;
     }
     /**
-     * Compute intersection between two segments, using given epsilon for comparison.
-     * @param a vertex 1 of first segment
-     * @param b vertex 2 of first segment
-     * @param c vertex 1 of second segment
-     * @param d vertex 2 of second segment
-     * @return true if the segments intersect, otherwise returns false
-     */
-    public static boolean testSeg2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b,
-                                                  final Vert2fImmutable c, final Vert2fImmutable d,
-                                                  final float epsilon) {
-        final float determinant = (a.x()-b.x())*(c.y()-d.y()) - (a.y()-b.y())*(c.x()-d.x());
-
-        if ( FloatUtil.isZero(determinant, epsilon) ) {
-            return false;
-        }
-
-        final float alpha = (a.x()*b.y()-a.y()*b.x());
-        final float beta = (c.x()*d.y()-c.y()*d.y());
-        final float xi = ((c.x()-d.x())*alpha-(a.x()-b.x())*beta)/determinant;
-
-        final float gamma0 = (xi - a.x())/(b.x() - a.x());
-        final float gamma1 = (xi - c.x())/(d.x() - c.x());
-
-        if( FloatUtil.compare(gamma0, 0.0f, epsilon) <= 0 ||
-            FloatUtil.compare(gamma0, 1.0f, epsilon) >= 0 ||
-            FloatUtil.compare(gamma1, 0.0f, epsilon) <= 0 ||
-            FloatUtil.compare(gamma1, 1.0f, epsilon) >= 0 ) {
-            return false;
-        }
-
-        if(gamma0 <= 0 || gamma0 >= 1 || gamma1 <= 0 || gamma1 >= 1) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Compute intersection between two lines
-     * @param a vertex 1 of first line
-     * @param b vertex 2 of first line
-     * @param c vertex 1 of second line
-     * @param d vertex 2 of second line
-     * @return the intersection coordinates if the lines intersect, otherwise
-     * returns null
-     */
-    public static Vec3f line2lineIntersection(final Vec3f result,
-                                              final Vert2fImmutable a, final Vert2fImmutable b,
-                                              final Vert2fImmutable c, final Vert2fImmutable d) {
-        final float determinant = (a.x()-b.x())*(c.y()-d.y()) - (a.y()-b.y())*(c.x()-d.x());
-
-        if (determinant == 0)
-            return null;
-
-        final float alpha = (a.x()*b.y()-a.y()*b.x());
-        final float beta = (c.x()*d.y()-c.y()*d.y());
-        final float xi = ((c.x()-d.x())*alpha-(a.x()-b.x())*beta)/determinant;
-        final float yi = ((c.y()-d.y())*alpha-(a.y()-b.y())*beta)/determinant;
-
-        return result.set(xi, yi, 0);
-    }
-
-    /**
      * Check if a segment intersects with a triangle
      * @param a vertex 1 of the triangle
      * @param b vertex 2 of the triangle
@@ -774,6 +742,209 @@ public final class VectorUtil {
      * @param d vertex 1 of first segment
      * @param e vertex 2 of first segment
      * @return true if the segment intersects at least one segment of the triangle, false otherwise
+     * @deprecated use {@link #testTri2SegIntersection(Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable)}
+     */
+    @Deprecated
+    public static boolean testTri2SegIntersection0(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c,
+                                                   final Vert2fImmutable d, final Vert2fImmutable e){
+        return testSeg2SegIntersection0(a, b, d, e) ||
+               testSeg2SegIntersection0(b, c, d, e) ||
+               testSeg2SegIntersection0(a, c, d, e) ;
+    }
+
+    /**
+     * See [p + t r = q + u s](https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282)
+     * and [its terse C# implementation](https://www.codeproject.com/tips/862988/find-the-intersection-point-of-two-line-segments)
+     */
+    public static boolean seg2SegIntersection(final Vec3f result, final Vec2f p, final Vec2f p2, final Vec2f q, final Vec2f q2, final boolean doCollinear)
+    {
+        final float eps = FloatUtil.EPSILON;
+        final Vec2f r = p2.minus(p);
+        final Vec2f s = q2.minus(q);
+        final float rxs = r.cross(s);
+
+        if ( FloatUtil.isZero(rxs) ) {
+            if( doCollinear ) {
+                final Vec2f q_p = q.minus(p);
+                final float qpxr = q_p.cross(r);
+                if ( FloatUtil.isZero(qpxr) ) // disabled collinear case
+                {
+                    // 1) r x s = 0 and (q - p) x r = 0, the two lines are collinear.
+                    final Vec2f p_q = p.minus(q);
+                    final float qp_dot_r = q_p.dot(r);
+                    final float pq_dot_s = p_q.dot(s);
+                    // if ( ( 0 <= qp_dot_r && qp_dot_r <= r.dot(r) ) ||
+                    //      ( 0 <= pq_dot_s && pq_dot_s <= s.dot(s) ) )
+                    if ( ( eps <= qp_dot_r && qp_dot_r - r.dot(r) <= eps ) ||
+                         ( eps <= pq_dot_s && pq_dot_s - s.dot(s) <= eps ) )
+                    {
+                        // 1.1) 0 <= (q - p) · r <= r · r or 0 <= (p - q) · s <= s · s, the two lines are overlapping
+                        // FIXME: result set to q2 endpoint, OK?
+                        result.set(q2, 0);
+                        return true;
+                    }
+                    // 1.2 the two lines are collinear but disjoint.
+                    return false;
+                } else {
+                    // 2) r × s = 0 and (q − p) × r ≠ 0, the two lines are parallel and non-intersecting.
+                    return false;
+                }
+            } else {
+                // Not considering collinear case as an intersection
+                return false;
+            }
+        } else {
+            // r x s != 0
+            final Vec2f q_p = q.minus(p);
+            final float qpxr = q_p.cross(r);
+
+            // p + t r = q + u s
+            // (p + t r) × s = (q + u s) × s
+            // t (r × s) = (q − p) × s, with s x s = 0
+            // t = (q - p) x s / (r x s)
+            final float t = q_p.cross(s) / rxs;
+
+            // u = (p − q) × r / (s × r) = (q - p) x r / (r x s), with s × r = − r × s
+            final float u = qpxr / rxs;
+
+            // if ( (0 <= t && t <= 1) && (0 <= u && u <= 1) )
+            if ( (eps <= t && t - 1 <= eps) && (eps <= u && u - 1 <= eps) )
+            {
+                // 3) r × s ≠ 0 and 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1, the two line segments meet at the point p + t * r = q + u * s.
+                result.set( p.plus( r.mul( t ) ), 0 ); // == q + (u * s)
+                return true;
+            }
+        }
+
+        return false;
+    }
+    /**
+     * Line segment intersection test.
+     * <p>
+     * See [p + t r = q + u s](https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282)
+     * and [its terse C# implementation](https://www.codeproject.com/tips/862988/find-the-intersection-point-of-two-line-segments)
+     * </p>
+     * <p>
+     * Implementation uses float precision.
+     * </p>
+     */
+    public static boolean testSeg2SegIntersection(final Vec2f p, final Vec2f p2, final Vec2f q, final Vec2f q2, final boolean doCollinear)
+    {
+        final float eps = FloatUtil.EPSILON;
+        final Vec2f r = p2.minus(p);
+        final Vec2f s = q2.minus(q);
+        final float rxs = r.cross(s);
+
+        if ( FloatUtil.isZero(rxs) ) {
+            if( doCollinear ) {
+                final Vec2f q_p = q.minus(p);
+                final float qpxr = q_p.cross(r);
+                if ( FloatUtil.isZero(qpxr) ) // disabled collinear case
+                {
+                    // 1) r x s = 0 and (q - p) x r = 0, the two lines are collinear.
+                    final Vec2f p_q = p.minus(q);
+                    final float qp_dot_r = q_p.dot(r);
+                    final float pq_dot_s = p_q.dot(s);
+                    // if ( ( 0 <= qp_dot_r && qp_dot_r <= r.dot(r) ) ||
+                    //      ( 0 <= pq_dot_s && pq_dot_s <= s.dot(s) ) )
+                    if ( ( eps <= qp_dot_r && qp_dot_r - r.dot(r) <= eps ) ||
+                         ( eps <= pq_dot_s && pq_dot_s - s.dot(s) <= eps ) )
+                    {
+                        // 1.1) 0 <= (q - p) · r <= r · r or 0 <= (p - q) · s <= s · s, the two lines are overlapping
+                        return true;
+                    }
+                    // 1.2 the two lines are collinear but disjoint.
+                    return false;
+                } else {
+                    // 2) r × s = 0 and (q − p) × r ≠ 0, the two lines are parallel and non-intersecting.
+                    return false;
+                }
+            } else {
+                // Not considering collinear case as an intersection
+                return false;
+            }
+        } else {
+            // r x s != 0
+            final Vec2f q_p = q.minus(p);
+            final float qpxr = q_p.cross(r);
+
+            // p + t r = q + u s
+            // (p + t r) × s = (q + u s) × s
+            // t (r × s) = (q − p) × s, with s x s = 0
+            // t = (q - p) x s / (r x s)
+            final float t = q_p.cross(s) / rxs;
+
+            // u = (p − q) × r / (s × r) = (q - p) x r / (r x s), with s × r = − r × s
+            final float u = qpxr / rxs;
+
+            // if ( (0 <= t && t <= 1) && (0 <= u && u <= 1) )
+            if ( (eps <= t && t - 1 <= eps) && (eps <= u && u - 1 <= eps) )
+            {
+                // 3) r × s ≠ 0 and 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1, the two line segments meet at the point p + t * r = q + u * s.
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * Line segment intersection test without considering collinear-case.
+     * <p>
+     * See [p + t r = q + u s](https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282)
+     * and [its terse C# implementation](https://www.codeproject.com/tips/862988/find-the-intersection-point-of-two-line-segments)
+     * </p>
+     * <p>
+     * Implementation uses float precision.
+     * </p>
+     */
+    public static boolean testSeg2SegIntersection(final Vert2fImmutable p, final Vert2fImmutable p2, final Vert2fImmutable q, final Vert2fImmutable q2)
+    {
+        // Operations: 11+, 8*, 2 branches
+        final float eps = FloatUtil.EPSILON;
+        final float rx = p2.x() - p.x(); // p2.minus(p)
+        final float ry = p2.y() - p.y();
+        final float sx = q2.x() - q.x(); // q2.minus(q)
+        final float sy = q2.y() - q.y();
+        final float rxs = rx * sy - ry * sx; // r.cross(s)
+
+        if ( FloatUtil.isZero(rxs) ) {
+            // Not considering collinear case as an intersection
+            return false;
+        } else {
+            // r x s != 0
+            final float q_px = q.x() - p.x(); // q.minus(p)
+            final float q_py = q.y() - p.y();
+            final float qpxr = q_px * ry - q_py * rx; // q_p.cross(r)
+
+            // p + t r = q + u s
+            // (p + t r) × s = (q + u s) × s
+            // t (r × s) = (q − p) × s, with s x s = 0
+            // t = (q - p) x s / (r x s)
+            final float t = ( q_px * sy - q_py * sx ) / rxs; // q_p.cross(s) / rxs
+
+            // u = (p − q) × r / (s × r) = (q - p) x r / (r x s), with s × r = − r × s
+            final float u = qpxr / rxs;
+
+            // if ( (0 <= t && t <= 1) && (0 <= u && u <= 1) )
+            if ( (eps <= t && t - 1 <= eps) && (eps <= u && u - 1 <= eps) )
+            {
+                // 3) r × s ≠ 0 and 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1, the two line segments meet at the point p + t * r = q + u * s.
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * Check if a segment intersects with a triangle.
+     * <p>
+     * Implementation uses float precision.
+     * </p>
+     * @param a vertex 1 of the triangle
+     * @param b vertex 2 of the triangle
+     * @param c vertex 3 of the triangle
+     * @param d vertex 1 of first segment
+     * @param e vertex 2 of first segment
+     * @return true if the segment intersects at least one segment of the triangle, false otherwise
+     * @see #testSeg2SegIntersection(Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable)
      */
     public static boolean testTri2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c,
                                                   final Vert2fImmutable d, final Vert2fImmutable e){
@@ -781,21 +952,254 @@ public final class VectorUtil {
                testSeg2SegIntersection(b, c, d, e) ||
                testSeg2SegIntersection(a, c, d, e) ;
     }
+
     /**
-     * Check if a segment intersects with a triangle, using given epsilon for comparison.
-     * @param a vertex 1 of the triangle
-     * @param b vertex 2 of the triangle
-     * @param c vertex 3 of the triangle
-     * @param d vertex 1 of first segment
-     * @param e vertex 2 of first segment
-     * @return true if the segment intersects at least one segment of the triangle, false otherwise
+     * Returns whether the given {@code polyline} denotes a convex shape
+     * <p>
+     * See [Determine whether a polygon is convex based on its vertices](https://math.stackexchange.com/questions/1743995/determine-whether-a-polygon-is-convex-based-on-its-vertices/1745427#1745427)
+     * </p>
+     * @param polyline connected {@link Vert2fImmutable}, i.e. a poly-line
+     * @param shortIsConvex return value if {@code vertices} have less than three elements, allows simplification
      */
-    public static boolean testTri2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c,
-                                                  final Vert2fImmutable d, final Vert2fImmutable e,
-                                                  final float epsilon){
-        return testSeg2SegIntersection(a, b, d, e, epsilon) ||
-               testSeg2SegIntersection(b, c, d, e, epsilon) ||
-               testSeg2SegIntersection(a, c, d, e, epsilon) ;
+    public static boolean isConvex0(final List<? extends Vert2fImmutable> polyline, final boolean shortIsConvex) {
+        final int polysz = polyline.size();
+        if( polysz < 3 ) {
+            return shortIsConvex;
+        }
+        final float eps = FloatUtil.EPSILON;
+
+        float wSign = 0;    // First nonzero orientation (positive or negative)
+
+        int xSign = 0;
+        int xFirstSign = 0; //  Sign of first nonzero edge vector x
+        int xFlips = 0;     //  Number of sign changes in x
+
+        int ySign = 0;
+        int yFirstSign = 0; //  Sign of first nonzero edge vector y
+        int yFlips = 0;     //  Number of sign changes in y
+
+        Vert2fImmutable curr = polyline.get(polysz-2); //  Second-to-last vertex
+        Vert2fImmutable next = polyline.get(polysz-1); //  Last vertex
+
+        for(int i=0; i<polysz; ++i) { //  Each vertex, in order
+            final Vert2fImmutable prev = curr; //  Previous vertex
+            curr = next;              //  Current vertex
+            next = polyline.get(i);   //  Next vertex
+
+            //  Previous edge vector ("before"):
+            final float bx = curr.x() - prev.x();
+            final float by = curr.y() - prev.y();
+
+            //  Next edge vector ("after"):
+            final float ax = next.x() - curr.x();
+            final float ay = next.y() - curr.y();
+
+            //  Calculate sign flips using the next edge vector ("after"),
+            //  recording the first sign.
+            if( ax > eps ) {
+                if( xSign == 0 ) {
+                    xFirstSign = +1;
+                } else if( xSign < 0 ) {
+                    xFlips = xFlips + 1;
+                }
+                xSign = +1;
+            } else if( ax < -eps ) {
+                if( xSign == 0 ) {
+                    xFirstSign = -1;
+                } else if ( xSign > 0 ) {
+                    xFlips = xFlips + 1;
+                }
+                xSign = -1;
+            }
+            if( xFlips > 2 ) {
+                return false;
+            }
+
+            if( ay > eps ) {
+                if( ySign == 0 ) {
+                    yFirstSign = +1;
+                } else if( ySign < 0 ) {
+                    yFlips = yFlips + 1;
+                }
+                ySign = +1;
+            } else if( ay < -eps ) {
+                if( ySign == 0 ) {
+                    yFirstSign = -1;
+                } else if( ySign > 0 ) {
+                    yFlips = yFlips + 1;
+                }
+                ySign = -1;
+            }
+            if( yFlips > 2 ) {
+                return false;
+            }
+
+            //  Find out the orientation of this pair of edges,
+            //  and ensure it does not differ from previous ones.
+            final float w = bx*ay - ax*by;
+            if( DoubleUtil.isZero(wSign) && !DoubleUtil.isZero(w) ) {
+                wSign = w;
+            } else if( wSign > eps && w < -eps ) {
+                return false;
+            } else if( wSign < -eps && w > eps ) {
+                return false;
+            }
+        }
+
+        //  Final/wraparound sign flips:
+        if( xSign != 0 && xFirstSign != 0 && xSign != xFirstSign ) {
+            xFlips = xFlips + 1;
+        }
+        if( ySign != 0 && yFirstSign != 0 && ySign != yFirstSign ) {
+            yFlips = yFlips + 1;
+        }
+
+        //  Concave polygons have two sign flips along each axis.
+        if( xFlips != 2 || yFlips != 2 ) {
+            return false;
+        }
+
+        //  This is a convex polygon.
+        return true;
     }
 
+
+    private static int cmod(final int i, final int count) {
+        if( i >= 0 ) {
+            return i % count;
+        } else {
+            return i + count;
+        }
+    }
+    /**
+     * Returns whether the given on-curve {@code polyline} points denotes a convex shape
+     * <p>
+     * See [Determine whether a polygon is convex based on its vertices](https://math.stackexchange.com/questions/1743995/determine-whether-a-polygon-is-convex-based-on-its-vertices/1745427#1745427)
+     * </p>
+     * <p>
+     * All off-curve points are ignored.
+     * </p>
+     * @param polyline connected {@link Vert2fImmutable}, i.e. a poly-line
+     * @param shortIsConvex return value if {@code vertices} have less than three elements, allows simplification
+     */
+    public static boolean isConvex1(final List<Vertex> polyline, final boolean shortIsConvex) {
+        final int polysz = polyline.size();
+        if( polysz < 3 ) {
+            return shortIsConvex;
+        }
+        final float eps = FloatUtil.EPSILON;
+
+        float wSign = 0;    // First nonzero orientation (positive or negative)
+
+        int xSign = 0;
+        int xFirstSign = 0; //  Sign of first nonzero edge vector x
+        int xFlips = 0;     //  Number of sign changes in x
+
+        int ySign = 0;
+        int yFirstSign = 0; //  Sign of first nonzero edge vector y
+        int yFlips = 0;     //  Number of sign changes in y
+
+        int offset=-3;
+        Vertex v0, v1;
+        {
+            do {
+                ++offset; // -2
+                v0 = polyline.get(cmod(offset, polysz));   // current, polyline[-2] if on-curve
+            } while( !v0.isOnCurve() && offset < polysz );
+            if( offset >= polysz ) {
+                return shortIsConvex;
+            }
+            do {
+                ++offset; // -1
+                v1 = polyline.get(cmod(offset, polysz));   //  next, polyline[-1] if both on-curve
+            } while( !v1.isOnCurve() && offset < polysz );
+            if( offset >= polysz ) {
+                return shortIsConvex;
+            }
+        }
+
+        while( offset < polysz ) {
+            final Vertex vp = v0;                         //  previous on-curve vertex
+            v0 = v1;                                      //  current on-curve vertex
+            do {
+                ++offset; // 0, ...
+                v1 = polyline.get(cmod(offset, polysz));  //  next on-curve vertex
+            } while( !v1.isOnCurve() && offset < polysz );
+
+            //  Previous edge vector ("before"):
+            final float bx = v0.x() - vp.x();
+            final float by = v0.y() - vp.y();
+
+            //  Next edge vector ("after"):
+            final float ax = v1.x() - v0.x();
+            final float ay = v1.y() - v0.y();
+
+            //  Calculate sign flips using the next edge vector ("after"),
+            //  recording the first sign.
+            if( ax > eps ) {
+                if( xSign == 0 ) {
+                    xFirstSign = +1;
+                } else if( xSign < 0 ) {
+                    xFlips = xFlips + 1;
+                }
+                xSign = +1;
+            } else if( ax < -eps ) {
+                if( xSign == 0 ) {
+                    xFirstSign = -1;
+                } else if ( xSign > 0 ) {
+                    xFlips = xFlips + 1;
+                }
+                xSign = -1;
+            }
+            if( xFlips > 2 ) {
+                return false;
+            }
+
+            if( ay > eps ) {
+                if( ySign == 0 ) {
+                    yFirstSign = +1;
+                } else if( ySign < 0 ) {
+                    yFlips = yFlips + 1;
+                }
+                ySign = +1;
+            } else if( ay < -eps ) {
+                if( ySign == 0 ) {
+                    yFirstSign = -1;
+                } else if( ySign > 0 ) {
+                    yFlips = yFlips + 1;
+                }
+                ySign = -1;
+            }
+            if( yFlips > 2 ) {
+                return false;
+            }
+
+            //  Find out the orientation of this pair of edges,
+            //  and ensure it does not differ from previous ones.
+            final float w = bx*ay - ax*by;
+            if( DoubleUtil.isZero(wSign) && !DoubleUtil.isZero(w) ) {
+                wSign = w;
+            } else if( wSign > eps && w < -eps ) {
+                return false;
+            } else if( wSign < -eps && w > eps ) {
+                return false;
+            }
+        }
+
+        //  Final/wraparound sign flips:
+        if( xSign != 0 && xFirstSign != 0 && xSign != xFirstSign ) {
+            xFlips = xFlips + 1;
+        }
+        if( ySign != 0 && yFirstSign != 0 && ySign != yFirstSign ) {
+            yFlips = yFlips + 1;
+        }
+
+        //  Concave polygons have two sign flips along each axis.
+        if( xFlips != 2 || yFlips != 2 ) {
+            return false;
+        }
+
+        //  This is a convex polygon.
+        return true;
+    }
 }
