@@ -239,7 +239,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     }
 
     /**
-     * Compute the {@link Winding} of the {@link #getLastOutline()} using the {@link VectorUtil#area2d(ArrayList)} function over all of its vertices.
+     * Compute the {@link Winding} of the {@link #getLastOutline()} using the {@link VectorUtil#area(ArrayList)} function over all of its vertices.
      * @return {@link Winding#CCW} or {@link Winding#CW}
      */
     public final Winding getWindingOfLastOutline() {
@@ -773,9 +773,9 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     }
 
     private void subdivideTriangle(final Outline outline, final Vertex a, final Vertex b, final Vertex c, final int index){
-        VectorUtil.midVec3(tmpV1, a.getCoord(), b.getCoord());
-        VectorUtil.midVec3(tmpV3, b.getCoord(), c.getCoord());
-        VectorUtil.midVec3(tmpV2, tmpV1, tmpV3);
+        VectorUtil.midpoint(tmpV1, a.getCoord(), b.getCoord());
+        VectorUtil.midpoint(tmpV3, b.getCoord(), c.getCoord());
+        VectorUtil.midpoint(tmpV2, tmpV1, tmpV3);
 
         // COLOR
         // tmpC1.set(a.getColor()).add(b.getColor()).scale(0.5f);
@@ -864,7 +864,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
                     continue;
                 }
 
-                if( VectorUtil.isVec3InTriangle3(a.getCoord(), b.getCoord(), c.getCoord(),
+                if( VectorUtil.isInTriangle3(a.getCoord(), b.getCoord(), c.getCoord(),
                                                  current.getCoord(), nextV.getCoord(), prevV.getCoord(),
                                                  tmpV1, tmpV2, tmpV3) ) {
                     return current;
@@ -872,39 +872,6 @@ public final class OutlineShape implements Comparable<OutlineShape> {
                 if(VectorUtil.testTri2SegIntersection(a, b, c, prevV, current) ||
                    VectorUtil.testTri2SegIntersection(a, b, c, current, nextV) ||
                    VectorUtil.testTri2SegIntersection(a, b, c, prevV, nextV) ) {
-                    return current;
-                }
-            }
-        }
-        return null;
-    }
-    @SuppressWarnings("unused")
-    private Vertex checkTriOverlaps1(final Vertex a, final Vertex b, final Vertex c) {
-        final int count = getOutlineCount();
-        for (int cc = 0; cc < count; cc++) {
-            final Outline outline = getOutline(cc);
-            final int vertexCount = outline.getVertexCount();
-            for(int i=0; i < vertexCount; i++) {
-                final Vertex current = outline.getVertex(i);
-                if(current.isOnCurve() || current == a || current == b || current == c) {
-                    continue;
-                }
-                final Vertex nextV = outline.getVertex((i+1)%vertexCount);
-                final Vertex prevV = outline.getVertex((i+vertexCount-1)%vertexCount);
-
-                //skip neighboring triangles
-                if(prevV == c || nextV == a) {
-                    continue;
-                }
-
-                if( VectorUtil.isVec3InTriangle3(a.getCoord(), b.getCoord(), c.getCoord(),
-                                                 current.getCoord(), nextV.getCoord(), prevV.getCoord(),
-                                                 tmpV1, tmpV2, tmpV3, FloatUtil.EPSILON) ) {
-                    return current;
-                }
-                if(VectorUtil.testTri2SegIntersection(a, b, c, prevV, current, FloatUtil.EPSILON) ||
-                   VectorUtil.testTri2SegIntersection(a, b, c, current, nextV, FloatUtil.EPSILON) ||
-                   VectorUtil.testTri2SegIntersection(a, b, c, prevV, nextV, FloatUtil.EPSILON) ) {
                     return current;
                 }
             }
@@ -925,7 +892,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
                     final int j = (i+1)%vertexCount;
                     final Vertex nextVertex = outline.getVertex(j);
                     if ( !currentVertex.isOnCurve() && !nextVertex.isOnCurve() ) {
-                        VectorUtil.midVec3(tmpV1, currentVertex.getCoord(), nextVertex.getCoord());
+                        VectorUtil.midpoint(tmpV1, currentVertex.getCoord(), nextVertex.getCoord());
                         System.err.println("XXX: Cubic: "+i+": "+currentVertex+", "+j+": "+nextVertex);
                         final Vertex v = new Vertex(tmpV1, true);
                         // COLOR: tmpC1.set(currentVertex.getColor()).add(nextVertex.getColor()).scale(0.5f)

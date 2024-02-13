@@ -257,7 +257,7 @@ public final class VectorUtil {
      * @param p2 second point vector
      * @return midpoint
      */
-    public static Vec3f midVec3(final Vec3f result, final Vec3f p1, final Vec3f p2) {
+    public static Vec3f midpoint(final Vec3f result, final Vec3f p1, final Vec3f p2) {
         result.set( (p1.x() + p2.x())*0.5f,
                     (p1.y() + p2.y())*0.5f,
                     (p1.z() + p2.z())*0.5f );
@@ -271,41 +271,44 @@ public final class VectorUtil {
      * @param c vector 3
      * @return the determinant value
      */
-    public static float determinantVec3(final Vec3f a, final Vec3f b, final Vec3f c) {
+    public static float determinant(final Vec3f a, final Vec3f b, final Vec3f c) {
         return a.x()*b.y()*c.z() + a.y()*b.z()*c.x() + a.z()*b.x()*c.y() - a.x()*b.z()*c.y() - a.y()*b.x()*c.z() - a.z()*b.y()*c.x();
     }
 
     /**
-     * Check if three vertices are colliniear
+     * Check if three vertices are collinear
      * @param v1 vertex 1
      * @param v2 vertex 2
      * @param v3 vertex 3
      * @return true if collinear, false otherwise
      */
-    public static boolean isCollinearVec3(final Vec3f v1, final Vec3f v2, final Vec3f v3) {
-        return FloatUtil.isZero( determinantVec3(v1, v2, v3), FloatUtil.EPSILON );
+    public static boolean isCollinear(final Vec3f v1, final Vec3f v2, final Vec3f v3) {
+        return FloatUtil.isZero( determinant(v1, v2, v3), FloatUtil.EPSILON );
     }
 
     public static final double InCircleDThreshold = DoubleUtil.EPSILON;
     /**
      * Check if vertices in triangle circumcircle given {@code d} vertex, from paper by Guibas and Stolfi (1985).
+     * <p>
+     * Implementation uses double precision.
+     * </p>
      * @param a triangle vertex 1
      * @param b triangle vertex 2
      * @param c triangle vertex 3
      * @param d vertex in question
      * @return true if the vertex d is inside the circle defined by the vertices a, b, c.
      */
-    public static boolean isInCircleVec2d(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
-        return inCircleVec2dVal(a, b, c, d) > InCircleDThreshold;
+    public static boolean isInCircle(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
+        return inCircleVal(a, b, c, d) > InCircleDThreshold;
     }
-    public static double inCircleVec2dVal(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
+    public static double inCircleVal(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
         // Operation costs:
         // - 4x (triAreaVec2: 5+, 2*) -> 20+, 8*
         // - plus 7+, 12*             -> 27+, 20*
-        return sqlend(a.x(), a.y()) * triAreaVec2d(b, c, d) -
-               sqlend(b.x(), b.y()) * triAreaVec2d(a, c, d) +
-               sqlend(c.x(), c.y()) * triAreaVec2d(a, b, d) -
-               sqlend(d.x(), d.y()) * triAreaVec2d(a, b, c);
+        return sqlend(a.x(), a.y()) * triArea(b, c, d) -
+               sqlend(b.x(), b.y()) * triArea(a, c, d) +
+               sqlend(c.x(), c.y()) * triArea(a, b, d) -
+               sqlend(d.x(), d.y()) * triArea(a, b, c);
     }
     private static double sqlend(final double x, final double y) {
         return x*x + y*y;
@@ -323,10 +326,10 @@ public final class VectorUtil {
      * @param c third vertex
      * @return area > 0 CCW, ..
      */
-    public static double triAreaVec2d(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
-        return triAreaVec2d(a.x(), a.y(), b.x(), b.y(), c.x(), c.y());
+    public static double triArea(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
+        return triArea(a.x(), a.y(), b.x(), b.y(), c.x(), c.y());
     }
-    private static double triAreaVec2d(final double ax, final double ay, final double bx, final double by, final double cx, final double cy){
+    private static double triArea(final double ax, final double ay, final double bx, final double by, final double cx, final double cy){
         return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
     }
 
@@ -341,9 +344,9 @@ public final class VectorUtil {
      * @param ap temporary storage
      * @return true if p is in triangle (a, b, c), false otherwise.
      */
-    public static boolean isInTriangleVec3(final Vec3f a, final Vec3f  b, final Vec3f c,
-                                           final Vec3f p,
-                                           final Vec3f ac, final Vec3f ab, final Vec3f ap){
+    public static boolean isInTriangle(final Vec3f a, final Vec3f  b, final Vec3f c,
+                                       final Vec3f p,
+                                       final Vec3f ac, final Vec3f ab, final Vec3f ap){
         // Compute vectors
         ac.minus( c, a); // v0
         ab.minus( b, a); // v1
@@ -378,9 +381,9 @@ public final class VectorUtil {
      * @param ap temporary storage
      * @return true if p1 or p2 or p3 is in triangle (a, b, c), false otherwise.
      */
-    public static boolean isVec3InTriangle3(final Vec3f a, final Vec3f b, final Vec3f c,
-                                            final Vec3f p1, final Vec3f p2, final Vec3f p3,
-                                            final Vec3f ac, final Vec3f ab, final Vec3f ap){
+    public static boolean isInTriangle3(final Vec3f a, final Vec3f b, final Vec3f c,
+                                        final Vec3f p1, final Vec3f p2, final Vec3f p3,
+                                        final Vec3f ac, final Vec3f ab, final Vec3f ap){
         // Compute vectors
         ac.minus(c, a); // v0
         ab.minus(b, a); // v1
@@ -446,10 +449,10 @@ public final class VectorUtil {
      * @param tmpAP
      * @return true if p1 or p2 or p3 is in triangle (a, b, c), false otherwise.
      */
-    public static boolean isVec3InTriangle3(final Vec3f a, final Vec3f b, final Vec3f c,
-                                            final Vec3f p1, final Vec3f p2, final Vec3f p3,
-                                            final Vec3f ac, final Vec3f ab, final Vec3f ap,
-                                            final float epsilon) {
+    public static boolean isInTriangle3(final Vec3f a, final Vec3f b, final Vec3f c,
+                                        final Vec3f p1, final Vec3f p2, final Vec3f p3,
+                                        final Vec3f ac, final Vec3f ab, final Vec3f ap,
+                                        final float epsilon) {
         // Compute vectors
         ac.minus(c, a); // v0
         ab.minus(b, a); // v1
@@ -511,32 +514,33 @@ public final class VectorUtil {
     /**
      * Check if points are in ccw order
      * <p>
-     * Consider using {@link #getWinding2f(ArrayList)} using the {@link #area2f(ArrayList)} function over all points
+     * Consider using {@link #getWinding(List)} using the {@link #area(List)} function over all points
      * on complex shapes for a reliable result!
      * </p>
      * @param a first vertex
      * @param b second vertex
      * @param c third vertex
      * @return true if the points a,b,c are in a ccw order
+     * @see #getWinding(List)
      */
     public static boolean isCCW(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
-        return triAreaVec2d(a,b,c) > InCircleDThreshold;
+        return triArea(a,b,c) > InCircleDThreshold;
     }
 
     /**
      * Compute the winding of the 3 given points
      * <p>
-     * Consider using {@link #getWinding2f(ArrayList)} using the {@link #area2f(ArrayList)} function over all points
+     * Consider using {@link #getWinding(List)} using the {@link #area(List)} function over all points
      * on complex shapes for a reliable result!
      * </p>
      * @param a first vertex
      * @param b second vertex
      * @param c third vertex
      * @return {@link Winding#CCW} or {@link Winding#CW}
-     * @see #getWinding2f(ArrayList)
+     * @see #getWinding(List)
      */
     public static Winding getWinding(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c) {
-        return triAreaVec2d(a,b,c) > InCircleDThreshold ? Winding.CCW : Winding.CW ;
+        return triArea(a,b,c) > InCircleDThreshold ? Winding.CCW : Winding.CW ;
     }
 
     /**
@@ -544,45 +548,14 @@ public final class VectorUtil {
      * <p>
      * This method is utilized e.g. to reliably compute the {@link Winding} of complex shapes.
      * </p>
-     * @param vertices
-     * @return positive area if ccw else negative area value
-     * @see #getWinding2f(ArrayList)
-     */
-    public static float area2f(final ArrayList<? extends Vert2fImmutable> vertices) {
-        final int n = vertices.size();
-        float area = 0.0f;
-        for (int p = n - 1, q = 0; q < n; p = q++) {
-            final Vert2fImmutable pCoord = vertices.get(p);
-            final Vert2fImmutable qCoord = vertices.get(q);
-            area += pCoord.x() * qCoord.y() - qCoord.x() * pCoord.y();
-        }
-        return area;
-    }
-
-    /**
-     * Compute the winding using the {@link #area2f(ArrayList)} function over all vertices for complex shapes.
      * <p>
-     * Uses the {@link #area2f(ArrayList)} function over all points
-     * on complex shapes for a reliable result!
-     * </p>
-     * @param vertices array of Vertices
-     * @return {@link Winding#CCW} or {@link Winding#CW}
-     * @see #area2f(ArrayList)
-     */
-    public static Winding getWinding2f(final ArrayList<? extends Vert2fImmutable> vertices) {
-        return area2f(vertices) >= 0 ? Winding.CCW : Winding.CW ;
-    }
-
-    /**
-     * Computes the area of a list of vertices via shoelace formula.
-     * <p>
-     * This method is utilized e.g. to reliably compute the {@link Winding} of complex shapes.
+     * Implementation uses double precision.
      * </p>
      * @param vertices
      * @return positive area if ccw else negative area value
-     * @see #getWinding2d(ArrayList)
+     * @see #getWinding(List)
      */
-    public static double area2d(final ArrayList<? extends Vert2fImmutable> vertices) {
+    public static double area(final List<? extends Vert2fImmutable> vertices) {
         final int n = vertices.size();
         double area = 0.0;
         for (int p = n - 1, q = 0; q < n; p = q++) {
@@ -594,17 +567,20 @@ public final class VectorUtil {
     }
 
     /**
-     * Compute the winding using the {@link #area2f(ArrayList)} function over all vertices for complex shapes.
+     * Compute the winding using the {@link #area(List)} function over all vertices for complex shapes.
      * <p>
-     * Uses the {@link #area2f(ArrayList)} function over all points
+     * Uses the {@link #area(List)} function over all points
      * on complex shapes for a reliable result!
+     * </p>
+     * <p>
+     * Implementation uses double precision.
      * </p>
      * @param vertices array of Vertices
      * @return {@link Winding#CCW} or {@link Winding#CW}
-     * @see #area2d(ArrayList)
+     * @see #area(List)
      */
-    public static Winding getWinding2d(final ArrayList<? extends Vert2fImmutable> vertices) {
-        return area2d(vertices) >= 0 ? Winding.CCW : Winding.CW ;
+    public static Winding getWinding(final List<? extends Vert2fImmutable> vertices) {
+        return area(vertices) >= 0 ? Winding.CCW : Winding.CW ;
     }
 
     /**
