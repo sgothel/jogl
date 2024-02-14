@@ -79,35 +79,82 @@ public class TestFloatUtil01NOUI extends JunitTracer {
     }
 
     @Test
-    public void test01aZeroWithFixedEpsilon() {
-        testZeroWithEpsilon(10, FloatUtil.EPSILON);
+    public void test01aZeroWithFixedEpsilon0() {
+        testZeroWithEpsilon0(100);
+    }
+    @Test
+    public void test01bZeroWithFixedEpsilon1() {
+        testZeroWithEpsilon1(200, FloatUtil.EPSILON);
     }
     @Test
     public void test01bZeroWithMachEpsilon() {
-        testZeroWithEpsilon(100, MACH_EPSILON);
+        testZeroWithEpsilon1(300, MACH_EPSILON);
     }
-    private void testZeroWithEpsilon(int i, final float EPSILON) {
+    @Test
+    public void test01cZeroWithZeroEpsilon() {
+        final float EPSILON = 0.0f;
+        int i = 400;
         System.err.println();
-        testZeroWithEpsilon(i++, true, 0f, EPSILON);
-        testZeroWithEpsilon(i++, true, 0f-EPSILON/2f, EPSILON);
-        testZeroWithEpsilon(i++, true, 0f+EPSILON/2f, EPSILON);
-        testZeroWithEpsilon(i++, true, 0f-Float.MIN_VALUE, EPSILON);
-        testZeroWithEpsilon(i++, true, 0f+Float.MIN_VALUE, EPSILON);
-        testZeroWithEpsilon(i++, true, -0f, EPSILON);
-        testZeroWithEpsilon(i++, true, +0f, EPSILON);
+        testZeroWithEpsilon1(i++, true, 0f, EPSILON);
+        testZeroWithEpsilon1(i++, true, 0f-EPSILON/2f, EPSILON);
+        testZeroWithEpsilon1(i++, true, 0f+EPSILON/2f, EPSILON);
+        testZeroWithEpsilon1(i++, false, 0f-Float.MIN_VALUE, EPSILON);
+        testZeroWithEpsilon1(i++, false, 0f+Float.MIN_VALUE, EPSILON);
+        testZeroWithEpsilon1(i++, true, -0f, EPSILON);
+        testZeroWithEpsilon1(i++, true, +0f, EPSILON);
 
-        testZeroWithEpsilon(i++, false, 0f+EPSILON+Float.MIN_VALUE, EPSILON);
-        testZeroWithEpsilon(i++, false, 0f-EPSILON-Float.MIN_VALUE, EPSILON);
+        testZeroWithEpsilon1(i++, false, 0f+EPSILON+Float.MIN_VALUE, EPSILON);
+        testZeroWithEpsilon1(i++, false, 0f-EPSILON-Float.MIN_VALUE, EPSILON);
 
         // Unpredicted .. accuracy beyond epsilon, or deltaMachEpsLEQEpsilon or deltaFixedEpsLEQEpsilon;
         dumpTestWE(i++, 1, 0f, 0f+EPSILON-Float.MIN_VALUE, EPSILON);
         dumpTestWE(i++, 1, 0f, 0f-EPSILON+Float.MIN_VALUE, EPSILON);
     }
-    private void testZeroWithEpsilon(final int tstNum, final boolean exp, final float a, final float EPSILON) {
+    private void testZeroWithEpsilon1(int i, final float EPSILON) {
+        System.err.println();
+        testZeroWithEpsilon1(i++, true, 0f, EPSILON);
+        testZeroWithEpsilon1(i++, true, 0f-EPSILON/2f, EPSILON);
+        testZeroWithEpsilon1(i++, true, 0f+EPSILON/2f, EPSILON);
+        testZeroWithEpsilon1(i++, true, 0f-Float.MIN_VALUE, EPSILON);
+        testZeroWithEpsilon1(i++, true, 0f+Float.MIN_VALUE, EPSILON);
+        testZeroWithEpsilon1(i++, true, -0f, EPSILON);
+        testZeroWithEpsilon1(i++, true, +0f, EPSILON);
+
+        testZeroWithEpsilon1(i++, false, 0f+EPSILON+Float.MIN_VALUE, EPSILON);
+        testZeroWithEpsilon1(i++, false, 0f-EPSILON-Float.MIN_VALUE, EPSILON);
+
+        // Unpredicted .. accuracy beyond epsilon, or deltaMachEpsLEQEpsilon or deltaFixedEpsLEQEpsilon;
+        dumpTestWE(i++, 1, 0f, 0f+EPSILON-Float.MIN_VALUE, EPSILON);
+        dumpTestWE(i++, 1, 0f, 0f-EPSILON+Float.MIN_VALUE, EPSILON);
+    }
+    private void testZeroWithEpsilon1(final int tstNum, final boolean exp, final float a, final float EPSILON) {
         final boolean zero =  FloatUtil.isZero(a, EPSILON);
         final float delta = a-0f;
         System.err.println("Zero."+tstNum+": a: "+a+", -> d "+delta+", exp "+exp+", zero "+zero+", epsilon "+EPSILON);
         Assert.assertEquals("Zero failed a: "+a+" within "+EPSILON, exp, zero);
+    }
+    private void testZeroWithEpsilon0(int i) {
+        System.err.println();
+        testZeroWithEpsilon0(i++, true, 0f);
+        testZeroWithEpsilon0(i++, true, 0f-FloatUtil.EPSILON/2f);
+        testZeroWithEpsilon0(i++, true, 0f+FloatUtil.EPSILON/2f);
+        testZeroWithEpsilon0(i++, true, 0f-Float.MIN_VALUE);
+        testZeroWithEpsilon0(i++, true, 0f+Float.MIN_VALUE);
+        testZeroWithEpsilon0(i++, true, -0f);
+        testZeroWithEpsilon0(i++, true, +0f);
+
+        testZeroWithEpsilon0(i++, false, 0f+FloatUtil.EPSILON+Float.MIN_VALUE);
+        testZeroWithEpsilon0(i++, false, 0f-FloatUtil.EPSILON-Float.MIN_VALUE);
+
+        // Unpredicted .. accuracy beyond epsilon, or deltaMachEpsLEQEpsilon or deltaFixedEpsLEQEpsilon;
+        dumpTestWE(i++, 1, 0f, 0f+FloatUtil.EPSILON-Float.MIN_VALUE, FloatUtil.EPSILON);
+        dumpTestWE(i++, 1, 0f, 0f-FloatUtil.EPSILON+Float.MIN_VALUE, FloatUtil.EPSILON);
+    }
+    private void testZeroWithEpsilon0(final int tstNum, final boolean exp, final float a) {
+        final boolean zero =  FloatUtil.isZero(a);
+        final float delta = a-0f;
+        System.err.println("Zero."+tstNum+": a: "+a+", -> d "+delta+", exp "+exp+", zero "+zero+", build-in epsilon "+FloatUtil.EPSILON);
+        Assert.assertEquals("Zero failed a: "+a+" within build-in "+FloatUtil.EPSILON, exp, zero);
     }
 
     @Test
@@ -146,11 +193,42 @@ public class TestFloatUtil01NOUI extends JunitTracer {
 
     @Test
     public void test03aEqualsWithFixedEpsilon() {
-        testEqualsWithEpsilon(10, FloatUtil.EPSILON);
+        testEqualsWithEpsilon(100, FloatUtil.EPSILON);
     }
     @Test
     public void test03bEqualsWithMachEpsilon() {
-        testEqualsWithEpsilon(50, MACH_EPSILON);
+        testEqualsWithEpsilon(200, MACH_EPSILON);
+    }
+    @Test
+    public void test03cEqualsWithZeroEpsilon() {
+        // testEqualsWithEpsilon(300, 0.0f);
+        //
+        // Results marked with (***) are actually true epsilon artifacts
+        // reversing the result due to no-epsilon comparison
+        final float EPSILON = 0.0f;
+        int i=400;
+        System.err.println();
+        testEqualsWithEpsilon(i++, true, 0f, 0f, EPSILON);
+        testEqualsWithEpsilon(i++, true, 1f, 1f-EPSILON/2f, EPSILON);
+        testEqualsWithEpsilon(i++, true, 1f, 1f+EPSILON/2f, EPSILON);
+        testEqualsWithEpsilon(i++, true, 1f, 1f-Float.MIN_VALUE, EPSILON);  // ***
+        testEqualsWithEpsilon(i++, true, 1f, 1f-Float.MIN_NORMAL, EPSILON); // ***
+        testEqualsWithEpsilon(i++, true, 1f, 1f+Float.MIN_VALUE, EPSILON);  // ***
+        testEqualsWithEpsilon(i++, true, Float.MAX_VALUE, Float.MAX_VALUE, EPSILON);
+        testEqualsWithEpsilon(i++, true, Float.MIN_VALUE, Float.MIN_VALUE, EPSILON);
+        testEqualsWithEpsilon(i++, true, Float.MIN_NORMAL, Float.MIN_NORMAL, EPSILON);
+        testEqualsWithEpsilon(i++, true, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, EPSILON);
+        testEqualsWithEpsilon(i++, true, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, EPSILON);
+        testEqualsWithEpsilon(i++, true, Float.NaN, Float.NaN, EPSILON);
+        testEqualsWithEpsilon(i++, true, -0f, 0f, EPSILON);
+        testEqualsWithEpsilon(i++, true, 0f, -0f, EPSILON);
+
+        testEqualsWithEpsilon(i++, true, 1f, 1f+EPSILON+Float.MIN_VALUE, EPSILON); // ***
+        testEqualsWithEpsilon(i++, true, 1f, 1f-EPSILON-Float.MIN_VALUE, EPSILON); // ***
+
+        // Unpredicted .. accuracy beyond epsilon, or deltaMachEpsLEQEpsilon or deltaFixedEpsLEQEpsilon;
+        dumpTestWE(i++, 1, 1f, 1f+EPSILON-Float.MIN_VALUE, EPSILON);
+        dumpTestWE(i++, 1, 1f, 1f-EPSILON+Float.MIN_VALUE, EPSILON);
     }
     private void testEqualsWithEpsilon(int i, final float EPSILON) {
         System.err.println();
@@ -158,6 +236,7 @@ public class TestFloatUtil01NOUI extends JunitTracer {
         testEqualsWithEpsilon(i++, true, 1f, 1f-EPSILON/2f, EPSILON);
         testEqualsWithEpsilon(i++, true, 1f, 1f+EPSILON/2f, EPSILON);
         testEqualsWithEpsilon(i++, true, 1f, 1f-Float.MIN_VALUE, EPSILON);
+        testEqualsWithEpsilon(i++, true, 1f, 1f-Float.MIN_NORMAL, EPSILON);
         testEqualsWithEpsilon(i++, true, 1f, 1f+Float.MIN_VALUE, EPSILON);
         testEqualsWithEpsilon(i++, true, Float.MAX_VALUE, Float.MAX_VALUE, EPSILON);
         testEqualsWithEpsilon(i++, true, Float.MIN_VALUE, Float.MIN_VALUE, EPSILON);
@@ -232,11 +311,15 @@ public class TestFloatUtil01NOUI extends JunitTracer {
 
     @Test
     public void test05aCompareWithFixedEpsilon() {
-        test05CompareWithEpsilon(10, FloatUtil.EPSILON);
+        test05CompareWithEpsilon(100, FloatUtil.EPSILON);
     }
     @Test
     public void test05bCompareWithMachEpsilon() {
-        test05CompareWithEpsilon(50, MACH_EPSILON);
+        test05CompareWithEpsilon(200, MACH_EPSILON);
+    }
+    @Test
+    public void test05cCompareWithZeroEpsilon() {
+        test05CompareWithEpsilon(300, 0.0f);
     }
     private void test05CompareWithEpsilon(int i, final float epsilon) {
         System.err.println();

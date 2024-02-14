@@ -1428,7 +1428,11 @@ public final class FloatUtil {
   }
 
   /**
-   * Return true if both values are equal, i.e. their absolute delta < <code>epsilon</code>.
+   * Returns true if both values are equal, i.e. their absolute delta < {@code epsilon} if 0 != {@code epsilon},
+   * otherwise == {@code 0}.
+   * <p>
+   * {@code epsilon} is allowed to be {@code 0}.
+   * </p>
    * <p>
    * Implementation considers following corner cases:
    * <ul>
@@ -1440,7 +1444,8 @@ public final class FloatUtil {
    * @see #EPSILON
    */
   public static boolean isEqual(final float a, final float b, final float epsilon) {
-      if ( Math.abs(a - b) < epsilon ) {
+      if( 0 == epsilon && Math.abs(a - b) == 0 ||
+          0 != epsilon && Math.abs(a - b) < epsilon ) {
           return true;
       } else {
           // Values are equal (Inf, Nan .. )
@@ -1513,7 +1518,11 @@ public final class FloatUtil {
   }
 
   /**
-   * Return true if both values are equal, i.e. their absolute delta < <code>epsilon</code>.
+   * Returns {@code -1}, {@code 0} or {@code 1} if {@code a} is less, equal or greater than {@code b},
+   * taking {@code epsilon} into account for equality.
+   * <p>
+   * {@code epsilon} is allowed to be {@code 0}.
+   * </p>
    * <p>
    * Implementation considers following corner cases:
    * <ul>
@@ -1527,7 +1536,8 @@ public final class FloatUtil {
    * @see #EPSILON
    */
   public static int compare(final float a, final float b, final float epsilon) {
-      if ( Math.abs(a - b) < epsilon ) {
+      if( 0 == epsilon && Math.abs(a - b) == 0 ||
+          0 != epsilon && Math.abs(a - b) < epsilon ) {
           return 0;
       } else {
           return compare(a, b);
@@ -1535,11 +1545,21 @@ public final class FloatUtil {
   }
 
   /**
-   * Return true if value is zero, i.e. it's absolute value < <code>epsilon</code>.
+   * Returns true if value is zero, i.e. it's absolute value < {@code epsilon} if 0 != {@code epsilon},
+   * otherwise {@code 0 == a}.
+   * <p>
+   * {@code epsilon} is allowed to be {@code 0}.
+   * </p>
+   * <pre>
+   *    return 0 == epsilon && 0 == a || 0 != epsilon && Math.abs(a) < epsilon
+   * </pre>
+   * @param a value to test
+   * @param epsilon optional positive epsilon value, maybe {@code 0}
    * @see #EPSILON
    */
   public static boolean isZero(final float a, final float epsilon) {
-      return Math.abs(a) < epsilon;
+      return 0 == epsilon && a == 0 ||
+             0 != epsilon && Math.abs(a) < epsilon;
   }
 
   /**
