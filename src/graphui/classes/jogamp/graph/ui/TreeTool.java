@@ -63,7 +63,7 @@ public class TreeTool {
                 return true;
             } else if( s instanceof Container ) {
                 final Container c = (Container)s;
-                if( !c.contains(shape) ) { // fast-path: skip container
+                if( !contains(c, shape) ) { // fast-path: skip container
                     continue;
                 }
                 pmv.pushMv();

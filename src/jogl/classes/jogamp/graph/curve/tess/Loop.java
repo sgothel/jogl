@@ -222,23 +222,9 @@ public class Loop {
         return closestV;
     }
 
-    /**
-    public static void printPerf(final PrintStream out) {
-        out.printf("Graph.Intersection: cut[count %,d, td %,f ms], isect[count %,d, td %,f ms], isec/cut[count %f, td %f]%n",
-                   perf_cut_count, perf_cut_td_ns/1000000.0, perf_isect_count, perf_isect_td_ns/1000000.0,
-                   (double)perf_isect_count/(double)perf_cut_count, (double)perf_isect_td_ns/(double)perf_cut_td_ns);
-    }
-    private static long perf_isect_td_ns = 0;
-    private static long perf_isect_count = 0;
-    private static long perf_cut_td_ns = 0;
-    private static long perf_cut_count = 0;
-    */
     public final Triangle cut(final boolean delaunay){
         if( !CDTriangulator2D.DEBUG ) {
-            // final long t0 = Clock.currentNanos();
             return cut0(delaunay);
-            // perf_cut_td_ns += Clock.currentNanos() - t0;
-            // perf_cut_count++;
         } else {
             return cutDbg(delaunay);
         }
@@ -331,85 +317,65 @@ public class Loop {
         return t;
     }
 
-    private boolean intersectsOutline(final Vertex a1, final Vertex a2, final Vertex b) {
-        // final long t0 = Clock.currentNanos();
+    private final boolean intersectsOutline(final Vertex a1, final Vertex a2, final Vertex b) {
         for(final GraphOutline outline : outlines) {
-            if( intersectsOutline(outline, a1, a2, b) ) {
-                // perf_isect_td_ns += Clock.currentNanos() - t0;
-                // perf_isect_count++;
-                return true;
-            }
-        }
-        // perf_isect_td_ns += Clock.currentNanos() - t0;
-        // perf_isect_count++;
-        return false;
-    }
-    private boolean intersectsOutline(final GraphOutline outline, final Vertex a1, final Vertex a2, final Vertex b) {
-        final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
-        final int sz = vertices.size();
-        if( sz < 2 ) {
-            return false;
-        }
-        Vertex v0 = vertices.get(0).getPoint();
-        for(int i=1; i< sz; i++){
-            final Vertex v1 = vertices.get(i).getPoint();
-            if( !( v0 == b || v1 == b ) ) {
-                if( !( v0 == a1 || v1 == a1 ) &&
-                    VectorUtil.testSeg2SegIntersection(a1, b, v0, v1) ) {
-                    return true;
-                }
-                if( !( v0 == a2 || v1 == a2 ) &&
-                    VectorUtil.testSeg2SegIntersection(a2, b, v0, v1) ) {
-                    return true;
+            final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
+            final int sz = vertices.size();
+            if( sz >= 2 ) {
+                Vertex v0 = vertices.get(0).getPoint();
+                for(int i=1; i< sz; i++){
+                    final Vertex v1 = vertices.get(i).getPoint();
+                    if( v0 != b && v1 != b ) {
+                        if( v0 != a1 && v1 != a1 &&
+                            VectorUtil.testSeg2SegIntersection(a1, b, v0, v1) ) {
+                            return true;
+                        }
+                        if( v0 != a2 && v1 != a2 &&
+                            VectorUtil.testSeg2SegIntersection(a2, b, v0, v1) ) {
+                            return true;
+                        }
+                    }
+                    v0 = v1;
                 }
             }
-            v0 = v1;
         }
         return false;
     }
-    private boolean intersectsOutlineDbg(final Vertex a1, final Vertex a2, final Vertex b) {
+    private final boolean intersectsOutlineDbg(final Vertex a1, final Vertex a2, final Vertex b) {
         for(final GraphOutline outline : outlines) {
-            if( intersectsOutlineDbg(outline, a1, a2, b) ) {
-                return true;
-            }
-        }
-        return false;
-    }
-    private boolean intersectsOutlineDbg(final GraphOutline outline, final Vertex a1, final Vertex a2, final Vertex b) {
-        final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
-        final int sz = vertices.size();
-        if( sz < 2 ) {
-            return false;
-        }
-        Vertex v0 = vertices.get(0).getPoint();
-        for(int i=1; i< sz; i++){
-            final Vertex v1 = vertices.get(i).getPoint();
-            if( !( v0 == b || v1 == b ) ) {
-                if( !( v0 == a1 || v1 == a1 ) &&
-                    VectorUtil.testSeg2SegIntersection(a1, b, v0, v1) ) {
-                    System.err.printf("Loop.intersection.b-a1.1: %d/%d %s to%n-a1 %s, with%n-v0 %s%n-v1 %s%n", i, sz-1, b, a1, v0, v1);
-                    return true;
-                }
-                if( !( v0 == a2 || v1 == a2 ) &&
-                    VectorUtil.testSeg2SegIntersection(a2, b, v0, v1) ) {
-                    System.err.printf("Loop.intersection.b-a2.1: %d/%d %s to%n-a2 %s, with%n-v0 %s%n-v1 %s%n", i, sz-1, b, a2, v0, v1);
-                    return true;
+            final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
+            final int sz = vertices.size();
+            if( sz >= 2 ) {
+                Vertex v0 = vertices.get(0).getPoint();
+                for(int i=1; i< sz; i++){
+                    final Vertex v1 = vertices.get(i).getPoint();
+                    if( v0 != b && v1 != b ) {
+                        if( v0 != a1 && v1 != a1 &&
+                            VectorUtil.testSeg2SegIntersection(a1, b, v0, v1) ) {
+                            System.err.printf("Loop.intersection.b-a1.1: %d/%d %s to%n-a1 %s, with%n-v0 %s%n-v1 %s%n", i, sz-1, b, a1, v0, v1);
+                            return true;
+                        }
+                        if( v0 != a2 && v1 != a2 &&
+                            VectorUtil.testSeg2SegIntersection(a2, b, v0, v1) ) {
+                            System.err.printf("Loop.intersection.b-a2.1: %d/%d %s to%n-a2 %s, with%n-v0 %s%n-v1 %s%n", i, sz-1, b, a2, v0, v1);
+                            return true;
+                        }
+                    }
+                    v0 = v1;
                 }
             }
-            v0 = v1;
         }
         return false;
     }
 
-    private HEdge isValidNeighbor(final HEdge candEdge, final boolean delaunay) {
-        final HEdge next = root.getNext();
-        final Vertex rootPoint = root.getGraphPoint().getPoint();
-        final Vertex nextPoint = next.getGraphPoint().getPoint();
+    private final HEdge isValidNeighbor(final HEdge candEdge, final boolean delaunay) {
+        final GraphVertex rootGPoint = root.getGraphPoint();
+        final GraphVertex nextGPoint = root.getNext().getGraphPoint();
+        final Vertex rootPoint = rootGPoint.getPoint();
+        final Vertex nextPoint = nextGPoint.getPoint();
         final Vertex candPoint = candEdge.getGraphPoint().getPoint();
-        if( !VectorUtil.isCCW( rootPoint, nextPoint, candPoint) ) {
-            return null;
-        }
-        if( complexShape && intersectsOutline(rootPoint, nextPoint, candPoint) ) {
+        if( !VectorUtil.isCCW( rootPoint, nextPoint, candPoint) ||
+            complexShape && intersectsOutline(rootPoint, nextPoint, candPoint) ) {
             return null;
         }
         if( !delaunay ) {
@@ -418,11 +384,12 @@ public class Loop {
         HEdge e = candEdge.getNext();
         while (e != candEdge){
             final GraphVertex egp = e.getGraphPoint();
-            if(egp != root.getGraphPoint() &&
-               egp != next.getGraphPoint() &&
-               egp.getPoint() != candPoint )
+            final Vertex ep = egp.getPoint();
+            if(egp != rootGPoint &&
+               egp != nextGPoint &&
+               ep != candPoint )
             {
-                if( VectorUtil.isInCircle(rootPoint, nextPoint, candPoint, egp.getPoint()) ) {
+                if( VectorUtil.isInCircle(rootPoint, nextPoint, candPoint, ep) ) {
                     return null;
                 }
             }
@@ -430,10 +397,11 @@ public class Loop {
         }
         return candEdge;
     }
-    private HEdge isValidNeighborDbg(final HEdge candEdge, final boolean delaunay) {
-        final HEdge next = root.getNext();
-        final Vertex rootPoint = root.getGraphPoint().getPoint();
-        final Vertex nextPoint = next.getGraphPoint().getPoint();
+    private final HEdge isValidNeighborDbg(final HEdge candEdge, final boolean delaunay) {
+        final GraphVertex rootGPoint = root.getGraphPoint();
+        final GraphVertex nextGPoint = root.getNext().getGraphPoint();
+        final Vertex rootPoint = rootGPoint.getPoint();
+        final Vertex nextPoint = nextGPoint.getPoint();
         final Vertex candPoint = candEdge.getGraphPoint().getPoint();
         if( !VectorUtil.isCCW( rootPoint, nextPoint, candPoint) ) {
             System.err.printf("Loop.isInCircle.X: !CCW %s, of%n- %s%n- %s%n- %s%n",
@@ -449,18 +417,19 @@ public class Loop {
         HEdge e = candEdge.getNext();
         while (e != candEdge){
             final GraphVertex egp = e.getGraphPoint();
-            if(egp != root.getGraphPoint() &&
-               egp != next.getGraphPoint() &&
-               egp.getPoint() != candPoint )
+            final Vertex ep = egp.getPoint();
+            if(egp != rootGPoint &&
+               egp != nextGPoint &&
+               ep != candPoint )
             {
-                final double v = VectorUtil.inCircleVal(rootPoint, nextPoint, candPoint, egp.getPoint());
+                final double v = VectorUtil.inCircleVal(rootPoint, nextPoint, candPoint, ep);
                 if( v > DoubleUtil.EPSILON ) {
                     System.err.printf("Loop.isInCircle.1: %30.30f: %s, of%n- %s%n- %s%n- %s%n",
-                            v, candPoint, rootPoint, nextPoint, egp.getPoint());
+                            v, candPoint, rootPoint, nextPoint, ep);
                     return null;
                 }
                 System.err.printf("Loop.isInCircle.0: %30.30f: %s, of%n- %s%n- %s%n- %s%n",
-                        v, candPoint, root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(), egp.getPoint());
+                        v, candPoint, rootPoint, nextPoint, ep);
             }
             e = e.getNext();
         }

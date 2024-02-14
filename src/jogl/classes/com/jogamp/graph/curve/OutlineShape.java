@@ -919,27 +919,24 @@ public final class OutlineShape implements Comparable<OutlineShape> {
             final Outline outline = getOutline(cc);
             final int vertexCount = outline.getVertexCount();
             for(int i=0; i < vertexCount; i++) {
-                final Vertex current = outline.getVertex(i);
-                if(current.isOnCurve() || current == a || current == b || current == c) {
-                    continue;
-                }
-                final Vertex nextV = outline.getVertex((i+1)%vertexCount);
-                final Vertex prevV = outline.getVertex((i+vertexCount-1)%vertexCount);
+                final Vertex currV = outline.getVertex(i);
+                if( !currV.isOnCurve() && currV != a && currV != b && currV != c) {
+                    final Vertex nextV = outline.getVertex((i+1)%vertexCount);
+                    final Vertex prevV = outline.getVertex((i+vertexCount-1)%vertexCount);
 
-                //skip neighboring triangles
-                if(prevV == c || nextV == a) {
-                    continue;
-                }
-
-                if( VectorUtil.isInTriangle3(a.getCoord(), b.getCoord(), c.getCoord(),
-                                                 current.getCoord(), nextV.getCoord(), prevV.getCoord(),
-                                                 tmpV1, tmpV2, tmpV3) ) {
-                    return current;
-                }
-                if(VectorUtil.testTri2SegIntersection(a, b, c, prevV, current) ||
-                   VectorUtil.testTri2SegIntersection(a, b, c, current, nextV) ||
-                   VectorUtil.testTri2SegIntersection(a, b, c, prevV, nextV) ) {
-                    return current;
+                    //skip neighboring triangles
+                    if(prevV != c && nextV != a) {
+                        if( VectorUtil.isInTriangle3(a.getCoord(), b.getCoord(), c.getCoord(),
+                                                         currV.getCoord(), nextV.getCoord(), prevV.getCoord(),
+                                                         tmpV1, tmpV2, tmpV3) ) {
+                            return currV;
+                        }
+                        if(VectorUtil.testTri2SegIntersection(a, b, c, prevV, currV) ||
+                           VectorUtil.testTri2SegIntersection(a, b, c, currV, nextV) ||
+                           VectorUtil.testTri2SegIntersection(a, b, c, prevV, nextV) ) {
+                            return currV;
+                        }
+                    }
                 }
             }
         }
