@@ -2906,7 +2906,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final float[] newPixelScale = new float[2];
         final float[] maxPixelScale = new float[2];
         {
-            if( FloatUtil.isZero(newPixelScaleRaw[0], FloatUtil.EPSILON) || FloatUtil.isZero(newPixelScaleRaw[1], FloatUtil.EPSILON) ) {
+            if( FloatUtil.isZero(newPixelScaleRaw[0]) || FloatUtil.isZero(newPixelScaleRaw[1]) ) {
                 newPixelScale[0]= ScalableSurface.IDENTITY_PIXELSCALE;
                 newPixelScale[1]= ScalableSurface.IDENTITY_PIXELSCALE;
             } else {

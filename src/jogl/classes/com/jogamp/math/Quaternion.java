@@ -182,7 +182,7 @@ public class Quaternion {
      */
     public final Quaternion normalize() {
         final float norm = magnitude();
-        if ( FloatUtil.isZero(norm, FloatUtil.EPSILON) ) {
+        if ( FloatUtil.isZero(norm) ) {
             setIdentity();
         } else {
             final float invNorm = 1f/norm;
@@ -331,7 +331,7 @@ public class Quaternion {
      * @return this quaternion for chaining.
      */
     public Quaternion rotateByAngleNormalAxis(final float angle, final float axisX, final float axisY, final float axisZ) {
-        if( VectorUtil.isZero(axisX, axisY, axisZ, FloatUtil.EPSILON) ) {
+        if( VectorUtil.isZero(axisX, axisY, axisZ) ) {
             // no change
             return this;
         }
@@ -458,7 +458,7 @@ public class Quaternion {
      * @see #setFromEuler(float, float, float)
      */
     public final Quaternion rotateByEuler(final float bankX, final float headingY, final float attitudeZ) {
-        if ( VectorUtil.isZero(bankX, headingY, attitudeZ, FloatUtil.EPSILON) ) {
+        if ( VectorUtil.isZero(bankX, headingY, attitudeZ) ) {
             return this;
         } else {
             // setFromEuler muls: ( 8 + 4 ) , + quat muls 24 = 36
@@ -659,7 +659,7 @@ public class Quaternion {
      */
     public final Quaternion setFromVectors(final Vec3f v1, final Vec3f v2, final Vec3f tmpPivotVec, final Vec3f tmpNormalVec) {
         final float factor = v1.length() * v2.length();
-        if ( FloatUtil.isZero(factor, FloatUtil.EPSILON ) ) {
+        if ( FloatUtil.isZero(factor) ) {
             return setIdentity();
         } else {
             final float dot = v1.dot(v2) / factor; // normalize
@@ -667,7 +667,7 @@ public class Quaternion {
 
             tmpPivotVec.cross(v1, v2);
 
-            if ( dot < 0.0f && FloatUtil.isZero( tmpPivotVec.length(), FloatUtil.EPSILON ) ) {
+            if ( dot < 0.0f && FloatUtil.isZero( tmpPivotVec.length() ) ) {
                 // Vectors parallel and opposite direction, therefore a rotation of 180 degrees about any vector
                 // perpendicular to this vector will rotate vector a onto vector b.
                 //
@@ -714,7 +714,7 @@ public class Quaternion {
      */
     public final Quaternion setFromNormalVectors(final Vec3f v1, final Vec3f v2, final Vec3f tmpPivotVec) {
         final float factor = v1.length() * v2.length();
-        if ( FloatUtil.isZero(factor, FloatUtil.EPSILON ) ) {
+        if ( FloatUtil.isZero(factor) ) {
             return setIdentity();
         } else {
             final float dot = v1.dot(v2) / factor; // normalize
@@ -722,7 +722,7 @@ public class Quaternion {
 
             tmpPivotVec.cross(v1, v2);
 
-            if ( dot < 0.0f && FloatUtil.isZero( tmpPivotVec.length(), FloatUtil.EPSILON ) ) {
+            if ( dot < 0.0f && FloatUtil.isZero( tmpPivotVec.length() ) ) {
                 // Vectors parallel and opposite direction, therefore a rotation of 180 degrees about any vector
                 // perpendicular to this vector will rotate vector a onto vector b.
                 //
@@ -809,7 +809,7 @@ public class Quaternion {
     public final float toAngleAxis(final Vec3f axis) {
         final float sqrLength = x*x + y*y + z*z;
         float angle;
-        if ( FloatUtil.isZero(sqrLength, FloatUtil.EPSILON) ) { // length is ~0
+        if ( FloatUtil.isZero(sqrLength) ) { // length is ~0
             angle = 0.0f;
             axis.set( 1.0f, 0.0f, 0.0f );
         } else {
@@ -869,7 +869,7 @@ public class Quaternion {
      * @see #toEuler(Vec3f)
      */
     public final Quaternion setFromEuler(final float bankX, final float headingY, final float attitudeZ) {
-        if ( VectorUtil.isZero(bankX, headingY, attitudeZ, FloatUtil.EPSILON) ) {
+        if ( VectorUtil.isZero(bankX, headingY, attitudeZ) ) {
             return setIdentity();
         } else {
             float angle = headingY * 0.5f;

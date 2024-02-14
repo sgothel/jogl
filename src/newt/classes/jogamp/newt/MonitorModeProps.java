@@ -470,7 +470,7 @@ public class MonitorModeProps {
                     final MonitorDevice b = monitors.get(j);
                     if( !b.isClone() ) {
                         final float coverage = b.getViewport().coverage( a.getViewport() );
-                        if( FloatUtil.isZero( 1f - coverage, FloatUtil.EPSILON ) ) {
+                        if( FloatUtil.isZero( 1f - coverage ) ) {
                             ((MonitorDeviceImpl)b).setIsClone(true);
                             if( Screen.DEBUG ) {
                                 System.err.printf("MonitorCloneTest[%d of %d]: %f -> _is_ covered%n", j, i, coverage);

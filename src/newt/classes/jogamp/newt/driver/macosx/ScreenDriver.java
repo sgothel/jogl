@@ -89,7 +89,7 @@ public class ScreenDriver extends ScreenImpl {
             for(int crtIdx=0; crtIdx<count; crtIdx++) {
                 final int crt_id = crtIDs[crtIdx];
                 final float pixelScaleRaw = OSXUtil.GetScreenPixelScaleByDisplayID(crt_id);
-                pixelScaleArray[crtIdx] = FloatUtil.isZero(pixelScaleRaw, FloatUtil.EPSILON) ? 1.0f : pixelScaleRaw;
+                pixelScaleArray[crtIdx] = FloatUtil.isZero(pixelScaleRaw) ? 1.0f : pixelScaleRaw;
                 propsOrigArray[crtIdx] = getMonitorProps0(crt_id);
                 if ( null == propsOrigArray[crtIdx] ) {
                     throw new InternalError("Could not gather device props "+crtIdx+"/"+count+" -> "+Display.toHexString(crt_id));

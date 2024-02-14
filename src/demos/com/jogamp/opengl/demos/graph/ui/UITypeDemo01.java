@@ -482,7 +482,7 @@ public class UITypeDemo01 implements GLEventListener {
                             // final float[] objPosT = new float[] { objPosC[0]+translate[0], objPosC[1]+translate[1], objPosC[2]+translate[2] };
                             final Vec3f diff = winObjPos.minus(objPosC);
                             // final float dz = winObjPos[2] - objPosT[2];
-                            if( !FloatUtil.isZero(diff.x(), FloatUtil.EPSILON) || !FloatUtil.isZero(diff.y(), FloatUtil.EPSILON) ) {
+                            if( !FloatUtil.isZero(diff.x()) || !FloatUtil.isZero(diff.y()) ) {
                                 System.err.println("CrossHair: Move.1: Win "+glWinX+"/"+glWinY+" -> Obj "+winObjPos+" -> diff "+diff);
                                 crossHair.move(diff.x(), diff.y(), 0f);
                             } else {

@@ -125,7 +125,7 @@ public final class VectorUtil {
      */
     public static float[] normalizeVec3(final float[] vector) {
         final float lengthSq = normSquareVec3(vector);
-        if ( FloatUtil.isZero(lengthSq, FloatUtil.EPSILON) ) {
+        if ( FloatUtil.isZero(lengthSq) ) {
             vector[0] = 0f;
             vector[1] = 0f;
             vector[2] = 0f;
@@ -145,7 +145,7 @@ public final class VectorUtil {
      */
     public static float[] normalizeVec3(final float[] vector, final int offset) {
         final float lengthSq = normSquareVec3(vector, offset);
-        if ( FloatUtil.isZero(lengthSq, FloatUtil.EPSILON) ) {
+        if ( FloatUtil.isZero(lengthSq) ) {
             vector[0+offset] = 0f;
             vector[1+offset] = 0f;
             vector[2+offset] = 0f;
@@ -284,7 +284,7 @@ public final class VectorUtil {
      * @return true if collinear, false otherwise
      */
     public static boolean isCollinear(final Vec3f v1, final Vec3f v2, final Vec3f v3) {
-        return FloatUtil.isZero( determinant(v1, v2, v3), FloatUtil.EPSILON );
+        return FloatUtil.isZero( determinant(v1, v2, v3) );
     }
 
     public static final double InCircleDThreshold = DoubleUtil.EPSILON;

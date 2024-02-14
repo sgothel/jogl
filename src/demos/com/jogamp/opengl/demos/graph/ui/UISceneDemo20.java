@@ -968,7 +968,7 @@ public class UISceneDemo20 implements GLEventListener {
         } else {
             System.err.println("Using default DPI of "+dpiV);
         }
-        if( 0 == renderModes && !FloatUtil.isZero(noAADPIThreshold, FloatUtil.EPSILON)) {
+        if( 0 == renderModes && !FloatUtil.isZero(noAADPIThreshold)) {
             final boolean noAA = dpiV >= noAADPIThreshold;
             final String noAAs = noAA ? " >= " : " < ";
             System.err.println("AUTO RenderMode: dpi "+dpiV+noAAs+noAADPIThreshold+" -> noAA "+noAA);

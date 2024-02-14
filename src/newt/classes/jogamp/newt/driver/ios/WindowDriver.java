@@ -66,10 +66,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                                      final float newPixelScaleRaw, final float maxPixelScaleRaw) {
         final float[] newPixelScale = new float[2];
         {
-            final float _newPixelScale = FloatUtil.isZero(newPixelScaleRaw, FloatUtil.EPSILON) ? ScalableSurface.IDENTITY_PIXELSCALE : newPixelScaleRaw;
+            final float _newPixelScale = FloatUtil.isZero(newPixelScaleRaw) ? ScalableSurface.IDENTITY_PIXELSCALE : newPixelScaleRaw;
             newPixelScale[0]= _newPixelScale;
             newPixelScale[1]= _newPixelScale;
-            final float _maxPixelScale = FloatUtil.isZero(maxPixelScaleRaw, FloatUtil.EPSILON) ? ScalableSurface.IDENTITY_PIXELSCALE : maxPixelScaleRaw;
+            final float _maxPixelScale = FloatUtil.isZero(maxPixelScaleRaw) ? ScalableSurface.IDENTITY_PIXELSCALE : maxPixelScaleRaw;
             maxPixelScale[0]= _maxPixelScale;
             maxPixelScale[1]= _maxPixelScale;
         }
