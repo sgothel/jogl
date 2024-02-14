@@ -1454,7 +1454,7 @@ public final class FloatUtil {
   }
 
   /**
-   * Return true if both values are equal, i.e. their absolute delta < {@link #EPSILON}.
+   * Returns true if both values are equal, i.e. their absolute delta < {@link #EPSILON}.
    * <p>
    * Implementation considers following corner cases:
    * <ul>
@@ -1475,7 +1475,7 @@ public final class FloatUtil {
   }
 
   /**
-   * Return true if both values are equal, i.e. their absolute delta < {@link #EPSILON}.
+   * Returns true if both values are equal, i.e. their absolute delta < {@link #EPSILON}.
    * <p>
    * Implementation does not consider corner cases like {@link #isEqual(float, float, float)}.
    * </p>
@@ -1486,7 +1486,7 @@ public final class FloatUtil {
   }
 
   /**
-   * Return true if both values are equal w/o regarding an epsilon.
+   * Returns true if both values are equal w/o regarding an epsilon.
    * <p>
    * Implementation considers following corner cases:
    * <ul>
@@ -1563,7 +1563,7 @@ public final class FloatUtil {
   }
 
   /**
-   * Return true if value is zero, i.e. it's absolute value < {@link #EPSILON}.
+   * Returns true if value is zero, i.e. it's absolute value < {@link #EPSILON}.
    * @see #EPSILON
    */
   public static boolean isZero(final float a) {
