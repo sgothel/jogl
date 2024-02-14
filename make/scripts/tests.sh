@@ -342,8 +342,8 @@ function jrun() {
     #D_ARGS="-Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.graph.curve.Instance -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.triangulation.LINE_AA -Djogl.debug.graph.curve.Triangulation -Djogl.debug.graph.font.Renderer"
-    #D_ARGS="-Djogl.debug.graph.curve.triangulation.force.non-convex"
-    #D_ARGS="-Djogl.debug.graph.curve.triangulation.force.convex"
+    #D_ARGS="-Djogl.debug.graph.curve.triangulation.force.complexshape"
+    #D_ARGS="-Djogl.debug.graph.curve.triangulation.force.simpleshape"
     #D_ARGS="-Djogl.debug.graph.font.Font"
     #D_ARGS="-Djogl.debug.graph.font.Font -Djogl.debug.graph.font.Renderer -Djogl.debug.graph.font.Renderer.Code"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.graph.curve.vbaa.resizeLowerBoundary=100"
@@ -1011,13 +1011,14 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeClippingDemo00 $*
 ##testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeClippingDemo01 $*
-#testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
+testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo02a $*
+#testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UITypeDemo01 $*
 
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo00 $*
