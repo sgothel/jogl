@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.math.DoubleUtil;
+import com.jogamp.math.FloatUtil;
 import com.jogamp.math.VectorUtil;
 import com.jogamp.math.geom.AABBox;
 import com.jogamp.math.geom.plane.Winding;
@@ -452,7 +454,7 @@ public class Loop {
                egp.getPoint() != candPoint )
             {
                 final double v = VectorUtil.inCircleVal(rootPoint, nextPoint, candPoint, egp.getPoint());
-                if( v > VectorUtil.InCircleDThreshold ) {
+                if( v > DoubleUtil.EPSILON ) {
                     System.err.printf("Loop.isInCircle.1: %30.30f: %s, of%n- %s%n- %s%n- %s%n",
                             v, candPoint, rootPoint, nextPoint, egp.getPoint());
                     return null;

@@ -287,7 +287,6 @@ public final class VectorUtil {
         return FloatUtil.isZero( determinant(v1, v2, v3) );
     }
 
-    public static final double InCircleDThreshold = DoubleUtil.EPSILON;
     /**
      * Check if vertices in triangle circumcircle given {@code d} vertex, from paper by Guibas and Stolfi (1985).
      * <p>
@@ -300,7 +299,7 @@ public final class VectorUtil {
      * @return true if the vertex d is inside the circle defined by the vertices a, b, c.
      */
     public static boolean isInCircle(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
-        return inCircleVal(a, b, c, d) > InCircleDThreshold;
+        return inCircleVal(a, b, c, d) > DoubleUtil.EPSILON;
     }
     public static double inCircleVal(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c, final Vert2fImmutable d) {
         // Operation costs:
@@ -525,7 +524,7 @@ public final class VectorUtil {
      * @see #getWinding(List)
      */
     public static boolean isCCW(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c){
-        return triArea(a,b,c) > InCircleDThreshold;
+        return triArea(a,b,c) > DoubleUtil.EPSILON;
     }
 
     /**
@@ -541,7 +540,7 @@ public final class VectorUtil {
      * @see #getWinding(List)
      */
     public static Winding getWinding(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c) {
-        return triArea(a,b,c) > InCircleDThreshold ? Winding.CCW : Winding.CW ;
+        return triArea(a,b,c) > DoubleUtil.EPSILON ? Winding.CCW : Winding.CW ;
     }
 
     /**
@@ -643,7 +642,7 @@ public final class VectorUtil {
         final Vec3f plane3 = new Vec3f(plane);
         final float tmp = ray.dir.dot(plane3);
 
-        if ( Math.abs(tmp) < epsilon ) {
+        if ( FloatUtil.isZero(tmp, epsilon) ) {
             return null; // ray is parallel to plane
         }
         result.set( ray.dir );
