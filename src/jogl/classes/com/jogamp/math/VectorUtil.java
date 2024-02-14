@@ -709,7 +709,7 @@ public final class VectorUtil {
      * @param c vertex 1 of second segment
      * @param d vertex 2 of second segment
      * @return true if the segments intersect, otherwise returns false
-     * @deprecated use {@link #testSeg2SegIntersection(Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable)}
+     * @deprecated use {@link #testSeg2SegIntersection(Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, float, boolean)}
      */
     @Deprecated
     public static boolean testSeg2SegIntersection0(final Vert2fImmutable a, final Vert2fImmutable b,
@@ -741,7 +741,7 @@ public final class VectorUtil {
      * @param d vertex 1 of first segment
      * @param e vertex 2 of first segment
      * @return true if the segment intersects at least one segment of the triangle, false otherwise
-     * @deprecated use {@link #testTri2SegIntersection(Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable)}
+     * @deprecated use {@link #testTri2SegIntersection(Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, float, boolean)}
      */
     @Deprecated
     public static boolean testTri2SegIntersection0(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c,
@@ -752,21 +752,33 @@ public final class VectorUtil {
     }
 
     /**
+     * Line segment intersection test and returning the intersecting point.
+     * <p>
      * See [p + t r = q + u s](https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282)
      * and [its terse C# implementation](https://www.codeproject.com/tips/862988/find-the-intersection-point-of-two-line-segments)
+     * </p>
+     * <p>
+     * Implementation uses float precision.
+     * </p>
+     * @param p vertex 1 of first segment
+     * @param p2 vertex 2 of first segment
+     * @param q vertex 1 of second segment
+     * @param q2 vertex 2 of second segment
+     * @param epsilon optional epsilon. If {@code 0} just compare against {@code 0}, otherwise compare against this {@code epsilon}. See {@link FloatUtil#EPSILON}
+     * @param doCollinear consider collinear case, i.e. overlapping segments as an intersection returning {@code true}
+     * @return true if line segments are intersecting, otherwise false
      */
-    public static boolean seg2SegIntersection(final Vec3f result, final Vec2f p, final Vec2f p2, final Vec2f q, final Vec2f q2, final boolean doCollinear)
+    public static boolean seg2SegIntersection(final Vec3f result, final Vec2f p, final Vec2f p2, final Vec2f q, final Vec2f q2, final float epsilon, final boolean doCollinear)
     {
-        final float eps = FloatUtil.EPSILON;
         final Vec2f r = p2.minus(p);
         final Vec2f s = q2.minus(q);
         final float rxs = r.cross(s);
 
-        if ( FloatUtil.isZero(rxs) ) {
+        if ( FloatUtil.isZero(rxs, epsilon) ) {
             if( doCollinear ) {
                 final Vec2f q_p = q.minus(p);
                 final float qpxr = q_p.cross(r);
-                if ( FloatUtil.isZero(qpxr) ) // disabled collinear case
+                if ( FloatUtil.isZero(qpxr, epsilon) ) // disabled collinear case
                 {
                     // 1) r x s = 0 and (q - p) x r = 0, the two lines are collinear.
                     final Vec2f p_q = p.minus(q);
@@ -774,8 +786,8 @@ public final class VectorUtil {
                     final float pq_dot_s = p_q.dot(s);
                     // if ( ( 0 <= qp_dot_r && qp_dot_r <= r.dot(r) ) ||
                     //      ( 0 <= pq_dot_s && pq_dot_s <= s.dot(s) ) )
-                    if ( ( eps <= qp_dot_r && qp_dot_r - r.dot(r) <= eps ) ||
-                         ( eps <= pq_dot_s && pq_dot_s - s.dot(s) <= eps ) )
+                    if ( ( epsilon <= qp_dot_r && qp_dot_r - r.dot(r) <= epsilon ) ||
+                         ( epsilon <= pq_dot_s && pq_dot_s - s.dot(s) <= epsilon ) )
                     {
                         // 1.1) 0 <= (q - p) · r <= r · r or 0 <= (p - q) · s <= s · s, the two lines are overlapping
                         // FIXME: result set to q2 endpoint, OK?
@@ -807,7 +819,7 @@ public final class VectorUtil {
             final float u = qpxr / rxs;
 
             // if ( (0 <= t && t <= 1) && (0 <= u && u <= 1) )
-            if ( (eps <= t && t - 1 <= eps) && (eps <= u && u - 1 <= eps) )
+            if ( (epsilon <= t && t - 1 <= epsilon) && (epsilon <= u && u - 1 <= epsilon) )
             {
                 // 3) r × s ≠ 0 and 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1, the two line segments meet at the point p + t * r = q + u * s.
                 result.set( p.plus( r.mul( t ) ), 0 ); // == q + (u * s)
@@ -826,19 +838,25 @@ public final class VectorUtil {
      * <p>
      * Implementation uses float precision.
      * </p>
+     * @param p vertex 1 of first segment
+     * @param p2 vertex 2 of first segment
+     * @param q vertex 1 of second segment
+     * @param q2 vertex 2 of second segment
+     * @param epsilon optional epsilon. If {@code 0} just compare against {@code 0}, otherwise compare against this {@code epsilon}. See {@link FloatUtil#EPSILON}
+     * @param doCollinear consider collinear case, i.e. overlapping segments as an intersection returning {@code true}
+     * @return true if line segments are intersecting, otherwise false
      */
-    public static boolean testSeg2SegIntersection(final Vec2f p, final Vec2f p2, final Vec2f q, final Vec2f q2, final boolean doCollinear)
+    public static boolean testSeg2SegIntersection(final Vec2f p, final Vec2f p2, final Vec2f q, final Vec2f q2, final float epsilon, final boolean doCollinear)
     {
-        final float eps = FloatUtil.EPSILON;
         final Vec2f r = p2.minus(p);
         final Vec2f s = q2.minus(q);
         final float rxs = r.cross(s);
 
-        if ( FloatUtil.isZero(rxs) ) {
+        if ( FloatUtil.isZero(rxs, epsilon) ) {
             if( doCollinear ) {
                 final Vec2f q_p = q.minus(p);
                 final float qpxr = q_p.cross(r);
-                if ( FloatUtil.isZero(qpxr) ) // disabled collinear case
+                if ( FloatUtil.isZero(qpxr, epsilon) ) // disabled collinear case
                 {
                     // 1) r x s = 0 and (q - p) x r = 0, the two lines are collinear.
                     final Vec2f p_q = p.minus(q);
@@ -846,8 +864,8 @@ public final class VectorUtil {
                     final float pq_dot_s = p_q.dot(s);
                     // if ( ( 0 <= qp_dot_r && qp_dot_r <= r.dot(r) ) ||
                     //      ( 0 <= pq_dot_s && pq_dot_s <= s.dot(s) ) )
-                    if ( ( eps <= qp_dot_r && qp_dot_r - r.dot(r) <= eps ) ||
-                         ( eps <= pq_dot_s && pq_dot_s - s.dot(s) <= eps ) )
+                    if ( ( epsilon <= qp_dot_r && qp_dot_r - r.dot(r) <= epsilon ) ||
+                         ( epsilon <= pq_dot_s && pq_dot_s - s.dot(s) <= epsilon ) )
                     {
                         // 1.1) 0 <= (q - p) · r <= r · r or 0 <= (p - q) · s <= s · s, the two lines are overlapping
                         return true;
@@ -877,7 +895,7 @@ public final class VectorUtil {
             final float u = qpxr / rxs;
 
             // if ( (0 <= t && t <= 1) && (0 <= u && u <= 1) )
-            if ( (eps <= t && t - 1 <= eps) && (eps <= u && u - 1 <= eps) )
+            if ( (epsilon <= t && t - 1 <= epsilon) && (epsilon <= u && u - 1 <= epsilon) )
             {
                 // 3) r × s ≠ 0 and 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1, the two line segments meet at the point p + t * r = q + u * s.
                 return true;
@@ -894,20 +912,56 @@ public final class VectorUtil {
      * <p>
      * Implementation uses float precision.
      * </p>
+     * @param p vertex 1 of first segment
+     * @param p2 vertex 2 of first segment
+     * @param q vertex 1 of second segment
+     * @param q2 vertex 2 of second segment
+     * @param epsilon optional epsilon. If {@code 0} just compare against {@code 0}, otherwise compare against this {@code epsilon}. See {@link FloatUtil#EPSILON}
+     * @param doCollinear consider collinear case, i.e. overlapping segments as an intersection returning {@code true}
+     * @return true if line segments are intersecting, otherwise false
      */
-    public static boolean testSeg2SegIntersection(final Vert2fImmutable p, final Vert2fImmutable p2, final Vert2fImmutable q, final Vert2fImmutable q2)
+    public static boolean testSeg2SegIntersection(final Vert2fImmutable p, final Vert2fImmutable p2, final Vert2fImmutable q, final Vert2fImmutable q2,
+                                                  final float epsilon, final boolean doCollinear)
     {
         // Operations: 11+, 8*, 2 branches
-        final float eps = FloatUtil.EPSILON;
         final float rx = p2.x() - p.x(); // p2.minus(p)
         final float ry = p2.y() - p.y();
         final float sx = q2.x() - q.x(); // q2.minus(q)
         final float sy = q2.y() - q.y();
         final float rxs = rx * sy - ry * sx; // r.cross(s)
 
-        if ( FloatUtil.isZero(rxs) ) {
-            // Not considering collinear case as an intersection
-            return false;
+        if ( FloatUtil.isZero(rxs, epsilon) ) {
+            if( doCollinear ) {
+                final float q_px = q.x() - p.x(); // q.minus(p)
+                final float q_py = q.y() - p.y();
+                final float qpxr = q_px * ry - q_py * rx; // q_p.cross(r)
+                if ( FloatUtil.isZero(qpxr, epsilon) ) // disabled collinear case
+                {
+                    // 1) r x s = 0 and (q - p) x r = 0, the two lines are collinear.
+                    final float p_qx = p.x() - q.x(); // p.minus(q)
+                    final float p_qy = p.y() - q.y();
+                    final float qp_dot_r = q_px * rx + q_py * ry; // q_p.dot(r);
+                    final float pq_dot_s = p_qx * sx + p_qy * sy; // p_q.dot(s);
+                    final float r_dot_r = rx * rx + ry * ry; // r.dot(r);
+                    final float s_dot_s = sx * sx + sy * sy; // r.dot(r);
+                    // if ( ( 0 <= qp_dot_r && qp_dot_r <= r.dot(r) ) ||
+                    //      ( 0 <= pq_dot_s && pq_dot_s <= s.dot(s) ) )
+                    if ( ( epsilon <= qp_dot_r && qp_dot_r - r_dot_r <= epsilon ) ||
+                         ( epsilon <= pq_dot_s && pq_dot_s - s_dot_s <= epsilon ) )
+                    {
+                        // 1.1) 0 <= (q - p) · r <= r · r or 0 <= (p - q) · s <= s · s, the two lines are overlapping
+                        return true;
+                    }
+                    // 1.2 the two lines are collinear but disjoint.
+                    return false;
+                } else {
+                    // 2) r × s = 0 and (q − p) × r ≠ 0, the two lines are parallel and non-intersecting.
+                    return false;
+                }
+            } else {
+                // Not considering collinear case as an intersection
+                return false;
+            }
         } else {
             // r x s != 0
             final float q_px = q.x() - p.x(); // q.minus(p)
@@ -924,7 +978,7 @@ public final class VectorUtil {
             final float u = qpxr / rxs;
 
             // if ( (0 <= t && t <= 1) && (0 <= u && u <= 1) )
-            if ( (eps <= t && t - 1 <= eps) && (eps <= u && u - 1 <= eps) )
+            if ( (epsilon <= t && t - 1 <= epsilon) && (epsilon <= u && u - 1 <= epsilon) )
             {
                 // 3) r × s ≠ 0 and 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1, the two line segments meet at the point p + t * r = q + u * s.
                 return true;
@@ -942,14 +996,16 @@ public final class VectorUtil {
      * @param c vertex 3 of the triangle
      * @param d vertex 1 of first segment
      * @param e vertex 2 of first segment
+     * @param epsilon optional epsilon. If {@code 0} just compare against {@code 0}, otherwise compare against this {@code epsilon}. See {@link FloatUtil#EPSILON}
+     * @param doCollinear consider collinear case, i.e. overlapping segments as an intersection returning {@code true}
      * @return true if the segment intersects at least one segment of the triangle, false otherwise
-     * @see #testSeg2SegIntersection(Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable)
+     * @see #testSeg2SegIntersection(Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, float, boolean)
      */
     public static boolean testTri2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c,
-                                                  final Vert2fImmutable d, final Vert2fImmutable e){
-        return testSeg2SegIntersection(a, b, d, e) ||
-               testSeg2SegIntersection(b, c, d, e) ||
-               testSeg2SegIntersection(a, c, d, e) ;
+                                                  final Vert2fImmutable d, final Vert2fImmutable e, final float epsilon, final boolean doCollinear) {
+        return testSeg2SegIntersection(a, b, d, e, epsilon, doCollinear) ||
+               testSeg2SegIntersection(b, c, d, e, epsilon, doCollinear) ||
+               testSeg2SegIntersection(a, c, d, e, epsilon, doCollinear) ;
     }
 
     /**

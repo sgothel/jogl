@@ -346,20 +346,20 @@ public class Loop {
     }
     private boolean intersectsOutline(final GraphOutline outline, final Vertex a1, final Vertex a2, final Vertex b) {
         final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
-        if( vertices.size() < 2 ) {
+        final int sz = vertices.size();
+        if( sz < 2 ) {
             return false;
         }
-        final int sz = vertices.size();
         Vertex v0 = vertices.get(0).getPoint();
         for(int i=1; i< sz; i++){
             final Vertex v1 = vertices.get(i).getPoint();
             if( !( v0 == b || v1 == b ) ) {
                 if( !( v0 == a1 || v1 == a1 ) &&
-                    VectorUtil.testSeg2SegIntersection(a1, b, v0, v1) ) {
+                    VectorUtil.testSeg2SegIntersection(a1, b, v0, v1, FloatUtil.EPSILON, false) ) {
                     return true;
                 }
                 if( !( v0 == a2 || v1 == a2 ) &&
-                    VectorUtil.testSeg2SegIntersection(a2, b, v0, v1) ) {
+                    VectorUtil.testSeg2SegIntersection(a2, b, v0, v1, FloatUtil.EPSILON, false) ) {
                     return true;
                 }
             }
@@ -377,21 +377,21 @@ public class Loop {
     }
     private boolean intersectsOutlineDbg(final GraphOutline outline, final Vertex a1, final Vertex a2, final Vertex b) {
         final ArrayList<GraphVertex> vertices = outline.getGraphPoint();
-        if( vertices.size() < 2 ) {
+        final int sz = vertices.size();
+        if( sz < 2 ) {
             return false;
         }
-        final int sz = vertices.size();
         Vertex v0 = vertices.get(0).getPoint();
         for(int i=1; i< sz; i++){
             final Vertex v1 = vertices.get(i).getPoint();
             if( !( v0 == b || v1 == b ) ) {
                 if( !( v0 == a1 || v1 == a1 ) &&
-                    VectorUtil.testSeg2SegIntersection(a1, b, v0, v1) ) {
+                    VectorUtil.testSeg2SegIntersection(a1, b, v0, v1, FloatUtil.EPSILON, false) ) {
                     System.err.printf("Loop.intersection.b-a1.1: %d/%d %s to%n-a1 %s, with%n-v0 %s%n-v1 %s%n", i, sz-1, b, a1, v0, v1);
                     return true;
                 }
                 if( !( v0 == a2 || v1 == a2 ) &&
-                    VectorUtil.testSeg2SegIntersection(a2, b, v0, v1) ) {
+                    VectorUtil.testSeg2SegIntersection(a2, b, v0, v1, FloatUtil.EPSILON, false) ) {
                     System.err.printf("Loop.intersection.b-a2.1: %d/%d %s to%n-a2 %s, with%n-v0 %s%n-v1 %s%n", i, sz-1, b, a2, v0, v1);
                     return true;
                 }
