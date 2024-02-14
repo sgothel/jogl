@@ -936,9 +936,9 @@ public final class OutlineShape implements Comparable<OutlineShape> {
                                                  tmpV1, tmpV2, tmpV3) ) {
                     return current;
                 }
-                if(VectorUtil.testTri2SegIntersection(a, b, c, prevV, current, FloatUtil.EPSILON, false) ||
-                   VectorUtil.testTri2SegIntersection(a, b, c, current, nextV, FloatUtil.EPSILON, false) ||
-                   VectorUtil.testTri2SegIntersection(a, b, c, prevV, nextV, FloatUtil.EPSILON, false) ) {
+                if(VectorUtil.testTri2SegIntersection(a, b, c, prevV, current) ||
+                   VectorUtil.testTri2SegIntersection(a, b, c, current, nextV) ||
+                   VectorUtil.testTri2SegIntersection(a, b, c, prevV, nextV) ) {
                     return current;
                 }
             }

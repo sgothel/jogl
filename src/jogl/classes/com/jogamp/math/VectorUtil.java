@@ -904,7 +904,7 @@ public final class VectorUtil {
         return false;
     }
     /**
-     * Line segment intersection test without considering collinear-case.
+     * Line segment intersection test
      * <p>
      * See [p + t r = q + u s](https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282)
      * and [its terse C# implementation](https://www.codeproject.com/tips/862988/find-the-intersection-point-of-two-line-segments)
@@ -1009,7 +1009,80 @@ public final class VectorUtil {
     }
 
     /**
-     * Returns whether the given {@code polyline} denotes a convex shape
+     * Line segment intersection test using {@link FloatUtil#EPSILON} w/o considering collinear-case
+     * <p>
+     * See [p + t r = q + u s](https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect/565282#565282)
+     * and [its terse C# implementation](https://www.codeproject.com/tips/862988/find-the-intersection-point-of-two-line-segments)
+     * </p>
+     * <p>
+     * Implementation uses float precision.
+     * </p>
+     * @param p vertex 1 of first segment
+     * @param p2 vertex 2 of first segment
+     * @param q vertex 1 of second segment
+     * @param q2 vertex 2 of second segment
+     * @return true if line segments are intersecting, otherwise false
+     */
+    public static boolean testSeg2SegIntersection(final Vert2fImmutable p, final Vert2fImmutable p2, final Vert2fImmutable q, final Vert2fImmutable q2)
+    {
+        // Operations: 11+, 8*, 2 branches
+        final float rx = p2.x() - p.x(); // p2.minus(p)
+        final float ry = p2.y() - p.y();
+        final float sx = q2.x() - q.x(); // q2.minus(q)
+        final float sy = q2.y() - q.y();
+        final float rxs = rx * sy - ry * sx; // r.cross(s)
+
+        final float epsilon = FloatUtil.EPSILON;
+
+        if ( FloatUtil.isZero(rxs) ) {
+            // Not considering collinear case as an intersection
+            return false;
+        } else {
+            // r x s != 0
+            final float q_px = q.x() - p.x(); // q.minus(p)
+            final float q_py = q.y() - p.y();
+            final float qpxr = q_px * ry - q_py * rx; // q_p.cross(r)
+
+            // p + t r = q + u s
+            // (p + t r) × s = (q + u s) × s
+            // t (r × s) = (q − p) × s, with s x s = 0
+            // t = (q - p) x s / (r x s)
+            final float t = ( q_px * sy - q_py * sx ) / rxs; // q_p.cross(s) / rxs
+
+            // u = (p − q) × r / (s × r) = (q - p) x r / (r x s), with s × r = − r × s
+            final float u = qpxr / rxs;
+
+            // if ( (0 <= t && t <= 1) && (0 <= u && u <= 1) )
+            if ( (epsilon <= t && t - 1 <= epsilon) && (epsilon <= u && u - 1 <= epsilon) )
+            {
+                // 3) r × s ≠ 0 and 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1, the two line segments meet at the point p + t * r = q + u * s.
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * Check if a segment intersects with a triangle using {@link FloatUtil#EPSILON} w/o considering collinear-case
+     * <p>
+     * Implementation uses float precision.
+     * </p>
+     * @param a vertex 1 of the triangle
+     * @param b vertex 2 of the triangle
+     * @param c vertex 3 of the triangle
+     * @param d vertex 1 of first segment
+     * @param e vertex 2 of first segment
+     * @return true if the segment intersects at least one segment of the triangle, false otherwise
+     * @see #testSeg2SegIntersection(Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, Vert2fImmutable, float, boolean)
+     */
+    public static boolean testTri2SegIntersection(final Vert2fImmutable a, final Vert2fImmutable b, final Vert2fImmutable c,
+                                                  final Vert2fImmutable d, final Vert2fImmutable e) {
+        return testSeg2SegIntersection(a, b, d, e) ||
+               testSeg2SegIntersection(b, c, d, e) ||
+               testSeg2SegIntersection(a, c, d, e) ;
+    }
+
+    /**
+     * Returns whether the given {@code polyline} denotes a convex shape with O(n) complexity.
      * <p>
      * See [Determine whether a polygon is convex based on its vertices](https://math.stackexchange.com/questions/1743995/determine-whether-a-polygon-is-convex-based-on-its-vertices/1745427#1745427)
      * </p>
@@ -1127,7 +1200,7 @@ public final class VectorUtil {
         }
     }
     /**
-     * Returns whether the given on-curve {@code polyline} points denotes a convex shape
+     * Returns whether the given on-curve {@code polyline} points denotes a convex shape with O(n) complexity.
      * <p>
      * See [Determine whether a polygon is convex based on its vertices](https://math.stackexchange.com/questions/1743995/determine-whether-a-polygon-is-convex-based-on-its-vertices/1745427#1745427)
      * </p>
