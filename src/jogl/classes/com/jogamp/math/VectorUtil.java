@@ -1092,7 +1092,7 @@ public final class VectorUtil {
             //  Find out the orientation of this pair of edges,
             //  and ensure it does not differ from previous ones.
             final float w = bx*ay - ax*by;
-            if( DoubleUtil.isZero(wSign) && !DoubleUtil.isZero(w) ) {
+            if( FloatUtil.isZero(wSign) && !FloatUtil.isZero(w) ) {
                 wSign = w;
             } else if( wSign > eps && w < -eps ) {
                 return false;
@@ -1180,6 +1180,9 @@ public final class VectorUtil {
                 ++offset; // 0, ...
                 v1 = polyline.get(cmod(offset, polysz));  //  next on-curve vertex
             } while( !v1.isOnCurve() && offset < polysz );
+            if( offset >= polysz ) {
+                break;
+            }
 
             //  Previous edge vector ("before"):
             final float bx = v0.x() - vp.x();
@@ -1232,7 +1235,7 @@ public final class VectorUtil {
             //  Find out the orientation of this pair of edges,
             //  and ensure it does not differ from previous ones.
             final float w = bx*ay - ax*by;
-            if( DoubleUtil.isZero(wSign) && !DoubleUtil.isZero(w) ) {
+            if( FloatUtil.isZero(wSign) && !FloatUtil.isZero(w) ) {
                 wSign = w;
             } else if( wSign > eps && w < -eps ) {
                 return false;
