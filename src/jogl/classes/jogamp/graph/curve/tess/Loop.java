@@ -41,13 +41,13 @@ import com.jogamp.graph.geom.Triangle;
 public class Loop {
     private final AABBox box = new AABBox();
     private final GraphOutline initialOutline;
-    private final boolean isConvex;
+    private final boolean complexShape;
     private HEdge root;
     private final List<GraphOutline> outlines = new ArrayList<GraphOutline>();
 
-    private Loop(final GraphOutline polyline, final int edgeType, final boolean isConvex){
+    private Loop(final GraphOutline polyline, final int edgeType, final boolean complexShape){
         this.initialOutline = polyline;
-        this.isConvex = isConvex;
+        this.complexShape = complexShape;
         this.root = initFromPolyline(initialOutline, edgeType);
     }
 
@@ -249,7 +249,7 @@ public class Loop {
             final Vertex rootPoint = root.getGraphPoint().getPoint();
             final Vertex nextPoint = next1.getGraphPoint().getPoint();
             final Vertex candPoint = next1.getNext().getGraphPoint().getPoint();
-            if( !isConvex && intersectsOutline(rootPoint, nextPoint, candPoint) ) {
+            if( complexShape && intersectsOutline(rootPoint, nextPoint, candPoint) ) {
                 return null;
             }
             return new Triangle(rootPoint, nextPoint, candPoint, checkVerticesBoundary(root));
@@ -290,7 +290,7 @@ public class Loop {
             final Vertex rootPoint = root.getGraphPoint().getPoint();
             final Vertex nextPoint = next1.getGraphPoint().getPoint();
             final Vertex candPoint = next1.getNext().getGraphPoint().getPoint();
-            if( !isConvex && intersectsOutlineDbg(rootPoint, nextPoint, candPoint) ) {
+            if( complexShape && intersectsOutlineDbg(rootPoint, nextPoint, candPoint) ) {
                 System.err.printf("Loop.cut.X0: last-simplex intersects%n");
                 return null;
             }
@@ -409,7 +409,7 @@ public class Loop {
         if( !VectorUtil.isCCW( rootPoint, nextPoint, candPoint) ) {
             return null;
         }
-        if( !isConvex && intersectsOutline(rootPoint, nextPoint, candPoint) ) {
+        if( complexShape && intersectsOutline(rootPoint, nextPoint, candPoint) ) {
             return null;
         }
         if( !delaunay ) {
@@ -440,7 +440,7 @@ public class Loop {
                     candPoint, rootPoint, nextPoint, candPoint);
             return null;
         }
-        if( !isConvex && intersectsOutlineDbg(rootPoint, nextPoint, candPoint) ) {
+        if( complexShape && intersectsOutlineDbg(rootPoint, nextPoint, candPoint) ) {
             return null;
         }
         if( !delaunay ) {

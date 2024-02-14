@@ -99,8 +99,8 @@ import com.jogamp.opengl.util.Animator;
 public class FontView01 {
     private static final float GlyphGridWidth = 3/4f; // FBO AA: 3/4f = 0.75f dropped fine grid lines @ 0.2f thickness; 0.70f OK
     private static final float GlyphGridBorderThickness = 0.02f; // thickness 0.2f dropping
-    private static final Vec4f GlyphGridBorderColorConvex = new Vec4f(0.2f, 0.2f, 0.7f, 1);
     private static final Vec4f GlyphGridBorderColorComplex = new Vec4f(0.2f, 0.2f, 0.2f, 1);
+    private static final Vec4f GlyphGridBorderColorSimple = new Vec4f(0.2f, 0.2f, 0.7f, 1);
 
     // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.MSAA_RENDERING_BIT, Region.DEFAULT_AA_QUALITY, 4);
     // static CommandlineOptions options = new CommandlineOptions(1280, 720, Region.VBAA_RENDERING_BIT);
@@ -437,7 +437,7 @@ public class FontView01 {
         final int rows;
         final int rowsPerPage;
         final int elemCount;
-        int convexGlyphCount;
+        int complexGlyphCount;
         int maxNameLen;
 
         public GridDim(final Font font, final int columns, final int rowsPerPage, final int xReserved) {
@@ -456,14 +456,14 @@ public class FontView01 {
         private int scanContourGlyphs(final Font font) {
             final long t0 = Clock.currentNanos();
             contourChars.clear();
-            convexGlyphCount = 0;
+            complexGlyphCount = 0;
             maxNameLen = 1;
             final int[] max = { max_glyph_count };
             font.forAllGlyphs((final Glyph fg) -> {
                 if( !fg.isNonContour() && max[0]-- > 0 ) {
                     contourChars.add( fg.getCodepoint() );
-                    if( null != fg.getShape() && fg.getShape().isConvex() ) {
-                        ++convexGlyphCount;
+                    if( null != fg.getShape() && fg.getShape().isComplex() ) {
+                        ++complexGlyphCount;
                     }
                     maxNameLen = Math.max(maxNameLen, fg.getName().length());
                 }
@@ -475,7 +475,7 @@ public class FontView01 {
             return contourChars.size();
         }
         @Override
-        public String toString() { return "GridDim[contours "+glyphCount+", convex "+convexGlyphCount+" ("+((float)convexGlyphCount/(float)glyphCount)*100+"%), "+columns+"x"+rows+"="+(columns*rows)+">="+elemCount+", rows/pg "+rowsPerPage+"]"; }
+        public String toString() { return "GridDim[contours "+glyphCount+", complex "+complexGlyphCount+" ("+((float)complexGlyphCount/(float)glyphCount)*100+"%), "+columns+"x"+rows+"="+(columns*rows)+">="+elemCount+", rows/pg "+rowsPerPage+"]"; }
     }
 
     static Group getGlyphShapeHolder(final Shape shape0) {
@@ -505,7 +505,7 @@ public class FontView01 {
         for(int idx = 0; idx < gridDim.glyphCount; ++idx) {
             final char codepoint = gridDim.contourChars.get(idx);
             final Font.Glyph fg = font.getGlyph(codepoint);
-            final boolean isConvex = null != fg.getShape() ? fg.getShape().isConvex() : true;
+            final boolean isComplex = null != fg.getShape() ? fg.getShape().isComplex() : false;
 
             final GlyphShape g = new GlyphShape(options.renderModes, fg, 0, 0);
             g.setColor(0.1f, 0.1f, 0.1f, 1).setName("GlyphShape");
@@ -519,7 +519,7 @@ public class FontView01 {
             final AABBox gbox = fg.getBounds(tmpBox); // g.getBounds(glp);
             final boolean addUnderline = showUnderline && gbox.getMinY() < 0f;
             final Group c1 = new Group( new BoxLayout( 1f, 1f, addUnderline ? Alignment.None : Alignment.Center) );
-            c1.setBorder(GlyphGridBorderThickness).setBorderColor(isConvex ? GlyphGridBorderColorConvex : GlyphGridBorderColorComplex)
+            c1.setBorder(GlyphGridBorderThickness).setBorderColor(isComplex ? GlyphGridBorderColorComplex : GlyphGridBorderColorSimple)
               .setInteractive(true).setDragAndResizable(false).setName("GlyphHolder2");
             if( addUnderline ) {
                 final Shape underline = new Rectangle(options.renderModes, 1f, gbox.getMinY(), 0.01f).setInteractive(false).setColor(0f, 0f, 1f, 0.25f);
@@ -574,7 +574,7 @@ public class FontView01 {
 
     static String getGlyphInfo(final Font.Glyph g) {
         final OutlineShape os = g.getShape();
-        final boolean isConvex = null != os ? os.isConvex() : true;
+        final boolean isComplex = null != os ? os.isComplex() : false;
         final int osVertices = null != os ? os.getVertexCount() : 0;
         final String name_s = null != g.getName() ? g.getName() : "";
         final AABBox bounds = g.getBounds();
@@ -587,6 +587,6 @@ public class FontView01 {
                 bounds.getWidth(), bounds.getHeight(), box_s,
                 g.getAdvanceWidth(),
                 g.getLeftSideBearings(),
-                osVertices, isConvex?"Convex":"Non-Convex");
+                osVertices, isComplex?"Complex Shape":"Simple Shape");
     }
 }

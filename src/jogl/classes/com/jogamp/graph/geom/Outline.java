@@ -57,11 +57,11 @@ public class Outline implements Comparable<Outline> {
     private final AABBox bbox;
     private boolean dirtyBBox;
     private Winding winding;
-    private boolean convexFlag;
+    private boolean complexShape;
     private int dirtyBits;
 
     private static final int DIRTY_WINDING = 1 << 0;
-    private static final int DIRTY_CONVEX  = 1 << 0;
+    private static final int DIRTY_COMPLEXSHAPE  = 1 << 0;
 
     /**Create an outline defined by control vertices.
      * An outline can contain off Curve vertices which define curved
@@ -73,7 +73,7 @@ public class Outline implements Comparable<Outline> {
         bbox = new AABBox();
         dirtyBBox = false;
         winding = Winding.CCW;
-        convexFlag = false;
+        complexShape = false;
         dirtyBits = 0;
     }
 
@@ -84,8 +84,16 @@ public class Outline implements Comparable<Outline> {
         final int count = src.vertices.size();
         vertices = new ArrayList<Vertex>(count);
         winding = Winding.CCW;
-        convexFlag = false;
-        dirtyBits = DIRTY_WINDING | DIRTY_CONVEX;
+        complexShape = false;
+        dirtyBits = DIRTY_WINDING | DIRTY_COMPLEXSHAPE;
+        if( 0 == ( src.dirtyBits & DIRTY_WINDING ) ) {
+            winding = src.winding;
+            dirtyBits &= ~DIRTY_WINDING;
+        }
+        if( 0 == ( src.dirtyBits & DIRTY_COMPLEXSHAPE ) ) {
+            complexShape = src.complexShape;
+            dirtyBits &= ~DIRTY_COMPLEXSHAPE;
+        }
         for(int i=0; i<count; i++) {
             vertices.add( src.vertices.get(i).copy() );
         }
@@ -105,15 +113,10 @@ public class Outline implements Comparable<Outline> {
     public Outline(final Outline src, final Winding enforce) {
         final int count = src.vertices.size();
         vertices = new ArrayList<Vertex>(count);
+        complexShape = false;
+        dirtyBits = DIRTY_COMPLEXSHAPE;
         final Winding had_winding = src.getWinding();
         winding = had_winding;
-        if( 0 == ( src.dirtyBits & DIRTY_CONVEX ) ) {
-            convexFlag = src.convexFlag;
-            dirtyBits = 0;
-        } else {
-            convexFlag = false;
-            dirtyBits = DIRTY_CONVEX;
-        }
         if( enforce != had_winding ) {
             for(int i=count-1; i>=0; --i) {
                 vertices.add( src.vertices.get(i).copy() );
@@ -123,6 +126,10 @@ public class Outline implements Comparable<Outline> {
             for(int i=0; i<count; ++i) {
                 vertices.add( src.vertices.get(i).copy() );
             }
+        }
+        if( 0 == ( src.dirtyBits & DIRTY_COMPLEXSHAPE ) ) {
+            complexShape = src.complexShape;
+            dirtyBits &= ~DIRTY_COMPLEXSHAPE;
         }
         closed = src.closed;
         bbox = new AABBox(src.bbox);
@@ -171,22 +178,22 @@ public class Outline implements Comparable<Outline> {
     }
 
     /**
-     * Returns the cached or computed result whether this {@link Outline}s {@code polyline} has a convex shape using {@link VectorUtil#isConvex(ArrayList, boolean)}.
+     * Returns cached or computed result if whether this {@link Outline}s {@code polyline} is a complex shape.
      * <p>
-     * A polyline with less than 3 elements is marked convex for simplicity,
-     * since a non-convex complex shape may need to pass intersection testing within triangulation.
+     * A polyline with less than 3 elements is marked a simple shape for simplicity.
      * </p>
      * <p>
      * The result is cached.
      * </p>
      */
-    public boolean isConvex() {
-        if( 0 == ( dirtyBits & DIRTY_CONVEX ) ) {
-            return convexFlag;
+    public boolean isComplex() {
+        if( 0 == ( dirtyBits & DIRTY_COMPLEXSHAPE ) ) {
+            return complexShape;
         }
-        convexFlag = VectorUtil.isConvex1( getVertices(), true );
-        dirtyBits &= ~DIRTY_CONVEX;
-        return convexFlag;
+        complexShape = !VectorUtil.isConvex1( getVertices(), true );
+        // complexShape = VectorUtil.isSelfIntersecting1( getVertices() );
+        dirtyBits &= ~DIRTY_COMPLEXSHAPE;
+        return complexShape;
     }
 
     public final int getVertexCount() {
@@ -217,7 +224,7 @@ public class Outline implements Comparable<Outline> {
         if(!dirtyBBox) {
             bbox.resize(vertex.getCoord());
         }
-        dirtyBits |= DIRTY_WINDING | DIRTY_CONVEX;
+        dirtyBits |= DIRTY_WINDING | DIRTY_COMPLEXSHAPE;
     }
 
     /** Replaces the {@link Vertex} element at the given {@code position}.
@@ -234,7 +241,7 @@ public class Outline implements Comparable<Outline> {
         }
         vertices.set(position, vertex);
         dirtyBBox = true;
-        dirtyBits |= DIRTY_WINDING | DIRTY_CONVEX;
+        dirtyBits |= DIRTY_WINDING | DIRTY_COMPLEXSHAPE;
     }
 
     public final Vertex getVertex(final int index){
@@ -253,7 +260,7 @@ public class Outline implements Comparable<Outline> {
      */
     public final Vertex removeVertex(final int position) throws IndexOutOfBoundsException {
         dirtyBBox = true;
-        dirtyBits |= DIRTY_WINDING | DIRTY_CONVEX;
+        dirtyBits |= DIRTY_WINDING | DIRTY_COMPLEXSHAPE;
         return vertices.remove(position);
     }
 

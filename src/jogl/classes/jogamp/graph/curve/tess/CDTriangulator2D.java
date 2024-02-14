@@ -50,15 +50,13 @@ public class CDTriangulator2D implements Triangulator {
 
     protected static final boolean DEBUG = Debug.debug("graph.curve.Triangulation");
 
-    private static final boolean FORCE_NONCONVEX = Debug.debug("graph.curve.triangulation.force.non-convex");
-    private static final boolean FORCE_CONVEX = Debug.debug("graph.curve.triangulation.force.convex");
     private static final boolean TEST_LINE_AA = Debug.debug("graph.curve.triangulation.LINE_AA");
     private static final boolean TEST_MARK_LINE = Debug.debug("graph.curve.triangulation.MARK_AA");
     private static final boolean TEST_ENABLED = TEST_LINE_AA || TEST_MARK_LINE;
 
     private final ArrayList<Loop> loops = new ArrayList<Loop>();
 
-    private boolean convexFlag;
+    private boolean complexShape;
     private int addedVerticeCount;
     private int maxTriID;
 
@@ -66,19 +64,13 @@ public class CDTriangulator2D implements Triangulator {
     /** Constructor for a new Delaunay triangulator
      */
     public CDTriangulator2D() {
-        if( FORCE_NONCONVEX ) {
-            convexFlag = false;
-        } else {
-            convexFlag = true;
-        }
+        complexShape = false;
         reset();
     }
 
     @Override
-    public void setConvexShape(final boolean convex) {
-        if( !FORCE_NONCONVEX && !FORCE_CONVEX ) {
-            convexFlag = convex;
-        }
+    public void setComplexShape(final boolean complex) {
+        complexShape = complex;
     }
 
     @Override
@@ -114,7 +106,7 @@ public class CDTriangulator2D implements Triangulator {
             final GraphOutline innerPoly = extractBoundaryTriangles(sink, outline, false /* hole */, sharpness);
             // vertices.addAll(polyline.getVertices());
             if( innerPoly.getGraphPoint().size() >= 3 ) {
-                loop = Loop.createBoundary(innerPoly, convexFlag);
+                loop = Loop.createBoundary(innerPoly, complexShape);
                 if( null != loop ) {
                     loops.add(loop);
                 }

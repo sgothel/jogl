@@ -49,8 +49,16 @@ import com.jogamp.graph.geom.Triangle;
  */
 public interface Triangulator {
 
-    /** Mark the to be triangulated shape convex or non-convex, causing further processing costs if non-convex like intersection tests. Default is assuming a convex shape. */
-    public void setConvexShape(boolean convex);
+    /**
+     * Mark the to be triangulated shape complex or non-complex.
+     * <p>
+     * Complex shapes may cause further processing costs, e.g. intersection tests to overcome self-intersecting shapes.
+     * </p>
+     * <p>
+     * Default is assuming a simple non-complex shape.
+     * </p>
+     */
+    public void setComplexShape(boolean complex);
 
     /**
      * Add a curve to the list of Outlines

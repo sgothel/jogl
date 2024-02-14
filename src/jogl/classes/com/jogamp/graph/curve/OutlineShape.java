@@ -46,6 +46,8 @@ import com.jogamp.math.geom.plane.AffineTransform;
 import com.jogamp.math.geom.plane.Path2F;
 import com.jogamp.math.geom.plane.Winding;
 
+import jogamp.opengl.Debug;
+
 /**
  * A Generic shape objects which is defined by a list of Outlines.
  * This Shape can be transformed to triangulations.
@@ -119,6 +121,9 @@ import com.jogamp.math.geom.plane.Winding;
  * @see Region
  */
 public final class OutlineShape implements Comparable<OutlineShape> {
+    private static final boolean FORCE_COMPLEXSHAPE = Debug.debug("graph.curve.triangulation.force.complexshape");
+    private static final boolean FORCE_SIMPLESHAPE = Debug.debug("graph.curve.triangulation.force.simpleshape");
+
     /**
      * Outline's vertices have undefined state until transformed.
      */
@@ -159,7 +164,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     private final ArrayList<Triangle> triangles;
     private final ArrayList<Vertex> vertices;
     private int addedVerticeCount;
-    private boolean convexFlag;
+    private boolean complexShape;
 
     private VerticesState outlineState;
 
@@ -187,7 +192,11 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         this.triangles = new ArrayList<Triangle>();
         this.vertices = new ArrayList<Vertex>();
         this.addedVerticeCount = 0;
-        this.convexFlag = true;
+        if( FORCE_COMPLEXSHAPE ) {
+            complexShape = true;
+        } else {
+            complexShape = false;
+        }
         this.dirtyBits = 0;
         this.sharpness = DEFAULT_SHARPNESS;
     }
@@ -221,7 +230,11 @@ public final class OutlineShape implements Comparable<OutlineShape> {
         vertices.clear();
         triangles.clear();
         addedVerticeCount = 0;
-        convexFlag = true;
+        if( FORCE_COMPLEXSHAPE ) {
+            complexShape = true;
+        } else {
+            complexShape = false;
+        }
         dirtyBits = 0;
     }
 
@@ -262,10 +275,9 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     }
 
     /**
-     * Returns cached or computed result whether all {@code polyline}s of {@link #getOutline(int)} are of convex shape, see {@link Outline#isConvex()}.
+     * Returns cached or computed result if at least one {@code polyline} of {@link #getOutline(int)} is a complex shape, see {@link Outline#isComplex()}.
      * <p>
-     * A polyline with less than 3 elements is marked convex for simplicity,
-     * since a non-convex complex shape may need to pass intersection testing within triangulation.
+     * A polyline with less than 3 elements is marked a simple shape for simplicity.
      * </p>
      * <p>
      * The result is cached.
@@ -273,32 +285,35 @@ public final class OutlineShape implements Comparable<OutlineShape> {
      * @see #setOverrideConvex(boolean)
      * @see #clearOverrideConvex()
      */
-    public boolean isConvex() {
-        if( 0 == ( OVERRIDE_CONVEX & dirtyBits ) ) {
-            if( 0 != ( DIRTY_CONVEX & dirtyBits ) ) {
-                convexFlag = true;
-                final int sz = this.getOutlineCount();
-                for(int i=0; i<sz && convexFlag; ++i) {
-                    convexFlag = getOutline(i).isConvex();
-                }
-                dirtyBits &= ~DIRTY_CONVEX;
+    public boolean isComplex() {
+        if( !FORCE_COMPLEXSHAPE && !FORCE_SIMPLESHAPE &&
+            0 == ( OVERRIDE_CONVEX & dirtyBits ) &&
+            0 != ( DIRTY_CONVEX & dirtyBits ) )
+        {
+            complexShape = false;
+            final int sz = this.getOutlineCount();
+            for(int i=0; i<sz && !complexShape; ++i) {
+                complexShape = getOutline(i).isComplex();
             }
+            dirtyBits &= ~DIRTY_CONVEX;
         }
-        return convexFlag;
+        return complexShape;
     }
     /**
-     * Overrides {@link #isConvex()} using the given value instead of computing via {@link Outline#isConvex()}.
+     * Overrides {@link #isComplex()} using the given value instead of computing via {@link Outline#isComplex()}.
      * @see #clearOverrideConvex()
-     * @see #isConvex()
+     * @see #isComplex()
      */
     public void setOverrideConvex(final boolean convex) {
-        dirtyBits |= OVERRIDE_CONVEX;
-        convexFlag = convex;
+        if( !FORCE_COMPLEXSHAPE && !FORCE_SIMPLESHAPE ) {
+            dirtyBits |= OVERRIDE_CONVEX;
+            complexShape = convex;
+        }
     }
     /**
-     * Clears the {@link #isConvex()} override done by {@link #setOverrideConvex(boolean)}
+     * Clears the {@link #isComplex()} override done by {@link #setOverrideConvex(boolean)}
      * @see #setOverrideConvex(boolean)
-     * @see #isConvex()
+     * @see #isComplex()
      */
     public void clearOverrideConvex() {
         dirtyBits &= ~OVERRIDE_CONVEX;
@@ -1018,7 +1033,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
 
             triangles.clear();
             final Triangulator triangulator2d = Triangulation.create();
-            triangulator2d.setConvexShape( isConvex() );
+            triangulator2d.setComplexShape( isComplex() );
             for(int index = 0; index<outlines.size(); index++) {
                 triangulator2d.addCurve(triangles, outlines.get(index), sharpness);
             }
