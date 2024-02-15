@@ -381,6 +381,22 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         dy += ( -headbox.getHeight() - font.getLineHeight() ) * pixelSizeCenter;
 
         {
+            final String mg_s = font.getGlyph('M').toString()+"\n"+font.getGlyph('X').toString();
+            pmv.pushMv();
+            // System.err.printf("Head: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));
+            pmv.translateMv(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
+            {
+                final float sxy = nearPlaneS * pixelSizeFName;
+                pmv.scaleMv(sxy, sxy, 1.0f);
+            }
+            // pmv.glTranslatef(x0, y1, z0);
+            final AABBox box = textRegionUtil.drawString3D(gl, renderer, font, mg_s, null);
+            pmv.popMv();
+
+            dy += ( -box.getHeight() - font.getLineHeight() ) * pixelSizeFName;
+        }
+
+        {
             pmv.pushMv();
             pmv.translateMv(nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy), nearPlaneZ0);
             // System.err.printf("Bottom: [%f %f] -> [%f %f]%n", dx, dy, nearPlaneX0+(dx*nearPlaneSx), nearPlaneY0+(dy*nearPlaneSy));

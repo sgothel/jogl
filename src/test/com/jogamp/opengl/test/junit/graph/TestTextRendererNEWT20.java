@@ -76,10 +76,12 @@ public class TestTextRendererNEWT20 extends UITestCase {
 
     @BeforeClass
     public static void setup() {
-        try {
-            fontSet = FontSet01.getSet00();
-        } catch (final IOException e) {
-            e.printStackTrace();
+        if( fontSet.length == 0 ) {
+            try {
+                fontSet = FontSet01.getSet00();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
