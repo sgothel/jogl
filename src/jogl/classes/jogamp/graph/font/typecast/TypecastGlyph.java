@@ -272,7 +272,7 @@ public final class TypecastGlyph implements Font.Glyph {
             contour_s = "contour";
         }
         final String name_s = null != name ? name : "";
-        final String shape_s = null != shape ? "shape "+shape.getVertexCount()+"v" : "shape null";
+        final String shape_s = null != shape ? "shape["+shape.getVertexCount()+"v, "+(shape.isComplex()?"complex":"simple")+"]" : "shape null";
         sb.append("Glyph[id 0x").append(Integer.toHexString(id)).append(", cp 0x").append(Integer.toHexString(codepoint))
           .append(", name '").append(name_s).append("', ").append(contour_s)
           .append(", ").append(shape_s)
@@ -296,7 +296,7 @@ public final class TypecastGlyph implements Font.Glyph {
             contour_s = "contour";
         }
         final String name_s = null != name ? name : "";
-        final String shape_s = null != shape ? "shape "+shape.getVertexCount()+"v" : "shape null";
+        final String shape_s = null != shape ? "shape["+shape.getVertexCount()+"v, "+(shape.isComplex()?"complex":"simple")+"]" : "shape null";
         sb.append("Glyph[id 0x").append(Integer.toHexString(id)).append(", cp 0x").append(Integer.toHexString(codepoint))
           .append(" name '").append(name_s).append("', ").append(contour_s)
           .append(", shape ").append(shape_s)
