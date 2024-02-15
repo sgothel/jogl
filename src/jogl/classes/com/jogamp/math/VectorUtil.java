@@ -1342,61 +1342,17 @@ public final class VectorUtil {
         if (polysz < 4) {
             return false;
         }
-        final boolean keepOffCurve = true;
-
         for (int i = 0; i < polysz-1; i++) {
-            Vertex p0, p1;
-            if( keepOffCurve ) {
-                p0 = polyline.get(i);
-                p1 = polyline.get(i+1);
-            } else {
-                do {
-                    p0 = polyline.get(i++);
-                } while( !p0.isOnCurve() && i < polysz-1 );
-                if( i >= polysz-1 ) {
-                    return false;
-                }
-                {
-                    int i2 = i;
-                    do {
-                        p1 = polyline.get(i2++);
-                    } while( !p1.isOnCurve() && i2 < polysz );
-                    i = i2 - 1;
-                    if( i2 >= polysz ) {
-                        return false;
-                    }
-                }
-            }
+            final Vertex p0 = polyline.get(i);
+            final Vertex p1 = polyline.get(i+1);
             for (int j = i+2; j < polysz; j++) {
-                // Eliminate combinations already checked or not valid
-                if ((i == 0) && ( j == (polysz-1))) {
-                    continue;
-                }
-                Vertex q0, q1;
-                if( keepOffCurve ) {
-                    q0 = polyline.get(j);
-                    q1 = polyline.get((j+1)%polysz);
-                } else {
-                    do {
-                        q0 = polyline.get(j++);
-                    } while( !q0.isOnCurve() && j < polysz );
-                    if( i >= polysz-1 ) {
-                        return false;
-                    }
-                    {
-                        int j2 = j;
-                        do {
-                            q1 = polyline.get(j2++%polysz);
-                        } while( !q1.isOnCurve() && j2 < polysz+1 );
-                        j = j2 - 1;
-                        if( j2 >= polysz+1 ) {
-                            return false;
-                        }
-                    }
-                }
+                if( i != 0 || j != (polysz-1) ) {
+                    final Vertex q0 = polyline.get(j);
+                    final Vertex q1 = polyline.get((j+1)%polysz);
 
-                if( VectorUtil.testSeg2SegIntersection(p0, p1, q0, q1, 0, false) ) {
-                    return true;
+                    if( VectorUtil.testSeg2SegIntersection(p0, p1, q0, q1, 0, false) ) {
+                        return true;
+                    }
                 }
             }
         }
