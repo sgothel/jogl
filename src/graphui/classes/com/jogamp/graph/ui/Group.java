@@ -84,7 +84,9 @@ public class Group extends Shape implements Container {
     private Shape[] drawShapeArray = new Shape[0]; // reduce memory re-alloc @ display
     private final List<Shape> renderedShapesB0 = new ArrayList<Shape>();
     private final List<Shape> renderedShapesB1 = new ArrayList<Shape>();
+    private final List<Shape> renderedShapesB2 = new ArrayList<Shape>();
     private volatile List<Shape> renderedShapes = renderedShapesB1;
+    private int renderedShapesIdx = 1;
     /** Enforced fixed size. In case z-axis is NaN, its 3D z-axis will be adjusted. */
     private final Vec3f fixedSize = new Vec3f();
     private Layout layouter;
@@ -313,6 +315,9 @@ public class Group extends Shape implements Container {
         drawShapeArray = new Shape[0];
         renderedShapesB0.clear();
         renderedShapesB1.clear();
+        renderedShapesB2.clear();
+        renderedShapes = renderedShapesB1;
+        renderedShapesIdx = 1;
     }
 
     @Override
@@ -326,6 +331,9 @@ public class Group extends Shape implements Container {
         drawShapeArray = new Shape[0];
         renderedShapesB0.clear();
         renderedShapesB1.clear();
+        renderedShapesB2.clear();
+        renderedShapes = renderedShapesB1;
+        renderedShapesIdx = 1;
         if( null != border ) {
             border.destroy(gl, renderer);
             border = null;
@@ -401,9 +409,13 @@ public class Group extends Shape implements Container {
         Arrays.sort(shapeArray, 0, shapeCount, Shape.ZAscendingComparator);
         // TreeTool.cullShapes(shapeArray, shapeCount);
 
-        final List<Shape> iShapes = renderedShapes == renderedShapesB0 ? renderedShapesB1 : renderedShapesB0;
-        iShapes.clear();
-
+        final List<Shape> iShapes;
+        final int iShapeIdx;
+        switch(renderedShapesIdx) {
+            case 0:  iShapeIdx = 1; iShapes = renderedShapesB1; break;
+            case 1:  iShapeIdx = 2; iShapes = renderedShapesB2; break;
+            default: iShapeIdx = 0; iShapes = renderedShapesB0; break;
+        }
         final boolean useClipFrustum = null != clipFrustum;
         if( useClipFrustum || clipOnBounds ) {
             final Frustum origClipFrustum = renderer.getClipFrustum();
@@ -411,46 +423,53 @@ public class Group extends Shape implements Container {
             final Frustum frustumMv = useClipFrustum ? clipFrustum : tempC00.set( box ).transform( pmv.getMv() ).updateFrustumPlanes(tempF00);
             renderer.setClipFrustum( frustumMv );
 
-            for(int i=0; i<shapeCount; i++) {
-                final Shape shape = shapeArray[i];
-                if( shape.isVisible() ) { // && !shape.isDiscarded() ) {
-                    pmv.pushMv();
-                    shape.applyMatToMv(pmv);
+            synchronized( iShapes ) {  // tripple-buffering is just almost enough
+                iShapes.clear();
+                for(int i=0; i<shapeCount; i++) {
+                    final Shape shape = shapeArray[i];
+                    if( shape.isVisible() ) { // && !shape.isDiscarded() ) {
+                        pmv.pushMv();
+                        shape.applyMatToMv(pmv);
 
-                    final AABBox shapeBox = shape.getBounds();
-                    final Cube shapeMv = tempC01.set( shapeBox ).transform( pmv.getMv() );
+                        final AABBox shapeBox = shape.getBounds();
+                        final Cube shapeMv = tempC01.set( shapeBox ).transform( pmv.getMv() );
 
-                    if( ( !frustumMv.isOutside( shapeMv ) ) &&
-                        ( !doFrustumCulling || !pmv.getFrustum().isOutside( shapeBox ) ) )
-                    {
-                        shape.draw(gl, renderer);
-                        iShapes.add(shape);
-                        shape.setDiscarded(false);
-                    } else {
-                        shape.setDiscarded(true);
+                        if( ( !frustumMv.isOutside( shapeMv ) ) &&
+                            ( !doFrustumCulling || !pmv.getFrustum().isOutside( shapeBox ) ) )
+                        {
+                            shape.draw(gl, renderer);
+                            iShapes.add(shape);
+                            shape.setDiscarded(false);
+                        } else {
+                            shape.setDiscarded(true);
+                        }
+                        pmv.popMv();
                     }
-                    pmv.popMv();
                 }
             }
             renderer.setClipFrustum(origClipFrustum);
         } else {
-            for(int i=0; i<shapeCount; i++) {
-                final Shape shape = shapeArray[i];
-                if( shape.isVisible() ) { // && !shape.isDiscarded() ) {
-                    pmv.pushMv();
-                    shape.applyMatToMv(pmv);
-                    if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
-                        shape.draw(gl, renderer);
-                        iShapes.add(shape);
-                        shape.setDiscarded(false);
-                    } else {
-                        shape.setDiscarded(true);
+            synchronized( iShapes ) {  // tripple-buffering is just almost enough
+                iShapes.clear();
+                for(int i=0; i<shapeCount; i++) {
+                    final Shape shape = shapeArray[i];
+                    if( shape.isVisible() ) { // && !shape.isDiscarded() ) {
+                        pmv.pushMv();
+                        shape.applyMatToMv(pmv);
+                        if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
+                            shape.draw(gl, renderer);
+                            iShapes.add(shape);
+                            shape.setDiscarded(false);
+                        } else {
+                            shape.setDiscarded(true);
+                        }
+                        pmv.popMv();
                     }
-                    pmv.popMv();
                 }
             }
         }
         renderedShapes = iShapes;
+        renderedShapesIdx = iShapeIdx;
         if( null != border && border.isVisible() ) {
             border.draw(gl, renderer);
         }

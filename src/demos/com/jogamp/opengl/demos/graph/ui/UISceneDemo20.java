@@ -155,6 +155,10 @@ public class UISceneDemo20 implements GLEventListener {
         System.out.println("Requested: " + caps);
 
         final GLWindow window = GLWindow.create(screen, caps);
+        window.invoke(false, (final GLAutoDrawable glad) -> {
+            glad.getGL().setSwapInterval(options.swapInterval);
+            return true;
+        } );
         if( 0 == options.sceneMSAASamples ) {
             window.setCapabilitiesChooser(new NonFSAAGLCapsChooser(false));
         }

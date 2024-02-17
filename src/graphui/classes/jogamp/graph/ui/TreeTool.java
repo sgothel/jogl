@@ -174,36 +174,38 @@ public class TreeTool {
         }
     }
     private static boolean forAllRenderedAscn(final Container cont, final PMVMatrix4f pmv, final Visitor2 v) {
-        final List<Shape> shapes = cont.getRenderedShapes();
         boolean res = false;
-
-        for(int i=0; !res && i<shapes.size(); ++i) {
-            final Shape s = shapes.get(i);
-            pmv.pushMv();
-            s.applyMatToMv(pmv);
-            res = v.visit(s, pmv);
-            if( !res && s instanceof Container ) {
-                final Container c = (Container)s;
-                res = forAllRenderedAscn(c, pmv, v);
+        final List<Shape> shapes = cont.getRenderedShapes();
+        synchronized( shapes ) {  // tripple-buffering is just almost enough
+            for(int i=0; !res && i<shapes.size(); ++i) {
+                final Shape s = shapes.get(i);
+                pmv.pushMv();
+                s.applyMatToMv(pmv);
+                res = v.visit(s, pmv);
+                if( !res && s instanceof Container ) {
+                    final Container c = (Container)s;
+                    res = forAllRenderedAscn(c, pmv, v);
+                }
+                pmv.popMv();
             }
-            pmv.popMv();
         }
         return res;
     }
     private static boolean forAllRenderedDesc(final Container cont, final PMVMatrix4f pmv, final Visitor2 v) {
-        final List<Shape> shapes = cont.getRenderedShapes();
         boolean res = false;
-
-        for(int i=shapes.size()-1; !res && i>=0; --i) {
-            final Shape s = shapes.get(i);
-            pmv.pushMv();
-            s.applyMatToMv(pmv);
-            res = v.visit(s, pmv);
-            if( !res && s instanceof Container ) {
-                final Container c = (Container)s;
-                res = forAllRenderedDesc(c, pmv, v);
+        final List<Shape> shapes = cont.getRenderedShapes();
+        synchronized( shapes ) {  // tripple-buffering is just almost enough
+            for(int i=shapes.size()-1; !res && i>=0; --i) {
+                final Shape s = shapes.get(i);
+                pmv.pushMv();
+                s.applyMatToMv(pmv);
+                res = v.visit(s, pmv);
+                if( !res && s instanceof Container ) {
+                    final Container c = (Container)s;
+                    res = forAllRenderedDesc(c, pmv, v);
+                }
+                pmv.popMv();
             }
-            pmv.popMv();
         }
         return res;
     }

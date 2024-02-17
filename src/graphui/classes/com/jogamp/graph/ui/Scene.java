@@ -134,7 +134,9 @@ public final class Scene implements Container, GLEventListener {
     private Shape[] displayShapeArray = new Shape[0]; // reduce memory re-alloc @ display
     private final List<Shape> renderedShapesB0 = new ArrayList<Shape>();
     private final List<Shape> renderedShapesB1 = new ArrayList<Shape>();
+    private final List<Shape> renderedShapesB2 = new ArrayList<Shape>();
     private volatile List<Shape> renderedShapes = renderedShapesB1;
+    private int renderedShapesIdx = 1;
     private final AtomicReference<Tooltip> toolTipActive = new AtomicReference<Tooltip>();
     private final AtomicReference<Shape> toolTipHUD = new AtomicReference<Shape>();
     private final List<Group> topLevel = new ArrayList<Group>();
@@ -490,37 +492,47 @@ public final class Scene implements Container, GLEventListener {
         Arrays.sort(shapeArray, 0, shapeCount, Shape.ZAscendingComparator);
         // TreeTool.cullShapes(shapeArray, shapeCount);
 
-        final List<Shape> iShapes = renderedShapes == renderedShapesB0 ? renderedShapesB1 : renderedShapesB0;
-        iShapes.clear();
-
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final PMVMatrix4f pmv = renderer.getMatrix();
 
+        final List<Shape> iShapes;
+        final int iShapeIdx;
+        switch(renderedShapesIdx) {
+            case 0:  iShapeIdx = 1; iShapes = renderedShapesB1; break;
+            case 1:  iShapeIdx = 2; iShapes = renderedShapesB2; break;
+            default: iShapeIdx = 0; iShapes = renderedShapesB0; break;
+        }
         if( null != clearColor ) {
             gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
             gl.glClear(clearMask);
         }
-        final PMVMatrix4f pmv = renderer.getMatrix();
-
         renderer.enable(gl, true);
 
-        for(int i=0; i<shapeCount; i++) {
-            final Shape shape = shapeArray[i];
-            if( shape.isVisible() ) { // && !shape.isDiscarded() ) {
-                pmv.pushMv();
-                shape.applyMatToMv(pmv);
+        synchronized( iShapes ) {  // tripple-buffering is just almost enough
+            iShapes.clear();
 
-                if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
-                    shape.draw(gl, renderer);
-                    iShapes.add(shape);
-                    shape.setDiscarded(false);
-                } else {
-                    shape.setDiscarded(true);
+            for(int i=0; i<shapeCount; i++) {
+                final Shape shape = shapeArray[i];
+                if( shape.isVisible() ) { // && !shape.isDiscarded() ) {
+                    pmv.pushMv();
+                    shape.applyMatToMv(pmv);
+
+                    if( !doFrustumCulling || !pmv.getFrustum().isOutside( shape.getBounds() ) ) {
+                        shape.draw(gl, renderer);
+                        iShapes.add(shape);
+                        shape.setDiscarded(false);
+                    } else {
+                        shape.setDiscarded(true);
+                    }
+                    pmv.popMv();
                 }
-                pmv.popMv();
             }
         }
-        renderedShapes = iShapes;
+
         renderer.enable(gl, false);
+        renderedShapes = iShapes;
+        renderedShapesIdx = iShapeIdx;
+
         synchronized ( syncDisplayedOnce ) {
             displayedOnce = true;
             syncDisplayedOnce.notifyAll();
@@ -616,6 +628,9 @@ public final class Scene implements Container, GLEventListener {
         displayShapeArray = new Shape[0];
         renderedShapesB0.clear();
         renderedShapesB1.clear();
+        renderedShapesB2.clear();
+        renderedShapes = renderedShapesB1;
+        renderedShapesIdx = 1;
         disposeActions.clear();
         if( drawable == cDrawable ) {
             cDrawable = null;
@@ -1057,21 +1072,22 @@ public final class Scene implements Container, GLEventListener {
         Shape visit(Shape s, final PMVMatrix4f pmv);
     }
     private static Shape pickForAllRenderedDesc(final Container cont, final PMVMatrix4f pmv, final PickVisitor v) {
-        final List<Shape> shapes = cont.getRenderedShapes();
         Shape picked = null;
-
-        for(int i=shapes.size()-1; null == picked && i>=0; --i) {
-            final Shape s = shapes.get(i);
-            pmv.pushMv();
-            s.applyMatToMv(pmv);
-            picked = v.visit(s, pmv);
-            if( s instanceof Container ) {
-                final Shape childPick = pickForAllRenderedDesc((Container)s, pmv, v);
-                if( null != childPick ) {
-                    picked = childPick; // child picked overrides group parent!
+        final List<Shape> shapes = cont.getRenderedShapes();
+        synchronized( shapes ) {  // tripple-buffering is just almost enough
+            for(int i=shapes.size()-1; null == picked && i>=0; --i) {
+                final Shape s = shapes.get(i);
+                pmv.pushMv();
+                s.applyMatToMv(pmv);
+                picked = v.visit(s, pmv);
+                if( s instanceof Container ) {
+                    final Shape childPick = pickForAllRenderedDesc((Container)s, pmv, v);
+                    if( null != childPick ) {
+                        picked = childPick; // child picked overrides group parent!
+                    }
                 }
+                pmv.popMv();
             }
-            pmv.popMv();
         }
         return picked;
     }

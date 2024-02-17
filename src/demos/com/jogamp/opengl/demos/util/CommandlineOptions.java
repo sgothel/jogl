@@ -44,6 +44,7 @@ public class CommandlineOptions {
     public boolean wait_to_start = false;
     public boolean keepRunning = false;
     public boolean stayOpen = false;
+    public int swapInterval = -1; // auto
     public float total_duration = 0f; // [s]
 
     static {
@@ -153,6 +154,9 @@ public class CommandlineOptions {
             stayOpen = true;
         } else if (args[idx[0]].equals("-stay")) {
             stayOpen = true;
+        } else if (args[idx[0]].equals("-swapInterval")) {
+            ++idx[0];
+            swapInterval = MiscUtils.atoi(args[idx[0]], swapInterval);
         } else if (args[idx[0]].equals("-duration")) {
             ++idx[0];
             total_duration = MiscUtils.atof(args[idx[0]], total_duration);
@@ -180,7 +184,7 @@ public class CommandlineOptions {
         return "Options{surface[width "+surface_width+" x "+surface_height+"], glp "+glProfileName+
                ", renderModes "+Region.getRenderModeString(renderModes)+", aa-q "+graphAAQuality+
                ", gmsaa "+graphAASamples+", smsaa "+sceneMSAASamples+
-               ", exclusiveContext "+exclusiveContext+", wait "+wait_to_start+", keep "+keepRunning+", stay "+stayOpen+", dur "+total_duration+"s"+
+               ", exclusiveContext "+exclusiveContext+", wait "+wait_to_start+", keep "+keepRunning+", stay "+stayOpen+", swap-ival "+swapInterval+", dur "+total_duration+"s"+
                "}";
     }
 }

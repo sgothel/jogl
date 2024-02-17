@@ -167,6 +167,10 @@ public class FontView01 {
         final Animator animator = new Animator(0 /* w/o AWT */);
         animator.setUpdateFPSFrames(1*60, null); // System.err);
         final GLWindow window = GLWindow.create(reqCaps);
+        window.invoke(false, (final GLAutoDrawable glad) -> {
+            glad.getGL().setSwapInterval(options.swapInterval);
+            return true;
+        } );
         window.setSize(options.surface_width, options.surface_height);
         window.setTitle(FontView01.class.getSimpleName()+": "+font.getFullFamilyName()+", "+window.getSurfaceWidth()+" x "+window.getSurfaceHeight());
         window.setVisible(true);
