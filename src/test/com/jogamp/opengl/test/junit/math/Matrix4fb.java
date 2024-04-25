@@ -1032,11 +1032,11 @@ public class Matrix4fb {
      * Returns the rotation [m[0+0*4] .. m[2+2*4]] fields converted to a Quaternion.
      * @param res resulting Quaternion
      * @return the resulting Quaternion for chaining.
-     * @see Quaternion#setFromMatrix(float, float, float, float, float, float, float, float, float)
+     * @see Quaternion#setFromMat(float, float, float, float, float, float, float, float, float)
      * @see #setToRotation(Quaternion)
      */
     public final Quaternion getRotation(final Quaternion res) {
-        res.setFromMatrix(m[0+0*4], m[0+1*4], m[0+2*4], m[1+0*4], m[1+1*4], m[1+2*4], m[2+0*4], m[2+1*4], m[2+2*4]);
+        res.setFromMat(m[0+0*4], m[0+1*4], m[0+2*4], m[1+0*4], m[1+1*4], m[1+2*4], m[2+0*4], m[2+1*4], m[2+2*4]);
         return res;
     }
 

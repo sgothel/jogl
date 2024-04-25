@@ -86,7 +86,7 @@ import com.jogamp.math.geom.Frustum.Plane;
  * @see com.jogamp.math.util.PMVMatrix4f
  * @see FloatUtil
  */
-public class Matrix4f {
+public final class Matrix4f {
 
     /**
      * Creates a new identity matrix.
@@ -1179,12 +1179,11 @@ public class Matrix4f {
      * Returns the rotation [m00 .. m22] fields converted to a Quaternion.
      * @param res resulting Quaternion
      * @return the resulting Quaternion for chaining.
-     * @see Quaternion#setFromMatrix(float, float, float, float, float, float, float, float, float)
+     * @see Quaternion#setFromMat(float, float, float, float, float, float, float, float, float)
      * @see #setToRotation(Quaternion)
      */
     public final Quaternion getRotation(final Quaternion res) {
-        res.setFromMatrix(m00, m01, m02, m10, m11, m12, m20, m21, m22);
-        return res;
+        return res.setFromMat(m00, m01, m02, m10, m11, m12, m20, m21, m22);
     }
 
     /**
@@ -1331,20 +1330,19 @@ public class Matrix4f {
 
     /**
      * Calculate the frustum planes in world coordinates
-     * using this premultiplied P*MV (column major order) matrix.
+     * using this column major order matrix, usually a projection (P) or premultiplied P*MV matrix.
      * <p>
      * Frustum plane's normals will point to the inside of the viewing frustum,
      * as required by the {@link Frustum} class.
      * </p>
-     * @see Frustum#updateFrustumPlanes(Matrix4f)
+     * @see Frustum#setFromMat(Matrix4f)
      */
-    public Frustum updateFrustumPlanes(final Frustum frustum) {
+    public Frustum getFrustum(final Frustum frustum) {
         // Left:   a = m41 + m11, b = m42 + m12, c = m43 + m13, d = m44 + m14  - [1..4] column-major
         // Left:   a = m30 + m00, b = m31 + m01, c = m32 + m02, d = m33 + m03  - [0..3] column-major
         {
             final Frustum.Plane p = frustum.getPlanes()[Frustum.LEFT];
-            final Vec3f p_n = p.n;
-            p_n.set( m30 + m00,
+            p.n.set( m30 + m00,
                      m31 + m01,
                      m32 + m02 );
             p.d    = m33 + m03;
@@ -1354,8 +1352,7 @@ public class Matrix4f {
         // Right:  a = m30 - m00, b = m31 - m01, c = m32 - m02, d = m33 - m03  - [0..3] column-major
         {
             final Frustum.Plane p = frustum.getPlanes()[Frustum.RIGHT];
-            final Vec3f p_n = p.n;
-            p_n.set( m30 - m00,
+            p.n.set( m30 - m00,
                      m31 - m01,
                      m32 - m02 );
             p.d    = m33 - m03;
@@ -1365,8 +1362,7 @@ public class Matrix4f {
         // Bottom: a = m30m10, b = m31m11, c = m32m12, d = m33m13  - [0..3] column-major
         {
             final Frustum.Plane p = frustum.getPlanes()[Frustum.BOTTOM];
-            final Vec3f p_n = p.n;
-            p_n.set( m30 + m10,
+            p.n.set( m30 + m10,
                      m31 + m11,
                      m32 + m12 );
             p.d    = m33 + m13;
@@ -1376,8 +1372,7 @@ public class Matrix4f {
         // Top:   a = m30 - m10, b = m31 - m11, c = m32 - m12, d = m33 - m13  - [0..3] column-major
         {
             final Frustum.Plane p = frustum.getPlanes()[Frustum.TOP];
-            final Vec3f p_n = p.n;
-            p_n.set( m30 - m10,
+            p.n.set( m30 - m10,
                      m31 - m11,
                      m32 - m12 );
             p.d    = m33 - m13;
@@ -1387,8 +1382,7 @@ public class Matrix4f {
         // Near:  a = m30m20, b = m31m21, c = m32m22, d = m33m23  - [0..3] column-major
         {
             final Frustum.Plane p = frustum.getPlanes()[Frustum.NEAR];
-            final Vec3f p_n = p.n;
-            p_n.set( m30 + m20,
+            p.n.set( m30 + m20,
                      m31 + m21,
                      m32 + m22 );
             p.d    = m33 + m23;
@@ -1398,8 +1392,7 @@ public class Matrix4f {
         // Far:   a = m30 - m20, b = m31 - m21, c = m32m22, d = m33m23  - [0..3] column-major
         {
             final Frustum.Plane p = frustum.getPlanes()[Frustum.FAR];
-            final Vec3f p_n = p.n;
-            p_n.set( m30 - m20,
+            p.n.set( m30 - m20,
                      m31 - m21,
                      m32 - m22 );
             p.d    = m33 - m23;
@@ -2128,8 +2121,7 @@ public class Matrix4f {
                 if( 0 >= growSize ) {
                     throw new IndexOutOfBoundsException("Out of fixed stack size: "+this);
                 }
-                final float[] newBuffer =
-                        new float[buffer.length + growSize];
+                final float[] newBuffer = new float[buffer.length + Math.max(length, growSize)];
                 System.arraycopy(buffer, 0, newBuffer, 0, position);
                 buffer = newBuffer;
             }

@@ -161,7 +161,7 @@ public class UIShapeClippingDemo01 {
 
                         final boolean isOutMv = frustumCbMv.isOutside( shapedMv );
 
-                        final Frustum frustumPMv = pmv.getPMv().updateFrustumPlanes(new Frustum());
+                        final Frustum frustumPMv = new Frustum().setFromMat(pmv.getPMv());
                         final boolean isOutPMv = frustumPMv.isOutside( shapeBox );
 
                         System.err.println("ClipBox  "+box);

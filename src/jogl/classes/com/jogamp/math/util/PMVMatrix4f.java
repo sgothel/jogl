@@ -1259,7 +1259,7 @@ public class PMVMatrix4f {
             if( null == frustum ) {
                 frustum = new Frustum();
             }
-            getPMv().updateFrustumPlanes(frustum);
+            frustum.setFromMat(getPMv());
             dirtyBits &= ~FRUSTUM;
         }
         return frustum;

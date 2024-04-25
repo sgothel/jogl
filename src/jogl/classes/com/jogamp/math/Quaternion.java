@@ -42,7 +42,7 @@ package com.jogamp.math;
  * See <a href="http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/index.htm">euclideanspace.com-Quaternion</a>
  * </p>
  */
-public class Quaternion {
+public final class Quaternion {
     private float x, y, z, w;
 
     /**
@@ -947,11 +947,11 @@ public class Quaternion {
      * </p>
      *
      * @return this quaternion for chaining.
-     * @see #setFromMatrix(Matrix4f)
+     * @see #setFromMat(Matrix4f)
      */
-    public Quaternion setFromMatrix(final float m00, final float m01, final float m02,
-                                    final float m10, final float m11, final float m12,
-                                    final float m20, final float m21, final float m22) {
+    public Quaternion setFromMat(final float m00, final float m01, final float m02,
+                                 final float m10, final float m11, final float m12,
+                                 final float m20, final float m21, final float m22) {
         // Note: Other implementations uses 'T' w/o '+1f' and compares 'T >= 0' while adding missing 1f in sqrt expr.
         //       However .. this causes setLookAt(..) to fail and actually violates the 'trace definition'.
 
@@ -992,7 +992,7 @@ public class Quaternion {
     }
 
     /**
-     * Compute the quaternion from a 3x3 column rotation matrix
+     * Compute the quaternion from a 3x3 column rotation matrix from {@link Matrix4f} instance
      * <p>
      * See <a href="ftp://ftp.cis.upenn.edu/pub/graphics/shoemake/quatut.ps.Z">Graphics Gems Code</a>,<br/>
      * <a href="http://mathworld.wolfram.com/MatrixTrace.html">MatrixTrace</a>.
@@ -1003,9 +1003,9 @@ public class Quaternion {
      *
      * @return this quaternion for chaining.
      * @see Matrix4f#getRotation(Quaternion)
-     * @see #setFromMatrix(float, float, float, float, float, float, float, float, float)
+     * @see #setFromMat(float, float, float, float, float, float, float, float, float)
      */
-    public Quaternion setFromMatrix(final Matrix4f m) {
+    public Quaternion setFromMat(final Matrix4f m) {
         return m.getRotation(this);
     }
 
@@ -1021,8 +1021,8 @@ public class Quaternion {
      * @param matrix float[16] store for the resulting normalized column matrix 4x4
      * @return the given matrix store
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q54">Matrix-FAQ Q54</a>
-     * @see #setFromMatrix(Matrix4f)
-     * @see #setFromMatrix(float, float, float, float, float, float, float, float, float)
+     * @see #setFromMat(Matrix4f)
+     * @see #setFromMat(float, float, float, float, float, float, float, float, float)
      */
     public final float[] toMatrix(final float[] matrix) {
         // pre-multiply scaled-reciprocal-magnitude to reduce multiplications
@@ -1086,7 +1086,7 @@ public class Quaternion {
      * @param matrix store for the resulting normalized column matrix 4x4
      * @return the given matrix store
      * @see <a href="http://web.archive.org/web/20041029003853/http://www.j3d.org/matrix_faq/matrfaq_latest.html#Q54">Matrix-FAQ Q54</a>
-     * @see #setFromMatrix(float, float, float, float, float, float, float, float, float)
+     * @see #setFromMat(float, float, float, float, float, float, float, float, float)
      * @see Matrix4f#setToRotation(Quaternion)
      */
     public final Matrix4f toMatrix(final Matrix4f matrix) {
@@ -1105,7 +1105,7 @@ public class Quaternion {
      * @return this quaternion for chaining.
      */
     public final Quaternion setFromAxes(final Vec3f xAxis, final Vec3f yAxis, final Vec3f zAxis) {
-        return setFromMatrix(xAxis.x(), yAxis.x(), zAxis.x(),
+        return setFromMat(xAxis.x(), yAxis.x(), zAxis.x(),
                              xAxis.y(), yAxis.y(), zAxis.y(),
                              xAxis.z(), yAxis.z(), zAxis.z());
     }

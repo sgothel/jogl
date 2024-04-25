@@ -78,7 +78,7 @@ import com.jogamp.math.Vec4f;
  * </pre>
  * </p>
  */
-public class Frustum {
+public final class Frustum {
     /**
      * {@link Frustum} description by {@link #fovhv} and {@link #zNear}, {@link #zFar}.
      */
@@ -345,7 +345,7 @@ public class Frustum {
      *   <li>The given {@link FovDesc} will be transformed
      *       into the given perspective matrix (column major order) first,
      *       see {@link Matrix4f#setToPerspective(FovHVHalves, float, float)}.</li>
-     *   <li>Then the perspective matrix is used to {@link Matrix4f#updateFrustumPlanes(Frustum)} this instance.</li>
+     *   <li>Then the perspective matrix is used to {@link Matrix4f#getFrustum(Frustum)} this instance.</li>
      * </ul>
      * </p>
      * <p>
@@ -357,26 +357,26 @@ public class Frustum {
      * @param fovDesc {@link Frustum} {@link FovDesc}
      * @return given matrix for chaining
      * @see Matrix4f#setToPerspective(FovHVHalves, float, float)
-     * @see Matrix4f#updateFrustumPlanes(Frustum)
+     * @see Matrix4f#getFrustum(Frustum)
      * @see Matrix4f#getFrustum(Frustum, FovDesc)
      */
     public Matrix4f updateByFovDesc(final Matrix4f m, final FovDesc fovDesc) {
         m.setToPerspective(fovDesc.fovhv, fovDesc.zNear, fovDesc.zFar);
-        m.updateFrustumPlanes(this);
+        setFromMat(m);
         return m;
     }
 
     /**
      * Calculate the frustum planes in world coordinates
-     * using the passed premultiplied P*MV (column major order) matrix.
+     * using the passed column major order matrix, usually a projection (P) or premultiplied P*MV matrix.
      * <p>
      * Frustum plane's normals will point to the inside of the viewing frustum,
      * as required by this class.
      * </p>
-     * @see Matrix4f#updateFrustumPlanes(Frustum)
+     * @see Matrix4f#getFrustum(Frustum)
      */
-    public Frustum updateFrustumPlanes(final Matrix4f pmv) {
-        return pmv.updateFrustumPlanes(this);
+    public Frustum setFromMat(final Matrix4f pmv) {
+        return pmv.getFrustum(this);
     }
 
     /**

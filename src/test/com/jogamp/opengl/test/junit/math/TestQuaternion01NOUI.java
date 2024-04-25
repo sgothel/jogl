@@ -309,7 +309,7 @@ public class TestQuaternion01NOUI extends JunitTracer {
             Assert.assertEquals( 0f, Math.abs( UNIT_Z.dist(vecHas) ), Quaternion.ALLOWED_DEVIANCE );
         }
         mat1.getRotation(quat);
-        quat.setFromMatrix(mat1);
+        quat.setFromMat(mat1);
         quat.rotateVector(UNIT_Y, vecHas);
         // System.err.println("exp0 "+Arrays.toString(UNIT_Z));
         // System.err.println("has0 "+Arrays.toString(vecHas));
@@ -388,7 +388,7 @@ public class TestQuaternion01NOUI extends JunitTracer {
             // System.err.println("has0 "+Arrays.toString(vecHas));
             Assert.assertEquals( 0f, Math.abs( NEG_UNIT_Y.dist(vecHas) ), Quaternion.ALLOWED_DEVIANCE );
         }
-        quat.setFromMatrix(mat1);
+        quat.setFromMat(mat1);
         quat.rotateVector(UNIT_Y, vecHas);
         // System.err.println("exp0 "+Arrays.toString(NEG_UNIT_Y));
         // System.err.println("has0 "+Arrays.toString(vecHas));
@@ -423,7 +423,7 @@ public class TestQuaternion01NOUI extends JunitTracer {
             // System.err.println("has0 "+Arrays.toString(vecHas));
             Assert.assertEquals( 0f, Math.abs( NEG_UNIT_X.dist(vecHas) ), Quaternion.ALLOWED_DEVIANCE );
         }
-        quat.setFromMatrix(mat1);
+        quat.setFromMat(mat1);
         quat.rotateVector(UNIT_X, vecHas);
         // System.err.println("exp0 "+Arrays.toString(NEG_UNIT_X));
         // System.err.println("has0 "+Arrays.toString(vecHas));
@@ -458,7 +458,7 @@ public class TestQuaternion01NOUI extends JunitTracer {
             // System.err.println("has0 "+Arrays.toString(vecHas));
             Assert.assertEquals( 0f, Math.abs( NEG_UNIT_X.dist(vecHas) ), Quaternion.ALLOWED_DEVIANCE );
         }
-        quat.setFromMatrix(mat1);
+        quat.setFromMat(mat1);
         quat.rotateVector(UNIT_X, vecHas);
         // System.err.println("exp0 "+Arrays.toString(NEG_UNIT_X));
         // System.err.println("has0 "+Arrays.toString(vecHas));
@@ -517,7 +517,7 @@ public class TestQuaternion01NOUI extends JunitTracer {
 
         final Vec3f eulerHas = new Vec3f();
         final Quaternion quat2 = new Quaternion();
-        quat2.setFromMatrix(matExp1);
+        quat2.setFromMat(matExp1);
         quat2.toEuler(eulerHas);
         // System.err.println("exp-euler "+Arrays.toString(eulerExp));
         // System.err.println("has-euler "+Arrays.toString(eulerHas));
@@ -546,7 +546,7 @@ public class TestQuaternion01NOUI extends JunitTracer {
 
         final Vec3f eulerHas = new Vec3f();
         final Quaternion quat2 = new Quaternion();
-        quat2.setFromMatrix(matExp);
+        quat2.setFromMat(matExp);
         quat2.toEuler(eulerHas);
         // System.err.println("exp-euler "+Arrays.toString(eulerExp));
         // System.err.println("has-euler "+Arrays.toString(eulerHas));
@@ -578,7 +578,7 @@ public class TestQuaternion01NOUI extends JunitTracer {
 
         final Vec3f eulerHas1 = new Vec3f();
         final Quaternion quat2 = new Quaternion();
-        quat2.setFromMatrix(matExp);
+        quat2.setFromMat(matExp);
         quat2.toEuler(eulerHas1); // Vec3f
         if( DEBUG ) {
             System.err.println("PI");
@@ -789,7 +789,7 @@ public class TestQuaternion01NOUI extends JunitTracer {
 
         final Quaternion quat1 = new Quaternion().setFromAxes(xAxis, yAxis, zAxis);
         Assert.assertEquals(quat0, quat1);
-        final Quaternion quat2 = new Quaternion().setFromMatrix(rotMat);
+        final Quaternion quat2 = new Quaternion().setFromMat(rotMat);
         Assert.assertEquals(quat2, quat1);
 
         quat1.toAxes(xAxis, yAxis, zAxis, rotMat);
@@ -889,12 +889,22 @@ public class TestQuaternion01NOUI extends JunitTracer {
         Assert.assertEquals(0f, direction.dist( quat.rotateVector(UNIT_Z, vecHas) ), Quaternion.ALLOWED_DEVIANCE);
         Assert.assertEquals(direction, vecHas);
 
-        if( DEBUG ) System.err.println("LookAt #02");
+        if( DEBUG ) {
+            System.err.println("quat0.0 "+quat);
+            System.err.println("exp0 "+direction+", len "+direction.length());
+            System.err.println("has0 "+vecHas+", len "+vecHas.length());
+            System.err.println();
+            System.err.println("LookAt #02");
+        }
         direction.set(ONE).normalize();
         quat.setLookAt(direction, UNIT_Y, xAxis, yAxis, zAxis);
-        if( DEBUG )System.err.println("quat0 "+quat);
+        if( DEBUG ) {
+            System.err.println("direction "+direction);
+            System.err.println("quat0.0 "+quat);
+        }
         quat.rotateVector(UNIT_Z, vecHas);
         if( DEBUG ) {
+            System.err.println("quat0.1 "+quat);
             System.err.println("xAxis "+xAxis+", len "+xAxis.length());
             System.err.println("yAxis "+yAxis+", len "+yAxis.length());
             System.err.println("zAxis "+zAxis+", len "+zAxis.length());
