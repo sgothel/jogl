@@ -600,7 +600,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.math.TestGluUnprojectFloatNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.math.TestGluUnprojectDoubleNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4f01NOUI $*
-#testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4f02MulNOUI $*
+testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4f02MulNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4f03InversionNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4fMatrixMulNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.math.TestMatrix4fProject01NOUI $*
@@ -1011,7 +1011,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeClippingDemo00 $*
 ##testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeClippingDemo01 $*
-testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
+#testnoawt com.jogamp.opengl.demos.graph.ui.FontView01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIMediaGrid01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo03 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo20 $*

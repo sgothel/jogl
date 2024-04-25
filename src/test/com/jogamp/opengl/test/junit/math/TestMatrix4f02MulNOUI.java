@@ -106,7 +106,7 @@ public class TestMatrix4f02MulNOUI extends JunitTracer {
         final Matrix4fb res_n = new Matrix4fb();
 
         final int warmups = 1000;
-        final int loops = 10*1000*1000;
+        final int loops = 25*1000*1000;
         long tI1 = 0;
         long tI2 = 0;
         long tI4a = 0;
@@ -138,6 +138,9 @@ public class TestMatrix4f02MulNOUI extends JunitTracer {
         }
         tI2 = Platform.currentTimeMillis() - t_0;
 
+        // avoid optimizing out unused computation results by simply adding up determinat
+        double dr = 1;
+
         //
         // Matrix4f
         //
@@ -145,26 +148,36 @@ public class TestMatrix4f02MulNOUI extends JunitTracer {
         // warm-up
         for(int i=0; i<warmups; i++) {
             res_m.mul(m1, m2);
+            dr += res_m.determinant();
             res_m.mul(m2, m1);
+            dr += res_m.determinant();
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
             res_m.mul(m1, m2);
+            dr += res_m.determinant();
             res_m.mul(m2, m1);
+            dr += res_m.determinant();
         }
         tI4a = Platform.currentTimeMillis() - t_0;
 
-        res_m.load(m1);
-
         // warm-up
         for(int i=0; i<warmups; i++) {
+            res_m.load(m1);
             res_m.mul(m2);
+            dr += res_m.determinant();
+            res_m.load(m2);
             res_m.mul(m1);
+            dr += res_m.determinant();
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
+            res_m.load(m1);
             res_m.mul(m2);
+            dr += res_m.determinant();
+            res_m.load(m2);
             res_m.mul(m1);
+            dr += res_m.determinant();
         }
         tI4b = Platform.currentTimeMillis() - t_0;
 
@@ -175,29 +188,42 @@ public class TestMatrix4f02MulNOUI extends JunitTracer {
         // warm-up
         for(int i=0; i<warmups; i++) {
             res_n.mul(n1, n2);
+            dr += res_m.determinant();
             res_n.mul(n2, n1);
+            dr += res_m.determinant();
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
             res_n.mul(n1, n2);
+            dr += res_m.determinant();
             res_n.mul(n2, n1);
+            dr += res_m.determinant();
         }
         tI5a = Platform.currentTimeMillis() - t_0;
-
-        res_n.load(n1);
+        Assert.assertTrue( dr > 0 );
 
         // warm-up
         for(int i=0; i<warmups; i++) {
+            res_n.load(n1);
             res_n.mul(n2);
+            dr += res_m.determinant();
+            res_n.load(n2);
             res_n.mul(n1);
+            dr += res_m.determinant();
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
+            res_n.load(n1);
             res_n.mul(n2);
+            dr += res_m.determinant();
+            res_n.load(n2);
             res_n.mul(n1);
+            dr += res_m.determinant();
         }
         tI5b = Platform.currentTimeMillis() - t_0;
+        Assert.assertTrue( dr > 0 );
 
+        System.err.printf("Checkmark %f%n", dr);
         System.err.printf("Summary loops %6d: I1  %6d ms total, %f us/mul%n", loops, tI1, tI1*1e3/loops);
         System.err.printf("Summary loops %6d: I2  %6d ms total, %f us/mul, I2  / I1 %f%%%n", loops, tI2, tI2*1e3/2.0/loops, (double)tI2/(double)tI1*100.0);
         System.err.printf("Summary loops %6d: I4a %6d ms total, %f us/mul, I4a / I2 %f%%, I4a / I4b %f%%%n", loops, tI4a, tI4a*1e3/2.0/loops, (double)tI4a/(double)tI2*100.0, (double)tI4a/(double)tI4b*100.0);
