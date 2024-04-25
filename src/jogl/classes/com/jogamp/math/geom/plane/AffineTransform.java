@@ -28,7 +28,7 @@ import com.jogamp.math.Vec2f;
 import com.jogamp.math.Vec3f;
 import com.jogamp.math.geom.AABBox;
 
-public class AffineTransform {
+public final class AffineTransform {
 
     static final String determinantIsZero = "Determinant is zero";
 

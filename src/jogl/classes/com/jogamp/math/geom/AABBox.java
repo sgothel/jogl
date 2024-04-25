@@ -51,7 +51,7 @@ import com.jogamp.math.geom.plane.AffineTransform;
  * </p>
  *
  */
-public class AABBox {
+public final class AABBox {
     private static final boolean DEBUG = FloatUtil.DEBUG;
     /** Low left-bottom-far (xyz) coordinate */
     private final Vec3f lo = new Vec3f();
