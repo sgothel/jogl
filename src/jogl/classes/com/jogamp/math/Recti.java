@@ -99,9 +99,9 @@ public final class Recti {
     public void setWidth(final int width) { this.width = width; }
     public void setHeight(final int height) { this.height = height; }
 
-    /** Return true if all components are zero. */
+    /** Return true if area is zero. */
     public boolean isZero() {
-        return 0 == x && 0 == y;
+        return 0 == width || 0 == height;
     }
 
     /**
