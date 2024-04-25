@@ -611,7 +611,7 @@ public class AABBox {
         }
         {
             if(origin.y() < lo.y()) {
-                result.setX(lo.y());
+                result.setY(lo.y());
                 inside    = false;
 
                 // Calculate T distances to candidate planes
@@ -619,7 +619,7 @@ public class AABBox {
                     maxT[1] = (lo.y() - origin.y()) / dir.y();
                 }
             } else if(origin.y() > hi.y()) {
-                result.setX(hi.y());
+                result.setY(hi.y());
                 inside    = false;
 
                 // Calculate T distances to candidate planes
@@ -630,7 +630,7 @@ public class AABBox {
         }
         {
             if(origin.z() < lo.z()) {
-                result.setX(lo.z());
+                result.setZ(lo.z());
                 inside    = false;
 
                 // Calculate T distances to candidate planes
@@ -638,7 +638,7 @@ public class AABBox {
                     maxT[2] = (lo.z() - origin.z()) / dir.z();
                 }
             } else if(origin.z() > hi.z()) {
-                result.setX(hi.z());
+                result.setZ(hi.z());
                 inside    = false;
 
                 // Calculate T distances to candidate planes
