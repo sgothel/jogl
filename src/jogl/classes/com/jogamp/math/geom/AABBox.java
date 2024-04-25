@@ -661,7 +661,7 @@ public class AABBox {
 
         if( !assumeIntersection ) {
             // Check final candidate actually inside box
-            if( 0 != ( Float.floatToIntBits(maxT[whichPlane]) & 0x80000000 ) ) {
+            if( 0 != ( Float.floatToIntBits(maxT[whichPlane]) & FloatUtil.IEC559_SIGN_BIT ) ) {
                 return null;
             }
 

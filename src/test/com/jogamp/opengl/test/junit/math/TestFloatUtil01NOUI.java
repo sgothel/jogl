@@ -68,7 +68,7 @@ public class TestFloatUtil01NOUI extends JunitTracer {
         final boolean equalWE =  FloatUtil.isEqual(a, b, EPSILON);
         final int compWE = FloatUtil.compare(a, b, EPSILON);
         final String msgWE = ( expWE != compWE ) ? "**** mismatch ****" : " OK";
-        System.err.println("Print.WE."+tstNum+": a: "+a+", b: "+b+" -> d "+delta+", exp "+expWE+", equal "+equalWE+", comp "+compWE+" - "+msgWE+", epsilon "+EPSILON);
+        System.err.println("Print.WE."+tstNum+": a: "+a+", b: "+b+" -> d "+delta+", exp "+expWE+", equal "+equalWE+", comp "+compWE+" - "+msgWE+"testZeroNoEpsilon "+EPSILON);
     }
     private void dumpTestNE(final int tstNum, final int exp, final float a, final float b) {
         final float delta = a-b;
@@ -91,24 +91,27 @@ public class TestFloatUtil01NOUI extends JunitTracer {
         testZeroWithEpsilon1(300, MACH_EPSILON);
     }
     @Test
-    public void test01cZeroWithZeroEpsilon() {
-        final float EPSILON = 0.0f;
+    public void test01cZeroNoEpsilon() {
         int i = 400;
         System.err.println();
-        testZeroWithEpsilon1(i++, true, 0f, EPSILON);
-        testZeroWithEpsilon1(i++, true, 0f-EPSILON/2f, EPSILON);
-        testZeroWithEpsilon1(i++, true, 0f+EPSILON/2f, EPSILON);
-        testZeroWithEpsilon1(i++, false, 0f-Float.MIN_VALUE, EPSILON);
-        testZeroWithEpsilon1(i++, false, 0f+Float.MIN_VALUE, EPSILON);
-        testZeroWithEpsilon1(i++, true, -0f, EPSILON);
-        testZeroWithEpsilon1(i++, true, +0f, EPSILON);
+        testZeroNoEpsilon(i++, true, 0f);
+        testZeroNoEpsilon(i++, false, 0f-Float.MIN_VALUE);
+        testZeroNoEpsilon(i++, false, 0f+Float.MIN_VALUE);
+        testZeroNoEpsilon(i++, true, -0f);
+        testZeroNoEpsilon(i++, true, +0f);
 
-        testZeroWithEpsilon1(i++, false, 0f+EPSILON+Float.MIN_VALUE, EPSILON);
-        testZeroWithEpsilon1(i++, false, 0f-EPSILON-Float.MIN_VALUE, EPSILON);
+        testZeroNoEpsilon(i++, false, 0f+Float.MIN_VALUE);
+        testZeroNoEpsilon(i++, false, 0f-Float.MIN_VALUE);
 
         // Unpredicted .. accuracy beyond epsilon, or deltaMachEpsLEQEpsilon or deltaFixedEpsLEQEpsilon;
-        dumpTestWE(i++, 1, 0f, 0f+EPSILON-Float.MIN_VALUE, EPSILON);
-        dumpTestWE(i++, 1, 0f, 0f-EPSILON+Float.MIN_VALUE, EPSILON);
+        dumpTestNE(i++, 1, 0f, 0f+Float.MIN_VALUE);
+        dumpTestNE(i++, 1, 0f, 0f-Float.MIN_VALUE);
+    }
+    private void testZeroNoEpsilon(final int tstNum, final boolean exp, final float a) {
+        final boolean zero =  FloatUtil.isZeroRaw(a);
+        final float delta = a-0f;
+        System.err.println("Zero."+tstNum+": a: "+a+", -> d "+delta+", exp "+exp+", zero "+zero);
+        Assert.assertEquals("Zero failed a: "+a, exp, zero);
     }
     private void testZeroWithEpsilon1(int i, final float EPSILON) {
         System.err.println();
@@ -169,7 +172,7 @@ public class TestFloatUtil01NOUI extends JunitTracer {
         testEqualsNoEpsilon(i++, true, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY);
         testEqualsNoEpsilon(i++, true, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY);
         testEqualsNoEpsilon(i++, true, Float.NaN, Float.NaN);
-        testEqualsNoEpsilon(i++, false,  -0f, 0f);
+        testEqualsNoEpsilon(i++, false, -0f, 0f);
         testEqualsNoEpsilon(i++, false, 0f, -0f);
 
         // Unpredicted .. accuracy beyond epsilon, or deltaMachEpsLEQEpsilon or deltaFixedEpsLEQEpsilon;
@@ -198,37 +201,6 @@ public class TestFloatUtil01NOUI extends JunitTracer {
     @Test
     public void test03bEqualsWithMachEpsilon() {
         testEqualsWithEpsilon(200, MACH_EPSILON);
-    }
-    @Test
-    public void test03cEqualsWithZeroEpsilon() {
-        // testEqualsWithEpsilon(300, 0.0f);
-        //
-        // Results marked with (***) are actually true epsilon artifacts
-        // reversing the result due to no-epsilon comparison
-        final float EPSILON = 0.0f;
-        int i=400;
-        System.err.println();
-        testEqualsWithEpsilon(i++, true, 0f, 0f, EPSILON);
-        testEqualsWithEpsilon(i++, true, 1f, 1f-EPSILON/2f, EPSILON);
-        testEqualsWithEpsilon(i++, true, 1f, 1f+EPSILON/2f, EPSILON);
-        testEqualsWithEpsilon(i++, true, 1f, 1f-Float.MIN_VALUE, EPSILON);  // ***
-        testEqualsWithEpsilon(i++, true, 1f, 1f-Float.MIN_NORMAL, EPSILON); // ***
-        testEqualsWithEpsilon(i++, true, 1f, 1f+Float.MIN_VALUE, EPSILON);  // ***
-        testEqualsWithEpsilon(i++, true, Float.MAX_VALUE, Float.MAX_VALUE, EPSILON);
-        testEqualsWithEpsilon(i++, true, Float.MIN_VALUE, Float.MIN_VALUE, EPSILON);
-        testEqualsWithEpsilon(i++, true, Float.MIN_NORMAL, Float.MIN_NORMAL, EPSILON);
-        testEqualsWithEpsilon(i++, true, Float.NEGATIVE_INFINITY, Float.NEGATIVE_INFINITY, EPSILON);
-        testEqualsWithEpsilon(i++, true, Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY, EPSILON);
-        testEqualsWithEpsilon(i++, true, Float.NaN, Float.NaN, EPSILON);
-        testEqualsWithEpsilon(i++, true, -0f, 0f, EPSILON);
-        testEqualsWithEpsilon(i++, true, 0f, -0f, EPSILON);
-
-        testEqualsWithEpsilon(i++, true, 1f, 1f+EPSILON+Float.MIN_VALUE, EPSILON); // ***
-        testEqualsWithEpsilon(i++, true, 1f, 1f-EPSILON-Float.MIN_VALUE, EPSILON); // ***
-
-        // Unpredicted .. accuracy beyond epsilon, or deltaMachEpsLEQEpsilon or deltaFixedEpsLEQEpsilon;
-        dumpTestWE(i++, 1, 1f, 1f+EPSILON-Float.MIN_VALUE, EPSILON);
-        dumpTestWE(i++, 1, 1f, 1f-EPSILON+Float.MIN_VALUE, EPSILON);
     }
     private void testEqualsWithEpsilon(int i, final float EPSILON) {
         System.err.println();
@@ -285,7 +257,7 @@ public class TestFloatUtil01NOUI extends JunitTracer {
         testCompareNoEpsilon(i++,  1, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY);
         testCompareNoEpsilon(i++, -1, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY);
 
-        testCompareNoEpsilon(i++, -1,        0f, Float.NaN);
+        testCompareNoEpsilon(i++, -1, 0f, Float.NaN);
         testCompareNoEpsilon(i++,  1, Float.NaN, 0f);
 
         testCompareNoEpsilon(i++, -1,  -0f, 0f);
@@ -316,10 +288,6 @@ public class TestFloatUtil01NOUI extends JunitTracer {
     @Test
     public void test05bCompareWithMachEpsilon() {
         test05CompareWithEpsilon(200, MACH_EPSILON);
-    }
-    @Test
-    public void test05cCompareWithZeroEpsilon() {
-        test05CompareWithEpsilon(300, 0.0f);
     }
     private void test05CompareWithEpsilon(int i, final float epsilon) {
         System.err.println();
@@ -358,7 +326,6 @@ public class TestFloatUtil01NOUI extends JunitTracer {
         System.err.println("Comp.WE."+tstNum+": a: "+a+", b: "+b+" -> d "+delta+", equal "+equal+", comp: exp "+exp+" has "+comp);
         Assert.assertEquals("Compare failed a: "+a+", b: "+b+" within "+epsilon, exp, comp);
     }
-
 
     public static void main(final String args[]) {
         org.junit.runner.JUnitCore.main(TestFloatUtil01NOUI.class.getName());

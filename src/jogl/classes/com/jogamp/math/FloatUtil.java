@@ -1278,7 +1278,7 @@ public final class FloatUtil {
    * @param aOffset offset to <code>a</code>'s current position
    * @param rows
    * @param columns
-   * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
+   * @param rowMajorOrder if true floats are laid out in row-major-order, otherwise column-major-order (OpenGL)
    * @return matrix string representation
    */
   public static StringBuilder matrixToString(StringBuilder sb, final String rowPrefix, final String f,
@@ -1410,8 +1410,12 @@ public final class FloatUtil {
    */
   public static final float INV_DEVIANCE = 1.0E-5f; // FloatUtil.EPSILON == 1.1920929E-7f; double ALLOWED_DEVIANCE: 1.0E-8f
 
+  /** Signed bit 31 of IEEE 754 (IEC 559) single float-point bit layout, i.e. `0x80000000`. */
+  public static final int IEC559_SIGN_BIT = 1 << 31; // 0x80000000;
+
   /**
-   * Return true if both values are equal w/o regarding an epsilon.
+   * Returns true if both values are equal
+   * disregarding {@link EPSILON} but considering {@code NaN}, {@code -Inf} and {@code +Inf}.
    * <p>
    * Implementation considers following corner cases:
    * <ul>
@@ -1428,10 +1432,10 @@ public final class FloatUtil {
   }
 
   /**
-   * Returns true if both values are equal, i.e. their absolute delta < {@code epsilon} if 0 != {@code epsilon},
-   * otherwise == {@code 0}.
+   * Returns true if both values are equal, i.e. their absolute delta < {@code epsilon},
+   * considering {@code epsilon} and {@code NaN}, {@code -Inf} and {@code +Inf}.
    * <p>
-   * {@code epsilon} is allowed to be {@code 0}.
+   * {@code epsilon} must be > 0.
    * </p>
    * <p>
    * Implementation considers following corner cases:
@@ -1444,8 +1448,7 @@ public final class FloatUtil {
    * @see #EPSILON
    */
   public static boolean isEqual(final float a, final float b, final float epsilon) {
-      if( 0 == epsilon && Math.abs(a - b) == 0 ||
-          0 != epsilon && Math.abs(a - b) < epsilon ) {
+      if( Math.abs(a - b) < epsilon ) {
           return true;
       } else {
           // Values are equal (Inf, Nan .. )
@@ -1454,7 +1457,8 @@ public final class FloatUtil {
   }
 
   /**
-   * Returns true if both values are equal, i.e. their absolute delta < {@link #EPSILON}.
+   * Returns true if both values are equal, i.e. their absolute delta < {@link #EPSILON},
+   * considering {@link EPSILON} and {@code NaN}, {@code -Inf} and {@code +Inf}.
    * <p>
    * Implementation considers following corner cases:
    * <ul>
@@ -1475,7 +1479,8 @@ public final class FloatUtil {
   }
 
   /**
-   * Returns true if both values are equal, i.e. their absolute delta < {@link #EPSILON}.
+   * Returns true if both values are equal, i.e. their absolute delta < {@link #EPSILON},
+   * considering {@link EPSILON} but disregarding {@code NaN}, {@code -Inf} and {@code +Inf}.
    * <p>
    * Implementation does not consider corner cases like {@link #isEqual(float, float, float)}.
    * </p>
@@ -1486,7 +1491,8 @@ public final class FloatUtil {
   }
 
   /**
-   * Returns true if both values are equal w/o regarding an epsilon.
+   * Returns {@code -1}, {@code 0} or {@code 1} if {@code a} is less, equal or greater than {@code b},
+   * disregarding epsilon but considering {@code NaN}, {@code -Inf} and {@code +Inf}.
    * <p>
    * Implementation considers following corner cases:
    * <ul>
@@ -1519,9 +1525,9 @@ public final class FloatUtil {
 
   /**
    * Returns {@code -1}, {@code 0} or {@code 1} if {@code a} is less, equal or greater than {@code b},
-   * taking {@code epsilon} into account for equality.
+   * considering epsilon and {@code NaN}, {@code -Inf} and {@code +Inf}.
    * <p>
-   * {@code epsilon} is allowed to be {@code 0}.
+   * {@code epsilon} must be > 0.
    * </p>
    * <p>
    * Implementation considers following corner cases:
@@ -1536,8 +1542,7 @@ public final class FloatUtil {
    * @see #EPSILON
    */
   public static int compare(final float a, final float b, final float epsilon) {
-      if( 0 == epsilon && Math.abs(a - b) == 0 ||
-          0 != epsilon && Math.abs(a - b) < epsilon ) {
+      if( Math.abs(a - b) < epsilon ) {
           return 0;
       } else {
           return compare(a, b);
@@ -1545,21 +1550,16 @@ public final class FloatUtil {
   }
 
   /**
-   * Returns true if value is zero, i.e. it's absolute value < {@code epsilon} if 0 != {@code epsilon},
-   * otherwise {@code 0 == a}.
+   * Returns true if value is zero, i.e. it's absolute value < {@code epsilon}.
    * <p>
-   * {@code epsilon} is allowed to be {@code 0}.
+   * {@code epsilon} must be > 0.
    * </p>
-   * <pre>
-   *    return 0 == epsilon && 0 == a || 0 != epsilon && Math.abs(a) < epsilon
-   * </pre>
    * @param a value to test
-   * @param epsilon optional positive epsilon value, maybe {@code 0}
+   * @param epsilon optional positive epsilon value, must be > 0
    * @see #EPSILON
    */
   public static boolean isZero(final float a, final float epsilon) {
-      return 0 == epsilon && a == 0 ||
-             0 != epsilon && Math.abs(a) < epsilon;
+      return Math.abs(a) < epsilon;
   }
 
   /**
@@ -1568,6 +1568,23 @@ public final class FloatUtil {
    */
   public static boolean isZero(final float a) {
       return Math.abs(a) < FloatUtil.EPSILON;
+  }
+
+  /**
+   * Returns true if value is zero,
+   * disregarding {@link EPSILON} but considering {@code NaN}, {@code -Inf} and {@code +Inf}.
+   * <p>
+   * Implementation considers following corner cases:
+   * <ul>
+   *    <li>NaN == NaN</li>
+   *    <li>+Inf == +Inf</li>
+   *    <li>-Inf == -Inf</li>
+   * </ul>
+   * </p>
+   */
+  public static boolean isZeroRaw(final float a) {
+      // Values are equal (Inf, Nan .. )
+      return ( Float.floatToIntBits(a) & ~IEC559_SIGN_BIT ) == 0;
   }
 
   /**
