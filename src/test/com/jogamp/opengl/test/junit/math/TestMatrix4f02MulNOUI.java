@@ -188,16 +188,16 @@ public class TestMatrix4f02MulNOUI extends JunitTracer {
         // warm-up
         for(int i=0; i<warmups; i++) {
             res_n.mul(n1, n2);
-            dr += res_m.determinant();
+            dr += res_n.determinant();
             res_n.mul(n2, n1);
-            dr += res_m.determinant();
+            dr += res_n.determinant();
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
             res_n.mul(n1, n2);
-            dr += res_m.determinant();
+            dr += res_n.determinant();
             res_n.mul(n2, n1);
-            dr += res_m.determinant();
+            dr += res_n.determinant();
         }
         tI5a = Platform.currentTimeMillis() - t_0;
         Assert.assertTrue( dr > 0 );
@@ -206,19 +206,19 @@ public class TestMatrix4f02MulNOUI extends JunitTracer {
         for(int i=0; i<warmups; i++) {
             res_n.load(n1);
             res_n.mul(n2);
-            dr += res_m.determinant();
+            dr += res_n.determinant();
             res_n.load(n2);
             res_n.mul(n1);
-            dr += res_m.determinant();
+            dr += res_n.determinant();
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
             res_n.load(n1);
             res_n.mul(n2);
-            dr += res_m.determinant();
+            dr += res_n.determinant();
             res_n.load(n2);
             res_n.mul(n1);
-            dr += res_m.determinant();
+            dr += res_n.determinant();
         }
         tI5b = Platform.currentTimeMillis() - t_0;
         Assert.assertTrue( dr > 0 );

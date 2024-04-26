@@ -262,6 +262,9 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
         }
         tI2 = Platform.currentTimeMillis() - t_0;
 
+        // avoid optimizing out unused computation results by simply adding up determinat
+        double dr = 1;
+
         //
         // Matrix4f
         //
@@ -269,42 +272,34 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
         // warm-up
         for(int i=0; i<warmups; i++) {
             res_m.invert(p1_m);
+            dr += res_m.determinant();
             res_m.invert(p2_m);
+            dr += res_m.determinant();
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
             res_m.invert(p1_m);
+            dr += res_m.determinant();
             res_m.invert(p2_m);
+            dr += res_m.determinant();
         }
         tI4a = Platform.currentTimeMillis() - t_0;
 
-        if( false ) {
-            // warm-up
-            for(int i=0; i<warmups; i++) {
-                res_m.load(p1_m).invert();
-                res_m.load(p2_m).invert();
-            }
-            t_0 = Platform.currentTimeMillis();
-            for(int i=0; i<loops; i++) {
-                res_m.load(p1_m).invert();
-                res_m.load(p2_m).invert();
-            }
-            tI4b = Platform.currentTimeMillis() - t_0;
-        } else {
-            res_m.load(p1_m);
-
-            // warm-up
-            for(int i=0; i<warmups; i++) {
-                res_m.invert();
-                res_m.invert();
-            }
-            t_0 = Platform.currentTimeMillis();
-            for(int i=0; i<loops; i++) {
-                res_m.invert();
-                res_m.invert();
-            }
-            tI4b = Platform.currentTimeMillis() - t_0;
+        // warm-up
+        for(int i=0; i<warmups; i++) {
+            res_m.load(p1_m).invert();
+            dr += res_m.determinant();
+            res_m.load(p2_m).invert();
+            dr += res_m.determinant();
         }
+        t_0 = Platform.currentTimeMillis();
+        for(int i=0; i<loops; i++) {
+            res_m.load(p1_m).invert();
+            dr += res_m.determinant();
+            res_m.load(p2_m).invert();
+            dr += res_m.determinant();
+        }
+        tI4b = Platform.currentTimeMillis() - t_0;
 
         //
         // Matrix4fb
@@ -313,43 +308,34 @@ public class TestMatrix4f03InversionNOUI extends JunitTracer {
         // warm-up
         for(int i=0; i<warmups; i++) {
             res_n.invert(p1_n);
+            dr += res_n.determinant();
             res_n.invert(p2_n);
+            dr += res_n.determinant();
         }
         t_0 = Platform.currentTimeMillis();
         for(int i=0; i<loops; i++) {
             res_n.invert(p1_n);
+            dr += res_n.determinant();
             res_n.invert(p2_n);
+            dr += res_n.determinant();
         }
         tI5a = Platform.currentTimeMillis() - t_0;
 
-        if( false ) {
-            // warm-up
-            for(int i=0; i<warmups; i++) {
-                res_n.load(p1_n).invert();
-                res_n.load(p2_n).invert();
-            }
-            t_0 = Platform.currentTimeMillis();
-            for(int i=0; i<loops; i++) {
-                res_n.load(p1_n).invert();
-                res_n.load(p2_n).invert();
-            }
-            tI5b = Platform.currentTimeMillis() - t_0;
-        } else {
-            res_n.load(p1_n);
-
-            // warm-up
-            for(int i=0; i<warmups; i++) {
-                res_n.invert();
-                res_n.invert();
-            }
-            t_0 = Platform.currentTimeMillis();
-            for(int i=0; i<loops; i++) {
-                res_n.invert();
-                res_n.invert();
-            }
-            tI5b = Platform.currentTimeMillis() - t_0;
+        // warm-up
+        for(int i=0; i<warmups; i++) {
+            res_n.load(p1_n).invert();
+            res_n.load(p2_n).invert();
         }
+        t_0 = Platform.currentTimeMillis();
+        for(int i=0; i<loops; i++) {
+            res_n.load(p1_n).invert();
+            dr += res_n.determinant();
+            res_n.load(p2_n).invert();
+            dr += res_n.determinant();
+        }
+        tI5b = Platform.currentTimeMillis() - t_0;
 
+        System.err.printf("Checkmark %f%n", dr);
         System.err.printf("Summary loops %6d: I0  %6d ms total, %f us/inv%n", loops, tI0, tI0*1e3/loops);
         System.err.printf("Summary loops %6d: I2  %6d ms total, %f us/inv, I2  / I0 %f%%%n", loops, tI2, tI2*1e3/2.0/loops, tI2/(double)tI0*100.0);
         System.err.printf("Summary loops %6d: I4a %6d ms total, %f us/inv, I4a / I2 %f%%%n", loops, tI4a, tI4a*1e3/2.0/loops, (double)tI4a/(double)tI2*100.0);
