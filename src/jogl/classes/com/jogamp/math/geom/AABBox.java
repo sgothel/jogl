@@ -406,8 +406,8 @@ public final class AABBox {
      * @param y  y-axis coordinate value
      */
     public final boolean contains(final float x, final float y) {
-        return !( x<lo.x() || x>hi.x() ||
-                  y<lo.y() || y>hi.y() );
+        return lo.x()<=x && x<=hi.x() &&
+               lo.y()<=y && y<=hi.y();
     }
 
     /**
@@ -417,19 +417,27 @@ public final class AABBox {
      * @param z z-axis coordinate value
      */
     public final boolean contains(final float x, final float y, final float z) {
-        return !( x<lo.x() || x>hi.x() ||
-                  y<lo.y() || y>hi.y() ||
-                  z<lo.z() || z>hi.z() );
+        return lo.x()<=x && x<=hi.x() &&
+               lo.y()<=y && y<=hi.y() &&
+               lo.z()<=z && z<=hi.z();
     }
 
     /** Returns whether this AABBox intersects (partially contains) given AABBox. */
     public final boolean intersects(final AABBox o) {
-        return !( hi.x() < o.lo.x() ||
-                  hi.y() < o.lo.y() ||
-                  hi.z() < o.lo.z() ||
-                  lo.x() > o.hi.x() ||
-                  lo.y() > o.hi.y() ||
-                  lo.z() > o.hi.z());
+        /**
+         * Traditional boolean equation leads to multiple branches,
+         * using max/min approach allowing for branch-less optimizations.
+         *
+            return !( hi.x() < o.lo.x() ||
+                      hi.y() < o.lo.y() ||
+                      hi.z() < o.lo.z() ||
+                      lo.x() > o.hi.x() ||
+                      lo.y() > o.hi.y() ||
+                      lo.z() > o.hi.z());
+        */
+        return Math.max(lo.x(), o.lo.x()) <= Math.min(hi.x(), o.hi.x()) &&
+               Math.max(lo.y(), o.lo.y()) <= Math.min(hi.y(), o.hi.y()) &&
+               Math.max(lo.z(), o.lo.z()) <= Math.min(hi.z(), o.hi.z());
     }
 
     /** Returns whether this AABBox fully contains given AABBox. */
