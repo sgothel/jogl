@@ -1012,11 +1012,18 @@ public final class OutlineShape implements Comparable<OutlineShape> {
             dirtyBits &= ~DIRTY_VERTICES;
             // updated = true;
         // } else {
-        //    updated = false;
+        //     updated = false;
         }
-        // if(Region.DEBUG_INSTANCE) {
-        //    System.err.println("OutlineShape.getVertices(): o "+outlines.size()+", v "+vertices.size()+", updated "+updated);
-        // }
+        /**
+        if(Region.DEBUG_INSTANCE) {
+            System.err.println("OutlineShape.getVertices().X: "+vertices.size()+", updated "+updated);
+            if( updated ) {
+                int i=0;
+                for(final Vertex v : vertices) {
+                    System.err.printf("- [%d]: %s%n", i++, v);
+                }
+            }
+        } */
         return vertices;
     }
 

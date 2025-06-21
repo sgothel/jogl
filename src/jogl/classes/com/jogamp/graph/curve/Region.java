@@ -409,6 +409,7 @@ public abstract class Region {
     }
 
     private void pushNewVertexImpl(final Vertex vertIn, final AffineTransform transform, final Vec4f rgba) {
+        // if(DEBUG_INSTANCE) { System.err.printf("pushVertex.0[%d]: v %s]%n", numVertices, vertIn); }
         if( null != transform ) {
             final Vec3f coordsEx1 = transform.transform(vertIn.getCoord(), new Vec3f());
             box.resize(coordsEx1);
@@ -421,6 +422,7 @@ public abstract class Region {
     }
 
     private void pushNewVerticesImpl(final Vertex vertIn1, final Vertex vertIn2, final Vertex vertIn3, final AffineTransform transform, final Vec4f rgba) {
+        // if(DEBUG_INSTANCE) { System.err.printf("pushVertex.0[%d]:%n- %s,%n- %s,%n- %s]%n", numVertices, vertIn1, vertIn2, vertIn3); }
         if( null != transform ) {
             final Vec3f coordsEx1 = transform.transform(vertIn1.getCoord(), new Vec3f());
             final Vec3f coordsEx2 = transform.transform(vertIn2.getCoord(), new Vec3f());
@@ -442,12 +444,18 @@ public abstract class Region {
 
     @SuppressWarnings("unused")
     private void pushNewVertexIdxImpl(final Vertex vertIn, final AffineTransform transform, final Vec4f rgba) {
+        // if(DEBUG_INSTANCE) { System.err.printf("pushIndices.0[%d]: %d]%n", numIndices , numVertices); }
         pushIndex(numVertices);
         pushNewVertexImpl(vertIn, transform, rgba);
+        // numIndices += 1;
     }
+    // int numIndices = 0;
+
     private void pushNewVerticesIdxImpl(final Vertex vertIn1, final Vertex vertIn2, final Vertex vertIn3, final AffineTransform transform, final Vec4f rgba) {
+        // if(DEBUG_INSTANCE) { System.err.printf("pushIndices.0[%d]: %d, %d, %d]%n", numIndices , numVertices, numVertices+1, numVertices+2); }
         pushIndices(numVertices, numVertices+1, numVertices+2);
         pushNewVerticesImpl(vertIn1, vertIn2, vertIn3, transform, rgba);
+        // numIndices += 3;
     }
 
     protected static void put3i(final IntBuffer b, final int v1, final int v2, final int v3) {
@@ -635,6 +643,7 @@ public abstract class Region {
         {
             final int verticeCount = vertsIn.size() + shape.getAddedVerticeCount();
             final int indexCount = trisIn.size() * 3;
+            // if(DEBUG_INSTANCE) { System.err.printf("add.0 triangles %d, vertices %d; verticeCount %d, indexCount %d%n", trisIn.size(), vertsIn.size(), verticeCount, indexCount); }
             growBuffer(verticeCount, indexCount);
         }
 
@@ -656,15 +665,18 @@ public abstract class Region {
 
                 if ( max_indices - idxOffset > tv0Idx ) {
                     // valid 'known' idx - move by offset
+                    // if(DEBUG_INSTANCE) { System.err.printf("pushIndices.0[%d, m %d]: %d, %d, %d]%n", numIndices , 1, tv0Idx+idxOffset, triInVertices[1].getId()+idxOffset, triInVertices[2].getId()+idxOffset); }
                     pushIndices(tv0Idx+idxOffset,
                                 triInVertices[1].getId()+idxOffset,
                                 triInVertices[2].getId()+idxOffset);
+                    // numIndices += 3;
                 } else {
                     // FIXME: If exceeding max_indices, we would need to generate a new buffer w/ indices
                     pushNewVerticesIdxImpl(triInVertices[0], triInVertices[1], triInVertices[2], t, rgbaColor);
                 }
             }
         }
+        // if(DEBUG_INSTANCE) { System.err.printf("add.x num[vertices %d, indices %d]%n", numVertices, numIndices); }
     }
     private final void addOutlineShape1(final OutlineShape shape, final AffineTransform t, final Vec4f rgbaColor) {
         ++perf.count;
