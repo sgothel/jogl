@@ -37,23 +37,18 @@ public class HEdge {
     public static final int HOLE = 2;
 
     private GraphVertex vert;
-    private HEdge prev = null;
-    private HEdge next = null;
-    private HEdge sibling = null;
-    private int type = BOUNDARY;
-    private Triangle triangle = null;
+    private HEdge prev;
+    private HEdge next;
+    private HEdge sibling;
+    private int type;
+    private Triangle triangle;
 
     public HEdge(final GraphVertex vert, final int type) {
-        this.vert = vert;
-        this.type = type;
+        this(vert, null, null, null, type, null);
     }
 
     public HEdge(final GraphVertex vert, final HEdge prev, final HEdge next, final HEdge sibling, final int type) {
-        this.vert = vert;
-        this.prev = prev;
-        this.next = next;
-        this.sibling = sibling;
-        this.type = type;
+        this(vert, prev, next, sibling, type, null);
     }
 
     public HEdge(final GraphVertex vert, final HEdge prev, final HEdge next, final HEdge sibling, final int type, final Triangle triangle) {
