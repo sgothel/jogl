@@ -100,8 +100,43 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
         outlineShape.addVertex(offset+10.0f,-5.0f, true);
         outlineShape.addVertex(offset+10.0f,0.0f, true);
         outlineShape.closeLastOutline(true);
+        System.err.println("createTestOutline00: "+outlineShape);
     }
 
+    private void createTestOutline01a(){
+        final float lineWidth = 1/2.5f;
+        final float dz = 0.001f;
+        // Rectangle
+        final float width = 1.5f;
+        final float height = 1.5f;
+        final float x1 = -width/2.0f;
+        final float y1 = -height/2.0f;
+        final float x2 =  x1 + width;
+        final float y2 =  y1 + height;
+        final float z = dz;
+        {
+            // Outer OutlineShape as Winding.CCW.
+            outlineShape.moveTo(x1, y1, z);
+            outlineShape.lineTo(x2, y1, z);
+            outlineShape.lineTo(x2, y2, z);
+            outlineShape.lineTo(x1, y2, z);
+            outlineShape.lineTo(x1, y1, z);
+            outlineShape.closePath();
+            // outlineShape.closeLastOutline(true);
+        }
+        {
+            // Inner OutlineShape as Winding.CW.
+            // final float dxy0 = getWidth() < getHeight() ? getWidth() : getHeight();
+            final float dxy = lineWidth; // dxy0 * getDebugBox();
+            outlineShape.moveTo(x1+dxy, y1+dxy, z);
+            outlineShape.lineTo(x1+dxy, y2-dxy, z);
+            outlineShape.lineTo(x2-dxy, y2-dxy, z);
+            outlineShape.lineTo(x2-dxy, y1+dxy, z);
+            outlineShape.lineTo(x1+dxy, y1+dxy, z);
+            outlineShape.closePath();
+        }
+        System.err.println("createTestOutline01: "+outlineShape);
+    }
     private void createTestOutline01(){
         outlineShape.moveTo(0.0f,-10.0f, 0f);
         outlineShape.lineTo(15.0f,-10.0f, 0f);
@@ -128,6 +163,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
         outlineShape.lineTo(offset+10.0f,-5.0f,0f);
         outlineShape.lineTo(offset+10.0f,0.0f,0f);
         outlineShape.closePath();
+        System.err.println("createTestOutline01b: "+outlineShape);
     }
 
     private void createTestOutline02(){
@@ -161,6 +197,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
         System.err.println("GPURegionGLListener01.createTestOutline02.X: path "+path);
         path.printSegments(System.err);
         outlineShape.addPath(path, false /* connect */);
+        System.err.println("createTestOutline02: "+outlineShape);
     }
 
     private void createTestOutline03(){
@@ -208,6 +245,7 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
             path.printSegments(System.err);
             outlineShape.addPath(path, false /* connect */);
         }
+        System.err.println("createTestOutline03: "+outlineShape);
 
     }
 
@@ -243,6 +281,8 @@ public class GPURegionGLListener01 extends GPURendererListenerBase01 {
         System.err.println("GPURegionGLListener01.createTestOutline04.X: path "+path);
         path.printSegments(System.err);
         outlineShape.addPathRev(path, false /* connect */);
+
+        System.err.println("createTestOutline04: "+outlineShape);
     }
 
     @Override
