@@ -529,7 +529,7 @@ static void freeInstance(JNIEnv *env, FFMPEGToolBasicAV_t* pAV) {
             pAV->pSCodec=NULL;
             if( AV_HAS_API_SWSCALE(pAV) ) {
                 if( NULL != pAV->sScaleCtx ) {
-                    sws_freeContext(pAV->sScaleCtx);
+                    sp_sws_freeContext(pAV->sScaleCtx);
                 }
             }
             pAV->sScaleCtx = NULL;
