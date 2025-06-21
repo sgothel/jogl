@@ -1131,7 +1131,7 @@ public final class OutlineShape implements Comparable<OutlineShape> {
     }
 
     public final AABBox getBounds() {
-        if( 0 == ( dirtyBits & DIRTY_BOUNDS ) ) {
+        if( 0 != ( dirtyBits & DIRTY_BOUNDS ) ) {
             validateBoundingBox();
         }
         return bbox;
