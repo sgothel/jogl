@@ -81,11 +81,12 @@
                         <li> <b>GNU Linux</b> x86_64 as well as aarch64, etc<br/>
                             You may have to install a few developer packages ...
                             <ul>
-                                <li> <b>Debian</b> 11 or later
+                                <li> <b>Debian</b> 12 or later
                                     <ul>
+                                        <li>build-essential</li>
                                         <li>openjdk-17-jre</li>
                                         <li>openjdk-17-jdk</li>
-                                        <li>openjfx</li>
+                                        <li>libopenjfx-java</li>
                                         <li>ant</li>
                                         <li>git</li>
                                         <li>gawk</li>
@@ -111,20 +112,16 @@
                                         <li>libxi-dev</li>
                                         <li>libudev-dev</li>
                                         <li>libstdc++6</li>
-                                        <li>libstdc++-10-dev</li>
+                                        <li>libstdc++-12-dev</li>
                                         <li>Optional: Your card vendor's proprietary driver</li>
                                     </ul>
                                     One liner install command
                                     <ul>
-                                      <li><b>Debian</b> 11 Bullseye
+                                      <li><b>Debian</b> 12 Bullseye
                                       <pre>
-apt-get install openjdk-17-jre openjdk-17-jdk openjfx ant git-all p7zip-full gcc cmake libdrm-dev libgbm-dev libgles2-mesa-dev libegl1-mesa-dev libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libxi-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++-10-dev
+apt-get install build-essential openjdk-17-jre openjdk-17-jdk libopenjfx-java ant git-all p7zip-full gcc cmake libdrm-dev libgbm-dev libgles2-mesa-dev libegl1-mesa-dev libgl1-mesa-dev libglu1-mesa-dev xorg-dev libice-dev libsm-dev libx11-dev libxext-dev libxxf86vm-dev libxinerama-dev libxrandr-dev libxrender-dev libxcursor-dev libxi-dev libudev-dev libc6-dev g++ libstdc++6 libstdc++-12-dev
                                       </pre></li>
                                     </ul>
-                                    Optional: Add <i>kernel</i> build utilities:
-                                    <pre>
-apt-get install kernel-package build-essential 
-                                    </pre>
                                     Optional: Add <i>multiarch</i> i386 next to amd64 
                                     <ul>
                                       <li><b>Debian</b> 11 Bullseye
