@@ -383,7 +383,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLMediaPlayer.StreamWorker.delay=25 -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.GLMediaPlayer.AVSync -Djogl.debug.GLMediaPlayer.Native -Djogamp.debug.AudioSink"
-    #D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogamp.debug.Lock -Djogl.debug.GLMediaPlayer.Native -Djogl.debug.GLMediaPlayer"
+    D_ARGS="-Djogamp.debug.NativeLibrary=true -Djogl.debug.GLMediaPlayer.Native -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.StereoDevice -Djogl.debug.StereoDevice.DumpData"
     #D_ARGS="-Djogl.debug.StereoDevice"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.StereoDevice"
@@ -1008,7 +1008,7 @@ function testawtswt() {
 # Graph (Demos)
 #
 #testnoawt com.jogamp.opengl.demos.graph.GPUTextNewtDemo $*
-testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
+#testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
 #qrenderdoc
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeClippingDemo00 $*
 ##testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeClippingDemo01 $*
@@ -1021,7 +1021,7 @@ testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UIShapeDemo02a $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT21 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UITypeDemo01 $*
-
+#
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo00 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01 $*
 #testnoawt com.jogamp.opengl.demos.graph.ui.UISceneDemo01b $*
@@ -1051,7 +1051,7 @@ testnoawt com.jogamp.opengl.demos.graph.GPURegionNewtDemo $*
 #
 # Basic (Demos)
 #
-#testnoawt com.jogamp.opengl.demos.es2.GearsES2 $*
+testnoawt com.jogamp.opengl.demos.es2.GearsES2 $*
 #testnoawt com.jogamp.opengl.demos.es2.LandscapeES2 $*
 #testnoawt com.jogamp.opengl.demos.es2.PointsDemoES2 $*
 

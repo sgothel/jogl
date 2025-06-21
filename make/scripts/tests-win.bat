@@ -269,7 +269,11 @@ REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo02 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo03 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo10 %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo11 %*
-scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo20 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.graph.ui.UISceneDemo20 %*
+
+scripts\java-win.bat com.jogamp.opengl.demos.es2.GearsES2 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.es2.LandscapeES2 %*
+REM scripts\java-win.bat com.jogamp.opengl.demos.es2.PointsDemoES2 %*
 
 REM scripts\java-win.bat com.jogamp.opengl.demos.av.MovieCube %*
 REM scripts\java-win.bat com.jogamp.opengl.demos.av.MovieSimple %*
