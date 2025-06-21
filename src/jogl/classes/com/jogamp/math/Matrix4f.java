@@ -2024,7 +2024,7 @@ public final class Matrix4f {
                                       final Matrix4f mMv, final Matrix4f mP,
                                       final Recti viewport,
                                       final Ray ray,
-                                      final Matrix4f mat4Tmp1, final Matrix4f mat4Tmp2) {
+                                      final Matrix4f mat4Tmp1) {
         // invPMv = Inv(P x Mv)
         final Matrix4f invPMv = mat4Tmp1.mul(mP, mMv);
         if( !invPMv.invert() ) {
