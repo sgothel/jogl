@@ -60,6 +60,24 @@ public class HEdge {
         this.triangle = triangle;
     }
 
+    @Override
+    public String toString() {
+        final String preS = prev != null ? Integer.toHexString(prev.hashCode()) : "nil";
+        final String nextS = next!= null ? Integer.toHexString(next.hashCode()) : "nil";
+        return "HEdge{this "+Integer.toHexString(hashCode())+", prev "+preS+", next "+nextS+"}";
+    }
+    public void printChain() {
+        int i=0;
+        HEdge current = this;
+        HEdge next = getNext();
+        System.err.println("HEdge["+i+"]: root "+Integer.toHexString(this.hashCode()));
+        do {
+            System.err.println("HEdge["+i+"]: current "+Integer.toHexString(current.hashCode())+", next "+Integer.toHexString(next.hashCode())); ++i;
+            current = next;
+            next = current.getNext();
+
+        } while(current != this);
+    }
     public GraphVertex getGraphPoint() {
         return vert;
     }

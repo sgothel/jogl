@@ -39,6 +39,7 @@ import com.jogamp.math.geom.plane.Winding;
 import com.jogamp.graph.geom.Triangle;
 
 public class Loop {
+    // private static final boolean TRACE = false;
     private final AABBox box = new AABBox();
     private final GraphOutline initialOutline;
     private final boolean complexShape;
@@ -108,12 +109,15 @@ public class Loop {
                 if(lastEdge != null) {
                     lastEdge.setNext(edge);
                     edge.setPrev(lastEdge);
+                    // if( TRACE ) { System.err.println("initFromPoly["+index+"]: lastEdge "+lastEdge+" -> new edge "+edge); }
                 } else {
                     firstEdge = edge;
+                    // if( TRACE ) { System.err.println("initFromPoly["+index+"]: new firstEdge "+firstEdge); }
                 }
                 if(index == max ) {
                     edge.setNext(firstEdge);
                     firstEdge.setPrev(edge);
+                    // if( TRACE ) { System.err.println("initFromPoly["+index+"]: last new edge "+edge+" -> firstEdge "+firstEdge); }
                 }
                 lastEdge = edge;
             }
@@ -140,6 +144,7 @@ public class Loop {
                 lastEdge = edge;
             }
         }
+        // if( TRACE ) { System.err.println("initFromPoly.XX: firstEdge "+firstEdge); firstEdge.printChain(); }
         return firstEdge;
     }
 
@@ -468,10 +473,13 @@ public class Loop {
             return false;
         }
 
+        // int i=0;
         boolean inside = false;
         HEdge current = root;
         HEdge next = root.getNext();
+        // if( TRACE ) { System.err.println("CI["+i+"]: root "+Integer.toHexString(root.hashCode())); }
         do {
+            // if( TRACE ) { System.err.println("CI["+i+"]: current "+Integer.toHexString(current.hashCode())+", next "+Integer.toHexString(next.hashCode())); ++i; }
             final Vertex v2 = current.getGraphPoint().getPoint();
             final Vertex v1 = next.getGraphPoint().getPoint();
 
