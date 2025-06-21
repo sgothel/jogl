@@ -153,6 +153,7 @@ public class Outline implements Comparable<Outline> {
             }
             vertices = ccw;
             winding = enforce;
+            dirtyBits &= ~DIRTY_WINDING;
         }
     }
 
