@@ -374,6 +374,7 @@ public final class ShaderState {
         activeAttribLocationMap.put(name, Integer.valueOf(location));
         data.setLocation(gl, shaderProgram.program(), location);
         activeAttribDataMap.put(data.getName(), data);
+        gl.glBindAttribLocation(shaderProgram.program(), location, name);
     }
 
     /**
